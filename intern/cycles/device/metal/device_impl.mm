@@ -267,6 +267,7 @@ MetalDevice::~MetalDevice()
     }
   }
 
+  free_bvh();
   flush_delayed_free_list();
 
   if (texture_bindings_2d) {
@@ -1372,24 +1373,7 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (bvh_metal->build(progress, mtlDevice, mtlGeneralCommandQueue, refit)) {
 
       if (bvh->params.top_level) {
-        bvhMetalRT = bvh_metal;
-
-        // allocate required buffers for BLAS array
-        uint64_t count = bvhMetalRT->blas_array.size();
-        uint64_t bufferSize = mtlBlasArgEncoder.encodedLength * count;
-        blas_buffer = [mtlDevice newBufferWithLength:bufferSize options:default_storage_mode];
-        stats.mem_alloc(blas_buffer.allocatedSize);
-
-        for (uint64_t i = 0; i < count; ++i) {
-          if (bvhMetalRT->blas_array[i]) {
-            [mtlBlasArgEncoder setArgumentBuffer:blas_buffer
-                                          offset:i * mtlBlasArgEncoder.encodedLength];
-            [mtlBlasArgEncoder setAccelerationStructure:bvhMetalRT->blas_array[i] atIndex:0];
-          }
-        }
-        if (default_storage_mode == MTLResourceStorageModeManaged) {
-          [blas_buffer didModifyRange:NSMakeRange(0, blas_buffer.length)];
-        }
+        update_bvh(bvh_metal);
       }
     }
 
@@ -1399,10 +1383,54 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   }
 }
 
-void MetalDevice::release_bvh(BVH *bvh)
+void MetalDevice::free_bvh()
 {
-  if (bvhMetalRT == bvh) {
-    bvhMetalRT = nullptr;
+  for (id<MTLAccelerationStructure> &blas : unique_blas_array) {
+    [blas release];
+  }
+  unique_blas_array.clear();
+
+  if (blas_buffer) {
+    [blas_buffer release];
+    blas_buffer = nil;
+  }
+
+  if (accel_struct) {
+    [accel_struct release];
+    accel_struct = nil;
+  }
+}
+
+void MetalDevice::update_bvh(BVHMetal *bvh_metal)
+{
+  free_bvh();
+
+  if (!bvh_metal) {
+    return;
+  }
+
+  accel_struct = bvh_metal->accel_struct;
+  unique_blas_array = bvh_metal->unique_blas_array;
+
+  [accel_struct retain];
+  for (id<MTLAccelerationStructure> &blas : unique_blas_array) {
+    [blas retain];
+  }
+
+  // Allocate required buffers for BLAS array.
+  uint64_t count = bvh_metal->blas_array.size();
+  uint64_t buffer_size = mtlBlasArgEncoder.encodedLength * count;
+  blas_buffer = [mtlDevice newBufferWithLength:buffer_size options:default_storage_mode];
+  stats.mem_alloc(blas_buffer.allocatedSize);
+
+  for (uint64_t i = 0; i < count; ++i) {
+    if (bvh_metal->blas_array[i]) {
+      [mtlBlasArgEncoder setArgumentBuffer:blas_buffer offset:i * mtlBlasArgEncoder.encodedLength];
+      [mtlBlasArgEncoder setAccelerationStructure:bvh_metal->blas_array[i] atIndex:0];
+    }
+  }
+  if (default_storage_mode == MTLResourceStorageModeManaged) {
+    [blas_buffer didModifyRange:NSMakeRange(0, blas_buffer.length)];
   }
 }
 

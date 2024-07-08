@@ -41,23 +41,14 @@ struct MetalInfo {
 /* Pool of MTLBuffers whose lifetime is linked to a single MTLCommandBuffer */
 class MetalBufferPool {
   struct MetalBufferListEntry {
-    MetalBufferListEntry(id<MTLBuffer> buffer, id<MTLCommandBuffer> command_buffer)
-        : buffer(buffer), command_buffer(command_buffer)
-    {
-    }
-
-    MetalBufferListEntry() = delete;
-
     id<MTLBuffer> buffer;
     id<MTLCommandBuffer> command_buffer;
   };
-  std::vector<MetalBufferListEntry> buffer_free_list;
-  std::vector<MetalBufferListEntry> buffer_in_use_list;
+  std::vector<MetalBufferListEntry> temp_buffers;
   thread_mutex buffer_mutex;
   size_t total_temp_mem_size = 0;
 
  public:
-  MetalBufferPool() = default;
   ~MetalBufferPool();
 
   id<MTLBuffer> get_buffer(id<MTLDevice> device,

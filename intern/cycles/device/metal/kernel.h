@@ -54,10 +54,12 @@ enum MetalPipelineType {
 
 const char *kernel_type_as_string(MetalPipelineType pso_type);
 
-struct MetalKernelPipeline {
-
+/* A pipeline object that can be shared between multiple instances of MetalDeviceQueue. */
+class MetalKernelPipeline {
+ public:
   void compile();
 
+  int pipeline_id;
   int originating_device_id;
 
   id<MTLLibrary> mtlLibrary = nil;
@@ -82,6 +84,28 @@ struct MetalKernelPipeline {
   id<MTLFunction> make_intersection_function(const char *function_name);
 
   string error_str;
+
+  NSArray *table_functions[METALRT_TABLE_NUM] = {nil};
+};
+
+/* An actively instanced pipeline that can only be used by a single instance of MetalDeviceQueue.
+ */
+class MetalDispatchPipeline {
+ public:
+  ~MetalDispatchPipeline();
+
+  bool update(MetalDevice *metal_device, DeviceKernel kernel);
+  void free_intersection_function_tables();
+
+ private:
+  friend class MetalDeviceQueue;
+  friend struct ShaderCache;
+
+  int pipeline_id = -1;
+
+  MetalPipelineType pso_type;
+  id<MTLComputePipelineState> pipeline = nil;
+  int num_threads_per_block = 0;
 
   API_AVAILABLE(macos(11.0))
   id<MTLIntersectionFunctionTable> intersection_func_table[METALRT_TABLE_NUM] = {nil};

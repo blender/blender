@@ -465,13 +465,12 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     }
     bytes_written = globals_offsets + sizeof(KernelParamsMetal);
 
-    const MetalKernelPipeline *metal_kernel_pso = MetalDeviceKernels::get_best_pipeline(
-        metal_device_, kernel);
-    if (!metal_kernel_pso) {
+    if (!active_pipelines_[kernel].update(metal_device_, kernel)) {
       metal_device_->set_error(
-          string_printf("No MetalKernelPipeline for %s\n", device_kernel_as_string(kernel)));
+          string_printf("Could not activate pipeline for %s\n", device_kernel_as_string(kernel)));
       return false;
     }
+    MetalDispatchPipeline &active_pipeline = active_pipelines_[kernel];
 
     /* Encode ancillaries */
     [metal_device_->mtlAncillaryArgEncoder setArgumentBuffer:arg_buffer offset:metal_offsets];
@@ -487,8 +486,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     if (@available(macos 12.0, *)) {
       if (metal_device_->use_metalrt && device_kernel_has_intersection(kernel)) {
-        if (metal_device_->bvhMetalRT) {
-          id<MTLAccelerationStructure> accel_struct = metal_device_->bvhMetalRT->accel_struct;
+        if (id<MTLAccelerationStructure> accel_struct = metal_device_->accel_struct) {
           [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:3];
           [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
                                                     offset:0
@@ -496,14 +494,14 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         }
 
         for (int table = 0; table < METALRT_TABLE_NUM; table++) {
-          if (metal_kernel_pso->intersection_func_table[table]) {
-            [metal_kernel_pso->intersection_func_table[table] setBuffer:arg_buffer
-                                                                 offset:globals_offsets
-                                                                atIndex:1];
+          if (active_pipeline.intersection_func_table[table]) {
+            [active_pipeline.intersection_func_table[table] setBuffer:arg_buffer
+                                                               offset:globals_offsets
+                                                              atIndex:1];
             [metal_device_->mtlAncillaryArgEncoder
-                setIntersectionFunctionTable:metal_kernel_pso->intersection_func_table[table]
+                setIntersectionFunctionTable:active_pipeline.intersection_func_table[table]
                                      atIndex:4 + table];
-            [mtlComputeCommandEncoder useResource:metal_kernel_pso->intersection_func_table[table]
+            [mtlComputeCommandEncoder useResource:active_pipeline.intersection_func_table[table]
                                             usage:MTLResourceUsageRead];
           }
           else {
@@ -526,24 +524,22 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     if (metal_device_->use_metalrt && device_kernel_has_intersection(kernel)) {
       if (@available(macos 12.0, *)) {
 
-        BVHMetal *bvhMetalRT = metal_device_->bvhMetalRT;
-        if (bvhMetalRT && bvhMetalRT->accel_struct) {
+        if (id<MTLAccelerationStructure> accel_struct = metal_device_->accel_struct) {
           /* Mark all Accelerations resources as used */
-          [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct
-                                          usage:MTLResourceUsageRead];
+          [mtlComputeCommandEncoder useResource:accel_struct usage:MTLResourceUsageRead];
           [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
                                           usage:MTLResourceUsageRead];
-          [mtlComputeCommandEncoder useResources:bvhMetalRT->unique_blas_array.data()
-                                           count:bvhMetalRT->unique_blas_array.size()
+          [mtlComputeCommandEncoder useResources:metal_device_->unique_blas_array.data()
+                                           count:metal_device_->unique_blas_array.size()
                                            usage:MTLResourceUsageRead];
         }
       }
     }
 
-    [mtlComputeCommandEncoder setComputePipelineState:metal_kernel_pso->pipeline];
+    [mtlComputeCommandEncoder setComputePipelineState:active_pipeline.pipeline];
 
     /* Compute kernel launch parameters. */
-    const int num_threads_per_block = metal_kernel_pso->num_threads_per_block;
+    const int num_threads_per_block = active_pipeline.num_threads_per_block;
 
     int shared_mem_bytes = 0;
 
@@ -594,7 +590,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
           const char *errCStr = [[NSString stringWithFormat:@"%@", command_buffer.error]
               UTF8String];
           str += string_printf("(%s.%s):\n%s\n",
-                               kernel_type_as_string(metal_kernel_pso->pso_type),
+                               kernel_type_as_string(active_pipeline.pso_type),
                                device_kernel_as_string(kernel),
                                errCStr);
         }

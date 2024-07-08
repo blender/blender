@@ -39,10 +39,19 @@ class MetalDevice : public Device {
   KernelParamsMetal launch_params = {0};
 
   /* MetalRT members ----------------------------------*/
-  BVHMetal *bvhMetalRT = nullptr;
+  bool use_metalrt = false;
   bool motion_blur = false;
   id<MTLArgumentEncoder> mtlASArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
+
+  id<MTLArgumentEncoder> mtlBlasArgEncoder = nil;
+  id<MTLBuffer> blas_buffer = nil;
+
+  API_AVAILABLE(macos(11.0))
+  vector<id<MTLAccelerationStructure>> unique_blas_array;
+
+  API_AVAILABLE(macos(11.0))
+  id<MTLAccelerationStructure> accel_struct = nil;
   /*---------------------------------------------------*/
 
   uint kernel_features;
@@ -79,11 +88,6 @@ class MetalDevice : public Device {
   id<MTLBuffer> texture_bindings_3d = nil;
   std::vector<id<MTLTexture>> texture_slot_map;
 
-  /* BLAS encoding & lookup */
-  id<MTLArgumentEncoder> mtlBlasArgEncoder = nil;
-  id<MTLBuffer> blas_buffer = nil;
-
-  bool use_metalrt = false;
   MetalPipelineType kernel_specialization_level = PSO_GENERIC;
 
   int device_id = 0;
@@ -138,8 +142,6 @@ class MetalDevice : public Device {
 
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
-  virtual void release_bvh(BVH *bvh) override;
-
   virtual void optimize_for_scene(Scene *scene) override;
 
   static void compile_and_load(int device_id, MetalPipelineType pso_type);
@@ -184,6 +186,10 @@ class MetalDevice : public Device {
   void tex_free(device_texture &mem);
 
   void flush_delayed_free_list();
+
+  void free_bvh();
+
+  void update_bvh(BVHMetal *bvh_metal);
 };
 
 CCL_NAMESPACE_END

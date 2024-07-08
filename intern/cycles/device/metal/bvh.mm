@@ -119,17 +119,27 @@ BVHMetal::BVHMetal(const BVHParams &params_,
 
 BVHMetal::~BVHMetal()
 {
-  /* Clear point used by enqueueing. */
-  device->release_bvh(this);
+  if (@available(macos 12.0, *)) {
+    set_accel_struct(nil);
+    if (null_BLAS) {
+      [null_BLAS release];
+    }
+  }
+}
 
+API_AVAILABLE(macos(11.0))
+void BVHMetal::set_accel_struct(id<MTLAccelerationStructure> new_accel_struct)
+{
   if (@available(macos 12.0, *)) {
     if (accel_struct) {
       device->stats.mem_free(accel_struct.allocatedSize);
       [accel_struct release];
+      accel_struct = nil;
     }
 
-    if (null_BLAS) {
-      [null_BLAS release];
+    if (new_accel_struct) {
+      accel_struct = new_accel_struct;
+      device->stats.mem_alloc(accel_struct.allocatedSize);
     }
   }
 }
@@ -325,9 +335,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
           [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
-            uint64_t allocated_size = [accel allocatedSize];
-            device->stats.mem_alloc(allocated_size);
-            accel_struct = accel;
+            set_accel_struct(accel);
             [accel_uncompressed release];
 
             /* Signal that we've finished doing GPU acceleration struct build. */
@@ -338,10 +346,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       }
       else {
         /* set our acceleration structure to the uncompressed structure */
-        accel_struct = accel_uncompressed;
-
-        uint64_t allocated_size = [accel_struct allocatedSize];
-        device->stats.mem_alloc(allocated_size);
+        set_accel_struct(accel_uncompressed);
 
         /* Signal that we've finished doing GPU acceleration struct build. */
         g_bvh_build_throttler.release(wired_size);
@@ -663,9 +668,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
           [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
-            uint64_t allocated_size = [accel allocatedSize];
-            device->stats.mem_alloc(allocated_size);
-            accel_struct = accel;
+            set_accel_struct(accel);
             [accel_uncompressed release];
 
             /* Signal that we've finished doing GPU acceleration struct build. */
@@ -676,10 +679,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       }
       else {
         /* set our acceleration structure to the uncompressed structure */
-        accel_struct = accel_uncompressed;
-
-        uint64_t allocated_size = [accel_struct allocatedSize];
-        device->stats.mem_alloc(allocated_size);
+        set_accel_struct(accel_uncompressed);
 
         /* Signal that we've finished doing GPU acceleration struct build. */
         g_bvh_build_throttler.release(wired_size);
@@ -910,9 +910,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
           [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
-            uint64_t allocated_size = [accel allocatedSize];
-            device->stats.mem_alloc(allocated_size);
-            accel_struct = accel;
+            set_accel_struct(accel);
             [accel_uncompressed release];
 
             /* Signal that we've finished doing GPU acceleration struct build. */
@@ -923,10 +921,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       }
       else {
         /* set our acceleration structure to the uncompressed structure */
-        accel_struct = accel_uncompressed;
-
-        uint64_t allocated_size = [accel_struct allocatedSize];
-        device->stats.mem_alloc(allocated_size);
+        set_accel_struct(accel_uncompressed);
 
         /* Signal that we've finished doing GPU acceleration struct build. */
         g_bvh_build_throttler.release(wired_size);
@@ -1036,10 +1031,6 @@ bool BVHMetal::build_TLAS(Progress &progress,
     for (Object *ob : objects) {
       num_instances++;
 
-      /* Skip motion for non-traceable objects */
-      if (!ob->is_traceable())
-        continue;
-
       if (ob->use_motion()) {
         num_motion_transforms += max((size_t)1, ob->get_motion().size());
       }
@@ -1115,8 +1106,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
       /* Skip non-traceable objects */
       Geometry const *geom = ob->get_geometry();
       BVHMetal const *blas = static_cast<BVHMetal const *>(geom->bvh);
-      if (!blas || !blas->accel_struct) {
-        /* Place a degenerate instance, to ensure [[instance_id]] equals ob->get_mtl_device_index()
+      if (!blas || !blas->accel_struct || !ob->is_traceable()) {
+        /* Place a degenerate instance, to ensure [[instance_id]] equals ob->get_device_index()
          * in our intersection functions */
         blas = nullptr;
 
@@ -1299,11 +1290,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
     [instanceBuf release];
     [scratchBuf release];
 
-    uint64_t allocated_size = [accel allocatedSize];
-    device->stats.mem_alloc(allocated_size);
-
     /* Cache top and bottom-level acceleration structs */
-    accel_struct = accel;
+    set_accel_struct(accel);
 
     unique_blas_array.clear();
     unique_blas_array.reserve(all_blas.count);
@@ -1322,15 +1310,17 @@ bool BVHMetal::build(Progress &progress,
                      bool refit)
 {
   if (@available(macos 12.0, *)) {
-    if (refit && params.bvh_type != BVH_TYPE_STATIC) {
-      assert(accel_struct);
-    }
-    else {
-      if (accel_struct) {
-        device->stats.mem_free(accel_struct.allocatedSize);
-        [accel_struct release];
-        accel_struct = nil;
+    if (refit) {
+      /* It isn't valid to refit a non-existent BVH, or one which wasn't constructed as dynamic.
+       * In such cases, assert in development but try to recover in the wild. */
+      if (params.bvh_type != BVH_TYPE_DYNAMIC || !accel_struct) {
+        assert(false);
+        refit = false;
       }
+    }
+
+    if (!refit) {
+      set_accel_struct(nil);
     }
   }
 
