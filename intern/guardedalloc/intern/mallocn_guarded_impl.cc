@@ -212,6 +212,9 @@ static bool malloc_debug_memset = false;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
+#ifdef __GNUC__
+__attribute__((format(printf, 1, 0)))
+#endif
 static void print_error(const char *message, va_list str_format_args)
 {
   char buf[512];
