@@ -15,6 +15,9 @@
 #include "BLI_string_ref.hh"
 
 #include "BKE_context.hh"
+#include "BKE_curve_legacy_convert.hh"
+#include "BKE_geometry_set.hh"
+#include "BKE_instances.hh"
 #include "BKE_layer.hh"
 
 #include "DEG_depsgraph_build.hh"
@@ -72,6 +75,30 @@ static Collection *find_or_create_collection(Main *bmain,
   return target;
 }
 
+static void geometry_to_blender_geometry_set(const OBJImportParams &import_params,
+                                             const Span<std::unique_ptr<Geometry>> &all_geometries,
+                                             const GlobalVertices &global_vertices,
+                                             Vector<bke::GeometrySet> &geometries)
+{
+  for (const std::unique_ptr<Geometry> &geometry : all_geometries) {
+    bke::GeometrySet geometry_set;
+
+    if (geometry->geom_type_ == GEOM_MESH) {
+      MeshFromGeometry mesh_ob_from_geometry{*geometry, global_vertices};
+      Mesh *mesh = mesh_ob_from_geometry.create_mesh(import_params);
+      geometry_set = bke::GeometrySet::from_mesh(mesh);
+    }
+    else if (geometry->geom_type_ == GEOM_CURVE) {
+      CurveFromGeometry curve_ob_from_geometry(*geometry, global_vertices);
+      Curve *curve = curve_ob_from_geometry.create_curve();
+      Curves *curves_id = bke::curve_legacy_to_curves(*curve);
+      geometry_set = bke::GeometrySet::from_curves(curves_id);
+    }
+
+    geometries.append(std::move(geometry_set));
+  }
+}
+
 /**
  * Make Blender Mesh, Curve etc from Geometry and add them to the import collection.
  */
@@ -103,11 +130,12 @@ static void geometry_to_blender_objects(Main *bmain,
     Object *obj = nullptr;
     if (geometry->geom_type_ == GEOM_MESH) {
       MeshFromGeometry mesh_ob_from_geometry{*geometry, global_vertices};
-      obj = mesh_ob_from_geometry.create_mesh(bmain, materials, created_materials, import_params);
+      obj = mesh_ob_from_geometry.create_mesh_object(
+          bmain, materials, created_materials, import_params);
     }
     else if (geometry->geom_type_ == GEOM_CURVE) {
       CurveFromGeometry curve_ob_from_geometry(*geometry, global_vertices);
-      obj = curve_ob_from_geometry.create_curve(bmain, import_params);
+      obj = curve_ob_from_geometry.create_curve_object(bmain, import_params);
     }
     if (obj != nullptr) {
       Collection *target_collection = find_or_create_collection(
@@ -135,6 +163,21 @@ static void geometry_to_blender_objects(Main *bmain,
 
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
+}
+
+void importer_geometry(const OBJImportParams &import_params,
+                       Vector<bke::GeometrySet> &geometries,
+                       size_t read_buffer_size)
+{
+  /* List of Geometry instances to be parsed from OBJ file. */
+  Vector<std::unique_ptr<Geometry>> all_geometries;
+  /* Container for vertex and UV vertex coordinates. */
+  GlobalVertices global_vertices;
+
+  OBJParser obj_parser{import_params, read_buffer_size};
+  obj_parser.parse(all_geometries, global_vertices);
+
+  geometry_to_blender_geometry_set(import_params, all_geometries, global_vertices, geometries);
 }
 
 void importer_main(bContext *C, const OBJImportParams &import_params)

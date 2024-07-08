@@ -29,6 +29,8 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array_fwd.hh"
 
+#include "BKE_geometry_set.hh"
+
 #include "DNA_customdata_types.h"
 
 struct Object;
@@ -40,8 +42,6 @@ class MutableAttributeAccessor;
 }  // namespace blender::bke
 
 namespace blender::bke {
-
-struct GeometrySet;
 
 /**
  * Holds a reference to conceptually unique geometry or a pointer to object/collection data

@@ -4,30 +4,30 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_mesh.hh"
-
-#include "BKE_report.hh"
 #include "BLI_string.h"
 
-#include "IO_stl.hh"
+#include "BKE_instances.hh"
+#include "BKE_mesh.hh"
+#include "BKE_report.hh"
+
+#include "IO_wavefront_obj.hh"
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_import_stl {
+namespace blender::nodes::node_geo_import_obj {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
       .hide_label()
-      .description("Path to a STL file");
+      .description("Path to a OBJ file");
 
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Geometry>("Instances");
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-#ifdef WITH_IO_STL
   const std::string path = params.extract_input<std::string>("Path");
 
   if (path.empty()) {
@@ -35,22 +35,17 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  STLImportParams import_params;
+  OBJImportParams import_params;
 
   STRNCPY(import_params.filepath, path.c_str());
-
-  import_params.forward_axis = IO_AXIS_NEGATIVE_Z;
-  import_params.up_axis = IO_AXIS_Y;
-  import_params.use_facet_normal = false;
-  import_params.use_scene_unit = false;
-  import_params.global_scale = 1.0f;
-  import_params.use_mesh_validate = true;
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
   import_params.reports = &reports;
 
-  Mesh *mesh = STL_import_mesh(&import_params);
+  Vector<bke::GeometrySet> geometries;
+
+  OBJ_import_geometries(&import_params, geometries);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
@@ -69,24 +64,26 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   BKE_reports_free(&reports);
 
-  if (mesh != nullptr) {
-    params.set_output("Mesh", GeometrySet::from_mesh(mesh));
-  }
-  else {
+  if (geometries.size() == 0) {
     params.set_default_remaining_outputs();
+    return;
   }
-#else
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without STL I/O"));
-  params.set_default_remaining_outputs();
-#endif
+
+  bke::Instances *instances = new bke::Instances();
+
+  for (GeometrySet geometry : geometries) {
+    const int handle = instances->add_reference(bke::InstanceReference{geometry});
+    instances->add_instance(handle, float4x4::identity());
+  }
+
+  params.set_output("Instances", GeometrySet::from_instances(instances));
 }
 
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_STL, "Import STL", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_IMPORT_OBJ, "Import OBJ", NODE_CLASS_INPUT);
 
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
@@ -96,4 +93,4 @@ static void node_register()
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_import_stl
+}  // namespace blender::nodes::node_geo_import_obj
