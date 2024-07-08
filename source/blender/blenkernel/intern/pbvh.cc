@@ -62,7 +62,6 @@ using blender::bke::AttrDomain;
 /* Uncomment to test that faces are only assigned to one PBVHNode */
 // #define VALIDATE_UNIQUE_NODE_FACES
 
-// #define PERFCNTRS
 #define STACK_FIXED_DEPTH 100
 
 struct PBVHStack {

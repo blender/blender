@@ -147,10 +147,6 @@ struct PBVH {
   /* Grid Data */
   SubdivCCG *subdiv_ccg;
 
-#ifdef PERFCNTRS
-  int perf_modified;
-#endif
-
   /* flag are verts/faces deformed */
   bool deformed;
 
