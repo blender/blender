@@ -1698,8 +1698,15 @@ def pkg_manifest_validate_field_wheels(
     filename_spec = "{distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl"
 
     for wheel in value:
+        if "\"" in wheel:
+            return "wheel paths most not contain quotes, found {!r}".format(wheel)
         if "\\" in wheel:
             return "wheel paths must use forward slashes, found {!r}".format(wheel)
+
+        if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(
+                wheel, True,
+        )) is not None:
+            return "wheel paths detected: {:s}, found {!r}".format(error, wheel)
 
         wheel_filename = os.path.basename(wheel)
         if not wheel_filename.lower().endswith(".whl"):
@@ -1898,6 +1905,9 @@ def pkg_manifest_dict_apply_build_generated_table(manifest_dict: Dict[str, Any])
     if (platforms := build_generated.get("platforms")) is not None:
         manifest_dict["platforms"] = platforms
 
+    if (wheels := build_generated.get("wheels")) is not None:
+        manifest_dict["wheels"] = wheels
+
 
 # -----------------------------------------------------------------------------
 # Standalone Utilities
@@ -1986,6 +1996,35 @@ def blender_platform_compatible_with_wheel_platform(platform: str, wheel_platfor
     return platform == platform_blender
 
 
+def blender_platform_compatible_with_wheel_platform_from_filepath(platform: str, wheel_filepath: str) -> bool:
+    wheel_filename = os.path.splitext(os.path.basename(wheel_filepath))[0]
+
+    wheel_filename_split = wheel_filename.split("-")
+    # This should be unreachable because the manifest has been validated, add assert.
+    assert len(wheel_filename_split) >= 5, "Internal error, manifest validation disallows this"
+
+    wheel_platform = wheel_filename_split[-1]
+
+    return blender_platform_compatible_with_wheel_platform(platform, wheel_platform)
+
+
+def paths_filter_wheels_by_platform(
+        wheels: List[str],
+        platform: str,
+) -> List[str]:
+    """
+    All paths are wheels with filenames that follow the wheel spec.
+    Return wheels which are compatible with the ``platform``.
+    """
+    wheels_result: List[str] = []
+
+    for wheel_filepath in wheels:
+        if blender_platform_compatible_with_wheel_platform_from_filepath(platform, wheel_filepath):
+            wheels_result.append(wheel_filepath)
+
+    return wheels_result
+
+
 def build_paths_filter_wheels_by_platform(
         build_paths: List[Tuple[str, str]],
         platform: str,
@@ -1997,17 +2036,7 @@ def build_paths_filter_wheels_by_platform(
     build_paths_for_platform: List[Tuple[str, str]] = []
 
     for item in build_paths:
-        # Both the absolute/relative path can be used to get the filename.
-        # Use the relative since it's likely to be shorter.
-        wheel_filename = os.path.splitext(os.path.basename(item[1]))[0]
-
-        wheel_filename_split = wheel_filename.split("-")
-        # This should be unreachable because the manifest has been validated, add assert.
-        assert len(wheel_filename_split) >= 5, "Internal error, manifest validation disallows this"
-
-        wheel_platform = wheel_filename_split[-1]
-
-        if blender_platform_compatible_with_wheel_platform(platform, wheel_platform):
+        if blender_platform_compatible_with_wheel_platform_from_filepath(platform, item[1]):
             build_paths_for_platform.append(item)
 
     return build_paths_for_platform
@@ -4011,6 +4040,18 @@ class subcmd_author:
                                 b"# This must not be included in source manifests.\n",
                                 b"[build.generated]\n",
                                 "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
+                                # Including wheels simplifies server side check as this list can be tested
+                                # without the server having to filter by platform too.
+                                b"wheels = [",
+                                ", ".join([
+                                    # NOTE: accept no string escaping as the rules for wheel paths
+                                    # are already strict so strings don't require quoting.
+                                    "\"{:s}\"".format(wheel) for wheel in paths_filter_wheels_by_platform(
+                                        manifest.wheels or [],
+                                        platform,
+                                    )
+                                ]).encode("utf-8"),
+                                b"]\n"
                                 b"# END GENERATED CONTENT.\n",
                             ))
                             try:
