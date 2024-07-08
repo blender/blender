@@ -9853,7 +9853,7 @@ static void rna_def_modifier_grease_pencil_multiply(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, nullptr, "duplications");
   RNA_def_property_range(prop, 0, 999);
   RNA_def_property_ui_range(prop, 1, 10, 1, 1);
-  RNA_def_property_ui_text(prop, "duplicates", "How many copies of strokes be displayed");
+  RNA_def_property_ui_text(prop, "Duplicates", "How many copies of strokes be displayed");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
