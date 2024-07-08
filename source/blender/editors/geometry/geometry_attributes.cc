@@ -254,7 +254,8 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
     return rna_enum_dummy_NULL_items;
   }
 
-  return rna_enum_attribute_domain_itemf(static_cast<ID *>(ob->data), false, r_free);
+  const AttributeOwner owner = AttributeOwner::from_id(static_cast<ID *>(ob->data));
+  return rna_enum_attribute_domain_itemf(owner, false, r_free);
 }
 
 static int geometry_attribute_add_exec(bContext *C, wmOperator *op)

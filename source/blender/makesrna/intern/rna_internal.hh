@@ -18,6 +18,8 @@
 
 #define RNA_MAGIC ((int)~0)
 
+enum class AttributeOwnerType;
+
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
@@ -217,7 +219,7 @@ void RNA_def_xr(BlenderRNA *brna);
 
 /* Common Define functions */
 
-void rna_def_attributes_common(StructRNA *srna);
+void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
 void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter);

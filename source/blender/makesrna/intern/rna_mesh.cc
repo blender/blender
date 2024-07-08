@@ -3171,7 +3171,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* End skin vertices */
 
   /* Attributes */
-  rna_def_attributes_common(srna);
+  rna_def_attributes_common(srna, AttributeOwnerType::Mesh);
 
   /* Remesh */
   prop = RNA_def_property(srna, "remesh_voxel_size", PROP_FLOAT, PROP_DISTANCE);

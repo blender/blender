@@ -15,6 +15,8 @@
 
 #include "DNA_pointcloud_types.h"
 
+#include "BKE_attribute.h"
+
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 
@@ -207,7 +209,7 @@ static void rna_def_pointcloud(BlenderRNA *brna)
                                     nullptr,
                                     "rna_IDMaterials_assign_int");
 
-  rna_def_attributes_common(srna);
+  rna_def_attributes_common(srna, AttributeOwnerType::PointCloud);
 
   /* common */
   rna_def_animdata_common(srna);

@@ -15,6 +15,8 @@
 
 #include "DNA_curves_types.h"
 
+#include "BKE_attribute.h"
+
 #include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_curves_type_items[] = {
@@ -618,7 +620,7 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
-  rna_def_attributes_common(srna);
+  rna_def_attributes_common(srna, AttributeOwnerType::Curves);
 
   /* common */
   rna_def_animdata_common(srna);

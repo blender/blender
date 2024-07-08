@@ -10,7 +10,10 @@
 
 #include "RNA_types.hh"
 
-struct ID;
+#ifdef __cplusplus
+class AttributeOwner;
+#endif
+
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
@@ -25,7 +28,7 @@ struct RuntimeNodeEnumItems;
 #define DEF_ENUM(id) extern const EnumPropertyItem id[];
 #include "RNA_enum_items.hh"
 
-extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
+extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &owner,
                                                                bool include_instances,
                                                                bool *r_free);
 

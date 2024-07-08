@@ -720,7 +720,7 @@ class AttributeDescription:
     domain: str
     # Some attributes are required to exist if certain conditions are met. If a required attribute does not exist when
     # attempting to get it, an AssertionError is raised.
-    is_required_check: Callable[[bpy.types.AttributeGroup], bool] = None
+    is_required_check: Callable[[bpy.types.AttributeGroupMesh], bool] = None
     # NumPy dtype that matches the internal C data of this attribute.
     dtype: np.dtype = field(init=False)
     # The default attribute name to use with foreach_get and foreach_set.
