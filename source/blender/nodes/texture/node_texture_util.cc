@@ -124,7 +124,7 @@ void tex_output(bNode *node,
 
   if (!out->data) {
     /* Freed in tex_end_exec (node.cc) */
-    dg = MEM_new<TexDelegate>("tex delegate");
+    dg = MEM_cnew<TexDelegate>("tex delegate");
     out->data = dg;
   }
   else {
