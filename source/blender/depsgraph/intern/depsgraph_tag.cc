@@ -14,6 +14,7 @@
 #include <cstring> /* required for memset */
 #include <queue>
 
+#include "BLI_index_range.hh"
 #include "BLI_math_bits.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -968,6 +969,14 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
       deg_graph_clear_id_recalc_flags(id_node->id_orig);
     }
   }
+
+  if (backup) {
+    for (const int64_t i : blender::IndexRange(INDEX_ID_MAX)) {
+      if (deg_graph->id_type_updated[i] != 0) {
+        deg_graph->id_type_updated_backup[i] = 1;
+      }
+    }
+  }
   memset(deg_graph->id_type_updated, 0, sizeof(deg_graph->id_type_updated));
 }
 
@@ -979,4 +988,11 @@ void DEG_ids_restore_recalc(Depsgraph *depsgraph)
     id_node->id_cow->recalc |= id_node->id_cow_recalc_backup;
     id_node->id_cow_recalc_backup = 0;
   }
+
+  for (const int64_t i : blender::IndexRange(INDEX_ID_MAX)) {
+    if (deg_graph->id_type_updated_backup[i] != 0) {
+      deg_graph->id_type_updated[i] = 1;
+    }
+  }
+  memset(deg_graph->id_type_updated_backup, 0, sizeof(deg_graph->id_type_updated_backup));
 }
