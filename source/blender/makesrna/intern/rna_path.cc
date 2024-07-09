@@ -34,6 +34,19 @@
 #include "rna_access_internal.h"
 #include "rna_internal.hh"
 
+bool operator==(const RNAPath &left, const RNAPath &right)
+{
+  if (left.path != right.path) {
+    return false;
+  }
+
+  if (left.key.has_value() || right.key.has_value()) {
+    return left.key == right.key;
+  }
+
+  return left.index == right.index;
+}
+
 /**
  * Extract the first token from `path`.
  *

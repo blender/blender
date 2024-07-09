@@ -64,28 +64,17 @@ struct RNAPath {
    */
   std::optional<std::string> key = std::nullopt;
   std::optional<int> index = std::nullopt;
-
-  /**
-   * NOTE: equality is defined in a specific way here to reflect the semantic
-   * meaning of `RNAPath`. Since the key existing indicates a key-based array
-   * element, with the index then only serving as a fallback, the index only
-   * affects the equality result if *neither* `RNAPath` has a key specified.
-   * (See the main `RNAPath` documentation above for the specific semantics of
-   * key and index.)
-   */
-  bool operator==(const RNAPath &other) const
-  {
-    if (this->path != other.path) {
-      return false;
-    }
-
-    if (this->key.has_value() || other.key.has_value()) {
-      return this->key == other.key;
-    }
-
-    return this->index == other.index;
-  }
 };
+
+/**
+ * NOTE: equality is defined in a specific way here to reflect the semantic
+ * meaning of `RNAPath`. Since the key existing indicates a key-based array
+ * element, with the index then only serving as a fallback, the index only
+ * affects the equality result if *neither* `RNAPath` has a key specified.
+ * (See the main `RNAPath` documentation above for the specific semantics of
+ * key and index.)
+ */
+bool operator==(const RNAPath &left, const RNAPath &right);
 
 char *RNA_path_append(
     const char *path, const PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey);
