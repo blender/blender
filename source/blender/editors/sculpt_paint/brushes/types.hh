@@ -53,6 +53,7 @@ void do_smooth_mask_brush(const Sculpt &sd,
                           Object &object,
                           Span<PBVHNode *> nodes,
                           float brush_strength);
+void do_snake_hook_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_thumb_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes);
 

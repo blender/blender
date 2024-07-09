@@ -142,6 +142,7 @@ set(SRC
   brushes/scrape.cc
   brushes/smooth.cc
   brushes/smooth_mask.cc
+  brushes/snake_hook.cc
   brushes/thumb.cc
   brushes/topology_slide.cc
 
