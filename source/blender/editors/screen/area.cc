@@ -2847,15 +2847,15 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     /* tell WM to refresh, cursor types etc */
     WM_event_add_mousemove(win);
 
-    if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
-      /* If there is only one area update the window title. */
-      WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
-    }
-
     /* send space change notifier */
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, area);
 
     ED_area_tag_refresh(area);
+  }
+
+  if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
+    /* If there is only one area update the window title. */
+    WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
   }
 
   /* also redraw when re-used */
