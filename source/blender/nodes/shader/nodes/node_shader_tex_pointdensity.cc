@@ -66,7 +66,8 @@ static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext * /*C*/
 
 static void node_shader_init_tex_pointdensity(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderTexPointDensity *point_density = MEM_cnew<NodeShaderTexPointDensity>("new pd node");
+  NodeShaderTexPointDensity *point_density = static_cast<NodeShaderTexPointDensity *>(
+      MEM_callocN(sizeof(NodeShaderTexPointDensity), __func__));
   point_density->resolution = 100;
   point_density->radius = 0.3f;
   point_density->space = SHD_POINTDENSITY_SPACE_OBJECT;
