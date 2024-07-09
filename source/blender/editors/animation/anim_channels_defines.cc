@@ -1369,7 +1369,22 @@ static void acf_action_slot_name(bAnimListElem *ale, char *r_name)
     return;
   }
 
-  BLI_strncpy(r_name, slot->name_without_prefix().c_str(), ANIM_CHAN_NAME_SIZE);
+  BLI_assert(ale->bmain);
+  const int num_users = slot->users(*ale->bmain).size();
+  const char *display_name = slot->name_without_prefix().c_str();
+
+  BLI_assert(num_users >= 0);
+  switch (num_users) {
+    case 0:
+      BLI_snprintf(r_name, ANIM_CHAN_NAME_SIZE, "%s (unassigned)", display_name);
+      break;
+    case 1:
+      BLI_strncpy(r_name, display_name, ANIM_CHAN_NAME_SIZE);
+      break;
+    default:
+      BLI_snprintf(r_name, ANIM_CHAN_NAME_SIZE, "%s (%d)", display_name, num_users);
+      break;
+  }
 }
 static bool acf_action_slot_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
