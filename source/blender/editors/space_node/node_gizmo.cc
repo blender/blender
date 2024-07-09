@@ -322,7 +322,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
 
 static void WIDGETGROUP_node_crop_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeCropWidgetGroup *crop_group = MEM_new<NodeCropWidgetGroup>(__func__);
+  NodeCropWidgetGroup *crop_group = MEM_cnew<NodeCropWidgetGroup>(__func__);
   crop_group->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 
   RNA_enum_set(crop_group->border->ptr,

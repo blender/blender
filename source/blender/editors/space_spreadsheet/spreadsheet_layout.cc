@@ -368,7 +368,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           ss << value[3];
           return ss.str();
         },
-        MEM_new<float4x4>(__func__, value),
+        MEM_cnew<float4x4>(__func__, value),
         MEM_freeN);
   }
 

@@ -377,7 +377,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNode &node = *static_cast<bNode *>(ptr->data);
 
   static const uiListType *menu_items_list = []() {
-    uiListType *list = MEM_new<uiListType>(__func__);
+    uiListType *list = MEM_cnew<uiListType>(__func__);
     STRNCPY(list->idname, "NODE_UL_enum_definition_items");
     list->draw_item = draw_menu_switch_item;
     WM_uilisttype_add(list);

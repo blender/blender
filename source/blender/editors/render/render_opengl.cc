@@ -1111,7 +1111,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     return false;
   }
   Scene *scene = oglrender->scene;
-  WriteTaskData *task_data = MEM_new<WriteTaskData>("write task data");
+  WriteTaskData *task_data = MEM_cnew<WriteTaskData>("write task data");
   task_data->rr = rr;
   memcpy(&task_data->tmp_scene, scene, sizeof(task_data->tmp_scene));
   BLI_mutex_lock(&oglrender->task_mutex);

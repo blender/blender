@@ -88,7 +88,7 @@ static void draw_item(uiList * /*ui_list*/,
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   static const uiListType *items_list = []() {
-    uiListType *list = MEM_new<uiListType>(__func__);
+    uiListType *list = MEM_cnew<uiListType>(__func__);
     STRNCPY(list->idname, "NODE_UL_capture_items_list");
     list->draw_item = draw_item;
     WM_uilisttype_add(list);
