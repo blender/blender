@@ -1266,6 +1266,11 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
     return 0;
   }
 
+  /* Don't remove the entire stroke. Leave at least one point. */
+  if (points.size() - num_points_to_remove < 1) {
+    num_points_to_remove = points.size() - 1;
+  }
+
   if (!on_back) {
     curves.resize(curves.points_num() - num_points_to_remove, curves.curves_num());
     curves.offsets_for_write().last() = curves.points_num();
