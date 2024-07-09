@@ -30,6 +30,8 @@ class GHOST_IXrContext {
   virtual void setGraphicsContextBindFuncs(GHOST_XrGraphicsContextBindFn bind_fn,
                                            GHOST_XrGraphicsContextUnbindFn unbind_fn) = 0;
   virtual void setDrawViewFunc(GHOST_XrDrawViewFn draw_view_fn) = 0;
+  virtual void setPassthroughEnabledFunc(GHOST_XrPassthroughEnabledFn passthrough_enabled_fn) = 0;
+  virtual void setDisablePassthroughFunc(GHOST_XrDisablePassthroughFn disable_passthrough_fn) = 0;
 
   virtual bool needsUpsideDownDrawing() const = 0;
 };

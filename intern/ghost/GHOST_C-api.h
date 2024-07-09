@@ -1063,6 +1063,24 @@ void GHOST_XrGraphicsContextBindFuncs(GHOST_XrContextHandle xr_context,
  */
 void GHOST_XrDrawViewFunc(GHOST_XrContextHandle xr_context, GHOST_XrDrawViewFn draw_view_fn);
 
+/**
+ * Set the callback to check if passthrough is enabled.
+ * If enabled, the passthrough composition layer is added in GHOST_XrSession::draw().
+ *
+ * \param passthrough_enabled_fn: The callback to check if passthrough is enabled.
+ */
+void GHOST_XrPassthroughEnabledFunc(GHOST_XrContextHandle xr_context,
+                                    GHOST_XrPassthroughEnabledFn passthrough_enabled_fn);
+
+/**
+ * Set the callback to force disable passthrough in case is not supported.
+ * Called in GHOST_XrSession::draw().
+ *
+ * \param disable_passthrough_fn: The callback to disable passthrough.
+ */
+void GHOST_XrDisablePassthroughFunc(GHOST_XrContextHandle xr_context,
+                                    GHOST_XrDisablePassthroughFn disable_passthrough_fn);
+
 /* sessions */
 /**
  * Create internal session data for \a xr_context and ask the OpenXR runtime to invoke a session.

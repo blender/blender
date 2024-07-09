@@ -1832,6 +1832,9 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
     if (draw_flags & V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS) {
       v3d.flag2 |= V3D_XR_SHOW_CUSTOM_OVERLAYS;
     }
+    if (draw_flags & V3D_OFSDRAW_XR_SHOW_PASSTHROUGH) {
+      v3d.flag2 |= V3D_XR_SHOW_PASSTHROUGH;
+    }
     /* Disable other overlays (set all available _HIDE_ flags). */
     v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
                         V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;

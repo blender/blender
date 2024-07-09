@@ -430,6 +430,9 @@ void GHOST_XrContext::getExtensionsToEnable(
   /* Varjo foveated extension. */
   try_ext.push_back(XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME);
 
+  /* Meta/Facebook passthrough extension. */
+  try_ext.push_back(XR_FB_PASSTHROUGH_EXTENSION_NAME);
+
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
   /* Add graphics binding extensions (may be multiple ones, we'll settle for one to use later, once
@@ -591,6 +594,18 @@ void GHOST_XrContext::setGraphicsContextBindFuncs(GHOST_XrGraphicsContextBindFn 
 void GHOST_XrContext::setDrawViewFunc(GHOST_XrDrawViewFn draw_view_fn)
 {
   m_custom_funcs.draw_view_fn = draw_view_fn;
+}
+
+void GHOST_XrContext::setPassthroughEnabledFunc(
+    GHOST_XrPassthroughEnabledFn passthrough_enabled_fn)
+{
+  m_custom_funcs.passthrough_enabled_fn = passthrough_enabled_fn;
+}
+
+void GHOST_XrContext::setDisablePassthroughFunc(
+    GHOST_XrDisablePassthroughFn disable_passthrough_fn)
+{
+  m_custom_funcs.disable_passthrough_fn = disable_passthrough_fn;
 }
 
 bool GHOST_XrContext::needsUpsideDownDrawing() const

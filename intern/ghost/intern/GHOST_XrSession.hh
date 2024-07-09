@@ -115,4 +115,7 @@ class GHOST_XrSession {
                 void *draw_customdata);
   void beginFrameDrawing();
   void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> &layers);
+
+  /** Meta Quest Passthrough. */
+  void enablePassthrough();
 };

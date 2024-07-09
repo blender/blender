@@ -785,6 +785,8 @@ typedef void (*GHOST_XrCustomdataFreeFn)(void *customdata);
 typedef void *(*GHOST_XrGraphicsContextBindFn)(void);
 typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_ContextHandle graphics_context);
 typedef void (*GHOST_XrDrawViewFn)(const struct GHOST_XrDrawViewInfo *draw_view, void *customdata);
+typedef bool (*GHOST_XrPassthroughEnabledFn)(void *customdata);
+typedef void (*GHOST_XrDisablePassthroughFn)(void *customdata);
 
 /**
  * An array of #GHOST_TXrGraphicsBinding items defining the candidate bindings to use.

@@ -375,11 +375,6 @@ static PFN_xrGetControllerModelPropertiesMSFT g_xrGetControllerModelPropertiesMS
 static PFN_xrGetControllerModelStateMSFT g_xrGetControllerModelStateMSFT = nullptr;
 static XrInstance g_instance = XR_NULL_HANDLE;
 
-#define INIT_EXTENSION_FUNCTION(name) \
-  CHECK_XR( \
-      xrGetInstanceProcAddr(instance, #name, reinterpret_cast<PFN_xrVoidFunction *>(&g_##name)), \
-      "Failed to get pointer to extension function: " #name);
-
 static void init_controller_model_extension_functions(XrInstance instance)
 {
   if (instance != g_instance) {

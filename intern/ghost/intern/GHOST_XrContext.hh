@@ -29,6 +29,12 @@ struct GHOST_XrCustomFuncs {
 
   /** Custom per-view draw function for Blender side drawing. */
   GHOST_XrDrawViewFn draw_view_fn = nullptr;
+
+  /** Function to check if passthrough is enabled. */
+  GHOST_XrPassthroughEnabledFn passthrough_enabled_fn = nullptr;
+
+  /** Function to force disable passthrough if not supported. */
+  GHOST_XrDisablePassthroughFn disable_passthrough_fn = nullptr;
 };
 
 /**
@@ -72,6 +78,8 @@ class GHOST_XrContext : public GHOST_IXrContext {
   void setGraphicsContextBindFuncs(GHOST_XrGraphicsContextBindFn bind_fn,
                                    GHOST_XrGraphicsContextUnbindFn unbind_fn) override;
   void setDrawViewFunc(GHOST_XrDrawViewFn draw_view_fn) override;
+  void setPassthroughEnabledFunc(GHOST_XrPassthroughEnabledFn passthrough_enabled_fn) override;
+  void setDisablePassthroughFunc(GHOST_XrDisablePassthroughFn disable_passthrough_fn) override;
   bool needsUpsideDownDrawing() const override;
 
   void handleSessionStateChange(const XrEventDataSessionStateChanged &lifecycle);

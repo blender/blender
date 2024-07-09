@@ -100,6 +100,8 @@ bool wm_xr_init(wmWindowManager *wm)
                                      wm_xr_session_gpu_binding_context_create,
                                      wm_xr_session_gpu_binding_context_destroy);
     GHOST_XrDrawViewFunc(context, wm_xr_draw_view);
+    GHOST_XrPassthroughEnabledFunc(context, wm_xr_passthrough_enabled);
+    GHOST_XrDisablePassthroughFunc(context, wm_xr_disable_passthrough);
 
     if (!wm->xr.runtime) {
       wm->xr.runtime = wm_xr_runtime_data_create();
