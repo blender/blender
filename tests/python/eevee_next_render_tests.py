@@ -17,6 +17,7 @@ BLACKLIST = [
     "points_volume.blend",
 ]
 
+
 def setup():
     import bpy
 
