@@ -4667,7 +4667,7 @@ static void project_paint_end(ProjPaintState *ps)
 
   if (ps->blurkernel) {
     paint_delete_blur_kernel(ps->blurkernel);
-    MEM_freeN(ps->blurkernel);
+    MEM_delete(ps->blurkernel);
   }
 
   if (ps->vertFlags) {
