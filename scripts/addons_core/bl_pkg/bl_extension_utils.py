@@ -2047,19 +2047,19 @@ class RepoLock:
                 with open(local_lock_file, "r", encoding="utf8") as fh:
                     data = fh.read(_REPO_LOCK_SIZE_LIMIT)
             except Exception as ex:
-                return "lock file could not be read: {:s}".format(str(ex))
+                return "lock file could not be read ({:s})".format(str(ex))
 
             # The lock is held.
             if os.path.exists(data):
                 if data == cookie:
                     return "lock is already held by this session"
-                return "lock is held by other session: {:s}".format(data)
+                return "lock is held by other session \"{:s}\"".format(data)
 
             # The lock is held (but stale), remove it.
             try:
                 os.remove(local_lock_file)
             except Exception as ex:
-                return "lock file could not be removed: {:s}".format(str(ex))
+                return "lock file could not be removed ({:s})".format(str(ex))
         return None
 
     def acquire(self) -> Dict[str, Optional[str]]:
@@ -2083,19 +2083,19 @@ class RepoLock:
                     os.makedirs(local_private_dir)
                 except Exception as ex:
                     # Likely no permissions or read-only file-system.
-                    result[directory] = "Lock directory could not be created: {:s}".format(str(ex))
+                    result[directory] = "lock directory could not be created ({:s})".format(str(ex))
                     continue
 
             local_lock_file = os.path.join(local_private_dir, REPO_LOCAL_PRIVATE_LOCK)
             # Attempt to get the lock, kick out stale locks.
             if (lock_msg := self._is_locked_with_stale_cookie_removal(local_lock_file, self._cookie)) is not None:
-                result[directory] = "Lock exists: {:s}".format(lock_msg)
+                result[directory] = "lock exists ({:s})".format(lock_msg)
                 continue
             try:
                 with open(local_lock_file, "w", encoding="utf8") as fh:
                     fh.write(self._cookie)
             except Exception as ex:
-                result[directory] = "Lock could not be created: {:s}".format(str(ex))
+                result[directory] = "lock could not be created ({:s})".format(str(ex))
                 # Remove if it was created (but failed to write)... disk-full?
                 try:
                     os.remove(local_lock_file)
@@ -2122,18 +2122,18 @@ class RepoLock:
                 with open(local_lock_file, "r", encoding="utf8") as fh:
                     data = fh.read(_REPO_LOCK_SIZE_LIMIT)
             except Exception as ex:
-                result[directory] = "release(): lock file could not be read: {:s}".format(str(ex))
+                result[directory] = "release(): lock file could not be read ({:s})".format(str(ex))
                 continue
             # Owned by another application, this shouldn't happen.
             if data != self._cookie:
-                result[directory] = "release(): lock was unexpectedly stolen by another program: {:s}".format(data)
+                result[directory] = "release(): lock was unexpectedly stolen by another program ({:s})".format(data)
                 continue
 
             # This is our lock file, we're allowed to remove it!
             try:
                 os.remove(local_lock_file)
             except Exception as ex:
-                result[directory] = "release(): failed to remove file {!r}".format(ex)
+                result[directory] = "release(): failed to remove file ({!r})".format(ex)
 
         self._held = False
         return result
