@@ -109,7 +109,8 @@ static int rna_AssetTag_editable(const PointerRNA *ptr, const char **r_info)
     UNUSED_VARS_NDEBUG(asset_tag);
   }
 
-  return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, owner_id->asset_data, r_info) ?
+  return rna_AssetMetaData_editable_from_owner_id(
+             ptr->owner_id, owner_id ? owner_id->asset_data : nullptr, r_info) ?
              PROP_EDITABLE :
              PropertyFlag(0);
 }
