@@ -452,9 +452,9 @@ Span<float3> Drawing::curve_plane_normals() const
         /* Check for degenerate case where the points are on a line. */
         if (math::is_zero(length)) {
           for (const int point_i : points.drop_back(1)) {
-            float3 segment_vec = math::normalize(positions[point_i] - positions[point_i + 1]);
+            float3 segment_vec = positions[point_i] - positions[point_i + 1];
             if (math::length_squared(segment_vec) != 0.0f) {
-              normal = float3(segment_vec.y, -segment_vec.x, 0.0f);
+              normal = math::normalize(float3(segment_vec.y, -segment_vec.x, 0.0f));
               break;
             }
           }
