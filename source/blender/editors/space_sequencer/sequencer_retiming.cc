@@ -663,6 +663,12 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
     }
     /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
     SEQ_retiming_key_speed_set(scene, seq, key, RNA_float_get(op->ptr, "speed"), false);
+
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+    if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
+      SEQ_transform_seqbase_shuffle(seqbase, seq, scene);
+    }
+
     SEQ_relations_invalidate_cache_raw(scene, seq);
   }
 
