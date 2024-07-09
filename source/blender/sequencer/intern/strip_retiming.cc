@@ -267,8 +267,12 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, const in
   float frame_index = (timeline_frame - SEQ_time_start_frame_get(seq)) *
                       SEQ_time_media_playback_rate_factor_get(scene, seq);
 
+  /* Clamp timeline frame to strip content range. */
+  if (timeline_frame <= SEQ_time_start_frame_get(seq)) {
+    return &seq->retiming_keys[0];
+  }
   if (timeline_frame >= SEQ_time_content_end_frame_get(scene, seq) - 1) {
-    return SEQ_retiming_last_key_get(seq); /* This is expected for strips with no offsets. */
+    return SEQ_retiming_last_key_get(seq);
   }
 
   SeqRetimingKey *start_key = SEQ_retiming_find_segment_start_key(seq, frame_index);
