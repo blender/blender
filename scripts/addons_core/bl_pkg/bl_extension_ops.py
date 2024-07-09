@@ -1576,6 +1576,108 @@ class EXTENSIONS_OT_repo_enable_from_drop(Operator):
         subcol.label(text=iface_("URL: {:s}").format(self._repo_remote_url), translate=False)
 
 
+class EXTENSIONS_OT_repo_unlock(Operator):
+    """Remove the repository file-system lock"""
+    bl_idname = "extensions.repo_unlock"
+    bl_label = "Force Unlock Active Repository"
+    bl_options = {'INTERNAL'}
+
+    __slots__ = (
+        "_repo_vars",
+    )
+
+    @classmethod
+    def _poll_message_or_none(cls, repos):
+        # Either return a message for why the lock cannot be unlocked, or,
+        # the lock time and a possible error when accessing it.
+        if not repos:
+            return "Active repository is not enabled has invalid settings", None, None
+        repo = repos[0]
+
+        from . import bl_extension_utils
+        result = bl_extension_utils.repo_lock_directory_query(repo.directory, cookie_from_session())
+        if result is None:
+            return "Active repository is not locked", None, None
+
+        lock_is_ours, lock_mtime, lock_error = result
+        del result
+        if lock_is_ours:
+            return (
+                "Active repository lock held by this session, "
+                "either wait until the operation is finished or restart Blender"
+            ), lock_mtime, lock_error
+        return None, lock_mtime, lock_error
+
+    @classmethod
+    def poll(cls, _context):
+        lock_message, _lock_mtime, _lock_error = cls._poll_message_or_none(extension_repos_read(use_active_only=True))
+        if lock_message is not None:
+            cls.poll_message_set(lock_message)
+            return False
+        return True
+
+    def invoke(self, context, _event):
+        import time
+        repos = extension_repos_read(use_active_only=True)
+        lock_message, lock_mtime, lock_error = self._poll_message_or_none(extension_repos_read(use_active_only=True))
+        if lock_message is not None:
+            self.report({'ERROR'}, lock_message)
+            return {'CANCELLED'}
+
+        repo = repos[0]
+
+        lock_age = 0.0
+        if lock_mtime != 0.0:
+            lock_age = time.time() - lock_mtime
+
+        # pylint: disable-next=attribute-defined-outside-init
+        self._repo_vars = repo.name, repo.directory, lock_age, lock_error
+
+        wm = context.window_manager
+        wm.invoke_props_dialog(
+            self,
+            # Extra wide to account for long paths.
+            width=500,
+            confirm_text="Force Unlock Repository",
+            title="Force Unlock Repository",
+            cancel_default=True,
+        )
+        return {'RUNNING_MODAL'}
+
+    def execute(self, _context):
+        from . import bl_extension_utils
+
+        repo_name, repo_directory, _lock_age, _lock_error = self._repo_vars
+        if (error := bl_extension_utils.repo_lock_directory_force_unlock(repo_directory)):
+            self.report({'ERROR'}, "Force unlock failed: {:s}".format(error))
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, "Unlocked: {:s}".format(repo_name))
+        return {'FINISHED'}
+
+    def draw(self, _context):
+        from .bl_extension_utils import seconds_as_human_readable_text
+
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Warning! Before unlocking, ensure another instance of Blender is not running.")
+        col.label(text="Force unlocking may be necessary in the case of a crash or power failure,")
+        col.label(text="otherwise it should be avoided.")
+
+        col.separator()
+
+        repo_name, repo_directory, lock_age, lock_error = self._repo_vars
+
+        box = col.box()
+        subcol = box.column(align=True)
+        subcol.label(text=iface_("Name: {:s}").format(repo_name), translate=False)
+        subcol.label(text=iface_("Path: {:s}").format(repo_directory), translate=False)
+        if lock_age != 0.0:
+            subcol.label(text=iface_("Age: {:s}").format(seconds_as_human_readable_text(lock_age, 2)), translate=False)
+        if lock_error:
+            subcol.label(text=iface_("Error: {:s}").format(lock_error), translate=False)
+
+
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
     """Upgrade all the extensions to their latest version for all the remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
@@ -3342,10 +3444,10 @@ class EXTENSIONS_OT_package_obselete_marked(Operator):
         return {'FINISHED'}
 
 
-class EXTENSIONS_OT_repo_lock(Operator):
+class EXTENSIONS_OT_repo_lock_all(Operator):
     """Lock repositories - to test locking"""
-    bl_idname = "extensions.repo_lock"
-    bl_label = "Lock Repository (Testing)"
+    bl_idname = "extensions.repo_lock_all"
+    bl_label = "Lock All Repositories (Testing)"
 
     lock = None
 
@@ -3366,24 +3468,24 @@ class EXTENSIONS_OT_repo_lock(Operator):
             return {'CANCELLED'}
 
         self.report({'INFO'}, "Locked {:d} repos(s)".format(len(lock_result)))
-        EXTENSIONS_OT_repo_lock.lock = lock_handle
+        EXTENSIONS_OT_repo_lock_all.lock = lock_handle
         return {'FINISHED'}
 
 
-class EXTENSIONS_OT_repo_unlock(Operator):
+class EXTENSIONS_OT_repo_unlock_all(Operator):
     """Unlock repositories - to test unlocking"""
-    bl_idname = "extensions.repo_unlock"
-    bl_label = "Unlock Repository (Testing)"
+    bl_idname = "extensions.repo_unlock_all"
+    bl_label = "Unlock All Repositories (Testing)"
 
     def execute(self, _context):
-        lock_handle = EXTENSIONS_OT_repo_lock.lock
+        lock_handle = EXTENSIONS_OT_repo_lock_all.lock
         if lock_handle is None:
             self.report({'ERROR'}, "Lock not held!")
             return {'CANCELLED'}
 
         lock_result = lock_handle.release()
 
-        EXTENSIONS_OT_repo_lock.lock = None
+        EXTENSIONS_OT_repo_lock_all.lock = None
 
         if lock_result_any_failed_with_report(self, lock_result):
             # This isn't canceled, but there were issues unlocking.
@@ -3575,6 +3677,7 @@ classes = (
     EXTENSIONS_OT_repo_sync_all,
     EXTENSIONS_OT_repo_refresh_all,
     EXTENSIONS_OT_repo_enable_from_drop,
+    EXTENSIONS_OT_repo_unlock,
 
     EXTENSIONS_OT_package_install_files,
     EXTENSIONS_OT_package_install,
@@ -3601,8 +3704,8 @@ classes = (
     EXTENSIONS_OT_package_show_settings,
 
     EXTENSIONS_OT_package_obselete_marked,
-    EXTENSIONS_OT_repo_lock,
-    EXTENSIONS_OT_repo_unlock,
+    EXTENSIONS_OT_repo_lock_all,
+    EXTENSIONS_OT_repo_unlock_all,
 
     EXTENSIONS_OT_userpref_tags_set,
     EXTENSIONS_OT_userpref_show_for_update,
