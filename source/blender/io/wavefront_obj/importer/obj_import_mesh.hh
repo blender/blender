@@ -72,6 +72,8 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   void create_normals(Mesh *mesh);
   void create_colors(Mesh *mesh);
   void create_vertex_groups(Object *obj);
+
+  bool has_normals() const;
 };
 
 }  // namespace blender::io::obj

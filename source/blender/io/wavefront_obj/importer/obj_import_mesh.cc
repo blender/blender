@@ -209,8 +209,13 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       attributes.lookup_or_add_for_write_only_span<int>("material_index", bke::AttrDomain::Face);
-  bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
-      "sharp_face", bke::AttrDomain::Face);
+
+  const bool do_sharp = !has_normals();
+  bke::SpanAttributeWriter<bool> sharp_faces;
+  if (do_sharp) {
+    sharp_faces = attributes.lookup_or_add_for_write_span<bool>("sharp_face",
+                                                                bke::AttrDomain::Face);
+  }
 
   int corner_index = 0;
 
@@ -223,7 +228,9 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
     }
 
     face_offsets[face_idx] = corner_index;
-    sharp_faces.span[face_idx] = !curr_face.shaded_smooth;
+    if (do_sharp) {
+      sharp_faces.span[face_idx] = !curr_face.shaded_smooth;
+    }
     material_indices.span[face_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
@@ -252,7 +259,9 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
   }
 
   material_indices.finish();
-  sharp_faces.finish();
+  if (do_sharp) {
+    sharp_faces.finish();
+  }
 }
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)
@@ -376,14 +385,14 @@ void MeshFromGeometry::create_materials(Main *bmain,
   }
 }
 
+bool MeshFromGeometry::has_normals() const
+{
+  return !global_vertices_.vert_normals.is_empty() && mesh_geometry_.total_corner_ != 0;
+}
+
 void MeshFromGeometry::create_normals(Mesh *mesh)
 {
-  /* No normal data: nothing to do. */
-  if (global_vertices_.vert_normals.is_empty()) {
-    return;
-  }
-  /* Custom normals can only be stored on face corners. */
-  if (mesh_geometry_.total_corner_ == 0) {
+  if (!has_normals()) {
     return;
   }
 

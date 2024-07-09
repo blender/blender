@@ -222,7 +222,7 @@ TEST_F(OBJImportTest, import_cube_o_after_verts)
           24,
           float3(-1, -1, 1),
           float3(1, -1, -1),
-          float3(0, 0, 1),
+          float3(0.57735f, -0.57735f, 0.57735f),
       },
       {
           "OBSparseTri",
