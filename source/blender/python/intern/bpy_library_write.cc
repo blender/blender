@@ -159,9 +159,6 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   bool success = partial_write_ctx.write(
       filepath_abs, write_flags, path_remap.value_found, reports);
 
-  /* cleanup state */
-  BKE_blendfile_write_partial_end(bmain_src);
-
   PyObject *py_return_value;
   if (success) {
     BKE_reports_print(&reports, RPT_ERROR_ALL);
