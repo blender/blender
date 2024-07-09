@@ -359,6 +359,33 @@ static void versioning_eevee_material_shadow_none(Material *material)
     return;
   }
 
+  if (output_node->custom1 == SHD_OUTPUT_ALL) {
+    /* We do not want to affect Cycles. So we split the output into two specific outputs. */
+    output_node->custom1 = SHD_OUTPUT_CYCLES;
+
+    bNode *new_output = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeOutputMaterial");
+    new_output->custom1 = SHD_OUTPUT_EEVEE;
+    new_output->parent = output_node->parent;
+    new_output->locx = output_node->locx;
+    new_output->locy = output_node->locy - output_node->height - 120;
+
+    auto copy_link = [&](const char *socket_name) {
+      bNodeSocket *sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, socket_name);
+      if (sock && sock->link) {
+        bNodeLink *link = sock->link;
+        bNodeSocket *to_sock = blender::bke::nodeFindSocket(new_output, SOCK_IN, socket_name);
+        blender::bke::nodeAddLink(ntree, link->fromnode, link->fromsock, new_output, to_sock);
+      }
+    };
+
+    copy_link("Surface");
+    copy_link("Volume");
+    copy_link("Displacement");
+    copy_link("Thickness");
+
+    output_node = new_output;
+  }
+
   bNodeSocket *out_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
   bNodeSocket *volume_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Volume");
   if (out_sock->link == nullptr && volume_sock->link) {
