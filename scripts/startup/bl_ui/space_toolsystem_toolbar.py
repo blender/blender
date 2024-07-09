@@ -2055,15 +2055,6 @@ class _defs_grease_pencil_paint:
             draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn
-    def tint():
-        return dict(
-            idname="builtin_brush.Tint",
-            label="Tint",
-            icon="brush.gpencil_draw.tint",
-            data_block='TINT',
-        )
-
     @staticmethod
     def grease_pencil_primitive_toolbar(context, layout, _tool, props):
         paint = context.tool_settings.gpencil_paint
@@ -2075,8 +2066,6 @@ class _defs_grease_pencil_paint:
         gp_settings = brush.gpencil_settings
 
         row = layout.row(align=True)
-        tool_settings = context.scene.tool_settings
-        settings = tool_settings.gpencil_paint
 
         BrushAssetShelf.draw_popup_selector(row, context, brush)
 
@@ -3723,7 +3712,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_grease_pencil_paint.generate_from_brushes,
             _defs_grease_pencil_paint.cutter,
-            _defs_grease_pencil_paint.tint,
             None,
             _defs_grease_pencil_paint.line,
             _defs_grease_pencil_paint.polyline,
