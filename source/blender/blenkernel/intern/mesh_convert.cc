@@ -475,7 +475,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
         VertLink *vl;
 
         /* create new 'nurb' within the curve */
-        nu = MEM_cnew<Nurb>("MeshNurb", blender::dna::shallow_zero_initialize());
+        nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
 
         nu->pntsu = faces_num;
         nu->pntsv = 1;

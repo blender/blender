@@ -2906,7 +2906,7 @@ static void paste_mtex_copybuf(ID *id)
 
   if (mtex) {
     if (*mtex == nullptr) {
-      *mtex = MEM_cnew<MTex>("mtex copy");
+      *mtex = static_cast<MTex *>(MEM_callocN(sizeof(MTex), "mtex copy"));
     }
     else if ((*mtex)->tex) {
       id_us_min(&(*mtex)->tex->id);
