@@ -78,7 +78,9 @@ float fallback_pow(float x, float y, float fallback)
 float wrap(float a, float b, float c)
 {
   float range = b - c;
-  return (range != 0.0) ? a - (range * floor((a - c) / range)) : c;
+  /* Avoid discrepancy on some hardware due to floating point accuracy and fast math. */
+  float s = (a != b) ? floor((a - c) / range) : 1.0;
+  return (range == 0.0) ? a - range * s : c;
 }
 
 vec3 wrap(vec3 a, vec3 b, vec3 c)
