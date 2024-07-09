@@ -349,11 +349,39 @@ def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     Note that we might want to allow some repositories not to lock and still proceed (in the future).
     """
     any_errors = False
+
+    # Hint for users as this is non-obvious, only show once.
+    unlock_hint_text = (
+        "\n"
+        "If the lock was held by a Blender instance that exited unexpectedly,\n"
+        "use: \"Fore Unlock Repository\" to clear the lock.\n"
+        "Access from the \"Repositories\" popover in the extensions preferences."
+    )
+
     for directory, lock_result_for_repo in lock_result.items():
         if lock_result_for_repo is None:
             continue
-        print("Error \"{:s}\" locking \"{:s}\"".format(lock_result_for_repo, repr(directory)))
-        op.report({report_type}, lock_result_for_repo)
+
+        # NOTE: the lock operation could also store the repository names however it's a reasonable
+        # amount of added boiler plate for minimal gain. Do a lookup here instead.
+        # The chance the name can't be found is low: A repositories directory could have
+        # been changed since the lock was requested, in practice it shouldn't happen.
+        # If it does, using a fallback name is acceptable.
+        repo_name = next(
+            (repo.name for repo in extension_repos_read() if repo.directory == directory),
+            "<unknown>",
+        )
+
+        print("Error locking repository \"{:s}\": {:s}".format(repo_name, lock_result_for_repo))
+        op.report(
+            {report_type},
+            "Repository \"{:s}\": {:s}{:s}".format(
+                repo_name,
+                lock_result_for_repo,
+                "" if any_errors else unlock_hint_text,
+            ),
+        )
+
         any_errors = True
     return any_errors
 
