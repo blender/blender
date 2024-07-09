@@ -40,6 +40,7 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "action_runtime.hh"
 
@@ -1370,6 +1371,40 @@ FCurve *action_fcurve_ensure(Main *bmain,
   DEG_relations_tag_update(bmain);
 
   return fcu;
+}
+
+ID *action_slot_get_id_for_keying(Main &bmain,
+                                  Action &action,
+                                  const slot_handle_t slot_handle,
+                                  ID *primary_id)
+{
+  if (action.is_action_legacy()) {
+    if (primary_id && get_action(*primary_id) == &action) {
+      return primary_id;
+    }
+    return nullptr;
+  }
+
+  Slot *slot = action.slot_for_handle(slot_handle);
+  if (slot == nullptr) {
+    return nullptr;
+  }
+
+  blender::Span<ID *> users = slot->users(bmain);
+  if (users.size() == 1) {
+    /* We only do this for `users.size() == 1` and not `users.size() >= 1`
+     * because when there's more than one user it's ambiguous which user we
+     * should return, and that would be unpredictable for end users of Blender.
+     * We also expect that to be a corner case anyway.  So instead we let that
+     * case either get disambiguated by the primary ID in the case below, or
+     * return null. */
+    return users[0];
+  }
+  if (users.contains(primary_id)) {
+    return primary_id;
+  }
+
+  return nullptr;
 }
 
 void assert_baklava_phase_1_invariants(const Action &action)
