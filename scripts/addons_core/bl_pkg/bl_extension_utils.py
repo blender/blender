@@ -29,6 +29,7 @@ __all__ = (
     "platform_from_this_system",
     "url_append_query_for_blender",
     "url_parse_for_blender",
+    "seconds_as_human_readable_text",
     "file_mtime_or_none",
     "scandir_with_demoted_errors",
     "rmtree_with_fallback_or_error",
@@ -48,6 +49,8 @@ __all__ = (
     # Directory Lock.
     "RepoLock",
     "RepoLockContext",
+
+    "repo_lock_directory_query",
 )
 
 import abc
@@ -492,6 +495,34 @@ def url_parse_for_blender(url: str) -> Tuple[str, Dict[str, str]]:
             query_known[key] = value_xform
 
     return url_strip, query_known
+
+
+def seconds_as_human_readable_text(seconds: float, unit_num: int) -> str:
+    seconds_units = (
+        ("year", "years", 31_556_952.0),
+        ("week", "weeks", 604_800.0),
+        ("day", "days", 86400.0),
+        ("hour", "hours", 3600.0),
+        ("minute", "minutes", 60.0),
+        ("second", "seconds", 1.0),
+    )
+    result = []
+    for unit_text, unit_text_plural, unit_value in seconds_units:
+        if seconds >= unit_value:
+            unit_count = int(seconds / unit_value)
+            seconds -= (unit_count * unit_value)
+            if unit_count > 1:
+                result.append("{:d} {:s}".format(unit_count, unit_text_plural))
+            else:
+                result.append("{:d} {:s}".format(unit_count, unit_text))
+            if len(result) == unit_num:
+                break
+
+    # For short time periods, always show something.
+    if not result:
+        result.append("{:.02g} {:s}".format(seconds / unit_value, unit_text_plural))
+
+    return ", ".join(result)
 
 
 # -----------------------------------------------------------------------------
@@ -2115,3 +2146,49 @@ class RepoLockContext:
 
     def __exit__(self, _ty: Any, _value: Any, _traceback: Any) -> None:
         self._repo_lock.release()
+
+
+# -----------------------------------------------------------------------------
+# Public Repo Lock Query & Unlock Support
+#
+
+def repo_lock_directory_query(
+        directory: str,
+        cookie: str,
+) -> Optional[Tuple[bool, float, str]]:
+    local_lock_file = os.path.join(directory, REPO_LOCAL_PRIVATE_DIR, REPO_LOCAL_PRIVATE_LOCK)
+
+    cookie_is_ours = False
+    cookie_mtime = 0.0
+    cookie_error = ""
+
+    try:
+        cookie_stat = os.stat(local_lock_file)
+    except FileNotFoundError:
+        return None
+    except Exception as ex:
+        cookie_error = "lock file could not stat: {:s}".format(str(ex))
+    else:
+        cookie_mtime = cookie_stat[stat.ST_MTIME]
+
+        data = ""
+        try:
+            with open(local_lock_file, "r", encoding="utf8") as fh:
+                data = fh.read()
+        except Exception as ex:
+            cookie_error = "lock file could not be read: {:s}".format(str(ex))
+
+        cookie_is_ours = cookie == data
+
+    return cookie_is_ours, cookie_mtime, cookie_error
+
+
+def repo_lock_directory_force_unlock(
+        directory: str,
+) -> Optional[str]:
+    local_lock_file = os.path.join(directory, REPO_LOCAL_PRIVATE_DIR, REPO_LOCAL_PRIVATE_LOCK)
+    try:
+        os.remove(local_lock_file)
+    except Exception as ex:
+        return str(ex)
+    return None
