@@ -132,6 +132,35 @@ TEST_F(AssetRepresentationTest, weak_reference__compare)
     other.relative_asset_identifier = "path/to/an/asset";
     EXPECT_EQ(weak_ref, other);
 
+    other.relative_asset_identifier = "";
+    EXPECT_NE(weak_ref, other);
+    other.relative_asset_identifier = nullptr;
+    EXPECT_NE(weak_ref, other);
+
+    /* Make the destructor work. */
+    other.asset_library_identifier = nullptr;
+    other.relative_asset_identifier = nullptr;
+  }
+
+  /* Same but comparing windows and unix style paths. */
+  {
+    AssetLibraryService *service = AssetLibraryService::get();
+    AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
+                                                                            asset_library_root_);
+    AssetRepresentation &asset = add_dummy_asset(*library, "path/to/an/asset");
+
+    AssetWeakReference weak_ref = asset.make_weak_reference();
+    AssetWeakReference other;
+    other.asset_library_type = ASSET_LIBRARY_CUSTOM;
+    other.asset_library_identifier = "My custom lib";
+    other.relative_asset_identifier = "path\\to\\an\\asset";
+    EXPECT_EQ(weak_ref, other);
+
+    other.relative_asset_identifier = "";
+    EXPECT_NE(weak_ref, other);
+    other.relative_asset_identifier = nullptr;
+    EXPECT_NE(weak_ref, other);
+
     /* Make the destructor work. */
     other.asset_library_identifier = nullptr;
     other.relative_asset_identifier = nullptr;

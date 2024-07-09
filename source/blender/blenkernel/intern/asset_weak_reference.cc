@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "AS_asset_identifier.hh"
@@ -78,10 +79,15 @@ bool operator==(const AssetWeakReference &a, const AssetWeakReference &b)
   if (a.asset_library_type != b.asset_library_type) {
     return false;
   }
-  if (StringRef(a.asset_library_identifier) != StringRef(b.asset_library_identifier)) {
+
+  const char *a_lib_idenfifier = a.asset_library_identifier ? a.asset_library_identifier : "";
+  const char *b_lib_idenfifier = b.asset_library_identifier ? b.asset_library_identifier : "";
+  if (BLI_path_cmp_normalized(a_lib_idenfifier, b_lib_idenfifier) != 0) {
     return false;
   }
-  if (StringRef(a.relative_asset_identifier) != StringRef(b.relative_asset_identifier)) {
+  const char *a_asset_idenfifier = a.relative_asset_identifier ? a.relative_asset_identifier : "";
+  const char *b_asset_idenfifier = b.relative_asset_identifier ? b.relative_asset_identifier : "";
+  if (BLI_path_cmp_normalized(a_asset_idenfifier, b_asset_idenfifier) != 0) {
     return false;
   }
   return true;
