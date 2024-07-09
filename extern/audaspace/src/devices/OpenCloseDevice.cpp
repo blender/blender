@@ -71,8 +71,9 @@ void OpenCloseDevice::playing(bool playing)
 				if(m_delayed_close_thread.joinable())
 					m_delayed_close_thread.join();
 
-				m_delayed_close_running = true;
-				m_delayed_close_thread = std::thread(&OpenCloseDevice::closeAfterDelay, this);
+				// NOTE: Disabled until #121911 is investigated/resolved from Apple side.
+				// m_delayed_close_running = true;
+				// m_delayed_close_thread = std::thread(&OpenCloseDevice::closeAfterDelay, this);
 			}
 		}
 	}
