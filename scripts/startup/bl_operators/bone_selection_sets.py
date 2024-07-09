@@ -310,8 +310,14 @@ class POSE_OT_selection_set_paste(_PoseModeOnlyMixin, Operator):
         return {'FINISHED'}
 
 
-def _uniqify(name: str, other_names: list) -> str:
-    """Return a unique name with .xxx suffix if necessary.
+def _uniqify(name, other_names):
+    """
+    :arg name: The name to make unique.
+    :type name: string
+    :arg other_names: The name to make unique.
+    :type other_names: string
+    :return: Return a unique name with ``.xxx`` suffix if necessary.
+    :rtype: string
 
     Example usage:
 
@@ -352,11 +358,15 @@ def _uniqify(name: str, other_names: list) -> str:
     return "{}.{:03d}".format(name, min_index)
 
 
-def _to_json(context) -> str:
+def _to_json(context):
     """Convert the selected Selection Sets of the current rig to JSON.
 
     Selected Sets are the active_selection_set determined by the UIList
-    plus any with the is_selected checkbox on."""
+    plus any with the is_selected checkbox on.
+
+    :return: The selection as JSON data.
+    :rtype: string
+    """
     import json
 
     arm = context.object
@@ -371,8 +381,12 @@ def _to_json(context) -> str:
     return json.dumps(json_obj)
 
 
-def _from_json(context, as_json: str):
-    """Add the selection sets (one or more) from JSON to the current rig."""
+def _from_json(context, as_json):
+    """Add the selection sets (one or more) from JSON to the current rig.
+
+    :arg as_json: The JSON contents to load.
+    :type as_json: string
+    """
     import json
 
     json_obj = json.loads(as_json)
