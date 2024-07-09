@@ -2772,7 +2772,11 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
         if self.do_legacy_replace and (not canceled):
-            self._do_legacy_replace(self.pkg_id, pkg_manifest_local)
+            self._do_legacy_replace(
+                self.pkg_id,
+                pkg_manifest_local,
+                error_fn=lambda ex: self.report({'ERROR'}, str(ex)),
+            )
 
     def invoke(self, context, event):
         # Only for drop logic!
@@ -2880,7 +2884,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote.type])
 
     @staticmethod
-    def _do_legacy_replace(pkg_id, pkg_manifest_local):
+    def _do_legacy_replace(pkg_id, pkg_manifest_local, error_fn):
         # Disables and add-on that was replaced by an extension,
         # use for upgrading 4.1 preferences or older.
 
@@ -2901,7 +2905,10 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             print("Internal error, legacy lookup failed:", addon_module_name)
             return
 
-        bpy.ops.preferences.addon_disable(module=addon_module_name)
+        try:
+            bpy.ops.preferences.addon_disable(module=addon_module_name)
+        except Exception as ex:
+            error_fn(ex)
 
     # -------------------------------------------------------------------------
     # Draw Overrides
