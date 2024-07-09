@@ -154,7 +154,7 @@ AssetShelf *create_shelf_from_type(AssetShelfType &type)
   AssetShelf *shelf = MEM_new<AssetShelf>(__func__);
   *shelf = dna::shallow_zero_initialize();
   shelf->settings.preview_size = type.default_preview_size ? type.default_preview_size :
-                                                             DEFAULT_TILE_SIZE;
+                                                             ASSET_SHELF_PREVIEW_SIZE_DEFAULT;
   shelf->settings.asset_library_reference = asset_system::all_library_reference();
   shelf->type = &type;
   shelf->preferred_row_count = 1;
@@ -487,7 +487,7 @@ int tile_height(const AssetShelfSettings &settings)
 
 static int asset_shelf_default_tile_height()
 {
-  return UI_preview_tile_size_x(DEFAULT_TILE_SIZE);
+  return UI_preview_tile_size_x(ASSET_SHELF_PREVIEW_SIZE_DEFAULT);
 }
 
 int region_prefsizey()

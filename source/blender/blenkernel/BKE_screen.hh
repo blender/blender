@@ -531,6 +531,8 @@ enum AssetShelfTypeFlag {
 };
 ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
 
+#define ASSET_SHELF_PREVIEW_SIZE_DEFAULT 64
+
 struct AssetShelfType {
   char idname[BKE_ST_MAXNAME]; /* unique name */
 
