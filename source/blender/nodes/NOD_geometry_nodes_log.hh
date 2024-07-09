@@ -123,6 +123,7 @@ struct GeometryAttributeInfo {
  */
 class GeometryInfoLog : public ValueLog {
  public:
+  std::string name;
   Vector<GeometryAttributeInfo> attributes;
   Vector<bke::GeometryComponent::Type> component_types;
 

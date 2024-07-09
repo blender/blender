@@ -104,7 +104,7 @@ std::string InstanceReference::name() const
     case Type::Collection:
       return this->collection().id.name + 2;
     case Type::GeometrySet:
-      return IFACE_("Geometry");
+      return this->geometry_set().name;
     case Type::None:
       break;
   }

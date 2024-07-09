@@ -206,10 +206,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     selection.finish();
   }
-
   geometry::debug_randomize_mesh_order(result);
 
-  params.set_output("Mesh", GeometrySet::from_mesh(result));
+  GeometrySet result_geometry = GeometrySet::from_mesh(result);
+  result_geometry.name = set_a.name;
+  params.set_output("Mesh", std::move(result_geometry));
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without GMP"));

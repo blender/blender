@@ -148,6 +148,13 @@ struct GeometrySet {
 
  public:
   /**
+   * A user defined name for this geometry. It is not expected to be unique. Its main
+   * purpose is help debugging instance trees. It may eventually also be used when exporting
+   * instance trees or when creating separate objects from them.
+   */
+  std::string name;
+
+  /**
    * The methods are defaulted here so that they are not instantiated in every translation unit.
    */
   GeometrySet();
@@ -420,7 +427,7 @@ struct GeometrySet {
   friend bool operator==(const GeometrySet &a, const GeometrySet &b)
   {
     /* This compares only the component pointers, not the actual geometry data. */
-    return Span(a.components_) == Span(b.components_);
+    return Span(a.components_) == Span(b.components_) && a.name == b.name;
   }
 
  private:

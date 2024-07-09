@@ -30,6 +30,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet volumes;
   GeometrySet instances;
 
+  const std::string &name = geometry_set.name;
+  meshes.name = name;
+  curves.name = name;
+  grease_pencil.name = name;
+  point_clouds.name = name;
+  volumes.name = name;
+  instances.name = name;
+
   if (geometry_set.has<MeshComponent>()) {
     meshes.add(*geometry_set.get_component<MeshComponent>());
   }

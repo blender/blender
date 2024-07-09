@@ -194,6 +194,7 @@ GeometrySet join_geometries(const Span<GeometrySet> geometries,
                             const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   GeometrySet result;
+  result.name = geometries.is_empty() ? "" : geometries[0].name;
   static const Array<GeometryComponent::Type> supported_types({GeometryComponent::Type::Mesh,
                                                                GeometryComponent::Type::PointCloud,
                                                                GeometryComponent::Type::Instance,

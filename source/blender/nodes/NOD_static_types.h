@@ -454,6 +454,7 @@ DefNode(GeometryNode, GEO_NODE_SET_CURVE_HANDLES, 0, "SET_CURVE_HANDLES", SetCur
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_NORMAL, 0, "SET_CURVE_NORMAL", SetCurveNormal, "Set Curve Normal", "Set the evaluation mode for curve normals")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_RADIUS, 0, "SET_CURVE_RADIUS", SetCurveRadius, "Set Curve Radius", "Set the radius of the curve at each control point")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_TILT, 0, "SET_CURVE_TILT", SetCurveTilt, "Set Curve Tilt", "Set the tilt angle at each curve control point")
+DefNode(GeometryNode, GEO_NODE_SET_GEOMETRY_NAME, 0, "SET_GEOMETRY_NAME", SetGeometryName, "Set Geometry Name", "Set the name of a geometry for easier debugging")
 DefNode(GeometryNode, GEO_NODE_SET_ID, 0, "SET_ID", SetID, "Set ID", "Set the id attribute on the input geometry, mainly used internally for randomizing")
 DefNode(GeometryNode, GEO_NODE_SET_MATERIAL_INDEX, 0, "SET_MATERIAL_INDEX", SetMaterialIndex, "Set Material Index", "Set the material index for each selected geometry element")
 DefNode(GeometryNode, GEO_NODE_SET_MATERIAL, 0, "SET_MATERIAL", SetMaterial, "Set Material", "Assign a material to geometry elements")
