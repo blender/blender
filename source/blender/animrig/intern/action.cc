@@ -750,6 +750,48 @@ void Slot::users_invalidate(Main &bmain)
   bmain.is_action_slot_to_id_map_dirty = true;
 }
 
+std::string Slot::name_prefix_for_idtype() const
+{
+  if (!this->has_idtype()) {
+    return slot_unbound_prefix;
+  }
+
+  char name[3] = {0};
+  *reinterpret_cast<short *>(name) = this->idtype;
+  return name;
+}
+
+StringRefNull Slot::name_without_prefix() const
+{
+  BLI_assert(StringRef(this->name).size() >= name_length_min);
+
+  /* Avoid accessing an uninitialized part of the string accidentally. */
+  if (this->name[0] == '\0' || this->name[1] == '\0') {
+    return "";
+  }
+  return this->name + 2;
+}
+
+void Slot::name_ensure_prefix()
+{
+  BLI_assert(StringRef(this->name).size() >= name_length_min);
+
+  if (StringRef(this->name).size() < 2) {
+    /* The code below would overwrite the trailing 0-byte. */
+    this->name[2] = '\0';
+  }
+
+  if (!this->has_idtype()) {
+    /* A zero idtype is not going to convert to a two-character string, so we
+     * need to explicitly assign the default prefix. */
+    this->name[0] = slot_unbound_prefix[0];
+    this->name[1] = slot_unbound_prefix[1];
+    return;
+  }
+
+  *reinterpret_cast<short *>(this->name) = this->idtype;
+}
+
 /* ----- Functions  ----------- */
 
 bool assign_action(Action &action, ID &animated_id)
@@ -842,48 +884,6 @@ std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id)
   }
 
   return std::make_pair(&action, slot);
-}
-
-std::string Slot::name_prefix_for_idtype() const
-{
-  if (!this->has_idtype()) {
-    return slot_unbound_prefix;
-  }
-
-  char name[3] = {0};
-  *reinterpret_cast<short *>(name) = this->idtype;
-  return name;
-}
-
-StringRefNull Slot::name_without_prefix() const
-{
-  BLI_assert(StringRef(this->name).size() >= name_length_min);
-
-  /* Avoid accessing an uninitialized part of the string accidentally. */
-  if (this->name[0] == '\0' || this->name[1] == '\0') {
-    return "";
-  }
-  return this->name + 2;
-}
-
-void Slot::name_ensure_prefix()
-{
-  BLI_assert(StringRef(this->name).size() >= name_length_min);
-
-  if (StringRef(this->name).size() < 2) {
-    /* The code below would overwrite the trailing 0-byte. */
-    this->name[2] = '\0';
-  }
-
-  if (!this->has_idtype()) {
-    /* A zero idtype is not going to convert to a two-character string, so we
-     * need to explicitly assign the default prefix. */
-    this->name[0] = slot_unbound_prefix[0];
-    this->name[1] = slot_unbound_prefix[1];
-    return;
-  }
-
-  *reinterpret_cast<short *>(this->name) = this->idtype;
 }
 
 /* ----- ActionStrip implementation ----------- */
