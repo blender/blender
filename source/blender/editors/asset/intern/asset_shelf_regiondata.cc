@@ -44,7 +44,8 @@ RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
 {
   static_assert(std::is_trivial_v<RegionAssetShelf>,
                 "RegionAssetShelf needs to be trivial to allow freeing with MEM_freeN()");
-  RegionAssetShelf *new_shelf_regiondata = MEM_new<RegionAssetShelf>(__func__, *shelf_regiondata);
+  RegionAssetShelf *new_shelf_regiondata = MEM_cnew<RegionAssetShelf>(__func__);
+  *new_shelf_regiondata = *shelf_regiondata;
 
   BLI_listbase_clear(&new_shelf_regiondata->shelves);
   LISTBASE_FOREACH (const AssetShelf *, shelf, &shelf_regiondata->shelves) {
