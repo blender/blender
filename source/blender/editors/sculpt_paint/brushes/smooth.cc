@@ -147,7 +147,10 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
                                      verts,
                                      tls.vert_neighbors);
         smooth::neighbor_position_average_mesh(
-            positions_eval, verts, tls.vert_neighbors, new_positions);
+            positions_eval,
+            verts,
+            tls.vert_neighbors,
+            new_positions.as_mutable_span().slice(node_vert_offsets[i]));
       }
     });
 
