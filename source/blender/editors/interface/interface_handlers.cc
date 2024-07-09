@@ -4923,8 +4923,8 @@ static void force_activate_view_item_but(bContext *C, ARegion *region, uiButView
     UI_but_execute(C, region, but);
   }
 
-  /* By default, activating a view item closes the popup. */
-  if (!UI_view_item_popup_keep_open(*but->view_item)) {
+  /* By default, activating a view item closes the popup (only when clicking the item itself). */
+  if (but->active && !UI_view_item_popup_keep_open(*but->view_item)) {
     UI_popup_menu_close_from_but(but);
   }
 }
