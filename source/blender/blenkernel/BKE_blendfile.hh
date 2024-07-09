@@ -153,7 +153,6 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
                                                              const void *file_buf,
                                                              int file_buf_size,
                                                              ReportList *reports);
-bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports);
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);
 
 namespace blender::bke::blendfile {

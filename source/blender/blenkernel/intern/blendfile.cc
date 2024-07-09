@@ -1642,29 +1642,6 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
   return workspace_config;
 }
 
-bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports)
-{
-  const int fileflags = G.fileflags & ~G_FILE_NO_UI;
-  bool retval = false;
-
-  BKE_blendfile_write_partial_begin(bmain);
-
-  for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next))
-  {
-    BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
-  }
-
-  if (BKE_blendfile_write_partial(bmain, filepath, fileflags, BLO_WRITE_PATH_REMAP_NONE, reports))
-  {
-    retval = true;
-  }
-
-  BKE_blendfile_write_partial_end(bmain);
-
-  return retval;
-}
-
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config)
 {
   BKE_main_free(workspace_config->main);
