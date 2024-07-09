@@ -85,16 +85,16 @@ static float3 sculpt_rake_rotate(const SculptSession &ss,
   return vec_rot - v_co;
 }
 
-static void do_snake_hook_brush_task(Object &ob,
-                                     const Brush &brush,
-                                     SculptProjectVector *spvc,
-                                     const float3 &grab_delta,
-                                     PBVHNode *node)
+static void calc_faces(Object &object,
+                       const Brush &brush,
+                       SculptProjectVector *spvc,
+                       const float3 &grab_delta,
+                       PBVHNode &node)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
 
   PBVHVertexIter vd;
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, node).co;
   const float bstrength = ss.cache->bstrength;
   const bool do_rake_rotation = ss.cache->is_rake_rotation_valid;
   const bool do_pinch = (brush.crease_pinch_factor != 0.5f);
@@ -113,9 +113,211 @@ static void do_snake_hook_brush_task(Object &ob,
   BKE_kelvinlet_init_params(&params, ss.cache->radius, bstrength, 1.0f, 0.4f);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
+      object, ss.cache->automasking.get(), node);
 
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+    if (!do_elastic && !sculpt_brush_test_sq_fn(test, vd.co)) {
+      continue;
+    }
+
+    float fade;
+    if (do_elastic) {
+      fade = 1.0f;
+    }
+    else {
+      auto_mask::node_update(automask_data, vd);
+
+      fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                      brush,
+                                                      vd.co,
+                                                      sqrtf(test.dist),
+                                                      vd.no,
+                                                      vd.fno,
+                                                      vd.mask,
+                                                      vd.vertex,
+                                                      thread_id,
+                                                      &automask_data);
+    }
+
+    proxy[vd.i] += grab_delta * fade;
+
+    /* Negative pinch will inflate, helps maintain volume. */
+    if (do_pinch) {
+      float3 delta_pinch = float3(vd.co) - test.location;
+
+      if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+        project_plane_v3_v3v3(delta_pinch, delta_pinch, ss.cache->true_view_normal);
+      }
+
+      /* Important to calculate based on the grabbed location
+       * (intentionally ignore fade here). */
+      delta_pinch += grab_delta;
+
+      sculpt_project_v3(spvc, delta_pinch, delta_pinch);
+
+      float3 delta_pinch_init = delta_pinch;
+
+      float pinch_fade = pinch * fade;
+      /* When reducing, scale reduction back by how close to the center we are,
+       * so we don't pinch into nothingness. */
+      if (pinch > 0.0f) {
+        /* Square to have even less impact for close vertices. */
+        pinch_fade *= pow2f(std::min(1.0f, math::length(delta_pinch) / ss.cache->radius));
+      }
+      delta_pinch *= (1.0f + pinch_fade);
+      delta_pinch = delta_pinch_init - delta_pinch;
+      proxy[vd.i] += delta_pinch;
+    }
+
+    if (do_rake_rotation) {
+      proxy[vd.i] += sculpt_rake_rotate(ss, test.location, vd.co, fade);
+    }
+
+    if (do_elastic) {
+      float3 disp;
+      BKE_kelvinlet_grab_triscale(disp, &params, vd.co, ss.cache->location, proxy[vd.i]);
+      fade = 1.0f;
+      fade *= bstrength * 20.0f;
+      fade *= (1.0f - vd.mask);
+      fade *= auto_mask::factor_get(ss.cache->automasking.get(), ss, vd.vertex, &automask_data);
+      proxy[vd.i] = disp * fade;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void calc_grids(Object &object,
+                       const Brush &brush,
+                       SculptProjectVector *spvc,
+                       const float3 &grab_delta,
+                       PBVHNode &node)
+{
+  SculptSession &ss = *object.sculpt;
+
+  PBVHVertexIter vd;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, node).co;
+  const float bstrength = ss.cache->bstrength;
+  const bool do_rake_rotation = ss.cache->is_rake_rotation_valid;
+  const bool do_pinch = (brush.crease_pinch_factor != 0.5f);
+  const float pinch = do_pinch ? (2.0f * (0.5f - brush.crease_pinch_factor) *
+                                  (math::length(grab_delta) / ss.cache->radius)) :
+                                 0.0f;
+
+  const bool do_elastic = brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, test, brush.falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+
+  KelvinletParams params;
+  BKE_kelvinlet_init_params(&params, ss.cache->radius, bstrength, 1.0f, 0.4f);
+
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      object, ss.cache->automasking.get(), node);
+
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+    if (!do_elastic && !sculpt_brush_test_sq_fn(test, vd.co)) {
+      continue;
+    }
+
+    float fade;
+    if (do_elastic) {
+      fade = 1.0f;
+    }
+    else {
+      auto_mask::node_update(automask_data, vd);
+
+      fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                      brush,
+                                                      vd.co,
+                                                      sqrtf(test.dist),
+                                                      vd.no,
+                                                      vd.fno,
+                                                      vd.mask,
+                                                      vd.vertex,
+                                                      thread_id,
+                                                      &automask_data);
+    }
+
+    proxy[vd.i] += grab_delta * fade;
+
+    /* Negative pinch will inflate, helps maintain volume. */
+    if (do_pinch) {
+      float3 delta_pinch = float3(vd.co) - test.location;
+
+      if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+        project_plane_v3_v3v3(delta_pinch, delta_pinch, ss.cache->true_view_normal);
+      }
+
+      /* Important to calculate based on the grabbed location
+       * (intentionally ignore fade here). */
+      delta_pinch += grab_delta;
+
+      sculpt_project_v3(spvc, delta_pinch, delta_pinch);
+
+      float3 delta_pinch_init = delta_pinch;
+
+      float pinch_fade = pinch * fade;
+      /* When reducing, scale reduction back by how close to the center we are,
+       * so we don't pinch into nothingness. */
+      if (pinch > 0.0f) {
+        /* Square to have even less impact for close vertices. */
+        pinch_fade *= pow2f(std::min(1.0f, math::length(delta_pinch) / ss.cache->radius));
+      }
+      delta_pinch *= (1.0f + pinch_fade);
+      delta_pinch = delta_pinch_init - delta_pinch;
+      proxy[vd.i] += delta_pinch;
+    }
+
+    if (do_rake_rotation) {
+      proxy[vd.i] += sculpt_rake_rotate(ss, test.location, vd.co, fade);
+    }
+
+    if (do_elastic) {
+      float3 disp;
+      BKE_kelvinlet_grab_triscale(disp, &params, vd.co, ss.cache->location, proxy[vd.i]);
+      fade = 1.0f;
+      fade *= bstrength * 20.0f;
+      fade *= (1.0f - vd.mask);
+      fade *= auto_mask::factor_get(ss.cache->automasking.get(), ss, vd.vertex, &automask_data);
+      proxy[vd.i] = disp * fade;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void calc_bmesh(Object &object,
+                       const Brush &brush,
+                       SculptProjectVector *spvc,
+                       const float3 &grab_delta,
+                       PBVHNode &node)
+{
+  SculptSession &ss = *object.sculpt;
+
+  PBVHVertexIter vd;
+  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, node).co;
+  const float bstrength = ss.cache->bstrength;
+  const bool do_rake_rotation = ss.cache->is_rake_rotation_valid;
+  const bool do_pinch = (brush.crease_pinch_factor != 0.5f);
+  const float pinch = do_pinch ? (2.0f * (0.5f - brush.crease_pinch_factor) *
+                                  (math::length(grab_delta) / ss.cache->radius)) :
+                                 0.0f;
+
+  const bool do_elastic = brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, test, brush.falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+
+  KelvinletParams params;
+  BKE_kelvinlet_init_params(&params, ss.cache->radius, bstrength, 1.0f, 0.4f);
+
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      object, ss.cache->automasking.get(), node);
+
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     if (!do_elastic && !sculpt_brush_test_sq_fn(test, vd.co)) {
       continue;
     }
@@ -188,9 +390,9 @@ static void do_snake_hook_brush_task(Object &ob,
 
 }  // namespace snake_hook_cc
 
-void do_snake_hook_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_snake_hook_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float bstrength = ss.cache->bstrength;
 
@@ -211,11 +413,31 @@ void do_snake_hook_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
     sculpt_project_v3_cache_init(&spvc, grab_delta);
   }
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_snake_hook_brush_task(ob, brush, &spvc, grab_delta, nodes[i]);
+  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
+    case PBVH_FACES: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_faces(object, brush, &spvc, grab_delta, *nodes[i]);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
+      });
+      break;
     }
-  });
+    case PBVH_GRIDS:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_grids(object, brush, &spvc, grab_delta, *nodes[i]);
+        }
+      });
+      break;
+    case PBVH_BMESH:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_bmesh(object, brush, &spvc, grab_delta, *nodes[i]);
+        }
+      });
+      break;
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint
