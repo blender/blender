@@ -96,7 +96,7 @@ void InstanceReference::to_geometry_set(GeometrySet &r_geometry_set) const
   }
 }
 
-std::string InstanceReference::name() const
+StringRefNull InstanceReference::name() const
 {
   switch (type_) {
     case Type::Object:
