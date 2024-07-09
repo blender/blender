@@ -27,7 +27,7 @@ class VIEW3D_PT_animation_layers(Panel):
     def poll(cls, context):
         return context.preferences.experimental.use_animation_baklava and context.object
 
-    def draw(self, context) -> None:
+    def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
