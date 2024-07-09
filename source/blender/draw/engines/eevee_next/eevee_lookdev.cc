@@ -283,6 +283,8 @@ void LookdevModule::display()
   BLI_assert(inst_.is_viewport());
 
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  /* The viewport of the framebuffer can be modified when border rendering is enabled. */
+  GPU_framebuffer_viewport_reset(dfbl->default_fb);
   GPU_framebuffer_bind(dfbl->default_fb);
   inst_.manager->submit(display_ps_);
 }
