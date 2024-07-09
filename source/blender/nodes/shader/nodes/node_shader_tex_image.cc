@@ -235,14 +235,31 @@ NODE_SHADER_MATERIALX_BEGIN
           BLI_assert_unreachable();
       }
 
+      NodeItem::Type node_type = NodeItem::Type::Color4;
+      const char *node_colorspace = nullptr;
+
+      const char *image_colorspace = image->colorspace_settings.name;
+      if (IMB_colormanagement_space_name_is_data(image_colorspace)) {
+        node_type = NodeItem::Type::Vector4;
+      }
+      else if (IMB_colormanagement_space_name_is_scene_linear(image_colorspace)) {
+        node_colorspace = "lin_rec709";
+      }
+      else if (IMB_colormanagement_space_name_is_srgb(image_colorspace)) {
+        node_colorspace = "srgb_texture";
+      }
+
       res = create_node("image",
-                        NodeItem::Type::Color4,
+                        node_type,
                         {{"texcoord", vector},
                          {"filtertype", val(filtertype)},
                          {"uaddressmode", val(addressmode)},
                          {"vaddressmode", val(addressmode)}});
       res.set_input("file", image_path, NodeItem::Type::Filename);
       res.node->setName(image_node_name);
+      if (node_colorspace) {
+        res.node->setAttribute("colorspace", node_colorspace);
+      }
     }
   }
 
