@@ -1407,8 +1407,8 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
      *  - Slightly lighter.
      *  - Red when overlapping with other strips. */
     const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
-    if ((G.moving & G_TRANSFORM_SEQ) && selected && overlap_mode != SEQ_OVERLAP_OVERWRITE) {
-      if (strip.seq->flag & SEQ_OVERLAP) {
+    if ((G.moving & G_TRANSFORM_SEQ) && selected) {
+      if ((strip.seq->flag & SEQ_OVERLAP) && (overlap_mode != SEQ_OVERLAP_OVERWRITE)) {
         col[0] = 255;
         col[1] = col[2] = 33;
       }
