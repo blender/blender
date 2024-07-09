@@ -460,9 +460,6 @@ if(WITH_PYTHON)
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
     PATTERN "site" EXCLUDE
-    # Legacy sub-module which is no longer used.
-    REGEX "^${CMAKE_SOURCE_DIR}/scripts/addons$" EXCLUDE
-    REGEX "^${CMAKE_SOURCE_DIR}/scripts/addons_contrib$" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
   )
 
@@ -1001,8 +998,8 @@ elseif(WIN32)
       ALL
     )
   endif()
-  # 4.1 fftw libs need to be installed, in 4.2 fftw got turned into a static lib 
-  # and the files below no longer exist. 
+  # 4.1 fftw libs need to be installed, in 4.2 fftw got turned into a static lib
+  # and the files below no longer exist.
   if(EXISTS ${LIBDIR}/fftw3/lib/fftw3.dll)
     windows_install_shared_manifest(
       FILES
@@ -1258,7 +1255,8 @@ elseif(WIN32)
         CONFIGURATIONS Debug
       )
 
-      if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages) #this will only exist for 3.5+
+      # This will only exist for 3.5+.
+      if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages)
         install(
           DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages/
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
@@ -1840,7 +1838,8 @@ if(WIN32)
     PDB_NAME "blender_private"
     PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
   )
-  # If compiling with clang-cl we skip PDBSTRIPPED. There's doesn't seem to be a switch for it currently
+  # If compiling with clang-cl we skip PDBSTRIPPED.
+  # There's doesn't seem to be a switch for it currently
   if(WITH_WINDOWS_RELEASE_PDB AND WITH_WINDOWS_RELEASE_STRIPPED_PDB AND NOT MSVC_CLANG)
     # This is slightly messy, but single target generators like ninja will not have the
     # `CMAKE_CFG_INTDIR` variable and multi-target generators like `msbuild` will not have
