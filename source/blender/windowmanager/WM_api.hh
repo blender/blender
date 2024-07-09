@@ -747,7 +747,8 @@ int WM_operator_props_popup_confirm_ex(bContext *C,
                                        wmOperator *op,
                                        const wmEvent *event,
                                        std::optional<std::string> title = std::nullopt,
-                                       std::optional<std::string> confirm_text = std::nullopt);
+                                       std::optional<std::string> confirm_text = std::nullopt,
+                                       bool cancel_default = false);
 
 /**
  * Same as #WM_operator_props_popup but call the operator first,
@@ -761,7 +762,8 @@ int WM_operator_props_dialog_popup(bContext *C,
                                    wmOperator *op,
                                    int width,
                                    std::optional<std::string> title = std::nullopt,
-                                   std::optional<std::string> confirm_text = std::nullopt);
+                                   std::optional<std::string> confirm_text = std::nullopt,
+                                   bool cancel_default = false);
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op);
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
