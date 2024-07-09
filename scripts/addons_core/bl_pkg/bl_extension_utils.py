@@ -2000,6 +2000,11 @@ class RepoCacheStore:
 # Public Repo Lock
 #
 
+# Currently this is based on a path, this gives significant room without the risk of not being large enough.
+# The size limit is used to prevent over-allocating memory in the unlikely case a lot of data
+# is written into the lock file.
+_REPO_LOCK_SIZE_LIMIT = 16384
+
 
 class RepoLock:
     """
@@ -2024,6 +2029,7 @@ class RepoLock:
             It must point to a path that exists.
             When a lock exists, check if the cookie path exists, if it doesn't, allow acquiring the lock.
         """
+        assert len(cookie) <= _REPO_LOCK_SIZE_LIMIT, "Unreachable"
         self._repo_directories = tuple(repo_directories)
         self._repo_lock_files: List[Tuple[str, str]] = []
         self._held = False
@@ -2039,7 +2045,7 @@ class RepoLock:
         if os.path.exists(local_lock_file):
             try:
                 with open(local_lock_file, "r", encoding="utf8") as fh:
-                    data = fh.read()
+                    data = fh.read(_REPO_LOCK_SIZE_LIMIT)
             except Exception as ex:
                 return "lock file could not be read: {:s}".format(str(ex))
 
@@ -2114,7 +2120,7 @@ class RepoLock:
                 continue
             try:
                 with open(local_lock_file, "r", encoding="utf8") as fh:
-                    data = fh.read()
+                    data = fh.read(_REPO_LOCK_SIZE_LIMIT)
             except Exception as ex:
                 result[directory] = "release(): lock file could not be read: {:s}".format(str(ex))
                 continue
@@ -2174,7 +2180,7 @@ def repo_lock_directory_query(
         data = ""
         try:
             with open(local_lock_file, "r", encoding="utf8") as fh:
-                data = fh.read()
+                data = fh.read(_REPO_LOCK_SIZE_LIMIT)
         except Exception as ex:
             cookie_error = "lock file could not be read: {:s}".format(str(ex))
 
