@@ -907,6 +907,26 @@ def remote_url_validate_or_error(url: str) -> Optional[str]:
 
 
 # -----------------------------------------------------------------------------
+# TOML Helpers
+
+def toml_repr_string(text: str) -> str:
+    # Encode a string for literal inclusion as a value in a TOML file (including quotes).
+    import string
+    # NOTE: this could be empty, using literal characters ensures simple strings & paths are readable.
+    literal_chars = set(string.digits + string.ascii_letters + "/_-. ")
+    result = ["\""]
+    for c in text:
+        if c in literal_chars:
+            result.append(c)
+        elif (c_scalar := ord(c)) <= 0xffff:
+            result.append("\\u{:04x}".format(c_scalar))
+        else:
+            result.append("\\U{:08x}".format(c_scalar))
+    result.append("\"")
+    return "".join(result)
+
+
+# -----------------------------------------------------------------------------
 # ZipFile Helpers
 
 def zipfile_make_root_directory(
@@ -4047,14 +4067,12 @@ class subcmd_author:
                                 b"# BEGIN GENERATED CONTENT.\n",
                                 b"# This must not be included in source manifests.\n",
                                 b"[build.generated]\n",
-                                "platforms = [\"{:s}\"]\n".format(platform).encode("utf-8"),
+                                "platforms = [{:s}]\n".format(toml_repr_string(platform)).encode("utf-8"),
                                 # Including wheels simplifies server side check as this list can be tested
                                 # without the server having to filter by platform too.
                                 b"wheels = [",
                                 ", ".join([
-                                    # NOTE: accept no string escaping as the rules for wheel paths
-                                    # are already strict so strings don't require quoting.
-                                    "\"{:s}\"".format(wheel) for wheel in paths_filter_wheels_by_platform(
+                                    toml_repr_string(wheel) for wheel in paths_filter_wheels_by_platform(
                                         manifest.wheels or [],
                                         platform,
                                     )
