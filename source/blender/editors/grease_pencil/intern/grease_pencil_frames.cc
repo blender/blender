@@ -351,20 +351,23 @@ bool ensure_active_keyframe(const Scene &scene,
    * keyframe needs to be inserted. */
   const bool is_first = active_layer.is_empty() ||
                         (active_layer.sorted_keys().first() > current_frame);
-  const int current_start_frame = *active_layer.start_frame_at(current_frame);
-  const bool needs_new_drawing = is_first || (current_start_frame < current_frame);
+  const std::optional<int> current_start_frame = active_layer.start_frame_at(current_frame);
+  const bool needs_new_drawing = is_first || !current_start_frame ||
+                                 (current_start_frame < current_frame);
   if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
     const Brush *brush = BKE_paint_brush_for_read(&scene.toolsettings->gp_paint->paint);
-    if (((scene.toolsettings->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) ||
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
-    {
+    const bool use_additive_drawing = (scene.toolsettings->gpencil_flags &
+                                       GP_TOOL_FLAG_RETAIN_LAST) != 0;
+    /* Eraser tool makes no sense on empty drawings, don't insert new frames. */
+    const bool allow_empty_frame = (brush->gpencil_tool != GPAINT_TOOL_ERASE);
+    if (current_start_frame && (use_additive_drawing || !allow_empty_frame)) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame.
        * NOTE: Also duplicate the frame when erasing, Otherwise empty drawing is added, see
        * !119051.
        */
       grease_pencil.insert_duplicate_frame(
-          active_layer, current_start_frame, current_frame, false);
+          active_layer, *current_start_frame, current_frame, false);
     }
     else {
       /* Otherwise we just insert a blank keyframe at the current frame. */
