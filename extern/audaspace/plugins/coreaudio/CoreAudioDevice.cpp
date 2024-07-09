@@ -165,7 +165,8 @@ m_audio_unit(nullptr)
 
 	m_specs = specs;
 	open();
-	close();
+	// NOTE: Keep the device open until #121911 is investigated/resolved from Apple side.
+	// close();
 	create();
 }
 
