@@ -2034,7 +2034,7 @@ static void ui_editsource_active_but_set(uiBut *but)
 static void ui_editsource_active_but_clear()
 {
   BLI_ghash_free(ui_editsource_info->hash, nullptr, MEM_freeN);
-  MEM_freeN(ui_editsource_info);
+  MEM_delete(ui_editsource_info);
   ui_editsource_info = nullptr;
 }
 
