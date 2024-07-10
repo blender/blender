@@ -1345,17 +1345,133 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
   GPU_blend(GPU_BLEND_ALPHA);
 }
 
+static void strip_data_missing_media_flags_set(const StripDrawContext &strip,
+                                               const TimelineDrawContext *timeline_ctx,
+                                               SeqStripDrawData &data)
+{
+  if (strip.missing_data_block || strip.missing_media) {
+    /* Do not tint title area for muted strips; we want to see gray for them. */
+    if (!SEQ_render_is_muted(timeline_ctx->channels, strip.seq)) {
+      data.flags |= GPU_SEQ_FLAG_MISSING_TITLE;
+    }
+    /* Do not tint content area for meta strips; we want to display children. */
+    if (strip.seq->type != SEQ_TYPE_META) {
+      data.flags |= GPU_SEQ_FLAG_MISSING_CONTENT;
+    }
+  }
+}
+
+static void strip_data_lock_flags_set(const StripDrawContext &strip,
+                                      const TimelineDrawContext *timeline_ctx,
+                                      SeqStripDrawData &data)
+{
+  if (SEQ_transform_is_locked(timeline_ctx->channels, strip.seq)) {
+    data.flags |= GPU_SEQ_FLAG_LOCKED;
+  }
+}
+
+static void strip_data_outline_params_set(const StripDrawContext &strip,
+                                          const TimelineDrawContext *timeline_ctx,
+                                          SeqStripDrawData &data)
+{
+  const bool selected = strip.seq->flag & SELECT;
+  const bool active = strip.is_active_strip;
+  uchar col[4];
+
+  if (selected) {
+    UI_GetThemeColor3ubv(active ? TH_SEQ_ACTIVE : TH_SEQ_SELECTED, col);
+  }
+  else {
+    /* Color for unselected strips is a bit darker than the background. */
+    UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
+  }
+  col[3] = 255;
+  /* Outline while translating strips:
+   *  - Slightly lighter.
+   *  - Red when overlapping with other strips. */
+  const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
+  if (G.moving & G_TRANSFORM_SEQ) {
+    if ((strip.seq->flag & SEQ_OVERLAP) && (overlap_mode != SEQ_OVERLAP_OVERWRITE)) {
+      col[0] = 255;
+      col[1] = col[2] = 33;
+    }
+    else if (selected) {
+      UI_GetColorPtrShade3ubv(col, col, 70);
+    }
+  }
+
+  const bool overlaps = (strip.seq->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
+  if (overlaps) {
+    data.flags |= GPU_SEQ_FLAG_OVERLAP;
+  }
+
+  if (selected) {
+    data.flags |= GPU_SEQ_FLAG_SELECTED;
+  }
+  else if (active && !overlaps) {
+    /* If the strips overlap when retiming, don't replace the red outline. */
+    /* A subtle highlight outline when active but not selected. */
+    UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
+    data.flags |= GPU_SEQ_FLAG_ACTIVE;
+  }
+  data.col_outline = color_pack(col);
+}
+
+static void strip_data_highlight_flags_set(const StripDrawContext &strip,
+                                           const TimelineDrawContext *timeline_ctx,
+                                           SeqStripDrawData &data)
+{
+  const Sequence *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+  const Sequence *special_preview = ED_sequencer_special_preview_get();
+  /* Highlight if strip is an input of an active strip, or if the strip is solo preview. */
+  if (act_seq != nullptr && (act_seq->flag & SELECT) != 0) {
+    if (act_seq->seq1 == strip.seq || act_seq->seq2 == strip.seq) {
+      data.flags |= GPU_SEQ_FLAG_HIGHLIGHT;
+    }
+  }
+  if (special_preview == strip.seq) {
+    data.flags |= GPU_SEQ_FLAG_HIGHLIGHT;
+  }
+}
+
+static void strip_data_handle_flags_set(const StripDrawContext &strip,
+                                        const TimelineDrawContext *timeline_ctx,
+                                        SeqStripDrawData &data)
+{
+  const Scene *scene = timeline_ctx->scene;
+  const bool selected = strip.seq->flag & SELECT;
+  const bool show_handles = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0;
+  /* Handles on left/right side. */
+  if (!SEQ_transform_is_locked(timeline_ctx->channels, strip.seq) &&
+      ED_sequencer_can_select_handle(scene, strip.seq, timeline_ctx->v2d))
+  {
+    const bool selected_l = selected &&
+                            ED_sequencer_handle_is_selected(strip.seq, SEQ_HANDLE_LEFT);
+    const bool selected_r = selected &&
+                            ED_sequencer_handle_is_selected(strip.seq, SEQ_HANDLE_RIGHT);
+    const bool show_l = show_handles || selected_l;
+    const bool show_r = show_handles || selected_r;
+    if (show_l) {
+      data.flags |= GPU_SEQ_FLAG_DRAW_LH;
+    }
+    if (show_r) {
+      data.flags |= GPU_SEQ_FLAG_DRAW_RH;
+    }
+    if (selected_l) {
+      data.flags |= GPU_SEQ_FLAG_SELECTED_LH;
+    }
+    if (selected_r) {
+      data.flags |= GPU_SEQ_FLAG_SELECTED_RH;
+    }
+  }
+}
+
 static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
                                    StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-  const Scene *scene = timeline_ctx->scene;
-  const Sequence *act_seq = SEQ_select_active_get(scene);
-  const Sequence *special_preview = ED_sequencer_special_preview_get();
-  const bool show_handles = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0;
 
-  uchar col[4];
   for (const StripDrawContext &strip : strips) {
     SeqStripDrawData &data = strips_batch.add_strip(strip.content_start,
                                                     strip.content_end,
@@ -1367,98 +1483,13 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
                                                     strip.handle_width,
                                                     strip.is_single_image);
     data.flags |= GPU_SEQ_FLAG_BORDER;
-
-    /* Missing media state. */
-    if (strip.missing_data_block || strip.missing_media) {
-      /* Do not tint title area for muted strips; we want to see gray for them. */
-      if (!SEQ_render_is_muted(timeline_ctx->channels, strip.seq)) {
-        data.flags |= GPU_SEQ_FLAG_MISSING_TITLE;
-      }
-      /* Do not tint content area for meta strips; we want to display children. */
-      if (strip.seq->type != SEQ_TYPE_META) {
-        data.flags |= GPU_SEQ_FLAG_MISSING_CONTENT;
-      }
-    }
-
-    /* Locked state. */
-    const bool locked = SEQ_transform_is_locked(timeline_ctx->channels, strip.seq);
-    if (locked) {
-      data.flags |= GPU_SEQ_FLAG_LOCKED;
-    }
-
-    /* Border and outline. */
-    const bool selected = strip.seq->flag & SELECT;
-    const bool active = strip.is_active_strip;
-    if (selected) {
-      UI_GetThemeColor3ubv(active ? TH_SEQ_ACTIVE : TH_SEQ_SELECTED, col);
-    }
-    else {
-      /* Color for unselected strips is a bit darker than the background. */
-      UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
-    }
-    col[3] = 255;
-    /* Outline while translating strips:
-     *  - Slightly lighter.
-     *  - Red when overlapping with other strips. */
-    const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
-    if (G.moving & G_TRANSFORM_SEQ) {
-      if ((strip.seq->flag & SEQ_OVERLAP) && (overlap_mode != SEQ_OVERLAP_OVERWRITE)) {
-        col[0] = 255;
-        col[1] = col[2] = 33;
-      }
-      else if (selected) {
-        UI_GetColorPtrShade3ubv(col, col, 70);
-      }
-    }
-
-    const bool overlaps = (strip.seq->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
-    if (overlaps) {
-      data.flags |= GPU_SEQ_FLAG_OVERLAP;
-    }
-
-    if (selected) {
-      data.flags |= GPU_SEQ_FLAG_SELECTED;
-    }
-    else if (active && !overlaps) {
-      /* If the strips overlap when retiming, don't replace the red outline. */
-      /* A subtle highlight outline when active but not selected. */
-      UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
-      data.flags |= GPU_SEQ_FLAG_ACTIVE;
-    }
-    data.col_outline = color_pack(col);
-
-    /* Highlight if strip is an input of an active strip, or if the strip is solo preview. */
-    if (act_seq != nullptr && (act_seq->flag & SELECT) != 0) {
-      if (act_seq->seq1 == strip.seq || act_seq->seq2 == strip.seq) {
-        data.flags |= GPU_SEQ_FLAG_HIGHLIGHT;
-      }
-    }
-    if (special_preview == strip.seq) {
-      data.flags |= GPU_SEQ_FLAG_HIGHLIGHT;
-    }
-
-    /* Handles on left/right side. */
-    if (!locked && ED_sequencer_can_select_handle(scene, strip.seq, timeline_ctx->v2d)) {
-      const bool selected_l = selected &&
-                              ED_sequencer_handle_is_selected(strip.seq, SEQ_HANDLE_LEFT);
-      const bool selected_r = selected &&
-                              ED_sequencer_handle_is_selected(strip.seq, SEQ_HANDLE_RIGHT);
-      const bool show_l = show_handles || selected_l;
-      const bool show_r = show_handles || selected_r;
-      if (show_l) {
-        data.flags |= GPU_SEQ_FLAG_DRAW_LH;
-      }
-      if (show_r) {
-        data.flags |= GPU_SEQ_FLAG_DRAW_RH;
-      }
-      if (selected_l) {
-        data.flags |= GPU_SEQ_FLAG_SELECTED_LH;
-      }
-      if (selected_r) {
-        data.flags |= GPU_SEQ_FLAG_SELECTED_RH;
-      }
-    }
+    strip_data_missing_media_flags_set(strip, timeline_ctx, data);
+    strip_data_lock_flags_set(strip, timeline_ctx, data);
+    strip_data_outline_params_set(strip, timeline_ctx, data);
+    strip_data_highlight_flags_set(strip, timeline_ctx, data);
+    strip_data_handle_flags_set(strip, timeline_ctx, data);
   }
+
   strips_batch.flush_batch();
   GPU_blend(GPU_BLEND_ALPHA);
 }
