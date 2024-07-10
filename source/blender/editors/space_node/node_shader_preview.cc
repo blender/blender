@@ -29,7 +29,7 @@
 #include "DNA_world_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BKE_colortools.hh"
 #include "BKE_compute_contexts.hh"

@@ -53,7 +53,7 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"

@@ -44,9 +44,9 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
-#include "rna_access_internal.h"
+#include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
 static CLG_LogRef LOG = {"rna.access_compare_override"};

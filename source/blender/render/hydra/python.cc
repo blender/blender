@@ -17,7 +17,7 @@
 
 #include "RE_engine.h"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "hydra/image.hh"
 

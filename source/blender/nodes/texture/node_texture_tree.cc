@@ -31,7 +31,7 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "UI_resources.hh"
 

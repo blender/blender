@@ -14,7 +14,7 @@ set(INC
   ../../../../extern/curve_fit_nd
   ../../geometry
   ../sculpt_paint
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 

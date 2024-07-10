@@ -43,7 +43,7 @@
 
 #include "BLI_math_color_blend.h"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "RE_pipeline.h"
 

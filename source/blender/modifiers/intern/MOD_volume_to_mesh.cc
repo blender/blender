@@ -26,7 +26,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"

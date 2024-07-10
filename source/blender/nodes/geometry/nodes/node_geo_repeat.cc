@@ -14,7 +14,7 @@
 #include "BLI_string_utils.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BKE_screen.hh"
 

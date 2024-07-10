@@ -47,7 +47,7 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

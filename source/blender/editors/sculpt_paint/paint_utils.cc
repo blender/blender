@@ -46,7 +46,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "IMB_imbuf_types.hh"
 #include "IMB_interp.hh"

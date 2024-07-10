@@ -47,7 +47,7 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 /* For menu, popup, icons, etc. */
 #include "ED_fileselect.hh"

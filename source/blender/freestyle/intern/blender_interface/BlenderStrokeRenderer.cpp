@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
 #include "DNA_camera_types.h"

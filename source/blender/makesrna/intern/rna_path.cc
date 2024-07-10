@@ -29,9 +29,9 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_path.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
-#include "rna_access_internal.h"
+#include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
 bool operator==(const RNAPath &left, const RNAPath &right)

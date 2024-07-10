@@ -785,7 +785,7 @@ static char *rna_def_property_get_func(
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
       UNUSED_VARS_NDEBUG(sprop);
-      fprintf(f, "RNA_EXTERN_C void %s(PointerRNA *ptr, char *value)\n", func);
+      fprintf(f, "extern void %s(PointerRNA *ptr, char *value)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
         fprintf(f, "    PropStringGetFunc fn = %s;\n", manualfunc);
@@ -824,7 +824,7 @@ static char *rna_def_property_get_func(
       break;
     }
     case PROP_POINTER: {
-      fprintf(f, "RNA_EXTERN_C PointerRNA %s(PointerRNA *ptr)\n", func);
+      fprintf(f, "extern PointerRNA %s(PointerRNA *ptr)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
         fprintf(f, "    PropPointerGetFunc fn = %s;\n", manualfunc);
@@ -876,14 +876,11 @@ static char *rna_def_property_get_func(
     default:
       if (prop->arraydimension) {
         if (prop->flag & PROP_DYNAMIC) {
-          fprintf(f,
-                  "RNA_EXTERN_C void %s(PointerRNA *ptr, %s values[])\n",
-                  func,
-                  rna_type_type(prop));
+          fprintf(f, "extern void %s(PointerRNA *ptr, %s values[])\n", func, rna_type_type(prop));
         }
         else {
           fprintf(f,
-                  "RNA_EXTERN_C void %s(PointerRNA *ptr, %s values[%u])\n",
+                  "extern void %s(PointerRNA *ptr, %s values[%u])\n",
                   func,
                   rna_type_type(prop),
                   prop->totarraylength);
@@ -979,7 +976,7 @@ static char *rna_def_property_get_func(
         fprintf(f, "}\n\n");
       }
       else {
-        fprintf(f, "RNA_EXTERN_C %s %s(PointerRNA *ptr)\n", rna_type_type(prop), func);
+        fprintf(f, "extern %s %s(PointerRNA *ptr)\n", rna_type_type(prop), func);
         fprintf(f, "{\n");
 
         if (manualfunc) {
@@ -1167,7 +1164,7 @@ static char *rna_def_property_search_func(
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "search");
 
   fprintf(f,
-          "RNA_EXTERN_C void %s("
+          "extern void %s("
           "const bContext *C, "
           "PointerRNA *ptr, "
           "PropertyRNA *prop, "
@@ -1208,7 +1205,7 @@ static char *rna_def_property_set_func(
   switch (prop->type) {
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-      fprintf(f, "RNA_EXTERN_C void %s(PointerRNA *ptr, const char *value)\n", func);
+      fprintf(f, "extern void %s(PointerRNA *ptr, const char *value)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
         fprintf(f, "    PropStringSetFunc fn = %s;\n", manualfunc);
@@ -1257,10 +1254,9 @@ static char *rna_def_property_set_func(
       break;
     }
     case PROP_POINTER: {
-      fprintf(
-          f,
-          "RNA_EXTERN_C void %s(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)\n",
-          func);
+      fprintf(f,
+              "extern void %s(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)\n",
+              func);
       fprintf(f, "{\n");
       if (manualfunc) {
         fprintf(f, "    PropPointerSetFunc fn = %s;\n", manualfunc);
@@ -1314,13 +1310,13 @@ static char *rna_def_property_set_func(
       if (prop->arraydimension) {
         if (prop->flag & PROP_DYNAMIC) {
           fprintf(f,
-                  "RNA_EXTERN_C void %s(PointerRNA *ptr, const %s values[])\n",
+                  "extern void %s(PointerRNA *ptr, const %s values[])\n",
                   func,
                   rna_type_type(prop));
         }
         else {
           fprintf(f,
-                  "RNA_EXTERN_C void %s(PointerRNA *ptr, const %s values[%u])\n",
+                  "extern void %s(PointerRNA *ptr, const %s values[%u])\n",
                   func,
                   rna_type_type(prop),
                   prop->totarraylength);
@@ -1432,7 +1428,7 @@ static char *rna_def_property_set_func(
         fprintf(f, "}\n\n");
       }
       else {
-        fprintf(f, "RNA_EXTERN_C void %s(PointerRNA *ptr, %s value)\n", func, rna_type_type(prop));
+        fprintf(f, "extern void %s(PointerRNA *ptr, %s value)\n", func, rna_type_type(prop));
         fprintf(f, "{\n");
 
         if (manualfunc) {
@@ -1531,7 +1527,7 @@ static char *rna_def_property_length_func(
 
     func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "length");
 
-    fprintf(f, "RNA_EXTERN_C int %s(PointerRNA *ptr)\n", func);
+    fprintf(f, "extern int %s(PointerRNA *ptr)\n", func);
     fprintf(f, "{\n");
     if (manualfunc) {
       fprintf(f, "    PropStringLengthFunc fn = %s;\n", manualfunc);
@@ -1566,7 +1562,7 @@ static char *rna_def_property_length_func(
 
     func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "length");
 
-    fprintf(f, "RNA_EXTERN_C int %s(PointerRNA *ptr)\n", func);
+    fprintf(f, "extern int %s(PointerRNA *ptr)\n", func);
     fprintf(f, "{\n");
     if (manualfunc) {
       fprintf(f, "    PropCollectionLengthFunc fn = %s;\n", manualfunc);
@@ -1616,7 +1612,7 @@ static char *rna_def_property_begin_func(
 
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "begin");
 
-  fprintf(f, "RNA_EXTERN_C void %s(CollectionPropertyIterator *iter, PointerRNA *ptr)\n", func);
+  fprintf(f, "extern void %s(CollectionPropertyIterator *iter, PointerRNA *ptr)\n", func);
   fprintf(f, "{\n");
 
   if (!manualfunc) {
@@ -1707,7 +1703,7 @@ static char *rna_def_property_lookup_int_func(FILE *f,
 
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "lookup_int");
 
-  fprintf(f, "RNA_EXTERN_C bool %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
+  fprintf(f, "extern bool %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
   fprintf(f, "{\n");
 
   if (manualfunc) {
@@ -1853,20 +1849,20 @@ static char *rna_def_property_lookup_string_func(FILE *f,
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "lookup_string");
 
   if (!manualfunc) {
-    /* XXX extern declaration could be avoid by including RNA_blender.h, but this has lots of
+    /* XXX extern declaration could be avoid by including RNA_blender.hh, but this has lots of
      * unknown DNA types in functions, leading to conflicting function signatures.
      */
     fprintf(f,
-            "RNA_EXTERN_C int %s_%s_length(PointerRNA *);\n",
+            "extern int %s_%s_length(PointerRNA *);\n",
             item_name_base->identifier,
             rna_safe_id(item_name_prop->identifier));
     fprintf(f,
-            "RNA_EXTERN_C void %s_%s_get(PointerRNA *, char *);\n\n",
+            "extern void %s_%s_get(PointerRNA *, char *);\n\n",
             item_name_base->identifier,
             rna_safe_id(item_name_prop->identifier));
   }
 
-  fprintf(f, "RNA_EXTERN_C bool %s(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)\n", func);
+  fprintf(f, "extern bool %s(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)\n", func);
   fprintf(f, "{\n");
 
   if (manualfunc) {
@@ -1942,7 +1938,7 @@ static char *rna_def_property_next_func(
 
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "next");
 
-  fprintf(f, "RNA_EXTERN_C void %s(CollectionPropertyIterator *iter)\n", func);
+  fprintf(f, "extern void %s(CollectionPropertyIterator *iter)\n", func);
   fprintf(f, "{\n");
   fprintf(f, "    PropCollectionNextFunc fn = %s;\n", manualfunc);
   fprintf(f, "    fn(iter);\n");
@@ -1969,7 +1965,7 @@ static char *rna_def_property_end_func(
 
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "end");
 
-  fprintf(f, "RNA_EXTERN_C void %s(CollectionPropertyIterator *iter)\n", func);
+  fprintf(f, "extern void %s(CollectionPropertyIterator *iter)\n", func);
   fprintf(f, "{\n");
   if (manualfunc) {
     fprintf(f, "    PropCollectionEndFunc fn = %s;\n", manualfunc);
@@ -3056,7 +3052,7 @@ static void rna_def_property_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Propert
     char funcname[2048];
     rna_construct_wrapper_function_name(
         funcname, sizeof(funcname), dsrna->srna->identifier, dp->prop->identifier, "get_length");
-    fprintf(f, "RNA_EXTERN_C int %s(PointerRNA *ptr, int *arraylen)\n", funcname);
+    fprintf(f, "extern int %s(PointerRNA *ptr, int *arraylen)\n", funcname);
     fprintf(f, "{\n");
     fprintf(f, "\treturn %s(ptr, arraylen);\n", rna_function_string(dp->prop->getlength));
     fprintf(f, "}\n\n");
@@ -3079,7 +3075,7 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
   rna_construct_wrapper_function_name(
       funcname, sizeof(funcname), srna->identifier, func->identifier, "func");
 
-  fprintf(f, "RNA_EXTERN_C ");
+  fprintf(f, "extern ");
   rna_generate_static_parameter_prototypes(f, srna, dfunc, funcname, 0);
 
   fprintf(f, "\n{\n");
@@ -3736,7 +3732,7 @@ static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
     LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
-      fprintf(f, "extern struct PropertyRNA *rna_%s_%s;\n", srna->identifier, prop->identifier);
+      fprintf(f, "extern PropertyRNA *rna_%s_%s;\n", srna->identifier, prop->identifier);
     }
     fprintf(f, "\n");
   }
@@ -3754,10 +3750,7 @@ static void rna_generate_internal_property_prototypes(BlenderRNA * /*brna*/,
   while (base) {
     fprintf(f, "\n");
     LISTBASE_FOREACH (PropertyRNA *, prop, &base->cont.properties) {
-      fprintf(f,
-              "RNA_EXTERN_C_OR_EXTERN PropertyRNA *rna_%s_%s;\n",
-              base->identifier,
-              prop->identifier);
+      fprintf(f, "extern PropertyRNA *rna_%s_%s;\n", base->identifier, prop->identifier);
     }
     base = base->base;
   }
@@ -3767,7 +3760,7 @@ static void rna_generate_internal_property_prototypes(BlenderRNA * /*brna*/,
   }
 
   LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
-    fprintf(f, "RNA_EXTERN_C PropertyRNA *rna_%s_%s;\n", srna->identifier, prop->identifier);
+    fprintf(f, "extern PropertyRNA *rna_%s_%s;\n", srna->identifier, prop->identifier);
   }
   fprintf(f, "\n");
 }
@@ -4908,7 +4901,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"rna_internal.hh\"\n\n");
 
   /* include the generated prototypes header */
-  fprintf(f, "#include \"rna_prototypes_gen.h\"\n\n");
+  fprintf(f, "#include \"rna_prototypes_gen.hh\"\n\n");
 
   if (filename) {
     fprintf(f, "#include \"%s\"\n", filename);
@@ -4917,13 +4910,6 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
     fprintf(f, "#include \"%s\"\n", api_filename);
   }
   fprintf(f, "\n");
-  fprintf(f, "#ifdef __cplusplus\n");
-  fprintf(f, "#  define RNA_EXTERN_C extern \"C\"\n");
-  fprintf(f, "#  define RNA_EXTERN_C_OR_EXTERN extern \"C\"\n");
-  fprintf(f, "#else\n");
-  fprintf(f, "#  define RNA_EXTERN_C\n");
-  fprintf(f, "#  define RNA_EXTERN_C_OR_EXTERN extern\n");
-  fprintf(f, "#endif\n");
 
 /* we want the included C files to have warnings enabled but for the generated code
  * ignore unused-parameter warnings which are hard to prevent */
@@ -5010,8 +4996,6 @@ static void rna_generate_header(BlenderRNA * /*brna*/, FILE *f)
   fprintf(f, "#include \"RNA_types.hh\"\n\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n\n");
 
-  fprintf(f, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
-
   fprintf(f, "#define FOREACH_BEGIN(property, sptr, itemptr) \\\n");
   fprintf(f, "    { \\\n");
   fprintf(f, "        CollectionPropertyIterator rna_macro_iter; \\\n");
@@ -5048,8 +5032,6 @@ static void rna_generate_header(BlenderRNA * /*brna*/, FILE *f)
       rna_def_function_funcs_header(f, ds->srna, dfunc);
     }
   }
-
-  fprintf(f, "#ifdef __cplusplus\n}\n#endif\n\n");
 
   fprintf(f, "#endif /* __RNA_BLENDER_H__ */\n\n");
 }
@@ -5477,7 +5459,7 @@ static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
           "/* Automatically generated classes for the Data API.\n"
           " * Do not edit manually, changes will be overwritten. */\n\n");
 
-  fprintf(f, "#include \"RNA_blender.h\"\n");
+  fprintf(f, "#include \"RNA_blender.hh\"\n");
   fprintf(f, "#include \"RNA_types.hh\"\n");
   fprintf(f, "#include \"RNA_access.hh\"\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n");
@@ -5558,9 +5540,7 @@ static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
   fprintf(f, "\n");
 
   fprintf(f, "/* Structure prototypes */\n\n");
-  fprintf(f, "extern \"C\" {\n");
   rna_generate_struct_prototypes(f);
-  fprintf(f, "}\n\n");
 
   fprintf(f, "namespace BL {\n");
 
@@ -5649,8 +5629,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     status = EXIT_FAILURE;
   }
 
-  /* Create external rna struct prototype header file RNA_prototypes.h. */
-  SNPRINTF(deffile, "%s%s", public_header_outfile, "RNA_prototypes.h" TMP_EXT);
+  /* Create external rna struct prototype header file RNA_prototypes.hh. */
+  SNPRINTF(deffile, "%s%s", public_header_outfile, "RNA_prototypes.hh" TMP_EXT);
   if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5668,9 +5648,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
             " */\n\n");
 
     fprintf(file, "#pragma once\n\n");
-    fprintf(file, "#ifdef __cplusplus\n  extern \"C\" {\n#endif\n\n");
     rna_generate_external_property_prototypes(brna, file);
-    fprintf(file, "#ifdef __cplusplus\n  }\n#endif\n");
     fclose(file);
     if (DefRNA.error) {
       status = EXIT_FAILURE;
@@ -5679,7 +5657,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   }
 
   /* create internal rna struct prototype header file */
-  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h" TMP_EXT);
+  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.hh" TMP_EXT);
   if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5692,9 +5670,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     fprintf(file,
             "/* Automatically generated function declarations for the Data API.\n"
             " * Do not edit manually, changes will be overwritten.              */\n\n");
-    fprintf(file, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
     rna_generate_struct_rna_prototypes(brna, file);
-    fprintf(file, "#ifdef __cplusplus\n}\n#endif\n");
     fclose(file);
     replace_if_different(deffile, nullptr);
     if (DefRNA.error) {
@@ -5740,8 +5716,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     replace_if_different(deffile, deps);
   }
 
-  /* Create `RNA_blender_cpp.h`. */
-  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender_cpp.h" TMP_EXT);
+  /* Create `RNA_blender_cpp.hh`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender_cpp.hh" TMP_EXT);
 
   if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
@@ -5766,8 +5742,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
   rna_sort(brna);
 
-  /* Create `RNA_blender.h`. */
-  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender.h" TMP_EXT);
+  /* Create `RNA_blender.hh`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender.hh" TMP_EXT);
 
   if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);

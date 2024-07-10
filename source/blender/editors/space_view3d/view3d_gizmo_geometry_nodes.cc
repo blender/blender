@@ -33,7 +33,7 @@
 #include "BLI_math_vector.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_log.hh"

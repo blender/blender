@@ -11,7 +11,7 @@
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "file_intern.hh"
 #include "filelist.hh"

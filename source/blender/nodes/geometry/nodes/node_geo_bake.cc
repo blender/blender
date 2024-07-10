@@ -25,7 +25,7 @@
 #include "DNA_modifier_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "MOD_nodes.hh"
 

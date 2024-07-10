@@ -30,7 +30,7 @@
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"

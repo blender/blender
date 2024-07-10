@@ -18,7 +18,7 @@
 #include "CLG_log.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 namespace blender::bke::tests {
 

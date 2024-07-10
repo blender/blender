@@ -12,7 +12,7 @@ set(INC
   ../makesrna
   ../windowmanager
   ../../../extern/fmtlib/include
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 

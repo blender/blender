@@ -15,7 +15,7 @@
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"

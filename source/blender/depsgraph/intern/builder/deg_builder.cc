@@ -24,7 +24,7 @@
 #include "BKE_collection.hh"
 #include "BKE_lib_id.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_remove_noop.h"

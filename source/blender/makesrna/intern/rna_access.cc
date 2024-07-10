@@ -63,7 +63,7 @@
 #include "DNA_object_types.h"
 #include "WM_types.hh"
 
-#include "rna_access_internal.h"
+#include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
 static CLG_LogRef LOG = {"rna.access"};

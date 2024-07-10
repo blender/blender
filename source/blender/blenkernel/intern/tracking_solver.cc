@@ -26,7 +26,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "libmv-capi.h"
 #include "tracking_private.h"

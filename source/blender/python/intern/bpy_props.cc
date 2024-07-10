@@ -30,7 +30,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh" /* for defining our own rna */
 #include "RNA_enum_types.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "MEM_guardedalloc.h"
 

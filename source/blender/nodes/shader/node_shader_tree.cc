@@ -37,7 +37,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "UI_resources.hh"
 

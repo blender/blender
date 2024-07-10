@@ -38,7 +38,7 @@
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "ED_buttons.hh"
 #include "ED_physics.hh"

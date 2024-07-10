@@ -27,7 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"

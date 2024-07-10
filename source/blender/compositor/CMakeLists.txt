@@ -23,7 +23,7 @@ if(WITH_COMPOSITOR_CPU)
     ../render
     ../render/intern
 
-    # RNA_prototypes.h
+    # RNA_prototypes.hh
     ${CMAKE_BINARY_DIR}/source/blender/makesrna
   )
 
@@ -638,7 +638,7 @@ if(WITH_COMPOSITOR_CPU)
     blender_add_test_suite_lib(compositor "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
   endif()
 
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   add_dependencies(bf_compositor bf_rna)
 
 # End WITH_COMPOSITOR_CPU.

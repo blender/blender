@@ -31,7 +31,7 @@
 #include "BKE_constraint.h"
 #include "BKE_lib_query.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

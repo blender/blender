@@ -23,7 +23,7 @@
 #include "DNA_space_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

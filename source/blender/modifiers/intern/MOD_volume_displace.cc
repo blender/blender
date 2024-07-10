@@ -32,7 +32,7 @@
 
 #include "RE_texture.h"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BLI_math_vector.h"
 

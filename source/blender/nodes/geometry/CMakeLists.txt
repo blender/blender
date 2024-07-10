@@ -23,7 +23,7 @@ set(INC
   ../../io/common
   ../../io/stl
   ../../io/wavefront_obj
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -340,5 +340,5 @@ target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
 blender_set_target_unity_build(bf_nodes_geometry 10)
 
-# RNA_prototypes.h
+# RNA_prototypes.hh
 add_dependencies(bf_nodes_geometry bf_rna)

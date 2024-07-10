@@ -34,7 +34,7 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "SEQ_channels.hh"
 #include "SEQ_effects.hh"

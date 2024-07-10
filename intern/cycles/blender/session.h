@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_blender_cpp.h"
+#include "RNA_blender_cpp.hh"
 
 #include "device/device.h"
 

@@ -21,7 +21,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "ED_asset_list.hh"
 #include "ED_asset_menu_utils.hh"

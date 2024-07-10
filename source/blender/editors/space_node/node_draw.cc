@@ -82,7 +82,7 @@
 #include "UI_view2d.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "NOD_geometry_exec.hh"
 #include "NOD_geometry_nodes_gizmos.hh"

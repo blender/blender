@@ -26,7 +26,7 @@
 #include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

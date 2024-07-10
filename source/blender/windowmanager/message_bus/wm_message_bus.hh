@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 #include <stdio.h>
 

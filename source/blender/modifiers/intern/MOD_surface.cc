@@ -24,7 +24,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

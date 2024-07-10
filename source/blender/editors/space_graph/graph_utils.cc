@@ -25,7 +25,7 @@
 #include "ED_screen.hh"
 #include "UI_interface.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "graph_intern.hh" /* own include */
 

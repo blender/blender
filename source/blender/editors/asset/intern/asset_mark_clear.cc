@@ -20,7 +20,7 @@
 
 #include "UI_interface_icons.hh"
 
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "ED_asset_list.hh"
 #include "ED_asset_mark_clear.hh"

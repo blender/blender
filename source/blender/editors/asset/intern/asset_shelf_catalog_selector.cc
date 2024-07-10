@@ -24,7 +24,7 @@
 #include "ED_asset_list.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"

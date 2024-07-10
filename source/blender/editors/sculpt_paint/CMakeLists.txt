@@ -24,7 +24,7 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/eigen
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -182,7 +182,7 @@ if(WITH_GTESTS)
   )
   set(TEST_LIB
     ${LIB}
-    bf_rna  # RNA_prototypes.h
+    bf_rna  # RNA_prototypes.hh
   )
   blender_add_test_suite_lib(editor_sculpt_paint "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()
@@ -194,5 +194,5 @@ if(WITH_TBB AND MSVC_CLANG)
 endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-# RNA_prototypes.h
+# RNA_prototypes.hh
 add_dependencies(bf_editor_sculpt_paint bf_rna)

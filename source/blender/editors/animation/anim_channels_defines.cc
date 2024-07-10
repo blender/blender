@@ -49,7 +49,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"

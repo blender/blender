@@ -16,7 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
+#include "RNA_prototypes.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_string_utf8.h"

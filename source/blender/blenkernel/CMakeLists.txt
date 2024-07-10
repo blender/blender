@@ -31,7 +31,7 @@ set(INC
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
 
-  # RNA_prototypes.h
+  # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -829,7 +829,7 @@ endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.h
+# RNA_prototypes.hh
 add_dependencies(bf_blenkernel bf_rna)
 
 
@@ -863,7 +863,7 @@ if(WITH_GTESTS)
   )
   set(TEST_LIB
     ${LIB}
-    bf_rna  # RNA_prototypes.h
+    bf_rna  # RNA_prototypes.hh
   )
   blender_add_test_suite_lib(blenkernel "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

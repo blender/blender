@@ -5,7 +5,7 @@
 #ifndef __BLENDER_IMAGE_H__
 #define __BLENDER_IMAGE_H__
 
-#include "RNA_blender_cpp.h"
+#include "RNA_blender_cpp.hh"
 
 #include "scene/image.h"
 
