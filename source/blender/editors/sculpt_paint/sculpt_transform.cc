@@ -165,6 +165,26 @@ BLI_NOINLINE static void calc_symm_area_transform_translations(
   }
 }
 
+BLI_NOINLINE static void filter_translations_with_symmetry(const Span<float3> positions,
+                                                           const ePaintSymmetryFlags symm,
+                                                           const MutableSpan<float3> translations)
+{
+  if ((symm & (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)) == 0) {
+    return;
+  }
+  for (const int i : positions.index_range()) {
+    if ((symm & PAINT_SYMM_X) && (std::abs(positions[i].x) < transform_mirror_max_distance_eps)) {
+      translations[i].x = 0.0f;
+    }
+    if ((symm & PAINT_SYMM_Y) && (std::abs(positions[i].y) < transform_mirror_max_distance_eps)) {
+      translations[i].y = 0.0f;
+    }
+    if ((symm & PAINT_SYMM_Z) && (std::abs(positions[i].z) < transform_mirror_max_distance_eps)) {
+      translations[i].z = 0.0f;
+    }
+  }
+}
+
 static void transform_node_mesh(const Sculpt &sd,
                                 const std::array<float4x4, 8> &transform_mats,
                                 const Span<float3> positions_eval,
@@ -185,8 +205,10 @@ static void transform_node_mesh(const Sculpt &sd,
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_symm_area_transform_translations(orig_data.positions, transform_mats, translations);
-
   scale_translations(translations, factors);
+
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  filter_translations_with_symmetry(orig_data.positions, symm, translations);
 
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
@@ -216,6 +238,9 @@ static void transform_node_grids(const Sculpt &sd,
 
   scale_translations(translations, factors);
 
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  filter_translations_with_symmetry(orig_data.positions, symm, translations);
+
   clip_and_lock_translations(sd, ss, orig_data.positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
 }
@@ -243,6 +268,9 @@ static void transform_node_bmesh(const Sculpt &sd,
   calc_symm_area_transform_translations(orig_positions, transform_mats, translations);
 
   scale_translations(translations, factors);
+
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  filter_translations_with_symmetry(orig_positions, symm, translations);
 
   clip_and_lock_translations(sd, ss, orig_positions, translations);
   apply_translations(translations, verts);
