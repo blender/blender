@@ -268,7 +268,6 @@ if(WITH_BLENDER)
       back
       blank1
       blender
-      blender_large
       blender_logo_large
       boids
       bold
