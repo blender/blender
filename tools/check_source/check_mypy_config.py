@@ -58,7 +58,6 @@ PATHS_EXCLUDE = set(
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",
         "tools/utils/blender_theme_as_c.py",
-        "tools/utils/cycles_commits_sync.py",
         "tools/utils/cycles_timeit.py",
         "tools/utils/gdb_struct_repr_c99.py",
         "tools/utils/git_log_review_commits.py",
