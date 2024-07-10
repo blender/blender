@@ -219,8 +219,6 @@ static void elastic_transform_node(Object &ob,
 
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
 
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-
   KelvinletParams params;
   /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
    * preservation like in the elastic deform brushes. Setting them to the same default as elastic
@@ -234,10 +232,8 @@ static void elastic_transform_node(Object &ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    float transformed_co[3], orig_co[3], disp[3];
+    float transformed_co[3], disp[3];
     const float fade = vd.mask;
-    copy_v3_v3(orig_co, orig_data.co);
 
     copy_v3_v3(transformed_co, vd.co);
     mul_m4_v3(elastic_transform_mat, transformed_co);

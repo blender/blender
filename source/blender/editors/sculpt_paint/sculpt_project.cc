@@ -221,9 +221,6 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
 
 static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SculptSession &ss = *gesture_data.ss;
-  const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
-
   flush_update_step(&C, UpdateType::Position);
   flush_update_done(&C, *gesture_data.vc.obact, UpdateType::Position);
   undo::push_end(*gesture_data.vc.obact);
