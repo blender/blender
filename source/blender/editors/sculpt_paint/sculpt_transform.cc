@@ -147,59 +147,111 @@ static std::array<float4x4, 8> transform_matrices_init(
 
 static constexpr float transform_mirror_max_distance_eps = 0.00002f;
 
-static void transform_node(Object &ob,
-                           const std::array<float4x4, 8> &transform_mats,
-                           PBVHNode *node)
+struct TransformLocalData {
+  Vector<float3> positions;
+  Vector<float> factors;
+  Vector<float3> translations;
+};
+
+BLI_NOINLINE static void calc_symm_area_transform_translations(
+    const Span<float3> positions,
+    const std::array<float4x4, 8> &transform_mats,
+    const MutableSpan<float3> translations)
 {
-  SculptSession &ss = *ob.sculpt;
-
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-
-  PBVHVertexIter vd;
-
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    float *start_co;
-    float transformed_co[3], orig_co[3], disp[3];
-    float fade = vd.mask;
-    copy_v3_v3(orig_co, orig_data.co);
-    char symm_area = SCULPT_get_vertex_symm_area(orig_co);
-
-    switch (ss.filter_cache->transform_displacement_mode) {
-      case SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL:
-        start_co = orig_co;
-        break;
-      case SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL:
-        start_co = vd.co;
-        break;
-    }
-
-    copy_v3_v3(transformed_co, start_co);
-    mul_m4_v3(transform_mats[int(symm_area)].ptr(), transformed_co);
-    sub_v3_v3v3(disp, transformed_co, start_co);
-    mul_v3_fl(disp, 1.0f - fade);
-    add_v3_v3v3(vd.co, start_co, disp);
-
-    /* Keep vertices on the mirror axis. */
-    if ((symm & PAINT_SYMM_X) && (fabs(start_co[0]) < transform_mirror_max_distance_eps)) {
-      vd.co[0] = 0.0f;
-    }
-    if ((symm & PAINT_SYMM_Y) && (fabs(start_co[1]) < transform_mirror_max_distance_eps)) {
-      vd.co[1] = 0.0f;
-    }
-    if ((symm & PAINT_SYMM_Z) && (fabs(start_co[2]) < transform_mirror_max_distance_eps)) {
-      vd.co[2] = 0.0f;
-    }
+  for (const int i : positions.index_range()) {
+    const ePaintSymmetryAreas symm_area = SCULPT_get_vertex_symm_area(positions[i]);
+    const float3 transformed = math::transform_point(transform_mats[symm_area], positions[i]);
+    translations[i] = transformed - positions[i];
   }
-  BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_positions_update(node);
 }
 
-static void sculpt_transform_all_vertices(Object &ob)
+static void transform_node_mesh(const Sculpt &sd,
+                                const std::array<float4x4, 8> &transform_mats,
+                                const Span<float3> positions_eval,
+                                const PBVHNode &node,
+                                Object &object,
+                                TransformLocalData &tls,
+                                const MutableSpan<float3> positions_orig)
 {
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
+
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  calc_symm_area_transform_translations(orig_data.positions, transform_mats, translations);
+
+  scale_translations(translations, factors);
+
+  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+}
+
+static void transform_node_grids(const Sculpt &sd,
+                                 const std::array<float4x4, 8> &transform_mats,
+                                 const PBVHNode &node,
+                                 Object &object,
+                                 TransformLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const int grid_verts_num = grids.size() * key.grid_area;
+
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
+
+  tls.factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+  calc_symm_area_transform_translations(orig_data.positions, transform_mats, translations);
+
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
+}
+
+static void transform_node_bmesh(const Sculpt &sd,
+                                 const std::array<float4x4, 8> &transform_mats,
+                                 PBVHNode &node,
+                                 Object &object,
+                                 TransformLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  Array<float3> orig_positions(verts.size());
+  Array<float3> orig_normals(verts.size());
+  orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  calc_symm_area_transform_translations(orig_positions, transform_mats, translations);
+
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, orig_positions, translations);
+  apply_translations(translations, verts);
+}
+
+static void sculpt_transform_all_vertices(const Sculpt &sd, Object &ob)
+{
+  undo::restore_position_from_undo_step(ob);
+
   SculptSession &ss = *ob.sculpt;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
@@ -208,18 +260,47 @@ static void sculpt_transform_all_vertices(Object &ob)
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
-  threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      transform_node(ob, transform_mats, ss.filter_cache->nodes[i]);
-    }
-  });
-}
+  PBVH &pbvh = *ss.pbvh;
+  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
 
-struct TransformLocalData {
-  Vector<float3> positions;
-  Vector<float> factors;
-  Vector<float3> translations;
-};
+  threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        TransformLocalData &tls = all_tls.local();
+        for (const int i : range) {
+          transform_node_mesh(
+              sd, transform_mats, positions_eval, *nodes[i], ob, tls, positions_orig);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
+      });
+      break;
+    }
+    case PBVH_GRIDS: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        TransformLocalData &tls = all_tls.local();
+        for (const int i : range) {
+          transform_node_grids(sd, transform_mats, *nodes[i], ob, tls);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
+      });
+      break;
+    }
+    case PBVH_BMESH: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        TransformLocalData &tls = all_tls.local();
+        for (const int i : range) {
+          transform_node_bmesh(sd, transform_mats, *nodes[i], ob, tls);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
+      });
+      break;
+    }
+  }
+}
 
 BLI_NOINLINE static void calc_transform_translations(const float4x4 &elastic_transform_mat,
                                                      const Span<float3> positions,
@@ -328,7 +409,6 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
   const MutableSpan<float3> positions = tls.positions;
   gather_bmesh_positions(verts, positions);
 
-  /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
@@ -442,7 +522,7 @@ void update_modal_transform(bContext *C, Object &ob)
 
   switch (sd.transform_mode) {
     case SCULPT_TRANSFORM_MODE_ALL_VERTICES: {
-      sculpt_transform_all_vertices(ob);
+      sculpt_transform_all_vertices(sd, ob);
       break;
     }
     case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
@@ -468,10 +548,6 @@ void update_modal_transform(bContext *C, Object &ob)
   copy_v3_v3(ss.prev_pivot_pos, ss.pivot_pos);
   copy_v4_v4(ss.prev_pivot_rot, ss.pivot_rot);
   copy_v3_v3(ss.prev_pivot_scale, ss.pivot_scale);
-
-  if (ss.deform_modifiers_active || ss.shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, ob, true);
-  }
 
   flush_update_step(C, UpdateType::Position);
 }
