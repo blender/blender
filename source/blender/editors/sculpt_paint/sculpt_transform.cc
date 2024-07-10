@@ -152,7 +152,6 @@ static void transform_node(Object &ob,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  undo::push_node(ob, node, undo::Type::Position);
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(orig_data, vd);
     float *start_co;
@@ -227,8 +226,6 @@ static void elastic_transform_node(Object &ob,
   const float shear_modulus = 1.0f;
   const float poisson_ratio = 0.4f;
   BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
-
-  undo::push_node(ob, node, undo::Type::Position);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
