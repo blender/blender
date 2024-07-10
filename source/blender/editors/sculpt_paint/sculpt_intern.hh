@@ -1651,6 +1651,8 @@ void push_end_ex(Object &ob, const bool use_nested_undo);
 void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
 BMLogEntry *get_bmesh_log_entry();
 
+void restore_position_from_undo_step(Object &object);
+
 }
 
 namespace blender::ed::sculpt_paint {

@@ -1305,9 +1305,13 @@ bool stroke_is_dyntopo(const SculptSession &ss, const Brush &brush)
 /** \name Sculpt Paint Mesh
  * \{ */
 
-static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
+namespace undo {
+
+static void restore_mask_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1315,7 +1319,7 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
             const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             array_utils::scatter(unode->mask.as_span(), verts, mask.span);
@@ -1347,7 +1351,7 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const Span<CCGElem *> grids = subdiv_ccg.grids;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
             int index = 0;
             for (const int grid : unode->grids) {
@@ -1368,9 +1372,11 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
   }
 }
 
-static void restore_color(Object &object, const Span<PBVHNode *> nodes)
+static void restore_color_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
   BLI_assert(BKE_pbvh_type(*ss.pbvh) == PBVH_FACES);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
@@ -1378,7 +1384,7 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
       if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
         const Span<int> verts = bke::pbvh::node_unique_verts(*node);
         for (const int i : verts.index_range()) {
@@ -1396,15 +1402,17 @@ static void restore_color(Object &object, const Span<PBVHNode *> nodes)
   color_attribute.finish();
 }
 
-static void restore_face_set(Object &object, const Span<PBVHNode *> nodes)
+static void restore_face_set_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS: {
       bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::FaceSet)) {
             const Span<int> faces = unode->face_indices;
             const Span<int> face_sets = unode->face_sets;
@@ -1431,9 +1439,11 @@ static BLI_NOINLINE void translations_to_positions(const Span<float3> new_positi
   }
 }
 
-static void restore_position(Object &object, const Span<PBVHNode *> nodes)
+void restore_position_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1450,7 +1460,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
             const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             const Span<float3> undo_positions = unode->position.as_span().take_front(verts.size());
@@ -1491,7 +1501,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
         return;
       }
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
             if (const float *orig_co = BM_log_find_original_vert_co(ss.bm_log, vert)) {
               copy_v3_v3(vert->co, orig_co);
@@ -1508,7 +1518,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const Span<CCGElem *> grids = subdiv_ccg.grids;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (PBVHNode *node : nodes.slice(range)) {
+        for (PBVHNode *node : nodes.as_span().slice(range)) {
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
             int index = 0;
             for (const int grid : unode->grids) {
@@ -1539,26 +1549,24 @@ static void restore_from_undo_step(const Sculpt &sd, Object &object)
   SculptSession &ss = *object.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
-
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_MASK:
-      restore_mask(object, nodes);
+      restore_mask_from_undo_step(object);
       break;
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_SMEAR:
-      restore_color(object, nodes);
+      restore_color_from_undo_step(object);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       if (ss.cache->alt_smooth) {
-        restore_position(object, nodes);
+        restore_position_from_undo_step(object);
       }
       else {
-        restore_face_set(object, nodes);
+        restore_face_set_from_undo_step(object);
       }
       break;
     default:
-      restore_position(object, nodes);
+      restore_position_from_undo_step(object);
       break;
   }
   /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
@@ -1567,6 +1575,8 @@ static void restore_from_undo_step(const Sculpt &sd, Object &object)
 
   BKE_pbvh_node_color_buffer_free(*ss.pbvh);
 }
+
+}  // namespace undo
 
 }  // namespace blender::ed::sculpt_paint
 
@@ -5508,7 +5518,7 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
            SCULPT_TOOL_ROTATE,
            SCULPT_TOOL_ELASTIC_DEFORM))
   {
-    restore_from_undo_step(sd, ob);
+    undo::restore_from_undo_step(sd, ob);
     return;
   }
 
@@ -5525,7 +5535,7 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
       (brush->flag & BRUSH_DRAG_DOT))
   {
 
-    restore_from_undo_step(sd, ob);
+    undo::restore_from_undo_step(sd, ob);
 
     if (ss.cache) {
       MEM_SAFE_FREE(ss.cache->layer_displacement_factor);
@@ -6089,7 +6099,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   /* XXX Canceling strokes that way does not work with dynamic topology,
    *     user will have to do real undo for now. See #46456. */
   if (ss.cache && !dyntopo::stroke_is_dyntopo(ss, brush)) {
-    restore_from_undo_step(sd, ob);
+    undo::restore_from_undo_step(sd, ob);
   }
 
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
