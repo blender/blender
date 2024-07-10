@@ -1516,6 +1516,10 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   /* Update and write the simulation to the nodes. */
   do_simulation_step(sd, ob, *ss.filter_cache->cloth_sim, ss.filter_cache->nodes);
 
+  for (PBVHNode *node : ss.filter_cache->nodes) {
+    BKE_pbvh_node_mark_positions_update(node);
+  }
+
   if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
   }

@@ -121,16 +121,6 @@ void cache_init(bContext *C,
   ss.filter_cache->nodes = bke::pbvh::search_gather(
       pbvh, [&](PBVHNode &node) { return !node_fully_masked_or_hidden(node); });
 
-  for (PBVHNode *node : ss.filter_cache->nodes) {
-    BKE_pbvh_node_mark_positions_update(node);
-  }
-
-  /* `mesh->runtime.subdiv_ccg` is not available. Updating of the normals is done during drawing.
-   * Filters can't use normals in multi-resolution. */
-  if (BKE_pbvh_type(pbvh) != PBVH_GRIDS) {
-    bke::pbvh::update_normals(pbvh, nullptr);
-  }
-
   undo::push_nodes(ob, ss.filter_cache->nodes, undo_type);
 
   /* Setup orientation matrices. */
@@ -706,17 +696,25 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
+
+  /* The relax mesh filter needs updated normals. */
+  if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
+    bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+  }
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mesh_filter_task(
-          ob, eSculptMeshFilterType(filter_type), filter_strength, ss.filter_cache->nodes[i]);
+      mesh_filter_task(ob, eSculptMeshFilterType(filter_type), filter_strength, nodes[i]);
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
     }
   });
 
   if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
-    threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        mesh_filter_surface_smooth_displace_task(ob, filter_strength, ss.filter_cache->nodes[i]);
+        mesh_filter_surface_smooth_displace_task(ob, filter_strength, nodes[i]);
+        BKE_pbvh_node_mark_positions_update(nodes[i]);
       }
     });
   }
@@ -725,11 +723,6 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   if (ss.deform_modifiers_active || ss.shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
-  }
-
-  /* The relax mesh filter needs the updated normals of the modified mesh after each iteration. */
-  if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
-    bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
   }
 
   flush_update_step(C, UpdateType::Position);

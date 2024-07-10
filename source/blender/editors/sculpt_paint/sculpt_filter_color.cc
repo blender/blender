@@ -312,6 +312,9 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   if (filter_strength < 0.0 && ss.filter_cache->pre_smoothed_color.is_empty()) {
     sculpt_color_presmooth_init(mesh, ss);
   }
+
+  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
+
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
@@ -319,7 +322,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
-  threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       color_filter_task(ob,
                         faces,
@@ -330,8 +333,9 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
                         mode,
                         filter_strength,
                         fill_color,
-                        ss.filter_cache->nodes[i],
+                        nodes[i],
                         color_attribute);
+      BKE_pbvh_node_mark_update_color(nodes[i]);
     }
   });
   color_attribute.finish();
