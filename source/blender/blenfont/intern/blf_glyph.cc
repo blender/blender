@@ -372,18 +372,22 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode)
   }
 
   const float scale = (gc->size / 1600.0f);
-  const float full = 1600.0f * scale;
-  const int dest_h = int(image->height * scale);
-  const int dest_w = int(image->width * scale);
-  const int render_size = dest_w * dest_h * 4;
-  blender::Array<uchar> render_bmp(render_size);
+  const int dest_h = int(ceil(image->height * scale));
+  const int dest_w = int(ceil(image->width * scale));
+  blender::Array<uchar> render_bmp(dest_w * dest_h * 4);
 
-  nsvgRasterize(rast, image, 0, 0, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
+  /* Icon content has 100 units of padding around them. If
+   * it has a subpixel width, shift by the fractional part. */
+  const float tx = fmod((image->width - 200.0f) * scale, 1.0f);
+  const float ty = fmod((image->height - 200.0f) * scale, 1.0f);
+
+  nsvgRasterize(rast, image, tx, -ty, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
   nsvgDeleteRasterizer(rast);
   nsvgDelete(image);
 
-  const int offset_x = int(floor((full - float(dest_w)) / 2.0f));
-  const int offset_y = int(ceil((full + float(dest_h)) / 2.0f));
+  /* Bitmaps vary in size, so calculate the offsets needed when drawn. */
+  const int offset_x = int(round((gc->size - float(dest_w) + tx) / 2.0f));
+  const int offset_y = int(ceil((gc->size + float(dest_h) - ty) / 2.0f));
 
   std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
