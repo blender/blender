@@ -1244,7 +1244,7 @@ static std::optional<std::string> ui_but_event_operator_string_from_operator(
     const bContext *C, wmOperatorCallParams *op_call_params)
 {
   BLI_assert(op_call_params->optype != nullptr);
-  IDProperty *prop = reinterpret_cast<IDProperty *>(op_call_params->opptr) ?
+  IDProperty *prop = op_call_params->opptr ?
                          static_cast<IDProperty *>(op_call_params->opptr->data) :
                          nullptr;
 
