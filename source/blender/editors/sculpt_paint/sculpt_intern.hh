@@ -1032,12 +1032,12 @@ void calc_area_center(const Brush &brush,
                       Span<PBVHNode *> nodes,
                       float r_area_co[3]);
 
-}
+PBVHVertRef nearest_vert_calc(const Object &object,
+                              const float3 &location,
+                              float max_distance,
+                              bool use_original);
 
-PBVHVertRef SCULPT_nearest_vertex_get(const Object &ob,
-                                      const float co[3],
-                                      float max_distance,
-                                      bool use_original);
+}
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache &cache,

@@ -887,57 +887,185 @@ struct NearestVertexData {
   float nearest_vertex_distance_sq;
 };
 
-static void nearest_vertex_get_node(PBVH &pbvh,
-                                    const float nearest_vertex_search_co[3],
-                                    const float max_distance_sq,
-                                    PBVHNode *node,
-                                    NearestVertexData *nvtd)
+namespace blender::ed::sculpt_paint {
+
+static std::optional<int> nearest_vert_calc_mesh(const PBVH &pbvh,
+                                                 const Span<float3> vert_positions,
+                                                 const Span<bool> hide_vert,
+                                                 const float3 &location,
+                                                 const float max_distance,
+                                                 const bool use_original)
 {
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float distance_squared = len_squared_v3v3(vd.co, nearest_vertex_search_co);
-    if (distance_squared < nvtd->nearest_vertex_distance_sq && distance_squared < max_distance_sq)
-    {
-      nvtd->nearest_vertex = vd.vertex;
-      nvtd->nearest_vertex_distance_sq = distance_squared;
+  const float max_distance_sq = max_distance * max_distance;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
+      const_cast<PBVH &>(pbvh), [&](PBVHNode &node) {
+        return node_in_sphere(node, location, max_distance_sq, use_original);
+      });
+  if (nodes.is_empty()) {
+    return std::nullopt;
+  }
+
+  struct NearestData {
+    int vert = -1;
+    float distance_sq = std::numeric_limits<float>::max();
+  };
+
+  const NearestData nearest = threading::parallel_reduce(
+      nodes.index_range(),
+      1,
+      NearestData(),
+      [&](const IndexRange range, NearestData nearest) {
+        for (const int i : range) {
+          for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+            if (!hide_vert.is_empty() && hide_vert[vert]) {
+              continue;
+            }
+            const float distance_sq = math::distance_squared(vert_positions[vert], location);
+            if (distance_sq < nearest.distance_sq) {
+              nearest = {vert, distance_sq};
+            }
+          }
+        }
+        return nearest;
+      },
+      [](const NearestData a, const NearestData b) {
+        return a.distance_sq < b.distance_sq ? a : b;
+      });
+  return nearest.vert;
+}
+
+static std::optional<SubdivCCGCoord> nearest_vert_calc_grids(PBVH &pbvh,
+                                                             const SubdivCCG &subdiv_ccg,
+                                                             const float3 &location,
+                                                             const float max_distance,
+                                                             const bool use_original)
+{
+  const float max_distance_sq = max_distance * max_distance;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
+      const_cast<PBVH &>(pbvh), [&](PBVHNode &node) {
+        return node_in_sphere(node, location, max_distance_sq, use_original);
+      });
+  if (nodes.is_empty()) {
+    return std::nullopt;
+  }
+
+  struct NearestData {
+    SubdivCCGCoord coord = {};
+    float distance_sq = std::numeric_limits<float>::max();
+  };
+
+  const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
+
+  const NearestData nearest = threading::parallel_reduce(
+      nodes.index_range(),
+      1,
+      NearestData(),
+      [&](const IndexRange range, NearestData nearest) {
+        for (const int i : range) {
+          for (const int grid : bke::pbvh::node_grid_indices(*nodes[i])) {
+            CCGElem *elem = elems[grid];
+            BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
+              const float distance_sq = math::distance_squared(CCG_elem_offset_co(key, elem, i),
+                                                               location);
+              if (distance_sq < nearest.distance_sq) {
+                SubdivCCGCoord coord{};
+                coord.grid_index = grid;
+                coord.x = i % key.grid_size;
+                coord.y = i / key.grid_size;
+                nearest = {coord, distance_sq};
+              }
+            });
+          }
+        }
+        return nearest;
+      },
+      [](const NearestData a, const NearestData b) {
+        return a.distance_sq < b.distance_sq ? a : b;
+      });
+  return nearest.coord;
+}
+
+static std::optional<BMVert *> nearest_vert_calc_bmesh(PBVH &pbvh,
+                                                       const float3 &location,
+                                                       const float max_distance,
+                                                       const bool use_original)
+{
+  const float max_distance_sq = max_distance * max_distance;
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
+      const_cast<PBVH &>(pbvh), [&](PBVHNode &node) {
+        return node_in_sphere(node, location, max_distance_sq, use_original);
+      });
+  if (nodes.is_empty()) {
+    return std::nullopt;
+  }
+
+  struct NearestData {
+    BMVert *vert = nullptr;
+    float distance_sq = std::numeric_limits<float>::max();
+  };
+
+  const NearestData nearest = threading::parallel_reduce(
+      nodes.index_range(),
+      1,
+      NearestData(),
+      [&](const IndexRange range, NearestData nearest) {
+        for (const int i : range) {
+          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(nodes[i])) {
+            if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+              continue;
+            }
+            const float distance_sq = math::distance_squared(float3(vert->co), location);
+            if (distance_sq < nearest.distance_sq) {
+              nearest = {vert, distance_sq};
+            }
+          }
+        }
+        return nearest;
+      },
+      [](const NearestData a, const NearestData b) {
+        return a.distance_sq < b.distance_sq ? a : b;
+      });
+  return nearest.vert;
+}
+
+PBVHVertRef nearest_vert_calc(const Object &object,
+                              const float3 &location,
+                              const float max_distance,
+                              const bool use_original)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+      const std::optional<int> nearest = nearest_vert_calc_mesh(
+          *ss.pbvh, vert_positions, hide_vert, location, max_distance, use_original);
+      return nearest ? PBVHVertRef{*nearest} : PBVHVertRef{PBVH_REF_NONE};
+    }
+    case PBVH_GRIDS: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
+          *ss.pbvh, subdiv_ccg, location, max_distance, use_original);
+      return nearest ? PBVHVertRef{key.grid_area * nearest->grid_index +
+                                   CCG_grid_xy_to_index(key.grid_size, nearest->x, nearest->y)} :
+                       PBVHVertRef{PBVH_REF_NONE};
+    }
+    case PBVH_BMESH: {
+      const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
+          *ss.pbvh, location, max_distance, use_original);
+      return nearest ? PBVHVertRef{intptr_t(*nearest)} : PBVHVertRef{PBVH_REF_NONE};
     }
   }
-  BKE_pbvh_vertex_iter_end;
+  BLI_assert_unreachable();
+  return BKE_pbvh_make_vref(PBVH_REF_NONE);
 }
 
-PBVHVertRef SCULPT_nearest_vertex_get(const Object &ob,
-                                      const float co[3],
-                                      float max_distance,
-                                      bool use_original)
-{
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
-  const SculptSession &ss = *ob.sculpt;
-
-  const float max_distance_sq = max_distance * max_distance;
-
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
-    return node_in_sphere(node, co, max_distance_sq, use_original);
-  });
-  if (nodes.is_empty()) {
-    return BKE_pbvh_make_vref(PBVH_REF_NONE);
-  }
-
-  return threading::parallel_reduce(
-             nodes.index_range(),
-             1,
-             NearestVertexData{{PBVH_REF_NONE}, FLT_MAX},
-             [&](const IndexRange range, NearestVertexData nearest) {
-               for (const int i : range) {
-                 nearest_vertex_get_node(*ss.pbvh, co, max_distance_sq, nodes[i], &nearest);
-               }
-               return nearest;
-             },
-             [](const NearestVertexData a, const NearestVertexData b) {
-               return a.nearest_vertex_distance_sq < b.nearest_vertex_distance_sq ? a : b;
-             })
-      .nearest_vertex;
-}
+}  // namespace blender::ed::sculpt_paint
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 {
@@ -1027,7 +1155,7 @@ void add_initial_with_symmetry(
       float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
       float location[3];
       flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), ePaintSymmetryFlags(i));
-      v = SCULPT_nearest_vertex_get(ob, location, radius_squared, false);
+      v = nearest_vert_calc(ob, location, radius_squared, false);
     }
 
     if (v.i != PBVH_REF_NONE) {
@@ -1053,7 +1181,7 @@ void add_active(const Object &ob, const SculptSession &ss, FillData &flood, floa
     else if (radius > 0.0f) {
       float location[3];
       flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), ePaintSymmetryFlags(i));
-      v = SCULPT_nearest_vertex_get(ob, location, radius, false);
+      v = nearest_vert_calc(ob, location, radius, false);
     }
 
     if (v.i != PBVH_REF_NONE) {

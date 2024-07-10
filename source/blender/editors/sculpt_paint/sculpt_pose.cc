@@ -618,7 +618,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_topology(
   float next_chain_segment_target[3];
 
   int totvert = SCULPT_vertex_count_get(ss);
-  PBVHVertRef nearest_vertex = SCULPT_nearest_vertex_get(ob, initial_location, FLT_MAX, true);
+  PBVHVertRef nearest_vertex = nearest_vert_calc(ob, initial_location, FLT_MAX, true);
   int nearest_vertex_index = BKE_pbvh_vertex_to_index(*ss.pbvh, nearest_vertex);
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are

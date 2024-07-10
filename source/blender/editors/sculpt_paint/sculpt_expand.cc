@@ -445,7 +445,7 @@ static PBVHVertRef get_vert_index_for_symmetry_pass(Object &ob,
   else {
     float location[3];
     flip_v3_v3(location, SCULPT_vertex_co_get(ss, original_vertex), ePaintSymmetryFlags(symm_it));
-    symm_vertex = SCULPT_nearest_vertex_get(ob, location, FLT_MAX, false);
+    symm_vertex = nearest_vert_calc(ob, location, FLT_MAX, false);
   }
   return symm_vertex;
 }
