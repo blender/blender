@@ -6225,7 +6225,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
     UI_popup_dummy_panel_set(block->handle->region, block);
   }
 
-  uiItem *item_last = layout->items.last();
+  uiItem *item_last = layout->items.is_empty() ? nullptr : layout->items.last();
 
   /* Draw main panel. */
   if (show_header) {
@@ -6257,7 +6257,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
 
     if (child_pt->poll == nullptr || child_pt->poll(C, child_pt)) {
       /* Add space if something was added to the layout. */
-      if (item_last != layout->items.last()) {
+      if (!layout->items.is_empty() && item_last != layout->items.last()) {
         uiItemS(layout);
         item_last = layout->items.last();
       }
