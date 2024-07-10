@@ -94,8 +94,6 @@ struct PBVHNode {
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin = 0.0f;
 
-  blender::Vector<PBVHProxyNode> proxies;
-
   /* Dyntopo */
 
   /* Set of pointers to the BMFaces used by this node.

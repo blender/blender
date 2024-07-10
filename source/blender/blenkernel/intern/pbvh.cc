@@ -1812,11 +1812,6 @@ Bounds<float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node)
   return node->bounds_orig;
 }
 
-blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node)
-{
-  return node->proxies;
-}
-
 void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
@@ -2811,42 +2806,6 @@ bool BKE_pbvh_is_deformed(const PBVH &pbvh)
 }
 /* Proxies */
 
-PBVHProxyNode &BKE_pbvh_node_add_proxy(PBVH &pbvh, PBVHNode &node)
-{
-  node.proxies.append_as(PBVHProxyNode{});
-
-  /* It is fine to access pointer of the back element, since node is never handled from multiple
-   * threads, and the brush handler only requests a single proxy from the node, and never holds
-   * pointers to multiple proxies. */
-  PBVHProxyNode &proxy_node = node.proxies.last();
-
-  int num_unique_verts = 0;
-  switch (pbvh.header.type) {
-    case PBVH_GRIDS: {
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg);
-      num_unique_verts = node.prim_indices.size() * key.grid_area;
-      break;
-    }
-    case PBVH_FACES:
-      num_unique_verts = node.uniq_verts;
-      break;
-    case PBVH_BMESH:
-      num_unique_verts = node.bm_unique_verts.size();
-      break;
-  }
-
-  /* Brushes expect proxies to be zero-initialized, so that they can do additive operation to them.
-   */
-  proxy_node.co.resize(num_unique_verts, float3(0, 0, 0));
-
-  return proxy_node;
-}
-
-void BKE_pbvh_node_free_proxies(PBVHNode *node)
-{
-  node->proxies.clear_and_shrink();
-}
-
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
 {
 
@@ -3171,16 +3130,4 @@ Vector<PBVHNode *> search_gather(PBVH &pbvh,
   return nodes;
 }
 
-Vector<PBVHNode *> gather_proxies(PBVH &pbvh)
-{
-  Vector<PBVHNode *> array;
-
-  for (PBVHNode &node : pbvh.nodes) {
-    if (!node.proxies.is_empty()) {
-      array.append(&node);
-    }
-  }
-
-  return array;
-}
 }  // namespace blender::bke::pbvh

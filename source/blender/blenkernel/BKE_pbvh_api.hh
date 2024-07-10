@@ -520,9 +520,6 @@ void pbvh_vertex_iter_init(PBVH &pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
 #define PBVH_FACE_ITER_VERTS_RESERVED 8
 
-blender::MutableSpan<PBVHProxyNode> BKE_pbvh_node_get_proxies(PBVHNode *node);
-void BKE_pbvh_node_free_proxies(PBVHNode *node);
-PBVHProxyNode &BKE_pbvh_node_add_proxy(PBVH &pbvh, PBVHNode &node);
 void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
@@ -547,7 +544,6 @@ namespace blender::bke::pbvh {
 Vector<PBVHNode *> search_gather(PBVH &pbvh,
                                  FunctionRef<bool(PBVHNode &)> scb,
                                  PBVHNodeFlags leaf_flag = PBVH_Leaf);
-Vector<PBVHNode *> gather_proxies(PBVH &pbvh);
 
 void node_update_mask_mesh(Span<float> mask, PBVHNode &node);
 void node_update_mask_grids(const CCGKey &key, Span<CCGElem *> grids, PBVHNode &node);
