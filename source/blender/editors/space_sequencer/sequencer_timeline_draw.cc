@@ -1251,36 +1251,21 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
  * sure that visually selected are always "on top" of others. It matters
  * while selection is being dragged over other strips. */
 static void visible_strips_ordered_get(TimelineDrawContext *timeline_ctx,
-                                       Vector<StripDrawContext> &r_unselected,
-                                       Vector<StripDrawContext> &r_selected)
+                                       Vector<StripDrawContext> &r_bottom_layer,
+                                       Vector<StripDrawContext> &r_top_layer)
 {
-  Sequence *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+  r_bottom_layer.clear();
+  r_top_layer.clear();
+
   Vector<Sequence *> strips = sequencer_visible_strips_get(timeline_ctx->C);
-  r_unselected.clear();
-  r_selected.clear();
 
   for (Sequence *seq : strips) {
-    /* Active will be added last. */
-    if (seq == act_seq) {
-      continue;
-    }
-
     StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, seq);
-    if ((seq->flag & SELECT) == 0) {
-      r_unselected.append(strip_ctx);
+    if ((seq->flag & SEQ_OVERLAP) == 0) {
+      r_bottom_layer.append(strip_ctx);
     }
     else {
-      r_selected.append(strip_ctx);
-    }
-  }
-  /* Add active, if any. */
-  if (act_seq) {
-    StripDrawContext strip_ctx = strip_draw_context_get(timeline_ctx, act_seq);
-    if ((act_seq->flag & SELECT) == 0) {
-      r_unselected.append(strip_ctx);
-    }
-    else {
-      r_selected.append(strip_ctx);
+      r_top_layer.append(strip_ctx);
     }
   }
 }
@@ -1416,18 +1401,26 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
      *  - Slightly lighter.
      *  - Red when overlapping with other strips. */
     const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
-    if ((G.moving & G_TRANSFORM_SEQ) && selected && overlap_mode != SEQ_OVERLAP_OVERWRITE) {
-      if (strip.seq->flag & SEQ_OVERLAP) {
+    if (G.moving & G_TRANSFORM_SEQ) {
+      if ((strip.seq->flag & SEQ_OVERLAP) && (overlap_mode != SEQ_OVERLAP_OVERWRITE)) {
         col[0] = 255;
         col[1] = col[2] = 33;
       }
-      else {
+      else if (selected) {
         UI_GetColorPtrShade3ubv(col, col, 70);
       }
     }
-    if (selected)
+
+    const bool overlaps = (strip.seq->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
+    if (overlaps) {
+      data.flags |= GPU_SEQ_FLAG_OVERLAP;
+    }
+
+    if (selected) {
       data.flags |= GPU_SEQ_FLAG_SELECTED;
-    else if (active) {
+    }
+    else if (active && !overlaps) {
+      /* If the strips overlap when retiming, don't replace the red outline. */
       /* A subtle highlight outline when active but not selected. */
       UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
       data.flags |= GPU_SEQ_FLAG_ACTIVE;
@@ -1534,10 +1527,10 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx, StripsDrawBatch &
     return;
   }
 
-  Vector<StripDrawContext> unselected, selected;
-  visible_strips_ordered_get(timeline_ctx, unselected, selected);
-  draw_seq_strips(timeline_ctx, strips_batch, unselected);
-  draw_seq_strips(timeline_ctx, strips_batch, selected);
+  Vector<StripDrawContext> bottom_layer, top_layer;
+  visible_strips_ordered_get(timeline_ctx, bottom_layer, top_layer);
+  draw_seq_strips(timeline_ctx, strips_batch, bottom_layer);
+  draw_seq_strips(timeline_ctx, strips_batch, top_layer);
 }
 
 static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
