@@ -538,18 +538,48 @@ bool vert_has_face_set(const SculptSession &ss, PBVHVertRef vertex, int face_set
   return true;
 }
 
-static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession &ss, int index)
+bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex)
 {
-  if (!ss.face_sets) {
+  switch (BKE_pbvh_type(*ss.pbvh)) {
+    case PBVH_FACES: {
+      return vert_has_unique_face_set(ss.vert_to_face_map, ss.face_sets, vertex.i);
+    }
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      return vert_has_unique_face_set(v);
+    }
+    case PBVH_GRIDS: {
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+      const int grid_index = vertex.i / key.grid_area;
+      const int index_in_grid = vertex.i - grid_index * key.grid_area;
+      SubdivCCGCoord coord{};
+      coord.grid_index = grid_index;
+      coord.x = index_in_grid % key.grid_size;
+      coord.y = index_in_grid / key.grid_size;
+
+      return vert_has_unique_face_set(
+          ss.vert_to_face_map, ss.corner_verts, ss.faces, ss.face_sets, *ss.subdiv_ccg, coord);
+    }
+  }
+  return false;
+}
+
+bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
+                              const int *face_sets,
+                              int vert)
+{
+  /* TODO: Move this check higher out of this function & make this function take empty span instead
+   * of a raw pointer. */
+  if (!face_sets) {
     return true;
   }
   int face_set = -1;
-  for (const int face_index : ss.vert_to_face_map[index]) {
+  for (const int face_index : vert_to_face_map[vert]) {
     if (face_set == -1) {
-      face_set = ss.face_sets[face_index];
+      face_set = face_sets[face_index];
     }
     else {
-      if (ss.face_sets[face_index] != face_set) {
+      if (face_sets[face_index] != face_set) {
         return false;
       }
     }
@@ -561,16 +591,20 @@ static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession &ss, i
  * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
  * in the base mesh are equal.
  */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSession &ss,
-                                                               int v1,
-                                                               int v2)
+static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(
+    const GroupedSpan<int> vert_to_face_map,
+    const int *face_sets,
+    const Span<int> corner_verts,
+    const OffsetIndices<int> faces,
+    int v1,
+    int v2)
 {
-  const Span<int> vert_map = ss.vert_to_face_map[v1];
+  const Span<int> vert_map = vert_to_face_map[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map.size(); i++) {
     const int face_i = vert_map[i];
-    for (const int corner : ss.faces[face_i]) {
-      if (ss.corner_verts[corner] == v2) {
+    for (const int corner : faces[face_i]) {
+      if (corner_verts[corner] == v2) {
         if (p1 == -1) {
           p1 = vert_map[i];
           break;
@@ -585,44 +619,44 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   }
 
   if (p1 != -1 && p2 != -1) {
-    return ss.face_sets[p1] == ss.face_sets[p2];
+    return face_sets[p1] == face_sets[p2];
   }
   return true;
 }
 
-bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex)
+bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
+                              const Span<int> corner_verts,
+                              const OffsetIndices<int> faces,
+                              const int *face_sets,
+                              const SubdivCCG &subdiv_ccg,
+                              SubdivCCGCoord coord)
 {
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
-      return sculpt_check_unique_face_set_in_base_mesh(ss, vertex.i);
-    }
-    case PBVH_BMESH:
-      return true;
-    case PBVH_GRIDS: {
-      if (!ss.face_sets) {
-        return true;
-      }
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int index_in_grid = vertex.i - grid_index * key.grid_area;
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = index_in_grid % key.grid_size;
-      coord.y = index_in_grid / key.grid_size;
-      int v1, v2;
-      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          *ss.subdiv_ccg, coord, ss.corner_verts, ss.faces, v1, v2);
-      switch (adjacency) {
-        case SUBDIV_CCG_ADJACENT_VERTEX:
-          return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
-        case SUBDIV_CCG_ADJACENT_EDGE:
-          return sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
-        case SUBDIV_CCG_ADJACENT_NONE:
-          return true;
-      }
-    }
+  /* TODO: Move this check higher out of this function & make this function take empty span instead
+   * of a raw pointer. */
+  if (!face_sets) {
+    return true;
   }
-  return false;
+  int v1, v2;
+  const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+      subdiv_ccg, coord, corner_verts, faces, v1, v2);
+  switch (adjacency) {
+    case SUBDIV_CCG_ADJACENT_VERTEX:
+      return vert_has_unique_face_set(vert_to_face_map, face_sets, v1);
+    case SUBDIV_CCG_ADJACENT_EDGE:
+      return sculpt_check_unique_face_set_for_edge_in_base_mesh(
+          vert_to_face_map, face_sets, corner_verts, faces, v1, v2);
+    case SUBDIV_CCG_ADJACENT_NONE:
+      return true;
+  }
+  BLI_assert_unreachable();
+  return true;
+}
+
+bool vert_has_unique_face_set(const BMVert * /* vert */)
+{
+  /* TODO: Obviously not fully implemented yet. Needs to be implemented for Relax Face Sets brush
+   * to work. */
+  return true;
 }
 
 }  // namespace face_set
