@@ -174,6 +174,20 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_items[] = {
+    {USER_EXTENSION_REPO_SOURCE_USER,
+     "USER",
+     0,
+     "User",
+     "Repository managed by the user, stored in user directories"},
+    {USER_EXTENSION_REPO_SOURCE_SYSTEM,
+     "SYSTEM",
+     0,
+     "System",
+     "Read-only repository provided by the system"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
@@ -602,7 +616,8 @@ static void rna_userdef_asset_library_remove(ReportList *reports, PointerRNA *pt
 static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
                                                           const char *module,
                                                           const char *custom_directory,
-                                                          const char *remote_url)
+                                                          const char *remote_url,
+                                                          const int source)
 {
   Main *bmain = G.main;
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
@@ -620,6 +635,8 @@ static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
   if (repo->custom_dirpath[0]) {
     repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }
+
+  repo->source = source;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   USERDEF_TAG_DIRTY;
@@ -6797,20 +6814,6 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem source_type_items[] = {
-      {USER_EXTENSION_REPO_SOURCE_USER,
-       "USER",
-       0,
-       "User",
-       "Repository managed by the user, stored in user directories"},
-      {USER_EXTENSION_REPO_SOURCE_SYSTEM,
-       "SYSTEM",
-       0,
-       "System",
-       "Read-only repository provided by the system"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "UserExtensionRepo", nullptr);
   RNA_def_struct_sdna(srna, "bUserExtensionRepo");
   RNA_def_struct_ui_text(
@@ -6864,7 +6867,7 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_extension_sync_update");
 
   prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, source_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_preferences_extension_repo_source_type_items);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_userdef_extension_repo_source_set", nullptr);
   RNA_def_property_ui_text(
       prop,
@@ -7031,6 +7034,12 @@ static void rna_def_userdef_extension_repos_collection(BlenderRNA *brna, Propert
                  "");
   RNA_def_string(
       func, "remote_url", nullptr, sizeof(bUserExtensionRepo::remote_url), "Remote URL", "");
+  RNA_def_enum(func,
+               "source",
+               rna_enum_preferences_extension_repo_source_type_items,
+               USER_EXTENSION_REPO_SOURCE_USER,
+               "Source",
+               "How the repository is managed");
 
   /* return type */
   parm = RNA_def_pointer(func, "repo", "UserExtensionRepo", "", "Newly added repository");
