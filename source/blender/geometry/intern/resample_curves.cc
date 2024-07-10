@@ -37,6 +37,9 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
       [](const float curve_length, const float sample_length) {
         /* Find the number of sampled segments by dividing the total length by
          * the sample length. Then there is one more sampled point than segment. */
+        if (UNLIKELY(sample_length == 0.0f)) {
+          return 1;
+        }
         const int count = int(curve_length / sample_length) + 1;
         return std::max(1, count);
       },
