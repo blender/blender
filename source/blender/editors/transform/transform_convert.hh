@@ -24,6 +24,7 @@ struct TransData;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
 struct bContext;
+struct Sequence;
 
 struct TransConvertTypeInfo {
   int flags; /* #eTFlag. */
@@ -365,6 +366,8 @@ extern TransConvertTypeInfo TransConvertType_Sculpt;
 /* `transform_convert_sequencer.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Sequencer;
+
+bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips);
 
 /* `transform_convert_sequencer_image.cc` */
 

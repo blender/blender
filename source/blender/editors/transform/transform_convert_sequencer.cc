@@ -286,7 +286,7 @@ static ListBase *seqbase_active_get(const TransInfo *t)
   return SEQ_active_seqbase_get(ed);
 }
 
-static bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips)
+bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips)
 {
   for (Sequence *seq : transformed_strips) {
     if (seq->flag & SEQ_OVERLAP) {
