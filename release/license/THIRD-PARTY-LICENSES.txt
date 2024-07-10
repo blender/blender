@@ -22,10 +22,11 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Audaspace; version 0d18fe7 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
-** Embree; version 4.1.0 -- https://github.com/embree/embree
-** Intel(R) oneAPI DPC++ compiler; version 2022-12 --
+** Embree; version 4.3.2 -- https://github.com/embree/embree
+** Intel(R) oneAPI DPC++ compiler; version
+d2817d6d317db1143bb227168e85c409d5ab7c82 --
 https://github.com/intel/llvm#oneapi-dpc-compiler
-** Intel® Open Path Guiding Library; version 0.5.0 -- http://www.openpgl.org/
+** Intel® Open Path Guiding Library; version 0.6.0 -- http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
 ** materialX; version 1.38.8 --
 https://github.com/AcademySoftwareFoundation/MaterialX
@@ -33,8 +34,8 @@ https://github.com/AcademySoftwareFoundation/MaterialX
 ** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
 ** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
-** OpenImageDenoise; version 2.2.2 -- https://www.openimagedenoise.org/
-** OpenImageIO; version 2.5.6.0 --
+** OpenImageDenoise; version 2.3.0 -- https://www.openimagedenoise.org/
+** OpenImageIO; version 2.5.11.0 --
 https://github.com/AcademySoftwareFoundation/OpenImageIO
 ** OpenSSL; version 3.1.5 -- https://www.openssl.org/
 ** OpenXR SDK; version 1.0.17 -- https://khronos.org/openxr
@@ -411,7 +412,7 @@ Copyright Contributors to the Open Shading Language project.
 ** OpenColorIO; version 2.3.2 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 3.2.1 --
+** OpenEXR; version 3.2.4 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
 ** Pystring; version 1.1.3 -- https://github.com/imageworks/pystring
@@ -921,6 +922,9 @@ Copyright 1996-2020 Free Software Foundation, Inc.
 ** OpenAL; version 1.23.1 -- http://openal-soft.org
 Copyright (c) 2015, Archontis Politis
 Copyright (c) 2019, Christopher Robinson
+** x265; version 3cf6c1e53037eb9e198860365712e1bafb22f7c6 --
+https://www.videolan.org/developers/x265.html
+Copyright (C) 2013-2020 MulticoreWare, Inc
 
 GNU GENERAL PUBLIC LICENSE
 
@@ -3513,7 +3517,7 @@ Copyright (c) 2016 Gabi Melman.
 Copyright 2008, Google Inc. All rights reserved.
 ** JSON for Modern C++; version 3.11.2 -- https://github.com/nlohmann/json/
 Copyright (c) 2013-2021 Niels Lohmann
-** libdecor; version 0.1.0 -- https://gitlab.freedesktop.org/libdecor/libdecor
+** libdecor; version 0.2.2 -- https://gitlab.freedesktop.org/libdecor/libdecor
 Copyright © 2010 Intel Corporation
 Copyright © 2011 Benjamin Franzke
 Copyright © 2018-2021 Jonas Ådahl
@@ -3526,7 +3530,7 @@ Copyright © 2008 Kristian Høgsberg
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
 ** Mesa 3D; version 23.3.0 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
-** oneAPI Level Zero; version v1.15.8 --
+** oneAPI Level Zero; version v1.16.1 --
 https://github.com/oneapi-src/level-zero
 Copyright (C) 2019-2021 Intel Corporation
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
@@ -3543,7 +3547,7 @@ https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
 ** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
 Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
-** Wayland protocols; version 1.32 --
+** Wayland protocols; version 1.36 --
 https://gitlab.freedesktop.org/wayland/wayland-protocols
 Copyright © 2008-2013 Kristian Høgsberg
 Copyright © 2010-2013 Intel Corporation
@@ -3635,6 +3639,47 @@ BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
 ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+------
+
+** Wayland weston; version 13.0.3 --
+https://gitlab.freedesktop.org/wayland/weston
+Copyright © 2008-2012 Kristian Høgsberg
+Copyright © 2010-2012 Intel Corporation
+Copyright © 2010-2011 Benjamin Franzke
+Copyright © 2011-2012 Collabora, Ltd.
+Copyright © 2010 Red Hat <mjg@redhat.com>
+
+Copyright © 2008-2012 Kristian Høgsberg
+Copyright © 2010-2012 Intel Corporation
+Copyright © 2010-2011 Benjamin Franzke
+Copyright © 2011-2012 Collabora, Ltd.
+Copyright © 2010 Red Hat <mjg@redhat.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+---
+
+The above is the version of the MIT "Expat" License used by X.org:
+
+    http://cgit.freedesktop.org/xorg/xserver/tree/COPYING
 
 ------
 
@@ -4042,7 +4087,7 @@ the following restrictions:
 
 ------
 
-** LibTIFF; version 4.5.1 -- http://www.libtiff.org/
+** LibTIFF; version 4.6.0 -- http://www.libtiff.org/
 Copyright (c) 1988-1997 Sam Leffler
 Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
@@ -4098,7 +4143,7 @@ Software.
 
 ** OpenSubdiv; version 3.6.0 -- http://graphics.pixar.com/opensubdiv
 Copyright 2013 Pixar
-** Universal Scene Description; version 23.11 -- http://www.openusd.org/
+** Universal Scene Description; version 24.05 -- http://www.openusd.org/
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License") with the
@@ -4284,7 +4329,7 @@ disclaims all warranties with regard to this software.
 
 ------
 
-** Wayland; version 1.22.0 -- https://gitlab.freedesktop.org/wayland/wayland
+** Wayland; version 1.23.0 -- https://gitlab.freedesktop.org/wayland/wayland
 Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
 Copyright © 2011 Kristian Høgsberg
 Copyright © 2011 Benjamin Franzke
