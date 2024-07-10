@@ -14,6 +14,7 @@
 #include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 
+#include "DNA_grease_pencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 
@@ -145,6 +146,12 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::GreasePencil: {
+        const auto &grease_pencil_component = *static_cast<const bke::GreasePencilComponent *>(
+            component);
+        if (const GreasePencil *grease_pencil = grease_pencil_component.get()) {
+          GreasePencilInfo &info = this->grease_pencil_info.emplace(GreasePencilInfo());
+          info.layers_num = grease_pencil->layers().size();
+        }
         break;
       }
     }
