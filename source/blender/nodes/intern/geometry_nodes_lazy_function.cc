@@ -1250,7 +1250,9 @@ class LazyFunctionForLogicalOr : public lf::LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
   {
-    int first_unavailable_input = -1;
+    Vector<int, 16> unavailable_inputs;
+    /* First check all inputs for available values without requesting more inputs. If any of the
+     * available inputs is true already, the others don't have to be requested anymore. */
     for (const int i : inputs_.index_range()) {
       if (const bool *value = params.try_get_input_data_ptr<bool>(i)) {
         if (*value) {
@@ -1259,14 +1261,29 @@ class LazyFunctionForLogicalOr : public lf::LazyFunction {
         }
       }
       else {
-        first_unavailable_input = i;
+        unavailable_inputs.append(i);
       }
     }
-    if (first_unavailable_input == -1) {
+    if (unavailable_inputs.is_empty()) {
       params.set_output(0, false);
       return;
     }
-    params.try_get_input_data_ptr_or_request(first_unavailable_input);
+    /* Request the next unavailable input. Note that a value might be available now even if it was
+     * not available before, because it might have been computed in the mean-time. */
+    for (const int i : unavailable_inputs) {
+      if (const bool *value = params.try_get_input_data_ptr_or_request<bool>(i)) {
+        if (*value) {
+          params.set_output(0, true);
+          return;
+        }
+      }
+      else {
+        /* The input has been requested and it's not available yet, so wait until it is ready. */
+        return;
+      }
+    }
+    /* All inputs were available now and all of them were false, so the final output is false. */
+    params.set_output(0, false);
   }
 };
 
