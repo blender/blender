@@ -131,9 +131,7 @@ void cache_init(bContext *C,
     bke::pbvh::update_normals(pbvh, nullptr);
   }
 
-  for (const int i : ss.filter_cache->nodes.index_range()) {
-    undo::push_node(ob, ss.filter_cache->nodes[i], undo_type);
-  }
+  undo::push_nodes(ob, ss.filter_cache->nodes, undo_type);
 
   /* Setup orientation matrices. */
   copy_m4_m4(ss.filter_cache->obmat.ptr(), ob.object_to_world().ptr());
