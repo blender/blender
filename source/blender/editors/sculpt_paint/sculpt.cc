@@ -1429,16 +1429,6 @@ static void restore_face_set_from_undo_step(Object &object)
   }
 }
 
-static BLI_NOINLINE void translations_to_positions(const Span<float3> new_positions,
-                                                   const Span<int> verts,
-                                                   const Span<float3> vert_positions,
-                                                   const MutableSpan<float3> translations)
-{
-  for (const int i : verts.index_range()) {
-    translations[i] = new_positions[i] - vert_positions[verts[i]];
-  }
-}
-
 void restore_position_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
@@ -1466,7 +1456,8 @@ void restore_position_from_undo_step(Object &object)
             const Span<float3> undo_positions = unode->position.as_span().take_front(verts.size());
             if (need_translations) {
               tls.translations.reinitialize(verts.size());
-              translations_to_positions(undo_positions, verts, positions_eval, tls.translations);
+              translations_from_new_positions(
+                  undo_positions, verts, positions_eval, tls.translations);
             }
 
             array_utils::scatter(undo_positions, verts, positions_eval);
