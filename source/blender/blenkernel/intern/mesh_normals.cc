@@ -1372,8 +1372,8 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
       const float *org_nor = nullptr;
 
       for (int i = fan_corners.index_range().last(); i >= 0; i--) {
-        const int lidx = fan_corners[i];
-        float *nor = r_custom_corner_normals[lidx];
+        const int corner = fan_corners[i];
+        float *nor = r_custom_corner_normals[corner];
 
         if (!org_nor) {
           org_nor = nor;
@@ -1383,9 +1383,9 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
            * previous corner's face and current's one as sharp.
            * We know those two corners do not point to the same edge,
            * since we do not allow reversed winding in a same smooth fan. */
-          const IndexRange face = faces[corner_to_face[lidx]];
-          const int corner_prev = face_corner_prev(face, lidx);
-          const int edge = corner_edges[lidx];
+          const IndexRange face = faces[corner_to_face[corner]];
+          const int corner_prev = face_corner_prev(face, corner);
+          const int edge = corner_edges[corner];
           const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];
           sharp_edges[prev_edge == edge_prev ? prev_edge : edge] = true;
@@ -1393,8 +1393,8 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
           org_nor = nor;
         }
 
-        prev_corner = lidx;
-        done_corners[lidx].set();
+        prev_corner = corner;
+        done_corners[corner].set();
       }
 
       /* We also have to check between last and first corners,
@@ -1402,13 +1402,13 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
        * This is just a simplified version of above while loop.
        * See #45984. */
       if (fan_corners.size() > 1 && org_nor) {
-        const int lidx = fan_corners.last();
-        float *nor = r_custom_corner_normals[lidx];
+        const int corner = fan_corners.last();
+        float *nor = r_custom_corner_normals[corner];
 
         if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
-          const IndexRange face = faces[corner_to_face[lidx]];
-          const int corner_prev = face_corner_prev(face, lidx);
-          const int edge = corner_edges[lidx];
+          const IndexRange face = faces[corner_to_face[corner]];
+          const int corner_prev = face_corner_prev(face, corner);
+          const int edge = corner_edges[corner];
           const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];
           sharp_edges[prev_edge == edge_prev ? prev_edge : edge] = true;
@@ -1460,10 +1460,10 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
     }
     else {
       float3 avg_nor(0.0f);
-      for (const int lidx : fan_corners) {
-        const int nidx = use_vertices ? corner_verts[lidx] : lidx;
+      for (const int corner : fan_corners) {
+        const int nidx = use_vertices ? corner_verts[corner] : corner;
         avg_nor += r_custom_corner_normals[nidx];
-        done_corners[lidx].reset();
+        done_corners[corner].reset();
       }
 
       mul_v3_fl(avg_nor, 1.0f / float(fan_corners.size()));
