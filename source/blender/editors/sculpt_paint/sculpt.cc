@@ -1910,6 +1910,15 @@ struct AreaNormalCenterData {
   std::array<int, 2> count_no;
 };
 
+static float area_normal_and_center_get_normal_radius(const SculptSession &ss, const Brush &brush)
+{
+  float test_radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
+  if (brush.ob_mode == OB_MODE_SCULPT) {
+    test_radius *= brush.normal_radius_factor;
+  }
+  return test_radius;
+}
+
 static SculptBrushTestFn area_normal_and_center_get_normal_test(const SculptSession &ss,
                                                                 const Brush &brush,
                                                                 SculptBrushTest &r_test)
@@ -1917,25 +1926,17 @@ static SculptBrushTestFn area_normal_and_center_get_normal_test(const SculptSess
   SculptBrushTestFn sculpt_brush_normal_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, r_test, brush.falloff_shape);
 
-  /* Update the test radius to sample the normal using the normal radius of the brush. */
-  if (brush.ob_mode == OB_MODE_SCULPT) {
-    float test_radius = std::sqrt(r_test.radius_squared);
-    test_radius *= brush.normal_radius_factor;
-    r_test.radius = test_radius;
-    r_test.radius_squared = test_radius * test_radius;
-  }
+  r_test.radius = area_normal_and_center_get_normal_radius(ss, brush);
+  r_test.radius_squared = r_test.radius * r_test.radius;
+
   return sculpt_brush_normal_test_sq_fn;
 }
 
-static SculptBrushTestFn area_normal_and_center_get_area_test(const SculptSession &ss,
-                                                              const Brush &brush,
-                                                              SculptBrushTest &r_test)
+static float area_normal_and_center_get_position_radius(const SculptSession &ss,
+                                                        const Brush &brush)
 {
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, r_test, brush.falloff_shape);
-
+  float test_radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
   if (brush.ob_mode == OB_MODE_SCULPT) {
-    float test_radius = std::sqrt(r_test.radius_squared);
     /* Layer brush produces artifacts with normal and area radius */
     /* Enable area radius control only on Scrape for now */
     if (ELEM(brush.sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
@@ -1949,9 +1950,20 @@ static SculptBrushTestFn area_normal_and_center_get_area_test(const SculptSessio
     else {
       test_radius *= brush.normal_radius_factor;
     }
-    r_test.radius = test_radius;
-    r_test.radius_squared = test_radius * test_radius;
   }
+  return test_radius;
+}
+
+static SculptBrushTestFn area_normal_and_center_get_area_test(const SculptSession &ss,
+                                                              const Brush &brush,
+                                                              SculptBrushTest &r_test)
+{
+  SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, r_test, brush.falloff_shape);
+
+  r_test.radius = area_normal_and_center_get_position_radius(ss, brush);
+  r_test.radius_squared = r_test.radius * r_test.radius;
+
   return sculpt_brush_area_test_sq_fn;
 }
 
