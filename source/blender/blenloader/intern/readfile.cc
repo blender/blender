@@ -1341,9 +1341,11 @@ void blo_filedata_free(FileData *fd)
 #else
   /* Sanity check we're not keeping memory we don't need. */
   LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
+#  ifdef USE_BHEAD_READ_ON_DEMAND
     if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
       BLI_assert(new_bhead->has_data == 0);
     }
+#  endif
     MEM_freeN(new_bhead);
   }
 #endif
