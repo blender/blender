@@ -4038,8 +4038,6 @@ static void sculpt_combine_proxies(const Sculpt &sd, Object &ob)
 
 }  // namespace blender::ed::sculpt_paint
 
-
-
 /**
  * Copy the modified vertices from the #PBVH to the active key.
  */
