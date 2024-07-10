@@ -16,6 +16,7 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_ccg.hh"
@@ -85,7 +86,7 @@ struct SubdivCCGAdjacentVertex {
 };
 
 /* Representation of subdivision surface which uses CCG grids. */
-struct SubdivCCG {
+struct SubdivCCG : blender::NonCopyable {
   /* This is a subdivision surface this CCG was created for.
    *
    * TODO(sergey): Make sure the whole descriptor is valid, including all the
