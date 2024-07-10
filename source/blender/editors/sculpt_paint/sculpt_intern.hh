@@ -1093,8 +1093,6 @@ bool node_in_cylinder(const DistRayAABB_Precalc &dist_ray_precalc,
 
 }
 
-void SCULPT_combine_transform_proxies(const Sculpt &sd, Object &ob);
-
 /**
  * Initialize a point-in-brush test with a given falloff shape.
  *

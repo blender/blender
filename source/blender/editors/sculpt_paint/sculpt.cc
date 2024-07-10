@@ -4038,20 +4038,7 @@ static void sculpt_combine_proxies(const Sculpt &sd, Object &ob)
 
 }  // namespace blender::ed::sculpt_paint
 
-void SCULPT_combine_transform_proxies(const Sculpt &sd, Object &ob)
-{
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
 
-  Vector<PBVHNode *> nodes = bke::pbvh::gather_proxies(*ss.pbvh);
-
-  threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
-    for (const int i : range) {
-      sculpt_combine_proxies_node(ob, sd, false, *nodes[i]);
-    }
-  });
-}
 
 /**
  * Copy the modified vertices from the #PBVH to the active key.

@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
@@ -19,8 +21,10 @@
 #include "BKE_context.hh"
 #include "BKE_kelvinlet.h"
 #include "BKE_layer.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+#include "BKE_subdiv_ccg.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -28,6 +32,8 @@
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
+
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -209,38 +215,134 @@ static void sculpt_transform_all_vertices(Object &ob)
   });
 }
 
-static void elastic_transform_node(Object &ob,
-                                   const float transform_radius,
-                                   const float4x4 &elastic_transform_mat,
-                                   const float3 &elastic_transform_pivot,
-                                   PBVHNode *node)
+struct TransformLocalData {
+  Vector<float3> positions;
+  Vector<float> factors;
+  Vector<float3> translations;
+};
+
+BLI_NOINLINE static void calc_transform_translations(const float4x4 &elastic_transform_mat,
+                                                     const Span<float3> positions,
+                                                     const MutableSpan<float3> r_translations)
 {
-  SculptSession &ss = *ob.sculpt;
-
-  const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss.pbvh, *node).co;
-
-  KelvinletParams params;
-  /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
-   * preservation like in the elastic deform brushes. Setting them to the same default as elastic
-   * deform triscale grab because they work well in most cases. */
-  const float force = 1.0f;
-  const float shear_modulus = 1.0f;
-  const float poisson_ratio = 0.4f;
-  BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
-
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    const float3 transformed = math::transform_point(elastic_transform_mat, float3(vd.co));
-    const float3 disp = transformed - float3(vd.co);
-
-    float3 final_disp;
-    BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, elastic_transform_pivot, disp);
-
-    proxy[vd.i] = final_disp * 20.0f * (1.0f - vd.mask);
+  for (const int i : positions.index_range()) {
+    const float3 transformed = math::transform_point(elastic_transform_mat, positions[i]);
+    r_translations[i] = transformed - positions[i];
   }
-  BKE_pbvh_vertex_iter_end;
+}
 
-  BKE_pbvh_node_mark_positions_update(node);
+BLI_NOINLINE static void apply_kelvinet_to_translations(const KelvinletParams &params,
+                                                        const float3 &elastic_transform_pivot,
+                                                        const Span<float3> positions,
+                                                        const MutableSpan<float3> translations)
+{
+  for (const int i : positions.index_range()) {
+    BKE_kelvinlet_grab_triscale(
+        translations[i], &params, positions[i], elastic_transform_pivot, translations[i]);
+  }
+}
+
+static void elastic_transform_node_mesh(const Sculpt &sd,
+                                        const KelvinletParams &params,
+                                        const float4x4 &elastic_transform_mat,
+                                        const float3 &elastic_transform_pivot,
+                                        const Span<float3> positions_eval,
+                                        const PBVHNode &node,
+                                        Object &object,
+                                        TransformLocalData &tls,
+                                        const MutableSpan<float3> positions_orig)
+{
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+
+  tls.positions.reinitialize(verts.size());
+  const MutableSpan<float3> positions = tls.positions;
+  array_utils::gather(positions_eval, verts, positions);
+
+  /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  scale_factors(factors, 20.f);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  calc_transform_translations(elastic_transform_mat, positions, translations);
+  apply_kelvinet_to_translations(params, elastic_transform_pivot, positions, translations);
+
+  scale_translations(translations, factors);
+
+  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+}
+
+static void elastic_transform_node_grids(const Sculpt &sd,
+                                         const KelvinletParams &params,
+                                         const float4x4 &elastic_transform_mat,
+                                         const float3 &elastic_transform_pivot,
+                                         const PBVHNode &node,
+                                         Object &object,
+                                         TransformLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const int grid_verts_num = grids.size() * key.grid_area;
+
+  tls.positions.reinitialize(grid_verts_num);
+  const MutableSpan<float3> positions = tls.positions;
+  gather_grids_positions(subdiv_ccg, grids, positions);
+
+  /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
+  tls.factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  scale_factors(factors, 20.f);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+  calc_transform_translations(elastic_transform_mat, positions, translations);
+  apply_kelvinet_to_translations(params, elastic_transform_pivot, positions, translations);
+
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
+}
+
+static void elastic_transform_node_bmesh(const Sculpt &sd,
+                                         const KelvinletParams &params,
+                                         const float4x4 &elastic_transform_mat,
+                                         const float3 &elastic_transform_pivot,
+                                         PBVHNode &node,
+                                         Object &object,
+                                         TransformLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  tls.positions.reinitialize(verts.size());
+  const MutableSpan<float3> positions = tls.positions;
+  gather_bmesh_positions(verts, positions);
+
+  /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
+  tls.factors.reinitialize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  scale_factors(factors, 20.f);
+
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  calc_transform_translations(elastic_transform_mat, positions, translations);
+  apply_kelvinet_to_translations(params, elastic_transform_pivot, positions, translations);
+
+  scale_translations(translations, factors);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, verts);
 }
 
 static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float transform_radius)
@@ -254,28 +356,79 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
       ss, symm, ss.filter_cache->transform_displacement_mode);
 
+  PBVH &pbvh = *ss.pbvh;
   const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
 
-  /* Elastic transform needs to apply all transform matrices to all vertices and then combine
-   * the displacement proxies as all vertices are modified by all symmetry passes. */
-  for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
-    if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
-      float3 elastic_transform_pivot;
-      flip_v3_v3(elastic_transform_pivot, ss.pivot_pos, symmpass);
-      float3 elastic_transform_pivot_init;
-      flip_v3_v3(elastic_transform_pivot_init, ss.init_pivot_pos, symmpass);
+  KelvinletParams params;
+  /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
+   * preservation like in the elastic deform brushes. Setting them to the same default as elastic
+   * deform triscale grab because they work well in most cases. */
+  const float force = 1.0f;
+  const float shear_modulus = 1.0f;
+  const float poisson_ratio = 0.4f;
+  BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
 
-      const int symm_area = SCULPT_get_vertex_symm_area(elastic_transform_pivot);
-      float4x4 elastic_transform_mat = transform_mats[symm_area];
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (const int i : range) {
-          elastic_transform_node(
-              ob, transform_radius, elastic_transform_mat, elastic_transform_pivot, nodes[i]);
-        }
-      });
+  threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
+  for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
+      continue;
+    }
+
+    float3 elastic_transform_pivot;
+    flip_v3_v3(elastic_transform_pivot, ss.pivot_pos, symmpass);
+    float3 elastic_transform_pivot_init;
+    flip_v3_v3(elastic_transform_pivot_init, ss.init_pivot_pos, symmpass);
+
+    const int symm_area = SCULPT_get_vertex_symm_area(elastic_transform_pivot);
+    float4x4 elastic_transform_mat = transform_mats[symm_area];
+    switch (BKE_pbvh_type(pbvh)) {
+      case PBVH_FACES: {
+        Mesh &mesh = *static_cast<Mesh *>(ob.data);
+        const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+        MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          TransformLocalData &tls = all_tls.local();
+          threading::isolate_task([&]() {
+            for (const int i : range) {
+              elastic_transform_node_mesh(sd,
+                                          params,
+                                          elastic_transform_mat,
+                                          elastic_transform_pivot,
+                                          positions_eval,
+                                          *nodes[i],
+                                          ob,
+                                          tls,
+                                          positions_orig);
+              BKE_pbvh_node_mark_positions_update(nodes[i]);
+            }
+          });
+        });
+        break;
+      }
+      case PBVH_GRIDS: {
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          TransformLocalData &tls = all_tls.local();
+          for (const int i : range) {
+            elastic_transform_node_grids(
+                sd, params, elastic_transform_mat, elastic_transform_pivot, *nodes[i], ob, tls);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          }
+        });
+        break;
+      }
+      case PBVH_BMESH: {
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          TransformLocalData &tls = all_tls.local();
+          for (const int i : range) {
+            elastic_transform_node_bmesh(
+                sd, params, elastic_transform_mat, elastic_transform_pivot, *nodes[i], ob, tls);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          }
+        });
+        break;
+      }
     }
   }
-  SCULPT_combine_transform_proxies(sd, ob);
 }
 
 void update_modal_transform(bContext *C, Object &ob)
