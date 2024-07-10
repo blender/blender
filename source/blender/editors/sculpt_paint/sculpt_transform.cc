@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -210,8 +211,8 @@ static void sculpt_transform_all_vertices(Object &ob)
 
 static void elastic_transform_node(Object &ob,
                                    const float transform_radius,
-                                   const float elastic_transform_mat[4][4],
-                                   const float elastic_transform_pivot[3],
+                                   const float4x4 &elastic_transform_mat,
+                                   const float3 &elastic_transform_pivot,
                                    PBVHNode *node)
 {
   SculptSession &ss = *ob.sculpt;
@@ -229,18 +230,13 @@ static void elastic_transform_node(Object &ob,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float transformed_co[3], disp[3];
-    const float fade = vd.mask;
+    const float3 transformed = math::transform_point(elastic_transform_mat, float3(vd.co));
+    const float3 disp = transformed - float3(vd.co);
 
-    copy_v3_v3(transformed_co, vd.co);
-    mul_m4_v3(elastic_transform_mat, transformed_co);
-    sub_v3_v3v3(disp, transformed_co, vd.co);
-
-    float final_disp[3];
+    float3 final_disp;
     BKE_kelvinlet_grab_triscale(final_disp, &params, vd.co, elastic_transform_pivot, disp);
-    mul_v3_fl(final_disp, 20.0f * (1.0f - fade));
 
-    copy_v3_v3(proxy[vd.i], final_disp);
+    proxy[vd.i] = final_disp * 20.0f * (1.0f - vd.mask);
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -258,28 +254,25 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
       ss, symm, ss.filter_cache->transform_displacement_mode);
 
-  /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
-   * displacement proxies as all vertices are modified by all symmetry passes. */
+  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
+
+  /* Elastic transform needs to apply all transform matrices to all vertices and then combine
+   * the displacement proxies as all vertices are modified by all symmetry passes. */
   for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
-      float elastic_transform_pivot[3];
+      float3 elastic_transform_pivot;
       flip_v3_v3(elastic_transform_pivot, ss.pivot_pos, symmpass);
-      float elastic_transform_pivot_init[3];
+      float3 elastic_transform_pivot_init;
       flip_v3_v3(elastic_transform_pivot_init, ss.init_pivot_pos, symmpass);
 
       const int symm_area = SCULPT_get_vertex_symm_area(elastic_transform_pivot);
-      float elastic_transform_mat[4][4];
-      copy_m4_m4(elastic_transform_mat, transform_mats[symm_area].ptr());
-      threading::parallel_for(
-          ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
-            for (const int i : range) {
-              elastic_transform_node(ob,
-                                     transform_radius,
-                                     elastic_transform_mat,
-                                     elastic_transform_pivot,
-                                     ss.filter_cache->nodes[i]);
-            }
-          });
+      float4x4 elastic_transform_mat = transform_mats[symm_area];
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          elastic_transform_node(
+              ob, transform_radius, elastic_transform_mat, elastic_transform_pivot, nodes[i]);
+        }
+      });
     }
   }
   SCULPT_combine_transform_proxies(sd, ob);
