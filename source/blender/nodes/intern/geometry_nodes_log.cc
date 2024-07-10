@@ -7,6 +7,7 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_type_conversions.hh"
@@ -126,6 +127,13 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
           EditDataInfo &info = this->edit_data_info.emplace();
           info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
           info.has_deformed_positions = curve_edit_hints->positions().has_value();
+        }
+        if (const bke::GizmoEditHints *gizmo_edit_hints = edit_component.gizmo_edit_hints_.get()) {
+          if (!this->edit_data_info) {
+            this->edit_data_info.emplace();
+          }
+          EditDataInfo &info = this->edit_data_info.emplace();
+          info.gizmo_transforms_num = gizmo_edit_hints->gizmo_transforms.size();
         }
         break;
       }
@@ -411,6 +419,20 @@ void GeoTreeLog::ensure_debug_messages()
     }
   }
   reduced_debug_messages_ = true;
+}
+
+void GeoTreeLog::ensure_evaluated_gizmo_nodes()
+{
+  if (reduced_evaluated_gizmo_nodes_) {
+    return;
+  }
+  for (const GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::EvaluatedGizmoNode &evaluated_gizmo :
+         tree_logger->evaluated_gizmo_nodes)
+    {
+      this->evaluated_gizmo_nodes.add(evaluated_gizmo.node_id);
+    }
+  }
 }
 
 ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)

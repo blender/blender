@@ -11,6 +11,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_resource_scope.hh"
+#include "BLI_set.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -31,6 +32,9 @@ struct GeometryNodesLazyFunctionGraphInfo;
 namespace anonymous_attribute_lifetime {
 }
 namespace aal = anonymous_attribute_lifetime;
+namespace gizmos {
+struct TreeGizmoPropagation;
+}
 }  // namespace blender::nodes
 namespace blender::bke {
 struct bNodeType;
@@ -138,6 +142,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<anonymous_attribute_inferencing::AnonymousAttributeInferencingResult>
       anonymous_attribute_inferencing;
+  std::unique_ptr<nodes::gizmos::TreeGizmoPropagation> gizmo_propagation;
 
   /**
    * For geometry nodes, a lazy function graph with some additional info is cached. This is used to
@@ -169,6 +174,12 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   CacheMutex tree_zones_cache_mutex;
   std::unique_ptr<bNodeTreeZones> tree_zones;
+
+  /**
+   * The stored sockets are drawn using a special link to indicate that there is a gizmo. This is
+   * only valid during node editor drawing.
+   */
+  Set<const bNodeSocket *> sockets_on_active_gizmo_paths;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;

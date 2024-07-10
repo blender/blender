@@ -467,6 +467,9 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
       wm_gizmomap_modal_set(mtweak->gzmap, C, mtweak->gz_modal, nullptr, false);
     }
   }
+  if (mtweak->gz_modal->flag & WM_GIZMO_NEEDS_UNDO) {
+    ED_undo_push(C, "Gizmo");
+  }
   MEM_freeN(mtweak);
 }
 
@@ -616,10 +619,11 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   ot->poll = ED_operator_region_gizmo_active;
 
 /* TODO(@ideasman42): This causes problems tweaking settings for operators,
- * need to find a way to support this. */
+ * need to find a way to support this. May want to use #WM_GIZMO_NEEDS_UNDO instead. */
 #if 0
   ot->flag = OPTYPE_UNDO;
 #endif
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 }
 
 wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)

@@ -39,6 +39,7 @@ class GeometryComponent;
 class GreasePencilEditHints;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
+struct GizmoEditHints;
 }  // namespace blender::bke
 
 namespace blender::bke {
@@ -360,6 +361,10 @@ struct GeometrySet {
    */
   const CurvesEditHints *get_curve_edit_hints() const;
   /**
+   * Returns read-only gizmo edit hints or null.
+   */
+  const GizmoEditHints *get_gizmo_edit_hints() const;
+  /**
    * Returns a read-only Grease Pencil data-block or null.
    */
   const GreasePencil *get_grease_pencil() const;
@@ -388,6 +393,10 @@ struct GeometrySet {
    * Returns mutable curve edit hints or null.
    */
   CurvesEditHints *get_curve_edit_hints_for_write();
+  /**
+   * Returns mutable gizmo edit hints or null.
+   */
+  GizmoEditHints *get_gizmo_edit_hints_for_write();
   /**
    * Returns a mutable Grease Pencil data-block or null. No ownership is transferred.
    */
@@ -702,6 +711,10 @@ class GeometryComponentEditData final : public GeometryComponent {
    * Information about how drawings on the grease pencil layers are manipulated during evaluation.
    */
   std::unique_ptr<GreasePencilEditHints> grease_pencil_edit_hints_;
+  /**
+   * Propagated information for how gizmos should be transformed along with the geometry.
+   */
+  std::unique_ptr<GizmoEditHints> gizmo_edit_hints_;
 
   GeometryComponentEditData();
 

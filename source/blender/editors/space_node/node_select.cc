@@ -695,6 +695,7 @@ static bool node_mouse_select(bContext *C,
   }
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+  WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
 
   return true;
 }
@@ -1126,6 +1127,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
   tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+  WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
   return OPERATOR_FINISHED;
 }
 

@@ -11,9 +11,12 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../draw
+  ../../functions
   ../../gpu
   ../../imbuf
   ../../makesrna
+  ../../modifiers
+  ../../nodes
   ../../render
   ../../windowmanager
   ../../../../intern/mantaflow/extern
@@ -38,6 +41,7 @@ set(SRC
   view3d_gizmo_camera.cc
   view3d_gizmo_empty.cc
   view3d_gizmo_forcefield.cc
+  view3d_gizmo_geometry_nodes.cc
   view3d_gizmo_light.cc
   view3d_gizmo_navigate.cc
   view3d_gizmo_navigate_type.cc

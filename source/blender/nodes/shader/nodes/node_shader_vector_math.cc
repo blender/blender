@@ -9,9 +9,11 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
+#include "NOD_inverse_eval_params.hh"
 #include "NOD_math_functions.hh"
 #include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
+#include "NOD_value_elem_eval.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -316,6 +318,95 @@ static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &b
   builder.set_matching_fn(fn);
 }
 
+static void node_eval_elem(value_elem::ElemEvalParams &params)
+{
+  using namespace value_elem;
+  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  switch (op) {
+    case NODE_VECTOR_MATH_ADD:
+    case NODE_VECTOR_MATH_SUBTRACT:
+    case NODE_VECTOR_MATH_MULTIPLY:
+    case NODE_VECTOR_MATH_DIVIDE: {
+      VectorElem output_elem;
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector"));
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector_001"));
+      params.set_output_elem("Vector", output_elem);
+      break;
+    }
+    case NODE_VECTOR_MATH_SCALE: {
+      VectorElem output_elem;
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector"));
+      if (params.get_input_elem<FloatElem>("Scale")) {
+        output_elem = VectorElem::all();
+      }
+      params.set_output_elem("Vector", output_elem);
+    }
+    default:
+      break;
+  }
+}
+
+static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
+{
+  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  switch (op) {
+    case NODE_VECTOR_MATH_ADD:
+    case NODE_VECTOR_MATH_SUBTRACT:
+    case NODE_VECTOR_MATH_MULTIPLY:
+    case NODE_VECTOR_MATH_DIVIDE:
+    case NODE_VECTOR_MATH_SCALE: {
+      params.set_input_elem("Vector", params.get_output_elem<value_elem::VectorElem>("Vector"));
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
+{
+  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  const StringRef first_input_id = "Vector";
+  const StringRef second_input_id = "Vector_001";
+  const StringRef scale_input_id = "Scale";
+  const StringRef output_vector_id = "Vector";
+  switch (op) {
+    case NODE_VECTOR_MATH_ADD: {
+      params.set_input(first_input_id,
+                       params.get_output<float3>(output_vector_id) -
+                           params.get_input<float3>(second_input_id));
+      break;
+    }
+    case NODE_VECTOR_MATH_SUBTRACT: {
+      params.set_input(first_input_id,
+                       params.get_output<float3>(output_vector_id) +
+                           params.get_input<float3>(second_input_id));
+      break;
+    }
+    case NODE_VECTOR_MATH_MULTIPLY: {
+      params.set_input(first_input_id,
+                       math::safe_divide(params.get_output<float3>(output_vector_id),
+                                         params.get_input<float3>(second_input_id)));
+      break;
+    }
+    case NODE_VECTOR_MATH_DIVIDE: {
+      params.set_input(first_input_id,
+                       params.get_output<float3>(output_vector_id) *
+                           params.get_input<float3>(second_input_id));
+      break;
+    }
+    case NODE_VECTOR_MATH_SCALE: {
+      params.set_input(first_input_id,
+                       math::safe_divide(params.get_output<float3>(output_vector_id),
+                                         float3(params.get_input<float>(scale_input_id))));
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+}
+
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
@@ -474,6 +565,9 @@ void register_node_type_sh_vect_math()
   ntype.build_multi_function = file_ns::sh_node_vector_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_vector_math_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
+  ntype.eval_elem = file_ns::node_eval_elem;
+  ntype.eval_inverse_elem = file_ns::node_eval_inverse_elem;
+  ntype.eval_inverse = file_ns::node_eval_inverse;
 
   blender::bke::nodeRegisterType(&ntype);
 }

@@ -207,6 +207,7 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_mesh_preselect_edgering(wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_tool_generic_handle_normal(wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_tool_generic_handle_free(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_geometry_nodes(struct wmGizmoGroupType *gzgt);
 
 void VIEW3D_GGT_ruler(wmGizmoGroupType *gzgt);
 void VIEW3D_GT_ruler_item(wmGizmoType *gzt);

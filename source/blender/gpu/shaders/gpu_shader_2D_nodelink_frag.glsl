@@ -39,6 +39,21 @@ void main()
     dash_frag_alpha = alpha;
   }
 
-  fragColor = finalColor;
-  fragColor.a *= get_line_alpha(0.5, 0.5) * dash_frag_alpha;
+  if (hasBackLink == 0) {
+    fragColor = finalColor;
+    fragColor.a *= get_line_alpha(0.5, 0.5);
+  }
+  else {
+    /* Draw two links right next to each other, the main link and the back-link. */
+    vec4 main_link_color = finalColor;
+    main_link_color.a *= get_line_alpha(0.75, 0.3);
+
+    vec4 back_link_color = vec4(vec3(0.8), 1.0);
+    back_link_color.a *= get_line_alpha(0.2, 0.25);
+
+    /* Combine both links. */
+    fragColor.rgb = main_link_color.rgb * main_link_color.a +
+                    back_link_color.rgb * back_link_color.a;
+    fragColor.a = main_link_color.a + back_link_color.a;
+  }
 }

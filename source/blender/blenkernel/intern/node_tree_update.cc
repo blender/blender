@@ -28,6 +28,7 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
@@ -508,6 +509,9 @@ class NodeTreeMainUpdater {
       }
       this->update_from_field_inference(ntree);
       if (anonymous_attribute_inferencing::update_anonymous_attribute_relations(ntree)) {
+        result.interface_changed = true;
+      }
+      if (nodes::gizmos::update_tree_gizmo_propagation(ntree)) {
         result.interface_changed = true;
       }
     }
@@ -1248,6 +1252,9 @@ class NodeTreeMainUpdater {
       return true;
     }
     if (node.type == NODE_GROUP_OUTPUT) {
+      return true;
+    }
+    if (nodes::gizmos::is_builtin_gizmo_node(node)) {
       return true;
     }
     /* Assume node groups without output sockets are outputs. */

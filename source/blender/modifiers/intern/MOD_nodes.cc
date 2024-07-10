@@ -91,6 +91,7 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_execute.hh"
+#include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 
@@ -731,9 +732,41 @@ static void find_side_effect_nodes_for_baking(const NodesModifierData &nmd,
   }
 }
 
+static void find_side_effect_nodes_for_active_gizmos(
+    const NodesModifierData &nmd,
+    const ModifierEvalContext &ctx,
+    const wmWindowManager &wm,
+    nodes::GeoNodesSideEffectNodes &r_side_effect_nodes,
+    Set<ComputeContextHash> &r_socket_log_contexts)
+{
+  Object *object_orig = DEG_get_original_object(ctx.object);
+  const NodesModifierData &nmd_orig = *reinterpret_cast<const NodesModifierData *>(
+      BKE_modifier_get_original(ctx.object, const_cast<ModifierData *>(&nmd.modifier)));
+  ComputeContextBuilder compute_context_builder;
+  nodes::gizmos::foreach_active_gizmo_in_modifier(
+      *object_orig,
+      nmd_orig,
+      wm,
+      compute_context_builder,
+      [&](const ComputeContext &compute_context,
+          const bNode &gizmo_node,
+          const bNodeSocket &gizmo_socket) {
+        try_add_side_effect_node(compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
+        r_socket_log_contexts.add(compute_context.hash());
+
+        nodes::gizmos::foreach_compute_context_on_gizmo_path(
+            compute_context, gizmo_node, gizmo_socket, [&](const ComputeContext &node_context) {
+              /* Make sure that all intermediate sockets are logged. This is necessary to be able
+               * to evaluate the nodes in reverse for the gizmo. */
+              r_socket_log_contexts.add(node_context.hash());
+            });
+      });
+}
+
 static void find_side_effect_nodes(const NodesModifierData &nmd,
                                    const ModifierEvalContext &ctx,
-                                   nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
+                                   nodes::GeoNodesSideEffectNodes &r_side_effect_nodes,
+                                   Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
   wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
@@ -759,6 +792,8 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
   }
 
   find_side_effect_nodes_for_baking(nmd, ctx, r_side_effect_nodes);
+  find_side_effect_nodes_for_active_gizmos(
+      nmd, ctx, *wm, r_side_effect_nodes, r_socket_log_contexts);
 }
 
 static void find_socket_log_contexts(const NodesModifierData &nmd,
@@ -1713,7 +1748,7 @@ static void modifyGeometry(ModifierData *md,
   }
 
   nodes::GeoNodesSideEffectNodes side_effect_nodes;
-  find_side_effect_nodes(*nmd, *ctx, side_effect_nodes);
+  find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
   bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};

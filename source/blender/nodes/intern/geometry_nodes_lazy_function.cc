@@ -38,6 +38,7 @@
 #include "DNA_ID.h"
 
 #include "BKE_compute_contexts.hh"
+#include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
@@ -889,6 +890,111 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
 
     const bool viewer_is_used = nodes_with_side_effects.contains(&lf_viewer_node_);
     params.set_output(0, viewer_is_used);
+  }
+};
+
+/** Checks if the geometry nodes caller requested this gizmo to be evaluated. */
+static bool gizmo_is_used(const GeoNodesLFUserData &user_data,
+                          const lf::FunctionNode &lf_gizmo_node)
+{
+  if (!user_data.call_data->side_effect_nodes) {
+    return false;
+  }
+  const Span<const lf::FunctionNode *> nodes_with_side_effects =
+      user_data.call_data->side_effect_nodes->nodes_by_context.lookup(
+          user_data.compute_context->hash());
+  const bool is_used = nodes_with_side_effects.contains(&lf_gizmo_node);
+  return is_used;
+}
+
+/**
+ * A lazy-function that is used for gizmo nodes. All inputs are only required if the node is a side
+ * effect node. They are evaluated because their value has to be logged. The transform output
+ * should only contain the transform if it is a side effect node as well.
+ */
+class LazyFunctionForGizmoNode : public LazyFunction {
+ private:
+  const bNode &bnode_;
+
+ public:
+  const lf::FunctionNode *self_node = nullptr;
+  Vector<const bNodeLink *> gizmo_links;
+
+  LazyFunctionForGizmoNode(const bNode &bnode, MutableSpan<int> r_lf_index_by_bsocket)
+      : bnode_(bnode)
+  {
+    debug_name_ = bnode.name;
+    const bNodeSocket &gizmo_socket = bnode.input_socket(0);
+    /* Create inputs for every input of the multi-input socket to make sure that they can be
+     * logged. */
+    for (const bNodeLink *link : gizmo_socket.directly_linked_links()) {
+      if (!link->is_used()) {
+        continue;
+      }
+      if (link->fromnode->is_dangling_reroute()) {
+        continue;
+      }
+      inputs_.append_and_get_index_as(gizmo_socket.identifier,
+                                      *gizmo_socket.typeinfo->geometry_nodes_cpp_type,
+                                      lf::ValueUsage::Maybe);
+      gizmo_links.append(link);
+    }
+    for (const bNodeSocket *socket : bnode.input_sockets().drop_front(1)) {
+      r_lf_index_by_bsocket[socket->index_in_tree()] = inputs_.append_and_get_index_as(
+          socket->identifier, *socket->typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
+    }
+    r_lf_index_by_bsocket[bnode.output_socket(0).index_in_tree()] =
+        outputs_.append_and_get_index_as("Transform", CPPType::get<GeometrySet>());
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context &context) const override
+  {
+    const auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    if (!gizmo_is_used(user_data, *this->self_node)) {
+      set_default_remaining_node_outputs(params, bnode_);
+      return;
+    }
+    if (!params.output_was_set(0)) {
+      GeometrySet geometry;
+      GeometryComponentEditData &edit_data =
+          geometry.get_component_for_write<GeometryComponentEditData>();
+      edit_data.gizmo_edit_hints_ = std::make_unique<bke::GizmoEditHints>();
+      edit_data.gizmo_edit_hints_->gizmo_transforms.add(
+          {user_data.compute_context->hash(), bnode_.identifier}, float4x4::identity());
+      params.set_output(0, std::move(geometry));
+    }
+
+    /* Request all inputs so that their values can be logged. */
+    for (const int i : inputs_.index_range()) {
+      params.try_get_input_data_ptr_or_request(i);
+    }
+
+    const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data))
+    {
+      tree_logger->evaluated_gizmo_nodes.append(*tree_logger->allocator, {bnode_.identifier});
+    }
+  }
+};
+
+class LazyFunctionForGizmoInputsUsage : public LazyFunction {
+ private:
+  const bNode *gizmo_node_;
+  const lf::FunctionNode *lf_gizmo_node_ = nullptr;
+
+ public:
+  LazyFunctionForGizmoInputsUsage(const bNode &gizmo_node, const lf::FunctionNode &lf_gizmo_node)
+      : gizmo_node_(&gizmo_node), lf_gizmo_node_(&lf_gizmo_node)
+  {
+    debug_name_ = gizmo_node.name;
+    outputs_.append_as("Need Inputs", CPPType::get<bool>());
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context &context) const override
+  {
+    const auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    const bool is_used = gizmo_is_used(user_data, *lf_gizmo_node_);
+    params.set_output(0, is_used);
   }
 };
 
@@ -3098,6 +3204,12 @@ struct GeometryNodesLazyFunctionBuilder {
         this->build_index_switch_node(bnode, graph_params);
         break;
       }
+      case GEO_NODE_GIZMO_LINEAR:
+      case GEO_NODE_GIZMO_DIAL:
+      case GEO_NODE_GIZMO_TRANSFORM: {
+        this->build_gizmo_node(bnode, graph_params);
+        break;
+      }
       case GEO_NODE_BAKE: {
         this->build_bake_node(bnode, graph_params);
         break;
@@ -3514,6 +3626,47 @@ struct GeometryNodesLazyFunctionBuilder {
           graph_params.usage_by_bsocket.add(bsocket, &lf_usage_node.output(0));
         }
       }
+    }
+  }
+
+  void build_gizmo_node(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    auto &lazy_function = scope_.construct<LazyFunctionForGizmoNode>(
+        bnode, mapping_->lf_index_by_bsocket);
+    lf::FunctionNode &lf_gizmo_node = graph_params.lf_graph.add_function(lazy_function);
+    lazy_function.self_node = &lf_gizmo_node;
+
+    for (const int i : lazy_function.gizmo_links.index_range()) {
+      const bNodeLink &link = *lazy_function.gizmo_links[i];
+      lf::InputSocket &lf_socket = lf_gizmo_node.input(i);
+      graph_params.lf_input_by_multi_input_link.add(&link, &lf_socket);
+    }
+    for (const int i : bnode.input_sockets().drop_front(1).index_range()) {
+      lf::InputSocket &lf_socket = lf_gizmo_node.input(i + lazy_function.gizmo_links.size());
+      const bNodeSocket &bsocket = bnode.input_socket(i + 1);
+      graph_params.lf_inputs_by_bsocket.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    }
+    for (const int i : bnode.output_sockets().index_range()) {
+      lf::OutputSocket &lf_socket = lf_gizmo_node.output(i);
+      const bNodeSocket &bsocket = bnode.output_socket(i);
+      graph_params.lf_output_by_bsocket.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    }
+
+    this->build_gizmo_node_socket_usage(bnode, graph_params, lf_gizmo_node);
+
+    mapping_->possible_side_effect_node_map.add(&bnode, &lf_gizmo_node);
+  }
+
+  void build_gizmo_node_socket_usage(const bNode &bnode,
+                                     BuildGraphParams &graph_params,
+                                     const lf::FunctionNode &lf_gizmo_node)
+  {
+    const auto &usage_fn = scope_.construct<LazyFunctionForGizmoInputsUsage>(bnode, lf_gizmo_node);
+    lf::FunctionNode &lf_usage_node = graph_params.lf_graph.add_function(usage_fn);
+    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+      graph_params.usage_by_bsocket.add(bsocket, &lf_usage_node.output(0));
     }
   }
 

@@ -247,6 +247,8 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_CONSTANT")
+        if context.space_data.geometry_nodes_type != 'TOOL':
+            layout.menu("NODE_MT_geometry_node_GEO_INPUT_GIZMO")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_GROUP")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_SCENE")
         if context.preferences.experimental.use_new_file_import_nodes:
@@ -304,6 +306,18 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeViewportTransform")
         node_add_menu.draw_assets_for_catalog(layout, "Input/Scene")
+
+
+class NODE_MT_geometry_node_GEO_INPUT_GIZMO(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_INPUT_GIZMO"
+    bl_label = "Gizmo"
+
+    def draw(self, context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeGizmoDial")
+        node_add_menu.add_node_type(layout, "GeometryNodeGizmoLinear")
+        node_add_menu.add_node_type(layout, "GeometryNodeGizmoTransform")
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
 class NODE_MT_geometry_node_GEO_INSTANCE(Menu):
@@ -848,6 +862,7 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_FIELD,
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
+    NODE_MT_geometry_node_GEO_INPUT_GIZMO,
     NODE_MT_category_utilities_matrix,
     NODE_MT_category_GEO_UTILITIES_DEPRECATED,
     NODE_MT_category_GEO_GROUP,

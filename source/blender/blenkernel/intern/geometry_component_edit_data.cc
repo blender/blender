@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
+#include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 
@@ -13,6 +14,9 @@ GeometryComponentEditData::GeometryComponentEditData() : GeometryComponent(Type:
 GeometryComponentPtr GeometryComponentEditData::copy() const
 {
   GeometryComponentEditData *new_component = new GeometryComponentEditData();
+  if (gizmo_edit_hints_) {
+    new_component->gizmo_edit_hints_ = std::make_unique<GizmoEditHints>(*gizmo_edit_hints_);
+  }
   if (curves_edit_hints_) {
     new_component->curves_edit_hints_ = std::make_unique<CurvesEditHints>(*curves_edit_hints_);
   }
@@ -38,6 +42,7 @@ void GeometryComponentEditData::clear()
   BLI_assert(this->is_mutable() || this->is_expired());
   curves_edit_hints_.reset();
   grease_pencil_edit_hints_.reset();
+  gizmo_edit_hints_.reset();
 }
 
 static ImplicitSharingPtrAndData save_shared_attribute(const GAttributeReader &attribute)

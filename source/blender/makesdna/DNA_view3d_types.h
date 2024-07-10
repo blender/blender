@@ -669,6 +669,7 @@ enum {
   V3D_GIZMO_HIDE_NAVIGATE = (1 << 1),
   V3D_GIZMO_HIDE_CONTEXT = (1 << 2),
   V3D_GIZMO_HIDE_TOOL = (1 << 3),
+  V3D_GIZMO_HIDE_MODIFIER = (1 << 4),
 };
 
 /** #View3d.gizmo_show_object */

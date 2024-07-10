@@ -988,6 +988,7 @@ static void view3d_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
+  WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_geometry_nodes);
   /* TODO(@ideasman42): Not working well enough, disable for now. */
 #if 0
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
@@ -1241,6 +1242,12 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_NODE:
+      switch (wmn->data) {
+        case ND_NODE_GIZMO: {
+          WM_gizmomap_tag_refresh(gzmap);
+          break;
+        }
+      }
       ED_region_tag_redraw(region);
       break;
     case NC_WORLD:
@@ -1309,6 +1316,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
     case NC_ID:
       if (ELEM(wmn->action, NA_RENAME, NA_EDITED, NA_ADDED, NA_REMOVED)) {
         ED_region_tag_redraw(region);
+        WM_gizmomap_tag_refresh(gzmap);
       }
       break;
     case NC_SCREEN:

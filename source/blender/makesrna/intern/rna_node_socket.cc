@@ -624,6 +624,13 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Hide Value", "Hide the socket input value");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
 
+  prop = RNA_def_property(srna, "pin_gizmo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SOCK_GIZMO_PIN);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Pin Gizmo", "Keep gizmo visible even when the node is not selected");
+  RNA_def_property_update(prop, NC_NODE | ND_NODE_GIZMO, nullptr);
+
   prop = RNA_def_property(srna, "node", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_funcs(prop, "rna_NodeSocket_node_get", nullptr, nullptr, nullptr);
   RNA_def_property_struct_type(prop, "Node");

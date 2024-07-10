@@ -69,6 +69,13 @@ class NodeDeclarationBuilder;
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;
 struct NodeExtraInfoParams;
+namespace value_elem {
+class InverseElemEvalParams;
+class ElemEvalParams;
+}  // namespace value_elem
+namespace inverse_eval {
+class InverseEvalParams;
+}  // namespace inverse_eval
 }  // namespace nodes
 namespace realtime_compositor {
 class Context;
@@ -131,6 +138,10 @@ using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOpe
 using NodeGetCompositorShaderNodeFunction =
     blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
 using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
+using NodeInverseElemEvalFunction =
+    void (*)(blender::nodes::value_elem::InverseElemEvalParams &params);
+using NodeElemEvalFunction = void (*)(blender::nodes::value_elem::ElemEvalParams &params);
+using NodeInverseEvalFunction = void (*)(blender::nodes::inverse_eval::InverseEvalParams &params);
 
 /**
  * \brief Defines a socket type.
@@ -353,6 +364,25 @@ struct bNodeType {
 
   /** Get extra information that is drawn next to the node. */
   NodeExtraInfoFunction get_extra_info;
+
+  /**
+   * "Abstract" evaluation of the node. It tells the caller which parts of the inputs affect which
+   * parts of the outputs.
+   */
+  NodeElemEvalFunction eval_elem;
+
+  /**
+   * Similar to #eval_elem but tells the caller which parts of the inputs have to be modified to
+   * modify the outputs.
+   */
+  NodeInverseElemEvalFunction eval_inverse_elem;
+
+  /**
+   * Evaluates the inverse of the node if possible. This evaluation has access to logged values of
+   * all input sockets as well as new values for output sockets. Based on that, it should determine
+   * how one or more of the inputs should change so that the output becomes the given one.
+   */
+  NodeInverseEvalFunction eval_inverse;
 
   /**
    * Registers operators that are specific to this node. This allows nodes to be more
@@ -1338,6 +1368,9 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index
 #define GEO_NODE_IMPORT_STL 2138
 #define GEO_NODE_IMPORT_OBJ 2139
 #define GEO_NODE_SET_GEOMETRY_NAME 2140
+#define GEO_NODE_GIZMO_LINEAR 2141
+#define GEO_NODE_GIZMO_DIAL 2142
+#define GEO_NODE_GIZMO_TRANSFORM 2143
 
 /** \} */
 

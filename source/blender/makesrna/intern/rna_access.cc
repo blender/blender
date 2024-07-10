@@ -2367,6 +2367,9 @@ static void rna_property_update(
     }
 
     WM_main_add_notifier(NC_WINDOW, nullptr);
+    if (ptr->owner_id) {
+      WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
+    }
     /* Not nice as well, but the only way to make sure material preview
      * is updated with custom nodes.
      */

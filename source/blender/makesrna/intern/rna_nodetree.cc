@@ -504,6 +504,22 @@ const EnumPropertyItem rna_enum_node_geometry_mesh_circle_fill_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_geometry_nodes_gizmo_color_items[] = {
+    {GEO_NODE_GIZMO_COLOR_PRIMARY, "PRIMARY", 0, "Primary", ""},
+    {GEO_NODE_GIZMO_COLOR_SECONDARY, "SECONDARY", 0, "Secondary", ""},
+    {GEO_NODE_GIZMO_COLOR_X, "X", 0, "X", ""},
+    {GEO_NODE_GIZMO_COLOR_Y, "Y", 0, "Y", ""},
+    {GEO_NODE_GIZMO_COLOR_Z, "Z", 0, "Z", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+const EnumPropertyItem rna_enum_geometry_nodes_linear_gizmo_draw_style_items[] = {
+    {GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_ARROW, "ARROW", 0, "Arrow", ""},
+    {GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
+    {GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_BOX, "BOX", 0, "Box", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem node_sampler_type_items[] = {
     {0, "NEAREST", 0, "Nearest", ""},
@@ -5003,6 +5019,58 @@ static void def_geo_image_texture(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Extension", "How the image is extrapolated past its original bounds");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void rna_def_geo_gizmo_transform(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryTransformGizmo", "storage");
+
+  prop = RNA_def_property(srna, "use_translation_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X);
+  RNA_def_property_ui_text(prop, "Use Translation X", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_translation_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y);
+  RNA_def_property_ui_text(prop, "Use Translation Y", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_translation_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z);
+  RNA_def_property_ui_text(prop, "Use Translation Z", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_rotation_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X);
+  RNA_def_property_ui_text(prop, "Use Rotation X", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_rotation_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y);
+  RNA_def_property_ui_text(prop, "Use Rotation Y", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_rotation_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z);
+  RNA_def_property_ui_text(prop, "Use Rotation Z", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_scale_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X);
+  RNA_def_property_ui_text(prop, "Use Scale X", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_scale_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y);
+  RNA_def_property_ui_text(prop, "Use Scale Y", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "use_scale_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z);
+  RNA_def_property_ui_text(prop, "Use Scale Z", nullptr);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 

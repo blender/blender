@@ -298,8 +298,7 @@ typedef enum eNodeSocketFlag {
   SOCK_IS_LINKED = (1 << 2),
   /** Unavailable is for dynamic sockets. */
   SOCK_UNAVAIL = (1 << 3),
-  // /** DEPRECATED  dynamic socket (can be modified by user) */
-  // SOCK_DYNAMIC = (1 << 4),
+  SOCK_GIZMO_PIN = (1 << 4),
   // /** DEPRECATED  group socket should not be exposed */
   // SOCK_INTERNAL = (1 << 5),
   /** Socket collapsed in UI. */
@@ -1996,6 +1995,47 @@ typedef struct NodeShaderMix {
   char _pad[3];
 } NodeShaderMix;
 
+typedef struct NodeGeometryLinearGizmo {
+  /** #GeometryNodeGizmoColor. */
+  int color_id;
+  /** #GeometryNodeLinearGizmoDrawStyle. */
+  int draw_style;
+} NodeGeometryLinearGizmo;
+
+typedef struct NodeGeometryDialGizmo {
+  /** #GeometryNodeGizmoColor. */
+  int color_id;
+} NodeGeometryDialGizmo;
+
+typedef struct NodeGeometryTransformGizmo {
+  /** #NodeGeometryTransformGizmoFlag.  */
+  uint32_t flag;
+} NodeGeometryTransformGizmo;
+
+typedef enum NodeGeometryTransformGizmoFlag {
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X = 1 << 0,
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y = 1 << 1,
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z = 1 << 2,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X = 1 << 3,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y = 1 << 4,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z = 1 << 5,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X = 1 << 6,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y = 1 << 7,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z = 1 << 8,
+} NodeGeometryTransformGizmoFlag;
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z)
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z)
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X | GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z)
+
 typedef struct NodeGeometryBakeItem {
   char *name;
   int16_t socket_type;
@@ -2903,6 +2943,20 @@ typedef enum NodeCombSepColorMode {
   NODE_COMBSEP_COLOR_HSV = 1,
   NODE_COMBSEP_COLOR_HSL = 2,
 } NodeCombSepColorMode;
+
+typedef enum GeometryNodeGizmoColor {
+  GEO_NODE_GIZMO_COLOR_PRIMARY = 0,
+  GEO_NODE_GIZMO_COLOR_SECONDARY = 1,
+  GEO_NODE_GIZMO_COLOR_X = 2,
+  GEO_NODE_GIZMO_COLOR_Y = 3,
+  GEO_NODE_GIZMO_COLOR_Z = 4,
+} GeometryNodeGizmoColor;
+
+typedef enum GeometryNodeLinearGizmoDrawStyle {
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_ARROW = 0,
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_CROSS = 1,
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_BOX = 2,
+} GeometryNodeLinearGizmoDrawStyle;
 
 typedef enum NodeGeometryTransformMode {
   GEO_NODE_TRANSFORM_MODE_COMPONENTS = 0,

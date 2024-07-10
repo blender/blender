@@ -64,7 +64,9 @@
 
 #include "NOD_composite.hh"
 #include "NOD_geometry.hh"
+#include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_partial_eval.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
@@ -95,7 +97,8 @@ static void node_buts_value(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   bNodeSocket *output = (bNodeSocket *)node->outputs.first;
   PointerRNA sockptr = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, output);
 
-  uiItemR(layout, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiItemR(row, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 static void node_buts_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -1273,6 +1276,11 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
   return node_decl->inputs[socket_index]->is_attribute_name;
 }
 
+static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
+{
+  uiItemR(layout, socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
+}
+
 static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, const char *text)
 {
   if (sock->runtime->declaration) {
@@ -1295,6 +1303,7 @@ static void std_node_socket_draw(
 {
   bNode *node = (bNode *)node_ptr->data;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
+  bNodeTree *tree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   int type = sock->typeinfo->type;
   // int subtype = sock->typeinfo->subtype;
 
@@ -1302,6 +1311,44 @@ static void std_node_socket_draw(
   if (node->type == CMP_NODE_OUTPUT_FILE) {
     node_file_output_socket_draw(C, layout, ptr, node_ptr);
     return;
+  }
+
+  const bool has_gizmo = tree->runtime->gizmo_propagation ?
+                             tree->runtime->gizmo_propagation->gizmo_endpoint_sockets.contains(
+                                 sock) :
+                             false;
+
+  if (has_gizmo) {
+    if (sock->in_out == SOCK_OUT && ELEM(node->type,
+                                         SH_NODE_VALUE,
+                                         FN_NODE_INPUT_VECTOR,
+                                         FN_NODE_INPUT_INT,
+                                         FN_NODE_INPUT_BOOL,
+                                         FN_NODE_INPUT_ROTATION,
+                                         NODE_GROUP_INPUT))
+    {
+      if (node->is_group_output()) {
+        uiLayout *row = uiLayoutRow(layout, false);
+        uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+        node_socket_button_label(C, row, ptr, node_ptr, text);
+        uiItemL(row, "", ICON_GIZMO);
+      }
+      else if (nodes::partial_eval::is_supported_value_node(*node)) {
+        uiLayout *row = uiLayoutRow(layout, false);
+        uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+        node_socket_button_label(C, row, ptr, node_ptr, text);
+        draw_gizmo_pin_icon(row, ptr);
+      }
+      return;
+    }
+    if (sock->in_out == SOCK_IN && sock->index() == 0 &&
+        nodes::gizmos::is_builtin_gizmo_node(*node))
+    {
+      uiLayout *row = uiLayoutRow(layout, false);
+      node_socket_button_label(C, row, ptr, node_ptr, text);
+      draw_gizmo_pin_icon(row, ptr);
+      return;
+    }
   }
 
   if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
@@ -1312,6 +1359,10 @@ static void std_node_socket_draw(
   }
 
   text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
+
+  /* Some socket types draw the gizmo icon in a special way to look better. All others use a
+   * fallback default code path. */
+  bool gizmo_handled = false;
 
   switch (type) {
     case SOCK_FLOAT:
@@ -1328,14 +1379,30 @@ static void std_node_socket_draw(
           uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
         else {
-          uiLayout *column = uiLayoutColumn(layout, true);
-          uiItemR(column, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+          uiLayout *column = uiLayoutColumn(layout, false);
+          {
+            uiLayout *row = uiLayoutRow(column, true);
+            uiItemL(row, text, ICON_NONE);
+            if (has_gizmo) {
+              draw_gizmo_pin_icon(row, ptr);
+              gizmo_handled = true;
+            }
+          }
+          uiItemR(column, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
       }
       break;
     case SOCK_ROTATION: {
-      uiLayout *column = uiLayoutColumn(layout, true);
-      uiItemR(column, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      uiLayout *column = uiLayoutColumn(layout, false);
+      {
+        uiLayout *row = uiLayoutRow(column, true);
+        uiItemL(row, text, ICON_NONE);
+        if (has_gizmo) {
+          draw_gizmo_pin_icon(row, ptr);
+          gizmo_handled = true;
+        }
+      }
+      uiItemR(column, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       break;
     }
     case SOCK_MATRIX: {
@@ -1471,6 +1538,10 @@ static void std_node_socket_draw(
     default:
       draw_node_socket_without_value(layout, sock, text);
       break;
+  }
+
+  if (has_gizmo && !gizmo_handled) {
+    draw_gizmo_pin_icon(layout, ptr);
   }
 }
 
@@ -1818,11 +1889,13 @@ static struct {
   uint dim_factor_id;
   uint thickness_id;
   uint dash_params_id;
+  uint has_back_link_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
   GPUVertBufRaw colid_step, muted_step, start_color_step, end_color_step;
   GPUVertBufRaw dim_factor_step;
   GPUVertBufRaw thickness_step;
   GPUVertBufRaw dash_params_step;
+  GPUVertBufRaw has_back_link_step;
   uint count;
   bool enabled;
 } g_batch_link;
@@ -1843,6 +1916,8 @@ static void nodelink_batch_reset()
       g_batch_link.inst_vbo, g_batch_link.thickness_id, &g_batch_link.thickness_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.dash_params_id, &g_batch_link.dash_params_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.has_back_link_id, &g_batch_link.has_back_link_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.start_color_id, &g_batch_link.start_color_step);
   GPU_vertbuf_attr_get_raw_data(
@@ -1974,6 +2049,8 @@ static void nodelink_batch_init()
       &format_inst, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   g_batch_link.dash_params_id = GPU_vertformat_attr_add(
       &format_inst, "dash_params", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  g_batch_link.has_back_link_id = GPU_vertformat_attr_add(
+      &format_inst, "has_back_link", GPU_COMP_U32, 1, GPU_FETCH_INT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(*g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -2058,6 +2135,7 @@ struct NodeLinkDrawConfig {
   bool drawarrow;
   bool drawmuted;
   bool highlighted;
+  bool has_back_link;
 
   float dim_factor;
   float thickness;
@@ -2096,6 +2174,7 @@ static void nodelink_batch_add_link(const SpaceNode &snode,
   *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = draw_config.thickness;
   float3 dash_params(draw_config.dash_length, draw_config.dash_factor, draw_config.dash_alpha);
   copy_v3_v3((float *)GPU_vertbuf_raw_step(&g_batch_link.dash_params_step), dash_params);
+  *(int *)GPU_vertbuf_raw_step(&g_batch_link.has_back_link_step) = draw_config.has_back_link;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -2142,6 +2221,19 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   return false;
 }
 
+static bool node_link_is_gizmo_link(const SpaceNode &snode, const bNodeLink &link)
+{
+  if (snode.edittree->type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (!link.fromsock || !link.tosock) {
+    return false;
+  }
+  const bNodeTree &tree = *snode.edittree;
+  return tree.runtime->sockets_on_active_gizmo_paths.contains(link.fromsock) &&
+         tree.runtime->sockets_on_active_gizmo_paths.contains(link.tosock);
+}
+
 static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
                                                    const View2D &v2d,
                                                    const SpaceNode &snode,
@@ -2163,6 +2255,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   draw_config.dash_alpha = btheme->space_node.dash_alpha;
 
   const bool field_link = node_link_is_field_link(snode, link);
+  const bool gizmo_link = node_link_is_gizmo_link(snode, link);
 
   draw_config.dash_factor = field_link ? 0.75f : 1.0f;
   draw_config.dash_length = 10.0f * UI_SCALE_FAC;
@@ -2171,6 +2264,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   /* Clamp the thickness to make the links more readable when zooming out. */
   draw_config.thickness = LINK_WIDTH * max_ff(UI_SCALE_FAC * scale, 1.0f) *
                           (field_link ? 0.7f : 1.0f);
+  draw_config.has_back_link = gizmo_link;
   draw_config.highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
   draw_config.drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
                            (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
@@ -2262,6 +2356,7 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     node_link_data.dash_params[0] = draw_config.dash_length;
     node_link_data.dash_params[1] = draw_config.dash_factor;
     node_link_data.dash_params[2] = draw_config.dash_alpha;
+    node_link_data.has_back_link = draw_config.has_back_link;
     node_link_data.aspect = snode.runtime->aspect;
     node_link_data.arrowSize = ARROW_SIZE;
 

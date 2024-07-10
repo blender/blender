@@ -42,9 +42,10 @@ struct NodeLinkData {
   float dim_factor;
   float thickness;
   float4 dash_params;
+  bool32_t has_back_link;
   float aspect;
   float arrowSize;
-  float2 _pad;
+  float _pad;
 };
 BLI_STATIC_ASSERT_ALIGN(NodeLinkData, 16)
 

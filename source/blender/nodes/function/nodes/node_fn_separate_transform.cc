@@ -5,6 +5,9 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.hh"
 
+#include "NOD_inverse_eval_params.hh"
+#include "NOD_value_elem_eval.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_separate_transform_cc {
@@ -73,6 +76,33 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static void node_eval_elem(value_elem::ElemEvalParams &params)
+{
+  using namespace value_elem;
+  const MatrixElem matrix_elem = params.get_input_elem<MatrixElem>("Transform");
+  params.set_output_elem("Translation", matrix_elem.translation);
+  params.set_output_elem("Rotation", matrix_elem.rotation);
+  params.set_output_elem("Scale", matrix_elem.scale);
+}
+
+static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
+{
+  using namespace value_elem;
+  MatrixElem transform_elem;
+  transform_elem.translation = params.get_output_elem<VectorElem>("Translation");
+  transform_elem.rotation = params.get_output_elem<RotationElem>("Rotation");
+  transform_elem.scale = params.get_output_elem<VectorElem>("Scale");
+  params.set_input_elem("Transform", transform_elem);
+}
+
+static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
+{
+  const float3 translation = params.get_output<float3>("Translation");
+  const math::Quaternion rotation = params.get_output<math::Quaternion>("Rotation");
+  const float3 scale = params.get_output<float3>("Scale");
+  params.set_input("Transform", math::from_loc_rot_scale<float4x4>(translation, rotation, scale));
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -80,6 +110,9 @@ static void node_register()
       &ntype, FN_NODE_SEPARATE_TRANSFORM, "Separate Transform", NODE_CLASS_CONVERTER);
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.eval_elem = node_eval_elem;
+  ntype.eval_inverse_elem = node_eval_inverse_elem;
+  ntype.eval_inverse = node_eval_inverse;
   blender::bke::nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
