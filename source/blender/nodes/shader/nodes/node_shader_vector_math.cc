@@ -321,7 +321,7 @@ static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &b
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
-  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  const NodeVectorMathOperation op = NodeVectorMathOperation(params.node.custom1);
   switch (op) {
     case NODE_VECTOR_MATH_ADD:
     case NODE_VECTOR_MATH_SUBTRACT:
@@ -348,7 +348,7 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
-  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  const NodeVectorMathOperation op = NodeVectorMathOperation(params.node.custom1);
   switch (op) {
     case NODE_VECTOR_MATH_ADD:
     case NODE_VECTOR_MATH_SUBTRACT:
@@ -365,7 +365,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const NodeMathOperation op = NodeMathOperation(params.node.custom1);
+  const NodeVectorMathOperation op = NodeVectorMathOperation(params.node.custom1);
   const StringRef first_input_id = "Vector";
   const StringRef second_input_id = "Vector_001";
   const StringRef scale_input_id = "Scale";

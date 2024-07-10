@@ -110,7 +110,7 @@ struct VectorElem {
 
   static VectorElem all()
   {
-    return {true, true, true};
+    return {{true}, {true}, {true}};
   }
 };
 
@@ -152,7 +152,7 @@ struct RotationElem {
 
   static RotationElem all()
   {
-    return {VectorElem::all(), VectorElem::all(), true};
+    return {VectorElem::all(), VectorElem::all(), {true}};
   }
 };
 

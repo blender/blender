@@ -979,12 +979,11 @@ class LazyFunctionForGizmoNode : public LazyFunction {
 
 class LazyFunctionForGizmoInputsUsage : public LazyFunction {
  private:
-  const bNode *gizmo_node_;
   const lf::FunctionNode *lf_gizmo_node_ = nullptr;
 
  public:
   LazyFunctionForGizmoInputsUsage(const bNode &gizmo_node, const lf::FunctionNode &lf_gizmo_node)
-      : gizmo_node_(&gizmo_node), lf_gizmo_node_(&lf_gizmo_node)
+      : lf_gizmo_node_(&lf_gizmo_node)
   {
     debug_name_ = gizmo_node.name;
     outputs_.append_as("Need Inputs", CPPType::get<bool>());

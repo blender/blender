@@ -251,7 +251,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
     matrix_elem.scale = VectorElem::all();
   }
 
-  const bool any_non_transform = output_elems[0][3] | output_elems[1][3] | output_elems[2][3] |
+  const bool any_non_transform = output_elems[0][3] || output_elems[1][3] || output_elems[2][3] ||
                                  output_elems[3][3];
   if (any_non_transform) {
     matrix_elem.any_non_transform = FloatElem::all();

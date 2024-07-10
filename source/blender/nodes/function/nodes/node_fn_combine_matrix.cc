@@ -180,7 +180,7 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
     matrix_elem.scale = VectorElem::all();
   }
 
-  const bool any_non_transform = input_elems[0][3] | input_elems[1][3] | input_elems[2][3] |
+  const bool any_non_transform = input_elems[0][3] || input_elems[1][3] || input_elems[2][3] ||
                                  input_elems[3][3];
   if (any_non_transform) {
     matrix_elem.any_non_transform = FloatElem::all();
