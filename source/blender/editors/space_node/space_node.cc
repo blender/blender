@@ -1334,6 +1334,13 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
+static blender::StringRefNull node_space_name_get(ScrArea *area)
+{
+  SpaceNode *snode = (SpaceNode *)area->spacedata.first;
+  bke::bNodeTreeType *tree_type = bke::ntreeTypeFind(snode->tree_idname);
+  return tree_type->ui_name;
+}
+
 static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
@@ -1387,6 +1394,7 @@ void ED_spacetype_node()
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
+  st->space_name_get = node_space_name_get;
   st->blend_read_data = node_space_blend_read_data;
   st->blend_read_after_liblink = nullptr;
   st->blend_write = node_space_blend_write;

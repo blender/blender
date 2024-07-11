@@ -38,6 +38,9 @@
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
+
 #include "UI_interface.hh"
 
 #include "WM_message.hh"
@@ -900,6 +903,17 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
     /* none otherwise */
     CTX_wm_window_set(C, nullptr);
   }
+}
+
+blender::StringRefNull ED_area_name(ScrArea *area)
+{
+  if (area->type->space_name_get) {
+    return area->type->space_name_get(area);
+  }
+
+  const int index = RNA_enum_from_value(rna_enum_space_type_items, area->spacetype);
+  const EnumPropertyItem item = rna_enum_space_type_items[index];
+  return item.name;
 }
 
 /* *********************************** */
