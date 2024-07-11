@@ -109,6 +109,18 @@ static void id_type_init()
   BLI_assert_msg(init_types_num == INDEX_ID_MAX, "Some IDTypeInfo initialization is missing");
   UNUSED_VARS_NDEBUG(init_types_num);
 
+  { /* Inspect which ID types can be animated, so that IDType_ID_AC.dependencies_id_types can be
+     * set to include those. The runtime ID* cache of animrig::Binding will point to any
+     * ID that is animated by it, and thus can point to any animatable ID type. */
+    IDType_ID_AC.dependencies_id_types = 0;
+    for (const IDTypeInfo *id_type : id_types) {
+      const bool is_animatable = (id_type->flags & IDTYPE_FLAGS_NO_ANIMDATA) == 0;
+      if (is_animatable) {
+        IDType_ID_AC.dependencies_id_types |= id_type->id_filter;
+      }
+    }
+  }
+
 #undef INIT_TYPE
 }
 
