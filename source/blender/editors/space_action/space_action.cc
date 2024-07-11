@@ -866,7 +866,7 @@ static void action_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
 }
 
-static blender::StringRefNull action_space_name_get(ScrArea *area)
+static blender::StringRefNull action_space_name_get(const ScrArea *area)
 {
   SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
   const int index = RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode);

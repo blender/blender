@@ -1334,7 +1334,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-static blender::StringRefNull node_space_name_get(ScrArea *area)
+static blender::StringRefNull node_space_name_get(const ScrArea *area)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
   bke::bNodeTreeType *tree_type = bke::ntreeTypeFind(snode->tree_idname);

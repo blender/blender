@@ -905,7 +905,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
   }
 }
 
-blender::StringRefNull ED_area_name(ScrArea *area)
+blender::StringRefNull ED_area_name(const ScrArea *area)
 {
   if (area->type->space_name_get) {
     return area->type->space_name_get(area);

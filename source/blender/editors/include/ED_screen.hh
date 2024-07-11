@@ -210,7 +210,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco);
  */
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area);
 void ED_area_exit(bContext *C, ScrArea *area);
-blender::StringRefNull ED_area_name(ScrArea *area);
+blender::StringRefNull ED_area_name(const ScrArea *area);
 int ED_area_icon(const ScrArea *area);
 int ED_screen_area_active(const bContext *C);
 void ED_screen_global_areas_refresh(wmWindow *win);

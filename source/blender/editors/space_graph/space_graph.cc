@@ -868,7 +868,7 @@ static void graph_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
-static blender::StringRefNull graph_space_name_get(ScrArea *area)
+static blender::StringRefNull graph_space_name_get(const ScrArea *area)
 {
   SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
   const int index = RNA_enum_from_value(rna_enum_space_graph_mode_items, sgraph->mode);
