@@ -30,6 +30,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
@@ -108,26 +109,26 @@ struct BlendfileLinkAppendContextLibrary {
 
 struct BlendfileLinkAppendContext {
   /** List of library paths to search IDs in. */
-  LinkNodePair libraries;
+  LinkNodePair libraries = {nullptr, nullptr};
   /** List of all ID to try to link from #libraries. */
-  LinkNodePair items;
-  int num_libraries;
-  int num_items;
+  LinkNodePair items = {nullptr, nullptr};
+  int num_libraries = 0;
+  int num_items = 0;
   /** Linking/appending parameters. Including `bmain`, `scene`, `viewlayer` and `view3d`. */
-  LibraryLink_Params *params;
+  LibraryLink_Params *params = nullptr;
 
   /** Allows to easily find an existing items from an ID pointer. */
-  GHash *new_id_to_item;
+  blender::Map<ID *, BlendfileLinkAppendContextItem *> new_id_to_item;
 
   /** Runtime info used by append code to manage re-use of already appended matching IDs. */
-  GHash *library_weak_reference_mapping;
+  GHash *library_weak_reference_mapping = nullptr;
 
   /** Embedded blendfile and its size, if needed. */
-  const void *blendfile_mem;
-  size_t blendfile_memsize;
+  const void *blendfile_mem = nullptr;
+  size_t blendfile_memsize = 0;
 
   /** Internal 'private' data */
-  MemArena *memarena;
+  MemArena *memarena = nullptr;
 };
 
 struct BlendfileLinkAppendContextCallBack {
@@ -221,22 +222,14 @@ static void link_append_context_library_blohandle_release(
 
 BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(LibraryLink_Params *params)
 {
-  MemArena *ma = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  BlendfileLinkAppendContext *lapp_context = static_cast<BlendfileLinkAppendContext *>(
-      BLI_memarena_calloc(ma, sizeof(*lapp_context)));
-
+  BlendfileLinkAppendContext *lapp_context = MEM_new<BlendfileLinkAppendContext>(__func__);
+  lapp_context->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   lapp_context->params = params;
-  lapp_context->memarena = ma;
-
   return lapp_context;
 }
 
 void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_context)
 {
-  if (lapp_context->new_id_to_item != nullptr) {
-    BLI_ghash_free(lapp_context->new_id_to_item, nullptr, nullptr);
-  }
-
   for (LinkNode *liblink = lapp_context->libraries.list; liblink != nullptr;
        liblink = liblink->next)
   {
@@ -248,6 +241,8 @@ void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_con
   BLI_assert(lapp_context->library_weak_reference_mapping == nullptr);
 
   BLI_memarena_free(lapp_context->memarena);
+
+  MEM_delete(lapp_context);
 }
 
 void BKE_blendfile_link_append_context_flag_set(BlendfileLinkAppendContext *lapp_context,
@@ -956,15 +951,13 @@ static void new_id_to_item_mapping_add(BlendfileLinkAppendContext *lapp_context,
                                        ID *id,
                                        BlendfileLinkAppendContextItem *item)
 {
-  BLI_ghash_insert(lapp_context->new_id_to_item, id, item);
+  lapp_context->new_id_to_item.add(id, item);
 }
 
 /* Generate a mapping between newly linked IDs and their items, and tag linked IDs used as
  * liboverride references as already existing. */
 static void new_id_to_item_mapping_create(BlendfileLinkAppendContext *lapp_context)
 {
-  lapp_context->new_id_to_item = BLI_ghash_new(
-      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   for (LinkNode *itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
     BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
         itemlink->link);
@@ -1035,8 +1028,8 @@ static int foreach_libblock_append_add_dependencies_callback(LibraryIDLinkCallba
   /* NOTE: In append case, all dependencies are needed in the items list, to cover potential
    * complex cases (e.g. linked data from another library referencing other IDs from the  */
 
-  BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-      BLI_ghash_lookup(data->lapp_context->new_id_to_item, id));
+  BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup_default(
+      id, nullptr);
   if (item == nullptr) {
     item = BKE_blendfile_link_append_context_item_add(
         data->lapp_context, id->name, GS(id->name), nullptr);
@@ -1098,8 +1091,7 @@ static int foreach_libblock_append_ensure_reusable_local_id_callback(
     return IDWALK_RET_NOP;
   }
 
-  BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-      BLI_ghash_lookup(data->lapp_context->new_id_to_item, id));
+  BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup(id);
   BLI_assert(item != nullptr);
 
   /* If the currently processed owner ID is not defined as being kept linked, and is using a
@@ -1127,8 +1119,7 @@ static int foreach_libblock_append_finalize_action_callback(LibraryIDLinkCallbac
   BlendfileLinkAppendContextCallBack *data = static_cast<BlendfileLinkAppendContextCallBack *>(
       cb_data->user_data);
 
-  BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-      BLI_ghash_lookup(data->lapp_context->new_id_to_item, id));
+  BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup(id);
   BLI_assert(item != nullptr);
   BLI_assert(data->item->action == LINK_APPEND_ACT_KEEP_LINKED);
 
@@ -1570,8 +1561,8 @@ static int foreach_libblock_link_finalize_cb(LibraryIDLinkCallbackData *cb_data)
    * libraries. So all linked IDs that were not skipped so far need to be added to the items
    * list.
    */
-  BlendfileLinkAppendContextItem *item = static_cast<BlendfileLinkAppendContextItem *>(
-      BLI_ghash_lookup(data->lapp_context->new_id_to_item, id));
+  BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup_default(
+      id, nullptr);
   /* NOTE: liboverride info (tags like #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY) can be
    * ignored/skipped here, since all data are kept linked anyway, they are not useful currently.
    */
