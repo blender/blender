@@ -482,6 +482,7 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
                 '''    name: "MyTestRepo"\n'''
                 '''    directory: "{:s}"\n'''
                 '''    url: "{:s}"\n'''
+                '''    access_token: None\n'''
             ).format(repo_id, TEMP_DIR_LOCAL, TEMP_DIR_REMOTE_AS_URL))
 
         stdout = run_blender_extensions_no_errors(("list",))
