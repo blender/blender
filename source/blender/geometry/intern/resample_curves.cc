@@ -97,16 +97,18 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
 static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
                                      const CurvesGeometry &src_curves,
                                      CurvesGeometry &dst_curves,
-                                     Vector<GSpan> &src,
+                                     Vector<GVArraySpan> &src,
                                      Vector<GMutableSpan> &dst,
                                      Vector<bke::GSpanAttributeWriter> &dst_attributes)
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
   for (const int i : ids.index_range()) {
-    const GVArray src_attribute = *src_attributes.lookup(ids[i], bke::AttrDomain::Point);
-    src.append(src_attribute.get_internal_span());
+    const bke::GAttributeReader src_attribute = src_attributes.lookup(ids[i],
+                                                                      bke::AttrDomain::Point);
+    src.append(src_attribute.varray);
 
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
     bke::GSpanAttributeWriter dst_attribute =
         dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
             ids[i], bke::AttrDomain::Point, data_type);
@@ -116,12 +118,12 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
 }
 
 struct AttributesForResample : NonCopyable, NonMovable {
-  Vector<GSpan> src;
+  Vector<GVArraySpan> src;
   Vector<GMutableSpan> dst;
 
   Vector<bke::GSpanAttributeWriter> dst_attributes;
 
-  Vector<GSpan> src_no_interpolation;
+  Vector<GVArraySpan> src_no_interpolation;
   Vector<GMutableSpan> dst_no_interpolation;
 
   Span<float3> src_evaluated_tangents;
