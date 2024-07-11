@@ -19,6 +19,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_report.hh"
 
 #include "DNA_modifier_types.h"
 
@@ -742,12 +743,26 @@ static bool can_invoke(const bContext &C)
   return true;
 }
 
-static bool can_exec(const bContext &C)
+static void report_invalid_mode(const PBVHType pbvh_type, ReportList &reports)
+{
+  if (pbvh_type == PBVH_BMESH) {
+    BKE_report(&reports, RPT_ERROR, "Not supported in dynamic topology mode");
+  }
+  else if (pbvh_type == PBVH_GRIDS) {
+    BKE_report(&reports, RPT_ERROR, "Not supported in multiresolution mode");
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+static bool can_exec(const bContext &C, ReportList &reports)
 {
   const Object &object = *CTX_data_active_object(&C);
   const SculptSession &ss = *object.sculpt;
   if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
     /* Not supported in Multires and Dyntopo. */
+    report_invalid_mode(BKE_pbvh_type(*ss.pbvh), reports);
     return false;
   }
 
@@ -784,7 +799,7 @@ static void initialize_cursor_info(bContext &C,
 
 static int gesture_box_exec(bContext *C, wmOperator *op)
 {
-  if (!can_exec(*C)) {
+  if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -815,7 +830,7 @@ static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  if (!can_exec(*C)) {
+  if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -846,7 +861,7 @@ static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int gesture_line_exec(bContext *C, wmOperator *op)
 {
-  if (!can_exec(*C)) {
+  if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -877,7 +892,7 @@ static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 static int gesture_polyline_exec(bContext *C, wmOperator *op)
 {
-  if (!can_exec(*C)) {
+  if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
