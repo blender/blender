@@ -1271,6 +1271,20 @@ static void rna_def_action_slot(BlenderRNA *brna)
                          "Number specific to this Slot, unique within the Action"
                          "This is used, for example, on a KeyframeActionStrip to look up the "
                          "ActionChannelBag for this Slot");
+
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "slot_flags", int(animrig::Slot::Flags::Selected));
+  RNA_def_property_ui_text(prop, "Select", "Selection state of the slot");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
+
+  prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "slot_flags", int(animrig::Slot::Flags::Expanded));
+  RNA_def_property_ui_text(prop, "Show Expanded", "Expanded state of the slot");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
 }
 
 static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
