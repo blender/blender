@@ -4548,10 +4548,6 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->detail_directions);
 
-  if (cache->cloth_sim) {
-    cloth::simulation_free(cache->cloth_sim);
-  }
-
   MEM_delete(cache);
 }
 

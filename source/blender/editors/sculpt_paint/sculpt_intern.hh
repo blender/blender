@@ -261,7 +261,7 @@ struct Cache {
   Vector<PBVHNode *> nodes;
 
   /* Cloth filter. */
-  cloth::SimulationData *cloth_sim;
+  std::unique_ptr<cloth::SimulationData> cloth_sim;
   float3 cloth_sim_pinch_point;
 
   /* mask expand iteration caches */
@@ -444,7 +444,7 @@ struct StrokeCache {
   int clay_pressure_stabilizer_index;
 
   /* Cloth brush */
-  cloth::SimulationData *cloth_sim;
+  std::unique_ptr<cloth::SimulationData> cloth_sim;
   float3 initial_location;
   float3 true_initial_location;
   float3 initial_normal;
@@ -1480,21 +1480,21 @@ struct SimulationData {
   VArraySpan<float> mask_mesh;
   int mask_cd_offset_bmesh;
   CCGKey grid_key;
+
+  ~SimulationData();
 };
 
 /* Main cloth brush function */
 void do_cloth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 
-void simulation_free(SimulationData *cloth_sim);
-
 /* Public functions. */
 
-SimulationData *brush_simulation_create(Object &ob,
-                                        float cloth_mass,
-                                        float cloth_damping,
-                                        float cloth_softbody_strength,
-                                        bool use_collisions,
-                                        bool needs_deform_coords);
+std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
+                                                        float cloth_mass,
+                                                        float cloth_damping,
+                                                        float cloth_softbody_strength,
+                                                        bool use_collisions,
+                                                        bool needs_deform_coords);
 void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim);
 
 void sim_activate_nodes(SimulationData &cloth_sim, Span<PBVHNode *> nodes);

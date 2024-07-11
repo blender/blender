@@ -203,9 +203,6 @@ void cache_init(bContext *C,
 
 void cache_free(SculptSession &ss)
 {
-  if (ss.filter_cache->cloth_sim) {
-    cloth::simulation_free(ss.filter_cache->cloth_sim);
-  }
   MEM_SAFE_FREE(ss.filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss.filter_cache->prev_mask);
   MEM_SAFE_FREE(ss.filter_cache->normal_factor);

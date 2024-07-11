@@ -985,16 +985,16 @@ static void cloth_sim_initialize_default_node_state(SculptSession &ss, Simulatio
   }
 }
 
-SimulationData *brush_simulation_create(Object &ob,
-                                        const float cloth_mass,
-                                        const float cloth_damping,
-                                        const float cloth_softbody_strength,
-                                        const bool use_collisions,
-                                        const bool needs_deform_coords)
+std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
+                                                        const float cloth_mass,
+                                                        const float cloth_damping,
+                                                        const float cloth_softbody_strength,
+                                                        const bool use_collisions,
+                                                        const bool needs_deform_coords)
 {
   SculptSession &ss = *ob.sculpt;
   const int totverts = SCULPT_vertex_count_get(ss);
-  SimulationData *cloth_sim = MEM_new<SimulationData>(__func__);
+  std::unique_ptr<SimulationData> cloth_sim = std::make_unique<SimulationData>();
 
   cloth_sim->length_constraints.reserve(CLOTH_LENGTH_CONSTRAINTS_BLOCK);
 
@@ -1178,13 +1178,12 @@ void do_cloth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   do_simulation_step(sd, ob, *ss.cache->cloth_sim, nodes);
 }
 
-void simulation_free(SimulationData *cloth_sim)
+SimulationData::~SimulationData()
 {
-  BLI_ghash_free(cloth_sim->node_state_index, nullptr, nullptr);
-  if (cloth_sim->collider_list) {
-    BKE_collider_cache_free(&cloth_sim->collider_list);
+  BLI_ghash_free(this->node_state_index, nullptr, nullptr);
+  if (this->collider_list) {
+    BKE_collider_cache_free(&this->collider_list);
   }
-  MEM_delete(cloth_sim);
 }
 
 void simulation_limits_draw(const uint gpuattr,
