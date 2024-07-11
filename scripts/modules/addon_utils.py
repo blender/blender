@@ -826,6 +826,9 @@ def _extension_compat_cache_create(
 
     repos_module_to_directory_map = _extension_repos_module_to_directory_map()
 
+    # Only import this module once (if at all).
+    bl_pkg = None
+
     for repo_module, pkg_id in extensions_enabled:
         if repo_directory := repos_module_to_directory_map.get(repo_module, ""):
             pkg_manifest_filepath = join(repo_directory, pkg_id, _ext_manifest_filename_toml)
@@ -846,13 +849,24 @@ def _extension_compat_cache_create(
 
         if statinfo is None:
             test_time = 0.0
-            test_size = 0.0
+            test_size = 0
         else:
             test_time = statinfo.st_mtime
             test_size = statinfo.st_size
             # Store the reason for failure, to print when attempting to load.
-            from bl_pkg import manifest_compatible_with_wheel_data_or_error
-            if (error := manifest_compatible_with_wheel_data_or_error(
+
+            # Only load the module once.
+            if bl_pkg is None:
+                # Without `bl_pkg.__time__` this will detect as having been changed and
+                # reload the module when loading the add-on.
+                import bl_pkg
+                if getattr(bl_pkg, "__time__", 0) == 0:
+                    try:
+                        bl_pkg.__time__ = os.path.getmtime(bl_pkg.__file__)
+                    except Exception as ex:
+                        print_debug(str(ex))
+
+            if (error := bl_pkg.manifest_compatible_with_wheel_data_or_error(
                     pkg_manifest_filepath,
                     repo_module,
                     pkg_id,
