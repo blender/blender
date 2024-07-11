@@ -19,6 +19,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
@@ -36,6 +37,7 @@
 #include "ED_time_scrub_ui.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -758,6 +760,71 @@ static void ANIM_OT_slot_unassign_object(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int convert_action_exec(bContext *C, wmOperator * /* op */)
+{
+  using namespace blender;
+
+  Object *object = CTX_data_active_object(C);
+  AnimData *adt = BKE_animdata_from_id(&object->id);
+  BLI_assert(adt != nullptr);
+  BLI_assert(adt->action != nullptr);
+
+  animrig::Action &legacy_action = adt->action->wrap();
+  Main *bmain = CTX_data_main(C);
+
+  animrig::Action *layered_action = animrig::convert_to_layered_action(*bmain, legacy_action);
+  /* We did already check if the action can be converted. */
+  BLI_assert(layered_action != nullptr);
+
+  animrig::unassign_action(object->id);
+  BLI_assert(layered_action->slot_array_num == 1);
+  animrig::Slot *slot = layered_action->slot(0);
+  layered_action->slot_name_set(*bmain, *slot, object->id.name);
+  layered_action->assign_id(slot, object->id);
+
+  ANIM_id_update(bmain, &object->id);
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool convert_action_poll(bContext *C)
+{
+  Object *object = CTX_data_active_object(C);
+  if (!object) {
+    return false;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(&object->id);
+  if (!adt || !adt->action) {
+    return false;
+  }
+
+  /* This will also convert empty actions to layered by just adding an empty slot. */
+  if (!adt->action->wrap().is_action_legacy()) {
+    CTX_wm_operator_poll_msg_set(C, "Action is already layered");
+    return false;
+  }
+
+  return true;
+}
+
+static void ANIM_OT_convert_legacy_action(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Convert Legacy Action";
+  ot->idname = "ANIM_OT_convert_legacy_action";
+  ot->description = "Convert a legacy Action to a layered Action on the active object";
+
+  /* api callbacks */
+  ot->exec = convert_action_exec;
+  ot->poll = convert_action_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -806,6 +873,7 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
   WM_operatortype_append(ANIM_OT_slot_unassign_object);
+  WM_operatortype_append(ANIM_OT_convert_legacy_action);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

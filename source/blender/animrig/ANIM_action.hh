@@ -30,6 +30,7 @@ struct FCurve;
 struct ID;
 struct Main;
 struct PointerRNA;
+struct Main;
 
 namespace blender::animrig {
 
@@ -844,6 +845,12 @@ void assert_baklava_phase_1_invariants(const Action &action);
 void assert_baklava_phase_1_invariants(const Layer &layer);
 /** \copydoc assert_baklava_phase_1_invariants(const Action &) */
 void assert_baklava_phase_1_invariants(const Strip &strip);
+
+/**
+ * Creates a new `Action` that matches the old action but is converted to have layers.
+ * Returns a nullptr if the action is empty or already layered.
+ */
+Action *convert_to_layered_action(Main &bmain, const Action &action);
 
 }  // namespace blender::animrig
 
