@@ -134,10 +134,12 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
                 /* dummy operation is added below */
                 break;
             }
-            if (index == 0 && operation) {
+            if (operation && index == 0) {
               converter.add_preview(operation->get_output_socket());
             }
-            if (STREQ(rpass->name, RE_PASSNAME_COMBINED) && !(bnode_socket->flag & SOCK_UNAVAIL)) {
+            if (operation && STREQ(rpass->name, RE_PASSNAME_COMBINED) &&
+                !(bnode_socket->flag & SOCK_UNAVAIL))
+            {
               for (NodeOutput *alpha_socket : get_output_sockets()) {
                 bNodeSocket *bnode_alpha_socket = alpha_socket->get_bnode_socket();
                 if (!STREQ(bnode_alpha_socket->name, "Alpha")) {
