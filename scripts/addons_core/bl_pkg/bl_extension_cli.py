@@ -430,6 +430,7 @@ class subcmd_repo:
             repo_id: str,
             directory: str,
             url: str,
+            access_token: str,
             source: str,
             cache: bool,
             clear_all: bool,
@@ -439,9 +440,14 @@ class subcmd_repo:
 
         # This could be allowed the Python API doesn't prevent it.
         # However this is not going to do what the user would expect so disallow it.
-        if url and (source == 'SYSTEM'):
-            sys.stderr.write("Cannot use \"--url\" and \"--source=SYSTEM\" together.\n")
-            return False
+        if url:
+            if source == 'SYSTEM':
+                sys.stderr.write("Cannot use \"--url\" and \"--source=SYSTEM\" together.\n")
+                return False
+        else:
+            if access_token:
+                sys.stderr.write("Cannot use \"--access-token\" without a \"--url\".\n")
+                return False
 
         extension_repos = context.preferences.extensions.repos
         if clear_all:
@@ -456,6 +462,10 @@ class subcmd_repo:
             source=source,
         )
         repo.use_cache = cache
+
+        if access_token:
+            repo.use_access_token = True
+            repo.access_token = access_token
 
         if not no_prefs:
             blender_preferences_write()
@@ -775,6 +785,17 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
     )
 
     subparse.add_argument(
+        "--access-token",
+        dest="access_token",
+        type=str,
+        default="",
+        metavar="ACCESS_TOKEN",
+        help=(
+            "The access token to use for remote repositories which require a token."
+        ),
+    )
+
+    subparse.add_argument(
         "--source",
         dest="source",
         choices=('USER', 'SYSTEM'),
@@ -814,6 +835,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
             name=args.name,
             directory=args.directory,
             url=args.url,
+            access_token=args.access_token,
             source=args.source,
             cache=args.cache,
             clear_all=args.clear_all,
