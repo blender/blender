@@ -670,7 +670,7 @@ def _preferences_ui_refresh_addons():
     import addon_utils
     # TODO: make a public method.
     # pylint: disable-next=protected-access
-    addon_utils.modules._is_first = True
+    addon_utils._is_first_reset()
 
 
 def extension_repos_read_index(index, *, include_disabled=False):

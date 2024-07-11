@@ -26,6 +26,9 @@ addons_fake_modules = {}
 # Global cached extensions, set before loading extensions on startup.
 # `{addon_module_name: "Reason for incompatibility", ...}`
 _extensions_incompatible = {}
+# Global extension warnings, lazily calculated when displaying extensions.
+# `{addon_module_name: "Warning", ...}`
+_extensions_warnings = {}
 
 
 # called only once at startup, avoids calling 'reset_all', correct but slower.
@@ -1378,7 +1381,7 @@ def _initialize_extension_repos_post_addons_restore(addons_to_enable):
             addon.module = module_name_next
         enable(module_name_next, default_set=default_set, persistent=persistent)
     # Needed for module rename.
-    modules._is_first = True
+    _is_first_reset()
 
 
 # Use `bpy.app.handlers.extension_repos_update_{pre/post}` to track changes to extension repositories
@@ -1512,7 +1515,7 @@ def _initialize_extension_repos_post(*_, is_first=False):
 
     # Force refreshing if directory paths change.
     if submodules_del or submodules_add or submodules_rename_dirpath:
-        modules._is_first = True
+        _is_first_reset()
 
 
 def _initialize_extensions_site_packages(*, extensions_directory, create=False):
@@ -1600,3 +1603,124 @@ def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
         ensure_wheels=ensure_wheels,
         addon_modules_pending=addon_modules_pending,
     )
+
+
+def _extensions_warnings_get():
+    if _extensions_warnings_get._is_first is False:
+        return _extensions_warnings
+
+    # Calculate warnings which are shown in the UI but not calculated at load time
+    # because this incurs some overhead.
+    #
+    # Currently this checks for scripts violating policies:
+    # - Adding their directories or sub-directories to `sys.path`.
+    # - Loading any bundled scripts as modules directly into `sys.modules`.
+    #
+    # These warnings are shown:
+    # - In the add-on UI.
+    # - In the extension UI.
+    # - When listing extensions via `blender -c extension list`.
+
+    import sys
+    import os
+
+    _extensions_warnings_get._is_first = False
+    _extensions_warnings.clear()
+
+    # This could be empty, it just avoid a lot of redundant lookups to skip known module paths.
+    dirs_skip_expected = (
+        os.path.normpath(os.path.join(os.path.dirname(_bpy.__file__), "..")) + os.sep,
+        os.path.normpath(os.path.join(os.path.dirname(__import__("bl_ui").__file__), "..")) + os.sep,
+        os.path.normpath(os.path.dirname(os.__file__)) + os.sep,
+        # Legacy add add-on paths.
+        *(os.path.normpath(path) + os.sep for path in paths()),
+    )
+
+    extensions_directory_map = {}
+    modules_other = []
+
+    for module_name, module in sys.modules.items():
+
+        if module_name == "__main__":
+            continue
+
+        module_file = getattr(module, "__file__", None) or ""
+        if not module_file:
+            # In most cases these are PY-CAPI modules.
+            continue
+
+        module_file = os.path.normpath(module_file)
+
+        if module_file.startswith(dirs_skip_expected):
+            continue
+
+        if module_name.startswith(_ext_base_pkg_idname_with_dot):
+            # Check this is a sub-module (an extension).
+            if module_name.find(".", len(_ext_base_pkg_idname_with_dot)) != -1:
+                # Ignore extension sub-modules because there is no need to handle their directories.
+                # The extensions directory accounts for any paths which may be found in the sub-modules path.
+                if module_name.count(".") > 2:
+                    continue
+                extensions_directory_map[module_name] = os.path.dirname(module_file) + os.sep
+        else:
+            # Any non extension module.
+            modules_other.append((module_name, module_file))
+
+    dirs_extensions = tuple(path for path in extensions_directory_map.values())
+    dirs_extensions_noslash = set(path.rstrip(os.sep) for path in dirs_extensions)
+    if dirs_extensions:
+        for module_other_name, module_other_file in modules_other:
+            if not module_other_file.startswith(dirs_extensions):
+                continue
+
+            # Need 2x lookups, not ideal but `str.startswith` doesn't let us know which argument matched.
+            found = False
+            for module_name, module_dirpath in extensions_directory_map.items():
+                if not module_other_file.startswith(module_dirpath):
+                    continue
+                try:
+                    warning_list = _extensions_warnings[module_name]
+                except KeyError:
+                    warning_list = _extensions_warnings[module_name] = []
+                warning_list.append("Policy violation with top level module: {:s}".format(module_other_name))
+                found = True
+                break
+            assert found
+
+        for path in sys.path:
+            path = os.path.normpath(path)
+            if path.startswith(dirs_skip_expected):
+                continue
+
+            if not (path in dirs_extensions_noslash or path.startswith(dirs_extensions)):
+                continue
+
+            found = False
+            for module_name, module_dirpath in extensions_directory_map.items():
+                if not (path == module_dirpath.rstrip(os.sep) or path.startswith(module_dirpath)):
+                    continue
+                try:
+                    warning_list = _extensions_warnings[module_name]
+                except KeyError:
+                    warning_list = _extensions_warnings[module_name] = []
+                # Use an extension relative path as an absolute path may be too verbose for the UI.
+                warning_list.append(
+                    "Policy violation with sys.path: {:s}".format(
+                        ".{:s}{:s}".format(os.sep, os.path.relpath(path, module_dirpath))
+                    )
+                )
+                found = True
+                break
+            assert found
+
+    return _extensions_warnings
+
+
+_extensions_warnings_get._is_first = True
+
+
+def _is_first_reset():
+    # Reset all values which are lazily initialized,
+    # use this to force re-creating extension warnings and cached modules.
+    _extensions_warnings_get._is_first = True
+    modules._is_first = True
