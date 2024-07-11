@@ -13,6 +13,32 @@
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
 
+/* Workarounds for Metal/AMD issue where atomicMax lead to incorrect results.
+ * See #123052 */
+#if defined(GPU_METAL)
+#  define threadgroup_size (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
+shared float array_of_values[threadgroup_size];
+
+/* Only works for 2D threadgroups where the size is a power of 2 */
+float parallelMax(const float value)
+{
+  uint thread_id = gl_LocalInvocationIndex;
+  array_of_values[thread_id] = value;
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+
+  for (uint i = threadgroup_size; i > 0; i >>= 1) {
+    uint half_width = i >> 1;
+    if (thread_id < half_width) {
+      array_of_values[thread_id] = max(array_of_values[thread_id],
+                                       array_of_values[thread_id + half_width]);
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+  }
+
+  return array_of_values[0];
+}
+#endif
+
 shared uint shared_max_slight_focus_abs_coc;
 
 /**
@@ -33,6 +59,10 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
     }
   }
 
+#if defined(GPU_METAL) && defined(GPU_ATI)
+  return parallelMax(local_abs_max);
+
+#else
   if (gl_LocalInvocationIndex == 0u) {
     shared_max_slight_focus_abs_coc = floatBitsToUint(0.0);
   }
@@ -43,6 +73,7 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
   barrier();
 
   return uintBitsToFloat(shared_max_slight_focus_abs_coc);
+#endif
 }
 
 vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float weight)
