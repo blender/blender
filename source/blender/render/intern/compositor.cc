@@ -327,7 +327,7 @@ class Context : public realtime_compositor::Context {
     return input_texture;
   }
 
-  StringRef get_view_name() override
+  StringRef get_view_name() const override
   {
     return input_data_.view_name;
   }
@@ -428,6 +428,23 @@ class Context : public realtime_compositor::Context {
           }
         },
         false);
+
+    RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+    if (!render_layer) {
+      RE_ReleaseResult(render);
+      return;
+    }
+
+    RenderPass *render_pass = RE_pass_find_by_name(
+        render_layer, pass_name, this->get_view_name().data());
+    if (!render_pass) {
+      RE_ReleaseResult(render);
+      return;
+    }
+
+    if (StringRef(render_pass->chan_id) == "XYZW") {
+      meta_data.is_4d_vector = true;
+    }
 
     RE_ReleaseResult(render);
   }

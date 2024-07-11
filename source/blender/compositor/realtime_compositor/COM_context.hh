@@ -91,7 +91,7 @@ class Context {
                                         const char *pass_name) = 0;
 
   /* Get the name of the view currently being rendered. */
-  virtual StringRef get_view_name() = 0;
+  virtual StringRef get_view_name() const = 0;
 
   /* Get the precision of the intermediate results of the compositor. */
   virtual ResultPrecision get_precision() const = 0;

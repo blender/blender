@@ -641,7 +641,12 @@ class FileOutputOperation : public NodeOperation {
         }
         break;
       case ResultType::Vector:
-        file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
+        if (result.meta_data.is_4d_vector) {
+          file_output.add_pass(pass_name, view_name, "XYZW", buffer);
+        }
+        else {
+          file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
+        }
         break;
       case ResultType::Float:
         file_output.add_pass(pass_name, view_name, "V", buffer);

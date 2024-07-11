@@ -156,7 +156,7 @@ class Context : public realtime_compositor::Context {
     }
   }
 
-  StringRef get_view_name() override
+  StringRef get_view_name() const override
   {
     const SceneRenderView *view = static_cast<SceneRenderView *>(
         BLI_findlink(&get_render_data().views, DRW_context_state_get()->v3d->multiview_eye));
