@@ -1844,7 +1844,7 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
-  SCULPT_cache_free(ob.sculpt->cache);
+  MEM_delete(ob.sculpt->cache);
   ob.sculpt->cache = nullptr;
 }
 
@@ -1892,10 +1892,8 @@ static int wpaint_exec(bContext *C, wmOperator *op)
 static void wpaint_cancel(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
-  if (ob.sculpt->cache) {
-    SCULPT_cache_free(ob.sculpt->cache);
-    ob.sculpt->cache = nullptr;
-  }
+  MEM_delete(ob.sculpt->cache);
+  ob.sculpt->cache = nullptr;
 
   paint_stroke_cancel(C, op, (PaintStroke *)op->customdata);
 }

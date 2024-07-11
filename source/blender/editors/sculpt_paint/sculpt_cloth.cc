@@ -1434,7 +1434,8 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    filter::cache_free(ss);
+    MEM_delete(ss.filter_cache);
+    ss.filter_cache = nullptr;
     undo::push_end(ob);
     flush_update_done(C, ob, UpdateType::Position);
     return OPERATOR_FINISHED;

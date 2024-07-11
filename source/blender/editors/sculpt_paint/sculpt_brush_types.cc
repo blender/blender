@@ -163,9 +163,8 @@ void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  if (ss.cache->layer_displacement_factor == nullptr) {
-    ss.cache->layer_displacement_factor = MEM_cnew_array<float>(SCULPT_vertex_count_get(ss),
-                                                                __func__);
+  if (ss.cache->layer_displacement_factor.is_empty()) {
+    ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
   }
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

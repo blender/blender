@@ -3875,9 +3875,9 @@ static void do_brush_action(const Scene &scene,
       if ((brush.sculpt_tool == SCULPT_TOOL_SMOOTH) &&
           (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE))
       {
-        BLI_assert(ss.cache->surface_smooth_laplacian_disp == nullptr);
-        ss.cache->surface_smooth_laplacian_disp = static_cast<float(*)[3]>(
-            MEM_callocN(sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b"));
+        BLI_assert(ss.cache->surface_smooth_laplacian_disp.is_empty());
+        ss.cache->surface_smooth_laplacian_disp = Array<float3>(SCULPT_vertex_count_get(ss),
+                                                                float3(0));
       }
     }
   }
@@ -4537,19 +4537,14 @@ static const char *sculpt_tool_name(const Sculpt &sd)
   return "Sculpting";
 }
 
-/* Operator for applying a stroke (various attributes including mouse path)
- * using the current brush. */
+namespace blender::ed::sculpt_paint {
 
-void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
+StrokeCache::~StrokeCache()
 {
-  using namespace blender::ed::sculpt_paint;
-  MEM_SAFE_FREE(cache->dial);
-  MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
-  MEM_SAFE_FREE(cache->layer_displacement_factor);
-  MEM_SAFE_FREE(cache->detail_directions);
-
-  MEM_delete(cache);
+  MEM_SAFE_FREE(this->dial);
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 namespace blender::ed::sculpt_paint {
 
@@ -5687,7 +5682,7 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
     undo::restore_from_undo_step(sd, ob);
 
     if (ss.cache) {
-      MEM_SAFE_FREE(ss.cache->layer_displacement_factor);
+      ss.cache->layer_displacement_factor = {};
     }
   }
 }
@@ -6116,7 +6111,7 @@ static void sculpt_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
   }
 
   BKE_pbvh_node_color_buffer_free(*ss.pbvh);
-  SCULPT_cache_free(ss.cache);
+  MEM_delete(ss.cache);
   ss.cache = nullptr;
 
   sculpt_stroke_undo_end(C, brush);
@@ -6253,10 +6248,8 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
 
-  if (ss.cache) {
-    SCULPT_cache_free(ss.cache);
-    ss.cache = nullptr;
-  }
+  MEM_delete(ss.cache);
+  ss.cache = nullptr;
 
   sculpt_brush_exit_tex(sd);
 }

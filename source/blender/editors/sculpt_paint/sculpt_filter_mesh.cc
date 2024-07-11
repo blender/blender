@@ -201,19 +201,6 @@ void cache_init(bContext *C,
   }
 }
 
-void cache_free(SculptSession &ss)
-{
-  MEM_SAFE_FREE(ss.filter_cache->mask_update_it);
-  MEM_SAFE_FREE(ss.filter_cache->prev_mask);
-  MEM_SAFE_FREE(ss.filter_cache->normal_factor);
-  MEM_SAFE_FREE(ss.filter_cache->prev_face_set);
-  MEM_SAFE_FREE(ss.filter_cache->surface_smooth_laplacian_disp);
-  MEM_SAFE_FREE(ss.filter_cache->sharpen_factor);
-  MEM_SAFE_FREE(ss.filter_cache->detail_directions);
-  MEM_delete(ss.filter_cache);
-  ss.filter_cache = nullptr;
-}
-
 enum eSculptMeshFilterType {
   MESH_FILTER_SMOOTH = 0,
   MESH_FILTER_SCALE = 1,
@@ -512,8 +499,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession &ss)
   const int totvert = SCULPT_vertex_count_get(ss);
   filter::Cache *filter_cache = ss.filter_cache;
 
-  filter_cache->detail_directions = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+  filter_cache->detail_directions.reinitialize(totvert);
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
     const float3 avg = smooth::neighbor_coords_average(ss, vertex);
@@ -528,8 +514,7 @@ static void mesh_filter_surface_smooth_init(SculptSession &ss,
   const int totvert = SCULPT_vertex_count_get(ss);
   filter::Cache *filter_cache = ss.filter_cache;
 
-  filter_cache->surface_smooth_laplacian_disp = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+  filter_cache->surface_smooth_laplacian_disp.reinitialize(totvert);
   filter_cache->surface_smooth_shape_preservation = shape_preservation;
   filter_cache->surface_smooth_current_vertex = current_vertex_displacement;
 }
@@ -558,10 +543,8 @@ static void mesh_filter_sharpen_init(SculptSession &ss,
   filter_cache->sharpen_smooth_ratio = smooth_ratio;
   filter_cache->sharpen_intensify_detail_strength = intensify_detail_strength;
   filter_cache->sharpen_curvature_smooth_iterations = curvature_smooth_iterations;
-  filter_cache->sharpen_factor = static_cast<float *>(
-      MEM_malloc_arrayN(totvert, sizeof(float), __func__));
-  filter_cache->detail_directions = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+  filter_cache->sharpen_factor.reinitialize(totvert);
+  filter_cache->detail_directions.reinitialize(totvert);
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
@@ -772,7 +755,8 @@ static void sculpt_mesh_filter_end(bContext *C)
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
 
-  cache_free(ss);
+  MEM_delete(ss.filter_cache);
+  ss.filter_cache = nullptr;
   flush_update_done(C, ob, UpdateType::Position);
 }
 

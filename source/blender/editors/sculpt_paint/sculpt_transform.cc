@@ -583,9 +583,8 @@ void update_modal_transform(bContext *C, Object &ob)
 void end_transform(bContext *C, Object &ob)
 {
   SculptSession &ss = *ob.sculpt;
-  if (ss.filter_cache) {
-    filter::cache_free(ss);
-  }
+  MEM_delete(ss.filter_cache);
+  ss.filter_cache = nullptr;
   undo::push_end(ob);
   flush_update_done(C, ob, UpdateType::Position);
 }

@@ -357,10 +357,8 @@ void mode_enter_generic(
 
   /* Create vertex/weight paint mode session data */
   if (ob.sculpt) {
-    if (ob.sculpt->cache) {
-      SCULPT_cache_free(ob.sculpt->cache);
-      ob.sculpt->cache = nullptr;
-    }
+    MEM_delete(ob.sculpt->cache);
+    ob.sculpt->cache = nullptr;
     BKE_sculptsession_free(&ob);
   }
 
@@ -397,8 +395,8 @@ void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
   }
 
   /* If the cache is not released by a cancel or a done, free it now. */
-  if (ob.sculpt && ob.sculpt->cache) {
-    SCULPT_cache_free(ob.sculpt->cache);
+  if (ob.sculpt ) {
+    MEM_delete(ob.sculpt->cache);
     ob.sculpt->cache = nullptr;
   }
 
@@ -1962,7 +1960,7 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   undo::push_end(ob);
 
-  SCULPT_cache_free(ob.sculpt->cache);
+  MEM_delete(ob.sculpt->cache);
   ob.sculpt->cache = nullptr;
 }
 
@@ -2015,10 +2013,8 @@ static int vpaint_exec(bContext *C, wmOperator *op)
 static void vpaint_cancel(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
-  if (ob.sculpt->cache) {
-    SCULPT_cache_free(ob.sculpt->cache);
-    ob.sculpt->cache = nullptr;
-  }
+  MEM_delete(ob.sculpt->cache);
+  ob.sculpt->cache = nullptr;
 
   paint_stroke_cancel(C, op, (PaintStroke *)op->customdata);
 }

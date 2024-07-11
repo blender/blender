@@ -381,8 +381,7 @@ void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 
   if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
-    ss.cache->detail_directions = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(totvert, sizeof(float[3]), "details directions"));
+    ss.cache->detail_directions.reinitialize(totvert);
 
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
@@ -404,7 +403,7 @@ void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 void surface_smooth_laplacian_step(SculptSession &ss,
                                    float *disp,
                                    const float co[3],
-                                   float (*laplacian_disp)[3],
+                                   MutableSpan<float3> laplacian_disp,
                                    const PBVHVertRef vertex,
                                    const float origco[3],
                                    const float alpha)
@@ -424,7 +423,7 @@ void surface_smooth_laplacian_step(SculptSession &ss,
 
 void surface_smooth_displace_step(SculptSession &ss,
                                   float *co,
-                                  float (*laplacian_disp)[3],
+                                  MutableSpan<float3> laplacian_disp,
                                   const PBVHVertRef vertex,
                                   const float beta,
                                   const float fade)

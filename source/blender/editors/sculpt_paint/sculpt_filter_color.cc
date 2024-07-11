@@ -347,7 +347,8 @@ static void sculpt_color_filter_end(bContext *C, Object &ob)
   SculptSession &ss = *ob.sculpt;
 
   undo::push_end(ob);
-  filter::cache_free(ss);
+  MEM_delete(ss.filter_cache);
+  ss.filter_cache = nullptr;
   flush_update_done(C, ob, UpdateType::Color);
 }
 

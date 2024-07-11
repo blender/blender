@@ -236,7 +236,7 @@ struct Cache {
   int iteration_count;
 
   /* Stores the displacement produced by the laplacian step of HC smooth. */
-  float (*surface_smooth_laplacian_disp)[3];
+  Array<float3> surface_smooth_laplacian_disp;
   float surface_smooth_shape_preservation;
   float surface_smooth_current_vertex;
 
@@ -244,8 +244,8 @@ struct Cache {
   float sharpen_smooth_ratio;
   float sharpen_intensify_detail_strength;
   int sharpen_curvature_smooth_iterations;
-  float *sharpen_factor;
-  float (*detail_directions)[3];
+  Array<float> sharpen_factor;
+  Array<float3> detail_directions;
 
   /* Filter orientation. */
   SculptFilterOrientation orientation;
@@ -267,14 +267,14 @@ struct Cache {
   /* mask expand iteration caches */
   int mask_update_current_it;
   int mask_update_last_it;
-  int *mask_update_it;
-  float *normal_factor;
-  float *edge_factor;
-  float *prev_mask;
+  Array<int> mask_update_it;
+  Array<float> normal_factor;
+  Array<float> edge_factor;
+  Array<float> prev_mask;
   float3 mask_expand_initial_co;
 
   int new_face_set;
-  int *prev_face_set;
+  Array<int> prev_face_set;
 
   int active_face_set;
 
@@ -434,7 +434,7 @@ struct StrokeCache {
   std::unique_ptr<SculptPoseIKChain> pose_ik_chain;
 
   /* Enhance Details. */
-  float (*detail_directions)[3];
+  Array<float3> detail_directions;
 
   /* Clay Thumb brush */
   /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
@@ -455,10 +455,10 @@ struct StrokeCache {
 
   /* Surface Smooth Brush */
   /* Stores the displacement produced by the laplacian step of HC smooth. */
-  float (*surface_smooth_laplacian_disp)[3];
+  Array<float3> surface_smooth_laplacian_disp;
 
   /* Layer brush */
-  float *layer_displacement_factor;
+  Array<float> layer_displacement_factor;
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   Dial *dial;
@@ -493,6 +493,8 @@ struct StrokeCache {
   rcti current_r;  /* current redraw rectangle */
 
   int stroke_id;
+
+  ~StrokeCache();
 };
 
 /* -------------------------------------------------------------------- */
@@ -1381,7 +1383,6 @@ void cache_init(bContext *C,
                 const float mval_fl[2],
                 float area_normal_radius,
                 float start_strength);
-void cache_free(SculptSession &ss);
 void register_operator_props(wmOperatorType *ot);
 
 /* Filter orientation utils. */
@@ -1586,13 +1587,13 @@ void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
 void surface_smooth_laplacian_step(SculptSession &ss,
                                    float *disp,
                                    const float co[3],
-                                   float (*laplacian_disp)[3],
+                                   MutableSpan<float3> laplacian_disp,
                                    PBVHVertRef vertex,
                                    const float origco[3],
                                    float alpha);
 void surface_smooth_displace_step(SculptSession &ss,
                                   float *co,
-                                  float (*laplacian_disp)[3],
+                                  MutableSpan<float3> laplacian_disp,
                                   PBVHVertRef vertex,
                                   float beta,
                                   float fade);
@@ -1617,7 +1618,6 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &ca
                                       ePaintSymmetryFlags symm,
                                       char axis,
                                       float angle);
-void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Undo
