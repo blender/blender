@@ -1340,46 +1340,46 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
                                           const TimelineDrawContext *timeline_ctx,
                                           SeqStripDrawData &data)
 {
-  const bool selected = strip.seq->flag & SELECT;
   const bool active = strip.is_active_strip;
-  uchar col[4];
+  const bool selected = strip.seq->flag & SELECT;
+  uchar4 col{0, 0, 0, 255};
 
   if (selected) {
-    UI_GetThemeColor3ubv(active ? TH_SEQ_ACTIVE : TH_SEQ_SELECTED, col);
+    UI_GetThemeColor3ubv(TH_SEQ_SELECTED, col);
+    data.flags |= GPU_SEQ_FLAG_SELECTED;
   }
-  else {
+  if (active) {
+    if (selected) {
+      UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
+    }
+    else {
+      UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
+    }
+    data.flags |= GPU_SEQ_FLAG_ACTIVE;
+  }
+  if (!selected && !active) {
     /* Color for unselected strips is a bit darker than the background. */
     UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
   }
-  col[3] = 255;
+
+  const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
+  const bool use_overwrite = overlap_mode == SEQ_OVERLAP_OVERWRITE;
+  const bool overlaps = (strip.seq->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
+
   /* Outline while translating strips:
    *  - Slightly lighter.
    *  - Red when overlapping with other strips. */
-  const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
   if (G.moving & G_TRANSFORM_SEQ) {
-    if ((strip.seq->flag & SEQ_OVERLAP) && (overlap_mode != SEQ_OVERLAP_OVERWRITE)) {
+    if (overlaps && !use_overwrite) {
       col[0] = 255;
       col[1] = col[2] = 33;
+      data.flags |= GPU_SEQ_FLAG_OVERLAP;
     }
     else if (selected) {
       UI_GetColorPtrShade3ubv(col, col, 70);
     }
   }
 
-  const bool overlaps = (strip.seq->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
-  if (overlaps) {
-    data.flags |= GPU_SEQ_FLAG_OVERLAP;
-  }
-
-  if (selected) {
-    data.flags |= GPU_SEQ_FLAG_SELECTED;
-  }
-  else if (active && !overlaps) {
-    /* If the strips overlap when retiming, don't replace the red outline. */
-    /* A subtle highlight outline when active but not selected. */
-    UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
-    data.flags |= GPU_SEQ_FLAG_ACTIVE;
-  }
   data.col_outline = color_pack(col);
 }
 

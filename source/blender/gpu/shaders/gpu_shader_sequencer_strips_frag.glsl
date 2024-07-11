@@ -193,10 +193,14 @@ void main()
 
     /* Active, but not selected strips get a thin inner line. */
     bool active_strip = (strip.flags & GPU_SEQ_FLAG_ACTIVE) != 0;
-    /* When moving the retiming keys, the strip might overlap even if it isn't selected. */
-    bool overlaps = (strip.flags & GPU_SEQ_FLAG_OVERLAP) != 0;
-    if ((active_strip && !selected) || overlaps) {
+    if (active_strip && !selected) {
       col = add_outline(sdf, 1.0, 2.0, col, col_outline);
+    }
+
+    /* 2px outline for all overlapping strips. */
+    bool overlaps = (strip.flags & GPU_SEQ_FLAG_OVERLAP) != 0;
+    if (overlaps) {
+      col = add_outline(sdf, 1.0, 3.0, col, col_outline);
     }
 
     /* Outer 1px outline for all strips. */
