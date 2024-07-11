@@ -1448,36 +1448,34 @@ struct LengthConstraint {
 };
 
 struct SimulationData {
-  LengthConstraint *length_constraints;
-  int tot_length_constraints;
+  Vector<LengthConstraint> length_constraints;
   Set<OrderedEdge> created_length_constraints;
-  int capacity_length_constraints;
-  float *length_constraint_tweak;
+  Array<float> length_constraint_tweak;
 
   /* Position anchors for deformation brushes. These positions are modified by the brush and the
    * final positions of the simulated vertices are updated with constraints that use these points
    * as targets. */
-  float (*deformation_pos)[3];
-  float *deformation_strength;
+  Array<float3> deformation_pos;
+  Array<float> deformation_strength;
 
   float mass;
   float damping;
   float softbody_strength;
 
-  float (*acceleration)[3];
-  float (*pos)[3];
-  float (*init_pos)[3];
-  float3 *init_no;
-  float (*softbody_pos)[3];
-  float (*prev_pos)[3];
-  float (*last_iteration_pos)[3];
+  Array<float3> acceleration;
+  Array<float3> pos;
+  Array<float3> init_pos;
+  Array<float3> init_no;
+  Array<float3> softbody_pos;
+  Array<float3> prev_pos;
+  Array<float3> last_iteration_pos;
 
   ListBase *collider_list;
 
   int totnode;
   /** #PBVHNode pointer as a key, index in #SimulationData.node_state as value. */
   GHash *node_state_index;
-  NodeSimState *node_state;
+  Array<NodeSimState> node_state;
 
   VArraySpan<float> mask_mesh;
   int mask_cd_offset_bmesh;
