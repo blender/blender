@@ -2003,12 +2003,6 @@ void multiplane_scrape_preview_draw(uint gpuattr,
                                     const float outline_col[3],
                                     float outline_alpha);
 
-namespace face_set {
-
-void do_relax_face_sets_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
-
-}
-
 namespace color {
 
 /* Swaps colors at each element in indices with values in colors. */
