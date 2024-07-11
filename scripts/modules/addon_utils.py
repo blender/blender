@@ -864,7 +864,8 @@ def _extension_compat_cache_create(
                     try:
                         bl_pkg.__time__ = os.path.getmtime(bl_pkg.__file__)
                     except Exception as ex:
-                        print_debug(str(ex))
+                        if print_debug is not None:
+                            print_debug(str(ex))
 
             if (error := bl_pkg.manifest_compatible_with_wheel_data_or_error(
                     pkg_manifest_filepath,
