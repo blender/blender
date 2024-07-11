@@ -27,9 +27,6 @@
 #include "BKE_global.hh"
 #include "BKE_sound.h"
 
-#include "GPU_immediate.hh"
-#include "GPU_viewport.hh"
-
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_mask.hh"
@@ -44,6 +41,7 @@
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_retiming.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
@@ -72,40 +70,6 @@ using namespace blender::ed::seq;
 #define MUTE_ALPHA 120
 
 constexpr float MISSING_ICON_SIZE = 12.0f;
-
-struct StripDrawContext {
-  Sequence *seq;
-  /* Strip boundary in timeline space. Content start/end is clamped by left/right handle. */
-  float content_start, content_end, bottom, top;
-  float left_handle, right_handle; /* Position in frames. */
-  float strip_content_top; /* Position in timeline space without content and text overlay. */
-  float handle_width;      /* Width of strip handle in frames. */
-  float strip_length;
-
-  bool can_draw_text_overlay;
-  bool can_draw_strip_content;
-  bool strip_is_too_small; /* Shorthand for (!can_draw_text_overlay && !can_draw_strip_content). */
-  bool is_active_strip;
-  bool is_single_image; /* Strip has single frame of content. */
-  bool show_strip_color_tag;
-  bool missing_data_block;
-  bool missing_media;
-};
-
-struct TimelineDrawContext {
-  const bContext *C;
-  ARegion *region;
-  Scene *scene;
-  SpaceSeq *sseq;
-  View2D *v2d;
-  Editing *ed;
-  ListBase *channels;
-  GPUViewport *viewport;
-  GPUFrameBuffer *framebuffer_overlay;
-  float pixelx, pixely; /* Width and height of pixel in timeline space. */
-
-  SeqQuadsBatch *quads;
-};
 
 Vector<Sequence *> sequencer_visible_strips_get(const bContext *C)
 {
@@ -157,6 +121,8 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
 
   ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / BLI_rcti_size_y(&ctx.v2d->mask);
   ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / BLI_rcti_size_x(&ctx.v2d->mask);
+
+  ctx.retiming_selection = SEQ_retiming_selection_get(ctx.ed);
 
   ctx.quads = quads_batch;
 
@@ -1515,7 +1481,7 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   }
   timeline_ctx->quads->draw();
 
-  /* Draw all thumbnails. */
+  /* Draw all thumbnails and retiming continuity. */
   GPU_blend(GPU_BLEND_ALPHA);
   for (const StripDrawContext &strip_ctx : strips) {
     draw_seq_strip_thumbnail(timeline_ctx->v2d,
@@ -1528,7 +1494,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
                              timeline_ctx->pixelx,
                              timeline_ctx->pixely,
                              round_radius);
+    sequencer_retiming_draw_continuity(timeline_ctx, strip_ctx);
   }
+  timeline_ctx->quads->draw();
 
   /* Draw parts of strips above thumbnails. */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1539,7 +1507,10 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
     draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_LEFT);
     draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_RIGHT);
     draw_seq_text_overlay(timeline_ctx, &strip_ctx);
+    sequencer_retiming_keys_draw(timeline_ctx, strip_ctx);
+    sequencer_retiming_speed_draw(timeline_ctx, strip_ctx);
   }
+
   timeline_ctx->quads->draw();
 
   draw_strips_foreground(timeline_ctx, strips_batch, strips);
@@ -1919,7 +1890,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   draw_timeline_backdrop(&ctx);
   draw_timeline_sfra_efra(&ctx);
   draw_seq_strips(&ctx, strips_batch);
-  sequencer_draw_retiming(C, &quads_batch);
   draw_timeline_markers(&ctx);
   UI_view2d_view_ortho(ctx.v2d);
   ANIM_draw_previewrange(C, ctx.v2d, 1);

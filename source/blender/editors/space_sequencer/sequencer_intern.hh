@@ -8,12 +8,19 @@
 
 #pragma once
 
+#include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
+
 #include "DNA_sequence_types.h"
-#include "ED_sequencer.hh"
+
 #include "RNA_access.hh"
+
+#include "GPU_immediate.hh"
+#include "GPU_viewport.hh"
+
+#include "ED_sequencer.hh"
 
 #include "sequencer_scopes.hh"
 
@@ -78,6 +85,41 @@ struct SeqChannelDrawContext {
   float channel_height;
   float frame_width;
   float scale;
+};
+
+struct StripDrawContext {
+  Sequence *seq;
+  /* Strip boundary in timeline space. Content start/end is clamped by left/right handle. */
+  float content_start, content_end, bottom, top;
+  float left_handle, right_handle; /* Position in frames. */
+  float strip_content_top; /* Position in timeline space without content and text overlay. */
+  float handle_width;      /* Width of strip handle in frames. */
+  float strip_length;
+
+  bool can_draw_text_overlay;
+  bool can_draw_strip_content;
+  bool strip_is_too_small; /* Shorthand for (!can_draw_text_overlay && !can_draw_strip_content). */
+  bool is_active_strip;
+  bool is_single_image; /* Strip has single frame of content. */
+  bool show_strip_color_tag;
+  bool missing_data_block;
+  bool missing_media;
+};
+
+struct TimelineDrawContext {
+  const bContext *C;
+  ARegion *region;
+  Scene *scene;
+  SpaceSeq *sseq;
+  View2D *v2d;
+  Editing *ed;
+  ListBase *channels;
+  GPUViewport *viewport;
+  GPUFrameBuffer *framebuffer_overlay;
+  float pixelx, pixely; /* Width and height of pixel in timeline space. */
+  blender::Map<SeqRetimingKey *, Sequence *> retiming_selection;
+
+  SeqQuadsBatch *quads;
 };
 
 /* `sequencer_timeline_draw.cc` */
@@ -329,7 +371,12 @@ int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 
 /* `sequencer_retiming_draw.cc` */
-void sequencer_draw_retiming(const bContext *C, SeqQuadsBatch *quads);
+void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
+                                        const StripDrawContext &strip_ctx);
+void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
+                                  const StripDrawContext &strip_ctx);
+void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
+                                   const StripDrawContext &strip_ctx);
 SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2]);
 SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
