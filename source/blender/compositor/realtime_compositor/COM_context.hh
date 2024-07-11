@@ -15,6 +15,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_domain.hh"
+#include "COM_meta_data.hh"
 #include "COM_profiler.hh"
 #include "COM_render_context.hh"
 #include "COM_result.hh"
@@ -107,6 +108,12 @@ class Context {
    * since the last time the flag was reset, hence why the method reset the flag after querying it,
    * that is, to ready it to track the next change. */
   virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
+
+  /* Populates the given meta data from the render stamp information of the given render pass. */
+  virtual void populate_meta_data_for_pass(const Scene *scene,
+                                           int view_layer_id,
+                                           const char *pass_name,
+                                           MetaData &meta_data) const;
 
   /* Get a pointer to the render context of this context. A render context stores information about
    * the current render. It might be null if the compositor is not being evaluated as part of a

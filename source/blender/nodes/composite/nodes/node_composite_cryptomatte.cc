@@ -314,7 +314,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
      * which is a 32-bit float. See the shader for more information. */
     output_pick.set_precision(ResultPrecision::Full);
 
-    output_pick.is_data = true;
+    output_pick.meta_data.is_non_color_data = true;
 
     const Domain domain = compute_domain();
     output_pick.allocate_texture(domain);

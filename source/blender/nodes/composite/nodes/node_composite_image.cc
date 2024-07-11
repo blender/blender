@@ -719,6 +719,9 @@ class RenderLayerOperation : public NodeOperation {
         continue;
       }
 
+      context().populate_meta_data_for_pass(
+          scene, view_layer, output->identifier, result.meta_data);
+
       GPUTexture *pass_texture = context().get_input_texture(
           scene, view_layer, output->identifier);
       if (output->type == SOCK_FLOAT) {

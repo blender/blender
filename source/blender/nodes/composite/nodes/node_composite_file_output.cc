@@ -24,6 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
@@ -528,7 +529,7 @@ class FileOutputOperation : public NodeOperation {
       const bool is_exr = format.imtype == R_IMF_IMTYPE_OPENEXR;
       const int views_count = BKE_scene_multiview_num_views_get(&context().get_render_data());
       if (is_exr && !(format.views_format == R_IMF_VIEWS_STEREO_3D && views_count == 2)) {
-        execute_single_layer_multi_view_exr(result, format, base_path);
+        execute_single_layer_multi_view_exr(result, format, base_path, socket.layer);
         continue;
       }
 
@@ -540,6 +541,8 @@ class FileOutputOperation : public NodeOperation {
           image_path, format, size, socket.save_as_render);
 
       add_view_for_result(file_output, result, context().get_view_name().data());
+
+      add_meta_data_for_result(file_output, result, socket.layer);
     }
   }
 
@@ -549,7 +552,8 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_single_layer_multi_view_exr(const Result &result,
                                            const ImageFormatData &format,
-                                           const char *base_path)
+                                           const char *base_path,
+                                           const char *layer_name)
   {
     const bool has_views = format.views_format != R_IMF_VIEWS_INDIVIDUAL;
 
@@ -568,6 +572,8 @@ class FileOutputOperation : public NodeOperation {
     const char *view_name = has_views ? context().get_view_name().data() : "";
     file_output.add_view(view_name);
     add_pass_for_result(file_output, result, "", view_name);
+
+    add_meta_data_for_result(file_output, result, layer_name);
   }
 
   /* -----------------------
@@ -604,6 +610,8 @@ class FileOutputOperation : public NodeOperation {
 
       const char *pass_name = (static_cast<NodeImageMultiFileSocket *>(input->storage))->layer;
       add_pass_for_result(file_output, input_result, pass_name, pass_view);
+
+      add_meta_data_for_result(file_output, input_result, pass_name);
     }
   }
 
@@ -684,6 +692,40 @@ class FileOutputOperation : public NodeOperation {
 
     MEM_freeN(float4_image);
     return float3_image;
+  }
+
+  /* Add Cryptomatte meta data to the file if they exist for the given result of the given layer
+   * name. We do not write any other other meta data for now. */
+  void add_meta_data_for_result(FileOutput &file_output, const Result &result, const char *name)
+  {
+    StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(name);
+
+    if (!result.meta_data.cryptomatte.manifest.empty()) {
+      file_output.add_meta_data(
+          bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "manifest"),
+          result.meta_data.cryptomatte.manifest);
+    }
+
+    if (!result.meta_data.cryptomatte.hash.empty()) {
+      file_output.add_meta_data(
+          bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "hash"),
+          result.meta_data.cryptomatte.hash);
+    }
+
+    if (!result.meta_data.cryptomatte.conversion.empty()) {
+      file_output.add_meta_data(
+          bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "conversion"),
+          result.meta_data.cryptomatte.conversion);
+    }
+
+    if (!result.meta_data.cryptomatte.manifest.empty() ||
+        !result.meta_data.cryptomatte.hash.empty() ||
+        !result.meta_data.cryptomatte.conversion.empty())
+    {
+      file_output.add_meta_data(
+          bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "name"),
+          cryptomatte_layer_name);
+    }
   }
 
   /* Get the base path of the image to be saved, based on the base path of the node. The base name

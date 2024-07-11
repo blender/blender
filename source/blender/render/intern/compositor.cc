@@ -13,6 +13,7 @@
 
 #include "DNA_ID.h"
 
+#include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_node.hh"
@@ -366,6 +367,69 @@ class Context : public realtime_compositor::Context {
     IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
     draw_data->recalc = IDRecalcFlag(0);
     return recalc_flag;
+  }
+
+  void populate_meta_data_for_pass(const Scene *scene,
+                                   int view_layer_id,
+                                   const char *pass_name,
+                                   realtime_compositor::MetaData &meta_data) const override
+  {
+    ViewLayer *view_layer = static_cast<ViewLayer *>(
+        BLI_findlink(&scene->view_layers, view_layer_id));
+    if (!view_layer) {
+      return;
+    }
+
+    Render *render = RE_GetSceneRender(scene);
+    if (!render) {
+      return;
+    }
+
+    RenderResult *render_result = RE_AcquireResultRead(render);
+    if (!render_result || !render_result->stamp_data) {
+      RE_ReleaseResult(render);
+      return;
+    }
+
+    /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
+     * Cryptomatte pass, the checks below will fail anyways. */
+    StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
+        std::string(view_layer->name) + "." + pass_name);
+
+    struct StampCallbackData {
+      std::string cryptomatte_layer_name;
+      realtime_compositor::MetaData *meta_data;
+    };
+
+    /* Go over the stamp data and add any Cryptomatte related meta data. */
+    StampCallbackData callback_data = {cryptomatte_layer_name, &meta_data};
+    BKE_stamp_info_callback(
+        &callback_data,
+        render_result->stamp_data,
+        [](void *user_data, const char *key, char *value, int /* value_length */) {
+          StampCallbackData *data = static_cast<StampCallbackData *>(user_data);
+
+          const std::string manifest_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
+              data->cryptomatte_layer_name, "manifest");
+          if (key == manifest_key) {
+            data->meta_data->cryptomatte.manifest = value;
+          }
+
+          const std::string hash_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
+              data->cryptomatte_layer_name, "hash");
+          if (key == hash_key) {
+            data->meta_data->cryptomatte.hash = value;
+          }
+
+          const std::string conversion_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(
+              data->cryptomatte_layer_name, "conversion");
+          if (key == conversion_key) {
+            data->meta_data->cryptomatte.conversion = value;
+          }
+        },
+        false);
+
+    RE_ReleaseResult(render);
   }
 
   void output_to_render_result()

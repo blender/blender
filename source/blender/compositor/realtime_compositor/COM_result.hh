@@ -11,6 +11,7 @@
 #include "GPU_texture.hh"
 
 #include "COM_domain.hh"
+#include "COM_meta_data.hh"
 #include "COM_texture_pool.hh"
 
 namespace blender::realtime_compositor {
@@ -129,9 +130,11 @@ class Result {
   bool is_external_ = false;
 
  public:
-  /* The pixels in the result represents data, which is not to be color-managed. */
-  bool is_data = false;
+  /* Stores extra information about the result such as image meta data that can eventually be
+   * written to file. */
+  MetaData meta_data;
 
+ public:
   /* Construct a result of the given type and precision with the given texture pool that will be
    * used to allocate and release the result's texture. */
   Result(ResultType type, TexturePool &texture_pool, ResultPrecision precision);
