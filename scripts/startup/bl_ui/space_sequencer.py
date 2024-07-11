@@ -572,9 +572,9 @@ class SEQUENCER_MT_select(Menu):
         layout = self.layout
         st = context.space_data
         has_sequencer, has_preview = _space_view_types(st)
-        is_retiming = context.scene.sequence_editor.selected_retiming_keys
-
-        layout.operator("sequencer.select_all", text="All").action = 'SELECT'
+        is_retiming = context.scene.sequence_editor != None and \
+                        context.scene.sequence_editor.selected_retiming_keys != None
+                        
         layout.operator("sequencer.select_all", text="None").action = 'DESELECT'
         layout.operator("sequencer.select_all", text="Invert").action = 'INVERT'
 
@@ -953,8 +953,8 @@ class SEQUENCER_MT_strip_retiming(Menu):
     bl_label = "Retiming"
 
     def draw(self, context):
-        is_retiming = context.scene.sequence_editor.selected_retiming_keys
-        strip = context.active_sequence_strip
+        is_retiming = context.scene.sequence_editor != None and \
+                        context.scene.sequence_editor.selected_retiming_keys != None
         layout = self.layout
 
         layout.operator("sequencer.retiming_key_add")
