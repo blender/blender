@@ -816,6 +816,20 @@ ID *action_slot_get_id_for_keying(Main &bmain,
                                   ID *primary_id);
 
 /**
+ * Make a best-effort guess as to which ID* is animated by the given slot.
+ *
+ * This is only used in rare cases; ususally the ID* for which operations are
+ * performed is known.
+ *
+ * \note This function was specifically written because the 'display name' of an
+ * F-Curve can only be determined by resolving its RNA path, and for that an ID*
+ * is necessary. It would be better to cache that name on the F-Curve itself, so
+ * that this constant resolving (for drawing, filtering by name, etc.) isn't
+ * necessary any more.
+ */
+ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id);
+
+/**
  * Assert the invariants of Project Baklava phase 1.
  *
  * For an action the invariants are that it:

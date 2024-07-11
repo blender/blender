@@ -91,6 +91,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_bone_collections.hh"
 
+#include "anim_intern.hh"
+
 using namespace blender;
 
 /* ************************************************************ */
@@ -1080,7 +1082,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
 }
 
 /* Helper for name-based filtering - Perform "partial/fuzzy matches" (as in 80a7efd) */
-static bool name_matches_dopesheet_filter(bDopeSheet *ads, const char *name)
+static bool name_matches_dopesheet_filter(const bDopeSheet *ads, const char *name)
 {
   if (ads->flag & ADS_FLAG_FUZZY_NAMES) {
     /* full fuzzy, multi-word, case insensitive matches */
@@ -1139,6 +1141,20 @@ static bool skip_fcurve_with_name(
 
   /* just let this go... */
   return true;
+}
+
+static bool ale_name_matches_dopesheet_filter(const bDopeSheet &ads, bAnimListElem &ale)
+{
+  const bAnimChannelType *acf = ANIM_channel_get_typeinfo(&ale);
+  if (!acf) {
+    BLI_assert_unreachable();
+    /* Do not filter out stuff unless we know it can be filtered out. */
+    return true;
+  }
+
+  char name[ANIM_CHAN_NAME_SIZE];
+  acf->name(&ale, name);
+  return name_matches_dopesheet_filter(&ads, name);
 }
 
 /**
@@ -1327,37 +1343,51 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
                                       Span<FCurve *> fcurves,
                                       const animrig::slot_handle_t slot_handle,
                                       const eAnimFilter_Flags filter_mode,
-                                      ID *owner_id,
+                                      ID *animated_id,
                                       ID *fcurve_owner_id)
 {
   size_t num_items = 0;
-  BLI_assert(owner_id);
+  BLI_assert(animated_id);
 
   const bool active_matters = filter_mode & ANIMFILTER_ACTIVE;
   const bool selection_matters = filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL);
   const bool must_be_selected = filter_mode & ANIMFILTER_SEL;
+  const bool visibility_matters = filter_mode & ANIMFILTER_CURVE_VISIBLE;
+  const bool show_only_errors = ac->ads && (ac->ads->filterflag & ADS_FILTER_ONLY_ERRORS);
+  const bool filter_by_name = ac->ads && (ac->ads->searchstr[0] != '\0');
 
   for (FCurve *fcu : fcurves) {
     /* make_new_animlistelem will return nullptr when fcu == nullptr, and that's
      * going to cause problems. */
     BLI_assert(fcu);
 
-    /* TODO: deal with `filter_mode` and `ac->ads->filterflag`.
-     * See `animfilter_fcurve_next()`. */
-
-    if (filter_mode & ANIMFILTER_TMP_PEEK) {
-      /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
-      return 1;
-    }
     if (selection_matters && bool(fcu->flag & FCURVE_SELECTED) != must_be_selected) {
       continue;
     }
     if (active_matters && !(fcu->flag & FCURVE_ACTIVE)) {
       continue;
     }
+    if (visibility_matters && !(fcu->flag & FCURVE_VISIBLE)) {
+      continue;
+    }
+    if (show_only_errors && !fcurve_has_errors(ac, fcu)) {
+      continue;
+    }
+
+    if (filter_mode & ANIMFILTER_TMP_PEEK) {
+      /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
+      return 1;
+    }
 
     bAnimListElem *ale = make_new_animlistelem(
-        ac->bmain, fcu, ANIMTYPE_FCURVE, owner_id, fcurve_owner_id);
+        ac->bmain, fcu, ANIMTYPE_FCURVE, animated_id, fcurve_owner_id);
+
+    /* Filtering by name needs a way to look up the name, which is easiest if
+     * there is alread an bAnimListElem. */
+    if (filter_by_name && !ale_name_matches_dopesheet_filter(*ac->ads, *ale)) {
+      MEM_freeN(ale);
+      continue;
+    }
 
     /* bAnimListElem::slot_handle is exposed as int32_t and not as slot_handle_t, so better
      * ensure that these are still equivalent.
@@ -1480,7 +1510,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
                                      animrig::Action &action,
                                      animrig::Slot &slot,
                                      const eAnimFilter_Flags filter_mode,
-                                     ID *owner_id)
+                                     ID *animated_id)
 {
   /* Don't include anything from this animation if it is linked in from another
    * file, and we're getting stuff for editing... */
@@ -1505,7 +1535,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   const bool show_slot_channel = (is_action_mode && selection_ok_for_slot && !show_fcurves_only &&
                                   include_summary_channels);
   if (show_slot_channel) {
-    ANIMCHANNEL_NEW_CHANNEL(ac->bmain, &slot, ANIMTYPE_ACTION_SLOT, owner_id, &action.id);
+    ANIMCHANNEL_NEW_CHANNEL(ac->bmain, &slot, ANIMTYPE_ACTION_SLOT, animated_id, &action.id);
     items++;
   }
 
@@ -1518,7 +1548,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
     /* Add list elements for the F-Curves for this Slot. */
     Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, slot.handle);
     items += animfilter_fcurves_span(
-        ac, anim_data, fcurves, slot.handle, filter_mode, owner_id, &action.id);
+        ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
   }
 
   return items;
@@ -1541,7 +1571,12 @@ static size_t animfilter_action_slots(bAnimContext *ac,
   int num_items = 0;
   for (animrig::Slot *slot : action.slots()) {
     BLI_assert(slot);
-    num_items += animfilter_action_slot(ac, anim_data, action, *slot, filter_mode, owner_id);
+    ID *animated_id = animrig::action_slot_get_id_best_guess(*ac->bmain, *slot, owner_id);
+    if (!animated_id) {
+      /* This is not necessarily correct, but at least it prevents nullptr dereference. */
+      animated_id = owner_id;
+    }
+    num_items += animfilter_action_slot(ac, anim_data, action, *slot, filter_mode, animated_id);
   }
 
   return num_items;

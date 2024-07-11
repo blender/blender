@@ -76,6 +76,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "anim_intern.hh"
+
 using namespace blender;
 
 /* *********************************************** */
@@ -86,9 +88,6 @@ using namespace blender;
 
 /* size of indent steps */
 #define INDENT_STEP_SIZE (0.35f * U.widget_unit)
-
-/* size of string buffers used for animation channel displayed names */
-#define ANIM_CHAN_NAME_SIZE 256
 
 /* get the pointer used for some flag */
 #define GET_ACF_FLAG_PTR(ptr, type) ((*(type) = sizeof(ptr)), &(ptr))

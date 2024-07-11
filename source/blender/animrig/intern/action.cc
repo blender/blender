@@ -1407,6 +1407,18 @@ ID *action_slot_get_id_for_keying(Main &bmain,
   return nullptr;
 }
 
+ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id)
+{
+  blender::Span<ID *> users = slot.users(bmain);
+  if (users.is_empty()) {
+    return 0;
+  }
+  if (users.contains(primary_id)) {
+    return primary_id;
+  }
+  return users[0];
+}
+
 void assert_baklava_phase_1_invariants(const Action &action)
 {
   if (action.is_action_legacy()) {

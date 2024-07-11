@@ -97,6 +97,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
 
   bAnimContext ac = {0};
+  ac.bmain = bmain;
   ac.datatype = ANIMCONT_ACTION;
   ac.data = action;
   ac.spacetype = SPACE_ACTION;
@@ -248,6 +249,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
 
   bAnimContext ac = {0};
+  ac.bmain = bmain;
   ac.datatype = ANIMCONT_ACTION;
   ac.data = action;
   ac.spacetype = SPACE_ACTION;
