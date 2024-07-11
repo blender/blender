@@ -1450,6 +1450,21 @@ static void imb_exr_pass_name_from_channel(char *passname,
   }
 }
 
+static void imb_exr_pass_name_from_channel_name(char *passname,
+                                                const ExrChannel * /*echan*/,
+                                                const char *channelname,
+                                                const bool /*has_xyz_channels*/)
+{
+  const int passname_maxncpy = EXR_TOT_MAXNAME;
+
+  /* TODO: Are special tricks similar to imb_exr_pass_name_from_channel() needed here?
+   * Note that unknown passes are default to chan_id='X'. The place where this function is called
+   * is when the channel name is more than 1 character, so perhaps using just channel ID is not
+   * fully correct here. */
+
+  BLI_strncpy(passname, channelname, passname_maxncpy);
+}
+
 static int imb_exr_split_channel_name(ExrChannel *echan,
                                       char *layname,
                                       char *passname,
@@ -1538,7 +1553,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan,
   }
   else {
     /* Single token, determine pass name from channel name. */
-    imb_exr_pass_name_from_channel(passname, echan, channelname, has_xyz_channels);
+    imb_exr_pass_name_from_channel_name(passname, echan, channelname, has_xyz_channels);
   }
 
   /* all preceding tokens combined as layer name */
