@@ -116,9 +116,15 @@ class CommandBufferLog : public VKCommandBufferInterface {
             uint32_t first_vertex,
             uint32_t first_instance) override
   {
-    UNUSED_VARS(vertex_count, instance_count, first_vertex, first_instance);
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "draw(";
+    ss << "vertex_count=" << vertex_count;
+    ss << ", instance_count=" << instance_count;
+    ss << ", first_vertex=" << first_vertex;
+    ss << ", first_instance=" << first_instance;
+    ss << ")";
+    log_.append(ss.str());
   }
 
   void draw_indexed(uint32_t index_count,
@@ -127,9 +133,16 @@ class CommandBufferLog : public VKCommandBufferInterface {
                     int32_t vertex_offset,
                     uint32_t first_instance) override
   {
-    UNUSED_VARS(index_count, instance_count, first_index, vertex_offset, first_instance);
     EXPECT_TRUE(is_recording_);
-    GTEST_FAIL() << __func__ << " not implemented!";
+    std::stringstream ss;
+    ss << "draw_indexed(";
+    ss << "index_count=" << index_count;
+    ss << ", instance_count=" << instance_count;
+    ss << ", first_index=" << first_index;
+    ss << ", vertex_offset=" << vertex_offset;
+    ss << ", first_instance=" << first_instance;
+    ss << ")";
+    log_.append(ss.str());
   }
 
   void draw_indirect(VkBuffer buffer,
