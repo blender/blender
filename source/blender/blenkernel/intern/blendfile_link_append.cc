@@ -121,7 +121,7 @@ struct BlendfileLinkAppendContext {
   blender::Map<ID *, BlendfileLinkAppendContextItem *> new_id_to_item;
 
   /** Runtime info used by append code to manage re-use of already appended matching IDs. */
-  GHash *library_weak_reference_mapping = nullptr;
+  MainLibraryWeakReferenceMap *library_weak_reference_mapping = nullptr;
 
   /** Embedded blendfile and its size, if needed. */
   const void *blendfile_mem = nullptr;
