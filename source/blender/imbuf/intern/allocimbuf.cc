@@ -635,9 +635,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   if (ibuf1->byte_buffer.data) {
     flags |= IB_rect;
   }
-  if (ibuf1->float_buffer.data) {
-    flags |= IB_rectfloat;
-  }
 
   x = ibuf1->x;
   y = ibuf1->y;
@@ -651,10 +648,18 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     memcpy(ibuf2->byte_buffer.data, ibuf1->byte_buffer.data, size_t(x) * y * 4 * sizeof(uint8_t));
   }
 
-  if (flags & IB_rectfloat) {
+  if (ibuf1->float_buffer.data) {
+    /* Ensure the correct number of channels are being allocated for the new ImBuf. Some
+     * compositing scenarios might end up with >4 channels and we want to duplicate them prooperly.
+     */
+    if (imb_addrectfloatImBuf(ibuf2, ibuf1->channels, false) == false) {
+      IMB_freeImBuf(ibuf2);
+      return nullptr;
+    }
+
     memcpy(ibuf2->float_buffer.data,
            ibuf1->float_buffer.data,
-           size_t(ibuf1->channels) * x * y * sizeof(float));
+           size_t(ibuf2->channels) * x * y * sizeof(float));
   }
 
   if (ibuf1->encoded_buffer.data) {
