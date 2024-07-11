@@ -199,6 +199,7 @@ struct VoxelSizeEditCustomData {
   float init_mval[2];
   float slow_mval[2];
 
+  bool relative_mode;
   bool slow_mode;
 
   float init_voxel_size;
@@ -353,6 +354,17 @@ static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
   ED_workspace_status_text(C, nullptr);
 }
 
+static void voxel_size_edit_update_header(wmOperator *op, bContext *C)
+{
+  VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(op->customdata);
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Confirm"), ICON_EVENT_RETURN, ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
+  status.item(IFACE_("Change Size"), ICON_MOUSE_MOVE);
+  status.item_bool(IFACE_("Relative Mode"), cd->relative_mode, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Precision Mode"), cd->slow_mode, ICON_EVENT_SHIFT);
+}
+
 static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -396,10 +408,12 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
      * sizes. */
     /* When the voxel size is slower, it needs more precision. */
     d = d * min_ff(pow2f(cd->init_voxel_size), 0.1f) * 0.05f;
+    cd->relative_mode = true;
   }
   else {
     /* Linear mode, enables jumping to any voxel size. */
     d = d * 0.0005f;
+    cd->relative_mode = false;
   }
   if (cd->slow_mode) {
     cd->voxel_size = cd->slow_voxel_size + d * 0.05f;
@@ -421,6 +435,8 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   cd->voxel_size = clamp_f(cd->voxel_size, 0.0001f, 1.0f);
 
   ED_region_tag_redraw(region);
+
+  voxel_size_edit_update_header(op, C);
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -441,6 +457,8 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   cd->init_mval[1] = event->mval[1];
   cd->init_voxel_size = mesh->remesh_voxel_size;
   cd->voxel_size = mesh->remesh_voxel_size;
+  cd->relative_mode = false;
+  cd->slow_mode = false;
   op->customdata = cd;
 
   /* Select the front facing face of the mesh bounding box. */
@@ -580,10 +598,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   ED_region_tag_redraw(region);
 
-  const char *status_str = IFACE_(
-      "Move the mouse to change the voxel size. CTRL: Relative Scale, SHIFT: Precision Mode, "
-      "ENTER/LMB: Confirm Size, ESC/RMB: Cancel");
-  ED_workspace_status_text(C, status_str);
+  voxel_size_edit_update_header(op, C);
 
   return OPERATOR_RUNNING_MODAL;
 }
