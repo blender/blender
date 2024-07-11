@@ -60,14 +60,21 @@ class BrushAssetShelf:
             'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
         }
         mode = UnifiedPaintPanel.get_brush_mode(context)
+        if not mode:
+            return None
+
         return mode_map[mode]
 
     @staticmethod
     def draw_popup_selector(layout, context, brush, show_name=True):
         preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
 
+        shelf_name = BrushAssetShelf.get_shelf_name_from_context(context)
+        if not shelf_name:
+            return
+
         layout.template_asset_shelf_popover(
-            BrushAssetShelf.get_shelf_name_from_context(context),
+            shelf_name,
             name=brush.name if (brush and show_name) else None,
             icon='BRUSH_DATA' if not preview_icon_id else 'NONE',
             icon_value=preview_icon_id,
