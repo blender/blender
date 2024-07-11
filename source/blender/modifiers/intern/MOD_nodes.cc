@@ -2438,6 +2438,16 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   }
 
   BLO_read_struct_array(reader, NodesModifierBake, nmd->bakes_num, &nmd->bakes);
+
+  if (nmd->bakes_num > 0 && nmd->bakes == nullptr) {
+    /* This case generally shouldn't be allowed to happen. However, there is a bug report with a
+     * corrupted .blend file (#123974) that triggers this case. Unfortunately, it's not clear how
+     * that could have happened. For now, handle this case more gracefully in release builds, while
+     * still crashing in debug builds. */
+    nmd->bakes_num = 0;
+    BLI_assert_unreachable();
+  }
+
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     BLO_read_string(reader, &bake.directory);
 
