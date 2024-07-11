@@ -2,16 +2,34 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
+#include "BKE_global.hh"
+#include "BKE_idtype.hh"
 #include "BKE_image.h"
+#include "BKE_main.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "testing/testing.h"
+#include "gmock/gmock.h"
+
+#include "IMB_moviecache.hh"
+
+#include "DNA_image_types.h"
+
+#include "RE_pipeline.h"
+
+#include "CLG_log.h"
 
 namespace blender::bke::tests {
+
+using testing::Eq;
+using testing::Pointwise;
 
 TEST(udim, image_ensure_tile_token)
 {
@@ -194,6 +212,171 @@ TEST(udim, image_set_filepath_from_tile_number)
   BKE_image_set_filepath_from_tile_number(filepath, udim_pattern, tile_format, 1028);
   EXPECT_STREQ(filepath, "test.u8_v3.png");
   MEM_freeN(udim_pattern);
+}
+
+class ImageTest : public ::testing::Test {
+  Main *bmain_ = nullptr;
+
+  RenderResult *get_image_render_result(Image &image)
+  {
+    ImageUser iuser{};
+    BKE_imageuser_default(&iuser);
+
+    ImBuf *temp_ibuf = BKE_image_acquire_ibuf(&image, &iuser, nullptr);
+    BKE_image_release_ibuf(&image, temp_ibuf, nullptr);
+
+    return image.rr;
+  }
+
+ protected:
+  static void SetUpTestSuite()
+  {
+    CLG_init();
+    BKE_idtype_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+  }
+
+  void SetUp() override
+  {
+    IMB_moviecache_init();
+
+    bmain_ = BKE_main_new();
+    G_MAIN = bmain_;
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain_);
+    G_MAIN = nullptr;
+
+    IMB_moviecache_destruct();
+  }
+
+  Image *load_image(const char *path)
+  {
+    const std::string asset_dir = blender::tests::flags_test_asset_dir().c_str();
+    return BKE_image_load(bmain_, (asset_dir + SEP_STR + "imbuf_io" + SEP_STR + path).c_str());
+  }
+
+  Vector<std::string> get_image_layer_names(Image &image)
+  {
+    RenderResult *render_result = get_image_render_result(image);
+    if (!render_result) {
+      ADD_FAILURE() << "Missing image RenderResult";
+      return {};
+    }
+
+    Vector<std::string> layer_names;
+    LISTBASE_FOREACH (const RenderLayer *, layer, &render_result->layers) {
+      layer_names.append(layer->name);
+    }
+
+    return layer_names;
+  }
+
+  Vector<std::string> get_image_pass_names_for_layer(Image &image, StringRefNull layer_name)
+  {
+    RenderResult *render_result = get_image_render_result(image);
+    if (!render_result) {
+      ADD_FAILURE() << "Missing image RenderResult";
+      return {};
+    }
+
+    LISTBASE_FOREACH (const RenderLayer *, layer, &render_result->layers) {
+      if (layer->name == layer_name) {
+        Vector<std::string> pass_names;
+        LISTBASE_FOREACH (const RenderPass *, pass, &layer->passes) {
+          pass_names.append(pass->name);
+        }
+        return pass_names;
+      }
+    }
+
+    return {};
+  }
+};
+
+TEST_F(ImageTest, multilayer)
+{
+  /* Multi-layer file from another DCC originally reported as #108980.
+   * The expected passes are obtained from Blender 4.2 Beta f069692caf8, with the
+   * !118867 reverted. File Scene_RenderLayer_000.exr from the report was used. */
+  {
+    Image *image = load_image("multilayer" SEP_STR "108980.exr");
+    ASSERT_NE(image, nullptr);
+
+    EXPECT_THAT(get_image_layer_names(*image), Pointwise(Eq(), {""}));
+    EXPECT_THAT(get_image_pass_names_for_layer(*image, ""),
+                Pointwise(Eq(),
+                          {"Combined",
+                           "Albedo",
+                           "Nsx",
+                           "Nsy",
+                           "Nsz",
+                           "Nx",
+                           "Ny",
+                           "Nz",
+                           "Px",
+                           "Py",
+                           "Pz",
+                           "RelativeVariance",
+                           "Variance",
+                           "dzdx",
+                           "dzdy",
+                           "u"}));
+  }
+
+  /* Multi-layer file from another DCC originally reported as #124217.
+   * The expected passes are obtained from Blender 4.2 Beta f069692caf8, with the
+   * !118867 reverted. File test.exr from the report was used. */
+  {
+    Image *image = load_image("multilayer" SEP_STR "124217.exr");
+    ASSERT_NE(image, nullptr);
+
+    EXPECT_THAT(get_image_layer_names(*image), Pointwise(Eq(), {""}));
+    EXPECT_THAT(get_image_pass_names_for_layer(*image, ""),
+                Pointwise(Eq(),
+                          {"Combined",
+                           "Depth",
+                           "AO",
+                           "ID",
+                           "crypto_material",
+                           "crypto_material00",
+                           "crypto_material01",
+                           "crypto_material02",
+                           "crypto_material03",
+                           "crypto_material04",
+                           "crypto_material05",
+                           "crypto_material06",
+                           "crypto_object",
+                           "crypto_object00",
+                           "crypto_object01",
+                           "crypto_object02",
+                           "crypto_object03",
+                           "crypto_object04",
+                           "crypto_object05",
+                           "crypto_object06",
+                           "diffuse",
+                           "opacity",
+                           "specular",
+                           "v"}));
+  }
+
+  /* Multi-part file from another DCC, originally reported as #101227.
+   * The expected passes are obtained from Blender 4.2 Beta f069692caf8, with the
+   * !118867 landed. */
+  {
+    Image *image = load_image("multilayer" SEP_STR "101227.exr");
+    ASSERT_NE(image, nullptr);
+
+    EXPECT_THAT(get_image_layer_names(*image), Pointwise(Eq(), {""}));
+    EXPECT_THAT(get_image_pass_names_for_layer(*image, ""),
+                Pointwise(Eq(), {"C", "N", "albedo", "depth"}));
+  }
 }
 
 }  // namespace blender::bke::tests
