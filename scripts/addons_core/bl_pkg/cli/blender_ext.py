@@ -2877,9 +2877,9 @@ def generic_arg_package_output_filepath(subparse: argparse.ArgumentParser) -> No
         default="",
         type=str,
         help=(
-            "The package output filepath (should include a ``{:s}`` extension).\n"
+            "The package output filepath (should include a ``{0:s}`` extension).\n"
             "\n"
-            "Defaults to a name created using the ``id`` from the manifest."
+            "Defaults to ``{{id}}-{{version}}{0:s}`` using values from the manifest."
         ).format(PKG_EXT),
     )
 
