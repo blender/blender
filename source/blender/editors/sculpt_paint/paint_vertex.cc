@@ -395,7 +395,7 @@ void mode_exit_generic(Object &ob, const eObjectMode mode_flag)
   }
 
   /* If the cache is not released by a cancel or a done, free it now. */
-  if (ob.sculpt ) {
+  if (ob.sculpt) {
     MEM_delete(ob.sculpt->cache);
     ob.sculpt->cache = nullptr;
   }
