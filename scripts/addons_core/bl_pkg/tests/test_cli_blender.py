@@ -365,12 +365,16 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             os.makedirs(os.path.join(TEMP_DIR_BLENDER_USER, dirname), exist_ok=True)
         os.makedirs(os.path.join(TEMP_DIR_BLENDER_USER, dirname), exist_ok=True)
         os.makedirs(TEMP_DIR_REMOTE, exist_ok=True)
+        os.makedirs(TEMP_DIR_LOCAL, exist_ok=True)
 
     @staticmethod
     def _repo_dirs_destroy() -> None:
         for dirname in user_dirs:
             shutil.rmtree(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
-        shutil.rmtree(TEMP_DIR_REMOTE)
+        if os.path.exists(TEMP_DIR_REMOTE):
+            shutil.rmtree(TEMP_DIR_REMOTE)
+        if os.path.exists(TEMP_DIR_LOCAL):
+            shutil.rmtree(TEMP_DIR_LOCAL)
 
     def setUp(self) -> None:
         self._repo_dirs_create()
