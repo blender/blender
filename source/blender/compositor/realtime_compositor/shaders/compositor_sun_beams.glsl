@@ -38,8 +38,8 @@ void main()
     vec4 sample_color = texture(input_tx, position);
 
     /* Attenuate the contributions of pixels that are further away from the source using a
-     * quadratic falloff. Also weight by the alpha to give more significance to opaque pixels. */
-    float weight = (square(1.0 - i / float(steps))) * sample_color.a;
+     * quadratic falloff. */
+    float weight = square(1.0 - i / float(steps));
 
     accumulated_weight += weight;
     accumulated_color += sample_color * weight;
