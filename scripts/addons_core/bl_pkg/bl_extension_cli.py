@@ -18,6 +18,7 @@ import sys
 
 from typing import (
     Any,
+    Dict,
     List,
     Optional,
     Tuple,
@@ -198,6 +199,7 @@ class subcmd_query:
                 item_local: Optional[PkgManifest_Normalized],
                 item_remote: Optional[PkgManifest_Normalized],
                 has_remote: bool,
+                item_warnings: List[str],
         ) -> None:
             # Both can't be None.
             assert item_remote is not None or item_local is not None
@@ -240,6 +242,12 @@ class subcmd_query:
                     colorize(item.tagline or "<no tagline>", "faint"),
                 ))
 
+            if item_warnings:
+                # Including all text on one line doesn't work well here,
+                # add warnings below the package.
+                for warning in item_warnings:
+                    print("    " + colorize(warning, "red"))
+
         if sync:
             if not subcmd_utils.sync():
                 return False
@@ -251,6 +259,12 @@ class subcmd_query:
 
         repos_all = extension_repos_read()
         repo_cache_store = repo_cache_store_ensure()
+
+        import addon_utils  # type: ignore
+
+        # pylint: disable-next=protected-access
+        extensions_warnings: Dict[str, List[str]] = addon_utils._extensions_warnings_get()
+        assert isinstance(extensions_warnings, dict)
 
         for repo_index, (
                 pkg_manifest_local,
@@ -269,7 +283,8 @@ class subcmd_query:
             for pkg_id in sorted(pkg_id_set):
                 item_local = pkg_manifest_local.get(pkg_id) if (pkg_manifest_local is not None) else None
                 item_remote = pkg_manifest_remote.get(pkg_id) if (pkg_manifest_remote is not None) else None
-                list_item(pkg_id, item_local, item_remote, has_remote)
+                item_warnings = extensions_warnings.get("bl_ext.{:s}.{:s}".format(repo.module, pkg_id), [])
+                list_item(pkg_id, item_local, item_remote, has_remote, item_warnings)
 
         return True
 

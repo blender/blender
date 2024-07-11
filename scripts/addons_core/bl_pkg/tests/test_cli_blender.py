@@ -11,6 +11,13 @@ This also happens to test:
 
 Command to run this test:
    make test_cli_blender BLENDER_BIN=$PWD/../../../blender.bin
+
+Command to run this test directly:
+   env BLENDER_BIN=$PWD/blender.bin python ./scripts/addons_core/bl_pkg/tests/test_cli_blender.py
+
+Command to run a single test:
+   env BLENDER_BIN=$PWD/blender.bin python ./scripts/addons_core/bl_pkg/tests/test_cli_blender.py \
+       TestModuleViolation.test_extension_sys_paths
 """
 
 import os
@@ -170,6 +177,7 @@ def create_package(
         blender_version_min: Optional[str] = None,
         blender_version_max: Optional[str] = None,
         python_script: Optional[str] = None,
+        file_contents: Optional[Dict[str, bytes]] = None,
 ) -> None:
     pkg_name = pkg_idname.replace("_", " ").title()
 
@@ -220,6 +228,9 @@ def create_package(
             fh.write(python_script)
         else:
             fh.write(python_script_generate_for_addon(text=""))
+
+    if file_contents is not None:
+        contents_to_filesystem(file_contents, pkg_src_dir)
 
 
 def run_blender(
@@ -406,6 +417,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             blender_version_min: Optional[str] = None,
             blender_version_max: Optional[str] = None,
             python_script: Optional[str] = None,
+            file_contents: Optional[Dict[str, bytes]] = None,
     ) -> None:
         if pkg_filename is None:
             pkg_filename = pkg_idname
@@ -421,6 +433,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
                 blender_version_min=blender_version_min,
                 blender_version_max=blender_version_max,
                 python_script=python_script,
+                file_contents=file_contents,
             )
             stdout = run_blender_extensions_no_errors((
                 "build",
@@ -758,6 +771,94 @@ class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             version_d=version_d,
             version_e=version_e,
         ))
+
+
+class TestModuleViolation(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+    def test_extension(self) -> None:
+        """
+        Warn when:
+        - extensions add themselves to the ``sys.path``.
+        - extensions add top-level modules into ``sys.modules``.
+        """
+        repo_id = "test_repo_module_violation"
+        repo_name = "MyTestRepoViolation"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        # Create a package contents.
+        pkg_idname = "my_test_pkg"
+        self.build_package(
+            pkg_idname=pkg_idname,
+            python_script=(
+                '''import sys\n'''
+                '''import os\n'''
+                '''\n'''
+                '''sys.path.append(os.path.join(os.path.dirname(__file__), "sys_modules_violate"))\n'''
+                '''\n'''
+                '''import bpy_sys_modules_violate_test\n'''
+                '''\n'''
+                '''def register():\n'''
+                '''    print("Register!")\n'''
+                '''def unregister():\n'''
+                '''    print("Unregister!")\n'''
+            ),
+            file_contents={
+                os.path.join("sys_modules_violate", "bpy_sys_modules_violate_test.py"):
+                b'''print("This violating module has been loaded!")\n'''
+            },
+        )
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 1 packages.\n")
+
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"MyTestRepoViolation\" updated",
+        )
+
+        # Install the package into Blender.
+
+        stdout = run_blender_extensions_no_errors(("repo-list",))
+        self.assertEqual(
+            stdout,
+            (
+                '''{:s}:\n'''
+                '''    name: "MyTestRepoViolation"\n'''
+                '''    directory: "{:s}"\n'''
+                '''    url: "{:s}"\n'''
+                '''    access_token: None\n'''
+            ).format(repo_id, TEMP_DIR_LOCAL, TEMP_DIR_REMOTE_AS_URL))
+
+        stdout = run_blender_extensions_no_errors(("install", pkg_idname, "--enable"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Installed \"my_test_pkg\""
+        )
+
+        # List extensions.
+        stdout = run_blender_extensions_no_errors((
+            "list",
+        ))
+        self.assertEqual(
+            stdout,
+            (
+                '''This violating module has been loaded!\n'''
+                '''Register!\n'''
+                '''Repository: "MyTestRepoViolation" (id=test_repo_module_violation)\n'''
+                '''  my_test_pkg [installed]: "My Test Pkg", This is a tagline\n'''
+                '''    Policy violation with top level module: bpy_sys_modules_violate_test\n'''
+                '''    Policy violation with sys.path: ./sys_modules_violate\n'''
+                '''Unregister!\n'''
+            )
+        )
 
 
 def main() -> None:
