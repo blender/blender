@@ -46,7 +46,7 @@ struct NestedTreePreviews;
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
   Vector<bNodeLink> links;
-  /** Which side if the links is fixed. */
+  /** Which side of the links is fixed. */
   eNodeSocketInOut in_out;
 
   /** Draw handler for the tooltip icon when dragging a link in empty space. */
