@@ -876,8 +876,10 @@ static void draw_icon_centered(TimelineDrawContext &ctx,
   UI_view2d_view_ortho(ctx.v2d);
   wmOrtho2_region_pixelspace(ctx.region);
 
-  const float icon_size = 16 * UI_SCALE_FAC;
-  if (BLI_rctf_size_x(&ctx.v2d->cur) < icon_size) {
+  const float icon_size = MISSING_ICON_SIZE * UI_SCALE_FAC;
+  if (BLI_rctf_size_x(&rect) * 1.1f < icon_size * ctx.pixelx ||
+      BLI_rctf_size_y(&rect) * 1.1f < icon_size * ctx.pixely)
+  {
     UI_view2d_view_restore(ctx.C);
     return;
   }
@@ -889,10 +891,12 @@ static void draw_icon_centered(TimelineDrawContext &ctx,
   const float x_offset = (right - left - icon_size) * 0.5f;
   const float y_offset = (top - bottom - icon_size) * 0.5f;
 
+  const float inv_scale_fac = (ICON_DEFAULT_HEIGHT / MISSING_ICON_SIZE) * UI_INV_SCALE_FAC;
+
   UI_icon_draw_ex(left + x_offset,
                   bottom + y_offset,
                   icon_id,
-                  UI_INV_SCALE_FAC,
+                  inv_scale_fac,
                   1.0f,
                   0.0f,
                   color,
