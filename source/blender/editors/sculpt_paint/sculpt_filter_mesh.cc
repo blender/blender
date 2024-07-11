@@ -802,23 +802,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     return;
   }
 
-  /* Gather all PBVH leaf nodes. */
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
-
-  for (PBVHNode *node : nodes) {
-    PBVHVertexIter vd;
-
-    SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-
-    BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(orig_data, vd);
-
-      copy_v3_v3(vd.co, orig_data.co);
-    }
-    BKE_pbvh_vertex_iter_end;
-
-    BKE_pbvh_node_mark_positions_update(node);
-  }
+  undo::restore_position_from_undo_step(ob);
 
   blender::bke::pbvh::update_bounds(*ss->pbvh);
 }
