@@ -757,20 +757,17 @@ static int gesture_polyline_valid_points(const wmGesture &wmGesture)
   const int num_points = wmGesture.points;
   short(*points)[2] = static_cast<short int(*)[2]>(wmGesture.customdata);
 
-  const short last_x = points[num_points - 1][0];
-  const short last_y = points[num_points - 1][1];
+  const short prev_x = points[num_points - 1][0];
+  const short prev_y = points[num_points - 1][1];
 
-  const short prev_x = points[num_points - 2][0];
-  const short prev_y = points[num_points - 2][1];
-
-  return (last_x == prev_x && last_y == prev_y) ? num_points - 1 : num_points;
+  return (wmGesture.mval.x == prev_x && wmGesture.mval.y == prev_y) ? num_points : num_points + 1;
 }
 
 /* Evaluates whether the polyline has at least three points and represents
  * a shape and can be submitted for other gesture operators to act on. */
 static bool gesture_polyline_can_apply(const wmGesture &wmGesture)
 {
-  if (wmGesture.points <= 2) {
+  if (wmGesture.points < 2) {
     return false;
   }
 
@@ -788,8 +785,6 @@ static int gesture_polyline_apply(bContext *C, wmOperator *op)
   BLI_assert(gesture_polyline_can_apply(*gesture));
 
   const int valid_points = gesture_polyline_valid_points(*gesture);
-  gesture->points = valid_points;
-
   const short *border = static_cast<const short int *>(gesture->customdata);
 
   PointerRNA itemptr;
@@ -798,6 +793,12 @@ static int gesture_polyline_apply(bContext *C, wmOperator *op)
   for (int i = 0; i < gesture->points; i++, border += 2) {
     loc[0] = border[0];
     loc[1] = border[1];
+    RNA_collection_add(op->ptr, "path", &itemptr);
+    RNA_float_set_array(&itemptr, "loc", loc);
+  }
+  if (valid_points > gesture->points) {
+    loc[0] = gesture->mval.x;
+    loc[1] = gesture->mval.y;
     RNA_collection_add(op->ptr, "path", &itemptr);
     RNA_float_set_array(&itemptr, "loc", loc);
   }
@@ -825,17 +826,14 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case GESTURE_MODAL_SELECT: {
         wm_gesture_tag_redraw(CTX_wm_window(C));
         short(*border)[2] = static_cast<short int(*)[2]>(gesture->customdata);
-        const short cur_x = border[gesture->points - 1][0];
-        const short cur_y = border[gesture->points - 1][1];
+        const short prev_x = border[gesture->points - 1][0];
+        const short prev_y = border[gesture->points - 1][1];
 
-        const short prev_x = border[gesture->points - 2][0];
-        const short prev_y = border[gesture->points - 2][1];
-
-        if (cur_x == prev_x && cur_y == prev_y) {
+        if (gesture->mval.x == prev_x && gesture->mval.y == prev_y) {
           break;
         }
 
-        const float2 cur(cur_x, cur_y);
+        const float2 cur(gesture->mval);
         const float2 orig(border[0][0], border[0][1]);
 
         const float dist = len_v2v2(cur, orig);
@@ -847,8 +845,8 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
 
         gesture->points++;
-        border[gesture->points - 1][0] = cur_x;
-        border[gesture->points - 1][1] = cur_y;
+        border[gesture->points - 1][0] = gesture->mval.x;
+        border[gesture->points - 1][1] = gesture->mval.y;
         break;
       }
       case GESTURE_MODAL_CONFIRM:
@@ -866,6 +864,8 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case MOUSEMOVE:
       case INBETWEEN_MOUSEMOVE: {
         wm_gesture_tag_redraw(CTX_wm_window(C));
+        gesture->mval = int2((event->xy[0] - gesture->winrct.xmin),
+                             (event->xy[1] - gesture->winrct.ymin));
         if (gesture->points == gesture->points_alloc) {
           gesture->points_alloc *= 2;
           gesture->customdata = MEM_reallocN(gesture->customdata,
@@ -875,17 +875,14 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         /* move the lasso */
         if (gesture->move) {
-          const int x = ((event->xy[0] - gesture->winrct.xmin) - border[gesture->points - 1][0]);
-          const int y = ((event->xy[1] - gesture->winrct.ymin) - border[gesture->points - 1][1]);
+          const int dx = gesture->mval.x - border[gesture->points - 1][0];
+          const int dy = gesture->mval.y - border[gesture->points - 1][1];
 
           for (int i = 0; i < gesture->points; i++) {
-            border[i][0] += x;
-            border[i][1] += y;
+            border[i][0] += dx;
+            border[i][1] += dy;
           }
         }
-
-        border[gesture->points - 1][0] = event->xy[0] - gesture->winrct.xmin;
-        border[gesture->points - 1][1] = event->xy[1] - gesture->winrct.ymin;
         break;
       }
     }

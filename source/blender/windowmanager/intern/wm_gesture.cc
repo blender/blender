@@ -87,9 +87,9 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
     gesture->customdata = border;
     border[0] = xy[0] - gesture->winrct.xmin;
     border[1] = xy[1] - gesture->winrct.ymin;
-    border[2] = border[0];
-    border[3] = border[1];
-    gesture->points = 2;
+    gesture->mval.x = border[0];
+    gesture->mval.y = border[1];
+    gesture->points = 1;
   }
 
   return gesture;
@@ -443,7 +443,7 @@ static void draw_start_vertex_circle(const wmGesture &gt, const uint shdr_pos)
   const short(*border)[2] = static_cast<short int(*)[2]>(gt.customdata);
 
   const float start_pos[2] = {float(border[0][0]), float(border[0][1])};
-  const float current_pos[2] = {float(border[numverts - 1][0]), float(border[numverts - 1][1])};
+  const float current_pos[2] = {float(gt.mval.x), float(gt.mval.y)};
 
   const float dist = len_v2v2(start_pos, current_pos);
   const float limit = pow2f(blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC);
@@ -463,7 +463,7 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 {
   draw_filled_lasso(gt);
 
-  const int numverts = gt->points;
+  const int numverts = gt->points + 1;
   if (numverts < 2) {
     return;
   }
@@ -486,9 +486,10 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
   immBegin(GPU_PRIM_LINE_LOOP, numverts);
 
   const short *border = (short *)gt->customdata;
-  for (int i = 0; i < numverts; i++, border += 2) {
+  for (int i = 0; i < gt->points; i++, border += 2) {
     immVertex2f(shdr_pos, float(border[0]), float(border[1]));
   }
+  immVertex2f(shdr_pos, float(gt->mval.x), float(gt->mval.y));
 
   immEnd();
 
