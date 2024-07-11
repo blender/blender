@@ -1054,7 +1054,9 @@ void SEQ_retiming_selection_remove(SeqRetimingKey *key)
 blender::Map<SeqRetimingKey *, Sequence *> SEQ_retiming_selection_get(const Editing *ed)
 {
   blender::Map<SeqRetimingKey *, Sequence *> selection;
-
+  if (!ed) {
+    return selection;
+  }
   LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     for (SeqRetimingKey &key : SEQ_retiming_keys_get(seq)) {
       if ((key.flag & SEQ_KEY_SELECTED) != 0) {
