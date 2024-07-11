@@ -412,6 +412,14 @@ class subcmd_repo:
             print("    directory: \"{:s}\"".format(repo.directory))
             if url := repo.remote_url:
                 print("    url: \"{:s}\"".format(url))
+                # As with the UI the access-token is replaced by `*`,
+                # this is done to show which repositories use an access token.
+                print("    access_token: {:s}".format(
+                    "\"{:s}\"".format("*" * len(repo.access_token)) if repo.access_token else
+                    "None"
+                ))
+            else:
+                print("    source: \"{:s}\"".format(repo.source))
 
         return True
 
