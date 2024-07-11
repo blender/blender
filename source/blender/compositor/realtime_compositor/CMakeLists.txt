@@ -28,6 +28,7 @@ set(SRC
   intern/domain.cc
   intern/evaluator.cc
   intern/input_single_value_operation.cc
+  intern/meta_data.cc
   intern/node_operation.cc
   intern/operation.cc
   intern/profiler.cc

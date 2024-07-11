@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <string>
+
 #pragma once
 
 namespace blender::realtime_compositor {
@@ -29,6 +31,10 @@ struct MetaData {
   /* Stores Cryptomatte meta data. This will only be initialized for results that represent
    * Cryptomatte information. See the CryptomatteMetaData structure for more information. */
   CryptomatteMetaData cryptomatte;
+
+  /* Identifies if the result represents a Cryptomatte layer. This is identified based on whether
+   * the Cryptomatte meta data are initialized. */
+  bool is_cryptomatte_layer() const;
 };
 
 }  // namespace blender::realtime_compositor

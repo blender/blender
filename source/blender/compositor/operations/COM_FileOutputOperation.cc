@@ -266,7 +266,17 @@ void FileOutputOperation::add_pass_for_input(realtime_compositor::FileOutput &fi
 {
   switch (input.data_type) {
     case DataType::Color:
-      file_output.add_pass(pass_name, view_name, "RGBA", input.output_buffer);
+      /* Use lowercase rgba for Cryptomatte layers because the EXR internal compression rules
+       * specify that all uppercase RGBA channels will be compressed, and Cryptomatte should not be
+       * compressed. */
+      if (input.image_input->get_meta_data() &&
+          input.image_input->get_meta_data()->is_cryptomatte_layer())
+      {
+        file_output.add_pass(pass_name, view_name, "rgba", input.output_buffer);
+      }
+      else {
+        file_output.add_pass(pass_name, view_name, "RGBA", input.output_buffer);
+      }
       break;
     case DataType::Vector:
       file_output.add_pass(pass_name, view_name, "XYZ", input.output_buffer);

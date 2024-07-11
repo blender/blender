@@ -40,6 +40,9 @@ class MetaData {
   bool is_data = false;
 
   void add(const blender::StringRef key, const blender::StringRef value);
+
+  bool is_cryptomatte_layer() const;
+
   /**
    * Replace the hash neutral cryptomatte keys with hashed versions.
    *
