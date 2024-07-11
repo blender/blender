@@ -874,6 +874,14 @@ static blender::StringRefNull action_space_name_get(ScrArea *area)
   return item.name;
 }
 
+static int action_space_icon_get(const ScrArea *area)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  const int index = RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode);
+  const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
+  return item.icon;
+}
+
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceAction *saction = (SpaceAction *)sl;
@@ -907,6 +915,7 @@ void ED_spacetype_action()
   st->space_subtype_get = action_space_subtype_get;
   st->space_subtype_set = action_space_subtype_set;
   st->space_name_get = action_space_name_get;
+  st->space_icon_get = action_space_icon_get;
   st->blend_read_data = action_space_blend_read_data;
   st->blend_read_after_liblink = nullptr;
   st->blend_write = action_space_blend_write;

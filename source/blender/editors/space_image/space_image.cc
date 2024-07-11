@@ -1085,6 +1085,14 @@ static blender::StringRefNull image_space_name_get(ScrArea *area)
   return item.name;
 }
 
+static int image_space_icon_get(const ScrArea *area)
+{
+  SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+  const int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
+  const EnumPropertyItem item = rna_enum_space_image_mode_items[index];
+  return item.icon;
+}
+
 static void image_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceImage *sima = (SpaceImage *)sl;
@@ -1141,6 +1149,7 @@ void ED_spacetype_image()
   st->space_subtype_get = image_space_subtype_get;
   st->space_subtype_set = image_space_subtype_set;
   st->space_name_get = image_space_name_get;
+  st->space_icon_get = image_space_icon_get;
   st->blend_read_data = image_space_blend_read_data;
   st->blend_read_after_liblink = nullptr;
   st->blend_write = image_space_blend_write;

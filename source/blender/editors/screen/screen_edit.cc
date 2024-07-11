@@ -916,6 +916,17 @@ blender::StringRefNull ED_area_name(ScrArea *area)
   return item.name;
 }
 
+int ED_area_icon(const ScrArea *area)
+{
+  if (area->type->space_icon_get) {
+    return area->type->space_icon_get(area);
+  }
+
+  const int index = RNA_enum_from_value(rna_enum_space_type_items, area->spacetype);
+  const EnumPropertyItem item = rna_enum_space_type_items[index];
+  return item.icon;
+}
+
 /* *********************************** */
 
 /* case when on area-edge or in azones, or outside window */
