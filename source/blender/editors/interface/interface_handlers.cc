@@ -528,6 +528,7 @@ static void button_activate_init(bContext *C,
                                  uiBut *but,
                                  uiButtonActivateType type);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
+static bool button_modal_state(uiHandleButtonState state);
 static void button_activate_exit(
     bContext *C, uiBut *but, uiHandleButtonData *data, const bool mousemove, const bool onfree);
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *userdata);
@@ -4916,6 +4917,14 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 
 static void force_activate_view_item_but(bContext *C, ARegion *region, uiButViewItem *but)
 {
+  if (but->active && button_modal_state(but->active->state)) {
+    /* Shouldn't change the button state here while it's modal. Probably the event should be
+     * consumed in that state (return #WM_UI_HANDLER_BREAK), but maybe there are valid reasons not
+     * to (remove the assert in that case). */
+    BLI_assert_unreachable();
+    return;
+  }
+
   if (but->active) {
     button_activate_state(C, but, BUTTON_STATE_EXIT);
   }
@@ -4955,7 +4964,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
             force_activate_view_item_but(C, data->region, view_item_but);
           }
 
-          return WM_UI_HANDLER_CONTINUE;
+          return WM_UI_HANDLER_BREAK;
         case KM_DBL_CLICK:
           data->cancel = true;
           UI_view_item_begin_rename(*view_item_but->view_item);
