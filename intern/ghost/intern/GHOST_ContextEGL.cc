@@ -474,7 +474,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   if (m_nativeWindow != 0) {
     std::vector<EGLint> surface_attrib_list;
     surface_attrib_list.reserve(3);
-#if WITH_GHOST_WAYLAND
+#ifdef WITH_GHOST_WAYLAND
     /* Fix transparency issue on Wayland + Nouveau/Zink+NVK. Due to unsupported texture formats
      * drivers can hit transparency code-paths resulting in showing the desktop in viewports.
      *
