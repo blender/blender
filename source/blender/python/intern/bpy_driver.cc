@@ -689,6 +689,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
         Py_DECREF(expr_code);
         expr_code = nullptr;
         PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, nullptr);
+        driver_orig->flag |= DRIVER_FLAG_PYTHON_BLOCKED;
       }
     }
   }

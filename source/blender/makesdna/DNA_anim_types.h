@@ -561,7 +561,8 @@ typedef enum eDriver_Flags {
   DRIVER_FLAG_RECOMPILE = (1 << 3),
   /** The names are cached so they don't need have python unicode versions created each time */
   DRIVER_FLAG_RENAMEVAR = (1 << 4),
-  // DRIVER_FLAG_UNUSED_5 = (1 << 5),
+  /* Set if the driver cannot run because it uses Python which isn't allowed to execute. */
+  DRIVER_FLAG_PYTHON_BLOCKED = (1 << 5),
   /** Include 'self' in the drivers namespace. */
   DRIVER_FLAG_USE_SELF = (1 << 6),
 } eDriver_Flags;
