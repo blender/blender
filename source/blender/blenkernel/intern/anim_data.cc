@@ -789,14 +789,22 @@ static char *rna_path_rename_fix(ID *owner_id,
                                  bool verify_paths)
 {
   char *prefixPtr = strstr(oldpath, prefix);
+  if (prefixPtr == nullptr) {
+    return oldpath;
+  }
+
   char *oldNamePtr = strstr(oldpath, oldName);
+  if (oldNamePtr == nullptr) {
+    return oldpath;
+  }
+
   int prefixLen = strlen(prefix);
   int oldNameLen = strlen(oldName);
 
   /* only start fixing the path if the prefix and oldName feature in the path,
    * and prefix occurs immediately before oldName
    */
-  if ((prefixPtr && oldNamePtr) && (prefixPtr + prefixLen == oldNamePtr)) {
+  if (prefixPtr + prefixLen == oldNamePtr) {
     /* if we haven't aren't able to resolve the path now, try again after fixing it */
     if (!verify_paths || check_rna_path_is_valid(owner_id, oldpath) == 0) {
       DynStr *ds = BLI_dynstr_new();
