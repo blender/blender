@@ -1413,7 +1413,14 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       sctx->runtime.occlusion_plane = occlusion_plane_create(
           sctx->runtime.ray_dir, sctx->ret.loc, sctx->ret.no);
 
-      /* Try to snap only to the face. */
+      /* First, snap to the geometry of the polygon obtained via raycast.
+       * This is necessary because the occlusion plane may "occlude" part of the polygon's
+       * geometry. It also reduces the snap distance, optimizing the process.
+       *
+       * Note that if 'Snap to Edge Midpoint' or 'Snap to Edge Perpendicular' is selected, 'Snap to
+       * Edge' will be returned instead.
+       * This is because the same point can be tested in `snapObjectsRay` and fail this time due to
+       * a mismatched snap distance, also resulting in snapping to the edge instead. */
       elem_test = snap_polygon(sctx, sctx->runtime.snap_to_flag);
       if (elem_test) {
         elem = elem_test;
@@ -1423,16 +1430,23 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       sctx->runtime.has_occlusion_plane = true;
     }
 
+    /* `snapObjectsRay` does 'Snap to Edge' instead of 'Snap to Edge Midpoint' or 'Snap to Edge
+     * Perpendicular'. These points will be tested in the `snap_edge_points` function. */
     elem_test = snapObjectsRay(sctx);
-    if (elem_test) {
+    if (elem_test != SCE_SNAP_TO_NONE) {
       elem = elem_test;
     }
 
-    if ((elem == SCE_SNAP_TO_EDGE) && (snap_to_flag & SNAP_TO_EDGE_ELEMENTS)) {
+    if ((elem == SCE_SNAP_TO_EDGE) &&
+        (snap_to_flag &
+         (SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)))
+    {
       elem = snap_edge_points(sctx, square_f(*dist_px));
     }
 
-    retval |= elem & snap_to_flag;
+    if (elem != SCE_SNAP_TO_NONE) {
+      retval = elem & snap_to_flag;
+    }
   }
 
   if ((retval == SCE_SNAP_TO_NONE) && (snap_to_flag & SCE_SNAP_TO_GRID)) {
