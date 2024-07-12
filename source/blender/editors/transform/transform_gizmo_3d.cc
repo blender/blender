@@ -1225,7 +1225,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
   {
     const PropertyRNA *props[] = {
-        &rna_Scene_transform_orientation_slots,
+        rna_Scene_transform_orientation_slots,
     };
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
@@ -1241,8 +1241,8 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
 
   {
     const PropertyRNA *props[] = {
-        &rna_TransformOrientationSlot_type,
-        &rna_TransformOrientationSlot_use,
+        rna_TransformOrientationSlot_type,
+        rna_TransformOrientationSlot_use,
     };
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       if (props[i]) {
@@ -1257,7 +1257,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
 
   if (ELEM(type_fn, VIEW3D_GGT_xform_gizmo, VIEW3D_GGT_xform_shear)) {
     const PropertyRNA *props[] = {
-        &rna_ToolSettings_transform_pivot_point,
+        rna_ToolSettings_transform_pivot_point,
     };
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(
@@ -1267,7 +1267,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
 
   {
     const PropertyRNA *props[] = {
-        &rna_ToolSettings_workspace_tool_type,
+        rna_ToolSettings_workspace_tool_type,
     };
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(
@@ -1281,9 +1281,9 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup->customdata);
     if (ggd->use_twtype_refresh) {
       const PropertyRNA *props[] = {
-          &rna_SpaceView3D_show_gizmo_object_translate,
-          &rna_SpaceView3D_show_gizmo_object_rotate,
-          &rna_SpaceView3D_show_gizmo_object_scale,
+          rna_SpaceView3D_show_gizmo_object_translate,
+          rna_SpaceView3D_show_gizmo_object_rotate,
+          rna_SpaceView3D_show_gizmo_object_scale,
       };
       for (int i = 0; i < ARRAY_SIZE(props); i++) {
         WM_msg_subscribe_rna(mbus, &view3d_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);

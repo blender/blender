@@ -434,31 +434,31 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
 }
 
 static PropertyRNA *typemap[IDP_NUMTYPES] = {
-    &rna_PropertyGroupItem_string,
-    &rna_PropertyGroupItem_int,
-    &rna_PropertyGroupItem_float,
+    rna_PropertyGroupItem_string,
+    rna_PropertyGroupItem_int,
+    rna_PropertyGroupItem_float,
     nullptr,
     nullptr,
     nullptr,
-    &rna_PropertyGroupItem_group,
-    &rna_PropertyGroupItem_id,
-    &rna_PropertyGroupItem_double,
-    &rna_PropertyGroupItem_idp_array,
-    &rna_PropertyGroupItem_bool,
+    rna_PropertyGroupItem_group,
+    rna_PropertyGroupItem_id,
+    rna_PropertyGroupItem_double,
+    rna_PropertyGroupItem_idp_array,
+    rna_PropertyGroupItem_bool,
 };
 
 static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
     nullptr,
-    &rna_PropertyGroupItem_int_array,
-    &rna_PropertyGroupItem_float_array,
+    rna_PropertyGroupItem_int_array,
+    rna_PropertyGroupItem_float_array,
     nullptr,
     nullptr,
     nullptr,
-    &rna_PropertyGroupItem_collection,
+    rna_PropertyGroupItem_collection,
     nullptr,
-    &rna_PropertyGroupItem_double_array,
+    rna_PropertyGroupItem_double_array,
     nullptr,
-    (PropertyRNA *)&rna_PropertyGroupItem_bool_array,
+    rna_PropertyGroupItem_bool_array,
 };
 
 void rna_property_rna_or_id_get(PropertyRNA *prop,
@@ -533,7 +533,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
         const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
             idprop->ui_data);
         if (ui_data_int && ui_data_int->enum_items_num > 0) {
-          r_prop_rna_or_id->rnaprop = &rna_PropertyGroupItem_enum;
+          r_prop_rna_or_id->rnaprop = rna_PropertyGroupItem_enum;
           return;
         }
       }
@@ -571,7 +571,7 @@ PropertyRNA *rna_ensure_property(PropertyRNA *prop)
       const IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(
           idprop->ui_data);
       if (ui_data_int && ui_data_int->enum_items_num > 0) {
-        return &rna_PropertyGroupItem_enum;
+        return rna_PropertyGroupItem_enum;
       }
     }
     return typemap[int(idprop->type)];
