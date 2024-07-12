@@ -185,6 +185,11 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
        0,
        "Smooth",
        "Switch brush to smooth mode for duration of stroke"},
+      {BRUSH_STROKE_ERASE,
+       "ERASE",
+       0,
+       "Erase",
+       "Switch brush to erase mode for duration of stroke"},
       {0},
   };
 

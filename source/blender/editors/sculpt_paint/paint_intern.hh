@@ -456,6 +456,7 @@ enum BrushStrokeMode {
   BRUSH_STROKE_NORMAL,
   BRUSH_STROKE_INVERT,
   BRUSH_STROKE_SMOOTH,
+  BRUSH_STROKE_ERASE,
 };
 
 /* paint_hide.cc */

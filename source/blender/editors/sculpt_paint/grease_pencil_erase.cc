@@ -556,8 +556,9 @@ struct EraseOperationExecutor {
           erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps_);
           break;
         case GP_BRUSH_ERASER_SOFT:
-          /* To be implemented. */
-          return;
+          /* TODO: Implement the soft eraser mode. */
+          erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps_);
+          break;
       }
 
       if (erased) {
@@ -604,6 +605,11 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
 {
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
+  if (brush->gpencil_tool != GPAINT_TOOL_DRAW) {
+    /* If we're using the draw tool to erase (e.g. while holding ctrl), then we should use the
+     * eraser brush instead. */
+    brush = BKE_paint_eraser_brush(paint);
+  }
 
   if (brush->gpencil_settings == nullptr) {
     BKE_brush_init_gpencil_settings(brush);
@@ -624,7 +630,16 @@ void EraseOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   executor.execute(*this, C, extension_sample);
 }
 
-void EraseOperation::on_stroke_done(const bContext & /*C*/) {}
+void EraseOperation::on_stroke_done(const bContext &C)
+{
+  Object *object = CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  if (grease_pencil.runtime->use_eraser_temp) {
+    /* If we're using the draw tool to temporarily erase, then we need to reset the
+     * `use_eraser_temp` flag here. */
+    grease_pencil.runtime->use_eraser_temp = false;
+  }
+}
 
 std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation()
 {

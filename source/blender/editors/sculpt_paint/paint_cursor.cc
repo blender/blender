@@ -1527,8 +1527,8 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 
   /* for paint use paint brush size and color */
   if (pcontext->mode == PaintMode::GPencil) {
-    /* Eraser has a special shape and use a different shader program. */
-    if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+    /* Eraser has a special shape and uses a different shader program. */
+    if (brush->gpencil_tool == GPAINT_TOOL_ERASE || grease_pencil->runtime->use_eraser_temp) {
       grease_pencil_eraser_draw(pcontext);
       return;
     }

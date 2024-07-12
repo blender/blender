@@ -862,6 +862,10 @@ class GreasePencilRuntime {
    * Used for example to temporarily hide the paint cursor in the viewport.
    */
   bool is_drawing_stroke = false;
+  /**
+   * Temporarily enable the eraser. Used by the draw tool.
+   */
+  bool use_eraser_temp = false;
 
  public:
   GreasePencilRuntime() {}
