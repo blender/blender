@@ -37,6 +37,7 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
@@ -465,9 +466,6 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *active_object = CTX_data_active_object(C);
-  /* NOTE: `region` and `rv3d` may be null when called from a script. */
-  const ARegion *region = CTX_wm_region(C);
-  const RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (!active_object) {
     return OPERATOR_CANCELLED;
   }
@@ -543,14 +541,15 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     operator_eval_data.self_object_orig = object;
     operator_eval_data.scene_orig = scene;
     RNA_int_get_array(op->ptr, "mouse_position", operator_eval_data.mouse_position);
-    if (region) {
-      operator_eval_data.region_size = int2(BLI_rcti_size_x(&region->winrct),
-                                            BLI_rcti_size_y(&region->winrct));
-    }
-    else {
-      operator_eval_data.region_size = int2(0);
-    }
-    operator_eval_data.rv3d = rv3d;
+    RNA_int_get_array(op->ptr, "region_size", operator_eval_data.region_size);
+    RNA_float_get_array(op->ptr, "cursor_position", operator_eval_data.cursor_position);
+    RNA_float_get_array(op->ptr, "cursor_rotation", &operator_eval_data.cursor_rotation.w);
+    RNA_float_get_array(
+        op->ptr, "viewport_projection_matrix", operator_eval_data.viewport_winmat.base_ptr());
+    RNA_float_get_array(
+        op->ptr, "viewport_view_matrix", operator_eval_data.viewport_viewmat.base_ptr());
+    operator_eval_data.viewport_is_perspective = RNA_boolean_get(op->ptr,
+                                                                 "viewport_is_perspective");
 
     nodes::GeoNodesCallData call_data{};
     call_data.operator_data = &operator_eval_data;
@@ -585,6 +584,50 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+/**
+ * Input node values are stored as operator properties in order to support redoing from the redo
+ * panel for a few reasons:
+ *  1. Some data (like the mouse position) cannot be retrieved from the `exec` callback used for
+ *     operator redo. Redo is meant to just call the operator again with the exact same properties.
+ *  2. While adjusting an input in the redo panel, the user doesn't expect anything else to change.
+ *     If we retrieve other data like the viewport transform on every execution, that won't be the
+ *     case.
+ * We use operator RNA properties instead of operator custom data because the custom data struct
+ * isn't maintained for the redo `exec` call.
+ */
+static void store_input_node_values_rna_props(const bContext &C,
+                                              wmOperator &op,
+                                              const wmEvent &event)
+{
+  Scene *scene = CTX_data_scene(&C);
+  /* NOTE: `region` and `rv3d` may be null when called from a script. */
+  const ARegion *region = CTX_wm_region(&C);
+  const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+
+  /* Mouse position node inputs. */
+  RNA_int_set_array(op.ptr, "mouse_position", event.mval);
+  RNA_int_set_array(
+      op.ptr,
+      "region_size",
+      region ? int2(BLI_rcti_size_x(&region->winrct), BLI_rcti_size_y(&region->winrct)) : int2(0));
+
+  /* 3D cursor node inputs. */
+  const View3DCursor &cursor = scene->cursor;
+  RNA_float_set_array(op.ptr, "cursor_position", cursor.location);
+  math::Quaternion cursor_rotation;
+  BKE_scene_cursor_rot_to_quat(&cursor, &cursor_rotation.w);
+  RNA_float_set_array(op.ptr, "cursor_rotation", &cursor_rotation.w);
+
+  /* Viewport transform node inputs. */
+  RNA_float_set_array(op.ptr,
+                      "viewport_projection_matrix",
+                      rv3d ? float4x4(rv3d->winmat).base_ptr() : float4x4::identity().base_ptr());
+  RNA_float_set_array(op.ptr,
+                      "viewport_view_matrix",
+                      rv3d ? float4x4(rv3d->viewmat).base_ptr() : float4x4::identity().base_ptr());
+  RNA_boolean_set(op.ptr, "viewport_is_perspective", rv3d ? bool(rv3d->is_persp) : true);
+}
+
 static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bNodeTree *node_tree = get_node_group(*C, *op->ptr, op->reports);
@@ -592,9 +635,10 @@ static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
 
-  RNA_int_set_array(op->ptr, "mouse_position", event->mval);
+  store_input_node_values_rna_props(*C, *op, *event);
 
-  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, *op->properties, true);
+  nodes ::update_input_properties_from_node_tree(
+      *node_tree, op->properties, *op->properties, true);
   nodes::update_output_properties_from_node_tree(*node_tree, op->properties, *op->properties);
 
   return run_node_group_exec(C, op);
@@ -825,9 +869,7 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   asset::operator_asset_reference_props_register(*ot->srna);
   WM_operator_properties_id_lookup(ot, true);
 
-  /* Store the mouse position in an RNA property rather than allocated operator custom data in
-   * order to support redoing the operator. Because redo uses `exec`, the mouse position will be in
-   * the same position in screen space. */
+  /* See comment for #store_input_node_values_rna_props. */
   prop = RNA_def_int_array(ot->srna,
                            "mouse_position",
                            2,
@@ -838,6 +880,56 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
                            "Mouse coordinates in region space",
                            INT_MIN,
                            INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_int_array(
+      ot->srna, "region_size", 2, nullptr, 0, INT_MAX, "Region Size", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_float_array(ot->srna,
+                             "cursor_position",
+                             3,
+                             nullptr,
+                             FLT_MIN,
+                             FLT_MAX,
+                             "3D Cursor Position",
+                             "",
+                             FLT_MIN,
+                             FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_float_array(ot->srna,
+                             "cursor_rotation",
+                             4,
+                             nullptr,
+                             FLT_MIN,
+                             FLT_MAX,
+                             "3D Cursor Rotation",
+                             "",
+                             FLT_MIN,
+                             FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_float_array(ot->srna,
+                             "viewport_projection_matrix",
+                             16,
+                             nullptr,
+                             FLT_MIN,
+                             FLT_MAX,
+                             "Viewport Projection Transform",
+                             "",
+                             FLT_MIN,
+                             FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_float_array(ot->srna,
+                             "viewport_view_matrix",
+                             16,
+                             nullptr,
+                             FLT_MIN,
+                             FLT_MAX,
+                             "Viewport View Transform",
+                             "",
+                             FLT_MIN,
+                             FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  prop = RNA_def_boolean(
+      ot->srna, "viewport_is_perspective", false, "Viewport Is Perspective", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
