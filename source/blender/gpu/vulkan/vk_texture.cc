@@ -557,7 +557,7 @@ IndexRange VKTexture::mip_map_range() const
 IndexRange VKTexture::layer_range() const
 {
   if (is_texture_view()) {
-    return IndexRange(layer_offset_, 1);
+    return IndexRange(layer_offset_, layer_count());
   }
   else {
     return IndexRange(
@@ -568,7 +568,7 @@ IndexRange VKTexture::layer_range() const
 int VKTexture::vk_layer_count(int non_layered_value) const
 {
   if (is_texture_view()) {
-    return 1;
+    return layer_count();
   }
   return type_ == GPU_TEXTURE_CUBE   ? d_ :
          (type_ & GPU_TEXTURE_ARRAY) ? layer_count() :
