@@ -18,11 +18,15 @@
 #include "BKE_screen.hh"
 
 #include "BLI_assert.h"
+#include "BLI_color.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_kdopbvh.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
 
+#include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_scene_types.h"
@@ -32,13 +36,13 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GEO_join_geometries.hh"
-#include "GEO_simplify_curves.hh"
 #include "GEO_smooth_curves.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+#include "ED_space_api.hh"
 #include "ED_view3d.hh"
 
 #include "MEM_guardedalloc.h"
@@ -51,14 +55,15 @@
 #include "BLT_translation.hh"
 
 #include "WM_api.hh"
-#include "WM_message.hh"
 #include "WM_toolsystem.hh"
-
 #include "WM_types.hh"
-#include "curves_sculpt_intern.hh"
+
 #include "grease_pencil_intern.hh"
 #include "paint_intern.hh"
 #include "wm_event_types.hh"
+
+#include <algorithm>
+#include <fmt/format.h>
 #include <optional>
 
 namespace blender::ed::sculpt_paint {
@@ -452,31 +457,34 @@ static void GREASE_PENCIL_OT_weight_brush_stroke(wmOperatorType *ot)
 struct GreasePencilFillOpData {
   blender::bke::greasepencil::Layer &layer;
 
-  /* Brush properties, some of these are modified by modal keys. */
-  int flag;
-  eGP_FillExtendModes fill_extend_mode;
-  float fill_extend_fac;
-
+  /* Material of the generated stroke. */
   int material_index;
   /* Toggle inverse filling. */
   bool invert = false;
   /* Toggle precision mode. */
   bool precision = false;
 
+  /* Methods for gap filling. */
+  eGP_FillExtendModes extension_mode;
+  /* Length of extension lines. */
+  float extension_length;
+  /* Cut off extension lines at first intersection. */
+  bool extension_cut;
+
+  /* Draw boundaries stroke overlay. */
+  bool show_boundaries;
+  /* Draw extension lines overlay. */
+  bool show_extension;
+
   /* Mouse position where fill was initialized */
   float2 fill_mouse_pos;
-  /* Extension lines mode is enabled (middle mouse button). */
-  bool is_extension_mode = false;
+  /* Extension lines drag mode is enabled (middle mouse button). */
+  bool is_extension_drag_active = false;
   /* Mouse position where the extension mode was enabled. */
   float2 extension_mouse_pos;
 
-  ~GreasePencilFillOpData()
-  {
-    // TODO Remove drawing handler.
-    // if (this->draw_handle_3d) {
-    //   ED_region_draw_cb_exit(this->region_type, this->draw_handle_3d);
-    // }
-  }
+  /* Overlay draw callback for helper lines, etc. */
+  void *overlay_cb_handle;
 
   static GreasePencilFillOpData from_context(bContext &C,
                                              blender::bke::greasepencil::Layer &layer,
@@ -488,53 +496,384 @@ struct GreasePencilFillOpData {
 
     const ToolSettings &ts = *CTX_data_tool_settings(&C);
     const Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
-
-    /* Enable custom drawing handlers to show help lines */
-    const bool do_extend = (brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES);
-    const bool help_lines = do_extend ||
-                            (brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_HELPLINES);
-    if (help_lines) {
-      // TODO register 3D view overlay to render help lines.
-      // this->region_type = region.type;
-      // this->draw_handle_3d = ED_region_draw_cb_activate(
-      //     region.type, grease_pencil_fill_draw_3d, tgpf, REGION_DRAW_POST_VIEW);
-    }
+    const eGP_FillExtendModes extension_mode = eGP_FillExtendModes(
+        brush.gpencil_settings->fill_extend_mode);
+    const bool show_boundaries = brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_HELPLINES;
+    const bool show_extension = brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES;
+    const float extension_length = brush.gpencil_settings->fill_extend_fac;
+    const bool extension_cut = brush.gpencil_settings->flag & GP_BRUSH_FILL_STROKE_COLLIDE;
 
     return {layer,
-            brush.gpencil_settings->flag,
-            eGP_FillExtendModes(brush.gpencil_settings->fill_extend_mode),
-            brush.gpencil_settings->fill_extend_fac,
             material_index,
             invert,
-            precision};
+            precision,
+            extension_mode,
+            extension_length,
+            extension_cut,
+            show_boundaries,
+            show_extension};
   }
 };
+
+/* Find and cut extension lines at intersections with other lines and strokes. */
+static void grease_pencil_fill_extension_cut(const bContext &C,
+                                             ed::greasepencil::ExtensionData &extension_data,
+                                             Span<int> origin_drawings,
+                                             Span<int> origin_points)
+{
+  const RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
+  const Scene &scene = *CTX_data_scene(&C);
+  const Object &object = *CTX_data_active_object(&C);
+  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
+
+  const float4x4 view_matrix = float4x4(rv3d.viewmat);
+
+  const Vector<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+  const IndexRange bvh_extension_range = extension_data.lines.starts.index_range();
+  Array<int> bvh_curve_offsets_data(drawings.size() + 1);
+  for (const int i : drawings.index_range()) {
+    bvh_curve_offsets_data[i] = drawings[i].drawing.strokes().points_num();
+  }
+  const OffsetIndices bvh_curve_offsets = offset_indices::accumulate_counts_to_offsets(
+      bvh_curve_offsets_data, bvh_extension_range.size());
+
+  /* Upper bound for segment count. Arrays are sized for easy index mapping, exact count isn't
+   * necessary. Not all entries are added to the BVH tree. */
+  const int max_bvh_lines = bvh_curve_offsets.total_size();
+  /* Cached view positions for lines. */
+  Array<float2> view_starts(max_bvh_lines);
+  Array<float2> view_ends(max_bvh_lines);
+
+  BVHTree *tree = BLI_bvhtree_new(max_bvh_lines, 0.0f, 4, 6);
+  BLI_SCOPED_DEFER([&]() { BLI_bvhtree_free(tree); });
+
+  /* Insert extension lines for intersection.
+   * Note: These are added first, so that the extension index matches its index in BVH data. */
+  for (const int i_line : bvh_extension_range.index_range()) {
+    const float2 start =
+        math::transform_point(view_matrix, extension_data.lines.starts[i_line]).xy();
+    const float2 end = math::transform_point(view_matrix, extension_data.lines.ends[i_line]).xy();
+
+    const int bvh_index = bvh_extension_range[i_line];
+    view_starts[bvh_index] = start;
+    view_ends[bvh_index] = end;
+
+    const float bb[6] = {start.x, start.y, 0.0f, end.x, end.y, 0.0f};
+    BLI_bvhtree_insert(tree, bvh_index, bb, 2);
+  }
+
+  /* Insert segments for cutting extensions on stroke intersection. */
+  for (const int i_drawing : drawings.index_range()) {
+    const ed::greasepencil::DrawingInfo &info = drawings[i_drawing];
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    const Span<float3> positions = curves.positions();
+    const VArray<bool> cyclic = curves.cyclic();
+    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+    const float4x4 layer_to_view = view_matrix * layer.to_world_space(object);
+
+    for (const int i_curve : curves.curves_range()) {
+      const bool is_cyclic = cyclic[i_curve];
+      const IndexRange points = points_by_curve[i_curve];
+
+      for (const int i_point : points.drop_back(1)) {
+        const float2 start = math::transform_point(layer_to_view, positions[i_point]).xy();
+        const float2 end = math::transform_point(layer_to_view, positions[i_point + 1]).xy();
+
+        const int bvh_index = bvh_curve_offsets[i_drawing][i_point];
+        view_starts[bvh_index] = start;
+        view_ends[bvh_index] = end;
+
+        const float bb[6] = {start.x, start.y, 0.0f, end.x, end.y, 0.0f};
+        BLI_bvhtree_insert(tree, bvh_index, bb, 2);
+      }
+      /* Last->first point segment only used for cyclic curves. */
+      if (is_cyclic) {
+        const float2 start = math::transform_point(layer_to_view, positions[points.last()]).xy();
+        const float2 end = math::transform_point(layer_to_view, positions[points.first()]).xy();
+
+        const int bvh_index = bvh_curve_offsets[i_drawing][points.last()];
+        view_starts[bvh_index] = start;
+        view_ends[bvh_index] = end;
+
+        const float bb[6] = {start.x, start.y, 0.0f, end.x, end.y, 0.0f};
+        BLI_bvhtree_insert(tree, bvh_index, bb, 2);
+      }
+    }
+  }
+
+  BLI_bvhtree_balance(tree);
+
+  struct RaycastArgs {
+    Span<float2> starts;
+    Span<float2> ends;
+    /* Indices that may need to be ignored to avoid self-intersection. */
+    int ignore_index1;
+    int ignore_index2;
+  };
+  BVHTree_RayCastCallback callback =
+      [](void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit) {
+        using Result = math::isect_result<float2>;
+
+        const RaycastArgs &args = *static_cast<const RaycastArgs *>(userdata);
+        if (ELEM(index, args.ignore_index1, args.ignore_index2)) {
+          return;
+        }
+
+        const float2 ray_start = float2(ray->origin);
+        const float2 ray_end = ray_start + float2(ray->direction) * ray->radius;
+        const float2 &line_start = args.starts[index];
+        const float2 &line_end = args.ends[index];
+        Result result = math::isect_seg_seg(ray_start, ray_end, line_start, line_end);
+        if (result.kind <= 0) {
+          return;
+        }
+        const float dist = result.lambda * math::distance(ray_start, ray_end);
+        if (dist >= hit->dist) {
+          return;
+        }
+        /* These always need to be calculated for the BVH traversal function. */
+        hit->index = index;
+        hit->dist = result.lambda * math::distance(ray_start, ray_end);
+        /* Don't need the hit point, only the lambda. */
+        hit->no[0] = result.lambda;
+      };
+
+  /* Store intersections first before applying to the data, so that subsequent raycasts use
+   * original end points until all intersections are found. */
+  Vector<float3> new_extension_ends(extension_data.lines.ends.size());
+  for (const int i_line : extension_data.lines.starts.index_range()) {
+    const float2 start =
+        math::transform_point(view_matrix, extension_data.lines.starts[i_line]).xy();
+    const float2 end = math::transform_point(view_matrix, extension_data.lines.ends[i_line]).xy();
+    float length;
+    const float2 dir = math::normalize_and_get_length(end - start, length);
+
+    const int bvh_index = i_line;
+    const int origin_drawing = origin_drawings[i_line];
+    const int origin_point = origin_points[i_line];
+    const int bvh_origin_index = bvh_curve_offsets[origin_drawing][origin_point];
+
+    RaycastArgs args = {view_starts, view_ends, bvh_index, bvh_origin_index};
+    BVHTreeRayHit hit;
+    hit.index = -1;
+    hit.dist = FLT_MAX;
+    BLI_bvhtree_ray_cast(
+        tree, float3(start, 0.0f), float3(dir, 0.0f), length, &hit, callback, &args);
+
+    if (hit.index >= 0) {
+      const float lambda = hit.no[0];
+      new_extension_ends[i_line] = math::interpolate(
+          extension_data.lines.starts[i_line], extension_data.lines.ends[i_line], lambda);
+    }
+    else {
+      new_extension_ends[i_line] = extension_data.lines.ends[i_line];
+    }
+  }
+
+  extension_data.lines.ends = std::move(new_extension_ends);
+}
+
+static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
+    const bContext &C, const GreasePencilFillOpData &op_data)
+{
+  const Scene &scene = *CTX_data_scene(&C);
+  const Object &object = *CTX_data_active_object(&C);
+  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
+
+  const Vector<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+  ed::greasepencil::ExtensionData extension_data;
+  Vector<int> origin_points;
+  Vector<int> origin_drawings;
+  for (const int i_drawing : drawings.index_range()) {
+    const ed::greasepencil::DrawingInfo &info = drawings[i_drawing];
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    const Span<float3> positions = curves.positions();
+    const VArray<bool> cyclic = curves.cyclic();
+    const float4x4 layer_to_world = grease_pencil.layer(info.layer_index)->to_world_space(object);
+
+    for (const int i_curve : curves.curves_range()) {
+      const IndexRange points = points_by_curve[i_curve];
+      /* No extension lines on cyclic curves. */
+      if (cyclic[i_curve]) {
+        continue;
+      }
+      /* Can't compute directions for single-point curves. */
+      if (points.size() < 2) {
+        continue;
+      }
+
+      const float3 pos_head = math::transform_point(layer_to_world, positions[points[0]]);
+      const float3 pos_tail = math::transform_point(layer_to_world, positions[points.last()]);
+      const float3 pos_head_next = math::transform_point(layer_to_world, positions[points[1]]);
+      const float3 pos_tail_prev = math::transform_point(layer_to_world,
+                                                         positions[points.last(1)]);
+      const float3 dir_head = math::normalize(pos_head - pos_head_next);
+      const float3 dir_tail = math::normalize(pos_tail - pos_tail_prev);
+      /* Initial length before intersection tests. */
+      const float length = op_data.extension_length;
+
+      switch (op_data.extension_mode) {
+        case GP_FILL_EMODE_EXTEND:
+          extension_data.lines.starts.append(pos_head);
+          extension_data.lines.ends.append(pos_head + dir_head * length);
+          origin_drawings.append(i_drawing);
+          origin_points.append(points.first());
+
+          extension_data.lines.starts.append(pos_tail);
+          extension_data.lines.ends.append(pos_tail + dir_tail * length);
+          origin_drawings.append(i_drawing);
+          /* Segment index is the start point. */
+          origin_points.append(points.last() - 1);
+          break;
+        case GP_FILL_EMODE_RADIUS:
+          extension_data.circles.centers.append(pos_head);
+          extension_data.circles.radii.append(length);
+          origin_drawings.append(i_drawing);
+          origin_points.append(points.first());
+
+          extension_data.circles.centers.append(pos_tail);
+          extension_data.circles.radii.append(length);
+          origin_drawings.append(i_drawing);
+          /* Segment index is the start point. */
+          origin_points.append(points.last() - 1);
+          break;
+      }
+    }
+  }
+
+  /* Intersection test against strokes and other extension lines. */
+  if (op_data.extension_cut) {
+    grease_pencil_fill_extension_cut(C, extension_data, origin_drawings, origin_points);
+  }
+
+  return extension_data;
+}
 
 static void grease_pencil_fill_status_indicators(bContext &C,
                                                  const GreasePencilFillOpData &op_data)
 {
-  const bool is_extend = (op_data.fill_extend_mode == GP_FILL_EMODE_EXTEND);
-  const bool use_stroke_collide = (op_data.flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
-  const float fill_extend_fac = op_data.fill_extend_fac;
+  const bool is_extend = (op_data.extension_mode == GP_FILL_EMODE_EXTEND);
 
-  char status_str[UI_MAX_DRAW_STR];
-  BLI_snprintf(status_str,
-               sizeof(status_str),
-               IFACE_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
-                      "Switch Mode, D: "
-                      "Stroke Collision | %s %s (%.3f)"),
-               (is_extend) ? IFACE_("Extend") : IFACE_("Radius"),
-               (is_extend && use_stroke_collide) ? IFACE_("Stroke: ON") : IFACE_("Stroke: OFF"),
-               fill_extend_fac);
+  const std::string status_str = fmt::format(
+      IFACE_("Fill: ESC/RMB cancel, LMB Fill, MMB Adjust Extension, S: "
+             "Switch Mode, D: Stroke Collision | Mode: {}, Collision {}, Length: {:.3f}"),
+      (is_extend) ? IFACE_("Extend") : IFACE_("Radius"),
+      (is_extend && op_data.extension_cut) ? IFACE_("ON") : IFACE_("OFF"),
+      op_data.extension_length);
 
-  ED_workspace_status_text(&C, status_str);
+  ED_workspace_status_text(&C, status_str.c_str());
 }
 
-static void grease_pencil_update_extend(bContext &C, const GreasePencilFillOpData &op_data)
+/* Draw callback for fill tool overlay. */
+static void grease_pencil_fill_overlay_cb(const bContext *C, ARegion * /*region*/, void *arg)
 {
-  if (op_data.fill_extend_fac > 0.0f) {
-    // TODO update extension lines.
+  const ARegion &region = *CTX_wm_region(C);
+  const RegionView3D &rv3d = *CTX_wm_region_view3d(C);
+  const Scene &scene = *CTX_data_scene(C);
+  const Object &object = *CTX_data_active_object(C);
+  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
+  auto &op_data = *static_cast<GreasePencilFillOpData *>(arg);
+
+  const float4x4 world_to_view = float4x4(rv3d.viewmat);
+  /* Note; the initial view matrix is already set, clear to draw in view space. */
+  ed::greasepencil::image_render::clear_view_matrix();
+
+  const ColorGeometry4f stroke_curves_color = ColorGeometry4f(1, 0, 0, 1);
+  const ColorGeometry4f extension_lines_color = ColorGeometry4f(0, 1, 1, 1);
+  const ColorGeometry4f extension_circles_color = ColorGeometry4f(1, 0.5, 0, 1);
+
+  const Vector<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+  if (op_data.show_boundaries) {
+    const Vector<ed::greasepencil::DrawingInfo> drawings =
+        ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+    for (const ed::greasepencil::DrawingInfo &info : drawings) {
+      const IndexMask curve_mask = info.drawing.strokes().curves_range();
+      const VArray<ColorGeometry4f> colors = VArray<ColorGeometry4f>::ForSingle(
+          stroke_curves_color, info.drawing.strokes().points_num());
+      const float4x4 layer_to_world =
+          grease_pencil.layer(info.layer_index)->to_world_space(object);
+      const bool use_xray = false;
+      const float radius_scale = 1.0f;
+
+      ed::greasepencil::image_render::draw_grease_pencil_strokes(rv3d,
+                                                                 int2(region.winx, region.winy),
+                                                                 object,
+                                                                 info.drawing,
+                                                                 layer_to_world,
+                                                                 curve_mask,
+                                                                 colors,
+                                                                 use_xray,
+                                                                 radius_scale);
+    }
   }
+
+  if (op_data.show_extension) {
+    const ed::greasepencil::ExtensionData extensions = grease_pencil_fill_get_extension_data(
+        *C, op_data);
+
+    const float line_width = 2.0f;
+
+    const IndexRange lines_range = extensions.lines.starts.index_range();
+    if (!lines_range.is_empty()) {
+      const VArray<ColorGeometry4f> line_colors = VArray<ColorGeometry4f>::ForSingle(
+          extension_lines_color, lines_range.size());
+
+      ed::greasepencil::image_render::draw_lines(world_to_view,
+                                                 lines_range,
+                                                 extensions.lines.starts,
+                                                 extensions.lines.ends,
+                                                 line_colors,
+                                                 line_width);
+    }
+    const IndexRange circles_range = extensions.circles.centers.index_range();
+    if (!circles_range.is_empty()) {
+      const VArray<ColorGeometry4f> circle_colors = VArray<ColorGeometry4f>::ForSingle(
+          extension_circles_color, circles_range.size());
+
+      ed::greasepencil::image_render::draw_circles(
+          world_to_view,
+          circles_range,
+          extensions.circles.centers,
+          VArray<float>::ForSpan(extensions.circles.radii),
+          circle_colors,
+          float2(region.winx, region.winy),
+          line_width,
+          false);
+    }
+  }
+}
+
+static void grease_pencil_fill_update_overlay(const ARegion &region,
+                                              GreasePencilFillOpData &op_data)
+{
+  const bool needs_overlay = op_data.show_boundaries || op_data.show_extension;
+
+  if (needs_overlay) {
+    if (op_data.overlay_cb_handle == nullptr) {
+      op_data.overlay_cb_handle = ED_region_draw_cb_activate(
+          region.type, grease_pencil_fill_overlay_cb, &op_data, REGION_DRAW_POST_VIEW);
+    }
+  }
+  else {
+    if (op_data.overlay_cb_handle) {
+      ED_region_draw_cb_exit(region.type, op_data.overlay_cb_handle);
+      op_data.overlay_cb_handle = nullptr;
+    }
+  }
+}
+
+static void grease_pencil_update_extend(bContext &C, GreasePencilFillOpData &op_data)
+{
+  grease_pencil_fill_update_overlay(*CTX_wm_region(&C), op_data);
   grease_pencil_fill_status_indicators(C, op_data);
   WM_event_add_notifier(&C, NC_GPENCIL | NA_EDITED, nullptr);
 }
@@ -746,6 +1085,9 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   for (const FillToolTargetInfo &info : target_drawings) {
     const Layer &layer = *grease_pencil.layers()[info.target.layer_index];
 
+    const ed::greasepencil::ExtensionData extensions = grease_pencil_fill_get_extension_data(
+        C, op_data);
+
     bke::CurvesGeometry fill_curves = fill_strokes(view_context,
                                                    brush,
                                                    scene,
@@ -755,6 +1097,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
                                                    op_data.invert,
                                                    alpha_threshold,
                                                    mouse_position,
+                                                   extensions,
                                                    fit_method,
                                                    op_data.material_index,
                                                    keep_images);
@@ -781,7 +1124,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   WM_cursor_modal_restore(&win);
 
   /* Save extend value for next operation. */
-  brush.gpencil_settings->fill_extend_fac = op_data.fill_extend_fac;
+  brush.gpencil_settings->fill_extend_fac = op_data.extension_length;
 
   return true;
 }
@@ -834,12 +1177,20 @@ static bool grease_pencil_fill_init(bContext &C, wmOperator &op)
 
 static void grease_pencil_fill_exit(bContext &C, wmOperator &op)
 {
+  const ARegion &region = *CTX_wm_region(&C);
   Object &ob = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
 
   WM_cursor_modal_restore(CTX_wm_window(&C));
 
   if (op.customdata) {
+    auto &op_data = *static_cast<GreasePencilFillOpData *>(op.customdata);
+
+    if (op_data.overlay_cb_handle) {
+      ED_region_draw_cb_exit(region.type, op_data.overlay_cb_handle);
+      op_data.overlay_cb_handle = nullptr;
+    }
+
     MEM_delete(static_cast<GreasePencilFillOpData *>(op.customdata));
     op.customdata = nullptr;
   }
@@ -855,6 +1206,7 @@ static void grease_pencil_fill_exit(bContext &C, wmOperator &op)
 
 static int grease_pencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
+  const ARegion &region = *CTX_wm_region(C);
   ToolSettings &ts = *CTX_data_tool_settings(C);
   Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
   Object &ob = *CTX_data_active_object(C);
@@ -875,10 +1227,11 @@ static int grease_pencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent 
     grease_pencil_fill_exit(*C, *op);
     return OPERATOR_CANCELLED;
   }
-  const auto &op_data = *static_cast<GreasePencilFillOpData *>(op->customdata);
+  auto &op_data = *static_cast<GreasePencilFillOpData *>(op->customdata);
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_PAINT_BRUSH);
   grease_pencil_fill_status_indicators(*C, op_data);
+  grease_pencil_fill_update_overlay(region, op_data);
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
@@ -892,11 +1245,11 @@ static int grease_pencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent 
 enum class FillToolModalKey : int8_t {
   Cancel = 1,
   Confirm,
-  GapClosureMode,
-  ExtensionsLengthen,
-  ExtensionsShorten,
-  ExtensionsDrag,
-  ExtensionsCollide,
+  ExtensionModeToggle,
+  ExtensionLengthen,
+  ExtensionShorten,
+  ExtensionDrag,
+  ExtensionCollide,
   Invert,
   Precision,
 };
@@ -904,11 +1257,8 @@ enum class FillToolModalKey : int8_t {
 static int grease_pencil_fill_event_modal_map(bContext *C, wmOperator *op, const wmEvent *event)
 {
   auto &op_data = *static_cast<GreasePencilFillOpData *>(op->customdata);
-  const bool show_extend = (op_data.flag & GP_BRUSH_FILL_SHOW_EXTENDLINES);
-  // const bool help_lines = (((op_data.flag & GP_BRUSH_FILL_SHOW_HELPLINES) || show_extend) &&
-  //                          !is_inverted);
-  // const bool extend_lines = (op_data.fill_extend_fac > 0.0f);
-  const float extension_delta = (op_data.precision ? 0.01f : 0.1f);
+  /* Extension line length increment, for normal and precise mode respectively. */
+  const float extension_delta = (op_data.precision ? 0.002f : 0.02f);
 
   switch (event->val) {
     case int(FillToolModalKey::Cancel):
@@ -916,7 +1266,7 @@ static int grease_pencil_fill_event_modal_map(bContext *C, wmOperator *op, const
 
     case int(FillToolModalKey::Confirm): {
       /* Ignore in extension mode. */
-      if (op_data.is_extension_mode) {
+      if (op_data.is_extension_drag_active) {
         break;
       }
 
@@ -924,33 +1274,33 @@ static int grease_pencil_fill_event_modal_map(bContext *C, wmOperator *op, const
       return (grease_pencil_apply_fill(*C, *op, *event) ? OPERATOR_FINISHED : OPERATOR_CANCELLED);
     }
 
-    case int(FillToolModalKey::GapClosureMode):
-      if (show_extend && event->val == KM_PRESS) {
+    case int(FillToolModalKey::ExtensionModeToggle):
+      if (op_data.show_extension) {
         /* Toggle mode. */
-        if (op_data.fill_extend_mode == GP_FILL_EMODE_EXTEND) {
-          op_data.fill_extend_mode = GP_FILL_EMODE_RADIUS;
+        if (op_data.extension_mode == GP_FILL_EMODE_EXTEND) {
+          op_data.extension_mode = GP_FILL_EMODE_RADIUS;
         }
         else {
-          op_data.fill_extend_mode = GP_FILL_EMODE_EXTEND;
+          op_data.extension_mode = GP_FILL_EMODE_EXTEND;
         }
         grease_pencil_update_extend(*C, op_data);
       }
       break;
 
-    case int(FillToolModalKey::ExtensionsLengthen):
-      op_data.fill_extend_fac = std::max(op_data.fill_extend_fac - extension_delta, 0.0f);
+    case int(FillToolModalKey::ExtensionLengthen):
+      op_data.extension_length = std::max(op_data.extension_length - extension_delta, 0.0f);
       grease_pencil_update_extend(*C, op_data);
       break;
 
-    case int(FillToolModalKey::ExtensionsShorten):
-      op_data.fill_extend_fac = std::min(op_data.fill_extend_fac + extension_delta, 10.0f);
+    case int(FillToolModalKey::ExtensionShorten):
+      op_data.extension_length = std::min(op_data.extension_length + extension_delta, 10.0f);
       grease_pencil_update_extend(*C, op_data);
       break;
 
-    case int(FillToolModalKey::ExtensionsDrag): {
+    case int(FillToolModalKey::ExtensionDrag): {
       if (event->val == KM_PRESS) {
         /* Consider initial offset as zero position. */
-        op_data.is_extension_mode = true;
+        op_data.is_extension_drag_active = true;
         /* TODO This is the GPv2 logic and it's weird. Should be reconsidered, for now use the
          * same method. */
         const float2 base_pos = float2(event->mval);
@@ -962,7 +1312,7 @@ static int grease_pencil_fill_event_modal_map(bContext *C, wmOperator *op, const
       }
       if (event->val == KM_RELEASE) {
         WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_PAINT_BRUSH);
-        op_data.is_extension_mode = false;
+        op_data.is_extension_drag_active = false;
       }
       /* Update cursor line. */
       WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
@@ -970,9 +1320,9 @@ static int grease_pencil_fill_event_modal_map(bContext *C, wmOperator *op, const
       break;
     }
 
-    case int(FillToolModalKey::ExtensionsCollide):
-      if (show_extend && event->val == KM_PRESS) {
-        op_data.flag ^= GP_BRUSH_FILL_STROKE_COLLIDE;
+    case int(FillToolModalKey::ExtensionCollide):
+      if (op_data.show_extension) {
+        op_data.extension_cut = !op_data.extension_cut;
         grease_pencil_update_extend(*C, op_data);
       }
       break;
@@ -1004,7 +1354,7 @@ static int grease_pencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *
       estate = grease_pencil_fill_event_modal_map(C, op, event);
       break;
     case MOUSEMOVE: {
-      if (!op_data.is_extension_mode) {
+      if (!op_data.is_extension_drag_active) {
         break;
       }
 
@@ -1016,7 +1366,7 @@ static int grease_pencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *
       const float current_dist = math::distance(mouse_pos, op_data.fill_mouse_pos);
 
       float delta = (current_dist - initial_dist) * pixel_size * 0.5f;
-      op_data.fill_extend_fac = std::clamp(op_data.fill_extend_fac + delta, 0.0f, 10.0f);
+      op_data.extension_length = std::clamp(op_data.extension_length + delta, 0.0f, 10.0f);
 
       /* Update cursor line and extend lines. */
       WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
@@ -1066,9 +1416,6 @@ static void GREASE_PENCIL_OT_fill(wmOperatorType *ot)
 
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 
-  prop = RNA_def_boolean(ot->srna, "on_back", false, "Draw on Back", "Send new stroke to back");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   prop = RNA_def_boolean(
       ot->srna, "invert", false, "Invert", "Find boundary of unfilled instead of filled regions");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1103,23 +1450,19 @@ void ED_filltool_modal_keymap(wmKeyConfig *keyconf)
   static const EnumPropertyItem modal_items[] = {
       {int(FillToolModalKey::Cancel), "CANCEL", 0, "Cancel", ""},
       {int(FillToolModalKey::Confirm), "CONFIRM", 0, "Confirm", ""},
-      {int(FillToolModalKey::GapClosureMode), "GAP_CLOSURE_MODE", 0, "Gap Closure Mode", ""},
-      {int(FillToolModalKey::ExtensionsLengthen),
-       "EXTENSIONS_LENGTHEN",
+      {int(FillToolModalKey::ExtensionModeToggle),
+       "EXTENSION_MODE_TOGGLE",
        0,
-       "Length Extensions",
+       "Toggle Extension Mode",
        ""},
-      {int(FillToolModalKey::ExtensionsShorten),
-       "EXTENSIONS_SHORTEN",
+      {int(FillToolModalKey::ExtensionLengthen),
+       "EXTENSION_LENGTHEN",
        0,
-       "Shorten Extensions",
+       "Lengthen Extensions",
        ""},
-      {int(FillToolModalKey::ExtensionsDrag), "EXTENSIONS_DRAG", 0, "Drag Extensions", ""},
-      {int(FillToolModalKey::ExtensionsCollide),
-       "EXTENSIONS_COLLIDE",
-       0,
-       "Collide Extensions",
-       ""},
+      {int(FillToolModalKey::ExtensionShorten), "EXTENSION_SHORTEN", 0, "Shorten Extensions", ""},
+      {int(FillToolModalKey::ExtensionDrag), "EXTENSION_DRAG", 0, "Drag Extensions", ""},
+      {int(FillToolModalKey::ExtensionCollide), "EXTENSION_COLLIDE", 0, "Collide Extensions", ""},
       {int(FillToolModalKey::Invert), "INVERT", 0, "Invert", ""},
       {int(FillToolModalKey::Precision), "PRECISION", 0, "Precision", ""},
       {0, nullptr, 0, nullptr, nullptr},
