@@ -70,36 +70,14 @@ struct PrefetchJob {
   float cfra;
   int num_frames_prefetched;
 
-  /* control */
+  /* Control: */
+  /* Set by prefetch. */
   bool running;
   bool waiting;
   bool stop;
+  /* Set from outside. */
+  bool is_scrubbing;
 };
-
-static bool seq_prefetch_is_playing(const Main *bmain)
-{
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
-       screen = static_cast<bScreen *>(screen->id.next))
-  {
-    if (screen->animtimer) {
-      return true;
-    }
-  }
-  return false;
-}
-
-static bool seq_prefetch_is_scrubbing(const Main *bmain)
-{
-
-  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
-       screen = static_cast<bScreen *>(screen->id.next))
-  {
-    if (screen->scrubbing) {
-      return true;
-    }
-  }
-  return false;
-}
 
 static PrefetchJob *seq_prefetch_job_get(Scene *scene)
 {
@@ -118,6 +96,17 @@ bool seq_prefetch_job_is_running(Scene *scene)
   }
 
   return pfjob->running;
+}
+
+static void seq_prefetch_job_scrubbing_set(Scene *scene, bool is_scrubbing)
+{
+  PrefetchJob *pfjob = seq_prefetch_job_get(scene);
+
+  if (!pfjob) {
+    return;
+  }
+
+  pfjob->is_scrubbing = is_scrubbing;
 }
 
 static bool seq_prefetch_job_is_waiting(Scene *scene)
@@ -450,7 +439,7 @@ static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels,
 
 static bool seq_prefetch_need_suspend(PrefetchJob *pfjob)
 {
-  return seq_prefetch_is_cache_full(pfjob->scene) || seq_prefetch_is_scrubbing(pfjob->bmain) ||
+  return seq_prefetch_is_cache_full(pfjob->scene) || pfjob->is_scrubbing ||
          (seq_prefetch_cfra(pfjob) >= pfjob->scene->r.efra);
 }
 
@@ -572,10 +561,12 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
   bool has_strips = bool(ed->seqbasep->first);
 
   if (!context->is_prefetch_render && !context->is_proxy_render) {
-    bool playing = seq_prefetch_is_playing(context->bmain);
-    bool scrubbing = seq_prefetch_is_scrubbing(context->bmain);
+    bool playing = context->is_playing;
+    bool scrubbing = context->is_scrubbing;
     bool running = seq_prefetch_job_is_running(scene);
+    seq_prefetch_job_scrubbing_set(scene, scrubbing);
     seq_prefetch_resume(scene);
+
     /* conditions to start:
      * prefetch enabled, prefetch not running, not scrubbing, not playing,
      * cache storage enabled, has strips to render, not rendering, not doing modal transform -
@@ -583,7 +574,6 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
         ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving)
     {
-
       seq_prefetch_start_ex(context, timeline_frame);
     }
   }
@@ -591,9 +581,9 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 
 bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene)
 {
-  Main *bmain = CTX_data_main(C);
-  bool playing = seq_prefetch_is_playing(bmain);
-  bool scrubbing = seq_prefetch_is_scrubbing(bmain);
+  bScreen *screen = CTX_wm_screen(C);
+  bool playing = screen->animtimer != nullptr;
+  bool scrubbing = screen->scrubbing;
   bool running = seq_prefetch_job_is_running(scene);
   bool suspended = seq_prefetch_job_is_waiting(scene);
 

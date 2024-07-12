@@ -41,6 +41,8 @@ struct SeqRenderData {
   bool skip_cache;
   bool is_proxy_render;
   bool is_prefetch_render;
+  bool is_playing;
+  bool is_scrubbing;
   int view_id;
   /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
   eSeqTaskId task_id;

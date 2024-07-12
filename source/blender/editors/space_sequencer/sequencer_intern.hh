@@ -154,11 +154,7 @@ float sequence_handle_size_get_clamped(const Scene *scene, Sequence *seq, float 
  * TODO: do not rely on such hack and just update the \a ibuf outside of
  * the UI drawing code.
  */
-ImBuf *sequencer_ibuf_get(Main *bmain,
-                          ARegion *region,
-                          Depsgraph *depsgraph,
-                          Scene *scene,
-                          SpaceSeq *sseq,
+ImBuf *sequencer_ibuf_get(const bContext *C,
                           int timeline_frame,
                           int frame_ofs,
                           const char *viewname);
