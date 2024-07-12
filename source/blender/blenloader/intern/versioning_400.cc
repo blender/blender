@@ -359,6 +359,14 @@ static void versioning_eevee_material_shadow_none(Material *material)
     return;
   }
 
+  bNodeSocket *existing_out_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
+  bNodeSocket *volume_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Volume");
+  if (existing_out_sock->link == nullptr && volume_sock->link) {
+    /* Don't apply versioning to a material that only has a volumetric input as this makes the
+     * object surface opaque to the camera, hiding the volume inside. */
+    return;
+  }
+
   if (output_node->custom1 == SHD_OUTPUT_ALL) {
     /* We do not want to affect Cycles. So we split the output into two specific outputs. */
     output_node->custom1 = SHD_OUTPUT_CYCLES;
@@ -387,12 +395,6 @@ static void versioning_eevee_material_shadow_none(Material *material)
   }
 
   bNodeSocket *out_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Surface");
-  bNodeSocket *volume_sock = blender::bke::nodeFindSocket(output_node, SOCK_IN, "Volume");
-  if (out_sock->link == nullptr && volume_sock->link) {
-    /* Don't apply versioning to a material that only has a volumetric input as this makes the
-     * object surface opaque to the camera, hiding the volume inside. */
-    return;
-  }
 
   bNode *mix_node = blender::bke::nodeAddNode(nullptr, ntree, "ShaderNodeMixShader");
   STRNCPY(mix_node->label, "Disable Shadow");
