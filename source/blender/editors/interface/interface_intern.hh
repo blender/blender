@@ -270,6 +270,11 @@ struct uiBut {
   wmOperatorType *optype = nullptr;
   PointerRNA *opptr = nullptr;
   wmOperatorCallContext opcontext = WM_OP_INVOKE_DEFAULT;
+  /**
+   * Keep an operator attached but never actually call it through the button. See
+   * #UI_but_operator_set_never_call().
+   */
+  bool operator_never_call = false;
 
   /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
   uchar menu_key = 0;

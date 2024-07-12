@@ -5647,6 +5647,11 @@ void UI_but_operator_set(uiBut *but,
   }
 }
 
+void UI_but_operator_set_never_call(uiBut *but)
+{
+  but->operator_never_call = true;
+}
+
 /* END Button containing both string label and icon */
 
 /* cruft to make uiBlock and uiBut private */

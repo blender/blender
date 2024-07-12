@@ -54,6 +54,7 @@
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
+#include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 #include "UI_interface_c.hh"
 #include "UI_string_search.hh"
@@ -877,9 +878,15 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
     after->popup_op = block->handle->popup_op;
   }
 
-  after->optype = but->optype;
-  after->opcontext = but->opcontext;
-  after->opptr = but->opptr;
+  if (!but->operator_never_call) {
+    after->optype = but->optype;
+    after->opcontext = but->opcontext;
+    after->opptr = but->opptr;
+
+    but->optype = nullptr;
+    but->opcontext = wmOperatorCallContext(0);
+    but->opptr = nullptr;
+  }
 
   after->rnapoin = but->rnapoin;
   after->rnaprop = but->rnaprop;
@@ -918,10 +925,6 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
   }
 
   after->drawstr = ui_but_drawstr_without_sep_char(but);
-
-  but->optype = nullptr;
-  but->opcontext = wmOperatorCallContext(0);
-  but->opptr = nullptr;
 }
 
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
@@ -8132,12 +8135,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
        * right-clicking to spawn the context menu should also activate the item. This makes it
        * clear which item will be operated on. Apply the button immediately, so context menu
        * polls get the right active item. */
-      uiBut *clicked_view_item_but = but->type == UI_BTYPE_VIEW_ITEM ?
-                                         but :
-                                         ui_view_item_find_mouse_over(data->region, event->xy);
+      uiButViewItem *clicked_view_item_but = static_cast<uiButViewItem *>(
+          but->type == UI_BTYPE_VIEW_ITEM ? but :
+                                            ui_view_item_find_mouse_over(data->region, event->xy));
       if (clicked_view_item_but) {
-        UI_but_execute(C, data->region, clicked_view_item_but);
-        ui_apply_but_funcs_after(C);
+        clicked_view_item_but->view_item->activate(*C);
       }
 
       /* RMB has two options now */

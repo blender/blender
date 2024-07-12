@@ -1419,6 +1419,12 @@ void UI_but_operator_set(uiBut *but,
                          wmOperatorType *optype,
                          wmOperatorCallContext opcontext,
                          const PointerRNA *opptr = nullptr);
+/**
+ * Disable calling operators from \a but in button handling. Useful to attach an operator to a
+ * button for tooltips, "Assign Shortcut", etc. without actually making the button execute the
+ * operator.
+ */
+void UI_but_operator_set_never_call(uiBut *but);
 
 /** For passing inputs to ButO buttons. */
 PointerRNA *UI_but_operator_ptr_ensure(uiBut *but);

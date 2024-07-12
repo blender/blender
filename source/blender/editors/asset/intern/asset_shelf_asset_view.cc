@@ -69,6 +69,7 @@ class AssetViewItem : public ui::PreviewGridItem {
   void build_grid_tile(uiLayout &layout) const override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
   std::optional<bool> should_be_active() const override;
+  void on_activate(bContext &C) override;
   bool should_be_filtered_visible(StringRefNull filter_string) const override;
 
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
@@ -195,6 +196,27 @@ void AssetViewItem::disable_asset_drag()
   allow_asset_drag_ = false;
 }
 
+/**
+ * Needs freeing with #WM_operator_properties_free() (will be done by button if passed to that) and
+ * #MEM_freeN().
+ */
+std::optional<wmOperatorCallParams> create_activate_operator_params(
+    const StringRefNull op_name, const asset_system::AssetRepresentation &asset)
+{
+  if (op_name.is_empty()) {
+    return {};
+  }
+  wmOperatorType *ot = WM_operatortype_find(op_name.c_str(), true);
+  if (!ot) {
+    return {};
+  }
+
+  PointerRNA *op_props = MEM_cnew<PointerRNA>(__func__);
+  WM_operator_properties_create_ptr(op_props, ot);
+  asset::operator_asset_reference_props_set(asset, *op_props);
+  return wmOperatorCallParams{ot, op_props, WM_OP_INVOKE_REGION_WIN};
+}
+
 void AssetViewItem::build_grid_tile(uiLayout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
@@ -210,14 +232,19 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
                          "active_file",
                          &file_ptr);
 
-  wmOperatorType *ot = WM_operatortype_find(shelf_type.activate_operator.c_str(), true);
-  PointerRNA op_props = PointerRNA_NULL;
-  if (ot) {
-    WM_operator_properties_create_ptr(&op_props, ot);
-    asset::operator_asset_reference_props_set(*handle_get_representation(&asset_), op_props);
+  if (std::optional<wmOperatorCallParams> activate_op = create_activate_operator_params(
+          shelf_type.activate_operator, *handle_get_representation(&asset_)))
+  {
+    uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
+    /* Attach the operator, but don't call it through the button. We call it using
+     * #on_activate(). */
+    UI_but_operator_set(item_but, activate_op->optype, activate_op->opcontext, activate_op->opptr);
+    UI_but_operator_set_never_call(item_but);
+
+    MEM_freeN(activate_op->opptr);
   }
 
-  ui::PreviewGridItem::build_grid_tile_button(layout, ot, &op_props);
+  ui::PreviewGridItem::build_grid_tile_button(layout);
 }
 
 void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
@@ -245,6 +272,21 @@ std::optional<bool> AssetViewItem::should_be_active() const
   const bool matches = *asset_view.active_asset_ == weak_ref;
 
   return matches;
+}
+
+void AssetViewItem::on_activate(bContext &C)
+{
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
+  const AssetShelfType &shelf_type = *asset_view.shelf_.type;
+
+  if (std::optional<wmOperatorCallParams> activate_op = create_activate_operator_params(
+          shelf_type.activate_operator, *handle_get_representation(&asset_)))
+  {
+    WM_operator_name_call_ptr(
+        &C, activate_op->optype, activate_op->opcontext, activate_op->opptr, nullptr);
+    WM_operator_properties_free(activate_op->opptr);
+    MEM_freeN(activate_op->opptr);
+  }
 }
 
 bool AssetViewItem::should_be_filtered_visible(const StringRefNull filter_string) const

@@ -471,19 +471,11 @@ PreviewGridItem::PreviewGridItem(StringRef identifier, StringRef label, int prev
 {
 }
 
-void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
-                                             const wmOperatorType *ot,
-                                             const PointerRNA *op_props) const
+void PreviewGridItem::build_grid_tile_button(uiLayout &layout) const
 {
   const GridViewStyle &style = this->get_view().get_style();
   uiBlock *block = uiLayoutGetBlock(&layout);
 
-  if (ot) {
-    UI_but_operator_set(this->view_item_button(),
-                        const_cast<wmOperatorType *>(ot),
-                        WM_OP_INVOKE_REGION_WIN,
-                        op_props);
-  }
   UI_but_func_tooltip_label_set(this->view_item_button(),
                                 [this](const uiBut * /*but*/) { return label; });
 
