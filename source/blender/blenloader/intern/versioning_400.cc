@@ -2715,6 +2715,31 @@ static void add_image_editor_asset_shelf(Main &bmain)
   }
 }
 
+/**
+ * It was possible that curve attributes were initialized to 0 even if that is not allowed for some
+ * attributes.
+ */
+static void fix_built_in_curve_attribute_defaults(Main *bmain)
+{
+  LISTBASE_FOREACH (Curves *, curves, &bmain->hair_curves) {
+    const int curves_num = curves->geometry.curve_num;
+    if (int *resolutions = static_cast<int *>(CustomData_get_layer_named_for_write(
+            &curves->geometry.curve_data, CD_PROP_INT32, "resolution", curves_num)))
+    {
+      for (int &resolution : blender::MutableSpan{resolutions, curves_num}) {
+        resolution = std::max(resolution, 1);
+      }
+    }
+    if (int *nurb_orders = static_cast<int *>(CustomData_get_layer_named_for_write(
+            &curves->geometry.curve_data, CD_PROP_INT8, "nurbs_order", curves_num)))
+    {
+      for (int &nurbs_order : blender::MutableSpan{nurb_orders, curves_num}) {
+        nurbs_order = std::max(nurbs_order, 1);
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -4284,6 +4309,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                                          MA_SURFACE_METHOD_DEFERRED;
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 66)) {
+    fix_built_in_curve_attribute_defaults(bmain);
   }
 
   /**
