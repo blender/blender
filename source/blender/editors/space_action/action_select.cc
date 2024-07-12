@@ -1996,6 +1996,14 @@ static int mouse_action_keys(bAnimContext *ac,
 
             ED_gpencil_set_active_channel(gpd, gpl);
           }
+          else if (ale->type == ANIMTYPE_ACTION_SLOT) {
+            BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
+                           "fcurve_owner_id of an Action Slot should be an Action");
+            animrig::Action *action = reinterpret_cast<animrig::Action *>(ale->fcurve_owner_id);
+            animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
+            slot->set_selected(true);
+            action->slot_active_set(slot->handle);
+          }
         }
       }
       else if (ac->datatype == ANIMCONT_GPENCIL) {

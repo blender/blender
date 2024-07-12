@@ -88,6 +88,8 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
 
 #  include "WM_api.hh"
 
+#  include "UI_interface_icons.hh"
+
 #  include "DEG_depsgraph.hh"
 
 #  include "ANIM_keyframing.hh"
@@ -103,6 +105,7 @@ static animrig::Action &rna_action(const PointerRNA *ptr)
 
 static animrig::Slot &rna_data_slot(const PointerRNA *ptr)
 {
+  BLI_assert(ptr->type == &RNA_ActionSlot);
   return reinterpret_cast<ActionSlot *>(ptr->data)->wrap();
 }
 
@@ -143,6 +146,32 @@ template<typename T>
 static void rna_iterator_array_begin(CollectionPropertyIterator *iter, MutableSpan<T *> items)
 {
   rna_iterator_array_begin(iter, (void *)items.data(), sizeof(T *), items.size(), 0, nullptr);
+}
+
+static PointerRNA rna_ActionSlots_active_get(PointerRNA *ptr)
+{
+  animrig::Action &action = rna_action(ptr);
+  animrig::Slot *active_slot = action.slot_active_get();
+
+  if (!active_slot) {
+    return PointerRNA_NULL;
+  }
+  return RNA_pointer_create(&action.id, &RNA_ActionSlot, active_slot);
+}
+
+static void rna_ActionSlots_active_set(PointerRNA *ptr,
+                                       PointerRNA value,
+                                       struct ReportList * /*reports*/)
+{
+  animrig::Action &action = rna_action(ptr);
+
+  if (value.data) {
+    animrig::Slot &slot = rna_data_slot(&value);
+    action.slot_active_set(slot.handle);
+  }
+  else {
+    action.slot_active_set(animrig::Slot::unassigned);
+  }
 }
 
 static ActionSlot *rna_Action_slots_new(bAction *dna_action,
@@ -247,6 +276,13 @@ static std::optional<std::string> rna_ActionSlot_path(const PointerRNA *ptr)
   char name_esc[sizeof(slot.name) * 2];
   BLI_str_escape(name_esc, slot.name, sizeof(name_esc));
   return fmt::format("slots[\"{}\"]", name_esc);
+}
+
+int rna_ActionSlot_idtype_icon_get(PointerRNA *ptr)
+{
+  animrig::Slot &slot = rna_data_slot(ptr);
+  return UI_icon_from_idcode(slot.idtype);
+  ;
 }
 
 /* Name functions that ignore the first two ID characters */
@@ -1163,6 +1199,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   FunctionRNA *func;
   PropertyRNA *parm;
@@ -1171,6 +1208,15 @@ static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "ActionSlots", nullptr);
   RNA_def_struct_sdna(srna, "bAction");
   RNA_def_struct_ui_text(srna, "Action Slots", "Collection of action slots");
+
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_ActionSlots_active_get", "rna_ActionSlots_active_set", nullptr, nullptr);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN);
+
+  RNA_def_property_ui_text(prop, "Active Slot", "Active slot for this action");
 
   /* Animation.slots.new(...) */
   func = RNA_def_function(srna, "new", "rna_Action_slots_new");
@@ -1246,10 +1292,14 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ActionSlot_name_set");
   RNA_def_property_string_maxlength(prop, sizeof(ActionSlot::name) - 2);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_ActionSlot_name_update");
-  RNA_def_struct_ui_text(
-      srna,
+  RNA_def_property_ui_text(
+      prop,
       "Slot Name",
       "Used when connecting an Action to a data-block, to find the correct slot handle");
+
+  prop = RNA_def_property(srna, "idtype_icon", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_ActionSlot_idtype_icon_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "name_display", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop,
@@ -1258,19 +1308,29 @@ static void rna_def_action_slot(BlenderRNA *brna)
                                 "rna_ActionSlot_name_display_set");
   RNA_def_property_string_maxlength(prop, sizeof(ActionSlot::name) - 2);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_ActionSlot_name_update");
-  RNA_def_struct_ui_text(
-      srna,
+  RNA_def_property_ui_text(
+      prop,
       "Slot Display Name",
       "Name of the slot for showing in the interface. It is the name, without the first two "
       "characters that identify what kind of data-block it animates");
 
   prop = RNA_def_property(srna, "handle", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_struct_ui_text(srna,
-                         "Slot Handle",
-                         "Number specific to this Slot, unique within the Action"
-                         "This is used, for example, on a KeyframeActionStrip to look up the "
-                         "ActionChannelBag for this Slot");
+  RNA_def_property_ui_text(prop,
+                           "Slot Handle",
+                           "Number specific to this Slot, unique within the Action"
+                           "This is used, for example, on a KeyframeActionStrip to look up the "
+                           "ActionChannelBag for this Slot");
+
+  prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "slot_flags", int(animrig::Slot::Flags::Active));
+  RNA_def_property_ui_text(
+      prop,
+      "Active",
+      "Whether this is the active slot, can be set by assigning to action.slots.active");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "slot_flags", int(animrig::Slot::Flags::Selected));

@@ -413,6 +413,23 @@ Slot &Action::slot_ensure_for_id(const ID &animated_id)
   return this->slot_add_for_id(animated_id);
 }
 
+void Action::slot_active_set(const slot_handle_t slot_handle)
+{
+  for (Slot *slot : slots()) {
+    slot->set_active(slot->handle == slot_handle);
+  }
+}
+
+Slot *Action::slot_active_get()
+{
+  for (Slot *slot : slots()) {
+    if (slot->is_active()) {
+      return slot;
+    }
+  }
+  return nullptr;
+}
+
 Slot *Action::find_suitable_slot_for(const ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
@@ -708,6 +725,20 @@ void Slot::set_selected(const bool selected)
   }
   else {
     this->slot_flags &= ~(uint8_t(Flags::Selected));
+  }
+}
+
+bool Slot::is_active() const
+{
+  return this->slot_flags & uint8_t(Flags::Active);
+}
+void Slot::set_active(const bool active)
+{
+  if (active) {
+    this->slot_flags |= uint8_t(Flags::Active);
+  }
+  else {
+    this->slot_flags &= ~(uint8_t(Flags::Active));
   }
 }
 

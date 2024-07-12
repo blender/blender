@@ -450,6 +450,62 @@ TEST_F(ActionLayersTest, find_suitable_slot)
   EXPECT_EQ(&slot, action->find_suitable_slot_for(cube->id));
 }
 
+TEST_F(ActionLayersTest, active_slot)
+{
+  { /* Empty case, no slots exist yet. */
+    EXPECT_EQ(nullptr, action->slot_active_get());
+
+    action->slot_active_set(Slot::unassigned);
+    EXPECT_EQ(nullptr, action->slot_active_get());
+  }
+
+  { /* Single slot case. */
+    Slot &slot_cube = action->slot_ensure_for_id(cube->id);
+    EXPECT_EQ(nullptr, action->slot_active_get())
+        << "Adding the first slot should not change what is the active slot.";
+
+    action->slot_active_set(slot_cube.handle);
+    EXPECT_EQ(&slot_cube, action->slot_active_get())
+        << "It should be possible to activate the only available slot";
+    EXPECT_TRUE(slot_cube.is_active());
+
+    action->slot_active_set(Slot::unassigned);
+    EXPECT_EQ(nullptr, action->slot_active_get())
+        << "It should be possible to de-activate the only available slot";
+    EXPECT_FALSE(slot_cube.is_active());
+  }
+
+  {
+    /* Multiple slots case. */
+    Slot &slot_cube = *action->slot(0);
+    action->slot_active_set(slot_cube.handle);
+
+    Slot &slot_suz = action->slot_ensure_for_id(suzanne->id);
+    Slot &slot_bob = action->slot_ensure_for_id(bob->id);
+    EXPECT_EQ(&slot_cube, action->slot_active_get())
+        << "Adding a subsequent slot should not change what is the active slot.";
+    EXPECT_TRUE(slot_cube.is_active());
+
+    action->slot_active_set(slot_suz.handle);
+    EXPECT_EQ(&slot_suz, action->slot_active_get());
+    EXPECT_FALSE(slot_cube.is_active());
+    EXPECT_TRUE(slot_suz.is_active());
+    EXPECT_FALSE(slot_bob.is_active());
+
+    action->slot_active_set(slot_bob.handle);
+    EXPECT_EQ(&slot_bob, action->slot_active_get());
+    EXPECT_FALSE(slot_cube.is_active());
+    EXPECT_FALSE(slot_suz.is_active());
+    EXPECT_TRUE(slot_bob.is_active());
+
+    action->slot_active_set(Slot::unassigned);
+    EXPECT_EQ(nullptr, action->slot_active_get());
+    EXPECT_FALSE(slot_cube.is_active());
+    EXPECT_FALSE(slot_suz.is_active());
+    EXPECT_FALSE(slot_bob.is_active());
+  }
+}
+
 TEST_F(ActionLayersTest, strip)
 {
   constexpr float inf = std::numeric_limits<float>::infinity();

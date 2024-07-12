@@ -636,6 +636,28 @@ class DOPESHEET_PT_action(DopesheetActionPanelBase, Panel):
         self.draw_generic_panel(context, self.layout, action)
 
 
+class DOPESHEET_PT_action_slot(Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Action"
+    bl_label = "Slot"
+
+    @classmethod
+    def poll(cls, context):
+        action = context.active_action
+        return bool(action and action.slots.active)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        action = context.active_action
+        slot = action.slots.active
+
+        layout.prop(slot, "name_display", text="Name", icon_value=slot.idtype_icon)
+
+
 #######################################
 # Grease Pencil Editing
 
@@ -976,6 +998,7 @@ classes = (
     DOPESHEET_MT_view_pie,
     DOPESHEET_PT_filters,
     DOPESHEET_PT_action,
+    DOPESHEET_PT_action_slot,
     DOPESHEET_PT_gpencil_mode,
     DOPESHEET_PT_gpencil_layer_masks,
     DOPESHEET_PT_gpencil_layer_transform,

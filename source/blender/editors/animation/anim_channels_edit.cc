@@ -348,6 +348,11 @@ void ANIM_set_active_channel(bAnimContext *ac,
         nlt->flag |= NLATRACK_ACTIVE;
         break;
       }
+      case ANIMTYPE_ACTION_SLOT:
+        /* ANIMTYPE_ACTION_SLOT is not supported by this function (because the to-be-activated
+         * bAnimListElement is not passed here, only sub-fields of it), just call
+         * Action::slot_active_set() directly. */
+        break;
       case ANIMTYPE_FILLACTD:        /* Action Expander */
       case ANIMTYPE_FILLACT_LAYERED: /* Animation Expander */
       case ANIMTYPE_DSMAT:           /* Datablock AnimData Expanders */
@@ -401,6 +406,8 @@ void ANIM_set_active_channel(bAnimContext *ac,
 
 bool ANIM_is_active_channel(bAnimListElem *ale)
 {
+  using namespace blender;
+
   switch (ale->type) {
     case ANIMTYPE_FILLACTD:        /* Action Expander */
     case ANIMTYPE_FILLACT_LAYERED: /* Animation Expander */
@@ -446,6 +453,10 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
       return grease_pencil->is_layer_active(
           static_cast<blender::bke::greasepencil::Layer *>(ale->data));
     }
+    case ANIMTYPE_ACTION_SLOT: {
+      animrig::Slot *slot = reinterpret_cast<animrig::Slot *>(ale->data);
+      return slot->is_active();
+    }
       /* These channel types do not have active flags. */
     case ANIMTYPE_NONE:
     case ANIMTYPE_ANIMDATA:
@@ -453,7 +464,6 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_SUMMARY:
     case ANIMTYPE_SCENE:
     case ANIMTYPE_OBJECT:
-    case ANIMTYPE_ACTION_SLOT:
     case ANIMTYPE_NLACONTROLS:
     case ANIMTYPE_FILLDRIVERS:
     case ANIMTYPE_SHAPEKEY:
@@ -3802,6 +3812,43 @@ static int click_select_channel_fcurve(bAnimContext *ac,
 
   return (ND_ANIMCHAN | NA_SELECTED);
 }
+static int click_select_channel_action_slot(bAnimContext *ac,
+                                            bAnimListElem *ale,
+                                            short /* eEditKeyframes_Select or -1 */ selectmode)
+{
+  using namespace blender;
+
+  BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
+                 "fcurve_owner_id of an Action Slot should be an Action");
+  animrig::Action *action = reinterpret_cast<animrig::Action *>(ale->fcurve_owner_id);
+  animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
+
+  if (selectmode == SELECT_INVERT) {
+    selectmode = slot->is_selected() ? SELECT_SUBTRACT : SELECT_ADD;
+  }
+
+  switch (selectmode) {
+    case SELECT_REPLACE:
+      ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
+      ATTR_FALLTHROUGH;
+    case SELECT_ADD:
+      slot->set_selected(true);
+      action->slot_active_set(slot->handle);
+      break;
+    case SELECT_SUBTRACT:
+      slot->set_selected(false);
+      break;
+    case SELECT_EXTEND_RANGE:
+      ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_EXTEND_RANGE);
+      animchannel_select_range(ac, ale);
+      break;
+    case SELECT_INVERT:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  return (ND_ANIMCHAN | NA_SELECTED);
+}
 
 static int click_select_channel_shapekey(bAnimContext *ac,
                                          bAnimListElem *ale,
@@ -4073,6 +4120,9 @@ static int mouse_anim_channels(bContext *C,
     case ANIMTYPE_FCURVE:
     case ANIMTYPE_NLACURVE:
       notifierFlags |= click_select_channel_fcurve(ac, ale, selectmode, filter);
+      break;
+    case ANIMTYPE_ACTION_SLOT:
+      notifierFlags |= click_select_channel_action_slot(ac, ale, selectmode);
       break;
     case ANIMTYPE_SHAPEKEY:
       notifierFlags |= click_select_channel_shapekey(ac, ale, selectmode);

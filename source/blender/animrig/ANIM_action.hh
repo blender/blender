@@ -217,6 +217,27 @@ class Action : public ::bAction {
    */
   Slot &slot_ensure_for_id(const ID &animated_id);
 
+  /**
+   * Set the active Slot, ensuring only one Slot is flagged as the Active one.
+   *
+   * \param slot_handle if Slot::unassigned, there will not be any active slot.
+   * Passing an unknown/invalid slot handle will result in no slot being active.
+   */
+  void slot_active_set(slot_handle_t slot_handle);
+
+  /**
+   * Get the active Slot.
+   *
+   * This requires a linear scan of the slots, to find the one with the 'Active' flag set. Storing
+   * this on the Slot itself has the advantage that the 'active' status of a Slot can be determined
+   * without requiring access to the owning Action.
+   *
+   * As this already does a linear scan for the active slot, the slot is returned as a pointer;
+   * obtaining the pointer from a handle would require another linear scan to get the pointer,
+   * whereas obtaining the handle from the pointer is a constant operation.
+   */
+  Slot *slot_active_get();
+
   /** Assign this Action to the ID.
    *
    * \param slot: The slot this ID should be animated by, may be nullptr if it is to be
@@ -519,6 +540,8 @@ class Slot : public ::ActionSlot {
     Expanded = (1 << 0),
     /** Selected in animation editors. */
     Selected = (1 << 1),
+    /** The active Slot for this Action. Set via a method on the Action. */
+    Active = (1 << 2),
     /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation,
      * all the way below the Slot class. */
   };
@@ -527,6 +550,7 @@ class Slot : public ::ActionSlot {
   void set_expanded(bool expanded);
   bool is_selected() const;
   void set_selected(bool selected);
+  bool is_active() const;
 
   /** Return the set of IDs that are animated by this Slot. */
   Span<ID *> users(Main &bmain) const;
@@ -580,10 +604,15 @@ class Slot : public ::ActionSlot {
    * the responsibility of the caller.
    */
   void name_ensure_prefix();
+
+  /**
+   * Set the 'Active' flag. Only allowed to be called by Action.
+   */
+  void set_active(bool active);
 };
 static_assert(sizeof(Slot) == sizeof(::ActionSlot),
               "DNA struct and its C++ wrapper must have the same size");
-ENUM_OPERATORS(Slot::Flags, Slot::Flags::Selected);
+ENUM_OPERATORS(Slot::Flags, Slot::Flags::Active);
 
 /**
  * KeyframeStrips effectively contain a bag of F-Curves for each Slot.
