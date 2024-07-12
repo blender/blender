@@ -169,9 +169,9 @@ elseif(MSVC)
 endif()
 
 set(GENSRC_C ${GENSRC})
-list(FILTER GENSRC_C INCLUDE REGEX ".*\.c$")
+list(FILTER GENSRC_C INCLUDE REGEX "[a-zA-Z0-9_-]\.c$")
 set(GENSRC_CXX ${GENSRC})
-list(FILTER GENSRC_CXX INCLUDE REGEX ".*\.cc$")
+list(FILTER GENSRC_CXX INCLUDE REGEX "[a-zA-Z0-9_-]\.cc$")
 
 if(GENSRC_FLAGS)
   set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_FLAGS}")
