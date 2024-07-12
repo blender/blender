@@ -6,18 +6,29 @@
  * \ingroup edgreasepencil
  */
 
+#include <algorithm>
 #include <limits>
 
+#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_vector.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_rect.h"
 #include "BLI_stack.hh"
+#include "BLI_task.hh"
 
+#include "BKE_attribute.hh"
+#include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 
+#include "DNA_curves_types.h"
+
 #include "ED_grease_pencil.hh"
+#include "ED_view3d.hh"
+
+#include "GEO_merge_curves.hh"
 
 extern "C" {
 #include "curve_fit_nd.h"
@@ -330,6 +341,98 @@ blender::bke::CurvesGeometry curves_merge_by_distance(
   });
 
   return dst_curves;
+}
+
+bke::CurvesGeometry curves_merge_endpoints_by_distance(
+    const ARegion &region,
+    const bke::CurvesGeometry &src_curves,
+    const float4x4 &layer_to_world,
+    const float merge_distance,
+    const IndexMask &selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
+{
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const Span<float3> src_positions = src_curves.positions();
+  const float merge_distance_squared = merge_distance * merge_distance;
+
+  Array<float2> screen_start_points(src_curves.curves_num());
+  Array<float2> screen_end_points(src_curves.curves_num());
+  /* For comparing screen space positions use a 2D KDTree. Each curve adds 2 points. */
+  KDTree_2d *tree = BLI_kdtree_2d_new(2 * src_curves.curves_num());
+
+  threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
+    for (const int src_i : range) {
+      const IndexRange points = src_points_by_curve[src_i];
+      const float3 start_pos = src_positions[points.first()];
+      const float3 end_pos = src_positions[points.last()];
+      const float3 start_world = math::transform_point(layer_to_world, start_pos);
+      const float3 end_world = math::transform_point(layer_to_world, end_pos);
+
+      ED_view3d_project_float_global(
+          &region, start_world, screen_start_points[src_i], V3D_PROJ_TEST_NOP);
+      ED_view3d_project_float_global(
+          &region, end_world, screen_end_points[src_i], V3D_PROJ_TEST_NOP);
+    }
+  });
+  /* Note: KDTree insertion is not thread-safe, don't parallelize this. */
+  for (const int src_i : src_curves.curves_range()) {
+    BLI_kdtree_2d_insert(tree, src_i * 2, screen_start_points[src_i]);
+    BLI_kdtree_2d_insert(tree, src_i * 2 + 1, screen_end_points[src_i]);
+  }
+  BLI_kdtree_2d_balance(tree);
+
+  Array<int> connect_to_curve(src_curves.curves_num(), -1);
+  Array<bool> flip_direction(src_curves.curves_num(), false);
+  selection.foreach_index(GrainSize(512), [&](const int src_i) {
+    const float2 &start_co = screen_start_points[src_i];
+    const float2 &end_co = screen_end_points[src_i];
+    /* Index of KDTree points so they can be ignored. */
+    const int start_index = src_i * 2;
+    const int end_index = src_i * 2 + 1;
+
+    KDTreeNearest_2d nearest_start, nearest_end;
+    const bool is_start_ok = (BLI_kdtree_2d_find_nearest_cb_cpp(
+                                  tree,
+                                  start_co,
+                                  &nearest_start,
+                                  [&](const int other, const float * /*co*/, const float dist_sq) {
+                                    if (start_index == other || dist_sq > merge_distance_squared) {
+                                      return 0;
+                                    }
+                                    return 1;
+                                  }) != -1);
+    const bool is_end_ok = (BLI_kdtree_2d_find_nearest_cb_cpp(
+                                tree,
+                                end_co,
+                                &nearest_end,
+                                [&](const int other, const float * /*co*/, const float dist_sq) {
+                                  if (end_index == other || dist_sq > merge_distance_squared) {
+                                    return 0;
+                                  }
+                                  return 1;
+                                }) != -1);
+
+    if (is_start_ok) {
+      const int curve_index = nearest_start.index / 2;
+      const bool is_end_point = bool(nearest_start.index % 2);
+      if (connect_to_curve[curve_index] < 0) {
+        connect_to_curve[curve_index] = src_i;
+        flip_direction[curve_index] = !is_end_point;
+      }
+    }
+    if (is_end_ok) {
+      const int curve_index = nearest_end.index / 2;
+      const bool is_end_point = bool(nearest_end.index % 2);
+      if (connect_to_curve[src_i] < 0) {
+        connect_to_curve[src_i] = curve_index;
+        flip_direction[curve_index] = is_end_point;
+      }
+    }
+  });
+  BLI_kdtree_2d_free(tree);
+
+  return geometry::curves_merge_endpoints(
+      src_curves, connect_to_curve, flip_direction, propagation_info);
 }
 
 /* Generate points in an counter-clockwise arc between two directions. */
