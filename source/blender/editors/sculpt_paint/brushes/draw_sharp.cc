@@ -55,7 +55,7 @@ static void calc_faces(const Sculpt &sd,
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  filter_region_clip_factors(ss, positions_eval, verts, factors);
+  filter_region_clip_factors(ss, orig_data.positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
@@ -78,7 +78,7 @@ static void calc_faces(const Sculpt &sd,
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
 
-  write_translations(sd, object, orig_data.positions, verts, translations, positions_orig);
+  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
 
 static void calc_grids(const Sculpt &sd,
