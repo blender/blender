@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_view3d_types.h"
-
 #include "BLI_math_matrix.hh"
 
 #include "node_geometry_util.hh"
@@ -26,14 +24,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const Object &self_object = *params.self_object();
-  const RegionView3D *rv3d = params.user_data()->call_data->operator_data->rv3d;
-  if (!rv3d) {
-    params.set_default_remaining_outputs();
-    return;
-  }
-  params.set_output("Projection", float4x4(rv3d->winmat) * self_object.object_to_world());
-  params.set_output("View", float4x4(rv3d->viewmat) * self_object.object_to_world());
-  params.set_output("Is Orthographic", !bool(rv3d->is_persp));
+  const GeoNodesOperatorData &data = *params.user_data()->call_data->operator_data;
+
+  params.set_output("Projection", data.viewport_winmat * self_object.object_to_world());
+  params.set_output("View", data.viewport_viewmat * self_object.object_to_world());
+  params.set_output("Is Orthographic", !data.viewport_is_perspective);
 }
 
 static void node_register()
