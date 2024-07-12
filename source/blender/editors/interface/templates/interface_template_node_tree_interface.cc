@@ -158,6 +158,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     socket_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_items_changed();
     ED_node_tree_propagate_change(&C, CTX_data_main(&C), &nodetree_);
+    ED_undo_push(&const_cast<bContext &>(C), new_name.c_str());
     return true;
   }
   StringRef get_rename_string() const override
