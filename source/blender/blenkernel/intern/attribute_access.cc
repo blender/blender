@@ -296,7 +296,8 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
                                                       CustomData &custom_data,
                                                       const eCustomDataType data_type,
                                                       const int domain_num,
-                                                      const AttributeInit &initializer)
+                                                      const AttributeInit &initializer,
+                                                      const GPointer custom_default_value_ptr)
 {
   const int old_layer_num = custom_data.totlayer;
   switch (initializer.type) {
@@ -306,8 +307,16 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
       break;
     }
     case AttributeInit::Type::DefaultValue: {
-      add_generic_custom_data_layer(
-          custom_data, data_type, CD_SET_DEFAULT, domain_num, attribute_id);
+      if (const void *default_value = custom_default_value_ptr.get()) {
+        const CPPType &type = *custom_default_value_ptr.type();
+        void *data = add_generic_custom_data_layer(
+            custom_data, data_type, CD_CONSTRUCT, domain_num, attribute_id);
+        type.fill_assign_n(default_value, data, domain_num);
+      }
+      else {
+        add_generic_custom_data_layer(
+            custom_data, data_type, CD_SET_DEFAULT, domain_num, attribute_id);
+      }
       break;
     }
     case AttributeInit::Type::VArray: {
@@ -441,7 +450,7 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
     return false;
   }
   if (add_custom_data_layer_from_attribute_init(
-          name_, *custom_data, data_type_, element_num, initializer))
+          name_, *custom_data, data_type_, element_num, initializer, default_value_))
   {
     if (initializer.type != AttributeInit::Type::Construct) {
       /* Avoid calling update function when values are not initialized. In that case
@@ -553,7 +562,7 @@ bool CustomDataAttributeProvider::try_create(void *owner,
   }
   const int element_num = custom_data_access_.get_element_num(owner);
   add_custom_data_layer_from_attribute_init(
-      attribute_id, *custom_data, data_type, element_num, initializer);
+      attribute_id, *custom_data, data_type, element_num, initializer, {});
   return true;
 }
 

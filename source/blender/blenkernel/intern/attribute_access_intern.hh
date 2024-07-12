@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_generic_pointer.hh"
 #include "BLI_map.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
@@ -46,18 +47,21 @@ class BuiltinAttributeProvider {
   const eCustomDataType data_type_;
   const DeletableEnum deletable_;
   const AttributeValidator validator_;
+  const GPointer default_value_;
 
  public:
   BuiltinAttributeProvider(std::string name,
                            const AttrDomain domain,
                            const eCustomDataType data_type,
                            const DeletableEnum deletable,
-                           AttributeValidator validator = {})
+                           AttributeValidator validator = {},
+                           const GPointer default_value = {})
       : name_(std::move(name)),
         domain_(domain),
         data_type_(data_type),
         deletable_(deletable),
-        validator_(validator)
+        validator_(validator),
+        default_value_(default_value)
   {
   }
 
@@ -177,9 +181,10 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
                                  const UpdateOnChange update_on_change,
-                                 const AttributeValidator validator = {})
+                                 const AttributeValidator validator = {},
+                                 const GPointer default_value = {})
       : BuiltinAttributeProvider(
-            std::move(attribute_name), domain, data_type, deletable, validator),
+            std::move(attribute_name), domain, data_type, deletable, validator, default_value),
         custom_data_access_(custom_data_access),
         update_on_change_(update_on_change)
   {
