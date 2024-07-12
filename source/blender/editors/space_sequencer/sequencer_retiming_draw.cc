@@ -320,11 +320,7 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
 
     float key_position = UI_view2d_view_to_region_x(v2d, key_x_get(scene, seq, &key));
     float prev_key_position = UI_view2d_view_to_region_x(v2d, key_x_get(scene, seq, &key - 1));
-    if (prev_key_position > right_handle_position) {
-      /* Don't draw highlights for out of bounds retiming keys. */
-      continue;
-    }
-    if (key_position < left_handle_position) {
+    if (prev_key_position > right_handle_position || key_position < left_handle_position) {
       /* Don't draw highlights for out of bounds retiming keys. */
       continue;
     }
