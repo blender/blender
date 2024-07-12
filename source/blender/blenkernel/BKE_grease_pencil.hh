@@ -403,12 +403,13 @@ class LayerRuntime {
  */
 class Layer : public ::GreasePencilLayer {
  public:
+  using SortedKeysIterator = const int *;
+
   Layer();
   explicit Layer(StringRefNull name);
   Layer(const Layer &other);
   ~Layer();
 
- public:
   /* Define the common functions for #TreeNode. */
   TREENODE_COMMON_METHODS;
   /**
@@ -486,6 +487,11 @@ class Layer : public ::GreasePencilLayer {
    * exists.
    */
   int sorted_keys_index_at(int frame_number) const;
+  /**
+   * \returns an iterator into the `sorted_keys` span to the frame at \a frame_number or nullptr if
+   * no such frame exists.
+   */
+  SortedKeysIterator sorted_keys_iterator_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -557,14 +563,6 @@ class Layer : public ::GreasePencilLayer {
   void set_view_layer_name(const char *new_name);
 
  private:
-  using SortedKeysIterator = const int *;
-
- private:
-  /**
-   * \returns an iterator into the `sorted_keys` span to the frame at \a frame_number or nullptr if
-   * no such frame exists.
-   */
-  SortedKeysIterator sorted_keys_iterator_at(int frame_number) const;
   /**
    * \returns the key of the active frame at \a frame_number or #std::nullopt if no such frame
    * exists.

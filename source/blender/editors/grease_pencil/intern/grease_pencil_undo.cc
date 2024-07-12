@@ -23,6 +23,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+#include "DNA_grease_pencil_types.h"
 #include "ED_grease_pencil.hh"
 #include "ED_undo.hh"
 

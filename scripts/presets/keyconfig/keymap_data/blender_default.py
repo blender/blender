@@ -4578,7 +4578,7 @@ def km_gpencil_legacy_stroke_vertex_replace(_params):
 
 
 # Grease Pencil v3
-def km_grease_pencil_paint_mode(_params):
+def km_grease_pencil_paint_mode(params):
     items = []
     keymap = (
         "Grease Pencil Paint Mode",
@@ -4599,6 +4599,10 @@ def km_grease_pencil_paint_mode(_params):
 
         # Isolate Layer
         ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
+
+        op_tool_optional(
+            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            (op_tool_cycle, "builtin.interpolate"), params),
 
         op_asset_shelf_popup(
             "VIEW3D_AST_brush_gpencil_paint",
@@ -4730,6 +4734,9 @@ def km_grease_pencil_edit_mode(params):
         # Set Handle Type
         ("grease_pencil.set_handle_type", {"type": 'V', "value": 'PRESS'}, None),
 
+        op_tool_optional(
+            ("grease_pencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            (op_tool_cycle, "builtin.interpolate"), params),
     ])
 
     return keymap
@@ -8626,6 +8633,27 @@ def km_3d_view_tool_paint_gpencil_interpolate(params):
     )
 
 
+def km_grease_pencil_interpolate_tool_modal_map(params):
+    items = []
+    keymap = (
+        "Interpolate Tool Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'RET', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'NUMPAD_ENTER', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
+        ("INCREASE", {"type": 'WHEELUPMOUSE', "value": 'PRESS'}, None),
+        ("DECREASE", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Tool System (3D View, Grease Pencil, Edit)
 
@@ -8967,6 +8995,28 @@ def km_sequencer_editor_tool_scale(params):
     )
 
 
+def km_3d_view_tool_edit_grease_pencil_interpolate(params):
+    return (
+        "3D View Tool: Edit Grease Pencil, Interpolate",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.interpolate", params.tool_maybe_tweak_event,
+             None),
+        ]},
+    )
+
+
+def km_3d_view_tool_paint_grease_pencil_interpolate(params):
+    return (
+        "3D View Tool: Paint Grease Pencil, Interpolate",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("grease_pencil.interpolate", params.tool_maybe_tweak_event,
+             None),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -9116,6 +9166,7 @@ def generate_keymaps(params=None):
         km_node_link_modal_map(params),
         km_grease_pencil_primitive_tool_modal_map(params),
         km_grease_pencil_fill_tool_modal_map(params),
+        km_grease_pencil_interpolate_tool_modal_map(params),
 
         # Gizmos.
         km_generic_gizmo(params),
@@ -9265,6 +9316,8 @@ def generate_keymaps(params=None):
         km_sequencer_editor_tool_move(params),
         km_sequencer_editor_tool_rotate(params),
         km_sequencer_editor_tool_scale(params),
+        km_3d_view_tool_edit_grease_pencil_interpolate(params),
+        km_3d_view_tool_paint_grease_pencil_interpolate(params),
     ]
 
 # ------------------------------------------------------------------------------

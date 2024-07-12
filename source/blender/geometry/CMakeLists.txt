@@ -20,6 +20,7 @@ set(SRC
   intern/curve_constraints.cc
   intern/extend_curves.cc
   intern/fillet_curves.cc
+  intern/interpolate_curves.cc
   intern/join_geometries.cc
   intern/merge_curves.cc
   intern/mesh_boolean.cc
@@ -57,6 +58,7 @@ set(SRC
   GEO_curve_constraints.hh
   GEO_extend_curves.hh
   GEO_fillet_curves.hh
+  GEO_interpolate_curves.hh
   GEO_join_geometries.hh
   GEO_merge_curves.hh
   GEO_mesh_boolean.hh

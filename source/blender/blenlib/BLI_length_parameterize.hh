@@ -158,6 +158,20 @@ void sample_uniform(Span<float> accumulated_segment_lengths,
                     MutableSpan<float> r_factors);
 
 /**
+ * Find evenly spaced samples along the lengths, starting at the end.
+ *
+ * \param accumulated_segment_lengths: The accumulated lengths of the original elements being
+ * sampled. Could be calculated by #accumulate_lengths.
+ * \param include_first_point: Generally false for cyclic sequences and true otherwise.
+ * \param r_segment_indices: The index of the previous point at each sample.
+ * \param r_factors: The portion of the length in each segment at each sample.
+ */
+void sample_uniform_reverse(Span<float> accumulated_segment_lengths,
+                            bool include_first_point,
+                            MutableSpan<int> r_segment_indices,
+                            MutableSpan<float> r_factors);
+
+/**
  * For each provided sample length, find the segment index and interpolation factor.
  *
  * \param accumulated_segment_lengths: The accumulated lengths of the original elements being

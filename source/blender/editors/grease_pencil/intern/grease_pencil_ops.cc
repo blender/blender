@@ -199,6 +199,7 @@ void ED_operatortypes_grease_pencil()
   ED_operatortypes_grease_pencil_material();
   ED_operatortypes_grease_pencil_primitives();
   ED_operatortypes_grease_pencil_weight_paint();
+  ED_operatortypes_grease_pencil_interpolate();
 }
 
 void ED_operatormacros_grease_pencil()
@@ -247,4 +248,5 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
   keymap_grease_pencil_fill_tool(keyconf);
   ED_primitivetool_modal_keymap(keyconf);
   ED_filltool_modal_keymap(keyconf);
+  ED_interpolatetool_modal_keymap(keyconf);
 }
