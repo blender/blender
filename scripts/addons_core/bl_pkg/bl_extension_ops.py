@@ -986,6 +986,20 @@ def _extensions_repo_refresh_on_change(repo_cache_store, *, extensions_enabled, 
         repo_stats_calc()
 
 
+def _extension_repo_directory_validate_module(repo_directory):
+    # Call after any action which may have created the repository directory for the first time.
+    # This is needed in case an import was attempted and failed.
+    # Afterwards, the user can perform an action which creates the directory.
+    # If the cache is not cleared, enabling the add-on will fail, see: #124457.
+    from sys import path_importer_cache
+    # If the directory has been cached as missing, remove the cache.
+    if path_importer_cache.get(repo_directory, ...) is None:
+        # While highly likely the directory exists, it's possible it failed to be created
+        # (maybe there are no permissions?), if that's the case keep the cache.
+        if os.path.exists(repo_directory):
+            del path_importer_cache[repo_directory]
+
+
 # -----------------------------------------------------------------------------
 # Theme Handling
 #
@@ -1521,6 +1535,7 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))
 
     def execute(self, _context):
+        import importlib
         import addon_utils
 
         repos_all = extension_repos_read()
@@ -1541,6 +1556,15 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
                 # pylint: disable-next=cell-var-from-loop
                 error_fn=lambda ex: self._exceptions_as_report(repo_item.name, ex),
             )
+
+        # Ensure module cache is removed, especially module cache that has marked a module as missing.
+        # This is necessary for extension repositories that:
+        # - Did not exist on startup.
+        # - An extension attempted to load (marking the module as missing).
+        # - The user then manually creates the directory and installs extensions.
+        # In this case any add-on will fail to enable as the cache stores the missing state.
+        # For a closely related issue see: #124457.
+        importlib.invalidate_caches()
 
         # In-line `bpy.ops.preferences.addon_refresh`.
         addon_utils.modules_refresh()
@@ -1995,6 +2019,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                 directory=directory,
                 error_fn=self.error_fn_from_exception,
             )
+            _extension_repo_directory_validate_module(directory)
 
         extensions_enabled = None
         if self.enable_on_install:
@@ -2352,6 +2377,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             error_fn=self.error_fn_from_exception,
             force=True,
         )
+        _extension_repo_directory_validate_module(self.repo_directory)
 
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
@@ -2743,6 +2769,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
+        _extension_repo_directory_validate_module(self.repo_directory)
 
         extensions_enabled = None
         if self.enable_on_install:
