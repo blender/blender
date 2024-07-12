@@ -25,6 +25,15 @@ void ConvertBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
   update_memory_buffer_partial(it);
 }
 
+std::unique_ptr<MetaData> ConvertBaseOperation::get_meta_data()
+{
+  if (this->get_input_operation(0)) {
+    this->get_input_operation(0)->get_meta_data();
+  }
+
+  return nullptr;
+}
+
 /* ******** Value to Color ******** */
 
 ConvertValueToColorOperation::ConvertValueToColorOperation() : ConvertBaseOperation()

@@ -38,6 +38,10 @@ class MetaData {
  public:
   /* The pixels in the result represents data, which is not to be color-managed. */
   bool is_data = false;
+  /* The result stores a 4D vector as opposed to a 3D vector. This is the case for things like
+   * velocity passes, and we need to mark them as 4D in order to write them to file correctly. This
+   * field can be ignored for results that are not of type Vector. */
+  bool is_4d_vector = false;
 
   void add(const blender::StringRef key, const blender::StringRef value);
 

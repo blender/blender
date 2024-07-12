@@ -19,6 +19,9 @@ class ConvertBaseOperation : public MultiThreadedOperation {
  protected:
   virtual void hash_output_params() override;
   virtual void update_memory_buffer_partial(BuffersIterator<float> &it) = 0;
+
+  /* Returns the meta data of the input if it exists. */
+  std::unique_ptr<MetaData> get_meta_data() override;
 };
 
 class ConvertValueToColorOperation : public ConvertBaseOperation {

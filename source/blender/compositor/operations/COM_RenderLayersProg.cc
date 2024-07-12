@@ -95,7 +95,7 @@ std::unique_ptr<MetaData> RenderLayersProg::get_meta_data()
   Scene *scene = this->get_scene();
   Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
   RenderResult *render_result = nullptr;
-  MetaDataExtractCallbackData callback_data = {nullptr};
+  MetaDataExtractCallbackData callback_data = {std::make_unique<MetaData>()};
 
   if (re) {
     render_result = RE_AcquireResultRead(re);
@@ -116,6 +116,17 @@ std::unique_ptr<MetaData> RenderLayersProg::get_meta_data()
                               render_result->stamp_data,
                               MetaDataExtractCallbackData::extract_cryptomatte_meta_data,
                               false);
+
+      RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+      if (render_layer) {
+        RenderPass *render_pass = RE_pass_find_by_name(
+            render_layer, pass_name_.c_str(), view_name_);
+        if (render_pass) {
+          if (StringRef(render_pass->chan_id) == "XYZW") {
+            callback_data.meta_data->is_4d_vector = true;
+          }
+        }
+      }
     }
   }
 

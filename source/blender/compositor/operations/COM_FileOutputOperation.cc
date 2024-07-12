@@ -6,9 +6,11 @@
 
 #include "BLI_assert.h"
 #include "BLI_fileops.h"
+#include "BLI_index_range.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
@@ -26,8 +28,10 @@
 
 namespace blender::compositor {
 
-FileOutputInput::FileOutputInput(NodeImageMultiFileSocket *data, DataType data_type)
-    : data(data), data_type(data_type)
+FileOutputInput::FileOutputInput(NodeImageMultiFileSocket *data,
+                                 DataType data_type,
+                                 DataType original_data_type)
+    : data(data), data_type(data_type), original_data_type(original_data_type)
 {
 }
 
@@ -257,6 +261,28 @@ void FileOutputOperation::execute_multi_layer()
   }
 }
 
+/* Given a float4 image, return a newly allocated float3 image that ignores the last channel. The
+ * input image is freed. */
+float *float4_to_float3_image(int2 size, float *float4_image)
+{
+  float *float3_image = static_cast<float *>(
+      MEM_malloc_arrayN(size_t(size.x) * size.y, sizeof(float[3]), "File Output Vector Buffer."));
+
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(size.x)) {
+        for (int i = 0; i < 3; i++) {
+          const int pixel_index = y * size.x + x;
+          float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
+        }
+      }
+    }
+  });
+
+  MEM_freeN(float4_image);
+  return float3_image;
+}
+
 /* Add a pass of the given name, view, and input buffer. The pass channel identifiers follows the
  * EXR conventions. */
 void FileOutputOperation::add_pass_for_input(realtime_compositor::FileOutput &file_output,
@@ -264,7 +290,8 @@ void FileOutputOperation::add_pass_for_input(realtime_compositor::FileOutput &fi
                                              const char *pass_name,
                                              const char *view_name)
 {
-  switch (input.data_type) {
+  const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
+  switch (input.original_data_type) {
     case DataType::Color:
       /* Use lowercase rgba for Cryptomatte layers because the EXR internal compression rules
        * specify that all uppercase RGBA channels will be compressed, and Cryptomatte should not be
@@ -279,7 +306,13 @@ void FileOutputOperation::add_pass_for_input(realtime_compositor::FileOutput &fi
       }
       break;
     case DataType::Vector:
-      file_output.add_pass(pass_name, view_name, "XYZ", input.output_buffer);
+      if (input.image_input->get_meta_data() && input.image_input->get_meta_data()->is_4d_vector) {
+        file_output.add_pass(pass_name, view_name, "XYZW", input.output_buffer);
+      }
+      else {
+        file_output.add_pass(
+            pass_name, view_name, "XYZ", float4_to_float3_image(size, input.output_buffer));
+      }
       break;
     case DataType::Value:
       file_output.add_pass(pass_name, view_name, "V", input.output_buffer);
@@ -296,12 +329,13 @@ void FileOutputOperation::add_view_for_input(realtime_compositor::FileOutput &fi
                                              const FileOutputInput &input,
                                              const char *view_name)
 {
-  switch (input.data_type) {
+  const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
+  switch (input.original_data_type) {
     case DataType::Color:
       file_output.add_view(view_name, 4, input.output_buffer);
       break;
     case DataType::Vector:
-      file_output.add_view(view_name, 3, input.output_buffer);
+      file_output.add_view(view_name, 3, float4_to_float3_image(size, input.output_buffer));
       break;
     case DataType::Value:
       file_output.add_view(view_name, 1, input.output_buffer);

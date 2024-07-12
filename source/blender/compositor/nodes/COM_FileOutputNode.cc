@@ -13,6 +13,19 @@ FileOutputNode::FileOutputNode(bNode *editor_node) : Node(editor_node)
   /* pass */
 }
 
+static DataType get_input_data_type(NodeInput *input)
+{
+  const DataType data_type = input->get_data_type();
+  /* Incoming inputs to vector sockets can be 4D, so we declare them as 4-channel color inputs to
+   * avoid loss of fourth channel due to implicit conversion. The operation will look into the
+   * is_4d_vector meta data member of the input to check if it should be written as 4D or 3D, where
+   * the last channel will be ignored in the 3D case. */
+  if (data_type == DataType::Vector) {
+    return DataType::Color;
+  }
+  return data_type;
+}
+
 void FileOutputNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
@@ -30,7 +43,7 @@ void FileOutputNode::convert_to_operations(NodeConverter &converter,
   Vector<FileOutputInput> inputs;
   for (NodeInput *input : inputs_) {
     auto *storage = static_cast<NodeImageMultiFileSocket *>(input->get_bnode_socket()->storage);
-    inputs.append(FileOutputInput(storage, input->get_data_type()));
+    inputs.append(FileOutputInput(storage, get_input_data_type(input), input->get_data_type()));
   }
 
   auto *storage = static_cast<const NodeImageMultiFile *>(this->get_bnode()->storage);
