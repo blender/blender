@@ -907,7 +907,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
 blender::StringRefNull ED_area_name(const ScrArea *area)
 {
-  if (area->type->space_name_get) {
+  if (area->type && area->type->space_name_get) {
     return area->type->space_name_get(area);
   }
 
@@ -918,7 +918,7 @@ blender::StringRefNull ED_area_name(const ScrArea *area)
 
 int ED_area_icon(const ScrArea *area)
 {
-  if (area->type->space_icon_get) {
+  if (area->type && area->type->space_icon_get) {
     return area->type->space_icon_get(area);
   }
 
