@@ -766,9 +766,22 @@ Vector<const FCurve *> fcurves_all(const Action &action);
 Vector<FCurve *> fcurves_all(Action &action);
 
 /**
- * Get (or add relevant data to be able to do so) an F-Curve from the given Action,
- * for the given animated data-block. This assumes that all the destinations are valid.
- * \param ptr: can be a null pointer.
+ * Get (or add relevant data to be able to do so) an F-Curve from the given
+ * Action. This assumes that all the destinations are valid.
+ *
+ * NOTE: this function is primarily intended for use with legacy actions, but
+ * for reasons of expedience it now also works with layered actions under the
+ * following limited circumstances: `ptr` must be non-null and must have an
+ * `owner_id` that already uses `act`. Otherwise this function will return
+ * nullptr for layered actions. See the comments in the implementation for more
+ * details.
+ *
+ * \param ptr: RNA pointer for the struct the fcurve is being looked up/created
+ * for. For legacy actions this is optional and may be null.
+ *
+ * \param fcurve_descriptor: description of the fcurve to lookup/create. Note
+ * that this is *not* relative to `ptr` (e.g. if `ptr` is not an ID). It should
+ * contain the exact data path of the fcurve to be looked up/created.
  */
 FCurve *action_fcurve_ensure(Main *bmain,
                              bAction *act,
