@@ -2772,11 +2772,11 @@ static void fix_built_in_curve_attribute_defaults(Main *bmain)
         resolution = std::max(resolution, 1);
       }
     }
-    if (int *nurb_orders = static_cast<int *>(CustomData_get_layer_named_for_write(
+    if (int8_t *nurb_orders = static_cast<int8_t *>(CustomData_get_layer_named_for_write(
             &curves->geometry.curve_data, CD_PROP_INT8, "nurbs_order", curves_num)))
     {
-      for (int &nurbs_order : blender::MutableSpan{nurb_orders, curves_num}) {
-        nurbs_order = std::max(nurbs_order, 1);
+      for (int8_t &nurbs_order : blender::MutableSpan{nurb_orders, curves_num}) {
+        nurbs_order = std::max<int8_t>(nurbs_order, 1);
       }
     }
   }
