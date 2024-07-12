@@ -130,16 +130,12 @@ static GreasePencilStrokeOperation *get_stroke_operation(bContext &C, wmOperator
     switch (eBrushGPWeightTool(brush.gpencil_weight_tool)) {
       case GPWEIGHT_TOOL_DRAW:
         return greasepencil::new_weight_paint_draw_operation(stroke_mode).release();
-        break;
       case GPWEIGHT_TOOL_BLUR:
         return greasepencil::new_weight_paint_blur_operation().release();
-        break;
       case GPWEIGHT_TOOL_AVERAGE:
         return greasepencil::new_weight_paint_average_operation().release();
-        break;
       case GPWEIGHT_TOOL_SMEAR:
         return greasepencil::new_weight_paint_smear_operation().release();
-        break;
     }
   }
   return nullptr;
