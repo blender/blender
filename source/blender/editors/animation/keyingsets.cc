@@ -1072,13 +1072,16 @@ static int insert_key_to_keying_set_path(bContext *C,
   Scene *scene = CTX_data_scene(C);
   const eBezTriple_KeyframeType keytype = eBezTriple_KeyframeType(
       scene->toolsettings->keyframe_type);
-  /* For each possible index, perform operation
-   * - Assume that array-length is greater than index. */
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  /* The depsgraph needs to be in an evaluated state to ensure the values we get from the
+   * properties are actually the values of the current frame. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     frame);
   int keyed_channels = 0;
 
+  /* For each possible index, perform operation
+   * - Assume that array-length is greater than index. */
   CombinedKeyingResult combined_result;
   for (; array_index < array_length; array_index++) {
     if (mode == ModifyKeyMode::INSERT) {
