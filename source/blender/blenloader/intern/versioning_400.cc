@@ -2799,9 +2799,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 7)) {
-    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-      version_mesh_crease_generic(*bmain);
-    }
+    version_mesh_crease_generic(*bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 8)) {
