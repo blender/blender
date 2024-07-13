@@ -233,12 +233,10 @@ static bool get_normal_boundary(const float3 &current_position,
   }
 
   float3 normal(0.0f, 0.0f, 0.0f);
-  int i = 0;
   for (BMVert *vert : neighbors) {
     const float3 neighbor_pos = vert->co;
     const float3 to_neighbor = neighbor_pos - current_position;
     normal += math::normalize(to_neighbor);
-    i++;
   }
 
   r_new_normal = math::normalize(normal);
@@ -253,10 +251,8 @@ static bool get_average_position(const Span<BMVert *> neighbors, float3 &r_new_p
   }
 
   float3 average_position(0.0f, 0.0f, 0.0f);
-  int i = 0;
   for (BMVert *vert : neighbors) {
     average_position += vert->co;
-    i++;
   }
 
   average_position *= math::rcp(float(neighbors.size()));
