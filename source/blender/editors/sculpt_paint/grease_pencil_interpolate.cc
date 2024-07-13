@@ -466,7 +466,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
   WM_event_add_notifier(&C, NC_GPENCIL | NA_EDITED, nullptr);
 }
 
-/* Restore timeline changes when cancelled. */
+/* Restore timeline changes when canceled. */
 static void grease_pencil_interpolate_restore(bContext &C, wmOperator &op)
 {
   using bke::greasepencil::Drawing;

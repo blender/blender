@@ -10,10 +10,10 @@
  * vector values but just a boolean for each component.
  *
  * Some nodes implement special #node_eval_elem and #node_eval_inverse_elem methods which allow
- * analysing the potential impact of changing part of a value in one place of a node tree.
+ * analyzing the potential impact of changing part of a value in one place of a node tree.
  *
- * The types are generally quite small and trivially copyable and destructible. They just contain
- * some bools.
+ * The types are generally quite small and trivially copyable and destructible.
+ * They just contain some booleans.
  */
 
 #include <optional>

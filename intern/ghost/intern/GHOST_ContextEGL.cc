@@ -475,7 +475,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     std::vector<EGLint> surface_attrib_list;
     surface_attrib_list.reserve(3);
 #ifdef WITH_GHOST_WAYLAND
-    /* Fix transparency issue on Wayland + Nouveau/Zink+NVK. Due to unsupported texture formats
+    /* Fix transparency issue on: `Wayland + Nouveau/Zink+NVK`. Due to unsupported texture formats
      * drivers can hit transparency code-paths resulting in showing the desktop in viewports.
      *
      * See #102994. */

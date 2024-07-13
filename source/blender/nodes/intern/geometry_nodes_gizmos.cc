@@ -204,7 +204,7 @@ static void foreach_gizmo_for_input(const ie::SocketElem &input_socket,
   }
   const bNode &node = input_socket.socket->owner_node();
   if (zones->get_zone_by_node(node.identifier) != nullptr) {
-    /* Gizmos in zones are not supportet yet. */
+    /* Gizmos in zones are not supported yet. */
     return;
   }
   if (is_builtin_gizmo_node(node)) {

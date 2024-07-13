@@ -197,10 +197,10 @@ struct Main {
    * will trigger a rebuild of the Slot-to-ID mapping. Since constructing this mapping requires
    * a full scan of the animatable IDs in this `Main` anyway, it is kept as a flag here.
    *
-   * \note This flag should not be set directly. Use animrig::Slot::users_invalidate() instead.
-   * That way the handling of this flag is limited to the code in animrig::Slot.
+   * \note This flag should not be set directly. Use #animrig::Slot::users_invalidate() instead.
+   * That way the handling of this flag is limited to the code in #animrig::Slot.
    *
-   * \see blender::animrig::Slot::users_invalidate(Main &bmain)
+   * \see `blender::animrig::Slot::users_invalidate(Main &bmain)`
    */
   bool is_action_slot_to_id_map_dirty;
 

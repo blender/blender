@@ -859,7 +859,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     probe_ray.self.prim = v.prim;
     probe_ray.P = v.p;
 
-    /* Set view looking dir. */
+    /* Set view looking direction. */
     wi = -wo;
     wi_len = wo_len;
 
@@ -888,7 +888,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
-    /* Set light looking dir. */
+    /* Set light looking direction. */
     wo = (vi == vertex_count - 1) ? (light_fixed_direction ? ls->D : ls->P - v.p) :
                                     vertices[vi + 1].p - v.p;
     wo = normalize_len(wo, &wo_len);

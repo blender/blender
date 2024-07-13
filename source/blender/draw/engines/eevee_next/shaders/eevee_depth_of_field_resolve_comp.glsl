@@ -19,7 +19,7 @@
 #  define threadgroup_size (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
 shared float array_of_values[threadgroup_size];
 
-/* Only works for 2D threadgroups where the size is a power of 2 */
+/* Only works for 2D thread-groups where the size is a power of 2. */
 float parallelMax(const float value)
 {
   uint thread_id = gl_LocalInvocationIndex;

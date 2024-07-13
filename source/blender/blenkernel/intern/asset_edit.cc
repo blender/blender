@@ -119,7 +119,7 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
     return "";
   }
 
-  /* Make sure filename only contains valid characters for filesystem. */
+  /* Make sure filename only contains valid characters for file-system. */
   char base_name_filesafe[FILE_MAXFILE];
   BLI_strncpy(base_name_filesafe,
               base_name.data(),
@@ -257,7 +257,7 @@ static void asset_reload(Main &global_main, Library *lib, ReportList &reports)
   BKE_blendfile_library_relocate(lapp_context, &reports, lib, true);
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  /* Clear temporary tag from reloaction. */
+  /* Clear temporary tag from relocation. */
   BKE_main_id_tag_all(&global_main, LIB_TAG_PRE_EXISTING, false);
 
   /* Recreate dependency graph to include new IDs. */

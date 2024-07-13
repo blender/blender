@@ -79,7 +79,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
     catalog_item.foreach_child([&, this](const asset_system::AssetCatalogTreeItem &child) {
       Item &child_item = build_catalog_items_recursive(view_item, child);
 
-      /* Uncollapse to some level (gives quick acces, but don't let the tree get too big). */
+      /* Uncollapse to some level (gives quick access, but don't let the tree get too big). */
       if (parent_count < 2) {
         child_item.uncollapse_by_default();
       }

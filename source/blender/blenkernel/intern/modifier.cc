@@ -850,7 +850,7 @@ const char *BKE_modifier_path_relbase(Main *bmain, Object *ob)
 {
   /* - If the ID is from a library, return library path.
    * - Else if the file has been saved return the blend file path.
-   * - Else if the file isn't saved and the ID isn't from a library, return the temp dir.
+   * - Else if the file isn't saved and the ID isn't from a library, return the temp directory.
    */
   if ((bmain->filepath[0] != '\0') || ID_IS_LINKED(ob)) {
     return ID_BLEND_PATH(bmain, &ob->id);

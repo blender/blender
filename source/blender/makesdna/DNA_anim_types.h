@@ -288,7 +288,8 @@ typedef enum eFMod_Stepped_Flags {
 
 /* Drivers -------------------------------------- */
 
-/* Driver Target (dtar)
+/**
+ * Driver Target (`dtar`)
  *
  * Defines how to access a dependency needed for a driver variable.
  */
@@ -412,7 +413,7 @@ typedef enum eDriverTarget_ContextProperty {
 #define MAX_DRIVER_TARGETS 8
 
 /**
- * Driver Variable (dvar)
+ * Driver Variable (`dvar`)
  *
  * A 'variable' for use as an input for the driver evaluation.
  * Defines a way of accessing some channel to use, that can be
@@ -487,7 +488,7 @@ typedef enum eDriverVar_Flags {
   DVAR_FLAG_INVALID_EMPTY = (1 << 8),
 } eDriverVar_Flags;
 
-/* All invalid dvar name flags */
+/** All invalid `dvar` name flags. */
 #define DVAR_ALL_INVALID_FLAGS \
   (DVAR_FLAG_INVALID_NAME | DVAR_FLAG_INVALID_START_NUM | DVAR_FLAG_INVALID_START_CHAR | \
    DVAR_FLAG_INVALID_HAS_SPACE | DVAR_FLAG_INVALID_HAS_DOT | DVAR_FLAG_INVALID_HAS_SPECIAL | \

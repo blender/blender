@@ -3431,8 +3431,9 @@ static void save_set_filepath(bContext *C, wmOperator *op)
       STRNCPY(filepath, blendfile_path);
     }
 
-    /* For convencience when using "Save As" on asset system files: Replace .asset.blend extension
-     * with just .blend. Asset system files must not be overridden (except by the asset system),
+    /* For convenience when using "Save As" on asset system files:
+     * Replace `.asset.blend` extension with just `.blend`.
+     * Asset system files must not be overridden (except by the asset system),
      * there are further checks to prevent this entirely. */
     if (bmain->is_asset_edit_file &&
         blender::StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX))

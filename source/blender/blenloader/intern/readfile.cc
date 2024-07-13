@@ -2532,7 +2532,7 @@ static bool read_libblock_undo_restore_library(
   }
 
   Main *libmain = static_cast<Main *>(fd->old_mainlist->first);
-  /* Skip oldmain itself... */
+  /* Skip `oldmain` itself. */
   for (libmain = libmain->next; libmain; libmain = libmain->next) {
     if (&libmain->curlib->id == id_old) {
       Main *old_main = static_cast<Main *>(fd->old_mainlist->first);

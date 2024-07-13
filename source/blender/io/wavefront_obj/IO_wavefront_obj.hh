@@ -87,7 +87,7 @@ struct OBJImportParams {
 };
 
 /**
- * Reads and retuns just the meshes in the obj file
+ * Reads and returns just the meshes in the obj file
  */
 void OBJ_import_geometries(const OBJImportParams *import_params,
                            blender::Vector<blender::bke::GeometrySet> &geometries);

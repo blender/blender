@@ -1383,7 +1383,7 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
         ac->bmain, fcu, ANIMTYPE_FCURVE, animated_id, fcurve_owner_id);
 
     /* Filtering by name needs a way to look up the name, which is easiest if
-     * there is alread an bAnimListElem. */
+     * there is already an #bAnimListElem. */
     if (filter_by_name && !ale_name_matches_dopesheet_filter(*ac->ads, *ale)) {
       MEM_freeN(ale);
       continue;

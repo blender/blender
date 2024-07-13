@@ -258,10 +258,10 @@ struct bAnimListElem {
   /**
    * For data that is owned by a specific slot, its handle.
    *
-   * This is not declared as blender::animrig::slot_handle_t to avoid all the users of this
-   * header file to get the animrig module as extra dependency (which would spread to the undo
-   * system, lineart, etc). It's probably best to split off this struct definition from the rest of
-   * this header, as most code that uses this header doesn't need to know the definition of this
+   * This is not declared as #blender::animrig::slot_handle_t to avoid all the users of this
+   * header file to get the `animrig` module as extra dependency (which would spread to the undo
+   * system, line-art, etc). It's probably best to split off this struct definition from the rest
+   * of this header, as most code that uses this header doesn't need to know the definition of this
    * struct.
    *
    * TODO: split off into separate header file.

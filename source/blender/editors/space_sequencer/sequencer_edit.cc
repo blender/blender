@@ -661,14 +661,14 @@ static void handle_number_input(
 
   float subframe_delta = 0.0f;
   if (data->subframe_restore != 0.0f) {
-    /* Always remove the previous subframe adjustments we have potentially made with the mouse
-     * input when the user starts enterning values by hand.
+    /* Always remove the previous sub-frame adjustments we have potentially made with the mouse
+     * input when the user starts entering values by hand.
      */
     subframe_delta = -data->subframe_restore;
     data->subframe_restore = 0.0f;
   }
   if (std::trunc(offset_fl) != offset_fl) {
-    /* Only apply subframe offsets if the input is not an integer. */
+    /* Only apply sub-frame offsets if the input is not an integer. */
     subframe_delta = offset_fl - data->previous_subframe_offset - delta_offset;
     data->subframe_restore += subframe_delta;
   }

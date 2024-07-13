@@ -419,7 +419,7 @@ class TransformGizmos : public NodeGizmos {
   int transform_orientation_ = V3D_ORIENT_GLOBAL;
 
   /**
-   * Transformation of the object and potentialy crazy-space transforms applied on top of the
+   * Transformation of the object and potentially crazy-space transforms applied on top of the
    * gizmos.
    */
   float4x4 parent_transform_;
@@ -932,7 +932,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   /* A new map containing the active gizmos is build. This is less error prone than trying to
-   * update the old map inplace. */
+   * update the old map in place. */
   Map<GeoNodesObjectGizmoID, std::unique_ptr<NodeGizmos>> new_gizmos_by_node;
 
   /* This needs to stay around for a bit longer because the compute contexts are required when

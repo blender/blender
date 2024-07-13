@@ -114,10 +114,12 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }
 
-/* Free the sculpt BMesh and BMLog
+/**
+ * Free the sculpt BMesh and BMLog
  *
- * If 'unode' is given, the BMesh's data is copied out to the unode
- * before the BMesh is deleted so that it can be restored from. */
+ * If `unode` is given, the #BMesh's data is copied out to the `unode`
+ * before the BMesh is deleted so that it can be restored from.
+ */
 static void disable(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, undo::StepData *undo_step)
 {

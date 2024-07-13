@@ -198,7 +198,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Sequenc
   strip_ctx.content_end = SEQ_time_content_end_frame_get(scene, seq);
 
   if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != nullptr) {
-    /* Visualize subframe sound offsets */
+    /* Visualize sub-frame sound offsets. */
     const double sound_offset = (seq->sound->offset_time + seq->sound_offset) * FPS;
     strip_ctx.content_start += sound_offset;
     strip_ctx.content_end += sound_offset;

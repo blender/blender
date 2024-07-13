@@ -645,7 +645,7 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
         hit->no[0] = result.lambda;
       };
 
-  /* Store intersections first before applying to the data, so that subsequent raycasts use
+  /* Store intersections first before applying to the data, so that subsequent ray-casts use
    * original end points until all intersections are found. */
   Vector<float3> new_extension_ends(extension_data.lines.ends.size());
   for (const int i_line : extension_data.lines.starts.index_range()) {

@@ -649,8 +649,8 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   }
 
   if (ibuf1->float_buffer.data) {
-    /* Ensure the correct number of channels are being allocated for the new ImBuf. Some
-     * compositing scenarios might end up with >4 channels and we want to duplicate them prooperly.
+    /* Ensure the correct number of channels are being allocated for the new #ImBuf. Some
+     * compositing scenarios might end up with >4 channels and we want to duplicate them properly.
      */
     if (imb_addrectfloatImBuf(ibuf2, ibuf1->channels, false) == false) {
       IMB_freeImBuf(ibuf2);

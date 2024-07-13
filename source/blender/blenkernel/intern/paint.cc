@@ -807,7 +807,7 @@ bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint)
 {
   /* Clear brush with invalid mode. Unclear if this can still happen,
-   * but kept from old paint toolslots code. */
+   * but kept from old paint tool-slots code. */
   Brush *brush = BKE_paint_brush(paint);
   if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
     BKE_paint_brush_set(paint, nullptr);
