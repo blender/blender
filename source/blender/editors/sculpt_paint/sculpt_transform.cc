@@ -373,7 +373,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  scale_factors(factors, 20.f);
+  scale_factors(factors, 20.0f);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -408,7 +408,7 @@ static void elastic_transform_node_grids(const Sculpt &sd,
   tls.factors.reinitialize(grid_verts_num);
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-  scale_factors(factors, 20.f);
+  scale_factors(factors, 20.0f);
 
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
@@ -440,7 +440,7 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
-  scale_factors(factors, 20.f);
+  scale_factors(factors, 20.0f);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;

@@ -1252,10 +1252,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
   });
 }
 
-void BKE_ptcache_foreach_object_cache(struct Object &ob,
-                                      struct Scene &scene,
-                                      bool duplis,
-                                      PointCacheIdFn fn)
+void BKE_ptcache_foreach_object_cache(Object &ob, Scene &scene, bool duplis, PointCacheIdFn fn)
 {
   foreach_object_ptcache(&scene, &ob, duplis, fn);
 }

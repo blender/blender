@@ -93,7 +93,7 @@ static std::string asset_root_path_for_save(const bUserAssetLibrary &user_librar
   BLI_assert(user_library.dirpath[0] != '\0');
 
   char libpath[FILE_MAX];
-  BLI_strncpy(libpath, user_library.dirpath, sizeof(libpath));
+  STRNCPY(libpath, user_library.dirpath);
   BLI_path_slash_native(libpath);
   BLI_path_normalize(libpath);
 
