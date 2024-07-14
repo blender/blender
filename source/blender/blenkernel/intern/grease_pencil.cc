@@ -1126,7 +1126,7 @@ Layer::SortedKeysIterator Layer::sorted_keys_iterator_at(const int frame_number)
   if (frame_number < sorted_keys.first()) {
     return nullptr;
   }
-  /* After or at the the last frame, return iterator to last. */
+  /* After or at the last frame, return iterator to last. */
   if (frame_number >= sorted_keys.last()) {
     return std::prev(sorted_keys.end());
   }

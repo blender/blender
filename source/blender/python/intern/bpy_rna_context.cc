@@ -341,7 +341,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     }
   }
 
-  /* Account for for the window to be freed on file-read,
+  /* Account for the window to be freed on file-read,
    * in this case the window should not be restored, see: #92818.
    * Also account for other windowing members to be removed on exit,
    * in this case the context is cleared. */

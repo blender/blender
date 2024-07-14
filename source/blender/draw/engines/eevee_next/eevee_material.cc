@@ -330,7 +330,7 @@ Material &MaterialModule::material_sync(Object *ob,
       mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
       if (hide_on_camera) {
         /* Only null the sub_pass.
-         * mat.shading.gpumat is is always needed for using the GPU_material API. */
+         * `mat.shading.gpumat` is always needed for using the GPU_material API. */
         mat.shading.sub_pass = nullptr;
       }
 

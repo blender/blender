@@ -249,7 +249,7 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
   const float *row1, *row2, *row3, *row4;
   const float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  /* Check if +1 samples need wrapping, or we we don't do wrapping then if
+  /* Check if +1 samples need wrapping, or we don't do wrapping then if
    * we are sampling completely outside the image. */
   if (wrap_x) {
     if (x2 >= width) {

@@ -195,7 +195,7 @@ ccl_device float compute_3d_gabor_standard_deviation(float frequency)
   return sqrtf(IMPULSES_COUNT * second_moment * integral_of_gabor_squared);
 }
 
-/* Computes the orientation of the Gabor kernel such that it is is constant for anisotropic
+/* Computes the orientation of the Gabor kernel such that it is constant for anisotropic
  * noise while it is random for isotropic noise. We randomize in spherical coordinates for a
  * uniform distribution. */
 ccl_device float3 compute_3d_orientation(float3 orientation, float isotropy, float4 seed)

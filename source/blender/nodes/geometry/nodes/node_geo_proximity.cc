@@ -232,7 +232,7 @@ class ProximityFunction : public mf::MultiFunction {
       const BVHTrees &trees = bvh_trees_[group_index];
       BVHTreeNearest nearest;
       /* Take mesh and pointcloud bvh tree into account. The final result is the closer of the two.
-       * First first bvhtree query will set `nearest.dist_sq` which is then passed into the second
+       * The first bvhtree query will set `nearest.dist_sq` which is then passed into the second
        * query as a maximum distance. */
       nearest.dist_sq = FLT_MAX;
       if (trees.mesh_bvh.tree != nullptr) {

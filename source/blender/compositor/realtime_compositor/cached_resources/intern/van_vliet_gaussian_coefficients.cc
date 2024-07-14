@@ -128,7 +128,7 @@ static double find_scale_factor(const std::array<std::complex<double>, 4> &poles
 {
   const double reference_variance = math::square(reference_sigma);
 
-  /* Note that the poles were computed for a Gaussian filter with a sigma value of 2, so it it
+  /* Note that the poles were computed for a Gaussian filter with a sigma value of 2, so it is
    * as if we have a base scale of 2, and we start with half sigma as an initial guess. See
    * Section 4.2 for more information */
   double scale_factor = reference_sigma / 2.0;

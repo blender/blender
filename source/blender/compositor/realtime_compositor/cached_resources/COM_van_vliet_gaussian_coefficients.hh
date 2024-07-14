@@ -46,17 +46,17 @@ bool operator==(const VanVlietGaussianCoefficientsKey &a,
  * two parallel second order IIR filters, each having a causal and a non causal filter. */
 class VanVlietGaussianCoefficients : public CachedResource {
  private:
-  /* The causal and non causal feedforward coefficients for the first second order filter. */
+  /* The causal and non causal feedforward coefficients for the first second-order filter. */
   double2 first_causal_feedforward_coefficients_;
   double2 first_non_causal_feedforward_coefficients_;
   /* The feedback coefficients for the first second order filter. This is the same for both the
    * causal and non causal filters. */
   double2 first_feedback_coefficients_;
 
-  /* The causal and non causal feedforward coefficients for the second second order filter. */
+  /* The causal and non causal feedforward coefficients for the second second-order filter. */
   double2 second_causal_feedforward_coefficients_;
   double2 second_non_causal_feedforward_coefficients_;
-  /* The feedback coefficients for the second second order filter. This is the same for both the
+  /* The feedback coefficients for the second second-order filter. This is the same for both the
    * causal and non causal filters. */
   double2 second_feedback_coefficients_;
 

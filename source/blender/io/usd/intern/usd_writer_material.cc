@@ -257,7 +257,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       if (scale_link) {
         bNode *vector_math_node = scale_link->fromnode;
         if (vector_math_node->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
-          /* Attempt one more traversal in case the current node is not not the
+          /* Attempt one more traversal in case the current node is not the
            * correct NODE_VECTOR_MATH_MULTIPLY_ADD (see code in usd_reader_material). */
           bNodeSocket *sock_current = bke::nodeFindSocket(vector_math_node, SOCK_IN, "Vector");
           bNodeLink *temp_link = traverse_channel(sock_current, SH_NODE_VECTOR_MATH);

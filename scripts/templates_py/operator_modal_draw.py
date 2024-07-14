@@ -50,10 +50,9 @@ class ModalDrawOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            # the arguments we pass the the callback
+            # The arguments we pass the callback.
             args = (self, context)
-            # Add the region OpenGL drawing callback
-            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+            # Add the region OpenGL drawing callback draw in view space with `POST_VIEW` and `PRE_VIEW`.
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []

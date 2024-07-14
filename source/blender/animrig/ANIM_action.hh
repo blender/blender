@@ -709,7 +709,7 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
 /**
  * Assign the Action to the ID.
  *
- * This will will make a best-effort guess as to which slot to use, in this
+ * This will make a best-effort guess as to which slot to use, in this
  * order;
  *
  * - By slot handle.

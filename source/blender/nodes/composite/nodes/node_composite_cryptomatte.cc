@@ -603,7 +603,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     int layer_index;
     const std::string type_name = get_type_name();
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
-      /* If the Cryptomatte type name name doesn't start with the layer name, then it is not a
+      /* If the Cryptomatte type name doesn't start with the layer name, then it is not a
        * Cryptomatte layer. Unless it is an unnamed layer, in which case, we need to check its
        * passes. */
       const bool is_unnamed_layer = render_layer->name[0] == '\0';

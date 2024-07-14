@@ -18,7 +18,7 @@ namespace blender::bke {
 
 struct EditMeshData {
   /**
-   * Deformed positions calculated by modifiers in the modifier stack that can can process an
+   * Deformed positions calculated by modifiers in the modifier stack that can process an
    * edit mesh input. When this is not empty, the other arrays will depend on the values.
    */
   Array<float3> vert_positions;

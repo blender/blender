@@ -198,7 +198,7 @@ float compute_3d_gabor_standard_deviation(float frequency)
   return sqrt(IMPULSES_COUNT * second_moment * integral_of_gabor_squared);
 }
 
-/* Computes the orientation of the Gabor kernel such that it is is constant for anisotropic
+/* Computes the orientation of the Gabor kernel such that it is constant for anisotropic
  * noise while it is random for isotropic noise. We randomize in spherical coordinates for a
  * uniform distribution. */
 vec3 compute_3d_orientation(vec3 orientation, float isotropy, vec4 seed)

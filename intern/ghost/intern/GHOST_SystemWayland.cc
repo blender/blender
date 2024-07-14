@@ -3394,7 +3394,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
   std::lock_guard lock{seat->data_offer_dnd_mutex};
 
   /* No need to check this for null (as other callbacks do).
-   * because the the data-offer has not been accepted (actions set... etc). */
+   * because the data-offer has not been accepted (actions set... etc). */
   GWL_DataOffer *data_offer = seat->data_offer_dnd;
 
   /* Use a blank string for  `mime_receive` to prevent crashes, although could also be `nullptr`.
@@ -4871,7 +4871,7 @@ static void keyboard_handle_keymap(void *data,
 
   CLOG_INFO(LOG, 2, "keymap");
 
-  /* Reset in case there was a previous non-zero active layout for the the last key-map.
+  /* Reset in case there was a previous non-zero active layout for the last key-map.
    * Note that this is set later by `wl_keyboard_listener::modifiers`, it's possible that handling
    * the first modifier will run #xkb_state_update_mask again (if the active layout is non-zero)
    * however as this is only done when the layout changed, it's harmless.

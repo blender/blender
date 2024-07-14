@@ -708,7 +708,7 @@ class FileOutputOperation : public NodeOperation {
   }
 
   /* Add Cryptomatte meta data to the file if they exist for the given result of the given layer
-   * name. We do not write any other other meta data for now. */
+   * name. We do not write any other meta data for now. */
   void add_meta_data_for_result(FileOutput &file_output, const Result &result, const char *name)
   {
     StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(name);

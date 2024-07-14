@@ -1657,7 +1657,7 @@ blender::Vector<FCurve *> get_property_drivers(
  *
  * \param src_drivers: The span of drivers to paste.  If `is_array_prop` is
  * false, this must be a single element.  If `is_array_prop` is true then this
- * should have the same length as the the destination array property.  Nullptr
+ * should have the same length as the destination array property.  Nullptr
  * elements are skipped when pasting.
  * \param is_array_prop: Whether `src_drivers` are drivers for the elements
  * of an array property.

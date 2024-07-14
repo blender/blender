@@ -4177,7 +4177,7 @@ static Set<const bNodeSocket *> find_sockets_on_active_gizmo_paths(const bContex
   }
   snode.edittree->ensure_topology_cache();
 
-  /* Compute compute context hash for the current node tree path. */
+  /* Compute the compute context hash for the current node tree path. */
   std::optional<ComputeContextHash> current_compute_context_hash =
       [&]() -> std::optional<ComputeContextHash> {
     ComputeContextBuilder compute_context_builder;

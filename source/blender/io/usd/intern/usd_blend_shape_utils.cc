@@ -270,8 +270,7 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
   skel_api.CreateBlendShapeTargetsRel().SetTargets(blendshape_paths);
 
   /* Some DCCs seem to require joint indices and weights to
-   * bind the skeleton for blend-shapes, so we we create these
-   * primvars, if needed. */
+   * bind the skeleton for blend-shapes, so we create these primvars, if needed. */
 
   if (!skel_api.GetJointIndicesAttr().HasAuthoredValue()) {
     pxr::VtArray<int> joint_indices(basis_totelem, 0);

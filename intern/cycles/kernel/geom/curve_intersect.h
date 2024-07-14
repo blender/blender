@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
- * Adapted from Embree with with modifications. */
+ * Adapted from Embree with modifications. */
 
 #pragma once
 

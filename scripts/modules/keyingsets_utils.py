@@ -28,7 +28,7 @@ import bpy
 # General Utilities
 
 
-# Append the specified property name on the the existing path
+# Append the specified property name on the existing path.
 def path_add_property(path, prop):
     if path:
         return path + "." + prop

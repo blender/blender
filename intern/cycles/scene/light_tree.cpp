@@ -427,7 +427,7 @@ LightTreeNode *LightTree::build(Scene *scene, DeviceScene *dscene)
   root_->light_link = root_->get_inner().children[left]->light_link +
                       root_->get_inner().children[right]->light_link;
 
-  /* Root nodes are never meant to be be shared, even if the local and distant lights are from the
+  /* Root nodes are never meant to be shared, even if the local and distant lights are from the
    * same light linking set. Attempting to sharing it will make it so the specialized tree will
    * try to use the same root as the default tree. */
   root_->light_link.shareable = false;

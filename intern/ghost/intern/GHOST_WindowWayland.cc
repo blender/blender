@@ -2605,7 +2605,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
        * each with different fractional scale, see: #109194.
        *
        * Note that the window will show larger, then resize to be smaller soon
-       * after opening. This would be nice to avoid but but would require DPI
+       * after opening. This would be nice to avoid but would require DPI
        * to be stored in the window (as noted above). */
       int size_next[2] = {0, 0};
       int size_orig[2] = {0, 0};
