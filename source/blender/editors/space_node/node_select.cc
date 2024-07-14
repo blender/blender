@@ -316,6 +316,7 @@ void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_
 
 void node_select_paired(bNodeTree &node_tree)
 {
+  node_tree.ensure_topology_cache();
   for (const bke::bNodeZoneType *zone_type : bke::all_zone_types()) {
     for (bNode *input_node : node_tree.nodes_by_type(zone_type->input_idname)) {
       if (bNode *output_node = zone_type->get_corresponding_output(node_tree, *input_node)) {
