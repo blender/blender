@@ -522,6 +522,28 @@ def repo_cache_store_refresh_from_prefs(repo_cache_store, include_disabled=False
     return repos
 
 
+def _preferences_pkg_id_sequence_filter_enabled(
+        repo_item,  # `RepoItem`
+        pkg_id_sequence,  # `List[str]`
+):  # `-> List[str]`
+    import addon_utils
+    result = []
+
+    module_base_elem = (_ext_base_pkg_idname, repo_item.module)
+
+    for pkg_id in pkg_id_sequence:
+        addon_module_elem = (*module_base_elem, pkg_id)
+        addon_module_name = ".".join(addon_module_elem)
+        loaded_default, loaded_state = addon_utils.check(addon_module_name)
+
+        if not (loaded_default or loaded_state):
+            continue
+
+        result.append(pkg_id)
+
+    return result
+
+
 def _preferences_ensure_disabled(
         *,
         repo_item,  # `RepoItem`
@@ -2324,24 +2346,17 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         # pylint: disable-next=attribute-defined-outside-init
         self.pkg_id_sequence = pkg_id_sequence
 
-        # Detect upgrade.
+        # Detect upgrade of enabled add-ons.
         if pkg_id_sequence:
-            repo_cache_store = repo_cache_store_ensure()
-            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
-                directory=self.repo_directory,
-                error_fn=self.error_fn_from_exception,
-            )
-            if pkg_manifest_local is not None:
-                pkg_id_sequence_upgrade = [pkg_id for pkg_id in pkg_id_sequence if pkg_id in pkg_manifest_local]
-                if pkg_id_sequence_upgrade:
-                    result = _preferences_ensure_disabled(
-                        repo_item=repo_item,
-                        pkg_id_sequence=pkg_id_sequence_upgrade,
-                        default_set=False,
-                        error_fn=lambda ex: self.report({'ERROR'}, str(ex)),
-                    )
-                    self._addon_restore.append((repo_item, pkg_id_sequence_upgrade, result))
-            del repo_cache_store, pkg_manifest_local
+            if pkg_id_sequence_upgrade := _preferences_pkg_id_sequence_filter_enabled(repo_item, pkg_id_sequence):
+                result = _preferences_ensure_disabled(
+                    repo_item=repo_item,
+                    pkg_id_sequence=pkg_id_sequence_upgrade,
+                    default_set=False,
+                    error_fn=lambda ex: self.report({'ERROR'}, str(ex)),
+                )
+                self._addon_restore.append((repo_item, pkg_id_sequence_upgrade, result))
+            del pkg_id_sequence_upgrade
 
         # Lock repositories.
         # pylint: disable-next=attribute-defined-outside-init
@@ -2708,25 +2723,16 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         prefs = bpy.context.preferences
 
-        # Detect upgrade.
-        repo_cache_store = repo_cache_store_ensure()
-        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
-            directory=self.repo_directory,
-            error_fn=self.error_fn_from_exception,
-        )
-        is_installed = pkg_manifest_local is not None and (pkg_id in pkg_manifest_local)
-        del repo_cache_store, pkg_manifest_local
-
-        if is_installed:
-            pkg_id_sequence = (pkg_id,)
+        if pkg_id_sequence_upgrade := _preferences_pkg_id_sequence_filter_enabled(repo_item, [pkg_id]):
             result = _preferences_ensure_disabled(
                 repo_item=repo_item,
-                pkg_id_sequence=pkg_id_sequence,
+                pkg_id_sequence=pkg_id_sequence_upgrade,
                 default_set=False,
                 error_fn=lambda ex: self.report({'ERROR'}, str(ex)),
             )
-            self._addon_restore.append((repo_item, pkg_id_sequence, result))
-            del pkg_id_sequence
+            self._addon_restore.append((repo_item, pkg_id_sequence_upgrade, result))
+            del result
+        del pkg_id_sequence_upgrade
 
         # Lock repositories.
         # pylint: disable-next=attribute-defined-outside-init
