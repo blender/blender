@@ -825,6 +825,7 @@ static void add_panel_items_recursive(const bContext &C,
       }
     }
     else if (item.is_valid_socket()) {
+      bool need_socket_spacing = false;
       if (item.input) {
         /* Draw buttons before the first input. */
         if (!state.buttons_drawn) {
@@ -839,7 +840,7 @@ static void add_panel_items_recursive(const bContext &C,
         else {
           /* Space between items. */
           if (!state.is_first && item.input->is_visible()) {
-            locy -= NODE_ITEM_SPACING_Y;
+            need_socket_spacing = true;
           }
         }
       }
@@ -851,9 +852,12 @@ static void add_panel_items_recursive(const bContext &C,
         else {
           /* Space between items. */
           if (!state.is_first && item.output->is_visible()) {
-            locy -= NODE_ITEM_SPACING_Y;
+            need_socket_spacing = true;
           }
         }
+      }
+      if (need_socket_spacing) {
+        locy -= NODE_ITEM_SPACING_Y;
       }
 
       if (!is_parent_collapsed &&
