@@ -52,6 +52,8 @@
 
 #include <ocio_capi.h>
 
+using blender::float3x3;
+
 /* -------------------------------------------------------------------- */
 /** \name Global declarations
  * \{ */
@@ -1508,9 +1510,14 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_scene_linear()
+blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
-  return &imbuf_xyz_to_scene_linear[0][0];
+  return blender::float3x3(imbuf_xyz_to_scene_linear);
+}
+
+blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz()
+{
+  return blender::float3x3(imbuf_scene_linear_to_xyz);
 }
 
 /** \} */
@@ -1519,21 +1526,19 @@ const float *IMB_colormanagement_get_xyz_to_scene_linear()
 /** \name Functions for converting between color temperature/tint and RGB white points
  * \{ */
 
-void IMB_colormanagement_get_view_whitepoint(const ColorManagedViewSettings *view_settings,
-                                             float whitepoint[3])
+void IMB_colormanagement_get_whitepoint(const float temperature,
+                                        const float tint,
+                                        float whitepoint[3])
 {
-  blender::float3 xyz = blender::math::whitepoint_from_temp_tint(view_settings->temperature,
-                                                                 view_settings->tint);
+  blender::float3 xyz = blender::math::whitepoint_from_temp_tint(temperature, tint);
   IMB_colormanagement_xyz_to_scene_linear(whitepoint, xyz);
 }
 
-bool IMB_colormanagement_set_view_whitepoint(ColorManagedViewSettings *view_settings,
-                                             const float whitepoint[3])
+bool IMB_colormanagement_set_whitepoint(const float whitepoint[3], float &temperature, float &tint)
 {
   blender::float3 xyz;
   IMB_colormanagement_scene_linear_to_xyz(xyz, whitepoint);
-  return blender::math::whitepoint_to_temp_tint(
-      xyz, view_settings->temperature, view_settings->tint);
+  return blender::math::whitepoint_to_temp_tint(xyz, temperature, tint);
 }
 
 /** \} */

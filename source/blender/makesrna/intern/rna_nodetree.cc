@@ -3173,6 +3173,34 @@ static void rna_NodeColorBalance_update_cdl(Main *bmain, Scene *scene, PointerRN
   rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_NodeColorBalance_input_whitepoint_get(PointerRNA *ptr, float value[3])
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
+  IMB_colormanagement_get_whitepoint(n->input_temperature, n->input_tint, value);
+}
+
+static void rna_NodeColorBalance_input_whitepoint_set(PointerRNA *ptr, const float value[3])
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
+  IMB_colormanagement_set_whitepoint(value, n->input_temperature, n->input_tint);
+}
+
+static void rna_NodeColorBalance_output_whitepoint_get(PointerRNA *ptr, float value[3])
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
+  IMB_colormanagement_get_whitepoint(n->output_temperature, n->output_tint, value);
+}
+
+static void rna_NodeColorBalance_output_whitepoint_set(PointerRNA *ptr, const float value[3])
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
+  IMB_colormanagement_set_whitepoint(value, n->output_temperature, n->output_tint);
+}
+
 static void rna_NodeCryptomatte_source_set(PointerRNA *ptr, int value)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
@@ -7655,12 +7683,17 @@ static void def_cmp_colorbalance(StructRNA *srna)
   static float default_1[3] = {1.0f, 1.0f, 1.0f};
 
   static const EnumPropertyItem type_items[] = {
-      {0, "LIFT_GAMMA_GAIN", 0, "Lift/Gamma/Gain", ""},
-      {1,
+      {CMP_NODE_COLOR_BALANCE_LGG, "LIFT_GAMMA_GAIN", 0, "Lift/Gamma/Gain", ""},
+      {CMP_NODE_COLOR_BALANCE_ASC_CDL,
        "OFFSET_POWER_SLOPE",
        0,
        "Offset/Power/Slope (ASC-CDL)",
        "ASC-CDL standard color correction"},
+      {CMP_NODE_COLOR_BALANCE_WHITEPOINT,
+       "WHITEPOINT",
+       0,
+       "White Point",
+       "Chromatic adaption from a different white point"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -7726,6 +7759,70 @@ static void def_cmp_colorbalance(StructRNA *srna)
   RNA_def_property_ui_range(prop, -1.0, 1.0, 1.0, 2);
   RNA_def_property_ui_text(prop, "Basis", "Support negative color by using this as the RGB basis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+
+  prop = RNA_def_property(srna, "input_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
+  RNA_def_property_float_sdna(prop, nullptr, "input_temperature");
+  RNA_def_property_float_default(prop, 6500.0f);
+  RNA_def_property_range(prop, 1800.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
+  RNA_def_property_ui_text(
+      prop, "Input Temperature", "Color temperature of the input's white point");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "input_tint", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "input_tint");
+  RNA_def_property_float_default(prop, 10.0f);
+  RNA_def_property_range(prop, -500.0f, 500.0f);
+  RNA_def_property_ui_range(prop, -150.0f, 150.0f, 1, 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Input Tint",
+      "Color tint of the input's white point (the default of 10 matches daylight)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "input_whitepoint", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_NodeColorBalance_input_whitepoint_get",
+                               "rna_NodeColorBalance_input_whitepoint_set",
+                               nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Input White Point",
+                           "The color which gets mapped to white "
+                           "(automatically converted to/from temperature and tint)");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "output_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
+  RNA_def_property_float_sdna(prop, nullptr, "output_temperature");
+  RNA_def_property_float_default(prop, 6500.0f);
+  RNA_def_property_range(prop, 1800.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
+  RNA_def_property_ui_text(
+      prop, "Output Temperature", "Color temperature of the output's white point");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "output_tint", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "output_tint");
+  RNA_def_property_float_default(prop, 10.0f);
+  RNA_def_property_range(prop, -500.0f, 500.0f);
+  RNA_def_property_ui_range(prop, -150.0f, 150.0f, 1, 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Output Tint",
+      "Color tint of the output's white point (the default of 10 matches daylight)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "output_whitepoint", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(prop,
+                               "rna_NodeColorBalance_output_whitepoint_get",
+                               "rna_NodeColorBalance_output_whitepoint_set",
+                               nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Output White Point",
+                           "The color which gets white gets mapped to "
+                           "(automatically converted to/from temperature and tint)");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_Node_update");
 }
 
 static void def_cmp_huecorrect(StructRNA *srna)

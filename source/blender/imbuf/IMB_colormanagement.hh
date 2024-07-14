@@ -11,6 +11,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
+#include "BLI_math_matrix_types.hh"
+
 #define BCM_CONFIG_FILE "config.ocio"
 
 struct ColorManagedColorspaceSettings;
@@ -83,15 +85,18 @@ BLI_INLINE void IMB_colormanagement_aces_to_scene_linear(float scene_linear[3],
                                                          const float aces[3]);
 BLI_INLINE void IMB_colormanagement_scene_linear_to_aces(float aces[3],
                                                          const float scene_linear[3]);
-const float *IMB_colormanagement_get_xyz_to_scene_linear();
+blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear();
+blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
 
 /**
  * Functions for converting between color temperature/tint and RGB white points.
  */
-void IMB_colormanagement_get_view_whitepoint(const ColorManagedViewSettings *view_settings,
-                                             float whitepoint[3]);
-bool IMB_colormanagement_set_view_whitepoint(ColorManagedViewSettings *view_settings,
-                                             const float whitepoint[3]);
+void IMB_colormanagement_get_whitepoint(const float temperature,
+                                        const float tint,
+                                        float whitepoint[3]);
+bool IMB_colormanagement_set_whitepoint(const float whitepoint[3],
+                                        float &temperature,
+                                        float &tint);
 
 /** \} */
 

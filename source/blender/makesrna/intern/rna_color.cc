@@ -561,13 +561,13 @@ static std::optional<std::string> rna_ColorManagedViewSettings_path(const Pointe
 static void rna_ColorManagedViewSettings_whitepoint_get(PointerRNA *ptr, float value[3])
 {
   const ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
-  IMB_colormanagement_get_view_whitepoint(view_settings, value);
+  IMB_colormanagement_get_whitepoint(view_settings->temperature, view_settings->tint, value);
 }
 
 static void rna_ColorManagedViewSettings_whitepoint_set(PointerRNA *ptr, const float value[3])
 {
   ColorManagedViewSettings *view_settings = (ColorManagedViewSettings *)ptr->data;
-  IMB_colormanagement_set_view_whitepoint(view_settings, value);
+  IMB_colormanagement_set_whitepoint(value, view_settings->temperature, view_settings->tint);
 }
 
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)

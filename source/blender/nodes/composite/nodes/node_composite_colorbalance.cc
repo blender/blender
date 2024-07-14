@@ -15,6 +15,10 @@
 
 #include "COM_shader_node.hh"
 
+#include "IMB_colormanagement.hh"
+
+#include "BLI_math_color.hh"
+
 #include "node_composite_util.hh"
 
 /* ******************* Color Balance ********************************* */
@@ -76,6 +80,9 @@ static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
   n->slope[0] = n->slope[1] = n->slope[2] = 1.0f;
   n->offset[0] = n->offset[1] = n->offset[2] = 0.0f;
   n->power[0] = n->power[1] = n->power[2] = 1.0f;
+
+  n->input_temperature = n->output_temperature = 6500.0f;
+  n->input_tint = n->output_tint = 10.0f;
   node->storage = n;
 }
 
@@ -85,8 +92,9 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 
   uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
-  if (RNA_enum_get(ptr, "correction_method") == CMP_NODE_COLOR_BALANCE_LGG) {
+  const int method = RNA_enum_get(ptr, "correction_method");
 
+  if (method == CMP_NODE_COLOR_BALANCE_LGG) {
     split = uiLayoutSplit(layout, 0.0f, false);
     col = uiLayoutColumn(split, false);
     uiTemplateColorPicker(col, ptr, "lift", true, true, false, true);
@@ -103,8 +111,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
     row = uiLayoutRow(col, false);
     uiItemR(row, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
-  else {
-
+  else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
     split = uiLayoutSplit(layout, 0.0f, false);
     col = uiLayoutColumn(split, false);
     uiTemplateColorPicker(col, ptr, "offset", true, true, false, true);
@@ -122,14 +129,45 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
     row = uiLayoutRow(col, false);
     uiItemR(row, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
+  else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
+    split = uiLayoutSplit(layout, 0.0f, false);
+
+    col = uiLayoutColumn(split, false);
+    row = uiLayoutRow(col, true);
+    uiItemL(row, IFACE_("Input"), ICON_NONE);
+    uiTemplateCryptoPicker(row, ptr, "input_whitepoint", ICON_EYEDROPPER);
+    uiItemR(col,
+            ptr,
+            "input_temperature",
+            UI_ITEM_R_SPLIT_EMPTY_NAME,
+            IFACE_("Temperature"),
+            ICON_NONE);
+    uiItemR(col, ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
+
+    col = uiLayoutColumn(split, false);
+    row = uiLayoutRow(col, true);
+    uiItemL(row, IFACE_("Output"), ICON_NONE);
+    uiTemplateCryptoPicker(row, ptr, "output_whitepoint", ICON_EYEDROPPER);
+    uiItemR(col,
+            ptr,
+            "output_temperature",
+            UI_ITEM_R_SPLIT_EMPTY_NAME,
+            IFACE_("Temperature"),
+            ICON_NONE);
+    uiItemR(col, ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
+  }
+  else {
+    BLI_assert(false);
+  }
 }
 
 static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
-  if (RNA_enum_get(ptr, "correction_method") == CMP_NODE_COLOR_BALANCE_LGG) {
+  const int method = RNA_enum_get(ptr, "correction_method");
 
+  if (method == CMP_NODE_COLOR_BALANCE_LGG) {
     uiTemplateColorPicker(layout, ptr, "lift", true, true, false, true);
     uiItemR(layout, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
@@ -139,7 +177,7 @@ static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*
     uiTemplateColorPicker(layout, ptr, "gain", true, true, true, true);
     uiItemR(layout, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
-  else {
+  else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
     uiTemplateColorPicker(layout, ptr, "offset", true, true, false, true);
     uiItemR(layout, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
@@ -148,6 +186,15 @@ static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*
 
     uiTemplateColorPicker(layout, ptr, "slope", true, true, false, true);
     uiItemR(layout, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
+    uiItemR(layout, ptr, "input_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "output_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  else {
+    BLI_assert(false);
   }
 }
 
@@ -173,18 +220,35 @@ class ColorBalanceShaderNode : public ShaderNode {
                      GPU_uniform(node_color_balance.lift),
                      GPU_uniform(node_color_balance.gamma),
                      GPU_uniform(node_color_balance.gain));
-      return;
     }
+    else if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
+      GPU_stack_link(material,
+                     &bnode(),
+                     "node_composite_color_balance_asc_cdl",
+                     inputs,
+                     outputs,
+                     GPU_uniform(node_color_balance.offset),
+                     GPU_uniform(node_color_balance.power),
+                     GPU_uniform(node_color_balance.slope),
+                     GPU_uniform(&node_color_balance.offset_basis));
+    }
+    else if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
+      float3x3 scene_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
+      float3x3 xyz_to_scene = IMB_colormanagement_get_xyz_to_scene_linear();
+      float3 input = blender::math::whitepoint_from_temp_tint(node_color_balance.input_temperature,
+                                                              node_color_balance.input_tint);
+      float3 output = blender::math::whitepoint_from_temp_tint(
+          node_color_balance.output_temperature, node_color_balance.output_tint);
+      float3x3 adaption = blender::math::chromatic_adaption_matrix(input, output);
+      float3x3 matrix = xyz_to_scene * adaption * scene_to_xyz;
 
-    GPU_stack_link(material,
-                   &bnode(),
-                   "node_composite_color_balance_asc_cdl",
-                   inputs,
-                   outputs,
-                   GPU_uniform(node_color_balance.offset),
-                   GPU_uniform(node_color_balance.power),
-                   GPU_uniform(node_color_balance.slope),
-                   GPU_uniform(&node_color_balance.offset_basis));
+      GPU_stack_link(material,
+                     &bnode(),
+                     "node_composite_color_balance_whitepoint",
+                     inputs,
+                     outputs,
+                     GPU_uniform(blender::float4x4(matrix).base_ptr()));
+    }
   }
 
   CMPNodeColorBalanceMethod get_color_balance_method()

@@ -36,3 +36,11 @@ void node_composite_color_balance_asc_cdl(float factor,
   result.rgb = mix(color.rgb, balanced, min(factor, 1.0));
   result.a = color.a;
 }
+
+void node_composite_color_balance_whitepoint(float factor,
+                                             vec4 color,
+                                             mat4 matrix,
+                                             out vec4 result)
+{
+  result = mix(color, matrix * color, min(factor, 1.0));
+}

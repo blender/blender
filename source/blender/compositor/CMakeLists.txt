@@ -463,6 +463,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_ColorBalanceASCCDLOperation.h
     operations/COM_ColorBalanceLGGOperation.cc
     operations/COM_ColorBalanceLGGOperation.h
+    operations/COM_ColorBalanceWhitepointOperation.cc
+    operations/COM_ColorBalanceWhitepointOperation.h
     operations/COM_InvertOperation.cc
     operations/COM_InvertOperation.h
     operations/COM_MapRangeOperation.cc

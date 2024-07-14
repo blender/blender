@@ -1223,6 +1223,12 @@ typedef struct NodeColorBalance {
   float lift[3];
   float gamma[3];
   float gain[3];
+
+  /* Whitepoint parameters */
+  float input_temperature;
+  float input_tint;
+  float output_temperature;
+  float output_tint;
 } NodeColorBalance;
 
 typedef struct NodeColorspill {
@@ -2529,6 +2535,7 @@ typedef enum CMPNodeSplitAxis {
 typedef enum CMPNodeColorBalanceMethod {
   CMP_NODE_COLOR_BALANCE_LGG = 0,
   CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
+  CMP_NODE_COLOR_BALANCE_WHITEPOINT = 2,
 } CMPNodeColorBalanceMethod;
 
 /** Alpha Convert Node. Stored in `custom1`. */

@@ -5,6 +5,7 @@
 #include "COM_ColorBalanceNode.h"
 #include "COM_ColorBalanceASCCDLOperation.h"
 #include "COM_ColorBalanceLGGOperation.h"
+#include "COM_ColorBalanceWhitepointOperation.h"
 
 namespace blender::compositor {
 
@@ -24,7 +25,7 @@ void ColorBalanceNode::convert_to_operations(NodeConverter &converter,
   NodeOutput *output_socket = this->get_output_socket(0);
 
   NodeOperation *operation;
-  if (node->custom1 == 0) {
+  if (node->custom1 == CMP_NODE_COLOR_BALANCE_LGG) {
     ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
 
     float lift_lgg[3], gamma_inv[3];
@@ -38,7 +39,7 @@ void ColorBalanceNode::convert_to_operations(NodeConverter &converter,
     operationLGG->set_gamma_inv(gamma_inv);
     operation = operationLGG;
   }
-  else {
+  else if (node->custom1 == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
     ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
 
     float offset[3];
@@ -49,6 +50,12 @@ void ColorBalanceNode::convert_to_operations(NodeConverter &converter,
     operationCDL->set_power(n->power);
     operationCDL->set_slope(n->slope);
     operation = operationCDL;
+  }
+  else {
+    ColorBalanceWhitepointOperation *operation_whitepoint = new ColorBalanceWhitepointOperation();
+    operation_whitepoint->set_parameters(
+        n->input_temperature, n->input_tint, n->output_temperature, n->output_tint);
+    operation = operation_whitepoint;
   }
   converter.add_operation(operation);
 
