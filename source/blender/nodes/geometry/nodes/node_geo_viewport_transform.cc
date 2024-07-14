@@ -26,7 +26,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Object &self_object = *params.self_object();
   const GeoNodesOperatorData &data = *params.user_data()->call_data->operator_data;
 
-  params.set_output("Projection", data.viewport_winmat * self_object.object_to_world());
+  params.set_output("Projection", data.viewport_winmat);
   params.set_output("View", data.viewport_viewmat * self_object.object_to_world());
   params.set_output("Is Orthographic", !data.viewport_is_perspective);
 }
