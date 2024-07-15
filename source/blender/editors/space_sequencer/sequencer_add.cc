@@ -1083,8 +1083,8 @@ void SEQUENCER_OT_movie_strip_add(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "use_framerate",
                   true,
-                  "Use Movie Framerate",
-                  "Use framerate from the movie to keep sound and video in sync");
+                  "Set Scene Frame Rate",
+                  "Set frame rate of the current scene to the frame rate of the movie");
 }
 
 static void sequencer_add_sound_multiple_strips(bContext *C,
