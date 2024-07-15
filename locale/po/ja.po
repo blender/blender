@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
-"PO-Revision-Date: 2024-07-08 06:56+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"PO-Revision-Date: 2024-07-15 07:55+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -26757,7 +26757,7 @@ msgstr "スペキュラーの反射がどれだけ強い(明るい)か"
 
 
 msgid "Surface Render Method"
-msgstr "サーフェスレンダー方法"
+msgstr "サーフェスレンダーメソッド"
 
 
 msgid "Controls the blending and the compatibility with certain features"
@@ -27580,6 +27580,14 @@ msgid "Index of active material slot"
 msgstr "アクティブなマテリアルスロットのインデックス"
 
 
+msgid "Active Selection Set"
+msgstr "アクティブ選択セット"
+
+
+msgid "Index of the currently active selection set"
+msgstr "現在アクティブな選択セットのインデックス"
+
+
 msgid "Active Shape Key"
 msgstr "アクティブシェイプキー"
 
@@ -28256,6 +28264,14 @@ msgstr "クォータニオンでの回転"
 
 msgid "Scaling of the object"
 msgstr "オブジェクトのスケーリング"
+
+
+msgid "Selection Sets"
+msgstr "選択セット"
+
+
+msgid "List of groups of bones for easy selection"
+msgstr "ボーンをグループ化し，簡単に選択できるようにしたリスト"
 
 
 msgid "Shader Effects"
@@ -36524,6 +36540,10 @@ msgid "Keyframe Insert Pie"
 msgstr "キーフレーム挿入パイ"
 
 
+msgid "Animals"
+msgstr "動物"
+
+
 msgid "Basic"
 msgstr "基本"
 
@@ -36917,6 +36937,14 @@ msgid "Particle Specials"
 msgstr "パーティクルスペシャル"
 
 
+msgid "Selection Sets Specials"
+msgstr "選択セットスペシャル"
+
+
+msgid "Select Selection Set"
+msgstr "選択セットを選択"
+
+
 msgid "Frame Rate Presets"
 msgstr "フレームレートのプリセット"
 
@@ -37093,6 +37121,10 @@ msgstr "アドオン設定"
 
 msgid "Active Repository"
 msgstr "アクティブリポジトリ"
+
+
+msgid "Active Extension Repository"
+msgstr "アクティブエクステンションリポジトリ"
 
 
 msgid "Remove Extension Repository"
@@ -44425,7 +44457,7 @@ msgstr "アルファオーバー"
 
 
 msgid "Overlay a foreground image onto a background image"
-msgstr "前面の画像を背面の画像の上に重ね合わせます"
+msgstr "前側の画像を後側の画像の上に重ね合わせます"
 
 
 msgid "Convert Premultiplied"
@@ -47124,7 +47156,7 @@ msgstr "ラッピング"
 
 
 msgid "Wrap image on a specific axis"
-msgstr "画像を特定の軸でラップします"
+msgstr "画像を指定の軸でループします"
 
 
 msgid "No wrapping on X and Y"
@@ -47136,7 +47168,7 @@ msgstr "X軸"
 
 
 msgid "Wrap all pixels on the X axis"
-msgstr "全ピクセルをX軸でラップします"
+msgstr "全ピクセルを X 軸でラップします"
 
 
 msgid "Y Axis"
@@ -47144,7 +47176,7 @@ msgstr "Y軸"
 
 
 msgid "Wrap all pixels on the Y axis"
-msgstr "全ピクセルをY軸でラップします"
+msgstr "全ピクセルを Y 軸でラップします"
 
 
 msgid "Both Axes"
@@ -50102,6 +50134,12 @@ msgstr "欲しい色を選択します．シェーダーがよく似たヘアー
 
 msgid "Principled BSDF"
 msgstr "プリンシプルBSDF"
+
+
+msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the OpenPBR model"
+msgstr ""
+"OpenPBR モデルを元にした，物理ベースで利用が簡単な\n"
+"サーフェスマテリアルのレンダリング用シェーダー"
 
 
 msgid "Subsurface Method"
@@ -54780,14 +54818,26 @@ msgid "Rigify Encode Metarig"
 msgstr "Rigifyメタリグをエンコード"
 
 
+msgid "Create Python code that will generate the selected metarig"
+msgstr "選択中のメタリグを生成する Python コードを作成します"
+
+
 msgctxt "Operator"
 msgid "Rigify Encode Metarig Sample"
 msgstr "Rigifyサンプルメタリグをエンコード"
 
 
+msgid "Create Python code that will generate the selected metarig as a sample"
+msgstr "選択中のメタリグをサンプルとして生成する Python コードを作成します"
+
+
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Rigifyメタリグレイヤーを更新"
+
+
+msgid "Upgrade the metarig from bone layers to bone collections"
+msgstr "メタリグのボーンレイヤーをボーンコレクションに更新します"
 
 
 msgctxt "Operator"
@@ -54798,6 +54848,15 @@ msgstr "Rigifyアクティブ/選択カラーを現テーマから取得"
 msgctxt "Operator"
 msgid "Validate Collection References"
 msgstr "コレクション参照を検証"
+
+
+msgid ""
+"Validate references from rig component settings to bone collections.\n"
+"Always run this both before and after joining two metarig armature objects into one to avoid glitches"
+msgstr ""
+"リグコンポーネントの設定からのボーンコレクションへの参照を\n"
+"検証します．これは二つのメタリグアーマチュアオブジェクトの\n"
+"統合の前後での問題を回避するため常に実行されます"
 
 
 msgctxt "Operator"
@@ -60207,11 +60266,6 @@ msgid "Enable Repository from Drop"
 msgstr "リポジトリへのドロップを有効化"
 
 
-msgctxt "Operator"
-msgid "Lock Repository (Testing)"
-msgstr "リポジトリをロック（テスト用）"
-
-
 msgid "Lock repositories - to test locking"
 msgstr "リポジトリをロックします（ロックのテスト用）"
 
@@ -60242,11 +60296,6 @@ msgid "Refresh the list of extensions for all the remote repositories"
 msgstr "全リモートリポジトリのエクステンションリストをリフレッシュします"
 
 
-msgctxt "Operator"
-msgid "Unlock Repository (Testing)"
-msgstr "リポジトリをロック解除（テスト用）"
-
-
 msgid "Unlock repositories - to test unlocking"
 msgstr "リポジトリのロックを解除します（ロック解除のテスト用）"
 
@@ -60272,6 +60321,19 @@ msgid "Show system preferences \"Network\" panel to allow online access"
 msgstr ""
 "オンラインアクセスを可能にするにはプリファレンスのシステムタブの\n"
 "「ネットワーク」パネルを表示してください"
+
+
+msgctxt "Operator"
+msgid "Set Extension Tags"
+msgstr "エクステンションタグを設定"
+
+
+msgid "Set the value of all tags"
+msgstr "すべてのタグにこの値を設定します"
+
+
+msgid "Enable or disable all tags"
+msgstr "すべてのタグを有効または無効にします"
 
 
 msgctxt "Operator"
@@ -74587,6 +74649,10 @@ msgid "New"
 msgstr "新規"
 
 
+msgid "Create a new action"
+msgstr "新しいアクションを作成します"
+
+
 msgctxt "Operator"
 msgid "Jump to Action Slot"
 msgstr "アクションスロットにジャンプ"
@@ -78073,6 +78139,10 @@ msgid "Convert animation from any rotation mode to any other"
 msgstr "アニメーションの回転モードを他の物に変換します"
 
 
+msgid "Affected Actions"
+msgstr "影響するアクション"
+
+
 msgid "Which Actions to affect"
 msgstr "どのアクションが影響を受けるか"
 
@@ -78370,6 +78440,10 @@ msgid "Rigify Generate Rig"
 msgstr "Rigify生成リグ"
 
 
+msgid "Generate a rig from the active metarig armature"
+msgstr "アクティブメタリグアーマチュアからリグを生成します"
+
+
 msgctxt "Operator"
 msgid "Mirror Rigify Parameters"
 msgstr "Rigifyパラメーターをミラー反転"
@@ -78395,6 +78469,10 @@ msgstr ""
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Types"
 msgstr "Rigifyメタリグタイプをアップグレード"
+
+
+msgid "Upgrade the Rigify types on the active metarig armature"
+msgstr "アクティブメタリグアーマチュアの Rigify タイプをアップグレードします"
 
 
 msgctxt "Operator"
@@ -78465,6 +78543,130 @@ msgstr "親ボーンを選択"
 
 msgid "Select bones that are parents of the currently selected bones"
 msgstr "選択しているボーンの親のボーンを選択します"
+
+
+msgctxt "Operator"
+msgid "Create Selection Set"
+msgstr "選択セットを作成"
+
+
+msgid "Create a new empty Selection Set"
+msgstr "新しく空の選択セットを作成します"
+
+
+msgctxt "Operator"
+msgid "Create and Add Bones to Selection Set"
+msgstr "選択セットを作成しボーンを追加"
+
+
+msgid "Create a new Selection Set with the currently selected bones"
+msgstr "現在選択中のボーンで新規選択セットを作成します"
+
+
+msgctxt "Operator"
+msgid "Add Bones to Selection Set"
+msgstr "選択セットにボーンを追加"
+
+
+msgid "Add selected bones to Selection Set"
+msgstr "選択中のボーンを選択セットに追加します"
+
+
+msgctxt "Operator"
+msgid "Copy Selection Set(s)"
+msgstr "選択セットをコピー"
+
+
+msgid "Copy the selected Selection Set(s) to the clipboard"
+msgstr "選択中の選択セットをクリップボードにコピーします"
+
+
+msgctxt "Operator"
+msgid "Delete All Sets"
+msgstr "全セットを削除"
+
+
+msgid "Remove all Selection Sets from this Armature"
+msgstr "このアーマチュアから選択セットをすべて削除します"
+
+
+msgctxt "Operator"
+msgid "Deselect Selection Set"
+msgstr "選択セットを選択解除"
+
+
+msgid "Remove Selection Set bones from current selection"
+msgstr "現在の選択から選択セットのボーンを選択解除します"
+
+
+msgctxt "Operator"
+msgid "Move Selection Set in List"
+msgstr "選択セットをリスト内で移動"
+
+
+msgid "Move the active Selection Set up/down the list of sets"
+msgstr "アクティブ選択セットをセットのリスト中で上下に移動します"
+
+
+msgid "Move Direction"
+msgstr "移動方向"
+
+
+msgid "Direction to move the active Selection Set: UP (default) or DOWN"
+msgstr "アクティブ選択セットの移動方向：上（デフォルト）または下"
+
+
+msgctxt "Operator"
+msgid "Paste Selection Set(s)"
+msgstr "選択セットを貼り付け"
+
+
+msgid "Add new Selection Set(s) from the clipboard"
+msgstr "新規選択セットをクリップボードから追加します"
+
+
+msgctxt "Operator"
+msgid "Delete Selection Set"
+msgstr "選択セットを削除"
+
+
+msgid "Remove a Selection Set from this Armature"
+msgstr "このアーマチュアから選択セットを削除します"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Bones from All Sets"
+msgstr "全セットから選択ボーンを除外"
+
+
+msgid "Remove the selected bones from all Selection Sets"
+msgstr "すべての選択セットから選択中のボーンの割り当てを解除します"
+
+
+msgctxt "Operator"
+msgid "Select Selection Set"
+msgstr "選択セットを選択"
+
+
+msgid "Select the bones from this Selection Set"
+msgstr "この選択セットのボーンを選択します"
+
+
+msgid "Selection Set Index"
+msgstr "選択セットインデックス"
+
+
+msgid "Which Selection Set to select; -1 uses the active Selection Set"
+msgstr "どの選択セットを選択するか．-1でアクティブ選択セットを使用します"
+
+
+msgctxt "Operator"
+msgid "Remove Bones from Selection Set"
+msgstr "ボーンを選択セットから除外"
+
+
+msgid "Remove selected bones from Selection Set"
+msgstr "選択セットから選択中のボーンの割り当てを解除します"
 
 
 msgctxt "Operator"
@@ -79444,6 +79646,10 @@ msgstr "現在のシーンからリジッドボディシミュレーションワ
 msgctxt "Operator"
 msgid "Clear Animation"
 msgstr "アニメーションをクリア"
+
+
+msgid "Clear animation for FK or IK bones"
+msgstr "FK または IK ボーンのアニメーションをクリアします"
 
 
 msgctxt "Operator"
@@ -89353,6 +89559,20 @@ msgstr ""
 "シンプルなマテリアルでのみ動作します"
 
 
+msgid "Namespace"
+msgstr "名前空間"
+
+
+msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
+msgstr ""
+"設定時，与えられた名前空間を接頭辞として，エクスポートする\n"
+"カスタムプロパティ名に追加します．これはまだ接頭辞を持って\n"
+"いないプロパティ名にのみ適用されます（例:「bar」という名前\n"
+"には適用するが「foo:baa」にはしない）．\n"
+"名前空間「userProperties:blender」で常にエクスポートされる\n"
+"Blender オブジェクトとデータ名には適用されません"
+
+
 msgid "Use Settings for"
 msgstr "使用する設定"
 
@@ -89371,6 +89591,10 @@ msgstr "全カメラをエクスポート"
 
 msgid "Export all curves"
 msgstr "全カーブをエクスポート"
+
+
+msgid "Export custom properties as USD attributes"
+msgstr "カスタムプロパティを USD 属性としてエクスポートします"
 
 
 msgid "Export hair particle systems as USD curves"
@@ -94601,6 +94825,17 @@ msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "UI 内で新しいボリュームノードの表示設定を有効にします"
 
 
+msgid "Recompute ID Usercount On Save"
+msgstr "IDユーザー数を保存時に再計算"
+
+
+msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
+msgstr ""
+"すべての ID ユーザー数を blend ファイル保存前に再計算します．\n"
+"未使用データブロックの誤探知によるデータのロスにつながる，\n"
+"コード内の異常なユーザー数処理への応急処置が可能になります"
+
+
 msgid "Sculpt Texture Paint"
 msgstr "スカルプトテクスチャペイント"
 
@@ -94639,10 +94874,6 @@ msgid "Enable viewport debugging options for developers in the overlays pop-over
 msgstr ""
 "開発者用のビューポートデバッグオプションを\n"
 "オーバーレイポップオーバー内で有効にします"
-
-
-msgid "Active Extension Repository"
-msgstr "アクティブエクステンションリポジトリ"
 
 
 msgid "Index of the extensions repository being edited in the Preferences UI"
@@ -95887,6 +96118,14 @@ msgstr "スタック内の最後のサブディビジョンサーフェスモデ
 
 msgid "Allow Online Access"
 msgstr "オンラインアクセスを許可"
+
+
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule"
+msgstr ""
+"Blender がインターネットにアクセスすることを許可します．\n"
+"この設定に従うアドオンは有効時のみインターネットに接続しますが，\n"
+"Blender はサードパーティのアドオンがこのルールに違反することを\n"
+"防ぐことができません"
 
 
 msgid "Overlay Smooth Wires"
@@ -98898,6 +99137,10 @@ msgid "object_color"
 msgstr "object_color"
 
 
+msgid "Color picker"
+msgstr "カラーピッカー"
+
+
 msgid "Whether this feature-set is registered or not"
 msgstr "この機能セットが登録済みかどうか"
 
@@ -99030,6 +99273,13 @@ msgid "IK Local Location"
 msgstr "IKローカル位置"
 
 
+msgid "Specifies the value of the Local Location option for IK controls, which decides if the location channels are aligned to the local control orientation or world"
+msgstr ""
+"IK コントロール用のローカル位置オプションの値を指定します．\n"
+"これは位置チャンネルをローカルコントロールの座標系，または\n"
+"ワールドに揃えるかどうかを決めます"
+
+
 msgid "Locked Influence"
 msgstr "ロック時の影響"
 
@@ -99084,6 +99334,10 @@ msgstr "コピー用のコントロールボーンを作成します"
 
 msgid "Controls"
 msgstr "コントロール"
+
+
+msgid "Create control bones for the copy"
+msgstr "コピー用のコントロールボーンを複数作成します"
 
 
 msgid "Custom Pivot Control"
@@ -99158,6 +99412,10 @@ msgstr "ウィジェット"
 
 msgid "Choose a widget for the bone control"
 msgstr "ボーンコントロール用のウィジェットを選択します"
+
+
+msgid "Neck Position"
+msgstr "首の位置"
 
 
 msgid "Neck start position"
@@ -99310,6 +99568,12 @@ msgid "Radius Scaling"
 msgstr "半径スケーリング"
 
 
+msgid "Allow scaling the spline control bones to affect the thickness via curve radius"
+msgstr ""
+"スプラインコントロールボーンをスケーリングすることで\n"
+"カーブ半径を通じて太さに影響を与えられるようにします"
+
+
 msgid "Extra Start Controls"
 msgstr "追加の開始制御点数"
 
@@ -99458,6 +99722,14 @@ msgid "Merge Parent Rotation And Scale"
 msgstr "親の回転とスケールを統合"
 
 
+msgid "When controls are merged into ones owned by other chains, include parent-induced rotation/scale difference into handle motion. Otherwise only local motion of the control bone is used"
+msgstr ""
+"コントロールを他のチェーン所有のコントロールに統合する時，\n"
+"親により生じた回転・スケールの差異をハンドルモーションに\n"
+"含めます．それ以外の場合は，コントロールボーンのローカル\n"
+"モーションのみ使用します"
+
+
 msgid "Use Handle Scale"
 msgstr "ハンドルスケールを使用"
 
@@ -99496,8 +99768,23 @@ msgid "Copy Location (Local)"
 msgstr "位置コピー（ローカル）"
 
 
+msgid "Add a constraint to copy Local Location with Offset. If the owner and target control rest orientations are different, the global movement direction will change accordingly"
+msgstr ""
+"「ローカル位置をオフセット付きでコピー」するコンストレイントを\n"
+"追加します．オーナーとターゲットのコントロールのレスト方向が\n"
+"違う場合，それに応じてグローバルの移動方向が変更されます"
+
+
 msgid "Copy Location (Local, Owner Orientation)"
 msgstr "位置コピー（ローカル，オーナー空間）"
+
+
+msgid "Add a constraint to copy Local Location (Owner Orientation) with Offset. Even if the owner and target controls have different rest orientations, the global movement direction would be the same"
+msgstr ""
+"「ローカル位置（オーナー空間）をオフセット付きでコピー」する\n"
+"コンストレイントを追加します．\n"
+"オーナーとターゲットのコントロールのレスト方向が違う場合でも\n"
+"グローバルの移動方向は同じになります"
 
 
 msgid "Influence of the added constraint"
@@ -99534,8 +99821,21 @@ msgid "Mirror With Parents"
 msgstr "親付きでミラー"
 
 
+msgid "The glue bone keeps its parent, but uses Copy Transforms to group both local and parent induced motion of the control into local space"
+msgstr ""
+"グルーボーンが親を維持したまま「トランスフォームコピー」を\n"
+"使用し，ローカルと親により生じたコントロールのモーションの\n"
+"両方を，ローカル空間にまとめます"
+
+
 msgid "Deformation Bridge"
 msgstr "変形ブリッジ"
+
+
+msgid "Other than adding glue constraints to the control, the rig acts as a one segment basic deform chain"
+msgstr ""
+"グルーコンストレイントをコントロールに追加する以外は，\n"
+"リグをセグメント一つの基本的な変形チェーンとして動かします"
 
 
 msgid "Target Local With Parents"
@@ -99552,6 +99852,13 @@ msgid "Use Tail Target"
 msgstr "テールターゲットを使用"
 
 
+msgid "Find the control at the bone tail location and use it to relink TARGET or any constraints without an assigned subtarget or relink spec"
+msgstr ""
+"ボーンのテール位置のコントロールを探し，それを使用して\n"
+"割り当てられたサブターゲットや，再リンクの指定なしで，\n"
+"「ターゲット」やコンストレイントなどを再リンクします"
+
+
 msgid "Primary Control Layers"
 msgstr "プライマリコントロールレイヤー"
 
@@ -99560,8 +99867,12 @@ msgid "Secondary Control Layers"
 msgstr "セカンダリコントロールレイヤー"
 
 
+msgid "Tail Position"
+msgstr "テールの位置"
+
+
 msgid "Where the tail starts"
-msgstr "テールの始まる位置"
+msgstr "テールの始まる場所"
 
 
 msgid "Orient y-axis to"
@@ -99592,6 +99903,10 @@ msgid "Assign Tweak Collections"
 msgstr "調整コレクションに割り当て"
 
 
+msgid "Use Head"
+msgstr "ヘッドを使用"
+
+
 msgid "Create head and neck bones"
 msgstr "頭と首のボーンを作成します"
 
@@ -99602,6 +99917,10 @@ msgstr "テールボーンを作成します"
 
 msgid "Custom Widget orient"
 msgstr "カスタムウィジェットの方向"
+
+
+msgid "Targets custom WGTs to defined axis (global space)"
+msgstr "カスタム WGT を設定した軸に向けます（グローバル空間）"
 
 
 msgid "Widget Offset"
@@ -99622,6 +99941,12 @@ msgstr "要素インデックス"
 
 msgid "Face Index"
 msgstr "面インデックス"
+
+
+msgid "Include this selection set when copying to the clipboard. If none are specified, all sets will be copied."
+msgstr ""
+"クリップボードにコピーした時，この選択セットを含みます．\n"
+"何も指定されていない場合は全セットがコピーされます"
 
 
 msgid "Base Pose Angle"
@@ -116827,6 +117152,14 @@ msgid "Active repository is disabled"
 msgstr "アクティブリポジトリは無効化されています"
 
 
+msgid "Refresh the list of extensions for the active repository"
+msgstr "アクティブリポジトリのエクステンションリストをリフレッシュします"
+
+
+msgid "Upgrade all the extensions to their latest version for the active repository"
+msgstr "アクティブリポジトリの全エクステンションを最新版に更新します"
+
+
 msgid "No installed packages to update"
 msgstr "更新するインストール済パッケージがありません"
 
@@ -116857,6 +117190,10 @@ msgid ""
 msgstr ""
 "このシステムと互換性がないエクステンションです:\n"
 "{:s}"
+
+
+msgid "Alternatively, download the extension to Install from Disk."
+msgstr "代わりに「ディスクからインストール」するエクステンションをダウンロードしてください."
 
 
 msgid "Lock not held!"
@@ -116891,16 +117228,36 @@ msgid "Online access required to install or update. Enable online access in Syst
 msgstr "オンラインアクセスがインストールや更新に必要です．システムプリファレンスでオンラインアクセスを有効化してください"
 
 
+msgid "Add-on \"{:s}\" is already installed!"
+msgstr "アドオン「{:s}」はインストール済です！"
+
+
+msgid "Blender was launched in offline mode, which cannot be changed at runtime"
+msgstr "Blender がオフラインモードで起動されており，起動中は変更できません"
+
+
+msgid "Online access required to install or update."
+msgstr "インストールや更新はオンラインアクセスが必要です."
+
+
 msgid "Launch Blender without --offline-mode"
 msgstr "--offline-mode なしで Blende を起動してください"
 
 
+msgid "Please turn Online Access on in the System settings."
+msgstr "「システムタブ→オンラインアクセスを許可」を有効にしてください"
+
+
+msgid "Internet access is required to install extensions from the internet."
+msgstr "インターネットからエクステンションをインストールするにはインターネットアクセスが必要です."
+
+
 msgid "Online access required to check for updates."
-msgstr "更新のチェックにはオンラインアクセスが必要です"
+msgstr "更新のチェックにはオンラインアクセスが必要です."
 
 
 msgid "Online access required to install updates."
-msgstr "更新のインストールにはオンラインアクセスが必要です"
+msgstr "更新のインストールにはオンラインアクセスが必要です."
 
 
 msgid "Enable online access in System preferences"
@@ -116909,6 +117266,10 @@ msgstr "システムプリファレンスでオンラインアクセスを有効
 
 msgid "Unable to install from disk, no paths were defined"
 msgstr "パスが未定義なためディスクからインストールできません"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "テーマ「{:s}」はインストール済です！"
 
 
 msgid "URL: {:s}"
@@ -116990,6 +117351,11 @@ msgid "Website"
 msgstr "Webサイト"
 
 
+msgctxt "Preferences"
+msgid "Feedback"
+msgstr "フィードバック"
+
+
 msgid "Maintainer"
 msgstr "メンテナー"
 
@@ -117010,9 +117376,21 @@ msgid "Repository Access Errors:"
 msgstr "リポジトリアクセスエラー:"
 
 
+msgid "Internet access is required to install and update online extensions. "
+msgstr "オンラインエクステンションのインストールや更新はインターネットアクセスが必要です． "
+
+
+msgid "You can adjust this later from \"System\" preferences."
+msgstr "これは後で「システム」プリファレンスから設定できます."
+
+
 msgctxt "Operator"
 msgid "Install from Disk..."
 msgstr "ディスクからインストール..."
+
+
+msgid "No visible tags."
+msgstr "表示可能なタグがありません."
 
 
 msgctxt "Operator"
@@ -117102,6 +117480,18 @@ msgstr "{:s}（{:s}利用可能）"
 msgctxt "Operator"
 msgid "Add-on Enabled"
 msgstr "有効アドオン"
+
+
+msgid "Demo"
+msgstr "デモ"
+
+
+msgid "Downloading..."
+msgstr "ダウンロード中..."
+
+
+msgid "Downloading \"{:s}\""
+msgstr "「{:s}」をダウンロード中"
 
 
 msgid "No selected keys, pasting over scene range"
@@ -118037,12 +118427,32 @@ msgid "Current node has no visible outputs."
 msgstr "現在のノードに表示可能な出力がありません"
 
 
+msgid "At least one node must be selected."
+msgstr "最低一つのノードを選択してください．"
+
+
+msgid "{:s} nodes are selected, but this operator can only work on {:s}."
+msgstr "{:s} 個のノードが選択中ですが，このオペレーターは {:s} 個以下でのみ動作します．"
+
+
 msgid ""
 "Current node tree type not supported.\n"
 "Should be one of {:s}."
 msgstr ""
 "現在のノードツリータイプは未対応です.\n"
 "{:s}の中の一つにしてください"
+
+
+msgid "Active node should not be of type {:s}."
+msgstr "アクティブノードを「{:s}」タイプにしないでください．"
+
+
+msgid "At least {:s} nodes must be selected."
+msgstr "最低 {:s} 個のノードを選択してください．"
+
+
+msgid "Active node should be of type {:s}."
+msgstr "アクティブノードは「{:s}」タイプにしてください．"
 
 
 msgctxt "Operator"
@@ -118060,7 +118470,7 @@ msgstr "ポーズライブラリを移動しました．"
 
 
 msgid "Pose assets are now available"
-msgstr "ポーズアセットがアセットシェルフ内で"
+msgstr "ポーズアセットはアセットシェルフ内で"
 
 
 msgid "in the asset shelf."
@@ -118102,6 +118512,10 @@ msgstr "ポーズアセットをコピーしました．アセットブラウザ
 
 msgid "Pasted %d assets"
 msgstr "%d 個のアセットを貼り付けました"
+
+
+msgid "Deselect those bones that are used in this pose"
+msgstr "このポーズ内で使用中のボーンを選択解除します"
 
 
 msgid "Converted %d poses to pose assets"
@@ -118235,6 +118649,30 @@ msgid "This feature set depends on the following feature set to work properly:"
 msgstr "この機能セットを正しく動作させるには以下の機能セットが必要です："
 
 
+msgid "This feature set requires Blender {:s} or newer to work properly."
+msgstr "この機能セットは Blender {:s} 以降でのみ正しく動作します．"
+
+
+msgid "The feature set archive must contain one base directory"
+msgstr "機能セットのアーカイブには一つのベースディレクトリが入っていないといけません"
+
+
+msgid "The feature set archive has no rigs or metarigs, or is missing __init__.py"
+msgstr "機能セットのアーカイブにリグやメタリグがない，または「__init__.py」がありません"
+
+
+msgid "The feature set archive base directory name is not a valid identifier: '{:s}'"
+msgstr "機能セットのアーカイブのベースディレクトリ名が無効な識別子です：'{:s}'"
+
+
+msgid "The name '{:s}' is not allowed for feature sets"
+msgstr "名前「{:s}」は機能セットに使用できません"
+
+
+msgid "Feature set directory already exists: '{:s}'"
+msgstr "機能セットディレクトリ「{:s}」は存在しています"
+
+
 msgid "Status:"
 msgstr "状態："
 
@@ -118247,8 +118685,32 @@ msgid "Cannot verify bone name without a generated rig"
 msgstr "生成リグのないボーン名は確認できません"
 
 
+msgid "Min and max values are the same!"
+msgstr "最小値と最大値が同じです！"
+
+
 msgid "Start and end frame cannot be the same!"
 msgstr "開始と終了フレームは同じにできません！"
+
+
+msgid "Symmetrical ({:s})"
+msgstr "対称 ({:s})"
+
+
+msgid "Will be stuck reading frame {:d}!"
+msgstr "フレーム {:d} の読み込みがスタックします！"
+
+
+msgid "Default Frame: {:.0f}"
+msgstr "デフォルトフレーム：{:.0f}"
+
+
+msgid "Default Frame: {:.02f} (Should be a whole number!)"
+msgstr "デフォルトフレーム：{:.02f}（整数にしてください！）"
+
+
+msgid "Bone not found: {:s}"
+msgstr "ボーンがありません：{:s}"
 
 
 msgctxt "Operator"
@@ -118264,6 +118726,30 @@ msgstr "タイプとパラメーターをコピー"
 msgctxt "Operator"
 msgid "Mirror Type & Parameters"
 msgstr "タイプとパラメーターをミラー反転"
+
+
+msgid "No suitable selected bones to copy to"
+msgstr "コピー先に適合する選択ボーンがありません"
+
+
+msgid "Mirrored parameters of {:d} bones"
+msgstr "{:d} 個のボーンのパラメーターをミラーリングしました"
+
+
+msgid "Copied {:s} parameters to {:d} bones"
+msgstr "{:s}のパラメーターを {:d} 個のボーンにコピーしました"
+
+
+msgid "Copied the value to {:d} bones"
+msgstr "値を {:d} 個のボーンにコピーしました"
+
+
+msgid "Cannot find class {:s} in {:s}"
+msgstr "クラス「{:s}」が「{:s}」にありません"
+
+
+msgid "Bone {:s} selected on both sides, mirroring would be ambiguous, aborting. Only select the left or right side, not both"
+msgstr "ボーン「{:s}」の両側が選択されており，あいまいなミラー化になるため停止しました．左右どちらか片方のみ選択してください"
 
 
 msgid "Master Control"
@@ -118314,6 +118800,10 @@ msgid "Follow Z"
 msgstr "Zを追従"
 
 
+msgid "Eyelids Follow{}"
+msgstr "まぶたを追従{}"
+
+
 msgid "This monolithic face rig is deprecated."
 msgstr "このモノリシックなフェイスリグは廃止予定です．"
 
@@ -118322,8 +118812,20 @@ msgid "Custom IK Pivot"
 msgstr "カスタムIKピボット"
 
 
+msgid "Auto Align End"
+msgstr "終端を自動整列"
+
+
+msgid "Auto Align {:s}"
+msgstr "{:s}を自動整列"
+
+
 msgid "A straight line rest shape works best."
 msgstr "直線のレスト形状がベストです．"
+
+
+msgid "IK->FK ({:s})"
+msgstr "IK→FK ({:s})"
 
 
 msgid "Bend rotation axis:"
@@ -118386,6 +118888,10 @@ msgid "Note: this combined rig is deprecated."
 msgstr "注意：この統合リグは廃止予定です．"
 
 
+msgid "Warning: Some features may change after generation"
+msgstr "警告：一部の機能が生成後に変更されているようです"
+
+
 msgid "Rig Name"
 msgstr "リグ名"
 
@@ -118443,6 +118949,20 @@ msgid "Upgrade Metarig"
 msgstr "メタリグをアップグレード"
 
 
+msgid "WARNING: This metarig contains deprecated Rigify rig-types and cannot be upgraded automatically."
+msgstr "警告：このメタリグには廃止予定の Rigify リグタイプがあるため，自動的にアップグレードできません．"
+
+
+msgctxt "Operator"
+msgid "Re-Generate Rig"
+msgstr "リグを再生成"
+
+
+msgctxt "Operator"
+msgid "Generate Rig"
+msgstr "リグを生成"
+
+
 msgid "Click a button to select a collection:"
 msgstr "ボタンのクリックでコレクションを選択："
 
@@ -118479,6 +118999,22 @@ msgstr "ポールに切り替え"
 msgctxt "Operator"
 msgid "Switch to rotation"
 msgstr "回転に切り替え"
+
+
+msgid "Incorrect armature..."
+msgstr "間違ったアーマチュア..."
+
+
+msgid "No bone collections have UI buttons assigned - please check the Bone Collections UI sub-panel"
+msgstr "UI ボタンを割り当てたボーンコレクションがありません．ボーンコレクション UI サブパネルをチェックしてください"
+
+
+msgid "No issues detected"
+msgstr "問題は見つかりませんでした"
+
+
+msgid "You must select a rig type to create a sample of"
+msgstr "サンプルを作成するリグタイプを選択してください"
 
 
 msgctxt "Operator"
@@ -118526,8 +119062,24 @@ msgid "Clear FK Action"
 msgstr "FKアクションをクリア"
 
 
+msgid "Metarig written to text datablock {:s}"
+msgstr "メタリグがテキストデータブロック「{:s}」に出力されました"
+
+
+msgid "Metarig Sample written to text datablock {:s}"
+msgstr "サンプルメタリグがテキストデータブロック「{:s}」に出力されました"
+
+
+msgid "({:s} on bone {:s})"
+msgstr "「{:s}」(ボーン{:s})"
+
+
 msgid "This metarig uses the old face rig."
 msgstr "このメタリグは古いフェイスリグを使用しています．"
+
+
+msgid "The '{:s}' collection will be added upon generation"
+msgstr "「{:s}」コレクションが生成の上に追加されます"
 
 
 msgid "No options"
@@ -118538,8 +119090,20 @@ msgid "Options:"
 msgstr "オプション:"
 
 
+msgid "Incorrect armature for type '{:s}'"
+msgstr "タイプ「{:s}」に不適合なアーマチュア"
+
+
 msgid "Generation has thrown an exception: "
 msgstr "生成で例外が投げられました： "
+
+
+msgid "Successfully generated: \"{:s}\""
+msgstr "生成に成功:「{:s}」"
+
+
+msgid "ERROR: type \"{:s}\" does not exist!"
+msgstr "エラー：タイプ「{:s}」は存在しません！"
 
 
 msgctxt "Operator"
@@ -118549,6 +119113,14 @@ msgstr "アクション"
 
 msgid "Use the plus button to add list entries"
 msgstr "「＋」ボタンでリストにエントリを追加します"
+
+
+msgid "Collection {:s} has the same uid {:d} as {:s}"
+msgstr "コレクション「{:s}」は「{:s}」と同じUID（{:d}）です"
+
+
+msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
+msgstr "ボーン「{:s}」の「{:s}」(コレクション「{:s}」)への参照が壊れています"
 
 
 msgid "Save to PO File"
@@ -118944,6 +119516,14 @@ msgstr "次の要素は非表示です"
 
 msgid "Last selected not found"
 msgstr "最後の選択が見つかりません"
+
+
+msgid "Copied Selection Set(s) to clipboard"
+msgstr "選択セットをクリップボードにコピーしました"
+
+
+msgid "The clipboard does not contain a Selection Set"
+msgstr "クリップボードに選択セットがありません"
 
 
 msgid "Identified {:d} problematic tracks"
@@ -120030,6 +120610,11 @@ msgid "Deselect Bones"
 msgstr "ボーンを選択解除"
 
 
+msgctxt "Operator"
+msgid "New Selection Set"
+msgstr "新規選択セット"
+
+
 msgid "Damping Max"
 msgstr "減速の最大"
 
@@ -120764,7 +121349,7 @@ msgstr "ライトプローブボリューム"
 
 
 msgid "Render Method"
-msgstr "レンダー方法"
+msgstr "レンダーメソッド"
 
 
 msgid "Intersection"
@@ -124950,6 +125535,10 @@ msgid "Select Pattern..."
 msgstr "パターン選択..."
 
 
+msgid "Bone Selection Set"
+msgstr "ボーン選択セット"
+
+
 msgctxt "Operator"
 msgid "Constraint Target"
 msgstr "コンストレイントターゲット"
@@ -127181,6 +127770,10 @@ msgid "Internal Name"
 msgstr "内部名"
 
 
+msgid "%sAction"
+msgstr "%sアクション"
+
+
 msgid "Could not insert {:d} key(s) for unknown reasons."
 msgstr "{:d} 個のキーが未知の理由で挿入できませんでした"
 
@@ -127887,6 +128480,10 @@ msgstr "動画クリップ"
 
 msgid "NlaTrack"
 msgstr "NLAトラック"
+
+
+msgid "<No Action>"
+msgstr "<アクションなし>"
 
 
 msgid "NlaStrip"
@@ -135523,6 +136120,10 @@ msgid "Active Strip Name"
 msgstr "アクティブストリップ名"
 
 
+msgid "Temp-Meta"
+msgstr "一時メタ"
+
+
 msgid "Make Selected Strips Single-User"
 msgstr "選択ストリップをシングルユーザー化"
 
@@ -136635,6 +137236,10 @@ msgid "Separate Sequence Images"
 msgstr "連番画像を分離"
 
 
+msgid "MetaStrip"
+msgstr "メタストリップ"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "音声シーケンスストリップにエフェクトは適用できません"
 
@@ -136945,6 +137550,10 @@ msgstr "Microsoft Store インストールからは登録解除できません"
 
 msgid "File association unregistered"
 msgstr "ファイル関連付けを登録解除"
+
+
+msgid "Added %s \"%s\""
+msgstr "%s「%s」を追加"
 
 
 msgid "Unable to remove directory: %s"
@@ -139989,6 +140598,10 @@ msgstr "ファイルハンドラークラス登録:「%s」が長すぎです（
 
 msgid "Layout panels can not be used in this context"
 msgstr "このコンテキストではレイアウトパネルは使用できません"
+
+
+msgid "template_popup_confirm used outside of a popup"
+msgstr "template_popup_confirm がポップアップ外で使用されました"
 
 
 msgid "Script directory not found"
@@ -143597,11 +144210,11 @@ msgstr "放射色"
 
 
 msgid "Thin Film Thickness"
-msgstr "薄いフィルムの厚さ"
+msgstr "薄膜の厚さ"
 
 
 msgid "Thin Film IOR"
-msgstr "薄いフィルムのIOR"
+msgstr "薄膜のIOR"
 
 
 msgctxt "NodeTree"
@@ -143754,7 +144367,7 @@ msgstr "シーン"
 
 
 msgid "Thin Film"
-msgstr "薄いフィルム"
+msgstr "薄膜"
 
 
 msgid "Strength of the bump mapping effect, interpolating between no bump mapping and full bump mapping"
@@ -144330,6 +144943,10 @@ msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」や�
 
 msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」が見つかりません"
+
+
+msgid "Channel %d"
+msgstr "チャンネル %d"
 
 
 msgctxt "Sequence"
@@ -145915,6 +146532,10 @@ msgstr "ベラルーシ語（беларуску）"
 
 msgid "Danish (Dansk)"
 msgstr "デンマーク語（Dansk）"
+
+
+msgid "Slovenian (Slovenščina)"
+msgstr "スロバキア語（Slovenčina）"
 
 
 msgid "Complete"

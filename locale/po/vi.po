@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -35213,6 +35213,10 @@ msgstr ""
 "    thêm thao tác riêng tự vào dang bạ bối cảnh. Nhưng chúng nó phải kiểm tra bối cảnh,\n"
 "    cho mặt hàng của chúng nó chỉ vẽ trong một bối cảnh hợp lệ và danh bạ Giao Diện đúng.\n"
 "    "
+
+
+msgid "Active Extension Repository"
+msgstr "Kho Lưu Trữ Tiện Ích Mở Rộng Đang Hoạt Động"
 
 
 msgid "Presets"
@@ -87330,10 +87334,6 @@ msgstr "Sử dụng kiểu hoàn tác cũ trước đây (chậm hơn cái mặc
 
 msgid "Enable viewport debugging options for developers in the overlays pop-over"
 msgstr "Bật tùy chọn gỡ lỗi cổng nhìn cho các nhà phát triển trong cửa sổ bật lên vẽ lồng"
-
-
-msgid "Active Extension Repository"
-msgstr "Kho Lưu Trữ Tiện Ích Mở Rộng Đang Hoạt Động"
 
 
 msgid "Index of the extensions repository being edited in the Preferences UI"
