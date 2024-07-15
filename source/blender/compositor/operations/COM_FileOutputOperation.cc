@@ -263,7 +263,7 @@ void FileOutputOperation::execute_multi_layer()
 
 /* Given a float4 image, return a newly allocated float3 image that ignores the last channel. The
  * input image is freed. */
-float *float4_to_float3_image(int2 size, float *float4_image)
+static float *float4_to_float3_image(int2 size, float *float4_image)
 {
   float *float3_image = static_cast<float *>(
       MEM_malloc_arrayN(size_t(size.x) * size.y, sizeof(float[3]), "File Output Vector Buffer."));
