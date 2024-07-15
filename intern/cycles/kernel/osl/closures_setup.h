@@ -880,10 +880,10 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
   if (closure->method == make_string("burley", 186330084368958868ull)) {
     type = CLOSURE_BSSRDF_BURLEY_ID;
   }
-  else if (closure->method == make_string("random_walk", 5695810351010063150ull)) {
+  else if (closure->method == make_string("random_walk", 11360609267673527222ull)) {
     type = CLOSURE_BSSRDF_RANDOM_WALK_ID;
   }
-  else if (closure->method == make_string("random_walk_skin", 11360609267673527222ull)) {
+  else if (closure->method == make_string("random_walk_skin", 3096325052680726300ull)) {
     type = CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID;
   }
   else {
