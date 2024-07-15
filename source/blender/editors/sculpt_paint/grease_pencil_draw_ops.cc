@@ -280,7 +280,6 @@ static bool grease_pencil_sculpt_paint_poll(bContext *C)
 
 static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
   if (!object || object->type != OB_GREASE_PENCIL) {
     return OPERATOR_CANCELLED;
@@ -307,7 +306,7 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
 
   /* Ensure a drawing at the current keyframe. */
   bool inserted_keyframe = false;
-  if (!ed::greasepencil::ensure_active_keyframe(*scene, grease_pencil, inserted_keyframe)) {
+  if (!ed::greasepencil::ensure_active_keyframe(C, grease_pencil, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
