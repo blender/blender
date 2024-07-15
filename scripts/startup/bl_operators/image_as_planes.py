@@ -38,7 +38,7 @@ from bpy_extras.io_utils import ImportHelper
 # -----------------------------------------------------------------------------
 # Constants
 
-COMPATIBLE_ENGINES = {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+COMPATIBLE_ENGINES = {'CYCLES', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
 # -----------------------------------------------------------------------------
 # Image loading
@@ -290,31 +290,15 @@ class MaterialProperties_MixIn:
         description="Use alpha channel for transparency",
     )
 
-    blend_method: EnumProperty(
-        name="Blend Mode",
+    render_method: EnumProperty(
+        name="Render Method",
         items=(
-            ('BLEND', "Blend", "Render polygon transparent, depending on alpha channel of the texture"),
-            ('CLIP', "Clip", "Use the alpha threshold to clip the visibility (binary visibility)"),
-            ('HASHED', "Hashed", "Use noise to dither the binary visibility (works well with multi-samples)"),
-            ('OPAQUE', "Opaque", "Render surface without transparency"),
-        ),
-        default='BLEND',
-        description="Blend Mode for Transparent Faces",
-        translation_context=i18n_contexts.id_material,
-    )
-
-    shadow_method: EnumProperty(
-        name="Shadow Mode",
-        items=(
-            ('CLIP', "Clip", "Use the alpha threshold to clip the visibility (binary visibility)"),
-            ('HASHED', "Hashed", "Use noise to dither the binary visibility (works well with multi-samples)"),
-            ('OPAQUE', "Opaque", "Material will cast shadows without transparency"),
-            ('NONE', "None", "Material will cast no shadow"),
-        ),
-        default='CLIP',
-        description="Shadow mapping method",
-        translation_context=i18n_contexts.id_material,
-    )
+            ('DITHERED',
+             "Dithered",
+             "Allows for grayscale hashed transparency, and compatible with render passes and raytracing. Also known as deferred rendering."),
+            ('BLENDED',
+             "Blended",
+             "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering.")))
 
     use_backface_culling: BoolProperty(
         name="Backface Culling",
@@ -345,16 +329,14 @@ class MaterialProperties_MixIn:
             if self.shader == 'EMISSION':
                 body.prop(self, "emit_strength")
 
-            body.prop(self, 'blend_method')
-
-            body.prop(self, 'shadow_method')
-            if self.blend_method == 'BLEND':
+            body.prop(self, 'render_method')
+            if self.render_method == 'BLENDED':
                 body.prop(self, "show_transparent_back")
 
             body.prop(self, "use_backface_culling")
 
             engine = context.scene.render.engine
-            if engine not in ('CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'):
+            if engine not in COMPATIBLE_ENGINES:
                 body.label(text=tip_("{:s} is not supported").format(engine), icon='ERROR')
 
             body.prop(self, "overwrite_material")
@@ -456,9 +438,7 @@ def create_cycles_material(self, context, img_spec, name):
 
     material.use_nodes = True
 
-    material.blend_method = self.blend_method
-    material.shadow_method = self.shadow_method
-
+    material.surface_render_method = self.render_method
     material.use_backface_culling = self.use_backface_culling
     material.use_transparency_overlap = self.show_transparent_back
 
