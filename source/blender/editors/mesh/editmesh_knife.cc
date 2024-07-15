@@ -3223,39 +3223,36 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
   return density ? min_ff(maxsize / (float(density) * 0.5f), maxsize) : maxsize;
 }
 
-/* Snap to edge when in a constrained mode.
- * Returns 'lambda' calculated (in screen-space). */
-static bool knife_snap_edge_constrained(KnifeTool_OpData *kcd,
-                                        const float sco[3],
-                                        const float kfv1_sco[2],
-                                        const float kfv2_sco[2],
-                                        float *r_dist_sq,
-                                        float2 &r_sco)
+/* Find a point on an edge that is closest to the axis of a contrained mode.
+ * Returns true if the point is between the edge limits. */
+static bool knife_closest_constrain_to_edge(KnifeTool_OpData *kcd,
+                                            const float3 kfv1_cageco,
+                                            const float3 kfv2_cageco,
+                                            float r_close[3])
 {
   /* If snapping, check we're in bounds. */
-  isect_line_line_v2_point(kfv1_sco, kfv2_sco, kcd->prev.mval, kcd->curr.mval, r_sco);
-  float lambda = line_point_factor_v2(r_sco, kfv1_sco, kfv2_sco);
+  float lambda;
+  float3 dir = kcd->curr.cage - kcd->prev.cage;
+  if (!isect_ray_line_v3(kcd->prev.cage, dir, kfv1_cageco, kfv2_cageco, &lambda)) {
+    return false;
+  }
 
   /* Be strict when constrained within edge. */
   if ((lambda < 0.0f - KNIFE_FLT_EPSBIG) || (lambda > 1.0f + KNIFE_FLT_EPSBIG)) {
     return false;
   }
 
-  float dis_sq = len_squared_v2v2(sco, r_sco);
-  if (dis_sq < *r_dist_sq) {
-    *r_dist_sq = dis_sq;
-    return true;
-  }
-  return false;
+  interp_v3_v3v3(r_close, kfv1_cageco, kfv2_cageco, lambda);
+  return true;
 }
 
-/* p is closest point on edge to the mouse cursor. */
+/* `r_kpd->cage` is closest point on edge to the knife point. */
 static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
                                             int ob_index,
                                             BMFace *f,
                                             const float3 ray_origin,
                                             const float3 ray_normal,
-                                            const float2 &mval,
+                                            const float2 &curr_cage_ss,
                                             KnifePosData *r_kpd)
 {
   float maxdist;
@@ -3285,31 +3282,26 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
       continue;
     }
 
-    /* Project edge vertices into screen space. */
-    knife_project_v2(kcd, kfe->v1->cageco, kfv1_sco);
-    knife_project_v2(kcd, kfe->v2->cageco, kfv2_sco);
-
-    /* Check if we're close enough and calculate 'lambda'. */
-    /* In constrained mode calculate lambda differently, unless constrained along kcd->prev.edge */
-    float2 closest_ss;
-    float dis_sq;
+    /* Get the closest point on the edge. */
     if ((kcd->is_angle_snapping || kcd->axis_constrained) && (kfe != kcd->prev.edge) &&
         (kcd->mode == MODE_DRAGGING))
     {
-      dis_sq = cur_dist_sq;
-      if (!knife_snap_edge_constrained(kcd, mval, kfv1_sco, kfv2_sco, &dis_sq, closest_ss)) {
+      /* Check if it is within the edges' bounds. */
+      if (!knife_closest_constrain_to_edge(kcd, kfe->v1->cageco, kfe->v2->cageco, test_cagep)) {
         continue;
       }
     }
     else {
       closest_ray_to_segment_v3(
           ray_origin, ray_normal, kfe->v1->cageco, kfe->v2->cageco, test_cagep);
+    }
 
-      knife_project_v2(kcd, test_cagep, closest_ss);
-      dis_sq = len_squared_v2v2(closest_ss, mval);
-      if (dis_sq >= cur_dist_sq) {
-        continue;
-      }
+    /* Check if we're close enough. */
+    float2 closest_ss;
+    knife_project_v2(kcd, test_cagep, closest_ss);
+    float dis_sq = len_squared_v2v2(closest_ss, curr_cage_ss);
+    if (dis_sq >= cur_dist_sq) {
+      continue;
     }
 
     if (RV3D_CLIPPING_ENABLED(kcd->vc.v3d, kcd->vc.rv3d)) {
@@ -3804,7 +3796,9 @@ static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[
     }
   }
 
-  knife_snap_curr(kcd, mval);
+  /* Use `kcd->mval` as this is the value of the snap point in screen space that can change in
+   * angle snapping or axis constrained modes. */
+  knife_snap_curr(kcd, kcd->mval);
 }
 
 /**
