@@ -46,9 +46,9 @@ static void calc_faces(const Sculpt &sd,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
 {
-  SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
