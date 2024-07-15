@@ -17,11 +17,6 @@ VKRenderGraph::VKRenderGraph(std::unique_ptr<VKCommandBufferInterface> command_b
   submission_id.reset();
 }
 
-void VKRenderGraph::free_data()
-{
-  command_buffer_.reset();
-}
-
 void VKRenderGraph::remove_nodes(Span<NodeHandle> node_handles)
 {
   UNUSED_VARS_NDEBUG(node_handles);

@@ -40,11 +40,9 @@ class VKContext : public Context, NonCopyable {
   bool is_init_ = false;
 
  public:
-  render_graph::VKRenderGraph render_graph;
+  render_graph::VKRenderGraph &render_graph;
 
-  VKContext(void *ghost_window,
-            void *ghost_context,
-            render_graph::VKResourceStateTracker &resources);
+  VKContext(void *ghost_window, void *ghost_context, render_graph::VKRenderGraph &render_graph);
   virtual ~VKContext();
 
   void activate() override;

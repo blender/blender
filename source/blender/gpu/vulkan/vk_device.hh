@@ -11,6 +11,7 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "render_graph/vk_render_graph.hh"
 #include "render_graph/vk_resource_state_tracker.hh"
 #include "vk_buffer.hh"
 #include "vk_common.hh"
@@ -103,6 +104,7 @@ class VKDevice : public NonCopyable {
   Vector<VkImageView> discarded_image_views_;
 
   std::string glsl_patch_;
+  Vector<render_graph::VKRenderGraph *> render_graphs_;
 
  public:
   render_graph::VKResourceStateTracker resources;
@@ -235,6 +237,10 @@ class VKDevice : public NonCopyable {
   /** \name Resource management
    * \{ */
 
+  /**
+   * Get the render graph associated with the current thread. Create a new one when not existing.
+   */
+  render_graph::VKRenderGraph &render_graph();
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
   Span<std::reference_wrapper<VKContext>> contexts_get() const;

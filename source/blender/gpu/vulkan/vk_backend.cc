@@ -174,7 +174,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context, device.resources);
+  VKContext *context = new VKContext(ghost_window, ghost_context, device.render_graph());
   device.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,

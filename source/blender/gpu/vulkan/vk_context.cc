@@ -23,8 +23,8 @@ namespace blender::gpu {
 
 VKContext::VKContext(void *ghost_window,
                      void *ghost_context,
-                     render_graph::VKResourceStateTracker &resources)
-    : render_graph(std::make_unique<render_graph::VKCommandBufferWrapper>(), resources)
+                     render_graph::VKRenderGraph &render_graph)
+    : render_graph(render_graph)
 {
   ghost_window_ = ghost_window;
   ghost_context_ = ghost_context;
@@ -46,7 +46,6 @@ VKContext::~VKContext()
     GPU_texture_free(surface_texture_);
     surface_texture_ = nullptr;
   }
-  render_graph.free_data();
   VKBackend::get().device.context_unregister(*this);
 
   delete imm;
@@ -115,9 +114,6 @@ void VKContext::activate()
 
 void VKContext::deactivate()
 {
-  /* Draw manager draws in a different context than the rest of the UI. Although run from the
-   * same thread. Commands inside the render-graph need to be submitted into the device queue. */
-  flush_render_graph();
   immDeactivate();
   is_active_ = false;
 }
