@@ -718,6 +718,12 @@ static void paint_brush_set_default_reference(Paint *paint,
                                               const bool do_regular = true,
                                               const bool do_eraser = true)
 {
+  if (!paint->runtime.initialized) {
+    /* Can happen when loading old file where toolsettings are created in versioning, without
+     * calling #paint_runtime_init(). Will be done later when necessary. */
+    return;
+  }
+
   const char *name = nullptr;
   const char *eraser_name = nullptr;
 
@@ -1318,6 +1324,8 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
       BLI_assert(ELEM(*r_paint, (Paint *)&ts->imapaint));
 
       paint_runtime_init(ts, *r_paint);
+      BKE_paint_brush_set_default(bmain, *r_paint);
+      BKE_paint_eraser_brush_set_default(bmain, *r_paint);
     }
     else {
       BLI_assert(ELEM(*r_paint,
