@@ -622,6 +622,11 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     /* Transparency on mute. */
     bool muted = channels ? SEQ_render_is_muted(channels, seq) : false;
     if (muted) {
+      /* Work on a copy of the thumbnail image, so that transparency
+       * is not stored into the thumbnail cache. */
+      ImBuf *copy = IMB_dupImBuf(ibuf);
+      IMB_freeImBuf(ibuf);
+      ibuf = copy;
       make_ibuf_semitransparent(ibuf);
     }
 
