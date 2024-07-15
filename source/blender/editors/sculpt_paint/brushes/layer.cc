@@ -29,16 +29,19 @@ namespace blender::ed::sculpt_paint {
 
 inline namespace layer_cc {
 
-static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush, PBVHNode *node)
+static void do_layer_brush_task(const Sculpt &sd,
+                                const Brush &brush,
+                                Object &object,
+                                PBVHNode &node)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
 
   const bool use_persistent_base = !ss.bm && ss.attrs.persistent_co &&
                                    brush.flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   const float bstrength = ss.cache->bstrength;
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -46,9 +49,9 @@ static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
+      object, ss.cache->automasking.get(), node);
 
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(orig_data, vd);
 
     if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
@@ -127,7 +130,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_layer_brush_task(object, sd, brush, nodes[i]);
+      do_layer_brush_task(sd, brush, object, *nodes[i]);
     }
   });
 }
