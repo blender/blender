@@ -3976,7 +3976,7 @@ static void do_brush_action(const Scene &scene,
       do_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_LAYER:
-      SCULPT_do_layer_brush(sd, ob, nodes);
+      do_layer_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_FLATTEN:
       do_flatten_brush(sd, ob, nodes);

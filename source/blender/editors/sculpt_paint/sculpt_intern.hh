@@ -2074,18 +2074,6 @@ namespace blender::ed::sculpt_paint {
 
 float clay_thumb_get_stabilized_pressure(const blender::ed::sculpt_paint::StrokeCache &cache);
 
-}
-
-void SCULPT_do_layer_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
-
-/** \} */
-
-/* end sculpt_brush_types.cc */
-
-/* sculpt_ops.cc */
-
-namespace blender::ed::sculpt_paint {
-
 void SCULPT_OT_brush_stroke(wmOperatorType *ot);
 
 }

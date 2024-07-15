@@ -135,6 +135,7 @@ set(SRC
   brushes/flatten.cc
   brushes/grab.cc
   brushes/inflate.cc
+  brushes/layer.cc
   brushes/mask.cc
   brushes/multiplane_scrape.cc
   brushes/multires_displacement_eraser.cc
