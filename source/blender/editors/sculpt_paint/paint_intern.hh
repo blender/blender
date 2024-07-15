@@ -20,6 +20,8 @@
 #include "DNA_scene_enums.h"
 #include "DNA_vec_types.h"
 
+#include <memory>
+
 enum class PaintMode : int8_t;
 
 struct ARegion;
@@ -118,7 +120,13 @@ bool paint_stroke_inverted(PaintStroke *stroke);
 ViewContext *paint_stroke_view_context(PaintStroke *stroke);
 void *paint_stroke_mode_data(PaintStroke *stroke);
 float paint_stroke_distance_get(PaintStroke *stroke);
-void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data);
+
+class PaintModeData {
+ public:
+  virtual ~PaintModeData() = default;
+};
+void paint_stroke_set_mode_data(PaintStroke *stroke, std::unique_ptr<PaintModeData> mode_data);
+
 bool paint_stroke_started(PaintStroke *stroke);
 
 bool paint_brush_tool_poll(bContext *C);

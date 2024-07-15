@@ -24,9 +24,8 @@ struct InputSample {
   float pressure;
 };
 
-class GreasePencilStrokeOperation {
+class GreasePencilStrokeOperation : public PaintModeData {
  public:
-  virtual ~GreasePencilStrokeOperation() = default;
   virtual void on_stroke_begin(const bContext &C, const InputSample &start_sample) = 0;
   virtual void on_stroke_extended(const bContext &C, const InputSample &extension_sample) = 0;
   virtual void on_stroke_done(const bContext &C) = 0;

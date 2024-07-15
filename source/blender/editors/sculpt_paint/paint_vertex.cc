@@ -901,7 +901,7 @@ static void to_static_color_type(const eCustomDataType type, const Func &func)
   }
 }
 
-struct VPaintData {
+struct VPaintData : public PaintModeData {
   ViewContext vc;
   AttrDomain domain;
   eCustomDataType type;
@@ -920,20 +920,28 @@ struct VPaintData {
     GArray<> color_prev;
     GArray<> color_curr;
   } smear;
+
+  ~VPaintData()
+  {
+    if (vp_handle) {
+      ED_vpaint_proj_handle_free(vp_handle);
+    }
+  }
 };
 
-static VPaintData *vpaint_init_vpaint(bContext *C,
-                                      wmOperator *op,
-                                      Scene &scene,
-                                      Depsgraph &depsgraph,
-                                      VPaint &vp,
-                                      Object &ob,
-                                      Mesh &mesh,
-                                      const AttrDomain domain,
-                                      const eCustomDataType type,
-                                      const Brush &brush)
+static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
+                                                      wmOperator *op,
+                                                      Scene &scene,
+                                                      Depsgraph &depsgraph,
+                                                      VPaint &vp,
+                                                      Object &ob,
+                                                      Mesh &mesh,
+                                                      const AttrDomain domain,
+                                                      const eCustomDataType type,
+                                                      const Brush &brush)
 {
-  VPaintData *vpd = MEM_new<VPaintData>(__func__);
+  std::unique_ptr<VPaintData> vpd = std::make_unique<VPaintData>();
+
   vpd->type = type;
   vpd->domain = domain;
 
@@ -991,10 +999,10 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     return false;
   }
 
-  VPaintData *vpd = vpaint_init_vpaint(
+  std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(
       C, op, scene, depsgraph, vp, ob, *mesh, meta_data->domain, meta_data->data_type, brush);
 
-  paint_stroke_set_mode_data(stroke, vpd);
+  paint_stroke_set_mode_data(stroke, std::move(vpd));
 
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
@@ -1941,12 +1949,6 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 {
   VPaintData *vpd = static_cast<VPaintData *>(paint_stroke_mode_data(stroke));
   Object &ob = *vpd->vc.obact;
-
-  if (vpd->is_texbrush) {
-    ED_vpaint_proj_handle_free(vpd->vp_handle);
-  }
-
-  MEM_delete(vpd);
 
   SculptSession &ss = *ob.sculpt;
 

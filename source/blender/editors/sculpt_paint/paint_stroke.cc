@@ -58,7 +58,7 @@ struct PaintSample {
 };
 
 struct PaintStroke {
-  void *mode_data;
+  std::unique_ptr<PaintModeData> mode_data;
   void *stroke_cursor;
   wmTimer *timer;
   std::optional<RandomNumberGenerator> rng;
@@ -1670,7 +1670,7 @@ ViewContext *paint_stroke_view_context(PaintStroke *stroke)
 
 void *paint_stroke_mode_data(PaintStroke *stroke)
 {
-  return stroke->mode_data;
+  return stroke->mode_data.get();
 }
 
 bool paint_stroke_flipped(PaintStroke *stroke)
@@ -1688,9 +1688,9 @@ float paint_stroke_distance_get(PaintStroke *stroke)
   return stroke->stroke_distance;
 }
 
-void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
+void paint_stroke_set_mode_data(PaintStroke *stroke, std::unique_ptr<PaintModeData> mode_data)
 {
-  stroke->mode_data = mode_data;
+  stroke->mode_data = std::move(mode_data);
 }
 
 bool paint_stroke_started(PaintStroke *stroke)

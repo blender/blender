@@ -99,7 +99,7 @@ struct WeightPaintGroupData {
   const bool *lock;
 };
 
-struct WPaintData {
+struct WPaintData : public PaintModeData {
   ViewContext vc;
   NormalAnglePrecalc normal_angle_precalc;
 
@@ -122,6 +122,18 @@ struct WPaintData {
   /* original weight values for use in blur/smear */
   float *precomputed_weight;
   bool precomputed_weight_ready;
+
+  ~WPaintData()
+  {
+    MEM_SAFE_FREE(defbase_sel);
+    MEM_SAFE_FREE(vgroup_validmap);
+    MEM_SAFE_FREE(vgroup_locked);
+    MEM_SAFE_FREE(vgroup_unlocked);
+    MEM_SAFE_FREE(lock_flags);
+    MEM_SAFE_FREE(active.lock);
+    MEM_SAFE_FREE(mirror.lock);
+    MEM_SAFE_FREE(precomputed_weight);
+  }
 };
 
 /* struct to avoid passing many args each call to do_weight_paint_vertex()
@@ -907,8 +919,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     }
   }
 
-  WPaintData *wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
-  paint_stroke_set_mode_data(&stroke, wpd);
+  std::unique_ptr<WPaintData> wpd = std::make_unique<WPaintData>();
   wpd->vc = ED_view3d_viewcontext_init(C, &depsgraph);
 
   const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
@@ -999,6 +1010,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
       dv->flag = 1;
     }
   }
+
+  paint_stroke_set_mode_data(&stroke, std::move(wpd));
 
   return true;
 }
@@ -1804,22 +1817,9 @@ static void wpaint_stroke_update_step(bContext *C,
   ED_region_tag_redraw_partial(vc->region, &r, true);
 }
 
-static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
+static void wpaint_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
 {
   Object &ob = *CTX_data_active_object(C);
-  WPaintData *wpd = (WPaintData *)paint_stroke_mode_data(stroke);
-
-  if (wpd) {
-    MEM_SAFE_FREE(wpd->defbase_sel);
-    MEM_SAFE_FREE(wpd->vgroup_validmap);
-    MEM_SAFE_FREE(wpd->vgroup_locked);
-    MEM_SAFE_FREE(wpd->vgroup_unlocked);
-    MEM_SAFE_FREE(wpd->lock_flags);
-    MEM_SAFE_FREE(wpd->active.lock);
-    MEM_SAFE_FREE(wpd->mirror.lock);
-    MEM_SAFE_FREE(wpd->precomputed_weight);
-    MEM_freeN(wpd);
-  }
 
   SculptSession &ss = *ob.sculpt;
 

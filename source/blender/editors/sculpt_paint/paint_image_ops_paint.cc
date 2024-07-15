@@ -210,7 +210,7 @@ class ProjectionPaintMode : public AbstractPaintMode {
   }
 };
 
-struct PaintOperation {
+struct PaintOperation : public PaintModeData {
   AbstractPaintMode *mode = nullptr;
 
   void *stroke_handle = nullptr;
@@ -275,12 +275,14 @@ static void gradient_draw_line(bContext * /*C*/, int x, int y, void *customdata)
   }
 }
 
-static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const float mouse[2])
+static std::unique_ptr<PaintOperation> texture_paint_init(bContext *C,
+                                                          wmOperator *op,
+                                                          const float mouse[2])
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
-  PaintOperation *pop = MEM_new<PaintOperation>("PaintOperation"); /* caller frees */
+  std::unique_ptr<PaintOperation> pop = std::make_unique<PaintOperation>();
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
   int mode = RNA_enum_get(op->ptr, "mode");
   pop->vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -297,7 +299,6 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
     bool uvs, mat, tex, stencil;
     if (!ED_paint_proj_mesh_data_check(*scene, *ob, &uvs, &mat, &tex, &stencil)) {
       ED_paint_data_warning(op->reports, uvs, mat, tex, stencil);
-      MEM_delete(pop);
       WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
       return nullptr;
     }
@@ -309,13 +310,12 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 
   pop->stroke_handle = pop->mode->paint_new_stroke(C, op, ob, mouse, mode);
   if (!pop->stroke_handle) {
-    MEM_delete(pop);
     return nullptr;
   }
 
   if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
     pop->cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, ED_image_tools_paint_poll, gradient_draw_line, pop);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, ED_image_tools_paint_poll, gradient_draw_line, pop.get());
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -423,12 +423,11 @@ static void paint_stroke_done(const bContext *C, PaintStroke *stroke)
                 pop->s.warnpackedfile);
   }
 #endif
-  MEM_delete(pop);
 }
 
 static bool paint_stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
-  PaintOperation *pop;
+  std::unique_ptr<PaintOperation> pop;
 
   /* TODO: Should avoid putting this here. Instead, last position should be requested
    * from stroke system. */
@@ -437,7 +436,7 @@ static bool paint_stroke_test_start(bContext *C, wmOperator *op, const float mou
     return false;
   }
 
-  paint_stroke_set_mode_data(static_cast<PaintStroke *>(op->customdata), pop);
+  paint_stroke_set_mode_data(static_cast<PaintStroke *>(op->customdata), std::move(pop));
 
   return true;
 }
