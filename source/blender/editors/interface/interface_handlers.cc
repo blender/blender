@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <variant>
 
 #include "MEM_guardedalloc.h"
 
@@ -1950,46 +1951,46 @@ static void ui_selectcontext_apply(bContext *C,
     const int index = but->rnaindex;
     const bool use_delta = (selctx_data->is_copy == false);
 
-    union {
-      bool b;
-      int i;
-      float f;
-      char *str;
-      PointerRNA p;
-    } delta, min, max;
+    std::variant<bool, int, float, std::string, PointerRNA> delta, min, max;
 
     const bool is_array = RNA_property_array_check(prop);
     const int rna_type = RNA_property_type(prop);
 
     if (rna_type == PROP_FLOAT) {
-      delta.f = use_delta ? (value - value_orig) : value;
-      RNA_property_float_range(&but->rnapoin, prop, &min.f, &max.f);
+      delta.emplace<float>(use_delta ? (value - value_orig) : value);
+      float min_v, max_v;
+      RNA_property_float_range(&but->rnapoin, prop, &min_v, &max_v);
+      min.emplace<float>(min_v);
+      max.emplace<float>(max_v);
     }
     else if (rna_type == PROP_INT) {
-      delta.i = use_delta ? (int(value) - int(value_orig)) : int(value);
-      RNA_property_int_range(&but->rnapoin, prop, &min.i, &max.i);
+      delta.emplace<int>(int(use_delta ? (value - value_orig) : value));
+      int min_v, max_v;
+      RNA_property_int_range(&but->rnapoin, prop, &min_v, &max_v);
+      min.emplace<int>(min_v);
+      max.emplace<int>(max_v);
     }
     else if (rna_type == PROP_ENUM) {
       /* Not a delta in fact. */
-      delta.i = RNA_property_enum_get(&but->rnapoin, prop);
+      delta.emplace<int>(RNA_property_enum_get(&but->rnapoin, prop));
     }
     else if (rna_type == PROP_BOOLEAN) {
       if (is_array) {
         /* Not a delta in fact. */
-        delta.b = RNA_property_boolean_get_index(&but->rnapoin, prop, index);
+        delta.emplace<bool>(RNA_property_boolean_get_index(&but->rnapoin, prop, index));
       }
       else {
         /* Not a delta in fact. */
-        delta.b = RNA_property_boolean_get(&but->rnapoin, prop);
+        delta.emplace<bool>(RNA_property_boolean_get(&but->rnapoin, prop));
       }
     }
     else if (rna_type == PROP_POINTER) {
       /* Not a delta in fact. */
-      delta.p = RNA_property_pointer_get(&but->rnapoin, prop);
+      delta.emplace<PointerRNA>(RNA_property_pointer_get(&but->rnapoin, prop));
     }
     else if (rna_type == PROP_STRING) {
       /* Not a delta in fact. */
-      delta.str = RNA_property_string_get_alloc(&but->rnapoin, prop, nullptr, 0, nullptr);
+      delta.emplace<std::string>(RNA_property_string_get(&but->rnapoin, prop));
     }
 
 #  ifdef USE_ALLSELECT_LAYER_HACK
@@ -2028,8 +2029,8 @@ static void ui_selectcontext_apply(bContext *C,
       PointerRNA lptr = other->ptr;
 
       if (rna_type == PROP_FLOAT) {
-        float other_value = use_delta ? (other->val_f + delta.f) : delta.f;
-        CLAMP(other_value, min.f, max.f);
+        float other_value = std::get<float>(delta) + (use_delta ? other->val_f : 0.0f);
+        CLAMP(other_value, std::get<float>(min), std::get<float>(max));
         if (is_array) {
           RNA_property_float_set_index(&lptr, lprop, index, other_value);
         }
@@ -2038,8 +2039,8 @@ static void ui_selectcontext_apply(bContext *C,
         }
       }
       else if (rna_type == PROP_INT) {
-        int other_value = use_delta ? (other->val_i + delta.i) : delta.i;
-        CLAMP(other_value, min.i, max.i);
+        int other_value = std::get<int>(delta) + (use_delta ? other->val_i : 0);
+        CLAMP(other_value, std::get<int>(min), std::get<int>(max));
         if (is_array) {
           RNA_property_int_set_index(&lptr, lprop, index, other_value);
         }
@@ -2048,32 +2049,29 @@ static void ui_selectcontext_apply(bContext *C,
         }
       }
       else if (rna_type == PROP_BOOLEAN) {
-        const bool other_value = delta.b;
+        const bool other_value = std::get<bool>(delta);
         if (is_array) {
           RNA_property_boolean_set_index(&lptr, lprop, index, other_value);
         }
         else {
-          RNA_property_boolean_set(&lptr, lprop, delta.b);
+          RNA_property_boolean_set(&lptr, lprop, other_value);
         }
       }
       else if (rna_type == PROP_ENUM) {
-        const int other_value = delta.i;
+        const int other_value = std::get<int>(delta);
         BLI_assert(!is_array);
         RNA_property_enum_set(&lptr, lprop, other_value);
       }
       else if (rna_type == PROP_POINTER) {
-        const PointerRNA other_value = delta.p;
+        const PointerRNA &other_value = std::get<PointerRNA>(delta);
         RNA_property_pointer_set(&lptr, lprop, other_value, nullptr);
       }
       else if (rna_type == PROP_STRING) {
-        const char *other_value = delta.str;
-        RNA_property_string_set(&lptr, lprop, other_value);
+        const std::string &other_value = std::get<std::string>(delta);
+        RNA_property_string_set(&lptr, lprop, other_value.c_str());
       }
 
       RNA_property_update(C, &lptr, prop);
-    }
-    if (rna_type == PROP_STRING) {
-      MEM_freeN(delta.str);
     }
   }
 }

@@ -405,6 +405,7 @@ bool RNA_property_float_set_default(PropertyRNA *prop, float value);
 void RNA_property_float_get_default_array(PointerRNA *ptr, PropertyRNA *prop, float *values);
 float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
+std::string RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr,
                                     PropertyRNA *prop,
