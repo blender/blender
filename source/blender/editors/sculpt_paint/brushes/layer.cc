@@ -29,15 +29,11 @@ namespace blender::ed::sculpt_paint {
 
 inline namespace layer_cc {
 
-static void do_layer_brush_task(const Sculpt &sd,
-                                const Brush &brush,
-                                Object &object,
-                                PBVHNode &node)
+static void calc_faces(const Sculpt &sd, const Brush &brush, Object &object, PBVHNode &node)
 {
   SculptSession &ss = *object.sculpt;
 
-  const bool use_persistent_base = !ss.bm && ss.attrs.persistent_co &&
-                                   brush.flag & BRUSH_PERSISTENT;
+  const bool use_persistent_base = ss.attrs.persistent_co && brush.flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   const float bstrength = ss.cache->bstrength;
@@ -117,6 +113,127 @@ static void do_layer_brush_task(const Sculpt &sd,
   BKE_pbvh_vertex_iter_end;
 }
 
+static void calc_grids(const Sculpt &sd, const Brush &brush, Object &object, PBVHNode &node)
+{
+  SculptSession &ss = *object.sculpt;
+
+  PBVHVertexIter vd;
+  const float bstrength = ss.cache->bstrength;
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, test, brush.falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      object, ss.cache->automasking.get(), node);
+
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_orig_vert_data_update(orig_data, vd);
+
+    if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
+      continue;
+    }
+    auto_mask::node_update(automask_data, vd);
+
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    std::sqrt(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask,
+                                                    vd.vertex,
+                                                    thread_id,
+                                                    &automask_data);
+
+    const int vi = vd.index;
+    float *disp_factor;
+
+    disp_factor = &ss.cache->layer_displacement_factor[vi];
+
+    (*disp_factor) += fade * bstrength * (1.05f - std::abs(*disp_factor));
+    const float clamp_mask = 1.0f - vd.mask;
+    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
+
+    float3 final_co;
+    float3 normal;
+
+    normal = orig_data.no;
+    normal *= brush.height;
+    final_co = float3(orig_data.co) + normal * *disp_factor;
+
+    float3 vdisp = final_co - float3(vd.co);
+    vdisp *= std::abs(fade);
+    final_co = float3(vd.co) + vdisp;
+
+    SCULPT_clip(sd, ss, vd.co, final_co);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void calc_bmesh(const Sculpt &sd, const Brush &brush, Object &object, PBVHNode &node)
+{
+  SculptSession &ss = *object.sculpt;
+
+  PBVHVertexIter vd;
+  const float bstrength = ss.cache->bstrength;
+  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, test, brush.falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      object, ss.cache->automasking.get(), node);
+
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_orig_vert_data_update(orig_data, vd);
+
+    if (!sculpt_brush_test_sq_fn(test, orig_data.co)) {
+      continue;
+    }
+    auto_mask::node_update(automask_data, vd);
+
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    std::sqrt(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask,
+                                                    vd.vertex,
+                                                    thread_id,
+                                                    &automask_data);
+
+    const int vi = vd.index;
+    float *disp_factor;
+
+    disp_factor = &ss.cache->layer_displacement_factor[vi];
+
+    (*disp_factor) += fade * bstrength * (1.05f - std::abs(*disp_factor));
+
+    const float clamp_mask = 1.0f - vd.mask;
+    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
+
+    float3 final_co;
+    float3 normal;
+
+    normal = orig_data.no;
+    normal *= brush.height;
+    final_co = float3(orig_data.co) + normal * *disp_factor;
+
+    float3 vdisp = final_co - float3(vd.co);
+    vdisp *= std::abs(fade);
+    final_co = float3(vd.co) + vdisp;
+
+    SCULPT_clip(sd, ss, vd.co, final_co);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 }  // namespace layer_cc
 
 void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
@@ -128,11 +245,30 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
     ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
   }
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_layer_brush_task(sd, brush, object, *nodes[i]);
+  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
+    case PBVH_FACES: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_faces(sd, brush, object, *nodes[i]);
+        }
+      });
+      break;
     }
-  });
+    case PBVH_GRIDS:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_grids(sd, brush, object, *nodes[i]);
+        }
+      });
+      break;
+    case PBVH_BMESH:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          calc_bmesh(sd, brush, object, *nodes[i]);
+        }
+      });
+      break;
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint
