@@ -35,6 +35,24 @@ KeyframeSettings get_keyframe_settings(const bool from_userprefs)
   return settings;
 }
 
+const FCurve *fcurve_find(Span<const FCurve *> fcurves, const FCurveDescriptor fcurve_descriptor)
+{
+  for (const FCurve *fcurve : fcurves) {
+    /* Check indices first, much cheaper than a string comparison. */
+    if (fcurve->array_index == fcurve_descriptor.array_index && fcurve->rna_path &&
+        StringRef(fcurve->rna_path) == fcurve_descriptor.rna_path)
+    {
+      return fcurve;
+    }
+  }
+  return nullptr;
+}
+FCurve *fcurve_find(Span<FCurve *> fcurves, const FCurveDescriptor fcurve_descriptor)
+{
+  const FCurve *fcurve = fcurve_find(fcurves.cast<const FCurve *>(), fcurve_descriptor);
+  return const_cast<FCurve *>(fcurve);
+}
+
 FCurve *create_fcurve_for_channel(const FCurveDescriptor fcurve_descriptor)
 {
   FCurve *fcu = BKE_fcurve_create();
@@ -68,18 +86,27 @@ FCurve *create_fcurve_for_channel(const FCurveDescriptor fcurve_descriptor)
   return fcu;
 }
 
-bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
+bool fcurve_delete_keyframe_at_time(FCurve *fcurve, const float time)
 {
   bool found;
 
-  const int index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
+  const int index = BKE_fcurve_bezt_binarysearch_index(
+      fcurve->bezt, time, fcurve->totvert, &found);
   if (!found) {
     return false;
   }
 
-  /* Delete the key at the index (will sanity check + do recalc afterwards). */
-  BKE_fcurve_delete_key(fcu, index);
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_delete_key(fcurve, index);
+  BKE_fcurve_handles_recalc(fcurve);
+
+  return true;
+}
+
+bool delete_keyframe_fcurve_legacy(AnimData *adt, FCurve *fcu, float cfra)
+{
+  if (!fcurve_delete_keyframe_at_time(fcu, cfra)) {
+    return false;
+  }
 
   /* Empty curves get automatically deleted. */
   if (BKE_fcurve_is_empty(fcu)) {

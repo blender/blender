@@ -1204,13 +1204,7 @@ FCurve *ChannelBag::fcurve(const int64_t index)
 
 const FCurve *ChannelBag::fcurve_find(const StringRefNull rna_path, const int array_index) const
 {
-  for (const FCurve *fcu : this->fcurves()) {
-    /* Check indices first, much cheaper than a string comparison. */
-    if (fcu->array_index == array_index && fcu->rna_path && StringRef(fcu->rna_path) == rna_path) {
-      return fcu;
-    }
-  }
-  return nullptr;
+  return animrig::fcurve_find(this->fcurves(), {rna_path, array_index});
 }
 
 /* Utility function implementations. */
@@ -1249,6 +1243,7 @@ static animrig::ChannelBag *channelbag_for_action_slot(Action &action,
 
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
+  assert_baklava_phase_1_invariants(action);
   animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};
@@ -1258,6 +1253,7 @@ Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_
 
 Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_handle_t slot_handle)
 {
+  assert_baklava_phase_1_invariants(action);
   const animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};

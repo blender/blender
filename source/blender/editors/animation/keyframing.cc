@@ -877,7 +877,7 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
         /* delete keyframes on current frame
          * WARNING: this can delete the next F-Curve, hence the "fcn" copying
          */
-        success += blender::animrig::delete_keyframe_fcurve(adt, fcu, cfra_unmap);
+        success += blender::animrig::delete_keyframe_fcurve_legacy(adt, fcu, cfra_unmap);
       }
       DEG_id_tag_update(&ob->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
