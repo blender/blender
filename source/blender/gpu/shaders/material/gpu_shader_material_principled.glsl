@@ -209,10 +209,8 @@ void node_bsdf_principled(vec4 base_color,
     reflection_data.N = N;
     reflection_data.roughness = roughness;
     reflection_data.color = (reflection_color + weight * reflectance) * coat_tint.rgb;
-
-    /* Adjust the weight of picking the closure. */
-    reflection_data.weight = math_average(reflection_data.color);
-    reflection_data.color *= safe_rcp(reflection_data.weight);
+    /* `weight` is already applied in `color`. */
+    reflection_data.weight = 1.0f;
     closure_eval(reflection_data);
 
     /* Attenuate lower layers */
@@ -229,10 +227,8 @@ void node_bsdf_principled(vec4 base_color,
     sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
     /* Add energy of the sheen layer until we have proper sheen BSDF. */
     sss_data.color += sheen_data_color;
-
-    /* Adjust the weight of picking the closure. */
-    sss_data.weight = math_average(sss_data.color);
-    sss_data.color *= safe_rcp(sss_data.weight);
+    /* `weight` is already applied in `color`. */
+    sss_data.weight = 1.0f;
     closure_eval(sss_data);
 
     /* Attenuate lower layers */
@@ -246,10 +242,8 @@ void node_bsdf_principled(vec4 base_color,
     diffuse_data.color = weight * base_color.rgb * coat_tint.rgb;
     /* Add energy of the sheen layer until we have proper sheen BSDF. */
     diffuse_data.color += sheen_data_color;
-
-    diffuse_data.weight = math_average(diffuse_data.color);
-    diffuse_data.color *= safe_rcp(diffuse_data.weight);
-
+    /* `weight` is already applied in `color`. */
+    diffuse_data.weight = 1.0f;
     closure_eval(diffuse_data);
   }
 
