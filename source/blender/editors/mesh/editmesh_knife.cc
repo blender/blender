@@ -3276,7 +3276,7 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
   ListBase *list = knife_get_face_kedges(kcd, ob_index, f);
   LISTBASE_FOREACH (LinkData *, ref, list) {
     KnifeEdge *kfe = static_cast<KnifeEdge *>(ref->data);
-    float kfv1_sco[2], kfv2_sco[2], test_cagep[3];
+    float test_cagep[3];
 
     if (kfe->is_invalid) {
       continue;
@@ -3316,7 +3316,7 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
     r_kpd->edge = kfe;
     if (kcd->snap_midpoints) {
       mid_v3_v3v3(r_kpd->cage, kfe->v1->cageco, kfe->v2->cageco);
-      mid_v2_v2v2(r_kpd->mval, kfv1_sco, kfv2_sco);
+      knife_project_v2(kcd, r_kpd->cage, r_kpd->mval);
     }
     else {
       copy_v3_v3(r_kpd->cage, test_cagep);
