@@ -6918,7 +6918,7 @@ class VIEW3D_PT_shading_lighting(Panel):
 
                 engine = context.scene.render.engine
                 row = col.row()
-                if engine != 'BLENDER_EEVEE_NEXT':
+                if engine == 'BLENDER_WORKBENCH':
                     row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
                     row = row.row()
                 row.prop(shading, "studiolight_rotate_z", text="Rotation")
