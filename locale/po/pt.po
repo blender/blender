@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
-"PO-Revision-Date: 2024-07-08 18:26+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"PO-Revision-Date: 2024-07-12 21:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -27180,6 +27180,14 @@ msgid "Index of active material slot"
 msgstr "Índice do compartimento de material ativo."
 
 
+msgid "Active Selection Set"
+msgstr "Conjunto de Selecção Activo"
+
+
+msgid "Index of the currently active selection set"
+msgstr "Índice do conjunto de seleção actualmente activo"
+
+
 msgid "Active Shape Key"
 msgstr "Forma Chave activa"
 
@@ -27846,6 +27854,14 @@ msgstr "Rotação em quaterniões"
 
 msgid "Scaling of the object"
 msgstr "Altera o escalonamento do objecto."
+
+
+msgid "Selection Sets"
+msgstr "Conjuntos de Selecção"
+
+
+msgid "List of groups of bones for easy selection"
+msgstr "Lista de grupos de ossos para fácil selecção"
 
 
 msgid "Shader Effects"
@@ -31393,6 +31409,22 @@ msgid "Bake All Keyed Frames"
 msgstr "Pré calcular todos os fotogramas com chave"
 
 
+msgid "Bake on every frame that has a key for any of the bones, as opposed to just the relevant ones"
+msgstr "Pré-calcular cada fotograma que tenha uma chave para qualquer dos ossos, por oposição a pré calcular penas os relevantes"
+
+
+msgid "Limit Frame Range"
+msgstr "Limitar Intervalo de Fotogramas"
+
+
+msgid "Only bake keyframes in a certain frame range"
+msgstr "Pré calcular fotogramas chave num determinado intervalo de fotogramas"
+
+
+msgid "Action assigned to the active Object"
+msgstr "Acção atribuída ao objecto activo"
+
+
 msgid "Windows"
 msgstr "Janelas"
 
@@ -31537,8 +31569,36 @@ msgid "Resolution when baked to a texture"
 msgstr "Resolução quando pré-calculado para uma textura"
 
 
+msgid "Sun Angle"
+msgstr "Ângulo do Sol"
+
+
+msgid "Maximum size of a shadow map pixel. Higher values use less memory at the cost of shadow quality"
+msgstr "Tamanho máximo de um pixel do mapa de sombras. Valores mais altos usam menos memória à custa de qualidade da sombra"
+
+
+msgid "Sun Threshold"
+msgstr "Limite do Sol"
+
+
+msgid "If non-zero, the maximum value for world contribution that will be recorded inside the world light probe. The excess contribution is converted to a sun light. This reduces the light bleeding caused by very bright light sources"
+msgstr "Se não zero, o valor máximo para a contribuição do ambiente que será registado dentro da sonda de luz ambiente. A contribuição excedente será convertida em luz solar. Reduz o transbordo de luz causado por luzes muito intensas"
+
+
+msgid "Finite Volume"
+msgstr "Volume Finito"
+
+
+msgid "The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"
+msgstr "O volume ambiente usado para ser renderizado pelo EEVEE de legado. Conversão necessária para renderizar correctamente"
+
+
 msgid "Use shader nodes to render the world"
 msgstr "Usa os nós de sombreamento para renderizar o ambiente"
+
+
+msgid "Enable sun shadow casting"
+msgstr "Activar projecção de sombras do sol"
 
 
 msgid "ID Materials"
@@ -35479,6 +35539,10 @@ msgid "Falloff"
 msgstr "Decaimento"
 
 
+msgid "Falloff type of the feather"
+msgstr "Tipo de decaimento da emplumação"
+
+
 msgid "Smooth falloff"
 msgstr "Decaimento tipo suavizado."
 
@@ -36012,6 +36076,10 @@ msgid "Keyframe Insert Pie"
 msgstr "Menu de Circular de Inserção de Fotogramas Chave"
 
 
+msgid "Animals"
+msgstr "Animais"
+
+
 msgid "Basic"
 msgstr "Básico"
 
@@ -36022,6 +36090,14 @@ msgstr "Especiais de Colecção de Ossos"
 
 msgid "Bone Collections"
 msgstr "Colecções de Ossos"
+
+
+msgid "Add -> Armature -> Rigify Meta-Rigs."
+msgstr "Adicionar -> Armação -> Meta-Rigs Rigify."
+
+
+msgid "Rigify Meta-Rigs"
+msgstr "Meta-Rigs Rigify"
 
 
 msgid "Asset"
@@ -36134,6 +36210,10 @@ msgid "Shadow Linking Specials"
 msgstr "Especiais de Conexão de Sombras"
 
 
+msgid "Rigify Color Sets Specials"
+msgstr "Especiais de Conjuntos de Cores Rigify"
+
+
 msgid "Channel"
 msgstr "Canal"
 
@@ -36180,6 +36260,14 @@ msgstr "Mover para Camada"
 
 msgid "Add Extra"
 msgstr "Adicionar Extra"
+
+
+msgid "Layer Group"
+msgstr "Grupo de Camadas"
+
+
+msgid "Add Mask"
+msgstr "Adicionar Máscara"
 
 
 msgid "Select Linked"
@@ -36297,6 +36385,82 @@ msgid "Node Tree Interface Specials"
 msgstr "Especiais de Interface de Árvore de Nós"
 
 
+msgid "Add Reroutes"
+msgstr "Adicionar Redirecionamentos"
+
+
+msgid "Batch Change Blend Type"
+msgstr "Alterar Tipo de Mesclagem em Massa"
+
+
+msgid "Batch Change Selected Nodes"
+msgstr "Alterar em Massa Nós Seleccionados"
+
+
+msgid "Batch Change Math Operation"
+msgstr "Alterar em Massa Operações Matemáticas"
+
+
+msgid "To Socket"
+msgstr "Conector de Destino"
+
+
+msgid "From Socket"
+msgstr "Conector de Origem"
+
+
+msgid "Copy Label"
+msgstr "Copiar Legenda"
+
+
+msgid "Copy to Selected"
+msgstr "Copiar para Seleccionados"
+
+
+msgid "Link Active to Selected"
+msgstr "Vincular Activo ao Seleccionado"
+
+
+msgid "To All Selected"
+msgstr "Para todos os seleccionados"
+
+
+msgid "Use Node Name/Label"
+msgstr "Usar Nome/Legenda do Nó"
+
+
+msgid "Use Outputs Names"
+msgstr "Usar Nome de Saída"
+
+
+msgid "Merge Selected Nodes using Geometry Nodes"
+msgstr "Fundir Nós Seleccionados usando Geometry Nodes"
+
+
+msgid "Merge Selected Nodes using Math"
+msgstr "Fundir Nós Seleccionados usando matemática"
+
+
+msgid "Merge Selected Nodes using Mix"
+msgstr "Fundir Nós Seleccionados usando Mesclar"
+
+
+msgid "Merge Selected Nodes"
+msgstr "Fundir Nós Seleccionados"
+
+
+msgid "Merge Selected Nodes using Shaders"
+msgstr "Fundir Nós Seleccionados usando Sombreadores"
+
+
+msgid "Node Wrangler"
+msgstr "Node Wrangler"
+
+
+msgid "Switch Type to..."
+msgstr "Alterar Tipo para..."
+
+
 msgid "Add Modifier"
 msgstr "Adicionar modificador"
 
@@ -36311,6 +36475,18 @@ msgstr "Físicas"
 
 msgid "Particle Specials"
 msgstr "Especiais para partículas"
+
+
+msgid "Choose Selection Set"
+msgstr "Escolher Conjunto de Selecção"
+
+
+msgid "Selection Sets Specials"
+msgstr "Especiais de Conjunto de Selecção"
+
+
+msgid "Select Selection Set"
+msgstr "Seleccionar Conjunto de Selecção"
 
 
 msgid "Frame Rate Presets"
@@ -36487,6 +36663,22 @@ msgid "Add-ons Settings"
 msgstr "Definições das Adições"
 
 
+msgid "Active Repository"
+msgstr "Repositório Activo"
+
+
+msgid "Remove Extension Repository"
+msgstr "Remover Repositório de Extensões"
+
+
+msgid "Extension Item"
+msgstr "Item de Extensão"
+
+
+msgid "Extension Settings"
+msgstr "Definições de Extensões"
+
+
 msgid "Presets"
 msgstr "Predefinições"
 
@@ -36546,6 +36738,10 @@ msgstr "Caracteres especiais"
 
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Cleanup"
+msgstr "Limpeza"
 
 
 msgid "Face Data"
@@ -36645,6 +36841,10 @@ msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
 
+msgid "Rigify"
+msgstr "Rigify"
+
+
 msgid "Automasking"
 msgstr "Auto Máscara"
 
@@ -36659,6 +36859,10 @@ msgstr "Edição de Máscara"
 
 msgid "Sculpt Set Pivot"
 msgstr "Definir Pivot de Escultura"
+
+
+msgid "Trim/Add"
+msgstr "Aparar/Adicionar"
 
 
 msgid "Clone Layer"
@@ -37549,8 +37753,32 @@ msgid "Convert faces into thickened edges"
 msgstr "Converter faces em arestas engrossadas"
 
 
+msgid "Array strokes"
+msgstr "Dispor Traços"
+
+
+msgid "Duplicate strokes into an array"
+msgstr "Duplicar traços numa disposição"
+
+
+msgid "Grease Pencil build modifier"
+msgstr "Modificador construir Grease Pencil"
+
+
+msgid "Grease Pencil length modifier"
+msgstr "Modificador comprimento Grease Pencil"
+
+
+msgid "Generate Line Art from scene geometries"
+msgstr "Gerar Desenho de Linhas a partir de geometria da cena"
+
+
 msgid "Mirror strokes"
 msgstr "Espelhar Traços"
+
+
+msgid "Generate multiple strokes around original strokes"
+msgstr "Gerar múltiplos traços em torno do traço original"
 
 
 msgid "Subdivide strokes"
@@ -37679,6 +37907,10 @@ msgstr "Alterar posição, rotação ou escala de traços"
 
 msgid "Smooth grease pencil strokes"
 msgstr "Suavizar traços de grease pencil"
+
+
+msgid "Physic simulation for cloth"
+msgstr "Simulação Física para têxteis"
 
 
 msgid "Dynamic Paint"
@@ -67094,16 +67326,16 @@ msgstr "Actualiza os ficheiros .po existentes, caso existam, ao invés de sobres
 
 msgctxt "Operator"
 msgid "I18n Add-on Import"
-msgstr "Importação de extensão l18n"
+msgstr "Importação de adição l18n"
 
 
 msgid "Import given add-on's translation data from PO files"
-msgstr "Importa os dados de tradução da extensão a partir de ficheiros PO."
+msgstr "Importar dados de tradução da adição determinada a partir de ficheiros PO"
 
 
 msgctxt "Operator"
 msgid "Update I18n Add-on"
-msgstr "Actualizar extensão I18n"
+msgstr "Actualizar adição I18n"
 
 
 msgid "Wrapper operator which will invoke given op after setting its module_name"
@@ -67119,7 +67351,7 @@ msgstr "Nome (id) do operador para invocar."
 
 
 msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "Actualiza os dados de tradução da extensão fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
+msgstr "Actualizar dados de tradução da adição determinada (encontrados como énuplo Python dentro do código fonte da adição)"
 
 
 msgctxt "Operator"
@@ -68939,12 +69171,16 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 
 msgctxt "Operator"
 msgid "Disable Add-on"
-msgstr "Desativar complemento"
+msgstr "Desactivar adição"
 
 
 msgctxt "Operator"
 msgid "Enable Add-on"
 msgstr "Ativar complemento"
+
+
+msgid "Enable add-on for workspace"
+msgstr "Activar adição para o Espaço de Trabalho"
 
 
 msgid "Open a path in a file browser"
@@ -70262,6 +70498,10 @@ msgid "I18n Update Translation"
 msgstr "Actualização da tradução I18N"
 
 
+msgid "Add-ons Filter"
+msgstr "Filtragem de Adições"
+
+
 msgid "Timeline"
 msgstr "Linha do tempo"
 
@@ -70412,6 +70652,10 @@ msgstr "Orientações de transformação"
 
 msgid "Face Marks"
 msgstr "Marcações de faces"
+
+
+msgid "Filter Add-ons"
+msgstr "Filtrar Adições"
 
 
 msgid "Particle in a particle system"
@@ -72348,8 +72592,16 @@ msgid "UI Line Width"
 msgstr "Largura das linhas na interface de utilizador"
 
 
+msgid "Suggested line thickness and point size in pixels, for add-ons displaying custom user interface elements, based on operating system settings and Blender UI scale"
+msgstr "Espessura de linha e tamanho de ponto em pixels, sugerida para adições que exibam elementos personalizados de interface, com base nas definições do sistema operativo e escala da interface de utilizador do Blender"
+
+
 msgid "UI Scale"
 msgstr "Escala da interface de utilizador"
+
+
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule"
+msgstr "Permitir ao Blender aceder à internet. Adições que respeitem esta definição só conectam à internet quando activada. O Blender não consegue no entanto impedir que adições por terceiros violem esta regra"
 
 
 msgid "Region Overlap"
@@ -72494,6 +72746,14 @@ msgstr "Distância necessária a partir do centro antes que alguma selecção po
 
 msgid "Rotation step for numerical pad keys (2 4 6 8)"
 msgstr "Passo de rotação para as teclas 2, 4, 6 e 8 do teclado numérico."
+
+
+msgid "Enabled Add-ons Only"
+msgstr "Apenas Adições activas"
+
+
+msgid "Only show enabled add-ons. Un-check to see all installed add-ons"
+msgstr "Mostrar apenas adições activas. Desmarcar para mostrar todas as adições instaladas"
 
 
 msgid "Toolbox Column Layout"
@@ -74950,6 +75210,10 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
+
+
+msgid "Alternate script path, matching the default layout with sub-directories: startup, add-ons, modules, and presets (requires restart)"
+msgstr "Caminho alternativo de scripts, respeitando o esquema organizacional padrão com os subdiretórios: startup, add-ons, modules, e presets (requer reinicialização)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -80766,8 +81030,36 @@ msgid "Eyedropper Modal Map"
 msgstr "Mapa modal para conta-gotas"
 
 
+msgid "Legacy Add-ons"
+msgstr "Adições de Legado"
+
+
+msgid "Legacy Add-on"
+msgstr "Adição de Legado"
+
+
+msgid "Add-on \"{:s}\" is already installed!"
+msgstr "Adição \"{:s}\" já estava instalada!"
+
+
+msgid "Missing Built-in Add-ons"
+msgstr "Adições Integradas em Falta"
+
+
+msgid "Add-ons previously shipped with Blender are now available from extensions.blender.org."
+msgstr "Adições anteriormente incluídas com o Blender estão agora disponíveis em extensions.blender.org."
+
+
+msgid "Missing Add-ons"
+msgstr "Adições em Falta"
+
+
 msgid "Multiple add-ons with the same name found!"
-msgstr "Múltiplas extensões com o mesmo nome encontrados !"
+msgstr "Múltiplas adições com o mesmo nome encontradas!"
+
+
+msgid "Search Add-ons"
+msgstr "Procurar Adições"
 
 
 msgid "Warning"
@@ -80781,6 +81073,11 @@ msgstr ":"
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Relatar um defeito (em inglês)"
+
+
+msgctxt "Operator"
+msgid "Add-on Enabled"
+msgstr "Adição Activada"
 
 
 msgid "OSL shader compilation succeeded"
@@ -80881,6 +81178,10 @@ msgid "Couldn't open file %r (%s)"
 msgstr "Não é possível abrir ficheiro %r (%s)"
 
 
+msgid "Shader Editor Add-ons"
+msgstr "Adições do Editor de Sombreadores"
+
+
 msgid "Description:"
 msgstr "Descrição:"
 
@@ -80976,7 +81277,7 @@ msgstr "Não é possível escrever para ficheiro po ({})"
 
 
 msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
-msgstr "AVISO: preferências perdem-se quando a extensão é desactivada, tenha certeza de usar a opção \"Guardar Persistente\" caso queira manter suas definições!"
+msgstr "AVISO: Preferências são descartadas quando a extensão é desactivada, certifique-se que usa a opção \"Guardar Persistente\" caso queira manter suas definições!"
 
 
 msgctxt "Operator"
@@ -80995,11 +81296,11 @@ msgstr "Carregar"
 
 
 msgid "No add-on module given!"
-msgstr "Nenhum módulo de extensão fornecido !"
+msgstr "Nenhum módulo de adição fornecido!"
 
 
 msgid "Add-on '{}' not found!"
-msgstr "Complemento '{}' não encontrado!"
+msgstr "Adição '{}' não encontrada!"
 
 
 msgid "Message extraction process failed!"
@@ -81011,7 +81312,7 @@ msgstr "Não é possível iniciar os dados das traduções !"
 
 
 msgid "Please edit the preferences of the UI Translate add-on"
-msgstr "Por favor, edite as preferências da extensão de tradução da interface de utilizador UI Translate"
+msgstr "Por favor, edite as preferências da adição de tradução da interface de utilizador UI Translate"
 
 
 msgctxt "Operator"
@@ -81050,7 +81351,7 @@ msgstr "Estatísticas"
 
 
 msgid "Add-ons:"
-msgstr "Complementos:"
+msgstr "Adições:"
 
 
 msgctxt "Operator"
@@ -81089,9 +81390,33 @@ msgid "Active object is not a mesh"
 msgstr "Objecto activo não é uma malha."
 
 
+msgid "Failed to get add-ons path"
+msgstr "Falha ao obter caminho de adições"
+
+
+msgid "Add-on path {!r} could not be found"
+msgstr "Caminho de adições {!r} não encontrado"
+
+
+msgid "Source file is in the add-on search path: {!r}"
+msgstr "Ficheiro fonte está no caminho de adições {!r}"
+
+
+msgid "Remove Add-on: {!r}?"
+msgstr "Remover Adição: {!r}?"
+
+
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Abrir..."
+
+
+msgid "Add-on Bug"
+msgstr "Erro na Adição"
+
+
+msgid "Report a bug in an add-on"
+msgstr "Reportar um erro na adição"
 
 
 msgctxt "Operator"
@@ -81594,6 +81919,10 @@ msgstr "Dimensão"
 
 msgid "Odd"
 msgstr "Ímpar"
+
+
+msgid "Unknown add-ons"
+msgstr "Adições desconhecidas"
 
 
 msgid "B/W"
@@ -82418,6 +82747,10 @@ msgstr "Sensibilidade para panorama"
 
 msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter a Direcção de Ampliação da Roda do Rato"
+
+
+msgid "Enable Cycles Render Engine add-on to use Cycles"
+msgstr "Activar adição do Motor de Renderização Cycles para utilizar o Cycles"
 
 
 msgid "Error (see console)"
@@ -87754,7 +88087,7 @@ msgstr "Região não encontrada dentro do tipo de espaço."
 
 
 msgid "Add-on is no longer valid"
-msgstr "O extensão não é mais válido."
+msgstr "Adição já não é válida"
 
 
 msgid "Excluded path is no longer valid"
@@ -87775,6 +88108,10 @@ msgstr "Não é um mapa de teclas modal."
 
 msgid "Property value not in enumeration"
 msgstr "Valor de propriedade não está na enumeração."
+
+
+msgid "Modal key-maps not supported for add-on key-config"
+msgstr "Mapeamentos de teclas modais não suportados para configurações de teclas de adições"
 
 
 msgid "KeyConfig '%s' cannot be removed"
@@ -88203,7 +88540,7 @@ msgstr "Janela de contexto não definida."
 
 
 msgid "Engine '%s' not available for scene '%s' (an add-on may need to be installed or enabled)"
-msgstr "O motor '%s' não está disponível para a cena '%s' (pode ser necessário instalar ou activar uma extensão)"
+msgstr "Motor '%s' indisponível para a cena '%s' (pode ser necessário instalar ou activar uma adição)"
 
 
 msgid "Library \"%s\" needs overrides resync"
@@ -88355,12 +88692,24 @@ msgid "Stereo 3D Mode requires the window to be fullscreen"
 msgstr "O modo 3D estéreo requer que a janela seja executada em tela cheia."
 
 
+msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal"
+msgstr "Uma das adições ou script está a usar OpenGL e não funcionará correctamente em Metal"
+
+
+msgid "Please contact the developer of the add-on to migrate to use 'gpu' module"
+msgstr "Por favor contacte o criador da adição para fazer migração para o módulo 'gpu'"
+
+
+msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. Please contact the developer of the add-on to migrate to use 'gpu' module"
+msgstr "Uma das adições ou script está a usar OpenGL e não funcionará correctamente em Metal. Por favor contacte o criador da adição para fazer migração para o módulo 'gpu'"
+
+
 msgid "All Add-ons"
-msgstr "Todas as extensões"
+msgstr "Todas as Adições"
 
 
 msgid "All Add-ons Installed by User"
-msgstr "Todas as extensões instalados pelo utilizador."
+msgstr "Todas as adições Instalados pelo Utilizador"
 
 
 msgid "Import-Export"

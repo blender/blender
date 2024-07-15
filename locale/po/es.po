@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
-"PO-Revision-Date: 2024-07-08 18:26+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"PO-Revision-Date: 2024-07-15 07:55+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -4230,7 +4230,7 @@ msgstr "Color del tema o color personalizado de un hueso"
 
 
 msgid "The custom bone colors, used when palette is 'CUSTOM'"
-msgstr "Los colores personalizados del hueso, usados cuando la paleta sea 'Colores personalizados'"
+msgstr "Colores personalizados de huesos, usados con la paleta 'Colores personalizados'"
 
 
 msgid "Use Custom Color"
@@ -4427,7 +4427,7 @@ msgstr "Modo de densidad"
 
 
 msgid "Determines whether the brush adds or removes curves"
-msgstr "Determina si el pincel agregará o removerá curvas"
+msgstr "Determina si el pincel agregará o eliminará curvas"
 
 
 msgctxt "Operator"
@@ -4436,7 +4436,7 @@ msgstr "Auto"
 
 
 msgid "Either add or remove curves depending on the minimum distance of the curves under the cursor"
-msgstr "Agrega o remueve curvas dependiendo de la distancia mínima de las curvas bajo el puntero"
+msgstr "Agrega o elimina curvas dependiendo de la distancia mínima de las curvas bajo el puntero"
 
 
 msgctxt "Operator"
@@ -4885,7 +4885,7 @@ msgstr "Cincelar"
 
 
 msgid "Fill"
-msgstr "Rellenar"
+msgstr "Relleno"
 
 
 msgid "Eraser Soft"
@@ -10850,7 +10850,7 @@ msgstr "Usa el valor de alguna propiedad de RNA dentro del contexto de evaluaci�
 
 
 msgid "Brush Settings"
-msgstr "Opciones pincel"
+msgstr "Opciones del pincel"
 
 
 msgid "Brush settings"
@@ -14422,7 +14422,7 @@ msgstr "Limitar las fuerzas a las de esta colección"
 
 
 msgid "Obstacle Distance"
-msgstr "Distancia de obstáculos"
+msgstr "Obstáculo  Distancia"
 
 
 msgid "Determines how far apart fluid and obstacle are (higher values will result in fluid being further away from obstacles, smaller values will let fluid move towards the inside of obstacles)"
@@ -14430,7 +14430,7 @@ msgstr "Determina qué tan lejos se encontrará el fluido de los obstáculos (va
 
 
 msgid "Obstacle Threshold"
-msgstr "Umbral de obstáculos"
+msgstr "Obstáculo Umbral"
 
 
 msgid "Determines how much fluid is allowed in an obstacle cell (higher values will tag a boundary cell as an obstacle easier and reduce the boundary smoothening effect)"
@@ -27177,6 +27177,14 @@ msgid "Index of active material slot"
 msgstr "Identificador del contenedor de material activo"
 
 
+msgid "Active Selection Set"
+msgstr "Conjunto de selección activo"
+
+
+msgid "Index of the currently active selection set"
+msgstr "Identificador del conjunto de selección activo"
+
+
 msgid "Active Shape Key"
 msgstr "Forma clave activa"
 
@@ -27843,6 +27851,14 @@ msgstr "Rotación en cuaternios"
 
 msgid "Scaling of the object"
 msgstr "Escala del objeto"
+
+
+msgid "Selection Sets"
+msgstr "Conjuntos de selección"
+
+
+msgid "List of groups of bones for easy selection"
+msgstr "Lista de grupos de huesos para una fácil selección"
 
 
 msgid "Shader Effects"
@@ -32199,7 +32215,7 @@ msgstr "Ver identificador"
 
 
 msgid "Image Preview"
-msgstr "Previsualizar imagen"
+msgstr "Imagen"
 
 
 msgid "Preview image and icon"
@@ -35324,7 +35340,7 @@ msgstr "Si está activo, el ruido espacial no muestra ninguna coherencia"
 
 
 msgid "Remove a piece of stroke at the beginning and the end of stroke backbone"
-msgstr "Remueve una porción del trazo al inicio y al final de la geometría subyacente del trazo"
+msgstr "Elimina una porción del trazo al inicio y al final de la geometría subyacente del trazo"
 
 
 msgid "Tip Length"
@@ -35332,7 +35348,7 @@ msgstr "Longitud punta"
 
 
 msgid "Length of tips to be removed"
-msgstr "Longitud de los extremos a ser removidos"
+msgstr "Longitud de los extremos a ser eliminados"
 
 
 msgid "Line Style Thickness Modifier"
@@ -36057,6 +36073,10 @@ msgid "Keyframe Insert Pie"
 msgstr "Circular de inserción de claves"
 
 
+msgid "Animals"
+msgstr "Animales"
+
+
 msgid "Basic"
 msgstr "Básico"
 
@@ -36070,11 +36090,11 @@ msgstr "Colecciones de huesos"
 
 
 msgid "Add -> Armature -> Rigify Meta-Rigs."
-msgstr "Agregar -> Esqueleto -> Rigify (metarig)."
+msgstr "Agregar -> Esqueleto -> Rigify (metarigs)."
 
 
 msgid "Rigify Meta-Rigs"
-msgstr "Rigify (metarig)"
+msgstr "Rigify (metarigs)"
 
 
 msgid "Asset"
@@ -36454,6 +36474,18 @@ msgid "Particle Specials"
 msgstr "Especiales de partículas"
 
 
+msgid "Choose Selection Set"
+msgstr "Escoger conjunto de selección"
+
+
+msgid "Selection Sets Specials"
+msgstr "Especiales de conjuntos de selección"
+
+
+msgid "Select Selection Set"
+msgstr "Seleccionar conjunto de selección"
+
+
 msgid "Frame Rate Presets"
 msgstr "Ajustes de velocidad"
 
@@ -36632,6 +36664,10 @@ msgid "Active Repository"
 msgstr "Repositorio activo"
 
 
+msgid "Active Extension Repository"
+msgstr "Repositorio de extensiones activo"
+
+
 msgid "Remove Extension Repository"
 msgstr "Eliminar repositorio de extensiones"
 
@@ -36686,7 +36722,7 @@ msgstr "Nombres"
 
 msgctxt "Operator"
 msgid "Parent"
-msgstr "Superior"
+msgstr "Asignar superior"
 
 
 msgid "Bone Roll"
@@ -40010,7 +40046,7 @@ msgstr "Distancia de bisección"
 
 
 msgid "Distance from the bisect plane within which vertices are removed"
-msgstr "Distancia, desde el plano de bisección, dentro de la cual los vértices serán removidos"
+msgstr "Distancia, desde el plano de bisección, dentro de la cual los vértices serán eliminados"
 
 
 msgid "Distance within which mirrored vertices are merged"
@@ -42211,7 +42247,7 @@ msgstr "Escala el desplazamiento según la geometría cercana"
 
 
 msgid "Remove original geometry"
-msgstr "Remueve la geometría original"
+msgstr "Elimina la geometría original"
 
 
 msgid "Cache of the world-space positions of an element over a frame range"
@@ -45445,7 +45481,7 @@ msgstr "Supresión derrame Balance"
 
 
 msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "Balance entre los colores que no se recortarán, usado para detectar la cantidad de color de recorte a ser removida"
+msgstr "Balance entre los colores que no se recortarán, usado para detectar la cantidad de color de recorte a ser eliminada"
 
 
 msgid "Despill Factor"
@@ -49122,7 +49158,7 @@ msgstr "Recortar curva"
 
 
 msgid "Shorten curves by removing portions at the start or end"
-msgstr "Acorta curvas removiendo porciones de su inicio o su final"
+msgstr "Acorta curvas eliminando porciones de su inicio o su final"
 
 
 msgid "How to find endpoint positions for the trimmed spline"
@@ -49508,6 +49544,10 @@ msgstr "Escoger el color deseado, el sombreador aproximará el coeficiente de ab
 
 msgid "Principled BSDF"
 msgstr "BSDF Principista"
+
+
+msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the OpenPBR model"
+msgstr "Sombreador basado en principios físicos, de uso sencillo, para procesar materiales de superficie. Basado en el modelo OpenPBR"
 
 
 msgid "Subsurface Method"
@@ -52263,7 +52303,7 @@ msgstr "Eliminar claves"
 
 
 msgid "Simplify F-Curves by removing closely spaced keyframes"
-msgstr "Simplifica curvas-f removiendo fotogramas clave muy cercanos entre si"
+msgstr "Simplifica curvas-f eliminando fotogramas clave muy cercanos entre sí"
 
 
 msgctxt "Operator"
@@ -52898,7 +52938,7 @@ msgstr "Forzar borrado"
 
 
 msgid "Clear Fake User and remove copy stashed in this data-block's NLA stack"
-msgstr "Elimina el usuario ficticio y remueve la copia escondida en la lista de ANL de este bloque de datos"
+msgstr "Elimina el usuario ficticio y elimina la copia escondida en la lista de ANL de este bloque de datos"
 
 
 msgctxt "Operator"
@@ -53217,7 +53257,7 @@ msgstr "Desagrupar canales"
 
 
 msgid "Remove selected F-Curves from their current groups"
-msgstr "Remueve las curvas-f seleccionadas de sus grupos actuales"
+msgstr "Elimina las curvas-f seleccionadas de sus grupos actuales"
 
 
 msgctxt "Operator"
@@ -53314,7 +53354,7 @@ msgstr "Eliminar animación"
 
 
 msgid "Remove all keyframe animation for selected objects"
-msgstr "Remueve toda la animación por fotogramas clave de los objetos seleccionados"
+msgstr "Elimina toda la animación por fotogramas clave de los objetos seleccionados"
 
 
 msgctxt "Operator"
@@ -53358,7 +53398,7 @@ msgstr "Borrar clave"
 
 
 msgid "Remove keyframes on current frame for selected objects and bones"
-msgstr "Remueve los fotogramas clave de los objetos y huesos seleccionados en el fotograma actual"
+msgstr "Elimina los fotogramas clave de los objetos y huesos seleccionados en el fotograma actual"
 
 
 msgctxt "Operator"
@@ -53884,7 +53924,7 @@ msgstr "Hueso de pose"
 
 
 msgid "Copy Pose Bone colors from the active pose bone to all selected pose bones"
-msgstr "Copia los colores del hueso activo de la pose a todos los demás huesos seleccionados de la pose"
+msgstr "Copia los colores del hueso activo en la pose a todos los demás huesos seleccionados de la pose"
 
 
 msgctxt "Operator"
@@ -53893,7 +53933,7 @@ msgstr "Borrar huesos seleccionados"
 
 
 msgid "Remove selected bones from the armature"
-msgstr "Remueve los huesos seleccionados del esqueleto"
+msgstr "Elimina los huesos seleccionados del esqueleto"
 
 
 msgctxt "Operator"
@@ -54009,15 +54049,15 @@ msgstr "Oculta lo no seleccionado"
 
 msgctxt "Operator"
 msgid "Add Metarig Sample"
-msgstr "Agregar ejemplo de metarig"
+msgstr "Agregar modelo de metarig"
 
 
 msgid "Create a sample metarig to be modified before generating the final rig"
-msgstr "Crea un metarig de ejemplo, para ser modificado antes de generar el sistema de control final"
+msgstr "Crea un modelo de metarig, para ser modificado antes de generar el sistema de control final"
 
 
 msgid "Name of the rig type to generate a sample of"
-msgstr "Tipo de sistema de control del cual generar un ejemplo"
+msgstr "Tipo de sistema de control del cual generar un modelo"
 
 
 msgctxt "Operator"
@@ -54150,14 +54190,26 @@ msgid "Rigify Encode Metarig"
 msgstr "Codificar metarig"
 
 
+msgid "Create Python code that will generate the selected metarig"
+msgstr "Crea código Python que generará el metarig seleccionado"
+
+
 msgctxt "Operator"
 msgid "Rigify Encode Metarig Sample"
-msgstr "Codificar metarig de ejemplo"
+msgstr "Codificar modelo de metarig"
+
+
+msgid "Create Python code that will generate the selected metarig as a sample"
+msgstr "Crea código Python que generará el metarig seleccionado como un modelo"
 
 
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Actualizar capas del metarig"
+
+
+msgid "Upgrade the metarig from bone layers to bone collections"
+msgstr "Actualiza el metarig, de usar capas de huesos a usar colecciones de huesos"
 
 
 msgctxt "Operator"
@@ -54168,6 +54220,14 @@ msgstr "Obtener colores de activo/selección desde el tema actual"
 msgctxt "Operator"
 msgid "Validate Collection References"
 msgstr "Validar referencias a colecciones"
+
+
+msgid ""
+"Validate references from rig component settings to bone collections.\n"
+"Always run this both before and after joining two metarig armature objects into one to avoid glitches"
+msgstr ""
+"Valida las referencias de la configuración de componentes del sistema de control hacia colecciones de huesos.\n"
+"Siempre ejecutar este comando, tanto antes como después de unir dos metarigs en uno solo, para evitar problemas"
 
 
 msgctxt "Operator"
@@ -55970,7 +56030,7 @@ msgstr "Eliminar objeto de rastreo"
 
 
 msgid "Remove object for tracking"
-msgstr "Remueve el objeto de rastreo"
+msgstr "Elimina el objeto del rastreo"
 
 
 msgctxt "Operator"
@@ -56342,7 +56402,7 @@ msgstr "Eliminar duplicados"
 
 
 msgid "Remove duplicate items in the history"
-msgstr "Remueve elementos duplicados en el historial"
+msgstr "Elimina elementos duplicados en el historial"
 
 
 msgid "Text to insert at the cursor position"
@@ -56504,7 +56564,7 @@ msgstr "Aplicar restricción"
 
 
 msgid "Apply constraint and remove from the stack"
-msgstr "Aplica la restricción y la remueve de la lista"
+msgstr "Aplica la restricción y la elimina de la lista"
 
 
 msgid "Constraint"
@@ -56577,7 +56637,7 @@ msgstr "Borrar restricción"
 
 
 msgid "Remove constraint from constraint stack"
-msgstr "Remueve la restricción de la lista de restricciones"
+msgstr "Elimina la restricción de la lista de restricciones"
 
 
 msgctxt "Operator"
@@ -57722,7 +57782,7 @@ msgstr "Eliminar contenedor de superficie"
 
 
 msgid "Remove the selected surface slot"
-msgstr "Remueve el contenedor de superficie seleccionado"
+msgstr "Elimina el contenedor de superficie seleccionado"
 
 
 msgctxt "Operator"
@@ -57790,7 +57850,7 @@ msgstr "Desvincular bloque de datos"
 
 
 msgid "Remove a usage of a data-block, clearing the assignment"
-msgstr "Remueve un bloque de datos de su uso, eliminando su asignación"
+msgstr "Elimina un bloque de datos de su uso, eliminando su asignación"
 
 
 msgctxt "Operator"
@@ -59331,7 +59391,7 @@ msgstr "Sobrescribir antiguos"
 
 
 msgid "Remove existing add-ons with the same ID"
-msgstr "Remueve los complementos existentes que posean el mismo ID"
+msgstr "Elimina los complementos existentes que posean el mismo ID"
 
 
 msgid "User Repository"
@@ -59450,11 +59510,6 @@ msgid "Enable Repository from Drop"
 msgstr "Habilitar repositorio al soltar"
 
 
-msgctxt "Operator"
-msgid "Lock Repository (Testing)"
-msgstr "Bloquear repositorio (comprobación)"
-
-
 msgid "Lock repositories - to test locking"
 msgstr "Bloquea los repositorios - para comprobar el bloqueo"
 
@@ -59482,11 +59537,6 @@ msgid "Refresh the list of extensions for all the remote repositories"
 msgstr "Refresca la lista de extensiones para todos los repositorios externos"
 
 
-msgctxt "Operator"
-msgid "Unlock Repository (Testing)"
-msgstr "Desbloquear repositorio (comprobación)"
-
-
 msgid "Unlock repositories - to test unlocking"
 msgstr "Desbloquea los repositorios - para comprobar el desbloqueo"
 
@@ -59506,6 +59556,19 @@ msgstr "Abre las preferencias de las extensiones"
 
 msgid "Show system preferences \"Network\" panel to allow online access"
 msgstr "Mostrar el panel \"Red\" de las preferencias del sistema, para permitir el acceso en línea"
+
+
+msgctxt "Operator"
+msgid "Set Extension Tags"
+msgstr "Definir etiquetas de extensiones"
+
+
+msgid "Set the value of all tags"
+msgstr "Permite definir el valor de todas las etiquetas"
+
+
+msgid "Enable or disable all tags"
+msgstr "Activa o desactiva todas las etiquetas"
 
 
 msgctxt "Operator"
@@ -61491,7 +61554,7 @@ msgstr "Eliminar intermedios"
 
 
 msgid "Remove breakdown frames generated by interpolating between two Grease Pencil frames"
-msgstr "Remueve fotogramas intermedios generados al interpolar entre dos fotogramas de Grease Pencil"
+msgstr "Elimina fotogramas intermedios generados al interpolar entre dos fotogramas de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -61781,7 +61844,7 @@ msgstr "Eliminar capa"
 
 
 msgid "Remove active Grease Pencil layer"
-msgstr "Remueve la capa activa de Grease Pencil"
+msgstr "Elimina la capa activa de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -64104,7 +64167,7 @@ msgstr "Permite reordenar la capa activa de máscara de Grease Pencil hacia arri
 
 
 msgid "Remove the active Grease Pencil layer"
-msgstr "Remueve la capa activa de Grease Pencil"
+msgstr "Elimina la capa activa de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -64551,7 +64614,7 @@ msgstr "Punto de blanco"
 
 
 msgid "Sample Size"
-msgstr "Tamaño de la muestra"
+msgstr "Tamaño muestra"
 
 
 msgctxt "Operator"
@@ -65941,7 +66004,7 @@ msgstr "Nombre de la nueva capa de máscara"
 
 
 msgid "Remove mask layer"
-msgstr "Remueve la capa de la máscara"
+msgstr "Elimina la capa de la máscara"
 
 
 msgctxt "Operator"
@@ -66274,7 +66337,7 @@ msgstr "Eliminar interior"
 
 
 msgid "Remove geometry behind the plane"
-msgstr "Remueve la geometría que está detrás del plano"
+msgstr "Elimina la geometría que está detrás del plano"
 
 
 msgid "Clear Outer"
@@ -66282,7 +66345,7 @@ msgstr "Eliminar exterior"
 
 
 msgid "Remove geometry in front of the plane"
-msgstr "Remueve la geometría delante del plano"
+msgstr "Elimina la geometría delante del plano"
 
 
 msgid "Plane Point"
@@ -66608,7 +66671,7 @@ msgstr "Borra las caras sueltas"
 
 
 msgid "Remove loose vertices"
-msgstr "Remueve vértices sueltos"
+msgstr "Elimina vértices sueltos"
 
 
 msgctxt "Operator"
@@ -68132,7 +68195,7 @@ msgstr "Vuelve a mostrar todos los vértices, bordes y caras ocultos"
 
 msgctxt "Operator"
 msgid "Rigify Encode Widget"
-msgstr "Codificar control"
+msgstr "Codificar control de Rigify"
 
 
 msgctxt "Operator"
@@ -69189,7 +69252,7 @@ msgstr "Eliminar restricciones"
 
 
 msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "Remueve todas las restricciones de los objetos o huesos animados y realiza una animación 'visual'"
+msgstr "Elimina todas las restricciones de los objetos o huesos animados y realiza una animación 'visual'"
 
 
 msgid "Clear Parents"
@@ -70182,7 +70245,7 @@ msgstr "Separar vínculos"
 
 
 msgid "Remove all links to selected nodes, and try to connect neighbor nodes together"
-msgstr "Remueve todos los vínculos a los nodos seleccionados e intenta conectar los nodos cercanos entre sí"
+msgstr "Elimina todas las conexiones a los nodos seleccionados e intenta conectar los nodos cercanos entre sí"
 
 
 msgctxt "Operator"
@@ -71081,7 +71144,7 @@ msgstr "Eliminar conector de nodo de archivo"
 
 
 msgid "Remove the active input from a file output node"
-msgstr "Remueve la entrada activa del nodo Archivo de salida"
+msgstr "Elimina la entrada activa del nodo Archivo de salida"
 
 
 msgid "Attach selected nodes"
@@ -71879,7 +71942,7 @@ msgstr "Borrar globalmente"
 
 
 msgid "Remove object from all scenes"
-msgstr "Remueve al objeto de todas las escenas"
+msgstr "Elimina el objeto de todas las escenas"
 
 
 msgctxt "Operator"
@@ -72177,7 +72240,7 @@ msgstr "Aplicar modificador"
 
 
 msgid "Apply modifier and remove from the stack"
-msgstr "Aplica el modificador y lo remueve de la lista"
+msgstr "Aplica el modificador y lo elimina de la lista"
 
 
 msgid "Apply As"
@@ -72910,7 +72973,7 @@ msgstr "Eliminar contenedor de material"
 
 
 msgid "Remove the selected material slot"
-msgstr "Remueve el contenedor de material seleccionado"
+msgstr "Elimina el contenedor de material seleccionado"
 
 
 msgctxt "Operator"
@@ -72919,7 +72982,7 @@ msgstr "Eliminar contenedores no usados"
 
 
 msgid "Remove unused material slots"
-msgstr "Remueve los contenedores de material no usados"
+msgstr "Elimina los contenedores de material no usados"
 
 
 msgctxt "Operator"
@@ -72993,7 +73056,7 @@ msgstr "Aplicar modificador como Forma clave"
 
 
 msgid "Apply modifier as a new shape key and remove from the stack"
-msgstr "Aplica el modificador como una nueva Forma clave y lo remueve de la lista"
+msgstr "Aplica el modificador como una nueva Forma clave y lo elimina de la lista"
 
 
 msgid "Keep Modifier"
@@ -73001,7 +73064,7 @@ msgstr "Mantener modificador"
 
 
 msgid "Do not remove the modifier from stack"
-msgstr "No remover el modificador de la lista"
+msgstr "No eliminar el modificador de la lista"
 
 
 msgctxt "Operator"
@@ -73224,7 +73287,7 @@ msgstr "Calcula el centro de masa a partir del volumen (debe ser geometría desp
 
 
 msgid "Clear the object's parenting"
-msgstr "Elimina el superior del objeto"
+msgstr "Quita el superior del objeto"
 
 
 msgid "Completely clear the parenting relationship, including involved modifiers if any"
@@ -73232,11 +73295,11 @@ msgstr "Elimina completamente la relación jerárquica, incluyendo a los modific
 
 
 msgid "Clear and Keep Transformation"
-msgstr "Eliminar y mantener transformación"
+msgstr "Quitar y mantener transformación"
 
 
 msgid "As 'Clear Parent', but keep the current visual transformations of the object"
-msgstr "Similar a 'Eliminar superior', pero manteniendo la transformación visual actual del objeto"
+msgstr "Igual que 'Quitar superior', pero manteniendo la transformación visual actual del objeto"
 
 
 msgid "Clear Parent Inverse"
@@ -73244,7 +73307,7 @@ msgstr "Eliminar compensación jerárquica"
 
 
 msgid "Reset the transform corrections applied to the parenting relationship, does not remove parenting itself"
-msgstr "Restrablece la compensación aplicada a las transformaciones al definir la relación jerárquica, no removiendo la relación en sí misma"
+msgstr "Restablece la compensación aplicada a las transformaciones al definir la relación jerárquica, sin eliminar la relación en sí misma"
 
 
 msgctxt "Operator"
@@ -73340,7 +73403,7 @@ msgstr "Eliminar contenedor sistema partículas"
 
 
 msgid "Remove the selected particle system"
-msgstr "Remueve el sistema de partículas seleccionado"
+msgstr "Elimina el sistema de partículas seleccionado"
 
 
 msgctxt "Operator"
@@ -73740,6 +73803,10 @@ msgstr "Restablece las redefiniciones locales seleccionadas a sus valores de ref
 msgctxt "Operator"
 msgid "New"
 msgstr "Nueva"
+
+
+msgid "Create a new action"
+msgstr "Crea una nueva acción"
 
 
 msgctxt "Operator"
@@ -74180,7 +74247,7 @@ msgstr "Aplicar mezcla"
 
 
 msgid "Apply current mix of shape keys to the geometry before removing them"
-msgstr "Aplicar mezcla actual de Formas clave a la geometría antes de removerlas"
+msgstr "Aplica la mezcla actual de las Formas clave a la geometría, antes de eliminarlas"
 
 
 msgctxt "Operator"
@@ -74535,7 +74602,7 @@ msgstr "Eliminar influencias del grupo de vértices"
 
 
 msgid "Remove vertex group assignments which are not required"
-msgstr "Remueve las asignaciones del grupo de vértices que no sean requeridas"
+msgstr "Elimina las asignaciones del grupo de vértices que no sean requeridas"
 
 
 msgid "Define which subset of groups shall be used"
@@ -74551,7 +74618,7 @@ msgstr "Mantiene los vértices asignados a al menos a un grupo, al efectuar la l
 
 
 msgid "Remove vertices which weight is below or equal to this limit"
-msgstr "Remueve los vértices cuya influencia sea menor o igual que este límite"
+msgstr "Elimina los vértices cuya influencia sea menor o igual que este límite"
 
 
 msgctxt "Operator"
@@ -74589,7 +74656,7 @@ msgstr "Eliminar influencias"
 
 
 msgid "Remove vertices from groups that have zero weight after inverting"
-msgstr "Remueve de los grupos a los vértices que tengan influencia cero luego de ser invertidos"
+msgstr "Elimina de los grupos a los vértices que tengan influencia cero luego de ser invertidos"
 
 
 msgctxt "Operator"
@@ -74615,7 +74682,7 @@ msgstr "Limitar cantidad influencias por vértice"
 
 
 msgid "Limit deform weights associated with a vertex to a specified number by removing lowest weights"
-msgstr "Limita la cantidad de influencias de deformación asociadas a un vértice a un valor especificado, removiendo las influencias más débiles"
+msgstr "Limita la cantidad de influencias de deformación asociadas a un vértice a un valor especificado, eliminando las influencias más débiles"
 
 
 msgid "Maximum number of deform weights"
@@ -74745,7 +74812,7 @@ msgstr "Borra el grupo de vértices activo, o todos ellos, del objeto activo"
 
 
 msgid "Remove all vertex groups"
-msgstr "Remueve todos los grupos de vértices"
+msgstr "Elimina todos los grupos de vértices"
 
 
 msgid "All Unlocked"
@@ -74953,7 +75020,7 @@ msgstr "Eliminar datos de animación"
 
 
 msgid "Remove this animation data container"
-msgstr "Remueve el contenedor de datos de esta animación"
+msgstr "Elimina el contenedor de datos de esta animación"
 
 
 msgid "Set Action"
@@ -75445,7 +75512,7 @@ msgstr "Eliminar seleccionados del conjunto de claves"
 
 
 msgid "Remove selected items (blue-gray rows) from active Keying Set"
-msgstr "Remueve los elementos seleccionados (filas azul-gris) del conjunto de claves activo"
+msgstr "Elimina los elementos seleccionados (filas azul-gris) del conjunto de claves activo"
 
 
 msgctxt "Operator"
@@ -76551,7 +76618,7 @@ msgstr "Borrar color de paleta"
 
 
 msgid "Remove active color from palette"
-msgstr "Remueve el color activo de la paleta"
+msgstr "Elimina el color activo de la paleta"
 
 
 msgctxt "Operator"
@@ -76754,7 +76821,7 @@ msgstr "Eliminar objeto instanciado en partícula"
 
 
 msgid "Remove the selected instance object"
-msgstr "Remueve el objeto instanciado seleccionado"
+msgstr "Elimina el objeto instanciado seleccionado"
 
 
 msgctxt "Operator"
@@ -76834,11 +76901,11 @@ msgstr "Eliminar dobles"
 
 
 msgid "Remove selected particles close enough of others"
-msgstr "Remueve las partículas seleccionadas suficientemente cerca de otras"
+msgstr "Elimina las partículas seleccionadas suficientemente cerca de otras"
 
 
 msgid "Threshold distance within which particles are removed"
-msgstr "Umbral de distancia dentro del cual las partículas serán removidas"
+msgstr "Umbral de distancia dentro del cual las partículas serán eliminadas"
 
 
 msgctxt "Operator"
@@ -76937,7 +77004,7 @@ msgstr "Eliminar objetivo partícula"
 
 
 msgid "Remove the selected particle target"
-msgstr "Remueve el objetivo de la partícula seleccionada"
+msgstr "Elimina el objetivo de la partícula seleccionada"
 
 
 msgctxt "Operator"
@@ -77204,6 +77271,10 @@ msgid "Convert animation from any rotation mode to any other"
 msgstr "Convierte la animación desde cualquier modo de rotación a cualquier otro"
 
 
+msgid "Affected Actions"
+msgstr "Acciones afectadas"
+
+
 msgid "Which Actions to affect"
 msgstr "Qué acciones afectar"
 
@@ -77256,7 +77327,7 @@ msgstr "Eliminar CI"
 
 
 msgid "Remove all IK Constraints from selected bones"
-msgstr "Remueve todas las restricciones de cinemática inversa de los huesos seleccionados"
+msgstr "Elimina todas las restricciones de cinemática inversa de los huesos seleccionados"
 
 
 msgctxt "Operator"
@@ -77499,6 +77570,10 @@ msgid "Rigify Generate Rig"
 msgstr "Generar sistema de control"
 
 
+msgid "Generate a rig from the active metarig armature"
+msgstr "Genera un sistema de control a partir del metarig activo"
+
+
 msgctxt "Operator"
 msgid "Mirror Rigify Parameters"
 msgstr "Simetrizar parámetros de Rigify"
@@ -77520,6 +77595,10 @@ msgstr "Actualiza el tipo de sistema de control antiguo \"super_face\" al nuevo 
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Types"
 msgstr "Actualizar tipos de metarigs"
+
+
+msgid "Upgrade the Rigify types on the active metarig armature"
+msgstr "Actualiza los tipos de sistemas de control usados en el metarig activo"
 
 
 msgctxt "Operator"
@@ -77590,6 +77669,130 @@ msgstr "Seleccionar hueso superior"
 
 msgid "Select bones that are parents of the currently selected bones"
 msgstr "Selecciona los huesos superiores de los actualmente seleccionados"
+
+
+msgctxt "Operator"
+msgid "Create Selection Set"
+msgstr "Crear conjunto de selección"
+
+
+msgid "Create a new empty Selection Set"
+msgstr "Crea un nuevo conjunto de selección vacío"
+
+
+msgctxt "Operator"
+msgid "Create and Add Bones to Selection Set"
+msgstr "Crear conjunto de selección y agregar huesos"
+
+
+msgid "Create a new Selection Set with the currently selected bones"
+msgstr "Crea un nuevo conjunto de selección a partir de los huesos seleccionados"
+
+
+msgctxt "Operator"
+msgid "Add Bones to Selection Set"
+msgstr "Agregar huesos a conjunto de selección"
+
+
+msgid "Add selected bones to Selection Set"
+msgstr "Agrega los huesos seleccionados al conjunto de selección"
+
+
+msgctxt "Operator"
+msgid "Copy Selection Set(s)"
+msgstr "Copiar conjunto(s) de selección"
+
+
+msgid "Copy the selected Selection Set(s) to the clipboard"
+msgstr "Copia los conjuntos de selección seleccionados al portapapeles"
+
+
+msgctxt "Operator"
+msgid "Delete All Sets"
+msgstr "Borrar todos los conjuntos"
+
+
+msgid "Remove all Selection Sets from this Armature"
+msgstr "Elimina todos los conjuntos de selección de este esqueleto"
+
+
+msgctxt "Operator"
+msgid "Deselect Selection Set"
+msgstr "Deseleccionar conjunto de selección"
+
+
+msgid "Remove Selection Set bones from current selection"
+msgstr "Elimina los huesos del conjunto de selección de la selección actual"
+
+
+msgctxt "Operator"
+msgid "Move Selection Set in List"
+msgstr "Mover conjunto de selección en la lista"
+
+
+msgid "Move the active Selection Set up/down the list of sets"
+msgstr "Mueve el conjunto de selección activo hacia arriba/abajo en la lista"
+
+
+msgid "Move Direction"
+msgstr "Dirección de movimiento"
+
+
+msgid "Direction to move the active Selection Set: UP (default) or DOWN"
+msgstr "Dirección en la cual mover el conjunto de selección actual: ARRIBA (predefinida) o ABAJO"
+
+
+msgctxt "Operator"
+msgid "Paste Selection Set(s)"
+msgstr "Pegar conjuntos(s) de selección"
+
+
+msgid "Add new Selection Set(s) from the clipboard"
+msgstr "Agrega nuevos conjuntos de selección desde el portapapeles"
+
+
+msgctxt "Operator"
+msgid "Delete Selection Set"
+msgstr "Borrar conjunto de selección"
+
+
+msgid "Remove a Selection Set from this Armature"
+msgstr "Elimina un conjunto de selección de este esqueleto"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Bones from All Sets"
+msgstr "Elimina los huesos seleccionados de todos los conjuntos"
+
+
+msgid "Remove the selected bones from all Selection Sets"
+msgstr "Elimina los huesos seleccionados de todos los conjuntos de selección"
+
+
+msgctxt "Operator"
+msgid "Select Selection Set"
+msgstr "Seleccionar conjunto de selección"
+
+
+msgid "Select the bones from this Selection Set"
+msgstr "Selecciona los huesos de este conjunto de selección"
+
+
+msgid "Selection Set Index"
+msgstr "Identificador conjunto de selección"
+
+
+msgid "Which Selection Set to select; -1 uses the active Selection Set"
+msgstr "Cuál conjunto de selección seleccionar; -1 usará el activo"
+
+
+msgctxt "Operator"
+msgid "Remove Bones from Selection Set"
+msgstr "Eliminar huesos del conjunto de selección"
+
+
+msgid "Remove selected bones from Selection Set"
+msgstr "Elimina los huesos seleccionados del conjunto de selección"
 
 
 msgctxt "Operator"
@@ -78055,7 +78258,7 @@ msgstr "Carga y aplica un archivo XML de tema de Blender"
 
 
 msgid "Remove existing theme file if exists"
-msgstr "Remueve el archivo del tema existente, si lo hay"
+msgstr "Elimina el archivo del tema existente, si lo hay"
 
 
 msgctxt "Operator"
@@ -78474,7 +78677,7 @@ msgstr "Eliminar cuerpo rígido"
 
 
 msgid "Remove Rigid Body settings from Object"
-msgstr "Remueve las opciones de cuerpo rígido del objeto"
+msgstr "Elimina las opciones de cuerpo rígido del objeto"
 
 
 msgctxt "Operator"
@@ -78501,7 +78704,7 @@ msgstr "Eliminar cuerpos rígidos"
 
 
 msgid "Remove selected objects from Rigid Body simulation"
-msgstr "Remueve los objetos seleccionados de la simulación de cuerpos rígidos"
+msgstr "Elimina los objetos seleccionados de la simulación de cuerpos rígidos"
 
 
 msgctxt "Operator"
@@ -78552,12 +78755,16 @@ msgstr "Eliminar entorno de cuerpos rígidos"
 
 
 msgid "Remove Rigid Body simulation world from the current scene"
-msgstr "Remueve un entorno de simulación de cuerpos rígidos de la escena actual"
+msgstr "Elimina un entorno de simulación de cuerpos rígidos de la escena actual"
 
 
 msgctxt "Operator"
 msgid "Clear Animation"
 msgstr "Eliminar animación"
+
+
+msgid "Clear animation for FK or IK bones"
+msgstr "Elimina la animación para huesos FK o IK"
 
 
 msgctxt "Operator"
@@ -78743,7 +78950,7 @@ msgstr "Eliminar conjunto de líneas"
 
 
 msgid "Remove the active line set from the list of line sets"
-msgstr "Remueve el conjunto de líneas activo de la lista de estilos de línea"
+msgstr "Elimina el conjunto de líneas activo de la lista de estilos de línea"
 
 
 msgctxt "Operator"
@@ -78821,7 +79028,7 @@ msgstr "Eliminar módulo de Freestyle"
 
 
 msgid "Remove the style module from the stack"
-msgstr "Remueve el módulo de estilo de la lista"
+msgstr "Elimina el módulo de estilo de la lista"
 
 
 msgctxt "Operator"
@@ -79418,7 +79625,7 @@ msgstr "Eliminar datos de espacio"
 
 
 msgid "Remove unused settings for invisible editors"
-msgstr "Remueve las opciones no usadas en editores no nvisibles"
+msgstr "Elimina las opciones no usadas en editores no visibles"
 
 
 msgctxt "Operator"
@@ -81076,7 +81283,7 @@ msgstr "Eliminar huecos"
 
 
 msgid "Remove gap at current frame to first strip at the right, independent of selection or locked state of strips"
-msgstr "Remueve el hueco presente en el fotograma actual del primer clip hacia la derecha, independientemente de su estado de selección o bloqueo"
+msgstr "Elimina el hueco presente en el fotograma actual del primer clip hacia la derecha, independientemente de su estado de selección o bloqueo"
 
 
 msgid "All Gaps"
@@ -81084,7 +81291,7 @@ msgstr "Todos los huecos"
 
 
 msgid "Do all gaps to right of current frame"
-msgstr "Remueve todos los huecos hacia la derecha del fotograma actual"
+msgstr "Elimina todos los huecos hacia la derecha del fotograma actual"
 
 
 msgctxt "Operator"
@@ -81876,7 +82083,7 @@ msgstr "Eliminar modificador de clip"
 
 
 msgid "Remove a modifier from the strip"
-msgstr "Remueve un modificador del clip"
+msgstr "Elimina un modificador del clip"
 
 
 msgctxt "Operator"
@@ -82209,7 +82416,7 @@ msgstr "Agregar filtro de filas"
 
 
 msgid "Add a filter to remove rows from the displayed data"
-msgstr "Agrega un filtro que permite remover filas de los datos mostrados"
+msgstr "Agrega un filtro que permite eliminar filas de los datos mostrados"
 
 
 msgctxt "Operator"
@@ -83659,11 +83866,11 @@ msgstr "Restablecer la redefinición local seleccionada a sus valores de referen
 
 msgctxt "Operator"
 msgid "Remove Override"
-msgstr "Remover redefinición"
+msgstr "Eliminar redefinición"
 
 
 msgid "Remove an override operation"
-msgstr "Remueve una operación de redefinición"
+msgstr "Elimina una operación de redefinición"
 
 
 msgid "Reset to default values all elements of the array"
@@ -88382,6 +88589,14 @@ msgid "Convert the world material to a USD dome light. Currently works for simpl
 msgstr "Convierte el material del entorno a una luz de tipo cúpula de USD. Actualmente funciona para materiales simples, consiste en una textura de entorno conectada a un sombreador de fondo, con una multiplicación vectorial opcional para el color de la textura"
 
 
+msgid "Namespace"
+msgstr "Espacio de nombres"
+
+
+msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
+msgstr "Cuando se encuentre definido, agregará el espacio de nombres especificado, como un prefijo a los nombres de las propiedades personalizadas exportadas. Esto sólo se aplicará a los nombres de propiedades que no contengan ya un prefijo (es decir, se aplicaría al nombre 'variable' pero no a 'prefijo:variable'); y no se aplicará a los espacios de nombres de objetos y datos de Blender, que siempre serán exportados dentro del espacio de nombres 'userProperties:blender'"
+
+
 msgid "Use Settings for"
 msgstr "Usar opciones de"
 
@@ -88400,6 +88615,10 @@ msgstr "Exportar todas las cámaras"
 
 msgid "Export all curves"
 msgstr "Exportar todas las curvas"
+
+
+msgid "Export custom properties as USD attributes"
+msgstr "Exportar propiedades personalizadas como atributos de USD"
 
 
 msgid "Export hair particle systems as USD curves"
@@ -90198,7 +90417,7 @@ msgstr "Línea de muestra"
 
 msgctxt "Operator"
 msgid "Sample"
-msgstr "Muestrear"
+msgstr "Tomar muestra"
 
 
 msgid "Sample pixel values under the cursor"
@@ -92654,11 +92873,11 @@ msgstr "Permite ajustar la posición de la forma personalizada"
 
 
 msgid "Wire Width"
-msgstr "Ancho de estructura"
+msgstr "Grosor de estructura"
 
 
 msgid "Adjust the line thickness of custom shapes"
-msgstr "Permite ajustar el grosor de presentación de las formas personalizadas"
+msgstr "Permite ajustar el grosor de línea de las formas personalizadas"
 
 
 msgid "Pose Head Position"
@@ -93562,6 +93781,14 @@ msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Habilita la visibilidad de los nuevos nodos de volumen en la interfaz"
 
 
+msgid "Recompute ID Usercount On Save"
+msgstr "Recalcular usuarios de ID al guardar"
+
+
+msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
+msgstr "Recalcula los usuarios de todos los ID antes de guardar un archivo .blend. Permite solucionar la manipulación inválida del recuento de usuarios en el código, que podría acarrear la pérdida de datos debido a la detección incorrecta de bloques de datos no usados"
+
+
 msgid "Sculpt Texture Paint"
 msgstr "Pintar texturas en esculpido"
 
@@ -93596,10 +93823,6 @@ msgstr "Usar la función deshacer antigua (más lenta que la nueva predefinida, 
 
 msgid "Enable viewport debugging options for developers in the overlays pop-over"
 msgstr "Habilita opciones de depuración de la vista 3D para desarrolladores, mediante el menú de sobreimpresos"
-
-
-msgid "Active Extension Repository"
-msgstr "Repositorio de extensiones activo"
 
 
 msgid "Index of the extensions repository being edited in the Preferences UI"
@@ -94812,6 +95035,10 @@ msgid "Allow Online Access"
 msgstr "Permitir acceso en línea"
 
 
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule"
+msgstr "Permite que Blender acceda a internet. Los complementos que se rijan por esta opción sólo podrán conectarse a internet cuando se encuentre activa. Sin embargo, Blender no puede evitar que complementos de terceros violen esta regla"
+
+
 msgid "Overlay Smooth Wires"
 msgstr "Sobreimprimir estructura suavizada"
 
@@ -95997,7 +96224,7 @@ msgstr "Define un nuevo nombre o un prefijo/sufijo"
 
 
 msgid "Strip leading/trailing text from the name"
-msgstr "Remover texto inicial/final del nombre"
+msgstr "Eliminar texto inicial/final del nombre"
 
 
 msgid "Change Case"
@@ -97726,6 +97953,10 @@ msgid "object_color"
 msgstr "Color del objeto"
 
 
+msgid "Color picker"
+msgstr "Selector de color"
+
+
 msgid "Whether this feature-set is registered or not"
 msgstr "Si este conjunto de características se encuentra registrado o no"
 
@@ -97775,7 +98006,7 @@ msgstr "Capa en la que estarán los controles opcionales de cinemática inversa"
 
 
 msgid "Extra IK Layers"
-msgstr "Capas adicionales de IK"
+msgstr "Asignar IK adicional a colecciones"
 
 
 msgid "Separate IK Toe"
@@ -97787,19 +98018,19 @@ msgstr "Genera un control de cinemática inversa separado para los dedos, para u
 
 
 msgid "Toe Tip Roll"
-msgstr "Balanceo punta dedos"
+msgstr "Girar en punta dedos"
 
 
 msgid "Generate a slider to pivot forward heel roll on the tip rather than the base of the toe"
-msgstr "Generar un deslizador para pivotar el balanceo del talón hacia adelante sobre la punta de los dedos, en vez de sobre su base"
+msgstr "Generar un deslizador para pivotar el giro del talón hacia adelante sobre la punta de los dedos, en vez de sobre su base"
 
 
 msgid "Eyelid Detach Option"
-msgstr "Opción desconectar párpados"
+msgstr "Opción para no amoldar párpados"
 
 
 msgid "Create an option to detach eyelids from the eye surface"
-msgstr "Crear una opción para desconectar los párpados de la superficie de los ojos"
+msgstr "Crear una opción para que los párpados no se amolden al globo ocular"
 
 
 msgid "Eyelids Follow Default"
@@ -97823,7 +98054,7 @@ msgstr "Capas donde estarán los controles de cinemática directa"
 
 
 msgid "Assign Fk Collections"
-msgstr "Asignar colecciones de FK"
+msgstr "Asignar FK a colecciones"
 
 
 msgid "Foot Pivot"
@@ -98002,6 +98233,10 @@ msgid "Choose a widget for the bone control"
 msgstr "Escoger un control para el hueso"
 
 
+msgid "Neck Position"
+msgstr "Posición del cuello"
+
+
 msgid "Neck start position"
 msgstr "Posición inicial del cuello"
 
@@ -98043,7 +98278,7 @@ msgstr "Capas en las que estarán los controles primarios"
 
 
 msgid "Assign Primary Collections"
-msgstr "Asignar colecciones primarias"
+msgstr "Asignar primarios a colecciones"
 
 
 msgid "Primary Rotation Axis"
@@ -98107,11 +98342,11 @@ msgstr "Capas en las que estarán los controles secundarios"
 
 
 msgid "Assign Secondary Collections"
-msgstr "Asignar colecciones secundarias"
+msgstr "Asignar secundarios a colecciones"
 
 
 msgid "Limb Segments"
-msgstr "Segmentos de extremidad"
+msgstr "Segmentos de la extremidad"
 
 
 msgid "Number of limb segments"
@@ -98399,11 +98634,11 @@ msgstr "Incluir las transformaciones, inducidas por los superiores del objetivo,
 
 
 msgid "Use Tail Target"
-msgstr "Usar objetivo de cola"
+msgstr "Usar cola como objetivo"
 
 
 msgid "Find the control at the bone tail location and use it to relink TARGET or any constraints without an assigned subtarget or relink spec"
-msgstr "Buscará al control en la posición del hueso de la cola y lo usará para revincular el objetivo o cualquier restricción sin un sub objetivo asignado o especificación de revinculación"
+msgstr "Buscará al control ubicado en la cola del hueso y lo usará para revincular el objetivo o cualquier restricción sin un sub objetivo asignado, ni una revinculación especificada"
 
 
 msgid "Primary Control Layers"
@@ -98412,6 +98647,10 @@ msgstr "Capas de controles primarios"
 
 msgid "Secondary Control Layers"
 msgstr "Capas de controles secundarios"
+
+
+msgid "Tail Position"
+msgstr "Posición de la cola"
 
 
 msgid "Where the tail starts"
@@ -98443,7 +98682,11 @@ msgstr "Capas en las que estarán los controles de retoque"
 
 
 msgid "Assign Tweak Collections"
-msgstr "Asignar colecciones de retoque"
+msgstr "Asignar retoque a colecciones"
+
+
+msgid "Use Head"
+msgstr "Usar cabeza"
 
 
 msgid "Create head and neck bones"
@@ -98480,6 +98723,10 @@ msgstr "Identificador del elemento"
 
 msgid "Face Index"
 msgstr "Identificador de la cara"
+
+
+msgid "Include this selection set when copying to the clipboard. If none are specified, all sets will be copied."
+msgstr "Incluir a este conjunto de selección al copiar al portapapeles. Cuando no se especifique ninguno, todos los conjuntos serán copiados."
 
 
 msgid "Base Pose Angle"
@@ -99403,7 +99650,7 @@ msgstr "Suavizado de bordes"
 
 
 msgid "Use Antialiasing to smooth stroke edges"
-msgstr "Usa suavizado en los bordes del trazo"
+msgstr "Usar suavizado en los bordes de los trazos"
 
 
 msgid "Display modifiers"
@@ -99411,11 +99658,11 @@ msgstr "Mostrar modificadores"
 
 
 msgid "Playback Only"
-msgstr "Sólo reproducción"
+msgstr "Sólo al reproducir"
 
 
 msgid "Simplify Grease Pencil only during animation playback"
-msgstr "Simplifica el Grease Pencil sólo durante la reproducción"
+msgstr "Sólo simplificar los objetos de Grease Pencil durante la reproducción"
 
 
 msgid "Display Shader Effects"
@@ -99431,7 +99678,7 @@ msgstr "Mostrar el teñido de las capas"
 
 
 msgid "Display fill strokes in the viewport"
-msgstr "Mostrar los trazos de relleno en las vistas"
+msgstr "Mostrar el relleno de los trazos en las vistas"
 
 
 msgid "Simplify Subdivision"
@@ -105663,7 +105910,7 @@ msgstr "Filtros de filas"
 
 
 msgid "Filters to remove rows from the displayed data"
-msgstr "Filtros que permiten remover filas de los datos mostrados"
+msgstr "Filtros que permiten eliminar filas de los datos mostrados"
 
 
 msgid "Show Only Selected"
@@ -115578,12 +115825,24 @@ msgid "Active repository is disabled"
 msgstr "El repositorio activo está deshabilitado"
 
 
+msgid "Refresh the list of extensions for the active repository"
+msgstr "Refresca la lista de extensiones para el repositorio activo"
+
+
+msgid "Upgrade all the extensions to their latest version for the active repository"
+msgstr "Actualiza todas las extensiones en el repositorio activo, a su última versión"
+
+
 msgid "No installed packages to update"
 msgstr "Ningún paquete instalado que actualizar"
 
 
+msgid "No uninstalled packages marked"
+msgstr "Ningún paquete no instalado marcado"
+
+
 msgid "No installed packages marked"
-msgstr "Ningún paquete marcado como instalado"
+msgstr "Ningún paquete instalado marcado"
 
 
 msgid "Repository not set"
@@ -115608,6 +115867,10 @@ msgid ""
 msgstr ""
 "La extensión es incompatible con este sistema:\n"
 "{:s}"
+
+
+msgid "Alternatively, download the extension to Install from Disk."
+msgstr "Alternativamente, descargar la extensión para Instalar desde el disco."
 
 
 msgid "Lock not held!"
@@ -115642,8 +115905,28 @@ msgid "Online access required to install or update. Enable online access in Syst
 msgstr "Se necesita acceso en línea para instalar o actualizar. Activar el acceso en línea en la categoría Sistema de las Preferencias"
 
 
+msgid "Add-on \"{:s}\" is already installed!"
+msgstr "¡El complemento \"{:s}\" ya se encuentra instalado!"
+
+
+msgid "Blender was launched in offline mode, which cannot be changed at runtime"
+msgstr "Blender ha sido ejecutado en modo desconectado, lo cual no podrá ser cambiado mientras se esté ejecutando"
+
+
+msgid "Online access required to install or update."
+msgstr "Se necesita acceso en línea para instalar o actualizar."
+
+
 msgid "Launch Blender without --offline-mode"
 msgstr "Ejecutar Blender sin la opción --offline-mode"
+
+
+msgid "Please turn Online Access on in the System settings."
+msgstr "Activar Permitir acceso en línea, en la sección Sistema."
+
+
+msgid "Internet access is required to install extensions from the internet."
+msgstr "Se necesita acceso en línea para instalar extensiones desde internet."
 
 
 msgid "Online access required to check for updates."
@@ -115660,6 +115943,10 @@ msgstr "Habilitar el acceso en línea en Preferencias > Sistema"
 
 msgid "Unable to install from disk, no paths were defined"
 msgstr "No es posible instalar desde el disco, las rutas no han sido definidas"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "¡El tema \"{:s}\" ya se encuentra instalado!"
 
 
 msgid "URL: {:s}"
@@ -115741,6 +116028,11 @@ msgid "Website"
 msgstr "Sitio web"
 
 
+msgctxt "Preferences"
+msgid "Feedback"
+msgstr "Contacto"
+
+
 msgid "Maintainer"
 msgstr "Encargado"
 
@@ -115761,9 +116053,21 @@ msgid "Repository Access Errors:"
 msgstr "Errores de acceso al repositorio:"
 
 
+msgid "Internet access is required to install and update online extensions. "
+msgstr "Se necesita acceso a internet para instalar y actualizar extensiones. "
+
+
+msgid "You can adjust this later from \"System\" preferences."
+msgstr "Es posible cambiar esto más tarde en las preferencias del \"Sistema\"."
+
+
 msgctxt "Operator"
 msgid "Install from Disk..."
 msgstr "Instalar desde el disco..."
+
+
+msgid "No visible tags."
+msgstr "Ninguna etiqueta visible."
 
 
 msgctxt "Operator"
@@ -115853,6 +116157,18 @@ msgstr "{:s} ({:s} disponibles)"
 msgctxt "Operator"
 msgid "Add-on Enabled"
 msgstr "Complemento habilitado"
+
+
+msgid "Demo"
+msgstr "Demo"
+
+
+msgid "Downloading..."
+msgstr "Descargando..."
+
+
+msgid "Downloading \"{:s}\""
+msgstr "Descargando \"{:s}\""
 
 
 msgid "No selected keys, pasting over scene range"
@@ -116777,12 +117093,32 @@ msgid "Current node has no visible outputs."
 msgstr "El nodo activo no tiene salidas visibles."
 
 
+msgid "At least one node must be selected."
+msgstr "Al menos un nodo debe estar seleccionado."
+
+
+msgid "{:s} nodes are selected, but this operator can only work on {:s}."
+msgstr "{:s} nodos están seleccionados, pero este operador sólo puede funcionar con {:s}."
+
+
 msgid ""
 "Current node tree type not supported.\n"
 "Should be one of {:s}."
 msgstr ""
 "Tipo actual de árbol de nodos no soportado.\n"
 "Debería ser uno de {:s}."
+
+
+msgid "Active node should not be of type {:s}."
+msgstr "El nodo activo no debe ser de tipo {:s}."
+
+
+msgid "At least {:s} nodes must be selected."
+msgstr "Al menos {:s} nodos deben estar seleccionados."
+
+
+msgid "Active node should be of type {:s}."
+msgstr "El nodo activo debe ser de tipo {:s}."
 
 
 msgctxt "Operator"
@@ -116842,6 +117178,10 @@ msgstr "Recurso de pose copiado, usar Pegar como nuevo recurso en un Explorador 
 
 msgid "Pasted %d assets"
 msgstr "Se pegaron %d recursos"
+
+
+msgid "Deselect those bones that are used in this pose"
+msgstr "Deseleccionar aquellos huesos que sean usados en esta pose"
 
 
 msgid "Converted %d poses to pose assets"
@@ -116975,6 +117315,30 @@ msgid "This feature set depends on the following feature set to work properly:"
 msgstr "Este conjunto de características depende del siguiente conjunto de características para funcionar apropiadamente:"
 
 
+msgid "This feature set requires Blender {:s} or newer to work properly."
+msgstr "Este conjunto de características necesita Blender {:s} o posterior para funcionar apropiadamente."
+
+
+msgid "The feature set archive must contain one base directory"
+msgstr "El archivo del conjunto de características debe contener un directorio base"
+
+
+msgid "The feature set archive has no rigs or metarigs, or is missing __init__.py"
+msgstr "El archivo del conjunto de características no contiene sistemas de control o metarigs, o carece de un __init__.py"
+
+
+msgid "The feature set archive base directory name is not a valid identifier: '{:s}'"
+msgstr "El nombre del directorio base del archivo del conjunto de características no es un identificador válido: '{:s}'"
+
+
+msgid "The name '{:s}' is not allowed for feature sets"
+msgstr "El nombre '{:s}' no es permitido para conjuntos de características"
+
+
+msgid "Feature set directory already exists: '{:s}'"
+msgstr "El directorio del conjunto de características ya existe: '{:s}'"
+
+
 msgid "Status:"
 msgstr "Estado:"
 
@@ -116987,8 +117351,32 @@ msgid "Cannot verify bone name without a generated rig"
 msgstr "No es posible verificar el nombre del hueso sin haber generado un sistema de control"
 
 
+msgid "Min and max values are the same!"
+msgstr "¡Los valores Mín y Máx son iguales!"
+
+
 msgid "Start and end frame cannot be the same!"
 msgstr "¡Los fotogramas de Inicio y Fin no pueden ser iguales!"
+
+
+msgid "Symmetrical ({:s})"
+msgstr "Simétrica ({:s})"
+
+
+msgid "Will be stuck reading frame {:d}!"
+msgstr "¡Se atascará al leer el fotograma {:d}!"
+
+
+msgid "Default Frame: {:.0f}"
+msgstr "Fotograma predefinido: {:.0f}"
+
+
+msgid "Default Frame: {:.02f} (Should be a whole number!)"
+msgstr "Fotograma predefinido: {:.02f} (¡Debería ser un entero!)"
+
+
+msgid "Bone not found: {:s}"
+msgstr "Hueso no encontrado: {:s}"
 
 
 msgctxt "Operator"
@@ -117004,6 +117392,30 @@ msgstr "Copiar tipo y parámetros"
 msgctxt "Operator"
 msgid "Mirror Type & Parameters"
 msgstr "Simetrizar tipo y parámetros"
+
+
+msgid "No suitable selected bones to copy to"
+msgstr "Ningún hueso seleccionado apropiado hacia el cual copiar"
+
+
+msgid "Mirrored parameters of {:d} bones"
+msgstr "Se simetrizaron los parámetros de {:d} huesos"
+
+
+msgid "Copied {:s} parameters to {:d} bones"
+msgstr "Se copiaron {:s} parámetros a {:d} huesos"
+
+
+msgid "Copied the value to {:d} bones"
+msgstr "Se copió el valor a {:d} huesos"
+
+
+msgid "Cannot find class {:s} in {:s}"
+msgstr "No es posible encontrar la clase {:s} en {:s}"
+
+
+msgid "Bone {:s} selected on both sides, mirroring would be ambiguous, aborting. Only select the left or right side, not both"
+msgstr "El hueso {:s} se encuentra seleccionado en ambos lados, su simetrización sería ambigua, cancelado. Seleccionar sólo el lado izquierdo o el derecho, no ambos"
 
 
 msgid "Master Control"
@@ -117047,11 +117459,19 @@ msgstr "Deformación de globo ocular e iris"
 
 
 msgid "Follow X"
-msgstr "Seguir X"
+msgstr "Seguimiento X"
 
 
 msgid "Follow Z"
-msgstr "Seguir Z"
+msgstr "Seguimiento Z"
+
+
+msgid "Eyelids Follow{}"
+msgstr "Párpados siguiendo{}"
+
+
+msgid "Eyelids Attached{}"
+msgstr "Párpados amoldados{}"
 
 
 msgid "This monolithic face rig is deprecated."
@@ -117062,8 +117482,20 @@ msgid "Custom IK Pivot"
 msgstr "Pivote de IK personalizado"
 
 
+msgid "Auto Align End"
+msgstr "Auto alinear extremo"
+
+
+msgid "Auto Align {:s}"
+msgstr "Auto alinear {:s}"
+
+
 msgid "A straight line rest shape works best."
 msgstr "Una forma de reposo en línea recta funciona mejor."
+
+
+msgid "IK->FK ({:s})"
+msgstr "IK->FK ({:s})"
 
 
 msgid "Bend rotation axis:"
@@ -117126,6 +117558,10 @@ msgid "Note: this combined rig is deprecated."
 msgstr "Nota: Este sistema de control combinado es obsoleto."
 
 
+msgid "Warning: Some features may change after generation"
+msgstr "Advertencia: Algunas características podrían cambiar después de la generación"
+
+
 msgid "Rig Name"
 msgstr "Nombre sist. control"
 
@@ -117148,7 +117584,7 @@ msgstr "Ejecutar script"
 
 msgctxt "Operator"
 msgid "Add sample"
-msgstr "Agregar muestra"
+msgstr "Agregar modelo"
 
 
 msgid "Unified select/active colors"
@@ -117181,6 +117617,20 @@ msgstr "Este metarig requiere actualizar a colecciones de huesos"
 msgctxt "Operator"
 msgid "Upgrade Metarig"
 msgstr "Actualizar metarig"
+
+
+msgid "WARNING: This metarig contains deprecated Rigify rig-types and cannot be upgraded automatically."
+msgstr "ADVERTENCIA: Este metarig contiene tipos de sistemas de control obsoletos y no podrá ser actualizado de forma automática."
+
+
+msgctxt "Operator"
+msgid "Re-Generate Rig"
+msgstr "Regenerar sistema de control"
+
+
+msgctxt "Operator"
+msgid "Generate Rig"
+msgstr "Generar sistema de control"
 
 
 msgid "Click a button to select a collection:"
@@ -117221,6 +117671,22 @@ msgid "Switch to rotation"
 msgstr "Cambiar a rotación"
 
 
+msgid "Incorrect armature..."
+msgstr "Esqueleto incorrecto..."
+
+
+msgid "No bone collections have UI buttons assigned - please check the Bone Collections UI sub-panel"
+msgstr "Ninguna colección de huesos tiene botones asignados en la interfaz - comprobar el sub panel Interfaz"
+
+
+msgid "No issues detected"
+msgstr "No se detectaron problemas"
+
+
+msgid "You must select a rig type to create a sample of"
+msgstr "Es necesario seleccionar un tipo de sistema de control, del cual poder crear un modelo"
+
+
 msgctxt "Operator"
 msgid "Encode Metarig"
 msgstr "Codificar metarig"
@@ -117228,7 +117694,7 @@ msgstr "Codificar metarig"
 
 msgctxt "Operator"
 msgid "Encode Metarig Sample"
-msgstr "Codificar metarig de ejemplo"
+msgstr "Codificar modelo de metarig"
 
 
 msgid "This metarig contains old rig-types that can be automatically upgraded to benefit from new rigify features."
@@ -117246,7 +117712,7 @@ msgstr "Codificar metarig a Python"
 
 msgctxt "Operator"
 msgid "Encode Sample to Python"
-msgstr "Codificar ejemplo a Python"
+msgstr "Codificar modelo a Python"
 
 
 msgctxt "Operator"
@@ -117264,8 +117730,24 @@ msgid "Clear FK Action"
 msgstr "Eliminar acción FK"
 
 
+msgid "Metarig written to text datablock {:s}"
+msgstr "Metarig escrito en el bloque de datos de texto {:s}"
+
+
+msgid "Metarig Sample written to text datablock {:s}"
+msgstr "Modelo de metarig escrito en el bloque de datos de texto {:s}"
+
+
+msgid "({:s} on bone {:s})"
+msgstr "({:s} en el hueso {:s})"
+
+
 msgid "This metarig uses the old face rig."
 msgstr "Este metarig usa el antiguo sistema de control de rostros."
+
+
+msgid "The '{:s}' collection will be added upon generation"
+msgstr "La colección '{:s}' será agregada luego de la generación"
 
 
 msgid "No options"
@@ -117276,8 +117758,20 @@ msgid "Options:"
 msgstr "Opciones:"
 
 
+msgid "Incorrect armature for type '{:s}'"
+msgstr "Esqueleto incorrecto para el tipo '{:s}'"
+
+
 msgid "Generation has thrown an exception: "
 msgstr "La generación ha producido una excepción: "
+
+
+msgid "Successfully generated: \"{:s}\""
+msgstr "\"{:s}\" generado exitosamente"
+
+
+msgid "ERROR: type \"{:s}\" does not exist!"
+msgstr "ERROR: ¡el tipo \"{:s}\" no existe!"
 
 
 msgctxt "Operator"
@@ -117287,6 +117781,14 @@ msgstr "Acción"
 
 msgid "Use the plus button to add list entries"
 msgstr "Usar el botón + para agregar entradas a la lista"
+
+
+msgid "Collection {:s} has the same uid {:d} as {:s}"
+msgstr "La colección {:s} tiene el mismo identificador único {:d} que {:s}"
+
+
+msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
+msgstr "El hueso {:s} contiene una referencia dañada a la colección {:s} '{:s}'"
 
 
 msgid "Save to PO File"
@@ -117682,6 +118184,14 @@ msgstr "El elemento siguiente se encuentra oculto"
 
 msgid "Last selected not found"
 msgstr "No se encontró el último seleccionado"
+
+
+msgid "Copied Selection Set(s) to clipboard"
+msgstr "Conjuntos de selección copiados al portapapeles"
+
+
+msgid "The clipboard does not contain a Selection Set"
+msgstr "El portapapeles no contiene un conjunto de selección"
 
 
 msgid "Identified {:d} problematic tracks"
@@ -118230,7 +118740,7 @@ msgstr "No es posible agregar propiedades a datos redefinidos"
 
 
 msgid "Cannot remove properties from override data"
-msgstr "No es posible remover propiedades de datos redefinidos"
+msgstr "No es posible eliminar propiedades de datos redefinidos"
 
 
 msgid "Tool {!r} not found for space {!r}"
@@ -118768,6 +119278,11 @@ msgid "Deselect Bones"
 msgstr "Deseleccionar huesos"
 
 
+msgctxt "Operator"
+msgid "New Selection Set"
+msgstr "Nuevo conjunto de selección"
+
+
 msgid "Damping Max"
 msgstr "Amortiguación máx"
 
@@ -118815,7 +119330,7 @@ msgstr "Color del hueso"
 
 
 msgid "Pose Bone Color"
-msgstr "Color del hueso de pose"
+msgstr "Color del hueso (Pose)"
 
 
 msgid "Lock IK X"
@@ -120100,11 +120615,11 @@ msgstr "Humedad"
 
 
 msgid "Paintmap Layer"
-msgstr "Capa del mapa de pintura"
+msgstr "Capa mapa pintura"
 
 
 msgid "Wetmap Layer"
-msgstr "Capa de mapa de humedad"
+msgstr "Capa mapa humedad"
 
 
 msgid "Effect Solid Radius"
@@ -122840,9 +123355,9 @@ msgstr ""
 "Medición de distancias y ángulos.\n"
 "• {:s} en alguna parte para una nueva medición.\n"
 "• Arrastrar un segmento de la regla para medir un ángulo.\n"
-"• {:s} para remover la regla activa.\n"
+"• {:s} para eliminar la regla activa.\n"
 "• Ctrl al arrastrar para adherir.\n"
-"• Mayúsculas al arrastrar para medir el grosor de la superficie"
+"• Mayús al arrastrar para medir el grosor de la superficie"
 
 
 msgid "Annotation:"
@@ -123686,6 +124201,10 @@ msgstr "Seleccionar todo por tipo"
 msgctxt "Operator"
 msgid "Select Pattern..."
 msgstr "Seleccionar por patrón..."
+
+
+msgid "Bone Selection Set"
+msgstr "Conjunto de selección de huesos"
 
 
 msgctxt "Operator"
@@ -125919,6 +126438,10 @@ msgid "Internal Name"
 msgstr "Nombre interno"
 
 
+msgid "%sAction"
+msgstr "%s_acción"
+
+
 msgid "Could not insert {:d} key(s) for unknown reasons."
 msgstr "No fue posible insertar {:d} clave(s) por razones desconocidas"
 
@@ -126625,6 +127148,10 @@ msgstr "clips_de_película"
 
 msgid "NlaTrack"
 msgstr "Pista_ANL"
+
+
+msgid "<No Action>"
+msgstr "<vacío>"
 
 
 msgid "NlaStrip"
@@ -127389,7 +127916,7 @@ msgstr "Paleta_GP"
 
 
 msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80 and later, removed instancing"
-msgstr "Objeto no vacío '%s' ya no es posible duplicar la colección '%s' en Blender 2.80 y posteriores, instancia removida"
+msgstr "Objeto no vacío '%s', ya no es posible duplicar la colección '%s' en Blender 2.80 y posteriores, instancia eliminada"
 
 
 msgid "Hidden %d"
@@ -127867,7 +128394,7 @@ msgstr "'%s' no es editable"
 
 
 msgid "Successfully removed %d keyframes for keying set '%s'"
-msgstr "%d fotogramas clave removidos exitosamente del conjunto de claves '%s'"
+msgstr "%d fotogramas clave eliminados exitosamente del conjunto de claves '%s'"
 
 
 msgid "Not deleting keyframe for locked F-Curve '%s', object '%s'"
@@ -130835,7 +131362,7 @@ msgstr "Sólo es posible copiar una normal personalizada, de vértices o de cara
 
 
 msgid "Removed: %d vertices, %d edges, %d faces"
-msgstr "Removidos: %d vértices, %d bordes, %d caras"
+msgstr "Eliminados: %d vértices, %d bordes, %d caras"
 
 
 msgid "Unable to rotate %d edge(s)"
@@ -132228,7 +132755,7 @@ msgstr "PinturaDinámica: Captura fallida: %s"
 
 
 msgid "Removed %d double particle(s)"
-msgstr "%d partículas duplicadas removidas"
+msgstr "%d partículas duplicadas eliminadas"
 
 
 msgid "No hair connected (can't connect hair if particle system modifier is disabled)"
@@ -132628,7 +133155,7 @@ msgstr "El contenido del portapapeles interno no corresponde a un material"
 
 
 msgid "Removed %d slots"
-msgstr "%d contenedores removidos"
+msgstr "%d contenedores eliminados"
 
 
 msgid "Blender Render"
@@ -132748,7 +133275,7 @@ msgstr "No se encontraron áreas a pantalla completa"
 
 
 msgid "Removed amount of editors: %d"
-msgstr "Cantidad de editores removidos: %d"
+msgstr "Cantidad de editores eliminados: %d"
 
 
 msgid "Only supported in object mode"
@@ -134245,6 +134772,10 @@ msgid "Active Strip Name"
 msgstr "Nombre del clip activo"
 
 
+msgid "Temp-Meta"
+msgstr "meta-temporal"
+
+
 msgid "Make Selected Strips Single-User"
 msgstr "Hacer clips seleccionados de único usuario"
 
@@ -135202,7 +135733,7 @@ msgstr "Este bloque de datos redefinido se encuentra inutilizado"
 
 
 msgid "This override property does not exist in current data, it will be removed on next .blend file save"
-msgstr "Esta propiedad redefinida no existe en los datos actuales, será removida la próxima vez que el archivo .blend sea guardado"
+msgstr "Esta propiedad redefinida no existe en los datos actuales, será eliminada la próxima vez que el archivo .blend sea guardado"
 
 
 msgid "Added through override"
@@ -135355,6 +135886,10 @@ msgstr "Deslizamiento: %d"
 
 msgid "Separate Sequence Images"
 msgstr "Separar imágenes de secuencia"
+
+
+msgid "MetaStrip"
+msgstr "Metaclip"
 
 
 msgid "Cannot apply effects to audio sequence strips"
@@ -135669,6 +136204,10 @@ msgid "File association unregistered"
 msgstr "Registro de asociación de archivos anulado"
 
 
+msgid "Added %s \"%s\""
+msgstr "Se agregaron %s \"%s\""
+
+
 msgid "Unable to remove directory: %s"
 msgstr "No fue posible eliminar directorio: %s"
 
@@ -135678,7 +136217,7 @@ msgstr "Operador de extensión no encontrado \"%s\""
 
 
 msgid "There is no asset library to remove"
-msgstr "No hay una biblioteca de recursos a remover"
+msgstr "Ninguna biblioteca de recursos que eliminar"
 
 
 msgid "There is no extension repository to remove"
@@ -137542,7 +138081,7 @@ msgstr "%s '%s', bl_idname '%s' %s"
 
 
 msgid "NlaTrack '%s' cannot be removed"
-msgstr "La pista de ANL '%s' no puede ser removida"
+msgstr "La pista de ANL '%s' no puede ser eliminada"
 
 
 msgid "Driver '%s[%d]' already exists"
@@ -137638,7 +138177,7 @@ msgstr "No es posible agregar una capa al archivo de caché '%s'"
 
 
 msgid "Background image cannot be removed"
-msgstr "La imagen de fondo no puede ser removida"
+msgstr "La imagen de fondo no puede ser eliminada"
 
 
 msgid "Collection '%s' is not an original ID"
@@ -138089,7 +138628,7 @@ msgstr "%s '%s' se encuentra fuera de la base de datos principal y no puede ser 
 
 
 msgid "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)"
-msgstr "%s '%s' no debe tener ningún usuario para poder ser removido, se encontraron %d (intentar con el parámetro do_unlink=True)"
+msgstr "%s '%s' no debe tener ningún usuario para que pueda ser eliminado, se encontraron %d (intentar con el parámetro do_unlink=True)"
 
 
 msgid "Scene '%s' is the last local one, cannot be removed"
@@ -138674,7 +139213,7 @@ msgstr "No se encontró el rastro plano '%s' en el objeto de rastreo %s"
 
 
 msgid "MovieTracking '%s' cannot be removed"
-msgstr "El rastreo de movimiento '%s' no puede ser removido"
+msgstr "El rastreo de movimiento '%s' no puede ser eliminado"
 
 
 msgid "Registering panel class:"
@@ -138711,6 +139250,10 @@ msgstr "Registrando clase de manipulador de archivo: '%s' es demasiado largo, la
 
 msgid "Layout panels can not be used in this context"
 msgstr "Los paneles de la organización no pueden ser usados en este contexto"
+
+
+msgid "template_popup_confirm used outside of a popup"
+msgstr "template_popup_confirm usada fuera de un panel emergente"
 
 
 msgid "Script directory not found"
@@ -139055,7 +139598,7 @@ msgstr "Mapa de teclado '%s' no encontrado en configuración de teclado '%s'"
 
 
 msgid "KeyConfig '%s' cannot be removed"
-msgstr "La configuración de teclado '%s' no puede ser removida"
+msgstr "La configuración de teclado '%s' no puede ser eliminada"
 
 
 msgid "GizmoType '%s' not known"
@@ -142976,6 +143519,10 @@ msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "Al leer el resultado del procesamiento: no se encontró el canal esperado \"%s.%s\""
 
 
+msgid "Channel %d"
+msgstr "Canal %d"
+
+
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Balance de color"
@@ -143008,7 +143555,7 @@ msgstr "Mapear tono"
 
 msgctxt "Sequence"
 msgid "Equalizer"
-msgstr "Ecualizar"
+msgstr "Ecualizador"
 
 
 msgid "Strips must be the same length"
@@ -144559,6 +145106,10 @@ msgstr "Bielorruso (беларуску)"
 
 msgid "Danish (Dansk)"
 msgstr "Danés (Dansk)"
+
+
+msgid "Slovenian (Slovenščina)"
+msgstr "Esloveno (Slovenščina)"
 
 
 msgid "Complete"

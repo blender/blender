@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -32709,6 +32709,10 @@ msgstr ""
 "\n"
 "    UI Ufafanuzi wa menyu ya muktadha wa kipengee cha Orodha.\n"
 "    "
+
+
+msgid "Active Extension Repository"
+msgstr "Hazina ya Kiendelezi Inayotumika"
 
 
 msgid "Presets"
@@ -81939,10 +81943,6 @@ msgstr "Tumia kutendua urithi (polepole kuliko ile mpya chaguo-msingi, lakini in
 
 msgid "Enable viewport debugging options for developers in the overlays pop-over"
 msgstr "Washa chaguo za utatuzi wa poti ya kutazama kwa wasanidi programu kwenye viikizo"
-
-
-msgid "Active Extension Repository"
-msgstr "Hazina ya Kiendelezi Inayotumika"
 
 
 msgid "Index of the extensions repository being edited in the Preferences UI"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Beta (b'987b781412f1')\n"
+"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-08 18:33+0000\n"
-"PO-Revision-Date: 2024-07-07 15:56+0000\n"
+"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"PO-Revision-Date: 2024-07-13 22:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -20153,7 +20153,7 @@ msgstr "[Manual Frame Range]: Especifica manualment l'interval de projecció de 
 
 
 msgid "Armature data-block containing a hierarchy of bones, usually used for rigging characters"
-msgstr "Bloc de dades d'esquelet que conté una jerarquia d'ossos, normalment utilitzat per l'engranatge de personatges"
+msgstr "Bloc de dades d'esquelet que conté una jerarquia d'ossos, normalment utilitzat per l'aparellat de personatges"
 
 
 msgid "Feature Set"
@@ -27177,6 +27177,14 @@ msgid "Index of active material slot"
 msgstr "Índex de l'epígraf de material actiu"
 
 
+msgid "Active Selection Set"
+msgstr "Conjunt de selecció activa"
+
+
+msgid "Index of the currently active selection set"
+msgstr "[Active Selection Set]: Índex del conjunt de selecció actiu en aquest moment"
+
+
 msgid "Active Shape Key"
 msgstr "Morfofita activa"
 
@@ -27843,6 +27851,14 @@ msgstr "Rotació en quaternions"
 
 msgid "Scaling of the object"
 msgstr "Escalat de l'objecte"
+
+
+msgid "Selection Sets"
+msgstr "Conjunts de selecció"
+
+
+msgid "List of groups of bones for easy selection"
+msgstr "Llista de grups d'ossos per a una fàcil selecció"
 
 
 msgid "Shader Effects"
@@ -36057,6 +36073,10 @@ msgid "Keyframe Insert Pie"
 msgstr "Circummenú d’inserció de fotofites"
 
 
+msgid "Animals"
+msgstr "Animals"
+
+
 msgid "Basic"
 msgstr "Bàsic"
 
@@ -36454,6 +36474,18 @@ msgid "Particle Specials"
 msgstr "Especials de partícules"
 
 
+msgid "Choose Selection Set"
+msgstr "Escollir conjunt de selecció"
+
+
+msgid "Selection Sets Specials"
+msgstr "Especials de conjunts de selecció"
+
+
+msgid "Select Selection Set"
+msgstr "Seleccionar conjunt de selecció"
+
+
 msgid "Frame Rate Presets"
 msgstr "Predefinits de freqüència de fotogrames"
 
@@ -36630,6 +36662,10 @@ msgstr "Paràmetres de complements"
 
 msgid "Active Repository"
 msgstr "Repositori actiu"
+
+
+msgid "Active Extension Repository"
+msgstr "Repositori d'extensions actives"
 
 
 msgid "Remove Extension Repository"
@@ -49510,6 +49546,10 @@ msgid "Principled BSDF"
 msgstr "FDDB postulada"
 
 
+msgid "Physically-based, easy-to-use shader for rendering surface materials, based on the OpenPBR model"
+msgstr "[Principled BSDF]: Aspector d'ús senzill basat en la física per revelar materials de superfícies, basat en el model OpenPBR"
+
+
 msgid "Subsurface Method"
 msgstr "Mètode subsuperfície"
 
@@ -54150,14 +54190,26 @@ msgid "Rigify Encode Metarig"
 msgstr "Aparellar - Cofificar metaaparell"
 
 
+msgid "Create Python code that will generate the selected metarig"
+msgstr "[Rigify Encode Metarig]: Crea el codi de python que ha de generar el metaaparell seleccionat"
+
+
 msgctxt "Operator"
 msgid "Rigify Encode Metarig Sample"
 msgstr "Aparellar - Codificar mostra de metaaparellat"
 
 
+msgid "Create Python code that will generate the selected metarig as a sample"
+msgstr "[Rigify Encode Metarig Sample]: Crea codi python que generarà el metaaparell seleccionat com a mostra"
+
+
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Aparellar - Actualitzar capes de metaaparell"
+
+
+msgid "Upgrade the metarig from bone layers to bone collections"
+msgstr "[Rigify Upgrade Metarig Layers]: Actualitza el metaaparell des de les capes d'ossos a les col·leccions d'ossos"
 
 
 msgctxt "Operator"
@@ -54168,6 +54220,14 @@ msgstr "Aparellar - Agafar colors actius/seleccionats des del tema actual"
 msgctxt "Operator"
 msgid "Validate Collection References"
 msgstr "Validar referències de col·leccions"
+
+
+msgid ""
+"Validate references from rig component settings to bone collections.\n"
+"Always run this both before and after joining two metarig armature objects into one to avoid glitches"
+msgstr ""
+"[Validate Collection References]: Valida les referències des de paràmetres de components d'aparells a col·leccions d'ossis.\n"
+"Cal executar-ho sempre abans i després d'unir dos objectes esquelet de metaaparells en un de sol per evitar pífies"
 
 
 msgctxt "Operator"
@@ -59450,11 +59510,6 @@ msgid "Enable Repository from Drop"
 msgstr "Habilitar repositori des de Deposició"
 
 
-msgctxt "Operator"
-msgid "Lock Repository (Testing)"
-msgstr "Blocar repositori (comprovació)"
-
-
 msgid "Lock repositories - to test locking"
 msgstr "Bloca repositoris - per comprovar el blocatge"
 
@@ -59482,11 +59537,6 @@ msgid "Refresh the list of extensions for all the remote repositories"
 msgstr "Refresca el llistat d'extensions per a tots els repositoris remots"
 
 
-msgctxt "Operator"
-msgid "Unlock Repository (Testing)"
-msgstr "Desblocar repositori (comprovació)"
-
-
 msgid "Unlock repositories - to test unlocking"
 msgstr "Debloca repositoris - per provar el desblocatge"
 
@@ -59506,6 +59556,19 @@ msgstr "Obrir preferències d'extensions"
 
 msgid "Show system preferences \"Network\" panel to allow online access"
 msgstr "Mostra el plafó de preferències de \"Xarxa\" del sistema per permetre l'accés en línia"
+
+
+msgctxt "Operator"
+msgid "Set Extension Tags"
+msgstr "Assignar etiquetes d'extensió"
+
+
+msgid "Set the value of all tags"
+msgstr "[Set Extension Tags]: Determina el valor de totes les etiquetes"
+
+
+msgid "Enable or disable all tags"
+msgstr "Habilitar o deshabilitar totes les etiquetes"
 
 
 msgctxt "Operator"
@@ -73742,6 +73805,10 @@ msgid "New"
 msgstr "Nova"
 
 
+msgid "Create a new action"
+msgstr "Crea una acció nova"
+
+
 msgctxt "Operator"
 msgid "Jump to Action Slot"
 msgstr "Saltar a posella d'acció"
@@ -77204,6 +77271,10 @@ msgid "Convert animation from any rotation mode to any other"
 msgstr "[Convert Rotation Modes]: Converteix una animació des de qualsevol mode de retació a qualsevol altre"
 
 
+msgid "Affected Actions"
+msgstr "Accions afectades"
+
+
 msgid "Which Actions to affect"
 msgstr "Les accions que es vol afectar"
 
@@ -77499,6 +77570,10 @@ msgid "Rigify Generate Rig"
 msgstr "Aparellar - Generar aparell"
 
 
+msgid "Generate a rig from the active metarig armature"
+msgstr "[Copy Option To Selected Rigs]: Genera un aparell des de l'esquelet de metaaparellat actiu"
+
+
 msgctxt "Operator"
 msgid "Mirror Rigify Parameters"
 msgstr "Emmirallar paràmetres d'Aparellar"
@@ -77520,6 +77595,10 @@ msgstr "[Copy Option To Selected Rigs]: Actualitza l'aparell antiquat de super_f
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Types"
 msgstr "Aparellar - Actualitzar tipus de metaaparellat"
+
+
+msgid "Upgrade the Rigify types on the active metarig armature"
+msgstr "[Copy Option To Selected Rigs]: Actualitza els tipus d'aparellat de l'esquelet de metaaparellat actiu"
 
 
 msgctxt "Operator"
@@ -77590,6 +77669,130 @@ msgstr "Seleccionar os pare"
 
 msgid "Select bones that are parents of the currently selected bones"
 msgstr "[Select Parent Bone]: Selecciona els ossos que són pares dels ossos actualment seleccionats"
+
+
+msgctxt "Operator"
+msgid "Create Selection Set"
+msgstr "Crear Conjunt de selecció"
+
+
+msgid "Create a new empty Selection Set"
+msgstr "Crea un nou grup de selecció buit"
+
+
+msgctxt "Operator"
+msgid "Create and Add Bones to Selection Set"
+msgstr "Crea i afegeix ossos al conjunt de selecció"
+
+
+msgid "Create a new Selection Set with the currently selected bones"
+msgstr "Crea un nou conjunt de selecció amb els ossos seleccionats"
+
+
+msgctxt "Operator"
+msgid "Add Bones to Selection Set"
+msgstr "Afegir ossos a conjunt de selecció"
+
+
+msgid "Add selected bones to Selection Set"
+msgstr "Afegir ossos seleccionats a conjunt de selecció"
+
+
+msgctxt "Operator"
+msgid "Copy Selection Set(s)"
+msgstr "Copiar conjunt(s) de selecció"
+
+
+msgid "Copy the selected Selection Set(s) to the clipboard"
+msgstr "Copia els conjunts de selecció seleccionats al porta-retalls"
+
+
+msgctxt "Operator"
+msgid "Delete All Sets"
+msgstr "Eliminar tots els conjunts"
+
+
+msgid "Remove all Selection Sets from this Armature"
+msgstr "Suprimeix els conjunts seleccionats d'aquest esquelet"
+
+
+msgctxt "Operator"
+msgid "Deselect Selection Set"
+msgstr "Desseleccionar conjunt de selecció"
+
+
+msgid "Remove Selection Set bones from current selection"
+msgstr "Suprimeix els ossos del Conjunt de selecció des de la selecció actual"
+
+
+msgctxt "Operator"
+msgid "Move Selection Set in List"
+msgstr "Moure conjunt de selecció en la llista"
+
+
+msgid "Move the active Selection Set up/down the list of sets"
+msgstr "Mou el conjunt de selecció actiu amunt/avall dins la llista de conjunts"
+
+
+msgid "Move Direction"
+msgstr "Direcció de moviment"
+
+
+msgid "Direction to move the active Selection Set: UP (default) or DOWN"
+msgstr "[Set Extension Tags]: Direcció cap a un moure el Conjunt de selecció actiu: AMUNT (per defecte) o AVALL"
+
+
+msgctxt "Operator"
+msgid "Paste Selection Set(s)"
+msgstr "Enganxar conjunt(s) de selecció"
+
+
+msgid "Add new Selection Set(s) from the clipboard"
+msgstr "Afegeix nou(s) conjunt(s) de selecció des del portaretalls"
+
+
+msgctxt "Operator"
+msgid "Delete Selection Set"
+msgstr "Eliminar conjunt de selecció"
+
+
+msgid "Remove a Selection Set from this Armature"
+msgstr "Suprimeix un Conjunt de selecció de l'esquelet"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Bones from All Sets"
+msgstr "Suprimeix els ossos seleccionats de tots els conjunts"
+
+
+msgid "Remove the selected bones from all Selection Sets"
+msgstr "Suprimeix els objectes seleccionats de tots els conjunts de selecció"
+
+
+msgctxt "Operator"
+msgid "Select Selection Set"
+msgstr "Seleccionar conjunt de selecció"
+
+
+msgid "Select the bones from this Selection Set"
+msgstr "Selecciona els ossos d'aquest conjunt de selecció"
+
+
+msgid "Selection Set Index"
+msgstr "Identificador de conjunt de selecció"
+
+
+msgid "Which Selection Set to select; -1 uses the active Selection Set"
+msgstr "El conjunt de selecció a seleccionar; -1 agafa l'actiu"
+
+
+msgctxt "Operator"
+msgid "Remove Bones from Selection Set"
+msgstr "Suprimir ossos del Conjunt de selecció"
+
+
+msgid "Remove selected bones from Selection Set"
+msgstr "Suprimeix del conjunt de selecció els ossos seleccionats"
 
 
 msgctxt "Operator"
@@ -78558,6 +78761,10 @@ msgstr "Suprimeix el món de simulació de cos rígid de l'escena actual"
 msgctxt "Operator"
 msgid "Clear Animation"
 msgstr "Retirar animació"
+
+
+msgid "Clear animation for FK or IK bones"
+msgstr "[Copy Option To Selected Rigs]: Retira l'animació d'ossos de CO o CI"
 
 
 msgctxt "Operator"
@@ -88382,6 +88589,14 @@ msgid "Convert the world material to a USD dome light. Currently works for simpl
 msgstr "[Convert World Material]: Converteix el material del món en una llum de cúpula USD. Actualment funciona amb materials senzills, que consisteixen en una textura d'entorn connectada a un aspector de rerefons, amb una multiplicació vectorial opcional del color de la textura"
 
 
+msgid "Namespace"
+msgstr "Espai de noms"
+
+
+msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
+msgstr "Si està definit, afegiu l'espai de noms donat com a prefix als noms de propietat personalitzades exportats. Això només s'aplica als noms de propietats que encara no tenen un prefix (p. ex., s'aplicaria al nom 'bar' però no a 'foo:bar') i no s'aplica als noms d'objectes i dades del blender que sempre s'exporten a l'espai de noms 'userProperties:blender'"
+
+
 msgid "Use Settings for"
 msgstr "Usar configuració per a"
 
@@ -88400,6 +88615,10 @@ msgstr "Exportar totes les càmeres"
 
 msgid "Export all curves"
 msgstr "Exportar totes les corbes"
+
+
+msgid "Export custom properties as USD attributes"
+msgstr "Exportar atributs personalitzats com a atributs USD"
 
 
 msgid "Export hair particle systems as USD curves"
@@ -93562,6 +93781,14 @@ msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Activa la visibilitat dels nous nodes de volum a la IU"
 
 
+msgid "Recompute ID Usercount On Save"
+msgstr "Recalcular recompte d'usadors d'IDs en desar"
+
+
+msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
+msgstr "[Recompute ID Usercount On Save]: Recalcula tots els recomptes d'usadors d'IDs abans de desar el document blend. Permet de donar la volta a recomptes incorrectes d'usadors en el codi que poden ocasionar pèrdues de dades degudes a una detecció errònia de blocs de dades no utilitzats"
+
+
 msgid "Sculpt Texture Paint"
 msgstr "Esculpir pintant textura"
 
@@ -93596,10 +93823,6 @@ msgstr "Usa el desfer d'abans (més lent que el predeterminat nou, però pot ser
 
 msgid "Enable viewport debugging options for developers in the overlays pop-over"
 msgstr "Activa les opcions de depuració de mirador per als desenvolupadors en les sobreimpressions emergents"
-
-
-msgid "Active Extension Repository"
-msgstr "Repositori d'extensions actives"
 
 
 msgid "Index of the extensions repository being edited in the Preferences UI"
@@ -94810,6 +95033,10 @@ msgstr "Activa l'acceleració de la GPU per avaluar els últims modificadors de 
 
 msgid "Allow Online Access"
 msgstr "Autoritzar accés en línea"
+
+
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule"
+msgstr "Permet a Blender d'accedir a internet. Els complements que segueixen aquesta configuració només es connectaran a internat si s'habiliten. Tanmateix Blender no pot impedir que complements de tercers violin aquesta norma"
 
 
 msgid "Overlay Smooth Wires"
@@ -97726,6 +97953,10 @@ msgid "object_color"
 msgstr "object_color"
 
 
+msgid "Color picker"
+msgstr "Selector del color"
+
+
 msgid "Whether this feature-set is registered or not"
 msgstr "Si aquest joc de funcionalitats està o no registrat"
 
@@ -97987,11 +98218,11 @@ msgstr "[IK Wrist Pivot]: Confegeix un control de mà de CI que pivota al voltan
 
 
 msgid "Switchable Parent"
-msgstr "Pare intercanviable"
+msgstr "Paternitat invertible"
 
 
 msgid "Allow switching the parent of the master control"
-msgstr "[Switchable Parent]: Permet d'intercanviar el pare del control manaia"
+msgstr "[Switchable Parent]: Permet d'invertir la paternitat del control manaia"
 
 
 msgid "Widget"
@@ -98000,6 +98231,10 @@ msgstr "Giny"
 
 msgid "Choose a widget for the bone control"
 msgstr "Escollir gins per a control d'os"
+
+
+msgid "Neck Position"
+msgstr "Posició de coll"
 
 
 msgid "Neck start position"
@@ -98079,7 +98314,7 @@ msgstr "Registrar pare"
 
 
 msgid "Register the control as a switchable parent candidate"
-msgstr "[Register Parent]: Registra el control com a candidat a pare intercamviable"
+msgstr "[Register Parent]: Registra el control com a candidat a paternitat invertible"
 
 
 msgid "Parent Tags"
@@ -98414,6 +98649,10 @@ msgid "Secondary Control Layers"
 msgstr "Capes de control secundàries"
 
 
+msgid "Tail Position"
+msgstr "Ubicació de la cua"
+
+
 msgid "Where the tail starts"
 msgstr "On comença la cua"
 
@@ -98444,6 +98683,10 @@ msgstr "Capes sobre les que actuen els controls d'ajustament"
 
 msgid "Assign Tweak Collections"
 msgstr "Assignar col·leccions d'ajustament"
+
+
+msgid "Use Head"
+msgstr "Emprar el cap"
 
 
 msgid "Create head and neck bones"
@@ -98480,6 +98723,10 @@ msgstr "Índex d'elements"
 
 msgid "Face Index"
 msgstr "Índex de cares"
+
+
+msgid "Include this selection set when copying to the clipboard. If none are specified, all sets will be copied."
+msgstr "Incloeu aquest conjunt de selecció en copiar al portaretalls. Si no se n'especifica cap, es copiaran tots els conjunts."
 
 
 msgid "Base Pose Angle"
@@ -115578,8 +115825,20 @@ msgid "Active repository is disabled"
 msgstr "El repositori actiu està deshabilitat"
 
 
+msgid "Refresh the list of extensions for the active repository"
+msgstr "Refresca el llistat d'extensions per al repositori actiu"
+
+
+msgid "Upgrade all the extensions to their latest version for the active repository"
+msgstr "Actualitza totes les extensions a la seva última versió per al repositori actiu"
+
+
 msgid "No installed packages to update"
 msgstr "No hi ha paquets instal·lats per actualitzar"
+
+
+msgid "No uninstalled packages marked"
+msgstr "No hi ha paquets desinstal·lats marcats"
 
 
 msgid "No installed packages marked"
@@ -115608,6 +115867,10 @@ msgid ""
 msgstr ""
 "L'extensió és incompatible amb aquest sistema:\n"
 "{:s}"
+
+
+msgid "Alternatively, download the extension to Install from Disk."
+msgstr "Alternativament, descarregueu l'extensió per instal·lar-la des del disc."
 
 
 msgid "Lock not held!"
@@ -115642,8 +115905,28 @@ msgid "Online access required to install or update. Enable online access in Syst
 msgstr "Es requereix accés en línia per instal·lar o actualitzar. Activeu l'accés en línia a les preferències del sistema"
 
 
+msgid "Add-on \"{:s}\" is already installed!"
+msgstr "El complement \"{:s}\" ja és instal·lat!"
+
+
+msgid "Blender was launched in offline mode, which cannot be changed at runtime"
+msgstr "Blender s'ha llançat en mode fora de línia, i no es pot canviar a mitja execució"
+
+
+msgid "Online access required to install or update."
+msgstr "Per instal·lar-ho o actualitzar-ho, cal accés a internet ."
+
+
 msgid "Launch Blender without --offline-mode"
 msgstr "Inicieu Blender sense --mode-foradelinia"
+
+
+msgid "Please turn Online Access on in the System settings."
+msgstr "Sisplau activeu Accés en línia a la Configuració del sistema."
+
+
+msgid "Internet access is required to install extensions from the internet."
+msgstr "Es requereix accés a internet per instal·lar extensions des d'internet."
 
 
 msgid "Online access required to check for updates."
@@ -115660,6 +115943,10 @@ msgstr "Activa l'accés a internet a les preferències del sistema"
 
 msgid "Unable to install from disk, no paths were defined"
 msgstr "No s'ha pogut instal·lar des del disc, no s'han definit les rutes"
+
+
+msgid "Theme \"{:s}\" is already installed!"
+msgstr "El tema \"{:s}\" ja està instal·lat!"
 
 
 msgid "URL: {:s}"
@@ -115741,6 +116028,11 @@ msgid "Website"
 msgstr "Lloc web"
 
 
+msgctxt "Preferences"
+msgid "Feedback"
+msgstr "Retroferència"
+
+
 msgid "Maintainer"
 msgstr "Mantenidor"
 
@@ -115761,9 +116053,21 @@ msgid "Repository Access Errors:"
 msgstr "Errors d'accés al repositorio:"
 
 
+msgid "Internet access is required to install and update online extensions. "
+msgstr "Cal accés a internet per instal·lar i actualitzar extensions en línia. "
+
+
+msgid "You can adjust this later from \"System\" preferences."
+msgstr "Això es pot ajustar més tard des de les preferències del \"Sistema\"."
+
+
 msgctxt "Operator"
 msgid "Install from Disk..."
 msgstr "Instal·lar des de disc..."
+
+
+msgid "No visible tags."
+msgstr "No hi ha etiquetes visibles."
 
 
 msgctxt "Operator"
@@ -115853,6 +116157,18 @@ msgstr "{:s} ({:s} disponibles)"
 msgctxt "Operator"
 msgid "Add-on Enabled"
 msgstr "Complement habilitat"
+
+
+msgid "Demo"
+msgstr "Demo"
+
+
+msgid "Downloading..."
+msgstr "Descarregant..."
+
+
+msgid "Downloading \"{:s}\""
+msgstr "Descarregant \"{:s}\""
 
 
 msgid "No selected keys, pasting over scene range"
@@ -116777,12 +117093,32 @@ msgid "Current node has no visible outputs."
 msgstr "El node no té sortides visibles."
 
 
+msgid "At least one node must be selected."
+msgstr "S'ha de seleccionar almenys un node."
+
+
+msgid "{:s} nodes are selected, but this operator can only work on {:s}."
+msgstr "{:s} nodes estan seleccionats, però aquest operador només funciona amb {:s}."
+
+
 msgid ""
 "Current node tree type not supported.\n"
 "Should be one of {:s}."
 msgstr ""
 "El tipus d'arbre de nodes actual no és compatible.\n"
 "Hauria de ser un de {:s}."
+
+
+msgid "Active node should not be of type {:s}."
+msgstr "El node actiu no hauria de ser de tipus {:s}."
+
+
+msgid "At least {:s} nodes must be selected."
+msgstr "Cal segleccionar almenys {:s} nodes."
+
+
+msgid "Active node should be of type {:s}."
+msgstr "El node actiu hauria de ser de tipus {:s}."
 
 
 msgctxt "Operator"
@@ -116842,6 +117178,10 @@ msgstr "S'ha copiat el recurs de posa, per enganxar-lo usa Enganxar com a nou re
 
 msgid "Pasted %d assets"
 msgstr "Enganxats %d recursos"
+
+
+msgid "Deselect those bones that are used in this pose"
+msgstr "Deselecciona els ossos implicats en aquesta posa"
 
 
 msgid "Converted %d poses to pose assets"
@@ -116975,6 +117315,30 @@ msgid "This feature set depends on the following feature set to work properly:"
 msgstr "Aquest joc de funcionalitats depèn d'aquest joc de funcionalitats per rutllar com cal:"
 
 
+msgid "This feature set requires Blender {:s} or newer to work properly."
+msgstr "Aquest joc de funcionalitats requereix Blender {:s} o posterior per funcionar com cal."
+
+
+msgid "The feature set archive must contain one base directory"
+msgstr "L'arxiu del joc de funcionalitats ha de contenir un repositori base"
+
+
+msgid "The feature set archive has no rigs or metarigs, or is missing __init__.py"
+msgstr "L'arxiu de jocs de funcionalitats no té aparells ni metaaparells, o bé li falta __init__.py"
+
+
+msgid "The feature set archive base directory name is not a valid identifier: '{:s}'"
+msgstr "El nom del directori base del joc de funcionalitats no és un identificador vàlid: '{:s}'"
+
+
+msgid "The name '{:s}' is not allowed for feature sets"
+msgstr "El nom '{:s}' no és permès per a jocs de funcionalitats"
+
+
+msgid "Feature set directory already exists: '{:s}'"
+msgstr "Aquest directori de joc de funcionalitats ja existeix: '{:s}'"
+
+
 msgid "Status:"
 msgstr "Estat:"
 
@@ -116987,8 +117351,32 @@ msgid "Cannot verify bone name without a generated rig"
 msgstr "No es pot verificar el nom de l'os si no hi ha cap aparell generat"
 
 
+msgid "Min and max values are the same!"
+msgstr "El valor mín i màx són iguals!"
+
+
 msgid "Start and end frame cannot be the same!"
 msgstr "Els fotogrames inicial i final no poden ser el mateix!"
+
+
+msgid "Symmetrical ({:s})"
+msgstr "Simètric ({:s})"
+
+
+msgid "Will be stuck reading frame {:d}!"
+msgstr "S'encallarà llegint el fotograma {:d}!"
+
+
+msgid "Default Frame: {:.0f}"
+msgstr "Fotograma predeterminat: {:.0f}"
+
+
+msgid "Default Frame: {:.02f} (Should be a whole number!)"
+msgstr "Fotograma per defecte: {:.0f} (ha de ser un nombre enter!)"
+
+
+msgid "Bone not found: {:s}"
+msgstr "No s'ha trobat l'os: {:s}"
 
 
 msgctxt "Operator"
@@ -117004,6 +117392,30 @@ msgstr "Copiar tipus i Paràmetres"
 msgctxt "Operator"
 msgid "Mirror Type & Parameters"
 msgstr "Emmirallar tipus i paràmetres"
+
+
+msgid "No suitable selected bones to copy to"
+msgstr "No hi ha ossos seleccionats adequats a on copiar"
+
+
+msgid "Mirrored parameters of {:d} bones"
+msgstr "Paràmetres emmirallats de {:d} ossos"
+
+
+msgid "Copied {:s} parameters to {:d} bones"
+msgstr "S'han copiat {:s} paràmetres a {:d} ossos"
+
+
+msgid "Copied the value to {:d} bones"
+msgstr "S'ha copiat el valor a {:d} ossos"
+
+
+msgid "Cannot find class {:s} in {:s}"
+msgstr "No s'ha localitzat la classe {:s} dins {:s}"
+
+
+msgid "Bone {:s} selected on both sides, mirroring would be ambiguous, aborting. Only select the left or right side, not both"
+msgstr "Os {:s} seleccionat a banda i banda, l'emmirallat seria ambigu, s'avorta. Selecioneu sols el costat dret o l'esquerre, però no tots dos"
 
 
 msgid "Master Control"
@@ -117054,6 +117466,14 @@ msgid "Follow Z"
 msgstr "Seguir Z"
 
 
+msgid "Eyelids Follow{}"
+msgstr "Les parpelles segueixen{}"
+
+
+msgid "Eyelids Attached{}"
+msgstr "Parpelles adherides{}"
+
+
 msgid "This monolithic face rig is deprecated."
 msgstr "Aquest aparell de cara monolític està obsolet."
 
@@ -117062,8 +117482,20 @@ msgid "Custom IK Pivot"
 msgstr "Pivot de CI personalitzat"
 
 
+msgid "Auto Align End"
+msgstr "Autoalinear extrem"
+
+
+msgid "Auto Align {:s}"
+msgstr "Autoalinear {:s}"
+
+
 msgid "A straight line rest shape works best."
 msgstr "Una forma de repòs en línia recta funciona millor."
+
+
+msgid "IK->FK ({:s})"
+msgstr "CI->CO ({:s})"
 
 
 msgid "Bend rotation axis:"
@@ -117126,6 +117558,10 @@ msgid "Note: this combined rig is deprecated."
 msgstr "Nota: aquest aparell combinat és obsolet."
 
 
+msgid "Warning: Some features may change after generation"
+msgstr "Avís: Algunes funcionalitats potser que canviïn després de generar"
+
+
 msgid "Rig Name"
 msgstr "Nom d'aparell"
 
@@ -117183,6 +117619,20 @@ msgid "Upgrade Metarig"
 msgstr "Actualitzar metaaparell"
 
 
+msgid "WARNING: This metarig contains deprecated Rigify rig-types and cannot be upgraded automatically."
+msgstr "AVIS: Aquest metaaparell conté tipus d'aparell d'Aparellar obsolets i no es pot actualitzar automàticament."
+
+
+msgctxt "Operator"
+msgid "Re-Generate Rig"
+msgstr "Regenerar aparell"
+
+
+msgctxt "Operator"
+msgid "Generate Rig"
+msgstr "Generar aparell"
+
+
 msgid "Click a button to select a collection:"
 msgstr "Cliqueu un botó per seleccionar una col·lecció:"
 
@@ -117219,6 +117669,22 @@ msgstr "Canviar a pol"
 msgctxt "Operator"
 msgid "Switch to rotation"
 msgstr "Canviar a rotació"
+
+
+msgid "Incorrect armature..."
+msgstr "Esquelet incorrecte..."
+
+
+msgid "No bone collections have UI buttons assigned - please check the Bone Collections UI sub-panel"
+msgstr "No hi ha col·leccions d'ossos amb botons d'IU assignats - sisplau reviseu el subplafó d'IU a les Col·leccions d'ossos"
+
+
+msgid "No issues detected"
+msgstr "No s'han detectat problemes"
+
+
+msgid "You must select a rig type to create a sample of"
+msgstr "Heu de seleccionar un tipus d'aparell per crear-ne una mostra"
 
 
 msgctxt "Operator"
@@ -117264,8 +117730,24 @@ msgid "Clear FK Action"
 msgstr "Retirar acció CO"
 
 
+msgid "Metarig written to text datablock {:s}"
+msgstr "Metaaparell escrit al bloc de dades textuals: {:s}"
+
+
+msgid "Metarig Sample written to text datablock {:s}"
+msgstr "Mostra de metaaparell escrit en el bloc de dades de text: {:s}"
+
+
+msgid "({:s} on bone {:s})"
+msgstr "({:s} en l'os {:s})"
+
+
 msgid "This metarig uses the old face rig."
 msgstr "Aquest metaaparell fa ús de l'aparell de cara antic."
+
+
+msgid "The '{:s}' collection will be added upon generation"
+msgstr "La '' col·lecció '{:s}' s'afegirà amb la generació"
 
 
 msgid "No options"
@@ -117276,8 +117758,20 @@ msgid "Options:"
 msgstr "Opcions:"
 
 
+msgid "Incorrect armature for type '{:s}'"
+msgstr "Esquelet incorrecte per al tipus '{:s}'"
+
+
 msgid "Generation has thrown an exception: "
 msgstr "La generació s'ha topat amb una excepció: "
+
+
+msgid "Successfully generated: \"{:s}\""
+msgstr "Generació assolida: \"{:s}\""
+
+
+msgid "ERROR: type \"{:s}\" does not exist!"
+msgstr "ERROR: el tipus \"{:s}\" no existeix!"
 
 
 msgctxt "Operator"
@@ -117287,6 +117781,14 @@ msgstr "Acció"
 
 msgid "Use the plus button to add list entries"
 msgstr "Empreu el botó més per afegir llista d'entrades"
+
+
+msgid "Collection {:s} has the same uid {:d} as {:s}"
+msgstr "La col·lecció {:s} té el mateix uid {:d} que {:s}"
+
+
+msgid "Bone {:s} has a broken reference to {:s} collection '{:s}'"
+msgstr "L'os {:s} té una referència trencada a la {:s} col·lecció '{:s}'"
 
 
 msgid "Save to PO File"
@@ -117682,6 +118184,14 @@ msgstr "L'element següent està ocult"
 
 msgid "Last selected not found"
 msgstr "No s'ha trobat l'últim seleccionat"
+
+
+msgid "Copied Selection Set(s) to clipboard"
+msgstr "Conjunt(s) de selecció copiat(s) al portaretalls"
+
+
+msgid "The clipboard does not contain a Selection Set"
+msgstr "El porta-retalls no conté cap Conjunt de selecció"
 
 
 msgid "Identified {:d} problematic tracks"
@@ -118766,6 +119276,11 @@ msgstr "Suprimir ossos seleccionats"
 msgctxt "Operator"
 msgid "Deselect Bones"
 msgstr "Desseleccionar ossos"
+
+
+msgctxt "Operator"
+msgid "New Selection Set"
+msgstr "Nou conjunt de selecció"
 
 
 msgid "Damping Max"
@@ -123688,6 +124203,10 @@ msgid "Select Pattern..."
 msgstr "Seleccionar patró..."
 
 
+msgid "Bone Selection Set"
+msgstr "Conjunt de selecció d'ossos"
+
+
 msgctxt "Operator"
 msgid "Constraint Target"
 msgstr "Referent de restricció"
@@ -125919,6 +126438,10 @@ msgid "Internal Name"
 msgstr "Nom intern"
 
 
+msgid "%sAction"
+msgstr "%sAcció"
+
+
 msgid "Could not insert {:d} key(s) for unknown reasons."
 msgstr "No s'ha pogut inserir la/es fita/es {:d} per raons desconegudes."
 
@@ -126625,6 +127148,10 @@ msgstr "videoclips"
 
 msgid "NlaTrack"
 msgstr "Pista ANL"
+
+
+msgid "<No Action>"
+msgstr "<cap acció>"
 
 
 msgid "NlaStrip"
@@ -130510,7 +131037,7 @@ msgstr "Referències de documents"
 
 
 msgid "Rigging"
-msgstr "Engranatge"
+msgstr "Aparellat"
 
 
 msgid "USD Purpose"
@@ -134245,6 +134772,10 @@ msgid "Active Strip Name"
 msgstr "Nom de segment actiu"
 
 
+msgid "Temp-Meta"
+msgstr "Meta-temp"
+
+
 msgid "Make Selected Strips Single-User"
 msgstr "Fer d'usador únic els segments seleccionats"
 
@@ -135357,6 +135888,10 @@ msgid "Separate Sequence Images"
 msgstr "Separar imatges de seqüència"
 
 
+msgid "MetaStrip"
+msgstr "MetaSegment"
+
+
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "No es poden aplicar efectes als segments de seqüència d'àudio"
 
@@ -135667,6 +136202,10 @@ msgstr "No es pot desregistrar des d'instal·lacions de Microsoft Store"
 
 msgid "File association unregistered"
 msgstr "Associació de documents desregistrada"
+
+
+msgid "Added %s \"%s\""
+msgstr "Afegits %s \"%s\""
 
 
 msgid "Unable to remove directory: %s"
@@ -138711,6 +139250,10 @@ msgstr "Registrant la classe de gestors de documents: '%s' és massa llarg, la l
 
 msgid "Layout panels can not be used in this context"
 msgstr "Els plafons de disposició no es poden emprar en aquest context"
+
+
+msgid "template_popup_confirm used outside of a popup"
+msgstr "template_popup_confirm emprat fora d'una finestra emergent"
 
 
 msgid "Script directory not found"
@@ -142976,6 +143519,10 @@ msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "Llegint resultat de revelat: no es troba el canal esperat \"%s.%s\""
 
 
+msgid "Channel %d"
+msgstr "Canal %d"
+
+
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Equilibri de color"
@@ -144099,7 +144646,7 @@ msgstr "Biblioteca de poses basada en el sistema de recursos."
 
 
 msgid "Automatic rigging from building-block components"
-msgstr "Aparellat atuomàtic des de components de blocs de muntatge"
+msgstr "Aparellat automàtic des de components de blocs de muntatge"
 
 
 msgid "Scalable Vector Graphics (SVG) 1.1 format"
@@ -144255,7 +144802,7 @@ msgstr "Revelat"
 
 msgctxt "Preferences"
 msgid "Rigging"
-msgstr "Engranatge"
+msgstr "Aparellat"
 
 
 msgctxt "Preferences"
@@ -144559,6 +145106,10 @@ msgstr "Bielorús (беларуску)"
 
 msgid "Danish (Dansk)"
 msgstr "Danès (Dansk)"
+
+
+msgid "Slovenian (Slovenščina)"
+msgstr "Eslovè (Slovenščina)"
 
 
 msgid "Complete"
