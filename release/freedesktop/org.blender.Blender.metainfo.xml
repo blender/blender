@@ -48,6 +48,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.2" date="2024-07-16">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>EEVEE: Completely rewritten from scratch to allow global illumination, displacement, better SSS, viewport motion blur, and so much more</li>
+                    <li>Cycles: Ray Portal BSDF, Thin Film interference effect, better sampling for volumes</li>
+                    <li>Extensions: Add-ons and themes got a big overhaul and are now unified as Extensions</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Collections can now specify their own exporters</li>
+                    <li>USD: support for importing and exporting hair curves, and for importing point clouds</li>
+                    <li>Visual overhaul for the video sequencer</li>
+                    <li>Polyline gestures, allowing for a quick way to create polygonal shapes</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.1" date="2024-03-19">
             <description>
                 <p>New features:</p>
