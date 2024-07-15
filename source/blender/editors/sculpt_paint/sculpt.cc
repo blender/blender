@@ -3938,7 +3938,7 @@ static void do_brush_action(const Scene &scene,
          * enhance brush in the middle of the stroke. */
         if (ss.cache->bstrength < 0.0f) {
           /* Invert mode, intensify details. */
-          smooth::enhance_details_brush(sd, ob, nodes);
+          do_enhance_details_brush(sd, ob, nodes);
         }
         else {
           do_smooth_brush(sd, ob, nodes, std::clamp(ss.cache->bstrength, 0.0f, 1.0f));
@@ -6720,6 +6720,62 @@ void gather_bmesh_normals(const Set<BMVert *, 0> &verts, const MutableSpan<float
   int i = 0;
   for (const BMVert *vert : verts) {
     normals[i] = vert->no;
+    i++;
+  }
+}
+
+void gather_data_grids(const SubdivCCG &subdiv_ccg,
+                       const Span<float3> src,
+                       const Span<int> grids,
+                       const MutableSpan<float3> node_data)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  BLI_assert(grids.size() * key.grid_area == node_data.size());
+
+  for (const int i : grids.index_range()) {
+    const int node_start = i * key.grid_area;
+    const int grids_start = grids[i] * key.grid_area;
+    node_data.slice(node_start, key.grid_area).copy_from(src.slice(grids_start, key.grid_area));
+  }
+}
+
+void gather_data_vert_bmesh(const Span<float3> src,
+                            const Set<BMVert *, 0> &verts,
+                            const MutableSpan<float3> node_data)
+{
+  BLI_assert(verts.size() == node_data.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    node_data[i] = src[BM_elem_index_get(vert)];
+    i++;
+  }
+}
+
+void scatter_data_grids(const SubdivCCG &subdiv_ccg,
+                        const Span<float3> node_data,
+                        const Span<int> grids,
+                        const MutableSpan<float3> dst)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  BLI_assert(grids.size() * key.grid_area == node_data.size());
+
+  for (const int i : grids.index_range()) {
+    const int node_start = i * key.grid_area;
+    const int grids_start = grids[i] * key.grid_area;
+    dst.slice(grids_start, key.grid_area).copy_from(node_data.slice(node_start, key.grid_area));
+  }
+}
+
+void scatter_data_vert_bmesh(const Span<float3> node_data,
+                             const Set<BMVert *, 0> &verts,
+                             const MutableSpan<float3> dst)
+{
+  BLI_assert(verts.size() == node_data.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    dst[BM_elem_index_get(vert)] = node_data[i];
     i++;
   }
 }

@@ -130,6 +130,7 @@ set(SRC
   brushes/draw_sharp.cc
   brushes/draw.cc
   brushes/elastic_deform.cc
+  brushes/enhance_details.cc
   brushes/fill.cc
   brushes/flatten.cc
   brushes/grab.cc

@@ -1565,6 +1565,9 @@ float4 neighbor_color_average(SculptSession &ss,
  */
 float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef vertex);
 
+void neighbor_position_average_grids(const SubdivCCG &subdiv_ccg,
+                                     Span<int> grids,
+                                     MutableSpan<float3> new_positions);
 void neighbor_position_average_interior_grids(OffsetIndices<int> faces,
                                               Span<int> corner_verts,
                                               BitSpan boundary_verts,
@@ -1572,6 +1575,8 @@ void neighbor_position_average_interior_grids(OffsetIndices<int> faces,
                                               Span<int> grids,
                                               MutableSpan<float3> new_positions);
 
+void neighbor_position_average_bmesh(const Set<BMVert *, 0> &verts,
+                                     MutableSpan<float3> new_positions);
 void neighbor_position_average_interior_bmesh(const Set<BMVert *, 0> &verts,
                                               MutableSpan<float3> new_positions);
 
@@ -1580,7 +1585,6 @@ void neighbor_position_average_mesh(Span<float3> positions,
                                     Span<Vector<int>> vert_neighbors,
                                     MutableSpan<float3> new_positions);
 
-void enhance_details_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
 
 /* Surface Smooth Brush. */
 
