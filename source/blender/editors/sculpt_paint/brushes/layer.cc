@@ -59,7 +59,7 @@ static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush
     const float fade = SCULPT_brush_strength_factor(ss,
                                                     brush,
                                                     vd.co,
-                                                    sqrtf(test.dist),
+                                                    std::sqrt(test.dist),
                                                     vd.no,
                                                     vd.fno,
                                                     vd.mask,
@@ -82,34 +82,32 @@ static void do_layer_brush_task(Object &ob, const Sculpt &sd, const Brush &brush
     /* The main direction of the layers is inverted using the regular brush strength with the
      * brush direction property. */
     if (use_persistent_base && ss.cache->invert) {
-      (*disp_factor) += fabsf(fade * bstrength * (*disp_factor)) *
+      (*disp_factor) += std::abs(fade * bstrength * (*disp_factor)) *
                         ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
     }
     else {
-      (*disp_factor) += fade * bstrength * (1.05f - fabsf(*disp_factor));
+      (*disp_factor) += fade * bstrength * (1.05f - std::abs(*disp_factor));
     }
     const float clamp_mask = 1.0f - vd.mask;
-    *disp_factor = clamp_f(*disp_factor, -clamp_mask, clamp_mask);
+    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-    float final_co[3];
+    float3 final_co;
     float3 normal;
 
     if (use_persistent_base) {
       normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
-      mul_v3_fl(normal, brush.height);
-      madd_v3_v3v3fl(
-          final_co, SCULPT_vertex_persistent_co_get(ss, vd.vertex), normal, *disp_factor);
+      normal *= brush.height;
+      final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) + normal * *disp_factor;
     }
     else {
-      copy_v3_v3(normal, orig_data.no);
-      mul_v3_fl(normal, brush.height);
-      madd_v3_v3v3fl(final_co, orig_data.co, normal, *disp_factor);
+      normal = orig_data.no;
+      normal *= brush.height;
+      final_co = float3(orig_data.co) + normal * *disp_factor;
     }
 
-    float vdisp[3];
-    sub_v3_v3v3(vdisp, final_co, vd.co);
-    mul_v3_fl(vdisp, fabsf(fade));
-    add_v3_v3v3(final_co, vd.co, vdisp);
+    float3 vdisp = final_co - float3(vd.co);
+    vdisp *= std::abs(fade);
+    final_co = float3(vd.co) + vdisp;
 
     SCULPT_clip(sd, ss, vd.co, final_co);
   }
