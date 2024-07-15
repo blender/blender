@@ -146,9 +146,18 @@ void main()
   vec4 layer_color;
   float layer_weight;
 
+  const vec3 hole_fill_color = vec3(0.2, 0.1, 1.0);
+  const vec3 background_color = vec3(0.1, 0.2, 1.0);
+  const vec3 slight_focus_color = vec3(1.0, 0.2, 0.1);
+  const vec3 focus_color = vec3(1.0, 1.0, 0.1);
+  const vec3 foreground_color = vec3(0.2, 1.0, 0.1);
+
   if (!no_hole_fill_pass && prediction.do_hole_fill) {
     layer_color = textureLod(color_hole_fill_tx, uv_halfres, 0.0);
     layer_weight = textureLod(weight_hole_fill_tx, uv_halfres, 0.0).r;
+    if (do_debug_color) {
+      layer_color.rgb *= hole_fill_color;
+    }
     out_color = layer_color * safe_rcp(layer_weight);
     weight = float(layer_weight > 0.0);
   }
@@ -156,6 +165,9 @@ void main()
   if (!no_background_pass && prediction.do_background) {
     layer_color = textureLod(color_bg_tx, uv_halfres, 0.0);
     layer_weight = textureLod(weight_bg_tx, uv_halfres, 0.0).r;
+    if (do_debug_color) {
+      layer_color.rgb *= background_color;
+    }
     /* Always prefer background to hole_fill pass. */
     layer_color *= safe_rcp(layer_weight);
     layer_weight = float(layer_weight > 0.0);
@@ -176,17 +188,23 @@ void main()
                             layer_color,
                             layer_weight,
                             center_coc);
+    if (do_debug_color) {
+      layer_color.rgb *= slight_focus_color;
+    }
 
     /* Composite slight defocus. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;
     weight = weight * (1.0 - layer_weight) + layer_weight;
 
-    out_color.rgb = dof_neighborhood_clamp(frag_coord, out_color.rgb, center_coc, layer_weight);
+    // out_color.rgb = dof_neighborhood_clamp(frag_coord, out_color.rgb, center_coc, layer_weight);
   }
 
   if (!no_focus_pass && prediction.do_focus) {
     layer_color = colorspace_safe_color(textureLod(color_tx, uv, 0.0));
     layer_weight = 1.0;
+    if (do_debug_color) {
+      layer_color.rgb *= focus_color;
+    }
     /* Composite in focus. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;
     weight = weight * (1.0 - layer_weight) + layer_weight;
@@ -195,6 +213,9 @@ void main()
   if (!no_foreground_pass && prediction.do_foreground) {
     layer_color = textureLod(color_fg_tx, uv_halfres, 0.0);
     layer_weight = textureLod(weight_fg_tx, uv_halfres, 0.0).r;
+    if (do_debug_color) {
+      layer_color.rgb *= foreground_color;
+    }
     /* Composite foreground. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;
   }

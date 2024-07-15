@@ -70,6 +70,17 @@ void DepthOfField::sync()
                                     reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                     nullptr;
 
+  if (inst_.debug_mode == DEBUG_DOF_PLANES) {
+    /* Set debug message even if DOF is not enabled. */
+    inst_.info =
+        "Debug Mode: Depth Of Field Buffers\n"
+        " - Purple: Gap Fill\n"
+        " - Blue: Background\n"
+        " - Red: Slight Out Of Focus\n"
+        " - Yellow: In Focus\n"
+        " - Green: Foreground\n";
+  }
+
   if (camera_data == nullptr || (camera_data->dof.flag & CAM_DOF_ENABLED) == 0) {
     jitter_radius_ = 0.0f;
     fx_radius_ = 0.0f;
@@ -440,11 +451,11 @@ void DepthOfField::resolve_pass_sync()
 {
   GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
   RenderBuffers &render_buffers = inst_.render_buffers;
-  eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
+  GPUShader *sh = inst_.shaders.static_shader_get(use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE);
 
   resolve_ps_.init();
-  resolve_ps_.bind_resources(inst_.sampling);
-  resolve_ps_.shader_set(inst_.shaders.static_shader_get(sh_type));
+  resolve_ps_.specialize_constant(sh, "do_debug_color", inst_.debug_mode == DEBUG_DOF_PLANES);
+  resolve_ps_.shader_set(sh);
   resolve_ps_.bind_ubo("dof_buf", data_);
   resolve_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
   resolve_ps_.bind_texture("color_tx", &input_color_tx_, no_filter);
@@ -459,6 +470,7 @@ void DepthOfField::resolve_pass_sync()
   resolve_ps_.bind_texture("weight_hole_fill_tx", &hole_fill_weight_tx_);
   resolve_ps_.bind_texture("bokeh_lut_tx", &bokeh_resolve_lut_tx_);
   resolve_ps_.bind_image("out_color_img", &output_color_tx_);
+  resolve_ps_.bind_resources(inst_.sampling);
   resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
   resolve_ps_.dispatch(&dispatch_resolve_size_);
   resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);

@@ -206,6 +206,10 @@ enum eDebugMode : uint32_t {
    * Show evaluation cost of each pixel.
    */
   DEBUG_GBUFFER_EVALUATION = 15u,
+  /**
+   * Color different buffers of the depth of field.
+   */
+  DEBUG_DOF_PLANES = 16u,
 };
 
 /** \} */

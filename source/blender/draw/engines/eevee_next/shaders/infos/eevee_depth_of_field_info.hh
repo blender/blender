@@ -230,6 +230,7 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_scatter)
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_resolve)
     .define("DOF_RESOLVE_PASS", "true")
     .local_group_size(DOF_RESOLVE_GROUP_SIZE, DOF_RESOLVE_GROUP_SIZE)
+    .specialization_constant(Type::BOOL, "do_debug_color", false)
     .additional_info("eevee_shared",
                      "draw_view",
                      "eevee_depth_of_field_tiles_common",
