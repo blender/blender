@@ -1585,7 +1585,6 @@ void neighbor_position_average_mesh(Span<float3> positions,
                                     Span<Vector<int>> vert_neighbors,
                                     MutableSpan<float3> new_positions);
 
-
 /* Surface Smooth Brush. */
 
 void surface_smooth_laplacian_step(SculptSession &ss,
