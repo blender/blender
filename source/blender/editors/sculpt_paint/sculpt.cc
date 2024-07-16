@@ -277,7 +277,6 @@ float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vert
   return {};
 }
 
-
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
                                           const int vert_index)
@@ -6717,10 +6716,11 @@ void gather_bmesh_normals(const Set<BMVert *, 0> &verts, const MutableSpan<float
   }
 }
 
+template<typename T>
 void gather_data_grids(const SubdivCCG &subdiv_ccg,
-                       const Span<float3> src,
+                       const Span<T> src,
                        const Span<int> grids,
-                       const MutableSpan<float3> node_data)
+                       const MutableSpan<T> node_data)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   BLI_assert(grids.size() * key.grid_area == node_data.size());
@@ -6732,9 +6732,10 @@ void gather_data_grids(const SubdivCCG &subdiv_ccg,
   }
 }
 
-void gather_data_vert_bmesh(const Span<float3> src,
+template<typename T>
+void gather_data_vert_bmesh(const Span<T> src,
                             const Set<BMVert *, 0> &verts,
-                            const MutableSpan<float3> node_data)
+                            const MutableSpan<T> node_data)
 {
   BLI_assert(verts.size() == node_data.size());
 
@@ -6745,10 +6746,11 @@ void gather_data_vert_bmesh(const Span<float3> src,
   }
 }
 
+template<typename T>
 void scatter_data_grids(const SubdivCCG &subdiv_ccg,
-                        const Span<float3> node_data,
+                        const Span<T> node_data,
                         const Span<int> grids,
-                        const MutableSpan<float3> dst)
+                        const MutableSpan<T> dst)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   BLI_assert(grids.size() * key.grid_area == node_data.size());
@@ -6760,9 +6762,10 @@ void scatter_data_grids(const SubdivCCG &subdiv_ccg,
   }
 }
 
-void scatter_data_vert_bmesh(const Span<float3> node_data,
+template<typename T>
+void scatter_data_vert_bmesh(const Span<T> node_data,
                              const Set<BMVert *, 0> &verts,
-                             const MutableSpan<float3> dst)
+                             const MutableSpan<T> dst)
 {
   BLI_assert(verts.size() == node_data.size());
 
@@ -6772,6 +6775,36 @@ void scatter_data_vert_bmesh(const Span<float3> node_data,
     i++;
   }
 }
+
+template void gather_data_grids<float>(const SubdivCCG &,
+                                       Span<float>,
+                                       Span<int>,
+                                       MutableSpan<float>);
+template void gather_data_grids<float3>(const SubdivCCG &,
+                                        Span<float3>,
+                                        Span<int>,
+                                        MutableSpan<float3>);
+template void gather_data_vert_bmesh<float>(Span<float>,
+                                            const Set<BMVert *, 0> &,
+                                            MutableSpan<float>);
+template void gather_data_vert_bmesh<float3>(Span<float3>,
+                                             const Set<BMVert *, 0> &,
+                                             MutableSpan<float3>);
+
+template void scatter_data_grids<float>(const SubdivCCG &,
+                                        Span<float>,
+                                        Span<int>,
+                                        MutableSpan<float>);
+template void scatter_data_grids<float3>(const SubdivCCG &,
+                                         Span<float3>,
+                                         Span<int>,
+                                         MutableSpan<float3>);
+template void scatter_data_vert_bmesh<float>(Span<float>,
+                                             const Set<BMVert *, 0> &,
+                                             MutableSpan<float>);
+template void scatter_data_vert_bmesh<float3>(Span<float3>,
+                                              const Set<BMVert *, 0> &,
+                                              MutableSpan<float3>);
 
 void fill_factor_from_hide(const Mesh &mesh,
                            const Span<int> verts,

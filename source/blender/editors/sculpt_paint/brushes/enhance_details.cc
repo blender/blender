@@ -232,7 +232,7 @@ static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
   tls.translations.reinitialize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
-  scatter_data_grids(subdiv_ccg, translations, grids, all_translations);
+  scatter_data_grids(subdiv_ccg, translations.as_span(), grids, all_translations);
 }
 
 static void calc_translations_bmesh(PBVHNode &node,

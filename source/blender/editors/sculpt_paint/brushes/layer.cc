@@ -36,6 +36,7 @@ struct LocalData {
   Vector<float> factors;
   Vector<float> distances;
   Vector<float> masks;
+  Vector<float> displacement_factors;
 };
 
 static void calc_faces(const Sculpt &sd,
@@ -92,9 +93,13 @@ static void calc_faces(const Sculpt &sd,
   const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
+  tls.displacement_factors.reinitialize(verts.size());
+  const MutableSpan<float> displacement_factors = tls.displacement_factors;
+  array_utils::gather(layer_displacement_factor.as_span(), verts, displacement_factors);
+
   if (use_persistent_base) {
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      float *disp_factor = &layer_displacement_factor[vd.index];
+      float *disp_factor = &displacement_factors[vd.i];
 
       /* When using persistent base, the layer brush (holding Control) invert mode resets the
        * height of the layer to 0. This makes possible to clean edges of previously added layers
@@ -125,8 +130,7 @@ static void calc_faces(const Sculpt &sd,
   }
   else {
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      const int vi = vd.index;
-      float *disp_factor = &layer_displacement_factor[vi];
+      float *disp_factor = &displacement_factors[vd.i];
 
       (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
       const float clamp_mask = masks.is_empty() ? 1.0f : (1.0f - masks[vd.i]);
@@ -144,6 +148,8 @@ static void calc_faces(const Sculpt &sd,
     }
     BKE_pbvh_vertex_iter_end;
   }
+
+  array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
 }
 
 static void calc_grids(const Sculpt &sd,
@@ -190,13 +196,16 @@ static void calc_grids(const Sculpt &sd,
   const MutableSpan<float> masks = tls.masks;
   mask::gather_mask_grids(subdiv_ccg, grids, masks);
 
+  tls.displacement_factors.reinitialize(grid_verts_num);
+  const MutableSpan<float> displacement_factors = tls.displacement_factors;
+  gather_data_grids(subdiv_ccg, layer_displacement_factor.as_span(), grids, displacement_factors);
+
   PBVHVertexIter vd;
   const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    const int vi = vd.index;
-    float *disp_factor = &layer_displacement_factor[vi];
+    float *disp_factor = &displacement_factors[vd.i];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
     const float clamp_mask = 1.0f - masks[vd.i];
@@ -213,6 +222,8 @@ static void calc_grids(const Sculpt &sd,
     SCULPT_clip(sd, ss, vd.co, final_co);
   }
   BKE_pbvh_vertex_iter_end;
+
+  scatter_data_grids(subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
 }
 
 static void calc_bmesh(const Sculpt &sd,
@@ -263,10 +274,12 @@ static void calc_bmesh(const Sculpt &sd,
   const MutableSpan<float> masks = tls.masks;
   mask::gather_mask_bmesh(*ss.bm, verts, masks);
 
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    const int vi = vd.index;
+  tls.displacement_factors.reinitialize(verts.size());
+  const MutableSpan<float> displacement_factors = tls.displacement_factors;
+  gather_data_vert_bmesh(layer_displacement_factor.as_span(), verts, displacement_factors);
 
-    float *disp_factor = &layer_displacement_factor[vi];
+  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+    float *disp_factor = &displacement_factors[vd.i];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
 
@@ -284,6 +297,8 @@ static void calc_bmesh(const Sculpt &sd,
     SCULPT_clip(sd, ss, vd.co, final_co);
   }
   BKE_pbvh_vertex_iter_end;
+
+  scatter_data_vert_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 }
 
 }  // namespace layer_cc
