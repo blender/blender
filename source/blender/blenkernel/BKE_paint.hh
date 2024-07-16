@@ -351,13 +351,12 @@ struct SculptBoundary {
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active
    * vertex that was used to initialize the boundary. This is used as a reference to check how much
    * the deformation will go into the mesh and to calculate the strength of the brushes. */
-  PBVHVertRef pivot_vertex;
+  blender::float3 pivot_position;
 
   /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
    * during the brush action. This allows to use them as a reference positions and vectors for some
    * brush effects. */
   blender::float3 initial_vert_position;
-  blender::float3 initial_pivot_position;
 
   /* Maximum number of topology steps that were calculated from the boundary. */
   int max_propagation_steps;
