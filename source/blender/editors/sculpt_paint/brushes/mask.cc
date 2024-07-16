@@ -20,6 +20,7 @@
 #include "BLI_task.h"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/paint_intern.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint {
@@ -110,40 +111,6 @@ static void calc_faces(const Brush &brush,
   array_utils::scatter(new_masks.as_span(), verts, mask);
 }
 
-static BLI_NOINLINE void gather_mask(const SubdivCCG &subdiv_ccg,
-                                     const Span<int> grids,
-                                     const MutableSpan<float> mask)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-  BLI_assert(grids.size() * key.grid_area == mask.size());
-
-  for (const int i : grids.index_range()) {
-    CCGElem *elem = elems[grids[i]];
-    const int start = i * key.grid_area;
-    for (const int offset : IndexRange(key.grid_area)) {
-      mask[start + offset] = CCG_elem_offset_mask(key, elem, offset);
-    }
-  }
-}
-
-static BLI_NOINLINE void scatter_mask(const Span<float> mask,
-                                      const Span<int> grids,
-                                      SubdivCCG &subdiv_ccg)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-  BLI_assert(grids.size() * key.grid_area == mask.size());
-
-  for (const int i : grids.index_range()) {
-    CCGElem *elem = elems[grids[i]];
-    const int start = i * key.grid_area;
-    for (const int offset : IndexRange(key.grid_area)) {
-      CCG_elem_offset_mask(key, elem, offset) = mask[start + offset];
-    }
-  }
-}
-
 static void calc_grids(
     Object &object, const Brush &brush, const float strength, PBVHNode &node, LocalData &tls)
 {
@@ -182,7 +149,7 @@ static void calc_grids(
 
   tls.new_masks.reinitialize(grid_verts_num);
   const MutableSpan<float> new_masks = tls.new_masks;
-  gather_mask(subdiv_ccg, grids, new_masks);
+  mask::gather_mask_grids(subdiv_ccg, grids, new_masks);
 
   tls.current_masks = tls.new_masks;
   const MutableSpan<float> current_masks = tls.current_masks;
@@ -192,33 +159,7 @@ static void calc_grids(
   apply_factors(strength, current_masks, factors, new_masks);
   clamp_mask(new_masks);
 
-  scatter_mask(new_masks.as_span(), grids, subdiv_ccg);
-}
-
-static BLI_NOINLINE void gather_mask(const Set<BMVert *, 0> &verts,
-                                     const int offset,
-                                     const MutableSpan<float> mask)
-{
-  BLI_assert(verts.size() == mask.size());
-
-  int i = 0;
-  for (const BMVert *vert : verts) {
-    mask[i] = BM_ELEM_CD_GET_FLOAT(vert, offset);
-    i++;
-  }
-}
-
-static BLI_NOINLINE void scatter_mask(const Span<float> mask,
-                                      const int offset,
-                                      const Set<BMVert *, 0> &verts)
-{
-  BLI_assert(verts.size() == mask.size());
-
-  int i = 0;
-  for (BMVert *vert : verts) {
-    BM_ELEM_CD_SET_FLOAT(vert, offset, mask[i]);
-    i++;
-  }
+  mask::scatter_mask_grids(new_masks.as_span(), subdiv_ccg, grids);
 }
 
 static void calc_bmesh(
@@ -233,8 +174,6 @@ static void calc_bmesh(
   tls.positions.reinitialize(verts.size());
   MutableSpan<float3> positions = tls.positions;
   gather_bmesh_positions(verts, positions);
-
-  const int mask_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -259,7 +198,7 @@ static void calc_bmesh(
 
   tls.new_masks.reinitialize(verts.size());
   const MutableSpan<float> new_masks = tls.new_masks;
-  gather_mask(verts, mask_offset, new_masks);
+  mask::gather_mask_bmesh(bm, verts, new_masks);
 
   tls.current_masks = tls.new_masks;
   const MutableSpan<float> current_masks = tls.current_masks;
@@ -269,7 +208,7 @@ static void calc_bmesh(
   apply_factors(strength, current_masks, factors, new_masks);
   clamp_mask(new_masks);
 
-  scatter_mask(new_masks.as_span(), mask_offset, verts);
+  mask::scatter_mask_bmesh(new_masks.as_span(), bm, verts);
 }
 
 }  // namespace mask_cc
