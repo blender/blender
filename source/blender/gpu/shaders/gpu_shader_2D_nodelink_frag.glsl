@@ -41,7 +41,7 @@ void main()
 
   if (hasBackLink == 0) {
     fragColor = finalColor;
-    fragColor.a *= get_line_alpha(0.5, 0.5);
+    fragColor.a *= get_line_alpha(0.5, 0.5) * dash_frag_alpha;
   }
   else {
     /* Draw two links right next to each other, the main link and the back-link. */
@@ -54,6 +54,6 @@ void main()
     /* Combine both links. */
     fragColor.rgb = main_link_color.rgb * main_link_color.a +
                     back_link_color.rgb * back_link_color.a;
-    fragColor.a = main_link_color.a + back_link_color.a;
+    fragColor.a = main_link_color.a * dash_frag_alpha + back_link_color.a;
   }
 }
