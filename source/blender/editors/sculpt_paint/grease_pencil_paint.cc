@@ -591,7 +591,8 @@ struct PaintOperationExecutor {
 
     bke::SpanAttributeWriter<float> init_times = attributes.lookup_or_add_for_write_span<float>(
         "init_time", bke::AttrDomain::Curve);
-    init_times.span[active_curve] = self.start_time_;
+    /* Truncating time in ms to uint32 then we don't lose precision in lower bits. */
+    init_times.span[active_curve] = float(uint64_t(self.start_time_ * double(1e3))) / float(1e3);
     curve_attributes_to_skip.add("init_time");
     init_times.finish();
 

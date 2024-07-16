@@ -472,24 +472,30 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
   const VArray<float> delta_times = *attributes.lookup_or_default<float>(
       "delta_time", bke::AttrDomain::Point, 0.0f);
 
-  Array<float> times(curves.points_num());
-  /* For the first stroke, the start time is 0. */
-  for (const int point : points_by_curve[0]) {
-    times[point] = delta_times[point];
-  }
+  Array<float> start_times(curves.curves_num());
+  start_times[0] = 0;
+  float accumulated_shift_delta_time = init_times[0];
   for (const int curve : curves.curves_range().drop_front(1)) {
-    const float previous_init_time = init_times[curve - 1];
-    const float start_time = math::min(init_times[curve] - previous_init_time, max_gap);
+    const float previous_start_time = start_times[curve - 1];
+    const float previous_delta_time = delta_times[points_by_curve[curve - 1].last()];
+    const float previous_end_time = previous_start_time + previous_delta_time;
+
+    const float shifted_start_time = init_times[curve] - accumulated_shift_delta_time;
+    const float gap_delta_time = math::min(shifted_start_time - previous_end_time, max_gap);
+
+    start_times[curve] = previous_end_time + gap_delta_time;
+    accumulated_shift_delta_time += math::max(shifted_start_time - start_times[curve], 0.0f);
+  }
+  const float limit = time_elapsed * speed_fac;
+  for (const int curve : curves.curves_range()) {
+    const float start_time = start_times[curve];
     for (const int point : points_by_curve[curve]) {
-      times[point] = start_time + delta_times[point];
+      if (start_time + delta_times[point] >= limit) {
+        return math::clamp(float(point) / float(curves.points_num()), 0.0f, 1.0f);
+      }
     }
   }
-  for (const int point : curves.points_range()) {
-    const float limit = time_elapsed * speed_fac;
-    if (times[point] >= limit) {
-      return math::clamp(float(point) / float(curves.points_num()), 0.0f, 1.0f);
-    }
-  }
+
   return 1.0f;
 }
 
