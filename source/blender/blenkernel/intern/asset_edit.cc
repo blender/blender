@@ -307,7 +307,7 @@ static AssetWeakReference asset_weak_reference_for_essentials(const short idcode
 
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
-                                                 const StringRef name,
+                                                 const StringRefNull name,
                                                  const bUserAssetLibrary &user_library,
                                                  AssetWeakReference &new_weak_ref,
                                                  ReportList &reports)
@@ -324,7 +324,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
   }
 
   new_weak_ref = asset_weak_reference_for_user_library(
-      user_library, GS(id.name), id.name + 2, filepath.c_str());
+      user_library, GS(id.name), name.c_str(), filepath.c_str());
 
   BKE_reportf(&reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
 
