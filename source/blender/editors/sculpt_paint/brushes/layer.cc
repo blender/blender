@@ -40,6 +40,9 @@ static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
                        const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
+                       const bool use_persistent_base,
+                       const Span<float3> persistent_base_positions,
+                       const Span<float3> persistent_base_normals,
                        Object &object,
                        PBVHNode &node,
                        LocalData &tls,
@@ -73,15 +76,13 @@ static void calc_faces(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
-  const bool use_persistent_base = ss.attrs.persistent_co && brush.flag & BRUSH_PERSISTENT;
-
   PBVHVertexIter vd;
   const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   if (use_persistent_base) {
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      float *disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss.attrs.persistent_disp);
+      float *disp_factor = &layer_displacement_factor[vd.index];
 
       /* When using persistent base, the layer brush (holding Control) invert mode resets the
        * height of the layer to 0. This makes possible to clean edges of previously added layers
@@ -98,10 +99,9 @@ static void calc_faces(const Sculpt &sd,
       const float clamp_mask = 1.0f - vd.mask;
       *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-      float3 normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
+      float3 normal = persistent_base_normals[vd.index];
       normal *= brush.height;
-      float3 final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) +
-                        normal * *disp_factor;
+      float3 final_co = persistent_base_positions[vd.index] + normal * *disp_factor;
 
       float3 vdisp = final_co - float3(vd.co);
       vdisp *= factors[vd.i];
@@ -281,16 +281,53 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES: {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+
+      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+      const VArraySpan masks = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+      const VArraySpan persistent_position = *attributes.lookup<float3>(".sculpt_persistent_co",
+                                                                        bke::AttrDomain::Point);
+      const VArraySpan persistent_normal = *attributes.lookup<float3>(".sculpt_persistent_no",
+                                                                      bke::AttrDomain::Point);
+      bke::SpanAttributeWriter persistent_disp_attr = attributes.lookup_for_write_span<float>(
+          ".sculpt_persistent_disp");
+
+      bool use_persistent_base = false;
+      MutableSpan<float> displacement;
+      if (brush.flag & BRUSH_PERSISTENT && !persistent_position.is_empty() &&
+          !persistent_normal.is_empty() && bool(persistent_disp_attr) &&
+          persistent_disp_attr.domain == bke::AttrDomain::Point)
+      {
+        use_persistent_base = true;
+        displacement = persistent_disp_attr.span;
+      }
+      else {
+        if (ss.cache->layer_displacement_factor.is_empty()) {
+          ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+        }
+        displacement = ss.cache->layer_displacement_factor;
+      }
+
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(
-              sd, brush, positions_eval, vert_normals, object, *nodes[i], tls, displacement);
+          calc_faces(sd,
+                     brush,
+                     positions_eval,
+                     vert_normals,
+                     use_persistent_base,
+                     persistent_position,
+                     persistent_normal,
+                     object,
+                     *nodes[i],
+                     tls,
+                     displacement);
         }
       });
+      persistent_disp_attr.finish();
       break;
     }
     case PBVH_GRIDS:

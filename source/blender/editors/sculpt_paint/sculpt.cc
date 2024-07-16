@@ -277,13 +277,6 @@ float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vert
   return {};
 }
 
-float3 SCULPT_vertex_persistent_normal_get(const SculptSession &ss, PBVHVertRef vertex)
-{
-  if (ss.attrs.persistent_no) {
-    return (const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.persistent_no);
-  }
-  return SCULPT_vertex_normal_get(ss, vertex);
-}
 
 float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
                                           const CCGKey &key,
