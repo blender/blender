@@ -37,7 +37,82 @@ struct LocalData {
   Vector<float> distances;
   Vector<float> masks;
   Vector<float> displacement_factors;
+  Vector<float3> translations;
 };
+
+BLI_NOINLINE static void offset_displacement_factors(const MutableSpan<float> displacement_factors,
+                                                     const Span<float> factors,
+                                                     const float strength)
+{
+  for (const int i : displacement_factors.index_range()) {
+    displacement_factors[i] += factors[i] * strength * (1.05f - std::abs(displacement_factors[i]));
+  }
+}
+
+/**
+ * When using persistent base, the layer brush (holding Control) invert mode resets the
+ * height of the layer to 0. This makes possible to clean edges of previously added layers
+ * on top of the base.
+ *
+ * The main direction of the layers is inverted using the regular brush strength with the
+ * brush direction property.
+ */
+BLI_NOINLINE static void reset_displacement_factors(const MutableSpan<float> displacement_factors,
+                                                    const Span<float> factors,
+                                                    const float strength)
+{
+  for (const int i : displacement_factors.index_range()) {
+    displacement_factors[i] += std::abs(factors[i] * strength * displacement_factors[i]) *
+                               (displacement_factors[i] > 0.0f ? -1.0f : 1.0f);
+  }
+}
+
+BLI_NOINLINE static void clamp_displacement_factors(const MutableSpan<float> displacement_factors,
+                                                    const Span<float> masks)
+{
+  if (masks.is_empty()) {
+    for (const int i : displacement_factors.index_range()) {
+      displacement_factors[i] = std::clamp(displacement_factors[i], -1.0f, 1.0f);
+    }
+  }
+  else {
+    for (const int i : displacement_factors.index_range()) {
+      const float clamp_mask = 1.0f - masks[i];
+      displacement_factors[i] = std::clamp(displacement_factors[i], -clamp_mask, clamp_mask);
+    }
+  }
+}
+
+BLI_NOINLINE static void calc_translations(const Span<float3> orig_positions,
+                                           const Span<float3> orig_normals,
+                                           const Span<float3> positions,
+                                           const Span<float> displacement_factors,
+                                           const Span<float> factors,
+                                           const float height,
+                                           const MutableSpan<float3> r_translations)
+{
+  for (const int i : positions.index_range()) {
+    const float3 offset = orig_normals[i] * height * displacement_factors[i];
+    const float3 translation = orig_positions[i] + offset - positions[i];
+    r_translations[i] = translation * factors[i];
+  }
+}
+
+BLI_NOINLINE static void calc_translations(const Span<float3> base_positions,
+                                           const Span<float3> base_normals,
+                                           const Span<int> verts,
+                                           const Span<float3> positions,
+                                           const Span<float> displacement_factors,
+                                           const Span<float> factors,
+                                           const float height,
+                                           const MutableSpan<float3> r_translations)
+{
+  for (const int i : positions.index_range()) {
+    const float3 offset = base_normals[verts[i]] * height * displacement_factors[i];
+    const float3 translation = base_positions[verts[i]] + offset - positions[i];
+    r_translations[i] = translation * factors[i];
+  }
+}
 
 static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
@@ -50,7 +125,8 @@ static void calc_faces(const Sculpt &sd,
                        Object &object,
                        PBVHNode &node,
                        LocalData &tls,
-                       MutableSpan<float> layer_displacement_factor)
+                       MutableSpan<float> layer_displacement_factor,
+                       MutableSpan<float3> positions_orig)
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -58,18 +134,21 @@ static void calc_faces(const Sculpt &sd,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
+  tls.positions.reinitialize(verts.size());
+  const MutableSpan<float3> positions = tls.positions;
+  array_utils::gather(positions_eval, verts, positions);
+
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  filter_region_clip_factors(ss, positions_eval, verts, factors);
+  filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
   tls.distances.reinitialize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_brush_distances(
-      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+  calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -78,7 +157,7 @@ static void calc_faces(const Sculpt &sd,
     auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
   }
 
-  calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
+  calc_brush_texture_factors(ss, brush, positions, factors);
 
   if (mask_attribute.is_empty()) {
     tls.masks.clear();
@@ -89,67 +168,54 @@ static void calc_faces(const Sculpt &sd,
   }
   const MutableSpan<float> masks = tls.masks;
 
-  PBVHVertexIter vd;
-  const float bstrength = cache.bstrength;
-  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
-
   tls.displacement_factors.reinitialize(verts.size());
   const MutableSpan<float> displacement_factors = tls.displacement_factors;
   array_utils::gather(layer_displacement_factor.as_span(), verts, displacement_factors);
 
   if (use_persistent_base) {
-    BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      float *disp_factor = &displacement_factors[vd.i];
-
-      /* When using persistent base, the layer brush (holding Control) invert mode resets the
-       * height of the layer to 0. This makes possible to clean edges of previously added layers
-       * on top of the base. */
-      /* The main direction of the layers is inverted using the regular brush strength with the
-       * brush direction property. */
-      if (cache.invert) {
-        (*disp_factor) += std::abs(factors[vd.i] * bstrength * (*disp_factor)) *
-                          ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
-      }
-      else {
-        (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-      }
-      const float clamp_mask = masks.is_empty() ? 1.0f : (1.0f - masks[vd.i]);
-      *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
-
-      float3 normal = persistent_base_normals[vd.index];
-      normal *= brush.height;
-      float3 final_co = persistent_base_positions[vd.index] + normal * *disp_factor;
-
-      float3 vdisp = final_co - float3(vd.co);
-      vdisp *= factors[vd.i];
-      final_co = float3(vd.co) + vdisp;
-
-      SCULPT_clip(sd, ss, vd.co, final_co);
+    if (cache.invert) {
+      reset_displacement_factors(displacement_factors, factors, cache.bstrength);
     }
-    BKE_pbvh_vertex_iter_end;
+    else {
+      offset_displacement_factors(displacement_factors, factors, cache.bstrength);
+    }
+    clamp_displacement_factors(displacement_factors, masks);
+
+    array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
+
+    tls.translations.reinitialize(verts.size());
+    const MutableSpan<float3> translations = tls.translations;
+    calc_translations(persistent_base_positions,
+                      persistent_base_normals,
+                      verts,
+                      positions,
+                      displacement_factors,
+                      factors,
+                      brush.height,
+                      translations);
+
+    write_translations(sd, object, positions_eval, verts, translations, positions_orig);
   }
   else {
-    BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      float *disp_factor = &displacement_factors[vd.i];
+    offset_displacement_factors(displacement_factors, factors, cache.bstrength);
+    clamp_displacement_factors(displacement_factors, masks);
 
-      (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-      const float clamp_mask = masks.is_empty() ? 1.0f : (1.0f - masks[vd.i]);
-      *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
+    array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
 
-      float3 normal = orig_data.normals[vd.i];
-      normal *= brush.height;
-      float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
+    const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
-      float3 vdisp = final_co - float3(vd.co);
-      vdisp *= factors[vd.i];
-      final_co = float3(vd.co) + vdisp;
+    tls.translations.reinitialize(verts.size());
+    const MutableSpan<float3> translations = tls.translations;
+    calc_translations(orig_data.positions,
+                      orig_data.normals,
+                      positions,
+                      displacement_factors,
+                      factors,
+                      brush.height,
+                      translations);
 
-      SCULPT_clip(sd, ss, vd.co, final_co);
-    }
-    BKE_pbvh_vertex_iter_end;
+    write_translations(sd, object, positions_eval, verts, translations, positions_orig);
   }
-
-  array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
 }
 
 static void calc_grids(const Sculpt &sd,
@@ -200,30 +266,32 @@ static void calc_grids(const Sculpt &sd,
   const MutableSpan<float> displacement_factors = tls.displacement_factors;
   gather_data_grids(subdiv_ccg, layer_displacement_factor.as_span(), grids, displacement_factors);
 
-  PBVHVertexIter vd;
-  const float bstrength = cache.bstrength;
-  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    float *disp_factor = &displacement_factors[vd.i];
-
-    (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-    const float clamp_mask = 1.0f - masks[vd.i];
-    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
-
-    float3 normal = orig_data.normals[vd.i];
-    normal *= brush.height;
-    float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
-
-    float3 vdisp = final_co - float3(vd.co);
-    vdisp *= factors[vd.i];
-    final_co = float3(vd.co) + vdisp;
-
-    SCULPT_clip(sd, ss, vd.co, final_co);
+  offset_displacement_factors(displacement_factors, factors, cache.bstrength);
+  if (key.has_mask) {
+    tls.masks.reinitialize(grid_verts_num);
+    mask::gather_mask_grids(subdiv_ccg, grids, masks);
   }
-  BKE_pbvh_vertex_iter_end;
+  else {
+    tls.masks.clear();
+  }
+  clamp_displacement_factors(displacement_factors, tls.masks);
 
   scatter_data_grids(subdiv_ccg, displacement_factors.as_span(), grids, layer_displacement_factor);
+
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
+
+  tls.translations.reinitialize(grid_verts_num);
+  const MutableSpan<float3> translations = tls.translations;
+  calc_translations(orig_data.positions,
+                    orig_data.normals,
+                    positions,
+                    displacement_factors,
+                    factors,
+                    brush.height,
+                    translations);
+
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, grids, subdiv_ccg);
 }
 
 static void calc_bmesh(const Sculpt &sd,
@@ -263,42 +331,35 @@ static void calc_bmesh(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  PBVHVertexIter vd;
-  const float bstrength = cache.bstrength;
+  tls.displacement_factors.reinitialize(verts.size());
+  const MutableSpan<float> displacement_factors = tls.displacement_factors;
+  gather_data_vert_bmesh(layer_displacement_factor.as_span(), verts, displacement_factors);
+
+  offset_displacement_factors(displacement_factors, factors, cache.bstrength);
+
+  tls.masks.reinitialize(verts.size());
+  const MutableSpan<float> masks = tls.masks;
+  mask::gather_mask_bmesh(*ss.bm, verts, masks);
+  clamp_displacement_factors(displacement_factors, masks);
+
+  scatter_data_vert_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
   Array<float3> orig_positions(verts.size());
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-  tls.masks.reinitialize(verts.size());
-  const MutableSpan<float> masks = tls.masks;
-  mask::gather_mask_bmesh(*ss.bm, verts, masks);
+  tls.translations.reinitialize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  calc_translations(orig_positions,
+                    orig_normals,
+                    positions,
+                    displacement_factors,
+                    factors,
+                    brush.height,
+                    translations);
 
-  tls.displacement_factors.reinitialize(verts.size());
-  const MutableSpan<float> displacement_factors = tls.displacement_factors;
-  gather_data_vert_bmesh(layer_displacement_factor.as_span(), verts, displacement_factors);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    float *disp_factor = &displacement_factors[vd.i];
-
-    (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-
-    const float clamp_mask = 1.0f - masks[vd.i];
-    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
-
-    float3 normal = orig_normals[vd.i];
-    normal *= brush.height;
-    float3 final_co = orig_positions[vd.i] + normal * *disp_factor;
-
-    float3 vdisp = final_co - float3(vd.co);
-    vdisp *= factors[vd.i];
-    final_co = float3(vd.co) + vdisp;
-
-    SCULPT_clip(sd, ss, vd.co, final_co);
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  scatter_data_vert_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
+  clip_and_lock_translations(sd, ss, positions, translations);
+  apply_translations(translations, verts);
 }
 
 }  // namespace layer_cc
@@ -320,6 +381,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       const PBVH &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+      const MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       const VArraySpan masks = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
@@ -361,7 +423,8 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
                        object,
                        *nodes[i],
                        tls,
-                       displacement);
+                       displacement,
+                       positions_orig);
           }
         });
       });
