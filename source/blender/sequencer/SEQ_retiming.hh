@@ -22,6 +22,7 @@ int SEQ_retiming_keys_count(const Sequence *seq);
 bool SEQ_retiming_is_active(const Sequence *seq);
 void SEQ_retiming_data_ensure(Sequence *seq);
 void SEQ_retiming_data_clear(Sequence *seq);
+void SEQ_retiming_reset(Scene *scene, Sequence *seq);
 bool SEQ_retiming_is_allowed(const Sequence *seq);
 /**
  * Add new retiming key.

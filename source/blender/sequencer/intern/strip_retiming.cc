@@ -20,9 +20,11 @@
 
 #include "BKE_sound.h"
 
+#include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
+#include "SEQ_transform.hh"
 
 #include "sequencer.hh"
 #include "strip_time.hh"
@@ -108,6 +110,26 @@ void SEQ_retiming_data_clear(Sequence *seq)
   seq->retiming_keys = nullptr;
   seq->retiming_keys_num = 0;
   seq->flag &= ~SEQ_SHOW_RETIMING;
+}
+
+static void retiming_key_overlap(Scene *scene, Sequence *seq)
+{
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  blender::VectorSet<Sequence *> strips;
+  blender::VectorSet<Sequence *> dependant;
+  strips.add(seq);
+  dependant.add(seq);
+  SEQ_iterator_set_expand(scene, seqbase, dependant, SEQ_query_strip_effect_chain);
+  dependant.remove(seq);
+  SEQ_transform_handle_overlap(scene, seqbase, strips, dependant, true);
+}
+
+void SEQ_retiming_reset(Scene *scene, Sequence *seq)
+{
+  if (SEQ_retiming_is_allowed(seq)) {
+    SEQ_retiming_data_clear(seq);
+    retiming_key_overlap(scene, seq);
+  }
 }
 
 bool SEQ_retiming_is_active(const Sequence *seq)
