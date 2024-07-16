@@ -1051,15 +1051,6 @@ PBVHVertRef nearest_vert_calc(const Object &object,
 
 }
 
-int SCULPT_plane_point_side(const float co[3], const float plane[4]);
-int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache &cache,
-                      const Brush &brush,
-                      const float val[3]);
-/**
- * Handles clipping against a mirror modifier and #SCULPT_LOCK_X/Y/Z axis flags.
- */
-void SCULPT_clip(const Sculpt &sd, const SculptSession &ss, float co[3], const float val[3]);
-
 float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss);
 
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3]);

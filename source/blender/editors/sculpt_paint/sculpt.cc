@@ -3045,41 +3045,6 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
   return dist_sq < radius_sq || true;
 }
 
-}  // namespace blender::ed::sculpt_paint
-
-void SCULPT_clip(const Sculpt &sd, const SculptSession &ss, float co[3], const float val[3])
-{
-  for (int i = 0; i < 3; i++) {
-    if (sd.flags & (SCULPT_LOCK_X << i)) {
-      continue;
-    }
-
-    bool do_clip = false;
-    float co_clip[3];
-    if (ss.cache && (ss.cache->flag & (CLIP_X << i))) {
-      /* Take possible mirror object into account. */
-      mul_v3_m4v3(co_clip, ss.cache->clip_mirror_mtx.ptr(), co);
-
-      if (fabsf(co_clip[i]) <= ss.cache->clip_tolerance[i]) {
-        co_clip[i] = 0.0f;
-        float imtx[4][4];
-        invert_m4_m4(imtx, ss.cache->clip_mirror_mtx.ptr());
-        mul_m4_v3(imtx, co_clip);
-        do_clip = true;
-      }
-    }
-
-    if (do_clip) {
-      co[i] = co_clip[i];
-    }
-    else {
-      co[i] = val[i];
-    }
-  }
-}
-
-namespace blender::ed::sculpt_paint {
-
 static Vector<PBVHNode *> sculpt_pbvh_gather_cursor_update(Object &ob, bool use_original)
 {
   SculptSession &ss = *ob.sculpt;
@@ -3605,20 +3570,6 @@ void calc_brush_plane(
 }
 
 }  // namespace blender::ed::sculpt_paint
-
-int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache &cache,
-                      const Brush &brush,
-                      const float val[3])
-{
-  return (!(brush.flag & BRUSH_PLANE_TRIM) ||
-          (dot_v3v3(val, val) <= cache.radius_squared * cache.plane_trim_squared));
-}
-
-int SCULPT_plane_point_side(const float co[3], const float plane[4])
-{
-  float d = plane_point_side_v3(plane, co);
-  return d <= 0.0f;
-}
 
 float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss)
 {
