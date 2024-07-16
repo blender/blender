@@ -104,7 +104,7 @@ static void calc_faces(const Sculpt &sd,
                         normal * *disp_factor;
 
       float3 vdisp = final_co - float3(vd.co);
-      vdisp *= std::abs(factors[vd.i]);
+      vdisp *= factors[vd.i];
       final_co = float3(vd.co) + vdisp;
 
       SCULPT_clip(sd, ss, vd.co, final_co);
@@ -125,7 +125,7 @@ static void calc_faces(const Sculpt &sd,
       float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
 
       float3 vdisp = final_co - float3(vd.co);
-      vdisp *= std::abs(factors[vd.i]);
+      vdisp *= factors[vd.i];
       final_co = float3(vd.co) + vdisp;
 
       SCULPT_clip(sd, ss, vd.co, final_co);
@@ -191,7 +191,7 @@ static void calc_grids(const Sculpt &sd,
     float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
-    vdisp *= std::abs(factors[vd.i]);
+    vdisp *= factors[vd.i];
     final_co = float3(vd.co) + vdisp;
 
     SCULPT_clip(sd, ss, vd.co, final_co);
@@ -258,7 +258,7 @@ static void calc_bmesh(const Sculpt &sd,
     float3 final_co = orig_positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
-    vdisp *= std::abs(factors[vd.i]);
+    vdisp *= factors[vd.i];
     final_co = float3(vd.co) + vdisp;
 
     SCULPT_clip(sd, ss, vd.co, final_co);
