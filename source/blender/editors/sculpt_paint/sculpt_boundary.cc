@@ -575,9 +575,8 @@ static void twist_data_init(SculptSession &ss, SculptBoundary &boundary)
                    boundary.verts.size());
   }
   else {
-    sub_v3_v3v3(boundary.twist.rotation_axis,
-                boundary.pivot_position,
-                SCULPT_vertex_co_get(ss, boundary.initial_vert));
+    sub_v3_v3v3(
+        boundary.twist.rotation_axis, boundary.pivot_position, boundary.initial_vert_position);
     normalize_v3(boundary.twist.rotation_axis);
   }
 }
@@ -977,7 +976,7 @@ void pivot_line_preview_draw(const uint gpuattr, SculptSession &ss)
   GPU_line_width(2.0f);
   immBegin(GPU_PRIM_LINES, 2);
   immVertex3fv(gpuattr, ss.boundary_preview->pivot_position);
-  immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss.boundary_preview->initial_vert));
+  immVertex3fv(gpuattr, ss.boundary_preview->initial_vert_position);
   immEnd();
 }
 
