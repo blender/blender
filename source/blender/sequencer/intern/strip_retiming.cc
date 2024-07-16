@@ -120,9 +120,9 @@ static void retiming_key_overlap(Scene *scene, Sequence *seq)
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   blender::VectorSet<Sequence *> strips;
   blender::VectorSet<Sequence *> dependant;
-  strips.add(seq);
   dependant.add(seq);
   SEQ_iterator_set_expand(scene, seqbase, dependant, SEQ_query_strip_effect_chain);
+  strips.add_multiple(dependant);
   dependant.remove(seq);
   SEQ_transform_handle_overlap(scene, seqbase, strips, dependant, true);
 }
