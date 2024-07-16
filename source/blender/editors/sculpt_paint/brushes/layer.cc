@@ -41,7 +41,8 @@ static void calc_faces(const Sculpt &sd,
                        const Span<float3> vert_normals,
                        Object &object,
                        PBVHNode &node,
-                       LocalData &tls)
+                       LocalData &tls,
+                       MutableSpan<float> layer_displacement_factor)
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -86,7 +87,7 @@ static void calc_faces(const Sculpt &sd,
       disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss.attrs.persistent_disp);
     }
     else {
-      disp_factor = &ss.cache->layer_displacement_factor[vi];
+      disp_factor = &layer_displacement_factor[vi];
     }
 
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
@@ -127,8 +128,12 @@ static void calc_faces(const Sculpt &sd,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void calc_grids(
-    const Sculpt &sd, const Brush &brush, Object &object, PBVHNode &node, LocalData &tls)
+static void calc_grids(const Sculpt &sd,
+                       const Brush &brush,
+                       Object &object,
+                       PBVHNode &node,
+                       LocalData &tls,
+                       MutableSpan<float> layer_displacement_factor)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -173,7 +178,7 @@ static void calc_grids(
     const int vi = vd.index;
     float *disp_factor;
 
-    disp_factor = &ss.cache->layer_displacement_factor[vi];
+    disp_factor = &layer_displacement_factor[vi];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
     const float clamp_mask = 1.0f - vd.mask;
@@ -195,8 +200,12 @@ static void calc_grids(
   BKE_pbvh_vertex_iter_end;
 }
 
-static void calc_bmesh(
-    const Sculpt &sd, const Brush &brush, Object &object, PBVHNode &node, LocalData &tls)
+static void calc_bmesh(const Sculpt &sd,
+                       const Brush &brush,
+                       Object &object,
+                       PBVHNode &node,
+                       LocalData &tls,
+                       MutableSpan<float> layer_displacement_factor)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -238,7 +247,7 @@ static void calc_bmesh(
     const int vi = vd.index;
     float *disp_factor;
 
-    disp_factor = &ss.cache->layer_displacement_factor[vi];
+    disp_factor = &layer_displacement_factor[vi];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
 
@@ -271,6 +280,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
   if (ss.cache->layer_displacement_factor.is_empty()) {
     ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
   }
+  const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
@@ -281,7 +291,8 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(sd, brush, positions_eval, vert_normals, object, *nodes[i], tls);
+          calc_faces(
+              sd, brush, positions_eval, vert_normals, object, *nodes[i], tls, displacement);
         }
       });
       break;
@@ -290,7 +301,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, brush, object, *nodes[i], tls);
+          calc_grids(sd, brush, object, *nodes[i], tls, displacement);
         }
       });
       break;
@@ -298,7 +309,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, brush, object, *nodes[i], tls);
+          calc_bmesh(sd, brush, object, *nodes[i], tls, displacement);
         }
       });
       break;
