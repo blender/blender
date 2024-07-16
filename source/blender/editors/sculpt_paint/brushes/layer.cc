@@ -33,6 +33,7 @@ struct LocalData {
   Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
+  Vector<float> masks;
 };
 
 static void calc_faces(const Sculpt &sd,
@@ -78,52 +79,66 @@ static void calc_faces(const Sculpt &sd,
   const float bstrength = ss.cache->bstrength;
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    const int vi = vd.index;
-    float *disp_factor;
-    if (use_persistent_base) {
+  if (use_persistent_base) {
+    BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+      float *disp_factor;
       disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss.attrs.persistent_disp);
-    }
-    else {
-      disp_factor = &layer_displacement_factor[vi];
-    }
 
-    /* When using persistent base, the layer brush (holding Control) invert mode resets the
-     * height of the layer to 0. This makes possible to clean edges of previously added layers
-     * on top of the base. */
-    /* The main direction of the layers is inverted using the regular brush strength with the
-     * brush direction property. */
-    if (use_persistent_base && ss.cache->invert) {
-      (*disp_factor) += std::abs(factors[vd.i] * bstrength * (*disp_factor)) *
-                        ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
-    }
-    else {
-      (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-    }
-    const float clamp_mask = 1.0f - vd.mask;
-    *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
+      /* When using persistent base, the layer brush (holding Control) invert mode resets the
+       * height of the layer to 0. This makes possible to clean edges of previously added layers
+       * on top of the base. */
+      /* The main direction of the layers is inverted using the regular brush strength with the
+       * brush direction property. */
+      if (ss.cache->invert) {
+        (*disp_factor) += std::abs(factors[vd.i] * bstrength * (*disp_factor)) *
+                          ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
+      }
+      else {
+        (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
+      }
+      const float clamp_mask = 1.0f - vd.mask;
+      *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-    float3 final_co;
-    float3 normal;
+      float3 final_co;
+      float3 normal;
 
-    if (use_persistent_base) {
       normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
       normal *= brush.height;
       final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) + normal * *disp_factor;
+
+      float3 vdisp = final_co - float3(vd.co);
+      vdisp *= std::abs(factors[vd.i]);
+      final_co = float3(vd.co) + vdisp;
+
+      SCULPT_clip(sd, ss, vd.co, final_co);
     }
-    else {
+    BKE_pbvh_vertex_iter_end;
+  }
+  else {
+    BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
+      const int vi = vd.index;
+      float *disp_factor;
+      disp_factor = &layer_displacement_factor[vi];
+
+      (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
+      const float clamp_mask = 1.0f - vd.mask;
+      *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
+
+      float3 final_co;
+      float3 normal;
+
       normal = orig_data.normals[vd.i];
       normal *= brush.height;
       final_co = orig_data.positions[vd.i] + normal * *disp_factor;
+
+      float3 vdisp = final_co - float3(vd.co);
+      vdisp *= std::abs(factors[vd.i]);
+      final_co = float3(vd.co) + vdisp;
+
+      SCULPT_clip(sd, ss, vd.co, final_co);
     }
-
-    float3 vdisp = final_co - float3(vd.co);
-    vdisp *= std::abs(factors[vd.i]);
-    final_co = float3(vd.co) + vdisp;
-
-    SCULPT_clip(sd, ss, vd.co, final_co);
+    BKE_pbvh_vertex_iter_end;
   }
-  BKE_pbvh_vertex_iter_end;
 }
 
 static void calc_grids(const Sculpt &sd,
