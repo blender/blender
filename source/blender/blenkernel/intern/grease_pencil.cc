@@ -12,6 +12,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
+#include "BKE_bake_data_block_id.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -134,6 +135,11 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
 
   /* Make sure the runtime pointer exists. */
   grease_pencil_dst->runtime = MEM_new<bke::GreasePencilRuntime>(__func__);
+
+  if (grease_pencil_src->runtime->bake_materials) {
+    grease_pencil_dst->runtime->bake_materials = std::make_unique<bke::bake::BakeMaterialsList>(
+        *grease_pencil_src->runtime->bake_materials);
+  }
 }
 
 static void grease_pencil_free_data(ID *id)
@@ -1707,6 +1713,9 @@ void LayerGroup::update_from_dna_read()
 }  // namespace blender::bke::greasepencil
 
 namespace blender::bke {
+
+GreasePencilRuntime::GreasePencilRuntime() = default;
+GreasePencilRuntime::~GreasePencilRuntime() = default;
 
 std::optional<Span<float3>> GreasePencilDrawingEditHints::positions() const
 {

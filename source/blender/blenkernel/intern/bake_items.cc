@@ -5,6 +5,7 @@
 #include "BKE_bake_items.hh"
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
@@ -62,6 +63,18 @@ void GeometryBakeItem::prepare_geometry_for_bake(GeometrySet &main_geometry,
       curves->geometry.runtime->bake_materials = materials_to_weak_references(
           &curves->mat, &curves->totcol, data_block_map);
     }
+    if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+      for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
+        if (base->type != GP_DRAWING) {
+          continue;
+        }
+        greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+        drawing.strokes_for_write().attributes_for_write().remove_anonymous();
+      }
+      grease_pencil->attributes_for_write().remove_anonymous();
+      grease_pencil->runtime->bake_materials = materials_to_weak_references(
+          &grease_pencil->material_array, &grease_pencil->material_array_num, data_block_map);
+    }
     if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
       pointcloud->attributes_for_write().remove_anonymous();
       pointcloud->runtime->bake_materials = materials_to_weak_references(
@@ -76,6 +89,7 @@ void GeometryBakeItem::prepare_geometry_for_bake(GeometrySet &main_geometry,
     }
     geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
                                       GeometryComponent::Type::Curve,
+                                      GeometryComponent::Type::GreasePencil,
                                       GeometryComponent::Type::PointCloud,
                                       GeometryComponent::Type::Volume,
                                       GeometryComponent::Type::Instance});
@@ -118,6 +132,12 @@ void GeometryBakeItem::try_restore_data_blocks(GeometrySet &main_geometry,
       restore_materials(&curves->mat,
                         &curves->totcol,
                         std::move(curves->geometry.runtime->bake_materials),
+                        data_block_map);
+    }
+    if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+      restore_materials(&grease_pencil->material_array,
+                        &grease_pencil->material_array_num,
+                        std::move(grease_pencil->runtime->bake_materials),
                         data_block_map);
     }
     if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {

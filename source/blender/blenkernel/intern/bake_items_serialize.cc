@@ -6,6 +6,7 @@
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -566,6 +567,51 @@ static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
   return pointcloud;
 }
 
+static std::optional<CurvesGeometry> try_load_curves_geometry(const DictionaryValue &io_curves,
+                                                              const BlobReader &blob_reader,
+                                                              const BlobReadSharing &blob_sharing)
+{
+  const io::serialize::ArrayValue *io_attributes = io_curves.lookup_array("attributes");
+  if (!io_attributes) {
+    return std::nullopt;
+  }
+
+  CurvesGeometry curves;
+  CustomData_free_layer_named(&curves.point_data, "position", 0);
+  curves.point_num = io_curves.lookup_int("num_points").value_or(0);
+  curves.curve_num = io_curves.lookup_int("num_curves").value_or(0);
+
+  if (curves.curves_num() > 0) {
+    const auto *io_curve_offsets = io_curves.lookup_dict("curve_offsets");
+    if (!io_curve_offsets) {
+      return std::nullopt;
+    }
+    if (!read_blob_shared_simple_span(*io_curve_offsets,
+                                      blob_reader,
+                                      blob_sharing,
+                                      curves.curves_num() + 1,
+                                      &curves.curve_offsets,
+                                      &curves.runtime->curve_offsets_sharing_info))
+    {
+      return std::nullopt;
+    }
+  }
+
+  MutableAttributeAccessor attributes = curves.attributes_for_write();
+  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
+    return std::nullopt;
+  }
+
+  if (const io::serialize::ArrayValue *io_materials = io_curves.lookup_array("materials")) {
+    if (!load_materials(*io_materials, curves.runtime->bake_materials)) {
+      return std::nullopt;
+    }
+  }
+
+  curves.update_curve_types();
+  return curves;
+}
+
 static Curves *try_load_curves(const DictionaryValue &io_geometry,
                                const BlobReader &blob_reader,
                                const BlobReadSharing &blob_sharing)
@@ -580,37 +626,19 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
     return nullptr;
   }
 
-  Curves *curves_id = curves_new_nomain(0, 0);
+  std::optional<CurvesGeometry> curves_opt = try_load_curves_geometry(
+      *io_curves, blob_reader, blob_sharing);
+  if (!curves_opt) {
+    return nullptr;
+  }
+
+  Curves *curves_id = curves_new_nomain(std::move(*curves_opt));
   CurvesGeometry &curves = curves_id->geometry.wrap();
-  CustomData_free_layer_named(&curves.point_data, "position", 0);
-  curves.point_num = io_curves->lookup_int("num_points").value_or(0);
-  curves.curve_num = io_curves->lookup_int("num_curves").value_or(0);
 
   auto cancel = [&]() {
     BKE_id_free(nullptr, curves_id);
     return nullptr;
   };
-
-  if (curves.curves_num() > 0) {
-    const auto *io_curve_offsets = io_curves->lookup_dict("curve_offsets");
-    if (!io_curve_offsets) {
-      return cancel();
-    }
-    if (!read_blob_shared_simple_span(*io_curve_offsets,
-                                      blob_reader,
-                                      blob_sharing,
-                                      curves.curves_num() + 1,
-                                      &curves.curve_offsets,
-                                      &curves.runtime->curve_offsets_sharing_info))
-    {
-      return cancel();
-    }
-  }
-
-  MutableAttributeAccessor attributes = curves.attributes_for_write();
-  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
-    return cancel();
-  }
 
   if (const io::serialize::ArrayValue *io_materials = io_curves->lookup_array("materials")) {
     if (!load_materials(*io_materials, curves.runtime->bake_materials)) {
@@ -618,9 +646,114 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
     }
   }
 
-  curves.update_curve_types();
-
   return curves_id;
+}
+
+static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
+                                            const BlobReader &blob_reader,
+                                            const BlobReadSharing &blob_sharing)
+{
+  const DictionaryValue *io_grease_pencil = io_geometry.lookup_dict("grease_pencil");
+  if (!io_grease_pencil) {
+    return nullptr;
+  }
+
+  const io::serialize::ArrayValue *io_layers = io_grease_pencil->lookup_array("layers");
+  if (!io_layers) {
+    return nullptr;
+  }
+
+  const io::serialize::ArrayValue *io_layer_attributes = io_grease_pencil->lookup_array(
+      "layer_attributes");
+  if (!io_layer_attributes) {
+    return nullptr;
+  }
+
+  GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
+  auto cancel = [&]() {
+    BKE_id_free(nullptr, grease_pencil);
+    return nullptr;
+  };
+
+  for (const auto &io_layer_value : io_layers->elements()) {
+    const io::serialize::DictionaryValue *io_layer = io_layer_value->as_dictionary_value();
+    if (!io_layer) {
+      return cancel();
+    }
+    const io::serialize::DictionaryValue *io_strokes = io_layer->lookup_dict("strokes");
+    if (!io_strokes) {
+      return cancel();
+    }
+    const std::optional<std::string> layer_name = io_layer->lookup_str("name");
+    if (!layer_name) {
+      return cancel();
+    }
+    greasepencil::Layer &layer = grease_pencil->add_layer(*layer_name);
+    if (layer.name() != *layer_name) {
+      return cancel();
+    }
+    std::optional<CurvesGeometry> curves_opt = try_load_curves_geometry(
+        *io_strokes, blob_reader, blob_sharing);
+    if (!curves_opt) {
+      return cancel();
+    }
+    greasepencil::Drawing *drawing = grease_pencil->insert_frame(
+        layer, grease_pencil->runtime->eval_frame);
+    if (!drawing) {
+      return cancel();
+    }
+    drawing->strokes_for_write() = std::move(*curves_opt);
+  }
+
+  MutableAttributeAccessor attributes = grease_pencil->attributes_for_write();
+  if (!load_attributes(*io_layer_attributes, attributes, blob_reader, blob_sharing)) {
+    return cancel();
+  }
+
+  const int layers_num = grease_pencil->layers().size();
+
+  const DictionaryValue *io_layer_opacities = io_grease_pencil->lookup_dict("opacities");
+  Array<float> layer_opacities(layers_num);
+  if (!io_layer_opacities ||
+      !read_blob_simple_gspan(blob_reader, *io_layer_opacities, layer_opacities.as_mutable_span()))
+  {
+    return cancel();
+  }
+
+  const DictionaryValue *io_layer_blend_modes = io_grease_pencil->lookup_dict("blend_modes");
+  Array<int8_t> layer_blend_modes(layers_num);
+  if (!io_layer_opacities || !read_blob_simple_gspan(blob_reader,
+                                                     *io_layer_blend_modes,
+                                                     layer_blend_modes.as_mutable_span()))
+  {
+    return cancel();
+  }
+
+  const DictionaryValue *io_layer_transforms = io_grease_pencil->lookup_dict("transforms");
+  Array<float4x4> layer_transforms(layers_num);
+  if (!io_layer_transforms || !read_blob_simple_gspan(blob_reader,
+                                                      *io_layer_transforms,
+                                                      layer_transforms.as_mutable_span()))
+  {
+    return cancel();
+  }
+
+  for (const int layer_i : IndexRange(layers_num)) {
+    greasepencil::Layer *layer = grease_pencil->layer(layer_i);
+    BLI_assert(layer);
+    layer->opacity = layer_opacities[layer_i];
+    layer->blend_mode = layer_blend_modes[layer_i];
+    layer->set_local_transform(layer_transforms[layer_i]);
+  }
+
+  if (const io::serialize::ArrayValue *io_materials = io_grease_pencil->lookup_array("materials"))
+  {
+    if (!load_materials(*io_materials, grease_pencil->runtime->bake_materials)) {
+      return cancel();
+    }
+  }
+
+  return grease_pencil;
 }
 
 static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
@@ -809,6 +942,7 @@ static GeometrySet load_geometry(const DictionaryValue &io_geometry,
   geometry.replace_mesh(try_load_mesh(io_geometry, blob_reader, blob_sharing));
   geometry.replace_pointcloud(try_load_pointcloud(io_geometry, blob_reader, blob_sharing));
   geometry.replace_curves(try_load_curves(io_geometry, blob_reader, blob_sharing));
+  geometry.replace_grease_pencil(try_load_grease_pencil(io_geometry, blob_reader, blob_sharing));
   geometry.replace_instances(try_load_instances(io_geometry, blob_reader, blob_sharing).release());
 #ifdef WITH_OPENVDB
   geometry.replace_volume(try_load_volume(io_geometry, blob_reader));
@@ -874,6 +1008,26 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
   return io_attributes;
 }
 
+static void serialize_curves_geometry(DictionaryValue &io_curves,
+                                      const CurvesGeometry &curves,
+                                      BlobWriter &blob_writer,
+                                      BlobWriteSharing &blob_sharing)
+{
+  io_curves.append_int("num_points", curves.point_num);
+  io_curves.append_int("num_curves", curves.curve_num);
+
+  if (curves.curve_num > 0) {
+    io_curves.append("curve_offsets",
+                     write_blob_shared_simple_gspan(blob_writer,
+                                                    blob_sharing,
+                                                    curves.offsets(),
+                                                    curves.runtime->curve_offsets_sharing_info));
+  }
+
+  auto io_attributes = serialize_attributes(curves.attributes(), blob_writer, blob_sharing, {});
+  io_curves.append("attributes", io_attributes);
+}
+
 static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet &geometry,
                                                                BlobWriter &blob_writer,
                                                                BlobWriteSharing &blob_sharing)
@@ -921,23 +1075,52 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     auto io_curves = io_geometry->append_dict("curves");
 
-    io_curves->append_int("num_points", curves.point_num);
-    io_curves->append_int("num_curves", curves.curve_num);
-
-    if (curves.curve_num > 0) {
-      io_curves->append(
-          "curve_offsets",
-          write_blob_shared_simple_gspan(blob_writer,
-                                         blob_sharing,
-                                         curves.offsets(),
-                                         curves.runtime->curve_offsets_sharing_info));
-    }
+    serialize_curves_geometry(*io_curves, curves, blob_writer, blob_sharing);
 
     auto io_materials = serialize_materials(curves.runtime->bake_materials);
     io_curves->append("materials", io_materials);
+  }
+  if (geometry.has_grease_pencil()) {
+    const GreasePencil &grease_pencil = *geometry.get_grease_pencil();
+    auto io_grease_pencil = io_geometry->append_dict("grease_pencil");
+    auto io_layers = io_grease_pencil->append_array("layers");
 
-    auto io_attributes = serialize_attributes(curves.attributes(), blob_writer, blob_sharing, {});
-    io_curves->append("attributes", io_attributes);
+    Vector<float> layer_opacities;
+    Vector<int8_t> layer_blend_modes;
+    Vector<float4x4> layer_transforms;
+    for (const greasepencil::Layer *layer : grease_pencil.layers()) {
+      auto io_layer = io_layers->append_dict();
+      io_layer->append_str("name", layer->name());
+      auto io_strokes = io_layer->append_dict("strokes");
+      const greasepencil::Drawing *drawing = grease_pencil.get_eval_drawing(*layer);
+      if (drawing) {
+        serialize_curves_geometry(*io_strokes, drawing->strokes(), blob_writer, blob_sharing);
+      }
+      else {
+        serialize_curves_geometry(*io_strokes, CurvesGeometry(), blob_writer, blob_sharing);
+      }
+
+      layer_opacities.append(layer->opacity);
+      layer_blend_modes.append(layer->blend_mode);
+      layer_transforms.append(layer->local_transform());
+    }
+
+    io_grease_pencil->append(
+        "opacities",
+        write_blob_simple_gspan(blob_writer, blob_sharing, layer_opacities.as_span()));
+    io_grease_pencil->append(
+        "blend_modes",
+        write_blob_simple_gspan(blob_writer, blob_sharing, layer_blend_modes.as_span()));
+    io_grease_pencil->append(
+        "transforms",
+        write_blob_simple_gspan(blob_writer, blob_sharing, layer_transforms.as_span()));
+
+    auto io_layer_attributes = serialize_attributes(
+        grease_pencil.attributes(), blob_writer, blob_sharing, {});
+    io_grease_pencil->append("layer_attributes", io_layer_attributes);
+
+    auto io_materials = serialize_materials(grease_pencil.runtime->bake_materials);
+    io_grease_pencil->append("materials", io_materials);
   }
 #ifdef WITH_OPENVDB
   if (geometry.has_volume()) {

@@ -73,6 +73,11 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
               CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
               try_capture_field_on_geometry(component, attribute_name, domain, field);
             }
+            if (geometry.has_grease_pencil()) {
+              GreasePencilComponent &component =
+                  geometry.get_component_for_write<GreasePencilComponent>();
+              try_capture_field_on_geometry(component, attribute_name, domain, field);
+            }
             if (geometry.has_instances()) {
               InstancesComponent &component =
                   geometry.get_component_for_write<InstancesComponent>();
@@ -198,6 +203,7 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
   for (GeometrySet *geometry : geometries) {
     for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
                                                GeometryComponent::Type::Curve,
+                                               GeometryComponent::Type::GreasePencil,
                                                GeometryComponent::Type::PointCloud,
                                                GeometryComponent::Type::Instance})
     {
