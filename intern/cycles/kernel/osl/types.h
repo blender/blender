@@ -25,8 +25,10 @@ ccl_device_inline DeviceString make_string(const char *str, size_t hash)
   (void)str;
   return hash;
 #elif defined(OPENIMAGEIO_USTRING_H)
-  (void)hash;
-  return ustring(str);
+  (void)hash; /* Ignored in release builds. */
+  const DeviceString result = ustring(str);
+  kernel_assert(result.hash() == hash);
+  return result;
 #else
   (void)hash;
   return str;

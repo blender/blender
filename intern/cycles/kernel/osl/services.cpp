@@ -19,10 +19,6 @@
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
 
-#include "kernel/osl/globals.h"
-#include "kernel/osl/services.h"
-#include "kernel/osl/types.h"
-
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/string.h"
@@ -30,6 +26,10 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/image.h"
+
+#include "kernel/osl/globals.h"
+#include "kernel/osl/services.h"
+#include "kernel/osl/types.h"
 
 #include "kernel/integrator/state.h"
 #include "kernel/integrator/state_flow.h"
