@@ -76,11 +76,9 @@ static void calc_faces(const Sculpt &sd,
 
   PBVHVertexIter vd;
   const float bstrength = ss.cache->bstrength;
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
+  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-
     const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
@@ -114,9 +112,9 @@ static void calc_faces(const Sculpt &sd,
       final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) + normal * *disp_factor;
     }
     else {
-      normal = orig_data.no;
+      normal = orig_data.normals[vd.i];
       normal *= brush.height;
-      final_co = float3(orig_data.co) + normal * *disp_factor;
+      final_co = orig_data.positions[vd.i] + normal * *disp_factor;
     }
 
     float3 vdisp = final_co - float3(vd.co);
@@ -170,11 +168,9 @@ static void calc_grids(const Sculpt &sd,
 
   PBVHVertexIter vd;
   const float bstrength = ss.cache->bstrength;
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-
     const int vi = vd.index;
     float *disp_factor;
 
@@ -187,9 +183,9 @@ static void calc_grids(const Sculpt &sd,
     float3 final_co;
     float3 normal;
 
-    normal = orig_data.no;
+    normal = orig_data.normals[vd.i];
     normal *= brush.height;
-    final_co = float3(orig_data.co) + normal * *disp_factor;
+    final_co = orig_data.positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
     vdisp *= std::abs(factors[vd.i]);
@@ -239,11 +235,12 @@ static void calc_bmesh(const Sculpt &sd,
 
   PBVHVertexIter vd;
   const float bstrength = ss.cache->bstrength;
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
+
+  Array<float3> orig_positions(verts.size());
+  Array<float3> orig_normals(verts.size());
+  orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-
     const int vi = vd.index;
     float *disp_factor;
 
@@ -257,9 +254,9 @@ static void calc_bmesh(const Sculpt &sd,
     float3 final_co;
     float3 normal;
 
-    normal = orig_data.no;
+    normal = orig_normals[vd.i];
     normal *= brush.height;
-    final_co = float3(orig_data.co) + normal * *disp_factor;
+    final_co = orig_positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
     vdisp *= std::abs(factors[vd.i]);
