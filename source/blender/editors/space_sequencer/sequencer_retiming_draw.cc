@@ -244,6 +244,10 @@ static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
     return false;
   }
 
+  if (!SEQ_retiming_is_active(strip_ctx.seq)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -304,8 +308,6 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
   if (!can_draw_retiming(timeline_ctx, strip_ctx)) {
     return;
   }
-
-  wmOrtho2_region_pixelspace(timeline_ctx->region);
 
   const Sequence *seq = strip_ctx.seq;
   const View2D *v2d = timeline_ctx->v2d;

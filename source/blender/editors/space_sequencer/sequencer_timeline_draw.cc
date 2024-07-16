@@ -34,6 +34,8 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
+#include "GPU_matrix.hh"
+
 #include "RNA_prototypes.hh"
 
 #include "SEQ_channels.hh"
@@ -1466,6 +1468,20 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
   GPU_blend(GPU_BLEND_ALPHA);
 }
 
+static void draw_retiming_continuity_ranges(TimelineDrawContext *timeline_ctx,
+                                            const Vector<StripDrawContext> &strips)
+{
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(timeline_ctx->region);
+
+  for (const StripDrawContext &strip_ctx : strips) {
+    sequencer_retiming_draw_continuity(timeline_ctx, strip_ctx);
+  }
+  timeline_ctx->quads->draw();
+
+  GPU_matrix_pop_projection();
+}
+
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
                             StripsDrawBatch &strips_batch,
                             const Vector<StripDrawContext> &strips)
@@ -1500,9 +1516,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
                              timeline_ctx->pixelx,
                              timeline_ctx->pixely,
                              round_radius);
-    sequencer_retiming_draw_continuity(timeline_ctx, strip_ctx);
   }
-  timeline_ctx->quads->draw();
+  /* Draw retiming continuity ranges. */
+  draw_retiming_continuity_ranges(timeline_ctx, strips);
 
   /* Draw parts of strips above thumbnails. */
   GPU_blend(GPU_BLEND_ALPHA);
