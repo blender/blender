@@ -135,18 +135,12 @@ static void calc_grids(const Sculpt &sd,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
-  const int grid_verts_num = grids.size() * key.grid_area;
+  const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.positions.reinitialize(grid_verts_num);
-  MutableSpan<float3> positions = tls.positions;
-  gather_grids_positions(subdiv_ccg, grids, positions);
-
-  tls.factors.reinitialize(grid_verts_num);
+  tls.factors.reinitialize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -154,7 +148,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
 
-  tls.distances.reinitialize(grid_verts_num);
+  tls.distances.reinitialize(positions.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -167,7 +161,7 @@ static void calc_grids(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  tls.translations.reinitialize(grid_verts_num);
+  tls.translations.reinitialize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_position(positions, cache.location, translations);
 
@@ -198,10 +192,7 @@ static void calc_bmesh(const Sculpt &sd,
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
-
-  tls.positions.reinitialize(verts.size());
-  MutableSpan<float3> positions = tls.positions;
-  gather_bmesh_positions(verts, positions);
+  const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;

@@ -364,10 +364,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-
-  tls.positions.reinitialize(verts.size());
-  const MutableSpan<float3> positions = tls.positions;
-  array_utils::gather(positions_eval, verts, positions);
+  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
   tls.factors.reinitialize(verts.size());
@@ -395,22 +392,17 @@ static void elastic_transform_node_grids(const Sculpt &sd,
 {
   SculptSession &ss = *object.sculpt;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
-  const int grid_verts_num = grids.size() * key.grid_area;
-
-  tls.positions.reinitialize(grid_verts_num);
-  const MutableSpan<float3> positions = tls.positions;
-  gather_grids_positions(subdiv_ccg, grids, positions);
+  const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
-  tls.factors.reinitialize(grid_verts_num);
+  tls.factors.reinitialize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   scale_factors(factors, 20.0f);
 
-  tls.translations.reinitialize(grid_verts_num);
+  tls.translations.reinitialize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_transform_translations(elastic_transform_mat, positions, translations);
   apply_kelvinet_to_translations(params, elastic_transform_pivot, positions, translations);
@@ -432,10 +424,7 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
   SculptSession &ss = *object.sculpt;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
-
-  tls.positions.reinitialize(verts.size());
-  const MutableSpan<float3> positions = tls.positions;
-  gather_bmesh_positions(verts, positions);
+  const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -496,20 +485,18 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
         MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
-          threading::isolate_task([&]() {
-            for (const int i : range) {
-              elastic_transform_node_mesh(sd,
-                                          params,
-                                          elastic_transform_mat,
-                                          elastic_transform_pivot,
-                                          positions_eval,
-                                          *nodes[i],
-                                          ob,
-                                          tls,
-                                          positions_orig);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
-            }
-          });
+          for (const int i : range) {
+            elastic_transform_node_mesh(sd,
+                                        params,
+                                        elastic_transform_mat,
+                                        elastic_transform_pivot,
+                                        positions_eval,
+                                        *nodes[i],
+                                        ob,
+                                        tls,
+                                        positions_orig);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          }
         });
         break;
       }

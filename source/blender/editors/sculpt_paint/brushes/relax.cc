@@ -802,7 +802,7 @@ BLI_NOINLINE static void calc_factors_grids(const Brush &brush,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  gather_grids_positions(subdiv_ccg, grids, positions);
+  gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
 
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -1126,7 +1126,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Brush &brush,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  gather_grids_positions(subdiv_ccg, grids, positions);
+  gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);

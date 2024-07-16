@@ -58,14 +58,8 @@ static void apply_projection_mesh(const Sculpt &sd,
   undo::push_node(object, &node, undo::Type::Position);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-
-  tls.positions.reinitialize(verts.size());
-  const MutableSpan<float3> positions = tls.positions;
-  array_utils::gather(positions_eval, verts, positions);
-
-  tls.normals.reinitialize(verts.size());
-  const MutableSpan<float3> normals = tls.normals;
-  array_utils::gather(vert_normals, verts, normals);
+  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
+  const MutableSpan normals = gather_mesh_normals(vert_normals, verts, tls.normals);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -91,26 +85,21 @@ static void apply_projection_grids(const Sculpt &sd,
   undo::push_node(object, &node, undo::Type::Position);
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
-  const int grid_verts_num = grids.size() * key.grid_area;
+  const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.positions.reinitialize(grid_verts_num);
-  MutableSpan<float3> positions = tls.positions;
-  gather_grids_positions(subdiv_ccg, grids, positions);
-
-  tls.normals.reinitialize(grid_verts_num);
+  tls.normals.reinitialize(positions.size());
   const MutableSpan<float3> normals = tls.normals;
   gather_grids_normals(subdiv_ccg, grids, normals);
 
-  tls.factors.reinitialize(grid_verts_num);
+  tls.factors.reinitialize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
 
   gesture::filter_factors(gesture_data, positions, normals, factors);
 
-  tls.translations.reinitialize(grid_verts_num);
+  tls.translations.reinitialize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations_to_plane(positions, gesture_data.line.plane, translations);
   scale_translations(translations, factors);
@@ -130,10 +119,7 @@ static void apply_projection_bmesh(const Sculpt &sd,
   undo::push_node(object, &node, undo::Type::Position);
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
-
-  tls.positions.reinitialize(verts.size());
-  MutableSpan<float3> positions = tls.positions;
-  gather_bmesh_positions(verts, positions);
+  const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
   tls.normals.reinitialize(verts.size());
   const MutableSpan<float3> normals = tls.normals;
@@ -172,20 +158,18 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
           MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-            threading::isolate_task([&]() {
-              LocalData &tls = all_tls.local();
-              for (const int i : range) {
-                apply_projection_mesh(sd,
-                                      gesture_data,
-                                      positions_eval,
-                                      vert_normals,
-                                      *nodes[i],
-                                      object,
-                                      tls,
-                                      positions_orig);
-                BKE_pbvh_node_mark_positions_update(nodes[i]);
-              }
-            });
+            LocalData &tls = all_tls.local();
+            for (const int i : range) {
+              apply_projection_mesh(sd,
+                                    gesture_data,
+                                    positions_eval,
+                                    vert_normals,
+                                    *nodes[i],
+                                    object,
+                                    tls,
+                                    positions_orig);
+              BKE_pbvh_node_mark_positions_update(nodes[i]);
+            }
           });
           break;
         }

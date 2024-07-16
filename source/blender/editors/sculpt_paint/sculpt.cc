@@ -6499,12 +6499,22 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
 
 namespace blender::ed::sculpt_paint {
 
-void gather_grids_positions(const SubdivCCG &subdiv_ccg,
+void gather_mesh_positions(Span<float3> vert_postions,
+                           Span<int> verts,
+                           MutableSpan<float3> positions)
+{
+  BLI_assert(verts.size() == positions.size());
+
+  for (const int i : verts.index_range()) {
+    positions[i] = vert_postions[verts[i]];
+  }
+}
+
+void gather_grids_positions(const CCGKey &key,
+                            const Span<CCGElem *> elems,
                             const Span<int> grids,
                             const MutableSpan<float3> positions)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
   BLI_assert(grids.size() * key.grid_area == positions.size());
 
   for (const int i : grids.index_range()) {
@@ -6518,6 +6528,8 @@ void gather_grids_positions(const SubdivCCG &subdiv_ccg,
 
 void gather_bmesh_positions(const Set<BMVert *, 0> &verts, const MutableSpan<float3> positions)
 {
+  BLI_assert(verts.size() == positions.size());
+
   int i = 0;
   for (const BMVert *vert : verts) {
     positions[i] = vert->co;
