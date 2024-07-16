@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import platform
 import os
 import shlex
 import sys
@@ -32,10 +33,16 @@ BLACKLIST_OPTIX = [
     'T43865.blend',
 ]
 
-BLACKLIST_METAL = [
-    # MNEE only works on Metal with macOS >= 13
-    "underwater_caustics.blend",
-]
+BLACKLIST_METAL = []
+
+if platform.system() == "Darwin":
+    version, _, _ = platform.mac_ver()
+    major_version = version.split(".")[0]
+    if int(major_version) < 13:
+        BLACKLIST_METAL += [
+            # MNEE only works on Metal with macOS >= 13
+            "underwater_caustics.blend",
+        ]
 
 BLACKLIST_GPU = [
     # Uninvestigated differences with GPU.
