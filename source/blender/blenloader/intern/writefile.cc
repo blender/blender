@@ -1331,6 +1331,13 @@ static bool write_file_handle(Main *mainvar,
            * written to disk, so their user-count should never be zero currently. Note that
            * libraries have already been skipped above, as they need a specific handling. */
           if (id->us == 0) {
+            /* FIXME: #124857: Some old files seem to cause incorrect handling of their temp
+             * screens.
+             *
+             * See e.g. file attached to #124777 (from 2.79.1).
+             *
+             * For now ignore, issue is not obvious to track down (`temp` bScreen ID from read data
+             * _does_ have the proper `temp` tag), and seems anecdotal at worst. */
             BLI_assert((id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) == 0);
             continue;
           }
