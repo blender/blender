@@ -44,7 +44,29 @@ void VKStateManager::force_state()
   /* Intentionally empty. State is polled during pipeline creation and is always forced. */
 }
 
-void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/) {}
+void VKStateManager::issue_barrier(eGPUBarrier barrier_bits)
+{
+  /**
+   * Workaround for EEVEE ThicknessFromShadow shader.
+   *
+   * EEVEE light evaluation uses layered sub-pass tracking. Currently, the tracking supports
+   * transitioning a layer to a different layout once per rendering scope. When using the thickness
+   * from shadow, the layers need to be transitioned twice: once to image load/store for the
+   * thickness from shadow shader and then to a sampler for the light evaluation shader. We work
+   * around this limitation by suspending the rendering.
+   *
+   * The reason we need to suspend the rendering is that Vulkan, by default, doesn't support layout
+   * transitions between the begin and end of rendering. By suspending the render, the graph will
+   * create a new node group that allows the necessary image layout transition.
+   *
+   * This limitation could also be addressed in the render graph scheduler, but that would be quite
+   * a hassle to track and might not be worth the effort.
+   */
+  if (bool(barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS)) {
+    VKContext &context = *VKContext::get();
+    context.rendering_end();
+  }
+}
 
 void VKStateManager::texture_bind(Texture *tex, GPUSamplerState sampler, int unit)
 {

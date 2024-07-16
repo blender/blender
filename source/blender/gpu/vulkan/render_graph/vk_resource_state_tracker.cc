@@ -31,6 +31,7 @@ ResourceHandle VKResourceStateTracker::create_resource_slot()
 }
 
 void VKResourceStateTracker::add_image(VkImage vk_image,
+                                       uint32_t layer_count,
                                        VkImageLayout vk_image_layout,
                                        ResourceOwner owner,
                                        const char *name)
@@ -46,6 +47,7 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
   resource.type = VKResourceType::IMAGE;
   resource.owner = owner;
   resource.image.vk_image = vk_image;
+  resource.image.layer_count = layer_count;
   resource.image.vk_image_layout = vk_image_layout;
   resource.stamp = 0;
 #ifndef NDEBUG

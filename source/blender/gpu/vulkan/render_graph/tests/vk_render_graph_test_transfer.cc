@@ -114,8 +114,8 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
   Vector<std::string> log;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
-  resources.add_image(src_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
-  resources.add_image(dst_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_white = {};
   color_white.float32[0] = 1.0f;
@@ -256,8 +256,8 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
   Vector<std::string> log;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
-  resources.add_image(src_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
-  resources.add_image(dst_image, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
+  resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_black = {};
   color_black.float32[0] = 0.0f;

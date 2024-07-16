@@ -44,6 +44,7 @@ void VKRenderGraphLink::debug_print(std::ostream &ss,
       ss << ", vk_access=" << to_string_vk_access_flags(vk_access_flags);
       ss << ", vk_image_layout=" << to_string(vk_image_layout);
       ss << ", vk_image_aspect=" << to_string_vk_image_aspect_flags(vk_image_aspect);
+      ss << ", layer_base=" << layer_base;
       break;
     }
     case VKResourceType::NONE: {

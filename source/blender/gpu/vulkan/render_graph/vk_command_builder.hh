@@ -8,12 +8,21 @@
 
 #pragma once
 
+#include "BLI_set.hh"
+
 #include "vk_common.hh"
 #include "vk_render_graph_node.hh"
 #include "vk_scheduler.hh"
 
 namespace blender::gpu::render_graph {
 class VKRenderGraph;
+
+struct LayeredImageBinding {
+  VkImage vk_image;
+  VkImageLayout vk_image_layout;
+  uint32_t layer;
+  uint32_t layer_count;
+};
 
 /**
  * Build the command buffer for sending to the device queue.
@@ -55,6 +64,21 @@ class VKCommandBuilder {
     int64_t active_debug_group_id = -1;
     /** Current level of debug groups. (number of nested debug groups). */
     int debug_level = 0;
+
+    /**
+     * All layered attachments of the last rendering scope (VKNodeType::BEGIN_RENDERING).
+     *
+     * when binding layer from these images we expect that they aren't used as attachment and can
+     * be transitioned into a different image layout. These image layouts are stored in
+     * `layered_bindings`.
+     */
+    Set<VkImage> layered_attachments;
+
+    Vector<LayeredImageBinding> layered_bindings;
+    const bool subresource_tracking_enabled() const
+    {
+      return !layered_attachments.is_empty();
+    }
   } state_;
 
  public:
@@ -123,7 +147,9 @@ class VKCommandBuilder {
                          VkAccessFlags dst_access_mask,
                          VkImageLayout old_image_layout,
                          VkImageLayout new_image_layout,
-                         VkImageAspectFlags aspect_mask);
+                         VkImageAspectFlags aspect_mask,
+                         uint32_t layer_base = 0,
+                         uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS);
   void add_image_read_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
                                VkPipelineStageFlags node_stages);
@@ -147,6 +173,34 @@ class VKCommandBuilder {
    * Make sure no debugging groups are active anymore.
    */
   void finish_debug_groups(VKCommandBufferInterface &command_buffer);
+
+ private:
+  /**
+   * Update the layered attachments list when beginning a new render scope.
+   */
+  void layer_tracking_begin(const VKRenderGraph &render_graph, NodeHandle node_handle);
+
+  /**
+   * Ensure the layout of a layer.
+   *
+   * - `old_layout` should be the expected layout of the full image.
+   */
+  void layer_tracking_update(VkImage vk_image,
+                             uint32_t layer,
+                             uint32_t layer_count,
+                             VkImageLayout old_layout,
+                             VkImageLayout new_layout);
+
+  /**
+   * End layer tracking.
+   *
+   * All modified layers (layer_tracking_update) will be changed back to the image layout of
+   * the texture (most likely a `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`).
+   *
+   * When rendering is suspended, the suspend parameter should be 'true'. This keeps the array
+   * textures to be kept for when the rendering is resumed.
+   */
+  void layer_tracking_end(VKCommandBufferInterface &command_buffer, bool suspend);
 };
 
 }  // namespace blender::gpu::render_graph

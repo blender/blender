@@ -16,7 +16,7 @@ TEST(vk_render_graph, transfer_and_present)
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(
-      back_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ResourceOwner::SWAP_CHAIN);
+      back_buffer, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ResourceOwner::SWAP_CHAIN);
 
   render_graph.submit_for_present(back_buffer);
 
@@ -51,7 +51,7 @@ TEST(vk_render_graph, clear_and_present)
   Vector<std::string> log;
   VKResourceStateTracker resources;
   VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
-  resources.add_image(back_buffer, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
+  resources.add_image(back_buffer, 1, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, ResourceOwner::SWAP_CHAIN);
 
   VKClearColorImageNode::CreateInfo clear_color_image = {};
   clear_color_image.vk_image = back_buffer;
