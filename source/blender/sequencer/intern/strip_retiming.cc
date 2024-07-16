@@ -129,10 +129,17 @@ static void retiming_key_overlap(Scene *scene, Sequence *seq)
 
 void SEQ_retiming_reset(Scene *scene, Sequence *seq)
 {
-  if (SEQ_retiming_is_allowed(seq)) {
-    SEQ_retiming_data_clear(seq);
-    retiming_key_overlap(scene, seq);
+  if (!SEQ_retiming_is_allowed(seq)) {
+    return;
   }
+
+  SEQ_retiming_data_clear(seq);
+
+  blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
+  seq_time_update_effects_strip_range(scene, effects);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
+
+  retiming_key_overlap(scene, seq);
 }
 
 bool SEQ_retiming_is_active(const Sequence *seq)
