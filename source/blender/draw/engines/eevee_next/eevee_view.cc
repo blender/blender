@@ -204,36 +204,63 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
 
 void ShadingView::update_view()
 {
+  const Film &film = inst_.film;
+
   float4x4 viewmat = main_view_.viewmat();
   float4x4 winmat = main_view_.winmat();
 
-  /*
-   * Mixed resolution rendering. The center of the display pixels must align with the center of
-   * the render pixels. If they don't align, the winmat needs to be re-projected.
-   */
-  int2 scaling_factor = int2(inst_.film.scaling_factor_get());
-  int2 display_extent = inst_.film.display_extent_get();
-  int overscan = inst_.film.get_data().overscan;
-  int2 rescaled_render_extent = (extent_ - 2 * overscan) * scaling_factor;
+  if (film.scaling_factor_get() > 1) {
+    /* This whole section ensures that the render target pixel grid will match the film pixel pixel
+     * grid. Otherwise the weight computation inside the film accumulation will be wrong. */
 
-  if (rescaled_render_extent != display_extent) {
-    float left;
-    float right;
-    float bottom;
-    float top;
-    float near;
-    float far;
-    const bool is_perspective = main_view_.is_persp();
+    float left, right, bottom, top, near, far;
     projmat_dimensions(winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
-    float2 scale = (float2(rescaled_render_extent) / float2(display_extent));
-    right = left + ((right - left) * scale.x);
-    top = bottom + ((top - bottom) * scale.y);
+    const float2 bottom_left_with_overscan = float2(left, bottom);
+    const float2 top_right_with_overscan = float2(right, top);
+    const float2 render_size_with_overscan = top_right_with_overscan - bottom_left_with_overscan;
 
-    if (is_perspective) {
-      winmat = math::projection::perspective(left, right, bottom, top, near, far);
+    float2 bottom_left = bottom_left_with_overscan;
+    float2 top_right = top_right_with_overscan;
+    float2 render_size = render_size_with_overscan;
+
+    float overscan = inst_.camera.overscan();
+    if (overscan > 0.0f) {
+      /* Size of overscan on the screen. */
+      const float max_size_with_overscan = math::reduce_max(render_size);
+      const float max_size_original = max_size_with_overscan / (1.0f - 2.0f * overscan);
+      const float overscan_size = (max_size_with_overscan - max_size_original) / 2.0f;
+      /* Undo overscan to get the initial dimension of the screen. */
+      bottom_left = bottom_left_with_overscan + overscan_size;
+      top_right = top_right_with_overscan - overscan_size;
+      /* Render target size on the screen (without overscan). */
+      render_size = top_right - bottom_left;
+    }
+
+    /* Final pixel size on the screen. */
+    const float2 pixel_size = render_size / float2(film.film_extent_get());
+
+    /* Render extent in final film pixel unit. */
+    const int2 render_extent = film.render_extent_get() * film.scaling_factor_get();
+    const int overscan_pixels = film.render_overscan_get() * film.scaling_factor_get();
+
+    const float2 render_bottom_left = bottom_left - pixel_size * float(overscan_pixels);
+    const float2 render_top_right = render_bottom_left + pixel_size * float2(render_extent);
+
+    if (main_view_.is_persp()) {
+      winmat = math::projection::perspective(render_bottom_left.x,
+                                             render_top_right.x,
+                                             render_bottom_left.y,
+                                             render_top_right.y,
+                                             near,
+                                             far);
     }
     else {
-      winmat = math::projection::orthographic(left, right, bottom, top, near, far);
+      winmat = math::projection::orthographic(render_bottom_left.x,
+                                              render_top_right.x,
+                                              render_bottom_left.y,
+                                              render_top_right.y,
+                                              near,
+                                              far);
     }
   }
 

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "BLI_math_vector.hh"
+
 #include "DRW_render.hh"
 
 #include "eevee_shader_shared.hh"
@@ -110,16 +112,38 @@ class Film {
   float *read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset);
   float *read_aov(ViewLayerAOV *aov);
 
-  /** Returns shading views internal resolution. */
+  /** Returns shading views internal resolution. Includes overscan pixels. */
   int2 render_extent_get() const
   {
     return data_.render_extent;
   }
 
-  /** Returns final output resolution. */
+  /** Size and offset of the film (taking into account render region). */
+  int2 film_extent_get() const
+  {
+    return data_.extent;
+  }
+  int2 film_offset_get() const
+  {
+    return data_.offset;
+  }
+
+  /** Size of the whole viewport or the render, disregarding the render region. */
   int2 display_extent_get() const
   {
     return display_extent;
+  }
+
+  /** Number of padding pixels around the render target. Included inside `render_extent_get`. */
+  int render_overscan_get() const
+  {
+    return data_.overscan;
+  }
+
+  /** Returns number of overscan pixels for the given parameters. */
+  static int overscan_pixels_get(float overscan, int2 extent)
+  {
+    return math::ceil(max_ff(0.0f, overscan) * math::reduce_max(extent));
   }
 
   int scaling_factor_get() const

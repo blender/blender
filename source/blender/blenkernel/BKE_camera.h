@@ -88,6 +88,10 @@ void BKE_camera_params_from_view3d(CameraParams *params,
 void BKE_camera_params_compute_viewplane(
     CameraParams *params, int winx, int winy, float aspx, float aspy);
 /**
+ * Crop `viewplane` given the current resolution and a pixel region inside the view plane.
+ */
+void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, rcti *region);
+/**
  * View-plane is assumed to be already computed.
  */
 void BKE_camera_params_compute_matrix(CameraParams *params);

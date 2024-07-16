@@ -485,6 +485,18 @@ void BKE_camera_params_compute_viewplane(
   params->viewplane = viewplane;
 }
 
+void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, rcti *region)
+{
+  float pix_size_x = BLI_rctf_size_x(viewplane) / winx;
+  float pix_size_y = BLI_rctf_size_y(viewplane) / winy;
+
+  viewplane->xmin += pix_size_x * region->xmin;
+  viewplane->ymin += pix_size_y * region->ymin;
+
+  viewplane->xmax = viewplane->xmin + pix_size_x * BLI_rcti_size_x(region);
+  viewplane->ymax = viewplane->ymin + pix_size_y * BLI_rcti_size_y(region);
+}
+
 void BKE_camera_params_compute_matrix(CameraParams *params)
 {
   rctf viewplane = params->viewplane;

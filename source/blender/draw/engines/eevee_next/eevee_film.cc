@@ -212,6 +212,8 @@ static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
 
 void Film::init(const int2 &extent, const rcti *output_rect)
 {
+  using namespace math;
+
   Sampling &sampling = inst_.sampling;
   Scene &scene = *inst_.scene;
 
@@ -246,12 +248,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
   {
     data_.scaling_factor = 1;
     if (inst_.is_viewport()) {
-      if (!bool(enabled_passes_ &
-                (EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET | EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL |
-                 EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_NORMAL)))
-      {
-        data_.scaling_factor = BKE_render_preview_pixel_size(&inst_.scene->r);
-      }
+      data_.scaling_factor = BKE_render_preview_pixel_size(&inst_.scene->r);
     }
     /* Sharpen the LODs (1.5x) to avoid TAA filtering causing over-blur (see #122941). */
     data_.texture_lod_bias = 1.0f / (data_.scaling_factor * 1.5f);
@@ -268,13 +265,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
     data_.offset = int2(output_rect->xmin, output_rect->ymin);
     data_.extent_inv = 1.0f / float2(data_.extent);
-    data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
-    data_.overscan = 0;
-
-    if (inst_.camera.overscan() != 0.0f) {
-      data_.overscan = inst_.camera.overscan() * math::max(UNPACK2(data_.render_extent));
-      data_.render_extent += data_.overscan * 2;
-    }
+    data_.render_extent = divide_ceil(data_.extent, int2(data_.scaling_factor));
+    data_.overscan = overscan_pixels_get(inst_.camera.overscan(), data_.render_extent);
+    data_.render_extent += data_.overscan * 2;
 
     /* Disable filtering if sample count is 1. */
     data_.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
@@ -562,9 +555,25 @@ float2 Film::pixel_jitter_get() const
     /* Jitter the size of a whole pixel. [-0.5..0.5] */
     jitter -= 0.5f;
   }
-  /* TODO(fclem): Mixed-resolution rendering: We need to offset to each of the target pixel covered
-   * by a render pixel, ideally, by choosing one randomly using another sampling dimension, or by
-   * repeating the same sample RNG sequence for each pixel offset. */
+
+  if (data_.scaling_factor > 1) {
+    /* In this case, the jitter sequence is the same for the number of film pixel a render pixel
+     * covers. This allows to add a manual offset to the different film pixels to ensure they get
+     * appropriate coverage instead of waiting that random sampling covers all the area. This
+     * ensures a much faster convergence. */
+    const int scale = data_.scaling_factor;
+    const int render_pixel_per_final_pixel = square_i(scale);
+    /* TODO(fclem): Random in Z-order curve. */
+    /* Works great for the scaling factor we have. */
+    int prime = (render_pixel_per_final_pixel / 2) - 1;
+    /* For now just randomize in scan-lines using a prime number. */
+    uint64_t index = (inst_.sampling.sample_index() * prime) % render_pixel_per_final_pixel;
+    int2 pixel_co = int2(index % scale, index / scale);
+    /* The jitter is applied on render target pixels. Make it proportional to film pixel. */
+    jitter /= float(scale);
+    /* Offset from the render pixel center to the center of film pixel. */
+    jitter += ((float2(pixel_co) + 0.5f) / scale) - 0.5f;
+  }
   return jitter;
 }
 
@@ -602,13 +611,29 @@ int Film::cryptomatte_layer_max_get() const
 
 void Film::update_sample_table()
 {
+  /* Offset in render target pixels. */
   data_.subpixel_offset = pixel_jitter_get();
 
   int filter_radius_ceil = ceilf(data_.filter_radius);
   float filter_radius_sqr = square_f(data_.filter_radius);
 
   data_.samples_len = 0;
-  if (use_box_filter || data_.filter_radius < 0.01f) {
+  if (data_.scaling_factor > 1) {
+    /* For this case there might be no valid samples for some pixels.
+     * Still visit all four neighbors to have the best weight available.
+     * Note that weight is computed on the GPU as it is different for each sample. */
+    /* TODO(fclem): Make it work for filters larger than then scaling_factor. */
+    for (int y = 0; y <= 1; y++) {
+      for (int x = 0; x <= 1; x++) {
+        FilmSample &sample = data_.samples[data_.samples_len];
+        sample.texel = int2(x, y);
+        sample.weight = -1.0f; /* Computed on GPU. */
+        data_.samples_len++;
+      }
+    }
+    data_.samples_weight_total = -1.0f; /* Computed on GPU. */
+  }
+  else if (use_box_filter || data_.filter_radius < 0.01f) {
     /* Disable gather filtering. */
     data_.samples[0].texel = int2(0, 0);
     data_.samples[0].weight = 1.0f;
