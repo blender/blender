@@ -329,6 +329,13 @@ struct SculptBoundaryEditInfo {
   float strength_factor;
 };
 
+/* Data used for displaying extra visuals while using the Boundary brush. */
+struct SculptBoundaryPreview {
+  blender::Vector<std::pair<blender::float3, blender::float3>> edges;
+  blender::float3 pivot_position;
+  blender::float3 initial_vert_position;
+};
+
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   blender::Vector<PBVHVertRef> verts;
@@ -583,7 +590,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
-  std::unique_ptr<SculptBoundary> boundary_preview;
+  std::unique_ptr<SculptBoundaryPreview> boundary_preview;
 
   SculptVertexInfo vertex_info = {};
   SculptFakeNeighbors fake_neighbors = {};

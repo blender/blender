@@ -492,6 +492,51 @@ std::unique_ptr<SculptBoundary> data_init(Object &object,
   return boundary;
 }
 
+std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
+                                                         const Brush *brush,
+                                                         const PBVHVertRef initial_vert,
+                                                         const float radius)
+{
+  SculptSession &ss = *object.sculpt;
+
+  if (initial_vert.i == PBVH_REF_NONE) {
+    return nullptr;
+  }
+
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_boundary_info_ensure(object);
+
+  const PBVHVertRef boundary_initial_vert = get_closest_boundary_vert(ss, initial_vert, radius);
+
+  if (boundary_initial_vert.i == BOUNDARY_VERTEX_NONE) {
+    return nullptr;
+  }
+
+  /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr instead
+   * of forcing a random active boundary from a corner. */
+  if (!is_vert_in_editable_boundary(ss, initial_vert)) {
+    return nullptr;
+  }
+
+  SculptBoundary boundary;
+
+  const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
+                                                   BRUSH_BOUNDARY_FALLOFF_CONSTANT :
+                                               false;
+
+  indices_init(ss, boundary, init_boundary_distances, boundary_initial_vert);
+
+  const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
+  edit_data_init(ss, boundary, boundary_initial_vert, boundary_radius);
+
+  std::unique_ptr<SculptBoundaryPreview> preview = std::make_unique<SculptBoundaryPreview>();
+  preview->edges = boundary.edges;
+  preview->pivot_position = boundary.pivot_position;
+  preview->initial_vert_position = boundary.initial_vert_position;
+
+  return preview;
+}
+
 /* These functions initialize the required vectors for the desired deformation using the
  * SculptBoundaryEditInfo. They calculate the data using the vertices that have the
  * max_propagation_steps value and them this data is copied to the rest of the vertices using the

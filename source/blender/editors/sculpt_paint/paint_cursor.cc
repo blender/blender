@@ -1716,7 +1716,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
    * boundary data for the preview. */
   BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
-  ss.boundary_preview = boundary::data_init(
+  ss.boundary_preview = boundary::preview_data_init(
       *pcontext->vc.obact, pcontext->brush, ss.active_vertex, pcontext->radius);
 }
 
