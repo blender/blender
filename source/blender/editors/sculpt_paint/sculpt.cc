@@ -915,12 +915,12 @@ struct NearestVertexData {
 
 namespace blender::ed::sculpt_paint {
 
-static std::optional<int> nearest_vert_calc_mesh(const PBVH &pbvh,
-                                                 const Span<float3> vert_positions,
-                                                 const Span<bool> hide_vert,
-                                                 const float3 &location,
-                                                 const float max_distance,
-                                                 const bool use_original)
+std::optional<int> nearest_vert_calc_mesh(const PBVH &pbvh,
+                                          const Span<float3> vert_positions,
+                                          const Span<bool> hide_vert,
+                                          const float3 &location,
+                                          const float max_distance,
+                                          const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
@@ -960,11 +960,11 @@ static std::optional<int> nearest_vert_calc_mesh(const PBVH &pbvh,
   return nearest.vert;
 }
 
-static std::optional<SubdivCCGCoord> nearest_vert_calc_grids(PBVH &pbvh,
-                                                             const SubdivCCG &subdiv_ccg,
-                                                             const float3 &location,
-                                                             const float max_distance,
-                                                             const bool use_original)
+std::optional<SubdivCCGCoord> nearest_vert_calc_grids(PBVH &pbvh,
+                                                      const SubdivCCG &subdiv_ccg,
+                                                      const float3 &location,
+                                                      const float max_distance,
+                                                      const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
@@ -1013,10 +1013,10 @@ static std::optional<SubdivCCGCoord> nearest_vert_calc_grids(PBVH &pbvh,
   return nearest.coord;
 }
 
-static std::optional<BMVert *> nearest_vert_calc_bmesh(PBVH &pbvh,
-                                                       const float3 &location,
-                                                       const float max_distance,
-                                                       const bool use_original)
+std::optional<BMVert *> nearest_vert_calc_bmesh(PBVH &pbvh,
+                                                const float3 &location,
+                                                const float max_distance,
+                                                const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(
