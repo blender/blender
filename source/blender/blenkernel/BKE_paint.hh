@@ -329,12 +329,6 @@ struct SculptBoundaryEditInfo {
   float strength_factor;
 };
 
-/* Edge for drawing the boundary preview in the cursor. */
-struct SculptBoundaryPreviewEdge {
-  PBVHVertRef v1;
-  PBVHVertRef v2;
-};
-
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   blender::Vector<PBVHVertRef> verts;
@@ -345,7 +339,7 @@ struct SculptBoundary {
   blender::Array<float> distance;
 
   /* Data for drawing the preview. */
-  blender::Vector<SculptBoundaryPreviewEdge> edges;
+  blender::Vector<std::pair<blender::float3, blender::float3>> edges;
 
   /* True if the boundary loops into itself. */
   bool forms_loop;

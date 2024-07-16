@@ -184,18 +184,20 @@ static bool floodfill_fn(SculptSession &ss,
   int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
 
+  const float3 from_v_co = SCULPT_vertex_co_get(ss, from_v);
+  const float3 to_v_co = SCULPT_vertex_co_get(ss, to_v);
+
   SculptBoundary &boundary = *data->boundary;
   if (!SCULPT_vertex_is_boundary(ss, to_v)) {
     return false;
   }
-  const float edge_len = len_v3v3(SCULPT_vertex_co_get(ss, from_v),
-                                  SCULPT_vertex_co_get(ss, to_v));
+  const float edge_len = len_v3v3(from_v_co, to_v_co);
   const float distance_boundary_to_dst = !boundary.distance.is_empty() ?
                                              boundary.distance[from_v_i] + edge_len :
                                              0.0f;
   add_index(boundary, to_v, to_v_i, distance_boundary_to_dst, data->included_verts);
   if (!is_duplicate) {
-    boundary.edges.append({from_v, to_v});
+    boundary.edges.append({from_v_co, to_v_co});
   }
   return is_vert_in_editable_boundary(ss, to_v);
 }
@@ -242,7 +244,11 @@ static void indices_init(SculptSession &ss,
       if (BLI_gset_haskey(included_verts, POINTER_FROM_INT(ni.index)) &&
           is_vert_in_editable_boundary(ss, ni.vertex))
       {
-        boundary.edges.append({fdata.last_visited_vertex, ni.vertex});
+
+        const float3 from_v_co = SCULPT_vertex_co_get(ss, fdata.last_visited_vertex);
+        const float3 to_v_co = SCULPT_vertex_co_get(ss, ni.vertex);
+
+        boundary.edges.append({from_v_co, to_v_co});
         boundary.forms_loop = true;
       }
     }
@@ -958,8 +964,8 @@ void edges_preview_draw(const uint gpuattr,
   GPU_line_width(2.0f);
   immBegin(GPU_PRIM_LINES, ss.boundary_preview->edges.size() * 2);
   for (int i = 0; i < ss.boundary_preview->edges.size(); i++) {
-    immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss.boundary_preview->edges[i].v1));
-    immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss.boundary_preview->edges[i].v2));
+    immVertex3fv(gpuattr, ss.boundary_preview->edges[i].first);
+    immVertex3fv(gpuattr, ss.boundary_preview->edges[i].second);
   }
   immEnd();
 }

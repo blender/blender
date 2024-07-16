@@ -1709,15 +1709,10 @@ static void paint_cursor_preview_boundary_data_pivot_draw(PaintCursorContext *pc
       3);
 }
 
-static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pcontext,
-                                                      const bool update_previews)
+static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pcontext)
 {
   using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *pcontext->ss;
-  if (!(update_previews || !ss.boundary_preview)) {
-    return;
-  }
-
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
   BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
@@ -1815,7 +1810,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   }
 
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_BOUNDARY) {
-    paint_cursor_preview_boundary_data_update(pcontext, update_previews);
+    paint_cursor_preview_boundary_data_update(pcontext);
     paint_cursor_preview_boundary_data_pivot_draw(pcontext);
   }
 
