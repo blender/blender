@@ -27,6 +27,16 @@ static bool is_field_socket_type(const bNodeSocket &socket)
   return nodes::socket_type_supports_fields((eNodeSocketDatatype)socket.typeinfo->type);
 }
 
+static bool all_dangling_reroutes(const Span<const bNodeSocket *> sockets)
+{
+  for (const bNodeSocket *socket : sockets) {
+    if (!socket->owner_node().is_dangling_reroute()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static InputSocketFieldType get_interface_input_field_type(const bNode &node,
                                                            const bNodeSocket &socket)
 {
@@ -578,7 +588,9 @@ static void propagate_field_status_from_left_to_right(
           continue;
         }
         state.is_single = true;
-        if (!input_socket->is_directly_linked()) {
+        if (!input_socket->is_directly_linked() ||
+            all_dangling_reroutes(input_socket->directly_linked_sockets()))
+        {
           if (inferencing_interface.inputs[input_socket->index()] ==
               InputSocketFieldType::Implicit)
           {
