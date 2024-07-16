@@ -107,8 +107,11 @@ void SEQ_retiming_data_ensure(Sequence *seq)
 
 void SEQ_retiming_data_clear(Sequence *seq)
 {
-  seq->retiming_keys = nullptr;
-  seq->retiming_keys_num = 0;
+  if (seq->retiming_keys != nullptr) {
+    MEM_freeN(seq->retiming_keys);
+    seq->retiming_keys = nullptr;
+    seq->retiming_keys_num = 0;
+  }
   seq->flag &= ~SEQ_SHOW_RETIMING;
 }
 
