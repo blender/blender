@@ -76,20 +76,19 @@ static void calc_faces(const Sculpt &sd,
   const bool use_persistent_base = ss.attrs.persistent_co && brush.flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
-  const float bstrength = ss.cache->bstrength;
+  const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   if (use_persistent_base) {
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
-      float *disp_factor;
-      disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss.attrs.persistent_disp);
+      float *disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss.attrs.persistent_disp);
 
       /* When using persistent base, the layer brush (holding Control) invert mode resets the
        * height of the layer to 0. This makes possible to clean edges of previously added layers
        * on top of the base. */
       /* The main direction of the layers is inverted using the regular brush strength with the
        * brush direction property. */
-      if (ss.cache->invert) {
+      if (cache.invert) {
         (*disp_factor) += std::abs(factors[vd.i] * bstrength * (*disp_factor)) *
                           ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
       }
@@ -99,12 +98,10 @@ static void calc_faces(const Sculpt &sd,
       const float clamp_mask = 1.0f - vd.mask;
       *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-      float3 final_co;
-      float3 normal;
-
-      normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
+      float3 normal = SCULPT_vertex_persistent_normal_get(ss, vd.vertex);
       normal *= brush.height;
-      final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) + normal * *disp_factor;
+      float3 final_co = float3(SCULPT_vertex_persistent_co_get(ss, vd.vertex)) +
+                        normal * *disp_factor;
 
       float3 vdisp = final_co - float3(vd.co);
       vdisp *= std::abs(factors[vd.i]);
@@ -117,19 +114,15 @@ static void calc_faces(const Sculpt &sd,
   else {
     BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
       const int vi = vd.index;
-      float *disp_factor;
-      disp_factor = &layer_displacement_factor[vi];
+      float *disp_factor = &layer_displacement_factor[vi];
 
       (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
       const float clamp_mask = 1.0f - vd.mask;
       *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-      float3 final_co;
-      float3 normal;
-
-      normal = orig_data.normals[vd.i];
+      float3 normal = orig_data.normals[vd.i];
       normal *= brush.height;
-      final_co = orig_data.positions[vd.i] + normal * *disp_factor;
+      float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
 
       float3 vdisp = final_co - float3(vd.co);
       vdisp *= std::abs(factors[vd.i]);
@@ -182,25 +175,20 @@ static void calc_grids(const Sculpt &sd,
   calc_brush_texture_factors(ss, brush, positions, factors);
 
   PBVHVertexIter vd;
-  const float bstrength = ss.cache->bstrength;
+  const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     const int vi = vd.index;
-    float *disp_factor;
-
-    disp_factor = &layer_displacement_factor[vi];
+    float *disp_factor = &layer_displacement_factor[vi];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
     const float clamp_mask = 1.0f - vd.mask;
     *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-    float3 final_co;
-    float3 normal;
-
-    normal = orig_data.normals[vd.i];
+    float3 normal = orig_data.normals[vd.i];
     normal *= brush.height;
-    final_co = orig_data.positions[vd.i] + normal * *disp_factor;
+    float3 final_co = orig_data.positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
     vdisp *= std::abs(factors[vd.i]);
@@ -249,7 +237,7 @@ static void calc_bmesh(const Sculpt &sd,
   calc_brush_texture_factors(ss, brush, positions, factors);
 
   PBVHVertexIter vd;
-  const float bstrength = ss.cache->bstrength;
+  const float bstrength = cache.bstrength;
 
   Array<float3> orig_positions(verts.size());
   Array<float3> orig_normals(verts.size());
@@ -257,21 +245,17 @@ static void calc_bmesh(const Sculpt &sd,
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     const int vi = vd.index;
-    float *disp_factor;
 
-    disp_factor = &layer_displacement_factor[vi];
+    float *disp_factor = &layer_displacement_factor[vi];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
 
     const float clamp_mask = 1.0f - vd.mask;
     *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
-    float3 final_co;
-    float3 normal;
-
-    normal = orig_normals[vd.i];
+    float3 normal = orig_normals[vd.i];
     normal *= brush.height;
-    final_co = orig_positions[vd.i] + normal * *disp_factor;
+    float3 final_co = orig_positions[vd.i] + normal * *disp_factor;
 
     float3 vdisp = final_co - float3(vd.co);
     vdisp *= std::abs(factors[vd.i]);
