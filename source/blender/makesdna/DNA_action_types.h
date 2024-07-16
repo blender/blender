@@ -1200,8 +1200,8 @@ typedef struct ActionStrip {
 typedef struct KeyframeActionStrip {
   ActionStrip strip;
 
-  struct ActionChannelBag **channelbags_array;
-  int channelbags_array_num;
+  struct ActionChannelBag **channelbag_array;
+  int channelbag_array_num;
 
   uint8_t _pad[4];
 

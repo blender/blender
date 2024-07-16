@@ -387,11 +387,11 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
 
 static void read_keyframe_strip(BlendDataReader *reader, animrig::KeyframeStrip &strip)
 {
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&strip.channelbags_array));
+  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&strip.channelbag_array));
 
-  for (int i = 0; i < strip.channelbags_array_num; i++) {
-    BLO_read_struct(reader, ActionChannelBag, &strip.channelbags_array[i]);
-    ActionChannelBag *channelbag = strip.channelbags_array[i];
+  for (int i = 0; i < strip.channelbag_array_num; i++) {
+    BLO_read_struct(reader, ActionChannelBag, &strip.channelbag_array[i]);
+    ActionChannelBag *channelbag = strip.channelbag_array[i];
     read_channelbag(reader, channelbag->wrap());
   }
 }
