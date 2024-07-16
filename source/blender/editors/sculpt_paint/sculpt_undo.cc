@@ -911,6 +911,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     return;
   }
 
+  /* Switching to sculpt mode does not push a particular type.
+   * See #124484. */
+  if (step_data.type == Type::None && step_data.nodes.is_empty()) {
+    return;
+  }
+
   const bool tag_update = ID_REAL_USERS(object.data) > 1 ||
                           !BKE_sculptsession_use_pbvh_draw(&object, rv3d) || ss.shapekey_active ||
                           ss.deform_modifiers_active;
