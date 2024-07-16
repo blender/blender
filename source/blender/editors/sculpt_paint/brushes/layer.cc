@@ -16,6 +16,7 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -23,6 +24,7 @@
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/paint_intern.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint {
@@ -40,6 +42,7 @@ static void calc_faces(const Sculpt &sd,
                        const Brush &brush,
                        const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
+                       const Span<float> mask_attribute,
                        const bool use_persistent_base,
                        const Span<float3> persistent_base_positions,
                        const Span<float3> persistent_base_normals,
@@ -76,6 +79,15 @@ static void calc_faces(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
+  if (mask_attribute.is_empty()) {
+    tls.masks.clear();
+  }
+  else {
+    tls.masks.reinitialize(verts.size());
+    array_utils::gather(mask_attribute, verts, tls.masks.as_mutable_span());
+  }
+  const MutableSpan<float> masks = tls.masks;
+
   PBVHVertexIter vd;
   const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
@@ -96,7 +108,7 @@ static void calc_faces(const Sculpt &sd,
       else {
         (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
       }
-      const float clamp_mask = 1.0f - vd.mask;
+      const float clamp_mask = masks.is_empty() ? 1.0f : (1.0f - masks[vd.i]);
       *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
       float3 normal = persistent_base_normals[vd.index];
@@ -117,7 +129,7 @@ static void calc_faces(const Sculpt &sd,
       float *disp_factor = &layer_displacement_factor[vi];
 
       (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-      const float clamp_mask = 1.0f - vd.mask;
+      const float clamp_mask = masks.is_empty() ? 1.0f : (1.0f - masks[vd.i]);
       *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
       float3 normal = orig_data.normals[vd.i];
@@ -174,6 +186,10 @@ static void calc_grids(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
+  tls.masks.reinitialize(grid_verts_num);
+  const MutableSpan<float> masks = tls.masks;
+  mask::gather_mask_grids(subdiv_ccg, grids, masks);
+
   PBVHVertexIter vd;
   const float bstrength = cache.bstrength;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
@@ -183,7 +199,7 @@ static void calc_grids(const Sculpt &sd,
     float *disp_factor = &layer_displacement_factor[vi];
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
-    const float clamp_mask = 1.0f - vd.mask;
+    const float clamp_mask = 1.0f - masks[vd.i];
     *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
     float3 normal = orig_data.normals[vd.i];
@@ -243,6 +259,10 @@ static void calc_bmesh(const Sculpt &sd,
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
+  tls.masks.reinitialize(verts.size());
+  const MutableSpan<float> masks = tls.masks;
+  mask::gather_mask_bmesh(*ss.bm, verts, masks);
+
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     const int vi = vd.index;
 
@@ -250,7 +270,7 @@ static void calc_bmesh(const Sculpt &sd,
 
     (*disp_factor) += factors[vd.i] * bstrength * (1.05f - std::abs(*disp_factor));
 
-    const float clamp_mask = 1.0f - vd.mask;
+    const float clamp_mask = 1.0f - masks[vd.i];
     *disp_factor = std::clamp(*disp_factor, -clamp_mask, clamp_mask);
 
     float3 normal = orig_normals[vd.i];
@@ -313,19 +333,22 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
 
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_faces(sd,
-                     brush,
-                     positions_eval,
-                     vert_normals,
-                     use_persistent_base,
-                     persistent_position,
-                     persistent_normal,
-                     object,
-                     *nodes[i],
-                     tls,
-                     displacement);
-        }
+        threading::isolate_task([&]() {
+          for (const int i : range) {
+            calc_faces(sd,
+                       brush,
+                       positions_eval,
+                       vert_normals,
+                       masks,
+                       use_persistent_base,
+                       persistent_position,
+                       persistent_normal,
+                       object,
+                       *nodes[i],
+                       tls,
+                       displacement);
+          }
+        });
       });
       persistent_disp_attr.finish();
       break;
