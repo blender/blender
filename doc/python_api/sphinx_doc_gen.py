@@ -81,6 +81,9 @@ USE_ONLY_BUILTIN_RNA_TYPES = True
 # `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
 
+# Other types are assumed to be `bpy.types.*`.
+PRIMITIVE_TYPE_NAMES = {"bool", "bytearray", "bytes", "dict", "float", "int", "list", "set", "str", "tuple"}
+
 if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
     from _bpy import rna_enum_items_static
     rna_enum_dict = rna_enum_items_static()
@@ -1169,112 +1172,113 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
 
 # Changes In Blender will force errors here.
 context_type_map = {
-    # context_member: (RNA type, is_collection)
-    "active_action": ("Action", False),
-    "active_annotation_layer": ("GPencilLayer", False),
-    "active_bone": ("EditBone", False),
-    "active_file": ("FileSelectEntry", False),
-    "active_gpencil_frame": ("GreasePencilLayer", True),
-    "active_gpencil_layer": ("GPencilLayer", True),
-    "active_node": ("Node", False),
-    "active_object": ("Object", False),
-    "active_operator": ("Operator", False),
-    "active_pose_bone": ("PoseBone", False),
-    "active_sequence_strip": ("Sequence", False),
-    "active_editable_fcurve": ("FCurve", False),
-    "active_nla_strip": ("NlaStrip", False),
-    "active_nla_track": ("NlaTrack", False),
-    "annotation_data": ("GreasePencil", False),
-    "annotation_data_owner": ("ID", False),
-    "armature": ("Armature", False),
-    "asset_library_reference": ("AssetLibraryReference", False),
-    "bone": ("Bone", False),
-    "brush": ("Brush", False),
-    "camera": ("Camera", False),
-    "cloth": ("ClothModifier", False),
-    "collection": ("LayerCollection", False),
-    "collision": ("CollisionModifier", False),
-    "curve": ("Curve", False),
-    "dynamic_paint": ("DynamicPaintModifier", False),
-    "edit_bone": ("EditBone", False),
-    "edit_image": ("Image", False),
-    "edit_mask": ("Mask", False),
-    "edit_movieclip": ("MovieClip", False),
-    "edit_object": ("Object", False),
-    "edit_text": ("Text", False),
-    "editable_bones": ("EditBone", True),
-    "editable_gpencil_layers": ("GPencilLayer", True),
-    "editable_gpencil_strokes": ("GPencilStroke", True),
-    "editable_objects": ("Object", True),
-    "editable_fcurves": ("FCurve", True),
-    "fluid": ("FluidSimulationModifier", False),
-    "gpencil": ("GreasePencil", False),
-    "gpencil_data": ("GreasePencil", False),
-    "grease_pencil": ("GreasePencilv3", False),
-    "gpencil_data_owner": ("ID", False),
-    "curves": ("Hair Curves", False),
-    "id": ("ID", False),
-    "image_paint_object": ("Object", False),
-    "lattice": ("Lattice", False),
-    "light": ("Light", False),
-    "lightprobe": ("LightProbe", False),
-    "line_style": ("FreestyleLineStyle", False),
-    "material": ("Material", False),
-    "material_slot": ("MaterialSlot", False),
-    "mesh": ("Mesh", False),
-    "meta_ball": ("MetaBall", False),
-    "object": ("Object", False),
-    "objects_in_mode": ("Object", True),
-    "objects_in_mode_unique_data": ("Object", True),
-    "particle_edit_object": ("Object", False),
-    "particle_settings": ("ParticleSettings", False),
-    "particle_system": ("ParticleSystem", False),
-    "particle_system_editable": ("ParticleSystem", False),
-    "property": ("(:class:`bpy.types.AnyType`, :class:`string`, :class:`int`)", False),
-    "pointcloud": ("PointCloud", False),
-    "pose_bone": ("PoseBone", False),
-    "pose_object": ("Object", False),
-    "scene": ("Scene", False),
-    "sculpt_object": ("Object", False),
-    "selectable_objects": ("Object", True),
-    "selected_assets": ("AssetRepresentation", True),
-    "selected_bones": ("EditBone", True),
-    "selected_editable_actions": ("Action", True),
-    "selected_editable_bones": ("EditBone", True),
-    "selected_editable_fcurves": ("FCurve", True),
-    "selected_editable_keyframes": ("Keyframe", True),
-    "selected_editable_objects": ("Object", True),
-    "selected_editable_sequences": ("Sequence", True),
-    "selected_files": ("FileSelectEntry", True),
-    "selected_ids": ("ID", True),
-    "selected_nla_strips": ("NlaStrip", True),
-    "selected_movieclip_tracks": ("MovieTrackingTrack", True),
-    "selected_nodes": ("Node", True),
-    "selected_objects": ("Object", True),
-    "selected_pose_bones": ("PoseBone", True),
-    "selected_pose_bones_from_active_object": ("PoseBone", True),
-    "selected_sequences": ("Sequence", True),
-    "selected_visible_actions": ("Action", True),
-    "selected_visible_fcurves": ("FCurve", True),
-    "sequences": ("Sequence", True),
-    "soft_body": ("SoftBodyModifier", False),
-    "speaker": ("Speaker", False),
-    "texture": ("Texture", False),
-    "texture_node": ("Node", False),
-    "texture_slot": ("TextureSlot", False),
-    "texture_user": ("ID", False),
-    "texture_user_property": ("Property", False),
-    "ui_list": ("UIList", False),
-    "vertex_paint_object": ("Object", False),
-    "view_layer": ("ViewLayer", False),
-    "visible_bones": ("EditBone", True),
-    "visible_gpencil_layers": ("GPencilLayer", True),
-    "visible_objects": ("Object", True),
-    "visible_pose_bones": ("PoseBone", True),
-    "visible_fcurves": ("FCurve", True),
-    "weight_paint_object": ("Object", False),
-    "volume": ("Volume", False),
-    "world": ("World", False),
+    # Support multiple types for each item, where each list item is a possible type:
+    # `context_member: [(RNA type, is_collection), ...]`
+    "active_action": [("Action", False)],
+    "active_annotation_layer": [("GPencilLayer", False)],
+    "active_bone": [("EditBone", False), ("Bone", False)],
+    "active_file": [("FileSelectEntry", False)],
+    "active_gpencil_frame": [("GreasePencilLayer", True)],
+    "active_gpencil_layer": [("GPencilLayer", True)],
+    "active_node": [("Node", False)],
+    "active_object": [("Object", False)],
+    "active_operator": [("Operator", False)],
+    "active_pose_bone": [("PoseBone", False)],
+    "active_sequence_strip": [("Sequence", False)],
+    "active_editable_fcurve": [("FCurve", False)],
+    "active_nla_strip": [("NlaStrip", False)],
+    "active_nla_track": [("NlaTrack", False)],
+    "annotation_data": [("GreasePencil", False)],
+    "annotation_data_owner": [("ID", False)],
+    "armature": [("Armature", False)],
+    "asset_library_reference": [("AssetLibraryReference", False)],
+    "bone": [("Bone", False)],
+    "brush": [("Brush", False)],
+    "camera": [("Camera", False)],
+    "cloth": [("ClothModifier", False)],
+    "collection": [("LayerCollection", False)],
+    "collision": [("CollisionModifier", False)],
+    "curve": [("Curve", False)],
+    "dynamic_paint": [("DynamicPaintModifier", False)],
+    "edit_bone": [("EditBone", False)],
+    "edit_image": [("Image", False)],
+    "edit_mask": [("Mask", False)],
+    "edit_movieclip": [("MovieClip", False)],
+    "edit_object": [("Object", False)],
+    "edit_text": [("Text", False)],
+    "editable_bones": [("EditBone", True)],
+    "editable_gpencil_layers": [("GPencilLayer", True)],
+    "editable_gpencil_strokes": [("GPencilStroke", True)],
+    "editable_objects": [("Object", True)],
+    "editable_fcurves": [("FCurve", True)],
+    "fluid": [("FluidSimulationModifier", False)],
+    "gpencil": [("GreasePencil", False)],
+    "gpencil_data": [("GreasePencil", False)],
+    "grease_pencil": [("GreasePencilv3", False)],
+    "gpencil_data_owner": [("ID", False)],
+    "curves": [("Hair Curves", False)],
+    "id": [("ID", False)],
+    "image_paint_object": [("Object", False)],
+    "lattice": [("Lattice", False)],
+    "light": [("Light", False)],
+    "lightprobe": [("LightProbe", False)],
+    "line_style": [("FreestyleLineStyle", False)],
+    "material": [("Material", False)],
+    "material_slot": [("MaterialSlot", False)],
+    "mesh": [("Mesh", False)],
+    "meta_ball": [("MetaBall", False)],
+    "object": [("Object", False)],
+    "objects_in_mode": [("Object", True)],
+    "objects_in_mode_unique_data": [("Object", True)],
+    "particle_edit_object": [("Object", False)],
+    "particle_settings": [("ParticleSettings", False)],
+    "particle_system": [("ParticleSystem", False)],
+    "particle_system_editable": [("ParticleSystem", False)],
+    "property": [("AnyType", False), ("str", False), ("int", False)],
+    "pointcloud": [("PointCloud", False)],
+    "pose_bone": [("PoseBone", False)],
+    "pose_object": [("Object", False)],
+    "scene": [("Scene", False)],
+    "sculpt_object": [("Object", False)],
+    "selectable_objects": [("Object", True)],
+    "selected_assets": [("AssetRepresentation", True)],
+    "selected_bones": [("EditBone", True)],
+    "selected_editable_actions": [("Action", True)],
+    "selected_editable_bones": [("EditBone", True)],
+    "selected_editable_fcurves": [("FCurve", True)],
+    "selected_editable_keyframes": [("Keyframe", True)],
+    "selected_editable_objects": [("Object", True)],
+    "selected_editable_sequences": [("Sequence", True)],
+    "selected_files": [("FileSelectEntry", True)],
+    "selected_ids": [("ID", True)],
+    "selected_nla_strips": [("NlaStrip", True)],
+    "selected_movieclip_tracks": [("MovieTrackingTrack", True)],
+    "selected_nodes": [("Node", True)],
+    "selected_objects": [("Object", True)],
+    "selected_pose_bones": [("PoseBone", True)],
+    "selected_pose_bones_from_active_object": [("PoseBone", True)],
+    "selected_sequences": [("Sequence", True)],
+    "selected_visible_actions": [("Action", True)],
+    "selected_visible_fcurves": [("FCurve", True)],
+    "sequences": [("Sequence", True)],
+    "soft_body": [("SoftBodyModifier", False)],
+    "speaker": [("Speaker", False)],
+    "texture": [("Texture", False)],
+    "texture_node": [("Node", False)],
+    "texture_slot": [("TextureSlot", False)],
+    "texture_user": [("ID", False)],
+    "texture_user_property": [("Property", False)],
+    "ui_list": [("UIList", False)],
+    "vertex_paint_object": [("Object", False)],
+    "view_layer": [("ViewLayer", False)],
+    "visible_bones": [("EditBone", True)],
+    "visible_gpencil_layers": [("GPencilLayer", True)],
+    "visible_objects": [("Object", True)],
+    "visible_pose_bones": [("PoseBone", True)],
+    "visible_fcurves": [("FCurve", True)],
+    "weight_paint_object": [("Object", False)],
+    "volume": [("Volume", False)],
+    "world": [("World", False)],
 }
 
 
@@ -1372,15 +1376,37 @@ def pycontext2sphinx(basepath):
             fw("\n")
 
             try:
-                member_type, is_seq = context_type_map[member]
+                member_types = context_type_map[member]
             except KeyError:
                 raise SystemExit(
                     "Error: context key {!r} not found in context_type_map; update {:s}".format(member, __file__)
                 ) from None
 
-            if member_type.isidentifier():
-                member_type = ":class:`bpy.types.{:s}`".format(member_type)
-            fw("   :type: {:s} {:s}\n\n".format("sequence of " if is_seq else "", member_type))
+            if len(member_types) == 0:
+                raise SystemExit(
+                    "Error: context key {!r} must have more than 1 item in context_type_map; update {:s}".format(
+                        member,
+                        __file__,
+                    ),
+                )
+
+            type_strs = []
+            for member_type, is_seq in member_types:
+                if member_type.isidentifier():
+                    type_strs.append(
+                        "{:s}:class:`{:s}{:s}`".format(
+                            "sequence of " if is_seq else "",
+                            "bpy.types." if member_type not in PRIMITIVE_TYPE_NAMES else "",
+                            member_type,
+                        )
+                    )
+                else:
+                    type_strs.append(member_type)
+            if len(type_strs) == 1:
+                member_type_str = type_strs[0]
+            else:
+                member_type_str = "({:s})".format(", ".join(type_strs))
+            fw("   :type: {:s}\n\n".format(member_type_str))
             write_example_ref("   ", fw, "bpy.context." + member)
 
     # Generate type-map:
@@ -1774,11 +1800,12 @@ def pyrna2sphinx(basepath):
             fw("   :columns: 2\n\n")
 
             # Context does its own thing.
-            # "active_object": ("Object", False),
-            for ref_attr, (ref_type, ref_is_seq) in sorted(context_type_map.items()):
-                if ref_type == struct_id:
-                    fw("   * :mod:`bpy.context.{:s}`\n".format(ref_attr))
-            del ref_attr, ref_type, ref_is_seq
+            # "active_object": [("Object", False)],
+            for ref_attr, ref_types in sorted(context_type_map.items()):
+                for ref_type, _ in ref_types:
+                    if ref_type == struct_id:
+                        fw("   * :mod:`bpy.context.{:s}`\n".format(ref_attr))
+            del ref_attr, ref_types
 
             for ref in struct.references:
                 ref_split = ref.split(".")
