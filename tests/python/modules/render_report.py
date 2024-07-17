@@ -107,7 +107,7 @@ class Report:
         self.fail_percent = 1
         self.engine_name = self.title.lower().replace(" ", "_")
         self.device = device
-        self.blacklist = blacklist
+        self.blacklist = [] if os.getenv('BLENDER_TEST_IGNORE_BLOCKLIST') is not None else blacklist
 
         if device:
             self.title = self._engine_title(title, device)
