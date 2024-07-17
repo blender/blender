@@ -652,12 +652,22 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
   seq_cache_lock(scene);
 
-  int range_start = SEQ_time_left_handle_frame_get(scene, seq_changed);
-  int range_end = SEQ_time_right_handle_frame_get(scene, seq_changed);
+  const int range_start_seq_changed = seq_cache_timeline_frame_to_frame_index(
+      scene, seq, SEQ_time_left_handle_frame_get(scene, seq_changed), invalidate_types);
+  const int range_end_seq_changed = seq_cache_timeline_frame_to_frame_index(
+      scene, seq, SEQ_time_right_handle_frame_get(scene, seq_changed), invalidate_types);
+
+  int range_start = range_start_seq_changed;
+  int range_end = range_end_seq_changed;
 
   if (!force_seq_changed_range) {
-    range_start = max_ii(range_start, SEQ_time_left_handle_frame_get(scene, seq));
-    range_end = min_ii(range_end, SEQ_time_right_handle_frame_get(scene, seq));
+    const int range_start_seq = seq_cache_timeline_frame_to_frame_index(
+        scene, seq, SEQ_time_left_handle_frame_get(scene, seq), invalidate_types);
+    const int range_end_seq = seq_cache_timeline_frame_to_frame_index(
+        scene, seq, SEQ_time_right_handle_frame_get(scene, seq), invalidate_types);
+
+    range_start = max_ii(range_start, range_start_seq);
+    range_end = min_ii(range_end, range_end_seq);
   }
 
   int invalidate_composite = invalidate_types & SEQ_CACHE_STORE_FINAL_OUT;
@@ -672,15 +682,15 @@ void seq_cache_cleanup_sequence(Scene *scene,
     BLI_assert(key->cache_owner == cache);
 
     /* Clean all final and composite in intersection of seq and seq_changed. */
-    if (key->type & invalidate_composite && key->timeline_frame >= range_start &&
-        key->timeline_frame <= range_end)
+    if (key->type & invalidate_composite && key->frame_index >= range_start &&
+        key->frame_index <= range_end)
     {
       seq_cache_key_unlink(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
     else if (key->type & invalidate_source && key->seq == seq &&
-             key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
-             key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed))
+             key->frame_index >= range_start_seq_changed &&
+             key->frame_index <= range_end_seq_changed)
     {
       seq_cache_key_unlink(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
