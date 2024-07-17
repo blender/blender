@@ -65,10 +65,10 @@ void CryptomatteBaseNode::convert_to_operations(NodeConverter &converter,
 /** \name Cryptomatte V2
  * \{ */
 
-static std::string prefix_from_node(const CompositorContext &context, const bNode &node)
+static std::string prefix_from_node(const bNode &node)
 {
   char prefix[MAX_NAME];
-  ntreeCompositCryptomatteLayerPrefix(context.get_scene(), &node, prefix, sizeof(prefix));
+  ntreeCompositCryptomatteLayerPrefix(&node, prefix, sizeof(prefix));
   return std::string(prefix, BLI_strnlen(prefix, sizeof(prefix)));
 }
 
@@ -110,7 +110,7 @@ void CryptomatteNode::input_operations_from_render_source(
   }
 
   short view_layer_id = 0;
-  const std::string prefix = prefix_from_node(context, node);
+  const std::string prefix = prefix_from_node(node);
   LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_id) {
     RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
     if (render_layer) {
@@ -156,7 +156,7 @@ void CryptomatteNode::input_operations_from_image_source(
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
 
   if (image->rr) {
-    const std::string prefix = prefix_from_node(context, node);
+    const std::string prefix = prefix_from_node(node);
     int layer_index;
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       if (!blender::StringRef(prefix).startswith(blender::StringRef(

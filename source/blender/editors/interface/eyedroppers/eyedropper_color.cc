@@ -134,8 +134,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
   RNA_property_float_get_array(&eye->ptr, eye->prop, col);
   if (eye->ptr.type == &RNA_CompositorNodeCryptomatteV2) {
     eye->crypto_node = (bNode *)eye->ptr.data;
-    eye->cryptomatte_session = ntreeCompositCryptomatteSession(CTX_data_scene(C),
-                                                               eye->crypto_node);
+    eye->cryptomatte_session = ntreeCompositCryptomatteSession(eye->crypto_node);
     eye->cb_win = CTX_wm_window(C);
     eye->draw_handle_sample_text = WM_draw_cb_activate(eye->cb_win, eyedropper_draw_cb, eye);
   }
@@ -389,8 +388,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
 
   /* TODO(jbakker): Migrate this file to cc and use std::string as return param. */
   char prefix[MAX_NAME + 1];
-  const Scene *scene = CTX_data_scene(C);
-  ntreeCompositCryptomatteLayerPrefix(scene, node, prefix, sizeof(prefix) - 1);
+  ntreeCompositCryptomatteLayerPrefix(node, prefix, sizeof(prefix) - 1);
   prefix[MAX_NAME] = '\0';
 
   if (area->spacetype == SPACE_VIEW3D) {

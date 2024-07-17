@@ -70,7 +70,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 }
 
 static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node_image(
-    const Scene &scene, const bNode &node)
+    const bNode &node)
 {
   blender::bke::cryptomatte::CryptomatteSessionPtr session;
   Image *image = (Image *)node.id;
@@ -81,7 +81,6 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 
   NodeCryptomatte *node_cryptomatte = static_cast<NodeCryptomatte *>(node.storage);
   ImageUser *iuser = &node_cryptomatte->iuser;
-  BKE_image_user_frame_calc(image, iuser, scene.r.cfra);
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
   RenderResult *render_result = image->rr;
   if (render_result) {
@@ -93,7 +92,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 }
 
 static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node(
-    const Scene &scene, const bNode &node, const bool build_meta_data)
+    const bNode &node, const bool build_meta_data)
 {
   blender::bke::cryptomatte::CryptomatteSessionPtr session;
   if (node.type != CMP_NODE_CRYPTOMATTE) {
@@ -106,7 +105,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
     }
 
     case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE: {
-      return cryptomatte_init_from_node_image(scene, node);
+      return cryptomatte_init_from_node_image(node);
     }
   }
   return session;
@@ -122,10 +121,7 @@ static CryptomatteEntry *cryptomatte_find(const NodeCryptomatte &n, float encode
   return nullptr;
 }
 
-static void cryptomatte_add(const Scene &scene,
-                            bNode &node,
-                            NodeCryptomatte &node_cryptomatte,
-                            float encoded_hash)
+static void cryptomatte_add(bNode &node, NodeCryptomatte &node_cryptomatte, float encoded_hash)
 {
   /* Check if entry already exist. */
   if (cryptomatte_find(node_cryptomatte, encoded_hash)) {
@@ -134,8 +130,8 @@ static void cryptomatte_add(const Scene &scene,
 
   CryptomatteEntry *entry = MEM_cnew<CryptomatteEntry>(__func__);
   entry->encoded_hash = encoded_hash;
-  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(
-      scene, node, true);
+  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(node,
+                                                                                        true);
   if (session) {
     BKE_cryptomatte_find_name(session.get(), encoded_hash, entry->name, sizeof(entry->name));
   }
@@ -153,12 +149,12 @@ static void cryptomatte_remove(NodeCryptomatte &n, float encoded_hash)
   MEM_freeN(entry);
 }
 
-void ntreeCompositCryptomatteSyncFromAdd(const Scene *scene, bNode *node)
+void ntreeCompositCryptomatteSyncFromAdd(bNode *node)
 {
   BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->runtime.add[0] != 0.0f) {
-    cryptomatte_add(*scene, *node, *n, n->runtime.add[0]);
+    cryptomatte_add(*node, *n, n->runtime.add[0]);
     zero_v3(n->runtime.add);
   }
 }
@@ -172,14 +168,14 @@ void ntreeCompositCryptomatteSyncFromRemove(bNode *node)
     zero_v3(n->runtime.remove);
   }
 }
-void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node)
+void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 {
   BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   BLI_freelistN(&n->runtime.layers);
 
-  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(
-      *scene, *node, false);
+  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(*node,
+                                                                                        false);
 
   if (session) {
     for (blender::StringRef layer_name :
@@ -192,15 +188,12 @@ void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node)
   }
 }
 
-void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
-                                         const bNode *node,
-                                         char *r_prefix,
-                                         size_t prefix_maxncpy)
+void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_maxncpy)
 {
   BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *node_cryptomatte = (NodeCryptomatte *)node->storage;
-  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(
-      *scene, *node, false);
+  blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(*node,
+                                                                                        false);
   std::string first_layer_name;
 
   if (session) {
@@ -222,10 +215,10 @@ void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
   BLI_strncpy(r_prefix, cstr, prefix_maxncpy);
 }
 
-CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node)
+CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
 {
-  blender::bke::cryptomatte::CryptomatteSessionPtr session_ptr = cryptomatte_init_from_node(
-      *scene, *node, true);
+  blender::bke::cryptomatte::CryptomatteSessionPtr session_ptr = cryptomatte_init_from_node(*node,
+                                                                                            true);
   return session_ptr.release();
 }
 
@@ -651,8 +644,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   std::string get_type_name()
   {
     char type_name[MAX_NAME];
-    ntreeCompositCryptomatteLayerPrefix(
-        &context().get_scene(), &bnode(), type_name, sizeof(type_name));
+    ntreeCompositCryptomatteLayerPrefix(&bnode(), type_name, sizeof(type_name));
     return std::string(type_name);
   }
 
