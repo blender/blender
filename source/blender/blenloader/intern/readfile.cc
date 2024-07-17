@@ -4289,6 +4289,11 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
    * it. */
   BKE_main_id_refcount_recompute(mainvar, false);
 
+  /* FIXME: This is suspiciously early call compared to similar process in
+   * #blo_read_file_internal, where it is called towards the very end, after all do_version,
+   * liboverride updates etc. have been done. */
+  /* FIXME: Probably also need to forbid layer collections updates until this call, as done in
+   * #blo_read_file_internal? */
   BKE_collections_after_lib_link(mainvar);
 
   /* Yep, second splitting... but this is a very cheap operation, so no big deal. */
