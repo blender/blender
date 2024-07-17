@@ -1394,11 +1394,8 @@ def pycontext2sphinx(basepath):
                     )
                 else:
                     type_strs.append(member_type)
-            if len(type_strs) == 1:
-                member_type_str = type_strs[0]
-            else:
-                member_type_str = "({:s})".format(", ".join(type_strs))
-            fw("   :type: {:s}\n\n".format(member_type_str))
+
+            fw("   :type: {:s}\n\n".format(" or ".join(type_strs)))
             write_example_ref("   ", fw, "bpy.context." + member)
 
     # Generate type-map:
