@@ -708,7 +708,6 @@ static float3 average_unmasked_position(const Object &object,
     }
     case PBVH_GRIDS: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -831,7 +830,6 @@ static float3 average_mask_border_position(const Object &object,
     }
     case PBVH_GRIDS: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           nodes.index_range(),
           1,
