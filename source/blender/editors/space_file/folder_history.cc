@@ -117,6 +117,7 @@ void folderlist_free(ListBase *folderlist)
       MEM_freeN(folder->foldername);
       MEM_delete(folder);
     }
+    BLI_listbase_clear(folderlist);
   }
 }
 
