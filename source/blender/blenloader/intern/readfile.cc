@@ -1367,7 +1367,7 @@ void blo_filedata_free(FileData *fd)
   if (fd->globmap) {
     oldnewmap_free(fd->globmap);
   }
-  if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
+  if (fd->libmap) {
     oldnewmap_free(fd->libmap);
   }
   if (fd->old_idmap_uid != nullptr) {

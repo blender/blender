@@ -43,10 +43,8 @@ enum eFileDataFlag {
   FD_FLAGS_POINTSIZE_DIFFERS = 1 << 2,
   FD_FLAGS_FILE_OK = 1 << 3,
   FD_FLAGS_IS_MEMFILE = 1 << 4,
-  /* XXX Unused in practice (checked once but never set). */
-  FD_FLAGS_NOT_MY_LIBMAP = 1 << 5,
 };
-ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_NOT_MY_LIBMAP)
+ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
 
 /* Disallow since it's 32bit on ms-windows. */
 #ifdef __GNUC__
