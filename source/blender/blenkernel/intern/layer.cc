@@ -782,7 +782,7 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * to transitional big numbers. */
 static std::atomic<int32_t> no_resync = 0;
 /* Maximum allowed levels of re-entrant calls to #BKE_layer_collection_resync_forbid. */
-static constexpr int no_resync_recurse_max = 16 * 256;
+[[maybe_unused]] static constexpr int no_resync_recurse_max = 16 * 256;
 
 void BKE_layer_collection_resync_forbid()
 {
