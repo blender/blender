@@ -33,7 +33,6 @@ float g_closure_rand[CLOSURE_BIN_COUNT];
 ClosureUndetermined g_closure_get(int i)
 {
   switch (i) {
-    default:
     case 0:
       return g_closure_bins[0];
 #if CLOSURE_BIN_COUNT > 1
@@ -45,6 +44,9 @@ ClosureUndetermined g_closure_get(int i)
       return g_closure_bins[2];
 #endif
   }
+  /* TODO: this should be unreachable, better to have an assert. */
+  ClosureUndetermined cl_empty;
+  return cl_empty;
 }
 
 ClosureUndetermined g_closure_get_resolved(int i, float weight_fac)
