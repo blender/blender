@@ -60,6 +60,7 @@ struct IconImage {
 using VectorDrawFunc = void (*)(int x, int y, int w, int h, float alpha);
 
 #define ICON_TYPE_PREVIEW 0
+#define ICON_TYPE_SVG_COLOR 1
 #define ICON_TYPE_MONO_TEXTURE 2
 #define ICON_TYPE_BUFFER 3
 #define ICON_TYPE_IMBUF 4
@@ -107,6 +108,7 @@ struct IconType {
 
 static const IconType icontypes[] = {
 #  define DEF_ICON(name) {ICON_TYPE_MONO_TEXTURE, 0},
+#  define DEF_ICON_COLOR(name) {ICON_TYPE_SVG_COLOR, 0},
 #  define DEF_ICON_SCENE(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_SCENE},
 #  define DEF_ICON_COLLECTION(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_COLLECTION},
 #  define DEF_ICON_OBJECT(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_OBJECT},
@@ -803,7 +805,7 @@ static void init_internal_icons()
   /* Define icons. */
   for (int x = ICON_NONE; x < ICON_BLANK_LAST_SVG_ITEM; x++) {
     const IconType icontype = icontypes[x];
-    if (icontype.type != ICON_TYPE_MONO_TEXTURE) {
+    if (!ELEM(icontype.type, ICON_TYPE_MONO_TEXTURE, ICON_TYPE_SVG_COLOR)) {
       continue;
     }
     def_internal_icon(nullptr, x, 0, 0, 0, icontype.type, icontype.theme_color);
@@ -1379,21 +1381,27 @@ static void icon_draw_size(float x,
     const short event_value = di->data.input.event_value;
     icon_draw_rect_input(x, y, w, h, alpha, event_type, event_value, inverted);
   }
-  else if (di->type == ICON_TYPE_MONO_TEXTURE) {
+  else if (ELEM(di->type, ICON_TYPE_MONO_TEXTURE, ICON_TYPE_SVG_COLOR)) {
     /* Monochrome icon that uses text or theme color. */
     float outline_intensity = mono_border ? (btheme->tui.icon_border_intensity > 0.0f ?
                                                  btheme->tui.icon_border_intensity :
                                                  0.5f) :
                                             0.0f;
-    float color[4];
-    if (mono_rgba) {
-      rgba_uchar_to_float(color, (const uchar *)mono_rgba);
+    if (di->type == ICON_TYPE_SVG_COLOR) {
+      BLF_draw_svg_icon(
+          uint(icon_id), x, y, float(draw_size) / aspect, nullptr, outline_intensity);
     }
     else {
-      UI_GetThemeColor4fv(TH_TEXT, color);
+      float color[4];
+      if (mono_rgba) {
+        rgba_uchar_to_float(color, (const uchar *)mono_rgba);
+      }
+      else {
+        UI_GetThemeColor4fv(TH_TEXT, color);
+      }
+      color[3] = alpha;
+      BLF_draw_svg_icon(uint(icon_id), x, y, float(draw_size) / aspect, color, outline_intensity);
     }
-    color[3] = alpha;
-    BLF_draw_svg_icon(uint(icon_id), x, y, float(draw_size) / aspect, color, outline_intensity);
 
     if (text_overlay && text_overlay->text[0] != '\0') {
       /* Handle the little numbers on top of the icon. */

@@ -59,7 +59,7 @@ float sample_glyph_bilinear(vec2 bilin_f, vec2 uv)
 
 vec4 sample_glyph_rgba(vec2 uv)
 {
-  ivec2 texel = ivec2(floor(uv)) - 1;
+  ivec2 texel = ivec2(round(uv)) - 1;
 
   vec4 col = vec4(0.0);
   if (is_inside_box(texel)) {

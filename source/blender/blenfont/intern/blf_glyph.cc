@@ -348,7 +348,7 @@ static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, uint charcode)
   return result;
 }
 
-static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode)
+static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode, bool color)
 {
   const char *svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
   /* NanoSVG alters the source file while parsing. */
@@ -405,18 +405,23 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode)
   g->dims[0] = dest_w;
   g->dims[1] = dest_h;
   g->pitch = dest_w;
-  g->num_channels = 1;
+  g->num_channels = color ? 4 : 1;
 
   const int buffer_size = g->dims[0] * g->dims[1] * g->num_channels;
   g->bitmap = static_cast<uchar *>(MEM_mallocN(size_t(buffer_size), "glyph bitmap"));
 
-  /* Convert from RGBA to coverage map. */
-  for (int64_t y = 0; y < int64_t(g->dims[1]); y++) {
-    for (int64_t x = 0; x < int64_t(g->dims[0]); x++) {
-      int64_t offs_in = (y * int64_t(dest_w) * 4) + (x * 4);
-      int64_t offs_out = (y * int64_t(g->dims[0]) + x);
-      /* Just using the alpha since this is monochrome. */
-      g->bitmap[offs_out] = render_bmp[int64_t(offs_in + 3)];
+  if (color) {
+    memcpy(g->bitmap, render_bmp.data(), size_t(buffer_size));
+  }
+  else {
+    /* Convert from RGBA to coverage map. */
+    for (int64_t y = 0; y < int64_t(g->dims[1]); y++) {
+      for (int64_t x = 0; x < int64_t(g->dims[0]); x++) {
+        int64_t offs_in = (y * int64_t(dest_w) * 4) + (x * 4);
+        int64_t offs_out = (y * int64_t(g->dims[0]) + x);
+        /* Just using the alpha since this is monochrome. */
+        g->bitmap[offs_out] = render_bmp[int64_t(offs_in + 3)];
+      }
     }
   }
 
@@ -1379,13 +1384,13 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
   return g;
 }
 
-GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc, const uint icon_id)
+GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc, const uint icon_id, bool color)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, icon_id + BLF_ICON_OFFSET, 0);
   if (g) {
     return g;
   }
-  return blf_glyph_cache_add_svg(gc, icon_id + BLF_ICON_OFFSET);
+  return blf_glyph_cache_add_svg(gc, icon_id + BLF_ICON_OFFSET, color);
 }
 
 #ifdef BLF_SUBPIXEL_AA
