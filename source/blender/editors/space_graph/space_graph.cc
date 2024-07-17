@@ -518,10 +518,10 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
   {
     bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
     const PropertyRNA *props[] = {
-        use_preview ? rna_Scene_frame_preview_start : rna_Scene_frame_start,
-        use_preview ? rna_Scene_frame_preview_end : rna_Scene_frame_end,
-        rna_Scene_use_preview_range,
-        rna_Scene_frame_current,
+        use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
+        use_preview ? &rna_Scene_frame_preview_end : &rna_Scene_frame_end,
+        &rna_Scene_use_preview_range,
+        &rna_Scene_frame_current,
     };
 
     PointerRNA idptr = RNA_id_pointer_create(&scene->id);

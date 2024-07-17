@@ -480,7 +480,7 @@ static void gizmo_mesh_extrude_message_subscribe(const bContext *C,
     PointerRNA toolsettings_ptr = RNA_pointer_create(
         &scene->id, &RNA_ToolSettings, scene->toolsettings);
     const PropertyRNA *props[] = {
-        rna_ToolSettings_workspace_tool_type,
+        &rna_ToolSettings_workspace_tool_type,
     };
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(

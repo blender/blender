@@ -965,7 +965,7 @@ static void ui_apply_but_undo(uiBut *but)
      * because undo systems track data by their ID, see: #67002. */
     /* Exception for active shape-key, since changing this in edit-mode updates
      * the shape key from object mode data. */
-    if (ELEM(but->rnaprop, rna_ID_name, rna_Object_active_shape_key_index)) {
+    if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
       /* pass */
     }
     else {

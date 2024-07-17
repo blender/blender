@@ -1784,19 +1784,19 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
           if (t->spacetype == SPACE_NODE) {
             snap_flag_ptr = &ts->snap_flag_node;
-            msg_key_params.prop = rna_ToolSettings_use_snap_node;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_node;
           }
           else if (t->spacetype == SPACE_IMAGE) {
             snap_flag_ptr = &ts->snap_uv_flag;
-            msg_key_params.prop = rna_ToolSettings_use_snap_uv;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_uv;
           }
           else if (t->spacetype == SPACE_SEQ) {
             snap_flag_ptr = &ts->snap_flag_seq;
-            msg_key_params.prop = rna_ToolSettings_use_snap_sequencer;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_sequencer;
           }
           else {
             snap_flag_ptr = &ts->snap_flag;
-            msg_key_params.prop = rna_ToolSettings_use_snap;
+            msg_key_params.prop = &rna_ToolSettings_use_snap;
           }
 
           if (t->modifiers & MOD_SNAP) {

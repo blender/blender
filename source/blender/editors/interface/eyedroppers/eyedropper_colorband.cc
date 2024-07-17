@@ -96,7 +96,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 
       /* Set this to a sub-member of the property to trigger an update. */
       rna_update_ptr = ptr;
-      rna_update_prop = rna_ColorRamp_color_mode;
+      rna_update_prop = &rna_ColorRamp_color_mode;
       is_undo = RNA_struct_undo_check(ptr.type);
     }
   }
