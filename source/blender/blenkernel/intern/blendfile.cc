@@ -1858,7 +1858,7 @@ ID *PartialWriteContext::id_add(
                           dependencies_filter_cb](LibraryIDLinkCallbackData *cb_data) -> int {
     constexpr PartialWriteContext::IDAddOperations per_id_operations_filter =
         PartialWriteContext::IDAddOperations(MAKE_LOCAL | SET_FAKE_USER | CLEAR_DEPENDENCIES |
-                                             DUPLICATE_DEPENDENCIES);
+                                             ADD_DEPENDENCIES);
     ID **id_ptr = cb_data->id_pointer;
     const ID *orig_deps_id = *id_ptr;
 
