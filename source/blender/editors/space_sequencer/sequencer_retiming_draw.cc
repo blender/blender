@@ -244,7 +244,7 @@ static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
     return false;
   }
 
-  if (!SEQ_retiming_is_active(strip_ctx.seq)) {
+  if (SEQ_retiming_keys_count(strip_ctx.seq) == 0) {
     return false;
   }
 
