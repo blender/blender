@@ -134,6 +134,9 @@ void node_bsdf_principled(vec4 base_color,
       coat_tint.rgb = mix(vec3(1.0), pow(coat_tint.rgb, vec3(1.0 / NT)), saturate(coat_weight));
     }
   }
+  else {
+    coat_tint.rgb = vec3(1.0);
+  }
 
   /* Emission component.
    * Attenuated by sheen and coat.
