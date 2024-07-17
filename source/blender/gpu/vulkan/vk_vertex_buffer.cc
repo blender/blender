@@ -65,6 +65,7 @@ void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
     const VKDevice &device = VKBackend::get().device;
     vkCreateBufferView(
         device.vk_handle(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
+    debug::object_label(vk_buffer_view_, "VertexBufferView");
   }
 
   /* TODO: Check if we can move this check inside the descriptor set. */

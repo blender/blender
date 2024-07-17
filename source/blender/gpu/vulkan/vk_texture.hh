@@ -29,6 +29,15 @@ class VKTexture : public Texture, public VKBindableResource {
 
   /** When set the instance is considered to be a texture view from `source_texture_` */
   VKTexture *source_texture_ = nullptr;
+
+  /**
+   * Store of source vertex buffer. Related to `GPU_texture_create_from_vertbuf`.
+   *
+   * In vulkan a texel buffer is a buffer and not a texture. Calls will be forwarded to the vertex
+   * buffer in this case. GPU_texture_create_from_vertbuf should be phased out (currently only used
+   * by particle hair).
+   */
+  VKVertexBuffer *source_buffer_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
 
