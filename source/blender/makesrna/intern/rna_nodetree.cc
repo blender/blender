@@ -3247,7 +3247,6 @@ static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext * /
   EnumPropertyItem temp = {0, "", 0, "", ""};
   int totitem = 0;
 
-  ntreeCompositCryptomatteUpdateLayerNames(node);
   int layer_index;
   LISTBASE_FOREACH_INDEX (CryptomatteLayer *, layer, &storage->runtime.layers, layer_index) {
     temp.value = layer_index;
@@ -8820,6 +8819,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   RNA_def_property_enum_items(prop, cryptomatte_source_items);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_NodeCryptomatte_source_set", nullptr);
   RNA_def_property_ui_text(prop, "Source", "Where the Cryptomatte passes are loaded from");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_funcs(
@@ -8840,7 +8840,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
   def_cmp_cryptomatte_common(srna);

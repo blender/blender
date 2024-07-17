@@ -489,6 +489,12 @@ static bool node_poll_cryptomatte(const blender::bke::bNodeType * /*ntype*/,
   return false;
 }
 
+static void node_update_cryptomatte(bNodeTree *ntree, bNode *node)
+{
+  cmp_node_update_default(ntree, node);
+  ntreeCompositCryptomatteUpdateLayerNames(node);
+}
+
 using namespace blender::realtime_compositor;
 using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
@@ -755,6 +761,7 @@ void register_node_type_cmp_cryptomatte()
   ntype.initfunc = file_ns::node_init_cryptomatte;
   ntype.initfunc_api = file_ns::node_init_api_cryptomatte;
   ntype.poll = file_ns::node_poll_cryptomatte;
+  ntype.updatefunc = file_ns::node_update_cryptomatte;
   blender::bke::node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
