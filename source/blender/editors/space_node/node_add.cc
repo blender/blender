@@ -780,6 +780,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     }
   }
 
+  bNodeTree &node_tree = *snode.edittree;
   float2 position = snode.runtime->cursor;
   Vector<bNode *> nodes;
   /* Add a node for each image. */
@@ -796,7 +797,9 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     }
     else {
       node->id = (ID *)image;
+      blender::bke::nodeTagUpdateID(node);
     }
+    BKE_ntree_update_tag_node_property(&node_tree, node);
     nodes.append(node);
     /* Initial offset between nodes. */
     position[1] -= 20.0f;
@@ -807,7 +810,6 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
   }
 
   /* Set new nodes as selected. */
-  bNodeTree &node_tree = *snode.edittree;
   node_deselect_all(node_tree);
   for (bNode *node : nodes) {
     bke::nodeSetSelected(node, true);
