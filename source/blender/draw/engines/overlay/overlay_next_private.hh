@@ -118,6 +118,9 @@ class ShaderModule {
   ShaderPtr armature_sphere_outline;
   ShaderPtr depth_mesh;
   ShaderPtr extra_shape;
+  ShaderPtr extra_wire_object;
+  ShaderPtr lattice_points;
+  ShaderPtr lattice_wire;
 
   ShaderModule(const SelectionType selection_type, const bool clipping_enabled);
 
@@ -159,6 +162,7 @@ struct Resources : public select::SelectMap {
   TextureRef depth_in_front_tx;
   TextureRef color_overlay_tx;
   TextureRef color_render_tx;
+  TextureRef weight_ramp_tx;
 
   Resources(const SelectionType selection_type_, ShaderModule &shader_module)
       : select::SelectMap(selection_type_), shaders(shader_module){};
