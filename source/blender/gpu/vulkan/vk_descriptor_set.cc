@@ -133,84 +133,88 @@ void VKDescriptorSetTracker::update(VKContext &context)
 {
   const VKShader &shader = *unwrap(context.shader);
   VkDescriptorSetLayout vk_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
-  const bool new_descriptor_set_layout = assign_if_different(active_vk_descriptor_set_layout,
-                                                             vk_descriptor_set_layout);
-  const bool renew_resource = new_descriptor_set_layout || !bindings_.is_empty();
-  tracked_resource_for(context, renew_resource);
+  active_vk_descriptor_set_layout = vk_descriptor_set_layout;
+  tracked_resource_for(context, true);
   std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
   VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
   BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
   debug::object_label(vk_descriptor_set, shader.name_get());
 
-  /* TODO: should be replaced by a better system. The buffer_infos and image_infos can be
-   * reallocated, making previous references invalid. */
-  Vector<VkDescriptorBufferInfo> buffer_infos;
-  buffer_infos.reserve(16);
-  Vector<VkWriteDescriptorSet> descriptor_writes;
+  /* Ensure that the local arrays contain enough space to store the bindings. */
+  BLI_assert_msg(vk_descriptor_image_infos_.is_empty() && vk_descriptor_buffer_infos_.is_empty() &&
+                     vk_write_descriptor_sets_.is_empty(),
+                 "Incorrect usage, internal vectors should be empty.");
+  if (vk_descriptor_buffer_infos_.capacity() < bindings_.size()) {
+    vk_descriptor_buffer_infos_.reserve(bindings_.size() * 2);
+    vk_descriptor_image_infos_.reserve(bindings_.size() * 2);
+  }
 
   for (const Binding &binding : bindings_) {
     if (!binding.is_buffer()) {
       continue;
     }
-    VkDescriptorBufferInfo buffer_info = {};
-    buffer_info.buffer = binding.vk_buffer;
-    buffer_info.range = binding.buffer_size;
-    buffer_infos.append(buffer_info);
-
-    VkWriteDescriptorSet write_descriptor = {};
-    write_descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write_descriptor.dstSet = vk_descriptor_set;
-    write_descriptor.dstBinding = binding.location;
-    write_descriptor.descriptorCount = 1;
-    write_descriptor.descriptorType = binding.type;
-    write_descriptor.pBufferInfo = &buffer_infos.last();
-    descriptor_writes.append(write_descriptor);
+    vk_descriptor_buffer_infos_.append({binding.vk_buffer, 0, binding.buffer_size});
+    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      vk_descriptor_set,
+                                      binding.location,
+                                      0,
+                                      1,
+                                      binding.type,
+                                      nullptr,
+                                      &vk_descriptor_buffer_infos_.last(),
+                                      nullptr});
   }
 
   for (const Binding &binding : bindings_) {
     if (!binding.is_texel_buffer()) {
       continue;
     }
-    VkWriteDescriptorSet write_descriptor = {};
-    write_descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write_descriptor.dstSet = vk_descriptor_set;
-    write_descriptor.dstBinding = binding.location;
-    write_descriptor.descriptorCount = 1;
-    write_descriptor.descriptorType = binding.type;
-    write_descriptor.pTexelBufferView = &binding.vk_buffer_view;
-    descriptor_writes.append(write_descriptor);
+    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      vk_descriptor_set,
+                                      binding.location,
+                                      0,
+                                      1,
+                                      binding.type,
+                                      nullptr,
+                                      nullptr,
+                                      &binding.vk_buffer_view});
   }
 
-  Vector<VkDescriptorImageInfo> image_infos;
-  image_infos.reserve(32);
   for (const Binding &binding : bindings_) {
     if (!binding.is_image()) {
       continue;
     }
-
     /* TODO: Based on the actual usage we should use
      * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL or VK_IMAGE_LAYOUT_GENERAL. */
-    VkDescriptorImageInfo image_info = {};
-    image_info.sampler = binding.vk_sampler;
-    image_info.imageView = binding.texture->image_view_get(binding.arrayed).vk_handle();
-    image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    image_infos.append(image_info);
-
-    VkWriteDescriptorSet write_descriptor = {};
-    write_descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write_descriptor.dstSet = vk_descriptor_set;
-    write_descriptor.dstBinding = binding.location;
-    write_descriptor.descriptorCount = 1;
-    write_descriptor.descriptorType = binding.type;
-    write_descriptor.pImageInfo = &image_infos.last();
-    descriptor_writes.append(write_descriptor);
+    vk_descriptor_image_infos_.append(
+        {binding.vk_sampler,
+         binding.texture->image_view_get(binding.arrayed).vk_handle(),
+         VK_IMAGE_LAYOUT_GENERAL});
+    vk_write_descriptor_sets_.append({VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      vk_descriptor_set,
+                                      binding.location,
+                                      0,
+                                      1,
+                                      binding.type,
+                                      &vk_descriptor_image_infos_.last(),
+                                      nullptr,
+                                      nullptr});
   }
 
   const VKDevice &device = VKBackend::get().device;
-  vkUpdateDescriptorSets(
-      device.vk_handle(), descriptor_writes.size(), descriptor_writes.data(), 0, nullptr);
+  vkUpdateDescriptorSets(device.vk_handle(),
+                         vk_write_descriptor_sets_.size(),
+                         vk_write_descriptor_sets_.data(),
+                         0,
+                         nullptr);
 
   bindings_.clear();
+  vk_descriptor_image_infos_.clear();
+  vk_descriptor_buffer_infos_.clear();
+  vk_write_descriptor_sets_.clear();
 }
 
 std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext &context)

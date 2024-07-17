@@ -113,6 +113,10 @@ class VKDescriptorSet : NonCopyable {
 class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
   friend class VKDescriptorSet;
 
+  Vector<VkDescriptorBufferInfo> vk_descriptor_buffer_infos_;
+  Vector<VkDescriptorImageInfo> vk_descriptor_image_infos_;
+  Vector<VkWriteDescriptorSet> vk_write_descriptor_sets_;
+
  public:
   struct Binding {
     VKDescriptorSet::Location location;
