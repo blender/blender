@@ -37,12 +37,21 @@ Sphinx: PDF generation
     make
 """
 
+import os
+import sys
+import inspect
+import shutil
+import logging
+import warnings
+
+from textwrap import indent
+
+
 try:
     import bpy  # Blender module.
 except ImportError:
     print("\nERROR: this script must run from inside Blender")
     print(__doc__)
-    import sys
     sys.exit()
 
 import rna_info  # Blender module.
@@ -56,15 +65,6 @@ def rna_info_BuildRNAInfo_cache():
 
 rna_info_BuildRNAInfo_cache.ret = None
 # --- end rna_info cache
-
-import os
-import sys
-import inspect
-import shutil
-import logging
-import warnings
-
-from textwrap import indent
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -648,12 +648,11 @@ def range_str(val):
     """
     if val < -10000000:
         return "-inf"
-    elif val > 10000000:
+    if val > 10000000:
         return "inf"
-    elif type(val) == float:
+    if type(val) == float:
         return "{:g}".format(val)
-    else:
-        return str(val)
+    return str(val)
 
 
 def example_extract_docstring(filepath):
@@ -699,8 +698,7 @@ def title_string(text, heading_char, double=False):
 
     if double:
         return "{:s}\n{:s}\n{:s}\n\n".format(filler, text, filler)
-    else:
-        return "{:s}\n{:s}\n\n".format(text, filler)
+    return "{:s}\n{:s}\n\n".format(text, filler)
 
 
 def write_example_ref(ident, fw, example_id, ext="py"):
@@ -1293,8 +1291,8 @@ def pycontext2sphinx(basepath):
     fw("\n")
     fw("The context members available depend on the area of Blender which is currently being accessed.\n")
     fw("\n")
-    fw("Note that all context values are readonly,\n")
-    fw("but may be modified through the data API or by running operators\n\n")
+    fw("Note that all context values are read-only,\n")
+    fw("but may be modified through the data API or by running operators.\n\n")
 
     # Track all unique properties to properly use `noindex`.
     unique = set()
@@ -1375,19 +1373,13 @@ def pycontext2sphinx(basepath):
                 fw("   :noindex:\n")
             fw("\n")
 
-            try:
-                member_types = context_type_map[member]
-            except KeyError:
+            if (member_types := context_type_map.get(member)) is None:
                 raise SystemExit(
                     "Error: context key {!r} not found in context_type_map; update {:s}".format(member, __file__)
                 ) from None
-
             if len(member_types) == 0:
                 raise SystemExit(
-                    "Error: context key {!r} must have more than 1 item in context_type_map; update {:s}".format(
-                        member,
-                        __file__,
-                    ),
+                    "Error: context key {!r} empty in context_type_map; update {:s}".format(member, __file__)
                 )
 
             type_strs = []
@@ -1452,8 +1444,7 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
             )
             for identifier, name, description in prop.enum_items
         ])
-    else:
-        return ""
+    return ""
 
 
 def pyrna2sphinx(basepath):
