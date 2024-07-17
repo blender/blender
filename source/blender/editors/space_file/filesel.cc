@@ -457,7 +457,6 @@ void fileselect_refresh_params(SpaceFile *sfile)
   if (asset_params) {
     fileselect_refresh_asset_params(asset_params);
   }
-  ED_fileselect_set_params_from_userdef(sfile);
 }
 
 bool ED_fileselect_is_file_browser(const SpaceFile *sfile)
