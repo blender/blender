@@ -5863,8 +5863,6 @@ static void sculpt_stroke_update_step(bContext *C,
   if ((ELEM(brush.sculpt_tool,
             SCULPT_TOOL_BOUNDARY,
             SCULPT_TOOL_CLOTH,
-            SCULPT_TOOL_MASK,
-            SCULPT_TOOL_PAINT,
             SCULPT_TOOL_POSE,
             SCULPT_TOOL_SMOOTH) ||
        BKE_pbvh_type(*ss.pbvh) != PBVH_FACES))
