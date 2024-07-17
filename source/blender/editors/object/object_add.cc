@@ -1299,6 +1299,11 @@ static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_FINISHED;
 }
 
+static bool object_image_add_poll(bContext *C)
+{
+  return ED_operator_objectmode(C) && CTX_wm_region_view3d(C);
+}
+
 void OBJECT_OT_empty_image_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1309,7 +1314,7 @@ void OBJECT_OT_empty_image_add(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = object_image_add_invoke;
   ot->exec = object_image_add_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = object_image_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
