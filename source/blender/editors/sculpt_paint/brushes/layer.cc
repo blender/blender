@@ -356,11 +356,6 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  if (ss.cache->layer_displacement_factor.is_empty()) {
-    ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
-  }
-  const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
-
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES: {
@@ -418,7 +413,11 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       persistent_disp_attr.finish();
       break;
     }
-    case PBVH_GRIDS:
+    case PBVH_GRIDS: {
+      if (ss.cache->layer_displacement_factor.is_empty()) {
+        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+      }
+      const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -426,7 +425,12 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
         }
       });
       break;
-    case PBVH_BMESH:
+    }
+    case PBVH_BMESH: {
+      if (ss.cache->layer_displacement_factor.is_empty()) {
+        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+      }
+      const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -434,6 +438,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
         }
       });
       break;
+    }
   }
 }
 
