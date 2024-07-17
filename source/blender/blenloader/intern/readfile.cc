@@ -4457,14 +4457,13 @@ static void read_library_linked_ids(FileData *basefd,
                                     ListBase *mainlist,
                                     Main *mainvar)
 {
-  GHash *loaded_ids = BLI_ghash_str_new(__func__);
+  blender::Map<std::string, ID *> loaded_ids;
 
   ListBase *lbarray[INDEX_ID_MAX];
   int a = set_listbasepointers(mainvar, lbarray);
 
   while (a--) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
-    ListBase pending_free_ids = {nullptr};
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
@@ -4478,9 +4477,10 @@ static void read_library_linked_ids(FileData *basefd,
          * you have more than one linked ID of the same data-block from same
          * library. This is absolutely horrible, hence we use a ghash to ensure
          * we go back to a single linked data when loading the file. */
-        ID **realid = nullptr;
-        if (!BLI_ghash_ensure_p(loaded_ids, id->name, (void ***)&realid)) {
-          read_library_linked_id(basefd, fd, mainvar, id, realid);
+        ID *realid = loaded_ids.lookup_default(id->name, nullptr);
+        if (!realid) {
+          read_library_linked_id(basefd, fd, mainvar, id, &realid);
+          loaded_ids.add_overwrite(id->name, realid);
         }
 
         /* `realid` shall never be nullptr - unless some source file/lib is broken
@@ -4490,21 +4490,15 @@ static void read_library_linked_ids(FileData *basefd,
         /* Now that we have a real ID, replace all pointers to placeholders in
          * fd->libmap with pointers to the real data-blocks. We do this for all
          * libraries since multiple might be referencing this ID. */
-        change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, *realid);
+        change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, realid);
 
-        /* We cannot free old lib-ref placeholder ID here anymore, since we use
-         * its name as key in loaded_ids hash. */
-        BLI_addtail(&pending_free_ids, id);
+        MEM_freeN(id);
       }
       id = id_next;
     }
 
-    /* Clear GHash and free link placeholder IDs of the current type. */
-    BLI_ghash_clear(loaded_ids, nullptr, nullptr);
-    BLI_freelistN(&pending_free_ids);
+    loaded_ids.clear();
   }
-
-  BLI_ghash_free(loaded_ids, nullptr, nullptr);
 }
 
 static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, Main *mainvar)
