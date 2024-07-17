@@ -1915,8 +1915,14 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     valid_setup_ = true;
   }
 
+  if (valid_setup_ == false) {
+    /* Don't attempt to setup the window if there is no context.
+     * This window is considered invalid and will be removed. */
+  }
+  else
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
+      if (use_libdecor)
+  {
     /* Commit needed so the top-level callbacks run (and `toplevel` can be accessed). */
     wl_surface_commit(window_->wl.surface);
     GWL_LibDecor_Window &decor = *window_->libdecor;
