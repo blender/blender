@@ -357,8 +357,10 @@ static void seq_view_collection_rect_timeline(const bContext *C,
     float timeline_ymax = box.ymax;
 
     if (orig_height > timeline_ymax - timeline_ymin) {
-      /* Do nothing, we can't align the viewport any better if we
-       * are zoomed out further than the current timeline bounds. */
+      /* Only apply the x axis movement, we can't align the viewport any better
+       * on the y-axis if we are zoomed out further than the current timeline bounds. */
+      rect->xmin = new_viewport.xmin;
+      rect->xmax = new_viewport.xmax;
       return;
     }
 
