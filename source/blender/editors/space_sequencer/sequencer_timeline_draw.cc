@@ -1043,30 +1043,27 @@ static void draw_strip_offsets(TimelineDrawContext *timeline_ctx,
   UI_GetColorPtrShade3ubv(col, blend_col, 10);
   blend_col[3] = 255;
 
-  const int strip_start = SEQ_time_start_frame_get(seq);
-  const int strip_end = SEQ_time_content_end_frame_get(scene, seq);
-
-  if (strip_ctx->left_handle > strip_start) {
-    timeline_ctx->quads->add_quad(strip_start,
+  if (strip_ctx->left_handle > strip_ctx->content_start) {
+    timeline_ctx->quads->add_quad(strip_ctx->left_handle,
                                   strip_ctx->bottom - timeline_ctx->pixely,
                                   strip_ctx->content_start,
                                   strip_ctx->bottom - SEQ_STRIP_OFSBOTTOM,
                                   col);
-    timeline_ctx->quads->add_wire_quad(strip_start,
+    timeline_ctx->quads->add_wire_quad(strip_ctx->left_handle,
                                        strip_ctx->bottom - timeline_ctx->pixely,
                                        strip_ctx->content_start,
                                        strip_ctx->bottom - SEQ_STRIP_OFSBOTTOM,
                                        blend_col);
   }
-  if (strip_ctx->right_handle < strip_end) {
+  if (strip_ctx->right_handle < strip_ctx->content_end) {
     timeline_ctx->quads->add_quad(strip_ctx->right_handle,
                                   strip_ctx->top + timeline_ctx->pixely,
-                                  strip_end,
+                                  strip_ctx->content_end,
                                   strip_ctx->top + SEQ_STRIP_OFSBOTTOM,
                                   col);
     timeline_ctx->quads->add_wire_quad(strip_ctx->right_handle,
                                        strip_ctx->top + timeline_ctx->pixely,
-                                       strip_end,
+                                       strip_ctx->content_end,
                                        strip_ctx->top + SEQ_STRIP_OFSBOTTOM,
                                        blend_col);
   }
