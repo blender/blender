@@ -505,6 +505,10 @@ struct EraseOperationExecutor {
     Paint *paint = &scene->toolsettings->gp_paint->paint;
     Brush *brush = BKE_paint_brush(paint);
 
+    if (brush->gpencil_tool == GPAINT_TOOL_DRAW) {
+      brush = BKE_paint_eraser_brush(paint);
+    }
+
     /* Get the tool's data. */
     this->mouse_position = extension_sample.mouse_position;
     this->eraser_radius = self.radius_;
@@ -605,7 +609,7 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
 {
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
-  if (brush->gpencil_tool != GPAINT_TOOL_DRAW) {
+  if (brush->gpencil_tool == GPAINT_TOOL_DRAW) {
     /* If we're using the draw tool to erase (e.g. while holding ctrl), then we should use the
      * eraser brush instead. */
     brush = BKE_paint_eraser_brush(paint);
