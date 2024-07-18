@@ -34,9 +34,7 @@ OneapiDeviceQueue::~OneapiDeviceQueue()
 
 int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  const int max_num_threads = oneapi_device_->get_num_multiprocessors() *
-                              oneapi_device_->get_max_num_threads_per_multiprocessor();
-  int num_states = max(8 * max_num_threads, 65536) * 16;
+  int num_states = 4 * num_concurrent_busy_states(state_size);
 
   VLOG_DEVICE_STATS << "GPU queue concurrent states: " << num_states << ", using up to "
                     << string_human_readable_size(num_states * state_size);
