@@ -148,7 +148,6 @@ static void file_init(wmWindowManager * /*wm*/, ScrArea *area)
   }
   /* Validate the params right after file read. */
   fileselect_refresh_params(sfile);
-  ED_fileselect_set_params_from_userdef(sfile);
 }
 
 static void file_exit(wmWindowManager *wm, ScrArea *area)
