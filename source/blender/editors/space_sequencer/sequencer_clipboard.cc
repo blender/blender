@@ -62,7 +62,7 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 
-using namespace blender::bke;
+using namespace blender::bke::blendfile;
 
 /* -------------------------------------------------------------------- */
 /* Copy Operator Helper functions
@@ -121,15 +121,12 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   /* NOTE: Setting the same current file path as G_MAIN is necessary for now to get correct
    * external filepaths when writing the partial write context on disk. otherwise, filepaths from
    * the scene's sequencer strips (e.g. image ones) would also need to be remapped in this code. */
-  blendfile::PartialWriteContext copy_buffer{bmain_src->filepath};
+  PartialWriteContext copy_buffer{bmain_src->filepath};
   const char *scene_name = "copybuffer_vse_scene";
 
   /* Add a dummy empty scene to the temporary Main copy buffer. */
-  Scene *scene_dst = reinterpret_cast<Scene *>(
-      copy_buffer.id_create(ID_SCE,
-                            scene_name,
-                            nullptr,
-                            {blendfile::PartialWriteContext::IDAddOperations::SET_FAKE_USER}));
+  Scene *scene_dst = reinterpret_cast<Scene *>(copy_buffer.id_create(
+      ID_SCE, scene_name, nullptr, {PartialWriteContext::IDAddOperations::SET_FAKE_USER}));
   scene_dst->id.flag |= LIB_CLIPBOARD_MARK;
 
   /* Create an empty sequence editor data to store all copied strips. */
@@ -162,11 +159,8 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   if (!BLI_listbase_is_empty(&fcurves_dst) || !BLI_listbase_is_empty(&drivers_dst)) {
     BLI_assert(scene_dst->adt == nullptr);
     scene_dst->adt = BKE_animdata_ensure_id(&scene_dst->id);
-    scene_dst->adt->action = reinterpret_cast<bAction *>(
-        copy_buffer.id_create(ID_AC,
-                              scene_name,
-                              nullptr,
-                              {blendfile::PartialWriteContext::IDAddOperations::SET_FAKE_USER}));
+    scene_dst->adt->action = reinterpret_cast<bAction *>(copy_buffer.id_create(
+        ID_AC, scene_name, nullptr, {PartialWriteContext::IDAddOperations::SET_FAKE_USER}));
     BLI_movelisttolist(&scene_dst->adt->action->curves, &fcurves_dst);
     BLI_movelisttolist(&scene_dst->adt->drivers, &drivers_dst);
   }
@@ -213,21 +207,20 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
       /* The partial write context handle dependencies of ID added to it. This callback will tell
        * it whether a given dependency ID should be skipped/cleared, or also added in the context.
        */
-      auto partial_write_dependencies_filter_cb =
-          [](LibraryIDLinkCallbackData *cb_deps_data,
-             blendfile::PartialWriteContext::IDAddOptions /*options*/)
-          -> blendfile::PartialWriteContext::IDAddOperations {
+      auto partial_write_dependencies_filter_cb = [](LibraryIDLinkCallbackData *cb_deps_data,
+                                                     PartialWriteContext::IDAddOptions /*options*/)
+          -> PartialWriteContext::IDAddOperations {
         ID *id_deps_src = *cb_deps_data->id_pointer;
         const ID_Type id_type = GS((id_deps_src)->name);
         if (ELEM(id_type, VSE_COPYBUFFER_IDTYPES) ||
             (cb_deps_data->cb_flag & IDWALK_CB_NEVER_NULL))
         {
-          return blendfile::PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES;
+          return PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES;
         }
-        return blendfile::PartialWriteContext::IDAddOperations::CLEAR_DEPENDENCIES;
+        return PartialWriteContext::IDAddOperations::CLEAR_DEPENDENCIES;
       };
       id_dst = copy_buffer.id_add(id_src,
-                                  {blendfile::PartialWriteContext::IDAddOperations::NOP},
+                                  {PartialWriteContext::IDAddOperations::NOP},
                                   partial_write_dependencies_filter_cb);
     }
     *cb_data->id_pointer = id_dst;
