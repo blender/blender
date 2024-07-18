@@ -7469,6 +7469,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Multi-Slot Actions",
       "The new 'layered' Action can contain the animation for multiple data-blocks at once");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "use_docking", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Interactive Editor Docking",
+                           "Move editor areas to new locations, including between windows");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
