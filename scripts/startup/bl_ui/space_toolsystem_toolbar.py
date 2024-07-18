@@ -1442,6 +1442,7 @@ class _defs_sculpt:
             label="Box Mask",
             icon="ops.sculpt.border_mask",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1467,6 +1468,7 @@ class _defs_sculpt:
             label="Lasso Mask",
             icon="ops.sculpt.lasso_mask",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1483,6 +1485,7 @@ class _defs_sculpt:
             label="Line Mask",
             icon="ops.sculpt.line_mask",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1498,6 +1501,7 @@ class _defs_sculpt:
             label="Polyline Mask",
             icon="ops.sculpt.polyline_mask",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1513,6 +1517,7 @@ class _defs_sculpt:
             label="Box Hide",
             icon="ops.sculpt.border_hide",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1538,6 +1543,7 @@ class _defs_sculpt:
             label="Lasso Hide",
             icon="ops.sculpt.lasso_hide",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1553,6 +1559,7 @@ class _defs_sculpt:
             label="Line Hide",
             icon="ops.sculpt.line_hide",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1568,6 +1575,7 @@ class _defs_sculpt:
             label="Polyline Hide",
             icon="ops.sculpt.polyline_hide",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1583,6 +1591,7 @@ class _defs_sculpt:
             label="Box Face Set",
             icon="ops.sculpt.border_face_set",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1608,6 +1617,7 @@ class _defs_sculpt:
             label="Lasso Face Set",
             icon="ops.sculpt.lasso_face_set",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1624,6 +1634,7 @@ class _defs_sculpt:
             label="Line Face Set",
             icon="ops.sculpt.line_face_set",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1639,6 +1650,7 @@ class _defs_sculpt:
             label="Polyline Face Set",
             icon="ops.sculpt.polyline_face_set",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1738,6 +1750,7 @@ class _defs_sculpt:
             label="Line Project",
             icon="ops.sculpt.line_project",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1823,6 +1836,7 @@ class _defs_sculpt:
             label="Mask by Color",
             icon="ops.sculpt.mask_by_color",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap=(),
             draw_settings=draw_settings,
         )
@@ -1839,6 +1853,7 @@ class _defs_sculpt:
             label="Edit Face Set",
             icon="ops.sculpt.face_set_edit",
             widget=None,
+            cursor='PAINT_CROSS',
             keymap="3D View Tool: Sculpt, Face Set Edit",
             draw_settings=draw_settings,
         )
