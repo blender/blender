@@ -1863,9 +1863,6 @@ ID *PartialWriteContext::id_add(
                           &ids_to_process,
                           &post_process_ids_todo,
                           dependencies_filter_cb](LibraryIDLinkCallbackData *cb_data) -> int {
-    constexpr PartialWriteContext::IDAddOperations per_id_operations_filter =
-        PartialWriteContext::IDAddOperations(MAKE_LOCAL | SET_FAKE_USER | SET_CLIPBOARD_MARK |
-                                             CLEAR_DEPENDENCIES | ADD_DEPENDENCIES);
     ID **id_ptr = cb_data->id_pointer;
     const ID *orig_deps_id = *id_ptr;
 
@@ -1882,13 +1879,13 @@ ID *PartialWriteContext::id_add(
       return IDWALK_RET_NOP;
     }
 
-    PartialWriteContext::IDAddOperations operations_final = options.operations;
+    PartialWriteContext::IDAddOperations operations_final = PartialWriteContext::IDAddOperations(
+        options.operations & MASK_INHERITED);
     if (dependencies_filter_cb) {
       const PartialWriteContext::IDAddOperations operations_per_id = dependencies_filter_cb(
           cb_data, options);
       operations_final = PartialWriteContext::IDAddOperations(
-          (operations_per_id & per_id_operations_filter) |
-          (options.operations & ~per_id_operations_filter));
+          (operations_per_id & MASK_PER_ID_USAGE) | (operations_final & ~MASK_PER_ID_USAGE));
     }
 
     const bool add_dependencies = (operations_final & ADD_DEPENDENCIES) != 0;

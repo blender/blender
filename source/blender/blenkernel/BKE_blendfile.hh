@@ -247,6 +247,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
      * data for a 'paste ID' operation.
      */
     SET_CLIPBOARD_MARK = 1 << 4,
+
     /**
      * Clear all dependency IDs that are not in the partial write context. Mutually exclusive with
      * #ADD_DEPENDENCIES.
@@ -269,6 +270,21 @@ class PartialWriteContext : NonCopyable, NonMovable {
      * than their source data.
      */
     DUPLICATE_DEPENDENCIES = 1 << 10,
+
+    /**
+     * Operation flags that are (by default) inherited by all dependencies.
+     *
+     * \note This will be (partially) superceeded by masked-out values from #MASK_PER_ID_USAGES
+     * below.
+     */
+    MASK_INHERITED = (MAKE_LOCAL | CLEAR_DEPENDENCIES | ADD_DEPENDENCIES | DUPLICATE_DEPENDENCIES),
+    /**
+     * Operation flags that are defined by the #dependencies_filter_cb callback, if given.
+     *
+     * \note This mask is applied on top of the filter from #MASK_INHERITED, for ID dependencies
+     * of explicitely added data. */
+    MASK_PER_ID_USAGE = (MAKE_LOCAL | SET_FAKE_USER | SET_CLIPBOARD_MARK | CLEAR_DEPENDENCIES |
+                         ADD_DEPENDENCIES),
   };
   /**
    * Options passed to the #id_add method.
@@ -285,9 +301,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * \param options: Control how the added ID (and its dependencies) are handled. See
    *                 #IDAddOptions and #IDAddOperations above for details.
    * \param dependencies_filter_cb: Optional, a callback called for each ID usages. Currently, only
-   *                                accepted return values are #MAKE_LOCAL, #SET_FAKE_USER,
-   *                                #SET_CLIPBOARD_MARK, and #ADD_DEPENDENCIES or
-   *                                #CLEAR_DEPENDENCIES.
+   *                                accepted return values are the ones included in
+   *                                #MASK_PER_ID_USAGE.
    *
    * \return The pointer to the duplicated ID in the partial write context.
    */
