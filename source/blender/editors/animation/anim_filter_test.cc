@@ -85,8 +85,10 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   ASSERT_EQ(SingleKeyingResult::SUCCESS,
             key_strip.keyframe_insert(bind_suzanne, {"location", 1}, {1.0f, 0.25f}, settings));
 
-  FCurve *fcu_cube_loc_x = key_strip.fcurve_find(bind_cube, {"location", 0});
-  FCurve *fcu_cube_loc_y = key_strip.fcurve_find(bind_cube, {"location", 1});
+  ChannelBag *cube_channel_bag = key_strip.channelbag_for_slot(bind_cube);
+  ASSERT_NE(nullptr, cube_channel_bag);
+  FCurve *fcu_cube_loc_x = cube_channel_bag->fcurve_find({"location", 0});
+  FCurve *fcu_cube_loc_y = cube_channel_bag->fcurve_find({"location", 1});
   ASSERT_NE(nullptr, fcu_cube_loc_x);
   ASSERT_NE(nullptr, fcu_cube_loc_y);
 
@@ -237,9 +239,11 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   /* Set one F-Curve as the active one, and the other as inactive. The latter is necessary because
    * by default the first curve is automatically marked active, but that's too trivial a test case
    * (it's too easy to mistakenly just return the first-seen F-Curve). */
-  FCurve *fcurve_active = key_strip.fcurve_find(bind_cube, {"location", 1});
+  ChannelBag *cube_channel_bag = key_strip.channelbag_for_slot(bind_cube);
+  ASSERT_NE(nullptr, cube_channel_bag);
+  FCurve *fcurve_active = cube_channel_bag->fcurve_find({"location", 1});
   fcurve_active->flag |= FCURVE_ACTIVE;
-  FCurve *fcurve_other = key_strip.fcurve_find(bind_cube, {"location", 0});
+  FCurve *fcurve_other = cube_channel_bag->fcurve_find({"location", 0});
   fcurve_other->flag &= ~FCURVE_ACTIVE;
 
   /* Mock an bAnimContext for the Action editor. */

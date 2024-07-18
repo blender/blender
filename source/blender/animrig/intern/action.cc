@@ -1081,6 +1081,15 @@ ChannelBag &KeyframeStrip::channelbag_for_slot_add(const Slot &slot)
   return channels;
 }
 
+ChannelBag &KeyframeStrip::channelbag_for_slot_ensure(const Slot &slot)
+{
+  ChannelBag *channel_bag = this->channelbag_for_slot(slot);
+  if (channel_bag != nullptr) {
+    return *channel_bag;
+  }
+  return this->channelbag_for_slot_add(slot);
+}
+
 static void channelbag_ptr_destructor(ActionChannelBag **dna_channelbag_ptr)
 {
   ChannelBag &channelbag = (*dna_channelbag_ptr)->wrap();
@@ -1103,47 +1112,31 @@ bool KeyframeStrip::channelbag_remove(ChannelBag &channelbag_to_remove)
   return true;
 }
 
-FCurve *KeyframeStrip::fcurve_find(const Slot &slot, const FCurveDescriptor fcurve_descriptor)
+const FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor) const
 {
-  ChannelBag *channels = this->channelbag_for_slot(slot);
-  if (channels == nullptr) {
-    return nullptr;
-  }
-
-  /* Copy of the logic in BKE_fcurve_find(), but then compatible with our array-of-FCurves
-   * instead of ListBase. */
-
-  for (FCurve *fcu : channels->fcurves()) {
-    /* Check indices first, much cheaper than a string comparison. */
-    /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu->array_index == fcurve_descriptor.array_index && fcu->rna_path &&
-        StringRef(fcu->rna_path) == fcurve_descriptor.rna_path)
-    {
-      return fcu;
-    }
-  }
-  return nullptr;
+  return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
 }
 
-FCurve &KeyframeStrip::fcurve_find_or_create(const Slot &slot,
-                                             const FCurveDescriptor fcurve_descriptor)
+FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor)
 {
-  if (FCurve *existing_fcurve = this->fcurve_find(slot, fcurve_descriptor)) {
+  /* Intermediate variable needed to disambiguate const/non-const overloads. */
+  Span<FCurve *> fcurves = this->fcurves();
+  return animrig::fcurve_find(fcurves, fcurve_descriptor);
+}
+
+FCurve &ChannelBag::fcurve_ensure(const FCurveDescriptor fcurve_descriptor)
+{
+  if (FCurve *existing_fcurve = this->fcurve_find(fcurve_descriptor)) {
     return *existing_fcurve;
   }
 
   FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
-  ChannelBag *channels = this->channelbag_for_slot(slot);
-  if (channels == nullptr) {
-    channels = &this->channelbag_for_slot_add(slot);
-  }
-
-  if (channels->fcurve_array_num == 0) {
+  if (this->fcurve_array_num == 0) {
     new_fcurve->flag |= FCURVE_ACTIVE; /* First curve is added active. */
   }
 
-  grow_array_and_append(&channels->fcurve_array, &channels->fcurve_array_num, new_fcurve);
+  grow_array_and_append(&this->fcurve_array, &this->fcurve_array_num, new_fcurve);
   return *new_fcurve;
 }
 
@@ -1155,9 +1148,17 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Slot &slot,
 {
   /* Get the fcurve, or create one if it doesn't exist and the keying flags
    * allow. */
-  FCurve *fcurve = key_insertion_may_create_fcurve(insert_key_flags) ?
-                       &this->fcurve_find_or_create(slot, fcurve_descriptor) :
-                       this->fcurve_find(slot, fcurve_descriptor);
+  FCurve *fcurve = nullptr;
+  if (key_insertion_may_create_fcurve(insert_key_flags)) {
+    fcurve = &this->channelbag_for_slot_ensure(slot).fcurve_ensure(fcurve_descriptor);
+  }
+  else {
+    ChannelBag *channels = this->channelbag_for_slot(slot);
+    if (channels != nullptr) {
+      fcurve = channels->fcurve_find(fcurve_descriptor);
+    }
+  }
+
   if (!fcurve) {
     std::fprintf(stderr,
                  "FCurve %s[%d] for slot %s was not created due to either the Only Insert "
@@ -1231,11 +1232,6 @@ const FCurve *ChannelBag::fcurve(const int64_t index) const
 FCurve *ChannelBag::fcurve(const int64_t index)
 {
   return this->fcurve_array[index];
-}
-
-const FCurve *ChannelBag::fcurve_find(const StringRefNull rna_path, const int array_index) const
-{
-  return animrig::fcurve_find(this->fcurves(), {rna_path, array_index});
 }
 
 /* Utility function implementations. */
@@ -1407,7 +1403,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
     assert_baklava_phase_1_invariants(action);
     KeyframeStrip &strip = action.layer(0)->strip(0)->as<KeyframeStrip>();
 
-    return &strip.fcurve_find_or_create(slot, fcurve_descriptor);
+    return &strip.channelbag_for_slot_ensure(slot).fcurve_ensure(fcurve_descriptor);
   }
 
   /* Try to find f-curve matching for this setting.

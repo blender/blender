@@ -659,6 +659,11 @@ class KeyframeStrip : public ::KeyframeActionStrip {
   ChannelBag &channelbag_for_slot_add(const Slot &slot);
 
   /**
+   * Find the ChannelBag for `slot`, or if none exists, create it.
+   */
+  ChannelBag &channelbag_for_slot_ensure(const Slot &slot);
+
+  /**
    * Remove the ChannelBag from this slot.
    *
    * After this call the reference is no longer valid, as the memory will have been freed.
@@ -669,23 +674,6 @@ class KeyframeStrip : public ::KeyframeActionStrip {
 
   /** Return the channelbag's index, or -1 if there is none for this slot handle. */
   int64_t find_channelbag_index(const ChannelBag &channelbag) const;
-
-  /**
-   * Find an FCurve for this slot + RNA path + array index combination.
-   *
-   * If it cannot be found, `nullptr` is returned.
-   */
-  FCurve *fcurve_find(const Slot &slot, FCurveDescriptor fcurve_descriptor);
-
-  /**
-   * Find an FCurve for this slot + RNA path + array index combination.
-   *
-   * If it cannot be found, a new one is created.
-   *
-   * \param `prop_subtype` The subtype of the property this fcurve is for, if
-   * available.
-   */
-  FCurve &fcurve_find_or_create(const Slot &slot, FCurveDescriptor fcurve_descriptor);
 
   SingleKeyingResult keyframe_insert(const Slot &slot,
                                      FCurveDescriptor fcurve_descriptor,
@@ -714,7 +702,19 @@ class ChannelBag : public ::ActionChannelBag {
   const FCurve *fcurve(int64_t index) const;
   FCurve *fcurve(int64_t index);
 
-  const FCurve *fcurve_find(StringRefNull rna_path, int array_index) const;
+  /**
+   * Find an FCurve matching the fcurve descriptor.
+   *
+   * If it cannot be found, `nullptr` is returned.
+   */
+  const FCurve *fcurve_find(FCurveDescriptor fcurve_descriptor) const;
+  FCurve *fcurve_find(FCurveDescriptor fcurve_descriptor);
+
+  /**
+   * Find an FCurve matching the fcurve descriptor, or create one if it doesn't
+   * exist.
+   */
+  FCurve &fcurve_ensure(FCurveDescriptor fcurve_descriptor);
 };
 static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
               "DNA struct and its C++ wrapper must have the same size");

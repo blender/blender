@@ -222,7 +222,7 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
           if (!channelbag_for_slot) {
             continue;
           }
-          const FCurve *fcu = channelbag_for_slot->fcurve_find(rna_path, array_index);
+          const FCurve *fcu = channelbag_for_slot->fcurve_find({rna_path, array_index});
           if (!fcu) {
             continue;
           }

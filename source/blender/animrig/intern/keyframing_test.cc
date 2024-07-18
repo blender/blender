@@ -177,7 +177,7 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__non_array_property)
 
   /* The fcurves in the channel bag are what we expect. */
   EXPECT_EQ(1, channel_bag->fcurves().size());
-  const FCurve *fcurve = channel_bag->fcurve_find("empty_display_size", 0);
+  const FCurve *fcurve = channel_bag->fcurve_find({"empty_display_size", 0});
   ASSERT_NE(nullptr, fcurve);
   ASSERT_NE(nullptr, fcurve->bezt);
   EXPECT_EQ(1, fcurve->totvert);
@@ -248,7 +248,7 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__single_element)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   EXPECT_EQ(1, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 0));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 0}));
 }
 
 /* Keying all elements of an array property. */
@@ -281,9 +281,9 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__all_elements)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   EXPECT_EQ(3, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 0));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 1));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 2));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 0}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 1}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 2}));
 }
 
 /* Keying a pose bone from its own RNA pointer. */
@@ -319,7 +319,7 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__pose_bone_rna_pointer)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   EXPECT_EQ(1, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("pose.bones[\"Bone\"].rotation_euler", 0));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"pose.bones[\"Bone\"].rotation_euler", 0}));
 }
 
 /* Keying a pose bone from its owning ID's RNA pointer. */
@@ -353,7 +353,7 @@ TEST_F(KeyframingTest, insert_keyframes__pose_bone_owner_id_pointer)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   EXPECT_EQ(1, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("pose.bones[\"Bone\"].rotation_euler", 0));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"pose.bones[\"Bone\"].rotation_euler", 0}));
 }
 
 /* Keying multiple elements of multiple properties at once. */
@@ -391,12 +391,12 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_properties)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   EXPECT_EQ(6, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("empty_display_size", 0));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("location", 0));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("location", 1));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("location", 2));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 0));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 2));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"empty_display_size", 0}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"location", 0}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"location", 1}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"location", 2}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 0}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 2}));
 }
 
 /* Keying more than one ID on the same action. */
@@ -577,8 +577,8 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_available)
 
   EXPECT_EQ(2, result_3.get_count(SingleKeyingResult::SUCCESS));
   EXPECT_EQ(2, channel_bag->fcurves().size());
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 0));
-  EXPECT_NE(nullptr, channel_bag->fcurve_find("rotation_euler", 2));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 0}));
+  EXPECT_NE(nullptr, channel_bag->fcurve_find({"rotation_euler", 2}));
 }
 
 /* Keying with the "Only Replace" flag. */
@@ -629,8 +629,8 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_replace)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   ASSERT_EQ(2, channel_bag->fcurves().size());
-  const FCurve *fcurve_x = channel_bag->fcurve_find("rotation_euler", 0);
-  const FCurve *fcurve_z = channel_bag->fcurve_find("rotation_euler", 2);
+  const FCurve *fcurve_x = channel_bag->fcurve_find({"rotation_euler", 0});
+  const FCurve *fcurve_z = channel_bag->fcurve_find({"rotation_euler", 2});
   EXPECT_EQ(1, fcurve_x->totvert);
   EXPECT_EQ(1, fcurve_z->totvert);
   EXPECT_EQ(1.0, fcurve_x->bezt[0].vec[1][0]);
@@ -710,9 +710,9 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_needed)
   ChannelBag *channel_bag = strip->channelbag(0);
 
   ASSERT_EQ(3, channel_bag->fcurves().size());
-  const FCurve *fcurve_x = channel_bag->fcurve_find("rotation_euler", 0);
-  const FCurve *fcurve_y = channel_bag->fcurve_find("rotation_euler", 1);
-  const FCurve *fcurve_z = channel_bag->fcurve_find("rotation_euler", 2);
+  const FCurve *fcurve_x = channel_bag->fcurve_find({"rotation_euler", 0});
+  const FCurve *fcurve_y = channel_bag->fcurve_find({"rotation_euler", 1});
+  const FCurve *fcurve_z = channel_bag->fcurve_find({"rotation_euler", 2});
   EXPECT_EQ(1, fcurve_x->totvert);
   EXPECT_EQ(1, fcurve_y->totvert);
   EXPECT_EQ(1, fcurve_z->totvert);
