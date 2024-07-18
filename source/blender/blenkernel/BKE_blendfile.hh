@@ -204,36 +204,6 @@ class PartialWriteContext : NonCopyable, NonMovable {
   /** A mapping from the absolute library paths to the #Library IDs in the context. */
   blender::Map<std::string, Library *> libraries_map_;
 
-  /**
-   * In case an explicitly added ID has the same session_uid as an existing one in current
-   * context, the added one should be able to 'steal' that session_uid in the context, and
-   * re-assign a new one to the other ID.
-   */
-  void preempt_session_uid(ID *ctx_id, unsigned int session_uid);
-  /**
-   * Ensures that given ID will be written on disk (within current context).
-   *
-   * This is achieved either by setting the 'fake user' flag, or the (runtime-only, cleared on next
-   * file load) 'extra user' tag. */
-  void ensure_id_user(ID *ctx_id, bool set_fake_user);
-  /**
-   * Utils for #PartialWriteContext::id_add, only adds (duplicate) the given source ID into
-   * current context.
-   */
-  ID *id_add_copy(const ID *id, bool regenerate_session_uid);
-  /** Make given context ID local to the context. */
-  void make_local(ID *ctx_id, int make_local_flags);
-  /**
-   * Ensure that the given ID's library has a matching Library ID in the context, copying the
-   * current `ctx_id->lib` one if needed.
-   */
-  Library *ensure_library(ID *ctx_id);
-  /**
-   * Ensure that the given library path has a matching Library ID in the context, creating a new
-   * one if needed.
-   */
-  Library *ensure_library(StringRefNull library_absolute_path);
-
  public:
   /* Passing a reference root filepath is mandatory, for remapping of relative paths to work as
    * expected. */
@@ -268,10 +238,15 @@ class PartialWriteContext : NonCopyable, NonMovable {
      */
     MAKE_LOCAL = 1 << 0,
     /**
-     * Set the 'fake user' flag to added ID. Ensures that it is never auto-removed from the
+     * Set the 'fake user' flag to the added ID. Ensures that it is never auto-removed from the
      * context, and always written to disk.
      */
     SET_FAKE_USER = 1 << 1,
+    /**
+     * Set the 'clipboard' flag to the added ID. Ensures that it is treated as potential cource
+     * data for a 'paste ID' operation.
+     */
+    SET_CLIPBOARD_MARK = 1 << 4,
     /**
      * Clear all dependency IDs that are not in the partial write context. Mutually exclusive with
      * #ADD_DEPENDENCIES.
@@ -309,9 +284,10 @@ class PartialWriteContext : NonCopyable, NonMovable {
    *
    * \param options: Control how the added ID (and its dependencies) are handled. See
    *                 #IDAddOptions and #IDAddOperations above for details.
-   * \param dependencies_filter_cb: optional, a callback called for each ID usages. Currently, only
-   *                                accepted return values are #MAKE_LOCAL, #SET_FAKE_USER, and
-   *                                #ADD_DEPENDENCIES or #CLEAR_DEPENDENCIES.
+   * \param dependencies_filter_cb: Optional, a callback called for each ID usages. Currently, only
+   *                                accepted return values are #MAKE_LOCAL, #SET_FAKE_USER,
+   *                                #SET_CLIPBOARD_MARK, and #ADD_DEPENDENCIES or
+   *                                #CLEAR_DEPENDENCIES.
    *
    * \return The pointer to the duplicated ID in the partial write context.
    */
@@ -331,7 +307,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    *
    * \param options: Control how the added ID (and its dependencies) are handled. See
    *                 #IDAddOptions and #IDAddOperations above for details, note that only
-   *                 relevant operation currently is the #SET_FAKE_USER one.
+   *                 relevant operations currently are the #SET_FAKE_USER and #SET_CLIPBOARD_MARK
+   *                 ones.
    */
   ID *id_create(short id_type, StringRefNull id_name, Library *library, IDAddOptions options);
 
@@ -391,6 +368,38 @@ class PartialWriteContext : NonCopyable, NonMovable {
    *     loaded-from-disk temp context will have different root-path than the data from current
    *     G_MAIN.
    */
+
+ private:
+  /**
+   * In case an explicitly added ID has the same session_uid as an existing one in current
+   * context, the added one should be able to 'steal' that session_uid in the context, and
+   * re-assign a new one to the other ID.
+   */
+  void preempt_session_uid(ID *ctx_id, unsigned int session_uid);
+  /**
+   * Ensures that given ID will be written on disk (within current context), by either setting the
+   * 'fake user' flag, or the (runtime-only, cleared on next file load) 'extra user' tag, depending
+   * on whether #SET_FAKE_USER is set or not.
+   *
+   * Also handles the setting of the #LIB_CLIPBOARD_MARK flag if #SET_CLIPBOARD_MARK is set. */
+  void process_added_id(ID *ctx_id, const IDAddOperations operations);
+  /**
+   * Utils for #PartialWriteContext::id_add, only adds (duplicate) the given source ID into
+   * current context.
+   */
+  ID *id_add_copy(const ID *id, bool regenerate_session_uid);
+  /** Make given context ID local to the context. */
+  void make_local(ID *ctx_id, int make_local_flags);
+  /**
+   * Ensure that the given ID's library has a matching Library ID in the context, copying the
+   * current `ctx_id->lib` one if needed.
+   */
+  Library *ensure_library(ID *ctx_id);
+  /**
+   * Ensure that the given library path has a matching Library ID in the context, creating a new
+   * one if needed.
+   */
+  Library *ensure_library(StringRefNull library_absolute_path);
 };
 
 }  // namespace blender::bke::blendfile

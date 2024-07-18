@@ -1720,8 +1720,12 @@ void PartialWriteContext::preempt_session_uid(ID *ctx_id, uint session_uid)
   ctx_id->session_uid = session_uid;
 }
 
-void PartialWriteContext::ensure_id_user(ID *ctx_id, const bool set_fake_user)
+void PartialWriteContext::process_added_id(ID *ctx_id,
+                                           const PartialWriteContext::IDAddOperations operations)
 {
+  const bool set_fake_user = (operations & SET_FAKE_USER) != 0;
+  const bool set_clipboard_mark = (operations & SET_CLIPBOARD_MARK) != 0;
+
   if (set_fake_user) {
     id_fake_user_set(ctx_id);
   }
@@ -1729,6 +1733,10 @@ void PartialWriteContext::ensure_id_user(ID *ctx_id, const bool set_fake_user)
     /* NOTE: Using this tag will ensure that this ID is written on disk in current state (current
      * context session). However, reloading the blendfile will clear this tag. */
     id_us_ensure_real(ctx_id);
+  }
+
+  if (set_clipboard_mark) {
+    ctx_id->flag |= LIB_CLIPBOARD_MARK;
   }
 }
 
@@ -1810,11 +1818,10 @@ ID *PartialWriteContext::id_add(
   constexpr int make_local_flags = (LIB_ID_MAKELOCAL_INDIRECT | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                     LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR);
 
-  const bool set_fake_user = (options.operations & SET_FAKE_USER) != 0;
   const bool add_dependencies = (options.operations & ADD_DEPENDENCIES) != 0;
   const bool clear_dependencies = (options.operations & CLEAR_DEPENDENCIES) != 0;
   const bool duplicate_dependencies = (options.operations & DUPLICATE_DEPENDENCIES) != 0;
-  BLI_assert(clear_dependencies || add_dependencies);
+  BLI_assert(clear_dependencies || add_dependencies || dependencies_filter_cb);
   BLI_assert(!clear_dependencies || !(add_dependencies || duplicate_dependencies));
   UNUSED_VARS_NDEBUG(add_dependencies, clear_dependencies, duplicate_dependencies);
 
@@ -1829,7 +1836,7 @@ ID *PartialWriteContext::id_add(
     /* If the root orig ID is already in the context, assume all of its dependencies are as well.
      */
     BLI_assert(ctx_root_id->session_uid == id->session_uid);
-    this->ensure_id_user(ctx_root_id, set_fake_user);
+    this->process_added_id(ctx_root_id, options.operations);
     return ctx_root_id;
   }
 
@@ -1847,7 +1854,7 @@ ID *PartialWriteContext::id_add(
   BLI_assert(ctx_root_id->session_uid == id->session_uid);
   local_ctx_id_map.add(id, ctx_root_id);
   post_process_ids_todo.append({ctx_root_id, options.operations});
-  this->ensure_id_user(ctx_root_id, set_fake_user);
+  this->process_added_id(ctx_root_id, options.operations);
 
   blender::VectorSet<ID *> ids_to_process{ctx_root_id};
   auto dependencies_cb = [this,
@@ -1857,8 +1864,8 @@ ID *PartialWriteContext::id_add(
                           &post_process_ids_todo,
                           dependencies_filter_cb](LibraryIDLinkCallbackData *cb_data) -> int {
     constexpr PartialWriteContext::IDAddOperations per_id_operations_filter =
-        PartialWriteContext::IDAddOperations(MAKE_LOCAL | SET_FAKE_USER | CLEAR_DEPENDENCIES |
-                                             ADD_DEPENDENCIES);
+        PartialWriteContext::IDAddOperations(MAKE_LOCAL | SET_FAKE_USER | SET_CLIPBOARD_MARK |
+                                             CLEAR_DEPENDENCIES | ADD_DEPENDENCIES);
     ID **id_ptr = cb_data->id_pointer;
     const ID *orig_deps_id = *id_ptr;
 
@@ -1877,14 +1884,13 @@ ID *PartialWriteContext::id_add(
 
     PartialWriteContext::IDAddOperations operations_final = options.operations;
     if (dependencies_filter_cb) {
-      PartialWriteContext::IDAddOperations operations_per_id = dependencies_filter_cb(cb_data,
-                                                                                      options);
+      const PartialWriteContext::IDAddOperations operations_per_id = dependencies_filter_cb(
+          cb_data, options);
       operations_final = PartialWriteContext::IDAddOperations(
           (operations_per_id & per_id_operations_filter) |
           (options.operations & ~per_id_operations_filter));
     }
 
-    const bool set_fake_user = (operations_final & SET_FAKE_USER) != 0;
     const bool add_dependencies = (operations_final & ADD_DEPENDENCIES) != 0;
     const bool clear_dependencies = (operations_final & CLEAR_DEPENDENCIES) != 0;
     const bool duplicate_dependencies = (operations_final & DUPLICATE_DEPENDENCIES) != 0;
@@ -1941,7 +1947,7 @@ ID *PartialWriteContext::id_add(
     else {
       BLI_assert(ctx_deps_id->session_uid == orig_deps_id->session_uid);
     }
-    this->ensure_id_user(ctx_deps_id, set_fake_user);
+    this->process_added_id(ctx_deps_id, operations_final);
     /* In-place remapping. */
     *id_ptr = ctx_deps_id;
     return IDWALK_RET_NOP;
@@ -1973,8 +1979,6 @@ ID *PartialWriteContext::id_create(const short id_type,
                                    Library *library,
                                    PartialWriteContext::IDAddOptions options)
 {
-  const bool set_fake_user = (options.operations & SET_FAKE_USER) != 0;
-
   Library *ctx_library = nullptr;
   if (library) {
     ctx_library = this->ensure_library(library->runtime.filepath_abs);
@@ -1983,7 +1987,7 @@ ID *PartialWriteContext::id_create(const short id_type,
       BKE_id_new_in_lib(&this->bmain, ctx_library, id_type, id_name.c_str()));
   ctx_id->tag |= LIB_TAG_TEMP_MAIN;
   id_us_min(ctx_id);
-  this->ensure_id_user(ctx_id, set_fake_user);
+  this->process_added_id(ctx_id, options.operations);
   /* See function doc about why handling of #matching_uid_map_ can be skipped here. */
   BKE_main_idmap_insert_id(this->bmain.id_map, ctx_id);
   return ctx_id;
