@@ -54,7 +54,7 @@ int OneapiDeviceQueue::num_concurrent_busy_states(const size_t /*state_size*/) c
 
 int OneapiDeviceQueue::num_sort_partition_elements() const
 {
-  return 8192;
+  return (oneapi_device_->get_max_num_threads_per_multiprocessor() >= 128) ? 65536 : 8192;
 }
 
 void OneapiDeviceQueue::init_execution()
