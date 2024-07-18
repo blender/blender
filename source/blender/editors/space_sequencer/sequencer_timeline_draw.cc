@@ -607,7 +607,15 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   int chan_min = MAXSEQ;
   int chan_max = 0;
   int chan_range = 0;
-  float draw_range = strip_ctx->strip_content_top - strip_ctx->bottom;
+  /* Some vertical margin to account for rounded corners, so that contents do
+   * not draw outside them. Can be removed when meta contents are drawn with
+   * full rounded corners masking shader. */
+  const float bottom = strip_ctx->bottom + corner_radius * 0.8f * timeline_ctx->pixely;
+  const float top = strip_ctx->strip_content_top - corner_radius * 0.8f * timeline_ctx->pixely;
+  const float draw_range = top - bottom;
+  if (draw_range < timeline_ctx->pixely) {
+    return;
+  }
   float draw_height;
 
   Editing *ed = SEQ_editing_get(scene);
@@ -639,8 +647,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   col[3] = 196; /* Alpha, used for all meta children. */
 
-  const float meta_x1 = strip_ctx->left_handle + corner_radius * 0.8f * timeline_ctx->pixelx;
-  const float meta_x2 = strip_ctx->right_handle - corner_radius * 0.8f * timeline_ctx->pixelx;
+  const float meta_x1 = strip_ctx->left_handle;
+  const float meta_x2 = strip_ctx->right_handle;
 
   /* Draw only immediate children (1 level depth). */
   LISTBASE_FOREACH (Sequence *, seq, meta_seqbase) {
@@ -677,8 +685,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
       x1_chan = max_ff(x1_chan, meta_x1);
       x2_chan = min_ff(x2_chan, meta_x2);
 
-      y1_chan = strip_ctx->bottom + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
-      y2_chan = strip_ctx->bottom + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
+      y1_chan = bottom + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
+      y2_chan = bottom + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
 
       timeline_ctx->quads->add_quad(x1_chan, y1_chan, x2_chan, y2_chan, col);
     }
