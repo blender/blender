@@ -12,8 +12,8 @@ from pathlib import Path
 
 # List of .blend files that are known to be failing and are not ready to be
 # tested, or that only make sense on some devices. Accepts regular expressions.
-BLACKLIST_ALL = [
-    # Blacklisted due overlapping object differences between platforms.
+BLOCKLIST_ALL = [
+    # Blocked due to overlapping object differences between platforms.
     "hair_geom_reflection.blend",
     "hair_geom_transmission.blend",
     "hair_instancer_uv.blend",
@@ -21,30 +21,30 @@ BLACKLIST_ALL = [
     "visibility_particles.blend",
 ]
 
-BLACKLIST_OSL = [
+BLOCKLIST_OSL = [
     # OSL only supported on CPU.
     '.*_osl.blend',
     'osl_.*.blend',
 ]
 
-BLACKLIST_OPTIX = [
+BLOCKLIST_OPTIX = [
     # Ray intersection precision issues
     'T50164.blend',
     'T43865.blend',
 ]
 
-BLACKLIST_METAL = []
+BLOCKLIST_METAL = []
 
 if platform.system() == "Darwin":
     version, _, _ = platform.mac_ver()
     major_version = version.split(".")[0]
     if int(major_version) < 13:
-        BLACKLIST_METAL += [
+        BLOCKLIST_METAL += [
             # MNEE only works on Metal with macOS >= 13
             "underwater_caustics.blend",
         ]
 
-BLACKLIST_GPU = [
+BLOCKLIST_GPU = [
     # Uninvestigated differences with GPU.
     'image_log.blend',
     'T40964.blend',
@@ -113,7 +113,7 @@ def create_argparse():
     parser.add_argument("-outdir", nargs=1)
     parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument("-device", nargs=1)
-    parser.add_argument("-blacklist", nargs="*")
+    parser.add_argument("-blocklist", nargs="*")
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -128,18 +128,18 @@ def main():
     output_dir = args.outdir[0]
     device = args.device[0]
 
-    blacklist = BLACKLIST_ALL
+    blocklist = BLOCKLIST_ALL
     if device != 'CPU':
-        blacklist += BLACKLIST_GPU
-    if device != 'CPU' or 'OSL' in args.blacklist:
-        blacklist += BLACKLIST_OSL
+        blocklist += BLOCKLIST_GPU
+    if device != 'CPU' or 'OSL' in args.blocklist:
+        blocklist += BLOCKLIST_OSL
     if device == 'OPTIX':
-        blacklist += BLACKLIST_OPTIX
+        blocklist += BLAOCKLIST_OPTIX
     if device == 'METAL':
-        blacklist += BLACKLIST_METAL
+        blocklist += BLOCKLIST_METAL
 
     from modules import render_report
-    report = render_report.Report('Cycles', output_dir, oiiotool, device, blacklist)
+    report = render_report.Report('Cycles', output_dir, oiiotool, device, blocklist)
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     if device == 'CPU':
