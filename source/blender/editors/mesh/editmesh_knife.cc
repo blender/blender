@@ -3223,8 +3223,11 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
   return density ? min_ff(maxsize / (float(density) * 0.5f), maxsize) : maxsize;
 }
 
-/* Find a point on an edge that is closest to the axis of a contrained mode.
- * Returns true if the point is between the edge limits. */
+/**
+ * Find a point on an edge that is closest to the axis of a constrained mode.
+ *
+ * \return true if the point is between the edge limits.
+ */
 static bool knife_closest_constrain_to_edge(KnifeTool_OpData *kcd,
                                             const float3 &kfv1_cageco,
                                             const float3 &kfv2_cageco,

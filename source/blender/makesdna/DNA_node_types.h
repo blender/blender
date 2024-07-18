@@ -1212,19 +1212,19 @@ typedef struct NodeLensDist {
 } NodeLensDist;
 
 typedef struct NodeColorBalance {
-  /* ASC CDL parameters */
+  /* ASC CDL parameters. */
   float slope[3];
   float offset[3];
   float power[3];
   float offset_basis;
   char _pad[4];
 
-  /* LGG parameters */
+  /* LGG parameters. */
   float lift[3];
   float gamma[3];
   float gain[3];
 
-  /* Whitepoint parameters */
+  /* White-point parameters. */
   float input_temperature;
   float input_tint;
   float output_temperature;

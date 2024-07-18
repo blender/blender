@@ -651,7 +651,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     /* Get sample closest to target texel. It is always sample 0. */
     FilmSample film_sample = film_sample_get(0, texel_film);
 
-    /* Using film weight as distance to the pixel. So the check is inversed. */
+    /* Using film weight as distance to the pixel. So the check is inverted. */
     if (film_sample.weight > film_distance) {
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
