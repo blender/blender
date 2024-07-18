@@ -36,6 +36,7 @@
 #include "BKE_animsys.h"
 #include "BKE_appdir.hh"
 #include "BKE_blender_copybuffer.hh"
+#include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -2601,6 +2602,8 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 static int copy_material_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::bke::blendfile;
+
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
@@ -2608,16 +2611,20 @@ static int copy_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
   Main *bmain = CTX_data_main(C);
+  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
 
-  /* Mark is the material to use (others may be expanded). */
-  BKE_copybuffer_copy_begin(bmain);
+  /* Add the material to the copybuffer (and all of its dependencies). */
+  copybuffer.id_add(&ma->id,
+                    PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
+                        PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                        PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                        PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                    nullptr);
 
-  BKE_copybuffer_copy_tag_ID(&ma->id);
-
+  char filepath[FILE_MAX];
   material_copybuffer_filepath_get(filepath, sizeof(filepath));
-  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
+  copybuffer.write(filepath, *op->reports);
 
   /* We are all done! */
   BKE_report(op->reports, RPT_INFO, "Copied material to internal clipboard");
