@@ -921,6 +921,16 @@ void assert_baklava_phase_1_invariants(const Strip &strip);
  */
 Action *convert_to_layered_action(Main &bmain, const Action &action);
 
+/**
+ * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.
+ */
+void deselect_keys_actions(blender::Span<bAction *> actions);
+
+/**
+ * Deselect all keys within the action.
+ */
+void action_deselect_keys(Action &action);
+
 }  // namespace blender::animrig
 
 /* Wrap functions for the DNA structs. */

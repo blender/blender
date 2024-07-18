@@ -443,6 +443,11 @@ bool BKE_fcurve_is_protected(const FCurve *fcu);
 bool BKE_fcurve_has_selected_control_points(const FCurve *fcu);
 
 /**
+ * Deselect all keyframes within that FCurve.
+ */
+void BKE_fcurve_deselect_all_keys(FCurve &fcu);
+
+/**
  * Checks if the F-Curve has a Cycles modifier with simple settings
  * that warrant transition smoothing.
  */

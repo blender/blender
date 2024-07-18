@@ -975,6 +975,8 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
   /* what channels to affect? */
   mode = RNA_enum_get(op->ptr, "type");
 
+  ANIM_deselect_keys_in_animation_editors(C);
+
   /* insert keyframes */
   insert_action_keys(&ac, mode);
 

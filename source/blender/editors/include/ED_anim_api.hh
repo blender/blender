@@ -753,6 +753,12 @@ void ANIM_set_active_channel(bAnimContext *ac,
  */
 bool ANIM_is_active_channel(bAnimListElem *ale);
 
+/**
+ * Deselects the keys displayed within the open animation editors. Depending on the display
+ * settings of those editors, the keys may not be from an action of the selected objects.
+ */
+void ANIM_deselect_keys_in_animation_editors(bContext *C);
+
 /* ************************************************ */
 /* DRAWING API */
 /* `anim_draw.cc` */

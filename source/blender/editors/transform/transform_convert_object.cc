@@ -21,8 +21,11 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
+
+#include "ED_anim_api.hh"
 #include "ED_object.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -903,6 +906,15 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   bool motionpath_update = false;
+
+  if (blender::animrig::is_autokey_on(t->scene) && !canceled) {
+    blender::Vector<Object *> objects;
+    for (int i = 0; i < tc->data_len; i++) {
+      const TransData *td = &tc->data[i];
+      objects.append(td->ob);
+    }
+    ANIM_deselect_keys_in_animation_editors(C);
+  }
 
   for (int i = 0; i < tc->data_len; i++) {
     TransData *td = tc->data + i;

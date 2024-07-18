@@ -45,6 +45,7 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
@@ -153,6 +154,10 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 
     /* Add data-source override for the PoseChannel, to be used later. */
     ANIM_relative_keyingset_add_source(sources, &pbd->ob->id, &RNA_PoseBone, pchan);
+  }
+
+  if (adt->action) {
+    blender::animrig::action_deselect_keys(adt->action->wrap());
   }
 
   /* Perform actual auto-keying. */

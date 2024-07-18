@@ -258,6 +258,8 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ANIM_deselect_keys_in_animation_editors(C);
+
   /* Which channels to affect? */
   mode = eGraphKeys_InsertKey_Types(RNA_enum_get(op->ptr, "type"));
 

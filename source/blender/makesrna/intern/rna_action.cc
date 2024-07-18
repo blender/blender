@@ -859,6 +859,12 @@ static void rna_Action_end_frame_set(PointerRNA *ptr, float value)
   CLAMP_MAX(data->frame_start, data->frame_end);
 }
 
+static void rna_Action_deselect_keys(bAction *act)
+{
+  animrig::action_deselect_keys(act->wrap());
+  WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
 /* Used to check if an action (value pointer)
  * is suitable to be assigned to the ID-block that is ptr. */
 bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
@@ -2091,6 +2097,10 @@ static void rna_def_action(BlenderRNA *brna)
                               0);
   RNA_def_property_float_funcs(prop, "rna_Action_curve_frame_range_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  FunctionRNA *func = RNA_def_function(srna, "deselect_keys", "rna_Action_deselect_keys");
+  RNA_def_function_ui_description(
+      func, "Deselects all keys of the Action. The selection status of F-Curves is unchanged");
 
   rna_def_action_legacy(brna, srna);
 

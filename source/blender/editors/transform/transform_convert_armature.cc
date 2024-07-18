@@ -25,11 +25,13 @@
 
 #include "BIK_api.h"
 
+#include "ED_anim_api.hh"
 #include "ED_armature.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
@@ -1660,6 +1662,18 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
   }
   else {
     const bool canceled = (t->state == TRANS_CANCEL);
+
+    if (blender::animrig::is_autokey_on(t->scene) && !canceled) {
+      blender::Vector<Object *> objects;
+      FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+        for (int i = 0; i < tc->data_len; i++) {
+          const TransData *td = &tc->data[i];
+          objects.append(td->ob);
+        }
+      }
+      ANIM_deselect_keys_in_animation_editors(C);
+    }
+
     GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {

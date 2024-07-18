@@ -41,12 +41,14 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_curves.hh"
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_transverts.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
@@ -190,9 +192,11 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *op)
 
     /* Build object array. */
     Vector<Object *> objects_eval;
+    Vector<Object *> objects_orig;
     {
       FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer_eval, v3d, ob_eval) {
         objects_eval.append(ob_eval);
+        objects_orig.append(DEG_get_original_object(ob_eval));
       }
       FOREACH_SELECTED_EDITABLE_OBJECT_END;
     }
@@ -212,6 +216,10 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *op)
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xds = object::data_xform_container_create();
+    }
+
+    if (blender::animrig::is_autokey_on(scene)) {
+      ANIM_deselect_keys_in_animation_editors(C);
     }
 
     for (Object *ob_eval : objects_eval) {
@@ -500,6 +508,10 @@ static bool snap_selected_to_location(bContext *C,
       for (Object *ob : objects) {
         object::data_xform_container_item_ensure(xds, ob);
       }
+    }
+
+    if (blender::animrig::is_autokey_on(scene)) {
+      ANIM_deselect_keys_in_animation_editors(C);
     }
 
     for (Object *ob : objects) {
