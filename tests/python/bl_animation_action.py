@@ -164,6 +164,30 @@ class TestLegacyLayered(unittest.TestCase):
         self.assertSequenceEqual([], act.groups)
 
 
+class ChannelBagsTest(unittest.TestCase):
+    def setUp(self):
+        anims = bpy.data.actions
+        while anims:
+            anims.remove(anims[0])
+
+    def test_create_remove_channelbag(self):
+        action = bpy.data.actions.new('TestAction')
+
+        slot = action.slots.new()
+        slot.name = 'OBTest'
+
+        layer = action.layers.new(name="Layer")
+        strip = layer.strips.new(type='KEYFRAME')
+        channelbag = strip.channelbags.new(slot)
+
+        strip.key_insert(slot, "location", 1, 47.0, 327.0)
+        self.assertEqual("location", channelbag.fcurves[0].data_path,
+                         "Keys for the channelbag's slot should go into the channelbag")
+
+        strip.channelbags.remove(channelbag)
+        self.assertEqual([], list(strip.channelbags))
+
+
 class DataPathTest(unittest.TestCase):
     def setUp(self):
         anims = bpy.data.actions
@@ -173,11 +197,18 @@ class DataPathTest(unittest.TestCase):
     def test_repr(self):
         action = bpy.data.actions.new('TestAction')
 
+        slot = action.slots.new()
+        slot.name = 'OBTest'
+        self.assertEqual("bpy.data.actions['TestAction'].slots[\"OBTest\"]", repr(slot))
+
         layer = action.layers.new(name="Layer")
         self.assertEqual("bpy.data.actions['TestAction'].layers[\"Layer\"]", repr(layer))
 
         strip = layer.strips.new(type='KEYFRAME')
         self.assertEqual("bpy.data.actions['TestAction'].layers[\"Layer\"].strips[0]", repr(strip))
+
+        channelbag = strip.channelbags.new(slot)
+        self.assertEqual("bpy.data.actions['TestAction'].layers[\"Layer\"].strips[0].channelbags[0]", repr(channelbag))
 
 
 def main():

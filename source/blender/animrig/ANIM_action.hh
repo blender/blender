@@ -657,6 +657,19 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    * Should only be called when there is no `ChannelBag` for this slot yet.
    */
   ChannelBag &channelbag_for_slot_add(const Slot &slot);
+
+  /**
+   * Remove the ChannelBag from this slot.
+   *
+   * After this call the reference is no longer valid, as the memory will have been freed.
+   *
+   * \return true when the ChannelBag was found & removed, false if it wasn't found.
+   */
+  bool channelbag_remove(ChannelBag &channelbag_to_remove);
+
+  /** Return the channelbag's index, or -1 if there is none for this slot handle. */
+  int64_t find_channelbag_index(const ChannelBag &channelbag) const;
+
   /**
    * Find an FCurve for this slot + RNA path + array index combination.
    *
