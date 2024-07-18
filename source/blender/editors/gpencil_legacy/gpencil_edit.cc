@@ -691,14 +691,15 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (mode == OB_MODE_WEIGHT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_weightpaint);
     Paint *weight_paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::WeightGPencil);
-    BKE_paint_ensure(bmain, ts, &weight_paint);
 
     if (ob->type == OB_GREASE_PENCIL) {
       ED_paint_cursor_start(weight_paint, grease_pencil_poll_weight_cursor);
     }
 
     BKE_paint_brushes_validate(bmain, weight_paint);
+    BKE_paint_init(bmain, scene, PaintMode::WeightGPencil, PAINT_CURSOR_PAINT_GREASE_PENCIL);
   }
 
   /* setup other modes */
