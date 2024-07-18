@@ -715,6 +715,36 @@ class ChannelBag : public ::ActionChannelBag {
    * exist.
    */
   FCurve &fcurve_ensure(FCurveDescriptor fcurve_descriptor);
+
+  /**
+   * Create an F-Curve, but only if it doesn't exist yet in this ChannelBag.
+   *
+   * \return the F-Curve it it was created, or nullptr if it already existed.
+   */
+  FCurve *fcurve_create_unique(FCurveDescriptor fcurve_descriptor);
+
+  /**
+   * Remove an F-Curve from the ChannelBag.
+   *
+   * After this call, if the F-Curve was found, the reference will no longer be
+   * valid, as the curve will have been freed.
+   *
+   * \return true when the F-Curve was found & removed, false if it wasn't found.
+   */
+  bool fcurve_remove(FCurve &fcurve_to_remove);
+
+  /**
+   * Remove all F-Curves from this ChannelBag.
+   */
+  void fcurves_clear();
+
+ protected:
+  /**
+   * Create an F-Curve.
+   *
+   * Assumes that there is no such F-Curve yet on this ChannelBag.
+   */
+  FCurve &fcurve_create(FCurveDescriptor fcurve_descriptor);
 };
 static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
               "DNA struct and its C++ wrapper must have the same size");

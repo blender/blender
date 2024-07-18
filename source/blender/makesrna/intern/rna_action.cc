@@ -520,7 +520,7 @@ static bool rna_KeyframeActionStrip_key_insert(ID *id,
   return ok;
 }
 
-static std::optional<std::string> rna_ActionChannelBag_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ChannelBag_path(const PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
   animrig::ChannelBag &cbag_to_find = rna_data_channelbag(ptr);
@@ -559,6 +559,71 @@ static int rna_iterator_ChannelBag_fcurves_length(PointerRNA *ptr)
 {
   animrig::ChannelBag &bag = rna_data_channelbag(ptr);
   return bag.fcurves().size();
+}
+
+static FCurve *rna_ChannelBag_fcurve_new(ActionChannelBag *dna_channelbag,
+                                         ReportList *reports,
+                                         const char *data_path,
+                                         const int index)
+{
+  BLI_assert(data_path != nullptr);
+  if (data_path[0] == '\0') {
+    BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
+    return nullptr;
+  }
+
+  animrig::ChannelBag &self = dna_channelbag->wrap();
+  FCurve *fcurve = self.fcurve_create_unique({data_path, index});
+  if (!fcurve) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "F-Curve '%s[%d]' already exists in this channelbag",
+                data_path,
+                index);
+    return nullptr;
+  }
+  return fcurve;
+}
+
+static FCurve *rna_ChannelBag_fcurve_find(ActionChannelBag *dna_channelbag,
+                                          ReportList *reports,
+                                          const char *data_path,
+                                          const int index)
+{
+  if (data_path[0] == '\0') {
+    BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
+    return nullptr;
+  }
+
+  animrig::ChannelBag &self = dna_channelbag->wrap();
+  return self.fcurve_find({data_path, index});
+}
+
+static void rna_ChannelBag_fcurve_remove(ID *dna_action_id,
+                                         ActionChannelBag *dna_channelbag,
+                                         bContext *C,
+                                         ReportList *reports,
+                                         PointerRNA *fcurve_ptr)
+{
+  animrig::ChannelBag &self = dna_channelbag->wrap();
+  FCurve *fcurve = static_cast<FCurve *>(fcurve_ptr->data);
+
+  if (!self.fcurve_remove(*fcurve)) {
+    BKE_reportf(reports, RPT_ERROR, "F-Curve not found");
+    return;
+  }
+
+  DEG_id_tag_update(dna_action_id, ID_RECALC_ANIMATION_NO_FLUSH);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static void rna_ChannelBag_fcurve_clear(ID *dna_action_id,
+                                        ActionChannelBag *dna_channelbag,
+                                        bContext *C)
+{
+  dna_channelbag->wrap().fcurves_clear();
+  DEG_id_tag_update(dna_action_id, ID_RECALC_ANIMATION_NO_FLUSH);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static ActionChannelBag *rna_KeyframeActionStrip_channels(KeyframeActionStrip *self,
@@ -1667,14 +1732,63 @@ static void rna_def_action_strip(BlenderRNA *brna)
   rna_def_action_keyframe_strip(brna);
 }
 
-static void rna_def_channelbag_for_slot_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
 
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
   RNA_def_property_srna(cprop, "ActionChannelBagFCurves");
   srna = RNA_def_struct(brna, "ActionChannelBagFCurves", nullptr);
-  RNA_def_struct_sdna(srna, "bActionChannelBag");
-  RNA_def_struct_ui_text(srna, "F-Curves", "Collection of F-Curves for a specific action slot");
+  RNA_def_struct_sdna(srna, "ActionChannelBag");
+  RNA_def_struct_ui_text(
+      srna, "F-Curves", "Collection of F-Curves for a specific action slot, on a specific strip");
+
+  /* ChannelBag.fcurves.new(...) */
+  extern struct FCurve *ActionChannelBagFCurves_new_func(struct ID * _selfid,
+                                                         struct ActionChannelBag * _self,
+                                                         Main * bmain,
+                                                         ReportList * reports,
+                                                         const char *data_path,
+                                                         int index);
+
+  func = RNA_def_function(srna, "new", "rna_ChannelBag_fcurve_new");
+  RNA_def_function_ui_description(func, "Add an F-Curve to the channelbag");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path to use");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+
+  parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
+  RNA_def_function_return(func, parm);
+
+  /* ChannelBag.fcurves.find(...) */
+  func = RNA_def_function(srna, "find", "rna_ChannelBag_fcurve_find");
+  RNA_def_function_ui_description(
+      func,
+      "Find an F-Curve. Note that this function performs a linear scan "
+      "of all F-Curves in the channelbag.");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+  parm = RNA_def_pointer(
+      func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
+  RNA_def_function_return(func, parm);
+
+  /* ChannelBag.fcurves.remove(...) */
+  func = RNA_def_function(srna, "remove", "rna_ChannelBag_fcurve_remove");
+  RNA_def_function_ui_description(func, "Remove F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  /* ChannelBag.fcurves.clear() */
+  func = RNA_def_function(srna, "clear", "rna_ChannelBag_fcurve_clear");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_SELF_ID);
+  RNA_def_function_ui_description(func, "Remove all F-Curves from this channelbag");
 }
 
 static void rna_def_action_channelbag(BlenderRNA *brna)
@@ -1687,7 +1801,7 @@ static void rna_def_action_channelbag(BlenderRNA *brna)
       srna,
       "Animation Channel Bag",
       "Collection of animation channels, typically associated with an action slot");
-  RNA_def_struct_path_func(srna, "rna_ActionChannelBag_path");
+  RNA_def_struct_path_func(srna, "rna_ChannelBag_path");
 
   prop = RNA_def_property(srna, "slot_handle", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1704,7 +1818,7 @@ static void rna_def_action_channelbag(BlenderRNA *brna)
                                     nullptr);
   RNA_def_property_struct_type(prop, "FCurve");
   RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that animate the slot");
-  rna_def_channelbag_for_slot_fcurves(brna, prop);
+  rna_def_channelbag_fcurves(brna, prop);
 }
 #  endif  // WITH_ANIM_BAKLAVA
 

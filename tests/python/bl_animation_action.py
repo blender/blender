@@ -170,22 +170,66 @@ class ChannelBagsTest(unittest.TestCase):
         while anims:
             anims.remove(anims[0])
 
+        self.action = bpy.data.actions.new('TestAction')
+
+        self.slot = self.action.slots.new()
+        self.slot.name = 'OBTest'
+
+        self.layer = self.action.layers.new(name="Layer")
+        self.strip = self.layer.strips.new(type='KEYFRAME')
+
     def test_create_remove_channelbag(self):
-        action = bpy.data.actions.new('TestAction')
+        channelbag = self.strip.channelbags.new(self.slot)
 
-        slot = action.slots.new()
-        slot.name = 'OBTest'
-
-        layer = action.layers.new(name="Layer")
-        strip = layer.strips.new(type='KEYFRAME')
-        channelbag = strip.channelbags.new(slot)
-
-        strip.key_insert(slot, "location", 1, 47.0, 327.0)
+        self.strip.key_insert(self.slot, "location", 1, 47.0, 327.0)
         self.assertEqual("location", channelbag.fcurves[0].data_path,
                          "Keys for the channelbag's slot should go into the channelbag")
 
-        strip.channelbags.remove(channelbag)
-        self.assertEqual([], list(strip.channelbags))
+        self.strip.channelbags.remove(channelbag)
+        self.assertEqual([], list(self.strip.channelbags))
+
+    def test_create_remove_fcurves(self):
+        channelbag = self.strip.channelbags.new(self.slot)
+
+        # Creating an F-Curve should work.
+        fcurve = channelbag.fcurves.new('location', index=1)
+        self.assertIsNotNone(fcurve)
+        self.assertEquals(fcurve.data_path, 'location')
+        self.assertEquals(fcurve.array_index, 1)
+        self.assertEquals([fcurve], channelbag.fcurves[:])
+
+        # Empty data paths should not be accepted.
+        with self.assertRaises(RuntimeError):
+            channelbag.fcurves.new('', index=1)
+        self.assertEquals([fcurve], channelbag.fcurves[:])
+
+        # Creating an F-Curve twice should fail:
+        with self.assertRaises(RuntimeError):
+            channelbag.fcurves.new('location', index=1)
+        self.assertEquals([fcurve], channelbag.fcurves[:])
+
+        # Removing an unrelated F-Curve should fail, even when an F-Curve with
+        # the same RNA path and array index exists.
+        other_slot = self.action.slots.new()
+        other_cbag = self.strip.channelbags.new(other_slot)
+        other_fcurve = other_cbag.fcurves.new('location', index=1)
+        with self.assertRaises(RuntimeError):
+            channelbag.fcurves.remove(other_fcurve)
+        self.assertEquals([fcurve], channelbag.fcurves[:])
+
+        # Removing an existing F-Curve should work:
+        channelbag.fcurves.remove(fcurve)
+        self.assertEquals([], channelbag.fcurves[:])
+
+    def test_fcurves_clear(self):
+        channelbag = self.strip.channelbags.new(self.slot)
+
+        for index in range(4):
+            channelbag.fcurves.new('rotation_quaternion', index=index)
+
+        self.assertEquals(4, len(channelbag.fcurves))
+        channelbag.fcurves.clear()
+        self.assertEquals([], channelbag.fcurves[:])
 
 
 class DataPathTest(unittest.TestCase):

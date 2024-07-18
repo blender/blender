@@ -1129,7 +1129,19 @@ FCurve &ChannelBag::fcurve_ensure(const FCurveDescriptor fcurve_descriptor)
   if (FCurve *existing_fcurve = this->fcurve_find(fcurve_descriptor)) {
     return *existing_fcurve;
   }
+  return this->fcurve_create(fcurve_descriptor);
+}
 
+FCurve *ChannelBag::fcurve_create_unique(FCurveDescriptor fcurve_descriptor)
+{
+  if (this->fcurve_find(fcurve_descriptor)) {
+    return nullptr;
+  }
+  return &this->fcurve_create(fcurve_descriptor);
+}
+
+FCurve &ChannelBag::fcurve_create(FCurveDescriptor fcurve_descriptor)
+{
   FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
   if (this->fcurve_array_num == 0) {
@@ -1138,6 +1150,29 @@ FCurve &ChannelBag::fcurve_ensure(const FCurveDescriptor fcurve_descriptor)
 
   grow_array_and_append(&this->fcurve_array, &this->fcurve_array_num, new_fcurve);
   return *new_fcurve;
+}
+
+static void fcurve_ptr_destructor(FCurve **fcurve_ptr)
+{
+  BKE_fcurve_free(*fcurve_ptr);
+};
+
+bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
+{
+  const int64_t fcurve_index = this->fcurves().as_span().first_index_try(&fcurve_to_remove);
+  if (fcurve_index < 0) {
+    return false;
+  }
+
+  dna::array::remove_index(
+      &this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_index, fcurve_ptr_destructor);
+
+  return true;
+}
+
+void ChannelBag::fcurves_clear()
+{
+  dna::array::clear(&this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_ptr_destructor);
 }
 
 SingleKeyingResult KeyframeStrip::keyframe_insert(const Slot &slot,
