@@ -1763,6 +1763,7 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 /** \name Private Utility Functions
  * \{ */
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
 static const char *strchr_or_end(const char *str, const char ch)
 {
   const char *p = str;
@@ -1791,6 +1792,7 @@ static bool string_elem_split_by_delim(const char *haystack, const char delim, c
   }
   return false;
 }
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
 
 static uint64_t sub_abs_u64(const uint64_t a, const uint64_t b)
 {
