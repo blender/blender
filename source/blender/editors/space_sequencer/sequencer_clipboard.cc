@@ -125,9 +125,13 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   const char *scene_name = "copybuffer_vse_scene";
 
   /* Add a dummy empty scene to the temporary Main copy buffer. */
-  Scene *scene_dst = reinterpret_cast<Scene *>(copy_buffer.id_create(
-      ID_SCE, scene_name, nullptr, {PartialWriteContext::IDAddOperations::SET_FAKE_USER}));
-  scene_dst->id.flag |= LIB_CLIPBOARD_MARK;
+  Scene *scene_dst = reinterpret_cast<Scene *>(
+      copy_buffer.id_create(ID_SCE,
+                            scene_name,
+                            nullptr,
+                            {PartialWriteContext::IDAddOperations(
+                                PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)}));
 
   /* Create an empty sequence editor data to store all copied strips. */
   scene_dst->ed = MEM_cnew<Editing>(__func__);
