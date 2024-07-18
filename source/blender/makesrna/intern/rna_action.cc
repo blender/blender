@@ -244,15 +244,16 @@ static ActionLayer *rna_Action_layers_new(bAction *dna_action,
 void rna_Action_layers_remove(bAction *dna_action,
                               bContext *C,
                               ReportList *reports,
-                              ActionLayer *dna_layer)
+                              PointerRNA *layer_ptr)
 {
   animrig::Action &action = dna_action->wrap();
-  animrig::Layer &layer = dna_layer->wrap();
+  animrig::Layer &layer = rna_data_layer(layer_ptr);
   if (!action.layer_remove(layer)) {
     BKE_report(reports, RPT_ERROR, "This layer does not belong to this Action");
     return;
   }
 
+  RNA_POINTER_INVALIDATE(layer_ptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
   DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION);
 }
@@ -393,15 +394,16 @@ ActionStrip *rna_ActionStrips_new(ActionLayer *dna_layer,
 }
 
 void rna_ActionStrips_remove(
-    ID *action, ActionLayer *dna_layer, bContext *C, ReportList *reports, ActionStrip *dna_strip)
+    ID *action, ActionLayer *dna_layer, bContext *C, ReportList *reports, PointerRNA *strip_ptr)
 {
   animrig::Layer &layer = dna_layer->wrap();
-  animrig::Strip &strip = dna_strip->wrap();
+  animrig::Strip &strip = rna_data_strip(strip_ptr);
   if (!layer.strip_remove(strip)) {
     BKE_report(reports, RPT_ERROR, "This strip does not belong to this layer");
     return;
   }
 
+  RNA_POINTER_INVALIDATE(strip_ptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
   DEG_id_tag_update(action, ID_RECALC_ANIMATION);
 }
@@ -476,16 +478,17 @@ static void rna_ChannelBags_remove(ID *action,
                                    KeyframeActionStrip *dna_strip,
                                    bContext *C,
                                    ReportList *reports,
-                                   ActionChannelBag *dna_channelbag)
+                                   PointerRNA *channelbag_ptr)
 {
   animrig::KeyframeStrip &key_strip = dna_strip->wrap();
-  animrig::ChannelBag &channelbag = dna_channelbag->wrap();
+  animrig::ChannelBag &channelbag = rna_data_channelbag(channelbag_ptr);
 
   if (!key_strip.channelbag_remove(channelbag)) {
     BKE_report(reports, RPT_ERROR, "This channelbag does not belong to this strip");
     return;
   }
 
+  RNA_POINTER_INVALIDATE(channelbag_ptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
   DEG_id_tag_update(action, ID_RECALC_ANIMATION);
 }
@@ -1409,7 +1412,7 @@ static void rna_def_action_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove the layer from the animation");
   parm = RNA_def_pointer(
       func, "anim_layer", "ActionLayer", "Animation Layer", "The layer to remove");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 }
 
 static void rna_def_action_slot(BlenderRNA *brna)
@@ -1519,7 +1522,7 @@ static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove the strip from the animation layer");
   parm = RNA_def_pointer(
       func, "anim_strip", "ActionStrip", "Animation Strip", "The strip to remove");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 }
 
 static void rna_def_action_layer(BlenderRNA *brna)
@@ -1604,7 +1607,7 @@ static void rna_def_keyframestrip_channelbags(BlenderRNA *brna, PropertyRNA *cpr
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Remove the channelbag from the strip");
   parm = RNA_def_pointer(func, "channelbag", "ActionChannelBag", "", "The channelbag to remove");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 }
 
 static void rna_def_action_keyframe_strip(BlenderRNA *brna)
