@@ -412,6 +412,7 @@ set(LIB
   extern_wcwidth
   PRIVATE bf::intern::atomic
   PRIVATE extern_fmtlib
+  PUBLIC bf::dependencies::optional::tbb
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -426,18 +427,6 @@ endif()
 
 if(WITH_MEM_VALGRIND)
   add_definitions(-DWITH_MEM_VALGRIND)
-endif()
-
-if(WITH_TBB)
-  add_definitions(-DWITH_TBB)
-
-  list(APPEND INC_SYS
-    ${TBB_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${TBB_LIBRARIES}
-  )
 endif()
 
 if(WITH_GMP)

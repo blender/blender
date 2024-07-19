@@ -86,15 +86,6 @@ if(WITH_MANTA_NUMPY AND WITH_PYTHON_NUMPY)
   )
 endif()
 
-if(WITH_TBB)
-  list(APPEND INC_SYS
-    ${TBB_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${TBB_LIBRARIES}
-  )
-endif()
-
 if(WITH_OPENVDB)
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
@@ -245,6 +236,7 @@ if(WITH_MANTA_NUMPY AND WITH_PYTHON_NUMPY)
 endif()
 
 set(LIB
+  PRIVATE bf::dependencies::optional::tbb
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )

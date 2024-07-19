@@ -27,7 +27,6 @@ endif()
 
 # USD headers use deprecated TBB headers, silence warning.
 add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
-add_definitions(-DWITH_TBB)
 
 # Check if USD has the imaging headers available, if they are
 # add a USD_HAS_IMAGING define so code can dynamically detect this.

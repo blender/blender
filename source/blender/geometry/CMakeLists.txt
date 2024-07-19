@@ -114,18 +114,6 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
-if(WITH_TBB)
-  add_definitions(-DWITH_TBB)
-
-  list(APPEND INC_SYS
-    ${TBB_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${TBB_LIBRARIES}
-  )
-endif()
-
 if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 

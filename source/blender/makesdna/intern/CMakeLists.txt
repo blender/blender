@@ -18,6 +18,7 @@ set(INC_SYS
 set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::tbb
 )
 
 add_definitions(-DWITH_DNA_GHASH)
@@ -159,6 +160,7 @@ set(SRC
 set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::tbb
 )
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

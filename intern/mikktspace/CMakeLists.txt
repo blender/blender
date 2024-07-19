@@ -5,11 +5,7 @@
 add_library(bf_intern_mikktspace INTERFACE)
 target_include_directories(bf_intern_mikktspace INTERFACE .)
 
-if(WITH_TBB)
-  target_compile_definitions(bf_intern_mikktspace INTERFACE -DWITH_TBB)
-  target_include_directories(bf_intern_mikktspace INTERFACE ${TBB_INCLUDE_DIRS})
-  target_link_libraries(bf_intern_mikktspace INTERFACE ${TBB_LIBRARIES})
-endif()
+target_link_libraries(bf_intern_mikktspace INTERFACE bf::dependencies::optional::tbb)
 
 # CMake 3.19+ allows one to populate the interface library with
 # source files to show in the IDE.

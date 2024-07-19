@@ -38,15 +38,6 @@ set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
 )
 
-if(WITH_TBB)
-  list(APPEND INC_SYS
-    ${TBB_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${TBB_LIBRARIES}
-  )
-endif()
-
 if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
   list(APPEND INC_SYS
@@ -74,6 +65,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::tbb
   extern_mantaflow
 
   ${PYTHON_LINKFLAGS}

@@ -161,18 +161,6 @@ if(WITH_IMAGE_WEBP)
   add_definitions(-DWITH_WEBP)
 endif()
 
-if(WITH_TBB)
-  add_definitions(-DWITH_TBB)
-
-  list(APPEND INC_SYS
-    ${TBB_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${TBB_LIBRARIES}
-  )
-endif()
-
 list(APPEND INC
   ../../../intern/opencolorio
 )
