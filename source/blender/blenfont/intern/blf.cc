@@ -612,6 +612,7 @@ int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth,
 void BLF_draw_svg_icon(
     uint icon_id, float x, float y, float size, float color[4], float outline_alpha)
 {
+#ifndef WITH_HEADLESS
   FontBLF *font = global_font[0];
   if (font) {
     /* Avoid bgl usage to corrupt BLF drawing. */
@@ -620,14 +621,21 @@ void BLF_draw_svg_icon(
     blf_draw_svg_icon(font, icon_id, x, y, size, color, outline_alpha);
     blf_draw_gpu__end(font);
   }
+#else
+  UNUSED_VARS(icon_id, x, y, size, color, outline_alpha);
+#endif /* WITH_HEADLESS */
 }
 
 blender::Array<uchar> BLF_svg_icon_bitmap(uint icon_id, float size, int *r_width, int *r_height)
 {
+#ifndef WITH_HEADLESS
   FontBLF *font = global_font[0];
   if (font) {
     return blf_svg_icon_bitmap(font, icon_id, size, r_width, r_height);
   }
+#else
+  UNUSED_VARS(icon_id, size, r_width, r_height);
+#endif /* WITH_HEADLESS */
   return {};
 }
 

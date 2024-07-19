@@ -524,6 +524,7 @@ int blf_font_draw_mono(
   return columns;
 }
 
+#ifndef WITH_HEADLESS
 void blf_draw_svg_icon(
     FontBLF *font, uint icon_id, float x, float y, float size, float color[4], float outline_alpha)
 {
@@ -595,6 +596,7 @@ blender::Array<uchar> blf_svg_icon_bitmap(
   blf_glyph_cache_release(font);
   return bitmap;
 }
+#endif /* WITH_HEADLESS */
 
 /** \} */
 
