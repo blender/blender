@@ -510,6 +510,8 @@ int main(int argc,
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
   /* Python module mode ALWAYS runs in background-mode (for now). */
   G.background = true;
+  /* Manually using `--background` also forces the audio device. */
+  BKE_sound_force_device("None");
 #else
   if (G.background) {
     main_signal_setup_background();
