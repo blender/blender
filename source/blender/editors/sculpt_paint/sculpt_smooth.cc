@@ -210,14 +210,14 @@ float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef ver
   float3 avg(0);
   int total = 0;
   int neighbor_count = 0;
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex);
+  const bool is_boundary = boundary::vert_is_boundary(ss, vertex);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     neighbor_count++;
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (boundary::vert_is_boundary(ss, ni.vertex)) {
         avg += SCULPT_vertex_co_get(ss, ni.vertex);
         total++;
       }

@@ -77,7 +77,7 @@ std::unique_ptr<SculptBoundary> data_init(Object &object,
   }
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(object);
+  boundary::ensure_boundary_info(object);
 
   const PBVHVertRef boundary_initial_vert = get_closest_boundary_vert(ss, initial_vert, radius);
 
@@ -118,7 +118,7 @@ static bool is_vert_in_editable_boundary(SculptSession &ss, const PBVHVertRef in
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, initial_vert, ni) {
     if (hide::vert_visible_get(ss, ni.vertex)) {
       neighbor_count++;
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (boundary::vert_is_boundary(ss, ni.vertex)) {
         boundary_vertex_count++;
       }
     }
@@ -174,7 +174,7 @@ static bool initial_vert_floodfill_fn(SculptSession &ss,
     data->floodfill_steps[to_v_i] = data->floodfill_steps[from_v_i];
   }
 
-  if (SCULPT_vertex_is_boundary(ss, to_v)) {
+  if (boundary::vert_is_boundary(ss, to_v)) {
     if (data->floodfill_steps[to_v_i] < data->boundary_initial_vert_steps) {
       data->boundary_initial_vert_steps = data->floodfill_steps[to_v_i];
       data->boundary_initial_vert_i = to_v_i;
@@ -192,7 +192,7 @@ static PBVHVertRef get_closest_boundary_vert(SculptSession &ss,
                                              const float radius)
 {
 
-  if (SCULPT_vertex_is_boundary(ss, initial_vert)) {
+  if (boundary::vert_is_boundary(ss, initial_vert)) {
     return initial_vert;
   }
 
@@ -265,7 +265,7 @@ static bool floodfill_fn(SculptSession &ss,
   const float3 to_v_co = SCULPT_vertex_co_get(ss, to_v);
 
   SculptBoundary &boundary = *data->boundary;
-  if (!SCULPT_vertex_is_boundary(ss, to_v)) {
+  if (!boundary::vert_is_boundary(ss, to_v)) {
     return false;
   }
   const float edge_len = len_v3v3(from_v_co, to_v_co);
@@ -1021,7 +1021,7 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
   }
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(object);
+  boundary::ensure_boundary_info(object);
 
   const PBVHVertRef boundary_initial_vert = get_closest_boundary_vert(ss, initial_vert, radius);
 

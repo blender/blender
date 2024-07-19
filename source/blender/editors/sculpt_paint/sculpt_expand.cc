@@ -400,7 +400,7 @@ static BitVector<> boundary_from_enabled(SculptSession &ss,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    if (use_mesh_boundary && SCULPT_vertex_is_boundary(ss, vertex)) {
+    if (use_mesh_boundary && boundary::vert_is_boundary(ss, vertex)) {
       is_expand_boundary = true;
     }
 
@@ -1868,7 +1868,7 @@ static void ensure_sculptsession_data(Object &ob)
   SculptSession &ss = *ob.sculpt;
   SCULPT_topology_islands_ensure(ob);
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(ob);
+  boundary::ensure_boundary_info(ob);
   if (!ss.tex_pool) {
     ss.tex_pool = BKE_image_pool_new();
   }
@@ -2361,7 +2361,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
       RNA_enum_get(op->ptr, "falloff_type"));
 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
-  if (SCULPT_vertex_is_boundary(ss, ss.expand_cache->initial_active_vertex)) {
+  if (boundary::vert_is_boundary(ss, ss.expand_cache->initial_active_vertex)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 

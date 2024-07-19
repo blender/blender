@@ -562,7 +562,7 @@ float factor_get(const Cache *automasking,
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    if (SCULPT_vertex_is_boundary(ss, vert)) {
+    if (boundary::vert_is_boundary(ss, vert)) {
       return 0.0f;
     }
   }
@@ -807,7 +807,7 @@ static void init_boundary_masking(Object &ob, eBoundaryAutomaskMode mode, int pr
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
       case AUTOMASK_INIT_BOUNDARY_EDGES:
-        if (SCULPT_vertex_is_boundary(ss, vertex)) {
+        if (boundary::vert_is_boundary(ss, vertex)) {
           edge_distance[i] = 0;
         }
         break;
@@ -944,7 +944,7 @@ std::unique_ptr<Cache> cache_init(const Sculpt &sd, const Brush *brush, Object &
 
   std::unique_ptr<Cache> automasking = std::make_unique<Cache>();
   cache_settings_update(*automasking, ss, sd, brush);
-  SCULPT_boundary_info_ensure(ob);
+  boundary::ensure_boundary_info(ob);
 
   automasking->current_stroke_id = ss.stroke_id;
 

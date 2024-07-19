@@ -924,27 +924,31 @@ void SCULPT_fake_neighbors_enable(Object &ob);
 void SCULPT_fake_neighbors_disable(Object &ob);
 void SCULPT_fake_neighbors_free(Object &ob);
 
+namespace blender::ed::sculpt_paint {
+
+namespace boundary {
+
 /**
  * Populates boundary information for a mesh.
  *
  * \see SculptVertexInfo
  */
-void SCULPT_boundary_info_ensure(Object &object);
+void ensure_boundary_info(Object &object);
 
 /**
  * Determine if a vertex is a boundary vertex.
  *
- * Requires #SCULPT_boundary_info_ensure to have been called.
+ * Requires #ensure_boundary_info to have been called.
  */
-bool SCULPT_vertex_is_boundary(const SculptSession &ss, PBVHVertRef vertex);
+bool vert_is_boundary(const SculptSession &ss, PBVHVertRef vertex);
+
+}
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Visibility API
  * \{ */
-
-namespace blender::ed::sculpt_paint {
 
 namespace hide {
 

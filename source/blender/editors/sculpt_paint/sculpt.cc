@@ -829,9 +829,12 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession &ss, c
   return ss.vertex_info.boundary[index];
 }
 
-bool SCULPT_vertex_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
+namespace blender::ed::sculpt_paint {
+
+namespace boundary {
+
+bool vert_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
 {
-  using namespace blender::ed::sculpt_paint;
   switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
       if (!hide::vert_all_faces_visible_get(ss, vertex)) {
@@ -868,6 +871,10 @@ bool SCULPT_vertex_is_boundary(const SculptSession &ss, const PBVHVertRef vertex
 
   return false;
 }
+
+}  // namespace boundary
+
+}  // namespace blender::ed::sculpt_paint
 
 /* Utilities */
 
@@ -6250,9 +6257,10 @@ struct SculptTopologyIDFloodFillData {
 
 }  // namespace blender::ed::sculpt_paint
 
-void SCULPT_boundary_info_ensure(Object &object)
+namespace blender::ed::sculpt_paint::boundary {
+
+void ensure_boundary_info(Object &object)
 {
-  using namespace blender;
   SculptSession &ss = *object.sculpt;
   if (!ss.vertex_info.boundary.is_empty()) {
     return;
@@ -6264,7 +6272,7 @@ void SCULPT_boundary_info_ensure(Object &object)
   Array<int> adjacent_faces_edge_count(base_mesh->edges_num, 0);
   array_utils::count_indices(base_mesh->corner_edges(), adjacent_faces_edge_count);
 
-  const blender::Span<int2> edges = base_mesh->edges();
+  const Span<int2> edges = base_mesh->edges();
   for (const int e : edges.index_range()) {
     if (adjacent_faces_edge_count[e] < 2) {
       const int2 &edge = edges[e];
@@ -6273,6 +6281,8 @@ void SCULPT_boundary_info_ensure(Object &object)
     }
   }
 }
+
+}  // namespace blender::ed::sculpt_paint::boundary
 
 void SCULPT_fake_neighbors_ensure(Object &ob, const float max_dist)
 {

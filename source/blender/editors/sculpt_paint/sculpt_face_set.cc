@@ -1171,13 +1171,13 @@ static void edit_fairing(Object &ob,
   orig_positions.resize(totvert);
   fair_verts.resize(totvert);
 
-  SCULPT_boundary_info_ensure(ob);
+  boundary::ensure_boundary_info(ob);
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
     orig_positions[i] = SCULPT_vertex_co_get(ss, vertex);
-    fair_verts[i] = !SCULPT_vertex_is_boundary(ss, vertex) &&
+    fair_verts[i] = !boundary::vert_is_boundary(ss, vertex) &&
                     vert_has_face_set(ss, vertex, active_face_set_id) &&
                     vert_has_unique_face_set(ss, vertex);
   }

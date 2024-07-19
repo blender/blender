@@ -156,7 +156,7 @@ static void relax_vertex_boundary(SculptSession &ss,
 
       /* When the vertex to relax is boundary, use only connected boundary vertices for the average
        * position. */
-      if (!SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (!boundary::vert_is_boundary(ss, ni.vertex)) {
         continue;
       }
       add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
@@ -216,7 +216,7 @@ void relax_vertex(SculptSession &ss,
                   const bool filter_boundary_face_sets,
                   float *r_final_pos)
 {
-  if (SCULPT_vertex_is_boundary(ss, vd->vertex)) {
+  if (boundary::vert_is_boundary(ss, vd->vertex)) {
     relax_vertex_boundary(ss, vd, factor, filter_boundary_face_sets, r_final_pos);
   }
   else {
