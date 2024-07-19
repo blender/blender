@@ -1399,7 +1399,7 @@ static void icon_draw_size(float x,
       else {
         UI_GetThemeColor4fv(TH_TEXT, color);
       }
-      color[3] = alpha;
+      color[3] *= alpha;
       BLF_draw_svg_icon(uint(icon_id), x, y, float(draw_size) / aspect, color, outline_intensity);
     }
 

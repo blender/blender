@@ -1365,7 +1365,7 @@ static void widget_draw_icon(
       UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, outline, &but->icon_overlay_text);
     }
     else if (!((but->icon != ICON_NONE) && UI_but_is_tool(but))) {
-      if (outline) {
+      if (has_theme) {
         alpha *= 0.8f;
       }
       UI_icon_draw_ex(xs,
