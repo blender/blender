@@ -907,8 +907,8 @@ static bool outliner_element_visible_get(const Scene *scene,
             return false;
           }
           break;
-        case OB_GPENCIL_LEGACY:
-          if (exclude_filter & SO_FILTER_NO_OB_GPENCIL_LEGACY) {
+        case OB_GREASE_PENCIL:
+          if (exclude_filter & SO_FILTER_NO_OB_GREASE_PENCIL) {
             return false;
           }
           break;
