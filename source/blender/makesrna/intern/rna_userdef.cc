@@ -276,7 +276,7 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_userdef_theme_text_style_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   const uiStyle *style = UI_style_get();
-  BLF_default_size(style->widgetlabel.points);
+  BLF_default_size(style->widget.points);
 
   rna_userdef_update(bmain, scene, ptr);
 }
@@ -1519,13 +1519,6 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "paneltitle");
   RNA_def_property_struct_type(prop, "ThemeFontStyle");
   RNA_def_property_ui_text(prop, "Panel Title Font", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "widget_label", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_pointer_sdna(prop, nullptr, "widgetlabel");
-  RNA_def_property_struct_type(prop, "ThemeFontStyle");
-  RNA_def_property_ui_text(prop, "Widget Label Style", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "widget", PROP_POINTER, PROP_NONE);

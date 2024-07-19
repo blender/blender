@@ -1099,7 +1099,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
                                        const bool region_search_filter_active)
 {
   const bool is_subpanel = panel->type->parent != nullptr;
-  const uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
+  const uiFontStyle *fontstyle = (is_subpanel) ? &style->widget : &style->paneltitle;
 
   const int header_height = BLI_rcti_size_y(header_rect);
   const int scaled_unit = round_fl_to_int(UI_UNIT_X / aspect);

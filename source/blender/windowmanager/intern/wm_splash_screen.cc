@@ -208,8 +208,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
-  int splash_width = text_points_max * 45 * UI_SCALE_FAC;
+  int splash_width = style->widget.points * 45 * UI_SCALE_FAC;
   CLAMP_MAX(splash_width, CTX_wm_window(C)->sizex * 0.7f);
   int splash_height;
 
@@ -300,8 +299,7 @@ void WM_OT_splash(wmOperatorType *ot)
 static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
-  const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = text_points_max * 42 * UI_SCALE_FAC;
+  const int dialog_width = style->widget.points * 42 * UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
 

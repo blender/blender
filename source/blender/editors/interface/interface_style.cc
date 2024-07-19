@@ -81,15 +81,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->grouplabel.shadowalpha = 0.5f;
   style->grouplabel.shadowcolor = 0.0f;
 
-  style->widgetlabel.uifont_id = uifont_id;
-  style->widgetlabel.points = UI_DEFAULT_TEXT_POINTS;
-  style->widgetlabel.character_weight = 400;
-  style->widgetlabel.shadow = 3;
-  style->widgetlabel.shadx = 0;
-  style->widgetlabel.shady = -1;
-  style->widgetlabel.shadowalpha = 0.5f;
-  style->widgetlabel.shadowcolor = 0.0f;
-
   style->widget.uifont_id = uifont_id;
   style->widget.points = UI_DEFAULT_TEXT_POINTS;
   style->widget.character_weight = 400;
@@ -326,8 +317,8 @@ const uiStyle *UI_style_get_dpi()
   _style.paneltitle.shady = short(UI_SCALE_FAC * _style.paneltitle.shady);
   _style.grouplabel.shadx = short(UI_SCALE_FAC * _style.grouplabel.shadx);
   _style.grouplabel.shady = short(UI_SCALE_FAC * _style.grouplabel.shady);
-  _style.widgetlabel.shadx = short(UI_SCALE_FAC * _style.widgetlabel.shadx);
-  _style.widgetlabel.shady = short(UI_SCALE_FAC * _style.widgetlabel.shady);
+  _style.widget.shadx = short(UI_SCALE_FAC * _style.widget.shadx);
+  _style.widget.shady = short(UI_SCALE_FAC * _style.widget.shady);
 
   _style.columnspace = short(UI_SCALE_FAC * _style.columnspace);
   _style.templatespace = short(UI_SCALE_FAC * _style.templatespace);
@@ -422,7 +413,7 @@ void uiStyleInit()
 
   BLF_cache_flush_set_fn(UI_widgetbase_draw_cache_flush);
 
-  BLF_default_size(style->widgetlabel.points);
+  BLF_default_size(style->widget.points);
 
   /* XXX, this should be moved into a style,
    * but for now best only load the monospaced font once. */

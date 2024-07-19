@@ -85,7 +85,7 @@ using blender::float4;
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
-#define VIEW3D_OVERLAY_LINEHEIGHT (UI_style_get()->widgetlabel.points * UI_SCALE_FAC * 1.6f)
+#define VIEW3D_OVERLAY_LINEHEIGHT (UI_style_get()->widget.points * UI_SCALE_FAC * 1.6f)
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
@@ -1496,7 +1496,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     int xoffset = rect->xmin + (0.5f * U.widget_unit);
     int yoffset = rect->ymax - (0.1f * U.widget_unit);
 
-    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET_LABEL;
+    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     UI_fontstyle_set(fstyle);
     BLF_default_size(fstyle->points);
     BLF_set_default();
@@ -1540,7 +1540,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
 
     /* Set the size back to the default hard-coded size. Otherwise anyone drawing after this,
-     * without setting explicit size, will draw with widgetlabel size. That is probably ideal,
+     * without setting explicit size, will draw with widget size. That is probably ideal,
      * but size should be set at the calling site not just carried over from here. */
     BLF_default_size(UI_DEFAULT_TEXT_POINTS);
     BLF_disable(font_id, BLF_SHADOW);

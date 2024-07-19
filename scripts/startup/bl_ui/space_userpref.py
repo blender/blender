@@ -1241,11 +1241,6 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
 
         layout.separator()
 
-        layout.label(text="Widget Label")
-        self._ui_font_style(layout, style.widget_label)
-
-        layout.separator()
-
         layout.label(text="Widget")
         self._ui_font_style(layout, style.widget)
 

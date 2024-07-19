@@ -93,7 +93,6 @@ typedef struct uiStyle {
 
   uiFontStyle paneltitle;
   uiFontStyle grouplabel;
-  uiFontStyle widgetlabel;
   uiFontStyle widget;
 
   float panelzoom;

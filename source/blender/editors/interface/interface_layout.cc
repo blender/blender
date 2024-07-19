@@ -1040,7 +1040,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
          * Use a default width for property button(s). */
         prop_but_width = UI_UNIT_X * 5;
         w_label = ui_text_icon_width_ex(
-            layout, name, ICON_NONE, ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
+            layout, name, ICON_NONE, ui_text_pad_none, UI_FSTYLE_WIDGET);
       }
       else {
         w_label = w_hint / 3;
@@ -3268,8 +3268,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
     icon = ICON_BLANK1;
   }
 
-  const int w = ui_text_icon_width_ex(
-      layout, name, icon, ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
+  const int w = ui_text_icon_width_ex(layout, name, icon, ui_text_pad_none, UI_FSTYLE_WIDGET);
   uiBut *but;
   if (icon && name[0]) {
     but = uiDefIconTextBut(
@@ -6444,8 +6443,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
 {
   const uiStyle *style = UI_style_get_dpi();
   const short icon_size = 64 * UI_SCALE_FAC;
-  const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = icon_size + (text_points_max * size * UI_SCALE_FAC);
+  const int dialog_width = icon_size + (style->widget.points * size * UI_SCALE_FAC);
   return uiItemsAlertBox(block, style, dialog_width, icon, icon_size);
 }
 

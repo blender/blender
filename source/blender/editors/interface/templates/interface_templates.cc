@@ -6290,8 +6290,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
     add_v3_uchar_clamped(report_icon_color, brighten_amount);
   }
 
-  UI_fontstyle_set(&style->widgetlabel);
-  int width = BLF_width(style->widgetlabel.uifont_id, report->message, report->len);
+  UI_fontstyle_set(&style->widget);
+  int width = BLF_width(style->widget.uifont_id, report->message, report->len);
   width = min_ii(int(rti->widthfac * width), width);
   width = max_ii(width, 10 * UI_SCALE_FAC);
 
@@ -6546,11 +6546,10 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   uiBlock *block = uiLayoutGetBlock(ui_abs);
   eUIEmbossType previous_emboss = UI_block_emboss_get(block);
 
-  UI_fontstyle_set(&style->widgetlabel);
-  const int width = max_ii(int(BLF_width(style->widgetlabel.uifont_id,
-                                         warning_message.c_str(),
-                                         warning_message.size())),
-                           int(10 * UI_SCALE_FAC));
+  UI_fontstyle_set(&style->widget);
+  const int width = max_ii(
+      int(BLF_width(style->widget.uifont_id, warning_message.c_str(), warning_message.size())),
+      int(10 * UI_SCALE_FAC));
 
   UI_block_align_begin(block);
 

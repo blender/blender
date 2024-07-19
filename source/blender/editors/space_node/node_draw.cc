@@ -4049,7 +4049,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 {
   const float aspect = snode.runtime->aspect;
   /* XXX font id is crap design */
-  const int fontid = UI_style_get()->widgetlabel.uifont_id;
+  const int fontid = UI_style_get()->widget.uifont_id;
   const NodeFrame *data = (const NodeFrame *)node.storage;
   const float font_size = data->label_size / aspect;
 

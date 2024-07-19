@@ -139,7 +139,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
-  BLF_default_size(UI_style_get()->widgetlabel.points);
+  BLF_default_size(UI_style_get()->widget.points);
   const int font_id = BLF_set_default();
 
   float shadow_color[4] = {0, 0, 0, 0.8f};
