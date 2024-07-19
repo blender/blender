@@ -26,12 +26,15 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   # 1) CMake has issues detecting openmp support in clang-cl so we have to provide
   #    the right switches here.
   # 2) While the /openmp switch *should* work, it currently doesn't as for clang 9.0.0
+  # 3) Using the registry to locate llvmroot doesn't work on some installs. When this happens,
+  #    attempt to locate openmp in the lib directory of the parent of the clang-cl binary
   if(WITH_OPENMP)
     set(OPENMP_CUSTOM ON)
     set(OPENMP_FOUND ON)
     set(OpenMP_C_FLAGS "/clang:-fopenmp")
     set(OpenMP_CXX_FLAGS "/clang:-fopenmp")
-    get_filename_component(LLVMROOT "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\LLVM\\LLVM;]" ABSOLUTE CACHE)
+    get_filename_component(LLVMBIN ${CMAKE_CXX_COMPILER} DIRECTORY)
+    get_filename_component(LLVMROOT ${LLVMBIN} DIRECTORY)
     set(CLANG_OPENMP_DLL "${LLVMROOT}/bin/libomp.dll")
     set(CLANG_OPENMP_LIB "${LLVMROOT}/lib/libomp.lib")
     if(NOT EXISTS "${CLANG_OPENMP_DLL}")
