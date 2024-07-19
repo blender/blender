@@ -924,9 +924,18 @@ void SCULPT_fake_neighbors_enable(Object &ob);
 void SCULPT_fake_neighbors_disable(Object &ob);
 void SCULPT_fake_neighbors_free(Object &ob);
 
-/* Vertex Info. */
+/**
+ * Populates boundary information for a mesh.
+ *
+ * \see SculptVertexInfo
+ */
 void SCULPT_boundary_info_ensure(Object &object);
-/* Boundary Info needs to be initialized in order to use this function. */
+
+/**
+ * Determine if a vertex is a boundary vertex.
+ *
+ * Requires #SCULPT_boundary_info_ensure to have been called.
+ */
 bool SCULPT_vertex_is_boundary(const SculptSession &ss, PBVHVertRef vertex);
 
 /** \} */
