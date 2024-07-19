@@ -383,6 +383,11 @@ void GPU_shader_bind(GPUShader *gpu_shader)
       GPU_matrix_bind(gpu_shader);
     }
   }
+#if GPU_SHADER_PRINTF_ENABLE
+  if (ctx->printf_buf) {
+    GPU_storagebuf_bind(ctx->printf_buf, GPU_SHADER_PRINTF_SLOT);
+  }
+#endif
 }
 
 void GPU_shader_unbind()

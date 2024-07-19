@@ -60,6 +60,8 @@ class Context {
   static int context_counter;
   int context_id = 0;
 
+  GPUStorageBuf *printf_buf = nullptr;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;

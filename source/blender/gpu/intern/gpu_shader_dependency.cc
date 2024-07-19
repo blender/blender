@@ -39,6 +39,7 @@ extern "C" {
 
 namespace blender::gpu {
 
+using GPUPrintFormatMap = Map<uint32_t, shader::PrintfFormat>;
 using GPUSourceDictionnary = Map<StringRef, struct GPUSource *>;
 using GPUFunctionDictionnary = Map<StringRef, GPUFunction *>;
 
@@ -54,7 +55,8 @@ struct GPUSource {
   GPUSource(const char *path,
             const char *file,
             const char *datatoc,
-            GPUFunctionDictionnary *g_functions)
+            GPUFunctionDictionnary *g_functions,
+            GPUPrintFormatMap *g_formats)
       : fullpath(path), filename(file), source(datatoc)
   {
     /* Scan for builtins. */
@@ -121,6 +123,12 @@ struct GPUSource {
           !ELEM(filename, "common_debug_draw_lib.glsl", "draw_debug_draw_display_vert.glsl"))
       {
         builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;
+      }
+#endif
+#if GPU_SHADER_PRINTF_ENABLE
+      if (source.find("printf") != StringRef::not_found) {
+        printf_preprocess(g_formats);
+        builtins |= shader::BuiltinBits::USE_PRINTF;
       }
 #endif
       check_no_quotes();
@@ -805,6 +813,191 @@ struct GPUSource {
     source = processed_source.c_str();
   }
 
+  /**
+   * Preprocess printf statement for correct shader code generation.
+   * `printf(format, data1, data2)`
+   * gets replaced by
+   * `print_data(print_data(print_header(format_hash, 2), data1), data2)`.
+   */
+  void printf_preprocess(GPUPrintFormatMap *format_map)
+  {
+    const StringRefNull input = source;
+    std::stringstream output;
+    int64_t cursor = -1;
+    int64_t last_pos = 0;
+
+    while (true) {
+      cursor = find_keyword(input, "printf(", cursor + 1);
+      if (cursor == -1) {
+        break;
+      }
+
+      /* Output anything between 2 print statement. */
+      output << input.substr(last_pos, cursor - last_pos);
+
+      /* Extract string. */
+      int64_t str_start = input.find('(', cursor) + 1;
+      int64_t semicolon = find_token(input, ';', str_start + 1);
+      CHECK(semicolon, input, cursor, "Malformed printf(). Missing `;` .");
+      int64_t str_end = rfind_token(input, ')', semicolon);
+      if (str_end < str_start) {
+        CHECK(-1, input, cursor, "Malformed printf(). Missing closing `)` .");
+      }
+
+      StringRef input_args = input.substr(str_start, str_end - str_start);
+
+      std::string func_args = input_args;
+      /* Workaround to support function call inside prints. We replace commas by a non control
+       * character `$` in order to use simpler regex later.
+       * Modify `"func %d,\n", func(a, b)` into `"func %d,\n", func(a$ b)` */
+      bool string_scope = false;
+      int func_scope = 0;
+      for (char &c : func_args) {
+        if (c == '"') {
+          string_scope = !string_scope;
+        }
+        else if (!string_scope) {
+          if (c == '(') {
+            func_scope++;
+          }
+          else if (c == ')') {
+            func_scope--;
+          }
+          else if (c == ',' && func_scope != 0) {
+            c = '$';
+          }
+        }
+      }
+
+      std::string format;
+      Vector<std::string> arguments;
+      {
+        const std::regex arg_regex(
+            /* String args. */
+            "[\\s]*\"([^\r\n\t\f\v\"]*)\""
+            /* OR. */
+            "|"
+            /* value args. */
+            "([^,]+)");
+        std::smatch args_match;
+        std::string::const_iterator args_search_start(func_args.cbegin());
+        while (std::regex_search(args_search_start, func_args.cend(), args_match, arg_regex)) {
+          args_search_start = args_match.suffix().first;
+          std::string arg_string = args_match[1].str();
+          std::string arg_val = args_match[2].str();
+
+          if (!arg_string.empty()) {
+            if (!format.empty()) {
+              CHECK(-1, input, cursor, "Format string is not the only string arg.");
+            }
+            if (!arguments.is_empty()) {
+              CHECK(-1, input, cursor, "Format string is not first argument.");
+            }
+            format = arg_string;
+          }
+          else {
+            for (char &c : arg_val) {
+              /* Mutate back functions arguments.*/
+              if (c == '$') {
+                c = ',';
+              }
+            }
+            arguments.append(arg_val);
+          }
+        }
+      }
+
+      if (format.empty()) {
+        CHECK(-1, input, cursor, "No format string found.");
+        return;
+      }
+      int format_arg_count = std::count(format.begin(), format.end(), '%');
+      if (format_arg_count > arguments.size()) {
+        CHECK(-1, input, cursor, "printf call has not enough arguments.");
+        return;
+      }
+      if (format_arg_count < arguments.size()) {
+        CHECK(-1, input, cursor, "printf call has too many arguments.");
+        return;
+      }
+
+      uint64_t format_hash_64 = hash_string(format);
+      uint32_t format_hash = uint32_t((format_hash_64 >> 32) ^ format_hash_64);
+
+      if (format_map->contains(format_hash)) {
+        if (format_map->lookup(format_hash).format_str != format) {
+          CHECK(-1, input, cursor, "printf format hash collision.");
+        }
+        else {
+          /* The format map already have the same format. */
+        }
+      }
+      else {
+        shader::PrintfFormat fmt;
+        /* Save for hash collision comparison. */
+        fmt.format_str = format;
+
+        /* Escape characters replacement. Do the most common ones. */
+        format = std::regex_replace(format, std::regex(R"(\\n)"), "\n");
+        format = std::regex_replace(format, std::regex(R"(\\v)"), "\v");
+        format = std::regex_replace(format, std::regex(R"(\\t)"), "\t");
+        format = std::regex_replace(format, std::regex(R"(\\')"), "\'");
+        format = std::regex_replace(format, std::regex(R"(\\")"), "\"");
+        format = std::regex_replace(format, std::regex(R"(\\\\)"), "\\");
+
+        shader::PrintfFormat::Block::ArgumentType type =
+            shader::PrintfFormat::Block::ArgumentType::NONE;
+        int64_t start = 0, end = 0;
+        while ((end = format.find_first_of('%', start + 1)) != -1) {
+          /* Add the previous block without the newly found % character. */
+          fmt.format_blocks.append({type, format.substr(start, end - start)});
+          /* Format type of the next block. */
+          /* TODO(fclem): This doesn't support advance formats like `%3.2f`. */
+          switch (format[end + 1]) {
+            case 'x':
+            case 'u':
+              type = shader::PrintfFormat::Block::ArgumentType::UINT;
+              break;
+            case 'd':
+              type = shader::PrintfFormat::Block::ArgumentType::INT;
+              break;
+            case 'f':
+              type = shader::PrintfFormat::Block::ArgumentType::FLOAT;
+              break;
+            default:
+              BLI_assert_msg(0, "Printing format unsupported");
+              break;
+          }
+          /* Start of the next block. */
+          start = end;
+        }
+        fmt.format_blocks.append({type, format.substr(start, format.size() - start)});
+
+        format_map->add(format_hash, fmt);
+      }
+
+      std::string sub_output = "print_header(" + std::to_string(format_hash) + "u, " +
+                               std::to_string(format_arg_count) + "u)";
+      for (std::string &arg : arguments) {
+        sub_output = "print_data(" + sub_output + ", " + arg + ")";
+      }
+
+      output << sub_output << ";\n";
+
+      cursor = last_pos = str_end + 1;
+    }
+    /* If nothing has been changed, do not allocate processed_source. */
+    if (last_pos == 0) {
+      return;
+    }
+
+    if (last_pos != 0) {
+      output << input.substr(last_pos);
+    }
+    processed_source = output.str();
+    source = processed_source.c_str();
+  }
+
 #undef find_keyword
 #undef rfind_keyword
 #undef find_token
@@ -822,6 +1015,9 @@ struct GPUSource {
 
     using namespace shader;
     /* Auto dependency injection for debug capabilities. */
+    if ((builtins & BuiltinBits::USE_PRINTF) == BuiltinBits::USE_PRINTF) {
+      dependencies.append_non_duplicates(dict.lookup("gpu_shader_print_lib.glsl"));
+    }
     if ((builtins & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
       dependencies.append_non_duplicates(dict.lookup("common_debug_draw_lib.glsl"));
     }
@@ -898,16 +1094,19 @@ struct GPUSource {
 
 using namespace blender::gpu;
 
+static GPUPrintFormatMap *g_formats = nullptr;
 static GPUSourceDictionnary *g_sources = nullptr;
 static GPUFunctionDictionnary *g_functions = nullptr;
+static bool force_printf_injection = false;
 
 void gpu_shader_dependency_init()
 {
+  g_formats = new GPUPrintFormatMap();
   g_sources = new GPUSourceDictionnary();
   g_functions = new GPUFunctionDictionnary();
 
 #define SHADER_SOURCE(datatoc, filename, filepath) \
-  g_sources->add_new(filename, new GPUSource(filepath, filename, datatoc, g_functions));
+  g_sources->add_new(filename, new GPUSource(filepath, filename, datatoc, g_functions, g_formats));
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
 #include "glsl_gpu_source_list.h"
@@ -922,6 +1121,21 @@ void gpu_shader_dependency_init()
   }
   BLI_assert_msg(errors == 0, "Dependency errors detected: Aborting");
   UNUSED_VARS_NDEBUG(errors);
+
+#if GPU_SHADER_PRINTF_ENABLE
+  if (!g_formats->is_empty()) {
+    /* Detect if there is any printf in node lib files.
+     * See gpu_shader_dependency_force_gpu_print_injection(). */
+    for (auto *value : g_sources->values()) {
+      if ((value->builtins & shader::BuiltinBits::USE_PRINTF) != shader::BuiltinBits::USE_PRINTF) {
+        if (value->filename.startswith("gpu_shader_material_")) {
+          force_printf_injection = true;
+          break;
+        }
+      }
+    }
+  }
+#endif
 }
 
 void gpu_shader_dependency_exit()
@@ -932,6 +1146,7 @@ void gpu_shader_dependency_exit()
   for (auto *value : g_functions->values()) {
     MEM_delete(value);
   }
+  delete g_formats;
   delete g_sources;
   delete g_functions;
 }
@@ -946,6 +1161,23 @@ GPUFunction *gpu_material_library_use_function(GSet *used_libraries, const char 
 }
 
 namespace blender::gpu::shader {
+
+bool gpu_shader_dependency_force_gpu_print_injection()
+{
+  /* WORKAROUND: We cannot know what shader will require printing if the printf is inside shader
+   * node code. In this case, we just force injection inside all shaders. */
+  return force_printf_injection;
+}
+
+bool gpu_shader_dependency_has_printf()
+{
+  return (g_formats != nullptr) && !g_formats->is_empty();
+}
+
+const PrintfFormat &gpu_shader_dependency_get_printf_format(uint32_t format_hash)
+{
+  return g_formats->lookup(format_hash);
+}
 
 BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull shader_source_name)
 {

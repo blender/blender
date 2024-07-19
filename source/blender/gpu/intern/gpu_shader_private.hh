@@ -24,6 +24,7 @@ namespace blender {
 namespace gpu {
 
 class GPULogParser;
+class Context;
 
 /* Set to 1 to log the full source of shaders that fail to compile. */
 #define DEBUG_LOG_SHADER_SRC_ON_ERROR 0
@@ -255,6 +256,9 @@ class GPULogParser {
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GPULogParser");
 };
+
+void printf_begin(Context *ctx);
+void printf_end(Context *ctx);
 
 }  // namespace gpu
 }  // namespace blender

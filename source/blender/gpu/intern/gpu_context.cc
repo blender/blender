@@ -24,6 +24,7 @@
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.hh"
 #include "gpu_private.hh"
+#include "gpu_shader_private.hh"
 
 #ifdef WITH_OPENGL_BACKEND
 #  include "gl_backend.hh"
@@ -114,6 +115,7 @@ GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
 void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
+  printf_end(ctx);
   delete ctx;
   active_ctx = nullptr;
 
@@ -133,6 +135,7 @@ void GPU_context_active_set(GPUContext *ctx_)
   Context *ctx = unwrap(ctx_);
 
   if (active_ctx) {
+    printf_end(active_ctx);
     active_ctx->deactivate();
   }
 
@@ -140,6 +143,7 @@ void GPU_context_active_set(GPUContext *ctx_)
 
   if (ctx) {
     ctx->activate();
+    printf_begin(ctx);
   }
 }
 
@@ -214,7 +218,9 @@ void GPU_render_step()
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   if (backend) {
+    printf_end(active_ctx);
     backend->render_step();
+    printf_begin(active_ctx);
   }
 }
 
