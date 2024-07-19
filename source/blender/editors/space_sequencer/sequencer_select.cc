@@ -1240,8 +1240,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
 
   /* Deselect everything */
   if (deselect_all ||
-      (selection.seq1 && (extend == false && deselect == false && toggle == false) &&
-       !already_selected))
+      (selection.seq1 && (extend == false && deselect == false && toggle == false)))
   {
     changed |= ED_sequencer_deselect_all(scene);
   }
