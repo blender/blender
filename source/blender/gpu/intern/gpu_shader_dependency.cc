@@ -1149,6 +1149,9 @@ void gpu_shader_dependency_exit()
   delete g_formats;
   delete g_sources;
   delete g_functions;
+  g_formats = nullptr;
+  g_sources = nullptr;
+  g_functions = nullptr;
 }
 
 GPUFunction *gpu_material_library_use_function(GSet *used_libraries, const char *name)
