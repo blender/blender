@@ -955,7 +955,15 @@ namespace hide {
 Span<int> node_visible_verts(const PBVHNode &node, Span<bool> hide_vert, Vector<int> &indices);
 
 bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex);
+
+/* Determines if all faces attached to a given vertex are visible. */
 bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex);
+bool vert_all_faces_visible_get(Span<bool> hide_poly, GroupedSpan<int> vert_to_face_map, int vert);
+bool vert_all_faces_visible_get(Span<bool> hide_poly,
+                                const SubdivCCG &subdiv_ccg,
+                                SubdivCCGCoord vert);
+bool vert_all_faces_visible_get(BMVert *vert);
+
 bool vert_any_face_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 
 }

@@ -466,6 +466,49 @@ bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex)
   }
   return true;
 }
+bool vert_all_faces_visible_get(const Span<bool> hide_poly,
+                                const GroupedSpan<int> vert_to_face_map,
+                                const int vert)
+{
+  for (const int face : vert_to_face_map[vert]) {
+    if (hide_poly[face]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool vert_all_faces_visible_get(const Span<bool> hide_poly,
+                                const SubdivCCG &subdiv_ccg,
+                                const SubdivCCGCoord vert)
+{
+  const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, vert.grid_index);
+  return hide_poly[face_index];
+}
+bool vert_all_faces_visible_get(BMVert *vert)
+{
+  BMEdge *edge = vert->e;
+
+  if (!edge) {
+    return true;
+  }
+
+  do {
+    BMLoop *loop = edge->l;
+
+    if (!loop) {
+      continue;
+    }
+
+    do {
+      if (BM_elem_flag_test(loop->f, BM_ELEM_HIDDEN)) {
+        return false;
+      }
+    } while ((loop = loop->radial_next) != edge->l);
+  } while ((edge = BM_DISK_EDGE_NEXT(edge, vert)) != vert->e);
+
+  return true;
+}
 
 }  // namespace hide
 
