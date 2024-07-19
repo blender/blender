@@ -699,8 +699,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
       {AUD_CHANNELS_SURROUND51, "SURROUND51", 0, "5.1 Surround", "5.1 surround sound"},
       {AUD_CHANNELS_SURROUND61, "SURROUND61", 0, "6.1 Surround", "6.1 surround sound"},
       {AUD_CHANNELS_SURROUND71, "SURROUND71", 0, "7.1 Surround", "7.1 surround sound"},
-      {0, NULL, 0, NULL, NULL}
-  };
+      {0, NULL, 0, NULL, NULL}};
 
 #endif /* WITH_AUDASPACE */
 
@@ -742,9 +741,18 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "container", container_items, AUD_CONTAINER_FLAC, "Container", "File format");
   RNA_def_enum(ot->srna, "codec", codec_items, AUD_CODEC_FLAC, "Codec", "Audio Codec");
-  RNA_def_enum(ot->srna, "channels", channel_items, AUD_CHANNELS_STEREO, "Channels", "Audio channel count");
+  RNA_def_enum(
+      ot->srna, "channels", channel_items, AUD_CHANNELS_STEREO, "Channels", "Audio channel count");
   RNA_def_enum(ot->srna, "format", format_items, AUD_FORMAT_S16, "Format", "Sample format");
-  RNA_def_int(ot->srna, "mixrate", 48000, 8000, 192000, "Samplerate", "Samplerate in samples/s", 8000, 192000);
+  RNA_def_int(ot->srna,
+              "mixrate",
+              48000,
+              8000,
+              192000,
+              "Samplerate",
+              "Samplerate in samples/s",
+              8000,
+              192000);
   RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
   RNA_def_boolean(ot->srna,
                   "split_channels",
