@@ -180,7 +180,8 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PaintMode::Texture3D,
              PaintMode::Texture2D,
              PaintMode::Vertex,
-             PaintMode::Sculpt))
+             PaintMode::Sculpt,
+             PaintMode::GPencil))
     {
       copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
       color->value = 0.0;
