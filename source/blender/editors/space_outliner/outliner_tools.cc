@@ -3107,6 +3107,8 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
       break;
   }
 
+  ED_node_tree_propagate_change(C, bmain, nullptr);
+
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
 
