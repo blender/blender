@@ -267,7 +267,6 @@ void MESH_OT_mark_seam(wmOperatorType *ot);
 void MESH_OT_mark_sharp(wmOperatorType *ot);
 void MESH_OT_flip_normals(wmOperatorType *ot);
 void MESH_OT_solidify(wmOperatorType *ot);
-void MESH_OT_knife_cut(wmOperatorType *ot);
 void MESH_OT_separate(wmOperatorType *ot);
 void MESH_OT_fill(wmOperatorType *ot);
 void MESH_OT_fill_grid(wmOperatorType *ot);
