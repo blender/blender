@@ -592,8 +592,8 @@ void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
   /* Switch to the blur (smooth) brush if possible. */
   BKE_paint_brush_set_essentials(bmain,
                                  paint,
-                                 (paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT) ? "Blur Weight" :
-                                                                                   "Blur Vertex");
+                                 paint->runtime.ob_mode == OB_MODE_WEIGHT_PAINT ? "Blur Weight" :
+                                                                                  "Blur Vertex");
   Brush *smooth_brush = BKE_paint_brush(paint);
 
   if (!smooth_brush) {
