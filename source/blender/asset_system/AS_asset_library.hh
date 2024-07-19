@@ -242,14 +242,6 @@ std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRe
 std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain);
 
 /**
- * Checks if the asset library service is in a usable state, i.e. after initializing and before
- * calling #AS_asset_libraries_exit(). Only needed in rare cases, e.g. when it's known that asset
- * library data may be accessed via dangling pointers on file exit, see #120466. Would be nicer to
- * clear the pointers instead, but not worth the extra logic for such a corner case.
- */
-bool AS_asset_libraries_available();
-
-/**
  * Force clearing of all asset library data. After calling this, new asset libraries can be loaded
  * just as usual using #AS_asset_library_load(), no init or other setup is needed.
  *

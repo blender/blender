@@ -1444,9 +1444,7 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
 
 static void filelist_intern_entry_free(FileList *filelist, FileListInternEntry *entry)
 {
-  /* Asset system storage might be cleared already on file exit. Asset library
-   * pointers are dangling then, so don't access (#120466). */
-  if (AS_asset_libraries_available() && entry->asset) {
+  if (entry->asset) {
     BLI_assert(filelist->asset_library);
     filelist->asset_library->remove_asset(*entry->asset);
   }
