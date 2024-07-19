@@ -514,6 +514,70 @@ void set_default_remaining_node_outputs(lf::Params &params, const bNode &node)
   }
 }
 
+static void execute_multi_function_on_value_variant__single(
+    const MultiFunction &fn,
+    const Span<SocketValueVariant *> input_values,
+    const Span<SocketValueVariant *> output_values)
+{
+  /* In this case, the multi-function is evaluated directly. */
+  const IndexMask mask(1);
+  mf::ParamsBuilder params{fn, &mask};
+  mf::ContextBuilder context;
+
+  for (const int i : input_values.index_range()) {
+    SocketValueVariant &input_variant = *input_values[i];
+    input_variant.convert_to_single();
+    const void *value = input_variant.get_single_ptr_raw();
+    const mf::ParamType param_type = fn.param_type(params.next_param_index());
+    const CPPType &cpp_type = param_type.data_type().single_type();
+    params.add_readonly_single_input(GPointer{cpp_type, value});
+  }
+  for (const int i : output_values.index_range()) {
+    if (output_values[i] == nullptr) {
+      params.add_ignored_single_output("");
+      continue;
+    }
+    SocketValueVariant &output_variant = *output_values[i];
+    const mf::ParamType param_type = fn.param_type(params.next_param_index());
+    const CPPType &cpp_type = param_type.data_type().single_type();
+    const eNodeSocketDatatype socket_type =
+        bke::geo_nodes_base_cpp_type_to_socket_type(cpp_type).value();
+    void *value = output_variant.allocate_single(socket_type);
+    params.add_uninitialized_single_output(GMutableSpan{cpp_type, value, 1});
+  }
+  fn.call(mask, params, context);
+}
+
+static void execute_multi_function_on_value_variant__field(
+    const MultiFunction &fn,
+    const std::shared_ptr<MultiFunction> &owned_fn,
+    const Span<SocketValueVariant *> input_values,
+    const Span<SocketValueVariant *> output_values)
+{
+  /* Convert all inputs into fields, so that they can be used as input in the new field. */
+  Vector<GField> input_fields;
+  for (const int i : input_values.index_range()) {
+    input_fields.append(input_values[i]->extract<GField>());
+  }
+
+  /* Construct the new field node. */
+  std::shared_ptr<fn::FieldOperation> operation;
+  if (owned_fn) {
+    operation = fn::FieldOperation::Create(owned_fn, std::move(input_fields));
+  }
+  else {
+    operation = fn::FieldOperation::Create(fn, std::move(input_fields));
+  }
+
+  /* Store the new fields in the output. */
+  for (const int i : output_values.index_range()) {
+    if (output_values[i] == nullptr) {
+      continue;
+    }
+    output_values[i]->set(GField{operation, i});
+  }
+}
+
 /**
  * Executes a multi-function. If all inputs are single values, the results will also be single
  * values. If any input is a field, the outputs will also be fields.
@@ -523,67 +587,20 @@ static void execute_multi_function_on_value_variant(const MultiFunction &fn,
                                                     const Span<SocketValueVariant *> input_values,
                                                     const Span<SocketValueVariant *> output_values)
 {
-  /* Check if any input is a field. */
+  /* Check input types which determine how the function is evaluated. */
   bool any_input_is_field = false;
   for (const int i : input_values.index_range()) {
-    if (input_values[i]->is_context_dependent_field()) {
+    const SocketValueVariant &value = *input_values[i];
+    if (value.is_context_dependent_field()) {
       any_input_is_field = true;
-      break;
     }
   }
 
   if (any_input_is_field) {
-    /* Convert all inputs into fields, so that they can be used as input in the new field. */
-    Vector<GField> input_fields;
-    for (const int i : input_values.index_range()) {
-      input_fields.append(input_values[i]->extract<GField>());
-    }
-
-    /* Construct the new field node. */
-    std::shared_ptr<fn::FieldOperation> operation;
-    if (owned_fn) {
-      operation = fn::FieldOperation::Create(owned_fn, std::move(input_fields));
-    }
-    else {
-      operation = fn::FieldOperation::Create(fn, std::move(input_fields));
-    }
-
-    /* Store the new fields in the output. */
-    for (const int i : output_values.index_range()) {
-      if (output_values[i] == nullptr) {
-        continue;
-      }
-      output_values[i]->set(GField{operation, i});
-    }
+    execute_multi_function_on_value_variant__field(fn, owned_fn, input_values, output_values);
   }
   else {
-    /* In this case, the multi-function is evaluated directly. */
-    const IndexMask mask(1);
-    mf::ParamsBuilder params{fn, &mask};
-    mf::ContextBuilder context;
-
-    for (const int i : input_values.index_range()) {
-      SocketValueVariant &input_variant = *input_values[i];
-      input_variant.convert_to_single();
-      const void *value = input_variant.get_single_ptr_raw();
-      const mf::ParamType param_type = fn.param_type(params.next_param_index());
-      const CPPType &cpp_type = param_type.data_type().single_type();
-      params.add_readonly_single_input(GPointer{cpp_type, value});
-    }
-    for (const int i : output_values.index_range()) {
-      if (output_values[i] == nullptr) {
-        params.add_ignored_single_output("");
-        continue;
-      }
-      SocketValueVariant &output_variant = *output_values[i];
-      const mf::ParamType param_type = fn.param_type(params.next_param_index());
-      const CPPType &cpp_type = param_type.data_type().single_type();
-      const eNodeSocketDatatype socket_type =
-          bke::geo_nodes_base_cpp_type_to_socket_type(cpp_type).value();
-      void *value = output_variant.allocate_single(socket_type);
-      params.add_uninitialized_single_output(GMutableSpan{cpp_type, value, 1});
-    }
-    fn.call(mask, params, context);
+    execute_multi_function_on_value_variant__single(fn, input_values, output_values);
   }
 }
 
