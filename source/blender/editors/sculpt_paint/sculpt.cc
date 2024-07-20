@@ -915,6 +915,46 @@ bool vert_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
   return false;
 }
 
+bool vert_is_boundary(const Span<bool> hide_poly,
+                      const GroupedSpan<int> vert_to_face_map,
+                      const BitSpan boundary,
+                      const int vert)
+{
+  if (!hide::vert_all_faces_visible_get(hide_poly, vert_to_face_map, vert)) {
+    return true;
+  }
+  return boundary[vert].test();
+}
+
+bool vert_is_boundary(const Span<bool> /*hide_poly*/,
+                      const SubdivCCG &subdiv_ccg,
+                      const Span<int> corner_verts,
+                      const OffsetIndices<int> faces,
+                      const BitSpan boundary,
+                      const SubdivCCGCoord vert)
+{
+  /* TODO: Unlike the base mesh implementation this method does NOT take into account face
+   * visibility. Either this should be noted as a intentional limitation or fixed.*/
+  int v1, v2;
+  const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+      subdiv_ccg, vert, corner_verts, faces, v1, v2);
+  switch (adjacency) {
+    case SUBDIV_CCG_ADJACENT_VERTEX:
+      return boundary[v1].test();
+    case SUBDIV_CCG_ADJACENT_EDGE:
+      return boundary[v1].test() && boundary[v2].test();
+    case SUBDIV_CCG_ADJACENT_NONE:
+      return false;
+  }
+}
+
+bool vert_is_boundary(BMVert *vert)
+{
+  /* TODO: Unlike the base mesh implementation this method does NOT take into account face
+   * visibility. Either this should be noted as a intentional limitation or fixed.*/
+  return BM_vert_is_boundary(vert);
+}
+
 }  // namespace boundary
 
 }  // namespace blender::ed::sculpt_paint
