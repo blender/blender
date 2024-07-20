@@ -819,8 +819,8 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
       return false;
     }
     /* Sometimes the cursor may be on an invisible part of an overlapping region. */
-    const wmWindowManager *wm = CTX_wm_manager(C);
-    const wmEvent *event = wm->winactive->eventstate;
+    wmWindow *win = CTX_wm_window(C);
+    const wmEvent *event = win->eventstate;
     if (ED_region_overlap_isect_xy(region, event->xy)) {
       return false;
     }
