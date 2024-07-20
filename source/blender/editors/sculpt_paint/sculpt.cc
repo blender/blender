@@ -946,6 +946,8 @@ bool vert_is_boundary(const Span<bool> /*hide_poly*/,
     case SUBDIV_CCG_ADJACENT_NONE:
       return false;
   }
+  BLI_assert_unreachable();
+  return false;
 }
 
 bool vert_is_boundary(BMVert *vert)
