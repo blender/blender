@@ -11,5 +11,9 @@ void main()
   vec4 out_color;
   float out_depth;
 
+  if (any(greaterThanEqual(texel_film, uniform_buf.film.extent))) {
+    return;
+  }
+
   film_process_data(texel_film, out_color, out_depth);
 }

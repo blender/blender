@@ -207,7 +207,7 @@ float film_distance_load(ivec2 texel)
   if (!uniform_buf.film.use_history || use_reprojection) {
     return 0.0;
   }
-  return imageLoad(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE)).x;
+  return imageLoadFast(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE)).x;
 }
 
 float film_weight_load(ivec2 texel)
@@ -218,7 +218,7 @@ float film_weight_load(ivec2 texel)
   if (!uniform_buf.film.use_history || use_reprojection) {
     return 0.0;
   }
-  return imageLoad(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION)).x;
+  return imageLoadFast(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION)).x;
 }
 
 /* Returns motion in pixel space to retrieve the pixel history. */
@@ -511,7 +511,7 @@ void film_store_combined(
   if (display_id == -1) {
     display = color;
   }
-  imageStore(out_combined_img, dst.texel, color);
+  imageStoreFast(out_combined_img, dst.texel, color);
 }
 
 void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 display)
@@ -520,7 +520,7 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
     return;
   }
 
-  vec4 data_film = imageLoad(color_accum_img, ivec3(dst.texel, pass_id));
+  vec4 data_film = imageLoadFast(color_accum_img, ivec3(dst.texel, pass_id));
 
   color = (data_film * dst.weight + color) * dst.weight_sum_inv;
 
@@ -538,7 +538,7 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
   if (display_id == pass_id) {
     display = color;
   }
-  imageStore(color_accum_img, ivec3(dst.texel, pass_id), color);
+  imageStoreFast(color_accum_img, ivec3(dst.texel, pass_id), color);
 }
 
 void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 display)
@@ -547,7 +547,7 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 displ
     return;
   }
 
-  float data_film = imageLoad(value_accum_img, ivec3(dst.texel, pass_id)).x;
+  float data_film = imageLoadFast(value_accum_img, ivec3(dst.texel, pass_id)).x;
 
   value = (data_film * dst.weight + value) * dst.weight_sum_inv;
 
@@ -559,7 +559,7 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 displ
   if (display_id == pass_id) {
     display = vec4(value, value, value, 1.0);
   }
-  imageStore(value_accum_img, ivec3(dst.texel, pass_id), vec4(value));
+  imageStoreFast(value_accum_img, ivec3(dst.texel, pass_id), vec4(value));
 }
 
 /* Nearest sample variant. Always stores the data. */
@@ -572,7 +572,7 @@ void film_store_data(ivec2 texel_film, int pass_id, vec4 data_sample, inout vec4
   if (display_id == pass_id) {
     display = data_sample;
   }
-  imageStore(color_accum_img, ivec3(texel_film, pass_id), data_sample);
+  imageStoreFast(color_accum_img, ivec3(texel_film, pass_id), data_sample);
 }
 
 void film_store_depth(ivec2 texel_film, float value, out float out_depth)
@@ -583,17 +583,17 @@ void film_store_depth(ivec2 texel_film, float value, out float out_depth)
 
   out_depth = film_depth_convert_to_scene(value);
 
-  imageStore(depth_img, texel_film, vec4(out_depth));
+  imageStoreFast(depth_img, texel_film, vec4(out_depth));
 }
 
 void film_store_distance(ivec2 texel, float value)
 {
-  imageStore(out_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE), vec4(value));
+  imageStoreFast(out_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE), vec4(value));
 }
 
 void film_store_weight(ivec2 texel, float value)
 {
-  imageStore(out_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION), vec4(value));
+  imageStoreFast(out_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION), vec4(value));
 }
 
 float film_display_depth_amend(ivec2 texel, float depth)
@@ -673,9 +673,9 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
       film_store_distance(texel_film, film_sample.weight);
     }
     else {
-      out_depth = imageLoad(depth_img, texel_film).r;
+      out_depth = imageLoadFast(depth_img, texel_film).r;
       if (display_id != -1 && display_id == normal_id) {
-        out_color = imageLoad(color_accum_img, ivec3(texel_film, display_id));
+        out_color = imageLoadFast(color_accum_img, ivec3(texel_film, display_id));
       }
     }
   }
