@@ -396,6 +396,9 @@ struct GWL_Window {
   /** True once the window has been initialized. */
   bool is_init = false;
 
+  /** True when the GPU context is valid. */
+  bool is_valid_setup = false;
+
   /** Currently only initialized on access (avoids allocations & allows to keep private). */
   GWL_WindowScaleParams scale_params;
 
@@ -1653,7 +1656,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       system_(system),
       window_(new GWL_Window),
-      valid_setup_(false),
       is_debug_context_(is_debug)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -1915,10 +1917,10 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     GHOST_PRINT("Failed to create drawing context" << std::endl);
   }
   else {
-    valid_setup_ = true;
+    window_->is_valid_setup = true;
   }
 
-  if (valid_setup_ == false) {
+  if (window_->is_valid_setup == false) {
     /* Don't attempt to setup the window if there is no context.
      * This window is considered invalid and will be removed. */
   }
@@ -2162,7 +2164,7 @@ GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 
 bool GHOST_WindowWayland::getValid() const
 {
-  return GHOST_Window::getValid() && valid_setup_;
+  return GHOST_Window::getValid() && window_->is_valid_setup;
 }
 
 void GHOST_WindowWayland::setTitle(const char *title)

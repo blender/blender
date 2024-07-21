@@ -196,7 +196,6 @@ class GHOST_WindowWayland : public GHOST_Window {
  private:
   GHOST_SystemWayland *system_;
   struct GWL_Window *window_;
-  bool valid_setup_;
   bool is_debug_context_;
 
   /**
