@@ -85,6 +85,14 @@ void export_frame(Depsgraph *depsgraph,
       /* Include object name in the exported file name. */
       char filepath[FILE_MAX];
       STRNCPY(filepath, export_params.filepath);
+      /* When basename is just ".stl", regular path functions would
+       * treat it as a hidden file called ".stl". Remove the extension
+       * before trying to add a suffix. */
+      const char *basename = BLI_path_basename(filepath);
+      if (basename != nullptr && BLI_strcasecmp(basename, ".stl") == 0) {
+        *const_cast<char *>(basename) = '\0';
+      }
+
       BLI_path_suffix(filepath, FILE_MAX, object_name, "");
       /* Make sure we have `.stl` extension (case insensitive). */
       if (!BLI_path_extension_check(filepath, ".stl")) {
