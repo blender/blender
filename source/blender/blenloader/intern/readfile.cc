@@ -4974,7 +4974,7 @@ blender::ImplicitSharingInfoAndData blo_read_shared_impl(
   if (BLO_read_data_is_undo(reader)) {
     if (reader->fd->flags & FD_FLAGS_IS_MEMFILE) {
       UndoReader *undo_reader = reinterpret_cast<UndoReader *>(reader->fd->file);
-      MemFile &memfile = *undo_reader->memfile;
+      const MemFile &memfile = *undo_reader->memfile;
       if (memfile.shared_storage) {
         /* Check if the data was saved with sharing-info. */
         if (const blender::ImplicitSharingInfo *sharing_info =

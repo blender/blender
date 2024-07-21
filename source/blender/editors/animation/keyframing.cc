@@ -879,7 +879,6 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
     if ((ob->adt) && (ob->adt->action)) {
       AnimData *adt = ob->adt;
       bAction *act = adt->action;
-      FCurve *fcu, *fcn;
       const float cfra_unmap = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 
       Action &action = act->wrap();
@@ -892,7 +891,8 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
         }
       }
       else {
-        for (fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcn) {
+        FCurve *fcn;
+        for (FCurve *fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcn) {
           fcn = fcu->next;
           if (!can_delete_key(fcu, ob, op->reports)) {
             continue;

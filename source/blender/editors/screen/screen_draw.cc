@@ -237,12 +237,19 @@ static void screen_draw_area_icon(
   if (bg_color) {
     const float bg_width = UI_SCALE_FAC * 50.0f;
     const float bg_height = UI_SCALE_FAC * 40.0f;
-    rctf rect = {center_x - (bg_width / 2.0f),
-                 center_x + bg_width - (bg_width / 2.0f),
-                 center_y - (bg_height / 2.0f),
-                 center_y + bg_height - (bg_height / 2.0f)};
-    UI_draw_roundbox_4fv_ex(
-        &rect, bg_color, nullptr, 1.0f, outline ? outline : nullptr, U.pixelsize, 6 * U.pixelsize);
+    const rctf bg_rect = {
+        /*xmin*/ center_x - (bg_width / 2.0f),
+        /*xmax*/ center_x + bg_width - (bg_width / 2.0f),
+        /*ymin*/ center_y - (bg_height / 2.0f),
+        /*ymax*/ center_y + bg_height - (bg_height / 2.0f),
+    };
+    UI_draw_roundbox_4fv_ex(&bg_rect,
+                            bg_color,
+                            nullptr,
+                            1.0f,
+                            outline ? outline : nullptr,
+                            U.pixelsize,
+                            6 * U.pixelsize);
   }
 
   const float icon_size = 32.0f * UI_SCALE_FAC;

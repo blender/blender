@@ -84,7 +84,7 @@ static float from_16dot16(FT_Fixed value)
 
 static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font)
 {
-  for (std::unique_ptr<GlyphCacheBLF> &gc : font->cache) {
+  for (const std::unique_ptr<GlyphCacheBLF> &gc : font->cache) {
     if (gc->size == font->size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&

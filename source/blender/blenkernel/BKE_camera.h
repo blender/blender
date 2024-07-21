@@ -90,7 +90,7 @@ void BKE_camera_params_compute_viewplane(
 /**
  * Crop `viewplane` given the current resolution and a pixel region inside the view plane.
  */
-void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, rcti *region);
+void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, const rcti *region);
 /**
  * View-plane is assumed to be already computed.
  */

@@ -949,7 +949,7 @@ void assert_baklava_phase_1_invariants(const Strip &strip);
  * Creates a new `Action` that matches the old action but is converted to have layers.
  * Returns a nullptr if the action is empty or already layered.
  */
-Action *convert_to_layered_action(Main &bmain, const Action &action);
+Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
 
 /**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.

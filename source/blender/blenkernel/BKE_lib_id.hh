@@ -341,12 +341,12 @@ void BKE_libblock_free_data_py(ID *id);
  * \param bmain: #Main database containing the freed #ID,
  * can be NULL in case it's a temp ID outside of any #Main.
  * \param idv: Pointer to ID to be freed.
- * \param flag: Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
+ * \param flag_orig: Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
  * 0 to get default safe behavior.
  * \param use_flag_from_idtag: Still use freeing info flags from given #ID data-block,
  * even if some overriding ones are passed in \a flag parameter.
  */
-void BKE_id_free_ex(Main *bmain, void *idv, int flag, bool use_flag_from_idtag);
+void BKE_id_free_ex(Main *bmain, void *idv, int flag_orig, bool use_flag_from_idtag);
 /**
  * Complete ID freeing, should be usable in most cases (even for out-of-Main IDs).
  *

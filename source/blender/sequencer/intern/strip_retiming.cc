@@ -1106,7 +1106,7 @@ blender::Map<SeqRetimingKey *, Sequence *> SEQ_retiming_selection_get(const Edit
 bool SEQ_retiming_selection_contains(const Editing *ed, const SeqRetimingKey *key)
 {
   LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
-    for (SeqRetimingKey &key_iter : SEQ_retiming_keys_get(seq)) {
+    for (const SeqRetimingKey &key_iter : SEQ_retiming_keys_get(seq)) {
       if ((key_iter.flag & SEQ_KEY_SELECTED) != 0 && &key_iter == key) {
         return true;
       }

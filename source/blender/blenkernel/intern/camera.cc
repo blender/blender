@@ -485,7 +485,7 @@ void BKE_camera_params_compute_viewplane(
   params->viewplane = viewplane;
 }
 
-void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, rcti *region)
+void BKE_camera_params_crop_viewplane(rctf *viewplane, int winx, int winy, const rcti *region)
 {
   float pix_size_x = BLI_rctf_size_x(viewplane) / winx;
   float pix_size_y = BLI_rctf_size_y(viewplane) / winy;

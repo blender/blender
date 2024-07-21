@@ -406,8 +406,8 @@ void AnimationImporter::Assign_transform_animations(
           fcurve_deg_to_rad(fcu);
         }
       }
-      COLLADAFW::Rotate *rot = (COLLADAFW::Rotate *)transform;
-      COLLADABU::Math::Vector3 &axis = rot->getRotationAxis();
+      const COLLADAFW::Rotate *rot = (COLLADAFW::Rotate *)transform;
+      const COLLADABU::Math::Vector3 &axis = rot->getRotationAxis();
 
       switch (binding->animationClass) {
         case COLLADAFW::AnimationList::ANGLE: {
