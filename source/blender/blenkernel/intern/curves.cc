@@ -107,6 +107,9 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
+  /* Only for forward compatibility. */
+  curves->attributes_active_index_legacy = curves->geometry.attributes_active_index;
+
   blender::bke::CurvesGeometry::BlendWriteData write_data =
       curves->geometry.wrap().blend_write_prepare();
 
@@ -302,7 +305,6 @@ Curves *curves_new_nomain(CurvesGeometry curves)
 void curves_copy_parameters(const Curves &src, Curves &dst)
 {
   dst.flag = src.flag;
-  dst.attributes_active_index = src.attributes_active_index;
   MEM_SAFE_FREE(dst.mat);
   dst.mat = static_cast<Material **>(MEM_malloc_arrayN(src.totcol, sizeof(Material *), __func__));
   dst.totcol = src.totcol;
