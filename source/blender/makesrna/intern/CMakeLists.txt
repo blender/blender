@@ -21,7 +21,7 @@ if(CMAKE_GENERATOR MATCHES ".*Unix Makefiles")
   add_definitions(-DUSE_MAKEFILE_WORKAROUND)
 endif()
 
-# files rna_access.cc rna_define.cc makesrna.cc intentionally excluded.
+# Files `rna_access.cc`, `rna_define.cc`, `makesrna.cc` intentionally excluded.
 set(DEFSRC
   rna_ID.cc
   rna_action.cc
@@ -141,7 +141,11 @@ set(APISRC
   rna_workspace_api.cc
 )
 
-string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).cc" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.cc" GENSRC "${DEFSRC}")
+string(
+  REGEX REPLACE
+  "rna_([a-zA-Z0-9_-]*).cc" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.cc"
+  GENSRC "${DEFSRC}"
+)
 list(APPEND GENSRC
   "${CMAKE_CURRENT_BINARY_DIR}/rna_prototypes_gen.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/../RNA_prototypes.hh"
@@ -464,8 +468,9 @@ endif()
 # `valgrind --leak-check=full --track-origins=yes`
 add_custom_command(
   OUTPUT ${GENSRC}
-  COMMAND ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-  "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
+  COMMAND
+    ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
+    "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
   DEPENDS makesrna
 )
 
