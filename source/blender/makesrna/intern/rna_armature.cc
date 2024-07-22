@@ -1224,7 +1224,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editb
   prop = RNA_def_property(srna, "bbone_easein", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "ease1");
   RNA_def_property_ui_range(prop, -5.0f, 5.0f, 1, 3);
-  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_float_default(prop, is_posebone ? 0.0f : 1.0f);
   RNA_def_property_ui_text(prop, "Ease In", "Length of first Bézier Handle (for B-Bones only)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ARMATURE);
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone, is_editbone);
@@ -1232,7 +1232,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editb
   prop = RNA_def_property(srna, "bbone_easeout", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "ease2");
   RNA_def_property_ui_range(prop, -5.0f, 5.0f, 1, 3);
-  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_float_default(prop, is_posebone ? 0.0f : 1.0f);
   RNA_def_property_ui_text(prop, "Ease Out", "Length of second Bézier Handle (for B-Bones only)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ARMATURE);
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone, is_editbone);
