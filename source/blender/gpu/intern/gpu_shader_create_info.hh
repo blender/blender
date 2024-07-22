@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-/* Force enable printf support in release build. */
+/* Force enable `printf` support in release build. */
 #define GPU_FORCE_ENABLE_SHADER_PRINTF 0
 
 #if !defined(NDEBUG) || GPU_FORCE_ENABLE_SHADER_PRINTF

@@ -85,7 +85,8 @@ void BKE_blendfile_read_setup_readfile(bContext *C,
 
 /**
  * Simpler version of #BKE_blendfile_read_setup_readfile used when reading undo steps from
- * memfile. */
+ * memfile.
+ */
 void BKE_blendfile_read_setup_undo(bContext *C,
                                    BlendFileData *bfd,
                                    const BlendFileReadParams *params,
@@ -243,7 +244,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
      */
     SET_FAKE_USER = 1 << 1,
     /**
-     * Set the 'clipboard' flag to the added ID. Ensures that it is treated as potential cource
+     * Set the 'clipboard' flag to the added ID. Ensures that it is treated as potential source
      * data for a 'paste ID' operation.
      */
     SET_CLIPBOARD_MARK = 1 << 4,
@@ -274,7 +275,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
     /**
      * Operation flags that are (by default) inherited by all dependencies.
      *
-     * \note This will be (partially) superceeded by masked-out values from #MASK_PER_ID_USAGES
+     * \note This will be (partially) superseded by masked-out values from #MASK_PER_ID_USAGES
      * below.
      */
     MASK_INHERITED = (MAKE_LOCAL | CLEAR_DEPENDENCIES | ADD_DEPENDENCIES | DUPLICATE_DEPENDENCIES),
@@ -282,7 +283,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
      * Operation flags that are defined by the #dependencies_filter_cb callback, if given.
      *
      * \note This mask is applied on top of the filter from #MASK_INHERITED, for ID dependencies
-     * of explicitely added data. */
+     * of explicitly added data.
+     */
     MASK_PER_ID_USAGE = (MAKE_LOCAL | SET_FAKE_USER | SET_CLIPBOARD_MARK | CLEAR_DEPENDENCIES |
                          ADD_DEPENDENCIES),
   };
@@ -396,7 +398,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * 'fake user' flag, or the (runtime-only, cleared on next file load) 'extra user' tag, depending
    * on whether #SET_FAKE_USER is set or not.
    *
-   * Also handles the setting of the #LIB_CLIPBOARD_MARK flag if #SET_CLIPBOARD_MARK is set. */
+   * Also handles the setting of the #LIB_CLIPBOARD_MARK flag if #SET_CLIPBOARD_MARK is set.
+   */
   void process_added_id(ID *ctx_id, const IDAddOperations operations);
   /**
    * Utils for #PartialWriteContext::id_add, only adds (duplicate) the given source ID into

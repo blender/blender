@@ -434,6 +434,7 @@ dict_custom = {
     "uncomputed",
     "unconfigured",
     "unconvert",
+    "uncorrupted",
     "undefine",
     "undefined",
     "undeform",
