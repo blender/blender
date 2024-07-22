@@ -716,7 +716,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     const Layer &layer = *layers[info.layer_index];
 
     const bke::CurvesGeometry &curves = info.drawing.strokes();
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
     const bke::AttributeAccessor attributes = curves.attributes();
     const VArray<bool> cyclic = *attributes.lookup_or_default<bool>(
         "cyclic", bke::AttrDomain::Curve, false);

@@ -1034,6 +1034,18 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   cache->is_dirty = false;
 }
 
+template<typename T>
+static VArray<T> attribute_interpolate(const VArray<T> &input, const bke::CurvesGeometry &curves)
+{
+  if (curves.is_single_type(CURVE_TYPE_POLY)) {
+    return input;
+  }
+
+  Array<T> out(curves.evaluated_points_num());
+  curves.interpolate_to_evaluated(VArraySpan(input), out.as_mutable_span());
+  return VArray<T>::ForContainer(std::move(out));
+};
+
 static void grease_pencil_geom_batch_ensure(Object &object,
                                             const GreasePencil &grease_pencil,
                                             const Scene &scene)
@@ -1064,7 +1076,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
   Vector<Array<int>> tris_start_offsets_per_visible_drawing;
   for (const ed::greasepencil::DrawingInfo &info : drawings) {
     const bke::CurvesGeometry &curves = info.drawing.strokes();
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
     const VArray<bool> cyclic = curves.cyclic();
     IndexMaskMemory memory;
     const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
@@ -1138,16 +1150,26 @@ static void grease_pencil_geom_batch_ensure(Object &object,
     const float4x4 layer_space_to_object_space = layer.to_object_space(object);
     const float4x4 object_space_to_layer_space = math::invert(layer_space_to_object_space);
     const bke::CurvesGeometry &curves = info.drawing.strokes();
+    if (curves.evaluated_points_num() == 0) {
+      continue;
+    }
+
     const bke::AttributeAccessor attributes = curves.attributes();
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-    const Span<float3> positions = curves.positions();
+    const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
+    const Span<float3> positions = curves.evaluated_positions();
     const VArray<bool> cyclic = curves.cyclic();
-    const VArray<float> radii = info.drawing.radii();
-    const VArray<float> opacities = info.drawing.opacities();
-    const VArray<ColorGeometry4f> vertex_colors = *attributes.lookup_or_default<ColorGeometry4f>(
-        "vertex_color", bke::AttrDomain::Point, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
-    const VArray<float> rotations = *attributes.lookup_or_default<float>(
-        "rotation", bke::AttrDomain::Point, 0.0f);
+
+    curves.ensure_can_interpolate_to_evaluated();
+
+    const VArray<float> radii = attribute_interpolate<float>(info.drawing.radii(), curves);
+    const VArray<float> opacities = attribute_interpolate<float>(info.drawing.opacities(), curves);
+    const VArray<float> rotations = attribute_interpolate<float>(
+        *attributes.lookup_or_default<float>("rotation", bke::AttrDomain::Point, 0.0f), curves);
+    const VArray<ColorGeometry4f> vertex_colors = attribute_interpolate<ColorGeometry4f>(
+        *attributes.lookup_or_default<ColorGeometry4f>(
+            "vertex_color", bke::AttrDomain::Point, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f)),
+        curves);
+
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
         ".selection", bke::AttrDomain::Point, true);
