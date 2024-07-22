@@ -527,6 +527,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 
       printf("skipping driver '%s', automatic scripts are disabled\n", expr);
     }
+    driver_orig->flag |= DRIVER_FLAG_PYTHON_BLOCKED;
     return 0.0f;
   }
 #else
@@ -581,6 +582,8 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 
     /* Maybe this can be removed but for now best keep until were sure. */
     driver_orig->flag |= DRIVER_FLAG_RENAMEVAR;
+    driver_orig->flag &= ~DRIVER_FLAG_PYTHON_BLOCKED;
+
 #ifdef USE_BYTECODE_WHITELIST
     is_recompile = true;
 #endif
