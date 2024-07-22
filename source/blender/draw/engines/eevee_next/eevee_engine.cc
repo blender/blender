@@ -167,7 +167,7 @@ static void eevee_render_to_image(void *vedata,
   rcti visible_rect = rect;
 
   instance->init(size, &rect, &visible_rect, engine, depsgraph, camera_original_ob, layer);
-  instance->render_frame(layer, viewname);
+  instance->render_frame(engine, layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
   delete ved->instance;
