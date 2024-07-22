@@ -111,6 +111,8 @@ static void buttons_texture_user_node_add(ListBase *users,
                                           ID *id,
                                           bNodeTree *ntree,
                                           bNode *node,
+                                          PointerRNA ptr,
+                                          PropertyRNA *prop,
                                           const char *category,
                                           int icon,
                                           const char *name)
@@ -120,6 +122,8 @@ static void buttons_texture_user_node_add(ListBase *users,
   user->id = id;
   user->ntree = ntree;
   user->node = node;
+  user->ptr = ptr;
+  user->prop = prop;
   user->category = category;
   user->icon = icon;
   user->name = name;
@@ -135,13 +139,23 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
 {
   if (ntree) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+      if (node->type == CMP_NODE_TEXTURE) {
         PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
-        // PropertyRNA *prop; /* UNUSED */
-        // prop = RNA_struct_find_property(&ptr, "texture"); /* UNUSED */
-
+        PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
         buttons_texture_user_node_add(
-            users, id, ntree, node, category, RNA_struct_ui_icon(ptr.type), node->name);
+            users, id, ntree, node, ptr, prop, category, RNA_struct_ui_icon(ptr.type), node->name);
+      }
+      else if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+        PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
+        buttons_texture_user_node_add(users,
+                                      id,
+                                      ntree,
+                                      node,
+                                      {nullptr},
+                                      nullptr,
+                                      category,
+                                      RNA_struct_ui_icon(ptr.type),
+                                      node->name);
       }
       else if (node->type == NODE_GROUP && node->id) {
         buttons_texture_users_find_nodetree(users, id, (bNodeTree *)node->id, category);
@@ -285,6 +299,10 @@ static void buttons_texture_users_from_context(ListBase *users,
 
   /* fill users */
   BLI_listbase_clear(users);
+
+  if (scene && scene->nodetree) {
+    buttons_texture_users_find_nodetree(users, &scene->id, scene->nodetree, N_("Compositor"));
+  }
 
   if (linestyle && !limited_mode) {
     buttons_texture_users_find_nodetree(
