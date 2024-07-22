@@ -861,7 +861,7 @@ def pkg_is_legacy_addon(filepath: str) -> bool:
                 file_content = zip_fh.read(filename)
             except Exception:
                 file_content = None
-            if file_content and file_content.find(b"bl_info"):
+            if file_content and file_content.find(b"bl_info") != -1:
                 return True
 
     return False
