@@ -140,8 +140,6 @@ BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 1638
 
 /* VSE global data for timeline rendering. */
 struct SeqContextDrawData {
-  float pixelx, pixely; /* Size of one pixel in timeline coordinate space. */
-  float inv_pixelx, inv_pixely;
   float round_radius;
   float pixelsize;
   uint col_back;

@@ -9,10 +9,12 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_math_vector_types.hh"
 #include "GPU_shader_shared.hh"
 
 struct GPUShader;
 struct GPUUniformBuf;
+struct View2D;
 
 namespace blender::gpu {
 class Batch;
@@ -20,6 +22,11 @@ class Batch;
 
 namespace blender::ed::seq {
 
+/* Utility to draw VSE timeline strip widgets in batches, with a dedicated
+ * shader. Internally, strip data for drawing is encoded into a uniform
+ * buffer. Strip coordinates are converted into pixel space, to avoid
+ * precision issues at large frames. Drawing assumes that a pixel space
+ * projection matrix is set. */
 class StripsDrawBatch {
   SeqContextDrawData context_;
   Array<SeqStripDrawData> strips_;
@@ -31,8 +38,13 @@ class StripsDrawBatch {
   int binding_strips_ = 0;
   int strips_count_ = 0;
 
+  float2 view_mask_min_;
+  float2 view_mask_size_;
+  float2 view_cur_min_;
+  float2 view_cur_inv_size_;
+
  public:
-  StripsDrawBatch(float pixelx, float pixely);
+  StripsDrawBatch(const View2D *v2d);
   ~StripsDrawBatch();
 
   SeqStripDrawData &add_strip(float content_start,
@@ -46,6 +58,22 @@ class StripsDrawBatch {
                               bool single_image);
 
   void flush_batch();
+
+ private:
+  /* Same math as `UI_view2d_view_to_region_*` but avoiding divisions,
+   * and without relying on View2D data type. */
+  inline float pos_to_pixel_space_x(float x) const
+  {
+    return (view_mask_min_.x + (x - view_cur_min_.x) * view_cur_inv_size_.x) * view_mask_size_.x;
+  }
+  inline float pos_to_pixel_space_y(float y) const
+  {
+    return (view_mask_min_.y + (y - view_cur_min_.y) * view_cur_inv_size_.y) * view_mask_size_.y;
+  }
+  inline float size_to_pixel_space_x(float x) const
+  {
+    return x * view_cur_inv_size_.x * view_mask_size_.x;
+  }
 };
 
 uint color_pack(const uchar rgba[4]);

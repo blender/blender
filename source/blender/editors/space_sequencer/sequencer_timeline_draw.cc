@@ -1253,6 +1253,9 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
                                    StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(timeline_ctx->region);
+
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
   const bool show_overlay = (timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0;
@@ -1322,6 +1325,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
   }
   strips_batch.flush_batch();
   GPU_blend(GPU_BLEND_ALPHA);
+  GPU_matrix_pop_projection();
 }
 
 static void strip_data_missing_media_flags_set(const StripDrawContext &strip,
@@ -1449,6 +1453,8 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
                                    StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(timeline_ctx->region);
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
   for (const StripDrawContext &strip : strips) {
@@ -1471,6 +1477,7 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
 
   strips_batch.flush_batch();
   GPU_blend(GPU_BLEND_ALPHA);
+  GPU_matrix_pop_projection();
 }
 
 static void draw_retiming_continuity_ranges(TimelineDrawContext *timeline_ctx,
@@ -1908,7 +1915,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
-  StripsDrawBatch strips_batch(ctx.pixelx, ctx.pixely);
+  StripsDrawBatch strips_batch(ctx.v2d);
 
   draw_timeline_pre_view_callbacks(&ctx);
   UI_ThemeClearColor(TH_BACK);
