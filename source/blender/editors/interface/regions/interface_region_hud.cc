@@ -253,14 +253,6 @@ static ARegion *hud_region_add(ScrArea *area)
   region->overlap = true;
   region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
-  if (region_win) {
-    float x, y;
-
-    UI_view2d_scroller_size_get(&region_win->v2d, true, &x, &y);
-    region->runtime.offset_x = x;
-    region->runtime.offset_y = y;
-  }
-
   return region;
 }
 
@@ -355,6 +347,16 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
 
   ED_region_floating_init(region);
   ED_region_tag_redraw(region);
+
+  /* We need to update/initialize the runtime offsets. */
+  ARegion *region_win = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (region_win) {
+    float x, y;
+
+    UI_view2d_scroller_size_get(&region_win->v2d, true, &x, &y);
+    region->runtime.offset_x = x;
+    region->runtime.offset_y = y;
+  }
 
   /* Reset zoom level (not well supported). */
   rctf reset_rect = {};
