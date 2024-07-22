@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -234,6 +234,38 @@ msgid "Collection of action groups"
 msgstr "Toimintaryhmäkokoelma"
 
 
+msgid "Mix Mode"
+msgstr "Sekoitustila"
+
+
+msgid "Replace"
+msgstr "Korvaa"
+
+
+msgid "Offset"
+msgstr "Siirros"
+
+
+msgid "Add"
+msgstr "Lisää"
+
+
+msgid "Subtract"
+msgstr "Vähennä"
+
+
+msgid "Multiply"
+msgstr "Kerro"
+
+
+msgid "Active"
+msgstr "Aktiivinen"
+
+
+msgid "Show Expanded"
+msgstr "Näytä laajennettu"
+
+
 msgid "Add-on"
 msgstr "Lisäosa"
 
@@ -302,24 +334,8 @@ msgid "Active Action for this data-block"
 msgstr "Aktiiviset toiminnot tälle data-palikalle"
 
 
-msgid "Replace"
-msgstr "Korvaa"
-
-
 msgid "Combine"
 msgstr "Yhdistä"
-
-
-msgid "Add"
-msgstr "Lisää"
-
-
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgid "Multiply"
-msgstr "Kerro"
 
 
 msgid "Nothing"
@@ -926,6 +942,14 @@ msgid "Active attribute"
 msgstr "Aktiivinen ominaisuus"
 
 
+msgid "Active Attribute Index"
+msgstr "Aktiivinen ominaisuusindeksi"
+
+
+msgid "Active attribute index"
+msgstr "Aktiivinen ominaisuusindeksi"
+
+
 msgid "Active Color"
 msgstr "Aktiivinen väri"
 
@@ -940,14 +964,6 @@ msgstr "Aktiivinen väriominaisuusindeksi"
 
 msgid "Active Color Attribute"
 msgstr "Aktiivinen väriominaisuus"
-
-
-msgid "Active Attribute Index"
-msgstr "Aktiivinen ominaisuusindeksi"
-
-
-msgid "Active attribute index"
-msgstr "Aktiivinen ominaisuusindeksi"
 
 
 msgid "Bake Data"
@@ -2115,10 +2131,6 @@ msgid "Mode"
 msgstr "Tila"
 
 
-msgid "Active"
-msgstr "Aktiivinen"
-
-
 msgid "Material"
 msgstr "Materiaali"
 
@@ -2216,34 +2228,6 @@ msgid "Simplify"
 msgstr "Yksinkertaista"
 
 
-msgid "Pencil"
-msgstr "Lyijykynä"
-
-
-msgid "Pen"
-msgstr "Kynä"
-
-
-msgid "Ink"
-msgstr "Muste"
-
-
-msgid "Ink Noise"
-msgstr "Musteen kohina"
-
-
-msgid "Fill"
-msgstr "Täytä"
-
-
-msgid "Draw"
-msgstr "Piirrä"
-
-
-msgid "Blur"
-msgstr "Sumenna"
-
-
 msgid "Thickness"
 msgstr "Paksuus"
 
@@ -2280,10 +2264,6 @@ msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
 
-msgid "Default Eraser"
-msgstr "Oletuspyyhekumi"
-
-
 msgid "Pin Material"
 msgstr "Kiinnitä materiaali"
 
@@ -2318,6 +2298,10 @@ msgstr "Tilatyyppi"
 
 msgid "Stroke"
 msgstr "Piirto"
+
+
+msgid "Fill"
+msgstr "Täytä"
 
 
 msgid "Stroke & Fill"
@@ -2431,10 +2415,6 @@ msgid "Image User"
 msgstr "Kuvan käyttäjä"
 
 
-msgid "Offset"
-msgstr "Siirros"
-
-
 msgid "Rotation"
 msgstr "Kierto"
 
@@ -2453,10 +2433,6 @@ msgstr "Näytä taustakuva"
 
 msgid "Show this image as background"
 msgstr "Näytä tämä kuva taustana"
-
-
-msgid "Show Expanded"
-msgstr "Näytä laajennettu"
 
 
 msgid "Show On Foreground"
@@ -2778,10 +2754,6 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
-
-
-msgid "Mix Mode"
-msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -4379,10 +4351,6 @@ msgid "Show Armature data-blocks"
 msgstr "Näytä luurangon data-palikat"
 
 
-msgid "Show Brushes data-blocks"
-msgstr "Näytä siveltimien data-palikat"
-
-
 msgid "Show Cache File data-blocks"
 msgstr "Näytä välimuistitiedoston data-palikat"
 
@@ -4489,6 +4457,10 @@ msgstr "Näytä työtilan data-palikat"
 
 msgid "Show Action data-blocks"
 msgstr "Näytä toiminnon data-palikat"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Näytä siveltimien data-palikat"
 
 
 msgid "Show Collection data-blocks"
@@ -4643,6 +4615,10 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
+
+
 msgid "Key"
 msgstr "Avain"
 
@@ -4671,12 +4647,24 @@ msgid "World"
 msgstr "Maailma"
 
 
+msgid "Layers"
+msgstr "Tasot"
+
+
 msgid "Theme"
 msgstr "Teema"
 
 
 msgid "Push"
 msgstr "Työnnä"
+
+
+msgid "Draw"
+msgstr "Piirrä"
+
+
+msgid "Blur"
+msgstr "Sumenna"
 
 
 msgid "Round"
@@ -4689,10 +4677,6 @@ msgstr "Polku"
 
 msgid "Normals"
 msgstr "Normaalit"
-
-
-msgid "Layers"
-msgstr "Tasot"
 
 
 msgid "Corner"
@@ -4764,6 +4748,10 @@ msgid "Math"
 msgstr "Matematiikka"
 
 
+msgid "Import"
+msgstr "Tuo"
+
+
 msgid "Node"
 msgstr "Noodi"
 
@@ -4819,10 +4807,6 @@ msgstr "Blender"
 
 msgid "File"
 msgstr "Tiedosto"
-
-
-msgid "Import"
-msgstr "Tuo"
 
 
 msgid "New File"
@@ -6151,6 +6135,10 @@ msgid "Geometry to Instance"
 msgstr "Geometria instansseihin"
 
 
+msgid "Arrow"
+msgstr "Nuoli"
+
+
 msgid "Instance Rotation"
 msgstr "Instanssien kierto"
 
@@ -6510,10 +6498,6 @@ msgstr "Korkeus merenpinnasta"
 
 msgid "Dust"
 msgstr "Pöly"
-
-
-msgid "Density of dust molecules and water droplets"
-msgstr "Pölymolekyylien ja vesipisaroiden tiheys"
 
 
 msgid "Sky Type"
@@ -6939,10 +6923,6 @@ msgid "Delete All Active Frames"
 msgstr "Poista kaikki aktiiviset tasot"
 
 
-msgid "Arrow"
-msgstr "Nuoli"
-
-
 msgid "Open Arrow"
 msgstr "Avaa nuoli"
 
@@ -7025,10 +7005,6 @@ msgstr "Mukautettu"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Aktiivinen taso"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
 
 
 msgctxt "Operator"
@@ -8306,10 +8282,6 @@ msgid "Active Editor"
 msgstr "Aktiivinen editori"
 
 
-msgid "Depth:"
-msgstr "Syvyys:"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Uusi"
@@ -8636,6 +8608,10 @@ msgstr "Ei tekstuureja"
 
 msgid "User Library"
 msgstr "Käyttäjäkirjasto"
+
+
+msgid "Saved \"%s\""
+msgstr "Tallennettu \"%s\""
 
 
 msgid "UVMap"
@@ -9500,10 +9476,6 @@ msgid "Failed to open window!"
 msgstr "Ikkunan avaaminen epäonnistui!"
 
 
-msgid "Join Areas"
-msgstr "Liitä alueet"
-
-
 msgid "Swap Areas"
 msgstr "Vaihda alueet"
 
@@ -9526,6 +9498,14 @@ msgstr "näyttö"
 
 msgid "Missing surface mesh"
 msgstr "Pinnan muoto puuttuu"
+
+
+msgid "ON"
+msgstr "Päällä"
+
+
+msgid "OFF"
+msgstr "Pois päältä"
 
 
 msgid "Image could not be found"
@@ -10936,10 +10916,6 @@ msgid "Startup file saved"
 msgstr "Käynnistystiedosto tallannettu"
 
 
-msgid "Saved \"%s\""
-msgstr "Tallennettu \"%s\""
-
-
 msgid "Not a library"
 msgstr "Ei ole kirjasto"
 
@@ -10962,14 +10938,6 @@ msgstr "Esc"
 
 msgid "dbl-"
 msgstr "dbl-"
-
-
-msgid "ON"
-msgstr "Päällä"
-
-
-msgid "OFF"
-msgstr "Pois päältä"
 
 
 msgid "unsupported format"

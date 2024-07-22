@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -59,6 +59,22 @@ msgid "Select"
 msgstr "רחוב"
 
 
+msgid "Replace"
+msgstr "ףלחה"
+
+
+msgid "Add"
+msgstr "ףסוה"
+
+
+msgid "Subtract"
+msgstr "ריסחהל"
+
+
+msgid "Multiply"
+msgstr "ליפכהל"
+
+
 msgid "Module"
 msgstr "לודומ"
 
@@ -81,22 +97,6 @@ msgstr "זכרמ"
 
 msgid "Animation Data"
 msgstr "היצמינא ינותנ"
-
-
-msgid "Replace"
-msgstr "ףלחה"
-
-
-msgid "Add"
-msgstr "ףסוה"
-
-
-msgid "Subtract"
-msgstr "ריסחהל"
-
-
-msgid "Multiply"
-msgstr "ליפכהל"
 
 
 msgid "Hold"
@@ -246,24 +246,6 @@ msgstr "בנז"
 
 msgid "Vertex Color"
 msgstr "דוקדוק עבצ"
-
-
-msgid "Pencil"
-msgstr "ןורפע"
-
-
-msgid "Pen"
-msgstr "טע"
-
-
-msgctxt "GPencil"
-msgid "Smooth"
-msgstr "קלח"
-
-
-msgctxt "GPencil"
-msgid "Strength"
-msgstr "המצוע"
 
 
 msgctxt "Amount"
@@ -494,14 +476,19 @@ msgid "Smooth"
 msgstr "קלח"
 
 
-msgctxt "Mask"
+msgctxt "GPencil"
 msgid "Smooth"
 msgstr "קלח"
 
 
-msgctxt "Brush"
-msgid "Sculpt Tool"
-msgstr "לוסיפ ילכ"
+msgctxt "GPencil"
+msgid "Strength"
+msgstr "המצוע"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "קלח"
 
 
 msgid "Up"
@@ -917,11 +904,6 @@ msgid "Location:"
 msgstr "‏:םוקימ"
 
 
-msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
 msgid "Nothing selected"
 msgstr "רבד רחבנ אל"
 
@@ -963,6 +945,10 @@ msgstr ":היוור"
 
 msgid "Cancel"
 msgstr "לוטיב"
+
+
+msgid "Movie"
+msgstr "טרס"
 
 
 msgid "No Properties"
@@ -1075,10 +1061,6 @@ msgstr ":עצוממ סוידר"
 
 msgid "Modify"
 msgstr "הנש"
-
-
-msgid "Movie"
-msgstr "טרס"
 
 
 msgid "Missing header"

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -101,10 +101,6 @@ msgstr "Ихадоу Аҿарԥагақәа"
 
 msgid "Mode"
 msgstr "А́иҿкаашьа"
-
-
-msgid "Marker"
-msgstr "Ашьҭа"
 
 
 msgid "Image"
@@ -284,6 +280,10 @@ msgstr "Аҭацәы"
 
 msgid "3D Cursor"
 msgstr "3Д Ахырхага"
+
+
+msgid "Marker"
+msgstr "Ашьҭа"
 
 
 msgid "Keying"

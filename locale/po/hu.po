@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -39,6 +39,10 @@ msgstr "Szín"
 
 msgid "Value"
 msgstr "Érték"
+
+
+msgid "F-Curves"
+msgstr "F-Görbék"
 
 
 msgid "Action F-Curves"
@@ -177,6 +181,42 @@ msgid "Action group is selected"
 msgstr "Akció csoport kijelölve"
 
 
+msgid "Influence"
+msgstr "Befolyás"
+
+
+msgid "Mix Mode"
+msgstr "Keverési mód"
+
+
+msgid "Replace"
+msgstr "Lecserél"
+
+
+msgid "Offset"
+msgstr "Eltolás"
+
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+
+msgid "Subtract"
+msgstr "Különbség"
+
+
+msgid "Multiply"
+msgstr "Többszörözés"
+
+
+msgid "Active"
+msgstr "Aktív"
+
+
+msgid "Keyframe"
+msgstr "Kulcsképkocka"
+
+
 msgid "Add-on"
 msgstr "Kiegészítő"
 
@@ -225,24 +265,12 @@ msgid "Action"
 msgstr "Akció"
 
 
-msgid "Replace"
-msgstr "Lecserél"
-
-
 msgid "Combine"
 msgstr "Kombinálás"
 
 
-msgid "Add"
-msgstr "Hozzáadás"
-
-
-msgid "Subtract"
-msgstr "Különbség"
-
-
-msgid "Multiply"
-msgstr "Többszörözés"
+msgid "None"
+msgstr "Semmi"
 
 
 msgid "Motion Paths"
@@ -716,16 +744,16 @@ msgid "String Attribute"
 msgstr "Karakterlánc attribútum"
 
 
+msgid "Active Attribute Index"
+msgstr "Aktív attribútum index"
+
+
 msgid "Active Color"
 msgstr "Aktív szín"
 
 
 msgid "Active Color Index"
 msgstr "Aktív szín index"
-
-
-msgid "Active Attribute Index"
-msgstr "Aktív attribútum index"
 
 
 msgid "Default Color Attribute"
@@ -790,10 +818,6 @@ msgstr "Tangens"
 
 msgid "Bake the normals in tangent space"
 msgstr "Nörmálisok kisütése tangens-térben"
-
-
-msgid "None"
-msgstr "Semmi"
 
 
 msgid "Emit"
@@ -1122,10 +1146,6 @@ msgid "Mode"
 msgstr "Mód"
 
 
-msgid "Active"
-msgstr "Aktív"
-
-
 msgid "Material"
 msgstr "Anyag"
 
@@ -1156,31 +1176,6 @@ msgstr "Egyszerűsítés"
 
 msgid "Threshold"
 msgstr "Küszöbszint"
-
-
-msgid "Grease Pencil Icon"
-msgstr "Zsírkréta ikon"
-
-
-msgid "Marker"
-msgstr "Jelző"
-
-
-msgid "Airbrush"
-msgstr "Festékszóró"
-
-
-msgctxt "GPencil"
-msgid "Grease Pencil Icon"
-msgstr "Zsírkréta ikon"
-
-
-msgid "Draw"
-msgstr "Rajz (szabadkézi)"
-
-
-msgid "Smear"
-msgstr "Maszatolás"
 
 
 msgid "Thickness"
@@ -1229,10 +1224,6 @@ msgstr "Vágás"
 
 msgid "Image"
 msgstr "Kép"
-
-
-msgid "Offset"
-msgstr "Eltolás"
 
 
 msgid "Rotation"
@@ -1450,10 +1441,6 @@ msgstr "Bemenet"
 
 msgid "Error"
 msgstr "Hiba"
-
-
-msgid "Influence"
-msgstr "Befolyás"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -1746,10 +1733,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "A célobjektum csatorna-tartományának minimum értéke"
-
-
-msgid "Mix Mode"
-msgstr "Keverési mód"
 
 
 msgid "Target object"
@@ -3978,10 +3961,6 @@ msgid "Grease Pencil Frame"
 msgstr "Zsírkréta kép"
 
 
-msgid "Keyframe"
-msgstr "Kulcsképkocka"
-
-
 msgid "Jitter"
 msgstr "Elszórás"
 
@@ -4483,6 +4462,14 @@ msgid "Lowest"
 msgstr "Legalacsonyabb"
 
 
+msgid "Grease Pencil Mask Layers"
+msgstr "Zsírkréta maszkoló rétegek"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Zsírkréta maszkoló rétegek gyűjteménye"
+
+
 msgid "Grease Pencil Layers"
 msgstr "Zsírkréta rétegek"
 
@@ -4499,20 +4486,16 @@ msgid "Index of active grease pencil layer"
 msgstr "Aktív zsírkréta réteg indexe"
 
 
-msgid "Grease Pencil Mask Layers"
-msgstr "Zsírkréta maszkoló rétegek"
-
-
-msgid "Collection of grease pencil masking layers"
-msgstr "Zsírkréta maszkoló rétegek gyűjteménye"
-
-
 msgid "Repeat"
 msgstr "Ismétlés"
 
 
 msgid "Frame Start"
 msgstr "Kezdő képkocka"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktív zsírkréta réteg"
 
 
 msgid "Red"
@@ -4591,16 +4574,16 @@ msgid "World"
 msgstr "Világ"
 
 
-msgid "F-Curves"
-msgstr "F-Görbék"
-
-
 msgid "Frame Range"
 msgstr "Képkockasor"
 
 
 msgid "Groups"
 msgstr "Csoportok"
+
+
+msgid "Layers"
+msgstr "Rétegek"
 
 
 msgid "Wire"
@@ -4643,18 +4626,12 @@ msgid "Dynamic"
 msgstr "Dinamikus"
 
 
-msgctxt "GPencil"
-msgid "Grease Pencil Sculpt Paint Tool"
-msgstr "Zsírkréta szobrász festő eszköz"
+msgid "Draw"
+msgstr "Rajz (szabadkézi)"
 
 
-msgctxt "Brush"
-msgid "Grease Pencil Draw Tool"
-msgstr "Zsírkréta rajz eszköz"
-
-
-msgid "Grease Pencil Vertex Paint Tool"
-msgstr "Zsírkréta csúcspont festő eszköz"
+msgid "Smear"
+msgstr "Maszatolás"
 
 
 msgid "Clamp"
@@ -4691,6 +4668,10 @@ msgstr "Az ecsetnyomok közötti kihagyás az ecset átmérőjének arányában"
 
 msgid "How powerful the effect of the brush is when applied"
 msgstr "Az ecset hatásának erőssége használat közben"
+
+
+msgid "Airbrush"
+msgstr "Festékszóró"
 
 
 msgid "Use this brush in grease pencil drawing mode"
@@ -5189,10 +5170,6 @@ msgid "Grease Pencil vertex paint"
 msgstr "Zsírkréta csúcspont festés"
 
 
-msgid "Layers"
-msgstr "Rétegek"
-
-
 msgid "Only selected keyframes"
 msgstr "Csak kiválasztott kulcs-képkockák"
 
@@ -5207,6 +5184,10 @@ msgstr "Egyszerre több zsírkréta kulcs-képkockák vonásainak szerkesztése 
 
 msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Zsírkréta vonások szerkesztése a nézetablak adatok helyett"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Zsírkréta adatblokk"
 
 
 msgid "Alpha Mode"
@@ -5472,10 +5453,6 @@ msgstr "Szűrő"
 
 msgid "Grease Pencil Data"
 msgstr "Zsírkrétaadat"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Zsírkréta adatblokk"
 
 
 msgid "Interface"
@@ -7165,6 +7142,10 @@ msgid "Channel"
 msgstr "Csatorna"
 
 
+msgid "Marker"
+msgstr "Jelző"
+
+
 msgid "Grease Pencil Vertex Groups"
 msgstr "Zsírkréta csúcspont csoportok"
 
@@ -7179,6 +7160,10 @@ msgstr "Sáv"
 
 msgid "Keying"
 msgstr "Kulcsozás"
+
+
+msgid "Import"
+msgstr "Importálás"
 
 
 msgid "Add Modifier"
@@ -7231,10 +7216,6 @@ msgstr "Exportálás"
 
 msgid "External Data"
 msgstr "Külső adatok"
-
-
-msgid "Import"
-msgstr "Importálás"
 
 
 msgid "Help"
@@ -9822,19 +9803,6 @@ msgid "Display files as a detailed list"
 msgstr "Fájlok megjelenítése részletes listaként"
 
 
-msgctxt "Operator"
-msgid "Add Brush"
-msgstr "Ecset hozzáadás"
-
-
-msgid "Add brush by mode type"
-msgstr "Ecset hozzáadása mód típus alapján"
-
-
-msgid "Add brush for Grease Pencil"
-msgstr "Ecset hozzáadása a zsírkrétához"
-
-
 msgid "Set brush shape"
 msgstr "Ecsetforma beállítása"
 
@@ -10612,10 +10580,6 @@ msgstr "Zsírkréta rajz"
 
 msgid "Erase Grease Pencil strokes"
 msgstr "Böngészés a linkelhető Zsírkréta adatok között"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Aktív zsírkréta réteg"
 
 
 msgctxt "Operator"
@@ -11441,10 +11405,6 @@ msgid "Clear Shape Keys"
 msgstr "Formakulcsok törlése"
 
 
-msgid "Clear weights for all shape keys"
-msgstr "Súlyok törlése minden formakulcsból"
-
-
 msgid "Lock action to execute on vertex groups"
 msgstr "Lezárás akció végrehajtása a csúcspont-csoportnál"
 
@@ -11718,10 +11678,6 @@ msgstr "Alaphelyzetbe állítás"
 
 msgid "Base Color"
 msgstr "Alapszín"
-
-
-msgid "Clone"
-msgstr "Klón"
 
 
 msgctxt "Operator"
@@ -12401,10 +12357,6 @@ msgstr "A szekvenciasáv kezdő képkockája"
 
 msgid "Replace Selection"
 msgstr "Kijelölés lecserélése"
-
-
-msgid "Replace the current selection"
-msgstr "Az aktuális kijelölés lecserélése"
 
 
 msgid "Add an image or image sequence to the sequencer"
@@ -13332,11 +13284,6 @@ msgid "Bookmarks"
 msgstr "Könyvjelzők"
 
 
-msgctxt "Operator"
-msgid "Draw"
-msgstr "Rajz (szabadkézi)"
-
-
 msgid "Texture Mask"
 msgstr "Textúra maszk"
 
@@ -13458,13 +13405,8 @@ msgstr "Mozgáskövetés"
 
 
 msgctxt "Operator"
-msgid "Thickness"
-msgstr "Vastagság"
-
-
-msgctxt "Operator"
-msgid "Erase"
-msgstr "Törlés"
+msgid "Draw"
+msgstr "Rajz (szabadkézi)"
 
 
 msgctxt "Operator"
@@ -13475,11 +13417,6 @@ msgstr "Vonal"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Kör"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Csúszás"
 
 
 msgid "Edge Detection"
@@ -16061,6 +15998,11 @@ msgstr "Képkeret"
 
 
 msgctxt "Operator"
+msgid "Erase"
+msgstr "Törlés"
+
+
+msgctxt "Operator"
 msgid "Poly"
 msgstr "Vonallánc"
 
@@ -16116,6 +16058,11 @@ msgstr "Erőtér"
 msgctxt "Operator"
 msgid "Bake All Dynamics"
 msgstr "Minden dinamikus kisütése"
+
+
+msgctxt "Operator"
+msgid "Add Brush"
+msgstr "Ecset hozzáadás"
 
 
 msgid "Surface Thickness"
@@ -16200,6 +16147,11 @@ msgstr "Fogantyú típus"
 msgctxt "Operator"
 msgid "Interpolation Mode"
 msgstr "Interpolációs mód"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Csúszás"
 
 
 msgctxt "Operator"
@@ -16429,18 +16381,6 @@ msgstr "Jelző másolása a jelenetbe"
 
 msgid "    Operator"
 msgstr "    Operátor"
-
-
-msgid "Drag:"
-msgstr "Húz:"
-
-
-msgid "Depth:"
-msgstr "Mélység:"
-
-
-msgid "Orientation:"
-msgstr "Orientáció:"
 
 
 msgctxt "Operator"
@@ -16959,6 +16899,10 @@ msgstr "Szín hexa kódja (#RRGGBB)"
 
 msgid "Cancel"
 msgstr "Mégsem"
+
+
+msgid "Movie"
+msgstr "Film"
 
 
 msgid "ID-Block:"
@@ -17666,10 +17610,6 @@ msgstr "Kép nincs csomagolva"
 msgctxt "Key"
 msgid "Key"
 msgstr "Kulcs"
-
-
-msgid "Movie"
-msgstr "Film"
 
 
 msgid "No active window in context!"

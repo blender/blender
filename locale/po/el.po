@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -35,6 +35,14 @@ msgid "Select"
 msgstr "Επιλογή"
 
 
+msgid "Add"
+msgstr "Προσθήκη"
+
+
+msgid "Subtract"
+msgstr "Αφαίρεση"
+
+
 msgid "On"
 msgstr "Ενεργό"
 
@@ -51,16 +59,12 @@ msgid "Action"
 msgstr "Δράση"
 
 
-msgid "Add"
-msgstr "Προσθήκη"
-
-
-msgid "Subtract"
-msgstr "Αφαίρεση"
-
-
 msgid "Hold"
 msgstr "Κράτα"
+
+
+msgid "None"
+msgstr "Κανένα"
 
 
 msgid "End Frame"
@@ -107,10 +111,6 @@ msgid "Object"
 msgstr "Αντικείμενο"
 
 
-msgid "None"
-msgstr "Κανένα"
-
-
 msgid "Emit"
 msgstr "Εκπομπή"
 
@@ -149,10 +149,6 @@ msgstr "Κατάσταση"
 
 msgid "Fill"
 msgstr "Συμπλήρωμα"
-
-
-msgid "Draw"
-msgstr "Εμφάνιση"
 
 
 msgid "Crop"
@@ -431,6 +427,10 @@ msgid "Dynamic"
 msgstr "Δυναμικό"
 
 
+msgid "Draw"
+msgstr "Εμφάνιση"
+
+
 msgid "Sequence"
 msgstr "Μείξη"
 
@@ -579,6 +579,10 @@ msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
 
 
+msgid "Import"
+msgstr "Εισαγωγή"
+
+
 msgid "Apply"
 msgstr "Εφαρμογή"
 
@@ -597,10 +601,6 @@ msgstr "Αρχείο"
 
 msgid "Export"
 msgstr "Εξαγωγή"
-
-
-msgid "Import"
-msgstr "Εισαγωγή"
 
 
 msgid "Help"
@@ -1030,12 +1030,12 @@ msgid "Cancel"
 msgstr "Ακύρωση"
 
 
-msgid "Fields"
-msgstr "Πεδία"
-
-
 msgid "Movie"
 msgstr "Βίντεο"
+
+
+msgid "Fields"
+msgstr "Πεδία"
 
 
 msgid "Life"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -36,6 +36,22 @@ msgid "Select"
 msgstr "Избор"
 
 
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Добави"
+
+
+msgid "Subtract"
+msgstr "Основа"
+
+
+msgid "Multiply"
+msgstr "Умножение"
+
+
 msgid "Module"
 msgstr "Модул"
 
@@ -58,22 +74,6 @@ msgstr "Дъно"
 
 msgid "Action"
 msgstr "Действие"
-
-
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Add"
-msgstr "Добави"
-
-
-msgid "Subtract"
-msgstr "Основа"
-
-
-msgid "Multiply"
-msgstr "Умножение"
 
 
 msgid "Nothing"
@@ -160,24 +160,16 @@ msgid "Index"
 msgstr "Индекс"
 
 
-msgid "Fill"
-msgstr "Запълни"
-
-
-msgid "Draw"
-msgstr "Изчертаване"
-
-
-msgid "Smear"
-msgstr "Мажа"
-
-
 msgid "Thickness"
 msgstr "Дебелина"
 
 
 msgid "Active Layer"
 msgstr "Активен Слой"
+
+
+msgid "Fill"
+msgstr "Запълни"
 
 
 msgid "Crop"
@@ -504,6 +496,10 @@ msgid "World"
 msgstr "Свят"
 
 
+msgid "Layers"
+msgstr "Слоеве"
+
+
 msgid "Wire"
 msgstr "Мрежа"
 
@@ -514,6 +510,14 @@ msgstr "Кутия"
 
 msgid "Dynamic"
 msgstr "Динамика"
+
+
+msgid "Draw"
+msgstr "Изчертаване"
+
+
+msgid "Smear"
+msgstr "Мажа"
 
 
 msgid "Perspective"
@@ -542,10 +546,6 @@ msgstr "Мин"
 
 msgid "Max"
 msgstr "Макс"
-
-
-msgid "Layers"
-msgstr "Слоеве"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -724,6 +724,10 @@ msgid "Languages..."
 msgstr "Езици..."
 
 
+msgid "Import"
+msgstr "Внеси"
+
+
 msgid "Apply"
 msgstr "Прилагане"
 
@@ -742,10 +746,6 @@ msgstr "Файл"
 
 msgid "External Data"
 msgstr "Външни Данни"
-
-
-msgid "Import"
-msgstr "Внеси"
 
 
 msgid "Help"
@@ -939,10 +939,6 @@ msgstr "Филтрирай .blend файловете"
 
 msgid "Filter text files"
 msgstr "Филтрирай текстовите файлове"
-
-
-msgid "Add brush by mode type"
-msgstr "Добави честка според вид на режима"
 
 
 msgid "Set brush shape"
@@ -1828,6 +1824,10 @@ msgid "Cancel"
 msgstr "Отказ"
 
 
+msgid "Movie"
+msgstr "Преместване"
+
+
 msgid "Stop this job"
 msgstr "Спри тази задача"
 
@@ -1842,10 +1842,6 @@ msgstr "{} (String)"
 
 msgid "{} (Integer)"
 msgstr "{} (Integer)"
-
-
-msgid "Movie"
-msgstr "Преместване"
 
 
 msgid "English (English)"

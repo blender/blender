@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -167,10 +167,6 @@ msgid "Expanded"
 msgstr "Hedatua"
 
 
-msgid "Action"
-msgstr "Akzioa"
-
-
 msgid "Replace"
 msgstr "Ordezkatu"
 
@@ -181,6 +177,14 @@ msgstr "Gehitu"
 
 msgid "Multiply"
 msgstr "Biderkatu"
+
+
+msgid "Active"
+msgstr "Aktibo"
+
+
+msgid "Action"
+msgstr "Akzioa"
 
 
 msgid "Heads"
@@ -295,10 +299,6 @@ msgid "Parent"
 msgstr "Gurasoa"
 
 
-msgid "Active"
-msgstr "Aktibo"
-
-
 msgid "Material"
 msgstr "Materiala"
 
@@ -321,6 +321,14 @@ msgstr "Kurba"
 
 msgid "Look"
 msgstr "Ikusi"
+
+
+msgid "Temperature"
+msgstr "Tenperatura"
+
+
+msgid "White Point"
+msgstr "Puntu Zuria"
 
 
 msgid "Disable"
@@ -582,6 +590,10 @@ msgid "Show/Hide Faces"
 msgstr "Aurpegiak erakutsi/ezkutatu"
 
 
+msgid "Import"
+msgstr "Inportatu"
+
+
 msgid "Physics"
 msgstr "Fisikak"
 
@@ -596,10 +608,6 @@ msgstr "Esportatu"
 
 msgid "External Data"
 msgstr "Kanpo "
-
-
-msgid "Import"
-msgstr "Inportatu"
 
 
 msgid "Help"
@@ -1394,10 +1402,6 @@ msgid "Black Point"
 msgstr "Puntu Beltza"
 
 
-msgid "White Point"
-msgstr "Puntu Zuria"
-
-
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Kanalak alderantzikatu"
@@ -1732,10 +1736,6 @@ msgstr "Jarraitu"
 
 msgid "Language"
 msgstr "Hizkuntza"
-
-
-msgid "Temperature"
-msgstr "Tenperatura"
 
 
 msgctxt "Sequence"
@@ -2167,6 +2167,14 @@ msgid "Sphere"
 msgstr "Esfera"
 
 
+msgid "ON"
+msgstr "GAITUTA"
+
+
+msgid "OFF"
+msgstr "DESGAITUTA"
+
+
 msgid "normal"
 msgstr "Normala"
 
@@ -2333,14 +2341,6 @@ msgstr "'%s': ez da ezer adierazi"
 
 msgid "dbl-"
 msgstr "dbl-"
-
-
-msgid "ON"
-msgstr "GAITUTA"
-
-
-msgid "OFF"
-msgstr "DESGAITUTA"
 
 
 msgid "unsupported format"

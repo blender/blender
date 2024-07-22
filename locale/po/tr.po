@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -243,6 +243,26 @@ msgid "Collection of action groups"
 msgstr "Eylem grupları koleksiyonu"
 
 
+msgid "Replace"
+msgstr "Değiştir"
+
+
+msgid "Offset"
+msgstr "Ofset"
+
+
+msgid "Add"
+msgstr "Topla"
+
+
+msgid "Subtract"
+msgstr "Çıkar"
+
+
+msgid "Multiply"
+msgstr "Çarp"
+
+
 msgid "Action Pose Markers"
 msgstr "Eylem Pozu İmleyicileri"
 
@@ -265,6 +285,18 @@ msgstr "Etkin Poz İmleyicisi İndeksi"
 
 msgid "Index of active pose marker"
 msgstr "Etkin poz imleyicisi indeksi"
+
+
+msgid "Active"
+msgstr "Etkin"
+
+
+msgid "Show Expanded"
+msgstr "Genişletilmiş Göster"
+
+
+msgid "Keyframe"
+msgstr "Anahtar Kare"
 
 
 msgid "Add-on"
@@ -483,10 +515,6 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Etkin Eylem'in sonucunu DOC yığınının sonucuyla birleştirmek için kullanılan yöntem"
 
 
-msgid "Replace"
-msgstr "Değiştir"
-
-
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Şerit değerleri, biriken sonuçları etki tarafından belirtilen miktara göre değiştirir"
 
@@ -499,24 +527,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Şerit değerleri, kanal türüne göre toplama, çarpma veya dördey matematiği kullanılarak uygun biçimde birikmiş sonuçlarla birleştirilir"
 
 
-msgid "Add"
-msgstr "Topla"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Biriken sonuçlara şeridin ağırlıklı sonucu eklenir"
 
 
-msgid "Subtract"
-msgstr "Çıkar"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Biriken sonuçlardan şeridin ağırlıklı sonucu çıkarılır"
-
-
-msgid "Multiply"
-msgstr "Çarp"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -561,6 +577,10 @@ msgstr "Eylem Etkisi"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Etkin Eylem'in DOC yığınının sonucuna katkıda bulunduğu miktar"
+
+
+msgid "None"
+msgstr "Hiçbiri"
 
 
 msgid "Tweak Mode Action Storage"
@@ -1777,6 +1797,14 @@ msgid "Active attribute"
 msgstr "Etkin öznitelik"
 
 
+msgid "Active Attribute Index"
+msgstr "Etkin Öznitelik İndeksi"
+
+
+msgid "Active attribute index"
+msgstr "Etkin öznitelik indeksi"
+
+
 msgid "Active Color"
 msgstr "Etkin Renk"
 
@@ -1799,14 +1827,6 @@ msgstr "Etkin Renk Özniteliği"
 
 msgid "The name of the active color attribute for display and editing"
 msgstr "Görüntüleme ve düzenleme için olan etkin renk özniteliğinin adı"
-
-
-msgid "Active Attribute Index"
-msgstr "Etkin Öznitelik İndeksi"
-
-
-msgid "Active attribute index"
-msgstr "Etkin öznitelik indeksi"
 
 
 msgid "Default Color Attribute"
@@ -1971,10 +1991,6 @@ msgstr "Geçiş Süzgeci"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Etkin pişirme geçişinde içerilecek geçişler"
-
-
-msgid "None"
-msgstr "Hiçbiri"
 
 
 msgid "Emit"
@@ -4220,10 +4236,6 @@ msgid "Preselected mode when using this brush"
 msgstr "Bu fırçayı kullanırken önceden seçilmiş kip"
 
 
-msgid "Active"
-msgstr "Etkin"
-
-
 msgid "Use current mode"
 msgstr "Geçerli kipi kullan"
 
@@ -4483,120 +4495,6 @@ msgid "Threshold to consider color transparent for filling"
 msgstr "Dolgu için rengin saydam varsayılacağı eşik"
 
 
-msgid "Grease Pencil Icon"
-msgstr "Gres Kalemi Simgesi"
-
-
-msgid "Pencil"
-msgstr "Kalem"
-
-
-msgid "Pen"
-msgstr "Tükenmez Kalem"
-
-
-msgid "Ink"
-msgstr "Mürekkep"
-
-
-msgid "Ink Noise"
-msgstr "Mürekkep Paraziti"
-
-
-msgid "Block"
-msgstr "Blok"
-
-
-msgid "Marker"
-msgstr "İmleyici"
-
-
-msgid "Airbrush"
-msgstr "Sprey Boya"
-
-
-msgid "Chisel"
-msgstr "Keski"
-
-
-msgid "Fill"
-msgstr "Doldur"
-
-
-msgid "Eraser Soft"
-msgstr "Silgi Yumuşak"
-
-
-msgid "Eraser Hard"
-msgstr "Silgi Sert"
-
-
-msgid "Eraser Stroke"
-msgstr "Silgi Vuruş"
-
-
-msgctxt "GPencil"
-msgid "Grease Pencil Icon"
-msgstr "Gres Kalemi Simgesi"
-
-
-msgctxt "GPencil"
-msgid "Smooth"
-msgstr "Pürüzsüz"
-
-
-msgctxt "GPencil"
-msgid "Thickness"
-msgstr "Kalınlık"
-
-
-msgctxt "GPencil"
-msgid "Strength"
-msgstr "Güçlülük"
-
-
-msgctxt "GPencil"
-msgid "Randomize"
-msgstr "Rastgeleleştir"
-
-
-msgctxt "GPencil"
-msgid "Grab"
-msgstr "Tut"
-
-
-msgctxt "GPencil"
-msgid "Push"
-msgstr "İt"
-
-
-msgctxt "GPencil"
-msgid "Twist"
-msgstr "Bük"
-
-
-msgctxt "GPencil"
-msgid "Pinch"
-msgstr "Çimdikle"
-
-
-msgctxt "GPencil"
-msgid "Clone"
-msgstr "Klonla"
-
-
-msgid "Draw"
-msgstr "Çiz"
-
-
-msgid "Blur"
-msgstr "Bulanıklaştır"
-
-
-msgid "Smear"
-msgstr "Bulaştır"
-
-
 msgid "Hardness"
 msgstr "Sertlik"
 
@@ -4632,10 +4530,6 @@ msgstr "Geçerli fırça kalınlığına göreceli olarak ana hat vuruşunun kal
 msgctxt "Brush"
 msgid "Jitter"
 msgstr "Seğirtme"
-
-
-msgid "Jitter factor for new strokes"
-msgstr "Yeni vuruşlar için seğirtme çarpanı"
 
 
 msgctxt "Amount"
@@ -4761,14 +4655,6 @@ msgstr "Vuruşlar Çarpışması"
 
 msgid "Check if extend lines collide with strokes"
 msgstr "Uzantı çizgilerin vuruşlarla çarpışıp çarpışmadığını denetle"
-
-
-msgid "Default Eraser"
-msgstr "Saptanmış Silgi"
-
-
-msgid "Use this brush when enable eraser with fast switch key"
-msgstr "Hızlı değiştirme düğmesiyle fırça etkinleştirildiğinde bu fırçayı kullan"
 
 
 msgid "Affect Position"
@@ -4941,6 +4827,10 @@ msgstr "Vuruş"
 
 msgid "Vertex Color affects to Stroke only"
 msgstr "Tepecik Rengi, yalnızca vuruşa etki eder"
+
+
+msgid "Fill"
+msgstr "Doldur"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -5131,10 +5021,6 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Yerel bir geçersiz kılma kamerasında, bu arka plan görselinin bağlantılı başvuru kamerasından mı geldiği veya geçersiz kılmaya yerel mi olduğu"
 
 
-msgid "Offset"
-msgstr "Ofset"
-
-
 msgid "Rotation"
 msgstr "Döndürme"
 
@@ -5157,10 +5043,6 @@ msgstr "Arka Plan Görseli Olarak Göster"
 
 msgid "Show this image as background"
 msgstr "Bu görseli arka plan olarak göster"
-
-
-msgid "Show Expanded"
-msgstr "Genişletilmiş Göster"
 
 
 msgid "Show the details in the user interface"
@@ -6667,10 +6549,6 @@ msgid "Python Scripting"
 msgstr "Python Betiği Yazımı"
 
 
-msgid "Keyframe"
-msgstr "Anahtar Kare"
-
-
 msgid "Frame is selected for editing in the Dope Sheet"
 msgstr "Kare, Döküm Kağıdı'nda düzenleme için seçili"
 
@@ -6760,6 +6638,10 @@ msgid "Space"
 msgstr "Boşluk"
 
 
+msgid "Translation"
+msgstr "Taşıma"
+
+
 msgid "Red"
 msgstr "Kırmızı"
 
@@ -6834,6 +6716,10 @@ msgstr "Dünya"
 
 msgid "Save this data-block even if it has no users"
 msgstr "Kullanıcısı olmasa bile bu veri blokunu kaydet"
+
+
+msgid "Layers"
+msgstr "Katmanlar"
 
 
 msgid "Box"
@@ -6921,11 +6807,6 @@ msgstr "Eğriler Yontma Ayarları"
 
 
 msgctxt "Curves"
-msgid "Curves Sculpt Tool"
-msgstr "Eğriler Yontma Aracı"
-
-
-msgctxt "Curves"
 msgid "Paint Selection"
 msgstr "Seçimi Boya"
 
@@ -6969,8 +6850,48 @@ msgstr "Ölçek"
 
 
 msgctxt "GPencil"
-msgid "Grease Pencil Sculpt Paint Tool"
-msgstr "Gres Kalemi Yontma Boyama Aracı"
+msgid "Smooth"
+msgstr "Pürüzsüz"
+
+
+msgctxt "GPencil"
+msgid "Thickness"
+msgstr "Kalınlık"
+
+
+msgctxt "GPencil"
+msgid "Strength"
+msgstr "Güçlülük"
+
+
+msgctxt "GPencil"
+msgid "Randomize"
+msgstr "Rastgeleleştir"
+
+
+msgctxt "GPencil"
+msgid "Grab"
+msgstr "Tut"
+
+
+msgctxt "GPencil"
+msgid "Push"
+msgstr "İt"
+
+
+msgctxt "GPencil"
+msgid "Twist"
+msgstr "Bük"
+
+
+msgctxt "GPencil"
+msgid "Pinch"
+msgstr "Çimdikle"
+
+
+msgctxt "GPencil"
+msgid "Clone"
+msgstr "Klonla"
 
 
 msgctxt "Brush"
@@ -6995,6 +6916,18 @@ msgstr "Fırça, vuruşları silmek için kullanılır"
 msgctxt "Brush"
 msgid "Tint"
 msgstr "Yana Yatır"
+
+
+msgid "Draw"
+msgstr "Çiz"
+
+
+msgid "Blur"
+msgstr "Bulanıklaştır"
+
+
+msgid "Smear"
+msgstr "Bulaştır"
 
 
 msgctxt "Brush"
@@ -7039,11 +6972,6 @@ msgstr "Z Düzlemi"
 
 
 msgctxt "Brush"
-msgid "Sculpt Tool"
-msgstr "Yontma Aracı"
-
-
-msgctxt "Brush"
 msgid "Clay"
 msgstr "Kil"
 
@@ -7085,6 +7013,10 @@ msgstr "Boya"
 
 msgid "Pinch"
 msgstr "Çimdikle"
+
+
+msgid "Airbrush"
+msgstr "Sprey Boya"
 
 
 msgid "Use Sculpt"
@@ -7206,10 +7138,6 @@ msgstr "Çizgi Rengini Düzenle"
 
 msgid "Stroke Sculpt Mode"
 msgstr "Vuruş Yontma Kipi"
-
-
-msgid "Layers"
-msgstr "Katmanlar"
 
 
 msgid "2D Layers"
@@ -7687,10 +7615,6 @@ msgid "Workspace data-block, defining the working environment for the user"
 msgstr "Kullanıcı için çalışma ortamını tanımlayan çalışma alanı veri bloku"
 
 
-msgid "Per workspace index of the active pose asset"
-msgstr "Etkin poz varlığının çalışma alanı başına indeksi"
-
-
 msgid "Switch to this object mode when activating the workspace"
 msgstr "Çalışma alanını etkinleştirirken bu nesne kipine geç"
 
@@ -7883,6 +7807,10 @@ msgid "Channel"
 msgstr "Kanal"
 
 
+msgid "Marker"
+msgstr "İmleyici"
+
+
 msgid "Snap"
 msgstr "Yakala"
 
@@ -7893,6 +7821,10 @@ msgstr "Açılım"
 
 msgid "Keying"
 msgstr "Anahtarlama"
+
+
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Layout"
@@ -7952,10 +7884,6 @@ msgid "External Data"
 msgstr "Dış Veri"
 
 
-msgid "Import"
-msgstr "İçe Aktar"
-
-
 msgid "New File"
 msgstr "Yeni Dosya"
 
@@ -7974,10 +7902,6 @@ msgstr "Yardım"
 
 msgid "Save & Load"
 msgstr "Kaydet ve Yükle"
-
-
-msgid "Enabled Modes"
-msgstr "Etkinleştirilmiş Kipler"
 
 
 msgid "Names"
@@ -8596,13 +8520,13 @@ msgid "Move boid state up in the list"
 msgstr "Listede kuş benzeri nesne durumunu yukarı taşı"
 
 
+msgid "Asset Library Identifier"
+msgstr "Varlık Kitaplığı Tanımlayıcısı"
+
+
 msgctxt "Operator"
 msgid "Curve Falloff Preset"
 msgstr "Eğri Düşüş Önayarı"
-
-
-msgid "Translation"
-msgstr "Taşıma"
 
 
 msgctxt "Operator"
@@ -8900,10 +8824,6 @@ msgstr "Yazıtipi Aç"
 msgctxt "Operator"
 msgid "Run Node Group"
 msgstr "Düğüm Grubunu Çalıştır"
-
-
-msgid "Asset Library Identifier"
-msgstr "Varlık Kitaplığı Tanımlayıcısı"
 
 
 msgid "Open Arrow"
@@ -9373,10 +9293,6 @@ msgstr "Sayfayı yukarı veya aşağı sar"
 
 msgid "Scroll up one page"
 msgstr "Bir sayfa yukarı sar"
-
-
-msgid "Clone"
-msgstr "Klonla"
 
 
 msgctxt "Operator"
@@ -10484,11 +10400,6 @@ msgid "Viewer Node"
 msgstr "Görüntüleyici Düğümü"
 
 
-msgctxt "Operator"
-msgid "Density"
-msgstr "Yoğunluk"
-
-
 msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
@@ -10580,10 +10491,6 @@ msgstr "Negatif Karelere İzin"
 
 msgid "Asset Debug Info"
 msgstr "Varlık Hata Ayıklama Bilgisi"
-
-
-msgid "Grease Pencil 3.0"
-msgstr "Gres Kalemi 3.0"
 
 
 msgid "New Curves Tools"
@@ -12012,13 +11919,13 @@ msgstr "Sonraki Çalışma Alanı"
 
 
 msgctxt "Operator"
-msgid "Save Incremental"
-msgstr "Artımlı Kaydet"
+msgid "Save Copy..."
+msgstr "Kopya Kaydet..."
 
 
 msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Kopya Kaydet..."
+msgid "Save Incremental"
+msgstr "Artımlı Kaydet"
 
 
 msgctxt "Operator"
@@ -12478,6 +12385,10 @@ msgid "Internal error!"
 msgstr "İçsel hata!"
 
 
+msgid "Movie"
+msgstr "Film"
+
+
 msgid "Reset View"
 msgstr "Görünüşü Sıfırla"
 
@@ -12774,13 +12685,17 @@ msgid "Blender Render"
 msgstr "Blender Sunumu"
 
 
-msgid "Blender Preferences"
-msgstr "Blender Tercihleri"
-
-
 msgctxt "Operator"
 msgid "Duplicate Current"
 msgstr "Geçerliyi Çoğalt"
+
+
+msgid "ON"
+msgstr "AÇIK"
+
+
+msgid "OFF"
+msgstr "KAPALI"
 
 
 msgid "PaintCurve"
@@ -12974,10 +12889,6 @@ msgid "Rounding"
 msgstr "Yuvarlanmış"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgid "Scripting"
 msgstr "Betik Yazımı"
 
@@ -13113,14 +13024,6 @@ msgstr "Python betiklerinin yürütülmesi etkin biçimde dosyayı yeniden yükl
 
 msgid "Save changes before closing?"
 msgstr "Kapatmadan önce değişiklikler kaydedilsin mi?"
-
-
-msgid "ON"
-msgstr "AÇIK"
-
-
-msgid "OFF"
-msgstr "KAPALI"
 
 
 msgid "Toggle System Console"

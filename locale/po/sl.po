@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Release Candidate (b'988bf2b88f3b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-15 07:57+0000\n"
-"PO-Revision-Date: 2024-07-14 16:44+0000\n"
+"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"PO-Revision-Date: 2024-07-18 17:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -57,6 +57,10 @@ msgstr "Seznam AOV"
 
 msgid "Collection of AOVs"
 msgstr "Zbirka AOV"
+
+
+msgid "F-Curves"
+msgstr "F-krivulje"
 
 
 msgid "Action F-Curves"
@@ -243,6 +247,30 @@ msgid "Collection of action groups"
 msgstr "Zbirka skupin akcij"
 
 
+msgid "Influence"
+msgstr "Vpliv"
+
+
+msgid "Replace"
+msgstr "Zamenjaj"
+
+
+msgid "Offset"
+msgstr "Odmik"
+
+
+msgid "Add"
+msgstr "Prištej"
+
+
+msgid "Subtract"
+msgstr "Odštej"
+
+
+msgid "Multiply"
+msgstr "Zmnoži"
+
+
 msgid "Action Pose Markers"
 msgstr "Oznake akcijske drže"
 
@@ -265,6 +293,14 @@ msgstr "Indeks oznake aktivne drže"
 
 msgid "Index of active pose marker"
 msgstr "Indeks oznake aktivne drže"
+
+
+msgid "Active"
+msgstr "Aktivno"
+
+
+msgid "Show Expanded"
+msgstr "Pokaži razširjeno"
 
 
 msgid "Add-on"
@@ -575,10 +611,6 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda, po kateri naj se rezultat aktivne akcije združi z rezultatom sklada NLA"
 
 
-msgid "Replace"
-msgstr "Zamenjaj"
-
-
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Vrednost traku zamenja dozdajšnji skupni rezultat v tolikšni meri, kot to določa faktor vpliva"
 
@@ -591,24 +623,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Vrednosti traku se združijo z dozdajšnjimi rezultati. Glede na vrsto kanala se uporabi seštevanje, množenje ali računanje s kvaternioni"
 
 
-msgid "Add"
-msgstr "Prištej"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Utežen rezultat traku se prišteje dozdajšnjemu skupnemu rezultatu"
 
 
-msgid "Subtract"
-msgstr "Odštej"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Utežen rezultat traku se odšteje od dozdajšnjega skupnega rezultata"
-
-
-msgid "Multiply"
-msgstr "Zmnoži"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -653,6 +673,10 @@ msgstr "Vpliv akcije"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Koliko aktivna akcija prispeva h končnemu rezultatu sklada NLA"
+
+
+msgid "None"
+msgstr "Brez"
 
 
 msgid "Tweak Mode Action Storage"
@@ -1975,6 +1999,14 @@ msgid "Active attribute"
 msgstr "Aktivni atribut"
 
 
+msgid "Active Attribute Index"
+msgstr "Indeks aktivnega atributa"
+
+
+msgid "Active attribute index"
+msgstr "Indeks aktivnega atributa"
+
+
 msgid "Active Color"
 msgstr "Aktivna barva"
 
@@ -1997,14 +2029,6 @@ msgstr "Aktivni barvni atribut"
 
 msgid "The name of the active color attribute for display and editing"
 msgstr "Ime aktivnega barvnega atributa za prikaz in urejanje"
-
-
-msgid "Active Attribute Index"
-msgstr "Indeks aktivnega atributa"
-
-
-msgid "Active attribute index"
-msgstr "Indeks aktivnega atributa"
 
 
 msgid "Default Color Attribute"
@@ -2169,10 +2193,6 @@ msgstr "Obhodni filter"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Kateri obhodi naj bodo vključeni v aktivni obhod peke"
-
-
-msgid "None"
-msgstr "Brez"
 
 
 msgid "Emit"
@@ -2536,11 +2556,11 @@ msgstr "Podatkovni bloki za Grease Pencil"
 
 
 msgid "Hair Curves"
-msgstr "Lasne krivulje"
+msgstr "Dlačne krivulje"
 
 
 msgid "Hair curve data-blocks"
-msgstr "Podatkovni bloki lasnih krivulj"
+msgstr "Podatkovni bloki dlačnih krivulj"
 
 
 msgid "Images"
@@ -2872,11 +2892,11 @@ msgstr "Zbirka Grease Pencilov"
 
 
 msgid "Main Hair Curves"
-msgstr "Glavne lasne krivulje"
+msgstr "Glavne dlačne krivulje"
 
 
 msgid "Collection of hair curves"
-msgstr "Zbirka lasnih krivulj"
+msgstr "Zbirka dlačnih krivulj"
 
 
 msgid "Main Images"
@@ -4565,10 +4585,6 @@ msgid "Preselected mode when using this brush"
 msgstr "Vnaprej izbran način ob uporabi tega čopiča"
 
 
-msgid "Active"
-msgstr "Aktivno"
-
-
 msgid "Use current mode"
 msgstr "Uporabi trenutni način"
 
@@ -4848,120 +4864,6 @@ msgid "Threshold to consider color transparent for filling"
 msgstr "Prag, pri katerem se barva še obravnava kot prozorna za polnjenje"
 
 
-msgid "Grease Pencil Icon"
-msgstr "Ikona Grease Pencil"
-
-
-msgid "Pencil"
-msgstr "Svinčnik"
-
-
-msgid "Pen"
-msgstr "Pero"
-
-
-msgid "Ink"
-msgstr "Tuš"
-
-
-msgid "Ink Noise"
-msgstr "Šumnat tuš"
-
-
-msgid "Block"
-msgstr "Blok"
-
-
-msgid "Marker"
-msgstr "Oznaka"
-
-
-msgid "Airbrush"
-msgstr "Airbrush"
-
-
-msgid "Chisel"
-msgstr "Dleto"
-
-
-msgid "Fill"
-msgstr "Zapolni"
-
-
-msgid "Eraser Soft"
-msgstr "Mehka radirka"
-
-
-msgid "Eraser Hard"
-msgstr "Trda radirka"
-
-
-msgid "Eraser Stroke"
-msgstr "Potezna radirka"
-
-
-msgctxt "GPencil"
-msgid "Grease Pencil Icon"
-msgstr "Ikona Grease Pencil"
-
-
-msgctxt "GPencil"
-msgid "Smooth"
-msgstr "Gladkost"
-
-
-msgctxt "GPencil"
-msgid "Thickness"
-msgstr "Debelina"
-
-
-msgctxt "GPencil"
-msgid "Strength"
-msgstr "Moč"
-
-
-msgctxt "GPencil"
-msgid "Randomize"
-msgstr "Naključno"
-
-
-msgctxt "GPencil"
-msgid "Grab"
-msgstr "Prijem"
-
-
-msgctxt "GPencil"
-msgid "Push"
-msgstr "Potisk"
-
-
-msgctxt "GPencil"
-msgid "Twist"
-msgstr "Zvijanje"
-
-
-msgctxt "GPencil"
-msgid "Pinch"
-msgstr "Uščip"
-
-
-msgctxt "GPencil"
-msgid "Clone"
-msgstr "Kloniranje"
-
-
-msgid "Draw"
-msgstr "Risanje"
-
-
-msgid "Blur"
-msgstr "Zabris"
-
-
-msgid "Smear"
-msgstr "Razmaz"
-
-
 msgid "Hardness"
 msgstr "Trdost"
 
@@ -4997,10 +4899,6 @@ msgstr "Debelina obrisne poteze glede na trenutno debelino čopiča"
 msgctxt "Brush"
 msgid "Jitter"
 msgstr "Tresenje"
-
-
-msgid "Jitter factor for new strokes"
-msgstr "Faktor tresenja za nove poteze"
 
 
 msgctxt "Amount"
@@ -5126,14 +5024,6 @@ msgstr "Križanje potez"
 
 msgid "Check if extend lines collide with strokes"
 msgstr "Preveri, ali se podaljški križajo s potezami"
-
-
-msgid "Default Eraser"
-msgstr "Privzeta radirka"
-
-
-msgid "Use this brush when enable eraser with fast switch key"
-msgstr "Ko z bližnjico preklopite na radirko, uporabi ta čopič"
 
 
 msgid "Affect Position"
@@ -5306,6 +5196,10 @@ msgstr "Poteza"
 
 msgid "Vertex Color affects to Stroke only"
 msgstr "Barva oglišča vpliva le na potezo"
+
+
+msgid "Fill"
+msgstr "Zapolni"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -5496,10 +5390,6 @@ msgid "In a local override camera, whether this background image comes from the 
 msgstr "Za lokalno prepisano kamero. Ali ta slika ozadja prihaja iz povezane kamere ali je lokalna glede na prepis"
 
 
-msgid "Offset"
-msgstr "Odmik"
-
-
 msgid "Rotation"
 msgstr "Rotacija"
 
@@ -5522,10 +5412,6 @@ msgstr "Pokaži sliko ozadja"
 
 msgid "Show this image as background"
 msgstr "Pokaže to sliko kot ozadje"
-
-
-msgid "Show Expanded"
-msgstr "Pokaži razširjeno"
 
 
 msgid "Show the details in the user interface"
@@ -5749,11 +5635,11 @@ msgstr "Zbirka spremenljivk kanalnih krmil"
 
 
 msgid "Child Particle"
-msgstr "Otrok-delec"
+msgstr "Sinovski delec"
 
 
 msgid "Child particle interpolated from simulated or edited particles"
-msgstr "Otrok-delec, ki se interpolira iz simuliranih ali urejenih delcev"
+msgstr "Sinovski delec, ki se interpolira iz simuliranih ali urejenih delcev"
 
 
 msgid "Cloth Collision Settings"
@@ -5924,12 +5810,1330 @@ msgid "Collider Friction"
 msgstr "Trenje trkalnika"
 
 
-msgid "F-Curves"
-msgstr "F-krivulje"
+msgid "Compression Spring Damping"
+msgstr "Blaženje stiskanja"
+
+
+msgid "Amount of damping in compression behavior"
+msgstr "Količina blaženja med stiskanjem"
+
+
+msgid "Compression Stiffness"
+msgstr "Togost stiskanja"
+
+
+msgid "How much the material resists compression"
+msgstr "Koliko se material upira stiskanju"
+
+
+msgid "Compression Stiffness Maximum"
+msgstr "Največja togost stiskanja"
+
+
+msgid "Maximum compression stiffness value"
+msgstr "Največja možna vrednost togosti stiskanja"
+
+
+msgid "Target Density Strength"
+msgstr "Moč gostote tarče"
+
+
+msgid "Influence of target density on the simulation"
+msgstr "Vpliv gostote tarče na simulacijo"
+
+
+msgid "Target Density"
+msgstr "Gostota tarče"
+
+
+msgid "Maximum density of hair"
+msgstr "Največja gostota dlak"
+
+
+msgid "Effector Weights"
+msgstr "Uteži izvršitelja"
+
+
+msgid "Fluid Density"
+msgstr "Gostota tekočine"
+
+
+msgid "Density (kg/l) of the fluid contained inside the object, used to create a hydrostatic pressure gradient simulating the weight of the internal fluid, or buoyancy from the surrounding fluid if negative"
+msgstr "Gostota tekočine (kg/l) v objektu. Uporablja se za tvorjenje hidrostatičnega tlačnega gradienta, s katerim simuliramo težo notranje tekočine, ali plovnost na okoliški tekočini, če je negativna"
+
+
+msgid "Goal Default"
+msgstr "Privzeti cilj"
+
+
+msgid "Default Goal (vertex target position) value, when no Vertex Group used"
+msgstr "Vrednost privzetega cilja (tarčnega položaja oglišč), kadar ni uporabljena nobena skupina oglišč"
+
+
+msgid "Goal Damping"
+msgstr "Blaženje cilja"
+
+
+msgid "Goal (vertex target position) friction"
+msgstr "Trenje cilja (tarčnega položaja oglišč)"
+
+
+msgid "Goal Maximum"
+msgstr "Zgornja meja cilja"
+
+
+msgid "Goal maximum, vertex group weights are scaled to match this range"
+msgstr "Največja vrednost cilja. Uteži skupine oglišč se preslikajo na ta interval"
+
+
+msgid "Goal Minimum"
+msgstr "Spodnja meja cilja"
+
+
+msgid "Goal minimum, vertex group weights are scaled to match this range"
+msgstr "Najmanjša vrednost cilja. Uteži skupine oglišč se preslikajo na ta interval"
+
+
+msgid "Goal Stiffness"
+msgstr "Togost cilja"
+
+
+msgid "Goal (vertex target position) spring stiffness"
+msgstr "Vzmetna togost cilja (tarčnega položaja oglišč)"
+
+
+msgid "Gravity"
+msgstr "Težnost"
+
+
+msgid "Gravity or external force vector"
+msgstr "Vektor težnostne ali zunanje sile"
+
+
+msgid "Internal Friction"
+msgstr "Notranje trenje"
+
+
+msgid "Internal Spring Max Diversion"
+msgstr "Največje odstopanje notranje vzmeti"
+
+
+msgid "How much the rays used to connect the internal points can diverge from the vertex normal"
+msgstr "Za največ koliko se lahko žarki, ki povezujejo notranje točke, odmaknejo od normale oglišča"
+
+
+msgid "Internal Spring Max Length"
+msgstr "Največja dolžina notranje vzmeti"
+
+
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit"
+msgstr "Največja možna dolžina, ki jo ima notranja vzmet pri nastanku. Med notranjima točkama, ki sta oddaljeni dlje kot to, se notranja vzmet ne bo ustvarila. Dolžina 0 pomeni, da omejitve dolžine ni"
+
+
+msgid "Check Internal Spring Normals"
+msgstr "Kontrola normal notranjih vzmeti"
+
+
+msgid "Require the points the internal springs connect to have opposite normal directions"
+msgstr "Zahteva, da imajo točke, ki jih notranje vzmeti povezujejo, normale obrnjene v nasprotno smer"
+
+
+msgid "Tension Stiffness"
+msgstr "Natezna togost"
+
+
+msgid "How much the material resists stretching"
+msgstr "Koliko se material upira raztegovanju"
+
+
+msgid "Tension Stiffness Maximum"
+msgstr "Največja natezna togost"
+
+
+msgid "Maximum tension stiffness value"
+msgstr "Največja možna vrednost natezne togosti"
+
+
+msgid "Vertex Mass"
+msgstr "Masa oglišča"
+
+
+msgid "The mass of each vertex on the cloth material"
+msgstr "Masa vsakega posameznega oglišča v blagovnem materialu"
+
+
+msgid "Pin Stiffness"
+msgstr "Togost zaponke"
+
+
+msgid "Pin (vertex target position) spring stiffness"
+msgstr "Togost vzmeti zaponke (tarčnega položaja oglišč)"
+
+
+msgid "Pressure Scale"
+msgstr "Skaliranje pritiska"
+
+
+msgid "Ambient pressure (kPa) that balances out between the inside and outside of the object when it has the target volume"
+msgstr "Okoljski pritisk (kPa), ki se izravna med notranjostjo in zunanjostjo objekta, ko doseže ciljno prostornino"
+
+
+msgid "Quality"
+msgstr "Kakovost"
+
+
+msgid "Quality of the simulation in steps per frame (higher is better quality but slower)"
+msgstr "Kakovost simulacije v korakih na okvir (višja vrednost pomeni bolj kakovostno, a počasnejšo simulacijo)"
+
+
+msgid "Rest Shape Key"
+msgstr "Mirovalni oblikovni ključ"
+
+
+msgid "Shape key to use the rest spring lengths from"
+msgstr "Iz katerega oblikovnega ključa naj se pridobijo mirovalne dolžine vzmeti"
+
+
+msgid "Sewing Force Max"
+msgstr "Največja šivalna sila"
+
+
+msgid "Maximum sewing force"
+msgstr "Največja možna šivalna sila"
+
+
+msgid "Shear Spring Damping"
+msgstr "Blaženje strižnih vzmeti"
+
+
+msgid "Amount of damping in shearing behavior"
+msgstr "Količina blaženja pri striženju"
+
+
+msgid "Shear Stiffness"
+msgstr "Togost striženja"
+
+
+msgid "How much the material resists shearing"
+msgstr "Koliko se material upira striženju"
+
+
+msgid "Shear Stiffness Maximum"
+msgstr "Največja togost striženja"
+
+
+msgid "Maximum shear scaling value"
+msgstr "Največja možna skalirna vrednost za striženje"
+
+
+msgid "Shrink Factor Max"
+msgstr "Največji faktor krčenja"
+
+
+msgid "Max amount to shrink cloth by"
+msgstr "Za največ koliko skrčiti blago"
+
+
+msgid "Shrink Factor"
+msgstr "Faktor krčenja"
+
+
+msgid "Factor by which to shrink cloth"
+msgstr "Za koliko skrčiti blago"
+
+
+msgid "Target Volume"
+msgstr "Ciljna prostornina"
+
+
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure"
+msgstr "Mrežna prostornina, pri kateri bosta zunanji in notranji pritisk enaka. Če je 0, sprememba prostornine ne bo vplivala na pritisk"
+
+
+msgid "Tension Spring Damping"
+msgstr "Blaženje natezne vzmeti"
+
+
+msgid "Amount of damping in stretching behavior"
+msgstr "Količina blaženja pri raztegovanju"
+
+
+msgid "Cloth speed is multiplied by this value"
+msgstr "Hitrost blaga se pomnoži s to vrednostjo"
+
+
+msgid "Pressure"
+msgstr "Pritisk"
+
+
+msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative"
+msgstr "Enolični pritisk, ki ves čas deluje na mrežo, merjen v deležih iz Skaliranja pritiska. Lahko je negativen"
+
+
+msgid "Dynamic Base Mesh"
+msgstr "Dinamična osnovna mreža"
+
+
+msgid "Make simulation respect deformations in the base mesh"
+msgstr "Naj simulacija upošteva deformacije na osnovni mreži"
+
+
+msgid "Create Internal Springs"
+msgstr "Ustvari notranje vzmeti"
+
+
+msgid "Simulate an internal volume structure by creating springs connecting the opposite sides of the mesh"
+msgstr "Simulira notranjost prostornine tako, da poveže nasprotne strani mreže z vzmetmi"
+
+
+msgid "Simulate pressure inside a closed cloth mesh"
+msgstr "Simulira pritisk znotraj zaprte mreže blaga"
+
+
+msgid "Use Custom Volume"
+msgstr "Uporabi prostornino po meri"
+
+
+msgid "Use the Target Volume parameter as the initial volume, instead of calculating it from the mesh itself"
+msgstr "Za začetno prostornino uporabi parameter Ciljna prostornina, namesto da jo izračuna iz mreže same"
+
+
+msgid "Sew Cloth"
+msgstr "Zašitje blaga"
+
+
+msgid "Pulls loose edges together"
+msgstr "Potegne proste robove skupaj"
+
+
+msgid "Bending Stiffness Vertex Group"
+msgstr "Skupina oglišč togosti upogibanja"
+
+
+msgid "Vertex group for fine control over bending stiffness"
+msgstr "Skupina oglišč za večjo kontrolo nad togostjo upogibanja"
+
+
+msgid "Internal Springs Vertex Group"
+msgstr "Skupina oglišč notranjih vzmeti"
+
+
+msgid "Vertex group for fine control over the internal spring stiffness"
+msgstr "Skupina oglišč za večjo kontrolo nad togostjo notranjih vzmeti"
+
+
+msgid "Pin Vertex Group"
+msgstr "Skupina oglišč zaponke"
+
+
+msgid "Vertex Group for pinning of vertices"
+msgstr "Skupina oglišč za zapenjanje oglišč"
+
+
+msgid "Pressure Vertex Group"
+msgstr "Skupina oglišč pritiska"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation"
+msgstr "Skupina oglišč, na katero naj vpliva pritisk. Če ima oglišče utež 0, nanj ne vpliva pritisk, medtem ko 1 pomeni polni pritisk. Lica z ogliščem, ki ima utež 0, ne bodo vključena v računanje prostornine"
+
+
+msgid "Shear Stiffness Vertex Group"
+msgstr "Skupina oglišč togosti striženja"
+
+
+msgid "Vertex group for fine control over shear stiffness"
+msgstr "Skupina oglišč za večjo kontrolo nad togostjo striženja"
+
+
+msgid "Shrink Vertex Group"
+msgstr "Skupina oglišč krčenja"
+
+
+msgid "Vertex Group for shrinking cloth"
+msgstr "Skupina oglišč za krčenje blaga"
+
+
+msgid "Structural Stiffness Vertex Group"
+msgstr "Skupina oglišč konstrukcijske togosti"
+
+
+msgid "Vertex group for fine control over structural stiffness"
+msgstr "Skupina oglišč za večjo kontrolo nad konstrukcijsko togostjo"
+
+
+msgid "Voxel Grid Cell Size"
+msgstr "Velikost celice vokselske mreže"
+
+
+msgid "Size of the voxel grid cells for interaction effects"
+msgstr "Velikost celic vokselske mreže za simuliranje interakcije"
+
+
+msgid "Solver Result"
+msgstr "Rezultat reševalnika"
+
+
+msgid "Result of cloth solver iteration"
+msgstr "Rezultat ene iteracije blagovnega reševalnika"
+
+
+msgid "Average Error"
+msgstr "Povprečna napaka"
+
+
+msgid "Average error during substeps"
+msgstr "Povprečna napaka med podkoraki"
+
+
+msgid "Average Iterations"
+msgstr "Povprečne iteracije"
+
+
+msgid "Average iterations during substeps"
+msgstr "Povprečne iteracije med podkoraki"
+
+
+msgid "Maximum Error"
+msgstr "Največja napaka"
+
+
+msgid "Maximum error during substeps"
+msgstr "Največja napaka med podkoraki"
+
+
+msgid "Maximum Iterations"
+msgstr "Največ iteracij"
+
+
+msgid "Maximum iterations during substeps"
+msgstr "Največja količina iteracij med podkoraki"
+
+
+msgid "Minimum Error"
+msgstr "Najmanjša napaka"
+
+
+msgid "Minimum error during substeps"
+msgstr "Najmanjša napaka med podkoraki"
+
+
+msgid "Minimum Iterations"
+msgstr "Najmanj iteracij"
+
+
+msgid "Minimum iterations during substeps"
+msgstr "Najmanjša količina iteracij med podkoraki"
+
+
+msgid "Status"
+msgstr "Stanje"
+
+
+msgid "Status of the solver iteration"
+msgstr "Stanje iteracije reševalnika"
+
+
+msgid "Success"
+msgstr "Uspeh"
+
+
+msgid "Computation was successful"
+msgstr "Izračuni so bili uspešni"
+
+
+msgid "Numerical Issue"
+msgstr "Numerična težava"
+
+
+msgid "The provided data did not satisfy the prerequisites"
+msgstr "Dani podatki niso zadostili predpogojem"
+
+
+msgid "No Convergence"
+msgstr "Ne konvergira"
+
+
+msgid "Iterative procedure did not converge"
+msgstr "Iterativni postopek ni skonvergiral"
+
+
+msgid "Invalid Input"
+msgstr "Neveljavni vhod"
+
+
+msgid "The inputs are invalid, or the algorithm has been improperly called"
+msgstr "Vhodi so neveljavni ali pa je bil algoritem nepravilno poklican"
+
+
+msgid "Collection Child"
+msgstr "Hčerinska zbirka"
+
+
+msgid "Child collection with its collection related settings"
+msgstr "Hčerinska zbirka s svojimi bistvenimi nastavitvami"
+
+
+msgid "Light Linking"
+msgstr "Povezovanje luči"
+
+
+msgid "Light linking settings of the collection object"
+msgstr "Nastavitve povezovanja luči za objekt zbirke"
+
+
+msgid "Collection Children"
+msgstr "Hčerinske zbirke"
+
+
+msgid "Collection of child collections"
+msgstr "Zbirka hčerinskih zbirk"
+
+
+msgid "Export Properties"
+msgstr "Izvozne lastnosti"
+
+
+msgid "Properties associated with the configured exporter"
+msgstr "Lastnosti, povezane s konfiguriranim izvoznikom"
+
+
+msgid "Is Open"
+msgstr "Je odprta"
+
+
+msgid "Whether the panel is expanded or closed"
+msgstr "Ali je plošča razprta ali zaprta"
+
+
+msgid "Collection Light Linking"
+msgstr "Povezovanje luči zbirke"
+
+
+msgid "Light linking settings of objects and children collections of a collection"
+msgstr "Nastavitve povezovanja luči za objekte in hčerinske zbirke v zbirki"
+
+
+msgid "Link State"
+msgstr "Stanje povezave"
+
+
+msgid "Light or shadow receiving state of the object or collection"
+msgstr "Objektovo ali zbirkino stanje prejemanja svetlobe ali sence"
+
+
+msgid "Include"
+msgstr "Vključi"
+
+
+msgid "Exclude"
+msgstr "Izključi"
+
+
+msgid "Collection Object"
+msgstr "Objekt zbirke"
+
+
+msgid "Object of a collection with its collection related settings"
+msgstr "Objekt zbirke s svojimi nastavitvami zbirke"
+
+
+msgid "Light linking settings of the collection"
+msgstr "Zbirkine nastavitve povezovanja luči"
+
+
+msgid "Collection Objects"
+msgstr "Objekti zbirk"
+
+
+msgid "Collection of collection objects"
+msgstr "Zbirka objektov zbirk"
+
+
+msgid "Collision Settings"
+msgstr "Nastavitve trkov"
+
+
+msgid "Collision settings for object in physics simulation"
+msgstr "Nastavitve simuliranja trkov za objekte v fizikalni simulaciji"
+
+
+msgid "Absorption"
+msgstr "Ublažitev"
+
+
+msgid "How much of effector force gets lost during collision with this object (in percent)"
+msgstr "Koliko sile izvršitelja se porazgubi med trkom s tem objektom (v odstotkih)"
+
+
+msgid "Friction for cloth collisions"
+msgstr "Trenje za trke z blagom"
+
+
+msgid "Damping"
+msgstr "Blaženje"
+
+
+msgid "Amount of damping during collision"
+msgstr "Količina blaženja med trkom"
+
+
+msgid "Damping Factor"
+msgstr "Blažilni faktor"
+
+
+msgid "Amount of damping during particle collision"
+msgstr "Količina blaženja med trkanjem delcev"
+
+
+msgid "Random Damping"
+msgstr "Naključno blaženje"
+
+
+msgid "Random variation of damping"
+msgstr "Naključna količina blaženja"
+
+
+msgid "Friction Factor"
+msgstr "Faktor trenja"
+
+
+msgid "Amount of friction during particle collision"
+msgstr "Količina trenja med trkanjem delcev"
+
+
+msgid "Random Friction"
+msgstr "Naključno trenje"
+
+
+msgid "Random variation of friction"
+msgstr "Naključna količina trenja"
+
+
+msgid "Permeability"
+msgstr "Prepustnost"
+
+
+msgid "Chance that the particle will pass through the mesh"
+msgstr "Verjetnost, da bo delec prešel skozi mrežo"
+
+
+msgid "Stickiness"
+msgstr "Lepljivost"
+
+
+msgid "Amount of stickiness to surface collision"
+msgstr "Količina lepljivosti pri trčenju ob površino"
+
+
+msgid "Inner Thickness"
+msgstr "Notranja debelina"
+
+
+msgid "Inner face thickness (only used by softbodies)"
+msgstr "Notranja debelina lica (uporabno le za mehka telesa)"
+
+
+msgid "Outer Thickness"
+msgstr "Zunanja debelina"
+
+
+msgid "Outer face thickness"
+msgstr "Zunanja debelina lica"
+
+
+msgid "Enabled"
+msgstr "Omogočeno"
+
+
+msgid "Enable this object as a collider for physics systems"
+msgstr "Omogoči ta objekt kot trkalnik za fizikalne sisteme"
+
+
+msgid "Single Sided"
+msgstr "Enostransko"
+
+
+msgid "Cloth collision acts with respect to the collider normals (improves penetration recovery)"
+msgstr "Simuliranje blagovnih trkov upošteva trkalnikove normale (to olajša okrevanje po prodiranju)"
+
+
+msgid "Override Normals"
+msgstr "Zamenjaj normale"
+
+
+msgid "Cloth collision impulses act in the direction of the collider normals (more reliable in some cases)"
+msgstr "Impulzi blagovnih trkov delujejo v smeri trkalnikovih normal (v nekaterih primerih je to zanesljivejše)"
+
+
+msgid "Kill Particles"
+msgstr "Ubij delce"
+
+
+msgid "Kill collided particles"
+msgstr "Ubije delce, ki trčijo"
+
+
+msgid "Color management specific to display device"
+msgstr "Upravljanje barv, prilagojeno za prikazovalno napravo"
+
+
+msgid "Display Device"
+msgstr "Prikazovalna naprava"
+
+
+msgid "Display device name"
+msgstr "Ime prikazovalne naprave"
+
+
+msgid "Input color space settings"
+msgstr "Nastavitve vhodnega barvnega prostora"
+
+
+msgid "Is Data"
+msgstr "So podatki"
+
+
+msgid "Treat image as non-color data without color management, like normal or displacement maps"
+msgstr "Sliko obravnava kakor nebarvne podatke, kot so teksture normal ali odmikov"
+
+
+msgid "Input Color Space"
+msgstr "Vhodni barvni prostor"
+
+
+msgid "Color space in the image file, to convert to and from when saving and loading the image"
+msgstr "Barvni prostor slikovne datoteke, v katerega pretvorimo, ko sliko shranjujemo, in iz katerega pretvarjamo, ko sliko nalagamo"
+
+
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "Linear AP0 with ACES white point"
+msgstr "Linearni nabor barv AP0 z belo točko ACES"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "Linearni nabor barv AP1 z belo točko ACES"
+
+
+msgid "AgX Base Display P3"
+msgstr "AgX Base Display P3"
+
+
+msgid "AgX Base Image Encoding for Display P3 Display"
+msgstr "Bazno slikovno kodiranje AgX za prikazovanje z Display P3"
+
+
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
+
+
+msgid "AgX Base Image Encoding for Rec.1886 Display"
+msgstr "Bazno slikovno kodiranje AgX za prikazovanje z Rec.1886"
+
+
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
+msgid "AgX Base Image Encoding for BT.2020 Display"
+msgstr "Bazno slikovno kodiranje AgX za prikazovanje z BT.2020"
+
+
+msgid "AgX Base sRGB"
+msgstr "AgX Base sRGB"
+
+
+msgid "AgX Base Image Encoding for sRGB Display"
+msgstr "Bazno slikovno kodiranje AgX za prikazovanje s sRGB"
+
+
+msgid "AgX Log"
+msgstr "AgX Log"
+
+
+msgid "Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range"
+msgstr "Kodiranje Log z vstavljeno kromatičnostjo in rotiranjem primarnih barv ter 25 stopnjami dinamičnega razpona"
+
+
+msgid "Display P3"
+msgstr "Display P3"
+
+
+msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
+msgstr "Applov Display P3 z mešano (po komponentah) kodirno prenosno funkcijo sRGB, običajen na napravah Mac"
+
+
+msgid "Filmic Log"
+msgstr "Filmic Log"
+
+
+msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
+msgstr "Filmski oblikovalnik, temelječ na Logu, s 16,5 stopnjami širine in 25 stopnjami dinamičnega razpona"
+
+
+msgid "Filmic sRGB"
+msgstr "Filmic sRGB"
+
+
+msgid "sRGB display space with Filmic view transform"
+msgstr "Prikazovalni prostor sRGB s pretvorbo v pogled Filmic"
+
+
+msgid "Khronos PBR Neutral sRGB"
+msgstr "Khronos PBR Neutral sRGB"
+
+
+msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
+msgstr "Nevtralno slikovno kodiranje Khronos PBR za prikazovalnike z barvnim prostorom sRGB"
+
+
+msgid "Linear CIE-XYZ D65"
+msgstr "Linear CIE-XYZ D65"
+
+
+msgid "1931 CIE XYZ with adapted illuminant D65 white point"
+msgstr "1931 CIE XYZ z belo točko, poravnano s svetilom D65"
+
+
+msgid "Linear CIE-XYZ E"
+msgstr "Linear CIE-XYZ E"
+
+
+msgid "1931 CIE XYZ standard with assumed illuminant E white point"
+msgstr "Standard 1931 CIE XYZ z belo točko predvidoma v svetilu E"
+
+
+msgid "Linear DCI-P3 D65"
+msgstr "Linear DCI-P3 D65"
+
+
+msgid "Linear DCI-P3 with illuminant D65 white point"
+msgstr "Linearen DCI-P3 z belo točko v svetilu D65"
+
+
+msgid "Linear FilmLight E-Gamut"
+msgstr "Linear FilmLight E-Gamut"
+
+
+msgid "Linear E-Gamut with illuminant D65 white point"
+msgstr "Linearni barvni obseg E z belo točko v svetilu D65"
+
+
+msgid "Linear Rec.2020"
+msgstr "Linear Rec.2020"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "Linearen BT.2020 z belo točko v svetilu D65"
+
+
+msgid "Linear Rec.709"
+msgstr "Linear Rec.709"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "Linearen BT.709 z belo točko v svetilu D65"
+
+
+msgid "Non-Color"
+msgstr "Ni barva"
+
+
+msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
+msgstr "Splošni podatki, ki niso barva (npr. teksture normal). Ne bodo obdelani z nobeno barvno transformacijo"
+
+
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
+msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
+msgstr "BT.1886 2.4 Exponent EOTF Display, običajen za televizijske zaslone"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
+
+
+msgid "BT.2020 2.4 Exponent EOTF Display"
+msgstr "BT.2020 2.4 Exponent EOTF Display"
+
+
+msgid "sRGB IEC 61966-2-1 compound (piece-wise) encoding"
+msgstr "Mešalno (po komponentah) kodiranje sRGB IEC 61966-2-1"
+
+
+msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
+msgstr "Ob nalaganju ne transformira barv in smatra, da so že v linearnem prostoru prizora"
+
+
+msgid "Color Space"
+msgstr "Barvni prostor"
+
+
+msgid "Color space that the sequencer operates in"
+msgstr "Barvni prostor video razporejevalnika"
+
+
+msgid "Color management settings used for displaying images on the display"
+msgstr "Nastavitve upravljanja barv za prikazovanje slik na zaslonu"
+
+
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgid "Color curve mapping applied before display transform"
+msgstr "Preslikava z barvno krivuljo pred transformacijo prikazovalnika"
+
+
+msgid "Exposure"
+msgstr "Izpostavitev"
+
+
+msgid "Exposure (stops) applied before display transform"
+msgstr "Izpostavitev (v stopnjah) pred transformacijo prikazovalnika"
+
+
+msgid "Gamma"
+msgstr "Gama"
+
+
+msgid "Amount of gamma modification applied after display transform"
+msgstr "Količina popravljanja game po transformaciji prikazovalnika"
+
+
+msgid "Look"
+msgstr "Videz"
+
+
+msgid "Additional transform applied before view transform for artistic needs"
+msgstr "Dodatna transformacija pred transformacijo pogleda, za umetniške potrebe"
+
+
+msgid "Do not modify image in an artistic manner"
+msgstr "Slike ne prilagaja umetniško"
+
+
+msgid "Use Curves"
+msgstr "Uporabi krivulje"
+
+
+msgid "Use RGB curved for pre-display transformation"
+msgstr "Uporabi krivulje RGB za transformacijo pred prikazovalnikom"
+
+
+msgid "High Dynamic Range"
+msgstr "Veliki dinamični razpon"
+
+
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors"
+msgstr "V upodobljenem 3D pogledu uporabi prikaz velikega dinamičnega razpona tako, da ne omeji svetlosti prikaza. Zaslon mora podpirati HDR in transformacijo pogleda, prilagojeno za HDR. 'Filmic' in 'AgX' ne tvorita barv HDR"
+
+
+msgid "View Transform"
+msgstr "Transformacija pogleda"
+
+
+msgid "View used when converting image to a display space"
+msgstr "Pogled, s katerim pretvorimo sliko v barvni prostor zaslona"
+
+
+msgid "Do not perform any color transform on display, use old non-color managed technique for display"
+msgstr "Ne transformira barv na zaslonu, za prikaz uporabi staro tehniko nebarvnih podatkov"
+
+
+msgid "Color Mapping"
+msgstr "Preslikava barv"
+
+
+msgid "Color mapping settings"
+msgstr "Nastavitve preslikave barv"
+
+
+msgid "Blend color to mix with texture output color"
+msgstr "Barva za mešanje z izhodno barvo teksture"
+
+
+msgid "Blend Factor"
+msgstr "Faktor mešanja"
+
+
+msgid "Blend Type"
+msgstr "Vrsta mešanja"
+
+
+msgid "Mode used to mix with texture output color"
+msgstr "Način za mešanje z izhodno barvo teksture"
+
+
+msgid "Mix"
+msgstr "Mešanje"
+
+
+msgid "Darken"
+msgstr "Temnenje"
+
+
+msgid "Lighten"
+msgstr "Svetlenje"
+
+
+msgid "Screen"
+msgstr "Zaslon"
+
+
+msgid "Overlay"
+msgstr "Prekrivanje"
+
+
+msgid "Soft Light"
+msgstr "Mehka svetloba"
+
+
+msgid "Linear Light"
+msgstr "Linearna svetloba"
+
+
+msgid "Difference"
+msgstr "Razlika"
+
+
+msgid "Divide"
+msgstr "Deljenje"
+
+
+msgid "Brightness"
+msgstr "Svetlost"
+
+
+msgid "Adjust the brightness of the texture"
+msgstr "Prilagodi svetlost teksture"
+
+
+msgid "Color Ramp"
+msgstr "Barvni trak"
+
+
+msgid "Contrast"
+msgstr "Kontrast"
+
+
+msgid "Adjust the contrast of the texture"
+msgstr "Prilagodi kontrast teksture"
+
+
+msgid "Adjust the saturation of colors in the texture"
+msgstr "Prilagodi nasičenost barv v teksturi"
+
+
+msgid "Use Color Ramp"
+msgstr "Uporabi barvni trak"
+
+
+msgid "Toggle color ramp operations"
+msgstr "Preklopi operacije barvnega traku"
+
+
+msgid "Color ramp mapping a scalar value to a color"
+msgstr "Barvni trak, ki slika skalarno vrednost v barvo"
+
+
+msgid "Color Mode"
+msgstr "Barvni način"
+
+
+msgid "Set color mode to use for interpolation"
+msgstr "Nastavi barvni način za interpolacijo"
+
+
+msgid "RGB"
+msgstr "RGB"
+
+
+msgid "HSV"
+msgstr "HSV"
+
+
+msgid "HSL"
+msgstr "HSL"
+
+
+msgid "Elements"
+msgstr "Elementi"
+
+
+msgid "Color Interpolation"
+msgstr "Barvna interpolacija"
+
+
+msgid "Set color interpolation"
+msgstr "Nastavi barvno interpolacijo"
+
+
+msgid "Near"
+msgstr "Blizu"
+
+
+msgid "Far"
+msgstr "Daleč"
+
+
+msgid "Clockwise"
+msgstr "V smeri urnega kazalca"
+
+
+msgid "Counter-Clockwise"
+msgstr "Proti urnemu kazalcu"
+
+
+msgid "Interpolation"
+msgstr "Interpolacija"
+
+
+msgid "Set interpolation between color stops"
+msgstr "Nastavi interpolacijo med barvnimi elementi"
+
+
+msgid "Ease"
+msgstr "Blago"
+
+
+msgid "Cardinal"
+msgstr "Kardinalno"
+
+
+msgid "B-Spline"
+msgstr "B-zlepek"
+
+
+msgid "Constant"
+msgstr "Konstantno"
+
+
+msgid "Color Ramp Element"
+msgstr "Element barvnega traku"
+
+
+msgid "Element defining a color at a position in the color ramp"
+msgstr "Element, ki definira barvo na določeni točki barvnega traku"
+
+
+msgid "Alpha"
+msgstr "Alfa"
+
+
+msgid "Set alpha of selected color stop"
+msgstr "Nastavi vrednost alfa izbranega barvnega elementa"
+
+
+msgid "Set color of selected color stop"
+msgstr "Nastavi barvo izbranega barvnega elementa"
+
+
+msgid "Position"
+msgstr "Položaj"
+
+
+msgid "Set position of selected color stop"
+msgstr "Nastavi položaj izbranega barvnega elementa"
+
+
+msgid "Color Ramp Elements"
+msgstr "Elementi barvnega traku"
+
+
+msgid "Collection of Color Ramp Elements"
+msgstr "Zbirka elementov barvnega traku"
+
+
+msgid "File Output Slots"
+msgstr "Polja izhodnih datotek"
+
+
+msgid "Collection of File Output node slots"
+msgstr "Zbirka polj za vozlišča izhodnih datotek"
+
+
+msgid "Console Input"
+msgstr "Konzolni vhod"
+
+
+msgid "Input line for the interactive console"
+msgstr "Vhodna vrstica za interaktivno konzolo"
+
+
+msgctxt "Text"
+msgid "Line"
+msgstr "Vrstica"
+
+
+msgid "Text in the line"
+msgstr "Besedilo v vrstici"
+
+
+msgid "Console line type when used in scrollback"
+msgstr "Vrsta konzolne vrstice pri pomikanju nazaj"
+
+
+msgid "Output"
+msgstr "Izhod"
+
+
+msgid "Input"
+msgstr "Vhod"
+
+
+msgid "Error"
+msgstr "Napaka"
+
+
+msgid "Constraint modifying the transformation of objects and bones"
+msgstr "Omejevalnik prilagaja in usmerja transformacije objektov in kosti"
+
+
+msgid "Constraint is the one being edited"
+msgstr "Ta omejevalnik se trenutno ureja"
+
+
+msgid "Use the results of this constraint"
+msgstr "Uporabi rezultate tega omejevalnika"
+
+
+msgid "Lin error"
+msgstr "Linearna napaka"
+
+
+msgid "Amount of residual error in Blender space unit for constraints that work on position"
+msgstr "Količina presežne napake, izražene v Blenderjevi prostorski enoti, za omejevalnike, ki omejujejo položaj v prostoru"
+
+
+msgid "Rotation error"
+msgstr "Rotacijska napaka"
+
+
+msgid "Amount of residual error in radians for constraints that work on orientation"
+msgstr "Količina presežne napake, izražene v radianih, za omejevalnike, ki omejujejo usmerjenost"
+
+
+msgid "Amount of influence constraint will have on the final solution"
+msgstr "Količina vpliva, ki ga bo imel omejevalnik na končno rešitev"
+
+
+msgid "Override Constraint"
+msgstr "Prepisan omejevalnik"
+
+
+msgid "In a local override object, whether this constraint comes from the linked reference object, or is local to the override"
+msgstr "Za lokalni prepisani objekt. Ali ta omejevalnik prihaja iz povezanega objekta ali je lokalen glede na prepis"
+
+
+msgid "Constraint has valid settings and can be evaluated"
+msgstr "Omejevalnik ima veljavne nastavitve in ga je mogoče ovrednotiti"
+
+
+msgid "Disable"
+msgstr "Onemogoči"
+
+
+msgid "Enable/Disable Constraint"
+msgstr "Omogoči/Onemogoči omejevalnik"
+
+
+msgid "Constraint name"
+msgstr "Ime omejevalnika"
+
+
+msgid "Owner Space"
+msgstr "Prostor imetnika"
+
+
+msgid "Space that owner is evaluated in"
+msgstr "Prostor, v katerem je ovrednoten imetnik"
+
+
+msgid "World Space"
+msgstr "Prostor sveta"
+
+
+msgctxt "GPencil"
+msgid "Smooth"
+msgstr "Gladkost"
+
+
+msgctxt "GPencil"
+msgid "Thickness"
+msgstr "Debelina"
+
+
+msgctxt "GPencil"
+msgid "Strength"
+msgstr "Moč"
+
+
+msgctxt "GPencil"
+msgid "Randomize"
+msgstr "Naključno"
+
+
+msgctxt "GPencil"
+msgid "Grab"
+msgstr "Prijem"
+
+
+msgctxt "GPencil"
+msgid "Push"
+msgstr "Potisk"
+
+
+msgctxt "GPencil"
+msgid "Twist"
+msgstr "Zvijanje"
+
+
+msgctxt "GPencil"
+msgid "Pinch"
+msgstr "Uščip"
+
+
+msgctxt "GPencil"
+msgid "Clone"
+msgstr "Kloniranje"
+
+
+msgid "Draw"
+msgstr "Risanje"
+
+
+msgid "Blur"
+msgstr "Zabris"
+
+
+msgid "Smear"
+msgstr "Razmaz"
+
+
+msgid "Airbrush"
+msgstr "Airbrush"
 
 
 msgid "Attribute"
 msgstr "atribut"
+
+
+msgid "Simulation"
+msgstr "simulacija"
+
+
+msgid "Marker"
+msgstr "Oznaka"
 
 
 msgid "Handles"
