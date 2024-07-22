@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
@@ -85,8 +85,9 @@ ShaderFxData *shaderfx_add(
   /* make sure effect data has unique name */
   BKE_shaderfx_unique_name(&ob->shader_fx, new_fx);
 
-  bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  BLI_assert(ob->type == OB_GREASE_PENCIL);
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
