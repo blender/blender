@@ -169,14 +169,14 @@ class GArray {
 
   operator GSpan() const
   {
-    BLI_assert(type_ != nullptr);
-    return GSpan(*type_, data_, size_);
+    BLI_assert(size_ == 0 || type_ != nullptr);
+    return GSpan(type_, data_, size_);
   }
 
   operator GMutableSpan()
   {
-    BLI_assert(type_ != nullptr);
-    return GMutableSpan(*type_, data_, size_);
+    BLI_assert(size_ == 0 || type_ != nullptr);
+    return GMutableSpan(type_, data_, size_);
   }
 
   GSpan as_span() const

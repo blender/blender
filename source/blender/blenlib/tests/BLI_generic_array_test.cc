@@ -133,4 +133,13 @@ TEST(generic_array, AssignDefault)
   EXPECT_EQ(array.data(), nullptr);
 }
 
+TEST(generic_array, DefaultConstructor)
+{
+  GArray<> array;
+
+  EXPECT_TRUE(array.is_empty());
+  EXPECT_TRUE(array.as_mutable_span().is_empty());
+  EXPECT_TRUE(array.as_span().is_empty());
+}
+
 }  // namespace blender::tests

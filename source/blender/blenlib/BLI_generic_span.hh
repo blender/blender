@@ -85,7 +85,8 @@ class GSpan {
 
   template<typename T> Span<T> typed() const
   {
-    BLI_assert(type_->is<T>());
+    BLI_assert(size_ == 0 || type_ != nullptr);
+    BLI_assert(type_ == nullptr || type_->is<T>());
     return Span<T>(static_cast<const T *>(data_), size_);
   }
 
@@ -212,7 +213,8 @@ class GMutableSpan {
 
   template<typename T> MutableSpan<T> typed() const
   {
-    BLI_assert(type_->is<T>());
+    BLI_assert(size_ == 0 || type_ != nullptr);
+    BLI_assert(type_ == nullptr || type_->is<T>());
     return MutableSpan<T>(static_cast<T *>(data_), size_);
   }
 
