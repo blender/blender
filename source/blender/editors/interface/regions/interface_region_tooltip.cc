@@ -1624,6 +1624,7 @@ static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
     UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_text_field_add(&data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_image_field_add(&data, image_data);
+    IMB_freeImBuf(ibuf);
   }
 }
 
