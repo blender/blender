@@ -67,6 +67,7 @@ set(SRC
   nodes/node_geo_curve_topology_curve_of_point.cc
   nodes/node_geo_curve_topology_points_of_curve.cc
   nodes/node_geo_curve_trim.cc
+  nodes/node_geo_curves_to_grease_pencil.cc
   nodes/node_geo_deform_curves_on_surface.cc
   nodes/node_geo_delete_geometry.cc
   nodes/node_geo_distribute_points_in_grid.cc
@@ -87,6 +88,7 @@ set(SRC
   nodes/node_geo_gizmo_dial.cc
   nodes/node_geo_gizmo_linear.cc
   nodes/node_geo_gizmo_transform.cc
+  nodes/node_geo_grease_pencil_to_curves.cc
   nodes/node_geo_grid_to_mesh.cc
   nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
