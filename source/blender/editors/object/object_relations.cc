@@ -1425,7 +1425,7 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
           /* Linking non-grease-pencil materials to a grease-pencil object causes issues.
            * We make sure that if one of the objects is a grease-pencil object, the other must be
            * as well. */
-          ((ob_src->type == OB_GPENCIL_LEGACY) == (ob_dst->type == OB_GPENCIL_LEGACY)))
+          ((ob_src->type == OB_GREASE_PENCIL) == (ob_dst->type == OB_GREASE_PENCIL)))
       {
         return true;
       }
@@ -1450,7 +1450,7 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
       }
       break;
     case MAKE_LINKS_SHADERFX:
-      if ((ob_src->type == OB_GPENCIL_LEGACY) && (ob_dst->type == OB_GPENCIL_LEGACY)) {
+      if ((ob_src->type == OB_GREASE_PENCIL) && (ob_dst->type == OB_GREASE_PENCIL)) {
         return true;
       }
       break;
