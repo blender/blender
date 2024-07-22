@@ -405,7 +405,10 @@ class SamplerSlots {
 
     first_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_FIRST;
     last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NO_EVAL;
-    if (pipeline_type == MAT_PIPE_DEFERRED && has_shader_to_rgba) {
+    if (geometry_type == MAT_GEOM_WORLD) {
+      last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_WORLD;
+    }
+    else if (pipeline_type == MAT_PIPE_DEFERRED && has_shader_to_rgba) {
       last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_HYBRID;
     }
     else if (pipeline_type == MAT_PIPE_FORWARD) {
