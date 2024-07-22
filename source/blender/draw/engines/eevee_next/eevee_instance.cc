@@ -420,7 +420,7 @@ void Instance::render_sample()
   if (!is_viewport() && sampling.do_render_sync()) {
     render_sync();
     if (!info.empty()) {
-      printf(info.c_str());
+      printf("%s", info.c_str());
       info = "";
     }
   }

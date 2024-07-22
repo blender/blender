@@ -34,10 +34,6 @@
 
 #include "draw_manager_c.hh"
 
-#include "CLG_log.h"
-
-static CLG_LogRef LOG = {"draw.manager.shader"};
-
 extern "C" char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern "C" char datatoc_common_fullscreen_vert_glsl[];
 
