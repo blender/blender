@@ -9,8 +9,8 @@ void main()
   int vid = gl_VertexID;
   SeqStripDrawData strip = strip_data[id];
   vec4 rect = vec4(strip.left_handle, strip.bottom, strip.right_handle, strip.top);
-  /* Expand by 2px to fit possible pixel grid rounding. */
-  vec2 expand = vec2(context_data.pixelx, context_data.pixely);
+  /* Expand by 1px to fit pixel grid rounding. */
+  vec2 expand = vec2(1.0, 1.0);
   rect.xy -= expand;
   rect.zw += expand;
 

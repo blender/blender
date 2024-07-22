@@ -28,6 +28,7 @@
 #include "BKE_sound.h"
 
 #include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
 #include "GPU_viewport.hh"
 
 #include "ED_anim_api.hh"
@@ -1273,6 +1274,9 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
                                    StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(timeline_ctx->region);
+
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
   const bool show_overlay = (timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0;
@@ -1342,12 +1346,15 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
   }
   strips_batch.flush_batch();
   GPU_blend(GPU_BLEND_ALPHA);
+  GPU_matrix_pop_projection();
 }
 
 static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
                                    StripsDrawBatch &strips_batch,
                                    const Vector<StripDrawContext> &strips)
 {
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(timeline_ctx->region);
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   const Scene *scene = timeline_ctx->scene;
   const Sequence *act_seq = SEQ_select_active_get(scene);
@@ -1460,6 +1467,7 @@ static void draw_strips_foreground(TimelineDrawContext *timeline_ctx,
   }
   strips_batch.flush_batch();
   GPU_blend(GPU_BLEND_ALPHA);
+  GPU_matrix_pop_projection();
 }
 
 static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
@@ -1878,7 +1886,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
-  StripsDrawBatch strips_batch(ctx.pixelx, ctx.pixely);
+  StripsDrawBatch strips_batch(ctx.v2d);
 
   draw_timeline_pre_view_callbacks(&ctx);
   UI_ThemeClearColor(TH_BACK);
