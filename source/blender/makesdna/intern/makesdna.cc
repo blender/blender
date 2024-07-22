@@ -61,11 +61,11 @@ static const char *includefiles[] = {
 static MemArena *mem_arena = nullptr;
 
 static int max_data_size = 500000, max_array_len = 50000;
-static int names_len = 0;
-static int types_len = 0;
-static int structs_len = 0;
-/** At address `names[a]` is string `a`. */
-static char **names;
+static int members_num = 0;
+static int types_num = 0;
+static int structs_num = 0;
+/** At address `members[a]` is string `a`. */
+static char **members;
 /** At address `types[a]` is string `a`. */
 static char **types;
 /** At `types_size[a]` is the size of type `a` on this systems bitness (32 or 64). */
@@ -80,18 +80,18 @@ static short *types_size_32;
 static short *types_size_64;
 /**
  * At `sp = structs[a]` is the first address of a struct definition:
- * - `sp[0]` is type number.
- * - `sp[1]` is the length of the element array (next).
- * - `sp[2]` sp[3] is [(type_index, name_index), ..] (number of pairs is defined by `sp[1]`),
+ * - `sp[0]` is type index.
+ * - `sp[1]` is the length of the member array (next).
+ * - `sp[2]` sp[3] is [(type_index, member_index), ..] (number of pairs is defined by `sp[1]`),
  */
 static short **structs, *structdata;
 
 /** Versioning data */
 static struct {
-  GHash *struct_map_alias_from_static;
-  GHash *struct_map_static_from_alias;
-  GHash *elem_map_alias_from_static;
-  GHash *elem_map_static_from_alias;
+  GHash *type_map_alias_from_static;
+  GHash *type_map_static_from_alias;
+  GHash *member_map_alias_from_static;
+  GHash *member_map_static_from_alias;
 } g_version_data = {nullptr};
 
 /**
@@ -128,25 +128,26 @@ void BLI_system_backtrace(FILE *fp)
  * \{ */
 
 /**
- * Ensure type \c str to is in the #types array.
- * \param str: Struct name without any qualifiers.
+ * Ensure that type \a type_name is in the #types array.
+ * \param type_name: Struct name without any qualifiers.
  * \param size: The struct size in bytes.
  * \return Index in the #types array.
  */
-static int add_type(const char *str, int size);
+static int add_type(const char *type_name, int size);
 
 /**
- * Ensure \c str is int the #names array.
- * \param str: Struct member name which may include pointer prefix & array size.
- * \return Index in the #names array.
+ * Ensure that \a member_name is in the #members array.
+ * \param member_name: Full struct member name (may include pointer prefix & array size).
+ * \return Index in the #members array.
  */
-static int add_name(const char *str);
+static int add_member(const char *member_name);
 
 /**
- * Search whether this structure type was already found, and if not,
- * add it.
+ * Add a new structure definition, of type matching the given \a type_index.
+ *
+ * NOTE: there is no lookup performed here, a new struct definition is always added.
  */
-static short *add_struct(int namecode);
+static short *add_struct(int type_index);
 
 /**
  * Remove comments from this buffer. Assumes that the buffer refers to
@@ -214,45 +215,46 @@ static bool match_identifier_and_advance(char **str_ptr, const char *identifier)
   return false;
 }
 
-static const char *version_struct_static_from_alias(const char *str)
+static const char *version_struct_static_from_alias(const char *type_alias)
 {
-  const char *str_test = static_cast<const char *>(
-      BLI_ghash_lookup(g_version_data.struct_map_static_from_alias, str));
-  if (str_test != nullptr) {
-    return str_test;
+  const char *type_static = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.type_map_static_from_alias, type_alias));
+  if (type_static != nullptr) {
+    return type_static;
   }
-  return str;
+  return type_alias;
 }
 
-static const char *version_struct_alias_from_static(const char *str)
+static const char *version_struct_alias_from_static(const char *type_static)
 {
-  const char *str_test = static_cast<const char *>(
-      BLI_ghash_lookup(g_version_data.struct_map_alias_from_static, str));
-  if (str_test != nullptr) {
-    return str_test;
+  const char *type_alias = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.type_map_alias_from_static, type_static));
+  if (type_alias != nullptr) {
+    return type_alias;
   }
-  return str;
+  return type_static;
 }
 
-static const char *version_elem_static_from_alias(const int strct, const char *elem_alias_full)
+static const char *version_member_static_from_alias(const int type_index,
+                                                    const char *member_alias_full)
 {
-  const uint elem_alias_full_len = strlen(elem_alias_full);
-  char *elem_alias = static_cast<char *>(alloca(elem_alias_full_len + 1));
-  const int elem_alias_len = DNA_elem_id_strip_copy(elem_alias, elem_alias_full);
-  const char *str_pair[2] = {types[strct], elem_alias};
-  const char *elem_static = static_cast<const char *>(
-      BLI_ghash_lookup(g_version_data.elem_map_static_from_alias, str_pair));
-  if (elem_static != nullptr) {
-    return DNA_elem_id_rename(mem_arena,
-                              elem_alias,
-                              elem_alias_len,
-                              elem_static,
-                              strlen(elem_static),
-                              elem_alias_full,
-                              elem_alias_full_len,
-                              DNA_elem_id_offset_start(elem_alias_full));
+  const uint member_alias_full_len = strlen(member_alias_full);
+  char *member_alias = static_cast<char *>(alloca(member_alias_full_len + 1));
+  const int member_alias_len = DNA_member_id_strip_copy(member_alias, member_alias_full);
+  const char *str_pair[2] = {types[type_index], member_alias};
+  const char *member_static = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.member_map_static_from_alias, str_pair));
+  if (member_static != nullptr) {
+    return DNA_member_id_rename(mem_arena,
+                                member_alias,
+                                member_alias_len,
+                                member_static,
+                                strlen(member_static),
+                                member_alias_full,
+                                member_alias_full_len,
+                                DNA_member_id_offset_start(member_alias_full));
   }
-  return elem_alias_full;
+  return member_alias_full;
 }
 
 /**
@@ -263,7 +265,7 @@ static bool is_name_legal(const char *name)
 {
   const int name_size = strlen(name) + 1;
   char *name_strip = static_cast<char *>(alloca(name_size));
-  DNA_elem_id_strip_copy(name_strip, name);
+  DNA_member_id_strip_copy(name_strip, name);
 
   const char prefix[] = {'p', 'a', 'd'};
 
@@ -298,51 +300,51 @@ static bool is_name_legal(const char *name)
   return true;
 }
 
-static int add_type(const char *str, int size)
+static int add_type(const char *type_name, int size)
 {
   /* first do validity check */
-  if (str[0] == 0) {
+  if (type_name[0] == 0) {
     return -1;
   }
-  if (strchr(str, '*')) {
+  if (strchr(type_name, '*')) {
     /* NOTE: this is valid C syntax but we can't parse, complain!
      * `struct SomeStruct* some_var;` <-- correct but we can't handle right now. */
     return -1;
   }
 
-  str = version_struct_static_from_alias(str);
+  type_name = version_struct_static_from_alias(type_name);
 
   /* search through type array */
-  for (int index = 0; index < types_len; index++) {
-    if (STREQ(str, types[index])) {
+  for (int type_index = 0; type_index < types_num; type_index++) {
+    if (STREQ(type_name, types[type_index])) {
       if (size) {
-        types_size_native[index] = size;
-        types_size_32[index] = size;
-        types_size_64[index] = size;
-        types_align_32[index] = size;
-        types_align_64[index] = size;
+        types_size_native[type_index] = size;
+        types_size_32[type_index] = size;
+        types_size_64[type_index] = size;
+        types_align_32[type_index] = size;
+        types_align_64[type_index] = size;
       }
-      return index;
+      return type_index;
     }
   }
 
   /* append new type */
-  const int str_size = strlen(str) + 1;
-  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, str_size));
-  memcpy(cp, str, str_size);
-  types[types_len] = cp;
-  types_size_native[types_len] = size;
-  types_size_32[types_len] = size;
-  types_size_64[types_len] = size;
-  types_align_32[types_len] = size;
-  types_align_64[types_len] = size;
-  if (types_len >= max_array_len) {
+  const int type_name_len = strlen(type_name) + 1;
+  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, type_name_len));
+  memcpy(cp, type_name, type_name_len);
+  types[types_num] = cp;
+  types_size_native[types_num] = size;
+  types_size_32[types_num] = size;
+  types_size_64[types_num] = size;
+  types_align_32[types_num] = size;
+  types_align_64[types_num] = size;
+  if (types_num >= max_array_len) {
     printf("too many types\n");
-    return types_len - 1;
+    return types_num - 1;
   }
-  types_len++;
+  types_num++;
 
-  return types_len - 1;
+  return types_num - 1;
 }
 
 /**
@@ -351,30 +353,30 @@ static int add_type(const char *str, int size)
  * we add name and type at the same time... There are two special
  * cases, unfortunately. These are explicitly checked.
  */
-static int add_name(const char *str)
+static int add_member(const char *member_name)
 {
   char buf[255]; /* stupid limit, change it :) */
   const char *name;
 
   additional_slen_offset = 0;
 
-  if (str[0] == 0 /*  || (str[1] == 0) */) {
+  if (member_name[0] == 0 /*  || (member_name[1] == 0) */) {
     return -1;
   }
 
-  if (str[0] == '(' && str[1] == '*') {
+  if (member_name[0] == '(' && member_name[1] == '*') {
     /* We handle function pointer and special array cases here, e.g.
      * `void (*function)(...)` and `float (*array)[..]`. the array case
      * name is still converted to (array *)() though because it is that
      * way in old DNA too, and works correct with #DNA_struct_member_size. */
-    int isfuncptr = (strchr(str + 1, '(')) != nullptr;
+    int isfuncptr = (strchr(member_name + 1, '(')) != nullptr;
 
     DEBUG_PRINTF(3, "\t\t\t\t*** Function pointer or multidim array pointer found\n");
     /* function-pointer: transform the type (sometimes). */
     int i = 0;
 
-    while (str[i] != ')') {
-      buf[i] = str[i];
+    while (member_name[i] != ')') {
+      buf[i] = member_name[i];
       i++;
     }
 
@@ -386,38 +388,38 @@ static int add_name(const char *str)
     DEBUG_PRINTF(3, "first brace after offset %d\n", i);
 
     j++; /* j beyond closing brace ? */
-    while ((str[j] != 0) && (str[j] != ')')) {
-      DEBUG_PRINTF(3, "seen %c (%d)\n", str[j], str[j]);
+    while ((member_name[j] != 0) && (member_name[j] != ')')) {
+      DEBUG_PRINTF(3, "seen %c (%d)\n", member_name[j], member_name[j]);
       j++;
     }
     DEBUG_PRINTF(3,
                  "seen %c (%d)\n"
                  "special after offset%d\n",
-                 str[j],
-                 str[j],
+                 member_name[j],
+                 member_name[j],
                  j);
 
     if (!isfuncptr) {
       /* multidimensional array pointer case */
-      if (str[j] == 0) {
+      if (member_name[j] == 0) {
         DEBUG_PRINTF(3, "offsetting for multi-dimensional array pointer\n");
       }
       else {
         printf("Error during tokenizing multi-dimensional array pointer\n");
       }
     }
-    else if (str[j] == 0) {
+    else if (member_name[j] == 0) {
       DEBUG_PRINTF(3, "offsetting for space\n");
       /* get additional offset */
       int k = 0;
-      while (str[j] != ')') {
+      while (member_name[j] != ')') {
         j++;
         k++;
       }
       DEBUG_PRINTF(3, "extra offset %d\n", k);
       additional_slen_offset = k;
     }
-    else if (str[j] == ')') {
+    else if (member_name[j] == ')') {
       DEBUG_PRINTF(3, "offsetting for brace\n");
       /* don't get extra offset */
     }
@@ -460,13 +462,13 @@ static int add_name(const char *str)
   }
   else {
     /* normal field: old code */
-    name = str;
+    name = member_name;
   }
 
   /* search name array */
-  for (int nr = 0; nr < names_len; nr++) {
-    if (STREQ(name, names[nr])) {
-      return nr;
+  for (int member_index = 0; member_index < members_num; member_index++) {
+    if (STREQ(name, members[member_index])) {
+      return member_index;
     }
   }
 
@@ -476,39 +478,39 @@ static int add_name(const char *str)
   }
 
   /* Append new name. */
-  const int name_size = strlen(name) + 1;
-  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, name_size));
-  memcpy(cp, name, name_size);
-  names[names_len] = cp;
+  const int name_len = strlen(name) + 1;
+  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, name_len));
+  memcpy(cp, name, name_len);
+  members[members_num] = cp;
 
-  if (names_len >= max_array_len) {
+  if (members_num >= max_array_len) {
     printf("too many names\n");
-    return names_len - 1;
+    return members_num - 1;
   }
-  names_len++;
+  members_num++;
 
-  return names_len - 1;
+  return members_num - 1;
 }
 
-static short *add_struct(int namecode)
+static short *add_struct(int type_index)
 {
-  if (structs_len == 0) {
+  if (structs_num == 0) {
     structs[0] = structdata;
   }
   else {
-    short *sp = structs[structs_len - 1];
+    short *sp = structs[structs_num - 1];
     const int len = sp[1];
-    structs[structs_len] = sp + 2 * len + 2;
+    structs[structs_num] = sp + 2 * len + 2;
   }
 
-  short *sp = structs[structs_len];
-  sp[0] = namecode;
+  short *sp = structs[structs_num];
+  sp[0] = type_index;
 
-  if (structs_len >= max_array_len) {
+  if (structs_num >= max_array_len) {
     printf("too many structs\n");
     return sp;
   }
-  structs_len++;
+  structs_num++;
 
   return sp;
 }
@@ -746,16 +748,16 @@ static int convert_include(const char *filepath)
         /* we've got a struct name when... */
         if (match_identifier(md1 - 7, "struct")) {
 
-          const int strct = add_type(md1, 0);
-          if (strct == -1) {
+          const int struct_type_index = add_type(md1, 0);
+          if (struct_type_index == -1) {
             fprintf(stderr, "File '%s' contains struct we can't parse \"%s\"\n", filepath, md1);
             return 1;
           }
 
-          short *structpoin = add_struct(strct);
+          short *structpoin = add_struct(struct_type_index);
           short *sp = structpoin + 2;
 
-          DEBUG_PRINTF(1, "\t|\t|-- detected struct %s\n", types[strct]);
+          DEBUG_PRINTF(1, "\t|\t|-- detected struct %s\n", types[struct_type_index]);
 
           /* first lets make it all nice strings */
           md1 = md + 1;
@@ -807,8 +809,8 @@ static int convert_include(const char *filepath)
                         md1);
                 return -1;
               }
-              const int type = add_type(md1, 0);
-              if (type == -1) {
+              const int member_type_index = add_type(md1, 0);
+              if (member_type_index == -1) {
                 fprintf(
                     stderr, "File '%s' contains struct we can't parse \"%s\"\n", filepath, md1);
                 return 1;
@@ -832,7 +834,8 @@ static int convert_include(const char *filepath)
                   if (md1[slen - 1] == ';') {
                     md1[slen - 1] = 0;
 
-                    const int name = add_name(version_elem_static_from_alias(strct, md1));
+                    const int name = add_member(
+                        version_member_static_from_alias(struct_type_index, md1));
                     if (name == -1) {
                       fprintf(stderr,
                               "File '%s' contains struct with name that can't be added \"%s\"\n",
@@ -841,11 +844,11 @@ static int convert_include(const char *filepath)
                       return 1;
                     }
                     slen += additional_slen_offset;
-                    sp[0] = type;
+                    sp[0] = member_type_index;
                     sp[1] = name;
 
-                    if (names[name] != nullptr) {
-                      DEBUG_PRINTF(1, "%s |", names[name]);
+                    if (members[name] != nullptr) {
+                      DEBUG_PRINTF(1, "%s |", members[name]);
                     }
 
                     structpoin[1]++;
@@ -855,7 +858,8 @@ static int convert_include(const char *filepath)
                     break;
                   }
 
-                  const int name = add_name(version_elem_static_from_alias(strct, md1));
+                  const int name = add_member(
+                      version_member_static_from_alias(struct_type_index, md1));
                   if (name == -1) {
                     fprintf(stderr,
                             "File '%s' contains struct with name that can't be added \"%s\"\n",
@@ -865,10 +869,10 @@ static int convert_include(const char *filepath)
                   }
                   slen += additional_slen_offset;
 
-                  sp[0] = type;
+                  sp[0] = member_type_index;
                   sp[1] = name;
-                  if (names[name] != nullptr) {
-                    DEBUG_PRINTF(1, "%s ||", names[name]);
+                  if (members[name] != nullptr) {
+                    DEBUG_PRINTF(1, "%s ||", members[name]);
                   }
 
                   structpoin[1]++;
@@ -895,15 +899,19 @@ static int convert_include(const char *filepath)
   return 0;
 }
 
-static bool check_field_alignment(
-    int firststruct, int structtype, int type, int len, const char *name, const char *detail)
+static bool check_field_alignment(int firststruct,
+                                  int struct_type_index,
+                                  int type,
+                                  int len,
+                                  const char *name,
+                                  const char *detail)
 {
   bool result = true;
   if (type < firststruct && types_size_native[type] > 4 && (len % 8)) {
     fprintf(stderr,
             "Align 8 error (%s) in struct: %s %s (add %d padding bytes)\n",
             detail,
-            types[structtype],
+            types[struct_type_index],
             name,
             len % 8);
     result = false;
@@ -912,7 +920,7 @@ static bool check_field_alignment(
     fprintf(stderr,
             "Align 4 error (%s) in struct: %s %s (add %d padding bytes)\n",
             detail,
-            types[structtype],
+            types[struct_type_index],
             name,
             len % 4);
     result = false;
@@ -921,7 +929,7 @@ static bool check_field_alignment(
     fprintf(stderr,
             "Align 2 error (%s) in struct: %s %s (add %d padding bytes)\n",
             detail,
-            types[structtype],
+            types[struct_type_index],
             name,
             len % 2);
     result = false;
@@ -948,19 +956,19 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
   fprintf(file_verify, "\n");
 
   /* Multiple iterations to handle nested structs. */
-  int unknown = structs_len;
+  int unknown = structs_num;
   while (unknown) {
     const int lastunknown = unknown;
     unknown = 0;
 
     /* check all structs... */
-    for (int a = 0; a < structs_len; a++) {
+    for (int a = 0; a < structs_num; a++) {
       const short *structpoin = structs[a];
-      const int structtype = structpoin[0];
-      const char *structname = version_struct_alias_from_static(types[structtype]);
+      const int struct_type_index = structpoin[0];
+      const char *struct_type_name = version_struct_alias_from_static(types[struct_type_index]);
 
       /* when length is not known... */
-      if (types_size_native[structtype] == 0) {
+      if (types_size_native[struct_type_index] == 0) {
 
         const short *sp = structpoin + 2;
         int size_native = 0;
@@ -970,10 +978,10 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
         int max_align_32 = 0;
         int max_align_64 = 0;
 
-        /* check all elements in struct */
+        /* check all members in struct */
         for (int b = 0; b < structpoin[1]; b++, sp += 2) {
           int type = sp[0];
-          const char *cp = names[sp[1]];
+          const char *cp = members[sp[1]];
           int namelen = int(strlen(cp));
 
           /* Write size verification to file. */
@@ -983,14 +991,14 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             char name_static[1024];
             BLI_assert(sizeof(name_static) > namelen);
 
-            DNA_elem_id_strip_copy(name_static, cp);
-            const char *str_pair[2] = {types[structtype], name_static};
+            DNA_member_id_strip_copy(name_static, cp);
+            const char *str_pair[2] = {types[struct_type_index], name_static};
             const char *name_alias = static_cast<const char *>(
-                BLI_ghash_lookup(g_version_data.elem_map_alias_from_static, str_pair));
+                BLI_ghash_lookup(g_version_data.member_map_alias_from_static, str_pair));
             fprintf(file_verify,
                     "BLI_STATIC_ASSERT(offsetof(struct %s, %s) == %d, \"DNA member offset "
                     "verify\");\n",
-                    structname,
+                    struct_type_name,
                     name_alias ? name_alias : name_static,
                     size_native);
           }
@@ -1000,13 +1008,13 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             /* has the name an extra length? (array) */
             int mul = 1;
             if (cp[namelen - 1] == ']') {
-              mul = DNA_elem_array_size(cp);
+              mul = DNA_member_array_num(cp);
             }
 
             if (mul == 0) {
               fprintf(stderr,
                       "Zero array size found or could not parse %s: '%.*s'\n",
-                      types[structtype],
+                      types[struct_type_index],
                       namelen + 1,
                       cp);
               dna_error = true;
@@ -1017,7 +1025,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
               if (size_native % 4) {
                 fprintf(stderr,
                         "Align pointer error in struct (size_native 4): %s %s\n",
-                        types[structtype],
+                        types[struct_type_index],
                         cp);
                 dna_error = true;
               }
@@ -1026,7 +1034,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
               if (size_native % 8) {
                 fprintf(stderr,
                         "Align pointer error in struct (size_native 8): %s %s\n",
-                        types[structtype],
+                        types[struct_type_index],
                         cp);
                 dna_error = true;
               }
@@ -1035,7 +1043,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             if (size_64 % 8) {
               fprintf(stderr,
                       "Align pointer error in struct (size_64 8): %s %s\n",
-                      types[structtype],
+                      types[struct_type_index],
                       cp);
               dna_error = true;
             }
@@ -1051,7 +1059,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
              * to be found for "float var [3]" */
             fprintf(stderr,
                     "Parse error in struct, invalid member name: %s %s\n",
-                    types[structtype],
+                    types[struct_type_index],
                     cp);
             dna_error = true;
           }
@@ -1059,13 +1067,13 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             /* has the name an extra length? (array) */
             int mul = 1;
             if (cp[namelen - 1] == ']') {
-              mul = DNA_elem_array_size(cp);
+              mul = DNA_member_array_num(cp);
             }
 
             if (mul == 0) {
               fprintf(stderr,
                       "Zero array size found or could not parse %s: '%.*s'\n",
-                      types[structtype],
+                      types[struct_type_index],
                       namelen + 1,
                       cp);
               dna_error = true;
@@ -1077,7 +1085,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                 fprintf(stderr,
                         "Align struct error: %s::%s (starts at %d on the native platform; "
                         "%d %% %zu = %d bytes)\n",
-                        types[structtype],
+                        types[struct_type_index],
                         cp,
                         size_native,
                         size_native,
@@ -1088,10 +1096,14 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             }
 
             /* Check 2-4-8 aligned. */
-            if (!check_field_alignment(firststruct, structtype, type, size_32, cp, "32 bit")) {
+            if (!check_field_alignment(
+                    firststruct, struct_type_index, type, size_32, cp, "32 bit"))
+            {
               dna_error = true;
             }
-            if (!check_field_alignment(firststruct, structtype, type, size_64, cp, "64 bit")) {
+            if (!check_field_alignment(
+                    firststruct, struct_type_index, type, size_64, cp, "64 bit"))
+            {
               dna_error = true;
             }
 
@@ -1113,11 +1125,11 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           unknown++;
         }
         else {
-          types_size_native[structtype] = size_native;
-          types_size_32[structtype] = size_32;
-          types_size_64[structtype] = size_64;
-          types_align_32[structtype] = max_align_32;
-          types_align_64[structtype] = max_align_64;
+          types_size_native[struct_type_index] = size_native;
+          types_size_32[struct_type_index] = size_32;
+          types_size_64[struct_type_index] = size_64;
+          types_align_32[struct_type_index] = max_align_32;
+          types_align_64[struct_type_index] = max_align_64;
 
           /* Sanity check 1: alignment should never be 0. */
           BLI_assert(max_align_32);
@@ -1135,12 +1147,12 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             if ((size_64 % max_align_64 == 0) && (size_32 % max_align_32 == 4)) {
               fprintf(stderr,
                       "Sizeerror in 32 bit struct: %s (add padding pointer)\n",
-                      types[structtype]);
+                      types[struct_type_index]);
             }
             else {
               fprintf(stderr,
                       "Sizeerror in 32 bit struct: %s (add %d bytes)\n",
-                      types[structtype],
+                      types[struct_type_index],
                       max_align_32 - (size_32 % max_align_32));
             }
             dna_error = true;
@@ -1149,7 +1161,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           if (size_64 % max_align_64) {
             fprintf(stderr,
                     "Sizeerror in 64 bit struct: %s (add %d bytes)\n",
-                    types[structtype],
+                    types[struct_type_index],
                     max_align_64 - (size_64 % max_align_64));
             dna_error = true;
           }
@@ -1157,7 +1169,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           if (size_native % 4 && !ELEM(size_native, 1, 2)) {
             fprintf(stderr,
                     "Sizeerror 4 in struct: %s (add %d bytes)\n",
-                    types[structtype],
+                    types[struct_type_index],
                     size_native % 4);
             dna_error = true;
           }
@@ -1165,7 +1177,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           /* Write size verification to file. */
           fprintf(file_verify,
                   "BLI_STATIC_ASSERT(sizeof(struct %s) == %d, \"DNA struct size verify\");\n\n",
-                  structname,
+                  struct_type_name,
                   size_native);
         }
       }
@@ -1182,7 +1194,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
     if (debugSDNA) {
       fprintf(stderr, "*** Known structs :\n");
 
-      for (int a = 0; a < structs_len; a++) {
+      for (int a = 0; a < structs_num; a++) {
         const short *structpoin = structs[a];
         const int structtype = structpoin[0];
 
@@ -1195,7 +1207,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 
     fprintf(stderr, "*** Unknown structs :\n");
 
-    for (int a = 0; a < structs_len; a++) {
+    for (int a = 0; a < structs_num; a++) {
       const short *structpoin = structs[a];
       const int structtype = structpoin[0];
 
@@ -1230,14 +1242,14 @@ static void dna_write(FILE *file, const void *pntr, const int size)
 
 void print_struct_sizes()
 {
-  int unknown = structs_len;
+  int unknown = structs_num;
   printf("\n\n*** All detected structs:\n");
 
   while (unknown) {
     unknown = 0;
 
     /* check all structs... */
-    for (int a = 0; a < structs_len; a++) {
+    for (int a = 0; a < structs_num; a++) {
       const short *structpoin = structs[a];
       const int structtype = structpoin[0];
       printf("\t%s\t:%d\n", types[structtype], types_size_native[structtype]);
@@ -1263,7 +1275,7 @@ static int make_structDNA(const char *base_directory,
   structdata = static_cast<short *>(MEM_callocN(max_data_size, "structdata"));
 
   /* a maximum of 5000 variables, must be sufficient? */
-  names = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "names"));
+  members = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "names"));
   types = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "types"));
   types_size_native = static_cast<short *>(
       MEM_callocN(sizeof(short) * max_array_len, "types_size_native"));
@@ -1280,11 +1292,11 @@ static int make_structDNA(const char *base_directory,
 
   /* Build versioning data */
   DNA_alias_maps(DNA_RENAME_ALIAS_FROM_STATIC,
-                 &g_version_data.struct_map_alias_from_static,
-                 &g_version_data.elem_map_alias_from_static);
+                 &g_version_data.type_map_alias_from_static,
+                 &g_version_data.member_map_alias_from_static);
   DNA_alias_maps(DNA_RENAME_STATIC_FROM_ALIAS,
-                 &g_version_data.struct_map_static_from_alias,
-                 &g_version_data.elem_map_static_from_alias);
+                 &g_version_data.type_map_static_from_alias,
+                 &g_version_data.member_map_static_from_alias);
 
   /**
    * Insertion of all known types.
@@ -1312,7 +1324,7 @@ static int make_structDNA(const char *base_directory,
   add_type("int8_t", 1);   /* SDNA_TYPE_INT8 */
 
   /* the defines above shouldn't be output in the padding file... */
-  const int firststruct = types_len;
+  const int firststruct = types_num;
 
   /* Add all include files defined in the global array.
    * Since the internal file+path name buffer has limited length,
@@ -1343,30 +1355,29 @@ static int make_structDNA(const char *base_directory,
   if (debugSDNA > 1) {
     int a, b;
     // short *elem;
-    short num_types;
+    short struct_members_num;
 
-    printf("names_len %d types_len %d structs_len %d\n", names_len, types_len, structs_len);
-    for (a = 0; a < names_len; a++) {
-      printf(" %s\n", names[a]);
+    printf("names_len %d types_len %d structs_len %d\n", members_num, types_num, structs_num);
+    for (a = 0; a < members_num; a++) {
+      printf(" %s\n", members[a]);
     }
     printf("\n");
 
     const short *sp = types_size_native;
-    for (a = 0; a < types_len; a++, sp++) {
+    for (a = 0; a < types_num; a++, sp++) {
       printf(" %s %d\n", types[a], *sp);
     }
     printf("\n");
 
-    for (a = 0; a < structs_len; a++) {
+    for (a = 0; a < structs_num; a++) {
       sp = structs[a];
       printf(" struct %s elems: %d size: %d\n", types[sp[0]], sp[1], types_size_native[sp[0]]);
-      num_types = sp[1];
+      struct_members_num = sp[1];
       sp += 2;
-      /* ? num_types was elem? */
-      for (b = 0; b < num_types; b++, sp += 2) {
+      for (b = 0; b < struct_members_num; b++, sp += 2) {
         printf("   %s %s allign32:%d, allign64:%d\n",
                types[sp[0]],
-               names[sp[1]],
+               members[sp[1]],
                types_align_32[sp[0]],
                types_align_64[sp[0]]);
       }
@@ -1377,7 +1388,7 @@ static int make_structDNA(const char *base_directory,
 
   DEBUG_PRINTF(0, "Writing file ... ");
 
-  if (names_len == 0 || structs_len == 0) {
+  if (members_num == 0 || structs_num == 0) {
     /* pass */
   }
   else {
@@ -1387,14 +1398,14 @@ static int make_structDNA(const char *base_directory,
 
     /* write names */
     dna_write(file, "NAME", 4);
-    int len = names_len;
+    int len = members_num;
     dna_write(file, &len, 4);
     /* write array */
     len = 0;
-    for (int nr = 0; nr < names_len; nr++) {
-      int name_size = strlen(names[nr]) + 1;
-      dna_write(file, names[nr], name_size);
-      len += name_size;
+    for (int member_index = 0; member_index < members_num; member_index++) {
+      int member_len = strlen(members[member_index]) + 1;
+      dna_write(file, members[member_index], member_len);
+      len += member_len;
     }
     int len_align = (len + 3) & ~3;
     if (len != len_align) {
@@ -1403,14 +1414,14 @@ static int make_structDNA(const char *base_directory,
 
     /* write TYPES */
     dna_write(file, "TYPE", 4);
-    len = types_len;
+    len = types_num;
     dna_write(file, &len, 4);
     /* write array */
     len = 0;
-    for (int nr = 0; nr < types_len; nr++) {
-      int type_size = strlen(types[nr]) + 1;
-      dna_write(file, types[nr], type_size);
-      len += type_size;
+    for (int type_index = 0; type_index < types_num; type_index++) {
+      int type_len = strlen(types[type_index]) + 1;
+      dna_write(file, types[type_index], type_len);
+      len += type_len;
     }
     len_align = (len + 3) & ~3;
     if (len != len_align) {
@@ -1420,19 +1431,19 @@ static int make_structDNA(const char *base_directory,
     /* WRITE TYPELENGTHS */
     dna_write(file, "TLEN", 4);
 
-    len = 2 * types_len;
-    if (types_len & 1) {
+    len = 2 * types_num;
+    if (types_num & 1) {
       len += 2;
     }
     dna_write(file, types_size_native, len);
 
     /* WRITE STRUCTS */
     dna_write(file, "STRC", 4);
-    len = structs_len;
+    len = structs_num;
     dna_write(file, &len, 4);
 
     /* calc datablock size */
-    const short *sp = structs[structs_len - 1];
+    const short *sp = structs[structs_num - 1];
     sp += 2 + 2 * (sp[1]);
     len = intptr_t((char *)sp - (char *)structs[0]);
     len = (len + 3) & ~3;
@@ -1446,46 +1457,46 @@ static int make_structDNA(const char *base_directory,
     fprintf(file_offsets, "#pragma once\n");
     fprintf(file_offsets, "#define SDNA_TYPE_FROM_STRUCT(id) _SDNA_TYPE_##id\n");
     fprintf(file_offsets, "enum {\n");
-    for (int i = 0; i < structs_len; i++) {
+    for (int i = 0; i < structs_num; i++) {
       const short *structpoin = structs[i];
-      const int structtype = structpoin[0];
+      const int struct_type_index = structpoin[0];
       fprintf(file_offsets,
               "\t_SDNA_TYPE_%s = %d,\n",
-              version_struct_alias_from_static(types[structtype]),
+              version_struct_alias_from_static(types[struct_type_index]),
               i);
     }
-    fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", structs_len);
+    fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", structs_num);
     fprintf(file_offsets, "};\n\n");
   }
 
   /* Check versioning errors which could cause duplicate names,
    * do last because names are stripped. */
   {
-    GSet *names_unique = BLI_gset_str_new_ex(__func__, 512);
-    for (int struct_nr = 0; struct_nr < structs_len; struct_nr++) {
-      const short *sp = structs[struct_nr];
-      const char *struct_name = types[sp[0]];
+    GSet *members_unique = BLI_gset_str_new_ex(__func__, 512);
+    for (int struct_index = 0; struct_index < structs_num; struct_index++) {
+      const short *sp = structs[struct_index];
+      const char *type = types[sp[0]];
       const int len = sp[1];
       sp += 2;
       for (int a = 0; a < len; a++, sp += 2) {
-        char *name = names[sp[1]];
-        DNA_elem_id_strip(name);
-        if (!BLI_gset_add(names_unique, name)) {
+        char *member = members[sp[1]];
+        DNA_member_id_strip(member);
+        if (!BLI_gset_add(members_unique, member)) {
           fprintf(stderr,
                   "Error: duplicate name found '%s.%s', "
                   "likely cause is 'dna_rename_defs.h'\n",
-                  struct_name,
-                  name);
+                  type,
+                  member);
           return 1;
         }
       }
-      BLI_gset_clear(names_unique, nullptr);
+      BLI_gset_clear(members_unique, nullptr);
     }
-    BLI_gset_free(names_unique, nullptr);
+    BLI_gset_free(members_unique, nullptr);
   }
 
   MEM_freeN(structdata);
-  MEM_freeN(names);
+  MEM_freeN(members);
   MEM_freeN(types);
   MEM_freeN(types_size_native);
   MEM_freeN(types_size_32);
@@ -1496,10 +1507,10 @@ static int make_structDNA(const char *base_directory,
 
   BLI_memarena_free(mem_arena);
 
-  BLI_ghash_free(g_version_data.struct_map_alias_from_static, nullptr, nullptr);
-  BLI_ghash_free(g_version_data.struct_map_static_from_alias, nullptr, nullptr);
-  BLI_ghash_free(g_version_data.elem_map_static_from_alias, MEM_freeN, nullptr);
-  BLI_ghash_free(g_version_data.elem_map_alias_from_static, MEM_freeN, nullptr);
+  BLI_ghash_free(g_version_data.type_map_alias_from_static, nullptr, nullptr);
+  BLI_ghash_free(g_version_data.type_map_static_from_alias, nullptr, nullptr);
+  BLI_ghash_free(g_version_data.member_map_static_from_alias, MEM_freeN, nullptr);
+  BLI_ghash_free(g_version_data.member_map_alias_from_static, MEM_freeN, nullptr);
 
   DEBUG_PRINTF(0, "done.\n");
 
@@ -1634,10 +1645,10 @@ int main(int argc, char **argv)
 static void UNUSED_FUNCTION(dna_rename_defs_ensure)()
 {
 #define DNA_STRUCT_RENAME(old, new) (void)sizeof(new);
-#define DNA_STRUCT_RENAME_ELEM(struct_name, old, new) (void)offsetof(struct_name, new);
+#define DNA_STRUCT_RENAME_MEMBER(struct_name, old, new) (void)offsetof(struct_name, new);
 #include "dna_rename_defs.h"
 #undef DNA_STRUCT_RENAME
-#undef DNA_STRUCT_RENAME_ELEM
+#undef DNA_STRUCT_RENAME_MEMBER
 }
 
 /** \} */

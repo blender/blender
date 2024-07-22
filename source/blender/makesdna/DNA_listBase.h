@@ -23,7 +23,12 @@ typedef struct LinkData {
   void *data;
 } LinkData;
 
-/** Never change the size of this! dna_genfile.cc detects pointer_size with it. */
+/**
+ * The basic double linked-list structure.
+ *
+ * \warning Never change the size/definition of this struct! The #init_structDNA
+ * function (from dna_genfile.cc) uses it to compute the #pointer_size.
+ */
 typedef struct ListBase {
   void *first, *last;
 } ListBase;
