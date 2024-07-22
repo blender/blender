@@ -2661,7 +2661,7 @@ static bool ed_object_select_pick(bContext *C,
     /* Let the menu handle any further actions. */
     if (has_menu) {
       if (gpu != nullptr) {
-        MEM_freeN(gpu);
+        MEM_delete(gpu);
       }
       return false;
     }
