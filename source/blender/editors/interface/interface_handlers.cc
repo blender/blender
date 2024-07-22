@@ -11105,6 +11105,7 @@ static int ui_handle_menu_event(bContext *C,
         if ((but_default != nullptr) && (but_default->active == nullptr)) {
           if (but_default->type == UI_BTYPE_BUT) {
             UI_but_execute(C, region, but_default);
+            retval = WM_UI_HANDLER_BREAK;
           }
           else {
             ui_handle_button_activate_by_type(C, region, but_default);
