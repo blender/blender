@@ -434,9 +434,6 @@ void screen_draw_dock_preview(const struct wmWindow * /* win */,
   else {
     UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
     screen_draw_area_icon(&dest, ED_area_icon(source), icon_color, bg_color, outline);
-
-    bg_color[3] = 0.3f;
-    icon_color[3] = 128;
     screen_draw_area_icon(&remainder, ED_area_icon(target), icon_color, bg_color, nullptr);
 
     /* Darken the split position itself. */
