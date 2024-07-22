@@ -59,7 +59,7 @@ GPU_SHADER_CREATE_INFO(eevee_film_cryptomatte_post)
     .push_constant(Type::INT, "cryptomatte_samples_per_layer")
     .local_group_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)
     .compute_source("eevee_film_cryptomatte_post_comp.glsl")
-    .additional_info("eevee_shared");
+    .additional_info("eevee_global_ubo", "eevee_shared");
 
 GPU_SHADER_CREATE_INFO(eevee_film_copy_frag)
     .do_static_compilation(true)
