@@ -94,18 +94,16 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
     if (eBrushGPaintTool(brush.gpencil_tool) == GPAINT_TOOL_DRAW &&
         stroke_mode == BRUSH_STROKE_ERASE)
     {
-      /* Special case: We're using the draw tool but with the eraser mode. */
-      Object *object = CTX_data_active_object(&C);
-      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-      grease_pencil.runtime->use_eraser_temp = true;
-      return greasepencil::new_erase_operation();
+      /* Special case: We're using the draw tool but with the eraser mode, so create an erase
+       * operation. */
+      return greasepencil::new_erase_operation(true);
     }
     /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
     switch (eBrushGPaintTool(brush.gpencil_tool)) {
       case GPAINT_TOOL_DRAW:
         return greasepencil::new_paint_operation();
       case GPAINT_TOOL_ERASE:
-        return greasepencil::new_erase_operation();
+        return greasepencil::new_erase_operation(false);
       case GPAINT_TOOL_FILL:
         /* Fill tool keymap uses the paint operator as alternative mode. */
         return greasepencil::new_paint_operation();

@@ -1008,10 +1008,10 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   /* Initialize helper class for projecting screen space coordinates. */
   placement_ = ed::greasepencil::DrawingPlacement(*scene, *region, *view3d, *eval_object, &layer);
   if (placement_.use_project_to_surface()) {
-    placement_.cache_viewport_depths(CTX_data_depsgraph_pointer(&C), region, view3d);
+    placement_.cache_viewport_depths(depsgraph, region, view3d);
   }
   else if (placement_.use_project_to_nearest_stroke()) {
-    placement_.cache_viewport_depths(CTX_data_depsgraph_pointer(&C), region, view3d);
+    placement_.cache_viewport_depths(depsgraph, region, view3d);
     placement_.set_origin_to_nearest_stroke(start_sample.mouse_position);
   }
 
