@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/particles.h"
+#include "RNA_blender_cpp.hh"
 #include "scene/mesh.h"
 #include "scene/object.h"
 
@@ -61,8 +62,12 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
 
   /* add particle */
   BL::Particle b_pa = b_psys.particles[persistent_id[0]];
-  Particle pa;
+  if (!ELEM(b_pa.alive_state(), BL::Particle::alive_state_ALIVE, BL::Particle::alive_state_DYING))
+  {
+    return false;
+  }
 
+  Particle pa;
   pa.index = persistent_id[0];
   pa.age = b_scene.frame_current_final() - b_pa.birth_time();
   pa.lifetime = b_pa.lifetime();

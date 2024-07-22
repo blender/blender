@@ -574,6 +574,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
   BL::Depsgraph::object_instances_iterator b_instance_iter;
 
+  std::cout << "Instances: " << b_depsgraph.object_instances.length() << std::endl;
   for (b_depsgraph.object_instances.begin(b_instance_iter);
        b_instance_iter != b_depsgraph.object_instances.end() && !cancel;
        ++b_instance_iter)
