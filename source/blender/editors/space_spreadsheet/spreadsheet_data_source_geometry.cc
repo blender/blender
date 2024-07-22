@@ -340,31 +340,33 @@ int GeometryDataSource::tot_rows() const
 
 bool GeometryDataSource::has_selection_filter() const
 {
-  Object *object_orig = DEG_get_original_object(object_eval_);
+  if (!object_orig_) {
+    return false;
+  }
   switch (component_->type()) {
     case bke::GeometryComponent::Type::Mesh: {
-      if (object_orig->type != OB_MESH) {
+      if (object_orig_->type != OB_MESH) {
         return false;
       }
-      if (object_orig->mode != OB_MODE_EDIT) {
+      if (object_orig_->mode != OB_MODE_EDIT) {
         return false;
       }
       return true;
     }
     case bke::GeometryComponent::Type::Curve: {
-      if (object_orig->type != OB_CURVES) {
+      if (object_orig_->type != OB_CURVES) {
         return false;
       }
-      if (!ELEM(object_orig->mode, OB_MODE_SCULPT_CURVES, OB_MODE_EDIT)) {
+      if (!ELEM(object_orig_->mode, OB_MODE_SCULPT_CURVES, OB_MODE_EDIT)) {
         return false;
       }
       return true;
     }
     case bke::GeometryComponent::Type::PointCloud: {
-      if (object_orig->type != OB_POINTCLOUD) {
+      if (object_orig_->type != OB_POINTCLOUD) {
         return false;
       }
-      if (object_orig->mode != OB_MODE_EDIT) {
+      if (object_orig_->mode != OB_MODE_EDIT) {
         return false;
       }
       return true;
@@ -384,12 +386,11 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
 
   switch (component_->type()) {
     case bke::GeometryComponent::Type::Mesh: {
-      BLI_assert(object_eval_->type == OB_MESH);
-      BLI_assert(object_eval_->mode == OB_MODE_EDIT);
-      Object *object_orig = DEG_get_original_object(object_eval_);
+      BLI_assert(object_orig_->type == OB_MESH);
+      BLI_assert(object_orig_->mode == OB_MODE_EDIT);
       const Mesh *mesh_eval = geometry_set_.get_mesh();
       const bke::AttributeAccessor attributes_eval = mesh_eval->attributes();
-      Mesh *mesh_orig = (Mesh *)object_orig->data;
+      Mesh *mesh_orig = (Mesh *)object_orig_->data;
       BMesh *bm = mesh_orig->runtime->edit_mesh->bm;
       BM_mesh_elem_table_ensure(bm, BM_VERT);
 
@@ -431,7 +432,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       return full_range;
     }
     case bke::GeometryComponent::Type::Curve: {
-      BLI_assert(object_eval_->type == OB_CURVES);
+      BLI_assert(object_orig_->type == OB_CURVES);
       const bke::CurveComponent &component = static_cast<const bke::CurveComponent &>(*component_);
       const Curves &curves_id = *component.get();
       switch (domain_) {
@@ -445,7 +446,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       return full_range;
     }
     case bke::GeometryComponent::Type::PointCloud: {
-      BLI_assert(object_eval_->type == OB_POINTCLOUD);
+      BLI_assert(object_orig_->type == OB_POINTCLOUD);
       const bke::AttributeAccessor attributes = *component_->attributes();
       const VArray<bool> &selection = *attributes.lookup_or_default(
           ".selection", bke::AttrDomain::Point, false);
@@ -559,7 +560,7 @@ int get_instance_reference_icon(const bke::InstanceReference &reference)
       return ICON_OUTLINER_COLLECTION;
     }
     case bke::InstanceReference::Type::GeometrySet: {
-      return ICON_EMPTY_AXIS;
+      return ICON_THREE_DOTS;
     }
     case bke::InstanceReference::Type::None: {
       break;
@@ -645,8 +646,9 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   if (component_type == bke::GeometryComponent::Type::Volume) {
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
+  Object *object_orig = DEG_get_original_object(object_eval);
   return std::make_unique<GeometryDataSource>(
-      object_eval, std::move(geometry_set), component_type, domain, active_layer_index);
+      object_orig, std::move(geometry_set), component_type, domain, active_layer_index);
 }
 
 }  // namespace blender::ed::spreadsheet
