@@ -227,7 +227,7 @@ enum PropertyFlag {
   PROP_ICONS_CONSECUTIVE = (1 << 12),
   PROP_ICONS_REVERSE = (1 << 8),
 
-  /** Hidden in the user interface. Inherits #ROP_SKIP_PRESET. */
+  /** Hidden in the user interface. Inherits #PROP_SKIP_PRESET. */
   PROP_HIDDEN = (1 << 19),
   /** Do not use ghost values. Inherits #PROP_SKIP_PRESET. */
   PROP_SKIP_SAVE = (1 << 28),
