@@ -2585,22 +2585,12 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         sub.operator(
                             "wm.url_open", text="Documentation", icon='HELP',
                         ).url = bl_info["doc_url"]
-                    # Only add "Report a Bug" button if tracker_url is set
-                    # or the add-on is bundled (use official tracker then).
+                    # Only add "Report a Bug" button if tracker_url is set.
+                    # None of the core add-ons are expected to have tracker info (glTF is the exception).
                     if bl_info.get("tracker_url"):
                         sub.operator(
                             "wm.url_open", text="Report a Bug", icon='URL',
                         ).url = bl_info["tracker_url"]
-                    elif not user_addon:
-                        addon_info = (
-                            "Name: {:s} {:s}\n"
-                            "Author: {:s}\n"
-                        ).format(bl_info["name"], str(bl_info["version"]), bl_info["author"])
-                        props = sub.operator(
-                            "wm.url_open_preset", text="Report a Bug", icon='URL',
-                        )
-                        props.type = 'BUG_ADDON'
-                        props.id = addon_info
 
                 if user_addon:
                     split = colsub.row().split(factor=0.15)
