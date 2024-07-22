@@ -897,7 +897,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, bool no_context);
  */
 bool WM_operator_properties_default(PointerRNA *ptr, bool do_update);
 /**
- * Remove all props without #PROP_SKIP_SAVE.
+ * Remove all props without #PROP_SKIP_SAVE or #PROP_SKIP_PRESET.
  */
 void WM_operator_properties_reset(wmOperator *op);
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring);

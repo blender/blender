@@ -227,9 +227,18 @@ enum PropertyFlag {
   PROP_ICONS_CONSECUTIVE = (1 << 12),
   PROP_ICONS_REVERSE = (1 << 8),
 
-  /** Hidden in the user interface. Inherits #PROP_SKIP_PRESET. */
+  /**
+   * Hide in the user interface. That is, from auto-generated operator property UIs (like the
+   * redo panel) and the outliner "Data API" display mode. Does not hide it in the keymap UI.
+   *
+   * Also don't save in presets, as if #PROP_SKIP_PRESET was set.
+   */
   PROP_HIDDEN = (1 << 19),
-  /** Do not use ghost values. Inherits #PROP_SKIP_PRESET. */
+  /**
+   * Donnot preserve the last value for repeated operator calls.
+   *
+   * Also don't save in presets, as if #PROP_SKIP_PRESET was set.
+   */
   PROP_SKIP_SAVE = (1 << 28),
 
   /* numbers */
@@ -327,7 +336,7 @@ enum PropertyFlag {
    */
   PROP_PATH_OUTPUT = (1 << 2),
 
-  /** Do not write in presets. */
+  /** Do not write in presets (#PROP_HIDDEN and #PROP_SKIP_SAVE won't either). */
   PROP_SKIP_PRESET = (1 << 11),
 };
 ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE)
