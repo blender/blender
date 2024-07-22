@@ -1237,7 +1237,9 @@ float opacity_from_input_sample(const float pressure,
   return opacity;
 }
 
-int grease_pencil_draw_operator_invoke(bContext *C, wmOperator *op)
+int grease_pencil_draw_operator_invoke(bContext *C,
+                                       wmOperator *op,
+                                       const bool use_duplicate_previous_key)
 {
   const Object *object = CTX_data_active_object(C);
   if (!object || object->type != OB_GREASE_PENCIL) {
@@ -1265,7 +1267,9 @@ int grease_pencil_draw_operator_invoke(bContext *C, wmOperator *op)
 
   /* Ensure a drawing at the current keyframe. */
   bool inserted_keyframe = false;
-  if (!ed::greasepencil::ensure_active_keyframe(C, grease_pencil, inserted_keyframe)) {
+  if (!ed::greasepencil::ensure_active_keyframe(
+          C, grease_pencil, use_duplicate_previous_key, inserted_keyframe))
+  {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }

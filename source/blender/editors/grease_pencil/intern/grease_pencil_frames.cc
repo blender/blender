@@ -337,7 +337,10 @@ void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
   }
 }
 
-bool ensure_active_keyframe(bContext *C, GreasePencil &grease_pencil, bool &r_inserted_keyframe)
+bool ensure_active_keyframe(bContext *C,
+                            GreasePencil &grease_pencil,
+                            const bool duplicate_previous_key,
+                            bool &r_inserted_keyframe)
 {
   Scene &scene = *CTX_data_scene(C);
   const int current_frame = scene.r.cfra;
@@ -351,24 +354,17 @@ bool ensure_active_keyframe(bContext *C, GreasePencil &grease_pencil, bool &r_in
    * keyframe needs to be inserted. */
   const bool is_first = active_layer.is_empty() ||
                         (active_layer.sorted_keys().first() > current_frame);
-  const std::optional<int> current_start_frame = active_layer.start_frame_at(current_frame);
-  const bool needs_new_drawing = is_first || !current_start_frame ||
-                                 (current_start_frame < current_frame);
+  const std::optional<int> previous_key_frame_start = active_layer.start_frame_at(current_frame);
+  const bool has_previous_key = previous_key_frame_start.has_value();
+  const bool needs_new_drawing = is_first || !has_previous_key ||
+                                 (previous_key_frame_start < current_frame);
   if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    const Brush *brush = BKE_paint_brush_for_read(BKE_paint_get_active(&scene, view_layer));
     const bool use_additive_drawing = (scene.toolsettings->gpencil_flags &
                                        GP_TOOL_FLAG_RETAIN_LAST) != 0;
-    /* Eraser tool makes no sense on empty drawings, don't insert new frames. */
-    const bool allow_empty_frame = (brush->gpencil_tool != GPAINT_TOOL_ERASE);
-    if (current_start_frame && (use_additive_drawing || !allow_empty_frame)) {
-      /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
-       * current frame.
-       * NOTE: Also duplicate the frame when erasing, Otherwise empty drawing is added, see
-       * !119051.
-       */
+    if (has_previous_key && (use_additive_drawing || duplicate_previous_key)) {
+      /* We duplicate the frame that's currently visible and insert it at the current frame. */
       grease_pencil.insert_duplicate_frame(
-          active_layer, *current_start_frame, current_frame, false);
+          active_layer, *previous_key_frame_start, current_frame, false);
     }
     else {
       /* Otherwise we just insert a blank keyframe at the current frame. */

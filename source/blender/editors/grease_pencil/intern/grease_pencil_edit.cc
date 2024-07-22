@@ -2251,7 +2251,7 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
 
   /* Ensure active keyframe. */
   bool inserted_keyframe = false;
-  if (!ensure_active_keyframe(C, grease_pencil, inserted_keyframe)) {
+  if (!ensure_active_keyframe(C, grease_pencil, false, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }

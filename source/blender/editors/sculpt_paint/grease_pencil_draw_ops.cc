@@ -210,7 +210,28 @@ static bool grease_pencil_brush_stroke_poll(bContext *C)
 
 static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(C, op);
+  const bool use_duplicate_previous_key = [&]() -> bool {
+    const Paint *paint = BKE_paint_get_active_from_context(C);
+    const Brush &brush = *BKE_paint_brush_for_read(paint);
+    const PaintMode mode = BKE_paintmode_get_active_from_context(C);
+    const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+    if (mode == PaintMode::GPencil) {
+      /* For the eraser and tint tool, we don't want auto-key to create an empty keyframe, so we
+       * duplicate the previous frame. */
+      if (ELEM(eBrushGPaintTool(brush.gpencil_tool), GPAINT_TOOL_ERASE, GPAINT_TOOL_TINT)) {
+        return true;
+      }
+      /* Same for the temporary eraser when using the draw tool. */
+      if (eBrushGPaintTool(brush.gpencil_tool) == GPAINT_TOOL_DRAW &&
+          stroke_mode == BRUSH_STROKE_ERASE)
+      {
+        return true;
+      }
+    }
+    return false;
+  }();
+  int return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(
+      C, op, use_duplicate_previous_key);
   if (return_value != OPERATOR_RUNNING_MODAL) {
     return return_value;
   }
@@ -304,7 +325,12 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
 
   /* Ensure a drawing at the current keyframe. */
   bool inserted_keyframe = false;
-  if (!ed::greasepencil::ensure_active_keyframe(C, grease_pencil, inserted_keyframe)) {
+  /* For the sculpt tools, we don't want the auto-key to create an empty keyframe, so we duplicate
+   * the previous key. */
+  const bool use_duplicate_previous_key = true;
+  if (!ed::greasepencil::ensure_active_keyframe(
+          C, grease_pencil, use_duplicate_previous_key, inserted_keyframe))
+  {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
