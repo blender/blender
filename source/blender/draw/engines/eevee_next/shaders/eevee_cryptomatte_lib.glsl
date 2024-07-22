@@ -15,9 +15,9 @@ bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)
   return false;
 }
 
-vec2 cryptomatte_merge_sample(vec2 dst, vec2 src)
+vec2 cryptomatte_merge_sample(FilmSample film_sample, vec2 dst, vec2 src)
 {
-  return vec2(src.x, dst.y + src.y);
+  return vec2(src.x, (dst.y * film_sample.weight + src.y) * film_sample.weight_sum_inv);
 }
 
 vec4 cryptomatte_false_color(float hash)
@@ -51,7 +51,7 @@ void cryptomatte_store_film_sample(FilmSample dst,
     ivec3 img_co = ivec3(dst.texel, cryptomatte_layer_id + i);
     vec4 sample_pair = imageLoad(cryptomatte_img, img_co);
     if (cryptomatte_can_merge_sample(sample_pair.xy, crypto_sample)) {
-      sample_pair.xy = cryptomatte_merge_sample(sample_pair.xy, crypto_sample);
+      sample_pair.xy = cryptomatte_merge_sample(dst, sample_pair.xy, crypto_sample);
       /* In viewport only one layer is active. */
       /* TODO(jbakker):  we are displaying the first sample, but we should display the highest
        * weighted one. */
@@ -60,7 +60,7 @@ void cryptomatte_store_film_sample(FilmSample dst,
       }
     }
     else if (cryptomatte_can_merge_sample(sample_pair.zw, crypto_sample)) {
-      sample_pair.zw = cryptomatte_merge_sample(sample_pair.zw, crypto_sample);
+      sample_pair.zw = cryptomatte_merge_sample(dst, sample_pair.zw, crypto_sample);
     }
     else if (i == uniform_buf.film.cryptomatte_samples_len / 2 - 1) {
       /* TODO(jbakker): New hash detected, but there is no space left to store it. Currently we

@@ -469,7 +469,6 @@ void Film::sync()
     cryptomatte_post_ps_.state_set(DRW_STATE_NO_DRAW);
     cryptomatte_post_ps_.shader_set(inst_.shaders.static_shader_get(FILM_CRYPTOMATTE_POST));
     cryptomatte_post_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
-    cryptomatte_post_ps_.bind_image("weight_img", &weight_tx_.current());
     cryptomatte_post_ps_.bind_resources(inst_.uniform_data);
     cryptomatte_post_ps_.push_constant("cryptomatte_layer_len", cryptomatte_layer_count);
     cryptomatte_post_ps_.push_constant("cryptomatte_samples_per_layer",
