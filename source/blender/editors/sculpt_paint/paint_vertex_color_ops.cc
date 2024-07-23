@@ -305,6 +305,7 @@ static void transform_active_color(bContext *C,
                                    wmOperator *op,
                                    const FunctionRef<void(ColorGeometry4f &color)> transform_fn)
 {
+  using namespace blender;
   using namespace blender::ed::sculpt_paint;
   Object &obact = *CTX_data_active_object(C);
 
@@ -313,19 +314,20 @@ static void transform_active_color(bContext *C,
 
   undo::push_begin(obact, op);
 
-  PBVH &pbvh = *obact.sculpt->pbvh;
+  bke::pbvh::Tree &pbvh = *obact.sculpt->pbvh;
   const Mesh &mesh = *static_cast<const Mesh *>(obact.data);
-  /* The sculpt undo system needs PBVH node corner indices for corner domain color attributes. */
+  /* The sculpt undo system needs pbvh::Tree node corner indices for corner domain color
+   * attributes. */
   BKE_pbvh_ensure_node_loops(pbvh, mesh.corner_tris());
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-  for (PBVHNode *node : nodes) {
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  for (bke::pbvh::Node *node : nodes) {
     undo::push_node(obact, node, undo::Type::Color);
   }
 
   transform_active_color_data(*BKE_mesh_from_object(&obact), transform_fn);
 
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_update_color(node);
   }
 

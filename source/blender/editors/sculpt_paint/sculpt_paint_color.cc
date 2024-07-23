@@ -280,7 +280,7 @@ static void do_color_smooth_task(const Object &object,
                                  const GroupedSpan<int> vert_to_face_map,
                                  const Span<bool> hide_poly,
                                  const Brush &brush,
-                                 const PBVHNode &node,
+                                 const bke::pbvh::Node &node,
                                  LocalData &tls,
                                  bke::GSpanAttributeWriter &color_attribute)
 {
@@ -362,7 +362,7 @@ static void do_paint_brush_task(Object &object,
                                 const Brush &brush,
                                 const float4x4 &mat,
                                 const float4 wet_mix_sampled_color,
-                                PBVHNode &node,
+                                bke::pbvh::Node &node,
                                 LocalData &tls,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
@@ -495,7 +495,7 @@ static void do_sample_wet_paint_task(const Object &object,
                                      const GSpan color_attribute,
                                      const bke::AttrDomain color_domain,
                                      const Brush &brush,
-                                     const PBVHNode &node,
+                                     const bke::pbvh::Node &node,
                                      LocalData &tls,
                                      SampleWetPaintData &swptd)
 {
@@ -528,8 +528,8 @@ static void do_sample_wet_paint_task(const Object &object,
 void do_paint_brush(PaintModeSettings &paint_mode_settings,
                     const Sculpt &sd,
                     Object &ob,
-                    Span<PBVHNode *> nodes,
-                    Span<PBVHNode *> texnodes)
+                    Span<bke::pbvh::Node *> nodes,
+                    Span<bke::pbvh::Node *> texnodes)
 {
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
     SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes);
@@ -673,7 +673,7 @@ static void do_smear_brush_task(Object &object,
                                 const Span<int> corner_verts,
                                 const GroupedSpan<int> vert_to_face_map,
                                 const Brush &brush,
-                                PBVHNode &node,
+                                bke::pbvh::Node &node,
                                 LocalData &tls,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
@@ -820,7 +820,7 @@ static void do_smear_brush_task(Object &object,
   }
 }
 
-void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;

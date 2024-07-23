@@ -11,7 +11,6 @@
 #include "BKE_mesh_legacy_derived_mesh.hh"
 
 struct MeshElemMap;
-struct PBVH;
 
 /* -------------------------------------------------------------------- */
 

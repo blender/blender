@@ -40,7 +40,6 @@ struct Main;
 struct MTex;
 struct Object;
 struct Paint;
-struct PBVHNode;
 struct PointerRNA;
 struct RegionView3D;
 struct ReportList;
@@ -57,10 +56,17 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
-namespace blender::ed::sculpt_paint {
+namespace blender {
+namespace bke {
+namespace pbvh {
+class Node;
+}
+}  // namespace bke
+namespace ed::sculpt_paint {
 struct PaintStroke;
 struct StrokeCache;
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+}  // namespace blender
 
 struct CoNo {
   float co[3];
@@ -471,8 +477,8 @@ enum BrushStrokeMode {
 
 namespace blender::ed::sculpt_paint::hide {
 void sync_all_from_faces(Object &object);
-void mesh_show_all(Object &object, Span<PBVHNode *> nodes);
-void grids_show_all(Depsgraph &depsgraph, Object &object, Span<PBVHNode *> nodes);
+void mesh_show_all(Object &object, Span<bke::pbvh::Node *> nodes);
+void grids_show_all(Depsgraph &depsgraph, Object &object, Span<bke::pbvh::Node *> nodes);
 void tag_update_visibility(const bContext &C);
 
 void PAINT_OT_hide_show_masked(wmOperatorType *ot);
@@ -512,7 +518,7 @@ void average_neighbor_mask_bmesh(int mask_offset,
 
 /** Write to the mask attribute for each node, storing undo data. */
 void write_mask_mesh(Object &object,
-                     const Span<PBVHNode *> nodes,
+                     const Span<bke::pbvh::Node *> nodes,
                      FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn);
 
 /**
@@ -520,7 +526,7 @@ void write_mask_mesh(Object &object,
  * if the data is actually changed.
  */
 void update_mask_mesh(Object &object,
-                      const Span<PBVHNode *> nodes,
+                      const Span<bke::pbvh::Node *> nodes,
                       FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn);
 
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
@@ -597,7 +603,7 @@ void init_session_data(const ToolSettings &ts, Object &ob);
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode);
 
-Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush);
+Vector<bke::pbvh::Node *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush);
 
 void mode_enter_generic(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);

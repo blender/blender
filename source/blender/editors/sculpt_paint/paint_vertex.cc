@@ -120,7 +120,7 @@ template<typename Color> static Color fromFloat(const ColorPaint4f &c)
   }
 }
 
-/* Use for 'blur' brush, align with PBVH nodes, created and freed on each update. */
+/* Use for 'blur' brush, align with pbvh::Tree nodes, created and freed on each update. */
 template<typename BlendType> struct VPaintAverageAccum {
   BlendType len;
   BlendType value[3];
@@ -291,15 +291,15 @@ void init_session_data(const ToolSettings &ts, Object &ob)
   }
 }
 
-Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush)
+Vector<bke::pbvh::Node *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush)
 {
   SculptSession &ss = *ob.sculpt;
   const bool use_normal = vwpaint::use_normal(wp);
-  Vector<PBVHNode *> nodes;
+  Vector<bke::pbvh::Node *> nodes;
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    nodes = bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+    nodes = bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
       return node_in_sphere(node, ss.cache->location, ss.cache->radius_squared, true);
     });
 
@@ -310,7 +310,7 @@ Vector<PBVHNode *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush
   else {
     const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
         ss.cache->location, ss.cache->view_normal);
-    nodes = bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+    nodes = bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
       return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
     });
 
@@ -1017,7 +1017,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
                                        VPaintData &vpd,
                                        Object &ob,
                                        Mesh &mesh,
-                                       const Span<PBVHNode *> nodes,
+                                       const Span<bke::pbvh::Node *> nodes,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1161,7 +1161,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
                                        VPaintData &vpd,
                                        Object &ob,
                                        Mesh &mesh,
-                                       const Span<PBVHNode *> nodes,
+                                       const Span<bke::pbvh::Node *> nodes,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1296,7 +1296,7 @@ static void do_vpaint_brush_smear(const bContext *C,
                                   VPaintData &vpd,
                                   Object &ob,
                                   Mesh &mesh,
-                                  const Span<PBVHNode *> nodes,
+                                  const Span<bke::pbvh::Node *> nodes,
                                   GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1487,7 +1487,7 @@ static void calculate_average_color(VPaintData &vpd,
                                     Mesh &mesh,
                                     const Brush &brush,
                                     const GSpan attribute,
-                                    const Span<PBVHNode *> nodes)
+                                    const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
@@ -1603,7 +1603,7 @@ static void vpaint_do_draw(const bContext *C,
                            VPaintData &vpd,
                            Object &ob,
                            Mesh &mesh,
-                           const Span<PBVHNode *> nodes,
+                           const Span<bke::pbvh::Node *> nodes,
                            GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1757,7 +1757,7 @@ static void vpaint_do_blur(const bContext *C,
                            VPaintData &vpd,
                            Object &ob,
                            Mesh &mesh,
-                           const Span<PBVHNode *> nodes,
+                           const Span<bke::pbvh::Node *> nodes,
                            GMutableSpan attribute)
 {
   if (vpd.domain == AttrDomain::Point) {
@@ -1774,9 +1774,9 @@ static void vpaint_paint_leaves(bContext *C,
                                 Object &ob,
                                 Mesh &mesh,
                                 GMutableSpan attribute,
-                                const Span<PBVHNode *> nodes)
+                                const Span<bke::pbvh::Node *> nodes)
 {
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     undo::push_node(ob, node, undo::Type::Color);
   }
 
@@ -1816,14 +1816,15 @@ static void vpaint_do_paint(bContext *C,
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
-  Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, vp, brush);
+  Vector<bke::pbvh::Node *> nodes = vwpaint::pbvh_gather_generic(ob, vp, brush);
 
   bke::GSpanAttributeWriter attribute = mesh.attributes_for_write().lookup_for_write_span(
       mesh.active_color_attribute);
   BLI_assert(attribute.domain == vpd.domain);
 
   if (attribute.domain == bke::AttrDomain::Corner) {
-    /* The sculpt undo system needs PBVH node corner indices for corner domain color attributes. */
+    /* The sculpt undo system needs bke::pbvh::Tree node corner indices for corner domain
+     * color attributes. */
     BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
   }
 
@@ -2215,19 +2216,20 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
   undo::push_begin(obact, op);
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*obact.sculpt->pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*obact.sculpt->pbvh, {});
 
   const Mesh &mesh = *static_cast<const Mesh *>(obact.data);
-  /* The sculpt undo system needs PBVH node corner indices for corner domain color attributes. */
+  /* The sculpt undo system needs bke::pbvh::Tree node corner indices for corner domain
+   * color attributes. */
   BKE_pbvh_ensure_node_loops(*obact.sculpt->pbvh, mesh.corner_tris());
 
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     undo::push_node(obact, node, undo::Type::Color);
   }
 
   fill_active_color(obact, paintcol, true, affect_alpha);
 
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_update_color(node);
   }
   undo::push_end(obact);

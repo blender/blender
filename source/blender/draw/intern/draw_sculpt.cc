@@ -41,8 +41,8 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                                                  const bool use_wire,
                                                  const Span<pbvh::AttributeRequest> attrs)
 {
-  /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
-  PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh.get() : nullptr;
+  /* pbvh::Tree should always exist for non-empty meshes, created by depsgraph eval. */
+  bke::pbvh::Tree *pbvh = ob->sculpt ? ob->sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return {};
   }
@@ -57,7 +57,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
     paint = BKE_paint_get_active_from_context(drwctx->evil_C);
   }
 
-  /* Frustum planes to show only visible PBVH nodes. */
+  /* Frustum planes to show only visible pbvh::Tree nodes. */
   float4 draw_planes[6];
   PBVHFrustumPlanes draw_frustum = {reinterpret_cast<float(*)[4]>(draw_planes), 6};
   float4 update_planes[6];

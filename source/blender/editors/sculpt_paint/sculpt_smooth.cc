@@ -315,8 +315,8 @@ float neighbor_mask_average(SculptSession &ss,
   float avg = 0.0f;
   int total = 0;
   SculptVertexNeighborIter ni;
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += write_info.layer[ni.vertex.i];
         total++;
@@ -324,7 +324,7 @@ float neighbor_mask_average(SculptSession &ss,
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
       return avg / total;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += SCULPT_mask_get_at_grids_vert_index(
             *ss.subdiv_ccg, BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg), ni.vertex.i);
@@ -333,7 +333,7 @@ float neighbor_mask_average(SculptSession &ss,
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
       return avg / total;
     }
-    case PBVH_BMESH: {
+    case bke::pbvh::Type::BMesh: {
       Vector<BMVert *, 64> neighbors;
       for (BMVert *neighbor :
            vert_neighbors_get_bmesh(*reinterpret_cast<BMVert *>(vertex.i), neighbors))
@@ -426,7 +426,9 @@ void surface_smooth_displace_step(SculptSession &ss,
   }
 }
 
-static void do_surface_smooth_brush_laplacian_task(Object &ob, const Brush &brush, PBVHNode *node)
+static void do_surface_smooth_brush_laplacian_task(Object &ob,
+                                                   const Brush &brush,
+                                                   bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
   const float bstrength = ss.cache->bstrength;
@@ -470,7 +472,9 @@ static void do_surface_smooth_brush_laplacian_task(Object &ob, const Brush &brus
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_surface_smooth_brush_displace_task(Object &ob, const Brush &brush, PBVHNode *node)
+static void do_surface_smooth_brush_displace_task(Object &ob,
+                                                  const Brush &brush,
+                                                  bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
   const float bstrength = ss.cache->bstrength;
@@ -508,7 +512,7 @@ static void do_surface_smooth_brush_displace_task(Object &ob, const Brush &brush
   BKE_pbvh_vertex_iter_end;
 }
 
-void do_surface_smooth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_surface_smooth_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 

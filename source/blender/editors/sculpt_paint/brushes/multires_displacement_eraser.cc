@@ -49,7 +49,7 @@ static void calc_node(const Sculpt &sd,
                       Object &object,
                       const Brush &brush,
                       const float strength,
-                      PBVHNode &node,
+                      bke::pbvh::Node &node,
                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -95,7 +95,7 @@ static void calc_node(const Sculpt &sd,
 
 }  // namespace multires_displacement_eraser_cc
 
-void do_displacement_eraser_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_displacement_eraser_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

@@ -129,7 +129,7 @@ static void pose_solve_scale_chain(SculptPoseIKChain &ik_chain, const float scal
   }
 }
 
-static void do_pose_brush_task(Object &ob, const Brush &brush, PBVHNode *node)
+static void do_pose_brush_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
   SculptPoseIKChain &ik_chain = *ss.cache->pose_ik_chain;
@@ -193,7 +193,7 @@ static void pose_brush_grow_factor_task(Object &ob,
                                         const float pose_initial_co[3],
                                         const float *prev_mask,
                                         MutableSpan<float> pose_factor,
-                                        PBVHNode *node,
+                                        bke::pbvh::Node *node,
                                         PoseGrowFactorData *gftd)
 {
   SculptSession &ss = *ob.sculpt;
@@ -233,9 +233,9 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
                                          float *r_pose_origin,
                                          MutableSpan<float> pose_factor)
 {
-  PBVH &pbvh = *ob.sculpt->pbvh;
+  bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   PoseGrowFactorData gftd;
   gftd.pos_count = 0;
@@ -536,7 +536,9 @@ void calc_pose_data(Object &ob,
   }
 }
 
-static void pose_brush_init_task(SculptSession &ss, MutableSpan<float> pose_factor, PBVHNode *node)
+static void pose_brush_init_task(SculptSession &ss,
+                                 MutableSpan<float> pose_factor,
+                                 bke::pbvh::Node *node)
 {
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -950,9 +952,9 @@ std::unique_ptr<SculptPoseIKChain> ik_chain_init(Object &ob,
 
 void pose_brush_init(Object &ob, SculptSession &ss, const Brush &brush)
 {
-  PBVH &pbvh = *ob.sculpt->pbvh;
+  bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   /* Init the IK chain that is going to be used to deform the vertices. */
   ss.cache->pose_ik_chain = ik_chain_init(
@@ -1094,7 +1096,7 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
   ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
 }
 
-void do_pose_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

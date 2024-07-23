@@ -69,7 +69,7 @@ BLI_NOINLINE static void fill_factor_from_hide_and_mask(const Mesh &mesh,
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
-  /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
+  /* TODO: Avoid overhead of accessing attributes for every bke::pbvh::Tree node. */
   const bke::AttributeAccessor attributes = mesh.attributes();
   if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
     const VArraySpan span(mask);
@@ -116,7 +116,7 @@ static void calc_faces(Object &object,
                        const float strength,
                        const int face_set_id,
                        Span<float3> positions_eval,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        const Span<int> face_indices,
                        MeshLocalData &tls,
                        const MutableSpan<int> face_sets)
@@ -167,10 +167,10 @@ static void calc_faces(Object &object,
 
 static void do_draw_face_sets_brush_mesh(Object &object,
                                          const Brush &brush,
-                                         const Span<PBVHNode *> nodes)
+                                         const Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
-  const PBVH &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
   const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -229,7 +229,7 @@ static void calc_grids(Object &object,
                        const Brush &brush,
                        const float strength,
                        const int face_set_id,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        GridLocalData &tls,
                        const MutableSpan<int> face_sets)
 {
@@ -271,7 +271,7 @@ static void calc_grids(Object &object,
 
 static void do_draw_face_sets_brush_grids(Object &object,
                                           const Brush &brush,
-                                          const Span<PBVHNode *> nodes)
+                                          const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
 
@@ -281,7 +281,7 @@ static void do_draw_face_sets_brush_grids(Object &object,
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
-    for (PBVHNode *node : nodes.slice(range)) {
+    for (bke::pbvh::Node *node : nodes.slice(range)) {
       for (const int i : range) {
         undo::push_node(object, node, undo::Type::FaceSet);
 
@@ -309,7 +309,7 @@ BLI_NOINLINE static void fill_factor_from_hide_and_mask(const BMesh &bm,
 {
   BLI_assert(faces.size() == r_factors.size());
 
-  /* TODO: Avoid overhead of accessing attributes for every PBVH node. */
+  /* TODO: Avoid overhead of accessing attributes for every bke::pbvh::Tree node. */
   const int mask_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
   int i = 0;
   for (BMFace *f : faces) {
@@ -367,7 +367,7 @@ static void calc_bmesh(Object &object,
                        const Brush &brush,
                        const float strength,
                        const int face_set_id,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        BMeshLocalData &tls,
                        const int cd_offset)
 {
@@ -414,7 +414,7 @@ static void calc_bmesh(Object &object,
 
 static void do_draw_face_sets_brush_bmesh(Object &object,
                                           const Brush &brush,
-                                          const Span<PBVHNode *> nodes)
+                                          const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const int cd_offset = face_set::ensure_face_sets_bmesh(object);
@@ -432,19 +432,19 @@ static void do_draw_face_sets_brush_bmesh(Object &object,
 
 }  // namespace draw_face_sets_cc
 
-void do_draw_face_sets_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_draw_face_sets_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES:
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
       do_draw_face_sets_brush_mesh(object, brush, nodes);
       break;
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       do_draw_face_sets_brush_grids(object, brush, nodes);
       break;
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       do_draw_face_sets_brush_bmesh(object, brush, nodes);
       break;
   }

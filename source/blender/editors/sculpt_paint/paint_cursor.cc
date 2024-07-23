@@ -1155,7 +1155,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
     return;
   }
 
-  if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
+  if (ss.pbvh->type() != blender::bke::pbvh::Type::Mesh) {
     return;
   }
 
@@ -1428,7 +1428,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
     paint_cursor_update_unprojected_radius(ups, brush, vc, pcontext->scene_space_location);
   }
 
-  pcontext->is_multires = ss.pbvh != nullptr && BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS;
+  pcontext->is_multires = ss.pbvh != nullptr && ss.pbvh->type() == blender::bke::pbvh::Type::Grids;
 
   pcontext->sd = CTX_data_tool_settings(pcontext->C)->sculpt;
 }

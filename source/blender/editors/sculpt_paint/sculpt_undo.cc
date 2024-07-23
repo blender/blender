@@ -190,9 +190,9 @@ struct StepData {
   std::mutex nodes_mutex;
 
   /**
-   * #undo::Node is stored per PBVH node to reduce data storage needed for changes only impacting
+   * #undo::Node is stored per pbvh::Node to reduce data storage needed for changes only impacting
    * small portions of the mesh. During undo step creation and brush evaluation we often need to
-   * look up the undo state for a specific PBVH node. That lookup must be protected by a lock since
+   * look up the undo state for a specific node. That lookup must be protected by a lock since
    * nodes are pushed from multiple threads. This map speeds up undo node access to reduce the
    * amount of time we wait for the lock.
    *
@@ -202,7 +202,7 @@ struct StepData {
    * should be unnecessary. However, to remove it, first the storage of the undo type should be
    * moved to #StepData from #Node.
    */
-  Map<const PBVHNode *, std::unique_ptr<Node>> undo_nodes_by_pbvh_node;
+  Map<const bke::pbvh::Node *, std::unique_ptr<Node>> undo_nodes_by_pbvh_node;
 
   /** Storage of per-node undo data after creation of the undo step is finished. */
   Vector<std::unique_ptr<Node>> nodes;
@@ -465,8 +465,8 @@ static void restore_position_mesh(Object &object, Node &unode, MutableSpan<bool>
     /* Propagate new coords to keyblock. */
     SCULPT_vertcos_to_key(object, ss.shapekey_active, key_positions);
 
-    /* PBVH uses its own vertex array, so coords should be */
-    /* propagated to PBVH here. */
+    /* bke::pbvh::Tree uses its own vertex array, so coords should be */
+    /* propagated to bke::pbvh::Tree here. */
     BKE_pbvh_vert_coords_apply(*ss.pbvh, key_positions);
 
     MEM_freeN(vertCos);
@@ -679,8 +679,8 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
   }
 
   if (step_data.type == Type::Mask) {
-    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
-    for (PBVHNode *node : nodes) {
+    Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+    for (bke::pbvh::Node *node : nodes) {
       BKE_pbvh_node_mark_redraw(node);
     }
   }
@@ -941,7 +941,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_position_grids(grids, key, *unode, modified_grids);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           const Span<int> grids = bke::pbvh::node_grid_indices(node);
           if (indices_contain_true(modified_grids, grids)) {
             BKE_pbvh_node_mark_positions_update(&node);
@@ -957,7 +957,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_position_mesh(object, *unode, modified_verts);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(node))) {
             BKE_pbvh_node_mark_positions_update(&node);
           }
@@ -985,7 +985,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_grids(subdiv_ccg, *unode, modified_grids);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(node))) {
             BKE_pbvh_node_mark_update_visibility(&node);
           }
@@ -996,7 +996,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_mesh(object, *unode, modified_verts);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(node))) {
             BKE_pbvh_node_mark_update_visibility(&node);
           }
@@ -1024,7 +1024,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
       if (use_multires_undo(step_data, ss)) {
         Vector<int> faces_vector;
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               *ss.pbvh, node, faces_vector);
@@ -1036,7 +1036,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       else {
         const Span<int> tri_faces = mesh.corner_tri_faces();
         Vector<int> faces_vector;
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
               tri_faces, node, faces_vector);
@@ -1061,7 +1061,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_grids(object, *unode, modified_grids);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(node))) {
             BKE_pbvh_node_mark_update_mask(&node);
           }
@@ -1072,7 +1072,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_mesh(object, *unode, modified_verts);
         }
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(node))) {
             BKE_pbvh_node_mark_update_mask(&node);
           }
@@ -1094,7 +1094,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       if (use_multires_undo(step_data, ss)) {
         Vector<int> faces_vector;
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               *ss.pbvh, node, faces_vector);
@@ -1106,7 +1106,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       else {
         const Span<int> tri_faces = mesh.corner_tri_faces();
         Vector<int> faces_vector;
-        bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+        bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
               tri_faces, node, faces_vector);
@@ -1125,7 +1125,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
 
       Array<bool> modified_verts(ss.totvert, false);
       restore_color(object, step_data, modified_verts);
-      bke::pbvh::search_callback(*ss.pbvh, {}, [&](PBVHNode &node) {
+      bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
         if (indices_contain_true(modified_verts, bke::pbvh::node_verts(node))) {
           BKE_pbvh_node_mark_update_color(&node);
         }
@@ -1165,7 +1165,7 @@ static void free_step_data(StepData &step_data)
   step_data.~StepData();
 }
 
-const Node *get_node(const PBVHNode *node, const Type type)
+const Node *get_node(const bke::pbvh::Node *node, const Type type)
 {
   StepData *step_data = get_step_data();
   if (!step_data) {
@@ -1184,7 +1184,9 @@ const Node *get_node(const PBVHNode *node, const Type type)
   return node_ptr->get();
 }
 
-static void alloc_and_store_hidden(const SculptSession &ss, const PBVHNode &node, Node &unode)
+static void alloc_and_store_hidden(const SculptSession &ss,
+                                   const bke::pbvh::Node &node,
+                                   Node &unode)
 {
   if (!ss.subdiv_ccg) {
     return;
@@ -1249,7 +1251,7 @@ static void store_coords(const Object &object, Node &unode)
   }
 }
 
-static void store_hidden(const Object &object, const PBVHNode &node, Node &unode)
+static void store_hidden(const Object &object, const bke::pbvh::Node &node, Node &unode)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1314,7 +1316,7 @@ static void store_mask(const Object &object, Node &unode)
   }
 }
 
-static void store_color(const Object &object, const PBVHNode &node, Node &unode)
+static void store_color(const Object &object, const bke::pbvh::Node &node, Node &unode)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
@@ -1371,7 +1373,7 @@ static void store_face_sets(const Mesh &mesh, Node &unode)
 }
 
 static void fill_node_data(const Object &object,
-                           const PBVHNode *node,
+                           const bke::pbvh::Node *node,
                            const Type type,
                            Node &unode)
 {
@@ -1380,7 +1382,7 @@ static void fill_node_data(const Object &object,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   int verts_num;
-  if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+  if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
     unode.grids = bke::pbvh::node_grid_indices(*node);
 
     const int grid_area = ss.subdiv_ccg->grid_size * ss.subdiv_ccg->grid_size;
@@ -1401,7 +1403,7 @@ static void fill_node_data(const Object &object,
   }
 
   if (need_faces) {
-    if (BKE_pbvh_type(*ss.pbvh) == PBVH_FACES) {
+    if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
       bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), *node, unode.face_indices);
     }
     else {
@@ -1424,7 +1426,7 @@ static void fill_node_data(const Object &object,
       break;
     }
     case Type::HideVert: {
-      if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+      if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
         alloc_and_store_hidden(ss, *node, unode);
       }
       else {
@@ -1466,10 +1468,10 @@ static void fill_node_data(const Object &object,
 }
 
 /**
- * Dynamic topology stores only one undo node per stroke, regardless of the number of PBVH nodes
- * modified.
+ * Dynamic topology stores only one undo node per stroke, regardless of the number of
+ * bke::pbvh::Tree nodes modified.
  */
-BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, Type type)
+BLI_NOINLINE static void bmesh_push(const Object &object, const bke::pbvh::Node *node, Type type)
 {
   StepData *step_data = get_step_data();
   const SculptSession &ss = *object.sculpt;
@@ -1511,7 +1513,7 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
         &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
     /* The vertices and node aren't changed, though pointers to them are stored in the log. */
-    PBVHNode *node_mut = const_cast<PBVHNode *>(node);
+    bke::pbvh::Node *node_mut = const_cast<bke::pbvh::Node *>(node);
 
     switch (type) {
       case Type::None:
@@ -1556,10 +1558,10 @@ BLI_NOINLINE static void bmesh_push(const Object &object, const PBVHNode *node, 
 }
 
 /**
- * Add an undo node for the PBVH node to the step's storage. If the node was newly created and
- * needs to be filled with data, set \a r_new to true.
+ * Add an undo node for the bke::pbvh::Tree node to the step's storage. If the node was
+ * newly created and needs to be filled with data, set \a r_new to true.
  */
-static Node *ensure_node(StepData &step_data, const PBVHNode &node, bool &r_new)
+static Node *ensure_node(StepData &step_data, const bke::pbvh::Node &node, bool &r_new)
 {
   std::scoped_lock lock(step_data.nodes_mutex);
   r_new = false;
@@ -1571,7 +1573,7 @@ static Node *ensure_node(StepData &step_data, const PBVHNode &node, bool &r_new)
   return unode.get();
 }
 
-void push_node(const Object &object, const PBVHNode *node, Type type)
+void push_node(const Object &object, const bke::pbvh::Node *node, Type type)
 {
   SculptSession &ss = *object.sculpt;
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
@@ -1595,11 +1597,11 @@ void push_node(const Object &object, const PBVHNode *node, Type type)
   fill_node_data(object, node, type, *unode);
 }
 
-void push_nodes(Object &object, const Span<const PBVHNode *> nodes, const Type type)
+void push_nodes(Object &object, const Span<const bke::pbvh::Node *> nodes, const Type type)
 {
   SculptSession &ss = *object.sculpt;
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
-    for (const PBVHNode *node : nodes) {
+    for (const bke::pbvh::Node *node : nodes) {
       bmesh_push(object, node, type);
     }
     return;
@@ -1609,8 +1611,8 @@ void push_nodes(Object &object, const Span<const PBVHNode *> nodes, const Type t
   BLI_assert(ELEM(step_data->type, Type::None, type));
   step_data->type = type;
 
-  Vector<std::pair<const PBVHNode *, Node *>, 32> nodes_to_fill;
-  for (const PBVHNode *node : nodes) {
+  Vector<std::pair<const bke::pbvh::Node *, Node *>, 32> nodes_to_fill;
+  for (const bke::pbvh::Node *node : nodes) {
     bool newly_added;
     Node *unode = ensure_node(*step_data, *node, newly_added);
     if (newly_added) {
@@ -1687,19 +1689,19 @@ void push_begin_ex(Object &ob, const char *name)
 
   const SculptSession &ss = *ob.sculpt;
 
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
       us->data.mesh_verts_num = ss.totvert;
       us->data.mesh_corners_num = mesh.corners_num;
       break;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       us->data.mesh_grids_num = ss.subdiv_ccg->grids.size();
       us->data.grid_size = ss.subdiv_ccg->grid_size;
       break;
     }
-    case PBVH_BMESH: {
+    case bke::pbvh::Type::BMesh: {
       break;
     }
   }
@@ -2068,20 +2070,20 @@ static void push_all_grids(Object *object)
 {
   SculptSession &ss = *object->sculpt;
 
-  /* It is possible that undo push is done from an object state where there is no PBVH. This
+  /* It is possible that undo push is done from an object state where there is no tree. This
    * happens, for example, when an operation which tagged for geometry update was performed prior
    * to the current operation without making any stroke in between.
    *
    * Skip pushing nodes based on the following logic: on redo Type::Position will
-   * ensure PBVH for the new base geometry, which will have same coordinates as if we create PBVH
-   * here.
+   * ensure pbvh::Tree for the new base geometry, which will have same coordinates as if we create
+   * pbvh::Tree here.
    */
   if (ss.pbvh == nullptr) {
     return;
   }
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
-  for (PBVHNode *node : nodes) {
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  for (bke::pbvh::Node *node : nodes) {
     push_node(*object, node, Type::Position);
   }
 }
@@ -2123,14 +2125,16 @@ void push_multires_mesh_end(bContext *C, const char *str)
 
 namespace blender::ed::sculpt_paint {
 
-OrigPositionData orig_position_data_get_mesh(const Object & /*object*/, const PBVHNode &node)
+OrigPositionData orig_position_data_get_mesh(const Object & /*object*/,
+                                             const bke::pbvh::Node &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
   return {unode->position.as_span().take_front(unode->unique_verts_num),
           unode->normal.as_span().take_front(unode->unique_verts_num)};
 }
 
-OrigPositionData orig_position_data_get_grids(const Object & /*object*/, const PBVHNode &node)
+OrigPositionData orig_position_data_get_grids(const Object & /*object*/,
+                                              const bke::pbvh::Node &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
   return {unode->position.as_span(), unode->normal.as_span()};
@@ -2152,7 +2156,7 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
   }
 }
 
-Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const PBVHNode &node)
+Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const bke::pbvh::Node &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Color);
   return unode->col.as_span();

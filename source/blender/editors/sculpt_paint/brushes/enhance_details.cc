@@ -43,7 +43,7 @@ static void calc_faces(const Sculpt &sd,
                        const Span<float3> vert_normals,
                        const Span<float3> all_translations,
                        const float strength,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -91,7 +91,7 @@ static void calc_grids(const Sculpt &sd,
                        const Brush &brush,
                        const Span<float3> all_translations,
                        const float strength,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -138,7 +138,7 @@ static void calc_bmesh(const Sculpt &sd,
                        const Brush &brush,
                        const Span<float3> all_translations,
                        const float strength,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -183,7 +183,7 @@ static void calc_translations_faces(const Span<float3> vert_positions,
                                     const OffsetIndices<int> faces,
                                     const Span<int> corner_verts,
                                     const GroupedSpan<int> vert_to_face_map,
-                                    const PBVHNode &node,
+                                    const bke::pbvh::Node &node,
                                     LocalData &tls,
                                     const MutableSpan<float3> all_translations)
 {
@@ -204,7 +204,7 @@ static void calc_translations_faces(const Span<float3> vert_positions,
 }
 
 static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
-                                    const PBVHNode &node,
+                                    const bke::pbvh::Node &node,
                                     LocalData &tls,
                                     const MutableSpan<float3> all_translations)
 {
@@ -221,7 +221,7 @@ static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
   scatter_data_grids(subdiv_ccg, translations.as_span(), grids, all_translations);
 }
 
-static void calc_translations_bmesh(PBVHNode &node,
+static void calc_translations_bmesh(bke::pbvh::Node &node,
                                     LocalData &tls,
                                     const MutableSpan<float3> all_translations)
 {
@@ -247,14 +247,14 @@ static void calc_translations_bmesh(PBVHNode &node,
 static void precalc_translations(Object &object, const MutableSpan<float3> translations)
 {
   SculptSession &ss = *object.sculpt;
-  PBVH &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  Vector<PBVHNode *> effective_nodes = bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return !node_fully_masked_or_hidden(node); });
+  Vector<bke::pbvh::Node *> effective_nodes = bke::pbvh::search_gather(
+      pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES: {
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const OffsetIndices faces = mesh.faces();
@@ -275,7 +275,7 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
       });
       break;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
@@ -285,7 +285,7 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
       });
       break;
     }
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
       BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
       threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
@@ -300,11 +300,11 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
 
 }  // namespace enhance_details_cc
 
-void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  PBVH &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
 
   if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
     ss.cache->detail_directions.reinitialize(SCULPT_vertex_count_get(ss));
@@ -315,8 +315,8 @@ void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<PBVHNode *>
   MutableSpan<float3> translations = ss.cache->detail_directions;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES: {
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
@@ -341,7 +341,7 @@ void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<PBVHNode *>
       });
       break;
     }
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -349,7 +349,7 @@ void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<PBVHNode *>
         }
       });
       break;
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {

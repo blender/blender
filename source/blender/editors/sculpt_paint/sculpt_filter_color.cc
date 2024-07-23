@@ -84,7 +84,7 @@ static void color_filter_task(Object &ob,
                               const int mode,
                               const float filter_strength,
                               const float *filter_fill_color,
-                              PBVHNode *node,
+                              bke::pbvh::Node *node,
                               bke::GSpanAttributeWriter &color_attribute)
 {
   SculptSession &ss = *ob.sculpt;
@@ -313,7 +313,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
     sculpt_color_presmooth_init(mesh, ss);
   }
 
-  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
+  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();

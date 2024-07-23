@@ -5,11 +5,11 @@
 /** \file
  * \ingroup bke
  *
- * UV Islands for PBVH Pixel extraction. When primitives share an edge they belong to the same UV
- * Island.
+ * UV Islands for pbvh::Tree Pixel extraction. When primitives share an edge they belong to the
+ * same UV Island.
  *
- * \note Similar to `uvedit_islands.cc`, but optimized for PBVH painting without using BMesh for
- * performance reasons. Non-manifold meshes only (i.e. edges must have less than 3 faces).
+ * \note Similar to `uvedit_islands.cc`, but optimized for pbvh::Tree painting without using BMesh
+ * for performance reasons. Non-manifold meshes only (i.e. edges must have less than 3 faces).
  *
  * Polygons (face with more than 3 edges) are supported as they are split up to primitives.
  *

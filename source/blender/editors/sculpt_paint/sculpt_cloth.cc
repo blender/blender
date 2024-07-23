@@ -78,7 +78,7 @@ static void cloth_brush_simulation_location_get(const SculptSession &ss,
   copy_v3_v3(r_location, ss.cache->location);
 }
 
-Vector<PBVHNode *> brush_affected_nodes_gather(SculptSession &ss, const Brush &brush)
+Vector<bke::pbvh::Node *> brush_affected_nodes_gather(SculptSession &ss, const Brush &brush)
 {
   BLI_assert(ss.cache);
   BLI_assert(brush.sculpt_tool == SCULPT_TOOL_CLOTH);
@@ -87,7 +87,7 @@ Vector<PBVHNode *> brush_affected_nodes_gather(SculptSession &ss, const Brush &b
     case BRUSH_CLOTH_SIMULATION_AREA_LOCAL: {
       const float radius_squared = math::square(ss.cache->initial_radius *
                                                 (1.0 + brush.cloth_sim_limit));
-      return bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+      return bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
         return node_in_sphere(node, ss.cache->initial_location, radius_squared, false);
       });
     }
@@ -95,7 +95,7 @@ Vector<PBVHNode *> brush_affected_nodes_gather(SculptSession &ss, const Brush &b
       return bke::pbvh::search_gather(*ss.pbvh, {});
     case BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC: {
       const float radius_squared = math::square(ss.cache->radius * (1.0 + brush.cloth_sim_limit));
-      return bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+      return bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
         return node_in_sphere(node, ss.cache->location, radius_squared, false);
       });
     }
@@ -276,7 +276,7 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
                                                   SimulationData &cloth_sim,
                                                   float *cloth_sim_initial_location,
                                                   float cloth_sim_radius,
-                                                  PBVHNode *node)
+                                                  bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -410,7 +410,7 @@ static void do_cloth_brush_apply_forces_task(Object &ob,
                                              const float *grab_delta,
                                              float (*imat)[4],
                                              float *area_co,
-                                             PBVHNode *node)
+                                             bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
   SimulationData &cloth_sim = *ss.cache->cloth_sim;
@@ -698,7 +698,7 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
                                                  const Brush *brush,
                                                  SimulationData &cloth_sim,
                                                  const float time_step,
-                                                 PBVHNode *node)
+                                                 bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -765,15 +765,15 @@ static float get_vert_mask(const SculptSession &ss,
                            const SimulationData &cloth_sim,
                            const int vert_index)
 {
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES:
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
       return cloth_sim.mask_mesh.is_empty() ? 0.0f : cloth_sim.mask_mesh[vert_index];
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       return cloth_sim.mask_cd_offset_bmesh == -1 ?
                  0.0f :
-                 BM_ELEM_CD_GET_FLOAT(BM_vert_at_index(BKE_pbvh_get_bmesh(*ss.pbvh), vert_index),
+                 BM_ELEM_CD_GET_FLOAT(BM_vert_at_index(ss.bm, vert_index),
                                       cloth_sim.mask_cd_offset_bmesh);
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       return SCULPT_mask_get_at_grids_vert_index(*ss.subdiv_ccg, cloth_sim.grid_key, vert_index);
   }
   BLI_assert_unreachable();
@@ -887,7 +887,7 @@ static void cloth_brush_satisfy_constraints(SculptSession &ss,
 void do_simulation_step(const Sculpt &sd,
                         Object &ob,
                         SimulationData &cloth_sim,
-                        Span<PBVHNode *> nodes)
+                        Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -903,7 +903,9 @@ void do_simulation_step(const Sculpt &sd,
   });
 }
 
-static void cloth_brush_apply_brush_foces(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+static void cloth_brush_apply_brush_foces(const Sculpt &sd,
+                                          Object &ob,
+                                          Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -975,7 +977,7 @@ static void cloth_brush_apply_brush_foces(const Sculpt &sd, Object &ob, Span<PBV
  * them. */
 static void cloth_sim_initialize_default_node_state(SculptSession &ss, SimulationData &cloth_sim)
 {
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   cloth_sim.node_state = Array<NodeSimState>(nodes.size());
   cloth_sim.node_state_index = BLI_ghash_ptr_new("node sim state indices");
@@ -1025,18 +1027,18 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
 
   cloth_sim_initialize_default_node_state(ss, *cloth_sim);
 
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       const Mesh *mesh = static_cast<const Mesh *>(ob.data);
       const bke::AttributeAccessor attributes = mesh->attributes();
       cloth_sim->mask_mesh = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
       break;
     }
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       cloth_sim->mask_cd_offset_bmesh = CustomData_get_offset_named(
           &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       break;
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       cloth_sim->grid_key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       break;
   }
@@ -1046,7 +1048,7 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
 
 void ensure_nodes_constraints(const Sculpt &sd,
                               Object &ob,
-                              Span<PBVHNode *> nodes,
+                              Span<bke::pbvh::Node *> nodes,
                               SimulationData &cloth_sim,
                               /* Cannot be `const`, because it is assigned to a `non-const`
                                * variable. NOLINTNEXTLINE: readability-non-const-parameter. */
@@ -1102,10 +1104,10 @@ void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth
   }
 }
 
-void sim_activate_nodes(SimulationData &cloth_sim, Span<PBVHNode *> nodes)
+void sim_activate_nodes(SimulationData &cloth_sim, Span<bke::pbvh::Node *> nodes)
 {
   /* Activate the nodes inside the simulation area. */
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     const int node_index = POINTER_AS_INT(BLI_ghash_lookup(cloth_sim.node_state_index, node));
     cloth_sim.node_state[node_index] = SCULPT_CLOTH_NODE_ACTIVE;
   }
@@ -1113,7 +1115,7 @@ void sim_activate_nodes(SimulationData &cloth_sim, Span<PBVHNode *> nodes)
 
 static void sculpt_cloth_ensure_constraints_in_simulation_area(const Sculpt &sd,
                                                                Object &ob,
-                                                               Span<PBVHNode *> nodes)
+                                                               Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -1124,7 +1126,7 @@ static void sculpt_cloth_ensure_constraints_in_simulation_area(const Sculpt &sd,
   ensure_nodes_constraints(sd, ob, nodes, *ss.cache->cloth_sim, sim_location, limit);
 }
 
-void do_cloth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_cloth_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -1339,7 +1341,7 @@ static void cloth_filter_apply_forces_task(Object &ob,
                                            const Sculpt &sd,
                                            const eSculptClothFilterType filter_type,
                                            const float filter_strength,
-                                           PBVHNode *node)
+                                           bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -1473,7 +1475,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   /* Update and write the simulation to the nodes. */
   do_simulation_step(sd, ob, *ss.filter_cache->cloth_sim, ss.filter_cache->nodes);
 
-  for (PBVHNode *node : ss.filter_cache->nodes) {
+  for (bke::pbvh::Node *node : ss.filter_cache->nodes) {
     BKE_pbvh_node_mark_positions_update(node);
   }
 

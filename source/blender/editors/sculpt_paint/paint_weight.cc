@@ -1062,7 +1062,7 @@ static void precompute_weight_values(
  * \{ */
 
 static void parallel_nodes_loop_with_mirror_check(const Mesh &mesh,
-                                                  const Span<PBVHNode *> nodes,
+                                                  const Span<blender::bke::pbvh::Node *> nodes,
                                                   FunctionRef<void(IndexRange)> fn)
 {
   /* NOTE: current mirroring code cannot be run in parallel */
@@ -1081,7 +1081,7 @@ static void do_wpaint_brush_blur(const Scene &scene,
                                  WPaintData &wpd,
                                  const WeightPaintInfo &wpi,
                                  Mesh &mesh,
-                                 const Span<PBVHNode *> nodes)
+                                 const Span<blender::bke::pbvh::Node *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1177,7 +1177,7 @@ static void do_wpaint_brush_smear(const Scene &scene,
                                   WPaintData &wpd,
                                   const WeightPaintInfo &wpi,
                                   Mesh &mesh,
-                                  const Span<PBVHNode *> nodes)
+                                  const Span<blender::bke::pbvh::Node *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1297,7 +1297,7 @@ static void do_wpaint_brush_draw(const Scene &scene,
                                  const WeightPaintInfo &wpi,
                                  Mesh &mesh,
                                  const float strength,
-                                 const Span<PBVHNode *> nodes)
+                                 const Span<blender::bke::pbvh::Node *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1373,7 +1373,7 @@ static float calculate_average_weight(Object &ob,
                                       const Brush &brush,
                                       const VPaint &vp,
                                       WeightPaintInfo &wpi,
-                                      const Span<PBVHNode *> nodes)
+                                      const Span<blender::bke::pbvh::Node *> nodes)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
@@ -1443,7 +1443,7 @@ static void wpaint_paint_leaves(bContext *C,
                                 WPaintData &wpd,
                                 WeightPaintInfo &wpi,
                                 Mesh &mesh,
-                                const Span<PBVHNode *> nodes)
+                                const Span<blender::bke::pbvh::Node *> nodes)
 {
   const Scene &scene = *CTX_data_scene(C);
   const Brush &brush = *ob.sculpt->cache->brush;
@@ -1636,7 +1636,7 @@ static void wpaint_do_paint(bContext *C,
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
-  Vector<PBVHNode *> nodes = vwpaint::pbvh_gather_generic(ob, wp, brush);
+  Vector<blender::bke::pbvh::Node *> nodes = vwpaint::pbvh_gather_generic(ob, wp, brush);
 
   wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, nodes);
 }

@@ -160,7 +160,7 @@ struct Node {
 
   /* Multires. */
 
-  /** Indices of grids in the PBVH node. */
+  /** Indices of grids in the pbvh::Tree node. */
   Array<int> grids;
   BitGroupVector<> grid_hidden;
 
@@ -258,7 +258,7 @@ struct Cache {
   Array<float3> limit_surface_co;
 
   /* unmasked nodes */
-  Vector<PBVHNode *> nodes;
+  Vector<bke::pbvh::Node *> nodes;
 
   /* Cloth filter. */
   std::unique_ptr<cloth::SimulationData> cloth_sim;
@@ -597,9 +597,9 @@ struct Cache {
   /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
 
-  /* Cached PBVH nodes. This allows to skip gathering all nodes from the PBVH each time expand
-   * needs to update the state of the elements. */
-  Vector<PBVHNode *> nodes;
+  /* Cached pbvh::Tree nodes. This allows to skip gathering all nodes from the pbvh::Tree each time
+   * expand needs to update the state of the elements. */
+  Vector<bke::pbvh::Node *> nodes;
 
   /* Expand state options. */
 
@@ -683,7 +683,7 @@ bool SCULPT_brush_cursor_poll(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
- * (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES).  If false an error
+ * (ss->pbvh->type() == bke::pbvh::Type::Mesh).  If false an error
  * message will be shown to the user.  Operators should return
  * OPERATOR_CANCELLED in this case.
  *
@@ -715,7 +715,7 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
 void SCULPT_pbvh_clear(Object &ob);
 
 /**
- * Flush displacement from deformed PBVH to original layer.
+ * Flush displacement from deformed blender::bke::pbvh::Tree to original layer.
  */
 void SCULPT_flush_stroke_deform(const Sculpt &sd, Object &ob, bool is_proxy_used);
 
@@ -814,25 +814,25 @@ struct SculptMaskWriteInfo {
   int bm_offset = -1;
 };
 SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession &ss);
-inline void SCULPT_mask_vert_set(const PBVHType type,
+inline void SCULPT_mask_vert_set(const blender::bke::pbvh::Type type,
                                  const SculptMaskWriteInfo mask_write,
                                  const float value,
                                  PBVHVertexIter &vd)
 {
   switch (type) {
-    case PBVH_FACES:
+    case blender::bke::pbvh::Type::Mesh:
       mask_write.layer[vd.index] = value;
       break;
-    case PBVH_BMESH:
+    case blender::bke::pbvh::Type::BMesh:
       BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
       break;
-    case PBVH_GRIDS:
+    case blender::bke::pbvh::Type::Grids:
       CCG_elem_mask(vd.key, vd.grid) = value;
       break;
   }
 }
 
-/** Ensure random access; required for PBVH_BMESH */
+/** Ensure random access; required for blender::bke::pbvh::Type::BMesh */
 void SCULPT_vertex_random_access_ensure(SculptSession &ss);
 
 int SCULPT_vertex_count_get(const SculptSession &ss);
@@ -883,7 +883,7 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 
 /**
- * Iterate over neighboring and duplicate vertices (for PBVH_GRIDS).
+ * Iterate over neighboring and duplicate vertices (for blender::bke::pbvh::Type::Grids).
  * Duplicates come first since they are nearest for flood-fill.
  */
 #define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
@@ -911,7 +911,7 @@ Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss);
 const float *SCULPT_active_vertex_co_get(const SculptSession &ss);
 
-/* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
+/* Returns pbvh::Tree deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
 blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss);
 
@@ -967,7 +967,9 @@ bool vert_is_boundary(BMVert *vert);
 
 namespace hide {
 
-Span<int> node_visible_verts(const PBVHNode &node, Span<bool> hide_vert, Vector<int> &indices);
+Span<int> node_visible_verts(const bke::pbvh::Node &node,
+                             Span<bool> hide_vert,
+                             Vector<int> &indices);
 
 bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 
@@ -1039,10 +1041,10 @@ Set<int> gather_hidden_face_sets(Span<bool> hide_poly, Span<int> face_sets);
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
-                                              const PBVHNode &node,
+                                              const blender::bke::pbvh::Node &node,
                                               blender::ed::sculpt_paint::undo::Type type);
 /**
- * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
+ * Update a #SculptOrigVertData for a particular vertex from the blender::bke::pbvh::Tree iterator.
  */
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter);
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert);
@@ -1060,11 +1062,13 @@ namespace blender::ed::sculpt_paint {
 
 void calc_brush_plane(const Brush &brush,
                       Object &ob,
-                      Span<PBVHNode *> nodes,
+                      Span<bke::pbvh::Node *> nodes,
                       float r_area_no[3],
                       float r_area_co[3]);
 
-std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVHNode *> nodes);
+std::optional<float3> calc_area_normal(const Brush &brush,
+                                       Object &ob,
+                                       Span<bke::pbvh::Node *> nodes);
 
 /**
  * This calculates flatten center and area normal together,
@@ -1072,30 +1076,30 @@ std::optional<float3> calc_area_normal(const Brush &brush, Object &ob, Span<PBVH
  */
 void calc_area_normal_and_center(const Brush &brush,
                                  const Object &ob,
-                                 Span<PBVHNode *> nodes,
+                                 Span<bke::pbvh::Node *> nodes,
                                  float r_area_no[3],
                                  float r_area_co[3]);
 void calc_area_center(const Brush &brush,
                       const Object &ob,
-                      Span<PBVHNode *> nodes,
+                      Span<bke::pbvh::Node *> nodes,
                       float r_area_co[3]);
 
 PBVHVertRef nearest_vert_calc(const Object &object,
                               const float3 &location,
                               float max_distance,
                               bool use_original);
-std::optional<int> nearest_vert_calc_mesh(const PBVH &pbvh,
+std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           const Span<float3> vert_positions,
                                           const Span<bool> hide_vert,
                                           const float3 &location,
                                           const float max_distance,
                                           const bool use_original);
-std::optional<SubdivCCGCoord> nearest_vert_calc_grids(PBVH &pbvh,
+std::optional<SubdivCCGCoord> nearest_vert_calc_grids(bke::pbvh::Tree &pbvh,
                                                       const SubdivCCG &subdiv_ccg,
                                                       const float3 &location,
                                                       const float max_distance,
                                                       const bool use_original);
-std::optional<BMVert *> nearest_vert_calc_bmesh(PBVH &pbvh,
+std::optional<BMVert *> nearest_vert_calc_bmesh(bke::pbvh::Tree &pbvh,
                                                 const float3 &location,
                                                 const float max_distance,
                                                 const bool use_original);
@@ -1137,10 +1141,13 @@ bool SCULPT_brush_test_circle_sq(SculptBrushTest &test, const float co[3]);
 
 namespace blender::ed::sculpt_paint {
 
-bool node_fully_masked_or_hidden(const PBVHNode &node);
-bool node_in_sphere(const PBVHNode &node, const float3 &location, float radius_sq, bool original);
+bool node_fully_masked_or_hidden(const bke::pbvh::Node &node);
+bool node_in_sphere(const bke::pbvh::Node &node,
+                    const float3 &location,
+                    float radius_sq,
+                    bool original);
 bool node_in_cylinder(const DistRayAABB_Precalc &dist_ray_precalc,
-                      const PBVHNode &node,
+                      const bke::pbvh::Node &node,
                       float radius_sq,
                       bool original);
 
@@ -1328,17 +1335,17 @@ namespace detail_size {
 constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
 
 /**
- * Converts from Sculpt#constant_detail to the PBVH max edge length.
+ * Converts from Sculpt#constant_detail to the pbvh::Tree max edge length.
  */
 float constant_to_detail_size(const float constant_detail, const Object &ob);
 
 /**
- * Converts from Sculpt#detail_percent to the PBVH max edge length.
+ * Converts from Sculpt#detail_percent to the pbvh::Tree max edge length.
  */
 float brush_to_detail_size(const float brush_percent, const float brush_radius);
 
 /**
- * Converts from Sculpt#detail_size to the PBVH max edge length.
+ * Converts from Sculpt#detail_size to the pbvh::Tree max edge length.
  */
 float relative_to_detail_size(const float relative_detail,
                               const float brush_radius,
@@ -1403,16 +1410,16 @@ struct NodeData {
 };
 
 /**
- * Call before PBVH vertex iteration.
+ * Call before pbvh::Tree vertex iteration.
  */
-NodeData node_begin(const Object &object, const Cache *automasking, const PBVHNode &node);
+NodeData node_begin(const Object &object, const Cache *automasking, const bke::pbvh::Node &node);
 
 /* Call before factor_get and SCULPT_brush_strength_factor. */
 void node_update(NodeData &automask_data, const PBVHVertexIter &vd);
 void node_update(NodeData &automask_data, const BMVert &vert);
 /**
- * Call before factor_get and SCULPT_brush_strength_factor. The index is in the range of the PBVH
- * node's vertex indices.
+ * Call before factor_get and SCULPT_brush_strength_factor. The index is in the range of the
+ * pbvh::Tree node's vertex indices.
  */
 void node_update(NodeData &automask_data, int i);
 
@@ -1455,8 +1462,9 @@ namespace blender::ed::sculpt_paint::geodesic {
 /**
  * Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
  * in the initial vertex set. The caller is responsible for freeing the array.
- * Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
- * fallback to euclidean distances to one of the initial vertices in the set.
+ * Geodesic distances will only work when used with blender::bke::pbvh::Type::Mesh, for other
+ * types of blender::bke::pbvh::Tree it will fallback to euclidean distances to one of the initial
+ * vertices in the set.
  */
 Array<float> distances_create(Object &ob, const Set<int> &initial_verts, float limit_radius);
 Array<float> distances_create_from_vert_and_symm(Object &ob,
@@ -1571,7 +1579,7 @@ struct SimulationData {
   ListBase *collider_list;
 
   int totnode;
-  /** #PBVHNode pointer as a key, index in #SimulationData.node_state as value. */
+  /** #blender::bke::pbvh::Node pointer as a key, index in #SimulationData.node_state as value. */
   GHash *node_state_index;
   Array<NodeSimState> node_state;
 
@@ -1583,7 +1591,7 @@ struct SimulationData {
 };
 
 /* Main cloth brush function */
-void do_cloth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_cloth_brush(const Sculpt &sd, Object &ob, Span<blender::bke::pbvh::Node *> nodes);
 
 /* Public functions. */
 
@@ -1595,18 +1603,18 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
                                                         bool needs_deform_coords);
 void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim);
 
-void sim_activate_nodes(SimulationData &cloth_sim, Span<PBVHNode *> nodes);
+void sim_activate_nodes(SimulationData &cloth_sim, Span<blender::bke::pbvh::Node *> nodes);
 
 void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim);
 
 void do_simulation_step(const Sculpt &sd,
                         Object &ob,
                         SimulationData &cloth_sim,
-                        Span<PBVHNode *> nodes);
+                        Span<blender::bke::pbvh::Node *> nodes);
 
 void ensure_nodes_constraints(const Sculpt &sd,
                               Object &ob,
-                              Span<PBVHNode *> nodes,
+                              Span<blender::bke::pbvh::Node *> nodes,
                               SimulationData &cloth_sim,
                               float initial_location[3],
                               float radius);
@@ -1627,7 +1635,8 @@ void plane_falloff_preview_draw(uint gpuattr,
                                 const float outline_col[3],
                                 float outline_alpha);
 
-Vector<PBVHNode *> brush_affected_nodes_gather(SculptSession &ss, const Brush &brush);
+Vector<blender::bke::pbvh::Node *> brush_affected_nodes_gather(SculptSession &ss,
+                                                               const Brush &brush);
 
 bool is_cloth_deform_brush(const Brush &brush);
 
@@ -1697,7 +1706,7 @@ void surface_smooth_displace_step(SculptSession &ss,
                                   PBVHVertRef vertex,
                                   float beta,
                                   float fade);
-void do_surface_smooth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+void do_surface_smooth_brush(const Sculpt &sd, Object &ob, Span<blender::bke::pbvh::Node *> nodes);
 
 /* Slide/Relax */
 void relax_vertex(SculptSession &ss,
@@ -1726,13 +1735,13 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &ca
 namespace blender::ed::sculpt_paint::undo {
 
 /**
- * Store undo data of the given type for a PBVH node. This function can be called by multiple
- * threads concurrently, as long as they don't pass the same PBVH node.
+ * Store undo data of the given type for a pbvh::Tree node. This function can be called by multiple
+ * threads concurrently, as long as they don't pass the same pbvh::Tree node.
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-void push_node(const Object &object, const PBVHNode *node, undo::Type type);
-void push_nodes(Object &object, Span<const PBVHNode *> nodes, undo::Type type);
+void push_node(const Object &object, const bke::pbvh::Node *node, undo::Type type);
+void push_nodes(Object &object, Span<const bke::pbvh::Node *> nodes, undo::Type type);
 
 /**
  * Retrieve the undo data of a given type for the active undo step. For example, this is used to
@@ -1740,7 +1749,7 @@ void push_nodes(Object &object, Span<const PBVHNode *> nodes, undo::Type type);
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-const undo::Node *get_node(const PBVHNode *node, undo::Type type);
+const undo::Node *get_node(const bke::pbvh::Node *node, undo::Type type);
 
 /**
  * Pushes an undo step using the operator name. This is necessary for
@@ -1774,14 +1783,14 @@ struct OrigPositionData {
  * Retrieve positions from the latest undo state. This is often used for modal actions that depend
  * on the initial state of the geometry from before the start of the action.
  */
-OrigPositionData orig_position_data_get_mesh(const Object &object, const PBVHNode &node);
-OrigPositionData orig_position_data_get_grids(const Object &object, const PBVHNode &node);
+OrigPositionData orig_position_data_get_mesh(const Object &object, const bke::pbvh::Node &node);
+OrigPositionData orig_position_data_get_grids(const Object &object, const bke::pbvh::Node &node);
 void orig_position_data_gather_bmesh(const BMLog &bm_log,
                                      const Set<BMVert *, 0> &verts,
                                      MutableSpan<float3> positions,
                                      MutableSpan<float3> normals);
 
-Span<float4> orig_color_data_get_mesh(const Object &object, const PBVHNode &node);
+Span<float4> orig_color_data_get_mesh(const Object &object, const bke::pbvh::Node &node);
 
 }
 
@@ -1903,7 +1912,7 @@ struct GestureData {
   LineData line;
 
   /* Task Callback Data. */
-  Vector<PBVHNode *> nodes;
+  Vector<bke::pbvh::Node *> nodes;
 
   ~GestureData();
 };
@@ -1917,7 +1926,7 @@ struct Operation {
   void (*apply_for_symmetry_pass)(bContext &, GestureData &);
 
   /* Remaining actions after finishing the symmetry passes iterations
-   * (updating data-layers, tagging PBVH updates...). */
+   * (updating data-layers, tagging bke::pbvh::Tree updates...). */
   void (*end)(bContext &, GestureData &);
 };
 
@@ -2050,7 +2059,7 @@ namespace blender::ed::sculpt_paint::pose {
 /**
  * Main Brush Function.
  */
-void do_pose_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
+void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
 /**
  * Calculate the pose origin and (Optionally the pose factor)
  * that is used when using the pose brush.
@@ -2090,7 +2099,7 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
                                                          float radius);
 
 /* Main Brush Function. */
-void do_boundary_brush(const Sculpt &sd, Object &ob, blender::Span<PBVHNode *> nodes);
+void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
 
 void edges_preview_draw(uint gpuattr,
                         SculptSession &ss,
@@ -2149,9 +2158,9 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh);
 void do_paint_brush(PaintModeSettings &paint_mode_settings,
                     const Sculpt &sd,
                     Object &ob,
-                    Span<PBVHNode *> nodes,
-                    Span<PBVHNode *> texnodes);
-void do_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes);
+                    Span<bke::pbvh::Node *> nodes,
+                    Span<bke::pbvh::Node *> texnodes);
+void do_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
 }
 
 }
@@ -2169,7 +2178,7 @@ bool SCULPT_paint_image_canvas_get(PaintModeSettings &paint_mode_settings,
 void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 blender::Span<PBVHNode *> texnodes);
+                                 blender::Span<blender::bke::pbvh::Node *> texnodes);
 bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob);
 
 namespace blender::ed::sculpt_paint {

@@ -244,7 +244,8 @@ ObjectState::ObjectState(const SceneState &scene_state,
   }
 
   if (sculpt_pbvh) {
-    if (color_type == V3D_SHADING_TEXTURE_COLOR && BKE_pbvh_type(*ob->sculpt->pbvh) != PBVH_FACES)
+    if (color_type == V3D_SHADING_TEXTURE_COLOR &&
+        ob->sculpt->pbvh->type() != bke::pbvh::Type::Mesh)
     {
       /* Force use of material color for sculpt. */
       color_type = V3D_SHADING_MATERIAL_COLOR;

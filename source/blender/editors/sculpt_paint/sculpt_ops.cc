@@ -169,7 +169,7 @@ static bool sculpt_no_multires_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (SCULPT_mode_poll(C) && ob->sculpt && ob->sculpt->pbvh) {
-    return BKE_pbvh_type(*ob->sculpt->pbvh) != PBVH_GRIDS;
+    return ob->sculpt->pbvh->type() != blender::bke::pbvh::Type::Grids;
   }
   return false;
 }
@@ -181,7 +181,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
-  PBVH *pbvh = ss.pbvh.get();
+  blender::bke::pbvh::Tree *pbvh = ss.pbvh.get();
   const float dist = RNA_float_get(op->ptr, "merge_tolerance");
 
   if (!pbvh) {
@@ -194,8 +194,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  switch (BKE_pbvh_type(*pbvh)) {
-    case PBVH_BMESH: {
+  switch (pbvh->type()) {
+    case blender::bke::pbvh::Type::BMesh: {
       /* Dyntopo Symmetrize. */
 
       /* To simplify undo for symmetrize, all BMesh elements are logged
@@ -228,7 +228,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       break;
     }
-    case PBVH_FACES: {
+    case blender::bke::pbvh::Type::Mesh: {
       /* Mesh Symmetrize. */
       undo::geometry_begin(ob, op);
       Mesh *mesh = static_cast<Mesh *>(ob.data);
@@ -240,7 +240,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       break;
     }
-    case PBVH_GRIDS:
+    case blender::bke::pbvh::Type::Grids:
       return OPERATOR_CANCELLED;
   }
 
@@ -584,7 +584,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
   ss.preview_vert_count = 0;
   int totpoints = 0;
 
-  /* This function is called from the cursor drawing code, so the PBVH may not be build yet. */
+  /* This function is called from the cursor drawing code, so the tree may not be build yet. */
   if (!ss.pbvh) {
     return;
   }
@@ -593,7 +593,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
     return;
   }
 
-  if (BKE_pbvh_type(*ss.pbvh) == PBVH_GRIDS) {
+  if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
     return;
   }
 
@@ -805,7 +805,7 @@ static void sculpt_mask_by_color_contiguous(Object &object,
         ss, from_v, to_v, is_duplicate, colors, active_color, threshold, invert, new_mask);
   });
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   update_mask_mesh(object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
     for (const int i : verts.index_range()) {
@@ -828,7 +828,7 @@ static void sculpt_mask_by_color_full_mesh(Object &object,
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
   const float4 active_color = float4(colors[vertex.i]);
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   update_mask_mesh(object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
     for (const int i : verts.index_range()) {
@@ -990,7 +990,7 @@ static void bake_mask_mesh(const Object &object,
                            const auto_mask::Cache &automasking,
                            const CavityBakeMixMode mode,
                            const float factor,
-                           const PBVHNode &node,
+                           const bke::pbvh::Node &node,
                            LocalData &tls,
                            const MutableSpan<float> mask)
 {
@@ -1021,7 +1021,7 @@ static void bake_mask_grids(Object &object,
                             const auto_mask::Cache &automasking,
                             const CavityBakeMixMode mode,
                             const float factor,
-                            const PBVHNode &node,
+                            const bke::pbvh::Node &node,
                             LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -1055,7 +1055,7 @@ static void bake_mask_bmesh(Object &object,
                             const auto_mask::Cache &automasking,
                             const CavityBakeMixMode mode,
                             const float factor,
-                            PBVHNode &node,
+                            bke::pbvh::Node &node,
                             LocalData &tls)
 {
   const SculptSession &ss = *object.sculpt;
@@ -1106,7 +1106,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   /* Set up automasking settings. */
   Sculpt sd2 = sd;
@@ -1173,8 +1173,8 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   undo::push_nodes(ob, nodes, undo::Type::Mask);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
@@ -1194,7 +1194,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
       });
       break;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -1205,7 +1205,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
       bke::pbvh::update_mask(*ss.pbvh);
       break;
     }
-    case PBVH_BMESH: {
+    case bke::pbvh::Type::BMesh: {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {

@@ -38,7 +38,10 @@ struct EnumPropertyItem;
 namespace blender {
 namespace bke {
 enum class AttrDomain : int8_t;
+namespace pbvh {
+class Tree;
 }
+}  // namespace bke
 namespace ed::sculpt_paint {
 namespace expand {
 struct Cache;
@@ -62,7 +65,6 @@ struct MLoopCol;
 struct MPropCol;
 struct MultiresModifierData;
 struct Object;
-struct PBVH;
 struct Paint;
 struct PaintCurve;
 struct PaintModeSettings;
@@ -409,7 +411,7 @@ struct SculptAttributeParams {
   int simple_array : 1;
 
   /* Do not mark CustomData layer as temporary.  Cannot be combined with simple_array.  Doesn't
-   * work with PBVH_GRIDS.
+   * work with bke::pbvh::Type::Grids.
    */
   int permanent : 1;   /* Cannot be combined with simple_array. */
   int stroke_only : 1; /* Release layer at end of struct */
@@ -432,7 +434,7 @@ struct SculptAttribute {
 
   /* Data is a flat array outside the CustomData system.
    * This will be true if simple_array is requested in
-   * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
+   * SculptAttributeParams, or the tree type is bke::pbvh::Type::Grids or bke::pbvh::Type::BMesh.
    */
   bool simple_array = false;
   /* Data stored per BMesh element. */
@@ -493,7 +495,8 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
   Depsgraph *depsgraph = nullptr;
 
-  /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
+  /* These are always assigned to base mesh data when using Type::Mesh and Type::Grids.
+   */
   blender::MutableSpan<blender::float3> vert_positions;
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
@@ -541,8 +544,8 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Limit surface/grids. */
   SubdivCCG *subdiv_ccg = nullptr;
 
-  /* PBVH acceleration structure */
-  std::unique_ptr<PBVH> pbvh;
+  /* BVH tree acceleration structure */
+  std::unique_ptr<blender::bke::pbvh::Tree> pbvh;
 
   /* Object is deformed with some modifiers. */
   bool deform_modifiers_active = false;
@@ -623,7 +626,8 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   } mode = {};
   eObjectMode mode_type;
 
-  /* This flag prevents PBVH from being freed when creating the vp_handle for texture paint. */
+  /* This flag prevents bke::pbvh::Tree from being freed when creating the vp_handle for
+   * texture paint. */
   bool building_vp_handle = false;
 
   /**
@@ -730,18 +734,18 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                    MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
-PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
+blender::bke::pbvh::Tree *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 
 void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 
 /**
- * Test if PBVH can be used directly for drawing, which is faster than
+ * Test if blender::bke::pbvh::Tree can be used directly for drawing, which is faster than
  * drawing the mesh and all updates that come with it.
  */
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
 
 /** C accessor for #Object::sculpt::pbvh. */
-PBVH *BKE_object_sculpt_pbvh_get(Object *object);
+blender::bke::pbvh::Tree *BKE_object_sculpt_pbvh_get(Object *object);
 bool BKE_object_sculpt_use_dyntopo(const Object *object);
 
 /* paint_canvas.cc */

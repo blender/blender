@@ -159,7 +159,7 @@ static void calc_faces(const Sculpt &sd,
                        const Span<int> corner_verts,
                        const GroupedSpan<int> vert_to_face_map,
                        const Span<bool> hide_poly,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -209,8 +209,11 @@ static void calc_faces(const Sculpt &sd,
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static void calc_grids(
-    const Sculpt &sd, Object &object, const Brush &brush, const PBVHNode &node, LocalData &tls)
+static void calc_grids(const Sculpt &sd,
+                       Object &object,
+                       const Brush &brush,
+                       const bke::pbvh::Node &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -255,7 +258,7 @@ static void calc_grids(
 }
 
 static void calc_bmesh(
-    const Sculpt &sd, Object &object, const Brush &brush, PBVHNode &node, LocalData &tls)
+    const Sculpt &sd, Object &object, const Brush &brush, bke::pbvh::Node &node, LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -302,7 +305,7 @@ static void calc_bmesh(
 
 }  // namespace topology_slide_cc
 
-void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -312,10 +315,10 @@ void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> 
   }
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
-    case PBVH_FACES: {
+  switch (object.sculpt->pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const PBVH &pbvh = *ss.pbvh;
+      const bke::pbvh::Tree &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
@@ -341,7 +344,7 @@ void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> 
       });
       break;
     }
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -349,7 +352,7 @@ void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> 
         }
       });
       break;
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {

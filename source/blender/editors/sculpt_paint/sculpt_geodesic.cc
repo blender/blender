@@ -252,11 +252,11 @@ static Array<float> geodesic_fallback_create(Object &ob, const Set<int> &initial
 Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const float limit_radius)
 {
   SculptSession &ss = *ob.sculpt;
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES:
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
       return geodesic_mesh_create(ob, initial_verts, limit_radius);
-    case PBVH_BMESH:
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::BMesh:
+    case bke::pbvh::Type::Grids:
       return geodesic_fallback_create(ob, initial_verts);
   }
   BLI_assert_unreachable();

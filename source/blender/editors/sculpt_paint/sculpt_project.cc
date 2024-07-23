@@ -48,7 +48,7 @@ static void apply_projection_mesh(const Sculpt &sd,
                                   const gesture::GestureData &gesture_data,
                                   const Span<float3> positions_eval,
                                   const Span<float3> vert_normals,
-                                  const PBVHNode &node,
+                                  const bke::pbvh::Node &node,
                                   Object &object,
                                   LocalData &tls,
                                   const MutableSpan<float3> positions_orig)
@@ -77,7 +77,7 @@ static void apply_projection_mesh(const Sculpt &sd,
 
 static void apply_projection_grids(const Sculpt &sd,
                                    const gesture::GestureData &gesture_data,
-                                   const PBVHNode &node,
+                                   const bke::pbvh::Node &node,
                                    Object &object,
                                    LocalData &tls)
 {
@@ -110,7 +110,7 @@ static void apply_projection_grids(const Sculpt &sd,
 
 static void apply_projection_bmesh(const Sculpt &sd,
                                    const gesture::GestureData &gesture_data,
-                                   PBVHNode &node,
+                                   bke::pbvh::Node &node,
                                    Object &object,
                                    LocalData &tls)
 {
@@ -144,15 +144,15 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
 {
   Object &object = *gesture_data.vc.obact;
   SculptSession &ss = *object.sculpt;
-  PBVH &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
   const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
-  const Span<PBVHNode *> nodes = gesture_data.nodes;
+  const Span<bke::pbvh::Node *> nodes = gesture_data.nodes;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (gesture_data.shape_type) {
     case gesture::ShapeType::Line:
-      switch (BKE_pbvh_type(pbvh)) {
-        case PBVH_FACES: {
+      switch (pbvh.type()) {
+        case bke::pbvh::Type::Mesh: {
           Mesh &mesh = *static_cast<Mesh *>(object.data);
           const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
           const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
@@ -173,7 +173,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           });
           break;
         }
-        case PBVH_BMESH: {
+        case bke::pbvh::Type::BMesh: {
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
@@ -183,7 +183,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           });
           break;
         }
-        case PBVH_GRIDS: {
+        case bke::pbvh::Type::Grids: {
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {

@@ -367,16 +367,16 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
     return;
   }
 
-  switch (BKE_pbvh_type(*ss->pbvh)) {
-    case PBVH_FACES:
+  switch (ss->pbvh->type()) {
+    case blender::bke::pbvh::Type::Mesh:
       stats->totvertsculpt = ss->totvert;
       stats->totfacesculpt = ss->totfaces;
       break;
-    case PBVH_BMESH:
+    case blender::bke::pbvh::Type::BMesh:
       stats->totvertsculpt = ob->sculpt->bm->totvert;
       stats->tottri = ob->sculpt->bm->totface;
       break;
-    case PBVH_GRIDS:
+    case blender::bke::pbvh::Type::Grids:
       stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(*ss->pbvh);
       stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(*ss->pbvh);
       break;

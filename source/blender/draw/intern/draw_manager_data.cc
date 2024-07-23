@@ -1284,8 +1284,11 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   }
 }
 
-void DRW_sculpt_debug_cb(
-    PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag)
+void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node,
+                         void *user_data,
+                         const float bmin[3],
+                         const float bmax[3],
+                         PBVHNodeFlags flag)
 {
   int *debug_node_nr = (int *)user_data;
   BoundBox bb;
@@ -1327,8 +1330,8 @@ static void drw_sculpt_get_frustum_planes(const Object *ob, float planes[6][4])
 static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 {
   using namespace blender;
-  /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
-  PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh.get() : nullptr;
+  /* pbvh::Tree should always exist for non-empty meshes, created by depsgraph eval. */
+  bke::pbvh::Tree *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return;
   }
@@ -1342,7 +1345,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     paint = BKE_paint_get_active_from_context(drwctx->evil_C);
   }
 
-  /* Frustum planes to show only visible PBVH nodes. */
+  /* Frustum planes to show only visible pbvh::Tree nodes. */
   float update_planes[6][4];
   float draw_planes[6][4];
   PBVHFrustumPlanes update_frustum;
@@ -1399,7 +1402,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     DRW_debug_modelmat(scd->ob->object_to_world().ptr());
     BKE_pbvh_draw_debug_cb(
         *pbvh,
-        (void (*)(PBVHNode *n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
+        (void (*)(
+            bke::pbvh::Node *n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
             DRW_sculpt_debug_cb,
         &debug_node_nr);
   }

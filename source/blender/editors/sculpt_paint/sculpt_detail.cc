@@ -103,13 +103,13 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_topology_update(node);
   }
   /* Get the bounding box, its center and size. */
@@ -131,7 +131,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   while (bke::pbvh::bmesh_update_topology(
       *ss.pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
-    for (PBVHNode *node : nodes) {
+    for (bke::pbvh::Node *node : nodes) {
       BKE_pbvh_node_mark_topology_update(node);
     }
   }
@@ -140,7 +140,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
   undo::push_end(ob);
 
-  /* Force rebuild of PBVH for better BB placement. */
+  /* Force rebuild of bke::pbvh::Tree for better BB placement. */
   SCULPT_pbvh_clear(ob);
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
@@ -210,7 +210,9 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   }
 }
 
-static void sculpt_raycast_detail_cb(PBVHNode &node, SculptDetailRaycastData &srd, float *tmin)
+static void sculpt_raycast_detail_cb(bke::pbvh::Node &node,
+                                     SculptDetailRaycastData &srd,
+                                     float *tmin)
 {
   if (BKE_pbvh_node_get_tmin(&node) < *tmin) {
     if (bke::pbvh::bmesh_node_raycast_detail(
@@ -243,7 +245,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   bke::pbvh::raycast(
       *ob.sculpt->pbvh,
-      [&](PBVHNode &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
+      [&](bke::pbvh::Node &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
       ray_start,
       ray_normal,
       false);
@@ -297,7 +299,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
   /* Pick sample detail. */
   switch (mode) {
     case SAMPLE_DETAIL_DYNTOPO:
-      if (BKE_pbvh_type(*ss.pbvh) != PBVH_BMESH) {
+      if (ss.pbvh->type() != bke::pbvh::Type::BMesh) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
@@ -305,7 +307,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
       sample_detail_dyntopo(C, &vc, mval);
       break;
     case SAMPLE_DETAIL_VOXEL:
-      if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
+      if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;

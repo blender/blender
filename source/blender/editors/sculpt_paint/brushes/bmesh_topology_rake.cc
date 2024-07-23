@@ -51,7 +51,7 @@ static void calc_bmesh(const Sculpt &sd,
                        const Brush &brush,
                        const float3 &direction,
                        const float strength,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -96,7 +96,7 @@ static void calc_bmesh(const Sculpt &sd,
 
 void do_bmesh_topology_rake_brush(const Sculpt &sd,
                                   Object &object,
-                                  Span<PBVHNode *> nodes,
+                                  Span<bke::pbvh::Node *> nodes,
                                   const float input_strength)
 {
   const SculptSession &ss = *object.sculpt;

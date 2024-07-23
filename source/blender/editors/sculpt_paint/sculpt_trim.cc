@@ -511,8 +511,8 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
   Object *object = gesture_data.vc.obact;
   SculptSession &ss = *object->sculpt;
 
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES:
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
       face_set::create_face_sets_mesh(*object);
       break;
     default:
@@ -743,12 +743,12 @@ static bool can_invoke(const bContext &C)
   return true;
 }
 
-static void report_invalid_mode(const PBVHType pbvh_type, ReportList &reports)
+static void report_invalid_mode(const blender::bke::pbvh::Type pbvh_type, ReportList &reports)
 {
-  if (pbvh_type == PBVH_BMESH) {
+  if (pbvh_type == bke::pbvh::Type::BMesh) {
     BKE_report(&reports, RPT_ERROR, "Not supported in dynamic topology mode");
   }
-  else if (pbvh_type == PBVH_GRIDS) {
+  else if (pbvh_type == bke::pbvh::Type::Grids) {
     BKE_report(&reports, RPT_ERROR, "Not supported in multiresolution mode");
   }
   else {
@@ -760,9 +760,9 @@ static bool can_exec(const bContext &C, ReportList &reports)
 {
   const Object &object = *CTX_data_active_object(&C);
   const SculptSession &ss = *object.sculpt;
-  if (BKE_pbvh_type(*ss.pbvh) != PBVH_FACES) {
+  if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
     /* Not supported in Multires and Dyntopo. */
-    report_invalid_mode(BKE_pbvh_type(*ss.pbvh), reports);
+    report_invalid_mode(ss.pbvh->type(), reports);
     return false;
   }
 

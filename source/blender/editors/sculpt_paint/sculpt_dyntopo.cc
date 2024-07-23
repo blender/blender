@@ -46,12 +46,12 @@ void SCULPT_pbvh_clear(Object &ob)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
-  /* Clear out any existing DM and PBVH. */
+  /* Clear out any existing DM and bke::pbvh::Tree. */
   bke::pbvh::free(ss.pbvh);
 
   BKE_object_free_derived_caches(&ob);
 
-  /* Tag to rebuild PBVH in depsgraph. */
+  /* Tag to rebuild bke::pbvh::Tree in depsgraph. */
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
 }
 
@@ -109,7 +109,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   ss.bm_log = BM_log_create(ss.bm);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
-   * are re-evaluated and the PBVH is re-created. */
+   * are re-evaluated and the bke::pbvh::Tree is re-created. */
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }
@@ -167,7 +167,7 @@ static void disable(
   BKE_ptcache_object_reset(&scene, &ob, PTCACHE_RESET_OUTDATED);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
-   * are re-evaluated and the PBVH is re-created. */
+   * are re-evaluated and the bke::pbvh::Tree is re-created. */
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }

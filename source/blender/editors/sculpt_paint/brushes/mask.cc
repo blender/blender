@@ -64,7 +64,7 @@ static void calc_faces(const Brush &brush,
                        const float strength,
                        const Span<float3> positions,
                        const Span<float3> vert_normals,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        Mesh &mesh,
                        LocalData &tls,
@@ -111,8 +111,11 @@ static void calc_faces(const Brush &brush,
   array_utils::scatter(new_masks.as_span(), verts, mask);
 }
 
-static void calc_grids(
-    Object &object, const Brush &brush, const float strength, PBVHNode &node, LocalData &tls)
+static void calc_grids(Object &object,
+                       const Brush &brush,
+                       const float strength,
+                       bke::pbvh::Node &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -157,8 +160,11 @@ static void calc_grids(
   mask::scatter_mask_grids(new_masks.as_span(), subdiv_ccg, grids);
 }
 
-static void calc_bmesh(
-    Object &object, const Brush &brush, const float strength, PBVHNode &node, LocalData &tls)
+static void calc_bmesh(Object &object,
+                       const Brush &brush,
+                       const float strength,
+                       bke::pbvh::Node &node,
+                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const BMesh &bm = *ss.bm;
@@ -205,18 +211,18 @@ static void calc_bmesh(
 
 }  // namespace mask_cc
 
-void do_mask_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_mask_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float bstrength = ss.cache->bstrength;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*ss.pbvh)) {
-    case PBVH_FACES: {
+  switch (ss.pbvh->type()) {
+    case blender::bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-      const PBVH &pbvh = *ss.pbvh;
+      const blender::bke::pbvh::Tree &pbvh = *ss.pbvh;
       const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
 
@@ -244,7 +250,7 @@ void do_mask_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       mask.finish();
       break;
     }
-    case PBVH_GRIDS: {
+    case blender::bke::pbvh::Type::Grids: {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -253,7 +259,7 @@ void do_mask_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       });
       break;
     }
-    case PBVH_BMESH: {
+    case blender::bke::pbvh::Type::BMesh: {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {

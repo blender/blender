@@ -123,7 +123,7 @@ static void calc_faces(const Sculpt &sd,
                        const Span<float3> persistent_base_positions,
                        const Span<float3> persistent_base_normals,
                        Object &object,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor,
                        MutableSpan<float3> positions_orig)
@@ -218,7 +218,7 @@ static void calc_faces(const Sculpt &sd,
 static void calc_grids(const Sculpt &sd,
                        const Brush &brush,
                        Object &object,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor)
 {
@@ -286,7 +286,7 @@ static void calc_grids(const Sculpt &sd,
 static void calc_bmesh(const Sculpt &sd,
                        const Brush &brush,
                        Object &object,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor)
 {
@@ -351,16 +351,16 @@ static void calc_bmesh(const Sculpt &sd,
 
 }  // namespace layer_cc
 
-void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_layer_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
-    case PBVH_FACES: {
+  switch (object.sculpt->pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const PBVH &pbvh = *ss.pbvh;
+      const bke::pbvh::Tree &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
       const MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
@@ -413,7 +413,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       persistent_disp_attr.finish();
       break;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       if (ss.cache->layer_displacement_factor.is_empty()) {
         ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
       }
@@ -426,7 +426,7 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
       });
       break;
     }
-    case PBVH_BMESH: {
+    case bke::pbvh::Type::BMesh: {
       if (ss.cache->layer_displacement_factor.is_empty()) {
         ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
       }

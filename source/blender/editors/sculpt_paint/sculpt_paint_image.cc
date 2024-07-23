@@ -53,7 +53,7 @@ struct ImageData {
 struct TexturePaintingUserData {
   Object *ob;
   const Brush *brush;
-  Span<PBVHNode *> nodes;
+  Span<bke::pbvh::Node *> nodes;
   ImageData image_data;
 };
 
@@ -331,8 +331,8 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   Object *ob = data->ob;
   SculptSession &ss = *ob->sculpt;
   const Brush *brush = data->brush;
-  PBVH &pbvh = *ss.pbvh;
-  PBVHNode *node = data->nodes[n];
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Node *node = data->nodes[n];
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
@@ -471,7 +471,7 @@ static void push_undo(const NodeData &node_data,
 
 static void do_push_undo_tile(TexturePaintingUserData *data, const int n)
 {
-  PBVHNode *node = data->nodes[n];
+  bke::pbvh::Node *node = data->nodes[n];
 
   NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
   Image *image = data->image_data.image;
@@ -500,15 +500,15 @@ static void do_push_undo_tile(TexturePaintingUserData *data, const int n)
 /** \name Fix non-manifold edge bleeding.
  * \{ */
 
-static Vector<image::TileNumber> collect_dirty_tiles(Span<PBVHNode *> nodes)
+static Vector<image::TileNumber> collect_dirty_tiles(Span<bke::pbvh::Node *> nodes)
 {
   Vector<image::TileNumber> dirty_tiles;
-  for (PBVHNode *node : nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     bke::pbvh::pixels::collect_dirty_tiles(*node, dirty_tiles);
   }
   return dirty_tiles;
 }
-static void fix_non_manifold_seam_bleeding(PBVH &pbvh,
+static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
                                            TexturePaintingUserData &user_data,
                                            Span<TileNumber> tile_numbers_to_fix)
 {
@@ -564,7 +564,7 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob)
 void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const blender::Span<PBVHNode *> texnodes)
+                                 const blender::Span<blender::bke::pbvh::Node *> texnodes)
 {
   using namespace blender;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -590,7 +590,7 @@ void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
   });
   fix_non_manifold_seam_bleeding(ob, data);
 
-  for (PBVHNode *node : texnodes) {
+  for (bke::pbvh::Node *node : texnodes) {
     bke::pbvh::pixels::mark_image_dirty(
         *node, *data.image_data.image, *data.image_data.image_user);
   }

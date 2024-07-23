@@ -6,19 +6,29 @@
 
 /** \file
  * \ingroup bke
- * \brief External data structures for PBVH. Does not include internal data structures.
  */
 
 #include "BLI_utildefines.h"
 
-struct PBVHNode;
 struct BMesh;
+struct BMVert;
+struct BMFace;
+namespace blender::draw::pbvh {
+struct PBVHBatches;
+}
 
-enum PBVHType {
-  PBVH_FACES,
-  PBVH_GRIDS,
-  PBVH_BMESH,
+namespace blender::bke::pbvh {
+
+class Node;
+class Tree;
+
+enum class Type {
+  Mesh,
+  Grids,
+  BMesh,
 };
+
+}  // namespace blender::bke::pbvh
 
 /* #PBVHNodeFlags is needed by `DRW_render.hh` and `draw_cache.cc`. */
 enum PBVHNodeFlags {
@@ -64,22 +74,8 @@ struct PBVHVertRef {
 
 #define PBVH_REF_NONE -1LL
 
-/* Public members of PBVH, used for inlined functions. */
-struct PBVHPublic {
-  PBVHType type;
-  BMesh *bm;
-};
-
-struct PBVH;
-struct PBVHNode;
-
-inline PBVHType BKE_pbvh_type(const PBVH &pbvh)
-{
-  return ((const PBVHPublic &)pbvh).type;
-}
-
-void BKE_pbvh_draw_debug_cb(PBVH &pbvh,
-                            void (*draw_fn)(PBVHNode *node,
+void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
+                            void (*draw_fn)(blender::bke::pbvh::Node *node,
                                             void *user_data,
                                             const float bmin[3],
                                             const float bmax[3],

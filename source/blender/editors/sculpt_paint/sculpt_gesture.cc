@@ -320,7 +320,7 @@ static void flip_for_symmetry_pass(GestureData &gesture_data, const ePaintSymmet
   flip_plane(gesture_data.line.side_plane[1], gesture_data.line.true_side_plane[1], symmpass);
 }
 
-static Vector<PBVHNode *> update_affected_nodes_by_line_plane(GestureData &gesture_data)
+static Vector<bke::pbvh::Node *> update_affected_nodes_by_line_plane(GestureData &gesture_data)
 {
   SculptSession &ss = *gesture_data.ss;
   float clip_planes[3][4];
@@ -332,7 +332,7 @@ static Vector<PBVHNode *> update_affected_nodes_by_line_plane(GestureData &gestu
   frustum.planes = clip_planes;
   frustum.num_planes = gesture_data.line.use_side_planes ? 3 : 1;
 
-  return gesture_data.nodes = bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+  return gesture_data.nodes = bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
            return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
          });
 }
@@ -348,7 +348,7 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  gesture_data.nodes = bke::pbvh::search_gather(*ss.pbvh, [&](PBVHNode &node) {
+  gesture_data.nodes = bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
     switch (gesture_data.selection_type) {
       case SelectionType::Inside:
         return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);

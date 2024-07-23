@@ -33,8 +33,11 @@ struct LocalData {
   Vector<float> distances;
 };
 
-static void calc_node(
-    Object &object, const Brush &brush, const float strength, const PBVHNode &node, LocalData &tls)
+static void calc_node(Object &object,
+                      const Brush &brush,
+                      const float strength,
+                      const bke::pbvh::Node &node,
+                      LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -152,7 +155,7 @@ BLI_NOINLINE static void eval_all_limit_positions(const SubdivCCG &subdiv_ccg,
 BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_positions,
                                                       const Span<CCGElem *> elems,
                                                       const CCGKey &key,
-                                                      const PBVHNode &node,
+                                                      const bke::pbvh::Node &node,
                                                       const MutableSpan<float3> prev_displacement)
 {
   for (const int grid : bke::pbvh::node_grid_indices(node)) {
@@ -166,7 +169,7 @@ BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_p
 
 }  // namespace multires_displacement_smear_cc
 
-void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
+void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;

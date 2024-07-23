@@ -130,7 +130,7 @@ static void sample_node_surface_mesh(const Object &object,
                                      const float4x4 &mat,
                                      const Span<float3> vert_positions,
                                      const Span<float3> vert_normals,
-                                     const PBVHNode &node,
+                                     const bke::pbvh::Node &node,
                                      ScrapeSampleData &sample,
                                      LocalData &tls)
 {
@@ -174,7 +174,7 @@ static void sample_node_surface_mesh(const Object &object,
 static void sample_node_surface_grids(const Object &object,
                                       const Brush &brush,
                                       const float4x4 &mat,
-                                      const PBVHNode &node,
+                                      const bke::pbvh::Node &node,
                                       ScrapeSampleData &sample,
                                       LocalData &tls)
 {
@@ -220,7 +220,7 @@ static void sample_node_surface_grids(const Object &object,
 static void sample_node_surface_bmesh(const Object &object,
                                       const Brush &brush,
                                       const float4x4 &mat,
-                                      PBVHNode &node,
+                                      bke::pbvh::Node &node,
                                       ScrapeSampleData &sample,
                                       LocalData &tls)
 {
@@ -266,13 +266,13 @@ static void sample_node_surface_bmesh(const Object &object,
 static ScrapeSampleData sample_surface(const Object &object,
                                        const Brush &brush,
                                        const float4x4 &mat,
-                                       const Span<PBVHNode *> nodes)
+                                       const Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
-  const PBVH &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_FACES: {
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
       return threading::parallel_reduce(
@@ -290,7 +290,7 @@ static ScrapeSampleData sample_surface(const Object &object,
           join_samples);
       break;
     }
-    case PBVH_GRIDS: {
+    case bke::pbvh::Type::Grids: {
       return threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -305,7 +305,7 @@ static ScrapeSampleData sample_surface(const Object &object,
           join_samples);
       break;
     }
-    case PBVH_BMESH: {
+    case bke::pbvh::Type::BMesh: {
       return threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -333,7 +333,7 @@ static void calc_faces(const Sculpt &sd,
                        const float strength,
                        const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -393,7 +393,7 @@ static void calc_grids(const Sculpt &sd,
                        const std::array<float4, 2> &scrape_planes,
                        const float angle,
                        const float strength,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls)
 {
@@ -453,7 +453,7 @@ static void calc_bmesh(const Sculpt &sd,
                        const std::array<float4, 2> &scrape_planes,
                        const float angle,
                        const float strength,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls)
 {
@@ -506,7 +506,9 @@ static void calc_bmesh(const Sculpt &sd,
   apply_translations(translations, verts);
 }
 
-void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBVHNode *> nodes)
+void do_multiplane_scrape_brush(const Sculpt &sd,
+                                Object &object,
+                                const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -630,10 +632,10 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBV
   const float strength = std::abs(ss.cache->bstrength);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
-    case PBVH_FACES: {
+  switch (object.sculpt->pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const PBVH &pbvh = *ss.pbvh;
+      const bke::pbvh::Tree &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
@@ -657,7 +659,7 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBV
       });
       break;
     }
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -673,7 +675,7 @@ void do_multiplane_scrape_brush(const Sculpt &sd, Object &object, const Span<PBV
         }
       });
       break;
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {

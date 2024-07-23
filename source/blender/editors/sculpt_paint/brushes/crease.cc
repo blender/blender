@@ -72,7 +72,7 @@ static void calc_faces(const Sculpt &sd,
                        const float strength,
                        const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
-                       const PBVHNode &node,
+                       const bke::pbvh::Node &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -130,7 +130,7 @@ static void calc_grids(const Sculpt &sd,
                        const Brush &brush,
                        const float3 &offset,
                        const float strength,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -185,7 +185,7 @@ static void calc_bmesh(const Sculpt &sd,
                        const Brush &brush,
                        const float3 &offset,
                        const float strength,
-                       PBVHNode &node,
+                       bke::pbvh::Node &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -238,7 +238,7 @@ static void do_crease_or_blob_brush(const Scene &scene,
                                     const Sculpt &sd,
                                     const bool invert_strength,
                                     Object &object,
-                                    Span<PBVHNode *> nodes)
+                                    Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -260,10 +260,10 @@ static void do_crease_or_blob_brush(const Scene &scene,
                          (invert_strength ? -1.0f : 1.0f);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
-    case PBVH_FACES: {
+  switch (object.sculpt->pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const PBVH &pbvh = *ss.pbvh;
+      const bke::pbvh::Tree &pbvh = *ss.pbvh;
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
@@ -285,7 +285,7 @@ static void do_crease_or_blob_brush(const Scene &scene,
       });
       break;
     }
-    case PBVH_GRIDS:
+    case bke::pbvh::Type::Grids:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -293,7 +293,7 @@ static void do_crease_or_blob_brush(const Scene &scene,
         }
       });
       break;
-    case PBVH_BMESH:
+    case bke::pbvh::Type::BMesh:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
@@ -306,12 +306,18 @@ static void do_crease_or_blob_brush(const Scene &scene,
 
 }  // namespace crease_cc
 
-void do_crease_brush(const Scene &scene, const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_crease_brush(const Scene &scene,
+                     const Sculpt &sd,
+                     Object &object,
+                     Span<bke::pbvh::Node *> nodes)
 {
   do_crease_or_blob_brush(scene, sd, false, object, nodes);
 }
 
-void do_blob_brush(const Scene &scene, const Sculpt &sd, Object &object, Span<PBVHNode *> nodes)
+void do_blob_brush(const Scene &scene,
+                   const Sculpt &sd,
+                   Object &object,
+                   Span<bke::pbvh::Node *> nodes)
 {
   do_crease_or_blob_brush(scene, sd, true, object, nodes);
 }

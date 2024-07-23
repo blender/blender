@@ -47,7 +47,7 @@
 #define MAX_TREETYPE 32
 
 /* Setting zero so we can catch bugs in BLI_task/KDOPBVH.
- * TODO(sergey): Deduplicate the limits with PBVH from BKE.
+ * TODO(sergey): Deduplicate the limits with blender::bke::pbvh::Tree from BKE.
  */
 #ifndef NDEBUG
 #  define KDOPBVH_THREAD_LEAF_THRESHOLD 0

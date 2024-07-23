@@ -26,7 +26,9 @@ struct Mesh;
 struct MeshElemMap;
 struct MultiresModifierData;
 struct Object;
-struct PBVH;
+namespace blender::bke::pbvh {
+class Tree;
+}
 struct SubsurfModifierData;
 
 /**************************** External *****************************/

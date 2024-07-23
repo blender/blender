@@ -107,7 +107,7 @@ void cache_init(bContext *C,
                 float start_strength)
 {
   SculptSession &ss = *ob.sculpt;
-  PBVH &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
 
   ss.filter_cache = MEM_new<filter::Cache>(__func__);
   ss.filter_cache->start_filter_strength = start_strength;
@@ -119,7 +119,7 @@ void cache_init(bContext *C,
   }
 
   ss.filter_cache->nodes = bke::pbvh::search_gather(
-      pbvh, [&](PBVHNode &node) { return !node_fully_masked_or_hidden(node); });
+      pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
 
   undo::push_nodes(ob, ss.filter_cache->nodes, undo_type);
 
@@ -142,7 +142,7 @@ void cache_init(bContext *C,
   float co[3];
 
   if (vc.rv3d && SCULPT_stroke_get_location(C, co, mval_fl, false)) {
-    Vector<PBVHNode *> nodes;
+    Vector<bke::pbvh::Node *> nodes;
 
     /* Get radius from brush. */
     const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -162,7 +162,7 @@ void cache_init(bContext *C,
     }
 
     const float radius_sq = math::square(radius);
-    nodes = bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
+    nodes = bke::pbvh::search_gather(pbvh, [&](bke::pbvh::Node &node) {
       return !node_fully_masked_or_hidden(node) && node_in_sphere(node, co, radius_sq, true);
     });
 
@@ -301,7 +301,7 @@ static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
 static void mesh_filter_task(Object &ob,
                              const eSculptMeshFilterType filter_type,
                              const float filter_strength,
-                             PBVHNode *node)
+                             bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -596,7 +596,7 @@ static void mesh_filter_sharpen_init(SculptSession &ss,
 
 static void mesh_filter_surface_smooth_displace_task(Object &ob,
                                                      const float filter_strength,
-                                                     PBVHNode *node)
+                                                     bke::pbvh::Node *node)
 {
   SculptSession &ss = *ob.sculpt;
   PBVHVertexIter vd;
@@ -676,7 +676,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  const Span<PBVHNode *> nodes = ss.filter_cache->nodes;
+  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
 
   /* The relax mesh filter needs updated normals. */
   if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
@@ -785,7 +785,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
 
   undo::restore_position_from_undo_step(ob);
 
-  blender::bke::pbvh::update_bounds(*ss->pbvh);
+  bke::pbvh::update_bounds(*ss->pbvh);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
