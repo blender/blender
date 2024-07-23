@@ -17,21 +17,21 @@
 
 namespace blender::asset_system {
 
-AssetRepresentation &AssetStorage::add_local_id_asset(AssetIdentifier &&identifier,
-                                                      ID &id,
-                                                      const AssetLibrary &owner_asset_library)
+std::weak_ptr<AssetRepresentation> AssetStorage::add_local_id_asset(
+    AssetIdentifier &&identifier, ID &id, const AssetLibrary &owner_asset_library)
 {
-  return *local_id_assets_.lookup_key_or_add(
-      std::make_unique<AssetRepresentation>(std::move(identifier), id, owner_asset_library));
+  return local_id_assets_.lookup_key_or_add(
+      std::make_shared<AssetRepresentation>(std::move(identifier), id, owner_asset_library));
 }
 
-AssetRepresentation &AssetStorage::add_external_asset(AssetIdentifier &&identifier,
-                                                      StringRef name,
-                                                      const int id_type,
-                                                      std::unique_ptr<AssetMetaData> metadata,
-                                                      const AssetLibrary &owner_asset_library)
+std::weak_ptr<AssetRepresentation> AssetStorage::add_external_asset(
+    AssetIdentifier &&identifier,
+    StringRef name,
+    const int id_type,
+    std::unique_ptr<AssetMetaData> metadata,
+    const AssetLibrary &owner_asset_library)
 {
-  return *external_assets_.lookup_key_or_add(std::make_unique<AssetRepresentation>(
+  return external_assets_.lookup_key_or_add(std::make_shared<AssetRepresentation>(
       std::move(identifier), name, id_type, std::move(metadata), owner_asset_library));
 }
 
