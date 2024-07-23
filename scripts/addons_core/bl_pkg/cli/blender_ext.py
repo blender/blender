@@ -2181,7 +2181,7 @@ def blender_version_parse_or_error(version: str) -> Union[Tuple[int, int, int], 
     # `mypy` can't detect that this is guaranteed to be 3 items.
     return (
         version_tuple if (len(version_tuple) == 3) else
-        (*version_tuple, (0, 0))[:3]     # type: ignore
+        (*version_tuple, 0, 0)[:3]  # type: ignore
     )
 
 
