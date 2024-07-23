@@ -140,13 +140,16 @@ static bool is_vert_in_editable_boundary(SculptSession &ss, const PBVHVertRef in
  * \{ */
 
 struct BoundaryInitialVertexFloodFillData {
-  PBVHVertRef initial_vert;
-  int initial_vert_i;
-  int boundary_initial_vert_steps;
-  PBVHVertRef boundary_initial_vert;
-  int boundary_initial_vert_i;
-  int *floodfill_steps;
+  /* Inputs to the flood fill algorithm. */
+  float3 initial_vert_position;
   float radius_sq;
+
+  /* Intermediate data used to filter vertices. */
+  Array<int> floodfill_steps;
+  int boundary_initial_vert_steps;
+
+  /* The found initial vertex. */
+  PBVHVertRef boundary_initial_vert;
 };
 
 static bool initial_vert_floodfill_fn(SculptSession &ss,
@@ -172,12 +175,11 @@ static bool initial_vert_floodfill_fn(SculptSession &ss,
   if (boundary::vert_is_boundary(ss, to_v)) {
     if (data->floodfill_steps[to_v_i] < data->boundary_initial_vert_steps) {
       data->boundary_initial_vert_steps = data->floodfill_steps[to_v_i];
-      data->boundary_initial_vert_i = to_v_i;
       data->boundary_initial_vert = to_v;
     }
   }
 
-  const float len_sq = len_squared_v3v3(SCULPT_vertex_co_get(ss, data->initial_vert),
+  const float len_sq = len_squared_v3v3(data->initial_vert_position,
                                         SCULPT_vertex_co_get(ss, to_v));
   return len_sq < data->radius_sq;
 }
@@ -195,18 +197,18 @@ static PBVHVertRef get_closest_boundary_vert(SculptSession &ss,
   flood_fill::add_initial(flood, initial_vert);
 
   BoundaryInitialVertexFloodFillData fdata{};
-  fdata.initial_vert = initial_vert;
-  fdata.boundary_initial_vert = {BOUNDARY_VERTEX_NONE};
-  fdata.boundary_initial_vert_steps = INT_MAX;
+  fdata.initial_vert_position = SCULPT_vertex_co_get(ss, initial_vert);
   fdata.radius_sq = radius * radius;
 
-  fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss), __func__);
+  fdata.boundary_initial_vert = {BOUNDARY_VERTEX_NONE};
+  fdata.boundary_initial_vert_steps = std::numeric_limits<int>::max();
+
+  fdata.floodfill_steps = Array<int>(SCULPT_vertex_count_get(ss));
 
   flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return initial_vert_floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
   });
 
-  MEM_freeN(fdata.floodfill_steps);
   return fdata.boundary_initial_vert;
 }
 
