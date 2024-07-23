@@ -17,7 +17,6 @@ bl_info = {
 
 import bpy
 from bpy.props import (
-    BoolProperty,
     IntProperty,
     StringProperty,
 )

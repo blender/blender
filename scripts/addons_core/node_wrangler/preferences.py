@@ -4,7 +4,6 @@
 
 import bpy
 from bpy.props import EnumProperty, BoolProperty, StringProperty
-from nodeitems_utils import node_categories_iter
 
 from . import operators
 from . import interface

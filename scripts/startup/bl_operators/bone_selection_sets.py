@@ -6,9 +6,6 @@ import bpy
 
 from bpy.types import (
     Operator,
-    Menu,
-    Panel,
-    UIList,
     PropertyGroup,
 )
 from bpy.props import (

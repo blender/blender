@@ -10,7 +10,6 @@ import bpy
 import gpu
 from mathutils import Matrix
 from gpu_extras.batch import batch_for_shader
-import array
 import time
 
 start_time = time.time()

@@ -35,7 +35,6 @@ from bl_ui.space_toolsystem_common import (
 
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    pgettext_iface as iface_,
 )
 
 

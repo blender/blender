@@ -29,7 +29,6 @@ from bl_ui.properties_paint_common import (
     brush_settings,
     brush_settings_advanced,
     draw_color_settings,
-    BrushAssetShelf,
 )
 from bl_ui.utils import PresetPanel
 

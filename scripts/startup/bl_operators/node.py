@@ -24,7 +24,6 @@ from mathutils import (
 from bpy.app.translations import (
     pgettext_tip as tip_,
     pgettext_rpt as rpt_,
-    pgettext_data as data_,
 )
 
 from nodeitems_builtins import node_tree_group_type

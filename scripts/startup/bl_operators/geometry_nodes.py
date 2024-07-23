@@ -4,13 +4,9 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import IntProperty, BoolProperty
+from bpy.props import BoolProperty
 
 from bpy.app.translations import pgettext_data as data_
-
-from bpy.props import (
-    EnumProperty,
-)
 
 
 def add_empty_geometry_node_group(name):

@@ -7,7 +7,6 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
-    UIList,
 )
 from bpy.app.translations import (
     pgettext_iface as iface_,

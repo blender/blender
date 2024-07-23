@@ -10,7 +10,6 @@ from bpy.types import (
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    pgettext_iface as iface_,
     pgettext_rpt as rpt_,
 )
 from bl_ui.properties_grease_pencil_common import (

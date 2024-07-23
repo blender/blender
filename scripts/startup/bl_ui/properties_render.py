@@ -10,7 +10,6 @@ from bl_ui.space_view3d import (
     VIEW3D_PT_shading_options,
 )
 from bl_ui.utils import PresetPanel
-from bpy.app.translations import pgettext_rpt as rpt_
 
 
 class RenderButtonsPanel:

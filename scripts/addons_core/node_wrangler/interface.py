@@ -6,7 +6,6 @@ import bpy
 from bpy.types import Panel, Menu
 from bpy.props import StringProperty
 from bpy.app.translations import contexts as i18n_contexts
-from nodeitems_utils import node_categories_iter, NodeItemCustom
 
 from . import operators
 

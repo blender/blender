@@ -8,15 +8,12 @@ Pose Library - GUI definition.
 
 import bpy
 from bpy.types import (
-    AssetHandle,
     AssetRepresentation,
     Context,
     Menu,
     Panel,
     UILayout,
     UIList,
-    WindowManager,
-    WorkSpace,
 )
 from bl_ui_utils.layout import operator_context
 

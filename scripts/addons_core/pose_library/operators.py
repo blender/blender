@@ -27,7 +27,6 @@ from bpy.types import (
     Action,
     AssetRepresentation,
     Context,
-    Event,
     Object,
     Operator,
 )

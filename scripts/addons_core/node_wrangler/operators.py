@@ -33,7 +33,7 @@ from .utils.constants import blend_types, geo_combine_operations, operations, na
 from .utils.draw import draw_callback_nodeoutline
 from .utils.paths import match_files_to_socket_names, split_into_components
 from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_nodes_links,
-                          get_group_output_node, get_output_location, force_update, get_internal_socket, nw_check,
+                          force_update, nw_check,
                           nw_check_not_empty, nw_check_selected, nw_check_active, nw_check_space_type,
                           nw_check_node_type, nw_check_visible_outputs, nw_check_viewer_node, NWBase,
                           get_first_enabled_output, is_visible_socket)
