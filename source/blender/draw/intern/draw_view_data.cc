@@ -6,11 +6,14 @@
  * \ingroup draw
  */
 
+#include <memory>
+
 #include "BLI_vector.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_viewport.hh"
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
 #include "draw_instance_data.hh"
@@ -36,6 +39,12 @@ struct DRWViewData {
 
   Vector<ViewportEngineData> engines;
   Vector<ViewportEngineData *> enabled_engines;
+
+  /* Stores passes needed by the viewport compositor. Engines are expected to populate those in
+   * every redraw using calls to the DRW_viewport_pass_texture_get function. The compositor can
+   * then call the same function to retrieve the passes it needs, which are expected to be
+   * initialized. Those textures are release when view data is reset. */
+  Map<std::string, std::unique_ptr<draw::TextureFromPool>> viewport_compositor_passes;
 
   /** New per view/viewport manager. Null if not supported by current hardware. */
   draw::Manager *manager = nullptr;
@@ -63,6 +72,13 @@ DRWViewData *DRW_view_data_create(ListBase *engine_types)
     view_data->engines.append(engine);
   }
   return view_data;
+}
+
+draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,
+                                                      const char *pass_name)
+{
+  return *view_data->viewport_compositor_passes.lookup_or_add_cb(
+      pass_name, [&]() { return std::make_unique<draw::TextureFromPool>(pass_name); });
 }
 
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport)
@@ -202,6 +218,13 @@ void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_typ
 void DRW_view_data_reset(DRWViewData *view_data)
 {
   view_data->enabled_engines.clear();
+
+  for (std::unique_ptr<draw::TextureFromPool> &texture :
+       view_data->viewport_compositor_passes.values())
+  {
+    texture->release();
+  }
+  view_data->viewport_compositor_passes.clear();
 }
 
 void DRW_view_data_free_unused(DRWViewData *view_data)

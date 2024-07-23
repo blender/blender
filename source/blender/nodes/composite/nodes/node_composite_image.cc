@@ -753,7 +753,8 @@ class RenderLayerOperation : public NodeOperation {
       return;
     }
 
-    GPUShader *shader = context().get_shader(shader_name);
+    const ResultPrecision precision = Result::precision(GPU_texture_format(pass_texture));
+    GPUShader *shader = context().get_shader(shader_name, precision);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
@@ -765,10 +766,7 @@ class RenderLayerOperation : public NodeOperation {
     const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
     GPU_texture_bind(pass_texture, input_unit);
 
-    /* Depth passes always need to be stored in full precision. */
-    if (GPU_texture_has_depth_format(pass_texture)) {
-      result.set_precision(ResultPrecision::Full);
-    }
+    result.set_precision(precision);
 
     const int2 compositing_region_size = context().get_compositing_region_size();
     result.allocate_texture(Domain(compositing_region_size));

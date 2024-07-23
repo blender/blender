@@ -13,6 +13,10 @@
 
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
+namespace blender::draw {
+class TextureFromPool;
+}  // namespace blender::draw
+
 struct DRWPass;
 struct DRWTextStore;
 struct DRWRegisteredDrawEngine;
@@ -97,6 +101,13 @@ struct DRWViewData;
  */
 DRWViewData *DRW_view_data_create(ListBase *engine_types);
 void DRW_view_data_free(DRWViewData *view_data);
+
+/* Returns a TextureFromPool stored in the given view data for the pass identified by the given
+ * pass name. Engines should call call this function for each of the passes needed by the viewport
+ * compositor in every redraw, then it should allocate the texture and write the pass data to it.
+ * The texture should cover the entire viewport. */
+blender::draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,
+                                                               const char *pass_name);
 
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport);
 void DRW_view_data_texture_list_size_validate(DRWViewData *view_data, const int size[2]);

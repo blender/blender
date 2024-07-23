@@ -28,7 +28,10 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_math_vector.hh"
+#include "BLI_set.hh"
 
 #include "DRW_render.hh"
 
@@ -83,6 +86,9 @@ class Film {
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
+  /* Store the pass types needed by the viewport compositor separatly, because some passes might be
+   * enabled but not used by the viewport compositor, so they needn't be written. */
+  eViewLayerEEVEEPassType viewport_compositor_enabled_passes_ = eViewLayerEEVEEPassType(0);
   PassCategory enabled_categories_ = PassCategory(0);
   bool use_reprojection_ = false;
 
@@ -111,6 +117,13 @@ class Film {
 
   float *read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset);
   float *read_aov(ViewLayerAOV *aov);
+
+  GPUTexture *get_pass_texture(eViewLayerEEVEEPassType pass_type, int layer_offset);
+  GPUTexture *get_aov_texture(ViewLayerAOV *aov);
+
+  void write_viewport_compositor_passes();
+
+  bool is_viewport_compositor_enabled() const;
 
   /** Returns shading views internal resolution. Includes overscan pixels. */
   int2 render_extent_get() const
@@ -317,7 +330,7 @@ class Film {
   }
 
  private:
-  void init_aovs();
+  void init_aovs(const Set<std::string> &passes_used_by_viewport_compositor);
   void sync_mist();
 
   /**

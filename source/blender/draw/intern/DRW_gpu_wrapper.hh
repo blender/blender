@@ -600,6 +600,11 @@ class Texture : NonCopyable {
     free();
   }
 
+  GPUTexture *gpu_texture()
+  {
+    return tx_;
+  }
+
   /* To be able to use it with DRW_shgroup_uniform_texture(). */
   operator GPUTexture *() const
   {
