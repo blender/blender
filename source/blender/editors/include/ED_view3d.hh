@@ -1304,6 +1304,27 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
 /* `view3d_view.cc` */
 
 /**
+ * Exit 'local view' of given View3D editor, if it is active and there is nothing to display in it
+ * anymore.
+ *
+ * \param depsgraph Optional, only required for #frame_selected.
+ * \param frame_selected Frame the newly out-of-local view to show currently visible selected
+ * objects. Will only do something if a valid #depsgraph pointer is also provided.
+ * \param smooth_viewtx Smooth transition time (in milliseconds) between current view and final
+ * view, if changes are hapenning. Currently only used if #frame_selected is enabled.
+ *
+ * \return `true` if the local view was actually exited.
+ */
+bool ED_localview_exit_if_empty(const Depsgraph *depsgraph,
+                                Scene *scene,
+                                ViewLayer *view_layer,
+                                wmWindowManager *wm,
+                                wmWindow *win,
+                                View3D *v3d,
+                                ScrArea *area,
+                                bool frame_selected = true,
+                                int smooth_viewtx = 0);
+/**
  * See if current UUID is valid, otherwise set a valid UUID to v3d,
  * Try to keep the same UUID previously used to allow users to quickly toggle back and forth.
  */

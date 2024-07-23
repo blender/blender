@@ -989,7 +989,7 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
         continue;
       }
 
-      if (frame_selected) {
+      if (frame_selected && depsgraph) {
         Object *camera_old_rv3d, *camera_new_rv3d;
 
         camera_old_rv3d = (rv3d->persp == RV3D_CAMOB) ? camera_old : nullptr;
@@ -1016,6 +1016,34 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
       rv3d->localvd = nullptr;
     }
   }
+}
+
+bool ED_localview_exit_if_empty(const Depsgraph *depsgraph,
+                                Scene *scene,
+                                ViewLayer *view_layer,
+                                wmWindowManager *wm,
+                                wmWindow *win,
+                                View3D *v3d,
+                                ScrArea *area,
+                                const bool frame_selected,
+                                const int smooth_viewtx)
+{
+  if (v3d->localvd == nullptr) {
+    return false;
+  }
+
+  v3d->localvd->runtime.flag &= ~V3D_RUNTIME_LOCAL_MAYBE_EMPTY;
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+    if (base->local_view_bits & v3d->local_view_uid) {
+      return false;
+    }
+  }
+
+  view3d_localview_exit(
+      depsgraph, wm, win, scene, view_layer, area, frame_selected, smooth_viewtx);
+  return true;
 }
 
 static int localview_exec(bContext *C, wmOperator *op)
@@ -1106,6 +1134,19 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
       }
       changed = true;
     }
+  }
+
+  /* If some object was removed from the local view, exit the local view if it is now empty. */
+  if (changed) {
+    ED_localview_exit_if_empty(CTX_data_ensure_evaluated_depsgraph(C),
+                               scene,
+                               view_layer,
+                               CTX_wm_manager(C),
+                               CTX_wm_window(C),
+                               v3d,
+                               CTX_wm_area(C),
+                               true,
+                               WM_operator_smooth_viewtx_get(op));
   }
 
   if (changed) {
