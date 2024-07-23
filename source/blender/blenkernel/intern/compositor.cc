@@ -11,6 +11,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "BKE_compositor.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
