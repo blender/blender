@@ -222,12 +222,11 @@ static PBVHVertRef get_closest_boundary_vert(SculptSession &ss,
 static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
 static void add_index(SculptBoundary &boundary,
-                      const PBVHVertRef new_vertex,
                       const int new_index,
                       const float distance,
                       GSet *included_verts)
 {
-  boundary.verts.append(new_vertex);
+  boundary.verts.append(new_index);
 
   boundary.distance.add(new_index, distance);
   if (included_verts) {
@@ -264,7 +263,7 @@ static bool floodfill_fn(SculptSession &ss,
   const float edge_len = len_v3v3(from_v_co, to_v_co);
   const float distance_boundary_to_dst = boundary.distance.lookup_default(from_v_i, 0.0f) +
                                          edge_len;
-  add_index(boundary, to_v, to_v_i, distance_boundary_to_dst, data->included_verts);
+  add_index(boundary, to_v_i, distance_boundary_to_dst, data->included_verts);
   if (!is_duplicate) {
     boundary.edges.append({from_v_co, to_v_co});
   }
@@ -284,7 +283,7 @@ static void indices_init(SculptSession &ss,
   boundary.initial_vert_i = initial_boundary_index;
 
   copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, initial_boundary_vert));
-  add_index(boundary, initial_boundary_vert, initial_boundary_index, 0.0f, included_verts);
+  add_index(boundary, initial_boundary_index, 0.0f, included_verts);
   flood_fill::add_initial(flood, initial_boundary_vert);
 
   BoundaryFloodFillData fdata{};
@@ -341,30 +340,29 @@ static void edit_data_init(SculptSession &ss,
     boundary.edit_info[i].propagation_steps_num = BOUNDARY_STEPS_NONE;
   }
 
-  std::queue<PBVHVertRef> current_iteration;
-  std::queue<PBVHVertRef> next_iteration;
+  std::queue<int> current_iteration;
+  std::queue<int> next_iteration;
 
   for (int i = 0; i < boundary.verts.size(); i++) {
-    int index = BKE_pbvh_vertex_to_index(*ss.pbvh, boundary.verts[i]);
+    const PBVHVertRef vert = BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.verts[i]);
+    const int index = boundary.verts[i];
 
-    boundary.edit_info[index].original_vertex_i = BKE_pbvh_vertex_to_index(*ss.pbvh,
-                                                                           boundary.verts[i]);
+    boundary.edit_info[index].original_vertex_i = index;
     boundary.edit_info[index].propagation_steps_num = 0;
 
     /* This ensures that all duplicate vertices in the boundary have the same original_vertex
      * index, so the deformation for them will be the same. */
     if (has_duplicates) {
       SculptVertexNeighborIter ni_duplis;
-      SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, boundary.verts[i], ni_duplis) {
+      SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, vert, ni_duplis) {
         if (ni_duplis.is_duplicate) {
-          boundary.edit_info[ni_duplis.index].original_vertex_i = BKE_pbvh_vertex_to_index(
-              *ss.pbvh, boundary.verts[i]);
+          boundary.edit_info[ni_duplis.index].original_vertex_i = index;
         }
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
     }
 
-    current_iteration.push(boundary.verts[i]);
+    current_iteration.push(index);
   }
 
   int propagation_steps_num = 0;
@@ -379,10 +377,10 @@ static void edit_data_init(SculptSession &ss,
     }
 
     while (!current_iteration.empty()) {
-      PBVHVertRef from_v = current_iteration.front();
+      const int from_v_i = current_iteration.front();
       current_iteration.pop();
 
-      int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
+      const PBVHVertRef from_v = BKE_pbvh_index_to_vertex(*ss.pbvh, from_v_i);
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
@@ -404,7 +402,7 @@ static void edit_data_init(SculptSession &ss,
           boundary.edit_info[ni.index].propagation_steps_num =
               boundary.edit_info[from_v_i].propagation_steps_num + 1;
 
-          next_iteration.push(ni.vertex);
+          next_iteration.push(ni.index);
 
           /* When copying the data to the neighbor for the next iteration, it has to be copied to
            * all its duplicates too. This is because it is not possible to know if the updated
@@ -438,7 +436,7 @@ static void edit_data_init(SculptSession &ss,
 
     /* Copy the new vertices to the queue to be processed in the next iteration. */
     while (!next_iteration.empty()) {
-      PBVHVertRef next_v = next_iteration.front();
+      const int next_v = next_iteration.front();
       next_iteration.pop();
       current_iteration.push(next_v);
     }
@@ -528,8 +526,10 @@ static void twist_data_init(SculptSession &ss, SculptBoundary &boundary)
   zero_v3(boundary.twist.pivot_position);
   Array<float3> face_verts(boundary.verts.size());
   for (int i = 0; i < boundary.verts.size(); i++) {
-    add_v3_v3(boundary.twist.pivot_position, SCULPT_vertex_co_get(ss, boundary.verts[i]));
-    copy_v3_v3(face_verts[i], SCULPT_vertex_co_get(ss, boundary.verts[i]));
+    const PBVHVertRef vert = BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.verts[i]);
+    const float3 boundary_position = SCULPT_vertex_co_get(ss, vert);
+    add_v3_v3(boundary.twist.pivot_position, boundary_position);
+    copy_v3_v3(face_verts[i], boundary_position);
   }
   mul_v3_fl(boundary.twist.pivot_position, 1.0f / boundary.verts.size());
   if (boundary.forms_loop) {

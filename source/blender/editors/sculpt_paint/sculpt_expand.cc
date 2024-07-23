@@ -625,7 +625,7 @@ static Array<float> boundary_topology_falloff_create(Object &ob, const PBVHVertR
   const int totvert = SCULPT_vertex_count_get(ss);
   Array<float> dists(totvert, 0.0f);
   BitVector<> visited_verts(totvert);
-  std::queue<PBVHVertRef> queue;
+  std::queue<int> queue;
 
   /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -644,7 +644,7 @@ static Array<float> boundary_topology_falloff_create(Object &ob, const PBVHVertR
 
     for (int i = 0; i < boundary->verts.size(); i++) {
       queue.push(boundary->verts[i]);
-      visited_verts[BKE_pbvh_vertex_to_index(*ss.pbvh, boundary->verts[i])].set();
+      visited_verts[boundary->verts[i]].set();
     }
   }
 
@@ -655,10 +655,10 @@ static Array<float> boundary_topology_falloff_create(Object &ob, const PBVHVertR
 
   /* Propagate the values from the boundaries to the rest of the mesh. */
   while (!queue.empty()) {
-    PBVHVertRef v_next = queue.front();
+    int v_next_i = queue.front();
     queue.pop();
 
-    int v_next_i = BKE_pbvh_vertex_to_index(*ss.pbvh, v_next);
+    PBVHVertRef v_next = BKE_pbvh_index_to_vertex(*ss.pbvh, v_next_i);
 
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_next, ni) {
@@ -667,7 +667,7 @@ static Array<float> boundary_topology_falloff_create(Object &ob, const PBVHVertR
       }
       dists[ni.index] = dists[v_next_i] + 1.0f;
       visited_verts[ni.index].set();
-      queue.push(ni.vertex);
+      queue.push(ni.index);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
