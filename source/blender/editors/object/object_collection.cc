@@ -665,7 +665,15 @@ static void COLLECTION_OT_exporter_export(wmOperatorType *ot)
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Exporter index", 0, INT_MAX);
 }
 
-static int collection_export(bContext *C, wmOperator *op, Collection *collection)
+struct CollectionExportStats {
+  int num_successful_exports = 0;
+  int num_collections = 0;
+};
+
+static int collection_export(bContext *C,
+                             wmOperator *op,
+                             Collection *collection,
+                             CollectionExportStats &stats)
 {
   ListBase *exporters = &collection->exporters;
   int num_files = 0;
@@ -681,16 +689,29 @@ static int collection_export(bContext *C, wmOperator *op, Collection *collection
   }
 
   if (num_files) {
-    BKE_reportf(op->reports, RPT_INFO, "Exported %d files", num_files);
+    stats.num_successful_exports += num_files;
+    stats.num_collections++;
   }
-
   return OPERATOR_FINISHED;
 }
 
 static int collection_io_export_all_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
-  return collection_export(C, op, collection);
+  CollectionExportStats stats;
+  int result = collection_export(C, op, collection, stats);
+
+  /* Only report if nothing was cancelled along the way. We don't want this UI report to happen
+   * over-top any reports from the actual failures. */
+  if (result == OPERATOR_FINISHED && stats.num_successful_exports > 0) {
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "Exported %d files from collection '%s'",
+                stats.num_successful_exports,
+                collection->id.name + 2);
+  }
+
+  return result;
 }
 
 static void COLLECTION_OT_export_all(wmOperatorType *ot)
@@ -710,7 +731,8 @@ static void COLLECTION_OT_export_all(wmOperatorType *ot)
 
 static int collection_export_recursive(bContext *C,
                                        wmOperator *op,
-                                       LayerCollection *layer_collection)
+                                       LayerCollection *layer_collection,
+                                       CollectionExportStats &stats)
 {
   /* Skip collections which have been Excluded in the View Layer. */
   if (layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -721,12 +743,12 @@ static int collection_export_recursive(bContext *C,
     return OPERATOR_FINISHED;
   }
 
-  if (collection_export(C, op, layer_collection->collection) != OPERATOR_FINISHED) {
+  if (collection_export(C, op, layer_collection->collection, stats) != OPERATOR_FINISHED) {
     return OPERATOR_CANCELLED;
   }
 
   LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
-    if (collection_export_recursive(C, op, child) != OPERATOR_FINISHED) {
+    if (collection_export_recursive(C, op, child, stats) != OPERATOR_FINISHED) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -737,10 +759,22 @@ static int collection_export_recursive(bContext *C,
 static int wm_collection_export_all_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  CollectionExportStats stats;
   LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    if (collection_export_recursive(C, op, layer_collection) != OPERATOR_FINISHED) {
+    if (collection_export_recursive(C, op, layer_collection, stats) != OPERATOR_FINISHED) {
       return OPERATOR_CANCELLED;
     }
+  }
+
+  /* Only report if nothing was cancelled along the way. We don't want this UI report to happen
+   * over-top any reports from the actual failures. */
+  if (stats.num_successful_exports > 0) {
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "Exported %d files from %d collections",
+                stats.num_successful_exports,
+                stats.num_collections);
   }
 
   return OPERATOR_FINISHED;
