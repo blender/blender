@@ -1571,7 +1571,18 @@ static size_t animfilter_action_slots(bAnimContext *ac,
   int num_items = 0;
   for (animrig::Slot *slot : action.slots()) {
     BLI_assert(slot);
-    ID *animated_id = animrig::action_slot_get_id_best_guess(*ac->bmain, *slot, owner_id);
+
+    /* In some cases (see `ob_to_keylist()` and friends) fake bDopeSheet and fake bAnimContext are
+     * created. These are mostly null-initialised, and so do not have a bmain. This means that
+     * lookup of the animated ID is not possible, which can result in failure to look up the proper
+     * F-Curve display name. For the `..._to_keylist` functions that doens't matter, as those are
+     * only interested in the key data anyway. So rather than trying to get a reliable `bmain`
+     * through the maze, this code just treats it as optional (even though ideally it should always
+     * be known). */
+    ID *animated_id = nullptr;
+    if (ac->bmain) {
+      animated_id = animrig::action_slot_get_id_best_guess(*ac->bmain, *slot, owner_id);
+    }
     if (!animated_id) {
       /* This is not necessarily correct, but at least it prevents nullptr dereference. */
       animated_id = owner_id;
