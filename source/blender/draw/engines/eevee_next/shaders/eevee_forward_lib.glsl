@@ -79,7 +79,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   vec3 radiance_direct = vec3(0.0);
   vec3 radiance_indirect = vec3(0.0);
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get(i);
+    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0);
     if (cl.weight > 1e-5) {
       vec3 direct_light = closure_light_get(stack, i).light_shadowed;
       vec3 indirect_light = lightprobe_eval(samp, cl, g_data.P, V, thickness);
@@ -91,7 +91,6 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
         /* We model two transmission event, so the surface color need to be applied twice. */
         cl.color *= cl.color;
       }
-      cl.color *= cl.weight;
 
       radiance_direct += direct_light * cl.color;
       radiance_indirect += indirect_light * cl.color;
