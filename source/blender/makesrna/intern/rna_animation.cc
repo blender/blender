@@ -1714,6 +1714,7 @@ static void rna_def_animdata(BlenderRNA *brna)
       "Action Slot",
       "The slot identifies which sub-set of the Action is considered to be for this "
       "data-block, and its name is used to find the right slot when assigning an Action");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
 
 #  endif
 

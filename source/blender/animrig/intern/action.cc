@@ -1124,23 +1124,23 @@ FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor)
   return animrig::fcurve_find(fcurves, fcurve_descriptor);
 }
 
-FCurve &ChannelBag::fcurve_ensure(const FCurveDescriptor fcurve_descriptor)
+FCurve &ChannelBag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_descriptor)
 {
   if (FCurve *existing_fcurve = this->fcurve_find(fcurve_descriptor)) {
     return *existing_fcurve;
   }
-  return this->fcurve_create(fcurve_descriptor);
+  return this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve *ChannelBag::fcurve_create_unique(FCurveDescriptor fcurve_descriptor)
+FCurve *ChannelBag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor)
 {
   if (this->fcurve_find(fcurve_descriptor)) {
     return nullptr;
   }
-  return &this->fcurve_create(fcurve_descriptor);
+  return &this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve &ChannelBag::fcurve_create(FCurveDescriptor fcurve_descriptor)
+FCurve &ChannelBag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descriptor)
 {
   FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
@@ -1149,6 +1149,11 @@ FCurve &ChannelBag::fcurve_create(FCurveDescriptor fcurve_descriptor)
   }
 
   grow_array_and_append(&this->fcurve_array, &this->fcurve_array_num, new_fcurve);
+
+  if (bmain) {
+    DEG_relations_tag_update(bmain);
+  }
+
   return *new_fcurve;
 }
 
@@ -1167,6 +1172,10 @@ bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
   dna::array::remove_index(
       &this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_index, fcurve_ptr_destructor);
 
+  /* As an optimisation, this function could call `DEG_relations_tag_update(bmain)` to prune any
+   * relationships that are now no longer necessary. This is not needed for correctness of the
+   * depsgraph evaluation results though. */
+
   return true;
 }
 
@@ -1175,7 +1184,8 @@ void ChannelBag::fcurves_clear()
   dna::array::clear(&this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_ptr_destructor);
 }
 
-SingleKeyingResult KeyframeStrip::keyframe_insert(const Slot &slot,
+SingleKeyingResult KeyframeStrip::keyframe_insert(Main *bmain,
+                                                  const Slot &slot,
                                                   const FCurveDescriptor fcurve_descriptor,
                                                   const float2 time_value,
                                                   const KeyframeSettings &settings,
@@ -1185,7 +1195,7 @@ SingleKeyingResult KeyframeStrip::keyframe_insert(const Slot &slot,
    * allow. */
   FCurve *fcurve = nullptr;
   if (key_insertion_may_create_fcurve(insert_key_flags)) {
-    fcurve = &this->channelbag_for_slot_ensure(slot).fcurve_ensure(fcurve_descriptor);
+    fcurve = &this->channelbag_for_slot_ensure(slot).fcurve_ensure(bmain, fcurve_descriptor);
   }
   else {
     ChannelBag *channels = this->channelbag_for_slot(slot);
@@ -1438,7 +1448,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
     assert_baklava_phase_1_invariants(action);
     KeyframeStrip &strip = action.layer(0)->strip(0)->as<KeyframeStrip>();
 
-    return &strip.channelbag_for_slot_ensure(slot).fcurve_ensure(fcurve_descriptor);
+    return &strip.channelbag_for_slot_ensure(slot).fcurve_ensure(bmain, fcurve_descriptor);
   }
 
   /* Try to find f-curve matching for this setting.

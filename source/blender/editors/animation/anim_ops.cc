@@ -740,6 +740,7 @@ static int slot_unassign_object_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   animrig::unassign_slot(object->id);
 
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
   return OPERATOR_FINISHED;
 }

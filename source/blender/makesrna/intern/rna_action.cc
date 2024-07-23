@@ -513,7 +513,7 @@ static bool rna_KeyframeActionStrip_key_insert(ID *id,
   const animrig::KeyframeSettings settings = animrig::get_keyframe_settings(true);
 
   const animrig::SingleKeyingResult result = key_strip.keyframe_insert(
-      slot, {rna_path, array_index}, {time, value}, settings, INSERTKEY_NOFLAGS);
+      bmain, slot, {rna_path, array_index}, {time, value}, settings, INSERTKEY_NOFLAGS);
 
   const bool ok = result == animrig::SingleKeyingResult::SUCCESS;
   if (ok) {
@@ -565,6 +565,7 @@ static int rna_iterator_ChannelBag_fcurves_length(PointerRNA *ptr)
 }
 
 static FCurve *rna_ChannelBag_fcurve_new(ActionChannelBag *dna_channelbag,
+                                         Main *bmain,
                                          ReportList *reports,
                                          const char *data_path,
                                          const int index)
@@ -576,7 +577,7 @@ static FCurve *rna_ChannelBag_fcurve_new(ActionChannelBag *dna_channelbag,
   }
 
   animrig::ChannelBag &self = dna_channelbag->wrap();
-  FCurve *fcurve = self.fcurve_create_unique({data_path, index});
+  FCurve *fcurve = self.fcurve_create_unique(bmain, {data_path, index});
   if (!fcurve) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -1758,7 +1759,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "new", "rna_ChannelBag_fcurve_new");
   RNA_def_function_ui_description(func, "Add an F-Curve to the channelbag");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "data_path", nullptr, 0, "Data Path", "F-Curve data path to use");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);

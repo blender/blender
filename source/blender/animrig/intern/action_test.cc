@@ -144,9 +144,9 @@ TEST_F(ActionLayersTest, add_strip)
   /* Add some keys to check that also the strip data is freed correctly. */
   const KeyframeSettings settings = get_keyframe_settings(false);
   Slot &slot = action->slot_add();
-  strip.as<KeyframeStrip>().keyframe_insert(slot, {"location", 0}, {1.0f, 47.0f}, settings);
+  strip.as<KeyframeStrip>().keyframe_insert(bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
   another_strip.as<KeyframeStrip>().keyframe_insert(
-      slot, {"location", 0}, {1.0f, 47.0f}, settings);
+      bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
 }
 
 TEST_F(ActionLayersTest, remove_strip)
@@ -159,9 +159,12 @@ TEST_F(ActionLayersTest, remove_strip)
   /* Add some keys to check that also the strip data is freed correctly. */
   const KeyframeSettings settings = get_keyframe_settings(false);
   Slot &slot = action->slot_add();
-  strip0.as<KeyframeStrip>().keyframe_insert(slot, {"location", 0}, {1.0f, 47.0f}, settings);
-  strip1.as<KeyframeStrip>().keyframe_insert(slot, {"location", 0}, {1.0f, 47.0f}, settings);
-  strip2.as<KeyframeStrip>().keyframe_insert(slot, {"location", 0}, {1.0f, 47.0f}, settings);
+  strip0.as<KeyframeStrip>().keyframe_insert(
+      bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
+  strip1.as<KeyframeStrip>().keyframe_insert(
+      bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
+  strip2.as<KeyframeStrip>().keyframe_insert(
+      bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
 
   EXPECT_TRUE(layer.strip_remove(strip1));
   EXPECT_EQ(2, layer.strips().size());
@@ -555,7 +558,7 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
 
   const KeyframeSettings settings = get_keyframe_settings(false);
   SingleKeyingResult result_loc_a = key_strip.keyframe_insert(
-      slot, {"location", 0}, {1.0f, 47.0f}, settings);
+      bmain, slot, {"location", 0}, {1.0f, 47.0f}, settings);
   ASSERT_EQ(SingleKeyingResult::SUCCESS, result_loc_a)
       << "Expected keyframe insertion to be successful";
 
@@ -566,7 +569,7 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
 
   /* Insert a second key, should insert into the same FCurve as before. */
   SingleKeyingResult result_loc_b = key_strip.keyframe_insert(
-      slot, {"location", 0}, {5.0f, 47.1f}, settings);
+      bmain, slot, {"location", 0}, {5.0f, 47.1f}, settings);
   EXPECT_EQ(SingleKeyingResult::SUCCESS, result_loc_b);
   ASSERT_EQ(1, channels->fcurves().size()) << "Expect insertion with the same (slot/rna "
                                               "path/array index) tuple to go into the same FCurve";
@@ -579,7 +582,7 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
 
   /* Insert another key for another property, should create another FCurve. */
   SingleKeyingResult result_rot = key_strip.keyframe_insert(
-      slot, {"rotation_quaternion", 0}, {1.0f, 0.25f}, settings);
+      bmain, slot, {"rotation_quaternion", 0}, {1.0f, 0.25f}, settings);
   EXPECT_EQ(SingleKeyingResult::SUCCESS, result_rot);
   ASSERT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
   EXPECT_EQ(2, channels->fcurves()[0]->totvert);

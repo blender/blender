@@ -877,7 +877,8 @@ struct KeyInsertData {
   int array_index;
 };
 
-static SingleKeyingResult insert_key_layer(Layer &layer,
+static SingleKeyingResult insert_key_layer(Main *bmain,
+                                           Layer &layer,
                                            const Slot &slot,
                                            const std::string &rna_path,
                                            const std::optional<PropertySubType> prop_subtype,
@@ -889,14 +890,16 @@ static SingleKeyingResult insert_key_layer(Layer &layer,
   BLI_assert(layer.strips().size() == 1);
 
   Strip *strip = layer.strip(0);
-  return strip->as<KeyframeStrip>().keyframe_insert(slot,
+  return strip->as<KeyframeStrip>().keyframe_insert(bmain,
+                                                    slot,
                                                     {rna_path, key_data.array_index, prop_subtype},
                                                     key_data.position,
                                                     key_settings,
                                                     insert_key_flags);
 }
 
-static CombinedKeyingResult insert_key_layered_action(Action &action,
+static CombinedKeyingResult insert_key_layered_action(Main *bmain,
+                                                      Action &action,
                                                       PointerRNA *rna_pointer,
                                                       const blender::Span<RNAPath> rna_paths,
                                                       const float scene_frame,
@@ -955,7 +958,8 @@ static CombinedKeyingResult insert_key_layered_action(Action &action,
       }
 
       const KeyInsertData key_data = {{scene_frame, rna_values[property_index]}, property_index};
-      const SingleKeyingResult result = insert_key_layer(*layer,
+      const SingleKeyingResult result = insert_key_layer(bmain,
+                                                         *layer,
                                                          slot,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
@@ -1002,7 +1006,8 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     KeyframeSettings key_settings = get_keyframe_settings(
         (insert_key_flags & INSERTKEY_NO_USERPREF) == 0);
     key_settings.keyframe_type = key_type;
-    return insert_key_layered_action(action,
+    return insert_key_layered_action(bmain,
+                                     action,
                                      struct_pointer,
                                      rna_paths,
                                      scene_frame.value_or(anim_eval_context.eval_time),

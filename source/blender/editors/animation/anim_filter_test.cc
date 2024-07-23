@@ -77,13 +77,15 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   /* Create multiple FCurves for multiple Slots. */
   const KeyframeSettings settings = get_keyframe_settings(false);
   ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_cube, {"location", 0}, {1.0f, 0.25f}, settings));
+            key_strip.keyframe_insert(bmain, bind_cube, {"location", 0}, {1.0f, 0.25f}, settings));
   ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_cube, {"location", 1}, {1.0f, 0.25f}, settings));
-  ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_suzanne, {"location", 0}, {1.0f, 0.25f}, settings));
-  ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_suzanne, {"location", 1}, {1.0f, 0.25f}, settings));
+            key_strip.keyframe_insert(bmain, bind_cube, {"location", 1}, {1.0f, 0.25f}, settings));
+  ASSERT_EQ(
+      SingleKeyingResult::SUCCESS,
+      key_strip.keyframe_insert(bmain, bind_suzanne, {"location", 0}, {1.0f, 0.25f}, settings));
+  ASSERT_EQ(
+      SingleKeyingResult::SUCCESS,
+      key_strip.keyframe_insert(bmain, bind_suzanne, {"location", 1}, {1.0f, 0.25f}, settings));
 
   ChannelBag *cube_channel_bag = key_strip.channelbag_for_slot(bind_cube);
   ASSERT_NE(nullptr, cube_channel_bag);
@@ -232,9 +234,9 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   /* Create multiple FCurves. */
   const KeyframeSettings settings = get_keyframe_settings(false);
   ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_cube, {"location", 0}, {1.0f, 0.25f}, settings));
+            key_strip.keyframe_insert(bmain, bind_cube, {"location", 0}, {1.0f, 0.25f}, settings));
   ASSERT_EQ(SingleKeyingResult::SUCCESS,
-            key_strip.keyframe_insert(bind_cube, {"location", 1}, {1.0f, 0.25f}, settings));
+            key_strip.keyframe_insert(bmain, bind_cube, {"location", 1}, {1.0f, 0.25f}, settings));
 
   /* Set one F-Curve as the active one, and the other as inactive. The latter is necessary because
    * by default the first curve is automatically marked active, but that's too trivial a test case
