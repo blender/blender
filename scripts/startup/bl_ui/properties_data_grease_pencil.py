@@ -24,7 +24,7 @@ class LayerDataButtonsPanel:
     @classmethod
     def poll(cls, context):
         grease_pencil = context.grease_pencil
-        return grease_pencil and grease_pencil.layers.active_layer
+        return grease_pencil and grease_pencil.layers.active
 
 
 class GREASE_PENCIL_UL_masks(UIList):
@@ -44,7 +44,7 @@ class GreasePencil_LayerMaskPanel:
     def draw_header(self, context):
         ob = context.object
         grease_pencil = ob.data
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
 
         self.layout.prop(layer, "use_masks", text="", toggle=0)
 
@@ -52,7 +52,7 @@ class GreasePencil_LayerMaskPanel:
         layout = self.layout
         ob = context.object
         grease_pencil = ob.data
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
 
         layout = self.layout
         layout.enabled = layer.use_masks
@@ -86,7 +86,7 @@ class GreasePencil_LayerTransformPanel:
 
         ob = context.object
         grease_pencil = ob.data
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
         layout.active = not layer.lock
 
         row = layout.row(align=True)
@@ -106,7 +106,7 @@ class GreasPencil_LayerRelationsPanel:
 
         ob = context.object
         grease_pencil = ob.data
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
         layout.active = not layer.lock
 
         row = layout.row(align=True)
@@ -137,7 +137,7 @@ class GREASE_PENCIL_MT_layer_mask_add(Menu):
         layout = self.layout
 
         grease_pencil = context.grease_pencil
-        active_layer = grease_pencil.layers.active_layer
+        active_layer = grease_pencil.layers.active
         found = False
         for layer in grease_pencil.layers:
             if layer == active_layer or layer.name in active_layer.mask_layers:
@@ -174,7 +174,7 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         layout = self.layout
         ob = context.object
         grease_pencil = ob.data
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
         space = context.space_data
 
         if space.type == 'PROPERTIES':
@@ -223,7 +223,7 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         layout = self.layout
 
         grease_pencil = context.grease_pencil
-        layer = grease_pencil.layers.active_layer
+        layer = grease_pencil.layers.active
 
         row = layout.row()
         row.template_grease_pencil_layer_tree()
