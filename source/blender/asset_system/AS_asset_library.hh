@@ -127,13 +127,16 @@ class AssetLibrary {
    * \param relative_asset_path: The path of the asset relative to the asset library root. With
    *                             this the asset must be uniquely identifiable within the asset
    *                             library.
+   * \return A weak pointer to the new asset representation. The caller needs to keep some
+   *         reference stored to be able to call #remove_asset(). This would be dangling once the
+   *         asset library is destructed, so a weak pointer should be used to reference it.
    */
-  AssetRepresentation &add_external_asset(StringRef relative_asset_path,
-                                          StringRef name,
-                                          int id_type,
-                                          std::unique_ptr<AssetMetaData> metadata);
+  std::weak_ptr<AssetRepresentation> add_external_asset(StringRef relative_asset_path,
+                                                        StringRef name,
+                                                        int id_type,
+                                                        std::unique_ptr<AssetMetaData> metadata);
   /** See #AssetLibrary::add_external_asset(). */
-  AssetRepresentation &add_local_id_asset(StringRef relative_asset_path, ID &id);
+  std::weak_ptr<AssetRepresentation> add_local_id_asset(StringRef relative_asset_path, ID &id);
   /**
    * Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
