@@ -103,13 +103,7 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
     placement_loc_ = float3(0.0f);
   }
 
-  if (ELEM(plane_,
-           DrawingPlacementPlane::Front,
-           DrawingPlacementPlane::Side,
-           DrawingPlacementPlane::Top,
-           DrawingPlacementPlane::Cursor) &&
-      ELEM(depth_, DrawingPlacementDepth::ObjectOrigin, DrawingPlacementDepth::Cursor))
-  {
+  if (plane_ != DrawingPlacementPlane::View) {
     plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
   }
 }
