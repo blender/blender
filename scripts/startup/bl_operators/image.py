@@ -233,7 +233,7 @@ class IMAGE_OT_open_images(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.area and context.area.ui_type == 'IMAGE_EDITOR'
+        return context.area and context.area.type == 'IMAGE_EDITOR'
 
     def execute(self, context):
         if not self.directory or len(self.files) == 0:
@@ -307,7 +307,7 @@ class IMAGE_FH_drop_handler(FileHandler):
     def poll_drop(cls, context):
         return (
             (context.area is not None) and
-            (context.area.ui_type == 'IMAGE_EDITOR') and
+            (context.area.type == 'IMAGE_EDITOR') and
             (context.region is not None) and
             (context.region.type == 'WINDOW')
         )
