@@ -3662,6 +3662,7 @@ static void sculpt_topology_update(const Scene & /*scene*/,
   }
 
   bke::pbvh::bmesh_update_topology(*ss.pbvh,
+                                   *ss.bm_log,
                                    mode,
                                    ss.cache->location,
                                    ss.cache->view_normal,

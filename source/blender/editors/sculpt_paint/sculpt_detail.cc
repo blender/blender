@@ -129,7 +129,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   const double start_time = BLI_time_now_seconds();
 
   while (bke::pbvh::bmesh_update_topology(
-      *ss.pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
+      *ss.pbvh, *ss.bm_log, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
     for (bke::pbvh::Node *node : nodes) {
       BKE_pbvh_node_mark_topology_update(node);

@@ -2297,7 +2297,6 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_for_dynamic_topology(Object *ob)
   sculptsession_bmesh_add_layers(ob);
 
   return pbvh::build_bmesh(ob->sculpt->bm,
-                           ob->sculpt->bm_log,
                            ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
                            ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
 }
