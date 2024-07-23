@@ -2485,7 +2485,10 @@ void GreasePencil::remove_drawings_with_no_users()
   }
 
   /* Tail range of unused drawings that can be removed. */
-  const IndexRange drawings_to_remove = drawings.index_range().drop_front(last_used_drawing + 1);
+  const IndexRange drawings_to_remove = (first_unused_drawing > 0) ?
+                                            drawings.index_range().drop_front(last_used_drawing +
+                                                                              1) :
+                                            drawings.index_range();
   if (drawings_to_remove.is_empty()) {
     return;
   }
