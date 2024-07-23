@@ -157,7 +157,7 @@ class MeshDomainViewItem : public DataSetViewItem {
     return GeometryDataIdentifier{bke::GeometryComponent::Type::Mesh, std::nullopt, domain_};
   }
 
-  void build_row(uiLayout &row)
+  void build_row(uiLayout &row) override
   {
     const BIFIconID icon = mesh_domain_to_icon(domain_);
     uiItemL(&row, label_.c_str(), icon);
@@ -197,7 +197,7 @@ class CurvesDomainViewItem : public DataSetViewItem {
     return GeometryDataIdentifier{bke::GeometryComponent::Type::Curve, std::nullopt, domain_};
   }
 
-  void build_row(uiLayout &row)
+  void build_row(uiLayout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
     uiItemL(&row, label_.c_str(), icon);
@@ -283,7 +283,7 @@ class GreasePencilLayerCurvesDomainViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::GreasePencil, layer_index_, domain_};
   }
 
-  void build_row(uiLayout &row)
+  void build_row(uiLayout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
     uiItemL(&row, label_.c_str(), icon);
