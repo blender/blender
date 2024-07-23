@@ -4017,13 +4017,36 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
         else if (jd->sa1 && jd->sa1 == jd->sa2) {
           /* Same area so split. */
           if (area_split_allowed(jd->sa1, jd->split_dir) && jd->split_fac > 0.0001) {
-            jd->sa1 = area_split(jd->win2,
+            jd->sa2 = area_split(jd->win2,
                                  WM_window_get_active_screen(jd->win1),
                                  jd->sa1,
                                  jd->split_dir,
                                  jd->split_fac,
                                  true);
+
+            const bool large_v = jd->split_dir == SCREEN_AXIS_V &&
+                                 ((jd->x < event->xy[0] && jd->split_fac > 0.5f) ||
+                                  (jd->x > event->xy[0] && jd->split_fac < 0.5f));
+
+            const bool large_h = jd->split_dir == SCREEN_AXIS_H &&
+                                 ((jd->y < event->xy[1] && jd->split_fac > 0.5f) ||
+                                  (jd->y > event->xy[1] && jd->split_fac < 0.5f));
+
+            if (large_v || large_h) {
+              /* Swap areas to follow old behavior of new area added based on starting location. If
+               * from above the new area is above, if from below the new area is below, etc. Note
+               * that this preserves runtime data, unlike ED_area_swapspace. */
+              std::swap(jd->sa1->v1, jd->sa2->v1);
+              std::swap(jd->sa1->v2, jd->sa2->v2);
+              std::swap(jd->sa1->v3, jd->sa2->v3);
+              std::swap(jd->sa1->v4, jd->sa2->v4);
+              std::swap(jd->sa1->totrct, jd->sa2->totrct);
+              std::swap(jd->sa1->winx, jd->sa2->winx);
+              std::swap(jd->sa1->winy, jd->sa2->winy);
+            }
+
             ED_area_tag_redraw(jd->sa1);
+            ED_area_tag_redraw(jd->sa2);
           }
         }
         else if (U.experimental.use_docking && jd->sa1 && jd->sa2 &&
