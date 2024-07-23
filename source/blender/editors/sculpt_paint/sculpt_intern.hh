@@ -1094,12 +1094,12 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           const float3 &location,
                                           const float max_distance,
                                           const bool use_original);
-std::optional<SubdivCCGCoord> nearest_vert_calc_grids(bke::pbvh::Tree &pbvh,
+std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbvh,
                                                       const SubdivCCG &subdiv_ccg,
                                                       const float3 &location,
                                                       const float max_distance,
                                                       const bool use_original);
-std::optional<BMVert *> nearest_vert_calc_bmesh(bke::pbvh::Tree &pbvh,
+std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
                                                 const float3 &location,
                                                 const float max_distance,
                                                 const bool use_original);
