@@ -51,7 +51,6 @@ static bool is_vert_in_editable_boundary(SculptSession &ss, const PBVHVertRef in
  */
 static void indices_init(SculptSession &ss,
                          SculptBoundary &boundary,
-                         const bool init_boundary_distances,
                          const PBVHVertRef initial_boundary_vert);
 
 /**
@@ -94,11 +93,7 @@ std::unique_ptr<SculptBoundary> data_init(Object &object,
   std::unique_ptr<SculptBoundary> boundary = std::make_unique<SculptBoundary>();
   *boundary = {};
 
-  const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
-                                                   BRUSH_BOUNDARY_FALLOFF_CONSTANT :
-                                               false;
-
-  indices_init(ss, *boundary, init_boundary_distances, boundary_initial_vert);
+  indices_init(ss, *boundary, boundary_initial_vert);
 
   const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
   edit_data_init(ss, *boundary, boundary_initial_vert, boundary_radius);
@@ -234,9 +229,7 @@ static void add_index(SculptBoundary &boundary,
 {
   boundary.verts.append(new_vertex);
 
-  if (!boundary.distance.is_empty()) {
-    boundary.distance[new_index] = distance;
-  }
+  boundary.distance.add(new_index, distance);
   if (included_verts) {
     BLI_gset_add(included_verts, POINTER_FROM_INT(new_index));
   }
@@ -269,9 +262,8 @@ static bool floodfill_fn(SculptSession &ss,
     return false;
   }
   const float edge_len = len_v3v3(from_v_co, to_v_co);
-  const float distance_boundary_to_dst = !boundary.distance.is_empty() ?
-                                             boundary.distance[from_v_i] + edge_len :
-                                             0.0f;
+  const float distance_boundary_to_dst = boundary.distance.lookup_default(from_v_i, 0.0f) +
+                                         edge_len;
   add_index(boundary, to_v, to_v_i, distance_boundary_to_dst, data->included_verts);
   if (!is_duplicate) {
     boundary.edges.append({from_v_co, to_v_co});
@@ -281,15 +273,8 @@ static bool floodfill_fn(SculptSession &ss,
 
 static void indices_init(SculptSession &ss,
                          SculptBoundary &boundary,
-                         const bool init_boundary_distances,
                          const PBVHVertRef initial_boundary_vert)
 {
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-
-  if (init_boundary_distances) {
-    boundary.distance = Array<float>(totvert, 0.0f);
-  }
 
   GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
   flood_fill::FillData flood = flood_fill::init_fill(ss);
@@ -867,13 +852,17 @@ static void init_falloff(SculptSession &ss,
       continue;
     }
 
-    if (boundary.distance.is_empty()) {
+    const bool use_boundary_distances = brush.boundary_falloff_type !=
+                                        BRUSH_BOUNDARY_FALLOFF_CONSTANT;
+
+    if (!use_boundary_distances) {
       /* There are falloff modes that do not require to modify the previously calculated falloff
        * based on boundary distances. */
       continue;
     }
 
-    const float boundary_distance = boundary.distance[boundary.edit_info[i].original_vertex_i];
+    const float boundary_distance = boundary.distance.lookup_default(
+        boundary.edit_info[i].original_vertex_i, 0.0f);
     float falloff_distance = 0.0f;
     float direction = 1.0f;
 
@@ -1037,11 +1026,7 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
 
   SculptBoundary boundary;
 
-  const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
-                                                   BRUSH_BOUNDARY_FALLOFF_CONSTANT :
-                                               false;
-
-  indices_init(ss, boundary, init_boundary_distances, boundary_initial_vert);
+  indices_init(ss, boundary, boundary_initial_vert);
 
   const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
   edit_data_init(ss, boundary, boundary_initial_vert, boundary_radius);

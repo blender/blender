@@ -12,6 +12,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -345,7 +346,7 @@ struct SculptBoundary {
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
-  blender::Array<float> distance;
+  blender::Map<int, float> distance;
 
   /* Data for drawing the preview. */
   blender::Vector<std::pair<blender::float3, blender::float3>> edges;
