@@ -1578,6 +1578,32 @@ def pkg_manifest_validate_field_type(value: str, strict: bool) -> Optional[str]:
     return None
 
 
+def pkg_manifest_validate_field_blender_version(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    if (error := pkg_manifest_validate_field_any_version_primitive(value, strict)) is not None:
+        return error
+
+    if strict:
+        # NOTE: Blender's extension support allows `X`, `X.X`, `X.X.X`,
+        # Blender's own extensions site doesn't, so require this for validation.
+        if value.count(".") != 2:
+            return "expected 3 numbers separated by \".\", found \"{:s}\"".format(value)
+
+    return None
+
+
+def pkg_manifest_validate_field_blender_version_or_empty(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    if value:
+        return pkg_manifest_validate_field_blender_version(value, strict)
+
+    return None
+
+
 def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[str]:
     if strict:
         return pkg_manifest_validate_terse_description_or_error(value)
@@ -1790,10 +1816,10 @@ pkg_manifest_known_keys_and_types: Tuple[
     ("type", str, pkg_manifest_validate_field_type),
     ("maintainer", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("license", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
-    ("blender_version_min", str, pkg_manifest_validate_field_any_version_primitive),
+    ("blender_version_min", str, pkg_manifest_validate_field_blender_version),
 
     # Optional.
-    ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
+    ("blender_version_max", str, pkg_manifest_validate_field_blender_version_or_empty),
     ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("copyright", list, pkg_manifest_validate_field_copyright),
     # Type should be `dict` eventually, some existing packages will have a list of strings instead.
