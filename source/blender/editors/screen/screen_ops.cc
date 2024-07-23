@@ -1105,7 +1105,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
 
-  if (U.experimental.use_docking && sad->az->type == AZONE_AREA) {
+  if (U.experimental.use_docking && sad->az->type == AZONE_AREA && sad->modifier == 0) {
     actionzone_apply(C, op, sad->az->type);
     actionzone_exit(op);
     return OPERATOR_FINISHED;
