@@ -606,6 +606,7 @@ set(GLSL_SRC
   engines/select/shaders/select_id_vert.glsl
   engines/select/shaders/select_id_frag.glsl
   engines/select/shaders/select_lib.glsl
+  engines/select/shaders/select_debug_frag.glsl
 
   engines/select/select_shader_shared.hh
 

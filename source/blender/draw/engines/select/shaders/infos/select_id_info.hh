@@ -59,3 +59,10 @@ GPU_SHADER_CREATE_INFO(select_id_patch)
     .storage_buf(SELECT_ID_OUT, Qualifier::READ_WRITE, "uint", "out_select_buf[]");
 
 /** \} */
+
+GPU_SHADER_CREATE_INFO(select_debug_fullscreen)
+    .additional_info("draw_fullscreen")
+    .fragment_source("select_debug_frag.glsl")
+    .sampler(0, ImageType::UINT_2D, "image")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .do_static_compilation(true);

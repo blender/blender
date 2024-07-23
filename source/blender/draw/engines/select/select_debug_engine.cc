@@ -52,22 +52,7 @@ static void select_debug_engine_init(void *vedata)
   SELECTIDDEBUG_PassList *psl = ((SELECTIDDEBUG_Data *)vedata)->psl;
 
   if (!e_data.select_debug_sh) {
-    e_data.select_debug_sh = DRW_shader_create_fullscreen(
-        "uniform usampler2D image;"
-        "in vec4 uvcoordsvar;"
-        "out vec4 fragColor;"
-        "void main() {"
-        "  uint px = texture(image, uvcoordsvar.xy).r;"
-        "  fragColor = vec4(1.0, 1.0, 1.0, 0.0);"
-        "  if (px != 0u) {"
-        "    fragColor.a = 1.0;"
-        "    px &= 0x3Fu;"
-        "    fragColor.r = ((px >> 0) & 0x3u) / float(0x3u);"
-        "    fragColor.g = ((px >> 2) & 0x3u) / float(0x3u);"
-        "    fragColor.b = ((px >> 4) & 0x3u) / float(0x3u);"
-        "  }"
-        "}\n",
-        nullptr);
+    e_data.select_debug_sh = GPU_shader_create_from_info_name("select_debug_fullscreen");
   }
 
   psl->debug_pass = DRW_pass_create("Debug Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
