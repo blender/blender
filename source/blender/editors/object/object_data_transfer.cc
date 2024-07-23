@@ -111,11 +111,11 @@ static void dt_add_vcol_layers(const CustomData *cdata,
       continue;
     }
 
-    int num_data = CustomData_number_of_layers(cdata, type);
+    int data_num = CustomData_number_of_layers(cdata, type);
 
     RNA_enum_item_add_separator(r_item, r_totitem);
 
-    for (int j = 0; j < num_data; j++) {
+    for (int j = 0; j < data_num; j++) {
       EnumPropertyItem tmp_item = {0};
       tmp_item.value = idx++;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, type, j);
@@ -188,11 +188,11 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       *r_free = true;
       return item;
     }
-    int num_data = CustomData_number_of_layers(&mesh_eval->corner_data, CD_PROP_FLOAT2);
+    int data_num = CustomData_number_of_layers(&mesh_eval->corner_data, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
-    for (int i = 0; i < num_data; i++) {
+    for (int i = 0; i < data_num; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
           &mesh_eval->corner_data, CD_PROP_FLOAT2, i);

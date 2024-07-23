@@ -255,21 +255,21 @@ static void set_constraint_nth_target(bConstraint *con,
 {
   ListBase targets = {nullptr, nullptr};
   bConstraintTarget *ct;
-  int num_targets, i;
+  int targets_num, i;
 
   if (BKE_constraint_targets_get(con, &targets)) {
-    num_targets = BLI_listbase_count(&targets);
+    targets_num = BLI_listbase_count(&targets);
 
     if (index < 0) {
-      if (abs(index) < num_targets) {
-        index = num_targets - abs(index);
+      if (abs(index) < targets_num) {
+        index = targets_num - abs(index);
       }
       else {
-        index = num_targets - 1;
+        index = targets_num - 1;
       }
     }
-    else if (index >= num_targets) {
-      index = num_targets - 1;
+    else if (index >= targets_num) {
+      index = targets_num - 1;
     }
 
     for (ct = static_cast<bConstraintTarget *>(targets.first), i = 0; ct; ct = ct->next, i++) {

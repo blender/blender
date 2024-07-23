@@ -580,18 +580,18 @@ static Array<Object *> sorted_selected_editable_objects(bContext *C)
 
   /* Count all objects, but also tag all the selected ones. */
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
-  int num_objects = 0;
+  int objects_num = 0;
   CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
     object->id.tag |= LIB_TAG_DOIT;
-    num_objects++;
+    objects_num++;
   }
   CTX_DATA_END;
-  if (num_objects == 0) {
+  if (objects_num == 0) {
     return {};
   }
 
   /* Append all the objects. */
-  Array<Object *> sorted_objects(num_objects);
+  Array<Object *> sorted_objects(objects_num);
   int object_index = 0;
   CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
     if ((object->id.tag & LIB_TAG_DOIT) == 0) {

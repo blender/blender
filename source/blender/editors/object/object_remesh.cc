@@ -1021,22 +1021,22 @@ static bool quadriflow_check(bContext *C, wmOperator *op)
       area = BKE_mesh_calc_area(static_cast<const Mesh *>(ob->data));
       RNA_float_set(op->ptr, "mesh_area", area);
     }
-    int num_faces;
+    int faces_num;
     float edge_len = RNA_float_get(op->ptr, "target_edge_length");
 
-    num_faces = area / (edge_len * edge_len);
-    RNA_int_set(op->ptr, "target_faces", num_faces);
+    faces_num = area / (edge_len * edge_len);
+    RNA_int_set(op->ptr, "target_faces", faces_num);
   }
   else if (mode == QUADRIFLOW_REMESH_RATIO) {
     Object *ob = CTX_data_active_object(C);
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    int num_faces;
+    int faces_num;
     float ratio = RNA_float_get(op->ptr, "target_ratio");
 
-    num_faces = mesh->faces_num * ratio;
+    faces_num = mesh->faces_num * ratio;
 
-    RNA_int_set(op->ptr, "target_faces", num_faces);
+    RNA_int_set(op->ptr, "target_faces", faces_num);
   }
 
   return true;

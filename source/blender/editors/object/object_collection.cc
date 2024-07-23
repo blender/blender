@@ -666,8 +666,8 @@ static void COLLECTION_OT_exporter_export(wmOperatorType *ot)
 }
 
 struct CollectionExportStats {
-  int num_successful_exports = 0;
-  int num_collections = 0;
+  int successful_exports_num = 0;
+  int collections_num = 0;
 };
 
 static int collection_export(bContext *C,
@@ -676,7 +676,7 @@ static int collection_export(bContext *C,
                              CollectionExportStats &stats)
 {
   ListBase *exporters = &collection->exporters;
-  int num_files = 0;
+  int files_num = 0;
 
   LISTBASE_FOREACH (CollectionExport *, data, exporters) {
     if (collection_exporter_export(C, op, data, collection, false) != OPERATOR_FINISHED) {
@@ -684,13 +684,13 @@ static int collection_export(bContext *C,
       return OPERATOR_CANCELLED;
     }
     else {
-      num_files++;
+      files_num++;
     }
   }
 
-  if (num_files) {
-    stats.num_successful_exports += num_files;
-    stats.num_collections++;
+  if (files_num) {
+    stats.successful_exports_num += files_num;
+    stats.collections_num++;
   }
   return OPERATOR_FINISHED;
 }
@@ -703,11 +703,11 @@ static int collection_io_export_all_exec(bContext *C, wmOperator *op)
 
   /* Only report if nothing was cancelled along the way. We don't want this UI report to happen
    * over-top any reports from the actual failures. */
-  if (result == OPERATOR_FINISHED && stats.num_successful_exports > 0) {
+  if (result == OPERATOR_FINISHED && stats.successful_exports_num > 0) {
     BKE_reportf(op->reports,
                 RPT_INFO,
                 "Exported %d files from collection '%s'",
-                stats.num_successful_exports,
+                stats.successful_exports_num,
                 collection->id.name + 2);
   }
 
@@ -769,12 +769,12 @@ static int wm_collection_export_all_exec(bContext *C, wmOperator *op)
 
   /* Only report if nothing was cancelled along the way. We don't want this UI report to happen
    * over-top any reports from the actual failures. */
-  if (stats.num_successful_exports > 0) {
+  if (stats.successful_exports_num > 0) {
     BKE_reportf(op->reports,
                 RPT_INFO,
                 "Exported %d files from %d collections",
-                stats.num_successful_exports,
-                stats.num_collections);
+                stats.successful_exports_num,
+                stats.collections_num);
   }
 
   return OPERATOR_FINISHED;

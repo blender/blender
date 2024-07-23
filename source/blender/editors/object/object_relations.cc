@@ -192,8 +192,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
       }
       else {
         BPoint *bp = nu->bp;
-        const int num_points = nu->pntsu * nu->pntsv;
-        for (int nurb_index = 0; nurb_index < num_points; nurb_index++, bp++, curr_index++) {
+        const int points_num = nu->pntsu * nu->pntsv;
+        for (int nurb_index = 0; nurb_index < points_num; nurb_index++, bp++, curr_index++) {
           if (bp->f1 & SELECT) {
             if (par1 == INDEX_UNSET) {
               par1 = curr_index;
@@ -218,10 +218,10 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
   else if (obedit->type == OB_LATTICE) {
     Lattice *lt = static_cast<Lattice *>(obedit->data);
 
-    const int num_points = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv *
+    const int points_num = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv *
                            lt->editlatt->latt->pntsw;
     BPoint *bp = lt->editlatt->latt->def;
-    for (int curr_index = 0; curr_index < num_points; curr_index++, bp++) {
+    for (int curr_index = 0; curr_index < points_num; curr_index++, bp++) {
       if (bp->f1 & SELECT) {
         if (par1 == INDEX_UNSET) {
           par1 = curr_index;
