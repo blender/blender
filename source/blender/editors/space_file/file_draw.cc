@@ -1386,10 +1386,10 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     const bool is_filtered = params->filter_search[0] != '\0';
 
-    uchar text_col[4];
-    UI_GetThemeColor4ubv(TH_TEXT, text_col);
+    uchar text_col_mod[4];
+    copy_v4_v4_uchar(text_col_mod, text_col);
     if (!is_filtered) {
-      text_col[3] /= 2;
+      text_col_mod[3] /= 2;
     }
 
     const char *message = [&]() {
@@ -1406,7 +1406,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                              tile_draw_rect.xmin + UI_UNIT_X,
                              tile_draw_rect.ymax - UI_UNIT_Y,
                              message,
-                             text_col);
+                             text_col_mod);
   }
 
   BLF_batch_draw_end();
