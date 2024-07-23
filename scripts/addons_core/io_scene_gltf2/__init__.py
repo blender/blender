@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 58),
+    "version": (4, 2, 59),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -651,7 +651,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
 
     export_pointer_animation: BoolProperty(
         name='Export Animation Pointer (Experimental)',
-        description='Export material, Light & Camera animation as Animation Pointer',
+        description='Export material, Light & Camera animation as Animation Pointer. '
+                    'Available only for baked animation mode \'NLA Tracks\' and \'Scene\'',
         default=False
     )
 
@@ -1650,9 +1651,8 @@ def export_panel_animation_pointer(layout, operator):
     header.prop(operator, "export_pointer_animation", text="")
     header.label(text="Animation Pointer (Experimental)")
     if body:
-
         row = body.row()
-        row.active = operator.export_pointer_animation
+        row.active = header.active and operator.export_pointer_animation
         row.prop(operator, 'export_convert_animation_pointer')
 
 
