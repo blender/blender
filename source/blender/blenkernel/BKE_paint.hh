@@ -354,8 +354,7 @@ struct SculptBoundary {
   /* True if the boundary loops into itself. */
   bool forms_loop;
 
-  /* Initial vertex in the boundary which is closest to the current sculpt active vertex. */
-  PBVHVertRef initial_vert;
+  /* Initial vertex index in the boundary which is closest to the current sculpt active vertex. */
   int initial_vert_i;
 
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active

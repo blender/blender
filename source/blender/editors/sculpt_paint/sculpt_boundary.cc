@@ -281,12 +281,11 @@ static void indices_init(SculptSession &ss,
 
   int initial_boundary_index = BKE_pbvh_vertex_to_index(*ss.pbvh, initial_boundary_vert);
 
-  boundary.initial_vert = initial_boundary_vert;
   boundary.initial_vert_i = initial_boundary_index;
 
-  copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, boundary.initial_vert));
+  copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, initial_boundary_vert));
   add_index(boundary, initial_boundary_vert, initial_boundary_index, 0.0f, included_verts);
-  flood_fill::add_initial(flood, boundary.initial_vert);
+  flood_fill::add_initial(flood, initial_boundary_vert);
 
   BoundaryFloodFillData fdata{};
   fdata.boundary = &boundary;
@@ -844,9 +843,7 @@ static void init_falloff(SculptSession &ss,
           &brush, boundary.edit_info[i].propagation_steps_num, boundary.max_propagation_steps);
     }
 
-    if (boundary.edit_info[i].original_vertex_i ==
-        BKE_pbvh_vertex_to_index(*ss.pbvh, boundary.initial_vert))
-    {
+    if (boundary.edit_info[i].original_vertex_i == boundary.initial_vert_i) {
       /* All vertices that are propagated from the original vertex won't be affected by the
        * boundary falloff, so there is no need to calculate anything else. */
       continue;
