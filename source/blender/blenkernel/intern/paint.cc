@@ -2296,9 +2296,7 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_for_dynamic_topology(Object *ob)
 {
   sculptsession_bmesh_add_layers(ob);
 
-  return pbvh::build_bmesh(ob->sculpt->bm,
-                           ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                           ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
+  return pbvh::build_bmesh(ob->sculpt->bm);
 }
 
 static std::unique_ptr<pbvh::Tree> build_pbvh_from_regular_mesh(Object *ob,
@@ -2814,20 +2812,6 @@ SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
       ob, domain, proptype, name, &temp_params, ob->sculpt->pbvh->type(), true);
 }
 
-static void sculptsession_bmesh_attr_update_internal(Object *ob)
-{
-  using namespace blender;
-  SculptSession *ss = ob->sculpt;
-
-  sculptsession_bmesh_add_layers(ob);
-
-  if (ss->pbvh) {
-    bke::pbvh::update_bmesh_offsets(*ss->pbvh,
-                                    ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                                    ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
-  }
-}
-
 static void sculptsession_bmesh_add_layers(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -2880,7 +2864,7 @@ static void sculpt_attribute_update_refs(Object *ob, blender::bke::pbvh::Type pb
     }
 
     if (ss->bm) {
-      sculptsession_bmesh_attr_update_internal(ob);
+      sculptsession_bmesh_add_layers(ob);
     }
   }
 }

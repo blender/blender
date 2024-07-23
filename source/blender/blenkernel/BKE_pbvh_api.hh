@@ -209,8 +209,6 @@ class Tree {
   /* Dynamic topology */
   float bm_max_edge_len_;
   float bm_min_edge_len_;
-  int cd_vert_node_offset_ = -1;
-  int cd_face_node_offset_ = -1;
 
   float planes_[6][4];
   int num_planes_;
@@ -283,9 +281,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 /**
  * Build a Tree from a BMesh.
  */
-std::unique_ptr<Tree> build_bmesh(BMesh *bm, int cd_vert_node_offset, int cd_face_node_offset);
-
-void update_bmesh_offsets(Tree &pbvh, int cd_vert_node_offset, int cd_face_node_offset);
+std::unique_ptr<Tree> build_bmesh(BMesh *bm);
 
 void build_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image_user);
 void free(std::unique_ptr<Tree> &pbvh);
