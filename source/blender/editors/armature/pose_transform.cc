@@ -25,9 +25,11 @@
 #include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.hh"
+#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -773,8 +775,11 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 
 static int pose_copy_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::bke::blendfile;
+
+  Main *bmain = CTX_data_main(C);
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-  char filepath[FILE_MAX];
+
   /* Sanity checking. */
   if (ELEM(nullptr, ob, ob->pose)) {
     BKE_report(op->reports, RPT_ERROR, "No pose to copy");
@@ -782,47 +787,26 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   }
   /* Sets chan->flag to POSE_KEY if bone selected. */
   set_pose_keys(ob);
-  /* Construct a local bmain and only put object and its data into it,
-   * o this way we don't expand any other objects into the copy buffer
-   * file.
-   *
-   * TODO(sergey): Find an easier way to tell copy buffer to only store
-   * data we are actually interested in. Maybe pass it a flag to skip
-   * any datablock expansion?
-   */
-  Main *temp_bmain = BKE_main_new();
-  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
 
-  Object ob_copy = blender::dna::shallow_copy(*ob);
-  ob_copy.adt = nullptr;
+  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
+  copybuffer.id_add(
+      &ob->id,
+      PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
+          PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+          PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)},
+      [ob](LibraryIDLinkCallbackData *cb_data, PartialWriteContext::IDAddOptions /* options */)
+          -> PartialWriteContext::IDAddOperations {
+        /* Only include `ob->data` (i.e. the Armature) dependency. */
+        if (*(cb_data->id_pointer) == ob->data) {
+          return PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES;
+        }
+        return PartialWriteContext::IDAddOperations::CLEAR_DEPENDENCIES;
+      });
 
-  /* Copy the armature without using the default copy constructor. This prevents
-   * the compiler from complaining that the `layer`, `layer_used`, and
-   * `layer_protected` fields are DNA_DEPRECATED.
-   */
-  bArmature arm_copy;
-  memcpy(&arm_copy, ob->data, sizeof(arm_copy));
-
-  arm_copy.adt = nullptr;
-  ob_copy.data = &arm_copy;
-  BLI_addtail(&temp_bmain->objects, &ob_copy);
-  BLI_addtail(&temp_bmain->armatures, &arm_copy);
-  /* begin copy buffer on a temp bmain. */
-  BKE_copybuffer_copy_begin(temp_bmain);
-  /* Store the whole object to the copy buffer because pose can't be
-   * existing on its own.
-   */
-  BKE_copybuffer_copy_tag_ID(&ob_copy.id);
-
+  char filepath[FILE_MAX];
   pose_copybuffer_filepath_get(filepath, sizeof(filepath));
-  BKE_copybuffer_copy_end(temp_bmain, filepath, op->reports);
-  /* We clear the lists so no datablocks gets freed,
-   * This is required because objects in temp bmain shares same pointers
-   * as the real ones.
-   */
-  BLI_listbase_clear(&temp_bmain->objects);
-  BLI_listbase_clear(&temp_bmain->armatures);
-  BKE_main_free(temp_bmain);
+  copybuffer.write(filepath, *op->reports);
+
   /* We are all done! */
   BKE_report(op->reports, RPT_INFO, "Copied pose to internal clipboard");
   return OPERATOR_FINISHED;
