@@ -247,11 +247,9 @@ class GreasePencilLayersViewItem : public DataSetViewItem {
 class GreasePencilLayerViewItem : public DataSetViewItem {
  private:
   const bke::greasepencil::Layer &layer_;
-  int layer_index_;
 
  public:
-  GreasePencilLayerViewItem(const bke::greasepencil::Layer &layer, const int layer_index)
-      : layer_(layer), layer_index_(layer_index)
+  GreasePencilLayerViewItem(const bke::greasepencil::Layer &layer) : layer_(layer)
   {
     label_ = layer_.name();
   }
@@ -453,7 +451,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
     const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
     for (const int layer_i : layers.index_range()) {
       const bke::greasepencil::Layer &layer = *layers[layer_i];
-      auto &layer_item = layers_item.add_tree_item<GreasePencilLayerViewItem>(layer, layer_i);
+      auto &layer_item = layers_item.add_tree_item<GreasePencilLayerViewItem>(layer);
       layer_item.add_tree_item<GreasePencilLayerCurvesDomainViewItem>(
           *grease_pencil, layer_i, bke::AttrDomain::Point);
       layer_item.add_tree_item<GreasePencilLayerCurvesDomainViewItem>(
