@@ -1024,7 +1024,7 @@ static void rna_def_grease_pencil_layer_group_api(BlenderRNA *brna, PropertyRNA 
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
-  prop = RNA_def_property(srna, "active_group", PROP_POINTER, PROP_NONE);
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_GreasePencil_active_group_get",
