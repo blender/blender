@@ -888,7 +888,7 @@ IndexMask retrieve_visible_strokes(Object &object,
 
   /* Get all the strokes that have their material visible. */
   const VArray<int> materials = *attributes.lookup_or_default<int>(
-      "material_index", bke::AttrDomain::Curve, -1);
+      "material_index", bke::AttrDomain::Curve, 0);
   return IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];

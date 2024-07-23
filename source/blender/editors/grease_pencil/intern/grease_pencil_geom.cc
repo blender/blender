@@ -697,7 +697,7 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
   const VArray<int8_t> src_end_caps = *src_attributes.lookup_or_default<int8_t>(
       "end_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_ROUND);
   const VArray<int> src_material_index = *src_attributes.lookup_or_default(
-      "material_index", bke::AttrDomain::Curve, -1);
+      "material_index", bke::AttrDomain::Curve, 0);
 
   /* Transform positions. */
   Array<float3> transformed_positions(src_positions.size());

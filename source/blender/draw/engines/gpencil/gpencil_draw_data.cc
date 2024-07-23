@@ -304,6 +304,7 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     GPUUniformBuf **r_ubo_mat)
 {
   GPENCIL_MaterialPool *matpool = first_pool;
+  BLI_assert(mat_id >= 0);
   int pool_id = mat_id / GPENCIL_MATERIAL_BUFFER_LEN;
   for (int i = 0; i < pool_id; i++) {
     matpool = matpool->next;
