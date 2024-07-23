@@ -219,19 +219,17 @@ static PBVHVertRef get_closest_boundary_vert(SculptSession &ss,
 /* Used to allocate the memory of the boundary index arrays. This was decided considered the most
  * common use cases for the brush deformers, taking into account how many vertices those
  * deformations usually need in the boundary. */
-static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
+constexpr int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
 static void add_index(SculptBoundary &boundary,
                       const int new_index,
                       const float distance,
-                      GSet *included_verts)
+                      Set<int, BOUNDARY_INDICES_BLOCK_SIZE> &included_verts)
 {
   boundary.verts.append(new_index);
 
   boundary.distance.add(new_index, distance);
-  if (included_verts) {
-    BLI_gset_add(included_verts, POINTER_FROM_INT(new_index));
-  }
+  included_verts.add(new_index);
 };
 
 /* Flood fill that adds to the boundary data all the vertices from a boundary and its duplicates.
@@ -239,7 +237,7 @@ static void add_index(SculptBoundary &boundary,
 
 struct BoundaryFloodFillData {
   SculptBoundary *boundary;
-  GSet *included_verts;
+  Set<int, BOUNDARY_INDICES_BLOCK_SIZE> included_verts;
 
   PBVHVertRef last_visited_vertex;
 };
@@ -275,21 +273,19 @@ static void indices_init(SculptSession &ss,
                          const PBVHVertRef initial_boundary_vert)
 {
 
-  GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
   flood_fill::FillData flood = flood_fill::init_fill(ss);
 
   int initial_boundary_index = BKE_pbvh_vertex_to_index(*ss.pbvh, initial_boundary_vert);
 
   boundary.initial_vert_i = initial_boundary_index;
-
   copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, initial_boundary_vert));
-  add_index(boundary, initial_boundary_index, 0.0f, included_verts);
-  flood_fill::add_initial(flood, initial_boundary_vert);
 
   BoundaryFloodFillData fdata{};
   fdata.boundary = &boundary;
-  fdata.included_verts = included_verts;
   fdata.last_visited_vertex = {BOUNDARY_VERTEX_NONE};
+
+  add_index(boundary, initial_boundary_index, 0.0f, fdata.included_verts);
+  flood_fill::add_initial(flood, initial_boundary_vert);
 
   flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
@@ -301,9 +297,7 @@ static void indices_init(SculptSession &ss,
   {
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, fdata.last_visited_vertex, ni) {
-      if (BLI_gset_haskey(included_verts, POINTER_FROM_INT(ni.index)) &&
-          is_vert_in_editable_boundary(ss, ni.vertex))
-      {
+      if (fdata.included_verts.contains(ni.index) && is_vert_in_editable_boundary(ss, ni.vertex)) {
 
         const float3 from_v_co = SCULPT_vertex_co_get(ss, fdata.last_visited_vertex);
         const float3 to_v_co = SCULPT_vertex_co_get(ss, ni.vertex);
@@ -314,8 +308,6 @@ static void indices_init(SculptSession &ss,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-
-  BLI_gset_free(included_verts, nullptr);
 }
 
 /** \} */
