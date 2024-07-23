@@ -3803,6 +3803,10 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
     return AreaDockTarget::None;
   }
 
+  if (jd->sa1 == jd->sa2) {
+    return AreaDockTarget::None;
+  }
+
   /* Convert to local coordinates in sa2. */
   const int x = event->xy[0] + jd->win1->posx - jd->win2->posx - jd->sa2->totrct.xmin;
   const int y = event->xy[1] + jd->win1->posy - jd->win2->posy - jd->sa2->totrct.ymin;
@@ -3848,7 +3852,7 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   }
 
   /* Are we in the center? But not in same area! */
-  if (jd->sa1 != jd->sa2 && fac_x > 0.4f && fac_x < 0.6f && fac_y > 0.4f && fac_y < 0.6f) {
+  if (fac_x > 0.4f && fac_x < 0.6f && fac_y > 0.4f && fac_y < 0.6f) {
     return AreaDockTarget::Center;
   }
 
@@ -3925,15 +3929,17 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
     return;
   }
 
-  if (!(abs(jd->x - event->xy[0]) > (10 * U.pixelsize) ||
-        abs(jd->y - event->xy[1]) > (10 * U.pixelsize)))
-  {
-    jd->sa2 = area;
-    return;
-  }
-
   if (jd->sa1 == area) {
     jd->sa2 = area;
+    if (!(abs(jd->x - event->xy[0]) > (10 * U.pixelsize) ||
+          abs(jd->y - event->xy[1]) > (10 * U.pixelsize)))
+    {
+      /* We haven't moved enough to start a split. */
+      jd->dir = SCREEN_DIR_NONE;
+      jd->dock_target = AreaDockTarget::None;
+      return;
+    }
+
     jd->split_dir = (abs(event->xy[0] - jd->x) > abs(event->xy[1] - jd->y)) ? SCREEN_AXIS_V :
                                                                               SCREEN_AXIS_H;
     jd->split_fac = area_split_factor(C, jd, event);
