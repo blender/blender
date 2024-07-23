@@ -76,6 +76,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
+#include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -105,6 +106,8 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
+
+#include "NOD_composite.hh"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.hh"
@@ -784,6 +787,19 @@ static void wm_file_read_post(bContext *C,
     wm_event_do_depsgraph(C, true);
 
     ED_editors_init(C);
+
+    /* Add-ons are disabled when loading the startup file, so the Render Layer node in compositor
+     * node trees might be wrong due to missing render engines that are available as add-ons, like
+     * Cycles. So we need to update compositor node trees after reading the file when add-ons are
+     * now loaded. */
+    if (is_startup_file) {
+      FOREACH_NODETREE_BEGIN (bmain, node_tree, owner_id) {
+        if (node_tree->type == NTREE_COMPOSIT) {
+          ntreeCompositUpdateRLayers(node_tree);
+        }
+      }
+      FOREACH_NODETREE_END;
+    }
 
 #if 1
     WM_event_add_notifier(C, NC_WM | ND_FILEREAD, nullptr);
