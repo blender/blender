@@ -118,13 +118,13 @@ report_error_on_address(const void *vmemh, const char *message, ...)
     return;
   }
 
-  MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-  size_t len = MEMHEAD_LEN(memh);
+  const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+  const size_t len = MEMHEAD_LEN(memh);
 
-  void *address = memh;
+  const void *address = memh;
   size_t size = len + sizeof(*memh);
   if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
-    MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+    const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
     address = MEMHEAD_REAL_PTR(memh_aligned);
     size = len + sizeof(*memh_aligned) + MEMHEAD_ALIGN_PADDING(memh_aligned->alignment);
   }
