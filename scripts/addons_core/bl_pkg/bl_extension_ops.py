@@ -3048,7 +3048,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                             lambda layout: layout.separator(),
                             "The extension dropped was not found in the remote repository.",
                             "Check this is part of the repository and compatible with:",
-                            "Blender v{:s} on \"{:s}\".".format(
+                            "Blender version {:s} on \"{:s}\".".format(
                                 ".".join(str(v) for v in bpy.app.version), platform_from_this_system(),
                             )
                         ]
