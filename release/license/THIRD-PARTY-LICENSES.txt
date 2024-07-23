@@ -3515,7 +3515,7 @@ https://github.com/intel/gmmlib
 Copyright (c) 2017 Intel Corporation.
 Copyright (c) 2016 Gabi Melman.
 Copyright 2008, Google Inc. All rights reserved.
-** JSON for Modern C++; version 3.11.2 -- https://github.com/nlohmann/json/
+** JSON for Modern C++; version 3.11.3 -- https://github.com/nlohmann/json/
 Copyright (c) 2013-2021 Niels Lohmann
 ** libdecor; version 0.2.2 -- https://gitlab.freedesktop.org/libdecor/libdecor
 Copyright © 2010 Intel Corporation
