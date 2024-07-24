@@ -203,7 +203,7 @@ static PBVHVertRef get_closest_boundary_vert(SculptSession &ss,
   fdata.boundary_initial_vert = {BOUNDARY_VERTEX_NONE};
   fdata.boundary_initial_vert_steps = std::numeric_limits<int>::max();
 
-  fdata.floodfill_steps = Array<int>(SCULPT_vertex_count_get(ss));
+  fdata.floodfill_steps = Array<int>(SCULPT_vertex_count_get(ss), 0);
 
   flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return initial_vert_floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
