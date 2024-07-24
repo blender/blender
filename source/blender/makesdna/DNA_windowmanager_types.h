@@ -545,7 +545,7 @@ typedef struct wmKeyMap {
   /** See above. */
   short regionid;
   /** Optional, see: #wmOwnerID. */
-  char owner_id[64];
+  char owner_id[128];
 
   /** General flags. */
   short flag;

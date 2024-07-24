@@ -286,7 +286,7 @@ struct PanelType {
   char translation_context[BKE_ST_MAXNAME];
   char context[BKE_ST_MAXNAME];   /* for buttons window */
   char category[BKE_ST_MAXNAME];  /* for category tabs */
-  char owner_id[BKE_ST_MAXNAME];  /* for work-spaces to selectively show. */
+  char owner_id[128];             /* for work-spaces to selectively show. */
   char parent_id[BKE_ST_MAXNAME]; /* parent idname for sub-panels */
   /** Boolean property identifier of the panel custom data. Used to draw a highlighted border. */
   char active_property[BKE_ST_MAXNAME];
@@ -493,7 +493,7 @@ struct MenuType {
   char idname[BKE_ST_MAXNAME]; /* unique name */
   char label[BKE_ST_MAXNAME];  /* for button text */
   char translation_context[BKE_ST_MAXNAME];
-  char owner_id[BKE_ST_MAXNAME]; /* optional, see: #wmOwnerID */
+  char owner_id[128]; /* optional, see: #wmOwnerID */
   const char *description;
 
   /* verify if the menu should draw or not */

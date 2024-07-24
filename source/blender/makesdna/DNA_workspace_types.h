@@ -110,8 +110,8 @@ typedef struct WorkSpaceLayout {
 /** Optional tags, which features to use, aligned with #bAddon names by convention. */
 typedef struct wmOwnerID {
   struct wmOwnerID *next, *prev;
-  /** MAX_NAME. */
-  char name[64];
+  /** Optional, see: #wmOwnerID. */
+  char name[128];
 } wmOwnerID;
 
 typedef struct WorkSpace {
