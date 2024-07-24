@@ -600,6 +600,11 @@ def register():
         bl_extension_ui,
     )
 
+    # Needed, otherwise the UI gets filtered out, see: #122754.
+    from _bpy import _bl_owner_id_set as bl_owner_id_set
+    bl_owner_id_set("")
+    del bl_owner_id_set
+
     repo_cache_store_clear()
 
     for cls in classes:
