@@ -54,14 +54,6 @@ using blender::bke::AttrDomain;
 
 #define LEAF_LIMIT 10000
 
-/* Uncomment to test if triangles of the same face are
- * properly clustered into single nodes.
- */
-// #define TEST_PBVH_FACE_SPLIT
-
-/* Uncomment to test that faces are only assigned to one Node */
-// #define VALIDATE_UNIQUE_NODE_FACES
-
 #define STACK_FIXED_DEPTH 100
 
 struct PBVHStack {
@@ -288,42 +280,6 @@ static bool leaf_needs_material_split(Tree &pbvh,
   return false;
 }
 
-#ifdef TEST_PBVH_FACE_SPLIT
-static void test_face_boundaries(Tree &pbvh, const Mesh &mesh)
-{
-  if (pbvh.type() == Type::Mesh) {
-    int faces_num = mesh.faces_num;
-    Array<int> node_map(faces_num, -1);
-    for (int i = 0; i < pbvh.totnode; i++) {
-      Node *node = pbvh.nodes_ + i;
-      if (!(node->flag_ & PBVH_Leaf)) {
-        continue;
-      }
-
-      for (int j = 0; j < node->totprim; j++) {
-        int face_i = mesh.corner_tri_faces()[node->prim_indices_[j]];
-
-        if (node_map[face_i] >= 0 && node_map[face_i] != i) {
-          int old_i = node_map[face_i];
-          int prim_i = node->prim_indices_ - pbvh.prim_indices_ + j;
-
-          printf(
-              "Tree split error; face: %d, prim_i: %d, node1: %d, node2: %d, "
-              "totprim: %d\n",
-              face_i,
-              prim_i,
-              old_i,
-              i,
-              node->totprim);
-        }
-
-        node_map[face_i] = i;
-      }
-    }
-  }
-}
-#endif
-
 /* Recursively build a node in the tree
  *
  * vb is the voxel box around all of the primitives contained in
@@ -475,73 +431,6 @@ static void pbvh_build(Tree &pbvh,
             0);
 }
 
-#ifdef VALIDATE_UNIQUE_NODE_FACES
-static void pbvh_validate_node_prims(Tree &pbvh, const Span<int> tri_faces)
-{
-  int totface = 0;
-
-  if (pbvh.type() == Type::BMesh) {
-    return;
-  }
-
-  for (int i = 0; i < pbvh.totnode; i++) {
-    Node *node = pbvh.nodes_ + i;
-
-    if (!(node->flag_ & PBVH_Leaf)) {
-      continue;
-    }
-
-    for (int j = 0; j < node->totprim; j++) {
-      int face_i;
-
-      if (pbvh.type() == Type::Mesh) {
-        face_i = tri_faces[node->prim_indices_[j]];
-      }
-      else {
-        face_i = BKE_subdiv_ccg_grid_to_face_index(pbvh.subdiv_ccg_, node->prim_indices_[j]);
-      }
-
-      totface = max_ii(totface, face_i + 1);
-    }
-  }
-
-  int *facemap = (int *)MEM_malloc_arrayN(totface, sizeof(*facemap), __func__);
-
-  for (int i = 0; i < totface; i++) {
-    facemap[i] = -1;
-  }
-
-  for (int i = 0; i < pbvh.totnode; i++) {
-    Node *node = pbvh.nodes_ + i;
-
-    if (!(node->flag_ & PBVH_Leaf)) {
-      continue;
-    }
-
-    for (int j = 0; j < node->totprim; j++) {
-      int face_i;
-
-      if (pbvh.type() == Type::Mesh) {
-        face_i = tri_faces[node->prim_indices_[j]];
-      }
-      else {
-        face_i = BKE_subdiv_ccg_grid_to_face_index(pbvh.subdiv_ccg_, node->prim_indices_[j]);
-      }
-
-      if (facemap[face_i] != -1 && facemap[face_i] != i) {
-        printf("%s: error: face spanned multiple nodes (old: %d new: %d)\n",
-               __func__,
-               facemap[face_i],
-               i);
-      }
-
-      facemap[face_i] = i;
-    }
-  }
-  MEM_SAFE_FREE(facemap);
-}
-#endif
-
 void update_mesh_pointers(Tree &pbvh, Mesh *mesh)
 {
   BLI_assert(pbvh.type() == Type::Mesh);
@@ -569,14 +458,7 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
 
   Array<bool> vert_bitmap(mesh->verts_num, false);
 
-#ifdef TEST_PBVH_FACE_SPLIT
-  /* Use lower limit to increase probability of
-   * edge cases.
-   */
-  const int leaf_limit = 100;
-#else
   const int leaf_limit = LEAF_LIMIT;
-#endif
 
   /* For each face, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(corner_tris.size());
@@ -630,15 +512,7 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
         }
       });
     }
-
-#ifdef TEST_PBVH_FACE_SPLIT
-    test_face_boundaries(pbvh, tri_faces);
-#endif
   }
-
-#ifdef VALIDATE_UNIQUE_NODE_FACES
-  pbvh_validate_node_prims(pbvh);
-#endif
 
   return pbvh;
 }
@@ -725,10 +599,6 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
       });
     }
   }
-
-#ifdef VALIDATE_UNIQUE_NODE_FACES
-  pbvh_validate_node_prims(pbvh);
-#endif
 
   return pbvh;
 }
