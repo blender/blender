@@ -6751,7 +6751,7 @@ bool RNA_path_resolved_create(PointerRNA *ptr,
   return false;
 }
 
-static char rna_struct_state_owner[64];
+static char rna_struct_state_owner[128];
 void RNA_struct_state_owner_set(const char *name)
 {
   if (name) {

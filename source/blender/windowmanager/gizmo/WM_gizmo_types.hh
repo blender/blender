@@ -417,7 +417,8 @@ struct wmGizmoGroupType {
   const char *idname; /* #MAX_NAME. */
   /** Gizmo-group name - displayed in UI (keymap editor). */
   const char *name;
-  char owner_id[64]; /* #MAX_NAME. */
+  /** Optional, see: #wmOwnerID. */
+  char owner_id[128];
 
   /** Poll if gizmo-map should be visible. */
   wmGizmoGroupFnPoll poll;
