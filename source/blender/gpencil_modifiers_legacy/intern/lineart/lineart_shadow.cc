@@ -185,7 +185,14 @@ static void lineart_shadow_segment_slice_get(double *fb_co_1,
                                              double *r_gloc)
 {
   double real_at = ((at_2 - at_1) == 0) ? 0 : ((ratio - at_1) / (at_2 - at_1));
-  double ga = fb_co_1[3] * real_at / (fb_co_2[3] * (1.0f - real_at) + fb_co_1[3] * real_at);
+  double ga_div = (fb_co_2[3] * (1.0f - real_at) + fb_co_1[3] * real_at);
+  double ga;
+  if (ga_div == 0) {
+    ga = 0;
+  }
+  else {
+    ga = fb_co_1[3] * real_at / ga_div;
+  }
   interp_v3_v3v3_db(r_fb_co, fb_co_1, fb_co_2, real_at);
   r_fb_co[3] = interpd(fb_co_2[3], fb_co_1[3], ga);
   interp_v3_v3v3_db(r_gloc, gloc_1, gloc_2, ga);
@@ -283,8 +290,14 @@ static bool lineart_do_closest_segment(bool is_persp,
   double dl = s1_fb_co_1[z_index] - s2_fb_co_1[z_index];
   double dr = s1_fb_co_2[z_index] - s2_fb_co_2[z_index];
   double ga = ratiod(dl, dr, 0);
-  *r_new_at = is_persp ? s2_fb_co_2[3] * ga / (s2_fb_co_1[3] * (1.0f - ga) + s2_fb_co_2[3] * ga) :
-                         ga;
+  double ga_div = s2_fb_co_1[3] * (1.0f - ga) + s2_fb_co_2[3] * ga;
+  if (ga_div == 0) {
+    *r_new_at = 0;
+    return false;
+  }
+  else {
+    *r_new_at = is_persp ? s2_fb_co_2[3] * ga / ga_div : ga;
+  }
   interp_v3_v3v3_db(r_new_in_the_middle, s2_fb_co_1, s2_fb_co_2, *r_new_at);
   r_new_in_the_middle[3] = interpd(s2_fb_co_2[3], s2_fb_co_1[3], ga);
   interp_v3_v3v3_db(r_new_in_the_middle_global, s1_gloc_1, s1_gloc_2, ga);
