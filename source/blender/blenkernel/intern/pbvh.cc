@@ -238,20 +238,8 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     }
   }
 
+  BKE_pbvh_node_mark_positions_update(node);
   BKE_pbvh_node_mark_rebuild_draw(node);
-}
-
-static void update_vb(const Span<int> prim_indices,
-                      Node *node,
-                      const Span<Bounds<float3>> prim_bounds,
-                      int offset,
-                      int count)
-{
-  node->bounds_ = prim_bounds[prim_indices[offset]];
-  for (const int i : IndexRange(offset, count).drop_front(1)) {
-    node->bounds_ = bounds::merge(node->bounds_, prim_bounds[prim_indices[i]]);
-  }
-  node->bounds_orig_ = node->bounds_;
 }
 
 int count_grid_quads(const BitGroupVector<> &grid_hidden,
@@ -293,7 +281,6 @@ static void build_leaf(Tree &pbvh,
                        const Span<int3> corner_tris,
                        MutableSpan<bool> vert_bitmap,
                        int node_index,
-                       const Span<Bounds<float3>> prim_bounds,
                        int offset,
                        int count)
 {
@@ -302,13 +289,11 @@ static void build_leaf(Tree &pbvh,
 
   node.prim_indices_ = pbvh.prim_indices_.as_span().slice(offset, count);
 
-  /* Still need vb for searches */
-  update_vb(pbvh.prim_indices_, &node, prim_bounds, offset, count);
-
   if (!corner_tris.is_empty()) {
     build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, &node);
   }
   else {
+    BKE_pbvh_node_mark_positions_update(&node);
     BKE_pbvh_node_mark_rebuild_draw(&node);
   }
 }
@@ -411,8 +396,7 @@ static void build_sub(Tree &pbvh,
     if (!leaf_needs_material_split(
             pbvh, prim_to_face_map, material_indices, sharp_faces, offset, count))
     {
-      build_leaf(
-          pbvh, corner_verts, corner_tris, vert_bitmap, node_index, prim_bounds, offset, count);
+      build_leaf(pbvh, corner_verts, corner_tris, vert_bitmap, node_index, offset, count);
 
       return;
     }
@@ -421,9 +405,6 @@ static void build_sub(Tree &pbvh,
   /* Add two child nodes */
   pbvh.nodes_[node_index].children_offset_ = pbvh.nodes_.size();
   pbvh.nodes_.resize(pbvh.nodes_.size() + 2);
-
-  /* Update parent node bounding box */
-  update_vb(pbvh.prim_indices_, &pbvh.nodes_[node_index], prim_bounds, offset, count);
 
   Bounds<float3> cb_backing;
   if (!below_leaf_limit) {
@@ -669,6 +650,9 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
                prim_bounds,
                corner_tris.size());
 
+    update_bounds(*pbvh);
+    store_bounds_orig(*pbvh);
+
     if (!hide_vert.is_empty()) {
       MutableSpan<Node> nodes = pbvh->nodes_;
       threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
@@ -755,6 +739,9 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
                &cb,
                prim_bounds,
                grids.size());
+
+    update_bounds(*pbvh);
+    store_bounds_orig(*pbvh);
 
     const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
     if (!grid_hidden.is_empty()) {
