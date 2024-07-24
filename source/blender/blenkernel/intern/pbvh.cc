@@ -44,13 +44,7 @@
 
 #include "pbvh_intern.hh"
 
-using blender::BitGroupVector;
-using blender::Bounds;
-using blender::float3;
-using blender::MutableSpan;
-using blender::Span;
-using blender::Vector;
-using blender::bke::AttrDomain;
+namespace blender::bke::pbvh {
 
 #define LEAF_LIMIT 10000
 
@@ -77,8 +71,6 @@ static Bounds<float3> negative_bounds()
 {
   return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
 }
-
-namespace blender::bke::pbvh {
 
 static bool face_materials_match(const Span<int> material_indices,
                                  const Span<bool> sharp_faces,
@@ -1408,7 +1400,7 @@ int count_grid_quads(const BitGroupVector<> &grid_hidden,
 
 }  // namespace blender::bke::pbvh
 
-Bounds<float3> BKE_pbvh_redraw_BB(blender::bke::pbvh::Tree &pbvh)
+blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(blender::bke::pbvh::Tree &pbvh)
 {
   using namespace blender;
   using namespace blender::bke::pbvh;
@@ -1643,7 +1635,8 @@ Bounds<float3> node_bounds(const Node &node)
 
 }  // namespace blender::bke::pbvh
 
-Bounds<float3> BKE_pbvh_node_get_original_BB(const blender::bke::pbvh::Node *node)
+blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(
+    const blender::bke::pbvh::Node *node)
 {
   return node->bounds_orig_;
 }
@@ -2421,7 +2414,8 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.face_normals = pbvh.face_normals_;
       /* Retrieve data from the original mesh. Ideally that would be passed to this function to
        * make it clearer when each is used. */
-      args.hide_poly = *pbvh.mesh_->attributes().lookup<bool>(".hide_poly", AttrDomain::Face);
+      args.hide_poly = *pbvh.mesh_->attributes().lookup<bool>(".hide_poly",
+                                                              blender::bke::AttrDomain::Face);
 
       args.prim_indices = node.prim_indices_;
       args.tri_faces = mesh.corner_tri_faces();
@@ -2598,7 +2592,8 @@ void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
   }
 }
 
-void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh, const Span<float3> vert_positions)
+void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
+                                const blender::Span<blender::float3> vert_positions)
 {
   using namespace blender::bke::pbvh;
 
@@ -2626,7 +2621,7 @@ void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh, const Span<float
   }
 
   if (!pbvh.vert_positions_.is_empty()) {
-    MutableSpan<float3> positions = pbvh.vert_positions_;
+    blender::MutableSpan<blender::float3> positions = pbvh.vert_positions_;
     positions.copy_from(vert_positions);
 
     for (Node &node : pbvh.nodes_) {
@@ -2655,7 +2650,7 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(blender::bke::pbvh::Node *no
 
 void BKE_pbvh_node_color_buffer_free(blender::bke::pbvh::Tree &pbvh)
 {
-  Vector<blender::bke::pbvh::Node *> nodes = search_gather(pbvh, {});
+  blender::Vector<blender::bke::pbvh::Node *> nodes = search_gather(pbvh, {});
 
   for (blender::bke::pbvh::Node *node : nodes) {
     MEM_SAFE_FREE(node->color_buffer_.color);
@@ -2794,19 +2789,19 @@ Mesh *BKE_pbvh_get_mesh(blender::bke::pbvh::Tree &pbvh)
   return pbvh.mesh_;
 }
 
-Span<float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh)
+blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh)
 {
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
   return pbvh.vert_positions_;
 }
 
-MutableSpan<float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh)
+blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh)
 {
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
   return pbvh.vert_positions_;
 }
 
-Span<float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh)
+blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh)
 {
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
   return pbvh.vert_normals_;
@@ -2818,7 +2813,7 @@ void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_c
 }
 
 void BKE_pbvh_ensure_node_loops(blender::bke::pbvh::Tree &pbvh,
-                                const Span<blender::int3> corner_tris)
+                                const blender::Span<blender::int3> corner_tris)
 {
   using namespace blender;
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
