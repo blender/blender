@@ -169,6 +169,9 @@ struct UDIMTileUndo {
   UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region) {}
 };
 
+/**
+ * Contains triangle/pixel data used during texture painting.
+ */
 struct NodeData {
   struct {
     bool dirty : 1;
@@ -403,6 +406,9 @@ struct CopyPixelTiles {
 
 /** \} */
 
+/**
+ * Storage for texture painting on blender::bke::pbvh::Tree level.
+ */
 struct PBVHData {
   /* Per UVPRimitive contains the paint data. */
   PaintGeometryPrimitives geom_primitives;

@@ -64,7 +64,7 @@ static float2 calc_barycentric_delta_x(const ImBuf *image_buffer,
 
 static int count_node_pixels(Node &node)
 {
-  if (!node.pixels_.node_data) {
+  if (!node.pixels_) {
     return 0;
   }
 
@@ -148,8 +148,8 @@ static void split_pixel_node(
 
   NodeData *data1 = MEM_new<NodeData>(__func__);
   NodeData *data2 = MEM_new<NodeData>(__func__);
-  child1->pixels_.node_data = static_cast<void *>(data1);
-  child2->pixels_.node_data = static_cast<void *>(data2);
+  child1->pixels_ = data1;
+  child2->pixels_ = data2;
 
   data1->uv_primitives = data.uv_primitives;
   data2->uv_primitives = data.uv_primitives;
@@ -462,7 +462,7 @@ static void do_encode_pixels(EncodePixelsUserData *data, const int n)
   Image *image = data->image;
   ImageUser image_user = *data->image_user;
   Node *node = (*data->nodes)[n];
-  NodeData *node_data = static_cast<NodeData *>(node->pixels_.node_data);
+  NodeData *node_data = static_cast<NodeData *>(node->pixels_);
   const uv_islands::UVIslandsMask &uv_masks = *data->uv_masks;
 
   LISTBASE_FOREACH (ImageTile *, tile, &data->image->tiles) {
@@ -540,7 +540,7 @@ static bool should_pixels_be_updated(const Node &node)
   if ((node.flag_ & PBVH_RebuildPixels) != 0) {
     return true;
   }
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
   if (node_data != nullptr) {
     return false;
   }
@@ -575,12 +575,12 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
   }
 
   /* Init or reset Tree pixel data when changes detected. */
-  if (pbvh.pixels_.data == nullptr) {
+  if (pbvh.pixels_ == nullptr) {
     PBVHData *pbvh_data = MEM_new<PBVHData>(__func__);
-    pbvh.pixels_.data = pbvh_data;
+    pbvh.pixels_ = pbvh_data;
   }
   else {
-    PBVHData *pbvh_data = static_cast<PBVHData *>(pbvh.pixels_.data);
+    PBVHData *pbvh_data = static_cast<PBVHData *>(pbvh.pixels_);
     pbvh_data->clear_data();
   }
 
@@ -593,12 +593,12 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
     r_nodes_to_update.append(&node);
     node.flag_ = static_cast<PBVHNodeFlags>(node.flag_ | PBVH_RebuildPixels);
 
-    if (node.pixels_.node_data == nullptr) {
+    if (node.pixels_ == nullptr) {
       NodeData *node_data = MEM_new<NodeData>(__func__);
-      node.pixels_.node_data = node_data;
+      node.pixels_ = node_data;
     }
     else {
-      NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+      NodeData *node_data = static_cast<NodeData *>(node.pixels_);
       node_data->clear_data();
     }
   }
@@ -620,7 +620,7 @@ static void apply_watertight_check(Tree &pbvh, Image *image, ImageUser *image_us
       if ((node.flag_ & PBVH_Leaf) == 0) {
         continue;
       }
-      NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+      NodeData *node_data = static_cast<NodeData *>(node.pixels_);
       UDIMTilePixels *tile_node_data = node_data->find_tile_data(image_tile);
       if (tile_node_data == nullptr) {
         continue;
@@ -712,7 +712,7 @@ static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image
 
   /* Rebuild the undo regions. */
   for (Node *node : nodes_to_update) {
-    NodeData *node_data = static_cast<NodeData *>(node->pixels_.node_data);
+    NodeData *node_data = static_cast<NodeData *>(node->pixels_);
     node_data->rebuild_undo_regions();
   }
 
@@ -759,22 +759,22 @@ static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image
 
 NodeData &node_data_get(Node &node)
 {
-  BLI_assert(node.pixels_.node_data != nullptr);
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+  BLI_assert(node.pixels_ != nullptr);
+  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
   return *node_data;
 }
 
 PBVHData &data_get(Tree &pbvh)
 {
-  BLI_assert(pbvh.pixels_.data != nullptr);
-  PBVHData *data = static_cast<PBVHData *>(pbvh.pixels_.data);
+  BLI_assert(pbvh.pixels_ != nullptr);
+  PBVHData *data = static_cast<PBVHData *>(pbvh.pixels_);
   return *data;
 }
 
 void mark_image_dirty(Node &node, Image &image, ImageUser &image_user)
 {
-  BLI_assert(node.pixels_.node_data != nullptr);
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+  BLI_assert(node.pixels_ != nullptr);
+  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
   if (node_data->flags.dirty) {
     ImageUser local_image_user = image_user;
     LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
@@ -794,7 +794,7 @@ void mark_image_dirty(Node &node, Image &image, ImageUser &image_user)
 
 void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
 {
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_.node_data);
+  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
   node_data->collect_dirty_tiles(r_dirty_tiles);
 }
 
@@ -813,21 +813,21 @@ void build_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
 
 void node_pixels_free(Node *node)
 {
-  pixels::NodeData *node_data = static_cast<pixels::NodeData *>(node->pixels_.node_data);
+  pixels::NodeData *node_data = static_cast<pixels::NodeData *>(node->pixels_);
 
   if (!node_data) {
     return;
   }
 
   MEM_delete(node_data);
-  node->pixels_.node_data = nullptr;
+  node->pixels_ = nullptr;
 }
 
 void pixels_free(Tree *pbvh)
 {
-  pixels::PBVHData *pbvh_data = static_cast<pixels::PBVHData *>(pbvh->pixels_.data);
+  pixels::PBVHData *pbvh_data = static_cast<pixels::PBVHData *>(pbvh->pixels_);
   MEM_delete(pbvh_data);
-  pbvh->pixels_.data = nullptr;
+  pbvh->pixels_ = nullptr;
 }
 
 }  // namespace blender::bke::pbvh

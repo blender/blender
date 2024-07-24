@@ -48,6 +48,10 @@ namespace blender {
 namespace bke::pbvh {
 class Node;
 class Tree;
+namespace pixels {
+struct PBVHData;
+struct NodeData;
+}  // namespace pixels
 }  // namespace bke::pbvh
 namespace draw::pbvh {
 struct PBVHBatches;
@@ -57,24 +61,6 @@ struct PBVH_GPU_Args;
 
 struct PBVHColorBufferNode {
   float (*color)[4] = nullptr;
-};
-
-struct PBVHPixels {
-  /**
-   * Storage for texture painting on blender::bke::pbvh::Tree level.
-   *
-   * Contains #blender::bke::pbvh::pixels::PBVHData
-   */
-  void *data = nullptr;
-};
-
-struct PBVHPixelsNode {
-  /**
-   * Contains triangle/pixel data used during texture painting.
-   *
-   * Contains #blender::bke::pbvh::pixels::NodeData.
-   */
-  void *node_data = nullptr;
 };
 
 namespace blender::bke::pbvh {
@@ -176,7 +162,7 @@ class Node {
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer_;
-  PBVHPixelsNode pixels_;
+  pixels::NodeData *pixels_ = nullptr;
 
   /* Used to flash colors of updated node bounding boxes in
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
@@ -231,7 +217,7 @@ class Tree {
 
   BMLog *bm_log_ = nullptr;
 
-  PBVHPixels pixels_;
+  pixels::PBVHData *pixels_ = nullptr;
 
  public:
   Tree(const Type type) : type_(type) {}
