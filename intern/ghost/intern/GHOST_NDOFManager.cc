@@ -531,7 +531,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
             ndof_button_names.at(button));
 
 #ifndef USE_3DCONNEXION_NONSTANDARD_KEYS
-  if (((button >= GHOST_NDOF_BUTTON_KBP_F1) && (button <= GHOST_NDOF_BUTTON_KBP_F12)) &&
+  if (((button >= GHOST_NDOF_BUTTON_KBP_F1) && (button <= GHOST_NDOF_BUTTON_KBP_F12)) ||
       ((button >= GHOST_NDOF_BUTTON_NP_F1) && (button <= GHOST_NDOF_BUTTON_NP_F4)))
   {
     return;
