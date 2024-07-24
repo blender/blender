@@ -22,8 +22,8 @@ RotateOperation::RotateOperation()
 
 void RotateOperation::get_rotation_center(const rcti &area, float &r_x, float &r_y)
 {
-  r_x = (BLI_rcti_size_x(&area) - 1) / 2.0;
-  r_y = (BLI_rcti_size_y(&area) - 1) / 2.0;
+  r_x = (BLI_rcti_size_x(&area)) / 2.0;
+  r_y = (BLI_rcti_size_y(&area)) / 2.0;
 }
 
 void RotateOperation::get_rotation_offset(const rcti &input_canvas,
@@ -178,10 +178,10 @@ void RotateOperation::update_memory_buffer_partial(MemoryBuffer *output,
       image_op->get_canvas(), this->get_canvas(), rotate_offset_x, rotate_offset_y);
 
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    float x = rotate_offset_x + it.x + canvas_.xmin;
-    float y = rotate_offset_y + it.y + canvas_.ymin;
+    float x = rotate_offset_x + it.x + canvas_.xmin + 0.5f;
+    float y = rotate_offset_y + it.y + canvas_.ymin + 0.5f;
     rotate_coords(x, y, center_x, center_y, sine_, cosine_);
-    input_img->read_elem_sampled(x - canvas_.xmin, y - canvas_.ymin, sampler_, it.out);
+    input_img->read_elem_sampled(x - canvas_.xmin - 0.5f, y - canvas_.ymin - 0.5f, sampler_, it.out);
   }
 }
 
