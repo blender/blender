@@ -196,8 +196,6 @@ static int map_insert_vert(Map<int, int> &map,
 /* Find vertices used by the faces in this node and update the draw buffers */
 static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  const Span<int3> corner_tris,
-                                 const Span<int> tri_faces,
-                                 const Span<bool> hide_poly,
                                  MutableSpan<bool> vert_bitmap,
                                  Node *node)
 {
@@ -240,11 +238,6 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     }
   }
 
-  const bool fully_hidden = !hide_poly.is_empty() &&
-                            std::all_of(prim_indices.begin(),
-                                        prim_indices.end(),
-                                        [&](const int tri) { return hide_poly[tri_faces[tri]]; });
-  BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
   BKE_pbvh_node_mark_rebuild_draw(node);
 }
 
@@ -295,21 +288,9 @@ int count_grid_quads(const BitGroupVector<> &grid_hidden,
   return totquad;
 }
 
-static void build_grid_leaf_node(Tree &pbvh, Node *node)
-{
-  int totquads = count_grid_quads(pbvh.subdiv_ccg_->grid_hidden,
-                                  node->prim_indices_,
-                                  pbvh.subdiv_ccg_->grid_size,
-                                  pbvh.subdiv_ccg_->grid_size);
-  BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
-  BKE_pbvh_node_mark_rebuild_draw(node);
-}
-
 static void build_leaf(Tree &pbvh,
                        const Span<int> corner_verts,
                        const Span<int3> corner_tris,
-                       const Span<int> tri_faces,
-                       const Span<bool> hide_poly,
                        MutableSpan<bool> vert_bitmap,
                        int node_index,
                        const Span<Bounds<float3>> prim_bounds,
@@ -325,10 +306,10 @@ static void build_leaf(Tree &pbvh,
   update_vb(pbvh.prim_indices_, &node, prim_bounds, offset, count);
 
   if (!corner_tris.is_empty()) {
-    build_mesh_leaf_node(corner_verts, corner_tris, tri_faces, hide_poly, vert_bitmap, &node);
+    build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, &node);
   }
   else {
-    build_grid_leaf_node(pbvh, &node);
+    BKE_pbvh_node_mark_rebuild_draw(&node);
   }
 }
 
@@ -407,7 +388,6 @@ static void build_sub(Tree &pbvh,
                       const Span<int> corner_verts,
                       const Span<int3> corner_tris,
                       const Span<int> tri_faces,
-                      const Span<bool> hide_poly,
                       const Span<int> material_indices,
                       const Span<bool> sharp_faces,
                       const int leaf_limit,
@@ -431,16 +411,8 @@ static void build_sub(Tree &pbvh,
     if (!leaf_needs_material_split(
             pbvh, prim_to_face_map, material_indices, sharp_faces, offset, count))
     {
-      build_leaf(pbvh,
-                 corner_verts,
-                 corner_tris,
-                 tri_faces,
-                 hide_poly,
-                 vert_bitmap,
-                 node_index,
-                 prim_bounds,
-                 offset,
-                 count);
+      build_leaf(
+          pbvh, corner_verts, corner_tris, vert_bitmap, node_index, prim_bounds, offset, count);
 
       return;
     }
@@ -492,7 +464,6 @@ static void build_sub(Tree &pbvh,
             corner_verts,
             corner_tris,
             tri_faces,
-            hide_poly,
             material_indices,
             sharp_faces,
             leaf_limit,
@@ -508,7 +479,6 @@ static void build_sub(Tree &pbvh,
             corner_verts,
             corner_tris,
             tri_faces,
-            hide_poly,
             material_indices,
             sharp_faces,
             leaf_limit,
@@ -526,7 +496,6 @@ static void pbvh_build(Tree &pbvh,
                        const Span<int> corner_verts,
                        const Span<int3> corner_tris,
                        const Span<int> tri_faces,
-                       const Span<bool> hide_poly,
                        const Span<int> material_indices,
                        const Span<bool> sharp_faces,
                        const int leaf_limit,
@@ -546,7 +515,6 @@ static void pbvh_build(Tree &pbvh,
             corner_verts,
             corner_tris,
             tri_faces,
-            hide_poly,
             material_indices,
             sharp_faces,
             leaf_limit,
@@ -686,14 +654,13 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
 
   if (!corner_tris.is_empty()) {
     const AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", AttrDomain::Face);
+    const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
     const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
     const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     pbvh_build(*pbvh,
                corner_verts,
                corner_tris,
                tri_faces,
-               hide_poly,
                material_index,
                sharp_face,
                leaf_limit,
@@ -701,6 +668,18 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
                &cb,
                prim_bounds,
                corner_tris.size());
+
+    if (!hide_vert.is_empty()) {
+      MutableSpan<Node> nodes = pbvh->nodes_;
+      threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+        for (const int i : range) {
+          const Span<int> verts = node_verts(nodes[i]);
+          if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
+            nodes[i].flag_ |= PBVH_FullyHidden;
+          }
+        }
+      });
+    }
 
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh, tri_faces);
@@ -769,7 +748,6 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
                {},
                {},
                {},
-               {},
                material_index,
                sharp_face,
                leaf_limit,
@@ -777,6 +755,22 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
                &cb,
                prim_bounds,
                grids.size());
+
+    const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
+    if (!grid_hidden.is_empty()) {
+      MutableSpan<Node> nodes = pbvh->nodes_;
+      threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+        for (const int i : range) {
+          const Span<int> grids = node_grid_indices(nodes[i]);
+          if (std::all_of(grids.begin(), grids.end(), [&](const int i) {
+                return !bits::any_bit_unset(grid_hidden[i]);
+              }))
+          {
+            nodes[i].flag_ |= PBVH_FullyHidden;
+          }
+        }
+      });
+    }
   }
 
 #ifdef VALIDATE_UNIQUE_NODE_FACES
