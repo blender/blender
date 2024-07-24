@@ -28,9 +28,6 @@
 #include <cmath>
 #include <cstdlib>
 
-#define BOUNDARY_VERTEX_NONE -1
-#define BOUNDARY_STEPS_NONE -1
-
 namespace blender::ed::sculpt_paint::boundary {
 
 /**
@@ -307,11 +304,6 @@ static void edit_data_init(SculptSession &ss,
   const bool has_duplicates = ss.pbvh->type() == bke::pbvh::Type::Grids;
 
   boundary.edit_info = Array<SculptBoundaryEditInfo>(totvert);
-
-  for (int i = 0; i < totvert; i++) {
-    boundary.edit_info[i].original_vertex_i = BOUNDARY_VERTEX_NONE;
-    boundary.edit_info[i].propagation_steps_num = BOUNDARY_STEPS_NONE;
-  }
 
   std::queue<int> current_iteration;
   std::queue<int> next_iteration;
