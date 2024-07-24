@@ -1232,11 +1232,13 @@ struct FillDataMesh {
   void add_initial(int vertex);
   void add_and_skip_initial(int vertex, int index);
   void add_initial_with_symmetry(const Object &object,
-                                 const SculptSession &ss,
+                                 const bke::pbvh::Tree &pbvh,
                                  int vertex,
                                  float radius);
   void add_active(const Object &object, const SculptSession &ss, float radius);
-  void execute(Object &object, SculptSession &ss, FunctionRef<bool(int from_v, int to_v)> func);
+  void execute(Object &object,
+               GroupedSpan<int> vert_to_face_map,
+               FunctionRef<bool(int from_v, int to_v)> func);
 };
 
 struct FillDataGrids {
@@ -1248,13 +1250,14 @@ struct FillDataGrids {
   void add_initial(SubdivCCGCoord vertex);
   void add_and_skip_initial(SubdivCCGCoord vertex, int index);
   void add_initial_with_symmetry(const Object &object,
-                                 const SculptSession &ss,
+                                 const bke::pbvh::Tree &pbvh,
+                                 const SubdivCCG &subdiv_ccg,
                                  SubdivCCGCoord vertex,
                                  float radius);
   void add_active(const Object &object, const SculptSession &ss, float radius);
   void execute(
       Object &object,
-      SculptSession &ss,
+      const SubdivCCG &subdiv_ccg,
       FunctionRef<bool(SubdivCCGCoord from_v, SubdivCCGCoord to_v, bool is_duplicate)> func);
 };
 
@@ -1267,13 +1270,11 @@ struct FillDataBMesh {
   void add_initial(BMVert *vertex);
   void add_and_skip_initial(BMVert *vertex, int index);
   void add_initial_with_symmetry(const Object &object,
-                                 const SculptSession &ss,
+                                 const bke::pbvh::Tree &pbvh,
                                  BMVert *vertex,
                                  float radius);
   void add_active(const Object &object, const SculptSession &ss, float radius);
-  void execute(Object &object,
-               SculptSession &ss,
-               FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
+  void execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
 };
 
 /**
