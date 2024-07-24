@@ -316,7 +316,7 @@ void raycast(Tree &pbvh,
              bool original);
 
 bool raycast_node(Tree &pbvh,
-                  Node *node,
+                  Node &node,
                   const float (*origco)[3],
                   bool use_origco,
                   Span<int> corner_verts,
@@ -331,7 +331,7 @@ bool raycast_node(Tree &pbvh,
                   int *active_face_grid_index,
                   float *face_normal);
 
-bool bmesh_node_raycast_detail(Node *node,
+bool bmesh_node_raycast_detail(Node &node,
                                const float ray_start[3],
                                IsectRayPrecalc *isect_precalc,
                                float *depth,
@@ -357,7 +357,7 @@ void find_nearest_to_ray(Tree &pbvh,
                          bool original);
 
 bool find_nearest_to_ray_node(Tree &pbvh,
-                              Node *node,
+                              Node &node,
                               const float (*origco)[3],
                               bool use_origco,
                               Span<int> corner_verts,

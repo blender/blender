@@ -1759,7 +1759,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx, Tree &pbvh
 
 /************************* Called from pbvh.cc *************************/
 
-bool bmesh_node_raycast(Node *node,
+bool bmesh_node_raycast(Node &node,
                         const float ray_start[3],
                         const float ray_normal[3],
                         IsectRayPrecalc *isect_precalc,
@@ -1771,15 +1771,15 @@ bool bmesh_node_raycast(Node *node,
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
 
-  use_original = use_original && node->bm_tot_ortri_;
+  use_original = use_original && node.bm_tot_ortri_;
 
-  if (use_original && node->bm_tot_ortri_) {
-    for (int i = 0; i < node->bm_tot_ortri_; i++) {
+  if (use_original && node.bm_tot_ortri_) {
+    for (int i = 0; i < node.bm_tot_ortri_; i++) {
       float *cos[3];
 
-      cos[0] = node->bm_orco_[node->bm_ortri_[i][0]];
-      cos[1] = node->bm_orco_[node->bm_ortri_[i][1]];
-      cos[2] = node->bm_orco_[node->bm_ortri_[i][2]];
+      cos[0] = node.bm_orco_[node.bm_ortri_[i][0]];
+      cos[1] = node.bm_orco_[node.bm_ortri_[i][1]];
+      cos[2] = node.bm_orco_[node.bm_ortri_[i][2]];
 
       if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth)) {
         hit = true;
@@ -1796,7 +1796,7 @@ bool bmesh_node_raycast(Node *node,
                 len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co))
             {
               copy_v3_v3(nearest_vertex_co, cos[j]);
-              r_active_vertex->i = intptr_t(node->bm_orvert_[node->bm_ortri_[i][j]]);
+              r_active_vertex->i = intptr_t(node.bm_orvert_[node.bm_ortri_[i][j]]);
             }
           }
         }
@@ -1804,7 +1804,7 @@ bool bmesh_node_raycast(Node *node,
     }
   }
   else {
-    for (BMFace *f : node->bm_faces_) {
+    for (BMFace *f : node.bm_faces_) {
       BLI_assert(f->len == 3);
 
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -1840,20 +1840,20 @@ bool bmesh_node_raycast(Node *node,
   return hit;
 }
 
-bool bmesh_node_raycast_detail(Node *node,
+bool bmesh_node_raycast_detail(Node &node,
                                const float ray_start[3],
                                IsectRayPrecalc *isect_precalc,
                                float *depth,
                                float *r_edge_length)
 {
-  if (node->flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & PBVH_FullyHidden) {
     return false;
   }
 
   bool hit = false;
   BMFace *f_hit = nullptr;
 
-  for (BMFace *f : node->bm_faces_) {
+  for (BMFace *f : node.bm_faces_) {
     BLI_assert(f->len == 3);
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       BMVert *v_tri[3];
@@ -1883,7 +1883,7 @@ bool bmesh_node_raycast_detail(Node *node,
   return hit;
 }
 
-bool bmesh_node_nearest_to_ray(Node *node,
+bool bmesh_node_nearest_to_ray(Node &node,
                                const float ray_start[3],
                                const float ray_normal[3],
                                float *depth,
@@ -1892,20 +1892,20 @@ bool bmesh_node_nearest_to_ray(Node *node,
 {
   bool hit = false;
 
-  if (use_original && node->bm_tot_ortri_) {
-    for (int i = 0; i < node->bm_tot_ortri_; i++) {
-      const int *t = node->bm_ortri_[i];
+  if (use_original && node.bm_tot_ortri_) {
+    for (int i = 0; i < node.bm_tot_ortri_; i++) {
+      const int *t = node.bm_ortri_[i];
       hit |= ray_face_nearest_tri(ray_start,
                                   ray_normal,
-                                  node->bm_orco_[t[0]],
-                                  node->bm_orco_[t[1]],
-                                  node->bm_orco_[t[2]],
+                                  node.bm_orco_[t[0]],
+                                  node.bm_orco_[t[1]],
+                                  node.bm_orco_[t[2]],
                                   depth,
                                   dist_sq);
     }
   }
   else {
-    for (BMFace *f : node->bm_faces_) {
+    for (BMFace *f : node.bm_faces_) {
       BLI_assert(f->len == 3);
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         BMVert *v_tri[3];

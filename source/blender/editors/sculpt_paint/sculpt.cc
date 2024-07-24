@@ -5168,7 +5168,7 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
   }
 
   if (bke::pbvh::raycast_node(*srd.ss->pbvh,
-                              &node,
+                              node,
                               origco,
                               use_origco,
                               srd.corner_verts,
@@ -5213,7 +5213,7 @@ static void sculpt_find_nearest_to_ray_cb(blender::bke::pbvh::Node &node,
   }
 
   if (bke::pbvh::find_nearest_to_ray_node(*srd.ss->pbvh,
-                                          &node,
+                                          node,
                                           origco,
                                           use_origco,
                                           srd.corner_verts,

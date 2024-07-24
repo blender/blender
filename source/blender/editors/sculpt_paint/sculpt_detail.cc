@@ -216,7 +216,7 @@ static void sculpt_raycast_detail_cb(bke::pbvh::Node &node,
 {
   if (BKE_pbvh_node_get_tmin(&node) < *tmin) {
     if (bke::pbvh::bmesh_node_raycast_detail(
-            &node, srd.ray_start, &srd.isect_precalc, &srd.depth, &srd.edge_length))
+            node, srd.ray_start, &srd.isect_precalc, &srd.depth, &srd.edge_length))
     {
       srd.hit = true;
       *tmin = srd.depth;

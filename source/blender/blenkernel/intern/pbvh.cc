@@ -197,49 +197,49 @@ static int map_insert_vert(Map<int, int> &map,
 static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  const Span<int3> corner_tris,
                                  MutableSpan<bool> vert_bitmap,
-                                 Node *node)
+                                 Node &node)
 {
-  node->unique_verts_num_ = 0;
+  node.unique_verts_num_ = 0;
   int shared_verts = 0;
-  const Span<int> prim_indices = node->prim_indices_;
+  const Span<int> prim_indices = node.prim_indices_;
 
   /* reserve size is rough guess */
   Map<int, int> map;
   map.reserve(prim_indices.size());
 
-  node->face_vert_indices_.reinitialize(prim_indices.size());
+  node.face_vert_indices_.reinitialize(prim_indices.size());
 
   for (const int i : prim_indices.index_range()) {
     const int3 &tri = corner_tris[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
-      node->face_vert_indices_[i][j] = map_insert_vert(
-          map, vert_bitmap, &shared_verts, &node->unique_verts_num_, corner_verts[tri[j]]);
+      node.face_vert_indices_[i][j] = map_insert_vert(
+          map, vert_bitmap, &shared_verts, &node.unique_verts_num_, corner_verts[tri[j]]);
     }
   }
 
-  node->vert_indices_.reinitialize(node->unique_verts_num_ + shared_verts);
+  node.vert_indices_.reinitialize(node.unique_verts_num_ + shared_verts);
 
   /* Build the vertex list, unique verts first */
   for (const MapItem<int, int> item : map.items()) {
     int value = item.value;
     if (value < 0) {
-      value = -value + node->unique_verts_num_ - 1;
+      value = -value + node.unique_verts_num_ - 1;
     }
 
-    node->vert_indices_[value] = item.key;
+    node.vert_indices_[value] = item.key;
   }
 
   for (const int i : prim_indices.index_range()) {
     for (int j = 0; j < 3; j++) {
-      if (node->face_vert_indices_[i][j] < 0) {
-        node->face_vert_indices_[i][j] = -node->face_vert_indices_[i][j] +
-                                         node->unique_verts_num_ - 1;
+      if (node.face_vert_indices_[i][j] < 0) {
+        node.face_vert_indices_[i][j] = -node.face_vert_indices_[i][j] + node.unique_verts_num_ -
+                                        1;
       }
     }
   }
 
-  BKE_pbvh_node_mark_positions_update(node);
-  BKE_pbvh_node_mark_rebuild_draw(node);
+  BKE_pbvh_node_mark_positions_update(&node);
+  BKE_pbvh_node_mark_rebuild_draw(&node);
 }
 
 int count_grid_quads(const BitGroupVector<> &grid_hidden,
@@ -290,7 +290,7 @@ static void build_leaf(Tree &pbvh,
   node.prim_indices_ = pbvh.prim_indices_.as_span().slice(offset, count);
 
   if (!corner_tris.is_empty()) {
-    build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, &node);
+    build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, node);
   }
   else {
     BKE_pbvh_node_mark_positions_update(&node);
@@ -1942,7 +1942,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 }
 
 static bool pbvh_faces_node_raycast(Tree &pbvh,
-                                    const Node *node,
+                                    const Node &node,
                                     const float (*origco)[3],
                                     const Span<int> corner_verts,
                                     const Span<int3> corner_tris,
@@ -1961,10 +1961,10 @@ static bool pbvh_faces_node_raycast(Tree &pbvh,
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
 
-  for (const int i : node->prim_indices_.index_range()) {
-    const int tri_i = node->prim_indices_[i];
+  for (const int i : node.prim_indices_.index_range()) {
+    const int tri_i = node.prim_indices_[i];
     const int3 &tri = corner_tris[tri_i];
-    const int3 face_verts = node->face_vert_indices_[i];
+    const int3 face_verts = node.face_vert_indices_[i];
 
     if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
       continue;
@@ -2014,7 +2014,7 @@ static bool pbvh_faces_node_raycast(Tree &pbvh,
 }
 
 static bool pbvh_grids_node_raycast(Tree &pbvh,
-                                    Node *node,
+                                    Node &node,
                                     const float (*origco)[3],
                                     const float ray_start[3],
                                     const float ray_normal[3],
@@ -2025,7 +2025,7 @@ static bool pbvh_grids_node_raycast(Tree &pbvh,
                                     float *r_face_normal)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
-  const int totgrid = node->prim_indices_.size();
+  const int totgrid = node.prim_indices_.size();
   const int gridsize = key.grid_size;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0};
@@ -2033,7 +2033,7 @@ static bool pbvh_grids_node_raycast(Tree &pbvh,
   const Span<CCGElem *> grids = pbvh.subdiv_ccg_->grids;
 
   for (int i = 0; i < totgrid; i++) {
-    const int grid_index = node->prim_indices_[i];
+    const int grid_index = node.prim_indices_[i];
     CCGElem *grid = grids[grid_index];
     if (!grid) {
       continue;
@@ -2108,7 +2108,7 @@ static bool pbvh_grids_node_raycast(Tree &pbvh,
 }
 
 bool raycast_node(Tree &pbvh,
-                  Node *node,
+                  Node &node,
                   const float (*origco)[3],
                   bool use_origco,
                   const Span<int> corner_verts,
@@ -2125,7 +2125,7 @@ bool raycast_node(Tree &pbvh,
 {
   bool hit = false;
 
-  if (node->flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & PBVH_FullyHidden) {
     return false;
   }
 
@@ -2302,7 +2302,7 @@ void find_nearest_to_ray(Tree &pbvh,
 }
 
 static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
-                                           const Node *node,
+                                           const Node &node,
                                            const float (*origco)[3],
                                            const Span<int> corner_verts,
                                            const Span<int3> corner_tris,
@@ -2317,10 +2317,10 @@ static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
   const Span<float3> positions = pbvh.vert_positions_;
   bool hit = false;
 
-  for (const int i : node->prim_indices_.index_range()) {
-    const int tri_i = node->prim_indices_[i];
+  for (const int i : node.prim_indices_.index_range()) {
+    const int tri_i = node.prim_indices_[i];
     const int3 &corner_tri = corner_tris[tri_i];
-    const int3 face_verts = node->face_vert_indices_[i];
+    const int3 face_verts = node.face_vert_indices_[i];
 
     if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
       continue;
@@ -2352,7 +2352,7 @@ static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
 }
 
 static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
-                                           Node *node,
+                                           Node &node,
                                            const float (*origco)[3],
                                            const float ray_start[3],
                                            const float ray_normal[3],
@@ -2360,14 +2360,14 @@ static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
                                            float *dist_sq)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
-  const int totgrid = node->prim_indices_.size();
+  const int totgrid = node.prim_indices_.size();
   const int gridsize = key.grid_size;
   bool hit = false;
   const BitGroupVector<> &grid_hidden = pbvh.subdiv_ccg_->grid_hidden;
   const Span<CCGElem *> grids = pbvh.subdiv_ccg_->grids;
 
   for (int i = 0; i < totgrid; i++) {
-    CCGElem *grid = grids[node->prim_indices_[i]];
+    CCGElem *grid = grids[node.prim_indices_[i]];
     if (!grid) {
       continue;
     }
@@ -2376,7 +2376,7 @@ static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
       for (int x = 0; x < gridsize - 1; x++) {
         /* check if grid face is hidden */
         if (!grid_hidden.is_empty()) {
-          if (paint_is_grid_face_hidden(grid_hidden[node->prim_indices_[i]], gridsize, x, y)) {
+          if (paint_is_grid_face_hidden(grid_hidden[node.prim_indices_[i]], gridsize, x, y)) {
             continue;
           }
         }
@@ -2413,7 +2413,7 @@ static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
 }
 
 bool find_nearest_to_ray_node(Tree &pbvh,
-                              Node *node,
+                              Node &node,
                               const float (*origco)[3],
                               bool use_origco,
                               const Span<int> corner_verts,
@@ -2427,7 +2427,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
 {
   bool hit = false;
 
-  if (node->flag_ & PBVH_FullyHidden) {
+  if (node.flag_ & PBVH_FullyHidden) {
     return false;
   }
 
