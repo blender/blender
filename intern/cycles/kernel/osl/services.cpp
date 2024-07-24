@@ -75,6 +75,7 @@ ustring OSLRenderServices::u_object_location("object:location");
 ustring OSLRenderServices::u_object_color("object:color");
 ustring OSLRenderServices::u_object_alpha("object:alpha");
 ustring OSLRenderServices::u_object_index("object:index");
+ustring OSLRenderServices::u_object_is_light("object:is_light");
 ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
 ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
 ustring OSLRenderServices::u_material_index("material:index");
@@ -868,6 +869,10 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   }
   else if (name == u_object_index) {
     float f = object_pass_id(kg, sd->object);
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == u_object_is_light) {
+    float f = (sd->type & PRIMITIVE_LAMP) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_geom_dupli_generated) {
