@@ -269,20 +269,9 @@ def addon_draw_item_expanded(
     # None of the core add-ons are expected to have tracker info (glTF is the exception).
     if item_tracker_url:
         col_a.label(text="Feedback", text_ctxt=i18n_contexts.editor_preferences)
-        if item_tracker_url:
-            col_b.split(factor=0.5).operator(
-                "wm.url_open", text="Report a Bug", icon='URL',
-            ).url = item_tracker_url
-        else:
-            addon_info = (
-                "Name: {:s} {:s}\n"
-                "Author: {:s}\n"
-            ).format(item_name, item_version, item_maintainer)
-            props = col_b.split(factor=0.5).operator(
-                "wm.url_open_preset", text="Report a Bug", icon='URL',
-            )
-            props.type = 'BUG_ADDON'
-            props.id = addon_info
+        col_b.split(factor=0.5).operator(
+            "wm.url_open", text="Report a Bug", icon='URL',
+        ).url = item_tracker_url
 
     if USE_SHOW_ADDON_TYPE_AS_TEXT:
         col_a.label(text="Type")
