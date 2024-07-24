@@ -55,10 +55,6 @@ struct PBVH_GPU_Args;
 }  // namespace draw::pbvh
 }  // namespace blender
 
-struct PBVHProxyNode {
-  blender::Vector<blender::float3> co;
-};
-
 struct PBVHColorBufferNode {
   float (*color)[4] = nullptr;
 };
