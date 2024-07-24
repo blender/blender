@@ -181,7 +181,8 @@ void RotateOperation::update_memory_buffer_partial(MemoryBuffer *output,
     float x = rotate_offset_x + it.x + canvas_.xmin + 0.5f;
     float y = rotate_offset_y + it.y + canvas_.ymin + 0.5f;
     rotate_coords(x, y, center_x, center_y, sine_, cosine_);
-    input_img->read_elem_sampled(x - canvas_.xmin - 0.5f, y - canvas_.ymin - 0.5f, sampler_, it.out);
+    input_img->read_elem_sampled(
+        x - canvas_.xmin - 0.5f, y - canvas_.ymin - 0.5f, sampler_, it.out);
   }
 }
 
