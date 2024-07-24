@@ -219,7 +219,8 @@ static void copy_transformed_positions(const Span<float3> src_positions,
   }
 }
 
-static bool grease_pencil_batch_cache_is_edit_discarded(GreasePencilBatchCache *cache)
+[[maybe_unused]] static bool grease_pencil_batch_cache_is_edit_discarded(
+    GreasePencilBatchCache *cache)
 {
   return cache->edit_points_pos == nullptr && cache->edit_line_indices == nullptr &&
          cache->edit_points_indices == nullptr && cache->edit_points == nullptr &&
