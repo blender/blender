@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <limits>
+
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
@@ -85,7 +87,14 @@ void realize_on_domain(Context &context,
 
   /* Invert the transformation because the shader transforms the domain coordinates instead of the
    * input image itself and thus expect the inverse. */
-  const float3x3 inverse_transformation = math::invert(transformation);
+  float3x3 inverse_transformation = math::invert(transformation);
+
+  /* Bias translations in case of nearest interpolation to avoids the round-to-even behavior of
+   * some GPUs at pixel boundaries. */
+  if (realization_options.interpolation == Interpolation::Nearest) {
+    inverse_transformation = math::translate(
+        inverse_transformation, float2(-std::numeric_limits<float>::epsilon() * 10e3f));
+  }
 
   GPU_shader_uniform_mat3_as_mat4(shader, "inverse_transformation", inverse_transformation.ptr());
 
