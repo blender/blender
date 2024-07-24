@@ -242,40 +242,6 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   BKE_pbvh_node_mark_rebuild_draw(&node);
 }
 
-int count_grid_quads(const BitGroupVector<> &grid_hidden,
-                     const Span<int> grid_indices,
-                     int gridsize,
-                     int display_gridsize)
-{
-  const int gridarea = (gridsize - 1) * (gridsize - 1);
-  if (grid_hidden.is_empty()) {
-    return gridarea * grid_indices.size();
-  }
-
-  /* grid hidden layer is present, so have to check each grid for
-   * visibility */
-
-  int depth1 = int(log2(double(gridsize) - 1.0) + DBL_EPSILON);
-  int depth2 = int(log2(double(display_gridsize) - 1.0) + DBL_EPSILON);
-
-  int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
-
-  int totquad = 0;
-  for (const int grid : grid_indices) {
-    const blender::BoundedBitSpan gh = grid_hidden[grid];
-    /* grid hidden are present, have to check each element */
-    for (int y = 0; y < gridsize - skip; y += skip) {
-      for (int x = 0; x < gridsize - skip; x += skip) {
-        if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
-          totquad++;
-        }
-      }
-    }
-  }
-
-  return totquad;
-}
-
 static void build_leaf(Tree &pbvh,
                        const Span<int> corner_verts,
                        const Span<int3> corner_tris,
@@ -1534,6 +1500,40 @@ void update_visibility(Tree &pbvh)
       update_visibility_bmesh(nodes);
       break;
   }
+}
+
+int count_grid_quads(const BitGroupVector<> &grid_hidden,
+                     const Span<int> grid_indices,
+                     int gridsize,
+                     int display_gridsize)
+{
+  const int gridarea = (gridsize - 1) * (gridsize - 1);
+  if (grid_hidden.is_empty()) {
+    return gridarea * grid_indices.size();
+  }
+
+  /* grid hidden layer is present, so have to check each grid for
+   * visibility */
+
+  int depth1 = int(log2(double(gridsize) - 1.0) + DBL_EPSILON);
+  int depth2 = int(log2(double(display_gridsize) - 1.0) + DBL_EPSILON);
+
+  int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
+
+  int totquad = 0;
+  for (const int grid : grid_indices) {
+    const blender::BoundedBitSpan gh = grid_hidden[grid];
+    /* grid hidden are present, have to check each element */
+    for (int y = 0; y < gridsize - skip; y += skip) {
+      for (int x = 0; x < gridsize - skip; x += skip) {
+        if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
+          totquad++;
+        }
+      }
+    }
+  }
+
+  return totquad;
 }
 
 }  // namespace blender::bke::pbvh
