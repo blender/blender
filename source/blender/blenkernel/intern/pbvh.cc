@@ -201,7 +201,7 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  MutableSpan<bool> vert_bitmap,
                                  Node *node)
 {
-  node->uniq_verts_ = 0;
+  node->unique_verts_num_ = 0;
   int shared_verts = 0;
   const Span<int> prim_indices = node->prim_indices_;
 
@@ -215,17 +215,17 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
     const int3 &tri = corner_tris[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       node->face_vert_indices_[i][j] = map_insert_vert(
-          map, vert_bitmap, &shared_verts, &node->uniq_verts_, corner_verts[tri[j]]);
+          map, vert_bitmap, &shared_verts, &node->unique_verts_num_, corner_verts[tri[j]]);
     }
   }
 
-  node->vert_indices_.reinitialize(node->uniq_verts_ + shared_verts);
+  node->vert_indices_.reinitialize(node->unique_verts_num_ + shared_verts);
 
   /* Build the vertex list, unique verts first */
   for (const MapItem<int, int> item : map.items()) {
     int value = item.value;
     if (value < 0) {
-      value = -value + node->uniq_verts_ - 1;
+      value = -value + node->unique_verts_num_ - 1;
     }
 
     node->vert_indices_[value] = item.key;
@@ -234,7 +234,8 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   for (const int i : prim_indices.index_range()) {
     for (int j = 0; j < 3; j++) {
       if (node->face_vert_indices_[i][j] < 0) {
-        node->face_vert_indices_[i][j] = -node->face_vert_indices_[i][j] + node->uniq_verts_ - 1;
+        node->face_vert_indices_[i][j] = -node->face_vert_indices_[i][j] +
+                                         node->unique_verts_num_ - 1;
       }
     }
   }
@@ -1169,7 +1170,7 @@ static void update_normals_faces(Tree &pbvh, Span<Node *> nodes, Mesh &mesh)
 
   VectorSet<int> boundary_faces;
   for (const Node *node : nodes) {
-    for (const int vert : node->vert_indices_.as_span().drop_front(node->uniq_verts_)) {
+    for (const int vert : node->vert_indices_.as_span().drop_front(node->unique_verts_num_)) {
       boundary_faces.add_multiple(vert_to_face_map[vert]);
     }
   }
@@ -1754,7 +1755,7 @@ Span<int> node_verts(const Node &node)
 
 Span<int> node_unique_verts(const Node &node)
 {
-  return node.vert_indices_.as_span().take_front(node.uniq_verts_);
+  return node.vert_indices_.as_span().take_front(node.unique_verts_num_);
 }
 
 Span<int> node_face_indices_calc_mesh(const Span<int> corner_tri_faces,
@@ -2809,7 +2810,7 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(blender::bke::pbvh::Node *no
 {
   if (!node->color_buffer_.color) {
     node->color_buffer_.color = static_cast<float(*)[4]>(
-        MEM_callocN(sizeof(float[4]) * node->uniq_verts_, "Color buffer"));
+        MEM_callocN(sizeof(float[4]) * node->unique_verts_num_, "Color buffer"));
   }
   return &node->color_buffer_;
 }
@@ -2844,7 +2845,7 @@ void pbvh_vertex_iter_init(blender::bke::pbvh::Tree &pbvh,
       break;
     case blender::bke::pbvh::Type::Mesh:
       totvert = node->vert_indices_.size();
-      uniq_verts = node->uniq_verts_;
+      uniq_verts = node->unique_verts_num_;
       break;
     case blender::bke::pbvh::Type::BMesh:
       totvert = node->bm_unique_verts_.size() + node->bm_other_verts_.size();

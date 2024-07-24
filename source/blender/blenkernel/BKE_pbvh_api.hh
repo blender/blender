@@ -120,7 +120,7 @@ class Node {
    */
   Array<int, 0> vert_indices_;
   /** The number of vertices in #vert_indices not shared with (owned by) another node. */
-  int uniq_verts_ = 0;
+  int unique_verts_num_ = 0;
 
   /* Array of indices into the Mesh's corner array.
    * Type::Mesh only.
