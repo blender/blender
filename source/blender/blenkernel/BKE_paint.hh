@@ -351,9 +351,6 @@ struct SculptBoundary {
   /* Data for drawing the preview. */
   blender::Vector<std::pair<blender::float3, blender::float3>> edges;
 
-  /* True if the boundary loops into itself. */
-  bool forms_loop;
-
   /* Initial vertex index in the boundary which is closest to the current sculpt active vertex. */
   int initial_vert_i;
 
