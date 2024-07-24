@@ -109,7 +109,7 @@ static bool face_materials_match(const Span<int> material_indices,
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
 static int partition_prim_indices(MutableSpan<int> prim_indices,
-                                  int *prim_scratch,
+                                  MutableSpan<int> prim_scratch,
                                   int lo,
                                   int hi,
                                   int axis,
@@ -417,18 +417,13 @@ static void build_sub(Tree &pbvh,
                       const Span<Bounds<float3>> prim_bounds,
                       int offset,
                       int count,
-                      int *prim_scratch,
+                      MutableSpan<int> prim_scratch,
                       int depth)
 {
   const Span<int> prim_to_face_map = pbvh.type() == Type::Mesh ?
                                          tri_faces :
                                          pbvh.subdiv_ccg_->grid_to_face_map;
   int end;
-
-  if (!prim_scratch) {
-    prim_scratch = static_cast<int *>(
-        MEM_malloc_arrayN(pbvh.prim_indices_.size(), sizeof(int), __func__));
-  }
 
   /* Decide whether this is a leaf or not */
   const bool below_leaf_limit = count <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
@@ -446,10 +441,6 @@ static void build_sub(Tree &pbvh,
                  prim_bounds,
                  offset,
                  count);
-
-      if (node_index == 0) {
-        MEM_SAFE_FREE(prim_scratch);
-      }
 
       return;
     }
@@ -529,10 +520,6 @@ static void build_sub(Tree &pbvh,
             offset + count - end,
             prim_scratch,
             depth + 1);
-
-  if (node_index == 0) {
-    MEM_SAFE_FREE(prim_scratch);
-  }
 }
 
 static void pbvh_build(Tree &pbvh,
@@ -569,7 +556,7 @@ static void pbvh_build(Tree &pbvh,
             prim_bounds,
             0,
             totprim,
-            nullptr,
+            Array<int>(pbvh.prim_indices_.size()),
             0);
 }
 
