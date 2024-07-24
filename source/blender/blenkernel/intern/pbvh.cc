@@ -226,28 +226,6 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   BKE_pbvh_node_mark_rebuild_draw(&node);
 }
 
-static void build_leaf(Tree &pbvh,
-                       const Span<int> corner_verts,
-                       const Span<int3> corner_tris,
-                       MutableSpan<bool> vert_bitmap,
-                       int node_index,
-                       int offset,
-                       int count)
-{
-  Node &node = pbvh.nodes_[node_index];
-  node.flag_ |= PBVH_Leaf;
-
-  node.prim_indices_ = pbvh.prim_indices_.as_span().slice(offset, count);
-
-  if (!corner_tris.is_empty()) {
-    build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, node);
-  }
-  else {
-    BKE_pbvh_node_mark_positions_update(&node);
-    BKE_pbvh_node_mark_rebuild_draw(&node);
-  }
-}
-
 /* Return zero if all primitives in the node can be drawn with the
  * same material (including flat/smooth shading), non-zero otherwise */
 static bool leaf_needs_material_split(Tree &pbvh,
@@ -272,45 +250,34 @@ static bool leaf_needs_material_split(Tree &pbvh,
   return false;
 }
 
-/* Recursively build a node in the tree
- *
- * vb is the voxel box around all of the primitives contained in
- * this node.
- *
- * cb is the bounding box around all the centroids of the primitives
- * contained in this node
- *
- * offset and start indicate a range in the array of primitive indices
- */
-
-static void build_sub(Tree &pbvh,
-                      const Span<int> corner_verts,
-                      const Span<int3> corner_tris,
-                      const Span<int> tri_faces,
-                      const Span<int> material_indices,
-                      const Span<bool> sharp_faces,
-                      const int leaf_limit,
-                      MutableSpan<bool> vert_bitmap,
-                      int node_index,
-                      const Bounds<float3> *cb,
-                      const Span<Bounds<float3>> prim_bounds,
-                      int offset,
-                      int count,
-                      MutableSpan<int> prim_scratch,
-                      int depth)
+static void build_nodes_recursive_mesh(Tree &pbvh,
+                                       const Span<int> corner_verts,
+                                       const Span<int3> corner_tris,
+                                       const Span<int> tri_faces,
+                                       const Span<int> material_indices,
+                                       const Span<bool> sharp_faces,
+                                       const int leaf_limit,
+                                       MutableSpan<bool> vert_bitmap,
+                                       const int node_index,
+                                       const Bounds<float3> *cb,
+                                       const Span<Bounds<float3>> prim_bounds,
+                                       const int prim_offset,
+                                       const int prims_num,
+                                       MutableSpan<int> prim_scratch,
+                                       const int depth)
 {
-  const Span<int> prim_to_face_map = pbvh.type() == Type::Mesh ?
-                                         tri_faces :
-                                         pbvh.subdiv_ccg_->grid_to_face_map;
   int end;
 
   /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = count <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
+  const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            pbvh, prim_to_face_map, material_indices, sharp_faces, offset, count))
+            pbvh, tri_faces, material_indices, sharp_faces, prim_offset, prims_num))
     {
-      build_leaf(pbvh, corner_verts, corner_tris, vert_bitmap, node_index, offset, count);
+      Node &node = pbvh.nodes_[node_index];
+      node.flag_ |= PBVH_Leaf;
+      node.prim_indices_ = pbvh.prim_indices_.as_span().slice(prim_offset, prims_num);
+      build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, node);
 
       return;
     }
@@ -325,7 +292,7 @@ static void build_sub(Tree &pbvh,
     /* Find axis with widest range of primitive centroids */
     if (!cb) {
       cb_backing = negative_bounds();
-      for (int i = offset + count - 1; i >= offset; i--) {
+      for (int i = prim_offset + prims_num - 1; i >= prim_offset; i--) {
         const int prim = pbvh.prim_indices_[i];
         const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
         math::min_max(center, cb_backing.min, cb_backing.max);
@@ -337,90 +304,54 @@ static void build_sub(Tree &pbvh,
     /* Partition primitives along that axis */
     end = partition_prim_indices(pbvh.prim_indices_,
                                  prim_scratch,
-                                 offset,
-                                 offset + count,
+                                 prim_offset,
+                                 prim_offset + prims_num,
                                  axis,
                                  math::midpoint(cb->min[axis], cb->max[axis]),
                                  prim_bounds,
-                                 prim_to_face_map);
+                                 tri_faces);
   }
   else {
     /* Partition primitives by material */
     end = partition_indices_material_faces(pbvh.prim_indices_,
-                                           prim_to_face_map,
+                                           tri_faces,
                                            material_indices,
                                            sharp_faces,
-                                           offset,
-                                           offset + count - 1);
+                                           prim_offset,
+                                           prim_offset + prims_num - 1);
   }
 
   /* Build children */
-  build_sub(pbvh,
-            corner_verts,
-            corner_tris,
-            tri_faces,
-            material_indices,
-            sharp_faces,
-            leaf_limit,
-            vert_bitmap,
-            pbvh.nodes_[node_index].children_offset_,
-            nullptr,
-            prim_bounds,
-            offset,
-            end - offset,
-            prim_scratch,
-            depth + 1);
-  build_sub(pbvh,
-            corner_verts,
-            corner_tris,
-            tri_faces,
-            material_indices,
-            sharp_faces,
-            leaf_limit,
-            vert_bitmap,
-            pbvh.nodes_[node_index].children_offset_ + 1,
-            nullptr,
-            prim_bounds,
-            end,
-            offset + count - end,
-            prim_scratch,
-            depth + 1);
-}
-
-static void pbvh_build(Tree &pbvh,
-                       const Span<int> corner_verts,
-                       const Span<int3> corner_tris,
-                       const Span<int> tri_faces,
-                       const Span<int> material_indices,
-                       const Span<bool> sharp_faces,
-                       const int leaf_limit,
-                       MutableSpan<bool> vert_bitmap,
-                       const Bounds<float3> *cb,
-                       const Span<Bounds<float3>> prim_bounds,
-                       int totprim)
-{
-  pbvh.nodes_.clear_and_shrink();
-
-  pbvh.prim_indices_.reinitialize(totprim);
-  array_utils::fill_index_range<int>(pbvh.prim_indices_);
-
-  pbvh.nodes_.resize(1);
-
-  build_sub(pbvh,
-            corner_verts,
-            corner_tris,
-            tri_faces,
-            material_indices,
-            sharp_faces,
-            leaf_limit,
-            vert_bitmap,
-            0,
-            cb,
-            prim_bounds,
-            0,
-            totprim,
-            Array<int>(pbvh.prim_indices_.size()),
-            0);
+  build_nodes_recursive_mesh(pbvh,
+                             corner_verts,
+                             corner_tris,
+                             tri_faces,
+                             material_indices,
+                             sharp_faces,
+                             leaf_limit,
+                             vert_bitmap,
+                             pbvh.nodes_[node_index].children_offset_,
+                             nullptr,
+                             prim_bounds,
+                             prim_offset,
+                             end - prim_offset,
+                             prim_scratch,
+                             depth + 1);
+  build_nodes_recursive_mesh(pbvh,
+                             corner_verts,
+                             corner_tris,
+                             tri_faces,
+                             material_indices,
+                             sharp_faces,
+                             leaf_limit,
+                             vert_bitmap,
+                             pbvh.nodes_[node_index].children_offset_ + 1,
+                             nullptr,
+                             prim_bounds,
+                             end,
+                             prim_offset + prims_num - end,
+                             prim_scratch,
+                             depth + 1);
 }
 
 void update_mesh_pointers(Tree &pbvh, Mesh *mesh)
@@ -478,17 +409,26 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
     const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
     const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
     const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-    pbvh_build(*pbvh,
-               corner_verts,
-               corner_tris,
-               tri_faces,
-               material_index,
-               sharp_face,
-               leaf_limit,
-               vert_bitmap,
-               &cb,
-               prim_bounds,
-               corner_tris.size());
+
+    pbvh->prim_indices_.reinitialize(corner_tris.size());
+    array_utils::fill_index_range<int>(pbvh->prim_indices_);
+
+    pbvh->nodes_.resize(1);
+    build_nodes_recursive_mesh(*pbvh,
+                               corner_verts,
+                               corner_tris,
+                               tri_faces,
+                               material_index,
+                               sharp_face,
+                               leaf_limit,
+                               vert_bitmap,
+                               0,
+                               &cb,
+                               prim_bounds,
+                               0,
+                               corner_tris.size(),
+                               Array<int>(pbvh->prim_indices_.size()),
+                               0);
 
     update_bounds(*pbvh);
     store_bounds_orig(*pbvh);
@@ -507,6 +447,100 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
   }
 
   return pbvh;
+}
+
+static void build_nodes_recursive_grids(Tree &pbvh,
+                                        const Span<int> material_indices,
+                                        const Span<bool> sharp_faces,
+                                        const int leaf_limit,
+                                        const int node_index,
+                                        const Bounds<float3> *cb,
+                                        const Span<Bounds<float3>> prim_bounds,
+                                        const int prim_offset,
+                                        const int prims_num,
+                                        MutableSpan<int> prim_scratch,
+                                        const int depth)
+{
+  const Span<int> prim_to_face_map = pbvh.subdiv_ccg_->grid_to_face_map;
+  int end;
+
+  /* Decide whether this is a leaf or not */
+  const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
+  if (below_leaf_limit) {
+    if (!leaf_needs_material_split(
+            pbvh, prim_to_face_map, material_indices, sharp_faces, prim_offset, prims_num))
+    {
+      Node &node = pbvh.nodes_[node_index];
+      node.flag_ |= PBVH_Leaf;
+
+      node.prim_indices_ = pbvh.prim_indices_.as_span().slice(prim_offset, prims_num);
+      BKE_pbvh_node_mark_positions_update(&node);
+      BKE_pbvh_node_mark_rebuild_draw(&node);
+      return;
+    }
+  }
+
+  /* Add two child nodes */
+  pbvh.nodes_[node_index].children_offset_ = pbvh.nodes_.size();
+  pbvh.nodes_.resize(pbvh.nodes_.size() + 2);
+
+  Bounds<float3> cb_backing;
+  if (!below_leaf_limit) {
+    /* Find axis with widest range of primitive centroids */
+    if (!cb) {
+      cb_backing = negative_bounds();
+      for (int i = prim_offset + prims_num - 1; i >= prim_offset; i--) {
+        const int prim = pbvh.prim_indices_[i];
+        const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
+        math::min_max(center, cb_backing.min, cb_backing.max);
+      }
+      cb = &cb_backing;
+    }
+    const int axis = math::dominant_axis(cb->max - cb->min);
+
+    /* Partition primitives along that axis */
+    end = partition_prim_indices(pbvh.prim_indices_,
+                                 prim_scratch,
+                                 prim_offset,
+                                 prim_offset + prims_num,
+                                 axis,
+                                 math::midpoint(cb->min[axis], cb->max[axis]),
+                                 prim_bounds,
+                                 prim_to_face_map);
+  }
+  else {
+    /* Partition primitives by material */
+    end = partition_indices_material_faces(pbvh.prim_indices_,
+                                           prim_to_face_map,
+                                           material_indices,
+                                           sharp_faces,
+                                           prim_offset,
+                                           prim_offset + prims_num - 1);
+  }
+
+  /* Build children */
+  build_nodes_recursive_grids(pbvh,
+                              material_indices,
+                              sharp_faces,
+                              leaf_limit,
+                              pbvh.nodes_[node_index].children_offset_,
+                              nullptr,
+                              prim_bounds,
+                              prim_offset,
+                              end - prim_offset,
+                              prim_scratch,
+                              depth + 1);
+  build_nodes_recursive_grids(pbvh,
+                              material_indices,
+                              sharp_faces,
+                              leaf_limit,
+                              pbvh.nodes_[node_index].children_offset_ + 1,
+                              nullptr,
+                              prim_bounds,
+                              end,
+                              prim_offset + prims_num - end,
+                              prim_scratch,
+                              depth + 1);
 }
 
 std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
@@ -560,17 +594,22 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
     const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-    pbvh_build(*pbvh,
-               {},
-               {},
-               {},
-               material_index,
-               sharp_face,
-               leaf_limit,
-               {},
-               &cb,
-               prim_bounds,
-               grids.size());
+
+    pbvh->prim_indices_.reinitialize(grids.size());
+    array_utils::fill_index_range<int>(pbvh->prim_indices_);
+
+    pbvh->nodes_.resize(1);
+    build_nodes_recursive_grids(*pbvh,
+                                material_index,
+                                sharp_face,
+                                leaf_limit,
+                                0,
+                                &cb,
+                                prim_bounds,
+                                0,
+                                grids.size(),
+                                Array<int>(pbvh->prim_indices_.size()),
+                                0);
 
     update_bounds(*pbvh);
     store_bounds_orig(*pbvh);
