@@ -916,9 +916,7 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
       "The conditions that would cause this Slot assigment to fail (such as the ID not being "
       "animatible) should have been caught and handled by higher-level functions.");
 
-  /* Ensure that at least one layer exists. If not, create the default layer
-   * with the default infinite keyframe strip. */
-  action.layer_ensure_at_least_one();
+  action.layer_keystrip_ensure();
 
   /* TODO: we currently assume this will always successfully find a layer.
    * However, that may not be true in the future when we implement features like

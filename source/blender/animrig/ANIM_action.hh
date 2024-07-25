@@ -121,10 +121,12 @@ class Action : public ::bAction {
   bool layer_remove(Layer &layer_to_remove);
 
   /**
-   * If the Action is empty, create a default layer with a single infinite
-   * keyframe strip.
+   * Ensure that there is at least one layer with the infinite keyframe strip.
+   *
+   * \note Within the limits of Project Baklava Phase 1, this means that there
+   * will be exactly one layer with one keyframe strip on it.
    */
-  void layer_ensure_at_least_one();
+  void layer_keystrip_ensure();
 
   /* Action Slot access. */
   blender::Span<const Slot *> slots() const;

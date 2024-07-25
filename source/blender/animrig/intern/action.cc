@@ -207,14 +207,26 @@ bool Action::layer_remove(Layer &layer_to_remove)
   return true;
 }
 
-void Action::layer_ensure_at_least_one()
+void Action::layer_keystrip_ensure()
 {
-  if (!this->layers().is_empty()) {
-    return;
+  /* Ensure a layer. */
+  Layer *layer;
+  if (this->layers().is_empty()) {
+    layer = &this->layer_add(DATA_(layer_default_name));
+  }
+  else {
+    layer = this->layer(0);
   }
 
-  Layer &layer = this->layer_add(DATA_(layer_default_name));
-  layer.strip_add(Strip::Type::Keyframe);
+  /* Ensure a KeyframeStrip. */
+  if (layer->strips().is_empty()) {
+    layer->strip_add<KeyframeStrip>();
+  }
+
+  /* Within the limits of Baklava Phase 1, the above code should not have
+   * created more than one layer, or more than one strip on the layer. And if a
+   * layer + strip already existed, that must have been a keyframe strip. */
+  assert_baklava_phase_1_invariants(*this);
 }
 
 int64_t Action::find_layer_index(const Layer &layer) const
@@ -1397,6 +1409,9 @@ FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor)
   if (act == nullptr) {
     return nullptr;
   }
+#ifdef WITH_ANIM_BAKLAVA
+  BLI_assert(act->wrap().is_action_legacy());
+#endif
   return BKE_fcurve_find(
       &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
 }
@@ -1443,7 +1458,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
     Slot &slot = action.slot_ensure_for_id(*ptr->owner_id);
     action.assign_id(&slot, *ptr->owner_id);
 
-    action.layer_ensure_at_least_one();
+    action.layer_keystrip_ensure();
 
     assert_baklava_phase_1_invariants(action);
     KeyframeStrip &strip = action.layer(0)->strip(0)->as<KeyframeStrip>();
