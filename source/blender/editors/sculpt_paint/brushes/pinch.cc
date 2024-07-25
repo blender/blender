@@ -76,7 +76,7 @@ static void calc_faces(const Sculpt &sd,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;

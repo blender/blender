@@ -11,7 +11,6 @@
 #include "BKE_pbvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
 #include "BLI_task.h"

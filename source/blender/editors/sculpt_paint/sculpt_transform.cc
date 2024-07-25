@@ -364,7 +364,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
   tls.factors.reinitialize(verts.size());
@@ -801,28 +801,20 @@ static float3 average_mask_border_position(const Object &object,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            threading::isolate_task([&]() {
-              for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-                const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+            for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
+              const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+              MutableSpan positions = gather_data_mesh(vert_positions, verts, tls.positions);
+              MutableSpan masks = gather_data_mesh(mask_attr, verts, tls.masks);
 
-                tls.positions.reinitialize(verts.size());
-                const MutableSpan<float3> positions = tls.positions;
-                array_utils::gather(vert_positions, verts, positions);
+              tls.factors.reinitialize(verts.size());
+              const MutableSpan<float> factors = tls.factors;
+              fill_factor_from_hide(mesh, verts, factors);
 
-                tls.masks.reinitialize(verts.size());
-                const MutableSpan<float> masks = tls.masks;
-                array_utils::gather(mask_attr, verts, masks);
+              mask_border_weight_calc(masks, factors);
+              filter_positions_pivot_symmetry(positions, pivot, symm, factors);
 
-                tls.factors.reinitialize(verts.size());
-                const MutableSpan<float> factors = tls.factors;
-                fill_factor_from_hide(mesh, verts, factors);
-
-                mask_border_weight_calc(masks, factors);
-                filter_positions_pivot_symmetry(positions, pivot, symm, factors);
-
-                accumulate_weighted_average_position(positions, factors, sum);
-              }
-            });
+              accumulate_weighted_average_position(positions, factors, sum);
+            }
             return sum;
           },
           combine_average_position_accumulation);

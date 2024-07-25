@@ -185,24 +185,6 @@ void scatter_mask_bmesh(const Span<float> mask, const BMesh &bm, const Set<BMVer
   }
 }
 
-static float average_masks(const Span<float> masks, const Span<int> indices)
-{
-  float sum = 0;
-  for (const int i : indices) {
-    sum += masks[i];
-  }
-  return sum / float(indices.size());
-}
-
-void average_neighbor_mask_mesh(const Span<float> masks,
-                                const Span<Vector<int>> vert_neighbors,
-                                const MutableSpan<float> new_masks)
-{
-  for (const int i : vert_neighbors.index_range()) {
-    new_masks[i] = average_masks(masks, vert_neighbors[i]);
-  }
-}
-
 static float average_masks(const CCGKey &key,
                            const Span<CCGElem *> elems,
                            const Span<SubdivCCGCoord> coords)

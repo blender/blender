@@ -16,7 +16,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
@@ -80,7 +79,7 @@ static void calc_faces(const Sculpt &sd,
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  array_utils::gather(all_translations, verts, translations);
+  gather_data_mesh(all_translations, verts, translations);
   scale_translations(translations, factors);
 
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
@@ -195,12 +194,12 @@ static void calc_translations_faces(const Span<float3> vert_positions,
 
   tls.new_positions.reinitialize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-  smooth::neighbor_position_average_mesh(vert_positions, verts, neighbors, new_positions);
+  smooth::neighbor_data_average_mesh(vert_positions, neighbors, new_positions);
 
   tls.translations.reinitialize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, verts, vert_positions, translations);
-  array_utils::scatter(translations.as_span(), verts, all_translations);
+  scatter_data_mesh(translations.as_span(), verts, all_translations);
 }
 
 static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
@@ -261,17 +260,15 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
       const Span<int> corner_verts = mesh.corner_verts();
       threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        threading::isolate_task([&]() {
-          for (const int i : range) {
-            calc_translations_faces(positions_eval,
-                                    faces,
-                                    corner_verts,
-                                    ss.vert_to_face_map,
-                                    *effective_nodes[i],
-                                    tls,
-                                    translations);
-          }
-        });
+        for (const int i : range) {
+          calc_translations_faces(positions_eval,
+                                  faces,
+                                  corner_verts,
+                                  ss.vert_to_face_map,
+                                  *effective_nodes[i],
+                                  tls,
+                                  translations);
+        }
       });
       break;
     }
@@ -323,21 +320,19 @@ void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        threading::isolate_task([&]() {
-          for (const int i : range) {
-            calc_faces(sd,
-                       brush,
-                       positions_eval,
-                       vert_normals,
-                       translations,
-                       strength,
-                       *nodes[i],
-                       object,
-                       tls,
-                       positions_orig);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
-          }
-        });
+        for (const int i : range) {
+          calc_faces(sd,
+                     brush,
+                     positions_eval,
+                     vert_normals,
+                     translations,
+                     strength,
+                     *nodes[i],
+                     object,
+                     tls,
+                     positions_orig);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
       });
       break;
     }

@@ -10,7 +10,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_subdiv_ccg.hh"
 
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
 #include "BLI_task.h"
@@ -62,7 +61,7 @@ static void calc_smooth_masks_faces(const OffsetIndices<int> faces,
   tls.vert_neighbors.reinitialize(verts.size());
   calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
   const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
-  mask::average_neighbor_mask_mesh(masks, vert_neighbors, new_masks);
+  smooth::neighbor_data_average_mesh(masks, vert_neighbors, new_masks);
 }
 
 static void apply_masks_faces(const Brush &brush,
@@ -107,12 +106,12 @@ static void apply_masks_faces(const Brush &brush,
 
   tls.new_masks.reinitialize(verts.size());
   const MutableSpan<float> new_masks = tls.new_masks;
-  array_utils::gather(mask.as_span(), verts, new_masks);
+  gather_data_mesh(mask.as_span(), verts, new_masks);
 
   mask::mix_new_masks(mask_averages, factors, new_masks);
   mask::clamp_mask(new_masks);
 
-  array_utils::scatter(new_masks.as_span(), verts, mask);
+  scatter_data_mesh(new_masks.as_span(), verts, mask);
 }
 
 static void do_smooth_brush_mesh(const Brush &brush,
@@ -160,20 +159,18 @@ static void do_smooth_brush_mesh(const Brush &brush,
     });
 
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      threading::isolate_task([&]() {
-        LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          apply_masks_faces(brush,
-                            positions_eval,
-                            vert_normals,
-                            *nodes[i],
-                            strength,
-                            object,
-                            tls,
-                            new_masks.as_span().slice(node_vert_offsets[i]),
-                            mask.span);
-        }
-      });
+      LocalData &tls = all_tls.local();
+      for (const int i : range) {
+        apply_masks_faces(brush,
+                          positions_eval,
+                          vert_normals,
+                          *nodes[i],
+                          strength,
+                          object,
+                          tls,
+                          new_masks.as_span().slice(node_vert_offsets[i]),
+                          mask.span);
+      }
     });
   }
   mask.finish();

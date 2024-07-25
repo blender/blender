@@ -58,8 +58,8 @@ static void apply_projection_mesh(const Sculpt &sd,
   undo::push_node(object, &node, undo::Type::Position);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
-  const MutableSpan normals = gather_mesh_normals(vert_normals, verts, tls.normals);
+  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
+  const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;

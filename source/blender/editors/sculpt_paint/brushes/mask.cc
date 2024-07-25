@@ -13,7 +13,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
@@ -98,7 +97,7 @@ static void calc_faces(const Brush &brush,
 
   tls.new_masks.reinitialize(verts.size());
   const MutableSpan<float> new_masks = tls.new_masks;
-  array_utils::gather(mask.as_span(), verts, new_masks);
+  gather_data_mesh(mask.as_span(), verts, new_masks);
 
   tls.current_masks = tls.new_masks;
   const MutableSpan<float> current_masks = tls.current_masks;
@@ -108,7 +107,7 @@ static void calc_faces(const Brush &brush,
   apply_factors(strength, current_masks, factors, new_masks);
   clamp_mask(new_masks);
 
-  array_utils::scatter(new_masks.as_span(), verts, mask);
+  scatter_data_mesh(new_masks.as_span(), verts, mask);
 }
 
 static void calc_grids(Object &object,
@@ -232,20 +231,11 @@ void do_mask_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nod
           ".sculpt_mask", bke::AttrDomain::Point);
 
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        threading::isolate_task([&]() {
-          LocalData &tls = all_tls.local();
-          for (const int i : range) {
-            calc_faces(brush,
-                       bstrength,
-                       positions,
-                       vert_normals,
-                       *nodes[i],
-                       object,
-                       mesh,
-                       tls,
-                       mask.span);
-          }
-        });
+        LocalData &tls = all_tls.local();
+        for (const int i : range) {
+          calc_faces(
+              brush, bstrength, positions, vert_normals, *nodes[i], object, mesh, tls, mask.span);
+        }
       });
       mask.finish();
       break;

@@ -146,7 +146,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
                                      hide_poly,
                                      verts,
                                      tls.vert_neighbors);
-        smooth::neighbor_position_average_mesh(
+        smooth::neighbor_data_average_mesh_check_loose(
             positions_eval,
             verts,
             tls.vert_neighbors,

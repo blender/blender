@@ -1009,7 +1009,7 @@ static void bake_mask_mesh(const Object &object,
 
   tls.mask.reinitialize(verts.size());
   const MutableSpan<float> node_mask = tls.mask;
-  array_utils::gather(mask.as_span(), verts, node_mask);
+  gather_data_mesh(mask.as_span(), verts, node_mask);
 
   calc_new_masks(mode, node_mask, new_mask);
   mix_new_masks(new_mask, factors, node_mask);

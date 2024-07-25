@@ -139,7 +139,7 @@ static void sample_node_surface_mesh(const Object &object,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(vert_positions, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(vert_positions, verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -166,7 +166,7 @@ static void sample_node_surface_mesh(const Object &object,
   MutableSpan<float3> local_positions = tls.local_positions;
   transform_positions(positions, mat, local_positions);
 
-  const MutableSpan normals = gather_mesh_normals(vert_normals, verts, tls.normals);
+  const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
 
   accumulate_samples(positions, local_positions, normals, factors, sample);
 }
@@ -343,7 +343,7 @@ static void calc_faces(const Sculpt &sd,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;

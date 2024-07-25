@@ -16,7 +16,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_array.hh"
-#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -133,7 +132,7 @@ static void calc_faces(const Sculpt &sd,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  const MutableSpan positions = gather_mesh_positions(positions_eval, verts, tls.positions);
+  const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
   tls.factors.reinitialize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -161,13 +160,13 @@ static void calc_faces(const Sculpt &sd,
   }
   else {
     tls.masks.reinitialize(verts.size());
-    array_utils::gather(mask_attribute, verts, tls.masks.as_mutable_span());
+    gather_data_mesh(mask_attribute, verts, tls.masks.as_mutable_span());
   }
   const MutableSpan<float> masks = tls.masks;
 
   tls.displacement_factors.reinitialize(verts.size());
   const MutableSpan<float> displacement_factors = tls.displacement_factors;
-  array_utils::gather(layer_displacement_factor.as_span(), verts, displacement_factors);
+  gather_data_mesh(layer_displacement_factor.as_span(), verts, displacement_factors);
 
   if (use_persistent_base) {
     if (cache.invert) {
@@ -178,7 +177,7 @@ static void calc_faces(const Sculpt &sd,
     }
     clamp_displacement_factors(displacement_factors, masks);
 
-    array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
+    scatter_data_mesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
     tls.translations.reinitialize(verts.size());
     const MutableSpan<float3> translations = tls.translations;
@@ -197,7 +196,7 @@ static void calc_faces(const Sculpt &sd,
     offset_displacement_factors(displacement_factors, factors, cache.bstrength);
     clamp_displacement_factors(displacement_factors, masks);
 
-    array_utils::scatter(displacement_factors.as_span(), verts, layer_displacement_factor);
+    scatter_data_mesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
     const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
@@ -392,23 +391,21 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> no
 
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        threading::isolate_task([&]() {
-          for (const int i : range) {
-            calc_faces(sd,
-                       brush,
-                       positions_eval,
-                       vert_normals,
-                       masks,
-                       use_persistent_base,
-                       persistent_position,
-                       persistent_normal,
-                       object,
-                       *nodes[i],
-                       tls,
-                       displacement,
-                       positions_orig);
-          }
-        });
+        for (const int i : range) {
+          calc_faces(sd,
+                     brush,
+                     positions_eval,
+                     vert_normals,
+                     masks,
+                     use_persistent_base,
+                     persistent_position,
+                     persistent_normal,
+                     object,
+                     *nodes[i],
+                     tls,
+                     displacement,
+                     positions_orig);
+        }
       });
       persistent_disp_attr.finish();
       break;

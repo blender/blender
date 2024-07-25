@@ -81,7 +81,7 @@ static void calc_faces(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
-  const MutableSpan translations = gather_mesh_normals(vert_normals, verts, tls.translations);
+  const MutableSpan translations = gather_data_mesh(vert_normals, verts, tls.translations);
   apply_scale(translations, scale);
   scale_translations(translations, factors);
 

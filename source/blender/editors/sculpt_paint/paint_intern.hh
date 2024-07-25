@@ -506,9 +506,6 @@ void gather_mask_bmesh(const BMesh &bm, const Set<BMVert *, 0> &verts, MutableSp
 void scatter_mask_grids(Span<float> mask, SubdivCCG &subdiv_ccg, Span<int> grids);
 void scatter_mask_bmesh(Span<float> mask, const BMesh &bm, const Set<BMVert *, 0> &verts);
 
-void average_neighbor_mask_mesh(Span<float> masks,
-                                Span<Vector<int>> vert_neighbors,
-                                MutableSpan<float> new_masks);
 void average_neighbor_mask_grids(const SubdivCCG &subdiv_ccg,
                                  Span<int> grids,
                                  MutableSpan<float> new_masks);

@@ -1687,10 +1687,13 @@ void neighbor_position_average_bmesh(const Set<BMVert *, 0> &verts,
 void neighbor_position_average_interior_bmesh(const Set<BMVert *, 0> &verts,
                                               MutableSpan<float3> new_positions);
 
-void neighbor_position_average_mesh(Span<float3> positions,
-                                    Span<int> verts,
-                                    Span<Vector<int>> vert_neighbors,
-                                    MutableSpan<float3> new_positions);
+template<typename T>
+void neighbor_data_average_mesh(Span<T> src, Span<Vector<int>> vert_neighbors, MutableSpan<T> dst);
+template<typename T>
+void neighbor_data_average_mesh_check_loose(Span<T> src,
+                                            Span<int> verts,
+                                            Span<Vector<int>> vert_neighbors,
+                                            MutableSpan<T> dst);
 
 /* Surface Smooth Brush. */
 

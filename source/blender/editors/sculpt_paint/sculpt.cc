@@ -5643,7 +5643,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
     ED_region_tag_redraw(&region);
     if (update_type == UpdateType::Image) {
       /* Early exit when only need to update the images. We don't want to tag any geometry updates
-       * that would rebuilt the bke::pbvh::Tree. */
+       * that would rebuild the bke::pbvh::Tree. */
       return;
     }
   }
@@ -6604,17 +6604,6 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
 
 namespace blender::ed::sculpt_paint {
 
-void gather_mesh_positions(Span<float3> vert_postions,
-                           Span<int> verts,
-                           MutableSpan<float3> positions)
-{
-  BLI_assert(verts.size() == positions.size());
-
-  for (const int i : verts.index_range()) {
-    positions[i] = vert_postions[verts[i]];
-  }
-}
-
 void gather_grids_positions(const CCGKey &key,
                             const Span<CCGElem *> elems,
                             const Span<int> grids,
@@ -6669,6 +6658,16 @@ void gather_bmesh_normals(const Set<BMVert *, 0> &verts, const MutableSpan<float
 }
 
 template<typename T>
+void gather_data_mesh(const Span<T> src, const Span<int> indices, const MutableSpan<T> dst)
+{
+  BLI_assert(indices.size() == dst.size());
+
+  for (const int i : indices.index_range()) {
+    dst[i] = src[indices[i]];
+  }
+}
+
+template<typename T>
 void gather_data_grids(const SubdivCCG &subdiv_ccg,
                        const Span<T> src,
                        const Span<int> grids,
@@ -6695,6 +6694,16 @@ void gather_data_vert_bmesh(const Span<T> src,
   for (const BMVert *vert : verts) {
     node_data[i] = src[BM_elem_index_get(vert)];
     i++;
+  }
+}
+
+template<typename T>
+void scatter_data_mesh(const Span<T> src, const Span<int> indices, const MutableSpan<T> dst)
+{
+  BLI_assert(indices.size() == src.size());
+
+  for (const int i : indices.index_range()) {
+    dst[indices[i]] = src[i];
   }
 }
 
@@ -6728,6 +6737,8 @@ void scatter_data_vert_bmesh(const Span<T> node_data,
   }
 }
 
+template void gather_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
+template void gather_data_mesh<float3>(Span<float3>, Span<int>, MutableSpan<float3>);
 template void gather_data_grids<float>(const SubdivCCG &,
                                        Span<float>,
                                        Span<int>,
@@ -6743,6 +6754,8 @@ template void gather_data_vert_bmesh<float3>(Span<float3>,
                                              const Set<BMVert *, 0> &,
                                              MutableSpan<float3>);
 
+template void scatter_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
+template void scatter_data_mesh<float3>(Span<float3>, Span<int>, MutableSpan<float3>);
 template void scatter_data_grids<float>(const SubdivCCG &,
                                         Span<float>,
                                         Span<int>,

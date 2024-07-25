@@ -27,33 +27,64 @@
 
 namespace blender::ed::sculpt_paint::smooth {
 
-static float3 average_positions(const Span<float3> positions, const Span<int> indices)
+template<typename T> T calc_average(const Span<T> positions, const Span<int> indices)
 {
   const float factor = math::rcp(float(indices.size()));
-  float3 result(0);
+  T result{};
   for (const int i : indices) {
     result += positions[i] * factor;
   }
   return result;
 }
 
-void neighbor_position_average_mesh(const Span<float3> positions,
-                                    const Span<int> verts,
-                                    const Span<Vector<int>> vert_neighbors,
-                                    const MutableSpan<float3> new_positions)
+template<typename T>
+void neighbor_data_average_mesh_check_loose(const Span<T> src,
+                                            const Span<int> verts,
+                                            const Span<Vector<int>> vert_neighbors,
+                                            const MutableSpan<T> dst)
 {
-  BLI_assert(vert_neighbors.size() == new_positions.size());
+  BLI_assert(verts.size() == dst.size());
+  BLI_assert(vert_neighbors.size() == dst.size());
 
   for (const int i : vert_neighbors.index_range()) {
     const Span<int> neighbors = vert_neighbors[i];
     if (neighbors.is_empty()) {
-      new_positions[i] = positions[verts[i]];
+      dst[i] = src[verts[i]];
     }
     else {
-      new_positions[i] = average_positions(positions, neighbors);
+      dst[i] = calc_average(src, neighbors);
     }
   }
 }
+
+template void neighbor_data_average_mesh_check_loose<float>(Span<float>,
+                                                            Span<int>,
+                                                            Span<Vector<int>>,
+                                                            MutableSpan<float>);
+template void neighbor_data_average_mesh_check_loose<float3>(Span<float3>,
+                                                             Span<int>,
+                                                             Span<Vector<int>>,
+                                                             MutableSpan<float3>);
+
+template<typename T>
+void neighbor_data_average_mesh(const Span<T> src,
+                                const Span<Vector<int>> vert_neighbors,
+                                const MutableSpan<T> dst)
+{
+  BLI_assert(vert_neighbors.size() == dst.size());
+
+  for (const int i : vert_neighbors.index_range()) {
+    BLI_assert(!vert_neighbors[i].is_empty());
+    dst[i] = calc_average(src, vert_neighbors[i]);
+  }
+}
+
+template void neighbor_data_average_mesh<float>(Span<float>,
+                                                Span<Vector<int>>,
+                                                MutableSpan<float>);
+template void neighbor_data_average_mesh<float3>(Span<float3>,
+                                                 Span<Vector<int>>,
+                                                 MutableSpan<float3>);
 
 static float3 average_positions(const CCGKey &key,
                                 const Span<CCGElem *> elems,
