@@ -235,7 +235,7 @@ enum PropertyFlag {
    */
   PROP_HIDDEN = (1 << 19),
   /**
-   * Donnot preserve the last value for repeated operator calls.
+   * Doesn't preserve the last value for repeated operator calls.
    *
    * Also don't save in presets, as if #PROP_SKIP_PRESET was set.
    */

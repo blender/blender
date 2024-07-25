@@ -191,8 +191,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       const float len_v = len(lamp->get_axisv());
       const float len_w = len(lamp->get_dir());
 
-      /* As `theta_e` approaches `pi/2`, the behaviour of `atan(tan(theta_e))` can become quite
-       * unpredicatable as `tan(x)` has an asymptote at `x = pi/2`. To avoid this, we skip the back
+      /* As `theta_e` approaches `pi/2`, the behavior of `atan(tan(theta_e))` can become quite
+       * unpredictable as `tan(x)` has an asymptote at `x = pi/2`. To avoid this, we skip the back
        * and forward conversion.
        * The conversion is required to deal with scaled lights, but near `pi/2` the scaling does
        * not make a big difference in the angle, so we can skip the conversion without worrying

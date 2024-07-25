@@ -73,7 +73,7 @@ class BufferParams : public Node {
   int height = 0;
 
   /* Windows defines which part of the buffers is visible. The part outside of the window is
-   * considered an "overscan".
+   * considered an `overscan`.
    *
    * Window X and Y are relative to the position of the buffer in the full buffer. */
   int window_x = 0;

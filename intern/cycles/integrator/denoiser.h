@@ -34,7 +34,7 @@ class Denoiser {
    *   This is checked in debug builds.
    * - The device might be MultiDevice.
    * - If Denoiser from params is not supported by provided denoise device, then Blender will
-       fallback on the OIDN CPU denoising and use provided cpu_fallback_device. */
+   *   fallback on the OIDN CPU denoising and use provided cpu_fallback_device. */
   static unique_ptr<Denoiser> create(Device *denoise_device,
                                      Device *cpu_fallback_device,
                                      const DenoiseParams &params);

@@ -86,8 +86,8 @@ class Film {
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
-  /* Store the pass types needed by the viewport compositor separatly, because some passes might be
-   * enabled but not used by the viewport compositor, so they needn't be written. */
+  /* Store the pass types needed by the viewport compositor separately, because some passes might
+   * be enabled but not used by the viewport compositor, so they needn't be written. */
   eViewLayerEEVEEPassType viewport_compositor_enabled_passes_ = eViewLayerEEVEEPassType(0);
   PassCategory enabled_categories_ = PassCategory(0);
   bool use_reprojection_ = false;

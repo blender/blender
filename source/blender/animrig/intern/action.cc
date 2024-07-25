@@ -1172,7 +1172,7 @@ bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
   dna::array::remove_index(
       &this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_index, fcurve_ptr_destructor);
 
-  /* As an optimisation, this function could call `DEG_relations_tag_update(bmain)` to prune any
+  /* As an optimization, this function could call `DEG_relations_tag_update(bmain)` to prune any
    * relationships that are now no longer necessary. This is not needed for correctness of the
    * depsgraph evaluation results though. */
 

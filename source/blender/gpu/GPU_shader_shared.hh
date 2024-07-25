@@ -120,7 +120,7 @@ struct SeqStripDrawData {
   /* Horizontal strip positions (1.0 is one frame). */
   float left_handle, right_handle;  /* Left and right strip sides. */
   float content_start, content_end; /* Start and end of actual content (only relevant for strips
-                                       that have holdout regions). */
+                                     * that have holdout regions). */
   float handle_width;
   /* Vertical strip positions (1.0 is one channel). */
   float bottom;

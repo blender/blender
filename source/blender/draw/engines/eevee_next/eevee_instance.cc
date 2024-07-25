@@ -523,7 +523,7 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
     if ((sampling.sample_index() == 1) || ((sampling.sample_index() % 25) == 0) ||
         sampling.finished())
     {
-      /* TODO: Use fmt. */
+      /* TODO: Use `fmt`. */
       std::string re_info = "Rendering " + std::to_string(sampling.sample_index()) + " / " +
                             std::to_string(sampling.sample_count()) + " samples";
       RE_engine_update_stats(engine, nullptr, re_info.c_str());

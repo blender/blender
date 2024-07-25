@@ -278,7 +278,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_shadow_tbdr)
     .define("SHADOW_UPDATE_TBDR")
     .builtins(BuiltinBits::LAYER)
     /* Use greater depth write to avoid loosing the early Z depth test but ensure correct fragment
-       ordering after slope bias. */
+     * ordering after slope bias. */
     .depth_write(DepthWrite::GREATER)
     /* F32 color attachment for on-tile depth accumulation without atomics. */
     .fragment_out(0, Type::FLOAT, "out_depth", DualBlend::NONE, SHADOW_ROG_ID);

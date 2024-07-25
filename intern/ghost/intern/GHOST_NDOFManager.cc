@@ -510,7 +510,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
 {
   GHOST_NDOF_ButtonT button = static_cast<GHOST_NDOF_ButtonT>(button_number);
 
-  /* For bistmask devices button maping isn't unified, therefore check the button map. */
+  /* For bit-mask devices button mapping isn't unified, therefore check the button map. */
   if (std::find(bitmask_devices_.begin(), bitmask_devices_.end(), device_type_) !=
       bitmask_devices_.end())
   {

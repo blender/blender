@@ -188,7 +188,7 @@ typedef struct LightCache {
   LightCacheTexture cube_tx;
   /** Does not contains valid GPUTexture, only data. */
   LightCacheTexture *cube_mips;
-  /* All lightprobes data contained in the cache. */
+  /* All light-probes data contained in the cache. */
   LightProbeCache *cube_data;
   LightGridCache *grid_data;
 } LightCache;

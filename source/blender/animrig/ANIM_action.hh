@@ -850,7 +850,7 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t
  *
  * This is a utility function whose purpose is unclear after multi-layer Actions are introduced.
  * It might still be useful, it might not be.
-
+ *
  * The use of this function is an indicator for code that might have to be altered when
  * multi-layered Actions are getting implemented.
  */

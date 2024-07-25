@@ -661,7 +661,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
             if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
                 func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
-    # We manually add funcs from bpy.app.translations
+    # We manually add functions from `bpy.app.translations`.
     for func_id, func_ids in pgettext_variants:
         func_translate_args[func_id] = pgettext_variants_args
         for sub_func_id in func_ids:

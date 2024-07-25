@@ -1311,7 +1311,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
  * \param frame_selected Frame the newly out-of-local view to show currently visible selected
  * objects. Will only do something if a valid #depsgraph pointer is also provided.
  * \param smooth_viewtx Smooth transition time (in milliseconds) between current view and final
- * view, if changes are hapenning. Currently only used if #frame_selected is enabled.
+ * view, if changes are happening. Currently only used if #frame_selected is enabled.
  *
  * \return `true` if the local view was actually exited.
  */

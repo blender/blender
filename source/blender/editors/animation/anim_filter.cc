@@ -1573,9 +1573,9 @@ static size_t animfilter_action_slots(bAnimContext *ac,
     BLI_assert(slot);
 
     /* In some cases (see `ob_to_keylist()` and friends) fake bDopeSheet and fake bAnimContext are
-     * created. These are mostly null-initialised, and so do not have a bmain. This means that
+     * created. These are mostly null-initialized, and so do not have a bmain. This means that
      * lookup of the animated ID is not possible, which can result in failure to look up the proper
-     * F-Curve display name. For the `..._to_keylist` functions that doens't matter, as those are
+     * F-Curve display name. For the `..._to_keylist` functions that doesn't matter, as those are
      * only interested in the key data anyway. So rather than trying to get a reliable `bmain`
      * through the maze, this code just treats it as optional (even though ideally it should always
      * be known). */

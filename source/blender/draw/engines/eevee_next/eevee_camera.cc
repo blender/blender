@@ -95,7 +95,7 @@ void Camera::sync()
   int2 display_extent = inst_.film.display_extent_get();
   int2 film_extent = inst_.film.film_extent_get();
   int2 film_offset = inst_.film.film_offset_get();
-  /* Overscan in film pixel. Not the same as `render_overscan_get`. */
+  /* Over-scan in film pixel. Not the same as `render_overscan_get`. */
   int film_overscan = inst_.film.overscan_pixels_get(overscan_, film_extent);
 
   rcti film_rect;

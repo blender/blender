@@ -255,7 +255,7 @@ static OldNewMap *oldnewmap_new()
 }
 
 /**
- * \return `true` if the \a oldaddr key has been sucessfully added to the \a onm, and no existing
+ * \return `true` if the \a oldaddr key has been successfully added to the \a onm, and no existing
  * entry was overwritten.
  */
 static bool oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)

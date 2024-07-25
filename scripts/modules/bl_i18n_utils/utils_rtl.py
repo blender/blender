@@ -58,7 +58,7 @@ FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | FRIBIDI_FLAG_SHAPE_ARAB_LI
 MENU_DETECT_REGEX = re.compile("%x\\d+\\|")
 
 
-##### Kernel processing funcs. #####
+##### Kernel processing functions. #####
 def protect_format_seq(msg):
     """
     Find some specific escaping/formatting sequences (like \", %s, etc.,

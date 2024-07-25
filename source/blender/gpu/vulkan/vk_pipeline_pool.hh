@@ -51,11 +51,11 @@ struct VKGraphicsInfo {
 
     bool operator==(const VertexIn &other) const
     {
-      // TODO: use an exact implementation and remove the hash compare.
-      /*
+      /* TODO: use an exact implementation and remove the hash compare. */
+#if 0
       return vk_topology == other.vk_topology && attributes.hash() == other.attributes.hash() &&
              bindings.hash() == other.bindings.hash();
-      */
+#endif
       return hash() == other.hash();
     }
 

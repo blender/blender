@@ -509,7 +509,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   /* The main idea in the following code is to trade some complexity in sampling for the benefit of
    * only using and building a single BVH tree. Since sculpt mode doesn't generally deal with loose
    * vertices and edges, we use the standard "triangles" BVH which won't contain them. Also, only
-   * relying on a single BVH should reduce memory usage, and work better if the BVH and pbvh::Tree
+   * relying on a single BVH should reduce memory usage, and work better if the BVH and #pbvh::Tree
    * are ever merged.
    *
    * One key decision is separating building transfer index maps from actually transferring any

@@ -790,7 +790,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
 
     visible_strokes.foreach_index([&](const int stroke_i, const int pos) {
       const IndexRange points = points_by_curve[stroke_i];
-      /* The material index is allowed to be negative as it's stored as a generic attribure. We
+      /* The material index is allowed to be negative as it's stored as a generic attribute. We
        * clamp it here to avoid crashing in the rendering code. Any stroke with a material < 0 will
        * use the first material in the first material slot.*/
       const int material_index = std::max(stroke_materials[stroke_i], 0);
