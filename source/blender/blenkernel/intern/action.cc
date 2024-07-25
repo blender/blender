@@ -289,6 +289,7 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+#ifdef WITH_ANIM_BAKLAVA
 static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelbag)
 {
   BLO_write_struct(writer, ActionChannelBag, &channelbag);
@@ -350,17 +351,38 @@ static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
     BLO_write_struct_at_address(writer, ActionSlot, slot, &shallow_copy);
   }
 }
+#endif /* WITH_ANIM_BAKLAVA */
 
 static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
+#ifndef WITH_ANIM_BAKLAVA
+  /* Built without Baklava, so ensure that the written data is clean. This should not change
+   * anything, as the reading code below also ensures these fields are empty, and the APIs to add
+   * those should be unavailable. */
+  BLI_assert_msg(action.layer_array == nullptr,
+                 "Action should not have layers, built without Baklava experimental feature");
+  BLI_assert_msg(action.layer_array_num == 0,
+                 "Action should not have layers, built without Baklava experimental feature");
+  BLI_assert_msg(action.slot_array == nullptr,
+                 "Action should not have slots, built without Baklava experimental feature");
+  BLI_assert_msg(action.slot_array_num == 0,
+                 "Action should not have slots, built without Baklava experimental feature");
+  action.layer_array = nullptr;
+  action.layer_array_num = 0;
+  action.slot_array = nullptr;
+  action.slot_array_num = 0;
+#endif /* WITH_ANIM_BAKLAVA */
+
   BLO_write_id_struct(writer, bAction, id_address, &action.id);
   BKE_id_blend_write(writer, &action.id);
 
+#ifdef WITH_ANIM_BAKLAVA
   /* Write layered Action data. */
   write_layers(writer, action.layers());
   write_slots(writer, action.slots());
+#endif /* WITH_ANIM_BAKLAVA */
 
   /* Write legacy F-Curves & groups. */
   BKE_fcurve_blend_write_listbase(writer, &action.curves);
@@ -375,6 +397,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_previewimg_blend_write(writer, action.preview);
 }
 
+#ifdef WITH_ANIM_BAKLAVA
 static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channelbag)
 {
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&channelbag.fcurve_array));
@@ -428,13 +451,24 @@ static void read_slots(BlendDataReader *reader, animrig::Action &action)
     action.slot_array[i]->wrap().blend_read_post();
   }
 }
+#endif /* WITH_ANIM_BAKLAVA */
 
 static void action_blend_read_data(BlendDataReader *reader, ID *id)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
+#ifdef WITH_ANIM_BAKLAVA
   read_layers(reader, action);
   read_slots(reader, action);
+#else
+  /* Built without Baklava, so do not read the layers, strips, slots, etc.
+   * This ensures the F-Curves in the legacy `curves` ListBase are read & used
+   * (these are written by future Blender versions for forward compatibility). */
+  action.layer_array = nullptr;
+  action.layer_array_num = 0;
+  action.slot_array = nullptr;
+  action.slot_array_num = 0;
+#endif /* WITH_ANIM_BAKLAVA */
 
   /* Read legacy data. */
   BLO_read_struct_list(reader, FCurve, &action.curves);
