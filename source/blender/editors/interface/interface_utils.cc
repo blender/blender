@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -456,6 +457,10 @@ void ui_rna_collection_search_update_fn(
           name = name_buf;
           has_sep_char = ID_IS_LINKED(id);
         }
+      }
+      else if (itemptr.type == &RNA_ActionSlot) {
+        PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
+        name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
       }
       else {
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);

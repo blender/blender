@@ -495,6 +495,9 @@ Layer *Action::get_layer_for_keyframing()
 
 bool Action::assign_id(Slot *slot, ID &animated_id)
 {
+  BLI_assert_msg(!slot || this->slots().as_span().contains(slot),
+                 "Slot should be owned by this Action");
+
   AnimData *adt = BKE_animdata_ensure_id(&animated_id);
   if (!adt) {
     return false;

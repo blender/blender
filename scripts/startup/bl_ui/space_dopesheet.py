@@ -245,6 +245,16 @@ class DOPESHEET_HT_editor_buttons:
 
             layout.template_ID(st, "action", new="action.new", unlink="action.unlink")
 
+            # context.space_data.action comes from the active object.
+            adt = context.object and context.object.animation_data
+            if adt and st.action and st.action.is_action_layered:
+                layout.template_search(
+                    adt, "action_slot",
+                    adt, "action_slots",
+                    new="",
+                    unlink="anim.slot_unassign_object",
+                )
+
         # Layer management
         if st.mode == 'GPENCIL':
             ob = context.active_object

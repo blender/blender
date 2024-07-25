@@ -83,6 +83,15 @@ class ActionSlotAssignmentTest(unittest.TestCase):
         cube_adt.action_slot_handle = slot_extra.handle
         self.assertNotEqual(cube_adt.action_slot_handle, slot_extra.handle)
 
+        # Slots from another Action should be gracefully rejected.
+        other_action = bpy.data.actions.new("That Other Action")
+        slot = other_action.slots.new()
+        cube_adt.action = action
+        cube_adt.action_slot = slot_cube
+        with self.assertRaises(RuntimeError):
+            cube_adt.action_slot = slot
+        self.assertEqual(cube_adt.action_slot, slot_cube, "The slot should not have changed")
+
 
 class LimitationsTest(unittest.TestCase):
     """Test artificial limitations for the layered Action.

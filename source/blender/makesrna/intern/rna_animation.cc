@@ -34,6 +34,8 @@
 
 #include "ANIM_action.hh"
 
+using namespace blender;
+
 /* exported for use in API */
 const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
     {KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
@@ -102,34 +104,6 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
      "the cycle time range, and if changing an end key, also update the other one"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-
-#ifdef WITH_ANIM_BAKLAVA
-#  ifdef RNA_RUNTIME
-constexpr int slot_items_value_create_new = -1;
-const EnumPropertyItem rna_enum_action_slot_item_new = {
-    slot_items_value_create_new,
-    "NEW",
-    ICON_ADD,
-    "New",
-    "Create a new action slot for this data-block"};
-const EnumPropertyItem rna_enum_action_slot_item_legacy = {
-    int(blender::animrig::Slot::unassigned),
-    "UNASSIGNED",
-    0,
-    "Legacy Action",
-    "This is a legacy Action, which does not support slots."};
-#  endif
-const EnumPropertyItem rna_enum_action_slot_item_none = {
-    int(blender::animrig::Slot::unassigned),
-    "UNASSIGNED",
-    0,
-    "None",
-    "Not assigned any slot, and thus not animated."};
-const EnumPropertyItem rna_enum_action_slot_items[] = {
-    rna_enum_action_slot_item_none,
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif  // WITH_ANIM_BAKLAVA
 
 #ifdef RNA_RUNTIME
 
@@ -300,129 +274,108 @@ static AnimData &rna_animdata(const PointerRNA *ptr)
   return *reinterpret_cast<AnimData *>(ptr->data);
 }
 
-static int rna_AnimData_action_slot_get(PointerRNA *ptr)
+static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
 {
+  using animrig::Action;
+  using animrig::Slot;
+
   AnimData &adt = rna_animdata(ptr);
-  return adt.slot_handle;
+
+  if (!adt.action || adt.slot_handle == Slot::unassigned) {
+    return PointerRNA_NULL;
+  }
+
+  Action &action = adt.action->wrap();
+  Slot *slot = action.slot_for_handle(adt.slot_handle);
+  if (!slot) {
+    return PointerRNA_NULL;
+  }
+  return RNA_pointer_create(&action.id, &RNA_ActionSlot, slot);
 }
 
-static void rna_AnimData_action_slot_set(PointerRNA *ptr, int value)
+static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-  using blender::animrig::Action;
-  using blender::animrig::Slot;
-  using blender::animrig::slot_handle_t;
+  using animrig::Action;
+  using animrig::Slot;
 
   AnimData &adt = rna_animdata(ptr);
-  ID &animated_id = *ptr->owner_id;
-
-  const slot_handle_t new_slot_handle = slot_handle_t(value);
-  if (new_slot_handle == Slot::unassigned) {
-    /* No need to check with the Action, as 'no slot' is always valid. */
-    adt.slot_handle = Slot::unassigned;
+  if (!adt.action) {
+    BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
     return;
   }
 
-  if (!adt.action) {
-    /* No Action to verify the slot handle is valid. As the slot handle will be
-     * completely ignored when re-assigning an Action, better to refuse setting
-     * it altogether. This will make bugs in Python code more obvious. */
-    WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have an Action, cannot set slot handle",
-               animated_id.name + 2);
+  ID *animated_id = ptr->owner_id;
+  BLI_assert(animated_id); /* Otherwise there is nothing to own this AnimData. */
+
+  ActionSlot *dna_slot = static_cast<ActionSlot *>(value.data);
+  if (!dna_slot) {
+    animrig::unassign_slot(*animated_id);
     return;
   }
 
   Action &action = adt.action->wrap();
-  Slot *slot = nullptr;
+  Slot &slot = dna_slot->wrap();
 
-  /* TODO: handle legacy Action. */
-  BLI_assert(action.is_action_layered());
-
-  if (new_slot_handle == slot_items_value_create_new) {
-    /* Special case for this enum item. */
-    slot = &action.slot_add_for_id(animated_id);
-  }
-  else {
-    slot = action.slot_for_handle(new_slot_handle);
-    if (!slot) {
-      WM_reportf(RPT_ERROR,
-                 "Action '%s' has no slot with handle %d",
-                 action.id.name + 2,
-                 new_slot_handle);
-      return;
-    }
-  }
-
-  if (!action.assign_id(slot, animated_id)) {
-    WM_reportf(RPT_ERROR,
-               "Action '%s' slot '%s' (%d) could not be assigned to %s",
-               action.id.name + 2,
-               slot->name_without_prefix().c_str(),
-               slot->handle,
-               animated_id.name + 2);
+  if (!action.slots().as_span().contains(&slot)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "This slot (%s) does not belong to the assigned Action (%s)",
+                slot.name,
+                action.id.name + 2);
     return;
   }
 
-  WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, nullptr);
+  if (!action.assign_id(&slot, *animated_id)) {
+    /* TODO: make assign_id() return a different type that gives us more info about what went
+     * wrong. */
+    BKE_reportf(reports, RPT_ERROR, "Cannot assign slot %s to %s.", slot.name, animated_id->name);
+    return;
+  }
 }
 
-static const EnumPropertyItem *rna_AnimData_action_slot_itemf(bContext * /*C*/,
-                                                              PointerRNA *ptr,
-                                                              PropertyRNA * /*prop*/,
-                                                              bool *r_free)
+/* Skip any slot that is not suitable for the ID owning the AnimData. */
+static bool rna_iterator_animdata_action_slots_skip(CollectionPropertyIterator *iter, void *data)
 {
-  using blender::animrig::Action;
-  using blender::animrig::Slot;
+  using animrig::Slot;
+
+  /* Get the current Slot being iterated over. */
+  const Slot **slot_ptr_ptr = static_cast<const Slot **>(data);
+  BLI_assert(slot_ptr_ptr);
+  BLI_assert(*slot_ptr_ptr);
+  const Slot &slot = **slot_ptr_ptr;
+
+  /* Get the animated ID. */
+  const ID *animated_id = iter->parent.owner_id;
+  BLI_assert(animated_id);
+
+  /* Skip this Slot if it's not suitable for the animated ID. */
+  return !slot.is_suitable_for(*animated_id);
+}
+
+static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator *iter,
+                                                     PointerRNA *ptr)
+{
+  using animrig::Action;
+  using animrig::Slot;
 
   AnimData &adt = rna_animdata(ptr);
   if (!adt.action) {
-    *r_free = false;
-    return rna_enum_action_slot_items;
+    /* No action means no slots. */
+    rna_iterator_array_begin(iter, nullptr, 0, 0, 0, nullptr);
+    return;
   }
 
-  EnumPropertyItem item = {0};
-  EnumPropertyItem *items = nullptr;
-  int num_items = 0;
-
-  const Action &action = adt.action->wrap();
-
-  bool found_assigned_slot = false;
-  for (const Slot *slot : action.slots()) {
-    item.value = slot->handle;
-    item.identifier = slot->name;
-    item.name = slot->name_without_prefix().c_str();
-    item.icon = UI_icon_from_idcode(slot->idtype);
-    item.description = "";
-    RNA_enum_item_add(&items, &num_items, &item);
-
-    found_assigned_slot |= slot->handle == adt.slot_handle;
-  }
-
-  if (num_items > 0) {
-    RNA_enum_item_add_separator(&items, &num_items);
-  }
-
-  /* Only add the 'New' option when this is a Layered Action. */
-  const bool is_layered = action.is_action_layered();
-  if (is_layered) {
-    RNA_enum_item_add(&items, &num_items, &rna_enum_action_slot_item_new);
-  }
-
-  if (!found_assigned_slot) {
-    /* The assigned slot was not found, so show an option that reflects that. */
-    RNA_enum_item_add(&items,
-                      &num_items,
-                      is_layered ? &rna_enum_action_slot_item_none :
-                                   &rna_enum_action_slot_item_legacy);
-  }
-
-  RNA_enum_item_end(&items, &num_items);
-
-  *r_free = true;
-  return items;
+  Action &action = adt.action->wrap();
+  Span<Slot *> slots = action.slots();
+  rna_iterator_array_begin(iter,
+                           (void *)slots.data(),
+                           sizeof(Slot *),
+                           slots.size(),
+                           0,
+                           rna_iterator_animdata_action_slots_skip);
 }
 
-#  endif
+#  endif /* WITH_ANIM_BAKLAVA */
 
 /* ****************************** */
 
@@ -1692,7 +1645,7 @@ static void rna_def_animdata(BlenderRNA *brna)
                            "Action Slot Handle",
                            "A number that identifies which sub-set of the Action is considered "
                            "to be for this data-block");
-  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
   prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "slot_name");
@@ -1703,20 +1656,33 @@ static void rna_def_animdata(BlenderRNA *brna)
       "is considered to be for this data-block, and its name is used to find the right slot "
       "when assigning an Action");
 
-  prop = RNA_def_property(srna, "action_slot", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_funcs(prop,
-                              "rna_AnimData_action_slot_get",
-                              "rna_AnimData_action_slot_set",
-                              "rna_AnimData_action_slot_itemf");
-  RNA_def_property_enum_items(prop, rna_enum_action_slot_items);
+  prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
       prop,
       "Action Slot",
       "The slot identifies which sub-set of the Action is considered to be for this "
       "data-block, and its name is used to find the right slot when assigning an Action");
-  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_AnimData_action_slot_get", "rna_AnimData_action_slot_set", nullptr, nullptr);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
-#  endif
+  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionSlot");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_animdata_action_slots_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Slots", "The list of slots in this animation data-block");
+#  endif /* WITH_ANIM_BAKLAVA */
 
   RNA_define_lib_overridable(false);
 
