@@ -901,8 +901,8 @@ static void blf_font_boundbox_ex(FontBLF *font,
     }
     const ft_pix pen_x_next = pen_x + g->advance_x;
 
-    const ft_pix gbox_xmin = pen_x;
-    const ft_pix gbox_xmax = pen_x_next;
+    const ft_pix gbox_xmin = std::min(pen_x, pen_x + g->box_xmin);
+    const ft_pix gbox_xmax = std::max(pen_x_next, pen_x + g->box_xmax);
     const ft_pix gbox_ymin = g->box_ymin + pen_y;
     const ft_pix gbox_ymax = g->box_ymax + pen_y;
 
