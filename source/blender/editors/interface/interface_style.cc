@@ -89,6 +89,14 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->widget.shadowalpha = 0.5f;
   style->widget.shadowcolor = 0.0f;
 
+  style->tooltip.uifont_id = uifont_id;
+  style->tooltip.points = UI_DEFAULT_TOOLTIP_POINTS;
+  style->tooltip.character_weight = 400;
+  style->tooltip.shadow = 1;
+  style->tooltip.shady = -1;
+  style->tooltip.shadowalpha = 0.5f;
+  style->tooltip.shadowcolor = 0.0f;
+
   style->columnspace = 8;
   style->templatespace = 5;
   style->boxspace = 5;
@@ -319,6 +327,8 @@ const uiStyle *UI_style_get_dpi()
   _style.grouplabel.shady = short(UI_SCALE_FAC * _style.grouplabel.shady);
   _style.widget.shadx = short(UI_SCALE_FAC * _style.widget.shadx);
   _style.widget.shady = short(UI_SCALE_FAC * _style.widget.shady);
+  _style.tooltip.shadx = short(UI_SCALE_FAC * _style.tooltip.shadx);
+  _style.tooltip.shady = short(UI_SCALE_FAC * _style.tooltip.shady);
 
   _style.columnspace = short(UI_SCALE_FAC * _style.columnspace);
   _style.templatespace = short(UI_SCALE_FAC * _style.templatespace);

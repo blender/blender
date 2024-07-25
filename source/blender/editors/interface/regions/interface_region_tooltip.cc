@@ -1059,7 +1059,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     const std::string hsva_st = fmt::format(
         "{}:  {:.3f}  {:.3f}  {:.3f}  {:.3f}", TIP_("HSVA"), hsva[0], hsva[1], hsva[2], hsva[3]);
 
-    const uiFontStyle *fs = UI_FSTYLE_WIDGET;
+    const uiFontStyle *fs = &UI_style_get()->tooltip;
     BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC);
     float w = BLF_width(blf_mono_font, hsva_st.c_str(), hsva_st.size());
 
@@ -1234,7 +1234,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   region->type = &type;
 
   /* Set font, get bounding-box. */
-  data->fstyle = style->widget; /* copy struct */
+  data->fstyle = style->tooltip; /* copy struct */
 
   UI_fontstyle_set(&data->fstyle);
 

@@ -2045,6 +2045,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   ui_fontscale(&style.paneltitle.points, block->aspect);
   ui_fontscale(&style.grouplabel.points, block->aspect);
   ui_fontscale(&style.widget.points, block->aspect);
+  ui_fontscale(&style.tooltip.points, block->aspect);
 
   /* scale block min/max to rect */
   rcti rect;
@@ -6660,6 +6661,7 @@ void UI_update_text_styles()
   style->paneltitle.character_weight = weight;
   style->grouplabel.character_weight = weight;
   style->widget.character_weight = weight;
+  style->tooltip.character_weight = weight;
 }
 
 void UI_exit()
