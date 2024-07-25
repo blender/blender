@@ -644,6 +644,8 @@ class DOPESHEET_PT_action_slot(Panel):
 
     @classmethod
     def poll(cls, context):
+        if not context.preferences.experimental.use_animation_baklava:
+            return False
         action = context.active_action
         return bool(action and action.slots.active)
 
