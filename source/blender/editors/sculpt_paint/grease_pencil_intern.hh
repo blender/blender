@@ -4,10 +4,17 @@
 
 #pragma once
 
+#include "BLI_color.hh"
+#include "BLI_task.hh"
+
 #include "DNA_scene_types.h"
+
 #include "ED_grease_pencil.hh"
 
+#include "IMB_imbuf_types.hh"
+
 #include "paint_intern.hh"
+#include "potracelib.h"
 
 namespace blender::bke::greasepencil {
 class Drawing;

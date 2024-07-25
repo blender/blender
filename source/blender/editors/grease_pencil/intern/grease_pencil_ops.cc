@@ -200,6 +200,7 @@ void ED_operatortypes_grease_pencil()
   ED_operatortypes_grease_pencil_primitives();
   ED_operatortypes_grease_pencil_weight_paint();
   ED_operatortypes_grease_pencil_interpolate();
+  ED_operatortypes_grease_pencil_trace();
 }
 
 void ED_operatormacros_grease_pencil()
