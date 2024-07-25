@@ -656,7 +656,9 @@ static void sculpt_mesh_update_status_bar(bContext *C, wmOperator *op)
                                          get_modal_key_str(FILTER_MESH_MODAL_CONFIRM),
                                          get_modal_key_str(FILTER_MESH_MODAL_CANCEL));
 
-  ED_workspace_status_text(C, header.c_str());
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Confirm"), ICON_EVENT_RETURN);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
 }
 
 static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
