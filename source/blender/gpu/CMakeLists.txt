@@ -101,6 +101,7 @@ set(SRC
   GPU_material.hh
   GPU_matrix.hh
   GPU_platform.hh
+  GPU_platform_backend_enum.h
   GPU_primitive.hh
   GPU_select.hh
   GPU_shader.hh
@@ -274,6 +275,7 @@ set(VULKAN_SRC
   vulkan/render_graph/nodes/vk_copy_buffer_to_image_node.hh
   vulkan/render_graph/nodes/vk_copy_image_node.hh
   vulkan/render_graph/nodes/vk_copy_image_to_buffer_node.hh
+  vulkan/render_graph/nodes/vk_dispatch_indirect_node.hh
   vulkan/render_graph/nodes/vk_dispatch_node.hh
   vulkan/render_graph/nodes/vk_draw_indexed_indirect_node.hh
   vulkan/render_graph/nodes/vk_draw_indexed_node.hh
@@ -953,6 +955,8 @@ if(WITH_GTESTS)
       vulkan/render_graph/tests/vk_render_graph_test_render.cc
       vulkan/render_graph/tests/vk_render_graph_test_scheduler.cc
       vulkan/render_graph/tests/vk_render_graph_test_transfer.cc
+
+      vulkan/render_graph/tests/vk_render_graph_test_types.hh
     )
   endif()
 

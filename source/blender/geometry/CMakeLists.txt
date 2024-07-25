@@ -90,6 +90,7 @@ set(SRC
   GEO_trim_curves.hh
   GEO_uv_pack.hh
   GEO_uv_parametrizer.hh
+  GEO_volume_grid_resample.hh
 )
 
 set(LIB

@@ -67,6 +67,7 @@ if(WIN32)
     src/windows/glog/vlog_is_on.h
     src/windows/glog/logging.h
     src/windows/glog/log_severity.h
+    src/windows/glog/stl_logging.h
     src/windows/port.h
     src/windows/config.h
   )
@@ -87,6 +88,7 @@ else()
     include/glog/logging.h
     include/glog/log_severity.h
     include/glog/raw_logging.h
+    include/glog/stl_logging.h
     include/glog/vlog_is_on.h
   )
 endif()

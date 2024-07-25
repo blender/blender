@@ -5,18 +5,19 @@
 # Build Draco library.
 add_subdirectory(draco)
 
+set(INC
+  draco/src
+)
+
 # Build Draco-Blender bridging module.
 set(SRC
   src/common.cpp
-  src/common.h
   src/decoder.cpp
-  src/decoder.h
   src/encoder.cpp
-  src/encoder.h
-)
 
-set(INC
-  draco/src
+  src/common.h
+  src/decoder.h
+  src/encoder.h
 )
 
 set(LIB

@@ -306,6 +306,9 @@ set(SRC
 
   internal/ceres/generated/partitioned_matrix_view_d_d_d.cc
   internal/ceres/generated/schur_eliminator_d_d_d.cc
+
+  config/ceres/internal/config.h
+  config/ceres/internal/export.h
 )
 
 set(LIB

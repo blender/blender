@@ -83,6 +83,7 @@ set(SRC
   src/parametrizer-scale.cpp
   src/parametrizer-sing.cpp
   src/parametrizer.hpp
+  src/post-solver.hpp
   src/serialize.hpp
   src/subdivide.cpp
   src/subdivide.hpp

@@ -156,6 +156,7 @@ set(INC_SYS
 set(SRC
   ${SRC_BLENLIB}
   ${SRC_DNA_DEFAULTS_INC}
+  ${SRC_DNA_OTHER_INC}
 )
 
 set(LIB

@@ -226,6 +226,7 @@ set(SRC
   nodes/node_geo_volume_to_mesh.cc
 
   include/NOD_geo_bake.hh
+  include/NOD_geo_capture_attribute.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh
   include/NOD_geo_repeat.hh

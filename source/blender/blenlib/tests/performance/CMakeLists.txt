@@ -18,4 +18,8 @@ set(LIB
   PRIVATE bf::intern::atomic
 )
 
-blender_add_test_performance_executable(BLI_map_performance "BLI_map_performance_test.cc" "${INC}" "${INC_SYS}" "${LIB}")
+set(SRC
+  BLI_map_performance_test.cc
+)
+
+blender_add_test_performance_executable(BLI_map_performance "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

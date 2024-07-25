@@ -262,6 +262,8 @@ def cmake_get_src(f: str) -> None:
                             pass
                         elif new_file.endswith(".glsl"):
                             pass
+                        elif new_file.endswith(".natvis"):
+                            pass
                         else:
                             raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
 
