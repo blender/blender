@@ -922,7 +922,7 @@ static void sequencer_select_strip_impl(const Editing *ed,
 }
 
 static void select_linked_time(const Scene *scene,
-                               const StripSelection selection,
+                               const StripSelection &selection,
                                const bool extend,
                                const bool deselect,
                                const bool toggle)

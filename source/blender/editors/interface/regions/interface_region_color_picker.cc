@@ -279,7 +279,7 @@ static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *hexcl)
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
-  char *hexcol = (char *)hexcl;
+  const char *hexcol = static_cast<const char *>(hexcl);
   float rgb[3];
 
   hex_to_rgb(hexcol, rgb, rgb + 1, rgb + 2);

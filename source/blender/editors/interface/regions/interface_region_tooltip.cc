@@ -1688,7 +1688,7 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
   }
 }
 
-static void ui_tooltip_from_vfont(VFont &font, uiTooltipData &data)
+static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
 {
   if (!font.filepath[0]) {
     /* Let's not bother with packed files _for now_.*/

@@ -502,7 +502,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     }
 
     /* finally pointer_size: use struct #ListBase to test it, never change the size of it! */
-    SDNA_Struct *struct_info = sdna->structs[nr];
+    const SDNA_Struct *struct_info = sdna->structs[nr];
     /* Weird; I have no memory of that... I think I used `sizeof(void *)` before... (ton). */
 
     sdna->pointer_size = sdna->types_size[struct_info->type] / 2;
@@ -647,8 +647,8 @@ static void set_compare_flags_for_struct(const SDNA *oldsdna,
 
   /* Compare each member individually. */
   for (int member_index = 0; member_index < old_struct->members_len; member_index++) {
-    SDNA_StructMember *old_member = &old_struct->members[member_index];
-    SDNA_StructMember *new_member = &new_struct->members[member_index];
+    const SDNA_StructMember *old_member = &old_struct->members[member_index];
+    const SDNA_StructMember *new_member = &new_struct->members[member_index];
 
     const char *old_type_name = oldsdna->types[old_member->type];
     const char *new_type_name = newsdna->types[new_member->type];

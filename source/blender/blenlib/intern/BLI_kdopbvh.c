@@ -383,7 +383,7 @@ static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int e
   node_minmax_init(tree, node);
 
   for (j = start; j < end; j++) {
-    float *__restrict node_bv = tree->nodes[j]->bv;
+    const float *__restrict node_bv = tree->nodes[j]->bv;
 
     /* for all Axes. */
     for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
@@ -1057,7 +1057,7 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree)
 
 void BLI_bvhtree_get_bounding_box(const BVHTree *tree, float r_bb_min[3], float r_bb_max[3])
 {
-  BVHNode *root = tree->nodes[tree->leaf_num];
+  const BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != NULL) {
     const float bb_min[3] = {root->bv[0], root->bv[2], root->bv[4]};
     const float bb_max[3] = {root->bv[1], root->bv[3], root->bv[5]};
@@ -1103,7 +1103,7 @@ static void tree_overlap_traverse(BVHOverlapData_Thread *data_thread,
                                   const BVHNode *node1,
                                   const BVHNode *node2)
 {
-  BVHOverlapData_Shared *data = data_thread->shared;
+  const BVHOverlapData_Shared *data = data_thread->shared;
   int j;
 
   if (tree_overlap_test(node1, node2, data->start_axis, data->stop_axis)) {
@@ -1515,7 +1515,7 @@ int *BLI_bvhtree_intersect_plane(const BVHTree *tree, float plane[4], uint *r_in
     copy_v4_v4(data.plane, plane);
     data.intersect = BLI_stack_new(sizeof(int), __func__);
 
-    BVHNode *root = tree->nodes[tree->leaf_num];
+    const BVHNode *root = tree->nodes[tree->leaf_num];
     bvhtree_intersect_plane_dfs_recursive(&data, root);
 
     total = BLI_stack_count(data.intersect);
@@ -2340,7 +2340,7 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
                                        BVHTree_NearestProjectedCallback callback,
                                        void *userdata)
 {
-  BVHNode *root = tree->nodes[tree->leaf_num];
+  const BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != NULL) {
     BVHNearestProjectedData *data = (BVHNearestProjectedData *)alloca(
         sizeof(*data) + (sizeof(*clip_plane) * (size_t)max_ii(1, clip_plane_len)));

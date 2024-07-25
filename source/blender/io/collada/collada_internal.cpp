@@ -260,7 +260,7 @@ std::string id_name(void *id)
   return ((ID *)id)->name + 2;
 }
 
-std::string encode_xml(std::string xml)
+std::string encode_xml(const std::string &xml)
 {
   const std::map<char, std::string> escape{
       {'<', "&lt;"}, {'>', "&gt;"}, {'"', "&quot;"}, {'\'', "&apos;"}, {'&', "&amp;"}};

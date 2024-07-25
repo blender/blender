@@ -893,7 +893,7 @@ static eShaderType get_write_pass_shader_type(eViewLayerEEVEEPassType pass_type)
 }
 
 /* Gets the appropriate shader to write the given AOV pass. */
-static eShaderType get_aov_write_pass_shader_type(ViewLayerAOV *aov)
+static eShaderType get_aov_write_pass_shader_type(const ViewLayerAOV *aov)
 {
   switch (aov->type) {
     case AOV_TYPE_VALUE:

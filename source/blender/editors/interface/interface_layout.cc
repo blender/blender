@@ -2897,7 +2897,7 @@ void uiItemPointerR_prop(uiLayout *layout,
 
   /* get icon & name */
   if (icon == ICON_NONE) {
-    StructRNA *icontype;
+    const StructRNA *icontype;
     if (type == PROP_POINTER) {
       icontype = RNA_property_pointer_type(ptr, prop);
     }

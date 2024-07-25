@@ -67,7 +67,7 @@ extern std::string translate_id(const std::string &id);
 extern std::string translate_id(const char *idString);
 
 extern std::string id_name(void *id);
-extern std::string encode_xml(std::string xml);
+extern std::string encode_xml(const std::string &xml);
 
 extern std::string get_geometry_id(Object *ob);
 extern std::string get_geometry_id(Object *ob, bool use_instantiation);
