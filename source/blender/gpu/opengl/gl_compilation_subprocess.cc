@@ -6,10 +6,10 @@
 
 #if BLI_SUBPROCESS_SUPPORT
 
+#  include "BKE_appdir.hh"
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_util.h"
-#  include "BLI_tempfile.h"
 #  include "CLG_log.h"
 #  include "GHOST_C-api.h"
 #  include "GPU_context.hh"
@@ -20,6 +20,8 @@
 
 #  ifndef _WIN32
 #    include <unistd.h>
+#  else
+#    include "BLI_winstuff.h"
 #  endif
 
 namespace blender::gpu {
@@ -127,6 +129,17 @@ static bool validate_binary(void *binary)
 
 }  // namespace blender::gpu
 
+static std::string cache_dir_get()
+{
+  static char tmp_dir_buffer[1024];
+  BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer));
+
+  std::string cache_dir = std::string(tmp_dir_buffer) + "gl-shader-cache" + SEP_STR;
+  BLI_dir_create_recursive(cache_dir.c_str());
+
+  return cache_dir;
+}
+
 void GPU_compilation_subprocess_run(const char *subprocess_name)
 {
   using namespace blender;
@@ -165,10 +178,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GPUContext *gpu_context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
-  static char tmp_dir[1024];
-  BLI_temp_directory_path_get(tmp_dir, sizeof(tmp_dir));
-  std::string cache_dir = std::string(tmp_dir) + "BLENDER_SHADER_CACHE" + SEP_STR;
-  BLI_dir_create_recursive(cache_dir.c_str());
+  std::string cache_dir = cache_dir_get();
 
   while (true) {
     /* Process events to avoid crashes on Wayland.
@@ -224,6 +234,8 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 
     /* TODO: This should lock the files? */
     if (BLI_exists(cache_path.c_str())) {
+      /* Prevent old cache files from being deleted if they're still being used. */
+      BLI_file_touch(cache_path.c_str());
       /* Read cached binary. */
       fstream file(cache_path, std::ios::binary | std::ios::in | std::ios::ate);
       std::streamsize size = file.tellg();
@@ -267,6 +279,26 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GPU_context_discard(gpu_context);
   GHOST_DisposeGPUContext(ghost_system, ghost_context);
   GHOST_DisposeSystem(ghost_system);
+}
+
+void GPU_shader_cache_dir_clear_old()
+{
+  std::string cache_dir = cache_dir_get();
+
+  direntry *entries = nullptr;
+  uint32_t dir_len = BLI_filelist_dir_contents(cache_dir.c_str(), &entries);
+  for (int i : blender::IndexRange(dir_len)) {
+    direntry entry = entries[i];
+    if (S_ISDIR(entry.s.st_mode)) {
+      continue;
+    }
+    const time_t ts_now = time(nullptr);
+    const time_t delete_threshold = 60 /*seconds*/ * 60 /*minutes*/ * 24 /*hours*/ * 30 /*days*/;
+    if (entry.s.st_mtime + delete_threshold < ts_now) {
+      BLI_delete(entry.path, false, false);
+    }
+  }
+  BLI_filelist_free(entries, dir_len);
 }
 
 #endif

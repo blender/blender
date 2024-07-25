@@ -102,6 +102,7 @@
 #include "UI_resources.hh"
 #include "UI_string_search.hh"
 
+#include "GPU_compilation_subprocess.hh"
 #include "GPU_context.hh"
 #include "GPU_init_exit.hh"
 #include "GPU_material.hh"
@@ -688,6 +689,10 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   wm_autosave_delete();
 
   BKE_tempdir_session_purge();
+
+#if defined(WITH_OPENGL_BACKEND) && BLI_SUBPROCESS_SUPPORT
+  GPU_shader_cache_dir_clear_old();
+#endif
 
   /* Logging cannot be called after exiting (#CLOG_INFO, #CLOG_WARN etc will crash).
    * So postpone exiting until other sub-systems that may use logging have shut down. */
