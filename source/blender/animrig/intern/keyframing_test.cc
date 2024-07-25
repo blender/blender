@@ -531,21 +531,13 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_available)
 
   EXPECT_EQ(0, result_1.get_count(SingleKeyingResult::SUCCESS));
 
-  /* It's unclear why AnimData and an Action should be created if keying fails
-   * here. It may even be undesirable. These checks are just here to ensure no
+  /* It's unclear why an AnimData should be created if keying fails
+   * here. It may even be undesirable. This check is just here to ensure no
    * *unintentional* changes in behavior. */
   ASSERT_NE(nullptr, object->adt);
-  ASSERT_NE(nullptr, object->adt->action);
-
-  /* If an action is created at all, it should be the default action with one
-   * layer and an infinite keyframe strip. */
-  Action &action = object->adt->action->wrap();
-  ASSERT_EQ(1, action.slots().size());
-  ASSERT_EQ(1, action.layers().size());
-  ASSERT_EQ(1, action.layer(0)->strips().size());
-  EXPECT_EQ(object->adt->slot_handle, action.slot(0)->handle);
-  KeyframeStrip *strip = &action.layer(0)->strip(0)->as<KeyframeStrip>();
-  ASSERT_EQ(0, strip->channelbags().size());
+  /* No action is created when using the flag INSERTKEY_AVAILABLE on an
+   * object without an action. */
+  ASSERT_EQ(nullptr, object->adt->action);
 
   /* Insert a key on two of the elements without using the flag so that there
    * will be two fcurves. */
@@ -560,6 +552,16 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__only_available)
                                                          anim_eval_context,
                                                          BEZT_KEYTYPE_KEYFRAME,
                                                          INSERTKEY_NOFLAGS);
+
+  /* If an action is created, it should be the default action with one
+   * layer and an infinite keyframe strip. */
+  Action &action = object->adt->action->wrap();
+  ASSERT_EQ(1, action.slots().size());
+  ASSERT_EQ(1, action.layers().size());
+  ASSERT_EQ(1, action.layer(0)->strips().size());
+  EXPECT_EQ(object->adt->slot_handle, action.slot(0)->handle);
+  KeyframeStrip *strip = &action.layer(0)->strip(0)->as<KeyframeStrip>();
+
   EXPECT_EQ(2, result_2.get_count(SingleKeyingResult::SUCCESS));
   ASSERT_EQ(1, strip->channelbags().size());
   ChannelBag *channel_bag = strip->channelbag(0);
@@ -1048,13 +1050,13 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__only_available)
 
   EXPECT_EQ(0, result_1.get_count(SingleKeyingResult::SUCCESS));
 
-  /* It's unclear why AnimData and an Action should be created if keying fails
-   * here. It may even be undesirable. These checks are just here to ensure no
+  /* It's unclear why an AnimData should be created if keying fails
+   * here. It may even be undesirable. This check is just here to ensure no
    * *unintentional* changes in behavior. */
   ASSERT_NE(nullptr, object->adt);
-  ASSERT_NE(nullptr, object->adt->action);
-  EXPECT_EQ(0, BLI_listbase_count(&object->adt->action->curves));
-  EXPECT_EQ(nullptr, BKE_fcurve_find(&object->adt->action->curves, "rotation_euler", 0));
+  /* No action is created when using the flag INSERTKEY_AVAILABLE on an
+   * object without an action. */
+  ASSERT_EQ(nullptr, object->adt->action);
 
   /* Insert a key on two of the elements without using the flag so that there
    * will be two fcurves. */
