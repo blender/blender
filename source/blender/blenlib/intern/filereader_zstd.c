@@ -12,6 +12,10 @@
 #include "BLI_filereader.h"
 #include "BLI_math_base.h"
 
+#ifdef __BIG_ENDIAN__
+#  include "BLI_endian_switch.h"
+#endif
+
 #include "MEM_guardedalloc.h"
 
 typedef struct {
