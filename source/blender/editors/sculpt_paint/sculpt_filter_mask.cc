@@ -36,16 +36,6 @@ enum class FilterType {
   ContrastDecrease = 6,
 };
 
-static EnumPropertyItem prop_mask_filter_types[] = {
-    {int(FilterType::Smooth), "SMOOTH", 0, "Smooth Mask", ""},
-    {int(FilterType::Sharpen), "SHARPEN", 0, "Sharpen Mask", ""},
-    {int(FilterType::Grow), "GROW", 0, "Grow Mask", ""},
-    {int(FilterType::Shrink), "SHRINK", 0, "Shrink Mask", ""},
-    {int(FilterType::ContrastIncrease), "CONTRAST_INCREASE", 0, "Increase Contrast", ""},
-    {int(FilterType::ContrastDecrease), "CONTRAST_DECREASE", 0, "Decrease Contrast", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static void mask_filter_task(SculptSession &ss,
                              const FilterType mode,
                              const Span<float> prev_mask,
@@ -214,9 +204,19 @@ void SCULPT_OT_mask_filter(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  static EnumPropertyItem type_items[] = {
+      {int(FilterType::Smooth), "SMOOTH", 0, "Smooth Mask", ""},
+      {int(FilterType::Sharpen), "SHARPEN", 0, "Sharpen Mask", ""},
+      {int(FilterType::Grow), "GROW", 0, "Grow Mask", ""},
+      {int(FilterType::Shrink), "SHRINK", 0, "Shrink Mask", ""},
+      {int(FilterType::ContrastIncrease), "CONTRAST_INCREASE", 0, "Increase Contrast", ""},
+      {int(FilterType::ContrastDecrease), "CONTRAST_DECREASE", 0, "Decrease Contrast", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   RNA_def_enum(ot->srna,
                "filter_type",
-               prop_mask_filter_types,
+               type_items,
                int(FilterType::Smooth),
                "Type",
                "Filter that is going to be applied to the mask");
