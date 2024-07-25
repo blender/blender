@@ -1002,23 +1002,23 @@ void ED_view3d_cursor3d_update(bContext *C,
   View3DCursor cursor_prev = *cursor_curr;
 
   {
-    float quat[4], quat_prev[4];
-    BKE_scene_cursor_rot_to_quat(cursor_curr, quat);
-    copy_qt_qt(quat_prev, quat);
+    blender::math::Quaternion quat, quat_prev;
+    quat = cursor_curr->rotation();
+    copy_qt_qt(&quat_prev.w, &quat.w);
     ED_view3d_cursor3d_position_rotation(
-        C, mval, use_depth, orientation, cursor_curr->location, quat);
+        C, mval, use_depth, orientation, cursor_curr->location, &quat.w);
 
-    if (!equals_v4v4(quat_prev, quat)) {
+    if (!equals_v4v4(&quat_prev.w, &quat.w)) {
       if ((cursor_curr->rotation_mode == ROT_MODE_AXISANGLE) && RV3D_VIEW_IS_AXIS(rv3d->view)) {
         float tmat[3][3], cmat[3][3];
-        quat_to_mat3(tmat, quat);
+        quat_to_mat3(tmat, &quat.w);
         negate_v3_v3(cursor_curr->rotation_axis, tmat[2]);
         axis_angle_to_mat3(cmat, cursor_curr->rotation_axis, 0.0f);
         cursor_curr->rotation_angle = angle_signed_on_axis_v3v3_v3(
             cmat[0], tmat[0], cursor_curr->rotation_axis);
       }
       else {
-        BKE_scene_cursor_quat_to_rot(cursor_curr, quat, true);
+        cursor_curr->set_rotation(quat, true);
       }
     }
   }

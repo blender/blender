@@ -573,9 +573,8 @@ void add_generic_get_opts(bContext *C,
           break;
         case ALIGN_CURSOR: {
           const Scene *scene = CTX_data_scene(C);
-          float tmat[3][3];
-          BKE_scene_cursor_rot_to_mat3(&scene->cursor, tmat);
-          mat3_normalized_to_eul(r_rot, tmat);
+          const float3x3 tmat = scene->cursor.matrix<float3x3>();
+          mat3_normalized_to_eul(r_rot, tmat.ptr());
           RNA_float_set_array(op->ptr, "rotation", r_rot);
           break;
         }

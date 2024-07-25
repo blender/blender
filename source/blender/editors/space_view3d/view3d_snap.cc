@@ -965,11 +965,8 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 static int snap_curs_to_center_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
-  float mat3[3][3];
-  unit_m3(mat3);
 
-  zero_v3(scene->cursor.location);
-  BKE_scene_cursor_mat3_to_rot(&scene->cursor, mat3, false);
+  scene->cursor.set_matrix(blender::float4x4::identity(), false);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 

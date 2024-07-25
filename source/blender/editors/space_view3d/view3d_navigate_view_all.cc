@@ -212,10 +212,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
     View3DCursor *cursor = &scene->cursor;
     zero_v3(min);
     zero_v3(max);
-    zero_v3(cursor->location);
-    float mat3[3][3];
-    unit_m3(mat3);
-    BKE_scene_cursor_mat3_to_rot(cursor, mat3, false);
+    cursor->set_matrix(blender::float4x4::identity(), false);
   }
   else {
     INIT_MINMAX(min, max);

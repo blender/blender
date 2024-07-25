@@ -62,9 +62,7 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
       break;
     case GP_LOCKAXIS_CURSOR: {
       plane_ = DrawingPlacementPlane::Cursor;
-      float3x3 mat;
-      BKE_scene_cursor_rot_to_mat3(&scene.cursor, mat.ptr());
-      placement_normal_ = mat * float3(0, 0, 1);
+      placement_normal_ = scene.cursor.matrix<float3x3>() * float3(0, 0, 1);
       break;
     }
   }
@@ -1301,8 +1299,7 @@ float4x2 calculate_texture_space(const Scene *scene,
       v_dir = float3(0.0f, 1.0f, 0.0f);
       break;
     case GP_LOCKAXIS_CURSOR: {
-      float3x3 mat;
-      BKE_scene_cursor_rot_to_mat3(&scene->cursor, mat.ptr());
+      const float3x3 mat = scene->cursor.matrix<float3x3>();
       u_dir = mat * float3(1.0f, 0.0f, 0.0f);
       v_dir = mat * float3(0.0f, 1.0f, 0.0f);
       origin = float3(scene->cursor.location);

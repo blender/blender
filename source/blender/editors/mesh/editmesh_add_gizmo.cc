@@ -63,9 +63,8 @@ static void calc_initial_placement_point_from_view(bContext *C,
 
   bool use_mouse_project = true; /* TODO: make optional */
 
-  float cursor_matrix[4][4];
+  const blender::float4x4 cursor_matrix = scene->cursor.matrix<blender::float4x4>();
   float orient_matrix[3][3];
-  BKE_scene_cursor_to_mat4(&scene->cursor, cursor_matrix);
 
   const float dots[3] = {
       dot_v3v3(rv3d->viewinv[2], cursor_matrix[0]),

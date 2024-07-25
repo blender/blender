@@ -122,8 +122,7 @@ void DRW_draw_cursor()
 
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  float cursor_quat[4];
-  BKE_scene_cursor_rot_to_quat(cursor, cursor_quat);
+  blender::math::Quaternion cursor_quat = cursor->rotation();
 
   /* Draw nice Anti Aliased cursor. */
   GPU_line_width(1.0f);
@@ -132,10 +131,10 @@ void DRW_draw_cursor()
 
   float eps = 1e-5f;
   rv3d->viewquat[0] = -rv3d->viewquat[0];
-  bool is_aligned = compare_v4v4(cursor_quat, rv3d->viewquat, eps);
+  bool is_aligned = compare_v4v4(&cursor_quat.w, rv3d->viewquat, eps);
   if (is_aligned == false) {
     float tquat[4];
-    rotation_between_quats_to_quat(tquat, rv3d->viewquat, cursor_quat);
+    rotation_between_quats_to_quat(tquat, rv3d->viewquat, &cursor_quat.w);
     is_aligned = tquat[0] - eps < -1.0f;
   }
   rv3d->viewquat[0] = -rv3d->viewquat[0];
@@ -165,7 +164,7 @@ void DRW_draw_cursor()
     for (int axis = 0; axis < 3; axis++) {
       float axis_vec[3] = {0};
       axis_vec[axis] = scale;
-      mul_qt_v3(cursor_quat, axis_vec);
+      mul_qt_v3(&cursor_quat.w, axis_vec);
       CURSOR_EDGE(axis_vec, axis, +);
       CURSOR_EDGE(axis_vec, axis, -);
     }

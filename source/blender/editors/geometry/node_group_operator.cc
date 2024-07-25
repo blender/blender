@@ -614,8 +614,7 @@ static void store_input_node_values_rna_props(const bContext &C,
   /* 3D cursor node inputs. */
   const View3DCursor &cursor = scene->cursor;
   RNA_float_set_array(op.ptr, "cursor_position", cursor.location);
-  math::Quaternion cursor_rotation;
-  BKE_scene_cursor_rot_to_quat(&cursor, &cursor_rotation.w);
+  math::Quaternion cursor_rotation = cursor.rotation();
   RNA_float_set_array(op.ptr, "cursor_rotation", &cursor_rotation.w);
 
   /* Viewport transform node inputs. */
