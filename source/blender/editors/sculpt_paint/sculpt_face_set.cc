@@ -53,6 +53,7 @@
 
 #include "ED_sculpt.hh"
 
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -1156,40 +1157,53 @@ static void delete_geometry(Object &ob, const int active_face_set_id, const bool
   BM_mesh_free(bm);
 }
 
-static void edit_fairing(Object &ob,
+static void edit_fairing(const Sculpt &sd,
+                         Object &ob,
                          const int active_face_set_id,
                          const eMeshFairingDepth fair_order,
                          const float strength)
 {
   SculptSession &ss = *ob.sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
-  Vector<float3> orig_positions;
-  Vector<bool> fair_verts;
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+  MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
-  orig_positions.resize(totvert);
-  fair_verts.resize(totvert);
+  Array<bool> fair_verts(positions.size());
 
   boundary::ensure_boundary_info(ob);
 
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    orig_positions[i] = SCULPT_vertex_co_get(ss, vertex);
-    fair_verts[i] = !boundary::vert_is_boundary(ss, vertex) &&
-                    vert_has_face_set(ss, vertex, active_face_set_id) &&
-                    vert_has_unique_face_set(ss, vertex);
+  for (const int vert : positions.index_range()) {
+    fair_verts[vert] = !boundary::vert_is_boundary(ss, PBVHVertRef{vert}) &&
+                       vert_has_face_set(ss, PBVHVertRef{vert}, active_face_set_id) &&
+                       vert_has_unique_face_set(ss, PBVHVertRef{vert});
   }
 
-  MutableSpan<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
-  BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
+  Array<float3> new_positions = positions;
+  BKE_mesh_prefair_and_fair_verts(&mesh, new_positions, fair_verts.data(), fair_order);
 
-  for (int i = 0; i < totvert; i++) {
-    if (fair_verts[i]) {
-      interp_v3_v3v3(positions[i], orig_positions[i], positions[i], strength);
+  struct LocalData {
+    Vector<float3> translations;
+  };
+
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(const_cast<bke::pbvh::Tree &>(pbvh),
+                                                             {});
+
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    LocalData &tls = all_tls.local();
+    for (const int i : range) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      tls.translations.resize(verts.size());
+      const MutableSpan<float3> translations = tls.translations;
+      for (const int i : verts.index_range()) {
+        translations[i] = new_positions[verts[i]] - positions[verts[i]];
+      }
+      scale_translations(translations, strength);
+      write_translations(sd, ob, positions, verts, translations, positions_orig);
     }
-  }
+  });
 }
 
 static bool edit_is_operation_valid(const Object &object,
@@ -1268,18 +1282,15 @@ static void edit_modify_coordinates(
   }
   switch (mode) {
     case EditMode::FairPositions:
-      edit_fairing(ob, active_face_set, MESH_FAIRING_DEPTH_POSITION, strength);
+      edit_fairing(sd, ob, active_face_set, MESH_FAIRING_DEPTH_POSITION, strength);
       break;
     case EditMode::FairTangency:
-      edit_fairing(ob, active_face_set, MESH_FAIRING_DEPTH_TANGENCY, strength);
+      edit_fairing(sd, ob, active_face_set, MESH_FAIRING_DEPTH_TANGENCY, strength);
       break;
     default:
       BLI_assert_unreachable();
   }
 
-  if (ss.deform_modifiers_active || ss.shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, ob, true);
-  }
   flush_update_step(C, UpdateType::Position);
   flush_update_done(C, ob, UpdateType::Position);
   undo::push_end(ob);
