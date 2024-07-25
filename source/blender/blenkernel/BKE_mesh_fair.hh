@@ -14,7 +14,6 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
-struct BMesh;
 struct Mesh;
 
 /* Mesh Fairing. */
@@ -25,14 +24,6 @@ enum eMeshFairingDepth {
   MESH_FAIRING_DEPTH_POSITION = 1,
   MESH_FAIRING_DEPTH_TANGENCY = 2,
 };
-
-/**
- * Affect_vertices is used to define the fairing area. Indexed by vertex index, set to true when
- * the vertex should be modified by fairing.
- */
-void BKE_bmesh_prefair_and_fair_verts(BMesh *bm,
-                                      const bool affected_verts[],
-                                      eMeshFairingDepth depth);
 
 /**
  * This function can optionally use the vertex coordinates of deform_mverts to read and write the
