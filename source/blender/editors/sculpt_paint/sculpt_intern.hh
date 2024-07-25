@@ -941,18 +941,14 @@ void ensure_boundary_info(Object &object);
  * Requires #ensure_boundary_info to have been called.
  */
 bool vert_is_boundary(const SculptSession &ss, PBVHVertRef vertex);
-bool vert_is_boundary(const Span<bool> hide_poly,
-                      const SubdivCCG &subdiv_ccg,
-                      const Span<int> corner_verts,
-                      const OffsetIndices<int> faces,
-                      const BitSpan boundary,
-                      const SubdivCCGCoord vert);
 bool vert_is_boundary(Span<bool> hide_poly,
                       GroupedSpan<int> vert_to_face_map,
                       BitSpan boundary,
                       int vert);
-bool vert_is_boundary(Span<bool> hide_poly,
-                      const SubdivCCG &subdiv_ccg,
+bool vert_is_boundary(const SubdivCCG &subdiv_ccg,
+                      Span<bool> hide_poly,
+                      Span<int> corner_verts,
+                      OffsetIndices<int> faces,
                       BitSpan boundary,
                       SubdivCCGCoord vert);
 bool vert_is_boundary(BMVert *vert);

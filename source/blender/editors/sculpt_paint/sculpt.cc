@@ -929,8 +929,8 @@ bool vert_is_boundary(const Span<bool> hide_poly,
   return boundary[vert].test();
 }
 
-bool vert_is_boundary(const Span<bool> /*hide_poly*/,
-                      const SubdivCCG &subdiv_ccg,
+bool vert_is_boundary(const SubdivCCG &subdiv_ccg,
+                      const Span<bool> /*hide_poly*/,
                       const Span<int> corner_verts,
                       const OffsetIndices<int> faces,
                       const BitSpan boundary,
