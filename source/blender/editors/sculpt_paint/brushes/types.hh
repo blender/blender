@@ -67,6 +67,7 @@ void do_smooth_mask_brush(const Sculpt &sd,
                           Span<bke::pbvh::Node *> nodes,
                           float brush_strength);
 void do_snake_hook_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes);
+void do_surface_smooth_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes);
 void do_thumb_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes);
 void do_topology_slide_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes);
 void do_topology_relax_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes);

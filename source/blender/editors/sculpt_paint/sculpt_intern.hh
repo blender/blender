@@ -1695,6 +1695,15 @@ void neighbor_data_average_mesh_check_loose(Span<T> src,
                                             Span<Vector<int>> vert_neighbors,
                                             MutableSpan<T> dst);
 
+template<typename T>
+void average_data_grids(const SubdivCCG &subdiv_ccg,
+                        Span<T> src,
+                        Span<int> grids,
+                        MutableSpan<T> dst);
+
+template<typename T>
+void average_data_bmesh(Span<T> src, const Set<BMVert *, 0> &verts, MutableSpan<T> dst);
+
 /* Surface Smooth Brush. */
 
 void surface_smooth_laplacian_step(SculptSession &ss,
@@ -1710,7 +1719,6 @@ void surface_smooth_displace_step(SculptSession &ss,
                                   PBVHVertRef vertex,
                                   float beta,
                                   float fade);
-void do_surface_smooth_brush(const Sculpt &sd, Object &ob, Span<blender::bke::pbvh::Node *> nodes);
 
 /* Slide/Relax */
 void relax_vertex(SculptSession &ss,
