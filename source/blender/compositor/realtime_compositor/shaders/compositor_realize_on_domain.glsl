@@ -20,11 +20,10 @@ void main()
   /* Since an input image with an identity transformation is supposed to be centered in the domain,
    * we subtract the offset between the lower left corners of the input image and the domain, which
    * is half the difference between their sizes, because the difference in size is on both sides of
-   * the centered image. Additionally, we floor the offset to retain the 0.5 offset added above in
-   * case the difference in sizes was odd. */
+   * the centered image. */
   ivec2 domain_size = imageSize(domain_img);
   ivec2 input_size = texture_size(input_tx);
-  vec2 offset = floor(vec2(domain_size - input_size) / 2.0);
+  vec2 offset = vec2(domain_size - input_size) / 2.0;
 
   /* Subtract the offset and divide by the input image size to get the relevant coordinates into
    * the sampler's expected [0, 1] range. */
