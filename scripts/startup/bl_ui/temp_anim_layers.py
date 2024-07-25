@@ -21,7 +21,7 @@ class VIEW3D_PT_animation_layers(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Animation"
-    bl_label = "Baklava"
+    bl_label = "Animation Debug"
 
     @classmethod
     def poll(cls, context):
