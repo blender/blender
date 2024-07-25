@@ -51,6 +51,11 @@ static std::optional<std::string> rna_tracking_path(const PointerRNA * /*ptr*/)
   return "tracking";
 }
 
+static std::optional<std::string> rna_trackingSettings_path(const PointerRNA * /*ptr*/)
+{
+  return "tracking.settings";
+}
+
 static void rna_tracking_defaultSettings_patternUpdate(Main * /*bmain*/,
                                                        Scene * /*scene*/,
                                                        PointerRNA *ptr)
@@ -637,6 +642,11 @@ static void rna_tracking_markerPattern_boundbox_get(PointerRNA *ptr, float *valu
   copy_v2_v2(values + 2, max);
 }
 
+static std::optional<std::string> rna_trackingDopesheet_path(const PointerRNA * /*ptr*/)
+{
+  return "tracking.dopesheet";
+}
+
 static void rna_trackingDopesheet_tagUpdate(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
@@ -921,6 +931,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "MovieTrackingSettings", nullptr);
+  RNA_def_struct_path_func(srna, "rna_trackingSettings_path");
   RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match moving settings");
 
   /* speed */
@@ -2505,6 +2516,7 @@ static void rna_def_trackingDopesheet(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "MovieTrackingDopesheet", nullptr);
+  RNA_def_struct_path_func(srna, "rna_trackingDopesheet_path");
   RNA_def_struct_ui_text(srna, "Movie Tracking Dopesheet", "Match-moving dopesheet data");
 
   /* dopesheet sort */
