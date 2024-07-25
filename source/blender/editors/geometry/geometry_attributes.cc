@@ -923,7 +923,8 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
   const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
   const CPPType &cpp_type = varray.type();
-  void *new_data = MEM_malloc_arrayN(varray.size(), cpp_type.size(), __func__);
+  void *new_data = MEM_mallocN_aligned(
+      varray.size() * cpp_type.size(), cpp_type.alignment(), __func__);
   varray.materialize_to_uninitialized(new_data);
   attributes.remove(name_copy);
   if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
