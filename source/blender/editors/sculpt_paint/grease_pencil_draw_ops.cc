@@ -21,6 +21,7 @@
 #include "BLI_color.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdopbvh.h"
+#include "BLI_kdtree.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
@@ -527,7 +528,8 @@ struct GreasePencilFillOpData {
         brush.gpencil_settings->fill_extend_mode);
     const bool show_boundaries = brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_HELPLINES;
     const bool show_extension = brush.gpencil_settings->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES;
-    const float extension_length = brush.gpencil_settings->fill_extend_fac;
+    const float extension_length = brush.gpencil_settings->fill_extend_fac *
+                                   bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
     const bool extension_cut = brush.gpencil_settings->flag & GP_BRUSH_FILL_STROKE_COLLIDE;
 
     return {layer,
@@ -703,6 +705,94 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
   extension_data.lines.ends = std::move(new_extension_ends);
 }
 
+/* Find closest point in each circle and generate extension lines between such pairs. */
+static void grease_pencil_fill_extension_lines_from_circles(
+    const bContext &C,
+    ed::greasepencil::ExtensionData &extension_data,
+    Span<int> /*origin_drawings*/,
+    Span<int> /*origin_points*/)
+{
+  const RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
+  const Scene &scene = *CTX_data_scene(&C);
+  const Object &object = *CTX_data_active_object(&C);
+  const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object.data);
+
+  const float4x4 view_matrix = float4x4(rv3d.viewmat);
+
+  const Vector<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+  const IndexRange circles_range = extension_data.circles.centers.index_range();
+  /* TODO Include high-curvature feature points. */
+  const IndexRange feature_points_range = circles_range.after(0);
+  const IndexRange kd_points_range = IndexRange(circles_range.size() +
+                                                feature_points_range.size());
+
+  /* Upper bound for segment count. Arrays are sized for easy index mapping, exact count isn't
+   * necessary. Not all entries are added to the BVH tree. */
+  const int max_kd_entries = kd_points_range.size();
+  /* Cached view positions for lines. */
+  Array<float2> view_centers(max_kd_entries);
+  Array<float> view_radii(max_kd_entries);
+
+  KDTree_2d *kdtree = BLI_kdtree_2d_new(max_kd_entries);
+
+  /* Insert points for overlap tests. */
+  for (const int point_i : circles_range.index_range()) {
+    const float2 center =
+        math::transform_point(view_matrix, extension_data.circles.centers[point_i]).xy();
+    const float radius = math::average(math::to_scale(view_matrix)) *
+                         extension_data.circles.radii[point_i];
+
+    const int kd_index = circles_range[point_i];
+    view_centers[kd_index] = center;
+    view_radii[kd_index] = radius;
+
+    BLI_kdtree_2d_insert(kdtree, kd_index, center);
+  }
+  for (const int i_point : feature_points_range.index_range()) {
+    /* TODO Insert feature points into the KDTree. */
+    UNUSED_VARS(i_point);
+  }
+  BLI_kdtree_2d_balance(kdtree);
+
+  struct {
+    Vector<float3> starts;
+    Vector<float3> ends;
+  } connection_lines;
+
+  for (const int point_i : circles_range.index_range()) {
+    const int kd_index = circles_range[point_i];
+    const float2 center = view_centers[kd_index];
+    const float radius = view_radii[kd_index];
+
+    BLI_kdtree_2d_range_search_cb_cpp(
+        kdtree,
+        center,
+        radius,
+        [&](const int other_point_i, const float * /*co*/, float /*dist_sq*/) {
+          if (other_point_i == kd_index) {
+            return true;
+          }
+          connection_lines.starts.append(extension_data.circles.centers[point_i]);
+          if (circles_range.contains(other_point_i)) {
+            connection_lines.ends.append(extension_data.circles.centers[other_point_i]);
+          }
+          else if (feature_points_range.contains(other_point_i)) {
+            /* TODO copy feature point to connection_lines (beware of start index!). */
+            connection_lines.ends.append(float3(0));
+          }
+          return true;
+        });
+  }
+
+  BLI_kdtree_2d_free(kdtree);
+
+  /* Add new extension lines. */
+  extension_data.lines.starts.extend(connection_lines.starts);
+  extension_data.lines.ends.extend(connection_lines.ends);
+}
+
 static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
     const bContext &C, const GreasePencilFillOpData &op_data)
 {
@@ -774,9 +864,17 @@ static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
     }
   }
 
-  /* Intersection test against strokes and other extension lines. */
-  if (op_data.extension_cut) {
-    grease_pencil_fill_extension_cut(C, extension_data, origin_drawings, origin_points);
+  switch (op_data.extension_mode) {
+    case GP_FILL_EMODE_EXTEND:
+      /* Intersection test against strokes and other extension lines. */
+      if (op_data.extension_cut) {
+        grease_pencil_fill_extension_cut(C, extension_data, origin_drawings, origin_points);
+      }
+      break;
+    case GP_FILL_EMODE_RADIUS:
+      grease_pencil_fill_extension_lines_from_circles(
+          C, extension_data, origin_drawings, origin_points);
+      break;
   }
 
   return extension_data;
@@ -1075,7 +1173,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   constexpr const ed::greasepencil::FillToolFitMethod fit_method =
       ed::greasepencil::FillToolFitMethod::FitToView;
   /* Debug setting: keep image data blocks for inspection. */
-  constexpr const bool keep_images = false;
+  constexpr const bool keep_images = true;
 
   ARegion &region = *CTX_wm_region(&C);
   /* Perform bounds check. */

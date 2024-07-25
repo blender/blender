@@ -1109,20 +1109,6 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                                line_colors,
                                line_width);
     }
-    const IndexRange circles_range = extensions.circles.centers.index_range();
-    if (!circles_range.is_empty()) {
-      const VArray<ColorGeometry4f> circle_colors = VArray<ColorGeometry4f>::ForSingle(
-          draw_boundary_color, circles_range.size());
-
-      image_render::draw_circles(world_to_view,
-                                 circles_range,
-                                 extensions.circles.centers,
-                                 VArray<float>::ForSpan(extensions.circles.radii),
-                                 circle_colors,
-                                 float2(image_size),
-                                 1.0f,
-                                 true);
-    }
   }
 
   ed::greasepencil::image_render::clear_projection_matrix();
