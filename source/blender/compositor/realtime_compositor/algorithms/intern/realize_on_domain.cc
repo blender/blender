@@ -85,9 +85,16 @@ void realize_on_domain(Context &context,
   const float3x3 transformation = math::from_origin_transform<float3x3>(
       local_transformation, float2(domain.size) / 2.0f);
 
+  /* Since an input image with an identity transformation is supposed to be centered in the domain,
+   * we center the input by translating by the difference between the lower left corners of the
+   * input image and the domain, which is half the difference between their sizes, because the
+   * difference in size is on both sides of the centered image. */
+  const float3x3 centered_transformation = math::translate(
+      transformation, float2(domain.size - input_domain.size) / 2.0f);
+
   /* Invert the transformation because the shader transforms the domain coordinates instead of the
    * input image itself and thus expect the inverse. */
-  float3x3 inverse_transformation = math::invert(transformation);
+  float3x3 inverse_transformation = math::invert(centered_transformation);
 
   /* Bias translations in case of nearest interpolation to avoids the round-to-even behavior of
    * some GPUs at pixel boundaries. */
