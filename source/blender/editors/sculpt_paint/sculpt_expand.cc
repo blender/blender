@@ -2205,23 +2205,16 @@ static void undo_push(Object &ob, Cache *expand_cache)
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      for (bke::pbvh::Node *node : nodes) {
-        undo::push_node(ob, node, undo::Type::Mask);
-      }
+      undo::push_nodes(ob, nodes, undo::Type::Mask);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      for (bke::pbvh::Node *node : nodes) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
-      }
+      undo::push_nodes(ob, nodes, undo::Type::FaceSet);
       break;
     case SCULPT_EXPAND_TARGET_COLORS: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
       /* The sculpt undo system needs corner indices for corner domain color attributes. */
       BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
-
-      for (bke::pbvh::Node *node : nodes) {
-        undo::push_node(ob, node, undo::Type::Color);
-      }
+      undo::push_nodes(ob, nodes, undo::Type::Color);
       break;
     }
   }

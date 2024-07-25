@@ -1776,9 +1776,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 GMutableSpan attribute,
                                 const Span<bke::pbvh::Node *> nodes)
 {
-  for (bke::pbvh::Node *node : nodes) {
-    undo::push_node(ob, node, undo::Type::Color);
-  }
+  undo::push_nodes(ob, nodes, undo::Type::Color);
 
   const Brush &brush = *ob.sculpt->cache->brush;
 
@@ -2223,9 +2221,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
    * color attributes. */
   BKE_pbvh_ensure_node_loops(*obact.sculpt->pbvh, mesh.corner_tris());
 
-  for (bke::pbvh::Node *node : nodes) {
-    undo::push_node(obact, node, undo::Type::Color);
-  }
+  undo::push_nodes(obact, nodes, undo::Type::Color);
 
   fill_active_color(obact, paintcol, true, affect_alpha);
 

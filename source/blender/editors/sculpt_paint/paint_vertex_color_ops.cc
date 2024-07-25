@@ -321,9 +321,7 @@ static void transform_active_color(bContext *C,
   BKE_pbvh_ensure_node_loops(pbvh, mesh.corner_tris());
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
-  for (bke::pbvh::Node *node : nodes) {
-    undo::push_node(obact, node, undo::Type::Color);
-  }
+  undo::push_nodes(obact, nodes, undo::Type::Color);
 
   transform_active_color_data(*BKE_mesh_from_object(&obact), transform_fn);
 

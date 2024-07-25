@@ -53,11 +53,9 @@ void write_mask_mesh(Object &object,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      undo::push_node(object, nodes[i], undo::Type::Mask);
-    }
-  });
+
+  undo::push_nodes(object, nodes, undo::Type::Mask);
+
   bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
       ".sculpt_mask", bke::AttrDomain::Point);
   if (!mask) {
@@ -90,9 +88,10 @@ static void init_mask_grids(Main &bmain,
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
+  undo::push_nodes(object, nodes, undo::Type::Mask);
+
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      undo::push_node(object, nodes[i], undo::Type::Mask);
       for (const int grid : bke::pbvh::node_grid_indices(*nodes[i])) {
         write_fn(grid_hidden, grid, grids[grid]);
       }

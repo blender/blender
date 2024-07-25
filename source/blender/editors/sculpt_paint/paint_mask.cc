@@ -555,13 +555,14 @@ static void invert_mask_grids(Main &bmain,
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
 
+  undo::push_nodes(object, nodes, undo::Type::Mask);
+
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (bke::pbvh::Node *node : nodes.slice(range)) {
-      undo::push_node(object, node, undo::Type::Mask);
 
       const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
       if (grid_hidden.is_empty()) {
@@ -597,7 +598,7 @@ static void invert_mask_bmesh(Object &object, const Span<bke::pbvh::Node *> node
     return;
   }
 
-  undo::push_node(object, nodes.first(), undo::Type::Mask);
+  undo::push_nodes(object, nodes, undo::Type::Mask);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (bke::pbvh::Node *node : nodes.slice(range)) {
       for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {

@@ -1262,9 +1262,9 @@ static void edit_modify_coordinates(
   const float strength = RNA_float_get(op->ptr, "strength");
 
   undo::push_begin(ob, op);
+  undo::push_nodes(ob, nodes, undo::Type::Position);
   for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_positions_update(node);
-    undo::push_node(ob, node, undo::Type::Position);
   }
   switch (mode) {
     case EditMode::FairPositions:

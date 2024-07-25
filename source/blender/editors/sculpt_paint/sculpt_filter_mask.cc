@@ -169,10 +169,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
   undo::push_begin(ob, op);
-
-  for (bke::pbvh::Node *node : nodes) {
-    undo::push_node(ob, node, undo::Type::Mask);
-  }
+  undo::push_nodes(ob, nodes, undo::Type::Mask);
 
   Array<float> prev_mask;
   int iterations = RNA_int_get(op->ptr, "iterations");

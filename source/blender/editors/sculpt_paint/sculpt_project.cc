@@ -55,8 +55,6 @@ static void apply_projection_mesh(const Sculpt &sd,
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  undo::push_node(object, &node, undo::Type::Position);
-
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
   const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
   const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
@@ -82,7 +80,6 @@ static void apply_projection_grids(const Sculpt &sd,
                                    LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
-  undo::push_node(object, &node, undo::Type::Position);
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -115,8 +112,6 @@ static void apply_projection_bmesh(const Sculpt &sd,
                                    LocalData &tls)
 {
   const SculptSession &ss = *object.sculpt;
-
-  undo::push_node(object, &node, undo::Type::Position);
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
@@ -157,6 +152,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
           const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
           MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+          undo::push_nodes(object, nodes, undo::Type::Position);
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
@@ -174,6 +170,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           break;
         }
         case bke::pbvh::Type::BMesh: {
+          undo::push_nodes(object, nodes, undo::Type::Position);
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
@@ -184,6 +181,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           break;
         }
         case bke::pbvh::Type::Grids: {
+          undo::push_nodes(object, nodes, undo::Type::Position);
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
