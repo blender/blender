@@ -1314,26 +1314,20 @@ static bool cloth_filter_is_deformation_filter(eSculptClothFilterType filter_typ
 }
 
 static void cloth_filter_apply_displacement_to_deform_co(const int v_index,
-                                                         const float disp[3],
+                                                         const float3 &disp,
                                                          filter::Cache &filter_cache)
 {
-  float final_disp[3];
-  copy_v3_v3(final_disp, disp);
-  filter::zero_disabled_axis_components(final_disp, filter_cache);
-  add_v3_v3v3(filter_cache.cloth_sim->deformation_pos[v_index],
-              filter_cache.cloth_sim->init_pos[v_index],
-              final_disp);
+  float3 final_disp = filter::zero_disabled_axis_components(filter_cache, disp);
+  filter_cache.cloth_sim->deformation_pos[v_index] = filter_cache.cloth_sim->init_pos[v_index] +
+                                                     final_disp;
 }
 
 static void cloth_filter_apply_forces_to_vertices(const int v_index,
-                                                  const float force[3],
-                                                  const float gravity[3],
+                                                  const float3 &force,
+                                                  const float3 &gravity,
                                                   filter::Cache &filter_cache)
 {
-  float final_force[3];
-  copy_v3_v3(final_force, force);
-  filter::zero_disabled_axis_components(final_force, filter_cache);
-  add_v3_v3(final_force, gravity);
+  const float3 final_force = filter::zero_disabled_axis_components(filter_cache, force) + gravity;
   cloth_brush_apply_force_to_vertex(*filter_cache.cloth_sim, final_force, v_index);
 }
 
@@ -1349,9 +1343,9 @@ static void cloth_filter_apply_forces_task(Object &ob,
 
   const bool is_deformation_filter = cloth_filter_is_deformation_filter(filter_type);
 
-  float sculpt_gravity[3] = {0.0f};
+  float3 sculpt_gravity(0.0f);
   if (sd.gravity_object) {
-    copy_v3_v3(sculpt_gravity, sd.gravity_object->object_to_world().ptr()[2]);
+    sculpt_gravity = sd.gravity_object->object_to_world().ptr()[2];
   }
   else {
     sculpt_gravity[2] = -1.0f;
@@ -1368,8 +1362,8 @@ static void cloth_filter_apply_forces_task(Object &ob,
     fade *= auto_mask::factor_get(
         ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
     fade = 1.0f - fade;
-    float force[3] = {0.0f, 0.0f, 0.0f};
-    float disp[3], temp[3], transform[3][3];
+    float3 force(0.0f);
+    float3 disp, temp;
 
     if (ss.filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
       if (!face_set::vert_has_face_set(ss, vd.vertex, ss.filter_cache->active_face_set)) {
@@ -1387,29 +1381,28 @@ static void cloth_filter_apply_forces_task(Object &ob,
         else {
           force[2] = -filter_strength * fade;
         }
-        filter::to_object_space(force, *ss.filter_cache);
+        force = filter::to_object_space(*ss.filter_cache, force);
         break;
       case CLOTH_FILTER_INFLATE: {
         float3 normal = SCULPT_vertex_normal_get(ss, vd.vertex);
-        mul_v3_v3fl(force, normal, fade * filter_strength);
+        force = normal * fade * filter_strength;
         break;
       }
       case CLOTH_FILTER_EXPAND:
         cloth_sim.length_constraint_tweak[vd.index] += fade * filter_strength * 0.01f;
-        zero_v3(force);
+        force = float3(0);
         break;
       case CLOTH_FILTER_PINCH:
-        sub_v3_v3v3(force, ss.filter_cache->cloth_sim_pinch_point, vd.co);
-        normalize_v3(force);
-        mul_v3_fl(force, fade * filter_strength);
+        force = math::normalize(ss.filter_cache->cloth_sim_pinch_point - float3(vd.co));
+        force *= fade * filter_strength;
         break;
       case CLOTH_FILTER_SCALE:
-        unit_m3(transform);
-        scale_m3_fl(transform, 1.0f + (fade * filter_strength));
-        copy_v3_v3(temp, cloth_sim.init_pos[vd.index]);
-        mul_m3_v3(transform, temp);
-        sub_v3_v3v3(disp, temp, cloth_sim.init_pos[vd.index]);
-        zero_v3(force);
+        float3x3 transform = float3x3::identity();
+        scale_m3_fl(transform.ptr(), 1.0f + (fade * filter_strength));
+        temp = cloth_sim.init_pos[vd.index];
+        temp = transform * temp;
+        disp = temp - cloth_sim.init_pos[vd.index];
+        force = float3(0);
 
         break;
     }

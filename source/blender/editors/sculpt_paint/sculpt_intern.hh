@@ -1492,9 +1492,9 @@ void cache_init(bContext *C,
 void register_operator_props(wmOperatorType *ot);
 
 /* Filter orientation utils. */
-void to_orientation_space(float r_v[3], filter::Cache &filter_cache);
-void to_object_space(float r_v[3], filter::Cache &filter_cache);
-void zero_disabled_axis_components(float r_v[3], filter::Cache &filter_cache);
+float3 to_orientation_space(const filter::Cache &filter_cache, const float3 &vector);
+float3 to_object_space(const filter::Cache &filter_cache, const float3 &vector);
+float3 zero_disabled_axis_components(const filter::Cache &filter_cache, const float3 &vector);
 
 }
 
