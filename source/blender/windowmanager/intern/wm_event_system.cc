@@ -4987,18 +4987,19 @@ void WM_event_add_mousemove(wmWindow *win)
 /** \name Ghost Event Conversion
  * \{ */
 
+#ifdef WITH_INPUT_NDOF
 /**
  * \return The WM enum for NDOF button or #EVENT_NONE (which should be ignored)
  */
 static int wm_event_type_from_ndof_button(GHOST_NDOF_ButtonT button)
 {
-#define CASE_NDOF_BUTTON(button) \
-  case GHOST_NDOF_BUTTON_##button: \
-    return NDOF_BUTTON_##button
+#  define CASE_NDOF_BUTTON(button) \
+    case GHOST_NDOF_BUTTON_##button: \
+      return NDOF_BUTTON_##button
 
-#define CASE_NDOF_BUTTON_IGNORE(button) \
-  case GHOST_NDOF_BUTTON_##button: \
-    break;
+#  define CASE_NDOF_BUTTON_IGNORE(button) \
+    case GHOST_NDOF_BUTTON_##button: \
+      break;
 
   switch (button) {
     CASE_NDOF_BUTTON(MENU);
@@ -5077,12 +5078,14 @@ static int wm_event_type_from_ndof_button(GHOST_NDOF_ButtonT button)
     CASE_NDOF_BUTTON_IGNORE(USER);
   }
 
-#undef CASE_NDOF_BUTTON
-#undef CASE_NDOF_BUTTON_IGNORE
+#  undef CASE_NDOF_BUTTON
+#  undef CASE_NDOF_BUTTON_IGNORE
 
   CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ndof button", int(button));
   return EVENT_NONE;
 }
+
+#endif /* WITH_INPUT_NDOF */
 
 /**
  * \return The WM enum for key or #EVENT_NONE (which should be ignored).
