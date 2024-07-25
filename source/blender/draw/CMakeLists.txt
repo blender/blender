@@ -116,19 +116,19 @@ set(SRC
   engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_hizbuffer.cc
   engines/eevee_next/eevee_instance.cc
-  engines/eevee_next/eevee_lightprobe_volume.cc
   engines/eevee_next/eevee_light.cc
   engines/eevee_next/eevee_lightcache.cc
   engines/eevee_next/eevee_lightprobe.cc
+  engines/eevee_next/eevee_lightprobe_planar.cc
+  engines/eevee_next/eevee_lightprobe_sphere.cc
+  engines/eevee_next/eevee_lightprobe_volume.cc
   engines/eevee_next/eevee_lookdev.cc
   engines/eevee_next/eevee_lut.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
-  engines/eevee_next/eevee_lightprobe_planar.cc
   engines/eevee_next/eevee_precompute.cc
   engines/eevee_next/eevee_raytrace.cc
-  engines/eevee_next/eevee_lightprobe_sphere.cc
   engines/eevee_next/eevee_renderbuffers.cc
   engines/eevee_next/eevee_sampling.cc
   engines/eevee_next/eevee_shader.cc
@@ -249,19 +249,19 @@ set(SRC
   engines/eevee_next/eevee_gbuffer.hh
   engines/eevee_next/eevee_hizbuffer.hh
   engines/eevee_next/eevee_instance.hh
-  engines/eevee_next/eevee_lightprobe_volume.hh
   engines/eevee_next/eevee_light.hh
   engines/eevee_next/eevee_lightcache.hh
   engines/eevee_next/eevee_lightprobe.hh
+  engines/eevee_next/eevee_lightprobe_planar.hh
+  engines/eevee_next/eevee_lightprobe_sphere.hh
+  engines/eevee_next/eevee_lightprobe_volume.hh
   engines/eevee_next/eevee_lookdev.hh
   engines/eevee_next/eevee_lut.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
   engines/eevee_next/eevee_pipeline.hh
-  engines/eevee_next/eevee_lightprobe_planar.hh
   engines/eevee_next/eevee_precompute.hh
   engines/eevee_next/eevee_raytrace.hh
-  engines/eevee_next/eevee_lightprobe_sphere.hh
   engines/eevee_next/eevee_renderbuffers.hh
   engines/eevee_next/eevee_sampling.hh
   engines/eevee_next/eevee_shader.hh

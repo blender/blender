@@ -265,8 +265,8 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_push_constants.hh
   vulkan/vk_query.hh
-  vulkan/render_graph/nodes/vk_blit_image_node.hh
   vulkan/render_graph/nodes/vk_begin_rendering_node.hh
+  vulkan/render_graph/nodes/vk_blit_image_node.hh
   vulkan/render_graph/nodes/vk_clear_attachments_node.hh
   vulkan/render_graph/nodes/vk_clear_color_image_node.hh
   vulkan/render_graph/nodes/vk_clear_depth_stencil_image_node.hh
@@ -275,10 +275,10 @@ set(VULKAN_SRC
   vulkan/render_graph/nodes/vk_copy_image_node.hh
   vulkan/render_graph/nodes/vk_copy_image_to_buffer_node.hh
   vulkan/render_graph/nodes/vk_dispatch_node.hh
-  vulkan/render_graph/nodes/vk_draw_node.hh
-  vulkan/render_graph/nodes/vk_draw_indexed_node.hh
   vulkan/render_graph/nodes/vk_draw_indexed_indirect_node.hh
+  vulkan/render_graph/nodes/vk_draw_indexed_node.hh
   vulkan/render_graph/nodes/vk_draw_indirect_node.hh
+  vulkan/render_graph/nodes/vk_draw_node.hh
   vulkan/render_graph/nodes/vk_end_rendering_node.hh
   vulkan/render_graph/nodes/vk_fill_buffer_node.hh
   vulkan/render_graph/nodes/vk_node_info.hh
@@ -719,8 +719,8 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
-  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_volume_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_sphere_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_lightprobe_volume_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_lookdev_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_lut_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh

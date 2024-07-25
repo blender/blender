@@ -4,8 +4,8 @@
 
 set(INC
   .
-  ../include
   ../asset
+  ../include
   ../../asset_system
   ../../blenkernel
   ../../blenloader
