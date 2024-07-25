@@ -679,7 +679,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
 
   /* The relax mesh filter needs updated normals. */
-  if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
+  if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
     bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
   }
 
