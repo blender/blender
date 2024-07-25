@@ -638,7 +638,7 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
  * `flag`. Instead, it requires that it has two functions to query & set its selection state.
  *
  * \param selectable_thing: something with functions `set_selected(bool)` and `bool is_selected()`.
- * \param selectmode the selection operation to perform.
+ * \param selectmode: the selection operation to perform.
  */
 template<typename T>
 static void templated_selection_state_update(T &selectable_thing,

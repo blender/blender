@@ -1327,15 +1327,16 @@ static size_t animfilter_fcurves(bAnimContext *ac,
 /**
  * Add `bAnimListElem`s to `anim_data` for each F-Curve in `fcurves`.
  *
- * \param slot_handle The slot handle that these F-Curves animate. This is
+ * \param slot_handle: The slot handle that these F-Curves animate. This is
  *    used later to look up the ID* of the user of the slot, which in turn is
  *    used to construct a suitable F-Curve label for in the channels list.
  *
- * \param owner_id The ID whose 'animdata->action' pointer was followed to get to
+ * \param owner_id: The ID whose 'animdata->action' pointer was followed to get to
  *    these F-Curves. This ID may be animated by a different slot than referenced by
  *    `slot_handle`, so do _not_ treat this as "the ID animated by these F-Curves".
  *
- * \param fcurve_owner_id The ID that holds these F-Curves. Typically an Action, but can be any ID,
+ * \param fcurve_owner_id: The ID that holds these F-Curves.
+ *    Typically an Action, but can be any ID,
  *    for example in the case of drivers.
  */
 static size_t animfilter_fcurves_span(bAnimContext *ac,

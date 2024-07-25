@@ -715,7 +715,7 @@ class ChannelBag : public ::ActionChannelBag {
    * Find an FCurve matching the fcurve descriptor, or create one if it doesn't
    * exist.
    *
-   * \param bmain Used to tag the dependency graph(s) for relationship
+   * \param bmain: Used to tag the dependency graph(s) for relationship
    * rebuilding. This is necessary when adding a new F-Curve, as a
    * previously-unanimated depsgraph component may become animated now. Can be
    * nullptr, in which case the tagging is skipped and is left as the
@@ -728,7 +728,7 @@ class ChannelBag : public ::ActionChannelBag {
    *
    * \return the F-Curve it it was created, or nullptr if it already existed.
    *
-   * \param bmain Used to tag the dependency graph(s) for relationship
+   * \param bmain: Used to tag the dependency graph(s) for relationship
    * rebuilding. This is necessary when adding a new F-Curve, as a
    * previously-unanimated depsgraph component may become animated now. Can be
    * nullptr, in which case the tagging is skipped and is left as the
@@ -758,7 +758,7 @@ class ChannelBag : public ::ActionChannelBag {
    * Assumes that there is no such F-Curve yet on this ChannelBag. If it is
    * uncertain whether this is the case, use `fcurve_create_unique()` instead.
    *
-   * \param bmain Used to tag the dependency graph(s) for relationship
+   * \param bmain: Used to tag the dependency graph(s) for relationship
    * rebuilding. This is necessary when adding a new F-Curve, as a
    * previously-unanimated depsgraph component may become animated now. Can be
    * nullptr, in which case the tagging is skipped and is left as the

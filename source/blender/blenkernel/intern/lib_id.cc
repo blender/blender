@@ -165,11 +165,11 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
  * Main into a library (`lib_from is then `nullptr`), or between two libraries (both `lib_to` and
  * `lib_from` are provided then).
  *
- * \param lib_to The library into which the id is moved to (used to get the destination root path).
- * If `nullptr`, the current Main filepath is used.
+ * \param lib_to: The library into which the id is moved to
+ * (used to get the destination root* path). If `nullptr`, the current #Main::filepath is used.
  *
- * \param lib_from The library from which the id is coming from (used to get the source root path).
- * If `nullptr`, the current Main filepath is used.
+ * \param lib_from: The library from which the id is coming from
+ * (used to get the source root path). If `nullptr`, the current #Main::filepath is used.
  *
  * TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase.
  */

@@ -1307,10 +1307,10 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
  * Exit 'local view' of given View3D editor, if it is active and there is nothing to display in it
  * anymore.
  *
- * \param depsgraph Optional, only required for #frame_selected.
- * \param frame_selected Frame the newly out-of-local view to show currently visible selected
+ * \param depsgraph: Optional, only required for #frame_selected.
+ * \param frame_selected: Frame the newly out-of-local view to show currently visible selected
  * objects. Will only do something if a valid #depsgraph pointer is also provided.
- * \param smooth_viewtx Smooth transition time (in milliseconds) between current view and final
+ * \param smooth_viewtx: Smooth transition time (in milliseconds) between current view and final
  * view, if changes are happening. Currently only used if #frame_selected is enabled.
  *
  * \return `true` if the local view was actually exited.
