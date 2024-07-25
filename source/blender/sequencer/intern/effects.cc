@@ -3014,6 +3014,8 @@ static void draw_text_outline(const SeqRenderData *context,
   color.y *= color.w;
   color.z *= color.w;
 
+  const float text_color_alpha = data->color[3];
+
   /* We have distances to the closest opaque parts of the image now. Composite the
    * outline into the output image. */
 
@@ -3032,6 +3034,22 @@ static void draw_text_outline(const SeqRenderData *context,
         /* Fade out / anti-alias the outline over one pixel towards outline distance. */
         float distance = math::distance(float2(x, y), float2(closest_texel.x, closest_texel.y));
         float alpha = math::clamp(outline_width - distance + 1.0f, 0.0f, 1.0f);
+
+        /* Do not put outline inside the text shape:
+         * - When overall text color is fully opaque, we want to make
+         *   outline fully transparent only where text is fully opaque.
+         *   This ensures that combined anti-aliased pixels at text boundary
+         *   are properly fully opaque.
+         * - However when text color is fully transparent, we want to
+         *   Use opposite alpha of text, to anti-alias the inner edge of
+         *   the outline.
+         * In between those two, interpolate the alpha modulation factor. */
+        float text_alpha = tmp_buf[index].w * (1.0f / 255.0f);
+        float mul_opaque_text = text_alpha >= 1.0f ? 0.0f : 1.0f;
+        float mul_transparent_text = 1.0f - text_alpha;
+        float mul = math::interpolate(mul_transparent_text, mul_opaque_text, text_color_alpha);
+        alpha *= mul;
+
         float4 col1 = color;
         col1 *= alpha;
 
