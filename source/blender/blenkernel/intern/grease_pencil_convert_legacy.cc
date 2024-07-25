@@ -2497,9 +2497,9 @@ static void legacy_object_modifier_weight_proximity(ConversionData &conversion_d
                                    false);
 }
 
-static void legacy_object_modifier_weight_lineart(ConversionData &conversion_data,
-                                                  Object &object,
-                                                  GpencilModifierData &legacy_md)
+static void legacy_object_modifier_lineart(ConversionData &conversion_data,
+                                           Object &object,
+                                           GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
       conversion_data, object, eModifierType_GreasePencilLineart, legacy_md);
@@ -2728,7 +2728,7 @@ static void legacy_object_modifiers(ConversionData &conversion_data, Object &obj
         legacy_object_modifier_weight_proximity(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Lineart:
-        legacy_object_modifier_weight_lineart(conversion_data, object, *gpd_md);
+        legacy_object_modifier_lineart(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Build:
         legacy_object_modifier_build(conversion_data, object, *gpd_md);
