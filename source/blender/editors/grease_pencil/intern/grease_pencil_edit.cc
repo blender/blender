@@ -2462,6 +2462,9 @@ IndexRange clipboard_paste_strokes(Main &bmain,
                                    const bool paste_back)
 {
   const bke::CurvesGeometry &clipboard_curves = ed::greasepencil::clipboard_curves();
+  if (clipboard_curves.curves_num() <= 0) {
+    return {};
+  }
 
   /* Get a list of all materials in the scene. */
   const Array<int> clipboard_material_remap = ed::greasepencil::clipboard_materials_remap(bmain,
