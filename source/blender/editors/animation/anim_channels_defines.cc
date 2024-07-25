@@ -5051,6 +5051,8 @@ void ANIM_channel_draw(
           draw_sliders = (sipo->flag & SIPO_SLIDERS);
           break;
         }
+        default:
+          BLI_assert_unreachable();
       }
     }
 
@@ -5869,6 +5871,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
           draw_sliders = (sipo->flag & SIPO_SLIDERS);
           break;
         }
+        default:
+          BLI_assert_unreachable();
       }
     }
 

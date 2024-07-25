@@ -126,6 +126,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 {
   /* get dopesheet */
   ac->ads = &saction->ads;
+  ac->dopesheet_mode = eAnimEdit_Context(saction->mode);
 
   /* sync settings with current view status, then return appropriate data */
   switch (saction->mode) {
@@ -143,7 +144,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->datatype = ANIMCONT_ACTION;
       ac->data = saction->action;
 
-      ac->mode = saction->mode;
       return true;
 
     case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
@@ -161,8 +161,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
           saction->action = nullptr;
         }
       }
-
-      ac->mode = saction->mode;
       return true;
 
     case SACTCONT_GPENCIL: /* Grease Pencil */ /* XXX review how this mode is handled... */
@@ -171,8 +169,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       ac->datatype = ANIMCONT_GPENCIL;
       ac->data = &saction->ads;
-
-      ac->mode = saction->mode;
       return true;
 
     case SACTCONT_CACHEFILE: /* Cache File */ /* XXX review how this mode is handled... */
@@ -181,8 +177,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       ac->datatype = ANIMCONT_CHANNEL;
       ac->data = &saction->ads;
-
-      ac->mode = saction->mode;
       return true;
 
     case SACTCONT_MASK: /* Mask */ /* XXX: review how this mode is handled. */
@@ -199,8 +193,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       ac->datatype = ANIMCONT_MASK;
       ac->data = &saction->ads;
-
-      ac->mode = saction->mode;
       return true;
     }
 
@@ -210,8 +202,6 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       ac->datatype = ANIMCONT_DOPESHEET;
       ac->data = &saction->ads;
-
-      ac->mode = saction->mode;
       return true;
 
     case SACTCONT_TIMELINE: /* Timeline */
@@ -235,15 +225,11 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 
       ac->datatype = ANIMCONT_TIMELINE;
       ac->data = &saction->ads;
-
-      ac->mode = saction->mode;
       return true;
 
     default: /* unhandled yet */
       ac->datatype = ANIMCONT_NONE;
       ac->data = nullptr;
-
-      ac->mode = -1;
       return false;
   }
 }
@@ -259,6 +245,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
     sipo->ads->source = (ID *)ac->scene;
   }
   ac->ads = sipo->ads;
+  ac->grapheditor_mode = eGraphEdit_Mode(sipo->mode);
 
   /* set settings for Graph Editor - "Selected = Editable" */
   if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
@@ -277,8 +264,6 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
 
       ac->datatype = ANIMCONT_FCURVES;
       ac->data = sipo->ads;
-
-      ac->mode = sipo->mode;
       return true;
 
     case SIPO_MODE_DRIVERS: /* Driver F-Curve Editor */
@@ -288,15 +273,11 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
 
       ac->datatype = ANIMCONT_DRIVERS;
       ac->data = sipo->ads;
-
-      ac->mode = sipo->mode;
       return true;
 
     default: /* unhandled yet */
       ac->datatype = ANIMCONT_NONE;
       ac->data = nullptr;
-
-      ac->mode = -1;
       return false;
   }
 }
@@ -348,6 +329,24 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
         ok = nlaedit_get_context(ac, snla);
         break;
       }
+      case SPACE_EMPTY:
+      case SPACE_VIEW3D:
+      case SPACE_OUTLINER:
+      case SPACE_PROPERTIES:
+      case SPACE_FILE:
+      case SPACE_IMAGE:
+      case SPACE_INFO:
+      case SPACE_SEQ:
+      case SPACE_TEXT:
+      case SPACE_SCRIPT:
+      case SPACE_NODE:
+      case SPACE_CONSOLE:
+      case SPACE_USERPREF:
+      case SPACE_CLIP:
+      case SPACE_TOPBAR:
+      case SPACE_STATUSBAR:
+      case SPACE_SPREADSHEET:
+        break;
     }
   }
 
@@ -382,8 +381,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   ac->area = area;
   ac->region = region;
   ac->sl = sl;
-  ac->spacetype = (area) ? area->spacetype : 0;
-  ac->regiontype = (region) ? region->regiontype : 0;
+  ac->spacetype = eSpace_Type((area) ? area->spacetype : 0);
+  ac->regiontype = eRegion_Type((region) ? region->regiontype : 0);
 
   /* get data context info */
   /* XXX: if the below fails, try to grab this info from context instead...
@@ -1530,7 +1529,8 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   /* Add a list element for the Slot itself, but only if in Action mode. The Dopesheet mode
    * shouldn't display Slots, as F-Curves are always shown in the context of the animated ID
    * anyway. */
-  const bool is_action_mode = (ac->mode == SACTCONT_ACTION);
+  const bool is_action_mode = (ac->spacetype == SPACE_ACTION &&
+                               ac->dopesheet_mode == SACTCONT_ACTION);
   const bool show_fcurves_only = (filter_mode & ANIMFILTER_FCURVESONLY);
   const bool include_summary_channels = (filter_mode & ANIMFILTER_LIST_CHANNELS);
   const bool show_slot_channel = (is_action_mode && selection_ok_for_slot && !show_fcurves_only &&
@@ -1643,7 +1643,8 @@ static size_t animfilter_action(bAnimContext *ac,
 
   /* Only show all Slots in Action editor mode. Otherwise the F-Curves ought to be displayed
    * underneath their animated ID anyway. */
-  const bool is_action_mode = (ac->mode == SACTCONT_ACTION);
+  const bool is_action_mode = (ac->spacetype == SPACE_ACTION &&
+                               ac->dopesheet_mode == SACTCONT_ACTION);
   const bool show_all_slots = (ac->ads->filterflag & ADS_FILTER_ALL_SLOTS);
   if (is_action_mode && show_all_slots) {
     return animfilter_action_slots(ac, anim_data, action, filter_mode, owner_id);

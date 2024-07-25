@@ -1095,6 +1095,8 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       filter |= ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
       check_selected = true;
       break;
+    default:
+      BLI_assert_unreachable();
   }
 
   ANIM_animdata_filter(
