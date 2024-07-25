@@ -165,10 +165,14 @@ void ScaleOperation::update_memory_buffer_partial(MemoryBuffer *output,
   for (; !it.is_end(); ++it) {
     const float rel_scale_x = *it.in(0) * scale_x_factor;
     const float rel_scale_y = *it.in(1) * scale_y_factor;
-    const float scaled_x = scale_coord_inverted(
-        from_scale_offset_x + canvas_.xmin + it.x, scale_center_x, rel_scale_x);
-    const float scaled_y = scale_coord_inverted(
-        from_scale_offset_y + canvas_.ymin + it.y, scale_center_y, rel_scale_y);
+    const float scaled_x = scale_coord_inverted(from_scale_offset_x + canvas_.xmin + 0.5f + it.x,
+                                                scale_center_x,
+                                                rel_scale_x) -
+                           0.5f;
+    const float scaled_y = scale_coord_inverted(from_scale_offset_y + canvas_.ymin + 0.5f + it.y,
+                                                scale_center_y,
+                                                rel_scale_y) -
+                           0.5f;
 
     input_image->read_elem_sampled(
         scaled_x - canvas_.xmin, scaled_y - canvas_.ymin, (PixelSampler)sampler_, it.out);
@@ -327,20 +331,12 @@ void ScaleFixedSizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const MemoryBuffer *input_img = inputs[0];
   PixelSampler sampler = (PixelSampler)sampler_;
   BuffersIterator<float> it = output->iterate_with({}, area);
-  if (is_offset_) {
-    for (; !it.is_end(); ++it) {
-      const float nx = (canvas_.xmin + it.x - offset_x_) * rel_x_;
-      const float ny = (canvas_.ymin + it.y - offset_y_) * rel_y_;
-      input_img->read_elem_sampled(nx - canvas_.xmin, ny - canvas_.ymin, sampler, it.out);
-    }
-  }
-  else {
-    for (; !it.is_end(); ++it) {
-      input_img->read_elem_sampled((canvas_.xmin + it.x) * rel_x_ - canvas_.xmin,
-                                   (canvas_.ymin + it.y) * rel_y_ - canvas_.ymin,
-                                   sampler,
-                                   it.out);
-    }
+  const float add_x = (canvas_.xmin + 0.5f - offset_x_) * rel_x_ - canvas_.xmin - 0.5f;
+  const float add_y = (canvas_.ymin + 0.5f - offset_y_) * rel_y_ - canvas_.ymin - 0.5f;
+  for (; !it.is_end(); ++it) {
+    const float nx = it.x * rel_x_ + add_x;
+    const float ny = it.y * rel_y_ + add_y;
+    input_img->read_elem_sampled(nx, ny, sampler, it.out);
   }
 }
 
