@@ -14,7 +14,10 @@
 #include "IMB_imbuf_types.hh"
 
 #include "paint_intern.hh"
+
+#ifdef WITH_POTRACE
 #include "potracelib.h"
+#endif
 
 namespace blender::bke::greasepencil {
 class Drawing;

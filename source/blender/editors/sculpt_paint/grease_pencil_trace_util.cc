@@ -20,6 +20,8 @@
 
 namespace blender::ed::image_trace {
 
+#ifdef WITH_POTRACE
+
 using PathSegment = potrace_dpoint_t[3];
 
 static int to_potrace(const TurnPolicy turn_policy)
@@ -278,5 +280,7 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
 
   return curves;
 }
+
+#endif
 
 }  // namespace blender::ed::image_trace
