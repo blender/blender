@@ -2220,8 +2220,13 @@ static struct Clipboard {
   int materials_in_source_num;
 } *grease_pencil_clipboard = nullptr;
 
+/** The clone brush accesses the clipboard from multiple threads. Protect from parallel access. */
+std::mutex grease_pencil_clipboard_lock;
+
 static Clipboard &ensure_grease_pencil_clipboard()
 {
+  std::scoped_lock lock(grease_pencil_clipboard_lock);
+
   if (grease_pencil_clipboard == nullptr) {
     grease_pencil_clipboard = MEM_new<Clipboard>(__func__);
   }
@@ -2371,6 +2376,7 @@ static bool grease_pencil_paste_strokes_poll(bContext *C)
     return false;
   }
 
+  std::scoped_lock lock(grease_pencil_clipboard_lock);
   /* Check for curves in the Grease Pencil clipboard. */
   return (grease_pencil_clipboard && grease_pencil_clipboard->curves.curves_num() > 0);
 }
@@ -2412,6 +2418,8 @@ static void GREASE_PENCIL_OT_copy(wmOperatorType *ot)
 
 void clipboard_free()
 {
+  std::scoped_lock lock(grease_pencil_clipboard_lock);
+
   if (grease_pencil_clipboard) {
     MEM_delete(grease_pencil_clipboard);
     grease_pencil_clipboard = nullptr;
