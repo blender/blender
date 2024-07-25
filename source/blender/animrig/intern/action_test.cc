@@ -234,14 +234,14 @@ TEST_F(ActionLayersTest, add_slot__reset_idroot)
 
 TEST_F(ActionLayersTest, add_slot_multiple)
 {
-  Slot &bind_cube = action->slot_add();
-  Slot &bind_suzanne = action->slot_add();
-  EXPECT_TRUE(action->assign_id(&bind_cube, cube->id));
-  EXPECT_TRUE(action->assign_id(&bind_suzanne, suzanne->id));
+  Slot &slot_cube = action->slot_add();
+  Slot &slot_suzanne = action->slot_add();
+  EXPECT_TRUE(action->assign_id(&slot_cube, cube->id));
+  EXPECT_TRUE(action->assign_id(&slot_suzanne, suzanne->id));
 
   EXPECT_EQ(2, action->last_slot_handle);
-  EXPECT_EQ(1, bind_cube.handle);
-  EXPECT_EQ(2, bind_suzanne.handle);
+  EXPECT_EQ(1, slot_cube.handle);
+  EXPECT_EQ(2, slot_suzanne.handle);
 }
 
 TEST_F(ActionLayersTest, action_assign_id)
