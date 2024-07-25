@@ -97,6 +97,12 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
       return GHOST_kStandardCursorRightArrow;
     case WM_CURSOR_W_ARROW:
       return GHOST_kStandardCursorLeftArrow;
+    case WM_CURSOR_LEFT_HANDLE:
+      return GHOST_kStandardCursorLeftHandle;
+    case WM_CURSOR_RIGHT_HANDLE:
+      return GHOST_kStandardCursorRightHandle;
+    case WM_CURSOR_BOTH_HANDLES:
+      return GHOST_kStandardCursorBothHandles;
     default:
       return GHOST_kStandardCursorCustom;
   }

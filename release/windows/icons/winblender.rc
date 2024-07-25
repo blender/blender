@@ -36,6 +36,9 @@ splitv_cursor CURSOR "cursors/splitv.cur"
 zoomin_cursor CURSOR "cursors/zoomin.cur"
 zoomout_cursor CURSOR "cursors/zoomout.cur"
 forbidden_cursor CURSOR "cursors/forbidden.cur"
+handle_left_cursor CURSOR "cursors/handle_left.cur"
+handle_right_cursor CURSOR "cursors/handle_right.cur"
+handle_both_cursor CURSOR "cursors/handle_both.cur"
 
 IDR_VERSION1 VERSIONINFO
 FILEVERSION BLEN_VER_RC_1, BLEN_VER_RC_2, BLEN_VER_RC_3, BLEN_VER_RC_4
