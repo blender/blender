@@ -5,7 +5,7 @@ const char *blf_get_icon_svg(int icon)
 {
 	switch (icon) 
 	{
-		@SVGCCCONTENTS@
+		@SVG_CONTENTS_C@
 	default:
 		return datatoc_none_svg;
 	}

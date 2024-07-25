@@ -6,7 +6,7 @@ extern "C" {
 
 const char *blf_get_icon_svg(int icon);
 
-@SVGHCONTENTS@
+@SVG_CONTENTS_H@
 
 #ifdef __cplusplus
 }
