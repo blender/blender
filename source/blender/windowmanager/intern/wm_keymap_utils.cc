@@ -337,25 +337,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   else if (STRPREFIX(opname, "PAINT_OT") || STRPREFIX(opname, "BRUSH_OT")) {
     /* Check for relevant mode. */
-    switch (CTX_data_mode_enum(C)) {
-      case CTX_MODE_PAINT_WEIGHT:
-        km = WM_keymap_find_all(wm, "Weight Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
-        break;
-      case CTX_MODE_PAINT_VERTEX:
-        km = WM_keymap_find_all(wm, "Vertex Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
-        break;
-      case CTX_MODE_PAINT_TEXTURE:
-        km = WM_keymap_find_all(wm, "Image Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
-        break;
-      case CTX_MODE_SCULPT:
-        km = WM_keymap_find_all(wm, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
-        break;
-      case CTX_MODE_SCULPT_CURVES:
-        km = WM_keymap_find_all(wm, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
-        break;
-      default:
-        break;
-    }
+    km = WM_keymap_guess_from_context(C);
   }
   /* General 2D View, not bound to a specific spacetype. */
   else if (STRPREFIX(opname, "VIEW2D_OT")) {
