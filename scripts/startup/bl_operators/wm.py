@@ -1074,6 +1074,7 @@ class WM_OT_url_open_preset(Operator):
     bl_idname = "wm.url_open_preset"
     bl_label = "Open Preset Website"
     bl_options = {'INTERNAL'}
+    bl_property = "type"
 
     @staticmethod
     def _wm_url_open_preset_type_items(_self, _context):
