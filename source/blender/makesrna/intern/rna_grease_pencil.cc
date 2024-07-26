@@ -514,7 +514,8 @@ static void rna_def_grease_pencil_drawing(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
   RNA_def_parameter_clear_flags(prop, PROP_EDITABLE, ParameterFlag(0));
-  RNA_def_property_ui_text(prop, "Curve Offsets", "Offset indices of the first point of each curve");
+  RNA_def_property_ui_text(
+      prop, "Curve Offsets", "Offset indices of the first point of each curve");
   RNA_def_property_update(prop, 0, "rna_grease_pencil_update");
 
   RNA_api_grease_pencil_drawing(srna);
