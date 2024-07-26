@@ -341,6 +341,7 @@ void build_asset_view(uiLayout &layout,
   uiBlock *block = uiLayoutGetBlock(&layout);
   ui::AbstractGridView *grid_view = UI_block_add_view(
       *block, "asset shelf asset view", std::move(asset_view));
+  grid_view->set_context_menu_title("Asset Shelf");
 
   ui::GridViewBuilder builder(*block);
   builder.build_grid_view(*grid_view, region.v2d, layout, filter_string_get(shelf));
