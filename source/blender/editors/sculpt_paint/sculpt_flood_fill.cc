@@ -304,17 +304,9 @@ void FillDataMesh::execute(Object &object,
     const int from_v = this->queue.front();
     this->queue.pop();
 
-    neighbors.clear();
-    for (const int face : vert_to_face_map[from_v]) {
-      if (!hide_poly.is_empty() && hide_poly[face]) {
-        continue;
-      }
-      const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, from_v);
-      neighbors.append_non_duplicates(verts[0]);
-      neighbors.append_non_duplicates(verts[1]);
-    }
-
-    for (const int neighbor : neighbors) {
+    for (const int neighbor : vert_neighbors_get_mesh(
+             from_v, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+    {
       if (this->visited_verts[neighbor]) {
         continue;
       }

@@ -809,6 +809,27 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession &ss,
   }
 }
 
+Span<int> vert_neighbors_get_mesh(const int vert,
+                                  const OffsetIndices<int> faces,
+                                  const Span<int> corner_verts,
+                                  const GroupedSpan<int> vert_to_face,
+                                  const Span<bool> hide_poly,
+                                  Vector<int> &r_neighbors)
+{
+  r_neighbors.clear();
+
+  for (const int face : vert_to_face[vert]) {
+    if (!hide_poly.is_empty() && hide_poly[face]) {
+      continue;
+    }
+    const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
+    r_neighbors.append_non_duplicates(verts[0]);
+    r_neighbors.append_non_duplicates(verts[1]);
+  }
+
+  return r_neighbors.as_span();
+}
+
 static void sculpt_vertex_neighbors_get_grids(const SculptSession &ss,
                                               const PBVHVertRef vertex,
                                               const bool include_duplicates,
@@ -7555,21 +7576,8 @@ void calc_vert_neighbors(const OffsetIndices<int> faces,
 {
   BLI_assert(result.size() == verts.size());
   BLI_assert(corner_verts.size() == faces.total_size());
-  for (Vector<int> &vector : result) {
-    vector.clear();
-  }
-
   for (const int i : verts.index_range()) {
-    const int vert = verts[i];
-    Vector<int> &neighbors = result[i];
-    for (const int face : vert_to_face[vert]) {
-      if (!hide_poly.is_empty() && hide_poly[face]) {
-        continue;
-      }
-      const int2 verts = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
-      neighbors.append_non_duplicates(verts[0]);
-      neighbors.append_non_duplicates(verts[1]);
-    }
+    vert_neighbors_get_mesh(verts[i], faces, corner_verts, vert_to_face, hide_poly, result[i]);
   }
 }
 
