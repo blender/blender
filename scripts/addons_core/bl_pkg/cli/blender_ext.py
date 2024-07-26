@@ -2608,6 +2608,9 @@ def pkg_repo_data_from_json_or_error(json_data: Dict[str, Any]) -> Union[PkgRepo
 
     if not isinstance((data := json_data.get("data", [])), list):
         return "expected \"data\" to be a list"
+    for item in data:
+        if not isinstance(item, dict):
+            return "expected \"data\" contain dictionary items"
 
     result_new = PkgRepoData(
         version=version,
