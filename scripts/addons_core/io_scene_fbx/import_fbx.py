@@ -899,7 +899,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
     'Bake' loc/rot/scale into the action,
     taking any pre_ and post_ matrix into account to transform from fbx into blender space.
     """
-    from bpy.types import Object, PoseBone, ShapeKey, Material, Camera
+    from bpy.types import ShapeKey, Material, Camera
 
     fbx_curves: dict[bytes, dict[int, FBXElem]] = {}
     for curves, fbxprop in cnodes.values():

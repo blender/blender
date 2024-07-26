@@ -28,7 +28,6 @@ def set_view3d_context_override(context_override):
 
 def prepare_sculpt_scene(context):
     import bpy
-    from mathutils import Vector
     """
     Prepare a clean state of the scene suitable for benchmarking
 

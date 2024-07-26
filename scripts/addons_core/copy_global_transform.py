@@ -28,7 +28,7 @@ import contextlib
 from typing import Iterable, Optional, Union, Any, TypeAlias, Iterator
 
 import bpy
-from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, FCurve, Camera, FModifierStepped
+from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera
 from mathutils import Matrix
 
 

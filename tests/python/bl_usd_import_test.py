@@ -14,8 +14,6 @@ from pxr import Sdf
 
 import bpy
 
-from mathutils import Matrix, Vector, Quaternion, Euler
-
 args = None
 
 

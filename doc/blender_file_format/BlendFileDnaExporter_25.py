@@ -40,7 +40,6 @@
 #
 ######################################################
 
-import struct
 import sys
 from string import Template     # strings completion
 

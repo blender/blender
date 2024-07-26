@@ -154,7 +154,6 @@ def unregister():
     from . import operators
     from . import properties
     from . import presets
-    import atexit
 
     bpy.app.handlers.version_update.remove(version_update.do_versions)
 
