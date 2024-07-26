@@ -700,13 +700,12 @@ static bool write_at_address_validate(WriteData *wd, int filecode, const void *a
   }
 
   if (wd->is_writing_id && filecode == BLO_CODE_DATA) {
-    if (wd->validation_data.per_id_addresses_set.contains(address)) {
+    if (!wd->validation_data.per_id_addresses_set.add(address)) {
       CLOG_ERROR(&LOG,
                  "Same identifier (old address) used several times for a same ID, skipping this "
                  "block to avoid critical corruption of the Blender file.");
       return false;
     }
-    wd->validation_data.per_id_addresses_set.add(address);
   }
   return true;
 }
