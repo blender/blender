@@ -58,7 +58,7 @@ static void indices_init(SculptSession &ss,
  */
 static void edit_data_init(SculptSession &ss,
                            SculptBoundary &boundary,
-                           const PBVHVertRef initial_vert,
+                           const int initial_vert_i,
                            const float radius);
 
 std::unique_ptr<SculptBoundary> data_init(Object &object,
@@ -90,10 +90,15 @@ std::unique_ptr<SculptBoundary> data_init(Object &object,
   std::unique_ptr<SculptBoundary> boundary = std::make_unique<SculptBoundary>();
   *boundary = {};
 
+  const int boundary_initial_vert_index = BKE_pbvh_vertex_to_index(*ss.pbvh,
+                                                                   boundary_initial_vert);
+  boundary->initial_vert_i = boundary_initial_vert_index;
+  copy_v3_v3(boundary->initial_vert_position, SCULPT_vertex_co_get(ss, boundary_initial_vert));
+
   indices_init(ss, *boundary, boundary_initial_vert);
 
   const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
-  edit_data_init(ss, *boundary, boundary_initial_vert, boundary_radius);
+  edit_data_init(ss, *boundary, boundary_initial_vert_index, boundary_radius);
 
   return boundary;
 }
@@ -272,14 +277,10 @@ static void indices_init(SculptSession &ss,
 
   flood_fill::FillData flood = flood_fill::init_fill(ss);
 
-  int initial_boundary_index = BKE_pbvh_vertex_to_index(*ss.pbvh, initial_boundary_vert);
-
-  boundary.initial_vert_i = initial_boundary_index;
-  copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, initial_boundary_vert));
-
   BoundaryFloodFillData fdata{};
   fdata.boundary = &boundary;
 
+  const int initial_boundary_index = BKE_pbvh_vertex_to_index(*ss.pbvh, initial_boundary_vert);
   add_index(boundary, initial_boundary_index, 0.0f, fdata.included_verts);
   flood_fill::add_initial(flood, initial_boundary_vert);
 
@@ -296,17 +297,15 @@ static void indices_init(SculptSession &ss,
 
 static void edit_data_init(SculptSession &ss,
                            SculptBoundary &boundary,
-                           const PBVHVertRef initial_vert,
+                           const int initial_vert_i,
                            const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  const bool has_duplicates = ss.pbvh->type() == bke::pbvh::Type::Grids;
-
   boundary.edit_info = Array<SculptBoundaryEditInfo>(totvert);
 
-  std::queue<int> current_iteration;
-  std::queue<int> next_iteration;
+  std::queue<PBVHVertRef> current_iteration;
+  const bool has_duplicates = ss.pbvh->type() == bke::pbvh::Type::Grids;
 
   for (int i = 0; i < boundary.verts.size(); i++) {
     const PBVHVertRef vert = BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.verts[i]);
@@ -327,11 +326,13 @@ static void edit_data_init(SculptSession &ss,
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
     }
 
-    current_iteration.push(index);
+    current_iteration.push(vert);
   }
 
   int propagation_steps_num = 0;
   float accum_distance = 0.0f;
+
+  std::queue<PBVHVertRef> next_iteration;
 
   while (true) {
     /* Stop adding steps to edit info. This happens when a steps is further away from the boundary
@@ -342,10 +343,10 @@ static void edit_data_init(SculptSession &ss,
     }
 
     while (!current_iteration.empty()) {
-      const int from_v_i = current_iteration.front();
+      const PBVHVertRef from_v = current_iteration.front();
       current_iteration.pop();
 
-      const PBVHVertRef from_v = BKE_pbvh_index_to_vertex(*ss.pbvh, from_v_i);
+      const int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
@@ -362,38 +363,36 @@ static void edit_data_init(SculptSession &ss,
           /* Grids duplicates handling. */
           boundary.edit_info[ni.index].propagation_steps_num =
               boundary.edit_info[from_v_i].propagation_steps_num;
+          continue;
         }
-        else {
-          boundary.edit_info[ni.index].propagation_steps_num =
-              boundary.edit_info[from_v_i].propagation_steps_num + 1;
 
-          next_iteration.push(ni.index);
+        boundary.edit_info[ni.index].propagation_steps_num =
+            boundary.edit_info[from_v_i].propagation_steps_num + 1;
 
-          /* When copying the data to the neighbor for the next iteration, it has to be copied to
-           * all its duplicates too. This is because it is not possible to know if the updated
-           * neighbor or one if its uninitialized duplicates is going to come first in order to
-           * copy the data in the from_v neighbor iterator. */
-          if (has_duplicates) {
-            SculptVertexNeighborIter ni_duplis;
-            SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni_duplis) {
-              if (ni_duplis.is_duplicate) {
-                boundary.edit_info[ni_duplis.index].original_vertex_i =
-                    boundary.edit_info[from_v_i].original_vertex_i;
-                boundary.edit_info[ni_duplis.index].propagation_steps_num =
-                    boundary.edit_info[from_v_i].propagation_steps_num + 1;
-              }
+        next_iteration.push(ni.vertex);
+
+        /* When copying the data to the neighbor for the next iteration, it has to be copied to
+         * all its duplicates too. This is because it is not possible to know if the updated
+         * neighbor or one if its uninitialized duplicates is going to come first in order to
+         * copy the data in the from_v neighbor iterator. */
+        if (has_duplicates) {
+          SculptVertexNeighborIter ni_duplis;
+          SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni_duplis) {
+            if (ni_duplis.is_duplicate) {
+              boundary.edit_info[ni_duplis.index].original_vertex_i =
+                  boundary.edit_info[from_v_i].original_vertex_i;
+              boundary.edit_info[ni_duplis.index].propagation_steps_num =
+                  boundary.edit_info[from_v_i].propagation_steps_num + 1;
             }
-            SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
           }
+          SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
+        }
 
-          /* Check the distance using the vertex that was propagated from the initial vertex that
-           * was used to initialize the boundary. */
-          if (boundary.edit_info[from_v_i].original_vertex_i ==
-              BKE_pbvh_vertex_to_index(*ss.pbvh, initial_vert))
-          {
-            boundary.pivot_position = SCULPT_vertex_co_get(ss, ni.vertex);
-            accum_distance += len_v3v3(SCULPT_vertex_co_get(ss, from_v), boundary.pivot_position);
-          }
+        /* Check the distance using the vertex that was propagated from the initial vertex that
+         * was used to initialize the boundary. */
+        if (boundary.edit_info[from_v_i].original_vertex_i == initial_vert_i) {
+          boundary.pivot_position = SCULPT_vertex_co_get(ss, ni.vertex);
+          accum_distance += len_v3v3(SCULPT_vertex_co_get(ss, from_v), boundary.pivot_position);
         }
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -401,7 +400,7 @@ static void edit_data_init(SculptSession &ss,
 
     /* Copy the new vertices to the queue to be processed in the next iteration. */
     while (!next_iteration.empty()) {
-      const int next_v = next_iteration.front();
+      const PBVHVertRef next_v = next_iteration.front();
       next_iteration.pop();
       current_iteration.push(next_v);
     }
@@ -784,8 +783,9 @@ static void brush_smooth_task(Object &ob, const Brush &brush, bke::pbvh::Node *n
   BKE_pbvh_vertex_iter_end;
 }
 
-/* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs based
- * on the brush curve and its propagation steps. The falloff goes from the boundary into the mesh.
+/* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs
+ * based on the brush curve and its propagation steps. The falloff goes from the boundary into
+ * the mesh.
  */
 static void init_falloff(SculptSession &ss,
                          SculptBoundary &boundary,
@@ -973,18 +973,23 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
     return nullptr;
   }
 
-  /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr instead
-   * of forcing a random active boundary from a corner. */
+  /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr
+   * instead of forcing a random active boundary from a corner. */
   if (!is_vert_in_editable_boundary(ss, initial_vert)) {
     return nullptr;
   }
 
+  const int boundary_initial_vert_index = BKE_pbvh_vertex_to_index(*ss.pbvh,
+                                                                   boundary_initial_vert);
+
   SculptBoundary boundary;
+  boundary.initial_vert_i = boundary_initial_vert_index;
+  copy_v3_v3(boundary.initial_vert_position, SCULPT_vertex_co_get(ss, boundary_initial_vert));
 
   indices_init(ss, boundary, boundary_initial_vert);
 
   const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
-  edit_data_init(ss, boundary, boundary_initial_vert, boundary_radius);
+  edit_data_init(ss, boundary, boundary_initial_vert_index, boundary_radius);
 
   std::unique_ptr<SculptBoundaryPreview> preview = std::make_unique<SculptBoundaryPreview>();
   preview->edges = boundary.edges;
