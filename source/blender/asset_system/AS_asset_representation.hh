@@ -16,6 +16,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -38,21 +39,13 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * within the asset library).
    */
   std::string relative_identifier_;
-  /**
-   * Indicate if this is a local or external asset, and as such, which of the union members below
-   * should be used.
-   */
-  const bool is_local_id_ = false;
 
   struct ExternalAsset {
     std::string name;
     int id_type = 0;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
   };
-  union {
-    ExternalAsset external_asset_;
-    ID *local_asset_id_ = nullptr; /* Non-owning. */
-  };
+  std::variant<ExternalAsset, ID *> asset_;
 
   friend class AssetLibrary;
 
@@ -70,7 +63,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   AssetRepresentation(StringRef relative_asset_path,
                       ID &id,
                       const AssetLibrary &owner_asset_library);
-  ~AssetRepresentation();
+  ~AssetRepresentation() = default;
 
   /**
    * Create a weak reference for this asset that can be written to files, but can break under a

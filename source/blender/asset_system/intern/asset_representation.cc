@@ -27,31 +27,17 @@ AssetRepresentation::AssetRepresentation(StringRef relative_path,
                                          const AssetLibrary &owner_asset_library)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_path),
-      is_local_id_(false),
-      external_asset_()
+      asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata)})
 {
-  external_asset_.name = name;
-  external_asset_.id_type = id_type;
-  external_asset_.metadata_ = std::move(metadata);
 }
 
 AssetRepresentation::AssetRepresentation(StringRef relative_path,
                                          ID &id,
                                          const AssetLibrary &owner_asset_library)
-    : owner_asset_library_(owner_asset_library),
-      relative_identifier_(relative_path),
-      is_local_id_(true),
-      local_asset_id_(&id)
+    : owner_asset_library_(owner_asset_library), relative_identifier_(relative_path), asset_(&id)
 {
   if (!id.asset_data) {
     throw std::invalid_argument("Passed ID is not an asset");
-  }
-}
-
-AssetRepresentation::~AssetRepresentation()
-{
-  if (!is_local_id_) {
-    external_asset_.~ExternalAsset();
   }
 }
 
@@ -62,25 +48,26 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
 
 StringRefNull AssetRepresentation::get_name() const
 {
-  if (is_local_id_) {
-    return local_asset_id_->name + 2;
+  if (const ID *local_id = this->local_id()) {
+    return local_id->name + 2;
   }
-
-  return external_asset_.name;
+  return std::get<ExternalAsset>(asset_).name;
 }
 
 ID_Type AssetRepresentation::get_id_type() const
 {
-  if (is_local_id_) {
-    return GS(local_asset_id_->name);
+  if (const ID *local_id = this->local_id()) {
+    return GS(local_id->name);
   }
-
-  return ID_Type(external_asset_.id_type);
+  return ID_Type(std::get<ExternalAsset>(asset_).id_type);
 }
 
 AssetMetaData &AssetRepresentation::get_metadata() const
 {
-  return is_local_id_ ? *local_asset_id_->asset_data : *external_asset_.metadata_;
+  if (const ID *local_id = this->local_id()) {
+    return *local_id->asset_data;
+  }
+  return *std::get<ExternalAsset>(asset_).metadata_;
 }
 
 StringRefNull AssetRepresentation::library_relative_identifier() const
@@ -130,12 +117,12 @@ bool AssetRepresentation::get_use_relative_path() const
 
 ID *AssetRepresentation::local_id() const
 {
-  return is_local_id_ ? local_asset_id_ : nullptr;
+  return this->is_local_id() ? std::get<ID *>(asset_) : nullptr;
 }
 
 bool AssetRepresentation::is_local_id() const
 {
-  return is_local_id_;
+  return std::holds_alternative<ID *>(asset_);
 }
 
 const AssetLibrary &AssetRepresentation::owner_asset_library() const

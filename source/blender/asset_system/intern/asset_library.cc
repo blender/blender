@@ -232,7 +232,7 @@ void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappi
     AssetRepresentation &asset = *asset_ptr;
     BLI_assert(asset.is_local_id());
 
-    const IDRemapperApplyResult result = mappings.apply(&asset.local_asset_id_,
+    const IDRemapperApplyResult result = mappings.apply(&std::get<ID *>(asset.asset_),
                                                         ID_REMAP_APPLY_DEFAULT);
 
     /* Entirely remove assets whose ID is unset. We don't want assets with a null ID pointer. */
