@@ -6513,7 +6513,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
       if (wm->extensions_updates > 0) {
         BLI_str_format_integer_unit(but->icon_overlay_text.text, wm->extensions_updates);
-        UI_GetThemeColor4ubv(TH_TEXT, color);
         UI_but_icon_indicator_color_set(but, color);
       }
 
