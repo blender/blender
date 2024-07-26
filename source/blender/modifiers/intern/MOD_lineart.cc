@@ -37,47 +37,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_grease_pencil.hh"
+
 namespace blender {
-
-static void get_lineart_modifier_limits(const Object &ob, GreasePencilLineartLimitInfo &info)
-{
-  bool is_first = true;
-  LISTBASE_FOREACH (const ModifierData *, md, &ob.modifiers) {
-    if (md->type == eModifierType_GreasePencilLineart) {
-      const auto *lmd = reinterpret_cast<const GreasePencilLineartModifierData *>(md);
-      if (is_first || (lmd->flags & MOD_LINEART_USE_CACHE)) {
-        info.min_level = std::min<int>(info.min_level, lmd->level_start);
-        info.max_level = std::max<int>(
-            info.max_level, lmd->use_multiple_levels ? lmd->level_end : lmd->level_start);
-        info.edge_types |= lmd->edge_types;
-        info.shadow_selection = std::max(info.shadow_selection, lmd->shadow_selection);
-        info.silhouette_selection = std::max(info.silhouette_selection, lmd->silhouette_selection);
-        is_first = false;
-      }
-    }
-  }
-}
-
-static void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
-                                        const GreasePencilLineartLimitInfo &info,
-                                        const bool is_first_lineart)
-{
-  BLI_assert(lmd.modifier.type == eModifierType_GreasePencilLineart);
-  if (is_first_lineart || lmd.flags & MOD_LINEART_USE_CACHE) {
-    lmd.level_start_override = info.min_level;
-    lmd.level_end_override = info.max_level;
-    lmd.edge_types_override = info.edge_types;
-    lmd.shadow_selection_override = info.shadow_selection;
-    lmd.shadow_use_silhouette_override = info.silhouette_selection;
-  }
-  else {
-    lmd.level_start_override = lmd.level_start;
-    lmd.level_end_override = lmd.level_end;
-    lmd.edge_types_override = lmd.edge_types;
-    lmd.shadow_selection_override = lmd.shadow_selection;
-    lmd.shadow_use_silhouette_override = lmd.silhouette_selection;
-  }
-}
 
 static bool is_first_lineart(const GreasePencilLineartModifierData &md)
 {
@@ -107,16 +69,6 @@ static bool is_last_line_art(const GreasePencilLineartModifierData &md)
     imd = imd->next;
   }
   return true;
-}
-
-static GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob)
-{
-  LISTBASE_FOREACH (ModifierData *, i_md, &ob.modifiers) {
-    if (i_md->type == eModifierType_GreasePencilLineart) {
-      return reinterpret_cast<GreasePencilLineartModifierData *>(i_md);
-    }
-  }
-  return nullptr;
 }
 
 static void init_data(ModifierData *md)
@@ -693,11 +645,13 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, !is_baked);
   uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_bake_strokes");
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_bake_strokes_all");
+  uiItemBooleanO(
+      col, IFACE_("Bake All"), ICON_NONE, "OBJECT_OT_lineart_bake_strokes", "bake_all", true);
 
   col = uiLayoutColumn(layout, false);
   uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_clear");
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_clear_all");
+  uiItemBooleanO(
+      col, IFACE_("Clear All"), ICON_NONE, "OBJECT_OT_lineart_clear", "clear_all", true);
 }
 
 static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -848,16 +802,18 @@ static void modify_geometry_set(ModifierData *md,
   GreasePencil &grease_pencil = *geometry_set->get_grease_pencil_for_write();
   auto mmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
-  GreasePencilLineartModifierData *first_lineart = get_first_lineart_modifier(*ctx->object);
+  GreasePencilLineartModifierData *first_lineart =
+      blender::ed::greasepencil::get_first_lineart_modifier(*ctx->object);
   BLI_assert(first_lineart);
 
   bool is_first_lineart = (mmd == first_lineart);
 
   if (is_first_lineart) {
     mmd->shared_cache = MOD_lineart_init_cache();
-    get_lineart_modifier_limits(*ctx->object, mmd->shared_cache->LimitInfo);
+    ed::greasepencil::get_lineart_modifier_limits(*ctx->object, mmd->shared_cache->LimitInfo);
   }
-  set_lineart_modifier_limits(*mmd, first_lineart->shared_cache->LimitInfo, is_first_lineart);
+  ed::greasepencil::set_lineart_modifier_limits(
+      *mmd, first_lineart->shared_cache->LimitInfo, is_first_lineart);
 
   generate_strokes(*md, *ctx, grease_pencil, *first_lineart);
 

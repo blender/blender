@@ -171,7 +171,7 @@ void operatortypes_object()
   WM_operatortype_append(GPENCIL_OT_time_segment_move);
 
   /* grease pencil line art */
-  WM_operatortypes_lineart();
+  WM_operatortypes_lineart_legacy();
 
   /* Shader FX. */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);

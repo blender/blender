@@ -33,6 +33,7 @@ struct UndoType;
 struct ViewDepths;
 struct View3D;
 struct ViewContext;
+struct GreasePencilLineartModifierData;
 namespace blender {
 namespace bke {
 enum class AttrDomain : int8_t;
@@ -59,6 +60,7 @@ void ED_operatortypes_grease_pencil_material();
 void ED_operatortypes_grease_pencil_primitives();
 void ED_operatortypes_grease_pencil_weight_paint();
 void ED_operatortypes_grease_pencil_interpolate();
+void ED_operatortypes_grease_pencil_lineart();
 void ED_operatortypes_grease_pencil_trace();
 void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
@@ -654,5 +656,24 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         const Vector<Vector<int>> &selected_points_in_curves,
                                         bool keep_caps);
 };  // namespace cutter
+
+/* Lineart */
+
+/* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
+ * cover everything that will be visible. */
+struct LineartLimitInfo {
+  int16_t edge_types;
+  uint8_t min_level;
+  uint8_t max_level;
+  uint8_t shadow_selection;
+  uint8_t silhouette_selection;
+};
+
+void get_lineart_modifier_limits(const Object &ob, LineartLimitInfo &info);
+void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
+                                 const LineartLimitInfo &info,
+                                 const bool is_first_lineart);
+
+GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob);
 
 }  // namespace blender::ed::greasepencil

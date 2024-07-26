@@ -14,6 +14,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
+#include "ED_grease_pencil.hh"
+
 #include <algorithm>
 #include <math.h>
 
@@ -423,18 +425,8 @@ typedef struct LineartData {
 
 } LineartData;
 
-/* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
- * cover everything that will be visible. */
-struct GreasePencilLineartLimitInfo {
-  int16_t edge_types;
-  uint8_t min_level;
-  uint8_t max_level;
-  uint8_t shadow_selection;
-  uint8_t silhouette_selection;
-};
-
 typedef struct LineartCache {
-  GreasePencilLineartLimitInfo LimitInfo;
+  blender::ed::greasepencil::LineartLimitInfo LimitInfo;
   /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
    * main pool, chains and shadows will still be available. */
   LineartStaticMemPool chain_data_pool;

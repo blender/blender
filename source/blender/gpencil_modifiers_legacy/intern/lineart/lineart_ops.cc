@@ -434,50 +434,50 @@ static int lineart_gpencil_clear_strokes_all_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
+void OBJECT_OT_lineart_legacy_bake_strokes(wmOperatorType *ot)
 {
   ot->name = "Bake Line Art";
   ot->description = "Bake Line Art for current Grease Pencil object";
-  ot->idname = "OBJECT_OT_lineart_bake_strokes";
+  ot->idname = "OBJECT_OT_lineart_legacy_bake_strokes";
 
   ot->invoke = lineart_gpencil_bake_strokes_invoke;
   ot->exec = lineart_gpencil_bake_strokes_exec;
   ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
-void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
+void OBJECT_OT_lineart_legacy_bake_strokes_all(wmOperatorType *ot)
 {
   ot->name = "Bake Line Art (All)";
   ot->description = "Bake all Grease Pencil objects that have a Line Art modifier";
-  ot->idname = "OBJECT_OT_lineart_bake_strokes_all";
+  ot->idname = "OBJECT_OT_lineart_legacy_bake_strokes_all";
 
   ot->invoke = lineart_gpencil_bake_strokes_all_invoke;
   ot->exec = lineart_gpencil_bake_strokes_all_exec;
   ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
-void OBJECT_OT_lineart_clear(wmOperatorType *ot)
+void OBJECT_OT_lineart_legacy_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art";
   ot->description = "Clear all strokes in current Grease Pencil object";
-  ot->idname = "OBJECT_OT_lineart_clear";
+  ot->idname = "OBJECT_OT_lineart_legacy_clear";
 
   ot->exec = lineart_gpencil_clear_strokes_exec;
 }
 
-void OBJECT_OT_lineart_clear_all(wmOperatorType *ot)
+void OBJECT_OT_lineart_legacy_clear_all(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art (All)";
   ot->description = "Clear all strokes in all Grease Pencil objects that have a Line Art modifier";
-  ot->idname = "OBJECT_OT_lineart_clear_all";
+  ot->idname = "OBJECT_OT_lineart_legacy_clear_all";
 
   ot->exec = lineart_gpencil_clear_strokes_all_exec;
 }
 
-void WM_operatortypes_lineart()
+void WM_operatortypes_lineart_legacy()
 {
-  WM_operatortype_append(OBJECT_OT_lineart_bake_strokes);
-  WM_operatortype_append(OBJECT_OT_lineart_bake_strokes_all);
-  WM_operatortype_append(OBJECT_OT_lineart_clear);
-  WM_operatortype_append(OBJECT_OT_lineart_clear_all);
+  WM_operatortype_append(OBJECT_OT_lineart_legacy_bake_strokes);
+  WM_operatortype_append(OBJECT_OT_lineart_legacy_bake_strokes_all);
+  WM_operatortype_append(OBJECT_OT_lineart_legacy_clear);
+  WM_operatortype_append(OBJECT_OT_lineart_legacy_clear_all);
 }

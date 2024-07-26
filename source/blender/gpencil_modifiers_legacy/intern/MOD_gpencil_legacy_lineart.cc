@@ -763,12 +763,12 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, !is_baked);
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_bake_strokes");
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_bake_strokes_all");
+  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_legacy_bake_strokes");
+  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_legacy_bake_strokes_all");
 
   col = uiLayoutColumn(layout, false);
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_clear");
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_clear_all");
+  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_legacy_clear");
+  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_legacy_clear_all");
 }
 
 static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
