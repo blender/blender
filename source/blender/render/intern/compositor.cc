@@ -198,6 +198,11 @@ class Context : public realtime_compositor::Context {
     return this->render_context() != nullptr;
   }
 
+  bool should_compute_node_previews() const override
+  {
+    return this->render_context() == nullptr;
+  }
+
   bool use_composite_output() const override
   {
     return true;

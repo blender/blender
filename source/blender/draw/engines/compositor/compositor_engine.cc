@@ -74,6 +74,11 @@ class Context : public realtime_compositor::Context {
     return false;
   }
 
+  bool should_compute_node_previews() const override
+  {
+    return false;
+  }
+
   /* The viewport compositor doesn't really support the composite output, it only displays the
    * viewer output in the viewport. Settings this to false will make the compositor use the
    * composite output as fallback viewer if no other viewer exists. */

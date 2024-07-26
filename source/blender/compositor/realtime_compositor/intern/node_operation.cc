@@ -60,7 +60,7 @@ void NodeOperation::evaluate()
 
 void NodeOperation::compute_preview()
 {
-  if (is_node_preview_needed(node())) {
+  if (context().should_compute_node_previews() && is_node_preview_needed(node())) {
     compute_preview_from_result(context(), node(), *get_preview_result());
   }
 }

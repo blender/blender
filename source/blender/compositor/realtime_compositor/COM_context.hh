@@ -54,6 +54,9 @@ class Context {
   /* True if the compositor should write file outputs, false otherwise. */
   virtual bool use_file_output() const = 0;
 
+  /* True if the compositor should compute node previews, false otherwise. */
+  virtual bool should_compute_node_previews() const = 0;
+
   /* True if the compositor should write the composite output, otherwise, the compositor is assumed
    * to not support the composite output and just displays its viewer output. In that case, the
    * composite output will be used as a fallback viewer if no other viewer exists */
