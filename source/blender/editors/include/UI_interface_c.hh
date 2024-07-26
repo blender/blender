@@ -614,7 +614,7 @@ using uiButSearchListenFn = void (*)(const wmRegionListenerParams *params, void 
 /** Must return an allocated string. */
 using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, const char *tip);
 
-using uiButToolTipCustomFunc = void (*)(bContext *C, uiTooltipData *data, void *argN);
+using uiButToolTipCustomFunc = void (*)(bContext &C, uiTooltipData &data, void *argN);
 
 using uiBlockHandleFunc = void (*)(bContext *C, void *arg, int event);
 
@@ -1851,7 +1851,7 @@ void UI_but_func_tooltip_custom_set(uiBut *but,
  * \param text: Allocated text (transfer ownership to `data`) or null.
  * \param suffix: Allocated text (transfer ownership to `data`) or null.
  */
-void UI_tooltip_text_field_add(uiTooltipData *data,
+void UI_tooltip_text_field_add(uiTooltipData &data,
                                std::string text,
                                std::string suffix,
                                const uiTooltipStyle style,
@@ -1862,7 +1862,7 @@ void UI_tooltip_text_field_add(uiTooltipData *data,
  * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
  * \param image_size: Display size for the image (pixels without UI scale applied).
  */
-void UI_tooltip_image_field_add(uiTooltipData *data, const uiTooltipImage &image_data);
+void UI_tooltip_image_field_add(uiTooltipData &data, const uiTooltipImage &image_data);
 
 /**
  * Recreate tool-tip (use to update dynamic tips)

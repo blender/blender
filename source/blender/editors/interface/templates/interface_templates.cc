@@ -7295,7 +7295,7 @@ void uiTemplateCacheFile(uiLayout *layout,
 /* -------------------------------------------------------------------- */
 /** \name Recent Files Template
  * \{ */
-static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *tip, void *argN)
+static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
 {
   char *path = (char *)argN;
 
