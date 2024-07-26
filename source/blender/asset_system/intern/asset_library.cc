@@ -205,30 +205,30 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
     const int id_type,
     std::unique_ptr<AssetMetaData> metadata)
 {
-  return storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
+  return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
       relative_asset_path, name, id_type, std::move(metadata), *this));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef relative_asset_path,
                                                                     ID &id)
 {
-  return storage_.local_id_assets.lookup_key_or_add(
+  return asset_storage_.local_id_assets.lookup_key_or_add(
       std::make_shared<AssetRepresentation>(relative_asset_path, id, *this));
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
-  if (storage_.local_id_assets.remove_as(&asset)) {
+  if (asset_storage_.local_id_assets.remove_as(&asset)) {
     return true;
   }
-  return storage_.external_assets.remove_as(&asset);
+  return asset_storage_.external_assets.remove_as(&asset);
 }
 
 void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappings)
 {
   Set<AssetRepresentation *> removed_assets;
 
-  for (auto &asset_ptr : storage_.local_id_assets) {
+  for (auto &asset_ptr : asset_storage_.local_id_assets) {
     AssetRepresentation &asset = *asset_ptr;
     BLI_assert(asset.is_local_id());
 

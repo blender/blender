@@ -51,9 +51,9 @@ class AssetLibrary {
   std::shared_ptr<std::string> root_path_;
 
   /**
-   * Storage for assets (better said their representations) that are considered to be part of this
-   * library. Assets are not automatically loaded into this when loading an asset library. Assets
-   * have to be loaded externally and added to this storage via #add_external_asset() or
+   * AssetStorage for assets (better said their representations) that are considered to be part of
+   * this library. Assets are not automatically loaded into this when loading an asset library.
+   * Assets have to be loaded externally and added to this storage via #add_external_asset() or
    * #add_local_id_asset(). So this really is arbitrary storage as far as #AssetLibrary is
    * concerned (allowing the API user to manage partial library storage and partial loading, so
    * only relevant parts of a library are kept in memory).
@@ -64,7 +64,7 @@ class AssetLibrary {
    * already in memory and which not. Neither do we keep track of how many parts of Blender are
    * using an asset or an asset library, which is needed to know when assets can be freed.
    */
-  struct Storage {
+  struct AssetStorage {
     /* Uses shared pointers so the UI can acquire weak pointers. It can then ensure pointers are
      * not dangling before accessing. */
 
@@ -74,7 +74,7 @@ class AssetLibrary {
      * faster lookups. Not possible until each asset is only represented once in the storage. */
     Set<std::shared_ptr<AssetRepresentation>> local_id_assets;
   };
-  Storage storage_;
+  AssetStorage asset_storage_;
 
  protected:
   /* Changing this pointer should be protected using #catalog_service_mutex_. Note that changes
