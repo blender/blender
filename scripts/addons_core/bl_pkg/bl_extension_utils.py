@@ -1121,6 +1121,29 @@ class CommandBatch:
 # Internal Repo Data Source
 #
 
+class PkgBlock_Normalized(NamedTuple):
+    reason: str
+
+    @staticmethod
+    def from_dict_with_error_fn(
+        block_dict: Dict[str, Any],
+        *,
+        # Only for useful error messages.
+        pkg_idname: str,
+        error_fn: Callable[[Exception], None],
+    ) -> Optional["PkgBlock_Normalized"]:
+
+        try:
+            reason = block_dict["reason"]
+        except KeyError as ex:
+            error_fn(KeyError("{:s}: missing key {:s}".format(pkg_idname, str(ex))))
+            return None
+
+        return PkgBlock_Normalized(
+            reason=reason,
+        )
+
+
 # See similar named tuple: `bl_pkg.cli.blender_ext.PkgManifest`.
 # This type is loaded from an external source and had it's valued parsed into a known "normalized" state.
 # Some transformation is performed to the purpose of displaying in the UI although this type isn't specifically for UI.
@@ -1147,12 +1170,16 @@ class PkgManifest_Normalized(NamedTuple):
     archive_size: int
     archive_url: str
 
+    # Taken from the `blocklist`.
+    block: Optional[PkgBlock_Normalized]
+
     @staticmethod
     def from_dict_with_error_fn(
         manifest_dict: Dict[str, Any],
         *,
         # Only for useful error messages.
         pkg_idname: str,
+        pkg_block: Optional[PkgBlock_Normalized],
         error_fn: Callable[[Exception], None],
     ) -> Optional["PkgManifest_Normalized"]:
         # NOTE: it is expected there are no errors here for typical usage.
@@ -1264,6 +1291,8 @@ class PkgManifest_Normalized(NamedTuple):
 
             archive_size=field_archive_size,
             archive_url=field_archive_url,
+
+            block=pkg_block,
         )
 
 
@@ -1343,11 +1372,47 @@ def pkg_manifest_params_compatible_or_error(
     return None
 
 
+def repository_parse_blocklist(
+        data: List[Dict[str, Any]],
+        *,
+        repo_directory: str,
+        error_fn: Callable[[Exception], None],
+) -> Dict[str, PkgBlock_Normalized]:
+    pkg_block_map = {}
+
+    for item in data:
+        if not isinstance(item, dict):
+            error_fn(Exception("found non dict item in repository \"blocklist\", found {:s}".format(str(type(item)))))
+            continue
+
+        if (pkg_idname := repository_id_with_error_fn(
+                item,
+                repo_directory=repo_directory,
+                error_fn=error_fn,
+        )) is None:
+            continue
+        if (value := PkgBlock_Normalized.from_dict_with_error_fn(
+                item,
+                pkg_idname=pkg_idname,
+                error_fn=error_fn,
+        )) is None:
+            # NOTE: typically we would skip invalid items
+            # however as it's known this ID is blocked, create a dummy item.
+            value = PkgBlock_Normalized(
+                reason="Unknown (parse error)",
+            )
+
+        pkg_block_map[pkg_idname] = value
+
+    return pkg_block_map
+
+
 def repository_parse_data_filtered(
         data: List[Dict[str, Any]],
         *,
         repo_directory: str,
         filter_params: PkgManifest_FilterParams,
+        pkg_block_map: Dict[str, PkgBlock_Normalized],
         error_fn: Callable[[Exception], None],
 ) -> Dict[str, PkgManifest_Normalized]:
     pkg_manifest_map = {}
@@ -1373,6 +1438,7 @@ def repository_parse_data_filtered(
         if (value := PkgManifest_Normalized.from_dict_with_error_fn(
                 item,
                 pkg_idname=pkg_idname,
+                pkg_block=pkg_block_map.get(pkg_idname),
                 error_fn=error_fn,
         )) is None:
             continue
@@ -1384,8 +1450,7 @@ def repository_parse_data_filtered(
 
 class RepoRemoteData(NamedTuple):
     version: str
-    blocklist: List[str]
-    # Converted from the `data` field.
+    # Converted from the `data` & `blocklist` fields.
     pkg_manifest_map: Dict[str, PkgManifest_Normalized]
 
 
@@ -1532,15 +1597,29 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
 
         # It's important to assign this value even if it's "empty",
         # otherwise corrupt files will be detected as unset and continuously attempt to load.
+
+        repo_directory = os.path.dirname(self._filepath)
+
+        # Useful for testing:
+        # `data_dict["blocklist"] = [{"id": "math_vis_console", "reason": "This is blocked"}]`
+
+        pkg_block_map = repository_parse_blocklist(
+            data_dict.get("blocklist", []),
+            repo_directory=repo_directory,
+            error_fn=error_fn,
+        )
+
+        pkg_manifest_map = repository_parse_data_filtered(
+            data_dict.get("data", []),
+            repo_directory=repo_directory,
+            filter_params=self._filter_params,
+            pkg_block_map=pkg_block_map,
+            error_fn=error_fn,
+        )
+
         data = RepoRemoteData(
             version=data_dict.get("version", "v1"),
-            blocklist=data_dict.get("blocklist", []),
-            pkg_manifest_map=repository_parse_data_filtered(
-                data_dict.get("data", []),
-                repo_directory=os.path.dirname(self._filepath),
-                filter_params=self._filter_params,
-                error_fn=error_fn,
-            ),
+            pkg_manifest_map=pkg_manifest_map,
         )
 
         self._data = data
@@ -1641,6 +1720,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             if (value := PkgManifest_Normalized.from_dict_with_error_fn(
                     item_local,
                     pkg_idname=pkg_idname,
+                    pkg_block=None,
                     error_fn=error_fn,
             )) is None:
                 continue
@@ -1652,7 +1732,6 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
         # to use the same structure as the actual JSON.
         data = RepoRemoteData(
             version="v1",
-            blocklist=[],
             pkg_manifest_map=pkg_manifest_map,
         )
         # End: compatibility change.
@@ -1858,6 +1937,7 @@ class _RepoCacheEntry:
                 if (value := PkgManifest_Normalized.from_dict_with_error_fn(
                         item_local,
                         pkg_idname=pkg_idname,
+                        pkg_block=None,
                         error_fn=error_fn,
                 )) is not None:
                     pkg_manifest_local[pkg_idname] = value

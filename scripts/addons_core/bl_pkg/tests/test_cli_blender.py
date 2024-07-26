@@ -861,6 +861,90 @@ class TestModuleViolation(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         )
 
 
+class TestBlockList(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+    def test_blocked(self) -> None:
+        """
+        Warn when:
+        - extensions add themselves to the ``sys.path``.
+        - extensions add top-level modules into ``sys.modules``.
+        """
+        repo_id = "test_repo_blocklist"
+        repo_name = "MyTestRepoBlocked"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        pkg_idnames = (
+            "my_test_pkg_a",
+            "my_test_pkg_b",
+            "my_test_pkg_c",
+        )
+
+        # Create a package contents.
+        for pkg_idname in pkg_idnames:
+            self.build_package(pkg_idname=pkg_idname)
+
+        repo_config_filepath = os.path.join(TEMP_DIR_REMOTE, "blender_repo.toml")
+        with open(repo_config_filepath, "w", encoding="utf8") as fh:
+            fh.write(
+                '''schema_version = "1.0.0"\n'''
+                '''[[blocklist]]\n'''
+                '''id = "my_test_pkg_a"\n'''
+                '''reason = "One example reason"\n'''
+                '''[[blocklist]]\n'''
+                '''id = "my_test_pkg_c"\n'''
+                '''reason = "Another example reason"\n'''
+            )
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+            "--repo-config", repo_config_filepath,
+        ))
+        self.assertEqual(stdout, "found 3 packages.\n")
+
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"{:s}\" updated".format(repo_name),
+        )
+
+        # List packages.
+        stdout = run_blender_extensions_no_errors(("list",))
+        self.assertEqual(
+            stdout,
+            (
+                '''Repository: "{:s}" (id={:s})\n'''
+                '''  my_test_pkg_a: "My Test Pkg A", This is a tagline\n'''
+                '''    Blocked: One example reason\n'''
+                '''  my_test_pkg_b: "My Test Pkg B", This is a tagline\n'''
+                '''  my_test_pkg_c: "My Test Pkg C", This is a tagline\n'''
+                '''    Blocked: Another example reason\n'''
+            ).format(
+                repo_name,
+                repo_id,
+            ))
+
+        # Install the package into Blender.
+        stdout = run_blender_extensions_no_errors(("install", pkg_idnames[1], "--enable"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Installed \"{:s}\"".format(pkg_idnames[1])
+        )
+
+        # Ensure blocking works, fail to install the package into Blender.
+        stdout = run_blender_extensions_no_errors(("install", pkg_idnames[0], "--enable"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("FATAL_ERROR ")][0],
+            "FATAL_ERROR Package \"{:s}\", is blocked: One example reason".format(pkg_idnames[0])
+        )
+
+        # Install the package into Blender.
+
+
 def main() -> None:
     # pylint: disable-next=global-statement
     global TEMP_DIR_BLENDER_USER, TEMP_DIR_REMOTE, TEMP_DIR_LOCAL, TEMP_DIR_TMPDIR, TEMP_DIR_REMOTE_AS_URL

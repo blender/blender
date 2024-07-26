@@ -186,7 +186,8 @@ typedef struct wmWindowManager {
 
   /** Available/pending extensions updates. */
   int extensions_updates;
-  int _pad3;
+  /** Number of blocked & installed extensions. */
+  int extensions_blocked;
 
   /** Threaded jobs manager. */
   ListBase jobs;
