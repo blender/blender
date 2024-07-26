@@ -1102,13 +1102,11 @@ static int insert_key_to_keying_set_path(bContext *C,
       combined_result.merge(result);
     }
     else if (mode == ModifyKeyMode::DELETE) {
-      keyed_channels += delete_keyframe(bmain,
-                                        reports,
-                                        keyingset_path->id,
-                                        nullptr,
-                                        keyingset_path->rna_path,
-                                        array_index,
-                                        frame);
+      RNAPath rna_path = {keyingset_path->rna_path, std::nullopt, array_index};
+      if (array_index < 0) {
+        rna_path.index = std::nullopt;
+      }
+      keyed_channels += delete_keyframe(bmain, reports, keyingset_path->id, rna_path, frame);
     }
   }
 

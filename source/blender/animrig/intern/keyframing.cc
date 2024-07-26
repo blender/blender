@@ -627,15 +627,8 @@ static void deg_tag_after_keyframe_delete(Main *bmain, ID *id, AnimData *adt)
   }
 }
 
-int delete_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char rna_path[],
-                    int array_index,
-                    float cfra)
+int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_path, float cfra)
 {
-  BLI_assert(rna_path != nullptr);
   AnimData *adt = BKE_animdata_from_id(id);
 
   if (ELEM(nullptr, id, adt)) {
@@ -646,33 +639,27 @@ int delete_keyframe(Main *bmain,
   PointerRNA ptr;
   PropertyRNA *prop;
   PointerRNA id_ptr = RNA_id_pointer_create(id);
-  if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
+  if (RNA_path_resolve_property(&id_ptr, rna_path.path.c_str(), &ptr, &prop) == false) {
     BKE_reportf(
         reports,
         RPT_ERROR,
         "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
         id->name,
-        rna_path);
+        rna_path.path.c_str());
     return 0;
   }
 
-  if (act == nullptr) {
-    if (adt->action) {
-      act = adt->action;
-      cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s", id->name);
-      return 0;
-    }
+  if (!adt->action) {
+    BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s", id->name);
+    return 0;
   }
-
+  bAction *act = adt->action;
+  cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
+  int array_index = rna_path.index.value_or(0);
   int array_index_max = array_index + 1;
 
-  if (array_index == -1) {
-    array_index = 0;
+  if (!rna_path.index.has_value()) {
     array_index_max = RNA_property_array_length(&ptr, prop);
-
     /* For single properties, increase max_index so that the property itself gets included,
      * but don't do this for standard arrays since that can cause corruption issues
      * (extra unused curves).
@@ -695,7 +682,7 @@ int delete_keyframe(Main *bmain,
      * paths. In the future when legacy actions are removed, we can restructure
      * it to be clearer. */
     for (; array_index < array_index_max; array_index++) {
-      FCurve *fcurve = fcurve_find(fcurves, {rna_path, array_index});
+      FCurve *fcurve = fcurve_find(fcurves, {rna_path.path, array_index});
       if (fcurve == nullptr) {
         continue;
       }
@@ -708,7 +695,7 @@ int delete_keyframe(Main *bmain,
   /* Will only loop once unless the array index was -1. */
   int key_count = 0;
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = action_fcurve_find(act, {rna_path, array_index});
+    FCurve *fcu = action_fcurve_find(act, {rna_path.path, array_index});
 
     if (fcu == nullptr) {
       continue;

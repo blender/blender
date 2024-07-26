@@ -189,13 +189,7 @@ bool insert_keyframe_direct(ReportList *reports,
  * Will perform checks just in case.
  * \return The number of key-frames deleted.
  */
-int delete_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    bAction *act,
-                    const char rna_path[],
-                    int array_index,
-                    float cfra);
+int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &path, float cfra);
 
 /**
  * Main Keyframing API call:

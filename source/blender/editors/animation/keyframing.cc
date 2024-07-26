@@ -1205,13 +1205,14 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
     else {
       /* standard properties */
       if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
+        RNAPath rna_path = {path->c_str(), std::nullopt, index};
         if (all) {
-          /* -1 indicates operating on the entire array (or the property itself otherwise) */
-          index = -1;
+          /* nullopt indicates operating on the entire array (or the property itself otherwise). */
+          rna_path.index = std::nullopt;
         }
 
         changed = blender::animrig::delete_keyframe(
-                      bmain, op->reports, ptr.owner_id, nullptr, path->c_str(), index, cfra) != 0;
+                      bmain, op->reports, ptr.owner_id, rna_path, cfra) != 0;
       }
       else if (G.debug & G_DEBUG) {
         printf("Button Delete-Key: no path to property\n");
