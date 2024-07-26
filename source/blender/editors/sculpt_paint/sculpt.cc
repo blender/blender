@@ -5605,13 +5605,16 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
 
   /* Brushes that also use original coordinates and will need a "restore" step.
    *  - SCULPT_TOOL_BOUNDARY
-   *  - SCULPT_TOOL_POSE
+   * TODO: Investigate removing this step using the same technique as the layer brush-- in the
+   * brush, apply the translation between the result of the last brush step and the result of the
+   * latest brush step.
    */
   if (ELEM(brush->sculpt_tool,
            SCULPT_TOOL_ELASTIC_DEFORM,
            SCULPT_TOOL_GRAB,
            SCULPT_TOOL_THUMB,
-           SCULPT_TOOL_ROTATE))
+           SCULPT_TOOL_ROTATE,
+           SCULPT_TOOL_POSE))
   {
     undo::restore_from_undo_step(sd, ob);
     return;
@@ -5984,7 +5987,7 @@ static void sculpt_stroke_update_step(bContext *C,
    *
    * For some brushes, flushing is done in the brush code itself.
    */
-  if ((ELEM(brush.sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_CLOTH, SCULPT_TOOL_POSE) ||
+  if ((ELEM(brush.sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_CLOTH) ||
        ss.pbvh->type() != bke::pbvh::Type::Mesh))
   {
     if (ss.deform_modifiers_active) {
@@ -7534,6 +7537,13 @@ void transform_positions(const Span<float3> src,
 
   for (const int i : src.index_range()) {
     dst[i] = math::transform_point(transform, src[i]);
+  }
+}
+
+void transform_positions(const float4x4 &transform, const MutableSpan<float3> positions)
+{
+  for (const int i : positions.index_range()) {
+    positions[i] = math::transform_point(transform, positions[i]);
   }
 }
 

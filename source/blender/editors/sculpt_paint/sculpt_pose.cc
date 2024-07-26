@@ -8,11 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_math_vector.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
@@ -20,9 +22,11 @@
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -129,59 +133,187 @@ static void pose_solve_scale_chain(SculptPoseIKChain &ik_chain, const float scal
   }
 }
 
-static void do_pose_brush_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+struct BrushLocalData {
+  Vector<float> factors;
+  Vector<float> segment_weights;
+  Vector<float3> segment_translations;
+  Vector<float3> translations;
+};
+
+BLI_NOINLINE static void calc_segment_translations(const Span<float3> positions,
+                                                   const SculptPoseIKChainSegment &segment,
+                                                   const MutableSpan<float3> translations)
 {
-  SculptSession &ss = *ob.sculpt;
-  SculptPoseIKChain &ik_chain = *ss.cache->pose_ik_chain;
-
-  PBVHVertexIter vd;
-  float disp[3], new_co[3];
-  float final_pos[3];
-
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    auto_mask::node_update(automask_data, vd);
-
-    float total_disp[3];
-    zero_v3(total_disp);
-
-    ePaintSymmetryAreas symm_area = SCULPT_get_vertex_symm_area(orig_data.co);
-
-    /* Calculate the displacement of each vertex for all the segments in the chain. */
-    for (SculptPoseIKChainSegment &segment : ik_chain.segments) {
-      copy_v3_v3(new_co, orig_data.co);
-
-      /* Get the transform matrix for the vertex symmetry area to calculate a displacement in the
-       * vertex. */
-      mul_m4_v3(segment.pivot_mat_inv[int(symm_area)].ptr(), new_co);
-      mul_m4_v3(segment.trans_mat[int(symm_area)].ptr(), new_co);
-      mul_m4_v3(segment.pivot_mat[int(symm_area)].ptr(), new_co);
-
-      /* Apply the segment weight of the vertex to the displacement. */
-      sub_v3_v3v3(disp, new_co, orig_data.co);
-      mul_v3_fl(disp, segment.weights[vd.index]);
-
-      /* Apply the vertex mask to the displacement. */
-      const float mask = 1.0f - vd.mask;
-      const float automask = auto_mask::factor_get(
-          ss.cache->automasking.get(), ss, vd.vertex, &automask_data);
-      mul_v3_fl(disp, mask * automask);
-
-      /* Accumulate the displacement. */
-      add_v3_v3(total_disp, disp);
-    }
-
-    /* Apply the accumulated displacement to the vertex. */
-    add_v3_v3v3(final_pos, orig_data.co, total_disp);
-
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush.deform_target, &vd);
-    copy_v3_v3(target_co, final_pos);
+  BLI_assert(positions.size() == translations.size());
+  for (const int i : positions.index_range()) {
+    float3 position = positions[i];
+    const ePaintSymmetryAreas symm_area = SCULPT_get_vertex_symm_area(position);
+    position = math::transform_point(segment.pivot_mat_inv[int(symm_area)], position);
+    position = math::transform_point(segment.trans_mat[int(symm_area)], position);
+    position = math::transform_point(segment.pivot_mat[int(symm_area)], position);
+    translations[i] = position - positions[i];
   }
-  BKE_pbvh_vertex_iter_end;
+}
+
+BLI_NOINLINE static void add_arrays(const MutableSpan<float3> a, const Span<float3> b)
+{
+  BLI_assert(a.size() == b.size());
+  for (const int i : a.index_range()) {
+    a[i] += b[i];
+  }
+}
+
+static void calc_mesh(const Sculpt &sd,
+                      const Brush &brush,
+                      const Span<float3> positions_eval,
+                      const bke::pbvh::Node &node,
+                      Object &object,
+                      BrushLocalData &tls,
+                      const MutableSpan<float3> positions_orig)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
+
+  tls.factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(mesh, verts, factors);
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+  }
+
+  tls.translations.resize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  translations.fill(float3(0));
+
+  tls.segment_weights.resize(verts.size());
+  tls.segment_translations.resize(verts.size());
+  const MutableSpan<float> segment_weights = tls.segment_weights;
+  const MutableSpan<float3> segment_translations = tls.segment_translations;
+
+  for (const SculptPoseIKChainSegment &segment : cache.pose_ik_chain->segments) {
+    calc_segment_translations(orig_data.positions, segment, segment_translations);
+    gather_data_mesh(segment.weights.as_span(), verts, segment_weights);
+    scale_translations(segment_translations, segment_weights);
+    add_arrays(translations, segment_translations);
+  }
+  scale_translations(translations, factors);
+
+  switch (eBrushDeformTarget(brush.deform_target)) {
+    case BRUSH_DEFORM_TARGET_GEOMETRY:
+      write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+      break;
+    case BRUSH_DEFORM_TARGET_CLOTH_SIM:
+      apply_translations(translations, verts, cache.cloth_sim->deformation_pos);
+      break;
+  }
+}
+
+static void calc_grids(const Sculpt &sd,
+                       const Brush &brush,
+                       const bke::pbvh::Node &node,
+                       Object &object,
+                       BrushLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
+
+  tls.factors.resize(orig_data.positions.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  if (cache.automasking) {
+    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
+  }
+
+  tls.translations.resize(orig_data.positions.size());
+  const MutableSpan<float3> translations = tls.translations;
+  translations.fill(float3(0));
+
+  tls.segment_weights.resize(orig_data.positions.size());
+  tls.segment_translations.resize(orig_data.positions.size());
+  const MutableSpan<float> segment_weights = tls.segment_weights;
+  const MutableSpan<float3> segment_translations = tls.segment_translations;
+
+  for (const SculptPoseIKChainSegment &segment : cache.pose_ik_chain->segments) {
+    calc_segment_translations(orig_data.positions, segment, segment_translations);
+    gather_data_grids(subdiv_ccg, segment.weights.as_span(), grids, segment_weights);
+    scale_translations(segment_translations, segment_weights);
+    add_arrays(translations, segment_translations);
+  }
+  scale_translations(translations, factors);
+
+  switch (eBrushDeformTarget(brush.deform_target)) {
+    case BRUSH_DEFORM_TARGET_GEOMETRY:
+      clip_and_lock_translations(sd, ss, orig_data.positions, translations);
+      apply_translations(translations, grids, subdiv_ccg);
+      break;
+    case BRUSH_DEFORM_TARGET_CLOTH_SIM:
+      add_arrays(translations, orig_data.positions);
+      scatter_data_grids(subdiv_ccg,
+                         translations.as_span(),
+                         grids,
+                         cache.cloth_sim->deformation_pos.as_mutable_span());
+      break;
+  }
+}
+
+static void calc_bmesh(const Sculpt &sd,
+                       const Brush &brush,
+                       bke::pbvh::Node &node,
+                       Object &object,
+                       BrushLocalData &tls)
+{
+  SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  Array<float3> orig_positions(verts.size());
+  Array<float3> orig_normals(verts.size());
+  orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
+
+  tls.factors.resize(verts.size());
+  const MutableSpan<float> factors = tls.factors;
+  fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
+  if (cache.automasking) {
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+  }
+
+  tls.translations.resize(verts.size());
+  const MutableSpan<float3> translations = tls.translations;
+  translations.fill(float3(0));
+
+  tls.segment_weights.resize(verts.size());
+  tls.segment_translations.resize(verts.size());
+  const MutableSpan<float> segment_weights = tls.segment_weights;
+  const MutableSpan<float3> segment_translations = tls.segment_translations;
+
+  for (const SculptPoseIKChainSegment &segment : cache.pose_ik_chain->segments) {
+    calc_segment_translations(orig_positions, segment, segment_translations);
+    gather_data_vert_bmesh(segment.weights.as_span(), verts, segment_weights);
+    scale_translations(segment_translations, segment_weights);
+    add_arrays(translations, segment_translations);
+  }
+  scale_translations(translations, factors);
+
+  switch (eBrushDeformTarget(brush.deform_target)) {
+    case BRUSH_DEFORM_TARGET_GEOMETRY:
+      clip_and_lock_translations(sd, ss, orig_positions, translations);
+      apply_translations(translations, verts);
+      break;
+    case BRUSH_DEFORM_TARGET_CLOTH_SIM:
+      add_arrays(translations, orig_positions);
+      scatter_data_vert_bmesh(
+          translations.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
+      break;
+  }
 }
 
 struct PoseGrowFactorData {
@@ -1179,11 +1311,39 @@ void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
     }
   }
 
+  threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
+  switch (ob.sculpt->pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      const bke::pbvh::Tree &pbvh = *ss.pbvh;
+      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        BrushLocalData &tls = all_tls.local();
     for (const int i : range) {
-      do_pose_brush_task(ob, brush, nodes[i]);
+          calc_mesh(sd, brush, positions_eval, *nodes[i], ob, tls, positions_orig);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        }
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        BrushLocalData &tls = all_tls.local();
+        for (const int i : range) {
+          calc_grids(sd, brush, *nodes[i], ob, tls);
+        }
+      });
+      break;
+    case bke::pbvh::Type::BMesh:
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        BrushLocalData &tls = all_tls.local();
+        for (const int i : range) {
+          calc_bmesh(sd, brush, *nodes[i], ob, tls);
     }
   });
+      break;
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint::pose
