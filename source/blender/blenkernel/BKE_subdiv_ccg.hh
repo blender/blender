@@ -255,7 +255,7 @@ struct SubdivCCGNeighbors {
     return this->coords.as_span().drop_back(num_duplicates);
   }
 
-  blender::Span<SubdivCCGCoord> duplicate() const
+  blender::Span<SubdivCCGCoord> duplicates() const
   {
     return this->coords.as_span().take_back(num_duplicates);
   }
