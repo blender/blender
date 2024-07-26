@@ -2711,7 +2711,7 @@ static StripEarlyOut early_out_text(const Sequence *seq, float /*fac*/)
 }
 
 /* Simplified version of gaussian blur specifically for text shadow blurring:
- * - Only blurs the alpha channel since that is all it needs,
+ * - Data is only the alpha channel,
  * - Skips blur outside of shadow rectangle. */
 static void text_gaussian_blur_x(const Span<float> gaussian,
                                  int half_size,
@@ -2722,7 +2722,7 @@ static void text_gaussian_blur_x(const Span<float> gaussian,
                                  uchar *dst,
                                  const rcti &shadow_rect)
 {
-  dst += int64_t(start_line) * width * 4;
+  dst += int64_t(start_line) * width;
   for (int y = start_line; y < start_line + height; y++) {
     for (int x = 0; x < width; x++) {
       float accum(0.0f);
@@ -2732,15 +2732,15 @@ static void text_gaussian_blur_x(const Span<float> gaussian,
         int xmax = math::min(x + half_size, shadow_rect.xmax);
         for (int nx = xmin, index = (xmin - x) + half_size; nx <= xmax; nx++, index++) {
           float weight = gaussian[index];
-          int offset = (y * width + nx) * 4;
-          accum += rect[offset + 3] * weight;
+          int offset = y * width + nx;
+          accum += rect[offset] * weight;
           accum_weight += weight;
         }
         accum *= (1.0f / accum_weight);
       }
 
-      dst[3] = accum;
-      dst += 4;
+      *dst = accum;
+      dst++;
     }
   }
 }
@@ -2754,7 +2754,7 @@ static void text_gaussian_blur_y(const Span<float> gaussian,
                                  uchar *dst,
                                  const rcti &shadow_rect)
 {
-  dst += int64_t(start_line) * width * 4;
+  dst += int64_t(start_line) * width;
   for (int y = start_line; y < start_line + height; y++) {
     for (int x = 0; x < width; x++) {
       float accum(0.0f);
@@ -2764,24 +2764,77 @@ static void text_gaussian_blur_y(const Span<float> gaussian,
         int ymax = math::min(y + half_size, shadow_rect.ymax);
         for (int ny = ymin, index = (ymin - y) + half_size; ny <= ymax; ny++, index++) {
           float weight = gaussian[index];
-          int offset = (ny * width + x) * 4;
-          accum += rect[offset + 3] * weight;
+          int offset = ny * width + x;
+          accum += rect[offset] * weight;
           accum_weight += weight;
         }
         accum *= (1.0f / accum_weight);
       }
-      dst[3] = accum;
-      dst += 4;
+      *dst = accum;
+      dst++;
     }
   }
 }
 
+static void clamp_rect(int width, int height, rcti &r_rect)
+{
+  r_rect.xmin = math::clamp(r_rect.xmin, 0, width - 1);
+  r_rect.xmax = math::clamp(r_rect.xmax, 0, width - 1);
+  r_rect.ymin = math::clamp(r_rect.ymin, 0, height - 1);
+  r_rect.ymax = math::clamp(r_rect.ymax, 0, height - 1);
+}
+
+static void initialize_shadow_alpha(int width,
+                                    int height,
+                                    int2 offset,
+                                    const rcti &shadow_rect,
+                                    const uchar *input,
+                                    Array<uchar> &r_shadow_mask)
+{
+  const IndexRange shadow_y_range(shadow_rect.ymin, shadow_rect.ymax - shadow_rect.ymin + 1);
+  threading::parallel_for(shadow_y_range, 8, [&](const IndexRange y_range) {
+    for (const int64_t y : y_range) {
+      const int64_t src_y = math::clamp<int64_t>(y + offset.y, 0, height - 1);
+      for (int x = shadow_rect.xmin; x <= shadow_rect.xmax; x++) {
+        int src_x = math::clamp(x - offset.x, 0, width - 1);
+        size_t src_offset = width * src_y + src_x;
+        size_t dst_offset = width * y + x;
+        r_shadow_mask[dst_offset] = input[src_offset * 4 + 3];
+      }
+    }
+  });
+}
+
+static void composite_shadow(int width,
+                             const rcti &shadow_rect,
+                             const float4 &shadow_color,
+                             const Array<uchar> &shadow_mask,
+                             uchar *output)
+{
+  const IndexRange shadow_y_range(shadow_rect.ymin, shadow_rect.ymax - shadow_rect.ymin + 1);
+  threading::parallel_for(shadow_y_range, 8, [&](const IndexRange y_range) {
+    for (const int64_t y : y_range) {
+      size_t offset = y * width + shadow_rect.xmin;
+      uchar *dst = output + offset * 4;
+      for (int x = shadow_rect.xmin; x <= shadow_rect.xmax; x++, offset++, dst += 4) {
+        uchar a = shadow_mask[offset];
+        if (a == 0) {
+          /* Fully transparent, leave output pixel as is. */
+          continue;
+        }
+        float4 col1 = load_premul_pixel(dst);
+        float4 col2 = shadow_color * (a * (1.0f / 255.0f));
+        /* Blend under the output. */
+        float fac = 1.0f - col1.w;
+        float4 col = col1 + fac * col2;
+        store_premul_pixel(col, dst);
+      }
+    }
+  });
+}
+
 static void draw_text_shadow(const SeqRenderData *context,
                              const TextVars *data,
-                             int font,
-                             ColorManagedDisplay *display,
-                             int x,
-                             int y,
                              int line_height,
                              const rcti &rect,
                              ImBuf *out)
@@ -2791,46 +2844,30 @@ static void draw_text_shadow(const SeqRenderData *context,
   /* Blur value of 1.0 applies blur kernel that is half of text line height. */
   const float blur_amount = line_height * 0.5f * data->shadow_blur;
   bool do_blur = blur_amount >= 1.0f;
-  ImBuf *tmp_out1 = nullptr, *tmp_out2 = nullptr;
-  if (do_blur) {
-    /* When shadow blur is on, it needs to first be rendered into a temporary
-     * buffer and then blurred, so that whatever is under the shadow does
-     * not get blur. */
-    tmp_out1 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
-    tmp_out2 = prepare_effect_imbufs(context, nullptr, nullptr, nullptr, false);
-    BLF_buffer(font, nullptr, tmp_out1->byte_buffer.data, width, height, display);
-  }
 
-  float offsetx = cosf(data->shadow_angle) * line_height * data->shadow_offset;
-  float offsety = sinf(data->shadow_angle) * line_height * data->shadow_offset;
-  BLF_position(font, x + offsetx, y - offsety, 0.0f);
-  /* If we will blur the text, rasterize at full opacity, white. Will tint
-   * with shadow color when compositing later on. */
-  float white_color[4] = {1, 1, 1, 1};
-  BLF_buffer_col(font, do_blur ? white_color : data->shadow_color);
-  BLF_draw_buffer(font, data->text, sizeof(data->text));
+  Array<uchar> shadow_mask(size_t(width) * height, 0);
+
+  const int2 offset = int2(cosf(data->shadow_angle) * line_height * data->shadow_offset,
+                           sinf(data->shadow_angle) * line_height * data->shadow_offset);
 
   rcti shadow_rect = rect;
-  BLI_rcti_translate(&shadow_rect, offsetx, -offsety);
+  BLI_rcti_translate(&shadow_rect, offset.x, -offset.y);
   BLI_rcti_pad(&shadow_rect, 1, 1);
+  clamp_rect(width, height, shadow_rect);
+
+  /* Initialize shadow by copying existing text/outline alpha. */
+  initialize_shadow_alpha(width, height, offset, shadow_rect, out->byte_buffer.data, shadow_mask);
+
   if (do_blur) {
     /* Create blur kernel weights. */
     const int half_size = int(blur_amount + 0.5f);
     Array<float> gaussian = make_gaussian_blur_kernel(blur_amount, half_size);
 
     BLI_rcti_pad(&shadow_rect, half_size + 1, half_size + 1);
-    shadow_rect.xmin = clamp_i(shadow_rect.xmin, 0, width - 1);
-    shadow_rect.xmax = clamp_i(shadow_rect.xmax, 0, width - 1);
-    shadow_rect.ymin = clamp_i(shadow_rect.ymin, 0, height - 1);
-    shadow_rect.ymax = clamp_i(shadow_rect.ymax, 0, height - 1);
+    clamp_rect(width, height, shadow_rect);
 
-    /* Premultiplied shadow color. */
-    float4 color = data->shadow_color;
-    color.x *= color.w;
-    color.y *= color.w;
-    color.z *= color.w;
-
-    /* Horizontal blur: blur tmp_out1 into tmp_out2. */
+    /* Horizontal blur: blur shadow_mask into blur_buffer. */
+    Array<uchar> blur_buffer(size_t(width) * height, NoInitialization());
     IndexRange blur_y_range(shadow_rect.ymin, shadow_rect.ymax - shadow_rect.ymin + 1);
     threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
@@ -2840,12 +2877,12 @@ static void draw_text_shadow(const SeqRenderData *context,
                            y_first,
                            width,
                            y_size,
-                           tmp_out1->byte_buffer.data,
-                           tmp_out2->byte_buffer.data,
+                           shadow_mask.data(),
+                           blur_buffer.data(),
                            shadow_rect);
     });
 
-    /* Vertical blur: blur tmp_out2 into tmp_out1, and composite into regular output. */
+    /* Vertical blur: blur blur_buffer into shadow_mask. */
     threading::parallel_for(blur_y_range, 8, [&](const IndexRange y_range) {
       const int y_first = y_range.first();
       const int y_size = y_range.size();
@@ -2854,31 +2891,18 @@ static void draw_text_shadow(const SeqRenderData *context,
                            y_first,
                            width,
                            y_size,
-                           tmp_out2->byte_buffer.data,
-                           tmp_out1->byte_buffer.data,
+                           blur_buffer.data(),
+                           shadow_mask.data(),
                            shadow_rect);
-      /* Composite over regular output (which might have box drawn into it). */
-      const uchar *src = tmp_out1->byte_buffer.data + size_t(y_first) * width * 4;
-      const uchar *src_end = tmp_out1->byte_buffer.data + size_t(y_first + y_size) * width * 4;
-      uchar *dst = out->byte_buffer.data + size_t(y_first) * width * 4;
-      for (; src < src_end; src += 4, dst += 4) {
-        uchar a = src[3];
-        if (a == 0) {
-          /* Fully transparent, leave output pixel as is. */
-          continue;
-        }
-        float4 col1 = color * (a * (1.0f / 255.0f));
-        /* Blend over the output. */
-        float mfac = 1.0f - col1.w;
-        float4 col2 = load_premul_pixel(dst);
-        float4 col = col1 + mfac * col2;
-        store_premul_pixel(col, dst);
-      }
     });
-    IMB_freeImBuf(tmp_out1);
-    IMB_freeImBuf(tmp_out2);
-    BLF_buffer(font, nullptr, out->byte_buffer.data, width, height, display);
   }
+
+  /* Composite shadow under regular output. */
+  float4 color = data->shadow_color;
+  color.x *= color.w;
+  color.y *= color.w;
+  color.z *= color.w;
+  composite_shadow(width, shadow_rect, color, shadow_mask, out->byte_buffer.data);
 }
 
 /* Text outline calculation is done by Jump Flooding Algorithm (JFA).
@@ -2939,7 +2963,7 @@ static void jump_flooding_pass(Span<JFACoord> input,
   });
 }
 
-static void draw_text_outline(const SeqRenderData *context,
+static rcti draw_text_outline(const SeqRenderData *context,
                               const TextVars *data,
                               int font,
                               ColorManagedDisplay *display,
@@ -2952,7 +2976,7 @@ static void draw_text_outline(const SeqRenderData *context,
   /* Outline width of 1.0 maps to half of text line height. */
   const int outline_width = int(line_height * 0.5f * data->outline_width);
   if (outline_width < 1 || data->outline_color[3] <= 0.0f) {
-    return;
+    return rect;
   }
 
   const int2 size = int2(context->rectx, context->recty);
@@ -3062,6 +3086,44 @@ static void draw_text_outline(const SeqRenderData *context,
     }
   });
   BLF_buffer(font, nullptr, out->byte_buffer.data, size.x, size.y, display);
+
+  return outline_rect;
+}
+
+/* Similar to #IMB_rectfill_area but blends the given color under the
+ * existing image. Also only works on byte buffers. */
+static void fill_rect_alpha_under(
+    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+{
+  const int width = ibuf->x;
+  const int height = ibuf->y;
+  x1 = math::clamp(x1, 0, width);
+  x2 = math::clamp(x2, 0, width);
+  y1 = math::clamp(y1, 0, height);
+  y2 = math::clamp(y2, 0, height);
+  if (x1 > x2) {
+    std::swap(x1, x2);
+  }
+  if (y1 > y2) {
+    std::swap(y1, y2);
+  }
+  if (x1 == x2 || y1 == y2) {
+    return;
+  }
+
+  float4 premul_col = col;
+  straight_to_premul_v4(premul_col);
+
+  for (int y = y1; y < y2; y++) {
+    uchar *dst = ibuf->byte_buffer.data + (size_t(width) * y + x1) * 4;
+    for (int x = x1; x < x2; x++) {
+      float4 pix = load_premul_pixel(dst);
+      float fac = 1.0f - pix.w;
+      float4 col = fac * premul_col + pix;
+      store_premul_pixel(col, dst);
+      dst += 4;
+    }
+  }
 }
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
@@ -3149,26 +3211,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
   BLI_rcti_translate(&rect, x, y);
 
-  /* Draw box under text. */
-  if (data->flag & SEQ_TEXT_BOX) {
-    if (out->byte_buffer.data) {
-      const int margin = data->box_margin * width;
-      const int minx = rect.xmin - margin;
-      const int maxx = rect.xmax + margin;
-      const int miny = rect.ymin - margin;
-      const int maxy = rect.ymax + margin;
-      IMB_rectfill_area_replace(out, data->box_color, minx, miny, maxx, maxy);
-    }
-  }
-
-  /* Draw text shadow. */
-  if (data->flag & SEQ_TEXT_SHADOW) {
-    draw_text_shadow(context, data, font, display, x, y, line_height, rect, out);
-  }
-
   /* Draw text outline. */
+  rcti outline_rect = rect;
   if (data->flag & SEQ_TEXT_OUTLINE) {
-    draw_text_outline(context, data, font, display, x, y, line_height, rect, out);
+    outline_rect = draw_text_outline(context, data, font, display, x, y, line_height, rect, out);
   }
 
   /* Draw text itself. */
@@ -3177,8 +3223,24 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   BLF_draw_buffer(font, data->text, sizeof(data->text));
 
   BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
-
   BLF_disable(font, font_flags);
+
+  /* Draw shadow. */
+  if (data->flag & SEQ_TEXT_SHADOW) {
+    draw_text_shadow(context, data, line_height, outline_rect, out);
+  }
+
+  /* Draw box under text. */
+  if (data->flag & SEQ_TEXT_BOX) {
+    if (out->byte_buffer.data) {
+      const int margin = data->box_margin * width;
+      const int minx = rect.xmin - margin;
+      const int maxx = rect.xmax + margin;
+      const int miny = rect.ymin - margin;
+      const int maxy = rect.ymax + margin;
+      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy);
+    }
+  }
 
   return out;
 }
