@@ -183,9 +183,14 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *vc->obact;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
-
   SculptSession &ss = *ob.sculpt;
+  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+
   SculptCursorGeometryInfo sgi;
   SCULPT_vertex_random_access_ensure(ss);
 
@@ -195,19 +200,16 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
-  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  const float *active_vertex_co = SCULPT_active_vertex_co_get(ss);
+  const int active_vert = SCULPT_active_vertex_get(ss).i;
+  const float3 active_vert_position = positions[active_vert];
   float edge_length = 0.0f;
-  int tot = 0;
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
-    edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.vertex));
-    tot += 1;
+  Vector<int> neighbors;
+  for (const int neighbor : vert_neighbors_get_mesh(
+           active_vert, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+  {
+    edge_length += math::distance(active_vert_position, positions[neighbor]);
   }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-  if (tot > 0) {
-    mesh->remesh_voxel_size = edge_length / float(tot);
-  }
+  mesh.remesh_voxel_size = edge_length / float(neighbors.size());
 }
 
 static void sculpt_raycast_detail_cb(bke::pbvh::Node &node,
