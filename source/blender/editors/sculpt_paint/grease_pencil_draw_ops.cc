@@ -17,6 +17,7 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_assert.h"
 #include "BLI_color.hh"
 #include "BLI_index_mask.hh"
@@ -760,12 +761,16 @@ static void grease_pencil_fill_extension_lines_from_circles(
     Vector<float3> starts;
     Vector<float3> ends;
   } connection_lines;
+  /* Circles which can be kept because they generate no extension lines. */
+  Vector<int> keep_circle_indices;
+  keep_circle_indices.reserve(circles_range.size());
 
   for (const int point_i : circles_range.index_range()) {
     const int kd_index = circles_range[point_i];
     const float2 center = view_centers[kd_index];
     const float radius = view_radii[kd_index];
 
+    bool found = false;
     BLI_kdtree_2d_range_search_cb_cpp(
         kdtree,
         center,
@@ -774,6 +779,8 @@ static void grease_pencil_fill_extension_lines_from_circles(
           if (other_point_i == kd_index) {
             return true;
           }
+
+          found = true;
           connection_lines.starts.append(extension_data.circles.centers[point_i]);
           if (circles_range.contains(other_point_i)) {
             connection_lines.ends.append(extension_data.circles.centers[other_point_i]);
@@ -782,8 +789,15 @@ static void grease_pencil_fill_extension_lines_from_circles(
             /* TODO copy feature point to connection_lines (beware of start index!). */
             connection_lines.ends.append(float3(0));
           }
+          else {
+            BLI_assert_unreachable();
+          }
           return true;
         });
+    /* Keep the circle if no extension line was found. */
+    if (!found) {
+      keep_circle_indices.append(point_i);
+    }
   }
 
   BLI_kdtree_2d_free(kdtree);
@@ -791,6 +805,17 @@ static void grease_pencil_fill_extension_lines_from_circles(
   /* Add new extension lines. */
   extension_data.lines.starts.extend(connection_lines.starts);
   extension_data.lines.ends.extend(connection_lines.ends);
+  /* Remove circles that formed extension lines. */
+  Vector<float3> old_centers = std::move(extension_data.circles.centers);
+  Vector<float> old_radii = std::move(extension_data.circles.radii);
+  extension_data.circles.centers.resize(keep_circle_indices.size());
+  extension_data.circles.radii.resize(keep_circle_indices.size());
+  array_utils::gather(old_centers.as_span(),
+                      keep_circle_indices.as_span(),
+                      extension_data.circles.centers.as_mutable_span());
+  array_utils::gather(old_radii.as_span(),
+                      keep_circle_indices.as_span(),
+                      extension_data.circles.radii.as_mutable_span());
 }
 
 static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
