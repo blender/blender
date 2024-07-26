@@ -8,6 +8,10 @@
 
 #include <stdexcept>
 
+#include "BLI_path_util.h"
+
+#include "BKE_blendfile.hh"
+
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
@@ -17,14 +21,14 @@
 
 namespace blender::asset_system {
 
-AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
+AssetRepresentation::AssetRepresentation(StringRef relative_path,
                                          StringRef name,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
-    : identifier_(std::move(identifier)),
+    : owner_asset_library_(owner_asset_library),
+      relative_identifier_(relative_path),
       is_local_id_(false),
-      owner_asset_library_(owner_asset_library),
       external_asset_()
 {
   external_asset_.name = name;
@@ -32,12 +36,12 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
   external_asset_.metadata_ = std::move(metadata);
 }
 
-AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
+AssetRepresentation::AssetRepresentation(StringRef relative_path,
                                          ID &id,
                                          const AssetLibrary &owner_asset_library)
-    : identifier_(std::move(identifier)),
+    : owner_asset_library_(owner_asset_library),
+      relative_identifier_(relative_path),
       is_local_id_(true),
-      owner_asset_library_(owner_asset_library),
       local_asset_id_(&id)
 {
   if (!id.asset_data) {
@@ -52,14 +56,9 @@ AssetRepresentation::~AssetRepresentation()
   }
 }
 
-const AssetIdentifier &AssetRepresentation::get_identifier() const
-{
-  return identifier_;
-}
-
 AssetWeakReference AssetRepresentation::make_weak_reference() const
 {
-  return AssetWeakReference::make_reference(owner_asset_library_, identifier_);
+  return AssetWeakReference::make_reference(owner_asset_library_, relative_identifier_);
 }
 
 StringRefNull AssetRepresentation::get_name() const
@@ -83,6 +82,33 @@ ID_Type AssetRepresentation::get_id_type() const
 AssetMetaData &AssetRepresentation::get_metadata() const
 {
   return is_local_id_ ? *local_asset_id_->asset_data : *external_asset_.metadata_;
+}
+
+StringRefNull AssetRepresentation::library_relative_identifier() const
+{
+  return relative_identifier_;
+}
+
+std::string AssetRepresentation::full_path() const
+{
+  char filepath[FILE_MAX];
+  BLI_path_join(filepath,
+                sizeof(filepath),
+                owner_asset_library_.root_path().c_str(),
+                relative_identifier_.c_str());
+  return filepath;
+}
+
+std::string AssetRepresentation::full_library_path() const
+{
+  std::string asset_path = full_path();
+
+  char blend_path[1090 /*FILE_MAX_LIBEXTRA*/];
+  if (!BKE_blendfile_library_path_explode(asset_path.c_str(), blend_path, nullptr, nullptr)) {
+    return {};
+  }
+
+  return blend_path;
 }
 
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const

@@ -70,7 +70,7 @@ static const asset_system::AssetRepresentation *get_local_asset_from_relative_id
 
   const asset_system::AssetRepresentation *matching_asset = nullptr;
   list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (asset.get_identifier().library_relative_identifier() == relative_identifier) {
+    if (asset.library_relative_identifier() == relative_identifier) {
       matching_asset = &asset;
       return false;
     }
@@ -110,7 +110,7 @@ const asset_system::AssetRepresentation *find_asset_from_weak_ref(
 
   const asset_system::AssetRepresentation *matching_asset = nullptr;
   list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (asset.get_identifier().full_path() == full_path) {
+    if (asset.full_path() == full_path) {
       matching_asset = &asset;
       return false;
     }

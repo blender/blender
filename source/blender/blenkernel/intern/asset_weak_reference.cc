@@ -93,9 +93,8 @@ bool operator==(const AssetWeakReference &a, const AssetWeakReference &b)
   return true;
 }
 
-AssetWeakReference AssetWeakReference::make_reference(
-    const asset_system::AssetLibrary &library,
-    const asset_system::AssetIdentifier &asset_identifier)
+AssetWeakReference AssetWeakReference::make_reference(const asset_system::AssetLibrary &library,
+                                                      const StringRef library_relative_identifier)
 {
   AssetWeakReference weak_ref{};
 
@@ -105,9 +104,8 @@ AssetWeakReference AssetWeakReference::make_reference(
     weak_ref.asset_library_identifier = BLI_strdupn(name.c_str(), name.size());
   }
 
-  StringRefNull relative_identifier = asset_identifier.library_relative_identifier();
-  weak_ref.relative_asset_identifier = BLI_strdupn(relative_identifier.c_str(),
-                                                   relative_identifier.size());
+  weak_ref.relative_asset_identifier = BLI_strdupn(library_relative_identifier.data(),
+                                                   library_relative_identifier.size());
 
   return weak_ref;
 }

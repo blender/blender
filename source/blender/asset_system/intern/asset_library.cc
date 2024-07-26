@@ -206,17 +206,15 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
     const int id_type,
     std::unique_ptr<AssetMetaData> metadata)
 {
-  AssetIdentifier identifier = this->asset_identifier_from_library(relative_asset_path);
   return storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
-      std::move(identifier), name, id_type, std::move(metadata), *this));
+      relative_asset_path, name, id_type, std::move(metadata), *this));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef relative_asset_path,
                                                                     ID &id)
 {
-  AssetIdentifier identifier = this->asset_identifier_from_library(relative_asset_path);
   return storage_.local_id_assets.lookup_key_or_add(
-      std::make_shared<AssetRepresentation>(std::move(identifier), id, *this));
+      std::make_shared<AssetRepresentation>(relative_asset_path, id, *this));
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
@@ -286,11 +284,6 @@ void AssetLibrary::on_blend_save_post(Main *main,
   if (save_catalogs_when_file_is_saved) {
     this->catalog_service().write_to_disk(main->filepath);
   }
-}
-
-AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_asset_path)
-{
-  return AssetIdentifier(root_path_, relative_asset_path);
 }
 
 std::string AssetLibrary::resolve_asset_weak_reference_to_full_path(

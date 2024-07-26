@@ -47,7 +47,7 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
   ID *import_id(ID_Type id_type, Main &bmain, ReportList &reports)
   {
     const char *asset_name = asset_->get_name().c_str();
-    std::string blend_file_path = asset_->get_identifier().full_library_path();
+    std::string blend_file_path = asset_->full_library_path();
 
     temp_lib_context_ = BLO_library_temp_load_id(
         &bmain, blend_file_path.c_str(), id_type, asset_name, &reports);

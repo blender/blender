@@ -1174,7 +1174,7 @@ void filelist_file_get_full_path(const FileList *filelist,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/])
 {
   if (file->asset) {
-    const std::string asset_path = file->asset->get_identifier().full_path();
+    const std::string asset_path = file->asset->full_path();
     BLI_strncpy(r_filepath, asset_path.c_str(), FILE_MAX_LIBEXTRA);
     return;
   }

@@ -15,9 +15,11 @@
 #ifdef __cplusplus
 #  include <memory>
 
+namespace blender {
+class StringRef;
+}
 namespace blender::asset_system {
 class AssetLibrary;
-class AssetIdentifier;
 }  // namespace blender::asset_system
 
 #endif
@@ -147,9 +149,6 @@ typedef struct AssetLibraryReference {
  * renamed, or when a file storing this is opened on a different system (with different
  * Preferences).
  *
- * #AssetWeakReference is similar to #AssetIdentifier, but is designed for file storage, not for
- * runtime references.
- *
  * It has two main components:
  * - A reference to the asset library: The #eAssetLibraryType and if that is not enough to identify
  *   the library, a library name (typically given by the user, but may change).
@@ -186,9 +185,8 @@ typedef struct AssetWeakReference {
   /**
    * See AssetRepresentation::make_weak_reference().
    */
-  static AssetWeakReference make_reference(
-      const blender::asset_system::AssetLibrary &library,
-      const blender::asset_system::AssetIdentifier &asset_identifier);
+  static AssetWeakReference make_reference(const blender::asset_system::AssetLibrary &library,
+                                           blender::StringRef library_relative_identifier);
 #endif
 } AssetWeakReference;
 

@@ -24,7 +24,7 @@ ID *asset_local_id_ensure_imported(Main &bmain, const asset_system::AssetReprese
     return local_id;
   }
 
-  std::string blend_path = asset.get_identifier().full_library_path();
+  std::string blend_path = asset.full_library_path();
   if (blend_path.empty()) {
     return nullptr;
   }

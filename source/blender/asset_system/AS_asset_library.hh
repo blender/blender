@@ -29,7 +29,6 @@ class IDRemapper;
 
 namespace blender::asset_system {
 
-class AssetIdentifier;
 class AssetRepresentation;
 
 /**
@@ -176,12 +175,6 @@ class AssetLibrary {
   void on_blend_save_handler_unregister();
 
   void on_blend_save_post(Main *bmain, PointerRNA **pointers, int num_pointers);
-
-  /**
-   * Create an asset identifier from the root path of this asset library and the given relative
-   * asset path (relative to the asset library root directory).
-   */
-  AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
   std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
 

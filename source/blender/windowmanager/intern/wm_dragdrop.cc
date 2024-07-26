@@ -696,7 +696,7 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
                               FILE_ACTIVE_COLLECTION;
 
   const char *name = asset_drag->asset->get_name().c_str();
-  const std::string blend_path = asset_drag->asset->get_identifier().full_library_path();
+  const std::string blend_path = asset_drag->asset->full_library_path();
   const ID_Type idtype = asset_drag->asset->get_id_type();
   const bool use_relative_path = asset_drag->asset->get_use_relative_path();
 
