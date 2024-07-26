@@ -428,6 +428,7 @@ void RNA_api_operator(StructRNA *srna);
 void RNA_api_macro(StructRNA *srna);
 void RNA_api_gizmo(StructRNA *srna);
 void RNA_api_gizmogroup(StructRNA *srna);
+void RNA_api_grease_pencil_drawing(StructRNA *srna);
 void RNA_api_grease_pencil_frames(StructRNA *srna);
 void RNA_api_grease_pencil_layer(StructRNA *srna);
 void RNA_api_grease_pencil_layers(StructRNA *srna);

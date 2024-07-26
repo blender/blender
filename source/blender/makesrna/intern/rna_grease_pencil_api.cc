@@ -23,10 +23,83 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_attribute.hh"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
+
+#  include "rna_curves_utils.hh"
+
+static void rna_GreasePencilDrawing_add_curves(ID *grease_pencil_id,
+                                               GreasePencilDrawing *drawing_ptr,
+                                               ReportList *reports,
+                                               const int *sizes,
+                                               const int sizes_num)
+{
+  using namespace blender;
+  bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  if (!rna_CurvesGeometry_add_curves(curves, reports, sizes, sizes_num)) {
+    return;
+  }
+
+  drawing.tag_topology_changed();
+
+  /* Avoid updates for importers. */
+  if (grease_pencil_id->us > 0) {
+    DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
+  }
+}
+
+static void rna_GreasePencilDrawing_remove_curves(ID *grease_pencil_id,
+                                                  GreasePencilDrawing *drawing_ptr,
+                                                  ReportList *reports,
+                                                  const int *indices_ptr,
+                                                  const int indices_num)
+{
+  using namespace blender;
+  bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  if (!rna_CurvesGeometry_remove_curves(curves, reports, indices_ptr, indices_num)) {
+    return;
+  }
+
+  drawing.tag_topology_changed();
+
+  /* Avoid updates for importers. */
+  if (grease_pencil_id->us > 0) {
+    DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
+  }
+}
+
+static void rna_GreasePencilDrawing_resize_curves(ID *grease_pencil_id,
+                                                  GreasePencilDrawing *drawing_ptr,
+                                                  ReportList *reports,
+                                                  const int *sizes_ptr,
+                                                  const int sizes_num,
+                                                  const int *indices_ptr,
+                                                  const int indices_num)
+{
+  using namespace blender;
+  bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  if (!rna_CurvesGeometry_resize_curves(
+          curves, reports, sizes_ptr, sizes_num, indices_ptr, indices_num))
+  {
+    return;
+  }
+
+  drawing.tag_topology_changed();
+
+  /* Avoid updates for importers. */
+  if (grease_pencil_id->us > 0) {
+    DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
+  }
+}
 
 static GreasePencilFrame *rna_Frames_frame_new(ID *id,
                                                GreasePencilLayer *layer_in,
@@ -303,6 +376,78 @@ static void rna_GreasePencil_layer_group_move_to_layer_group(GreasePencil *greas
 }
 
 #else
+
+void RNA_api_grease_pencil_drawing(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "add_curves", "rna_GreasePencilDrawing_add_curves");
+  RNA_def_function_ui_description(func, "Add new curves with provided sizes at the end");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "sizes",
+                           1,
+                           nullptr,
+                           1,
+                           INT_MAX,
+                           "Sizes",
+                           "The number of points in each curve",
+                           1,
+                           10000);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "remove_curves", "rna_GreasePencilDrawing_remove_curves");
+  RNA_def_function_ui_description(func,
+                                  "Remove all curves. If indices are provided, remove only the "
+                                  "curves with the given indices.");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "indices",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "Indices",
+                           "The indices of the curves to remove",
+                           0,
+                           10000);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "resize_curves", "rna_GreasePencilDrawing_resize_curves");
+  RNA_def_function_ui_description(
+      func,
+      "Resize all existing curves. If indices are provided, resize only the curves with the given "
+      "indices. If the new size for a curve is smaller, the curve is trimmed. If "
+      "the new size for a curve is larger, the new end values are default initialized.");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "sizes",
+                           1,
+                           nullptr,
+                           1,
+                           INT_MAX,
+                           "Sizes",
+                           "The number of points in each curve",
+                           1,
+                           10000);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
+  parm = RNA_def_int_array(func,
+                           "indices",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "Indices",
+                           "The indices of the curves to resize",
+                           0,
+                           10000);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+}
 
 void RNA_api_grease_pencil_frames(StructRNA *srna)
 {

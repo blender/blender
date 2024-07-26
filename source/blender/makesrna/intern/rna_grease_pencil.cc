@@ -467,6 +467,8 @@ static void rna_def_grease_pencil_drawing(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "User Count", "The number of keyframes this drawing is used by");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
+  RNA_api_grease_pencil_drawing(srna);
+
   /* Attributes. */
   rna_def_attributes_common(srna, AttributeOwnerType::GreasePencilDrawing);
 }
