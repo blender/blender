@@ -35,10 +35,10 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
                              PointerRNA &animated_id_ptr,
                              bool flush_to_original);
 
-static EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
-                                        Action &action,
-                                        const slot_handle_t slot_handle,
-                                        const AnimationEvalContext &anim_eval_context)
+EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
+                                 Action &action,
+                                 const slot_handle_t slot_handle,
+                                 const AnimationEvalContext &anim_eval_context)
 {
   EvaluationResult last_result;
 
