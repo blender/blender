@@ -789,10 +789,13 @@ class IMAGE_HT_header(Header):
             tool_settings = context.tool_settings
 
             # Snap.
-            snap_uv_element = tool_settings.snap_uv_element
-            try:
-                act_snap_icon = tool_settings.bl_rna.properties["snap_uv_element"].enum_items[snap_uv_element].icon
-            except KeyError:
+            snap_uv_elements = tool_settings.snap_uv_element
+            if len(snap_uv_elements) == 1:
+                text = ""
+                elem = next(iter(snap_uv_elements))
+                act_snap_icon = tool_settings.bl_rna.properties["snap_uv_element"].enum_items[elem].icon
+            else:
+                text = iface_("Mix", i18n_contexts.id_image)
                 act_snap_icon = 'NONE'
 
             row = layout.row(align=True)
@@ -802,7 +805,7 @@ class IMAGE_HT_header(Header):
             sub.popover(
                 panel="IMAGE_PT_snapping",
                 icon=act_snap_icon,
-                text="",
+                text=text,
             )
 
             # Proportional Editing
@@ -1014,10 +1017,10 @@ class IMAGE_PT_snapping(Panel):
         col.label(text="Snap Target")
         col.prop(tool_settings, "snap_uv_element", expand=True)
 
-        if tool_settings.snap_uv_element != 'INCREMENT':
-            col.label(text="Snap Base")
-            row = col.row(align=True)
-            row.prop(tool_settings, "snap_target", expand=True)
+        col.label(text="Snap Base")
+        row = col.row(align=True)
+        row.active = bool(tool_settings.snap_uv_element.difference({'INCREMENT', 'GRID'}))
+        row.prop(tool_settings, "snap_target", expand=True)
 
         col.separator()
 
