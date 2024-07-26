@@ -2159,6 +2159,9 @@ static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInf
     CASE_CURSOR(GHOST_kStandardCursorBottomRightCorner, "bottom_right_corner");
     CASE_CURSOR(GHOST_kStandardCursorBottomLeftCorner, "bottom_left_corner");
     CASE_CURSOR(GHOST_kStandardCursorCopy, "copy");
+    CASE_CURSOR(GHOST_kStandardCursorLeftHandle, "");
+    CASE_CURSOR(GHOST_kStandardCursorRightHandle, "");
+    CASE_CURSOR(GHOST_kStandardCursorBothHandles, "");
     CASE_CURSOR(GHOST_kStandardCursorCustom, "");
   }
 #undef CASE_CURSOR
