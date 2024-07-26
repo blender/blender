@@ -73,7 +73,7 @@ BLI_NOINLINE static void apply_positions_faces(const Sculpt &sd,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, positions_eval, verts, factors);
@@ -81,7 +81,7 @@ BLI_NOINLINE static void apply_positions_faces(const Sculpt &sd,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -97,7 +97,7 @@ BLI_NOINLINE static void apply_positions_faces(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, verts, positions_eval, translations);
   scale_translations(translations, factors);
@@ -138,7 +138,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Sculpt &sd,
       LocalData &tls = all_tls.local();
       for (const int i : range) {
         const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
-        tls.vert_neighbors.reinitialize(verts.size());
+        tls.vert_neighbors.resize(verts.size());
         calc_vert_neighbors_interior(faces,
                                      corner_verts,
                                      ss.vert_to_face_map,
@@ -189,7 +189,7 @@ static void calc_grids(const Sculpt &sd,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.factors.reinitialize(positions.size());
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -197,7 +197,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
 
-  tls.distances.reinitialize(positions.size());
+  tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -212,12 +212,12 @@ static void calc_grids(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  tls.new_positions.reinitialize(positions.size());
+  tls.new_positions.resize(positions.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
   smooth::neighbor_position_average_interior_grids(
       faces, corner_verts, boundary_verts, subdiv_ccg, grids, new_positions);
 
-  tls.translations.reinitialize(positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
   scale_translations(translations, factors);
@@ -239,7 +239,7 @@ static void calc_bmesh(const Sculpt &sd,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -247,7 +247,7 @@ static void calc_bmesh(const Sculpt &sd,
     calc_front_face(cache.view_normal, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -262,11 +262,11 @@ static void calc_bmesh(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  tls.new_positions.reinitialize(verts.size());
+  tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
   smooth::neighbor_position_average_interior_bmesh(verts, new_positions);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
   scale_translations(translations, factors);

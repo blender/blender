@@ -255,7 +255,7 @@ static void flush_face_changes_node(Mesh &mesh,
       const Span<int> node_faces = bke::pbvh::node_face_indices_calc_mesh(
           tri_faces, *node, tls.face_indices);
 
-      tls.new_hide.reinitialize(node_faces.size());
+      tls.new_hide.resize(node_faces.size());
       array_utils::gather(hide_poly.span.as_span(), node_faces, tls.new_hide.as_mutable_span());
 
       calc_face_hide(node_faces, faces, corner_verts, hide_vert, tls.new_hide.as_mutable_span());
@@ -311,7 +311,7 @@ static void vert_hide_update(Object &object,
     for (bke::pbvh::Node *node : nodes.slice(range)) {
       const Span<int> verts = bke::pbvh::node_unique_verts(*node);
 
-      new_hide.reinitialize(verts.size());
+      new_hide.resize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
       calc_hide(verts, new_hide);
       if (array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {

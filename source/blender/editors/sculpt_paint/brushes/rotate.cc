@@ -69,7 +69,7 @@ static void calc_faces(const Sculpt &sd,
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -77,7 +77,7 @@ static void calc_faces(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -93,7 +93,7 @@ static void calc_faces(const Sculpt &sd,
 
   scale_factors(factors, angle);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
       orig_data.positions, cache.sculpt_normal_symm, factors, cache.location, translations);
@@ -117,7 +117,7 @@ static void calc_grids(const Sculpt &sd,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  tls.factors.reinitialize(grid_verts_num);
+  tls.factors.resize(grid_verts_num);
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -126,7 +126,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.reinitialize(grid_verts_num);
+  tls.distances.resize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -142,7 +142,7 @@ static void calc_grids(const Sculpt &sd,
 
   scale_factors(factors, angle);
 
-  tls.translations.reinitialize(grid_verts_num);
+  tls.translations.resize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
       orig_data.positions, cache.sculpt_normal_symm, factors, cache.location, translations);
@@ -167,7 +167,7 @@ static void calc_bmesh(const Sculpt &sd,
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
@@ -175,7 +175,7 @@ static void calc_bmesh(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -190,7 +190,7 @@ static void calc_bmesh(const Sculpt &sd,
 
   scale_factors(factors, angle);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
       orig_positions, cache.sculpt_normal_symm, factors, cache.location, translations);

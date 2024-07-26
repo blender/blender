@@ -69,19 +69,19 @@ class ShrinkCurvesEffect : public CurvesEffect {
 
   /** Storage of per-curve parameterization data to avoid reallocation. */
   struct ParameterizationBuffers {
-    Array<float3> old_positions;
-    Array<float> old_lengths;
-    Array<float> sample_lengths;
-    Array<int> indices;
-    Array<float> factors;
+    Vector<float3> old_positions;
+    Vector<float> old_lengths;
+    Vector<float> sample_lengths;
+    Vector<int> indices;
+    Vector<float> factors;
 
-    void reinitialize(const int points_num)
+    void resize(const int points_num)
     {
-      this->old_positions.reinitialize(points_num);
-      this->old_lengths.reinitialize(length_parameterize::segments_num(points_num, false));
-      this->sample_lengths.reinitialize(points_num);
-      this->indices.reinitialize(points_num);
-      this->factors.reinitialize(points_num);
+      this->old_positions.resize(points_num);
+      this->old_lengths.resize(length_parameterize::segments_num(points_num, false));
+      this->sample_lengths.resize(points_num);
+      this->indices.resize(points_num);
+      this->factors.resize(points_num);
     }
   };
 
@@ -110,7 +110,7 @@ class ShrinkCurvesEffect : public CurvesEffect {
                     ParameterizationBuffers &data) const
   {
     namespace lp = length_parameterize;
-    data.reinitialize(positions.size());
+    data.resize(positions.size());
 
     /* Copy the old positions to facilitate mixing from neighbors for the resulting curve. */
     data.old_positions.as_mutable_span().copy_from(positions);

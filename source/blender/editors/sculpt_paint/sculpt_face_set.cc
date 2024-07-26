@@ -237,7 +237,7 @@ static void face_sets_update(Object &object,
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
-      tls.new_face_sets.reinitialize(faces.size());
+      tls.new_face_sets.resize(faces.size());
       MutableSpan<int> new_face_sets = tls.new_face_sets;
       array_utils::gather(face_sets.span.as_span(), faces, new_face_sets);
       calc_face_sets(faces, new_face_sets);
@@ -774,7 +774,7 @@ static void face_hide_update(Object &object,
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
-      tls.new_hide.reinitialize(faces.size());
+      tls.new_hide.resize(faces.size());
       MutableSpan<bool> new_hide = tls.new_hide;
       array_utils::gather(hide_poly.span.as_span(), faces, new_hide);
       calc_hide(faces, new_hide);

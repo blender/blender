@@ -172,7 +172,7 @@ static void calc_faces(const Sculpt &sd,
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
   const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -180,7 +180,7 @@ static void calc_faces(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -196,11 +196,11 @@ static void calc_faces(const Sculpt &sd,
 
   scale_factors(factors, cache.bstrength);
 
-  tls.vert_neighbors.reinitialize(verts.size());
+  tls.vert_neighbors.resize(verts.size());
   calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
   const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translation_directions(brush, cache, positions, translations);
   calc_neighbor_influence(positions_eval, positions, vert_neighbors, translations);
@@ -223,7 +223,7 @@ static void calc_grids(const Sculpt &sd,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.factors.reinitialize(positions.size());
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -231,7 +231,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_data.normals, grids, factors);
   }
 
-  tls.distances.reinitialize(positions.size());
+  tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -247,7 +247,7 @@ static void calc_grids(const Sculpt &sd,
 
   scale_factors(factors, cache.bstrength);
 
-  tls.translations.reinitialize(positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translation_directions(brush, cache, positions, translations);
   calc_neighbor_influence(subdiv_ccg, positions, grids, translations);
@@ -270,7 +270,7 @@ static void calc_bmesh(
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
@@ -278,7 +278,7 @@ static void calc_bmesh(
     calc_front_face(cache.view_normal, orig_normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -293,7 +293,7 @@ static void calc_bmesh(
 
   scale_factors(factors, cache.bstrength);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translation_directions(brush, cache, positions, translations);
   calc_neighbor_influence(positions, verts, translations);

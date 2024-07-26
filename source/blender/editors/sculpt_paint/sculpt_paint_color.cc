@@ -271,7 +271,7 @@ static void do_color_smooth_task(const Object &object,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
@@ -279,7 +279,7 @@ static void do_color_smooth_task(const Object &object,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -294,7 +294,7 @@ static void do_color_smooth_task(const Object &object,
   calc_brush_texture_factors(ss, brush, vert_positions, verts, factors);
   scale_factors(factors, cache.bstrength);
 
-  tls.colors.reinitialize(verts.size());
+  tls.colors.resize(verts.size());
   MutableSpan<float4> colors = tls.colors;
   for (const int i : verts.index_range()) {
     colors[i] = color_vert_get(faces,
@@ -305,11 +305,11 @@ static void do_color_smooth_task(const Object &object,
                                verts[i]);
   }
 
-  tls.vert_neighbors.reinitialize(verts.size());
+  tls.vert_neighbors.resize(verts.size());
   calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
   const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
-  tls.new_colors.reinitialize(verts.size());
+  tls.new_colors.resize(verts.size());
   MutableSpan<float4> new_colors = tls.new_colors;
   smooth::neighbor_color_average(faces,
                                  corner_verts,
@@ -356,7 +356,7 @@ static void do_paint_brush_task(Object &object,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
@@ -364,7 +364,7 @@ static void do_paint_brush_task(Object &object,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   if (brush.tip_roundness < 1.0f) {
     calc_brush_cube_distances(ss, brush, mat, vert_positions, verts, distances, factors);
@@ -486,12 +486,12 @@ static void do_sample_wet_paint_task(const Object &object,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
 
   fill_factor_from_hide(mesh, verts, factors);
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -666,7 +666,7 @@ static void do_smear_brush_task(Object &object,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
@@ -674,7 +674,7 @@ static void do_smear_brush_task(Object &object,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);

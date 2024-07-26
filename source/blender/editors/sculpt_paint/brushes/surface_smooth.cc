@@ -121,7 +121,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
         calc_front_face(cache.view_normal, vert_normals, verts, factors);
       }
 
-      tls.distances.reinitialize(verts.size());
+      tls.distances.resize(verts.size());
       const MutableSpan<float> distances = tls.distances;
       calc_brush_distances(
           ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -149,17 +149,17 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
         const OrigPositionData orig_data = orig_position_data_get_mesh(object, *nodes[i]);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.vert_neighbors.reinitialize(verts.size());
+        tls.vert_neighbors.resize(verts.size());
         calc_vert_neighbors(
             faces, corner_verts, ss.vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
 
-        tls.average_positions.reinitialize(verts.size());
+        tls.average_positions.resize(verts.size());
         const MutableSpan<float3> average_positions = tls.average_positions;
         smooth::neighbor_data_average_mesh(positions_eval, tls.vert_neighbors, average_positions);
 
-        tls.laplacian_disp.reinitialize(verts.size());
+        tls.laplacian_disp.resize(verts.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-        tls.translations.reinitialize(verts.size());
+        tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
         surface_smooth_laplacian_step(positions,
                                       orig_data.positions,
@@ -181,20 +181,20 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
         const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.laplacian_disp.reinitialize(verts.size());
+        tls.laplacian_disp.resize(verts.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
         gather_data_mesh(all_laplacian_disp.as_span(), verts, laplacian_disp);
 
-        tls.vert_neighbors.reinitialize(verts.size());
+        tls.vert_neighbors.resize(verts.size());
         calc_vert_neighbors(
             faces, corner_verts, ss.vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
 
-        tls.average_positions.reinitialize(verts.size());
+        tls.average_positions.resize(verts.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
         smooth::neighbor_data_average_mesh(
             all_laplacian_disp.as_span(), tls.vert_neighbors, average_laplacian_disps);
 
-        tls.translations.reinitialize(verts.size());
+        tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
         calc_displace_step(laplacian_disp, average_laplacian_disps, beta, translations);
         scale_translations(translations, factors);
@@ -238,7 +238,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
         calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
       }
 
-      tls.distances.reinitialize(positions.size());
+      tls.distances.resize(positions.size());
       const MutableSpan<float> distances = tls.distances;
       calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
       filter_distances_with_radius(cache.radius, distances, factors);
@@ -265,13 +265,13 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
         const OrigPositionData orig_data = orig_position_data_get_mesh(object, *nodes[i]);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.average_positions.reinitialize(positions.size());
+        tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_positions = tls.average_positions;
         smooth::neighbor_position_average_grids(subdiv_ccg, grids, average_positions);
 
-        tls.laplacian_disp.reinitialize(positions.size());
+        tls.laplacian_disp.resize(positions.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-        tls.translations.reinitialize(positions.size());
+        tls.translations.resize(positions.size());
         const MutableSpan<float3> translations = tls.translations;
         surface_smooth_laplacian_step(positions,
                                       orig_data.positions,
@@ -295,16 +295,16 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
         const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.laplacian_disp.reinitialize(positions.size());
+        tls.laplacian_disp.resize(positions.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
         gather_data_grids(subdiv_ccg, all_laplacian_disp.as_span(), grids, laplacian_disp);
 
-        tls.average_positions.reinitialize(positions.size());
+        tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
         smooth::average_data_grids(
             subdiv_ccg, all_laplacian_disp.as_span(), grids, average_laplacian_disps);
 
-        tls.translations.reinitialize(positions.size());
+        tls.translations.resize(positions.size());
         const MutableSpan<float3> translations = tls.translations;
         calc_displace_step(laplacian_disp, average_laplacian_disps, beta, translations);
         scale_translations(translations, factors);
@@ -346,7 +346,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
         calc_front_face(cache.view_normal, verts, factors);
       }
 
-      tls.distances.reinitialize(positions.size());
+      tls.distances.resize(positions.size());
       const MutableSpan<float> distances = tls.distances;
       calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
       filter_distances_with_radius(cache.radius, distances, factors);
@@ -375,13 +375,13 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
         orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.average_positions.reinitialize(positions.size());
+        tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_positions = tls.average_positions;
         smooth::neighbor_position_average_bmesh(verts, average_positions);
 
-        tls.laplacian_disp.reinitialize(positions.size());
+        tls.laplacian_disp.resize(positions.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-        tls.translations.reinitialize(positions.size());
+        tls.translations.resize(positions.size());
         const MutableSpan<float3> translations = tls.translations;
         surface_smooth_laplacian_step(
             positions, orig_positions, average_positions, alpha, laplacian_disp, translations);
@@ -401,15 +401,15 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
         const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.laplacian_disp.reinitialize(positions.size());
+        tls.laplacian_disp.resize(positions.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
         gather_data_vert_bmesh(all_laplacian_disp.as_span(), verts, laplacian_disp);
 
-        tls.average_positions.reinitialize(positions.size());
+        tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
         smooth::average_data_bmesh(all_laplacian_disp.as_span(), verts, average_laplacian_disps);
 
-        tls.translations.reinitialize(positions.size());
+        tls.translations.resize(positions.size());
         const MutableSpan<float3> translations = tls.translations;
         calc_displace_step(laplacian_disp, average_laplacian_disps, beta, translations);
         scale_translations(translations, factors);

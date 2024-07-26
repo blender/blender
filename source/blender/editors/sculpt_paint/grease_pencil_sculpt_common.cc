@@ -139,7 +139,7 @@ IndexMask brush_influence_mask(const Scene &scene,
         all_influences[point] = influence_base * brush_falloff;
         return all_influences[point] > 0.0f;
       });
-  influences.reinitialize(influence_mask.size());
+  influences.resize(influence_mask.size());
   array_utils::gather(all_influences.as_span(), influence_mask, influences.as_mutable_span());
 
   return influence_mask;

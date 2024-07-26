@@ -98,13 +98,13 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id);
 
 /** See #move_last_point_and_resample. */
 struct MoveAndResampleBuffers {
-  Array<float> orig_lengths;
-  Array<float> new_lengths;
+  Vector<float> orig_lengths;
+  Vector<float> new_lengths;
 
-  Array<int> sample_indices;
-  Array<float> sample_factors;
+  Vector<int> sample_indices;
+  Vector<float> sample_factors;
 
-  Array<float3> new_positions;
+  Vector<float3> new_positions;
 };
 
 /**

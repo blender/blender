@@ -245,7 +245,7 @@ static void color_filter_task(Object &ob,
                                    verts[i]);
       }
 
-      tls.vert_neighbors.reinitialize(verts.size());
+      tls.vert_neighbors.resize(verts.size());
       calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
       const Span<Vector<int>> neighbors = tls.vert_neighbors;
 
@@ -339,7 +339,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
       for (const int i : range) {
         const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
 
-        tls.vert_neighbors.reinitialize(verts.size());
+        tls.vert_neighbors.resize(verts.size());
         calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
         const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 

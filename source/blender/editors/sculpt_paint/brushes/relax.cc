@@ -278,7 +278,7 @@ BLI_NOINLINE static void calc_relaxed_translations_faces(const OffsetIndices<int
   BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == translations.size());
 
-  tls.vert_neighbors.reinitialize(verts.size());
+  tls.vert_neighbors.resize(verts.size());
   calc_vert_neighbors_interior(
       faces, corner_verts, vert_to_face_map, boundary_verts, hide_poly, verts, tls.vert_neighbors);
   const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
@@ -383,7 +383,7 @@ BLI_NOINLINE static void calc_relaxed_translations_grids(const OffsetIndices<int
   BLI_assert(grid_verts_num == translations.size());
   BLI_assert(grid_verts_num == factors.size());
 
-  tls.vert_neighbors.reinitialize(grid_verts_num);
+  tls.vert_neighbors.resize(grid_verts_num);
   calc_vert_neighbors_interior(
       faces, corner_verts, boundary_verts, subdiv_ccg, grids, tls.vert_neighbors);
   const Span<Vector<SubdivCCGCoord>> vert_neighbors = tls.vert_neighbors;
@@ -501,7 +501,7 @@ BLI_NOINLINE static void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> 
   BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == translations.size());
 
-  tls.vert_neighbors.reinitialize(verts.size());
+  tls.vert_neighbors.resize(verts.size());
   calc_vert_neighbors_interior(verts, tls.vert_neighbors);
   const Span<Vector<BMVert *>> vert_neighbors = tls.vert_neighbors;
 
@@ -690,7 +690,7 @@ BLI_NOINLINE static void calc_factors_faces(const Brush &brush,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -810,7 +810,7 @@ BLI_NOINLINE static void calc_factors_grids(const Brush &brush,
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
 
-  tls.distances.reinitialize(grid_verts_num);
+  tls.distances.resize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -928,7 +928,7 @@ static void calc_factors_bmesh(Object &object,
     calc_front_face(cache.view_normal, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -1024,7 +1024,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_faces(const Brush &brush,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -1135,7 +1135,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Brush &brush,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.reinitialize(grid_verts_num);
+  tls.distances.resize(grid_verts_num);
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -1245,7 +1245,7 @@ static void calc_topology_relax_factors_bmesh(Object &object,
     calc_front_face(cache.view_normal, orig_normals, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);

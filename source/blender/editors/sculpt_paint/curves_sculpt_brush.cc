@@ -362,7 +362,7 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
 {
   /* Find the accumulated length of each point in the original curve,
    * treating it as a poly curve for performance reasons and simplicity. */
-  buffer.orig_lengths.reinitialize(length_parameterize::segments_num(positions.size(), false));
+  buffer.orig_lengths.resize(length_parameterize::segments_num(positions.size(), false));
   length_parameterize::accumulate_lengths<float3>(positions, false, buffer.orig_lengths);
   const float orig_total_length = buffer.orig_lengths.last();
 
@@ -372,18 +372,18 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
   const float length_factor = math::safe_divide(new_total_length, orig_total_length);
 
   /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
-  buffer.new_lengths.reinitialize(positions.size() - 1);
+  buffer.new_lengths.resize(positions.size() - 1);
   buffer.new_lengths.first() = 0.0f;
   for (const int i : buffer.new_lengths.index_range().drop_front(1)) {
     buffer.new_lengths[i] = buffer.orig_lengths[i - 1] * length_factor;
   }
 
-  buffer.sample_indices.reinitialize(positions.size() - 1);
-  buffer.sample_factors.reinitialize(positions.size() - 1);
+  buffer.sample_indices.resize(positions.size() - 1);
+  buffer.sample_factors.resize(positions.size() - 1);
   length_parameterize::sample_at_lengths(
       buffer.orig_lengths, buffer.new_lengths, buffer.sample_indices, buffer.sample_factors);
 
-  buffer.new_positions.reinitialize(positions.size() - 1);
+  buffer.new_positions.resize(positions.size() - 1);
   length_parameterize::interpolate<float3>(
       positions, buffer.sample_indices, buffer.sample_factors, buffer.new_positions);
   positions.drop_back(1).copy_from(buffer.new_positions);

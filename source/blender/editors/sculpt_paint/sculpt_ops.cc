@@ -997,17 +997,17 @@ static void bake_mask_mesh(const Object &object,
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide(mesh, verts, factors);
   scale_factors(factors, factor);
 
-  tls.new_mask.reinitialize(verts.size());
+  tls.new_mask.resize(verts.size());
   const MutableSpan<float> new_mask = tls.new_mask;
   new_mask.fill(1.0f);
   auto_mask::calc_vert_factors(object, automasking, node, verts, new_mask);
 
-  tls.mask.reinitialize(verts.size());
+  tls.mask.resize(verts.size());
   const MutableSpan<float> node_mask = tls.mask;
   gather_data_mesh(mask.as_span(), verts, node_mask);
 
@@ -1031,17 +1031,17 @@ static void bake_mask_grids(Object &object,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  tls.factors.reinitialize(grid_verts_num);
+  tls.factors.resize(grid_verts_num);
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide(subdiv_ccg, grids, factors);
   scale_factors(factors, factor);
 
-  tls.new_mask.reinitialize(grid_verts_num);
+  tls.new_mask.resize(grid_verts_num);
   const MutableSpan<float> new_mask = tls.new_mask;
   new_mask.fill(1.0f);
   auto_mask::calc_grids_factors(object, automasking, node, grids, new_mask);
 
-  tls.mask.reinitialize(grid_verts_num);
+  tls.mask.resize(grid_verts_num);
   const MutableSpan<float> node_mask = tls.mask;
   gather_mask_grids(subdiv_ccg, grids, node_mask);
 
@@ -1061,17 +1061,17 @@ static void bake_mask_bmesh(Object &object,
   const SculptSession &ss = *object.sculpt;
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide(verts, factors);
   scale_factors(factors, factor);
 
-  tls.new_mask.reinitialize(verts.size());
+  tls.new_mask.resize(verts.size());
   const MutableSpan<float> new_mask = tls.new_mask;
   new_mask.fill(1.0f);
   auto_mask::calc_vert_factors(object, automasking, node, verts, new_mask);
 
-  tls.mask.reinitialize(verts.size());
+  tls.mask.resize(verts.size());
   const MutableSpan<float> node_mask = tls.mask;
   gather_mask_bmesh(*ss.bm, verts, node_mask);
 

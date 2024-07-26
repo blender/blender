@@ -59,13 +59,13 @@ static void apply_projection_mesh(const Sculpt &sd,
   const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
   const MutableSpan normals = gather_data_mesh(vert_normals, verts, tls.normals);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
 
   gesture::filter_factors(gesture_data, positions, normals, factors);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations_to_plane(positions, gesture_data.line.plane, translations);
   scale_translations(translations, factors);
@@ -86,17 +86,17 @@ static void apply_projection_grids(const Sculpt &sd,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.normals.reinitialize(positions.size());
+  tls.normals.resize(positions.size());
   const MutableSpan<float3> normals = tls.normals;
   gather_grids_normals(subdiv_ccg, grids, normals);
 
-  tls.factors.reinitialize(positions.size());
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
 
   gesture::filter_factors(gesture_data, positions, normals, factors);
 
-  tls.translations.reinitialize(positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations_to_plane(positions, gesture_data.line.plane, translations);
   scale_translations(translations, factors);
@@ -116,17 +116,17 @@ static void apply_projection_bmesh(const Sculpt &sd,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  tls.normals.reinitialize(verts.size());
+  tls.normals.resize(verts.size());
   const MutableSpan<float3> normals = tls.normals;
   gather_bmesh_normals(verts, normals);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
 
   gesture::filter_factors(gesture_data, positions, normals, factors);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations_to_plane(positions, gesture_data.line.plane, translations);
   scale_translations(translations, factors);

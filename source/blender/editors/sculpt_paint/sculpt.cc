@@ -1610,7 +1610,7 @@ void restore_position_from_undo_step(Object &object)
             const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             const Span<float3> undo_positions = unode->position.as_span().take_front(verts.size());
             if (need_translations) {
-              tls.translations.reinitialize(verts.size());
+              tls.translations.resize(verts.size());
               translations_from_new_positions(
                   undo_positions, verts, positions_eval, tls.translations);
             }

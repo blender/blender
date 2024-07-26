@@ -53,7 +53,7 @@ static void calc_faces(const Sculpt &sd,
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, positions_eval, verts, factors);
@@ -61,7 +61,7 @@ static void calc_faces(const Sculpt &sd,
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -77,7 +77,7 @@ static void calc_faces(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   gather_data_mesh(all_translations, verts, translations);
   scale_translations(translations, factors);
@@ -100,7 +100,7 @@ static void calc_grids(const Sculpt &sd,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.factors.reinitialize(positions.size());
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -108,7 +108,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
 
-  tls.distances.reinitialize(positions.size());
+  tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -123,7 +123,7 @@ static void calc_grids(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.translations.reinitialize(positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   gather_data_grids(subdiv_ccg, all_translations, grids, translations);
   scale_translations(translations, factors);
@@ -146,7 +146,7 @@ static void calc_bmesh(const Sculpt &sd,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  tls.factors.reinitialize(verts.size());
+  tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -154,7 +154,7 @@ static void calc_bmesh(const Sculpt &sd,
     calc_front_face(cache.view_normal, verts, factors);
   }
 
-  tls.distances.reinitialize(verts.size());
+  tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -169,7 +169,7 @@ static void calc_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   gather_data_vert_bmesh(all_translations, verts, translations);
   scale_translations(translations, factors);
@@ -188,15 +188,15 @@ static void calc_translations_faces(const Span<float3> vert_positions,
 {
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
-  tls.vert_neighbors.reinitialize(verts.size());
+  tls.vert_neighbors.resize(verts.size());
   const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
   calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, neighbors);
 
-  tls.new_positions.reinitialize(verts.size());
+  tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
   smooth::neighbor_data_average_mesh(vert_positions, neighbors, new_positions);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, verts, vert_positions, translations);
   scatter_data_mesh(translations.as_span(), verts, all_translations);
@@ -210,11 +210,11 @@ static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
-  tls.new_positions.reinitialize(positions.size());
+  tls.new_positions.resize(positions.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
   smooth::neighbor_position_average_grids(subdiv_ccg, grids, new_positions);
 
-  tls.translations.reinitialize(positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
   scatter_data_grids(subdiv_ccg, translations.as_span(), grids, all_translations);
@@ -227,11 +227,11 @@ static void calc_translations_bmesh(bke::pbvh::Node &node,
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
-  tls.new_positions.reinitialize(verts.size());
+  tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
   smooth::neighbor_position_average_bmesh(verts, new_positions);
 
-  tls.translations.reinitialize(verts.size());
+  tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
   scatter_data_vert_bmesh(translations.as_span(), verts, all_translations);

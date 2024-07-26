@@ -272,7 +272,7 @@ void update_mask_mesh(Object &object,
     threading::isolate_task([&]() {
       for (bke::pbvh::Node *node : nodes.slice(range)) {
         const Span<int> verts = hide::node_visible_verts(*node, hide_vert, tls.visible_verts);
-        tls.mask.reinitialize(verts.size());
+        tls.mask.resize(verts.size());
         array_utils::gather<float>(mask.span, verts, tls.mask);
         update_fn(tls.mask, verts);
         if (array_utils::indexed_data_equal<float>(mask.span, verts, tls.mask)) {
