@@ -130,6 +130,8 @@ struct GPUSource {
         printf_preprocess(g_formats);
         builtins |= shader::BuiltinBits::USE_PRINTF;
       }
+#else
+      (void)g_formats;
 #endif
       check_no_quotes();
     }
