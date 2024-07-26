@@ -52,7 +52,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
     ID *local_asset_id_ = nullptr; /* Non-owning. */
   };
 
-  friend class AssetStorage;
+  friend class AssetLibrary;
 
  public:
   /** Constructs an asset representation for an external ID. The asset will not be editable. */

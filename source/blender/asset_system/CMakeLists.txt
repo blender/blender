@@ -26,7 +26,6 @@ set(SRC
   intern/asset_library_runtime.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
-  intern/asset_storage.cc
   intern/utils.cc
 
   AS_asset_catalog.hh
@@ -44,7 +43,6 @@ set(SRC
   intern/asset_library_on_disk.hh
   intern/asset_library_runtime.hh
   intern/asset_library_service.hh
-  intern/asset_storage.hh
   intern/utils.hh
 )
 
