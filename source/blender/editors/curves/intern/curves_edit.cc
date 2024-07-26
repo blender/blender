@@ -10,6 +10,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 
 #include "ED_curves.hh"
 
@@ -223,6 +224,104 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
     selection.span.take_back(mask.size()).fill(true);
     selection.finish();
   }
+}
+
+void add_curves(bke::CurvesGeometry &curves, const Span<int> new_sizes)
+{
+  const int orig_points_num = curves.points_num();
+  const int orig_curves_num = curves.curves_num();
+  curves.resize(orig_points_num, orig_curves_num + new_sizes.size());
+
+  /* Find the final number of points by accumulating the new */
+  MutableSpan<int> new_offsets = curves.offsets_for_write().drop_front(orig_curves_num);
+  new_offsets.drop_back(1).copy_from(new_sizes);
+  offset_indices::accumulate_counts_to_offsets(new_offsets, orig_points_num);
+  /* First, resize the curve domain. */
+  curves.resize(curves.offsets().last(), curves.curves_num());
+
+  /* Initialize new attribute values, since #CurvesGeometry::resize() doesn't do that. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Point, {}, curves.points_range().drop_front(orig_points_num));
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Curve, {}, curves.curves_range().drop_front(orig_curves_num));
+
+  curves.update_curve_types();
+}
+
+void resize_curves(bke::CurvesGeometry &curves,
+                   const IndexMask &curves_to_resize,
+                   const Span<int> new_sizes)
+{
+  if (curves_to_resize.is_empty()) {
+    return;
+  }
+  BLI_assert(curves_to_resize.size() == new_sizes.size());
+  bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(curves);
+
+  IndexMaskMemory memory;
+  IndexMask curves_to_copy;
+  std::optional<IndexRange> range = curves_to_resize.to_range();
+  /* Check if we need to copy some curves over. Write the new sizes into the offests. */
+  if (range && curves.curves_range() == *range) {
+    curves_to_copy = curves_to_resize.complement(curves.curves_range(), memory);
+    offset_indices::copy_group_sizes(
+        curves.offsets(), curves_to_copy, dst_curves.offsets_for_write());
+    array_utils::scatter(new_sizes, curves_to_resize, dst_curves.offsets_for_write());
+  }
+  else {
+    curves_to_copy = {};
+    dst_curves.offsets_for_write().drop_back(1).copy_from(new_sizes);
+  }
+  /* Accumulate the sizes written from `new_sizes` into offsets. */
+  offset_indices::accumulate_counts_to_offsets(dst_curves.offsets_for_write());
+
+  /* Resize the points domain.*/
+  dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
+
+  /* Copy point attributes and default initialize newly added point ranges. */
+  const bke::AttrDomain domain(bke::AttrDomain::Point);
+  const OffsetIndices<int> src_offsets = curves.points_by_curve();
+  const OffsetIndices<int> dst_offsets = dst_curves.points_by_curve();
+  const bke::AttributeAccessor src_attributes = curves.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (meta_data.domain != domain || id.is_anonymous()) {
+          return true;
+        }
+        const GVArraySpan src = *src_attributes.lookup(id, domain);
+        const CPPType &type = src.type();
+        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            id, domain, meta_data.data_type);
+        if (!dst) {
+          return true;
+        }
+
+        curves_to_resize.foreach_index(GrainSize(512), [&](const int curve_i) {
+          const IndexRange src_points = src_offsets[curve_i];
+          const IndexRange dst_points = dst_offsets[curve_i];
+          if (dst_points.size() < src_points.size()) {
+            const int src_excees = src_points.size() - dst_points.size();
+            dst.span.slice(dst_points).copy_from(src.slice(src_points.drop_back(src_excees)));
+          }
+          else {
+            const int dst_excees = dst_points.size() - src_points.size();
+            dst.span.slice(dst_points.drop_back(dst_excees)).copy_from(src.slice(src_points));
+            GMutableSpan dst_end_slice = dst.span.slice(dst_points.take_back(dst_excees));
+            type.value_initialize_n(dst_end_slice.data(), dst_end_slice.size());
+          }
+        });
+        array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src, dst.span);
+        dst.finish();
+        return true;
+      });
+
+  dst_curves.update_curve_types();
+
+  /* Move the result into `curves`. */
+  curves = std::move(dst_curves);
+  curves.tag_topology_changed();
 }
 
 }  // namespace blender::ed::curves

@@ -348,6 +348,23 @@ bool remove_selection(bke::CurvesGeometry &curves, bke::AttrDomain selection_dom
 void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask);
 void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask);
 
+/**
+ * Adds new curves to \a curves.
+ * \param new_sizes: The new size for each curve. Sizes must be > 0.
+ */
+void add_curves(bke::CurvesGeometry &curves, Span<int> new_sizes);
+
+/**
+ * Resizes the curves in \a curves.
+ * \param curves_to_resize: The curves that should be resized.
+ * \param new_sizes: The new size for each curve in \a curves_to_resize. If the size is smaller,
+ * the curve is trimmed from the end. If the size is larger, the end is extended and all attributes
+ * are default initialized. Sizes must be > 0.
+ */
+void resize_curves(bke::CurvesGeometry &curves,
+                   const IndexMask &curves_to_resize,
+                   Span<int> new_sizes);
+
 /** \} */
 
 }  // namespace blender::ed::curves
