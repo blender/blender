@@ -117,11 +117,6 @@ struct SculptOrigVertData {
   const float *col;
 };
 
-enum eBoundaryAutomaskMode {
-  AUTOMASK_INIT_BOUNDARY_EDGES = 1,
-  AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
-};
-
 namespace blender::ed::sculpt_paint::undo {
 
 enum class Type : int8_t {
@@ -205,13 +200,6 @@ struct SculptBrushTest {
 
 using SculptBrushTestFn = bool (*)(SculptBrushTest &test, const float co[3]);
 
-/* Sculpt Filters */
-enum SculptFilterOrientation {
-  SCULPT_FILTER_ORIENTATION_LOCAL = 0,
-  SCULPT_FILTER_ORIENTATION_WORLD = 1,
-  SCULPT_FILTER_ORIENTATION_VIEW = 2,
-};
-
 /* Defines how transform tools are going to apply its displacement. */
 enum SculptTransformDisplacementMode {
   /* Displaces the elements from their original coordinates. */
@@ -225,6 +213,12 @@ enum SculptTransformDisplacementMode {
 namespace blender::ed::sculpt_paint {
 
 namespace filter {
+
+enum class FilterOrientation {
+  Local = 0,
+  World = 1,
+  View = 2,
+};
 
 struct Cache {
   bool enabled_axis[3];
@@ -248,7 +242,7 @@ struct Cache {
   Array<float3> detail_directions;
 
   /* Filter orientation. */
-  SculptFilterOrientation orientation;
+  FilterOrientation orientation;
   float4x4 obmat;
   float4x4 obmat_inv;
   float4x4 viewmat;
@@ -503,36 +497,36 @@ struct StrokeCache {
 
 namespace expand {
 
-enum eSculptExpandFalloffType {
-  SCULPT_EXPAND_FALLOFF_GEODESIC,
-  SCULPT_EXPAND_FALLOFF_TOPOLOGY,
-  SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS,
-  SCULPT_EXPAND_FALLOFF_NORMALS,
-  SCULPT_EXPAND_FALLOFF_SPHERICAL,
-  SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY,
-  SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET,
-  SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET,
+enum class FalloffType {
+  Geodesic,
+  Topology,
+  TopologyNormals,
+  Normals,
+  Sphere,
+  BoundaryTopology,
+  BoundaryFaceSet,
+  ActiveFaceSet,
 };
 
-enum eSculptExpandTargetType {
-  SCULPT_EXPAND_TARGET_MASK,
-  SCULPT_EXPAND_TARGET_FACE_SETS,
-  SCULPT_EXPAND_TARGET_COLORS,
+enum class TargetType {
+  Mask,
+  FaceSets,
+  Colors,
 };
 
-enum eSculptExpandRecursionType {
-  SCULPT_EXPAND_RECURSION_TOPOLOGY,
-  SCULPT_EXPAND_RECURSION_GEODESICS,
+enum class RecursionType {
+  Topology,
+  Geodesic,
 };
 
 #define EXPAND_SYMM_AREAS 8
 
 struct Cache {
   /* Target data elements that the expand operation will affect. */
-  eSculptExpandTargetType target;
+  TargetType target;
 
   /* Falloff data. */
-  eSculptExpandFalloffType falloff_type;
+  FalloffType falloff_type;
 
   /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
    * editing modification applied). */
@@ -565,9 +559,9 @@ struct Cache {
   int max_geodesic_move_preview;
 
   /* Original falloff type before starting the move operation. */
-  eSculptExpandFalloffType move_original_falloff_type;
+  FalloffType move_original_falloff_type;
   /* Falloff type using when moving the origin for preview. */
-  eSculptExpandFalloffType move_preview_falloff_type;
+  FalloffType move_preview_falloff_type;
 
   /* Face set ID that is going to be used when creating a new Face Set. */
   int next_face_set;

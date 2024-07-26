@@ -1255,20 +1255,24 @@ void plane_falloff_preview_draw(const uint gpuattr,
 
 /* Cloth Filter. */
 
-enum eSculptClothFilterType {
-  CLOTH_FILTER_GRAVITY,
-  CLOTH_FILTER_INFLATE,
-  CLOTH_FILTER_EXPAND,
-  CLOTH_FILTER_PINCH,
-  CLOTH_FILTER_SCALE,
+enum class ClothFilterType {
+  Gravity,
+  Inflate,
+  Expand,
+  Pinch,
+  Scale,
 };
 
 static EnumPropertyItem prop_cloth_filter_type[] = {
-    {CLOTH_FILTER_GRAVITY, "GRAVITY", 0, "Gravity", "Applies gravity to the simulation"},
-    {CLOTH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflates the cloth"},
-    {CLOTH_FILTER_EXPAND, "EXPAND", 0, "Expand", "Expands the cloth's dimensions"},
-    {CLOTH_FILTER_PINCH, "PINCH", 0, "Pinch", "Pulls the cloth to the cursor's start position"},
-    {CLOTH_FILTER_SCALE,
+    {int(ClothFilterType::Gravity), "GRAVITY", 0, "Gravity", "Applies gravity to the simulation"},
+    {int(ClothFilterType::Inflate), "INFLATE", 0, "Inflate", "Inflates the cloth"},
+    {int(ClothFilterType::Expand), "EXPAND", 0, "Expand", "Expands the cloth's dimensions"},
+    {int(ClothFilterType::Pinch),
+     "PINCH",
+     0,
+     "Pinch",
+     "Pulls the cloth to the cursor's start position"},
+    {int(ClothFilterType::Scale),
      "SCALE",
      0,
      "Scale",
@@ -1277,17 +1281,17 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
 };
 
 static EnumPropertyItem prop_cloth_filter_orientation_items[] = {
-    {SCULPT_FILTER_ORIENTATION_LOCAL,
+    {int(filter::FilterOrientation::Local),
      "LOCAL",
      0,
      "Local",
      "Use the local axis to limit the force and set the gravity direction"},
-    {SCULPT_FILTER_ORIENTATION_WORLD,
+    {int(filter::FilterOrientation::World),
      "WORLD",
      0,
      "World",
      "Use the global axis to limit the force and set the gravity direction"},
-    {SCULPT_FILTER_ORIENTATION_VIEW,
+    {int(filter::FilterOrientation::View),
      "VIEW",
      0,
      "View",
@@ -1308,9 +1312,9 @@ static EnumPropertyItem prop_cloth_filter_force_axis_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static bool cloth_filter_is_deformation_filter(eSculptClothFilterType filter_type)
+static bool cloth_filter_is_deformation_filter(ClothFilterType filter_type)
 {
-  return ELEM(filter_type, CLOTH_FILTER_SCALE);
+  return ELEM(filter_type, ClothFilterType::Scale);
 }
 
 static void cloth_filter_apply_displacement_to_deform_co(const int v_index,
@@ -1333,7 +1337,7 @@ static void cloth_filter_apply_forces_to_vertices(const int v_index,
 
 static void cloth_filter_apply_forces_task(Object &ob,
                                            const Sculpt &sd,
-                                           const eSculptClothFilterType filter_type,
+                                           const ClothFilterType filter_type,
                                            const float filter_strength,
                                            bke::pbvh::Node *node)
 {
@@ -1372,8 +1376,8 @@ static void cloth_filter_apply_forces_task(Object &ob,
     }
 
     switch (filter_type) {
-      case CLOTH_FILTER_GRAVITY:
-        if (ss.filter_cache->orientation == SCULPT_FILTER_ORIENTATION_VIEW) {
+      case ClothFilterType::Gravity:
+        if (ss.filter_cache->orientation == filter::FilterOrientation::View) {
           /* When using the view orientation apply gravity in the -Y axis, this way objects will
            * fall down instead of backwards. */
           force[1] = -filter_strength * fade;
@@ -1383,20 +1387,20 @@ static void cloth_filter_apply_forces_task(Object &ob,
         }
         force = filter::to_object_space(*ss.filter_cache, force);
         break;
-      case CLOTH_FILTER_INFLATE: {
+      case ClothFilterType::Inflate: {
         float3 normal = SCULPT_vertex_normal_get(ss, vd.vertex);
         force = normal * fade * filter_strength;
         break;
       }
-      case CLOTH_FILTER_EXPAND:
+      case ClothFilterType::Expand:
         cloth_sim.length_constraint_tweak[vd.index] += fade * filter_strength * 0.01f;
         force = float3(0);
         break;
-      case CLOTH_FILTER_PINCH:
+      case ClothFilterType::Pinch:
         force = math::normalize(ss.filter_cache->cloth_sim_pinch_point - float3(vd.co));
         force *= fade * filter_strength;
         break;
-      case CLOTH_FILTER_SCALE:
+      case ClothFilterType::Scale:
         float3x3 transform = float3x3::identity();
         scale_m3_fl(transform.ptr(), 1.0f + (fade * filter_strength));
         temp = cloth_sim.init_pos[vd.index];
@@ -1458,7 +1462,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       cloth_filter_apply_forces_task(
-          ob, sd, eSculptClothFilterType(filter_type), filter_strength, ss.filter_cache->nodes[i]);
+          ob, sd, ClothFilterType(filter_type), filter_strength, ss.filter_cache->nodes[i]);
     }
   });
 
@@ -1492,7 +1496,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  const eSculptClothFilterType filter_type = eSculptClothFilterType(RNA_enum_get(op->ptr, "type"));
+  const ClothFilterType filter_type = ClothFilterType(RNA_enum_get(op->ptr, "type"));
 
   /* Update the active vertex */
   float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
@@ -1553,7 +1557,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   ss.filter_cache->enabled_force_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
   ss.filter_cache->enabled_force_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
 
-  SculptFilterOrientation orientation = SculptFilterOrientation(
+  filter::FilterOrientation orientation = filter::FilterOrientation(
       RNA_enum_get(op->ptr, "orientation"));
   ss.filter_cache->orientation = orientation;
 
@@ -1578,7 +1582,7 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna,
                           "type",
                           prop_cloth_filter_type,
-                          CLOTH_FILTER_GRAVITY,
+                          int(ClothFilterType::Gravity),
                           "Filter Type",
                           "Operation that is going to be applied to the mesh");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -1591,7 +1595,7 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "orientation",
                prop_cloth_filter_orientation_items,
-               SCULPT_FILTER_ORIENTATION_LOCAL,
+               int(filter::FilterOrientation::Local),
                "Orientation",
                "Orientation of the axis to limit the filter force");
   RNA_def_float(ot->srna,

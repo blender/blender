@@ -168,14 +168,14 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 /** \name Sample Detail Size
  * \{ */
 
-enum eSculptSampleDetailModeTypes {
-  SAMPLE_DETAIL_DYNTOPO = 0,
-  SAMPLE_DETAIL_VOXEL = 1,
+enum class SampleDetailModeType {
+  Dyntopo = 0,
+  Voxel = 1,
 };
 
 static EnumPropertyItem prop_sculpt_sample_detail_mode_types[] = {
-    {SAMPLE_DETAIL_DYNTOPO, "DYNTOPO", 0, "Dyntopo", "Sample dyntopo detail"},
-    {SAMPLE_DETAIL_VOXEL, "VOXEL", 0, "Voxel", "Sample mesh voxel size"},
+    {int(SampleDetailModeType::Dyntopo), "DYNTOPO", 0, "Dyntopo", "Sample dyntopo detail"},
+    {int(SampleDetailModeType::Voxel), "VOXEL", 0, "Voxel", "Sample mesh voxel size"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -256,7 +256,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   }
 }
 
-static int sample_detail(bContext *C, const int event_xy[2], int mode)
+static int sample_detail(bContext *C, const int event_xy[2], const SampleDetailModeType mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
@@ -298,7 +298,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
 
   /* Pick sample detail. */
   switch (mode) {
-    case SAMPLE_DETAIL_DYNTOPO:
+    case SampleDetailModeType::Dyntopo:
       if (ss.pbvh->type() != bke::pbvh::Type::BMesh) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
@@ -306,7 +306,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
       }
       sample_detail_dyntopo(C, &vc, mval);
       break;
-    case SAMPLE_DETAIL_VOXEL:
+    case SampleDetailModeType::Voxel:
       if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
@@ -327,7 +327,7 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 {
   int ss_co[2];
   RNA_int_get_array(op->ptr, "location", ss_co);
-  int mode = RNA_enum_get(op->ptr, "mode");
+  const SampleDetailModeType mode = SampleDetailModeType(RNA_enum_get(op->ptr, "mode"));
   return sample_detail(C, ss_co, mode);
 }
 
@@ -344,7 +344,7 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        int mode = RNA_enum_get(op->ptr, "mode");
+        SampleDetailModeType mode = SampleDetailModeType(RNA_enum_get(op->ptr, "mode"));
         sample_detail(C, event->xy, mode);
 
         RNA_int_set_array(op->ptr, "location", event->xy);
@@ -395,7 +395,7 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "mode",
                prop_sculpt_sample_detail_mode_types,
-               SAMPLE_DETAIL_DYNTOPO,
+               int(SampleDetailModeType::Dyntopo),
                "Detail Mode",
                "Target sculpting workflow that is going to use the sampled size");
 }

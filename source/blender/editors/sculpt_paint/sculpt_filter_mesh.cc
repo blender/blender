@@ -59,13 +59,13 @@ namespace blender::ed::sculpt_paint::filter {
 float3 to_orientation_space(const filter::Cache &filter_cache, const float3 &vector)
 {
   switch (filter_cache.orientation) {
-    case SCULPT_FILTER_ORIENTATION_LOCAL:
+    case FilterOrientation::Local:
       /* Do nothing, Sculpt Mode already works in object space. */
       return vector;
-    case SCULPT_FILTER_ORIENTATION_WORLD:
+    case FilterOrientation::World:
       return math::transform_point(float3x3(filter_cache.obmat), vector);
       break;
-    case SCULPT_FILTER_ORIENTATION_VIEW: {
+    case FilterOrientation::View: {
       const float3 world_space = math::transform_point(float3x3(filter_cache.obmat), vector);
       return math::transform_point(float3x3(filter_cache.viewmat), world_space);
     }
@@ -77,12 +77,12 @@ float3 to_orientation_space(const filter::Cache &filter_cache, const float3 &vec
 float3 to_object_space(const filter::Cache &filter_cache, const float3 &vector)
 {
   switch (filter_cache.orientation) {
-    case SCULPT_FILTER_ORIENTATION_LOCAL:
+    case FilterOrientation::Local:
       /* Do nothing, Sculpt Mode already works in object space. */
       return vector;
-    case SCULPT_FILTER_ORIENTATION_WORLD:
+    case FilterOrientation::World:
       return math::transform_point(float3x3(filter_cache.obmat_inv), vector);
-    case SCULPT_FILTER_ORIENTATION_VIEW: {
+    case FilterOrientation::View: {
       const float3 world_space = math::transform_point(float3x3(filter_cache.viewmat_inv), vector);
       return math::transform_point(float3x3(filter_cache.obmat_inv), world_space);
     }
@@ -205,44 +205,44 @@ void cache_init(bContext *C,
   }
 }
 
-enum eSculptMeshFilterType {
-  MESH_FILTER_SMOOTH = 0,
-  MESH_FILTER_SCALE = 1,
-  MESH_FILTER_INFLATE = 2,
-  MESH_FILTER_SPHERE = 3,
-  MESH_FILTER_RANDOM = 4,
-  MESH_FILTER_RELAX = 5,
-  MESH_FILTER_RELAX_FACE_SETS = 6,
-  MESH_FILTER_SURFACE_SMOOTH = 7,
-  MESH_FILTER_SHARPEN = 8,
-  MESH_FILTER_ENHANCE_DETAILS = 9,
-  MESH_FILTER_ERASE_DISPLACEMENT = 10,
+enum class MeshFilterType {
+  Smooth = 0,
+  Scale = 1,
+  Inflate = 2,
+  Sphere = 3,
+  Random = 4,
+  Relax = 5,
+  RelaxFaceSets = 6,
+  SurfaceSmooth = 7,
+  Sharpen = 8,
+  EnhanceDetails = 9,
+  EraseDispacement = 10,
 };
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
-    {MESH_FILTER_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth mesh"},
-    {MESH_FILTER_SCALE, "SCALE", 0, "Scale", "Scale mesh"},
-    {MESH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflate mesh"},
-    {MESH_FILTER_SPHERE, "SPHERE", 0, "Sphere", "Morph into sphere"},
-    {MESH_FILTER_RANDOM, "RANDOM", 0, "Random", "Randomize vertex positions"},
-    {MESH_FILTER_RELAX, "RELAX", 0, "Relax", "Relax mesh"},
-    {MESH_FILTER_RELAX_FACE_SETS,
+    {int(MeshFilterType::Smooth), "SMOOTH", 0, "Smooth", "Smooth mesh"},
+    {int(MeshFilterType::Scale), "SCALE", 0, "Scale", "Scale mesh"},
+    {int(MeshFilterType::Inflate), "INFLATE", 0, "Inflate", "Inflate mesh"},
+    {int(MeshFilterType::Sphere), "SPHERE", 0, "Sphere", "Morph into sphere"},
+    {int(MeshFilterType::Random), "RANDOM", 0, "Random", "Randomize vertex positions"},
+    {int(MeshFilterType::Relax), "RELAX", 0, "Relax", "Relax mesh"},
+    {int(MeshFilterType::RelaxFaceSets),
      "RELAX_FACE_SETS",
      0,
      "Relax Face Sets",
      "Smooth the edges of all the Face Sets"},
-    {MESH_FILTER_SURFACE_SMOOTH,
+    {int(MeshFilterType::SurfaceSmooth),
      "SURFACE_SMOOTH",
      0,
      "Surface Smooth",
      "Smooth the surface of the mesh, preserving the volume"},
-    {MESH_FILTER_SHARPEN, "SHARPEN", 0, "Sharpen", "Sharpen the cavities of the mesh"},
-    {MESH_FILTER_ENHANCE_DETAILS,
+    {int(MeshFilterType::Sharpen), "SHARPEN", 0, "Sharpen", "Sharpen the cavities of the mesh"},
+    {int(MeshFilterType::EnhanceDetails),
      "ENHANCE_DETAILS",
      0,
      "Enhance Details",
      "Enhance the high frequency surface detail"},
-    {MESH_FILTER_ERASE_DISPLACEMENT,
+    {int(MeshFilterType::EraseDispacement),
      "ERASE_DISCPLACEMENT",
      0,
      "Erase Displacement",
@@ -264,17 +264,17 @@ static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
 };
 
 static EnumPropertyItem prop_mesh_filter_orientation_items[] = {
-    {SCULPT_FILTER_ORIENTATION_LOCAL,
+    {int(FilterOrientation::Local),
      "LOCAL",
      0,
      "Local",
      "Use the local axis to limit the displacement"},
-    {SCULPT_FILTER_ORIENTATION_WORLD,
+    {int(FilterOrientation::World),
      "WORLD",
      0,
      "World",
      "Use the global axis to limit the displacement"},
-    {SCULPT_FILTER_ORIENTATION_VIEW,
+    {int(FilterOrientation::View),
      "VIEW",
      0,
      "View",
@@ -282,28 +282,28 @@ static EnumPropertyItem prop_mesh_filter_orientation_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
+static bool sculpt_mesh_filter_needs_pmap(MeshFilterType filter_type)
 {
   return ELEM(filter_type,
-              MESH_FILTER_SMOOTH,
-              MESH_FILTER_RELAX,
-              MESH_FILTER_RELAX_FACE_SETS,
-              MESH_FILTER_SURFACE_SMOOTH,
-              MESH_FILTER_ENHANCE_DETAILS,
-              MESH_FILTER_SHARPEN);
+              MeshFilterType::Smooth,
+              MeshFilterType::Relax,
+              MeshFilterType::RelaxFaceSets,
+              MeshFilterType::SurfaceSmooth,
+              MeshFilterType::EnhanceDetails,
+              MeshFilterType::Sharpen);
 }
 
-static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
+static bool sculpt_mesh_filter_is_continuous(MeshFilterType type)
 {
   return ELEM(type,
-              MESH_FILTER_SHARPEN,
-              MESH_FILTER_SMOOTH,
-              MESH_FILTER_RELAX,
-              MESH_FILTER_RELAX_FACE_SETS);
+              MeshFilterType::Sharpen,
+              MeshFilterType::Smooth,
+              MeshFilterType::Relax,
+              MeshFilterType::RelaxFaceSets);
 }
 
 static void mesh_filter_task(Object &ob,
-                             const eSculptMeshFilterType filter_type,
+                             const MeshFilterType filter_type,
                              const float filter_strength,
                              bke::pbvh::Node *node)
 {
@@ -332,7 +332,7 @@ static void mesh_filter_task(Object &ob,
     fade *= auto_mask::factor_get(
         ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
 
-    if (fade == 0.0f && filter_type != MESH_FILTER_SURFACE_SMOOTH) {
+    if (fade == 0.0f && filter_type != MeshFilterType::SurfaceSmooth) {
       /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
        * laplacian_disp. This value is accessed from the vertex neighbors when deforming the
        * vertices, so it is needed for all vertices even if they are not going to be displaced.
@@ -340,7 +340,7 @@ static void mesh_filter_task(Object &ob,
       continue;
     }
 
-    if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS) ||
+    if (ELEM(filter_type, MeshFilterType::Relax, MeshFilterType::RelaxFaceSets) ||
         ss.filter_cache->no_orig_co)
     {
       orig_co = vd.co;
@@ -349,14 +349,14 @@ static void mesh_filter_task(Object &ob,
       orig_co = orig_data.co;
     }
 
-    if (filter_type == MESH_FILTER_RELAX_FACE_SETS) {
+    if (filter_type == MeshFilterType::RelaxFaceSets) {
       if (relax_face_sets == face_set::vert_has_unique_face_set(ss, vd.vertex)) {
         continue;
       }
     }
 
     switch (filter_type) {
-      case MESH_FILTER_SMOOTH: {
+      case MeshFilterType::Smooth: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         const float3 avg = smooth::neighbor_coords_average_interior(ss, vd.vertex);
         val = avg - orig_co;
@@ -364,17 +364,17 @@ static void mesh_filter_task(Object &ob,
         disp = val - orig_co;
         break;
       }
-      case MESH_FILTER_INFLATE:
+      case MeshFilterType::Inflate:
         disp = float3(orig_data.no) * fade;
         break;
-      case MESH_FILTER_SCALE:
+      case MeshFilterType::Scale:
         unit_m3(transform.ptr());
         scale_m3_fl(transform.ptr(), 1.0f + fade);
         val = orig_co;
         val = transform * val;
         disp = val - orig_co;
         break;
-      case MESH_FILTER_SPHERE:
+      case MeshFilterType::Sphere:
         disp = math::normalize(orig_co);
         disp *= math::abs(fade);
 
@@ -391,7 +391,7 @@ static void mesh_filter_task(Object &ob,
 
         disp = math::midpoint(disp, disp2);
         break;
-      case MESH_FILTER_RANDOM: {
+      case MeshFilterType::Random: {
         float3 normal;
         copy_v3_v3(normal, orig_data.no);
         /* Index is not unique for multi-resolution, so hash by vertex coordinates. */
@@ -402,17 +402,17 @@ static void mesh_filter_task(Object &ob,
         disp = normal * fade;
         break;
       }
-      case MESH_FILTER_RELAX: {
+      case MeshFilterType::Relax: {
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
         disp = val - float3(vd.co);
         break;
       }
-      case MESH_FILTER_RELAX_FACE_SETS: {
+      case MeshFilterType::RelaxFaceSets: {
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
         disp = val - float3(vd.co);
         break;
       }
-      case MESH_FILTER_SURFACE_SMOOTH: {
+      case MeshFilterType::SurfaceSmooth: {
         smooth::surface_smooth_laplacian_step(ss,
                                               disp,
                                               vd.co,
@@ -422,7 +422,7 @@ static void mesh_filter_task(Object &ob,
                                               ss.filter_cache->surface_smooth_shape_preservation);
         break;
       }
-      case MESH_FILTER_SHARPEN: {
+      case MeshFilterType::Sharpen: {
         const float smooth_ratio = ss.filter_cache->sharpen_smooth_ratio;
 
         /* This filter can't work at full strength as it needs multiple iterations to reach a
@@ -454,11 +454,11 @@ static void mesh_filter_task(Object &ob,
         break;
       }
 
-      case MESH_FILTER_ENHANCE_DETAILS: {
+      case MeshFilterType::EnhanceDetails: {
         disp = ss.filter_cache->detail_directions[vd.index] * -fabsf(fade);
         break;
       }
-      case MESH_FILTER_ERASE_DISPLACEMENT: {
+      case MeshFilterType::EraseDispacement: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         disp = ss.filter_cache->limit_surface_co[vd.index] - orig_co;
         disp *= fade;
@@ -474,7 +474,7 @@ static void mesh_filter_task(Object &ob,
     }
     disp = to_object_space(*ss.filter_cache, disp);
 
-    if (ELEM(filter_type, MESH_FILTER_SURFACE_SMOOTH, MESH_FILTER_SHARPEN)) {
+    if (ELEM(filter_type, MeshFilterType::SurfaceSmooth, MeshFilterType::Sharpen)) {
       final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
     }
     else {
@@ -666,7 +666,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
+  MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   SCULPT_vertex_random_access_ensure(ss);
@@ -674,18 +674,18 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
 
   /* The relax mesh filter needs updated normals. */
-  if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
+  if (ELEM(filter_type, MeshFilterType::Relax, MeshFilterType::RelaxFaceSets)) {
     bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
   }
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mesh_filter_task(ob, eSculptMeshFilterType(filter_type), filter_strength, nodes[i]);
+      mesh_filter_task(ob, MeshFilterType(filter_type), filter_strength, nodes[i]);
       BKE_pbvh_node_mark_positions_update(nodes[i]);
     }
   });
 
-  if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
+  if (filter_type == MeshFilterType::SurfaceSmooth) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
         mesh_filter_surface_smooth_displace_task(ob, filter_strength, nodes[i]);
@@ -757,7 +757,7 @@ static void sculpt_mesh_filter_end(bContext *C)
 
 static int sculpt_mesh_filter_confirm(SculptSession &ss,
                                       wmOperator *op,
-                                      const eSculptMeshFilterType filter_type)
+                                      const MeshFilterType filter_type)
 {
 
   float initial_strength = ss.filter_cache->start_filter_strength;
@@ -788,7 +788,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.sculpt;
-  const eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
   sculpt_mesh_update_status_bar(C, op);
@@ -853,19 +853,19 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_filter_specific_init(const eSculptMeshFilterType filter_type,
+static void sculpt_filter_specific_init(const MeshFilterType filter_type,
                                         wmOperator *op,
                                         SculptSession &ss)
 {
   switch (filter_type) {
-    case MESH_FILTER_SURFACE_SMOOTH: {
+    case MeshFilterType::SurfaceSmooth: {
       const float shape_preservation = RNA_float_get(op->ptr, "surface_smooth_shape_preservation");
       const float current_vertex_displacement = RNA_float_get(op->ptr,
                                                               "surface_smooth_current_vertex");
       mesh_filter_surface_smooth_init(ss, shape_preservation, current_vertex_displacement);
       break;
     }
-    case MESH_FILTER_SHARPEN: {
+    case MeshFilterType::Sharpen: {
       const float smooth_ratio = RNA_float_get(op->ptr, "sharpen_smooth_ratio");
       const float intensify_detail_strength = RNA_float_get(op->ptr,
                                                             "sharpen_intensify_detail_strength");
@@ -875,11 +875,11 @@ static void sculpt_filter_specific_init(const eSculptMeshFilterType filter_type,
           ss, smooth_ratio, intensify_detail_strength, curvature_smooth_iterations);
       break;
     }
-    case MESH_FILTER_ENHANCE_DETAILS: {
+    case MeshFilterType::EnhanceDetails: {
       mesh_filter_enhance_details_init_directions(ss);
       break;
     }
-    case MESH_FILTER_ERASE_DISPLACEMENT: {
+    case MeshFilterType::EraseDispacement: {
       mesh_filter_init_limit_surface_co(ss);
       break;
     }
@@ -904,7 +904,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
 
-  const eSculptMeshFilterType filter_type = eSculptMeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
   const bool use_automasking = auto_mask::is_enabled(sd, nullptr, nullptr);
   const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
 
@@ -960,8 +960,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   ss.filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss.filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
 
-  SculptFilterOrientation orientation = SculptFilterOrientation(
-      RNA_enum_get(op->ptr, "orientation"));
+  FilterOrientation orientation = FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
   ss.filter_cache->orientation = orientation;
 
   return OPERATOR_PASS_THROUGH;
@@ -1077,7 +1076,7 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna,
                           "type",
                           prop_mesh_filter_types,
-                          MESH_FILTER_INFLATE,
+                          int(MeshFilterType::Inflate),
                           "Filter Type",
                           "Operation that is going to be applied to the mesh");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -1090,7 +1089,7 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "orientation",
                prop_mesh_filter_orientation_items,
-               SCULPT_FILTER_ORIENTATION_LOCAL,
+               int(FilterOrientation::Local),
                "Orientation",
                "Orientation of the axis to limit the filter displacement");
 
