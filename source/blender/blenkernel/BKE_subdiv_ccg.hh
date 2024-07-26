@@ -15,6 +15,7 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -248,6 +249,16 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG &subdiv_ccg,
 struct SubdivCCGNeighbors {
   blender::Vector<SubdivCCGCoord, 256> coords;
   int num_duplicates;
+
+  blender::Span<SubdivCCGCoord> unique() const
+  {
+    return this->coords.as_span().drop_back(num_duplicates);
+  }
+
+  blender::Span<SubdivCCGCoord> duplicate() const
+  {
+    return this->coords.as_span().take_back(num_duplicates);
+  }
 };
 
 void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord &coord);
