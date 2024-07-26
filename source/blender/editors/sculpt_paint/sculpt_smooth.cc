@@ -85,6 +85,9 @@ template void neighbor_data_average_mesh<float>(Span<float>,
 template void neighbor_data_average_mesh<float3>(Span<float3>,
                                                  Span<Vector<int>>,
                                                  MutableSpan<float3>);
+template void neighbor_data_average_mesh<float4>(Span<float4>,
+                                                 Span<Vector<int>>,
+                                                 MutableSpan<float4>);
 
 static float3 average_positions(const CCGKey &key,
                                 const Span<CCGElem *> elems,

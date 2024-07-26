@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
@@ -30,6 +31,8 @@
 #include "WM_types.hh"
 
 #include "ED_paint.hh"
+
+#include "mesh_brush_common.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -253,47 +256,54 @@ static void color_filter_task(Object &ob,
 
 static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
 {
-  int totvert = SCULPT_vertex_count_get(ss);
-
-  if (ss.filter_cache->pre_smoothed_color.is_empty()) {
-    ss.filter_cache->pre_smoothed_color = Array<float4>(totvert);
-  }
-
+  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   const bke::GAttributeReader color_attribute = active_color_attribute(mesh);
   const GVArraySpan colors = *color_attribute;
 
-  for (int i = 0; i < totvert; i++) {
-    ss.filter_cache->pre_smoothed_color[i] = color_vert_get(
-        faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, i);
+  if (ss.filter_cache->pre_smoothed_color.is_empty()) {
+    ss.filter_cache->pre_smoothed_color = Array<float4>(SCULPT_vertex_count_get(ss));
   }
+  const MutableSpan<float4> pre_smoothed_color = ss.filter_cache->pre_smoothed_color;
 
-  for (int iteration = 0; iteration < 2; iteration++) {
-    for (int i = 0; i < totvert; i++) {
-      float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-      int total = 0;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      for (const int vert : verts) {
+        pre_smoothed_color[vert] = color_vert_get(
+            faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, vert);
+  }
+    }
+  });
 
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{i}, ni) {
-        float col[4] = {0};
+  struct LocalData {
+    Vector<Vector<int>> vert_neighbors;
+    Vector<float4> averaged_colors;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  for ([[maybe_unused]] const int iteration : IndexRange(2)) {
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      LocalData &tls = all_tls.local();
+      for (const int i : range) {
+        const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
 
-        copy_v4_v4(col, ss.filter_cache->pre_smoothed_color[ni.index]);
+        tls.vert_neighbors.reinitialize(verts.size());
+        calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+        const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
 
-        add_v4_v4(avg, col);
-        total++;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+        tls.averaged_colors.resize(verts.size());
+        const MutableSpan<float4> averaged_colors = tls.averaged_colors;
+        smooth::neighbor_data_average_mesh(
+            pre_smoothed_color.as_span(), vert_neighbors, averaged_colors);
 
-      if (total > 0) {
-        mul_v4_fl(avg, 1.0f / float(total));
-        interp_v4_v4v4(ss.filter_cache->pre_smoothed_color[i],
-                       ss.filter_cache->pre_smoothed_color[i],
-                       avg,
-                       0.5f);
+        for (const int i : verts.index_range()) {
+          pre_smoothed_color[verts[i]] = math::interpolate(
+              pre_smoothed_color[verts[i]], averaged_colors[i], 0.5f);
       }
     }
+    });
   }
 }
 
