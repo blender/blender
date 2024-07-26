@@ -448,32 +448,25 @@ float neighbor_mask_average(SculptSession &ss,
   return 0.0f;
 }
 
-float4 neighbor_color_average(SculptSession &ss,
-                              const OffsetIndices<int> faces,
-                              const Span<int> corner_verts,
-                              const GroupedSpan<int> vert_to_face_map,
-                              const GSpan color_attribute,
-                              const bke::AttrDomain color_domain,
-                              const int vert)
+void neighbor_color_average(const OffsetIndices<int> faces,
+                            const Span<int> corner_verts,
+                            const GroupedSpan<int> vert_to_face_map,
+                            const GSpan color_attribute,
+                            const bke::AttrDomain color_domain,
+                            const Span<Vector<int>> vert_neighbors,
+                            const MutableSpan<float4> smooth_colors)
 {
-  float4 avg(0);
-  int total = 0;
+  BLI_assert(vert_neighbors.size() == smooth_colors.size());
 
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, PBVHVertRef{vert}, ni) {
-    float4 tmp = color::color_vert_get(
-        faces, corner_verts, vert_to_face_map, color_attribute, color_domain, ni.index);
-
-    avg += tmp;
-    total++;
+  for (const int i : vert_neighbors.index_range()) {
+    float4 sum(0);
+    const Span<int> neighbors = vert_neighbors[i];
+    for (const int vert : neighbors) {
+      sum += color::color_vert_get(
+          faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
+    }
+    smooth_colors[i] = sum / neighbors.size();
   }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    return avg / total;
-  }
-  return color::color_vert_get(
-      faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
 }
 
 /* HC Smooth Algorithm. */

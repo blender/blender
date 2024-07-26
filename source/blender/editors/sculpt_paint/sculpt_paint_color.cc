@@ -253,25 +253,6 @@ struct LocalData {
   Vector<Vector<int>> vert_neighbors;
 };
 
-BLI_NOINLINE static void calc_smooth_colors(const OffsetIndices<int> faces,
-                                            const Span<int> corner_verts,
-                                            const GroupedSpan<int> vert_to_face_map,
-                                            const Span<Vector<int>> vert_neighbors,
-                                            const GSpan colors,
-                                            const bke::AttrDomain color_domain,
-                                            const MutableSpan<float4> smooth_colors)
-{
-  for (const int i : vert_neighbors.index_range()) {
-    float4 sum(0);
-    const Span<int> neighbors = vert_neighbors[i];
-    for (const int vert : neighbors) {
-      sum += color::color_vert_get(
-          faces, corner_verts, vert_to_face_map, colors, color_domain, vert);
-    }
-    smooth_colors[i] = sum / neighbors.size();
-  }
-}
-
 static void do_color_smooth_task(const Object &object,
                                  const Span<float3> vert_positions,
                                  const Span<float3> vert_normals,
@@ -330,13 +311,13 @@ static void do_color_smooth_task(const Object &object,
 
   tls.new_colors.reinitialize(verts.size());
   MutableSpan<float4> new_colors = tls.new_colors;
-  calc_smooth_colors(faces,
-                     corner_verts,
-                     vert_to_face_map,
-                     vert_neighbors,
-                     color_attribute.span,
-                     color_attribute.domain,
-                     new_colors);
+  smooth::neighbor_color_average(faces,
+                                 corner_verts,
+                                 vert_to_face_map,
+                                 color_attribute.span,
+                                 color_attribute.domain,
+                                 vert_neighbors,
+                                 new_colors);
 
   for (const int i : colors.index_range()) {
     blend_color_interpolate_float(new_colors[i], colors[i], new_colors[i], factors[i]);

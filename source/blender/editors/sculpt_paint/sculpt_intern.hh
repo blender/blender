@@ -1661,13 +1661,14 @@ void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BM
 
 float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
 float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
-float4 neighbor_color_average(SculptSession &ss,
-                              OffsetIndices<int> faces,
-                              Span<int> corner_verts,
-                              GroupedSpan<int> vert_to_face_map,
-                              GSpan color_attribute,
-                              bke::AttrDomain color_domain,
-                              int vert);
+
+void neighbor_color_average(OffsetIndices<int> faces,
+                            Span<int> corner_verts,
+                            GroupedSpan<int> vert_to_face_map,
+                            GSpan color_attribute,
+                            bke::AttrDomain color_domain,
+                            Span<Vector<int>> vert_neighbors,
+                            MutableSpan<float4> smooth_colors);
 
 /**
  * Mask the mesh boundaries smoothing only the mesh surface without using auto-masking.

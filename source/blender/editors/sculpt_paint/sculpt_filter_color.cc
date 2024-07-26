@@ -77,8 +77,20 @@ static EnumPropertyItem prop_color_filter_types[] = {
 
 struct LocalData {
   Vector<float> factors;
+  Vector<float4> colors;
+  Vector<Vector<int>> vert_neighbors;
+  Vector<float4> average_colors;
   Vector<float4> new_colors;
 };
+
+BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors,
+                                       const float min,
+                                       const float max)
+{
+  for (float &factor : factors) {
+    factor = std::clamp(factor, min, max);
+  }
+}
 
 static void color_filter_task(Object &ob,
                               const OffsetIndices<int> faces,
@@ -107,87 +119,103 @@ static void color_filter_task(Object &ob,
   tls.new_colors.resize(verts.size());
   const MutableSpan<float4> new_colors = tls.new_colors;
 
+  /* Copy alpha. */
   for (const int i : verts.index_range()) {
-    const int vert = verts[i];
+    new_colors[i][3] = orig_colors[i][3];
+  }
 
-    float3 orig_color;
-    float3 hsv_color;
-    int hue;
-    float brightness, contrast, gain, delta, offset;
-    float fade = factors[i];
-
-    copy_v3_v3(orig_color, orig_colors[i]);
-    new_colors[i][3] = orig_colors[i][3]; /* Copy alpha */
-
-    switch (mode) {
-      case FilterType::Fill: {
+  switch (mode) {
+    case FilterType::Fill: {
+      clamp_factors(factors, 0.0f, 1.0f);
+      for (const int i : verts.index_range()) {
         float fill_color_rgba[4];
         copy_v3_v3(fill_color_rgba, filter_fill_color);
         fill_color_rgba[3] = 1.0f;
-        fade = clamp_f(fade, 0.0f, 1.0f);
-        mul_v4_fl(fill_color_rgba, fade);
+        mul_v4_fl(fill_color_rgba, factors[i]);
         blend_color_mix_float(new_colors[i], orig_colors[i], fill_color_rgba);
-        break;
       }
-      case FilterType::Hue: {
-        rgb_to_hsv_v(orig_color, hsv_color);
-        hue = hsv_color[0];
-        hsv_color[0] = fmod((hsv_color[0] + fabs(fade)) - hue, 1);
+      break;
+    }
+    case FilterType::Hue: {
+      for (const int i : verts.index_range()) {
+        float3 hsv_color;
+        rgb_to_hsv_v(orig_colors[i], hsv_color);
+        const float hue = hsv_color[0];
+        hsv_color[0] = fmod((hsv_color[0] + fabs(factors[i])) - hue, 1);
         hsv_to_rgb_v(hsv_color, new_colors[i]);
-        break;
       }
-      case FilterType::Saturation: {
-        rgb_to_hsv_v(orig_color, hsv_color);
+      break;
+    }
+    case FilterType::Saturation: {
+      for (const int i : verts.index_range()) {
+        float3 hsv_color;
+        rgb_to_hsv_v(orig_colors[i], hsv_color);
 
         if (hsv_color[1] > 0.001f) {
-          hsv_color[1] = clamp_f(hsv_color[1] + fade * hsv_color[1], 0.0f, 1.0f);
+          hsv_color[1] = std::clamp(hsv_color[1] + factors[i] * hsv_color[1], 0.0f, 1.0f);
           hsv_to_rgb_v(hsv_color, new_colors[i]);
         }
         else {
-          copy_v3_v3(new_colors[i], orig_color);
+          copy_v3_v3(new_colors[i], orig_colors[i]);
         }
-        break;
       }
-      case FilterType::Value: {
-        rgb_to_hsv_v(orig_color, hsv_color);
-        hsv_color[2] = clamp_f(hsv_color[2] + fade, 0.0f, 1.0f);
+      break;
+    }
+    case FilterType::Value: {
+      for (const int i : verts.index_range()) {
+        float3 hsv_color;
+        rgb_to_hsv_v(orig_colors[i], hsv_color);
+        hsv_color[2] = std::clamp(hsv_color[2] + factors[i], 0.0f, 1.0f);
         hsv_to_rgb_v(hsv_color, new_colors[i]);
-        break;
       }
-      case FilterType::Red: {
-        orig_color[0] = clamp_f(orig_color[0] + fade, 0.0f, 1.0f);
-        copy_v3_v3(new_colors[i], orig_color);
-        break;
+      break;
+    }
+    case FilterType::Red: {
+      for (const int i : verts.index_range()) {
+        copy_v3_v3(new_colors[i], orig_colors[i]);
+        new_colors[i][0] = std::clamp(orig_colors[i][0] + factors[i], 0.0f, 1.0f);
       }
-      case FilterType::Green: {
-        orig_color[1] = clamp_f(orig_color[1] + fade, 0.0f, 1.0f);
-        copy_v3_v3(new_colors[i], orig_color);
-        break;
+      break;
+    }
+    case FilterType::Green: {
+      for (const int i : verts.index_range()) {
+        copy_v3_v3(new_colors[i], orig_colors[i]);
+        new_colors[i][1] = std::clamp(orig_colors[i][1] + factors[i], 0.0f, 1.0f);
       }
-      case FilterType::Blue: {
-        orig_color[2] = clamp_f(orig_color[2] + fade, 0.0f, 1.0f);
-        copy_v3_v3(new_colors[i], orig_color);
-        break;
+      break;
+    }
+    case FilterType::Blue: {
+      for (const int i : verts.index_range()) {
+        copy_v3_v3(new_colors[i], orig_colors[i]);
+        new_colors[i][2] = std::clamp(orig_colors[i][2] + factors[i], 0.0f, 1.0f);
       }
-      case FilterType::Brightness: {
-        fade = clamp_f(fade, -1.0f, 1.0f);
-        brightness = fade;
-        contrast = 0;
-        delta = contrast / 2.0f;
-        gain = 1.0f - delta * 2.0f;
+      break;
+    }
+    case FilterType::Brightness: {
+      clamp_factors(factors, -1.0f, 1.0f);
+      for (const int i : verts.index_range()) {
+        const float brightness = factors[i];
+        const float contrast = 0;
+        float delta = contrast / 2.0f;
+        const float gain = 1.0f - delta * 2.0f;
         delta *= -1;
-        offset = gain * (brightness + delta);
+        const float offset = gain * (brightness + delta);
         for (int component = 0; component < 3; component++) {
-          new_colors[i][component] = clamp_f(gain * orig_color[component] + offset, 0.0f, 1.0f);
+          new_colors[i][component] = std::clamp(
+              gain * orig_colors[i][component] + offset, 0.0f, 1.0f);
         }
-        break;
       }
-      case FilterType::Contrast: {
-        fade = clamp_f(fade, -1.0f, 1.0f);
-        brightness = 0;
-        contrast = fade;
-        delta = contrast / 2.0f;
-        gain = 1.0f - delta * 2.0f;
+      break;
+    }
+    case FilterType::Contrast: {
+      clamp_factors(factors, -1.0f, 1.0f);
+      for (const int i : verts.index_range()) {
+        const float brightness = 0;
+        const float contrast = factors[i];
+        float delta = contrast / 2.0f;
+        float gain = 1.0f - delta * 2.0f;
+
+        float offset;
         if (contrast > 0) {
           gain = 1.0f / ((gain != 0.0f) ? gain : FLT_EPSILON);
           offset = gain * (brightness - delta);
@@ -197,55 +225,71 @@ static void color_filter_task(Object &ob,
           offset = gain * (brightness + delta);
         }
         for (int component = 0; component < 3; component++) {
-          new_colors[i][component] = clamp_f(gain * orig_color[component] + offset, 0.0f, 1.0f);
+          new_colors[i][component] = std::clamp(
+              gain * orig_colors[i][component] + offset, 0.0f, 1.0f);
         }
-        break;
       }
-      case FilterType::Smooth: {
-        fade = clamp_f(fade, -1.0f, 1.0f);
-        float4 smooth_color = smooth::neighbor_color_average(ss,
-                                                             faces,
-                                                             corner_verts,
-                                                             vert_to_face_map,
-                                                             color_attribute.span,
-                                                             color_attribute.domain,
-                                                             vert);
+      break;
+    }
+    case FilterType::Smooth: {
+      clamp_factors(factors, -1.0f, 1.0f);
 
-        float4 col = color_vert_get(faces,
-                                    corner_verts,
-                                    vert_to_face_map,
-                                    color_attribute.span,
-                                    color_attribute.domain,
-                                    vert);
+      tls.colors.resize(verts.size());
+      const MutableSpan<float4> colors = tls.colors;
+      for (const int i : verts.index_range()) {
+        colors[i] = color_vert_get(faces,
+                                   corner_verts,
+                                   vert_to_face_map,
+                                   color_attribute.span,
+                                   color_attribute.domain,
+                                   verts[i]);
+      }
 
-        if (fade < 0.0f) {
-          interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
+      tls.vert_neighbors.reinitialize(verts.size());
+      calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
+      const Span<Vector<int>> neighbors = tls.vert_neighbors;
+
+      tls.average_colors.resize(verts.size());
+      const MutableSpan<float4> average_colors = tls.average_colors;
+      smooth::neighbor_color_average(faces,
+                                     corner_verts,
+                                     vert_to_face_map,
+                                     color_attribute.span,
+                                     color_attribute.domain,
+                                     neighbors,
+                                     average_colors);
+
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+
+        if (factors[i] < 0.0f) {
+          interp_v4_v4v4(average_colors[i], average_colors[i], colors[i], 0.5f);
         }
 
-        bool copy_alpha = col[3] == smooth_color[3];
+        bool copy_alpha = colors[i][3] == average_colors[i][3];
 
-        if (fade < 0.0f) {
+        if (factors[i] < 0.0f) {
           float delta_color[4];
 
           /* Unsharp mask. */
           copy_v4_v4(delta_color, ss.filter_cache->pre_smoothed_color[vert]);
-          sub_v4_v4(delta_color, smooth_color);
+          sub_v4_v4(delta_color, average_colors[i]);
 
-          copy_v4_v4(new_colors[i], col);
-          madd_v4_v4fl(new_colors[i], delta_color, fade);
+          copy_v4_v4(new_colors[i], colors[i]);
+          madd_v4_v4fl(new_colors[i], delta_color, factors[i]);
         }
         else {
-          blend_color_interpolate_float(new_colors[i], col, smooth_color, fade);
+          blend_color_interpolate_float(new_colors[i], colors[i], average_colors[i], factors[i]);
         }
 
         new_colors[i] = math::clamp(new_colors[i], 0.0f, 1.0f);
 
         /* Prevent accumulated numeric error from corrupting alpha. */
         if (copy_alpha) {
-          new_colors[i][3] = smooth_color[3];
+          new_colors[i][3] = average_colors[i][3];
         }
-        break;
       }
+      break;
     }
   }
 
