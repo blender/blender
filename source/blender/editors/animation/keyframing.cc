@@ -1270,18 +1270,14 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 
   if (ptr.owner_id && ptr.data && prop) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
+      RNAPath rna_path = {path->c_str(), std::nullopt, index};
       if (all) {
-        /* -1 indicates operating on the entire array (or the property itself otherwise) */
-        index = -1;
+        /* nullopt indicates operating on the entire array (or the property itself otherwise). */
+        rna_path.index = std::nullopt;
       }
 
-      changed |= (blender::animrig::clear_keyframe(bmain,
-                                                   op->reports,
-                                                   ptr.owner_id,
-                                                   nullptr,
-                                                   path->c_str(),
-                                                   index,
-                                                   eInsertKeyFlags(0)) != 0);
+      changed |= (blender::animrig::clear_keyframe(bmain, op->reports, ptr.owner_id, rna_path) !=
+                  0);
     }
     else if (G.debug & G_DEBUG) {
       printf("Button Clear-Key: no path to property\n");
