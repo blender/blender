@@ -97,6 +97,13 @@ GreasePencil *AttributeOwner::get_grease_pencil() const
   return reinterpret_cast<GreasePencil *>(ptr_);
 }
 
+GreasePencilDrawing *AttributeOwner::get_grease_pencil_drawing() const
+{
+  BLI_assert(this->is_valid());
+  BLI_assert(type_ == AttributeOwnerType::GreasePencilDrawing);
+  return reinterpret_cast<GreasePencilDrawing *>(ptr_);
+}
+
 struct DomainInfo {
   CustomData *customdata = nullptr;
   int length = 0;
@@ -152,6 +159,14 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
       info[int(AttrDomain::Layer)].length = grease_pencil->layers().size();
       break;
     }
+    case AttributeOwnerType::GreasePencilDrawing: {
+      blender::bke::greasepencil::Drawing &drawing = owner.get_grease_pencil_drawing()->wrap();
+      info[int(AttrDomain::Point)].customdata = &drawing.geometry.point_data;
+      info[int(AttrDomain::Point)].length = drawing.geometry.point_num;
+      info[int(AttrDomain::Curve)].customdata = &drawing.geometry.curve_data;
+      info[int(AttrDomain::Curve)].length = drawing.geometry.curve_num;
+      break;
+    }
   }
 
   return info;
@@ -181,6 +196,10 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
     case AttributeOwnerType::GreasePencil: {
       GreasePencil &grease_pencil = *owner.get_grease_pencil();
       return grease_pencil.attributes_for_write();
+    }
+    case AttributeOwnerType::GreasePencilDrawing: {
+      blender::bke::greasepencil::Drawing &drawing = owner.get_grease_pencil_drawing()->wrap();
+      return drawing.strokes_for_write().attributes_for_write();
     }
   }
   return {};
@@ -747,6 +766,8 @@ bool BKE_attribute_required(const AttributeOwner &owner, const char *name)
       return BKE_mesh_attribute_required(name);
     case AttributeOwnerType::GreasePencil:
       return false;
+    case AttributeOwnerType::GreasePencilDrawing:
+      return BKE_grease_pencil_drawing_attribute_required(owner.get_grease_pencil_drawing(), name);
   }
   return false;
 }
@@ -808,6 +829,9 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
     }
     case AttributeOwnerType::GreasePencil: {
       return &(owner.get_grease_pencil())->attributes_active_index;
+    }
+    case AttributeOwnerType::GreasePencilDrawing: {
+      return &(owner.get_grease_pencil_drawing())->geometry.attributes_active_index;
     }
   }
   return nullptr;

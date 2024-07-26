@@ -120,6 +120,7 @@ set(APISRC
   rna_camera_api.cc
   rna_curve_api.cc
   rna_fcurve_api.cc
+  rna_grease_pencil_api.cc
   rna_image_api.cc
   rna_lattice_api.cc
   rna_main_api.cc
