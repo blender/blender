@@ -1264,6 +1264,7 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
     {
       t->tsnap.snap_target[0] *= t->aspect[0];
       t->tsnap.snap_target[1] *= t->aspect[1];
+      t->tsnap.target_type = SCE_SNAP_TO_EDGE_ENDPOINT;
       found = true;
     }
   }
