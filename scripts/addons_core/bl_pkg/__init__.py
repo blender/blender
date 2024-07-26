@@ -183,6 +183,29 @@ def repo_stats_calc_outdated_for_repo_directory(repo_cache_store, repo_directory
     return package_count
 
 
+def repo_stats_calc_blocked(repo_cache_store):
+    block_count = 0
+    for (
+            pkg_manifest_remote,
+            pkg_manifest_local,
+    ) in zip(
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+    ):
+        if (pkg_manifest_remote is None) or (pkg_manifest_local is None):
+            continue
+
+        for pkg_id in pkg_manifest_local.keys():
+            item_remote = pkg_manifest_remote.get(pkg_id)
+            if item_remote is None:
+                continue
+
+            if item_remote.block:
+                block_count += 1
+
+    return block_count
+
+
 def repo_stats_calc():
     # NOTE: if repositories get very large, this could be optimized to only check repositories that have changed.
     # Although this isn't called all that often - it's unlikely to be a bottleneck.
@@ -213,7 +236,10 @@ def repo_stats_calc():
 
         package_count += repo_stats_calc_outdated_for_repo_directory(repo_cache_store, repo_directory)
 
-    bpy.context.window_manager.extensions_updates = package_count
+    wm = bpy.context.window_manager
+    wm.extensions_updates = package_count
+
+    wm.extensions_blocked = repo_stats_calc_blocked(repo_cache_store)
 
 
 def print_debug(*args, **kw):

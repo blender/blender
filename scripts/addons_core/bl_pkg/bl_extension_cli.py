@@ -242,6 +242,9 @@ class subcmd_query:
                     colorize(item.tagline or "<no tagline>", "faint"),
                 ))
 
+            if item_remote and item_remote.block:
+                print("    Blocked:", colorize(item_remote.block.reason, "red"))
+
             if item_warnings:
                 # Including all text on one line doesn't work well here,
                 # add warnings below the package.
@@ -266,6 +269,9 @@ class subcmd_query:
         extensions_warnings: Dict[str, List[str]] = addon_utils._extensions_warnings_get()
         assert isinstance(extensions_warnings, dict)
 
+        # Blocked and installed.
+        blocked_and_installed_count = 0
+
         for repo_index, (
                 pkg_manifest_local,
                 pkg_manifest_remote,
@@ -285,6 +291,21 @@ class subcmd_query:
                 item_remote = pkg_manifest_remote.get(pkg_id) if (pkg_manifest_remote is not None) else None
                 item_warnings = extensions_warnings.get("bl_ext.{:s}.{:s}".format(repo.module, pkg_id), [])
                 list_item(pkg_id, item_local, item_remote, has_remote, item_warnings)
+                if item_local and item_remote and item_remote.block:
+                    blocked_and_installed_count += 1
+        sys.stdout.flush()
+
+        if blocked_and_installed_count:
+            sys.stderr.write("\n")
+            sys.stderr.write(
+                "  Warning: " +
+                colorize("{:d} installed extension(s) are blocked!\n".format(blocked_and_installed_count), "red")
+            )
+            sys.stderr.write(
+                "           " +
+                colorize("Uninstall them to remove this message!\n", "red")
+            )
+            sys.stderr.write("\n")
 
         return True
 

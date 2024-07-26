@@ -1847,6 +1847,9 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                 if item_local is None:
                     # Not installed.
                     continue
+                if item_remote.block:
+                    # Blocked, don't touch.
+                    continue
 
                 if item_remote.version != item_local.version:
                     packages_to_upgrade[repo_index].append(pkg_id)
@@ -3077,6 +3080,23 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             )
             return False
 
+        if item_remote.block:
+            self._draw_override = (
+                self._draw_override_errors,
+                {
+                    "errors": [
+                        (
+                            "Repository \"{:s}\" has blocked \"{:s}\"\n"
+                            "for the following reason:"
+                        ).format(repo_name, pkg_id),
+                        "  " + item_remote.block.reason,
+                        "If you wish to install the extensions anyway,\n"
+                        "manually download and install the extension from disk."
+                    ]
+                }
+            )
+            return False
+
         self._drop_variables = repo_index, repo_name, pkg_id, item_remote
 
         self.repo_index = repo_index
@@ -3096,7 +3116,15 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         icon = 'ERROR'
         for error in errors:
             if isinstance(error, str):
-                layout.label(text=error, translate=False, icon=icon)
+                # Group text split by newlines more closely.
+                # Without this, lines have too much vertical space.
+                if "\n" in error:
+                    layout_aligned = layout.column(align=True)
+                    for error in error.split("\n"):
+                        layout_aligned.label(text=error, translate=False, icon=icon)
+                        icon = 'BLANK1'
+                else:
+                    layout.label(text=error, translate=False, icon=icon)
             else:
                 error(layout)
             icon = 'BLANK1'

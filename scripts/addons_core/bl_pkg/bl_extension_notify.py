@@ -465,7 +465,7 @@ def _ui_refresh_apply():
     _region_refresh_registered()
 
 
-def _ui_refresh_timer():
+def _ui_refresh_timer_impl():
     wm = bpy.context.window_manager
 
     # Ensure the first item is running, skipping any items that have no work.
@@ -515,6 +515,24 @@ def _ui_refresh_timer():
         wm.extensions_updates = update_count
 
     return default_wait
+
+
+def _ui_refresh_timer():
+    result = _ui_refresh_timer_impl()
+
+    # Ensure blocked packages are counted before finishing.
+    if result is None:
+        from . import (
+            repo_cache_store_ensure,
+            repo_stats_calc_blocked,
+        )
+        wm = bpy.context.window_manager
+        repo_cache_store = repo_cache_store_ensure()
+        extensions_blocked = repo_stats_calc_blocked(repo_cache_store)
+        if extensions_blocked != wm.extensions_blocked:
+            wm.extensions_blocked = extensions_blocked
+
+    return result
 
 
 # -----------------------------------------------------------------------------
