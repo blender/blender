@@ -414,7 +414,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData &data,
     if (U.flag & USER_TOOLTIPS_PYTHON) {
       std::string str = ui_tooltip_text_python_from_op(C, ot, kmi->ptr);
       UI_tooltip_text_field_add(
-          data, fmt::format(TIP_("Python: {}"), str), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_PYTHON);
+          data, fmt::format(TIP_("Python: {}"), str), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_PYTHON);
     }
   }
 
@@ -721,7 +721,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
     UI_tooltip_text_field_add(*data,
                               fmt::format(TIP_("Python: {}"), str),
                               {},
-                              UI_TIP_STYLE_NORMAL,
+                              UI_TIP_STYLE_MONO,
                               UI_TIP_LC_PYTHON,
                               true);
   }
