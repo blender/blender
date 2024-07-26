@@ -260,13 +260,7 @@ float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vert
       return SCULPT_vertex_co_get(ss, vertex);
     case blender::bke::pbvh::Type::Grids: {
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int index_in_grid = vertex.i - grid_index * key.grid_area;
-
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = index_in_grid % key.grid_size;
-      coord.y = index_in_grid / key.grid_size;
+      SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
       float3 tmp;
       BKE_subdiv_ccg_eval_limit_point(*ss.subdiv_ccg, coord, tmp);
       return tmp;
@@ -588,12 +582,7 @@ bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex)
     }
     case bke::pbvh::Type::Grids: {
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int index_in_grid = vertex.i - grid_index * key.grid_area;
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = index_in_grid % key.grid_size;
-      coord.y = index_in_grid / key.grid_size;
+      SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
 
       return vert_has_unique_face_set(
           ss.vert_to_face_map, ss.corner_verts, ss.faces, ss.face_sets, *ss.subdiv_ccg, coord);
@@ -839,13 +828,7 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession &ss,
    * maybe provide coordinate and mask pointers directly rather than converting
    * back and forth between #CCGElem and global index. */
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-  const int grid_index = vertex.i / key.grid_area;
-  const int index_in_grid = vertex.i - grid_index * key.grid_area;
-
-  SubdivCCGCoord coord{};
-  coord.grid_index = grid_index;
-  coord.x = index_in_grid % key.grid_size;
-  coord.y = index_in_grid / key.grid_size;
+  SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
 
   SubdivCCGNeighbors neighbors;
   BKE_subdiv_ccg_neighbor_coords_get(*ss.subdiv_ccg, coord, include_duplicates, neighbors);
@@ -915,12 +898,7 @@ bool vert_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
     }
     case bke::pbvh::Type::Grids: {
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int index_in_grid = vertex.i - grid_index * key.grid_area;
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = index_in_grid % key.grid_size;
-      coord.y = index_in_grid / key.grid_size;
+      SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
           *ss.subdiv_ccg, coord, ss.corner_verts, ss.faces, v1, v2);

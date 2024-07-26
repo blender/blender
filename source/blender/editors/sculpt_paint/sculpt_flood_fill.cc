@@ -239,12 +239,7 @@ void FillDataGrids::add_active(const Object &object, const SculptSession &ss, co
 
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const int grid_index = active_vert.i / key.grid_area;
-  const int index_in_grid = active_vert.i - grid_index * key.grid_area;
-  SubdivCCGCoord coord{};
-  coord.grid_index = grid_index;
-  coord.x = index_in_grid % key.grid_size;
-  coord.y = index_in_grid / key.grid_size;
+  SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, active_vert.i);
 
   this->add_initial_with_symmetry(object, *ss.pbvh, subdiv_ccg, coord, radius);
 }
