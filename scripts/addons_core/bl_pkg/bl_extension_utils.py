@@ -1343,7 +1343,7 @@ def pkg_manifest_params_compatible_or_error(
     return None
 
 
-def repository_filter_packages(
+def repository_parse_data_filtered(
         data: List[Dict[str, Any]],
         *,
         repo_directory: str,
@@ -1352,6 +1352,10 @@ def repository_filter_packages(
 ) -> Dict[str, PkgManifest_Normalized]:
     pkg_manifest_map = {}
     for item in data:
+        if not isinstance(item, dict):
+            error_fn(Exception("found non dict item in repository \"data\", found {:s}".format(str(type(item)))))
+            continue
+
         if (pkg_idname := repository_id_with_error_fn(
                 item,
                 repo_directory=repo_directory,
@@ -1531,7 +1535,7 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         data = RepoRemoteData(
             version=data_dict.get("version", "v1"),
             blocklist=data_dict.get("blocklist", []),
-            pkg_manifest_map=repository_filter_packages(
+            pkg_manifest_map=repository_parse_data_filtered(
                 data_dict.get("data", []),
                 repo_directory=os.path.dirname(self._filepath),
                 filter_params=self._filter_params,
