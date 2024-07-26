@@ -541,7 +541,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
              "bl_ui.space_toolsystem_common.description_from_id("
              "bpy.context, "
              "bpy.context.space_data.type, "
-             "'%s') + '.'",
+             "'%s')",
              tool_id);
 
     char *expr_result = nullptr;
@@ -843,11 +843,11 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
   if (!but_tip.empty()) {
     if (!enum_label.empty()) {
       UI_tooltip_text_field_add(
-          *data, fmt::format("{}:  ", but_tip), enum_label, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+          *data, fmt::format("{}: ", but_tip), enum_label, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
     }
     else {
       UI_tooltip_text_field_add(
-          *data, fmt::format("{}.", but_tip), {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+          *data, fmt::format("{}", but_tip), {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
     }
 
     /* special case enum rna buttons */
