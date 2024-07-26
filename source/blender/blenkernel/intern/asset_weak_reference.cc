@@ -11,7 +11,6 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
 
 #include "BKE_asset.hh"

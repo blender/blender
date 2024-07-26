@@ -17,7 +17,6 @@
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
-#include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
 
 #include "BKE_asset.hh"

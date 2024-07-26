@@ -17,7 +17,6 @@ set(SRC
   intern/asset_catalog_definition_file.cc
   intern/asset_catalog_path.cc
   intern/asset_catalog_tree.cc
-  intern/asset_identifier.cc
   intern/asset_library.cc
   intern/asset_library_all.cc
   intern/asset_library_essentials.cc
@@ -31,7 +30,6 @@ set(SRC
   AS_asset_catalog.hh
   AS_asset_catalog_path.hh
   AS_asset_catalog_tree.hh
-  AS_asset_identifier.hh
   AS_asset_library.hh
   AS_asset_representation.hh
   AS_essentials_library.hh
