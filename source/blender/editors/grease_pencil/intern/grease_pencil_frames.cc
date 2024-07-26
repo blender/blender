@@ -807,6 +807,61 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
   return true;
 }
 
+static int grease_pencil_frame_duplicate_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bool only_active = !RNA_boolean_get(op->ptr, "all");
+  const int current_frame = scene->r.cfra;
+  bool changed = false;
+
+  if (only_active) {
+    if (!grease_pencil.has_active_layer()) {
+      return OPERATOR_CANCELLED;
+    }
+    Layer &active_layer = *grease_pencil.get_active_layer();
+    const std::optional<int> active_frame_number = active_layer.start_frame_at(current_frame);
+    changed |= grease_pencil.insert_duplicate_frame(
+        active_layer, active_frame_number.value(), current_frame, false);
+  }
+  else {
+    for (Layer *layer : grease_pencil.layers_for_write()) {
+      const std::optional<int> active_frame_number = layer->start_frame_at(current_frame);
+      changed |= grease_pencil.insert_duplicate_frame(
+          *layer, active_frame_number.value(), current_frame, false);
+    }
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_frame_duplicate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Duplicate active Frame(s)";
+  ot->idname = "GREASE_PENCIL_OT_frame_duplicate";
+  ot->description = "Make a copy of the active Grease Pencil frame(s)";
+
+  /* callback */
+  ot->exec = grease_pencil_frame_duplicate_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "all", false, "Duplicate all", "Duplicate active keyframes of all layer");
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_frames()
@@ -814,4 +869,5 @@ void ED_operatortypes_grease_pencil_frames()
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_insert_blank_frame);
   WM_operatortype_append(GREASE_PENCIL_OT_frame_clean_duplicate);
+  WM_operatortype_append(GREASE_PENCIL_OT_frame_duplicate);
 }
