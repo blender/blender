@@ -191,7 +191,7 @@ struct PoseGrowFactorData {
 
 static void pose_brush_grow_factor_task(Object &ob,
                                         const float pose_initial_co[3],
-                                        const float *prev_mask,
+                                        const Span<float> prev_mask,
                                         MutableSpan<float> pose_factor,
                                         bke::pbvh::Node *node,
                                         PoseGrowFactorData *gftd)
@@ -243,12 +243,11 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
 
   bool grow_next_iteration = true;
   float prev_len = FLT_MAX;
-  float *prev_mask = static_cast<float *>(
-      MEM_malloc_arrayN(SCULPT_vertex_count_get(ss), sizeof(float), __func__));
+  Array<float> prev_mask(SCULPT_vertex_count_get(ss));
   while (grow_next_iteration) {
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
-    memcpy(prev_mask, pose_factor.data(), SCULPT_vertex_count_get(ss) * sizeof(float));
+    prev_mask.as_mutable_span().copy_from(pose_factor);
 
     gftd = threading::parallel_reduce(
         nodes.index_range(),
@@ -280,7 +279,7 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
         }
         else {
           grow_next_iteration = false;
-          memcpy(pose_factor.data(), prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          pose_factor.copy_from(prev_mask);
         }
       }
       else {
@@ -296,7 +295,7 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
           if (r_pose_origin) {
             copy_v3_v3(r_pose_origin, gftd.pos_avg);
           }
-          memcpy(pose_factor.data(), prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          pose_factor.copy_from(prev_mask);
         }
       }
     }
@@ -307,7 +306,6 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
       grow_next_iteration = false;
     }
   }
-  MEM_freeN(prev_mask);
 }
 
 static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3],
