@@ -434,6 +434,12 @@ struct WriteData {
     blender::Set<const void *> per_id_addresses_set;
   } validation_data;
 
+  /**
+   * Keeps track of which shared data has been written for the current ID. This is necessary to
+   * avoid writing the same data more than once.
+   */
+  blender::Set<const void *> per_id_written_shared_addresses;
+
   /** #MemFile writing (used for undo). */
   MemFileWriteData mem;
   /** When true, write to #WriteData.current, could also call 'is_undo'. */
@@ -674,6 +680,7 @@ static void mywrite_id_end(WriteData *wd, ID * /*id*/)
   }
 
   wd->validation_data.per_id_addresses_set.clear();
+  wd->per_id_written_shared_addresses.clear();
 
   BLI_assert(wd->is_writing_id == true);
   wd->is_writing_id = false;
@@ -1959,6 +1966,12 @@ void BLO_write_shared(BlendWriter *writer,
         memfile.size += approximate_size_in_bytes / sharing_info->strong_users();
         return;
       }
+    }
+  }
+  if (sharing_info != nullptr) {
+    if (!writer->wd->per_id_written_shared_addresses.add(data)) {
+      /* Was written already. */
+      return;
     }
   }
   write_fn();
