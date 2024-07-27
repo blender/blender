@@ -463,10 +463,15 @@ bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex)
   }
   return true;
 }
+
 bool vert_all_faces_visible_get(const Span<bool> hide_poly,
                                 const GroupedSpan<int> vert_to_face_map,
                                 const int vert)
 {
+  if (hide_poly.is_empty()) {
+    return true;
+  }
+
   for (const int face : vert_to_face_map[vert]) {
     if (hide_poly[face]) {
       return false;
@@ -482,6 +487,7 @@ bool vert_all_faces_visible_get(const Span<bool> hide_poly,
   const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, vert.grid_index);
   return hide_poly[face_index];
 }
+
 bool vert_all_faces_visible_get(BMVert *vert)
 {
   BMEdge *edge = vert->e;
