@@ -74,7 +74,7 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
  * argument is used to specify whether only the selected markers
  * are added.
  */
-void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel);
+void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, bool only_selected);
 
 void ED_markers_deselect_all(ListBase *markers, int action);
 

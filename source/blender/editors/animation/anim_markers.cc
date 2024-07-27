@@ -257,12 +257,12 @@ static bool region_position_is_over_marker(View2D *v2d, ListBase *markers, float
 /* --------------------------------- */
 
 /* Adds a marker to list of cfra elems */
-static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only_sel)
+static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool only_selected)
 {
   CfraElem *ce, *cen;
 
   /* should this one only be considered if it is selected? */
-  if ((only_sel) && ((marker->flag & SELECT) == 0)) {
+  if (only_selected && ((marker->flag & SELECT) == 0)) {
     return;
   }
 
@@ -292,7 +292,7 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
   cen->sel = marker->flag;
 }
 
-void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
+void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, const bool only_selected)
 {
   if (lb) {
     /* Clear the list first, since callers have no way of knowing
@@ -310,7 +310,7 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    add_marker_to_cfra_elem(lb, marker, only_sel);
+    add_marker_to_cfra_elem(lb, marker, only_selected);
   }
 }
 

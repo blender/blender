@@ -1765,7 +1765,7 @@ static float find_last_key(ListBase *pflinks)
 static void get_selected_marker_positions(Scene *scene, ListBase /*FrameLink*/ *target_frames)
 {
   ListBase selected_markers = {nullptr, nullptr};
-  ED_markers_make_cfra_list(&scene->markers, &selected_markers, SELECT);
+  ED_markers_make_cfra_list(&scene->markers, &selected_markers, true);
   LISTBASE_FOREACH (CfraElem *, marker, &selected_markers) {
     FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Marker Key Link"));
     link->frame = marker->cfra;

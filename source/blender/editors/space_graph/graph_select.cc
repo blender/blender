@@ -1252,7 +1252,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
       break;
 
     case GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-      ED_markers_make_cfra_list(ac->markers, &ked.list, SELECT);
+      ED_markers_make_cfra_list(ac->markers, &ked.list, true);
       break;
 
     default: /* invalid option */
