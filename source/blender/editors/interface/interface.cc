@@ -76,7 +76,7 @@ using blender::Vector;
 
 /* prototypes. */
 static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p);
-static void ui_def_but_rna__panel_type(bContext * /*C*/, uiLayout *layout, void *but_p);
+static void ui_def_but_rna__panel_type(bContext * /*C*/, uiLayout *layout, void *arg);
 static void ui_def_but_rna__menu_type(bContext * /*C*/, uiLayout *layout, void *but_p);
 
 /* avoid unneeded calls to ui_but_value_get */
@@ -5635,15 +5635,15 @@ uiBut *uiDefIconTextButO(uiBlock *block,
 void UI_but_operator_set(uiBut *but,
                          wmOperatorType *optype,
                          wmOperatorCallContext opcontext,
-                         const PointerRNA *op_props)
+                         const PointerRNA *opptr)
 {
   but->optype = optype;
   but->opcontext = opcontext;
   but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_rna_undo(), we never need undo here */
 
   MEM_SAFE_FREE(but->opptr);
-  if (op_props) {
-    but->opptr = MEM_cnew<PointerRNA>(__func__, *op_props);
+  if (opptr) {
+    but->opptr = MEM_cnew<PointerRNA>(__func__, *opptr);
   }
 }
 

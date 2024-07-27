@@ -642,9 +642,9 @@ static void strip_ptr_destructor(ActionStrip **dna_strip_ptr)
   MEM_delete(&strip);
 };
 
-bool Layer::strip_remove(Strip &strip_to_remove)
+bool Layer::strip_remove(Strip &strip)
 {
-  const int64_t strip_index = this->find_strip_index(strip_to_remove);
+  const int64_t strip_index = this->find_strip_index(strip);
   if (strip_index < 0) {
     return false;
   }
@@ -1058,10 +1058,10 @@ const ChannelBag *KeyframeStrip::channelbag_for_slot(const slot_handle_t slot_ha
   }
   return nullptr;
 }
-int64_t KeyframeStrip::find_channelbag_index(const ChannelBag &channelbag_to_remove) const
+int64_t KeyframeStrip::find_channelbag_index(const ChannelBag &channelbag) const
 {
   for (int64_t index = 0; index < this->channelbag_array_num; index++) {
-    if (this->channelbag(index) == &channelbag_to_remove) {
+    if (this->channelbag(index) == &channelbag) {
       return index;
     }
   }

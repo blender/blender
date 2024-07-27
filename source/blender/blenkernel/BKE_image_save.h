@@ -49,7 +49,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  struct ImageUser *iuser,
                                  const bool guess_path,
                                  const bool save_as_render);
-void BKE_image_save_options_update(struct ImageSaveOptions *opts, const struct Image *ima);
+void BKE_image_save_options_update(struct ImageSaveOptions *opts, const struct Image *image);
 void BKE_image_save_options_free(struct ImageSaveOptions *opts);
 
 bool BKE_image_save(struct ReportList *reports,

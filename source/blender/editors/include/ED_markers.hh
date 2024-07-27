@@ -67,14 +67,14 @@ TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x);
  */
 int ED_markers_find_nearest_marker_time(ListBase *markers, float x);
 
-void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *last);
+void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *r_last);
 
 /**
  * This function makes a list of all the markers. The only_sel
  * argument is used to specify whether only the selected markers
  * are added.
  */
-void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short sel);
+void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel);
 
 void ED_markers_deselect_all(ListBase *markers, int action);
 

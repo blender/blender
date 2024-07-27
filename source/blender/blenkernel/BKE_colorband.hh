@@ -17,7 +17,7 @@ void BKE_colorband_init(ColorBand *coba, bool rangetype);
 void BKE_colorband_init_from_table_rgba(ColorBand *coba,
                                         const float (*array)[4],
                                         int array_len,
-                                        bool filter_sample);
+                                        bool filter_samples);
 ColorBand *BKE_colorband_add(bool rangetype);
 bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4]);
 void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int *size);

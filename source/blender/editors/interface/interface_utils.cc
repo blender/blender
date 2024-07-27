@@ -860,9 +860,9 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
   MEM_freeN(bs_handle);
 }
 
-bool UI_butstore_is_valid(uiButStore *bs)
+bool UI_butstore_is_valid(uiButStore *bs_handle)
 {
-  return (bs->block != nullptr);
+  return (bs_handle->block != nullptr);
 }
 
 bool UI_butstore_is_registered(uiBlock *block, uiBut *but)

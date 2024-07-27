@@ -26,7 +26,7 @@ struct Main;
  *
  * \note Currently done after all file reading.
  */
-void do_versions_ipos_to_animato(struct Main *main);
+void do_versions_ipos_to_animato(struct Main *bmain);
 
 /* --------------------- xxx stuff ------------------------ */
 

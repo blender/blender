@@ -182,7 +182,7 @@ static bool ui_mouse_motion_keynav_test(uiKeyNavLock *keynav, const wmEvent *eve
 
 static void with_but_active_as_semi_modal(bContext *C,
                                           ARegion *region,
-                                          uiBut *semi_modal_but,
+                                          uiBut *but,
                                           blender::FunctionRef<void()> fn);
 static int ui_handle_region_semi_modal_buttons(bContext *C, const wmEvent *event, ARegion *region);
 

@@ -126,7 +126,7 @@ void WM_gizmo_set_line_width(wmGizmo *gz, float line_width);
 void WM_gizmo_get_color(const wmGizmo *gz, float color[4]);
 void WM_gizmo_set_color(wmGizmo *gz, const float color[4]);
 void WM_gizmo_get_color_highlight(const wmGizmo *gz, float color_hi[4]);
-void WM_gizmo_set_color_highlight(wmGizmo *gz, const float color[4]);
+void WM_gizmo_set_color_highlight(wmGizmo *gz, const float color_hi[4]);
 
 /**
  * Leaving values NULL use values from #wmGizmo.
@@ -407,7 +407,7 @@ void WM_gizmomaptype_group_unlink(bContext *C,
 /**
  * Unlike #WM_gizmomaptype_group_unlink this doesn't maintain correct state, simply free.
  */
-void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt);
+void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt_ref);
 
 /* -------------------------------------------------------------------- */
 /* #GizmoGroup. */

@@ -178,7 +178,7 @@ struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);
  * `BKE_lib_id.hh`.
  */
 struct CameraBGImage *BKE_camera_background_image_copy(const struct CameraBGImage *bgpic_src,
-                                                       int copy_flag);
+                                                       int flag);
 void BKE_camera_background_image_remove(struct Camera *cam, struct CameraBGImage *bgpic);
 void BKE_camera_background_image_clear(struct Camera *cam);
 

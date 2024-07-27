@@ -376,9 +376,9 @@ short BKE_idtype_idcode_from_name(const char *idtype_name);
  */
 int BKE_idtype_idcode_to_index(short idcode);
 /**
- * Convert an \a idfilter into an \a idtype_index (e.g. #FILTER_ID_OB -> #INDEX_ID_OB).
+ * Convert an \a id_filter into an \a idtype_index (e.g. #FILTER_ID_OB -> #INDEX_ID_OB).
  */
-int BKE_idtype_idfilter_to_index(uint64_t idfilter);
+int BKE_idtype_idfilter_to_index(uint64_t id_filter);
 
 /**
  * Convert an \a idtype_index into an \a idcode (e.g. #INDEX_ID_OB -> #ID_OB).

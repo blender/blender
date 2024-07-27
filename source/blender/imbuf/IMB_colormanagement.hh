@@ -180,8 +180,8 @@ void IMB_colormanagement_colorspace_to_scene_linear(
     float *buffer, int width, int height, int channels, ColorSpace *colorspace, bool predivide);
 
 void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
-                                               int x,
-                                               int y,
+                                               int offset_x,
+                                               int offset_y,
                                                int width,
                                                int height,
                                                const ImBuf *ibuf,
@@ -477,7 +477,7 @@ bool IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_se
 bool IMB_colormanagement_setup_glsl_draw_from_space(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    ColorSpace *colorspace,
+    ColorSpace *from_colorspace,
     float dither,
     bool predivide,
     bool do_overlay_merge);
@@ -490,7 +490,7 @@ bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bo
  * but color management settings are guessing from a given context.
  */
 bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C,
-                                                        ColorSpace *colorspace,
+                                                        ColorSpace *from_colorspace,
                                                         float dither,
                                                         bool predivide);
 /**

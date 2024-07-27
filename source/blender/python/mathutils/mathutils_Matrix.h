@@ -58,7 +58,7 @@ PyObject *Matrix_CreatePyObject_wrap(float *mat,
                                      ushort row_num,
                                      PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
-PyObject *Matrix_CreatePyObject_cb(PyObject *user,
+PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
                                    unsigned short col_num,
                                    unsigned short row_num,
                                    unsigned char cb_type,

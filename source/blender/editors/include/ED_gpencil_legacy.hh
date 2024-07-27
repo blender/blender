@@ -315,7 +315,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac);
 /**
  * Pastes keyframes from buffer, and reports success.
  */
-bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, short copy_mode);
+bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, short offset_mode);
 
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active();

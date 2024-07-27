@@ -33,7 +33,7 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop);
 void SEQ_proxy_set(Sequence *seq, bool value);
 bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize);
 int SEQ_rendersize_to_proxysize(int render_size);
-double SEQ_rendersize_to_scale_factor(int size);
+double SEQ_rendersize_to_scale_factor(int render_size);
 
 struct ProxyJob {
   Main *main;

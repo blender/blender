@@ -2145,9 +2145,9 @@ static void blendfile_write_partial_clear_flags(Main *bmain_src)
   }
 }
 
-void BKE_blendfile_write_partial_begin(Main *bmain)
+void BKE_blendfile_write_partial_begin(Main *bmain_src)
 {
-  blendfile_write_partial_clear_flags(bmain);
+  blendfile_write_partial_clear_flags(bmain_src);
 }
 
 void BKE_blendfile_write_partial_tag_ID(ID *id, bool set)

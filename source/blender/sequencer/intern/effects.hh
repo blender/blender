@@ -23,6 +23,6 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq);
  * Override timeline_frame when rendering speed effect input.
  */
 float seq_speed_effect_target_frame_get(Scene *scene,
-                                        Sequence *seq,
+                                        Sequence *seq_speed,
                                         float timeline_frame,
                                         int input);

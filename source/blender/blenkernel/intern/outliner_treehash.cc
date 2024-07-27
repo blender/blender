@@ -150,9 +150,9 @@ TseGroup *TreeHash::lookup_group(const TreeStoreElemKey &key) const
   return nullptr;
 }
 
-TseGroup *TreeHash::lookup_group(const TreeStoreElem &key_elem) const
+TseGroup *TreeHash::lookup_group(const TreeStoreElem &elem) const
 {
-  return lookup_group(TreeStoreElemKey(key_elem));
+  return lookup_group(TreeStoreElemKey(elem));
 }
 
 TseGroup *TreeHash::lookup_group(const short type, const short nr, ID *id) const

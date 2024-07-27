@@ -411,7 +411,7 @@ static void add_image_textures(Main *bmain,
 }
 
 bNodeTree *create_mtl_node_tree(Main *bmain,
-                                const MTLMaterial &mtl,
+                                const MTLMaterial &mtl_mat,
                                 Material *mat,
                                 bool relative_paths)
 {
@@ -421,8 +421,8 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
   bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);
 
-  set_bsdf_socket_values(bsdf, mat, mtl);
-  add_image_textures(bmain, ntree, bsdf, mat, mtl, relative_paths);
+  set_bsdf_socket_values(bsdf, mat, mtl_mat);
+  add_image_textures(bmain, ntree, bsdf, mat, mtl_mat, relative_paths);
   link_sockets(ntree, bsdf, "BSDF", output, "Surface");
   bke::nodeSetActive(ntree, output);
 

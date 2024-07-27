@@ -57,7 +57,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
                                                  StringRefNull name,
                                                  const bUserAssetLibrary &user_library,
-                                                 AssetWeakReference &weak_ref,
+                                                 AssetWeakReference &r_weak_ref,
                                                  ReportList &reports);
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);

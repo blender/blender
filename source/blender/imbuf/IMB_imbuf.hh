@@ -760,6 +760,6 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
  * Reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right).
  */
 void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
-                           ImBuf *ibuf_stereo,
+                           ImBuf *ibuf_stereo3d,
                            ImBuf **r_ibuf_left,
                            ImBuf **r_ibuf_right);

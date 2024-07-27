@@ -301,12 +301,12 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id);
 /**
  * Find override property from given RNA path, if it exists.
  */
-IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *override,
+IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *liboverride,
                                                                   const char *rna_path);
 /**
  * Find override property from given RNA path, or create it if it does not exist.
  */
-IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *override,
+IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *liboverride,
                                                                  const char *rna_path,
                                                                  bool *r_created);
 /**

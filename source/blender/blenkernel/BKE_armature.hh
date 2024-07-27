@@ -502,7 +502,7 @@ void BKE_pchan_bbone_handles_get(bPoseChannel *pchan,
  */
 void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
                                        bool rest,
-                                       BBoneSplineParameters *r_param);
+                                       BBoneSplineParameters *param);
 
 /**
  * Fills the array with the desired amount of bone->segments elements.

@@ -82,7 +82,7 @@ class CombinedKeyingResult {
   void add(SingleKeyingResult result, int count = 1);
 
   /* Add values of the given result to this result. */
-  void merge(const CombinedKeyingResult &combined_result);
+  void merge(const CombinedKeyingResult &other);
 
   int get_count(const SingleKeyingResult result) const;
 
@@ -179,7 +179,7 @@ bool insert_keyframe_direct(ReportList *reports,
                             FCurve *fcu,
                             const AnimationEvalContext *anim_eval_context,
                             eBezTriple_KeyframeType keytype,
-                            NlaKeyframingContext *nla,
+                            NlaKeyframingContext *nla_context,
                             eInsertKeyFlags flag);
 
 /**
@@ -189,7 +189,7 @@ bool insert_keyframe_direct(ReportList *reports,
  * Will perform checks just in case.
  * \return The number of key-frames deleted.
  */
-int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &path, float cfra);
+int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_path, float cfra);
 
 /**
  * Main Keyframing API call:

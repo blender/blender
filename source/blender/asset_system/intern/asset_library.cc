@@ -247,13 +247,13 @@ void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappi
 }
 
 namespace {
-void asset_library_on_save_post(Main *main,
+void asset_library_on_save_post(Main *bmain,
                                 PointerRNA **pointers,
                                 const int num_pointers,
                                 void *arg)
 {
   AssetLibrary *asset_lib = static_cast<AssetLibrary *>(arg);
-  asset_lib->on_blend_save_post(main, pointers, num_pointers);
+  asset_lib->on_blend_save_post(bmain, pointers, num_pointers);
 }
 
 }  // namespace
@@ -276,12 +276,12 @@ void AssetLibrary::on_blend_save_handler_unregister()
   on_save_callback_store_.arg = nullptr;
 }
 
-void AssetLibrary::on_blend_save_post(Main *main,
+void AssetLibrary::on_blend_save_post(Main *bmain,
                                       PointerRNA ** /*pointers*/,
                                       const int /*num_pointers*/)
 {
   if (save_catalogs_when_file_is_saved) {
-    this->catalog_service().write_to_disk(main->filepath);
+    this->catalog_service().write_to_disk(bmain->filepath);
   }
 }
 

@@ -1822,7 +1822,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 }
 
 bool BKE_id_new_name_validate(
-    Main *bmain, ListBase *lb, ID *id, const char *tname, const bool do_linked_data)
+    Main *bmain, ListBase *lb, ID *id, const char *newname, const bool do_linked_data)
 {
   bool result = false;
   char name[MAX_ID_NAME - 2];
@@ -1835,11 +1835,11 @@ bool BKE_id_new_name_validate(
   }
 
   /* If no name given, use name of current ID. */
-  if (tname == nullptr) {
-    tname = id->name + 2;
+  if (newname == nullptr) {
+    newname = id->name + 2;
   }
-  /* Make a copy of given name (tname args can be const). */
-  STRNCPY(name, tname);
+  /* Make a copy of given name (newname args can be const). */
+  STRNCPY(name, newname);
 
   if (name[0] == '\0') {
     /* Disallow empty names. */

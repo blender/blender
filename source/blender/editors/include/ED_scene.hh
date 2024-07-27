@@ -62,7 +62,7 @@ void ED_scene_fps_average_accumulate(Scene *scene, short fps_samples, double lti
  * Calculate an average (if it's not already calculated).
  * \return false on failure otherwise all values in `state` are initialized.
  */
-bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *state) ATTR_NONNULL(1, 2);
+bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *r_state) ATTR_NONNULL(1, 2);
 /**
  * Clear run-time data for accumulating animation playback average times.
  */

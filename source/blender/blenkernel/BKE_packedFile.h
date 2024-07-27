@@ -103,7 +103,7 @@ int BKE_packedfile_unpack_all_libraries(struct Main *bmain, struct ReportList *r
 
 int BKE_packedfile_write_to_file(struct ReportList *reports,
                                  const char *ref_file_name,
-                                 const char *filepath,
+                                 const char *filepath_rel,
                                  struct PackedFile *pf);
 
 /* Free. */

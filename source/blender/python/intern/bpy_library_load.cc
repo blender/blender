@@ -71,7 +71,7 @@ struct BPy_Library {
   bool bmain_is_temp;
 };
 
-static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kwds);
+static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw);
 static PyObject *bpy_lib_enter(BPy_Library *self);
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_dir(BPy_Library *self);

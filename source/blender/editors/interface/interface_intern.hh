@@ -745,9 +745,9 @@ void ui_hsvcircle_vals_from_pos(
  * Cursor in HSV circle, in float units -1 to 1, to map on radius.
  */
 void ui_hsvcircle_pos_from_vals(
-    const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *xpos, float *ypos);
+    const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *r_xpos, float *r_ypos);
 void ui_hsvcube_pos_from_vals(
-    const uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *xp, float *yp);
+    const uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp);
 
 /**
  * \param float_precision: For number buttons the precision
@@ -774,7 +774,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size);
  */
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
-bool ui_but_string_eval_number(bContext *C, const uiBut *but, const char *str, double *value)
+bool ui_but_string_eval_number(bContext *C, const uiBut *but, const char *str, double *r_value)
     ATTR_NONNULL();
 int ui_but_string_get_maxncpy(uiBut *but);
 /**
@@ -1109,15 +1109,15 @@ void ui_draw_but_TAB_outline(const rcti *rect,
 void ui_draw_but_HISTOGRAM(ARegion *region,
                            uiBut *but,
                            const uiWidgetColors *wcol,
-                           const rcti *rect);
+                           const rcti *recti);
 void ui_draw_but_WAVEFORM(ARegion *region,
                           uiBut *but,
                           const uiWidgetColors *wcol,
-                          const rcti *rect);
+                          const rcti *recti);
 void ui_draw_but_VECTORSCOPE(ARegion *region,
                              uiBut *but,
                              const uiWidgetColors *wcol,
-                             const rcti *rect);
+                             const rcti *recti);
 void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rect, float radius);
 void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, const rcti *rect);
@@ -1132,7 +1132,7 @@ void ui_draw_but_IMAGE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
 void ui_draw_but_TRACKPREVIEW(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors *wcol,
-                              const rcti *rect);
+                              const rcti *recti);
 
 /* `interface_undo.cc` */
 
@@ -1142,14 +1142,14 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
  * \note The current state should be pushed immediately after calling this.
  */
 uiUndoStack_Text *ui_textedit_undo_stack_create();
-void ui_textedit_undo_stack_destroy(uiUndoStack_Text *undo_stack);
+void ui_textedit_undo_stack_destroy(uiUndoStack_Text *stack);
 /**
  * Push the information in the arguments to a new state in the undo stack.
  *
  * \note Currently the total length of the undo stack is not limited.
  */
-void ui_textedit_undo_push(uiUndoStack_Text *undo_stack, const char *text, int cursor_index);
-const char *ui_textedit_undo(uiUndoStack_Text *undo_stack, int direction, int *r_cursor_index);
+void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index);
+const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index);
 
 /* interface_handlers.cc */
 

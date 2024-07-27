@@ -101,7 +101,7 @@ void WM_msgbus_destroy(wmMsgBus *mbus);
 
 void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner);
 
-void WM_msg_dump(wmMsgBus *mbus, const char *info);
+void WM_msg_dump(wmMsgBus *mbus, const char *info_str);
 void WM_msgbus_handle(wmMsgBus *mbus, bContext *C);
 
 void WM_msg_publish_with_key(wmMsgBus *mbus, wmMsgSubscribeKey *msg_key);

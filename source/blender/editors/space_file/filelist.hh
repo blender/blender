@@ -134,7 +134,7 @@ FileDirEntry *filelist_file_ex(FileList *filelist, int index, bool use_request);
  * Find a file from a file name, or more precisely, its file-list relative path, inside the
  * filtered items. \return The index of the found file or -1.
  */
-int filelist_file_find_path(FileList *filelist, const char *file);
+int filelist_file_find_path(FileList *filelist, const char *filename);
 /**
  * Find a file representing \a id.
  * \return The index of the found file or -1.

@@ -98,7 +98,7 @@ void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);
  */
 void ED_slider_factor_bounds_set(tSlider *slider,
                                  float factor_bound_lower,
-                                 float factor_upper_bound);
+                                 float factor_bound_upper);
 
 bool ED_slider_allow_increments_get(const tSlider *slider);
 void ED_slider_allow_increments_set(tSlider *slider, bool value);
@@ -108,7 +108,7 @@ SliderMode ED_slider_mode_get(const tSlider *slider);
 void ED_slider_unit_set(tSlider *slider, const char *unit);
 /* Set a name that will show next to the slider to indicate which property is modified currently.
  * To clear, set to an empty string. */
-void ED_slider_property_label_set(tSlider *slider, const char *prop_name);
+void ED_slider_property_label_set(tSlider *slider, const char *property_label);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

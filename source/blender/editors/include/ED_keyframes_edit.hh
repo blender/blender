@@ -348,7 +348,7 @@ KeyframeEditFunc ANIM_editkeyframes_snap(short mode);
  * \note for markers and 'value', the values to use must be supplied as the first float value.
  */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode);
-KeyframeEditFunc ANIM_editkeyframes_select(short mode);
+KeyframeEditFunc ANIM_editkeyframes_select(short selectmode);
 /**
  * Set all selected Bezier Handles to a single type.
  */
@@ -455,7 +455,7 @@ void ED_ANIM_get_1d_gauss_kernel(const float sigma, int kernel_size, double *r_k
 
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order);
 void ED_anim_free_butterworth_coefficients(ButterworthCoefficients *bw_coeff);
-void ED_anim_calculate_butterworth_coefficients(float cutoff,
+void ED_anim_calculate_butterworth_coefficients(float cutoff_frequency,
                                                 float sampling_frequency,
                                                 ButterworthCoefficients *bw_coeff);
 /**

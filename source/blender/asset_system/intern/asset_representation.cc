@@ -20,21 +20,23 @@
 
 namespace blender::asset_system {
 
-AssetRepresentation::AssetRepresentation(StringRef relative_path,
+AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          StringRef name,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
     : owner_asset_library_(owner_asset_library),
-      relative_identifier_(relative_path),
+      relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata)})
 {
 }
 
-AssetRepresentation::AssetRepresentation(StringRef relative_path,
+AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          ID &id,
                                          const AssetLibrary &owner_asset_library)
-    : owner_asset_library_(owner_asset_library), relative_identifier_(relative_path), asset_(&id)
+    : owner_asset_library_(owner_asset_library),
+      relative_identifier_(relative_asset_path),
+      asset_(&id)
 {
   if (!id.asset_data) {
     throw std::invalid_argument("Passed ID is not an asset");

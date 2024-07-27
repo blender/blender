@@ -85,7 +85,7 @@ int BaseMathObject_is_gc(BaseMathObject *self);
 
 PyMODINIT_FUNC PyInit_mathutils(void);
 
-int EXPP_FloatsAreEqual(float A, float B, int maxDiff);
+int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
 
 typedef struct Mathutils_Callback Mathutils_Callback;
@@ -201,7 +201,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
  *
  * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
  */
-Py_hash_t mathutils_array_hash(const float *float_array, size_t array_len);
+Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
 
 /* zero remaining unused elements of the array */
 #define MU_ARRAY_ZERO (1u << 30)

@@ -132,8 +132,8 @@ void CLG_error_fn_set(void (*error_fn)(void *file_handle));
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle));
 
-void CLG_type_filter_include(const char *type_filter, int type_filter_len);
-void CLG_type_filter_exclude(const char *type_filter, int type_filter_len);
+void CLG_type_filter_include(const char *type_match, int type_match_len);
+void CLG_type_filter_exclude(const char *type_match, int type_match_len);
 
 void CLG_level_set(int level);
 

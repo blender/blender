@@ -226,7 +226,7 @@ void file_tile_boundbox(const ARegion *region, FileLayout *layout, int file, rct
 /**
  * If \a path leads to a .blend, remove the trailing slash (if needed).
  */
-void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
+void file_path_to_ui_path(const char *path, char *r_path, int r_path_maxncpy);
 
 /* asset_catalog_tree_view.cc */
 

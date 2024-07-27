@@ -140,7 +140,7 @@ void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID
  */
 blender::animrig::ModifyKeyReturn ANIM_validate_keyingset(bContext *C,
                                                           blender::Vector<PointerRNA> *sources,
-                                                          KeyingSet *ks);
+                                                          KeyingSet *keyingset);
 
 /**
  * Use the specified #KeyingSet and context info (if required)
@@ -154,7 +154,7 @@ blender::animrig::ModifyKeyReturn ANIM_validate_keyingset(bContext *C,
  */
 int ANIM_apply_keyingset(bContext *C,
                          blender::Vector<PointerRNA> *sources,
-                         KeyingSet *ks,
+                         KeyingSet *keyingset,
                          blender::animrig::ModifyKeyMode mode,
                          float cfra);
 
@@ -181,12 +181,12 @@ bool ANIM_keyingset_find_id(KeyingSet *ks, ID *id);
  * Add the given KeyingSetInfo to the list of type infos,
  * and create an appropriate builtin set too.
  */
-void ANIM_keyingset_info_register(KeyingSetInfo *ksi);
+void ANIM_keyingset_info_register(KeyingSetInfo *keyingset_info);
 /**
  * Remove the given #KeyingSetInfo from the list of type infos,
  * and also remove the builtin set if appropriate.
  */
-void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi);
+void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info);
 
 /* cleanup on exit */
 /* --------------- */
@@ -203,7 +203,7 @@ KeyingSet *ANIM_scene_get_active_keyingset(const Scene *scene);
 /**
  * Get the index of the Keying Set provided, for the given Scene.
  */
-int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks);
+int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *keyingset);
 
 /**
  * Get Keying Set to use for Auto-Key-Framing some transforms.
@@ -246,7 +246,7 @@ KeyingSet *ANIM_keyingset_get_from_idname(Scene *scene, const char *idname);
 /**
  * Check if #KeyingSet can be used in the current context.
  */
-bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks);
+bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *keyingset);
 
 /** \} */
 

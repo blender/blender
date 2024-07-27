@@ -629,11 +629,11 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(
 }
 
 bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(bContext * /*C*/,
-                                                      const ui::DragInfo &drag) const
+                                                      const ui::DragInfo &drag_info) const
 {
-  BLI_assert(drag.drag_data.type == WM_DRAG_ASSET_CATALOG);
+  BLI_assert(drag_info.drag_data.type == WM_DRAG_ASSET_CATALOG);
   return AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
-      drag.drag_data,
+      drag_info.drag_data,
       this->get_view<AssetCatalogTreeView>(),
       /* No value to drop into the root level. */
       std::nullopt);
@@ -673,11 +673,11 @@ std::string AssetCatalogTreeViewUnassignedItem::DropTarget::drop_tooltip(
 }
 
 bool AssetCatalogTreeViewUnassignedItem::DropTarget::on_drop(bContext *C,
-                                                             const ui::DragInfo &drag) const
+                                                             const ui::DragInfo &drag_info) const
 {
   /* Assign to nil catalog ID. */
   return AssetCatalogDropTarget::drop_assets_into_catalog(
-      C, this->get_view<AssetCatalogTreeView>(), drag.drag_data, CatalogID{});
+      C, this->get_view<AssetCatalogTreeView>(), drag_info.drag_data, CatalogID{});
 }
 
 /* ---------------------------------------------------------------------- */

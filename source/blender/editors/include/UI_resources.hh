@@ -461,7 +461,7 @@ bool UI_GetIconThemeColor4ubv(int colorid, unsigned char col[4]);
 /**
  * Shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor).
  */
-void UI_GetColorPtrShade3ubv(const unsigned char cp1[3], unsigned char col[3], int offset);
+void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], int offset);
 
 /**
  * Get a 3 byte color, blended and shaded between two other char color pointers.

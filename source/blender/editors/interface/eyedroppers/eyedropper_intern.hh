@@ -39,7 +39,7 @@ void datadropper_win_area_find(const bContext *C,
  *
  * \note Exposed by 'eyedropper_intern.hh' for use with color band picking.
  */
-void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3]);
+void eyedropper_color_sample_fl(bContext *C, const int event_xy[2], float r_col[3]);
 
 /* Used for most eye-dropper operators. */
 enum {

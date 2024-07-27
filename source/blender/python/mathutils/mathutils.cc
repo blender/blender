@@ -191,7 +191,7 @@ int mathutils_array_parse(
 }
 
 int mathutils_array_parse_alloc(float **array,
-                                int array_num,
+                                int array_num_min,
                                 PyObject *value,
                                 const char *error_prefix)
 {
@@ -207,12 +207,12 @@ int mathutils_array_parse_alloc(float **array,
       return -1;
     }
 
-    if (num < array_num) {
+    if (num < array_num_min) {
       PyErr_Format(PyExc_ValueError,
                    "%.200s: sequence size is %d, expected >= %d",
                    error_prefix,
                    num,
-                   array_num);
+                   array_num_min);
       return -1;
     }
 
@@ -235,13 +235,13 @@ int mathutils_array_parse_alloc(float **array,
 
   num = PySequence_Fast_GET_SIZE(value_fast);
 
-  if (num < array_num) {
+  if (num < array_num_min) {
     Py_DECREF(value_fast);
     PyErr_Format(PyExc_ValueError,
                  "%.200s: sequence size is %d, expected >= %d",
                  error_prefix,
                  num,
-                 array_num);
+                 array_num_min);
     return -1;
   }
 

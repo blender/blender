@@ -57,7 +57,7 @@ void BKE_curvemap_remove(CurveMap *cuma, short flag);
 /**
  * Remove specified point.
  */
-bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *cmp);
+bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point);
 CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y);
 /**
  * \param type: #eBezTriple_Handle
@@ -195,7 +195,7 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
  * is specified.
  */
 void BKE_color_managed_view_settings_init_render(
-    ColorManagedViewSettings *settings,
+    ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
     const char *view_transform);
 
@@ -204,7 +204,7 @@ void BKE_color_managed_view_settings_init_render(
  * For example,s movie clips while tracking.
  */
 void BKE_color_managed_view_settings_init_default(
-    ColorManagedViewSettings *settings, const ColorManagedDisplaySettings *display_settings);
+    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings);
 
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings);

@@ -42,7 +42,7 @@ void seq_cache_thumbnail_put(const SeqRenderData *context,
                              ImBuf *i,
                              const rctf *view_area);
 bool seq_cache_put_if_possible(
-    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *nval);
+    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *ibuf);
 /**
  * Find only "base" keys.
  * Sources(other types) for a frame must be freed all at once.

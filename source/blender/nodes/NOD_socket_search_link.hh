@@ -50,7 +50,7 @@ class LinkSearchOpParams {
   }
 
   bNode &add_node(StringRef idname);
-  bNode &add_node(const bke::bNodeType &type);
+  bNode &add_node(const bke::bNodeType &node_type);
   /**
    * Find a socket with the given name (correctly checks for inputs and outputs)
    * and connect it to the socket the link drag started from (#socket).

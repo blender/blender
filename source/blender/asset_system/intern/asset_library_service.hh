@@ -160,10 +160,12 @@ class AssetLibraryService {
 
   /**
    * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
+   *
+   * \param root_path: The top level directory.
    */
   AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
                                           StringRef name,
-                                          StringRefNull top_level_directory);
+                                          StringRefNull root_path);
   /**
    * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
    * This makes memory management simple, and ensures a fresh start for every blend file. */

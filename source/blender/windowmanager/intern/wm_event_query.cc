@@ -540,19 +540,19 @@ bool WM_event_is_xr(const wmEvent *event)
 /** \name Event Tablet Input Access
  * \{ */
 
-float wm_pressure_curve(float pressure)
+float wm_pressure_curve(float raw_pressure)
 {
   if (U.pressure_threshold_max != 0.0f) {
-    pressure /= U.pressure_threshold_max;
+    raw_pressure /= U.pressure_threshold_max;
   }
 
-  CLAMP(pressure, 0.0f, 1.0f);
+  CLAMP(raw_pressure, 0.0f, 1.0f);
 
   if (U.pressure_softness != 0.0f) {
-    pressure = powf(pressure, powf(4.0f, -U.pressure_softness));
+    raw_pressure = powf(raw_pressure, powf(4.0f, -U.pressure_softness));
   }
 
-  return pressure;
+  return raw_pressure;
 }
 
 float WM_event_tablet_data(const wmEvent *event, bool *r_pen_flip, float r_tilt[2])
