@@ -207,7 +207,6 @@ void RNA_api_curves(StructRNA *srna)
                            "The number of points in each curve",
                            1,
                            10000);
-  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "remove_curves", "rna_Curves_remove_curves");
@@ -225,7 +224,6 @@ void RNA_api_curves(StructRNA *srna)
                            "The indices of the curves to remove",
                            0,
                            10000);
-  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 
   func = RNA_def_function(srna, "resize_curves", "rna_Curves_resize_curves");
@@ -245,7 +243,6 @@ void RNA_api_curves(StructRNA *srna)
                            "The number of points in each curve",
                            1,
                            10000);
-  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
   parm = RNA_def_int_array(func,
                            "indices",
@@ -257,7 +254,6 @@ void RNA_api_curves(StructRNA *srna)
                            "The indices of the curves to resize",
                            0,
                            10000);
-  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 }
 
