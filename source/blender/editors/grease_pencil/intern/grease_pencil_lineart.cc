@@ -366,7 +366,7 @@ static int lineart_bake_common(bContext *C,
     Object *ob = CTX_data_active_object(C);
     if (!ob || ob->type != OB_GREASE_PENCIL) {
       WM_report(RPT_ERROR, "No active object, or active object isn't a Grease Pencil object");
-      return OPERATOR_FINISHED;
+      return OPERATOR_CANCELLED;
     }
     bj->objects.append(ob);
   }
@@ -490,7 +490,7 @@ static int lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *op)
   else {
     Object *ob = CTX_data_active_object(C);
     if (ob->type != OB_GREASE_PENCIL) {
-      return OPERATOR_FINISHED;
+      return OPERATOR_CANCELLED;
     }
     lineart_gpencil_clear_strokes_exec_common(ob);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, ob);
