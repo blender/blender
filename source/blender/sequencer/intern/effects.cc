@@ -3119,8 +3119,8 @@ static void fill_rect_alpha_under(
     for (int x = x1; x < x2; x++) {
       float4 pix = load_premul_pixel(dst);
       float fac = 1.0f - pix.w;
-      float4 col = fac * premul_col + pix;
-      store_premul_pixel(col, dst);
+      float4 dst_fl = fac * premul_col + pix;
+      store_premul_pixel(dst_fl, dst);
       dst += 4;
     }
   }
