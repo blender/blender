@@ -33,12 +33,24 @@
 static Mesh *triangulate_mesh(Mesh *mesh,
                               const int quad_method,
                               const int ngon_method,
-                              const int min_vertices)
+                              const int min_vertices,
+                              const int flag)
 {
+  Mesh *result;
+  BMesh *bm;
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
   cd_mask_extra.emask = CD_MASK_ORIGINDEX;
   cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bool keep_clnors = (flag & MOD_TRIANGULATE_KEEP_CUSTOMLOOP_NORMALS) != 0;
+
+  if (keep_clnors) {
+    void *data = CustomData_add_layer(
+        &mesh->corner_data, CD_NORMAL, CD_CONSTRUCT, mesh->corners_num);
+    memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
+    cd_mask_extra.lmask |= CD_MASK_NORMAL;
+  }
 
   BMeshCreateParams bmesh_create_params{};
   BMeshFromMeshParams bmesh_from_mesh_params{};
@@ -46,13 +58,20 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   bmesh_from_mesh_params.calc_vert_normal = false;
   bmesh_from_mesh_params.cd_mask_extra = cd_mask_extra;
 
-  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   BM_mesh_triangulate(
       bm, quad_method, ngon_method, min_vertices, false, nullptr, nullptr, nullptr);
 
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, mesh);
   BM_mesh_free(bm);
+
+  if (keep_clnors) {
+    float(*corner_normals)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num));
+    BKE_mesh_set_custom_normals(result, corner_normals);
+    CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
+  }
 
   return result;
 }
@@ -73,7 +92,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
-  if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices))) {
+  if (!(result = triangulate_mesh(
+            mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag)))
+  {
     return mesh;
   }
 
@@ -92,6 +113,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "quad_method", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "ngon_method", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "min_vertices", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "keep_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
