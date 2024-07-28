@@ -29,9 +29,6 @@ set(WITH_PYTHON_MODULE       ON  CACHE BOOL "" FORCE)
 # There is no point in copying python into Python.
 set(WITH_PYTHON_INSTALL      OFF CACHE BOOL "" FORCE)
 
-# Depends on Python install, do this to quiet warning.
-set(WITH_DRACO               OFF CACHE BOOL "" FORCE)
-
 if(WIN32)
   set(WITH_WINDOWS_BUNDLE_CRT  OFF CACHE BOOL "" FORCE)
 endif()
