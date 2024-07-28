@@ -2699,9 +2699,9 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     lf::Graph &lf_graph = lf_graph_info_->graph;
 
-    this->build_group_input_node(lf_graph);
+    this->build_main_group_inputs(lf_graph);
     if (btree_.group_output_node() == nullptr) {
-      this->build_fallback_output_node(lf_graph);
+      this->build_fallback_group_outputs(lf_graph);
     }
 
     for (const bNodeTreeInterfaceSocket *interface_input : btree_.interface_inputs()) {
@@ -3161,7 +3161,7 @@ struct GeometryNodesLazyFunctionBuilder {
     }
   }
 
-  void build_group_input_node(lf::Graph &lf_graph)
+  void build_main_group_inputs(lf::Graph &lf_graph)
   {
     const Span<const bNodeTreeInterfaceSocket *> interface_inputs = btree_.interface_inputs();
     for (const bNodeTreeInterfaceSocket *interface_input : interface_inputs) {
@@ -3177,7 +3177,7 @@ struct GeometryNodesLazyFunctionBuilder {
    * Build an output node that just outputs default values in the case when there is no Group
    * Output node in the tree.
    */
-  void build_fallback_output_node(lf::Graph &lf_graph)
+  void build_fallback_group_outputs(lf::Graph &lf_graph)
   {
     for (const bNodeTreeInterfaceSocket *interface_output : btree_.interface_outputs()) {
       const bke::bNodeSocketType *typeinfo = interface_output->socket_typeinfo();
