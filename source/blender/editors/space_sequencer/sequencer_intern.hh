@@ -359,9 +359,15 @@ void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot);
-int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op);
+int sequencer_retiming_key_select_exec(bContext *C,
+                                       wmOperator *op,
+                                       SeqRetimingKey *key,
+                                       const Sequence *key_owner);
 /* Select a key and all following keys. */
-int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op);
+int sequencer_retiming_select_linked_time(bContext *C,
+                                          wmOperator *op,
+                                          SeqRetimingKey *key,
+                                          const Sequence *key_owner);
 int sequencer_select_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
 int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
@@ -373,11 +379,11 @@ void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
                                   const StripDrawContext &strip_ctx);
 void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
                                    const StripDrawContext &strip_ctx);
-SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2]);
-SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
+SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Sequence *seq, const int mval[2]);
+SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);
-bool retiming_keys_are_visible(const SpaceSeq *sseq);
+bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);
 rctf seq_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Sequence *seq);
 
 /* `sequencer_timeline_draw.cc` */

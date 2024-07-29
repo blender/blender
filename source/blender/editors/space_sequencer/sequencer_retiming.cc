@@ -778,66 +778,48 @@ static bool select_key(const Editing *ed,
   return true;
 }
 
-int sequencer_retiming_select_linked_time(bContext *C, wmOperator *op)
+int sequencer_retiming_select_linked_time(bContext *C,
+                                          wmOperator *op,
+                                          SeqRetimingKey *key,
+                                          const Sequence *key_owner)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
 
-  Sequence *seq_key_owner = nullptr;
-  SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_owner);
-
-  if (key == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
   if (!RNA_boolean_get(op->ptr, "extend")) {
     SEQ_retiming_selection_clear(ed);
   }
-  for (; key <= SEQ_retiming_last_key_get(seq_key_owner); key++) {
+  for (; key <= SEQ_retiming_last_key_get(key_owner); key++) {
     select_key(ed, key, false, false);
   }
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;
 }
 
-int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
+int sequencer_retiming_key_select_exec(bContext *C,
+                                       wmOperator *op,
+                                       SeqRetimingKey *key,
+                                       const Sequence *key_owner)
 {
   if (RNA_boolean_get(op->ptr, "linked_time")) {
-    return sequencer_retiming_select_linked_time(C, op);
+    return sequencer_retiming_select_linked_time(C, op, key, key_owner);
   }
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
-
-  eSeqHandle hand;
-  Sequence *seq_key_owner = nullptr;
-  SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_owner);
-
-  /* Try to realize "fake" key, since it is clicked on. */
-  if (key == nullptr && seq_key_owner != nullptr) {
-    key = try_to_realize_virtual_keys(C, seq_key_owner, mval);
-  }
 
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
   /* Click on unselected key. */
-  if (key != nullptr && !SEQ_retiming_selection_contains(ed, key) && !toggle) {
+  if (!SEQ_retiming_selection_contains(ed, key) && !toggle) {
     select_key(ed, key, false, deselect_all);
   }
 
   /* Clicked on any key, waiting to click release. */
-  if (key != nullptr && wait_to_deselect_others && !toggle) {
+  if (wait_to_deselect_others && !toggle) {
     return OPERATOR_RUNNING_MODAL;
-  }
-
-  /* Click on strip, do strip selection. */
-  const Sequence *seq_click_exact = find_nearest_seq(scene, UI_view2d_fromcontext(C), mval, &hand);
-  if (seq_click_exact != nullptr && key == nullptr) {
-    SEQ_retiming_selection_clear(ed);
-    return sequencer_select_exec(C, op);
   }
 
   /* Selection after click is released. */

@@ -645,7 +645,7 @@ static bool is_mouse_over_retiming_key(const Scene *scene,
 {
   const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
 
-  if (!SEQ_retiming_data_is_editable(seq) || !retiming_keys_are_visible(sseq)) {
+  if (!SEQ_retiming_data_is_editable(seq) || !retiming_keys_can_be_displayed(sseq)) {
     return false;
   }
 

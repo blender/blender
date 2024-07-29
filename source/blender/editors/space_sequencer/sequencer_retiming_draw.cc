@@ -41,9 +41,10 @@
 #define KEY_SIZE (10 * U.pixelsize)
 #define KEY_CENTER (UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.0f)) + 4 + KEY_SIZE / 2)
 
-bool retiming_keys_are_visible(const SpaceSeq *sseq)
+bool retiming_keys_can_be_displayed(const SpaceSeq *sseq)
 {
-  return (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) != 0;
+  return (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) &&
+         (sseq->flag & SEQ_SHOW_OVERLAY);
 }
 
 static float strip_y_rescale(const Sequence *seq, const float y_value)
@@ -140,7 +141,7 @@ static bool retiming_fake_key_is_clicked(const bContext *C,
   return distance < RETIME_KEY_MOUSEOVER_THRESHOLD;
 }
 
-SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2])
+SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Sequence *seq, const int mval[2])
 {
   Scene *scene = CTX_data_scene(C);
   SeqRetimingKey *key = nullptr;
@@ -203,7 +204,7 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
   return best_key;
 }
 
-SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq)
+SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Sequence **r_seq)
 {
   const Scene *scene = CTX_data_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
@@ -236,7 +237,7 @@ static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
     return false;
   }
 
-  if (!retiming_keys_are_visible(timeline_ctx->sseq)) {
+  if (!retiming_keys_can_be_displayed(timeline_ctx->sseq)) {
     return false;
   }
 

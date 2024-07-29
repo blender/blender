@@ -466,7 +466,8 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)))
+  {
     return sequencer_retiming_select_all_exec(C, op);
   }
 
@@ -1129,12 +1130,6 @@ StripSelection ED_sequencer_pick_strip_and_handle(const Scene *scene,
   return selection;
 }
 
-static bool use_retiming_mode(const bContext *C, const Sequence *seq_key_test)
-{
-  return seq_key_test && SEQ_retiming_data_is_editable(seq_key_test) &&
-         !sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C));
-}
-
 int sequencer_select_exec(bContext *C, wmOperator *op)
 {
   const View2D *v2d = UI_view2d_fromcontext(C);
@@ -1156,8 +1151,34 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
-    return sequencer_retiming_key_select_exec(C, op);
+  bool was_retiming = sequencer_retiming_mode_is_active(C);
+
+  MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
+
+  /* Check to see if the mouse cursor intersects with the retiming box; if so, `seq_key_owner` is
+   * set. If the cursor intersects with a retiming key, `key` will be set too. */
+  Sequence *seq_key_owner = nullptr;
+  SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &seq_key_owner);
+
+  /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not been
+   * realized yet. */
+  if (seq_key_owner != nullptr && key == nullptr) {
+    key = try_to_realize_fake_keys(C, seq_key_owner, mouse_co.region);
+  }
+
+  if (key != nullptr && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)) &&
+      SEQ_retiming_data_is_editable(seq_key_owner))
+  {
+    if (!was_retiming) {
+      ED_sequencer_deselect_all(scene);
+    }
+    return sequencer_retiming_key_select_exec(C, op, key, seq_key_owner);
+  }
+
+  /* We should only reach here if no retiming selection is happening. */
+  if (was_retiming) {
+    SEQ_retiming_selection_clear(ed);
+    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   }
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -1165,8 +1186,6 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
   bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   bool toggle = RNA_boolean_get(op->ptr, "toggle");
   bool center = RNA_boolean_get(op->ptr, "center");
-
-  MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
 
   StripSelection selection;
   if (region->regiontype == RGN_TYPE_PREVIEW) {
@@ -1176,24 +1195,16 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
     selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co.view);
   }
 
-  Sequence *seq_key_test = nullptr;
-  SeqRetimingKey *key = retiming_mousover_key_get(C, mouse_co.region, &seq_key_test);
-
   /* NOTE: `side_of_frame` and `linked_time` functionality is designed to be shared on one
    * keymap, therefore both properties can be true at the same time. */
   if (selection.seq1 && RNA_boolean_get(op->ptr, "linked_time")) {
-    if (use_retiming_mode(C, seq_key_test)) {
-      return sequencer_retiming_select_linked_time(C, op);
+    if (!extend && !toggle) {
+      ED_sequencer_deselect_all(scene);
     }
-    else {
-      if (!extend && !toggle) {
-        ED_sequencer_deselect_all(scene);
-      }
-      select_linked_time(scene, selection, extend, deselect, toggle);
-      sequencer_select_do_updates(C, scene);
-      sequencer_select_set_active(scene, selection.seq1);
-      return OPERATOR_FINISHED;
-    }
+    select_linked_time(scene, selection, extend, deselect, toggle);
+    sequencer_select_do_updates(C, scene);
+    sequencer_select_set_active(scene, selection.seq1);
+    return OPERATOR_FINISHED;
   }
 
   /* Select left, right or overlapping the current frame. */
@@ -1232,24 +1243,6 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
    * All strips are deselected on mouse button release unless extend mode is used. */
   if (already_selected && wait_to_deselect_others && !toggle) {
     return OPERATOR_RUNNING_MODAL;
-  }
-
-  if (use_retiming_mode(C, seq_key_test)) {
-
-    /* Realize "fake" key, if it is clicked on. */
-    if (key == nullptr && seq_key_test != nullptr) {
-      key = try_to_realize_virtual_keys(C, seq_key_test, mouse_co.region);
-    }
-
-    bool retiming_key_clicked = (key != nullptr);
-
-    if (seq_key_test && retiming_key_clicked) {
-      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-      ED_sequencer_deselect_all(scene);
-      SEQ_retiming_selection_clear(ed);
-      SEQ_retiming_selection_append(key);
-      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-    }
   }
 
   bool changed = false;
@@ -1369,7 +1362,8 @@ static int sequencer_select_handle_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)))
+  {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -1382,8 +1376,8 @@ static int sequencer_select_handle_exec(bContext *C, wmOperator *op)
 
   /* Ignore clicks on retiming keys. */
   Sequence *seq_key_test = nullptr;
-  retiming_mousover_key_get(C, mouse_co.region, &seq_key_test);
-  if (use_retiming_mode(C, seq_key_test) && seq_key_test != nullptr) {
+  SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &seq_key_test);
+  if (key != nullptr) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -2022,7 +2016,8 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(CTX_wm_space_seq(C))) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)))
+  {
     return sequencer_retiming_box_select_exec(C, op);
   }
 
