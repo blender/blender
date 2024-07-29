@@ -727,6 +727,12 @@ AttrDomain BKE_attribute_domain(const AttributeOwner &owner, const CustomDataLay
   return AttrDomain(AttrDomain::Point);
 }
 
+int BKE_attribute_domain_size(const AttributeOwner &owner, const int domain)
+{
+  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
+  return info[domain].length;
+}
+
 int BKE_attribute_data_length(AttributeOwner &owner, CustomDataLayer *layer)
 {
   /* When in mesh editmode, attributes point to bmesh customdata layers, the attribute data is

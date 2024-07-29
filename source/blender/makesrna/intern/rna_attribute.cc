@@ -695,6 +695,12 @@ static void rna_AttributeGroup_update_active_color(Main * /*bmain*/,
   }
 }
 
+static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
+{
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  return BKE_attribute_domain_size(owner, domain);
+}
+
 static PointerRNA rna_AttributeGroupMesh_active_color_get(PointerRNA *ptr)
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
@@ -936,6 +942,13 @@ static void rna_AttributeGroupGreasePencilDrawing_active_index_range(
 
   *softmin = *min;
   *softmax = *max;
+}
+
+static int rna_AttributeGroupGreasePencilDrawing_domain_size(GreasePencilDrawing *drawing,
+                                                             const int domain)
+{
+  AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
+  return BKE_attribute_domain_size(owner, domain);
 }
 
 #else
@@ -1498,6 +1511,19 @@ static void rna_def_attribute_group_id_common(StructRNA *srna)
                              "rna_AttributeGroupID_active_index_set",
                              "rna_AttributeGroupID_active_index_range");
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
+
+  /* Domain Size */
+  func = RNA_def_function(srna, "domain_size", "rna_AttributeGroupID_domain_size");
+  RNA_def_function_ui_description(func, "Get the size of a given domain");
+  parm = RNA_def_enum(func,
+                      "domain",
+                      rna_enum_attribute_domain_items,
+                      int(AttrDomain::Point),
+                      "Domain",
+                      "Type of element that attribute is stored on");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func, "size", 0, 0, INT_MAX, "Size", "Size of the domain", 0, INT_MAX);
+  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_attribute_group_mesh(BlenderRNA *brna)
@@ -1660,6 +1686,20 @@ static void rna_def_attribute_group_grease_pencil_drawing(BlenderRNA *brna)
                              "rna_AttributeGroupGreasePencilDrawing_active_index_set",
                              "rna_AttributeGroupGreasePencilDrawing_active_index_range");
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
+
+  /* Domain Size */
+  func = RNA_def_function(
+      srna, "domain_size", "rna_AttributeGroupGreasePencilDrawing_domain_size");
+  RNA_def_function_ui_description(func, "Get the size of a given domain");
+  parm = RNA_def_enum(func,
+                      "domain",
+                      rna_enum_attribute_domain_items,
+                      int(AttrDomain::Point),
+                      "Domain",
+                      "Type of element that attribute is stored on");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func, "size", 0, 0, INT_MAX, "Size", "Size of the domain", 0, INT_MAX);
+  RNA_def_function_return(func, parm);
 }
 
 void rna_def_attributes_common(StructRNA *srna, const AttributeOwnerType type)

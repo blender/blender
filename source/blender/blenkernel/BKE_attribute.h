@@ -111,6 +111,7 @@ struct CustomDataLayer *BKE_attribute_search_for_write(AttributeOwner &owner,
 
 blender::bke::AttrDomain BKE_attribute_domain(const AttributeOwner &owner,
                                               const struct CustomDataLayer *layer);
+int BKE_attribute_domain_size(const AttributeOwner &owner, int domain);
 int BKE_attribute_data_length(AttributeOwner &owner, struct CustomDataLayer *layer);
 bool BKE_attribute_required(const AttributeOwner &owner, const char *name);
 bool BKE_attribute_rename(AttributeOwner &owner,
