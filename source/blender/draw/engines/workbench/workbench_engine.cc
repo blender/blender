@@ -412,11 +412,9 @@ class Instance {
      * re-sync (See #113580). */
     bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
                                 (!opaque_ps.gbuffer_in_front_ps_.is_empty() &&
-                                 scene_state.overlays_enabled && scene_state.sample == 0);
+                                 scene_state.sample == 0);
     resources.depth_in_front_tx.wrap(needs_depth_in_front ? depth_in_front_tx : nullptr);
-    if ((!needs_depth_in_front && scene_state.overlays_enabled) ||
-        (needs_depth_in_front && opaque_ps.gbuffer_in_front_ps_.is_empty()))
-    {
+    if (!needs_depth_in_front || opaque_ps.gbuffer_in_front_ps_.is_empty()) {
       resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
       resources.clear_in_front_fb.bind();
       GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
@@ -465,15 +463,6 @@ class Instance {
                      GPUTexture *color_tx)
   {
     this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
-
-    if (!scene_state.overlays_enabled) {
-      resources.clear_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_in_front_tx));
-      resources.clear_in_front_fb.bind();
-      GPU_framebuffer_clear_depth_stencil(resources.clear_in_front_fb, 1.0f, 0x00);
-      resources.clear_depth_only_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx));
-      resources.clear_depth_only_fb.bind();
-      GPU_framebuffer_clear_depth_stencil(resources.clear_depth_only_fb, 1.0f, 0x00);
-    }
 
     if (scene_state.sample + 1 < scene_state.samples_len) {
       DRW_viewport_request_redraw();
