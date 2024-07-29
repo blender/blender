@@ -106,46 +106,54 @@ enum eUSDTexExportMode {
 
 struct USDExportParams {
   bool export_animation = false;
+  bool selected_objects_only = false;
+  bool visible_objects_only = true;
+
+  bool export_meshes = true;
+  bool export_lights = true;
+  bool export_cameras = true;
+  bool export_curves = true;
+  bool export_volumes = true;
   bool export_hair = true;
   bool export_uvmaps = true;
   bool rename_uvmaps = true;
   bool export_normals = true;
   bool export_mesh_colors = true;
   bool export_materials = true;
+
   bool export_armatures = true;
   bool export_shapekeys = true;
   bool only_deform_bones = false;
-  eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
-  bool selected_objects_only = false;
-  bool visible_objects_only = true;
+
+  bool convert_world_material = true;
+
   bool use_instancing = false;
+  bool export_custom_properties = true;
+  bool author_blender_name = true;
+  bool allow_unicode = false;
+
+  eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
+
   bool generate_preview_surface = true;
   bool generate_materialx_network = true;
   bool export_textures = false;
   bool overwrite_textures = true;
   bool relative_paths = true;
-  bool export_custom_properties = true;
-  bool author_blender_name = true;
+  bool use_original_paths = false;
+
   bool triangulate_meshes = false;
   int quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
   int ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
+
   bool convert_orientation = false;
   enum eIOAxis forward_axis = eIOAxis::IO_AXIS_NEGATIVE_Z;
   enum eIOAxis up_axis = eIOAxis::IO_AXIS_Y;
-  bool convert_world_material = true;
   eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_TRS;
-  bool export_meshes = true;
-  bool export_lights = true;
-  bool export_cameras = true;
-  bool export_curves = true;
-  bool export_volumes = true;
+
   eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
   int usdz_downscale_custom_size = 128;
 
-  bool allow_unicode = false;
-
-  bool use_original_paths = false;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
@@ -156,43 +164,51 @@ struct USDExportParams {
 };
 
 struct USDImportParams {
+  char *prim_path_mask;
   float scale;
-  bool is_sequence;
+  float light_intensity_scale;
+
+  char mesh_read_flag;
   bool set_frame_range;
+  bool is_sequence;
   int sequence_len;
   int offset;
-  bool validate_meshes;
-  char mesh_read_flag;
+
+  bool import_defined_only;
+  bool import_visible_only;
+
   bool import_cameras;
   bool import_curves;
   bool import_lights;
   bool import_materials;
+  bool import_all_materials;
   bool import_meshes;
+  bool import_points;
+  bool import_subdiv;
   bool import_volumes;
+
   bool import_shapes;
   bool import_skeletons;
   bool import_blendshapes;
-  bool import_points;
-  char *prim_path_mask;
-  bool import_subdiv;
-  bool support_scene_instancing;
+
   bool create_collection;
+  bool create_world_material;
+  bool support_scene_instancing;
+
   bool import_guide;
   bool import_proxy;
   bool import_render;
-  bool import_visible_only;
-  bool use_instancing;
   bool import_usd_preview;
   bool set_material_blend;
-  float light_intensity_scale;
+
+  bool validate_meshes;
+
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
   eUSDTexImportMode import_textures_mode;
-  bool import_defined_only;
+
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
-  bool import_all_materials;
   eUSDAttrImportMode attr_import_mode;
-  bool create_world_material;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used
