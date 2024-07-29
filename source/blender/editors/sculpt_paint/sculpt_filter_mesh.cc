@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
@@ -39,6 +40,7 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -525,64 +527,125 @@ static void mesh_filter_init_limit_surface_co(SculptSession &ss)
   }
 }
 
-static void mesh_filter_sharpen_init(SculptSession &ss,
+static void mesh_filter_sharpen_init(const Object &object,
                                      const float smooth_ratio,
                                      const float intensify_detail_strength,
-                                     const int curvature_smooth_iterations)
+                                     const int curvature_smooth_iterations,
+                                     filter::Cache &filter_cache)
 {
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  const Span<bke::pbvh::Node *> nodes = filter_cache.nodes;
   const int totvert = SCULPT_vertex_count_get(ss);
-  filter::Cache *filter_cache = ss.filter_cache;
 
-  filter_cache->sharpen_smooth_ratio = smooth_ratio;
-  filter_cache->sharpen_intensify_detail_strength = intensify_detail_strength;
-  filter_cache->sharpen_curvature_smooth_iterations = curvature_smooth_iterations;
-  filter_cache->sharpen_factor.reinitialize(totvert);
-  filter_cache->detail_directions.reinitialize(totvert);
+  filter_cache.sharpen_smooth_ratio = smooth_ratio;
+  filter_cache.sharpen_intensify_detail_strength = intensify_detail_strength;
+  filter_cache.sharpen_curvature_smooth_iterations = curvature_smooth_iterations;
+  filter_cache.sharpen_factor.reinitialize(totvert);
+  filter_cache.detail_directions.reinitialize(totvert);
+  MutableSpan<float3> detail_directions = filter_cache.detail_directions;
+  MutableSpan<float> sharpen_factors = filter_cache.sharpen_factor;
+
+  calc_smooth_translations(object, filter_cache.nodes, filter_cache.detail_directions);
 
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-    const float3 avg = smooth::neighbor_coords_average(ss, vertex);
-    filter_cache->detail_directions[i] = avg - float3(SCULPT_vertex_co_get(ss, vertex));
-    filter_cache->sharpen_factor[i] = math::length(filter_cache->detail_directions[i]);
+    sharpen_factors[i] = math::length(detail_directions[i]);
   }
 
   float max_factor = 0.0f;
   for (int i = 0; i < totvert; i++) {
-    if (filter_cache->sharpen_factor[i] > max_factor) {
-      max_factor = filter_cache->sharpen_factor[i];
+    if (sharpen_factors[i] > max_factor) {
+      max_factor = sharpen_factors[i];
     }
   }
 
   max_factor = 1.0f / max_factor;
   for (int i = 0; i < totvert; i++) {
-    filter_cache->sharpen_factor[i] *= max_factor;
-    filter_cache->sharpen_factor[i] = 1.0f - pow2f(1.0f - filter_cache->sharpen_factor[i]);
+    sharpen_factors[i] *= max_factor;
+    sharpen_factors[i] = 1.0f - pow2f(1.0f - sharpen_factors[i]);
   }
 
   /* Smooth the calculated factors and directions to remove high frequency detail. */
-  for (int smooth_iterations = 0;
-       smooth_iterations < filter_cache->sharpen_curvature_smooth_iterations;
-       smooth_iterations++)
+  struct LocalData {
+    Vector<Vector<int>> vert_neighbors;
+    Vector<float3> smooth_directions;
+    Vector<float> smooth_factors;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  for ([[maybe_unused]] const int _ : IndexRange(filter_cache.sharpen_curvature_smooth_iterations))
   {
-    for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+    switch (pbvh.type()) {
+      case bke::pbvh::Type::Mesh: {
+        Mesh &mesh = *static_cast<Mesh *>(object.data);
+        const OffsetIndices faces = mesh.faces();
+        const Span<int> corner_verts = mesh.corner_verts();
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int i : range) {
+            const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
 
-      float3 direction_avg(0.0f);
-      float sharpen_avg = 0;
-      int total = 0;
+            tls.vert_neighbors.resize(verts.size());
+            const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
+            calc_vert_neighbors(faces, corner_verts, ss.vert_to_face_map, {}, verts, neighbors);
 
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        add_v3_v3(direction_avg, filter_cache->detail_directions[ni.index]);
-        sharpen_avg += filter_cache->sharpen_factor[ni.index];
-        total++;
+            tls.smooth_directions.resize(verts.size());
+            smooth::neighbor_data_average_mesh(
+                detail_directions.as_span(), neighbors, tls.smooth_directions.as_mutable_span());
+            scatter_data_mesh(tls.smooth_directions.as_span(), verts, detail_directions);
+
+            tls.smooth_factors.resize(verts.size());
+            smooth::neighbor_data_average_mesh(
+                sharpen_factors.as_span(), neighbors, tls.smooth_factors.as_mutable_span());
+            scatter_data_mesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
+          }
+        });
+        break;
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+      case bke::pbvh::Type::Grids: {
+        SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+        const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int i : range) {
+            const Span<int> grids = bke::pbvh::node_grid_indices(*nodes[i]);
+            const int grid_verts_num = grids.size() * key.grid_area;
 
-      if (total > 0) {
-        mul_v3_v3fl(filter_cache->detail_directions[i], direction_avg, 1.0f / total);
-        filter_cache->sharpen_factor[i] = sharpen_avg / total;
+            tls.smooth_directions.resize(grid_verts_num);
+            smooth::average_data_grids(subdiv_ccg,
+                                       detail_directions.as_span(),
+                                       grids,
+                                       tls.smooth_directions.as_mutable_span());
+            scatter_data_grids(
+                subdiv_ccg, tls.smooth_directions.as_span(), grids, detail_directions);
+
+            tls.smooth_factors.resize(grid_verts_num);
+            smooth::average_data_grids(subdiv_ccg,
+                                       sharpen_factors.as_span(),
+                                       grids,
+                                       tls.smooth_factors.as_mutable_span());
+            scatter_data_grids(subdiv_ccg, tls.smooth_factors.as_span(), grids, sharpen_factors);
+          }
+        });
+        break;
       }
+      case bke::pbvh::Type::BMesh:
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int i : range) {
+            const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(nodes[i]);
+
+            tls.smooth_directions.resize(verts.size());
+            smooth::average_data_bmesh(
+                detail_directions.as_span(), verts, tls.smooth_directions.as_mutable_span());
+            scatter_data_vert_bmesh(tls.smooth_directions.as_span(), verts, detail_directions);
+
+            tls.smooth_factors.resize(verts.size());
+            smooth::average_data_bmesh(
+                sharpen_factors.as_span(), verts, tls.smooth_factors.as_mutable_span());
+            scatter_data_vert_bmesh(tls.smooth_factors.as_span(), verts, sharpen_factors);
+          }
+        });
+        break;
     }
   }
 }
@@ -855,8 +918,9 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
 static void sculpt_filter_specific_init(const MeshFilterType filter_type,
                                         wmOperator *op,
-                                        SculptSession &ss)
+                                        Object &object)
 {
+  SculptSession &ss = *object.sculpt;
   switch (filter_type) {
     case MeshFilterType::SurfaceSmooth: {
       const float shape_preservation = RNA_float_get(op->ptr, "surface_smooth_shape_preservation");
@@ -871,8 +935,11 @@ static void sculpt_filter_specific_init(const MeshFilterType filter_type,
                                                             "sharpen_intensify_detail_strength");
       const int curvature_smooth_iterations = RNA_int_get(op->ptr,
                                                           "sharpen_curvature_smooth_iterations");
-      mesh_filter_sharpen_init(
-          ss, smooth_ratio, intensify_detail_strength, curvature_smooth_iterations);
+      mesh_filter_sharpen_init(object,
+                               smooth_ratio,
+                               intensify_detail_strength,
+                               curvature_smooth_iterations,
+                               *ss.filter_cache);
       break;
     }
     case MeshFilterType::EnhanceDetails: {
@@ -954,7 +1021,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = auto_mask::cache_init(sd, ob);
 
-  sculpt_filter_specific_init(filter_type, op, ss);
+  sculpt_filter_specific_init(filter_type, op, ob);
 
   ss.filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
   ss.filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;

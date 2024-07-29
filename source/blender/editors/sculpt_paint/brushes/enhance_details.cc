@@ -237,19 +237,20 @@ static void calc_translations_bmesh(bke::pbvh::Node &node,
   scatter_data_vert_bmesh(translations.as_span(), verts, all_translations);
 }
 
+}  // namespace enhance_details_cc
+
 /**
  * The brush uses translations calculated at the beginning of the stroke. They can't be calculated
  * dynamically because changing positions will influence neighboring translations. However we can
  * reduce the cost in some cases by skipping initializing values for vertices in hidden or masked
  * nodes.
  */
-static void precalc_translations(Object &object, const MutableSpan<float3> translations)
+void calc_smooth_translations(const Object &object,
+                              const Span<bke::pbvh::Node *> nodes,
+                              const MutableSpan<float3> translations)
 {
-  SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
-
-  Vector<bke::pbvh::Node *> effective_nodes = bke::pbvh::search_gather(
-      pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
@@ -258,14 +259,14 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
-      threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
           calc_translations_faces(positions_eval,
                                   faces,
                                   corner_verts,
                                   ss.vert_to_face_map,
-                                  *effective_nodes[i],
+                                  *nodes[i],
                                   tls,
                                   translations);
         }
@@ -274,10 +275,10 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
     }
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_translations_grids(subdiv_ccg, *effective_nodes[i], tls, translations);
+          calc_translations_grids(subdiv_ccg, *nodes[i], tls, translations);
         }
       });
       break;
@@ -285,17 +286,15 @@ static void precalc_translations(Object &object, const MutableSpan<float3> trans
     case bke::pbvh::Type::BMesh:
       BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
       BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
-      threading::parallel_for(effective_nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_translations_bmesh(*effective_nodes[i], tls, translations);
+          calc_translations_bmesh(*nodes[i], tls, translations);
         }
       });
       break;
   }
 }
-
-}  // namespace enhance_details_cc
 
 void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
 {
@@ -305,7 +304,9 @@ void do_enhance_details_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::
 
   if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
     ss.cache->detail_directions.reinitialize(SCULPT_vertex_count_get(ss));
-    precalc_translations(object, ss.cache->detail_directions);
+    Vector<bke::pbvh::Node *> effective_nodes = bke::pbvh::search_gather(
+        pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
+    calc_smooth_translations(object, effective_nodes, ss.cache->detail_directions);
   }
 
   const float strength = std::clamp(ss.cache->bstrength, -1.0f, 1.0f);
