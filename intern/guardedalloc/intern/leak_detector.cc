@@ -6,8 +6,11 @@
  * \ingroup intern_mem
  */
 
+#include <any>
 #include <cstdio> /* Needed for `printf` on WIN32/APPLE. */
 #include <cstdlib>
+#include <mutex>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 #include "mallocn_intern.hh"
@@ -63,6 +66,11 @@ void MEM_init_memleak_detection()
   /* Calling this ensures that the memory usage counters outlive the memory leak detection. */
   memory_usage_init();
 
+  /* Ensure that the static memleak data storage is initialized before the #MemLeakPrinter one, so
+   * that it outlives the memory leak detection. */
+  std::any any_data = std::make_any<int>(0);
+  mem_guarded::internal::add_memleak_data(any_data);
+
   /**
    * This variable is constructed when this function is first called. This should happen as soon as
    * possible when the program starts.
@@ -83,4 +91,12 @@ void MEM_use_memleak_detection(bool enabled)
 void MEM_enable_fail_on_memleak()
 {
   fail_on_memleak = true;
+}
+
+void mem_guarded::internal::add_memleak_data(std::any data)
+{
+  static std::mutex mutex;
+  static std::vector<std::any> data_vec;
+  std::lock_guard lock{mutex};
+  data_vec.push_back(std::move(data));
 }
