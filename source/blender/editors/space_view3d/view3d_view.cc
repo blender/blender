@@ -18,7 +18,6 @@
 #include "BKE_action.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -628,29 +627,14 @@ int view3d_opengl_select_ex(const ViewContext *vc,
       /* While this uses 'alloca' in a loop (which we typically avoid),
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = nullptr;
-      if (obact->type == OB_GPENCIL_LEGACY) {
-        GpencilVirtualModifierData virtual_modifier_data;
-        const GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
-            obact, &virtual_modifier_data);
-        for (; md; md = md->next) {
-          if (md->type == eGpencilModifierType_Armature) {
-            ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
-            if (agmd->object && (agmd->object->mode & OB_MODE_POSE)) {
-              BLI_linklist_prepend_alloca(&ob_pose_list, agmd->object);
-            }
-          }
-        }
-      }
-      else {
-        VirtualModifierData virtual_modifier_data;
-        const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
-                                                                        &virtual_modifier_data);
-        for (; md; md = md->next) {
-          if (md->type == eModifierType_Armature) {
-            ArmatureModifierData *amd = (ArmatureModifierData *)md;
-            if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
-              BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
-            }
+      VirtualModifierData virtual_modifier_data;
+      const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
+                                                                      &virtual_modifier_data);
+      for (; md; md = md->next) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
+            BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
           }
         }
       }

@@ -14,8 +14,7 @@ set(INC
   ../../../../extern/curve_fit_nd
   ../../geometry
   ../sculpt_paint
-  ../../gpencil_modifiers_legacy
-  ../../gpencil_modifiers_legacy/intern/lineart
+  ../../modifiers/intern/lineart
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )

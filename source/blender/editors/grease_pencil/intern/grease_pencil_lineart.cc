@@ -40,8 +40,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-/* For shared legacy cache function, will be removed when v2 is removed. */
-#include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
 namespace blender::ed::greasepencil {

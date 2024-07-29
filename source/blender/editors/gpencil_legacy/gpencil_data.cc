@@ -44,7 +44,6 @@
 #include "BKE_deform.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -2634,15 +2633,6 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         Object *ob_src = ob_iter;
         bGPdata *gpd_src = static_cast<bGPdata *>(ob_iter->data);
 
-        /* Apply all GP modifiers before */
-        LISTBASE_FOREACH (GpencilModifierData *, md, &ob_iter->greasepencil_modifiers) {
-          const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
-              GpencilModifierType(md->type));
-          if (mti->bake_modifier) {
-            mti->bake_modifier(bmain, depsgraph, md, ob_iter);
-          }
-        }
-
         /* copy vertex groups to the base one's */
         int old_idx = 0;
         LISTBASE_FOREACH (bDeformGroup *, dg, &gpd_src->vertex_group_names) {
@@ -3470,47 +3460,6 @@ void GPENCIL_OT_materials_copy_to_object(wmOperatorType *ot)
                          "Append only active material, uncheck to append all materials");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-}
-
-bool ED_gpencil_add_lattice_modifier(const bContext *C,
-                                     ReportList *reports,
-                                     Object *ob,
-                                     Object *ob_latt)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-
-  if (ob == nullptr) {
-    return false;
-  }
-
-  /* if no lattice modifier, add a new one */
-  GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Lattice);
-  if (md == nullptr) {
-    md = blender::ed::object::gpencil_modifier_add(
-        reports, bmain, scene, ob, "Lattice", eGpencilModifierType_Lattice);
-    if (md == nullptr) {
-      BKE_report(reports, RPT_ERROR, "Unable to add a new Lattice modifier to object");
-      return false;
-    }
-    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  }
-
-  /* verify lattice */
-  LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
-  if (mmd->object == nullptr) {
-    mmd->object = ob_latt;
-  }
-  else {
-    if (ob_latt != mmd->object) {
-      BKE_report(reports,
-                 RPT_ERROR,
-                 "The existing Lattice modifier is already using a different Lattice object");
-      return false;
-    }
-  }
-
-  return true;
 }
 
 /* Masking operators */

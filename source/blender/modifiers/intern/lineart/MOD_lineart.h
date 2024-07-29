@@ -978,7 +978,8 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
  */
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
-void ED_operatortypes_lineart(void);
+LineartCache *MOD_lineart_init_cache();
+void MOD_lineart_clear_cache(struct LineartCache **lc);
 
 #ifdef __cplusplus
 }

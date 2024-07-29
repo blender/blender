@@ -28,7 +28,6 @@
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -1298,33 +1297,26 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         context = BCONTEXT_MODIFIER;
 
         if (tselem->type != TSE_MODIFIER_BASE) {
-          Object *ob = (Object *)tselem->id;
+          ModifierData *md = (ModifierData *)te->directdata;
 
-          if (ob->type == OB_GPENCIL_LEGACY) {
-            BKE_gpencil_modifier_panel_expand(static_cast<GpencilModifierData *>(te->directdata));
+          switch ((ModifierType)md->type) {
+            case eModifierType_ParticleSystem:
+              context = BCONTEXT_PARTICLE;
+              break;
+            case eModifierType_Cloth:
+            case eModifierType_Softbody:
+            case eModifierType_Collision:
+            case eModifierType_Fluidsim:
+            case eModifierType_DynamicPaint:
+            case eModifierType_Fluid:
+              context = BCONTEXT_PHYSICS;
+              break;
+            default:
+              break;
           }
-          else {
-            ModifierData *md = (ModifierData *)te->directdata;
 
-            switch ((ModifierType)md->type) {
-              case eModifierType_ParticleSystem:
-                context = BCONTEXT_PARTICLE;
-                break;
-              case eModifierType_Cloth:
-              case eModifierType_Softbody:
-              case eModifierType_Collision:
-              case eModifierType_Fluidsim:
-              case eModifierType_DynamicPaint:
-              case eModifierType_Fluid:
-                context = BCONTEXT_PHYSICS;
-                break;
-              default:
-                break;
-            }
-
-            if (context == BCONTEXT_MODIFIER) {
-              BKE_modifier_panel_expand(md);
-            }
+          if (context == BCONTEXT_MODIFIER) {
+            BKE_modifier_panel_expand(md);
           }
         }
         break;

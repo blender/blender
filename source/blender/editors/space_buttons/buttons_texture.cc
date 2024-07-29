@@ -30,7 +30,6 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_linestyle.h"
 #include "BKE_modifier.hh"
@@ -234,26 +233,6 @@ static void buttons_texture_modifier_foreach(void *user_data,
   }
 }
 
-static void buttons_texture_modifier_gpencil_foreach(void *user_data,
-                                                     Object *ob,
-                                                     GpencilModifierData *md,
-                                                     const char *propname)
-{
-  PropertyRNA *prop;
-  ListBase *users = static_cast<ListBase *>(user_data);
-
-  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md);
-  prop = RNA_struct_find_property(&ptr, propname);
-
-  buttons_texture_user_property_add(users,
-                                    &ob->id,
-                                    ptr,
-                                    prop,
-                                    N_("Grease Pencil Modifiers"),
-                                    RNA_struct_ui_icon(ptr.type),
-                                    md->name);
-}
-
 static void buttons_texture_users_from_context(ListBase *users,
                                                const bContext *C,
                                                SpaceProperties *sbuts)
@@ -316,9 +295,6 @@ static void buttons_texture_users_from_context(ListBase *users,
 
     /* modifiers */
     BKE_modifiers_foreach_tex_link(ob, buttons_texture_modifier_foreach, users);
-
-    /* grease pencil modifiers */
-    BKE_gpencil_modifiers_foreach_tex_link(ob, buttons_texture_modifier_gpencil_foreach, users);
 
     /* particle systems */
     if (psys && !limited_mode) {

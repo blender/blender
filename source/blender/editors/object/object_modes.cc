@@ -17,7 +17,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -369,27 +368,13 @@ static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
 
 void posemode_set_for_weight_paint(bContext *C, Main *bmain, Object *ob, const bool is_mode_set)
 {
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    GpencilVirtualModifierData virtual_modifier_data;
-    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
-        ob, &virtual_modifier_data);
-    for (; md; md = md->next) {
-      if (md->type == eGpencilModifierType_Armature) {
-        ArmatureGpencilModifierData *amd = (ArmatureGpencilModifierData *)md;
-        Object *ob_arm = amd->object;
-        ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
-      }
-    }
-  }
-  else {
-    VirtualModifierData virtual_modifier_data;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
-    for (; md; md = md->next) {
-      if (md->type == eModifierType_Armature) {
-        ArmatureModifierData *amd = (ArmatureModifierData *)md;
-        Object *ob_arm = amd->object;
-        ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
-      }
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
+  for (; md; md = md->next) {
+    if (md->type == eModifierType_Armature) {
+      ArmatureModifierData *amd = (ArmatureModifierData *)md;
+      Object *ob_arm = amd->object;
+      ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
     }
   }
 }

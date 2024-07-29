@@ -23,8 +23,6 @@
 
 #include "object_intern.hh"
 
-#include "MOD_gpencil_legacy_lineart.h"
-
 /* ************************** registration **********************************/
 
 namespace blender::ed::object {
@@ -151,27 +149,6 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_add);
   WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_remove);
   WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_move);
-
-  /* grease pencil modifiers */
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_remove);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_up);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_down);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_to_index);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_apply);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
-  WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
-
-  WM_operatortype_append(GPENCIL_OT_segment_add);
-  WM_operatortype_append(GPENCIL_OT_segment_remove);
-  WM_operatortype_append(GPENCIL_OT_segment_move);
-
-  WM_operatortype_append(GPENCIL_OT_time_segment_add);
-  WM_operatortype_append(GPENCIL_OT_time_segment_remove);
-  WM_operatortype_append(GPENCIL_OT_time_segment_move);
-
-  /* grease pencil line art */
-  WM_operatortypes_lineart_legacy();
 
   /* Shader FX. */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);

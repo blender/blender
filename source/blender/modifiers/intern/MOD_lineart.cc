@@ -26,7 +26,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "MOD_gpencil_legacy_lineart.h" /* Needed for line art cache functions. */
 #include "MOD_grease_pencil_util.hh"
 #include "MOD_lineart.h"
 #include "MOD_modifiertypes.hh"

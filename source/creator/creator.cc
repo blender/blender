@@ -43,7 +43,6 @@
 #include "BKE_context.hh"
 #include "BKE_cpp_types.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
@@ -439,7 +438,6 @@ int main(int argc,
   BKE_idtype_init();
   BKE_cachefiles_init();
   BKE_modifier_init();
-  BKE_gpencil_modifier_init();
   BKE_shaderfx_init();
   BKE_volumes_init();
   DEG_register_node_types();

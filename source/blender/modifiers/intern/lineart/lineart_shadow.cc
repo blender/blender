@@ -6,13 +6,11 @@
  * \ingroup modifiers
  */
 
-#include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
 #include "lineart_intern.h"
 
 #include "BKE_global.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_object.hh"

@@ -968,21 +968,13 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
 
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
-      if (drop_data->ob_parent->type == OB_GPENCIL_LEGACY && ob_dst->type == OB_GPENCIL_LEGACY) {
-        object::gpencil_modifier_copy_to_object(
-            ob_dst, static_cast<GpencilModifierData *>(drop_data->drag_directdata));
-      }
-      else if (drop_data->ob_parent->type != OB_GPENCIL_LEGACY &&
-               ob_dst->type != OB_GPENCIL_LEGACY)
-      {
-        object::modifier_copy_to_object(
-            bmain,
-            CTX_data_scene(C),
-            drop_data->ob_parent,
-            static_cast<const ModifierData *>(drop_data->drag_directdata),
-            ob_dst,
-            CTX_wm_reports(C));
-      }
+      object::modifier_copy_to_object(
+          bmain,
+          CTX_data_scene(C),
+          drop_data->ob_parent,
+          static_cast<const ModifierData *>(drop_data->drag_directdata),
+          ob_dst,
+          CTX_wm_reports(C));
       break;
     case TSE_CONSTRAINT:
       if (tselem->type == TSE_POSE_CHANNEL) {
@@ -1025,21 +1017,13 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
   int index = 0;
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
-      if (ob->type == OB_GPENCIL_LEGACY) {
-        index = outliner_get_insert_index(
-            drag_te, drop_te, insert_type, &ob->greasepencil_modifiers);
-        object::gpencil_modifier_move_to_index(
-            reports, ob, static_cast<GpencilModifierData *>(drop_data->drag_directdata), index);
-      }
-      else {
-        index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
-        object::modifier_move_to_index(reports,
-                                       RPT_WARNING,
-                                       ob,
-                                       static_cast<ModifierData *>(drop_data->drag_directdata),
-                                       index,
-                                       true);
-      }
+      index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
+      object::modifier_move_to_index(reports,
+                                     RPT_WARNING,
+                                     ob,
+                                     static_cast<ModifierData *>(drop_data->drag_directdata),
+                                     index,
+                                     true);
       break;
     case TSE_CONSTRAINT:
       if (drop_data->pchan_parent) {

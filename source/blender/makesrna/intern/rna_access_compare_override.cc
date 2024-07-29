@@ -140,12 +140,6 @@ bool RNA_property_overridable_get(const PointerRNA *ptr, PropertyRNA *prop)
         return true;
       }
     }
-    else if (RNA_struct_is_a(ptr->type, &RNA_GpencilModifier)) {
-      GpencilModifierData *gp_mod = static_cast<GpencilModifierData *>(ptr->data);
-      if (gp_mod->flag & eGpencilModifierFlag_OverrideLibrary_Local) {
-        return true;
-      }
-    }
     else if (RNA_struct_is_a(ptr->type, &RNA_NlaTrack)) {
       NlaTrack *nla_track = static_cast<NlaTrack *>(ptr->data);
       if (nla_track->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) {

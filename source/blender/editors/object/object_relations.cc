@@ -741,16 +741,6 @@ bool parent_set(ReportList *reports,
 
     invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
-  else if ((ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_LATTICE)) {
-    /* Add Lattice modifier */
-    if (partype == PAR_LATTICE) {
-      ED_gpencil_add_lattice_modifier(C, reports, ob, par);
-    }
-    /* get corrected inverse */
-    ob->partype = PAROBJECT;
-
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
-  }
   else {
     /* calculate inverse parent matrix */
     invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());

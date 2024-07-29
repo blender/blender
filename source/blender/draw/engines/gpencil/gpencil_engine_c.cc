@@ -11,7 +11,6 @@
 #include "BKE_curves.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
@@ -906,17 +905,8 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     /* When render in background the active frame could not be properly set due thread priority,
      * better set again. This is not required in viewport. */
     if (txl->render_depth_tx) {
-      const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
-      const DRWContextState *draw_ctx = DRW_context_state_get();
-
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        /* If there is a time modifier, need remap the time before. */
-        if (time_remap) {
-          gpl->actframe = BKE_gpencil_frame_retime_get(draw_ctx->depsgraph, pd->scene, ob, gpl);
-        }
-        else {
-          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
-        }
+        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
       }
     }
 

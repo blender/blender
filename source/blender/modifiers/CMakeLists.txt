@@ -5,6 +5,7 @@
 set(INC
   .
   intern
+  intern/lineart
   ../blenkernel
   ../blenloader
   ../blentranslation
@@ -17,11 +18,6 @@ set(INC
   ../render
   ../windowmanager
   ../../../intern/eigen
-
-  # Needed for shared line art functions from legacy implementations.
-  ../gpencil_modifiers_legacy
-  ../gpencil_modifiers_legacy/intern
-  ../gpencil_modifiers_legacy/intern/lineart
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -126,6 +122,10 @@ set(SRC
   intern/MOD_weightvgproximity.cc
   intern/MOD_weld.cc
   intern/MOD_wireframe.cc
+  intern/lineart/lineart_chain.cc
+  intern/lineart/lineart_cpu.cc
+  intern/lineart/lineart_shadow.cc
+  intern/lineart/lineart_util.cc
 
   MOD_modifiertypes.hh
   MOD_nodes.hh
@@ -135,6 +135,8 @@ set(SRC
   intern/MOD_ui_common.hh
   intern/MOD_util.hh
   intern/MOD_weightvg_util.hh
+  intern/lineart/MOD_lineart.h
+  intern/lineart/lineart_intern.h
 )
 
 set(LIB

@@ -234,25 +234,6 @@ void OBJECT_OT_grease_pencil_time_modifier_segment_add(wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_time_modifier_segment_remove(wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_time_modifier_segment_move(wmOperatorType *ot);
 
-/* object_gpencil_modifiers.c */
-
-void OBJECT_OT_gpencil_modifier_add(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_remove(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_move_up(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_move_to_index(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_apply(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot);
-void OBJECT_OT_gpencil_modifier_copy_to_selected(wmOperatorType *ot);
-
-void GPENCIL_OT_segment_add(wmOperatorType *ot);
-void GPENCIL_OT_segment_remove(wmOperatorType *ot);
-void GPENCIL_OT_segment_move(wmOperatorType *ot);
-
-void GPENCIL_OT_time_segment_add(wmOperatorType *ot);
-void GPENCIL_OT_time_segment_remove(wmOperatorType *ot);
-void GPENCIL_OT_time_segment_move(wmOperatorType *ot);
-
 /* `object_shader_fx.cc` */
 
 void OBJECT_OT_shaderfx_add(wmOperatorType *ot);

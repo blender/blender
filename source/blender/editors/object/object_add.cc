@@ -1369,15 +1369,11 @@ static bool object_gpencil_add_poll(bContext *C)
 
 static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C), *ob_orig = ob;
+  Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (ob && (ob->type == OB_GPENCIL_LEGACY)) ? static_cast<bGPdata *>(ob->data) :
                                                            nullptr;
 
   const int type = RNA_enum_get(op->ptr, "type");
-  const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
-  const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
-  const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
-  const float stroke_depth_offset = RNA_float_get(op->ptr, "stroke_depth_offset");
 
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1469,47 +1465,47 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       gpd = static_cast<bGPdata *>(ob->data);
 
       /* Add Line Art modifier */
-      LineartGpencilModifierData *md = (LineartGpencilModifierData *)BKE_gpencil_modifier_new(
-          eGpencilModifierType_Lineart);
-      BLI_addtail(&ob->greasepencil_modifiers, md);
-      BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, (GpencilModifierData *)md);
+      // LineartGpencilModifierData *md = (LineartGpencilModifierData *)BKE_gpencil_modifier_new(
+      //     eGpencilModifierType_Lineart);
+      // BLI_addtail(&ob->greasepencil_modifiers, md);
+      // BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, (GpencilModifierData *)md);
 
-      if (type == GREASE_PENCIL_LINEART_COLLECTION) {
-        md->source_type = LINEART_SOURCE_COLLECTION;
-        md->source_collection = CTX_data_collection(C);
-      }
-      else if (type == GREASE_PENCIL_LINEART_OBJECT) {
-        md->source_type = LINEART_SOURCE_OBJECT;
-        md->source_object = ob_orig;
-      }
-      else {
-        /* Whole scene. */
-        md->source_type = LINEART_SOURCE_SCENE;
-      }
-      /* Only created one layer and one material. */
-      STRNCPY(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);
-      md->target_material = BKE_gpencil_material(ob, 1);
-      if (md->target_material) {
-        id_us_plus(&md->target_material->id);
-      }
+      // if (type == GREASE_PENCIL_LINEART_COLLECTION) {
+      //   md->source_type = LINEART_SOURCE_COLLECTION;
+      //   md->source_collection = CTX_data_collection(C);
+      // }
+      // else if (type == GREASE_PENCIL_LINEART_OBJECT) {
+      //   md->source_type = LINEART_SOURCE_OBJECT;
+      //   md->source_object = ob_orig;
+      // }
+      // else {
+      //   /* Whole scene. */
+      //   md->source_type = LINEART_SOURCE_SCENE;
+      // }
+      // /* Only created one layer and one material. */
+      // STRNCPY(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);
+      // md->target_material = BKE_gpencil_material(ob, 1);
+      // if (md->target_material) {
+      //   id_us_plus(&md->target_material->id);
+      // }
 
-      if (use_lights) {
-        ob->dtx |= OB_USE_GPENCIL_LIGHTS;
-      }
-      else {
-        ob->dtx &= ~OB_USE_GPENCIL_LIGHTS;
-      }
+      // if (use_lights) {
+      //   ob->dtx |= OB_USE_GPENCIL_LIGHTS;
+      // }
+      // else {
+      //   ob->dtx &= ~OB_USE_GPENCIL_LIGHTS;
+      // }
 
-      /* Stroke object is drawn in front of meshes by default. */
-      if (use_in_front) {
-        ob->dtx |= OB_DRAW_IN_FRONT;
-      }
-      else {
-        if (stroke_depth_order == GP_DRAWMODE_3D) {
-          gpd->draw_mode = GP_DRAWMODE_3D;
-        }
-        md->stroke_depth_offset = stroke_depth_offset;
-      }
+      // /* Stroke object is drawn in front of meshes by default. */
+      // if (use_in_front) {
+      //   ob->dtx |= OB_DRAW_IN_FRONT;
+      // }
+      // else {
+      //   if (stroke_depth_order == GP_DRAWMODE_3D) {
+      //     gpd->draw_mode = GP_DRAWMODE_3D;
+      //   }
+      //   md->stroke_depth_offset = stroke_depth_offset;
+      // }
 
       break;
     }

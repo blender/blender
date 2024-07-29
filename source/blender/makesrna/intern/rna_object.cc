@@ -329,7 +329,6 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.hh"
 #  include "BKE_effect.h"
 #  include "BKE_global.hh"
-#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.hh"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.h"
@@ -1895,90 +1894,6 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   return true;
 }
 
-static GpencilModifierData *rna_Object_greasepencil_modifier_new(
-    Object *object, bContext *C, ReportList *reports, const char *name, int type)
-{
-  return blender::ed::object::gpencil_modifier_add(
-      reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
-}
-
-static void rna_Object_greasepencil_modifier_remove(Object *object,
-                                                    bContext *C,
-                                                    ReportList *reports,
-                                                    PointerRNA *gmd_ptr)
-{
-  GpencilModifierData *gmd = static_cast<GpencilModifierData *>(gmd_ptr->data);
-  if (blender::ed::object::gpencil_modifier_remove(reports, CTX_data_main(C), object, gmd) ==
-      false)
-  {
-    /* error is already set */
-    return;
-  }
-
-  RNA_POINTER_INVALIDATE(gmd_ptr);
-
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
-}
-
-static void rna_Object_greasepencil_modifier_clear(Object *object, bContext *C)
-{
-  blender::ed::object::gpencil_modifier_clear(CTX_data_main(C), object);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
-}
-
-bool rna_Object_greasepencil_modifiers_override_apply(
-    Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx)
-{
-  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
-  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
-  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
-  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
-
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
-             "Unsupported RNA override operation on modifiers collection");
-
-  Object *ob_dst = reinterpret_cast<Object *>(ptr_dst->owner_id);
-  Object *ob_src = reinterpret_cast<Object *>(ptr_src->owner_id);
-
-  /* Remember that insertion operations are defined and stored in correct order, which means that
-   * even if we insert several items in a row, we always insert first one, then second one, etc.
-   * So we should always find 'anchor' modifier in both _src *and* _dst. */
-  const size_t name_offset = offsetof(GpencilModifierData, name);
-  GpencilModifierData *mod_anchor = static_cast<GpencilModifierData *>(
-      BLI_listbase_string_or_index_find(&ob_dst->greasepencil_modifiers,
-                                        opop->subitem_reference_name,
-                                        name_offset,
-                                        opop->subitem_reference_index));
-  /* If `mod_anchor` is nullptr, `mod_src` will be inserted in first position. */
-
-  GpencilModifierData *mod_src = static_cast<GpencilModifierData *>(
-      BLI_listbase_string_or_index_find(&ob_src->greasepencil_modifiers,
-                                        opop->subitem_local_name,
-                                        name_offset,
-                                        opop->subitem_local_index));
-
-  if (mod_src == nullptr) {
-    BLI_assert(mod_src != nullptr);
-    return false;
-  }
-
-  /* While it would be nicer to use lower-level BKE_modifier_new() here, this one is lacking
-   * special-cases handling (particles and other physics modifiers mostly), so using the ED version
-   * instead, to avoid duplicating code. */
-  GpencilModifierData *mod_dst = blender::ed::object::gpencil_modifier_add(
-      nullptr, bmain, nullptr, ob_dst, mod_src->name, mod_src->type);
-
-  BKE_gpencil_modifier_copydata(mod_src, mod_dst);
-
-  BLI_remlink(&ob_dst->greasepencil_modifiers, mod_dst);
-  /* This handles nullptr anchor as expected by adding at head of list. */
-  BLI_insertlinkafter(&ob_dst->greasepencil_modifiers, mod_anchor, mod_dst);
-
-  //  printf("%s: We inserted a gpencil modifier '%s'...\n", __func__, mod_dst->name);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
-  return true;
-}
-
 /* shader fx */
 static ShaderFxData *rna_Object_shaderfx_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
@@ -2626,56 +2541,6 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Active Modifier", "The active modifier in the list");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
-}
-
-/* object.grease_pencil_modifiers */
-static void rna_def_object_grease_pencil_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
-{
-  StructRNA *srna;
-
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  RNA_def_property_srna(cprop, "ObjectGpencilModifiers");
-  srna = RNA_def_struct(brna, "ObjectGpencilModifiers", nullptr);
-  RNA_def_struct_sdna(srna, "Object");
-  RNA_def_struct_ui_text(
-      srna, "Object Grease Pencil Modifiers", "Collection of object grease pencil modifiers");
-
-  /* add greasepencil modifier */
-  func = RNA_def_function(srna, "new", "rna_Object_greasepencil_modifier_new");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Add a new greasepencil_modifier");
-  parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the greasepencil_modifier");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* greasepencil_modifier to add */
-  parm = RNA_def_enum(func,
-                      "type",
-                      rna_enum_object_greasepencil_modifier_type_items,
-                      1,
-                      "",
-                      "Modifier type to add");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* return type */
-  parm = RNA_def_pointer(
-      func, "greasepencil_modifier", "GpencilModifier", "", "Newly created modifier");
-  RNA_def_function_return(func, parm);
-
-  /* remove greasepencil_modifier */
-  func = RNA_def_function(srna, "remove", "rna_Object_greasepencil_modifier_remove");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func,
-                                  "Remove an existing greasepencil_modifier from the object");
-  /* greasepencil_modifier to remove */
-  parm = RNA_def_pointer(
-      func, "greasepencil_modifier", "GpencilModifier", "", "Modifier to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
-
-  /* clear all greasepencil modifiers */
-  func = RNA_def_function(srna, "clear", "rna_Object_greasepencil_modifier_clear");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-  RNA_def_function_ui_description(func, "Remove all grease pencil modifiers from the object");
 }
 
 /* object.shaderfxs */
@@ -3409,17 +3274,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Object_modifiers_override_apply");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_LIBRARY_INSERTION);
   rna_def_object_modifiers(brna, prop);
-
-  /* Grease Pencil modifiers. */
-  prop = RNA_def_property(srna, "grease_pencil_modifiers", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "greasepencil_modifiers", nullptr);
-  RNA_def_property_struct_type(prop, "GpencilModifier");
-  RNA_def_property_ui_text(
-      prop, "Grease Pencil Modifiers", "Modifiers affecting the data of the grease pencil object");
-  RNA_def_property_override_funcs(
-      prop, nullptr, nullptr, "rna_Object_greasepencil_modifiers_override_apply");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_LIBRARY_INSERTION);
-  rna_def_object_grease_pencil_modifiers(brna, prop);
 
   /* Shader FX. */
   prop = RNA_def_property(srna, "shader_effects", PROP_COLLECTION, PROP_NONE);

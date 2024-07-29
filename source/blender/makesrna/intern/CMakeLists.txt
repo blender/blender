@@ -47,7 +47,6 @@ set(DEFSRC
   rna_dynamicpaint.cc
   rna_fcurve.cc
   rna_fluid.cc
-  rna_gpencil_legacy_modifier.cc
   rna_grease_pencil.cc
   rna_image.cc
   rna_key.cc

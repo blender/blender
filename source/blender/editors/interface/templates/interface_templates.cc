@@ -53,7 +53,6 @@
 #include "BKE_curveprofile.h"
 #include "BKE_file_handler.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -2529,75 +2528,6 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
 
 #undef CONSTRAINT_TYPE_PANEL_PREFIX
 #undef CONSTRAINT_BONE_TYPE_PANEL_PREFIX
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Grease Pencil Modifiers Template
- * \{ */
-
-/**
- * Function with void * argument for #uiListPanelIDFromDataFunc.
- */
-static void gpencil_modifier_panel_id(void *md_link, char *r_name)
-{
-  ModifierData *md = (ModifierData *)md_link;
-  BKE_gpencil_modifierType_panel_id(GpencilModifierType(md->type), r_name);
-}
-
-void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
-{
-  ARegion *region = CTX_wm_region(C);
-  Object *ob = blender::ed::object::context_active_object(C);
-  ListBase *modifiers = &ob->greasepencil_modifiers;
-
-  const bool panels_match = UI_panel_list_matches_data(
-      region, modifiers, gpencil_modifier_panel_id);
-
-  if (!panels_match) {
-    UI_panels_free_instanced(C, region);
-    LISTBASE_FOREACH (GpencilModifierData *, md, modifiers) {
-      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
-          GpencilModifierType(md->type));
-      if (mti->panel_register == nullptr) {
-        continue;
-      }
-
-      char panel_idname[MAX_NAME];
-      gpencil_modifier_panel_id(md, panel_idname);
-
-      /* Create custom data RNA pointer. */
-      PointerRNA *md_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
-      *md_ptr = RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md);
-
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
-    }
-  }
-  else {
-    /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (ModifierData *, md, modifiers) {
-      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
-          GpencilModifierType(md->type));
-      if (mti->panel_register == nullptr) {
-        continue;
-      }
-
-      /* Move to the next instanced panel corresponding to the next modifier. */
-      while ((panel->type == nullptr) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
-        panel = panel->next;
-        BLI_assert(panel !=
-                   nullptr); /* There shouldn't be fewer panels than modifiers with UIs. */
-      }
-
-      PointerRNA *md_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
-      *md_ptr = RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md);
-      UI_panel_custom_data_set(panel, md_ptr);
-
-      panel = panel->next;
-    }
-  }
-}
 
 /** \} */
 

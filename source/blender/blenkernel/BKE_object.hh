@@ -108,13 +108,6 @@ ModifierData *BKE_object_active_modifier(const Object *ob);
 bool BKE_object_copy_modifier(
     Main *bmain, const Scene *scene, Object *ob_dst, const Object *ob_src, const ModifierData *md);
 /**
- * Copy a single GPencil modifier.
- *
- * \note *Do not* use this function to copy a whole modifier stack. Use
- * `BKE_object_modifier_stack_copy` instead.
- */
-bool BKE_object_copy_gpencil_modifier(Object *ob_dst, GpencilModifierData *gmd_src);
-/**
  * Copy the whole stack of modifiers from one object into another.
  *
  * \warning *Does not* clear modifier stack and related data (particle systems, soft-body,
