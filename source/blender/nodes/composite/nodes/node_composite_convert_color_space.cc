@@ -54,6 +54,10 @@ static void node_composit_buts_convert_colorspace(uiLayout *layout,
                                                   bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
+#ifndef WITH_OCIO
+  uiItemL(layout, RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
+#endif
+
   uiItemR(layout, ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
