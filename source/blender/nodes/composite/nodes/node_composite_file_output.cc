@@ -309,16 +309,6 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   }
 }
 
-static void node_gather_link_searches(GatherLinkSearchOpParams &params)
-{
-  if (params.in_out() == SOCK_IN) {
-    params.add_item(IFACE_("Image"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("CompositorNodeOutputFile");
-      params.update_and_connect_available_socket(node, "Image");
-    });
-  }
-}
-
 static void node_composit_buts_file_output(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   PointerRNA imfptr = RNA_pointer_get(ptr, "format");
@@ -836,7 +826,6 @@ void register_node_type_cmp_output_file()
   blender::bke::node_type_storage(
       &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::nodeRegisterType(&ntype);
