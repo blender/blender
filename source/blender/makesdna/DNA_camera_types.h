@@ -102,6 +102,14 @@ typedef struct Camera {
   float fisheye_polynomial_k3;
   float fisheye_polynomial_k4;
 
+  /* Central cylindrical range properties. */
+  float central_cylindrical_range_u_min;
+  float central_cylindrical_range_u_max;
+  float central_cylindrical_range_v_min;
+  float central_cylindrical_range_v_max;
+  float central_cylindrical_radius;
+  float _pad2;
+
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
 
@@ -136,6 +144,7 @@ enum {
   CAM_PANORAMA_MIRRORBALL = 3,
   CAM_PANORAMA_FISHEYE_LENS_POLYNOMIAL = 4,
   CAM_PANORAMA_EQUIANGULAR_CUBEMAP_FACE = 5,
+  CAM_PANORAMA_CENTRAL_CYLINDRICAL = 6,
 };
 
 /* dtx */

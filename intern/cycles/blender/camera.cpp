@@ -64,6 +64,12 @@ struct BlenderCamera {
   float fisheye_polynomial_k3;
   float fisheye_polynomial_k4;
 
+  float central_cylindrical_range_u_min;
+  float central_cylindrical_range_u_max;
+  float central_cylindrical_range_v_min;
+  float central_cylindrical_range_v_max;
+  float central_cylindrical_radius;
+
   enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
   float sensor_width;
   float sensor_height;
@@ -180,6 +186,8 @@ static PanoramaType blender_panorama_type_to_cycles(const BL::Camera::panorama_t
       return PANORAMA_FISHEYE_EQUISOLID;
     case BL::Camera::panorama_type_FISHEYE_LENS_POLYNOMIAL:
       return PANORAMA_FISHEYE_LENS_POLYNOMIAL;
+    case BL::Camera::panorama_type_CENTRAL_CYLINDRICAL:
+      return PANORAMA_CENTRAL_CYLINDRICAL;
   }
   /* Could happen if loading a newer file that has an unsupported type. */
   return PANORAMA_FISHEYE_EQUISOLID;
@@ -229,6 +237,12 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->fisheye_polynomial_k2 = b_camera.fisheye_polynomial_k2();
     bcam->fisheye_polynomial_k3 = b_camera.fisheye_polynomial_k3();
     bcam->fisheye_polynomial_k4 = b_camera.fisheye_polynomial_k4();
+
+    bcam->central_cylindrical_range_u_min = b_camera.central_cylindrical_range_u_min();
+    bcam->central_cylindrical_range_u_max = b_camera.central_cylindrical_range_u_max();
+    bcam->central_cylindrical_range_v_min = b_camera.central_cylindrical_range_v_min();
+    bcam->central_cylindrical_range_v_max = b_camera.central_cylindrical_range_v_max();
+    bcam->central_cylindrical_radius = b_camera.central_cylindrical_radius();
 
     bcam->interocular_distance = b_camera.stereo().interocular_distance();
     if (b_camera.stereo().convergence_mode() == BL::CameraStereoData::convergence_mode_PARALLEL) {
@@ -510,6 +524,13 @@ static void blender_camera_sync(Camera *cam,
 
   cam->set_longitude_min(bcam->longitude_min);
   cam->set_longitude_max(bcam->longitude_max);
+
+  cam->set_central_cylindrical_range_u_min(bcam->central_cylindrical_range_u_min);
+  cam->set_central_cylindrical_range_u_max(bcam->central_cylindrical_range_u_max);
+  cam->set_central_cylindrical_range_v_min(bcam->central_cylindrical_range_v_min /
+                                           bcam->central_cylindrical_radius);
+  cam->set_central_cylindrical_range_v_max(bcam->central_cylindrical_range_v_max /
+                                           bcam->central_cylindrical_radius);
 
   /* panorama stereo */
   cam->set_interocular_distance(bcam->interocular_distance);
