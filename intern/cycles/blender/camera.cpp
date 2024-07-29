@@ -134,6 +134,8 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->offscreen_dicing_scale = 1.0f;
   bcam->matrix = transform_identity();
 
+  bcam->central_cylindrical_radius = 1.0f;
+
   /* render resolution */
   bcam->render_width = render_resolution_x(b_render);
   bcam->render_height = render_resolution_y(b_render);
