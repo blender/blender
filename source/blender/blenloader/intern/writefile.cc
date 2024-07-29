@@ -738,9 +738,7 @@ static void writestruct_at_address_nr(
   bh.nr = nr;
 
   bh.SDNAnr = struct_nr;
-  const SDNA_Struct *struct_info = wd->sdna->structs[bh.SDNAnr];
-
-  bh.len = nr * wd->sdna->types_size[struct_info->type];
+  bh.len = nr * DNA_struct_size(wd->sdna, bh.SDNAnr);
 
   if (bh.len == 0) {
     return;

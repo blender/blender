@@ -156,6 +156,11 @@ void DNA_sdna_free(SDNA *sdna)
   MEM_freeN(sdna);
 }
 
+int DNA_struct_size(const SDNA *sdna, int struct_index)
+{
+  return sdna->types_size[sdna->structs[struct_index]->type];
+}
+
 /**
  * Return true if the name indicates a pointer of some kind.
  */

@@ -193,6 +193,13 @@ int DNA_struct_member_size(const struct SDNA *sdna, short type, short name);
 int DNA_elem_type_size(eSDNA_Type elem_nr);
 
 /**
+ * Returns the size of a struct.
+ *
+ * \param struct_index: Index into the #sdna.structs array (aka #BHead.SDNAnr).
+ */
+int DNA_struct_size(const struct SDNA *sdna, int struct_index);
+
+/**
  * Get the alignment that should be used when allocating memory for this type.
  */
 int DNA_struct_alignment(const struct SDNA *sdna, int struct_nr);
