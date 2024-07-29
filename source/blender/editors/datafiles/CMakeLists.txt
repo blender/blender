@@ -354,6 +354,7 @@ if(WITH_BLENDER)
       fullscreen_exit
       fund
       geometry_nodes
+      geometry_set
       ghost_disabled
       ghost_enabled
       gizmo
