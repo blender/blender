@@ -247,6 +247,7 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
 
 struct LocalData {
   Vector<float> factors;
+  Vector<float> auto_mask;
   Vector<float> distances;
   Vector<float4> colors;
   Vector<float4> new_colors;
@@ -378,8 +379,13 @@ static void do_paint_brush_task(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
+  MutableSpan<float> auto_mask;
   if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
+    tls.auto_mask.resize(verts.size());
+    auto_mask = tls.auto_mask;
+    auto_mask.fill(1.0f);
+    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, auto_mask);
+    scale_factors(factors, auto_mask);
   }
 
   calc_brush_texture_factors(ss, brush, vert_positions, verts, factors);
@@ -424,13 +430,8 @@ static void do_paint_brush_task(Object &object,
     }
   }
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
-
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
-
-    auto_mask::node_update(automask_data, i);
 
     /* Brush paint color, brush test falloff and flow. */
     float4 paint_color = brush_color * factors[i] * ss.cache->paint_brush.flow;
@@ -443,10 +444,7 @@ static void do_paint_brush_task(Object &object,
 
     /* Final mix over the original color using brush alpha. We apply auto-making again
      * at this point to avoid washing out non-binary masking modes like cavity masking. */
-    float automasking = auto_mask::factor_get(ss.cache->automasking.get(),
-                                              const_cast<SculptSession &>(ss),
-                                              PBVHVertRef{vert},
-                                              &automask_data);
+    float automasking = auto_mask.is_empty() ? 1.0f : auto_mask[i];
     const float4 buffer_color = float4(color_buffer->color[i]) * alpha * automasking;
 
     float4 col = color_vert_get(
