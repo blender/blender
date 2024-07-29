@@ -709,16 +709,8 @@ wmKeyMap *modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static void sculpt_mesh_update_status_bar(bContext *C, wmOperator *op)
+static void sculpt_mesh_update_status_bar(bContext *C, wmOperator * /*op*/)
 {
-  auto get_modal_key_str = [&](int id) {
-    return WM_modalkeymap_operator_items_to_string(op->type, id, true).value_or("");
-  };
-
-  const std::string header = fmt::format(IFACE_("{}: Confirm, {}: Cancel"),
-                                         get_modal_key_str(FILTER_MESH_MODAL_CONFIRM),
-                                         get_modal_key_str(FILTER_MESH_MODAL_CANCEL));
-
   WorkspaceStatus status(C);
   status.item(IFACE_("Confirm"), ICON_EVENT_RETURN);
   status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
