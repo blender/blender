@@ -489,19 +489,6 @@ static void mesh_filter_task(Object &ob,
   BKE_pbvh_node_mark_positions_update(node);
 }
 
-static void mesh_filter_enhance_details_init_directions(SculptSession &ss)
-{
-  const int totvert = SCULPT_vertex_count_get(ss);
-  filter::Cache *filter_cache = ss.filter_cache;
-
-  filter_cache->detail_directions.reinitialize(totvert);
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-    const float3 avg = smooth::neighbor_coords_average(ss, vertex);
-    filter_cache->detail_directions[i] = avg - float3(SCULPT_vertex_co_get(ss, vertex));
-  }
-}
-
 static void mesh_filter_surface_smooth_init(SculptSession &ss,
                                             const float shape_preservation,
                                             const float current_vertex_displacement)
@@ -935,7 +922,8 @@ static void sculpt_filter_specific_init(const MeshFilterType filter_type,
       break;
     }
     case MeshFilterType::EnhanceDetails: {
-      mesh_filter_enhance_details_init_directions(ss);
+      ss.filter_cache->detail_directions.reinitialize(SCULPT_vertex_count_get(ss));
+      calc_smooth_translations(object, ss.filter_cache->nodes, ss.filter_cache->detail_directions);
       break;
     }
     case MeshFilterType::EraseDispacement: {
