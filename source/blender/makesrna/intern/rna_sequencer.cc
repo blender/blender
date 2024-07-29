@@ -580,7 +580,6 @@ static int rna_Sequence_frame_duration_get(PointerRNA *ptr)
   return SEQ_time_strip_length_get(scene, seq);
 }
 
-
 static int rna_Sequence_frame_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   Sequence *seq = (Sequence *)ptr->data;
