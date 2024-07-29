@@ -430,9 +430,18 @@ static void do_paint_brush_task(Object &object,
     }
   }
 
+  tls.new_colors.resize(verts.size());
+  MutableSpan<float4> new_colors = tls.new_colors;
   for (const int i : verts.index_range()) {
-    const int vert = verts[i];
+    new_colors[i] = color_vert_get(faces,
+                                   corner_verts,
+                                   vert_to_face_map,
+                                   color_attribute.span,
+                                   color_attribute.domain,
+                                   verts[i]);
+  }
 
+  for (const int i : verts.index_range()) {
     /* Brush paint color, brush test falloff and flow. */
     float4 paint_color = brush_color * factors[i] * ss.cache->paint_brush.flow;
     float4 wet_mix_color = wet_mix_sampled_color * factors[i] * ss.cache->paint_brush.flow;
@@ -447,16 +456,17 @@ static void do_paint_brush_task(Object &object,
     float automasking = auto_mask.is_empty() ? 1.0f : auto_mask[i];
     const float4 buffer_color = float4(color_buffer->color[i]) * alpha * automasking;
 
-    float4 col = color_vert_get(
-        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
-    IMB_blend_color_float(col, orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
-    col = math::clamp(col, 0.0f, 1.0f);
+    IMB_blend_color_float(new_colors[i], orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
+    new_colors[i] = math::clamp(new_colors[i], 0.0f, 1.0f);
+  }
+
+  for (const int i : verts.index_range()) {
     color_vert_set(faces,
                    corner_verts,
                    vert_to_face_map,
                    color_attribute.domain,
-                   vert,
-                   col,
+                   verts[i],
+                   new_colors[i],
                    color_attribute.span);
   }
 }
