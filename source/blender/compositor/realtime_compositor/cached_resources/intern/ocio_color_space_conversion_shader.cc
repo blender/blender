@@ -480,9 +480,9 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
 {
   /* Create a GPU shader creator and construct it based on the transforms in the default GPU
    * processor. */
+#if defined(WITH_OCIO)
   shader_creator_ = GPUShaderCreator::Create(context.get_precision());
 
-#if defined(WITH_OCIO)
   /* Get a GPU processor that transforms the source color space to the target color space. */
   try {
     OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
