@@ -217,8 +217,8 @@ GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material);
  */
 GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
                                                int size,
-                                               float *pixels,
-                                               float *row);
+                                               const float *pixels,
+                                               float *r_row);
 /**
  * Returns the address of the future pointer to sky_tex
  */

@@ -1027,7 +1027,7 @@ class Texture : NonCopyable {
                      int mip_len,
                      eGPUTextureFormat format,
                      eGPUTextureUsage usage,
-                     float *data,
+                     const float *data,
                      bool layered,
                      bool cubemap)
   {

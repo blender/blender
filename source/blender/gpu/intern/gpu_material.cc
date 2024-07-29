@@ -186,8 +186,8 @@ GPUTexture **gpu_material_sky_texture_layer_set(
 
 GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
                                                int size,
-                                               float *pixels,
-                                               float *row)
+                                               const float *pixels,
+                                               float *r_row)
 {
   /* In order to put all the color-bands into one 1D array texture,
    * we need them to be the same size. */
@@ -201,9 +201,9 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
   }
 
   int layer = mat->coba_builder->current_layer;
-  *row = float(layer);
+  *r_row = float(layer);
 
-  if (*row == MAX_COLOR_BAND) {
+  if (*r_row == MAX_COLOR_BAND) {
     printf("Too many color band in shader! Remove some Curve, Black Body or Color Ramp Node.\n");
   }
   else {

@@ -344,7 +344,7 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 
 /* Attributes and Textures */
 
-static char attr_prefix_get(GPUMaterialAttribute *attr)
+static char attr_prefix_get(const GPUMaterialAttribute *attr)
 {
   if (attr->is_default_color) {
     return 'c';
@@ -696,9 +696,9 @@ void GPU_image_tiled(GPUMaterial *mat,
   (*r_image_tiled_mapping_link)->texture = texture;
 }
 
-GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row)
+GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *r_row)
 {
-  GPUTexture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
+  GPUTexture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
   MEM_freeN(pixels);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);

@@ -177,7 +177,7 @@ static GPUPass *gpu_pass_cache_resolve_collision(GPUPass *pass,
   return nullptr;
 }
 
-static bool gpu_pass_is_valid(GPUPass *pass)
+static bool gpu_pass_is_valid(const GPUPass *pass)
 {
   /* Shader is not null if compilation is successful. */
   return (pass->compiled == false || pass->shader != nullptr);

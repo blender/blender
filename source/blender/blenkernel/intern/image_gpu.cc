@@ -211,9 +211,9 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   /* Upload each tile one by one. */
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     ImageTile_Runtime *tile_runtime = &tile->runtime;
-    int tilelayer = tile_runtime->tilearray_layer;
-    int *tileoffset = tile_runtime->tilearray_offset;
-    int *tilesize = tile_runtime->tilearray_size;
+    const int tilelayer = tile_runtime->tilearray_layer;
+    const int *tileoffset = tile_runtime->tilearray_offset;
+    const int *tilesize = tile_runtime->tilearray_size;
 
     if (tilesize[0] == 0 || tilesize[1] == 0) {
       continue;
