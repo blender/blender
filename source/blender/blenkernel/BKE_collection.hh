@@ -40,7 +40,9 @@ struct CollectionParent {
  * Add a collection to a collection ListBase and synchronize all render layers
  * The ListBase is NULL when the collection is to be added to the master collection
  */
-Collection *BKE_collection_add(Main *bmain, Collection *parent, const char *name);
+Collection *BKE_collection_add(Main *bmain,
+                               Collection *collection_parent,
+                               const char *name_custom);
 /**
  * Add \a collection_dst to all scene collections that reference object \a ob_src is in.
  * Used to replace an instance object with a collection (library override operator).
@@ -169,7 +171,7 @@ void BKE_collection_object_move(
 /**
  * Remove object from all collections of scene
  */
-bool BKE_scene_collections_object_remove(Main *bmain, Scene *scene, Object *object, bool free_us);
+bool BKE_scene_collections_object_remove(Main *bmain, Scene *scene, Object *ob, bool free_us);
 
 /**
  * Check all collections in \a bmain (including embedded ones in scenes) for invalid

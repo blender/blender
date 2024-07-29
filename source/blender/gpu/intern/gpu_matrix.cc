@@ -463,7 +463,7 @@ void GPU_matrix_project_3fv(const float world[3],
                             const float model[4][4],
                             const float proj[4][4],
                             const int view[4],
-                            float win[3])
+                            float r_win[3])
 {
   float v[4];
 
@@ -474,16 +474,16 @@ void GPU_matrix_project_3fv(const float world[3],
     mul_v3_fl(v, 1.0f / v[3]);
   }
 
-  win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
-  win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
-  win[2] = (v[2] + 1) * 0.5f;
+  r_win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
+  r_win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
+  r_win[2] = (v[2] + 1) * 0.5f;
 }
 
 void GPU_matrix_project_2fv(const float world[3],
                             const float model[4][4],
                             const float proj[4][4],
                             const int view[4],
-                            float win[2])
+                            float r_win[2])
 {
   float v[4];
 
@@ -494,8 +494,8 @@ void GPU_matrix_project_2fv(const float world[3],
     mul_v2_fl(v, 1.0f / v[3]);
   }
 
-  win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
-  win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
+  r_win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
+  r_win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
 }
 
 bool GPU_matrix_unproject_3fv(const float win[3],

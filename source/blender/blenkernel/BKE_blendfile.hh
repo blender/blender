@@ -376,7 +376,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * \return `true` on success.
    */
   bool write(const char *write_filepath, int write_flags, int remap_mode, ReportList &reports);
-  bool write(const char *wtite_filepath, ReportList &reports);
+  bool write(const char *write_filepath, ReportList &reports);
 
   /* TODO: To allow editing an existing external blendfile:
    *   - API to load a context from a blendfile.

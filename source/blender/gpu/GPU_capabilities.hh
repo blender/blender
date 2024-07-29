@@ -56,7 +56,7 @@ bool GPU_texture_view_support();
 bool GPU_stencil_export_support();
 
 bool GPU_mem_stats_supported();
-void GPU_mem_stats_get(int *totalmem, int *freemem);
+void GPU_mem_stats_get(int *r_totalmem, int *r_freemem);
 
 /**
  * Return support for the active context + window.

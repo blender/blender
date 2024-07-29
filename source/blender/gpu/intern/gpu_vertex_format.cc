@@ -430,16 +430,16 @@ static void recommended_fetch_mode_and_comp_type(Type gpu_type,
   }
 }
 
-void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *gpushader)
+void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
 {
   GPU_vertformat_clear(format);
 
-  uint attr_len = GPU_shader_get_attribute_len(gpushader);
+  uint attr_len = GPU_shader_get_attribute_len(shader);
   int location_test = 0, attrs_added = 0;
   while (attrs_added < attr_len) {
     char name[256];
     Type gpu_type;
-    if (!GPU_shader_get_attribute_info(gpushader, location_test++, name, (int *)&gpu_type)) {
+    if (!GPU_shader_get_attribute_info(shader, location_test++, name, (int *)&gpu_type)) {
       continue;
     }
 

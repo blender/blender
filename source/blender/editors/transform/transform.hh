@@ -764,7 +764,7 @@ void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
 void transform_input_reset(TransInfo *t, const blender::float2 &mval);
 
-void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
+void setCustomPoints(TransInfo *t, MouseInput *mi, const int mval_start[2], const int mval_end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const blender::float2 &dir);
 void setInputPostFct(MouseInput *mi, void (*post)(TransInfo *t, float values[3]));
 

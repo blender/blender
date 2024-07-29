@@ -555,7 +555,7 @@ ListBase *which_libbase(Main *bmain, short type);
  * \note The order of each ID type #ListBase in the array is determined by the `INDEX_ID_<IDTYPE>`
  * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.hh`
  */
-int set_listbasepointers(Main *main, ListBase *lb[]);
+int set_listbasepointers(Main *bmain, ListBase *lb[]);
 
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \

@@ -112,7 +112,7 @@ blender::draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport);
 void DRW_view_data_texture_list_size_validate(DRWViewData *view_data, const int size[2]);
 ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
-                                                         DrawEngineType *engine_type_);
+                                                         DrawEngineType *engine_type);
 void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_type);
 void DRW_view_data_reset(DRWViewData *view_data);
 void DRW_view_data_free_unused(DRWViewData *view_data);

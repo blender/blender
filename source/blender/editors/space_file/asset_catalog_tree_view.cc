@@ -433,15 +433,16 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) 
   return basic_tip;
 }
 
-bool AssetCatalogDropTarget::on_drop(bContext *C, const ui::DragInfo &drag) const
+bool AssetCatalogDropTarget::on_drop(bContext *C, const ui::DragInfo &drag_info) const
 {
-  if (drag.drag_data.type == WM_DRAG_ASSET_CATALOG) {
-    return this->drop_asset_catalog_into_catalog(
-        drag.drag_data, this->get_view<AssetCatalogTreeView>(), catalog_item_.get_catalog_id());
+  if (drag_info.drag_data.type == WM_DRAG_ASSET_CATALOG) {
+    return this->drop_asset_catalog_into_catalog(drag_info.drag_data,
+                                                 this->get_view<AssetCatalogTreeView>(),
+                                                 catalog_item_.get_catalog_id());
   }
   return this->drop_assets_into_catalog(C,
                                         this->get_view<AssetCatalogTreeView>(),
-                                        drag.drag_data,
+                                        drag_info.drag_data,
                                         catalog_item_.get_catalog_id(),
                                         catalog_item_.get_simple_name());
 }

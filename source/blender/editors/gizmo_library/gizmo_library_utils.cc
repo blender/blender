@@ -153,13 +153,13 @@ void gizmo_property_value_reset(bContext *C,
 
 /* -------------------------------------------------------------------- */
 
-void gizmo_color_get(const wmGizmo *gz, const bool highlight, float r_col[4])
+void gizmo_color_get(const wmGizmo *gz, const bool highlight, float r_color[4])
 {
   if (highlight && !(gz->flag & WM_GIZMO_DRAW_HOVER)) {
-    copy_v4_v4(r_col, gz->color_hi);
+    copy_v4_v4(r_color, gz->color_hi);
   }
   else {
-    copy_v4_v4(r_col, gz->color);
+    copy_v4_v4(r_color, gz->color);
   }
 }
 

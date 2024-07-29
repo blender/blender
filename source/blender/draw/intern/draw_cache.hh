@@ -253,7 +253,8 @@ struct DRWVolumeGrid {
 
 namespace blender::draw {
 
-DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume, const bke::VolumeGridData *grid);
+DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
+                                               const bke::VolumeGridData *volume_grid);
 blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob);
 blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob);
 

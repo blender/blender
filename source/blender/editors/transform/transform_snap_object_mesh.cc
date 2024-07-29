@@ -418,11 +418,11 @@ eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
                                 const Object *ob_eval,
                                 const ID *id,
                                 const float4x4 &obmat,
-                                float dist_pex_sq_orig,
+                                float dist_px_sq_orig,
                                 int edge_index)
 {
   SnapData_Mesh nearest2d(sctx, reinterpret_cast<const Mesh *>(id), obmat);
-  eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge_index, dist_pex_sq_orig);
+  eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge_index, dist_px_sq_orig);
   if (nearest2d.nearest_point.index != -2) {
     nearest2d.register_result(sctx, ob_eval, id);
   }

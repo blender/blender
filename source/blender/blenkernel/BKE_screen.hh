@@ -655,7 +655,7 @@ ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const i
  * \note This does _not_ work if the region to look up is not in the active space.
  * Use #BKE_spacedata_find_region_type if that may be the case.
  */
-ARegion *BKE_area_find_region_type(const ScrArea *area, int type);
+ARegion *BKE_area_find_region_type(const ScrArea *area, int regon_type);
 ARegion *BKE_area_find_region_active_win(const ScrArea *area);
 ARegion *BKE_area_find_region_xy(const ScrArea *area, int regiontype, const int xy[2])
     ATTR_NONNULL(3);

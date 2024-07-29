@@ -700,13 +700,13 @@ void seq_cache_cleanup_sequence(Scene *scene,
   seq_cache_unlock(scene);
 }
 
-void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
+void seq_cache_thumbnail_cleanup(Scene *scene, rctf *r_view_area_safe)
 {
   /* Add offsets to the left and right end to keep some frames in cache. */
-  view_area_safe->xmax += 200;
-  view_area_safe->xmin -= 200;
-  view_area_safe->ymin -= 1;
-  view_area_safe->ymax += 1;
+  r_view_area_safe->xmax += 200;
+  r_view_area_safe->xmin -= 200;
+  r_view_area_safe->ymin -= 1;
+  r_view_area_safe->ymax += 1;
 
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
@@ -731,9 +731,9 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
     }
 
     if ((key->type & SEQ_CACHE_STORE_THUMBNAIL) &&
-        (key->timeline_frame > view_area_safe->xmax ||
-         key->timeline_frame < view_area_safe->xmin || key->seq->machine > view_area_safe->ymax ||
-         key->seq->machine < view_area_safe->ymin))
+        (key->timeline_frame > r_view_area_safe->xmax ||
+         key->timeline_frame < r_view_area_safe->xmin ||
+         key->seq->machine > r_view_area_safe->ymax || key->seq->machine < r_view_area_safe->ymin))
     {
       seq_cache_key_unlink(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);

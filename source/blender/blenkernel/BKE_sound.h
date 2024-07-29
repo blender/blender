@@ -33,7 +33,7 @@ void BKE_sound_exit_once(void);
 
 void *BKE_sound_get_device(void);
 
-void BKE_sound_init(struct Main *main);
+void BKE_sound_init(struct Main *bmain);
 
 void BKE_sound_init_main(struct Main *bmain);
 
@@ -41,7 +41,7 @@ void BKE_sound_exit(void);
 
 void BKE_sound_force_device(const char *device);
 
-struct bSound *BKE_sound_new_file(struct Main *main, const char *filepath);
+struct bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath);
 struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain,
                                             const char *filepath,
                                             bool *r_exists);
@@ -61,7 +61,7 @@ void BKE_sound_cache(struct bSound *sound);
 void BKE_sound_delete_cache(struct bSound *sound);
 
 void BKE_sound_reset_runtime(struct bSound *sound);
-void BKE_sound_load(struct Main *main, struct bSound *sound);
+void BKE_sound_load(struct Main *bmain, struct bSound *sound);
 void BKE_sound_ensure_loaded(struct Main *bmain, struct bSound *sound);
 
 /* Matches AUD_Channels. */

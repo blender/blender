@@ -63,7 +63,8 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *format, ...)
     ATTR_PRINTF_FORMAT(3, 4);
 
 void BKE_reports_prepend(ReportList *reports, const char *prepend);
-void BKE_reports_prependf(ReportList *reports, const char *prepend, ...) ATTR_PRINTF_FORMAT(2, 3);
+void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
+    ATTR_PRINTF_FORMAT(2, 3);
 
 eReportType BKE_report_print_level(ReportList *reports);
 void BKE_report_print_level_set(ReportList *reports, eReportType level);
