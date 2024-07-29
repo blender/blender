@@ -1266,7 +1266,8 @@ static void reconstruct_structs(const DNA_ReconstructInfo *reconstruct_info,
 void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_nr,
                              int blocks,
-                             const void *old_blocks)
+                             const void *old_blocks,
+                             const char *alloc_name)
 {
   const SDNA *oldsdna = reconstruct_info->oldsdna;
   const SDNA *newsdna = reconstruct_info->newsdna;
@@ -1284,7 +1285,7 @@ void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
 
   const int alignment = DNA_struct_alignment(newsdna, new_struct_nr);
   char *new_blocks = static_cast<char *>(
-      MEM_calloc_arrayN_aligned(new_block_size, blocks, alignment, "reconstruct"));
+      MEM_calloc_arrayN_aligned(new_block_size, blocks, alignment, alloc_name));
   reconstruct_structs(reconstruct_info,
                       blocks,
                       old_struct_nr,
@@ -1719,6 +1720,13 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 int DNA_struct_alignment(const SDNA *sdna, const int struct_nr)
 {
   return sdna->types_alignment[struct_nr];
+}
+
+const char *DNA_struct_identifier(struct SDNA *sdna, const int struct_index)
+{
+  DNA_sdna_alias_data_ensure(sdna);
+  SDNA_Struct *struct_info = sdna->structs[struct_index];
+  return sdna->alias.types[struct_info->type];
 }
 
 /* -------------------------------------------------------------------- */

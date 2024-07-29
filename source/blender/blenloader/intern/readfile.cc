@@ -26,6 +26,8 @@
 
 #include "CLG_log.h"
 
+#include "fmt/format.h"
+
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
@@ -45,6 +47,7 @@
 #include "DNA_volume_types.h"
 #include "DNA_workspace_types.h"
 
+#include "MEM_alloc_string_storage.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -179,7 +182,7 @@ static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
-static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
@@ -450,7 +453,8 @@ static void read_file_version(FileData *fd, Main *main)
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_GLOB) {
-      FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
+      FileGlobal *fg = static_cast<FileGlobal *>(
+          read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
       if (fg) {
         main->subversionfile = fg->subversion;
         main->minversionfile = fg->minversion;
@@ -1115,7 +1119,8 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
       continue;
     }
 
-    FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
+    FileGlobal *fg = static_cast<FileGlobal *>(
+        read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
     if ((fg->minversion > BLENDER_FILE_VERSION) ||
         (fg->minversion == BLENDER_FILE_VERSION && fg->minsubversion > BLENDER_FILE_SUBVERSION))
     {
@@ -1702,7 +1707,90 @@ static void switch_endian_structs(const SDNA *filesdna, BHead *bhead)
   }
 }
 
-static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
+/**
+ * Generate the final allocation string reference for read blocks of data. If \a blockname is
+ * given, use it as 'owner block' info, otherwise use the id type index to get that info.
+ *
+ * \note: These strings are stored until Blender exits
+ */
+static const char *get_alloc_name(FileData *fd,
+                                  BHead *bh,
+                                  const char *blockname,
+                                  int id_type_index = INDEX_ID_NULL)
+{
+#ifndef NDEBUG
+  /* Storage key is a pair of (string , int), where the first is the concatenation of the 'owner
+   * block' string and DNA struct type name, and the second the length of the array, as defined by
+   * the #BHead.nr value. */
+  using keyT = const std::pair<const std::string, const int>;
+#else
+  /* Storage key is simple int, which is the ID type index. */
+  using keyT = int;
+#endif
+  constexpr std::string_view STORAGE_ID = "readfile";
+
+  /* NOTE: This is thread_local storage, so as long as the handling of a same FileData is not
+   * spread accross threads (which is not supported at all currently), this is thread-safe. */
+  if (!fd->storage_handle) {
+    fd->storage_handle = &intern::memutil::alloc_string_storage_get<keyT, blender::DefaultHash>(
+        std::string(STORAGE_ID));
+  }
+  intern::memutil::AllocStringStorage<keyT, blender::DefaultHash> &storage =
+      *static_cast<intern::memutil::AllocStringStorage<keyT, blender::DefaultHash> *>(
+          fd->storage_handle);
+
+  const bool is_id_data = !blockname && (id_type_index >= 0 && id_type_index < INDEX_ID_MAX);
+
+#ifndef NDEBUG
+  /* Local storage of id type names, for fast access to this info. */
+  static const std::array<std::string, INDEX_ID_MAX> id_alloc_names = [] {
+    auto n = decltype(id_alloc_names)();
+    for (int idtype_index = 0; idtype_index < INDEX_ID_MAX; idtype_index++) {
+      const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_idtype_index(idtype_index);
+      BLI_assert(idtype_info);
+      if (idtype_index == INDEX_ID_NULL) {
+        /* #INDEX_ID_NULL returns the #IDType_ID_LINK_PLACEHOLDER type info, here we will rather
+         * use it for unknown/invalid ID types. */
+        n[size_t(idtype_index)] = "UNKNWOWN";
+      }
+      else {
+        n[size_t(idtype_index)] = idtype_info->name;
+      }
+    }
+    return n;
+  }();
+
+  const std::string block_alloc_name = is_id_data ? id_alloc_names[id_type_index] : blockname;
+  const std::string struct_name = DNA_struct_identifier(fd->filesdna, bh->SDNAnr);
+  keyT key{block_alloc_name + struct_name, bh->nr};
+  if (!storage.contains(key)) {
+    const std::string alloc_string = fmt::format(
+        (is_id_data ? "{}{} (for ID type '{}')" : "{}{} (for block '{}')"),
+        struct_name,
+        bh->nr > 1 ? fmt::format("[{}]", bh->nr) : "",
+        block_alloc_name);
+    return storage.insert(key, alloc_string);
+  }
+  return storage.find(key);
+#else
+  /* Simple storage for pure release builds, using integer as key, one entry for each ID type. */
+  UNUSED_VARS_NDEBUG(bh);
+  if (is_id_data) {
+    if (UNLIKELY(!storage.contains(id_type_index))) {
+      if (id_type_index == INDEX_ID_NULL) {
+        return storage.insert(id_type_index, "Data from UNKNOWN");
+      }
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_idtype_index(id_type_index);
+      const std::string alloc_string = fmt::format("Data from '{}' ID type", id_type->name);
+      return storage.insert(id_type_index, alloc_string);
+    }
+    return storage.find(id_type_index);
+  }
+  return blockname;
+#endif
+}
+
+static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const int id_type_index)
 {
   void *temp = nullptr;
 
@@ -1726,6 +1814,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
     }
 
     if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
+      const char *alloc_name = get_alloc_name(fd, bh, blockname, id_type_index);
       if (fd->compflags[bh->SDNAnr] == SDNA_CMP_NOT_EQUAL) {
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
@@ -1736,12 +1825,13 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
           }
         }
 #endif
-        temp = DNA_struct_reconstruct(fd->reconstruct_info, bh->SDNAnr, bh->nr, (bh + 1));
+        temp = DNA_struct_reconstruct(
+            fd->reconstruct_info, bh->SDNAnr, bh->nr, (bh + 1), alloc_name);
       }
       else {
         /* SDNA_CMP_EQUAL */
         const int alignment = DNA_struct_alignment(fd->filesdna, bh->SDNAnr);
-        temp = MEM_mallocN_aligned(bh->len, alignment, blockname);
+        temp = MEM_mallocN_aligned(bh->len, alignment, alloc_name);
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data) {
           memcpy(temp, (bh + 1), bh->len);
@@ -2321,32 +2411,6 @@ static void placeholders_ensure_valid(Main *bmain)
   }
 }
 
-static const char *idtype_alloc_name_get(short id_code)
-{
-  static const std::array<std::string, INDEX_ID_MAX> id_alloc_names = [] {
-    auto n = decltype(id_alloc_names)();
-    for (int idtype_index = 0; idtype_index < INDEX_ID_MAX; idtype_index++) {
-      const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_idtype_index(idtype_index);
-      BLI_assert(idtype_info);
-      if (idtype_index == INDEX_ID_NULL) {
-        /* #INDEX_ID_NULL returns the #IDType_ID_LINK_PLACEHOLDER type info, here we will rather
-         * use it for unknown/invalid ID types. */
-        n[size_t(idtype_index)] = "Data from UNKNWOWN ID Type";
-      }
-      else {
-        n[size_t(idtype_index)] = std::string("Data from '") + idtype_info->name + "'";
-      }
-    }
-    return n;
-  }();
-
-  const int idtype_index = BKE_idtype_idcode_to_index(id_code);
-  if (LIKELY(idtype_index >= 0 && idtype_index < INDEX_ID_MAX)) {
-    return id_alloc_names[size_t(idtype_index)].c_str();
-  }
-  return id_alloc_names[INDEX_ID_NULL].c_str();
-}
-
 static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *id_old)
 {
   BlendDataReader reader = {fd};
@@ -2394,7 +2458,10 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
 }
 
 /* Read all data associated with a datablock into datamap. */
-static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *allocname)
+static BHead *read_data_into_datamap(FileData *fd,
+                                     BHead *bhead,
+                                     const char *allocname,
+                                     const int id_type_index)
 {
   bhead = blo_bhead_next(fd, bhead);
 
@@ -2419,7 +2486,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
     }
 #endif
 
-    void *data = read_struct(fd, bhead, allocname);
+    void *data = read_struct(fd, bhead, allocname, id_type_index);
     if (data) {
       const bool is_new = oldnewmap_insert(fd->datamap, bhead->old, data, 0);
       if (!is_new) {
@@ -2837,7 +2904,15 @@ static BHead *read_libblock(FileData *fd,
   }
 
   /* Read libblock struct. */
-  ID *id = static_cast<ID *>(read_struct(fd, bhead, "lib block"));
+  const int id_type_index = BKE_idtype_idcode_to_index(bhead->code);
+#ifndef NDEBUG
+  const char *blockname = nullptr;
+#else
+  /* Avoid looking up in the mapping for all read BHead, since this only contains the ID type name
+   * in release builds. */
+  const char *blockname = get_alloc_name(fd, bhead, nullptr, id_type_index);
+#endif
+  ID *id = static_cast<ID *>(read_struct(fd, bhead, blockname, id_type_index));
   if (id == nullptr) {
     if (r_id) {
       *r_id = nullptr;
@@ -2900,8 +2975,7 @@ static BHead *read_libblock(FileData *fd,
 
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
-  const char *allocname = idtype_alloc_name_get(idcode);
-  bhead = read_data_into_datamap(fd, bhead, allocname);
+  bhead = read_data_into_datamap(fd, bhead, blockname, id_type_index);
   const bool success = direct_link_id(fd, main, id_tag, id, id_old);
   oldnewmap_clear(fd->datamap);
 
@@ -2941,7 +3015,7 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
 {
   BLI_assert(blo_bhead_is_id_valid_type(bhead));
 
-  bhead = read_data_into_datamap(fd, bhead, "asset-data read");
+  bhead = read_data_into_datamap(fd, bhead, "Data for Asset meta-data", INDEX_ID_NULL);
 
   BlendDataReader reader = {fd};
   BLO_read_struct(&reader, AssetMetaData, r_asset_data);
@@ -2962,7 +3036,8 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
 /* also version info is written here */
 static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-  FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
+  FileGlobal *fg = static_cast<FileGlobal *>(
+      read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
 
   /* NOTE: `bfd->main->versionfile` is supposed to have already been set from `fd->fileversion`
    * beforehand by calling code. */
@@ -3294,14 +3369,15 @@ static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   UserDef *user;
-  bfd->user = user = static_cast<UserDef *>(read_struct(fd, bhead, "user def"));
+  bfd->user = user = static_cast<UserDef *>(
+      read_struct(fd, bhead, "Data for User Def", INDEX_ID_NULL));
 
   /* User struct has separate do-version handling */
   user->versionfile = bfd->main->versionfile;
   user->subversionfile = bfd->main->subversionfile;
 
   /* read all data into fd->datamap */
-  bhead = read_data_into_datamap(fd, bhead, "user def");
+  bhead = read_data_into_datamap(fd, bhead, "Data for User Def", INDEX_ID_NULL);
 
   BlendDataReader reader_ = {fd};
   BlendDataReader *reader = &reader_;
@@ -3926,7 +4002,8 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       return;
     }
 
-    Library *lib = static_cast<Library *>(read_struct(fd, bheadlib, "Library"));
+    Library *lib = static_cast<Library *>(
+        read_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
     Main *libmain = blo_find_main(fd, lib->filepath, fd->relabase);
 
     if (libmain->curlib == nullptr) {
@@ -4407,7 +4484,7 @@ void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Param
 
 void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 {
-  return read_struct(fd, bh, blockname);
+  return read_struct(fd, bh, blockname, INDEX_ID_NULL);
 }
 
 /** \} */

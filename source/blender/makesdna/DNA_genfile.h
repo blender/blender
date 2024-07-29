@@ -152,12 +152,14 @@ const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SD
  * \param old_struct_nr: Index of struct info within oldsdna.
  * \param blocks: The number of array elements.
  * \param old_blocks: Array of struct data.
+ * \param alloc_name: String to pass to the allocation calls for reconstructed data.
  * \return An allocated reconstructed struct.
  */
 void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_nr,
                              int blocks,
-                             const void *old_blocks);
+                             const void *old_blocks,
+                             const char *alloc_name);
 
 /**
  * A version of #DNA_struct_member_offset_by_name_with_alias that uses the non-aliased name.
@@ -194,6 +196,11 @@ int DNA_elem_type_size(eSDNA_Type elem_nr);
  * Get the alignment that should be used when allocating memory for this type.
  */
 int DNA_struct_alignment(const struct SDNA *sdna, int struct_nr);
+
+/**
+ * Return the current (alias) type name of the given struct index.
+ */
+const char *DNA_struct_identifier(struct SDNA *sdna, int struct_index);
 
 /**
  * Rename a struct

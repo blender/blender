@@ -66,6 +66,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::intern::memutil
 )
 
 if(WITH_BUILDINFO)
