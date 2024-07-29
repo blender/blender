@@ -95,6 +95,15 @@ typedef enum eUSDZTextureDownscaleSize {
   USD_TEXTURE_SIZE_4096 = 4096
 } eUSDZTextureDownscaleSize;
 
+/**
+ *  Behavior when exporting textures.
+ */
+enum eUSDTexExportMode {
+  USD_TEX_EXPORT_KEEP = 0,
+  USD_TEX_EXPORT_PRESERVE,
+  USD_TEX_EXPORT_NEW_PATH,
+};
+
 struct USDExportParams {
   bool export_animation = false;
   bool export_hair = true;
@@ -113,7 +122,7 @@ struct USDExportParams {
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
   bool generate_preview_surface = true;
   bool generate_materialx_network = true;
-  bool export_textures = true;
+  bool export_textures = false;
   bool overwrite_textures = true;
   bool relative_paths = true;
   bool export_custom_properties = true;
@@ -136,6 +145,7 @@ struct USDExportParams {
 
   bool allow_unicode = false;
 
+  bool use_original_paths = false;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
@@ -226,6 +236,12 @@ bool USD_import(bContext *C,
 int USD_get_version();
 
 /* USD Import and Mesh Cache interface. */
+
+/* Similar to BLI_path_abs(), but also invokes the USD asset resolver
+ * to determine the absolute path. This is necessary for resolving
+ * paths with URIs that BLI_path_abs() would otherwise alter when
+ * attempting to normalize the path. */
+void USD_path_abs(char *path, const char *basepath, bool for_import);
 
 CacheArchiveHandle *USD_create_handle(Main *bmain, const char *filepath, ListBase *object_paths);
 

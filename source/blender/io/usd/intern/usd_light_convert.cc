@@ -133,7 +133,9 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
 {
   /* Optionally copy the asset if it's inside a USDZ package. */
   const bool import_textures = params.import_textures_mode != USD_TEX_IMPORT_NONE &&
-                               pxr::ArIsPackageRelativePath(tex_path);
+                               should_import_asset(tex_path);
+
+  std::string imported_file_source_path = tex_path;
 
   if (import_textures) {
     /* If we are packing the imported textures, we first write them
@@ -153,6 +155,10 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
   Image *image = BKE_image_load_exists(bmain, tex_path.c_str());
   if (!image) {
     return nullptr;
+  }
+
+  if (import_textures && imported_file_source_path != tex_path) {
+    ensure_usd_source_path_prop(imported_file_source_path, &image->id);
   }
 
   if (import_textures && params.import_textures_mode == USD_TEX_IMPORT_PACK &&

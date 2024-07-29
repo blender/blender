@@ -21,6 +21,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
@@ -1165,9 +1166,27 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   if (!file_input) {
     CLOG_WARN(&LOG,
-              "Couldn't get file input for USD shader %s",
+              "Couldn't get file input property for USD shader %s",
               usd_shader.GetPath().GetAsString().c_str());
     return;
+  }
+
+  /* File input may have a connected source, e.g., if it's been overridden by
+   * an input on the mateial. */
+  if (file_input.HasConnectedSource()) {
+    pxr::UsdShadeConnectableAPI source;
+    pxr::TfToken source_name;
+    pxr::UsdShadeAttributeType source_type;
+
+    if (file_input.GetConnectedSource(&source, &source_name, &source_type)) {
+      file_input = source.GetInput(source_name);
+    }
+    else {
+      CLOG_WARN(&LOG,
+                "Couldn't get connected source for file input %s (%s)\n",
+                file_input.GetPrim().GetPath().GetText(),
+                file_input.GetFullName().GetText());
+    }
   }
 
   pxr::VtValue file_val;
@@ -1180,31 +1199,35 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   const pxr::SdfAssetPath &asset_path = file_val.Get<pxr::SdfAssetPath>();
   std::string file_path = asset_path.GetResolvedPath();
+
   if (file_path.empty()) {
-    /* No resolved path, so use the asset path (usually
-     * necessary for UDIM paths). */
+    /* No resolved path, so use the asset path (usually necessary for UDIM paths). */
     file_path = asset_path.GetAssetPath();
 
-    /* Texture paths are frequently relative to the USD, so get
-     * the absolute path. */
-    if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
-      file_path = layer_handle->ComputeAbsolutePath(file_path);
+    if (!file_path.empty() && is_udim_path(file_path)) {
+      /* Texture paths are frequently relative to the USD, so get the absolute path. */
+      if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
+        file_path = layer_handle->ComputeAbsolutePath(file_path);
+      }
     }
   }
 
   if (file_path.empty()) {
     CLOG_WARN(&LOG,
-              " Couldn't resolve image asset '%s' for Texture Image node",
+              "Couldn't resolve image asset '%s' for Texture Image node",
               asset_path.GetAssetPath().c_str());
     return;
   }
 
   /* Optionally copy the asset if it's inside a USDZ package. */
+  const bool is_relative = pxr::ArIsPackageRelativePath(file_path);
+  const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE && is_relative;
 
-  const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE &&
-                               pxr::ArIsPackageRelativePath(file_path);
+  std::string imported_file_source_path;
 
   if (import_textures) {
+    imported_file_source_path = file_path;
+
     /* If we are packing the imported textures, we first write them
      * to a temporary directory. */
     const char *textures_dir = params_.import_textures_mode == USD_TEX_IMPORT_PACK ?
@@ -1277,6 +1300,10 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);
   storage->extension = get_image_extension(usd_shader, storage->extension);
+
+  if (import_textures && imported_file_source_path != file_path) {
+    ensure_usd_source_path_prop(imported_file_source_path, &image->id);
+  }
 
   if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
       !BKE_image_has_packedfile(image))

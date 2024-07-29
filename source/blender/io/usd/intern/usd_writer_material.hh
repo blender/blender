@@ -8,6 +8,7 @@
 #include <string>
 
 struct bNode;
+struct Image;
 struct Material;
 struct ReportList;
 
@@ -31,14 +32,12 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
  * or an empty TfToken if the input name is not found in the map. */
 const pxr::TfToken token_for_input(const char *input_name);
 
-/* Export the given texture node's image to a 'textures' directory in the given stage's
- * export path. */
 void export_texture(bNode *node,
                     const pxr::UsdStageRefPtr stage,
                     const bool allow_overwrite = false,
                     ReportList *reports = nullptr);
 
-/* Gets an asset path for the given texture image node. The resulting path
+/* Gets an asset path for the given texture image / node. The resulting path
  * may be absolute, relative to the USD file, or in a 'textures' directory
  * in the same directory as the USD file, depending on the export parameters.
  * The filename is typically the image filepath but might also be automatically
@@ -47,6 +46,14 @@ void export_texture(bNode *node,
  * assigned and no asset path could be determined. */
 std::string get_tex_image_asset_filepath(bNode *node,
                                          const pxr::UsdStageRefPtr stage,
+                                         const USDExportParams &export_params);
+
+std::string get_tex_image_asset_filepath(Image *ima,
+                                         const pxr::UsdStageRefPtr stage,
+                                         const USDExportParams &export_params);
+
+std::string get_tex_image_asset_filepath(const std::string &asset_path,
+                                         const std::string &stage_path,
                                          const USDExportParams &export_params);
 
 }  // namespace blender::io::usd
