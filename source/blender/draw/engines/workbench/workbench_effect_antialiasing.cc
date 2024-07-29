@@ -243,9 +243,7 @@ void AntiAliasingPass::draw(Manager &manager,
                             SceneResources &resources,
                             GPUTexture *depth_in_front_tx)
 {
-  if (resources.depth_in_front_tx.is_valid() && scene_state.sample == 0 &&
-      scene_state.overlays_enabled)
-  {
+  if (resources.depth_in_front_tx.is_valid() && scene_state.sample == 0) {
     overlay_depth_fb_.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx));
     overlay_depth_fb_.bind();
     manager.submit(overlay_depth_ps_);
@@ -257,8 +255,7 @@ void AntiAliasingPass::draw(Manager &manager,
 
   const bool last_sample = scene_state.sample + 1 == scene_state.samples_len;
 
-  if (scene_state.samples_len > 1 && (scene_state.overlays_enabled || DRW_state_is_scene_render()))
-  {
+  if (scene_state.samples_len > 1) {
     if (scene_state.sample == 0) {
       GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
       if (resources.depth_in_front_tx.is_valid()) {
