@@ -1256,18 +1256,14 @@ static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 
 /* Functions to update the sculpt mesh data. */
 
-static void update_mask_mesh(const SculptSession &ss,
-                             bke::pbvh::Node *node,
-                             const MutableSpan<float> mask)
+static void calc_new_mask_mesh(const SculptSession &ss,
+                               const MutableSpan<float> mask,
+                               const Span<int> verts)
 {
   const Cache *expand_cache = ss.expand_cache;
 
-  bool any_changed = false;
-
-  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
-    const float initial_mask = mask[vert];
     const bool enabled = vert_state_get(ss, expand_cache, PBVHVertRef{vert});
 
     if (expand_cache->check_islands &&
@@ -1276,34 +1272,24 @@ static void update_mask_mesh(const SculptSession &ss,
       continue;
     }
 
-    float new_mask;
-
     if (enabled) {
-      new_mask = gradient_value_get(ss, expand_cache, PBVHVertRef{vert});
+      mask[i] = gradient_value_get(ss, expand_cache, PBVHVertRef{vert});
     }
     else {
-      new_mask = 0.0f;
+      mask[i] = 0.0f;
     }
 
     if (expand_cache->preserve) {
       if (expand_cache->invert) {
-        new_mask = min_ff(new_mask, expand_cache->original_mask[vert]);
+        mask[i] = min_ff(mask[i], expand_cache->original_mask[vert]);
       }
       else {
-        new_mask = max_ff(new_mask, expand_cache->original_mask[vert]);
+        mask[i] = max_ff(mask[i], expand_cache->original_mask[vert]);
       }
     }
-
-    if (new_mask == initial_mask) {
-      continue;
-    }
-
-    mask[vert] = clamp_f(new_mask, 0.0f, 1.0f);
-    any_changed = true;
   }
-  if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(node);
-  }
+
+  mask::clamp_mask(mask);
 }
 
 static void update_mask_grids(const SculptSession &ss, bke::pbvh::Node *node)
@@ -1596,18 +1582,10 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
     case TargetType::Mask: {
       switch (ss.pbvh->type()) {
         case bke::pbvh::Type::Mesh: {
-          Mesh &mesh = *static_cast<Mesh *>(ob.data);
-          bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-          bke::SpanAttributeWriter mask = attributes.lookup_for_write_span<float>(".sculpt_mask");
-          if (!mask || mask.domain != bke::AttrDomain::Point) {
-            return;
-          }
-          threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-            for (const int i : range) {
-              update_mask_mesh(ss, nodes[i], mask.span);
-            }
-          });
-          mask.finish();
+          mask::update_mask_mesh(
+              ob, nodes, [&](const MutableSpan<float> mask, const Span<int> verts) {
+                calc_new_mask_mesh(ss, mask, verts);
+              });
           break;
         }
         case bke::pbvh::Type::Grids: {
