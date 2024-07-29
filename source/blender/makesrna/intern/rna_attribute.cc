@@ -962,6 +962,7 @@ static void rna_def_attribute_float(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "FloatAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MFloatProperty");
@@ -995,6 +996,7 @@ static void rna_def_attribute_float_vector(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   /* Float Vector Attribute Value */
   srna = RNA_def_struct(brna, "FloatVectorAttributeValue", nullptr);
@@ -1034,6 +1036,7 @@ static void rna_def_attribute_float_color(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   /* Float Color Attribute Value */
   srna = RNA_def_struct(brna, "FloatColorAttributeValue", nullptr);
@@ -1082,6 +1085,7 @@ static void rna_def_attribute_byte_color(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   /* Byte Color Attribute Value */
   srna = RNA_def_struct(brna, "ByteColorAttributeValue", nullptr);
@@ -1131,6 +1135,7 @@ static void rna_def_attribute_int(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "IntAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MIntProperty");
@@ -1161,6 +1166,7 @@ static void rna_def_attribute_string(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "StringAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MStringProperty");
@@ -1195,6 +1201,7 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "BoolAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MBoolProperty");
@@ -1225,6 +1232,7 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "ByteIntAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "MInt8Property");
@@ -1256,6 +1264,7 @@ static void rna_def_attribute_int2(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "Int2AttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "vec2i");
@@ -1290,6 +1299,7 @@ static void rna_def_attribute_quaternion(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "QuaternionAttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "vec4f");
@@ -1325,6 +1335,7 @@ static void rna_def_attribute_float4x4(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   srna = RNA_def_struct(brna, "Float4x4AttributeValue", nullptr);
   RNA_def_struct_sdna(srna, "mat4x4f");
@@ -1360,6 +1371,7 @@ static void rna_def_attribute_float2(BlenderRNA *brna)
                                     nullptr,
                                     nullptr,
                                     nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 
   /* Float2 Attribute Value */
   srna = RNA_def_struct(brna, "Float2AttributeValue", nullptr);
