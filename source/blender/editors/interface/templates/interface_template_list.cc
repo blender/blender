@@ -794,8 +794,11 @@ static void ui_template_list_layout_draw(const bContext *C,
             UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);
           }
 
-          sub = uiLayoutRow(overlap, false);
+          uiLayout *item_row = uiLayoutRow(overlap, true);
 
+          uiLayoutListItemAddPadding(item_row);
+
+          sub = uiLayoutRow(item_row, false);
           icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           if (icon == ICON_DOT) {
             icon = ICON_NONE;
@@ -820,6 +823,7 @@ static void ui_template_list_layout_draw(const bContext *C,
             ui_layout_list_set_labels_active(sub);
           }
 
+          uiLayoutListItemAddPadding(item_row);
           UI_block_flag_disable(subblock, UI_BLOCK_LIST_ITEM);
         }
       }

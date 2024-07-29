@@ -2962,7 +2962,6 @@ static void draw_exporter_item(uiList * /*ui_list*/,
   RNA_string_get(itemptr, "name", name);
 
   uiLayout *row = uiLayoutRow(layout, false);
-  uiItemS(row);
   uiItemL(row, name, ICON_NONE);
 }
 

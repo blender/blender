@@ -5396,6 +5396,24 @@ eUIEmbossType uiLayoutGetEmboss(uiLayout *layout)
   return layout->emboss;
 }
 
+int uiLayoutListItemPaddingWidth()
+{
+  return 5 * UI_SCALE_FAC;
+}
+
+void uiLayoutListItemAddPadding(uiLayout *layout)
+{
+  uiBlock *block = uiLayoutGetBlock(layout);
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetFixedSize(row, true);
+
+  uiDefBut(
+      block, UI_BTYPE_SEPR, 0, "", 0, 0, uiLayoutListItemPaddingWidth(), 0, nullptr, 0.0, 0.0, "");
+
+  /* Restore. */
+  UI_block_layout_set_current(block, layout);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

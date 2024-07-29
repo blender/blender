@@ -378,7 +378,6 @@ class POSE_PT_selection_sets(Panel):
 class POSE_UL_selection_set(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         row = layout.row()
-        row.separator()
         row.prop(item, "name", text="", emboss=False)
         if self.layout_type in ('DEFAULT', 'COMPACT'):
             row.prop(item, "is_selected", text="")
