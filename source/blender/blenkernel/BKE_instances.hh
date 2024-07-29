@@ -115,6 +115,11 @@ class Instances {
 
   CustomData attributes_;
 
+  /**
+   * Caches how often each reference is used.
+   */
+  mutable SharedCache<Array<int>> reference_user_counts_;
+
   /* These almost unique ids are generated based on the `id` attribute, which might not contain
    * unique ids at all. They are *almost* unique, because under certain very unlikely
    * circumstances, they are not unique. Code using these ids should not crash when they are not
@@ -186,6 +191,11 @@ class Instances {
    */
   Span<int> almost_unique_ids() const;
 
+  /**
+   * Get cached user counts for every reference.
+   */
+  Span<int> reference_user_counts() const;
+
   bke::AttributeAccessor attributes() const;
   bke::MutableAttributeAccessor attributes_for_write();
 
@@ -200,6 +210,7 @@ class Instances {
 
   void tag_reference_handles_changed()
   {
+    reference_user_counts_.tag_dirty();
     almost_unique_ids_cache_.tag_dirty();
   }
 };

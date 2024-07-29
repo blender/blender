@@ -93,6 +93,7 @@ class TreeViewItemContainer {
 
  protected:
   void foreach_item_recursive(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+  void foreach_parent(ItemIterFn iter_fn) const;
 };
 
 ENUM_OPERATORS(TreeViewItemContainer::IterOptions,
@@ -395,7 +396,8 @@ class TreeViewBuilder {
  public:
   static void build_tree_view(AbstractTreeView &tree_view,
                               uiLayout &layout,
-                              std::optional<StringRef> search_string = {});
+                              std::optional<StringRef> search_string = {},
+                              bool add_box = true);
 
  private:
   static void ensure_min_rows_items(AbstractTreeView &tree_view);

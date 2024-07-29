@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"
@@ -24,6 +26,7 @@
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "BLT_translation.hh"
@@ -37,6 +40,7 @@
 namespace blender::ed::spreadsheet {
 
 class GeometryDataSetTreeView;
+class GeometryInstancesTreeView;
 
 struct GeometryDataIdentifier {
   bke::GeometryComponent::Type component_type;
@@ -44,13 +48,18 @@ struct GeometryDataIdentifier {
   std::optional<bke::AttrDomain> domain;
 };
 
-static void draw_count(ui::AbstractTreeViewItem &view_item, const int count)
+static void draw_row_suffix(ui::AbstractTreeViewItem &view_item, const StringRefNull str)
 {
   /* Using the tree row button instead of a separate right aligned button gives padding
    * to the right side of the number, which it didn't have with the button. */
+  UI_but_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), str.c_str());
+}
+
+static void draw_count(ui::AbstractTreeViewItem &view_item, const int count)
+{
   char element_count[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE];
   BLI_str_format_decimal_unit(element_count, count);
-  UI_but_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), element_count);
+  draw_row_suffix(view_item, element_count);
 }
 
 static StringRefNull mesh_domain_to_label(const bke::AttrDomain domain)
@@ -112,6 +121,102 @@ static BIFIconID curves_domain_to_icon(const bke::AttrDomain domain)
       return ICON_NONE;
   }
 }
+
+class InstancesTreeViewItem : public ui::AbstractTreeViewItem {
+ public:
+  GeometryInstancesTreeView &get_tree() const;
+
+  void get_parent_instance_ids(Vector<SpreadsheetInstanceID> &r_instance_ids) const;
+
+  void on_activate(bContext &C) override;
+
+  std::optional<bool> should_be_active() const override;
+};
+
+class RootGeometryViewItem : public InstancesTreeViewItem {
+ public:
+  RootGeometryViewItem(const bke::GeometrySet &geometry)
+  {
+    label_ = geometry.name.empty() ? IFACE_("Geometry") : geometry.name;
+  }
+
+  void build_row(uiLayout &row) override
+  {
+    uiItemL(&row, label_.c_str(), ICON_GEOMETRY_SET);
+  }
+};
+
+class InstanceReferenceViewItem : public InstancesTreeViewItem {
+ private:
+  const bke::InstanceReference &reference_;
+  int reference_index_;
+  int user_count_;
+
+ public:
+  InstanceReferenceViewItem(const bke::Instances &instances, const int reference_index)
+      : reference_(instances.references()[reference_index]), reference_index_(reference_index)
+  {
+    label_ = std::to_string(reference_index);
+    user_count_ = instances.reference_user_counts()[reference_index];
+  }
+
+  void build_row(uiLayout &row) override
+  {
+    const int icon = get_instance_reference_icon(reference_);
+    StringRefNull name = reference_.name();
+    if (name.is_empty()) {
+      name = IFACE_("Geometry");
+    }
+    uiItemL(&row, name.c_str(), icon);
+    draw_count(*this, user_count_);
+  }
+
+  int reference_index() const
+  {
+    return reference_index_;
+  }
+};
+
+class GeometryInstancesTreeView : public ui::AbstractTreeView {
+ private:
+  bke::GeometrySet root_geometry_set_;
+  SpaceSpreadsheet &sspreadsheet_;
+  bScreen &screen_;
+
+  friend class InstancesTreeViewItem;
+
+ public:
+  GeometryInstancesTreeView(bke::GeometrySet geometry_set, const bContext &C)
+      : root_geometry_set_(std::move(geometry_set)),
+        sspreadsheet_(*CTX_wm_space_spreadsheet(&C)),
+        screen_(*CTX_wm_screen(&C))
+  {
+  }
+
+  void build_tree() override
+  {
+    auto &root_item = this->add_tree_item<RootGeometryViewItem>(root_geometry_set_);
+    root_item.uncollapse_by_default();
+    if (const bke::Instances *instances = root_geometry_set_.get_instances()) {
+      this->build_tree_for_instances(root_item, *instances);
+    }
+  }
+
+  void build_tree_for_instances(ui::TreeViewItemContainer &parent, const bke::Instances &instances)
+  {
+    const Span<bke::InstanceReference> references = instances.references();
+    for (const int reference_i : references.index_range()) {
+      auto &reference_item = parent.add_tree_item<InstanceReferenceViewItem>(instances,
+                                                                             reference_i);
+      const bke::InstanceReference &reference = references[reference_i];
+      bke::GeometrySet reference_geometry;
+      reference.to_geometry_set(reference_geometry);
+      if (const bke::Instances *child_instances = reference_geometry.get_instances()) {
+        this->build_tree_for_instances(reference_item, *child_instances);
+      }
+    }
+  }
+};
 
 class DataSetViewItem : public ui::AbstractTreeViewItem {
  public:
@@ -380,7 +485,7 @@ class InstancesViewItem : public DataSetViewItem {
 
 class GeometryDataSetTreeView : public ui::AbstractTreeView {
  private:
-  bke::GeometrySet root_geometry_set_;
+  bke::GeometrySet geometry_set_;
   SpaceSpreadsheet &sspreadsheet_;
   bScreen &screen_;
 
@@ -388,7 +493,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
 
  public:
   GeometryDataSetTreeView(bke::GeometrySet geometry_set, const bContext &C)
-      : root_geometry_set_(std::move(geometry_set)),
+      : geometry_set_(std::move(geometry_set)),
         sspreadsheet_(*CTX_wm_space_spreadsheet(&C)),
         screen_(*CTX_wm_screen(&C))
   {
@@ -396,7 +501,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
 
   void build_tree() override
   {
-    this->build_tree_for_geometry(root_geometry_set_, *this);
+    this->build_tree_for_geometry(geometry_set_, *this);
   }
 
   void build_tree_for_geometry(const bke::GeometrySet &geometry, ui::TreeViewItemContainer &parent)
@@ -482,6 +587,60 @@ GeometryDataSetTreeView &DataSetViewItem::get_tree() const
   return static_cast<GeometryDataSetTreeView &>(this->get_tree_view());
 }
 
+GeometryInstancesTreeView &InstancesTreeViewItem::get_tree() const
+{
+  return static_cast<GeometryInstancesTreeView &>(this->get_tree_view());
+}
+
+void InstancesTreeViewItem::get_parent_instance_ids(
+    Vector<SpreadsheetInstanceID> &r_instance_ids) const
+{
+  if (auto *reference_item = dynamic_cast<const InstanceReferenceViewItem *>(this)) {
+    r_instance_ids.append({reference_item->reference_index()});
+  }
+  this->foreach_parent([&](const ui::AbstractTreeViewItem &item) {
+    if (auto *reference_item = dynamic_cast<const InstanceReferenceViewItem *>(&item)) {
+      r_instance_ids.append({reference_item->reference_index()});
+    }
+  });
+  std::reverse(r_instance_ids.begin(), r_instance_ids.end());
+}
+
+std::optional<bool> InstancesTreeViewItem::should_be_active() const
+{
+  GeometryInstancesTreeView &tree_view = this->get_tree();
+  SpaceSpreadsheet &sspreadsheet = tree_view.sspreadsheet_;
+
+  Vector<SpreadsheetInstanceID> instance_ids;
+  this->get_parent_instance_ids(instance_ids);
+  if (sspreadsheet.instance_ids_num != instance_ids.size()) {
+    return false;
+  }
+  for (const int i : instance_ids.index_range()) {
+    const SpreadsheetInstanceID &a = sspreadsheet.instance_ids[i];
+    const SpreadsheetInstanceID &b = instance_ids[i];
+    if (a.reference_index != b.reference_index) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void InstancesTreeViewItem::on_activate(bContext &C)
+{
+  Vector<SpreadsheetInstanceID> instance_ids;
+  this->get_parent_instance_ids(instance_ids);
+
+  SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
+
+  MEM_SAFE_FREE(sspreadsheet.instance_ids);
+  sspreadsheet.instance_ids = MEM_cnew_array<SpreadsheetInstanceID>(instance_ids.size(), __func__);
+  sspreadsheet.instance_ids_num = instance_ids.size();
+  initialized_copy_n(instance_ids.data(), instance_ids.size(), sspreadsheet.instance_ids);
+
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
+}
+
 void DataSetViewItem::on_activate(bContext &C)
 {
   std::optional<GeometryDataIdentifier> data_id = this->get_geometry_data_id();
@@ -555,14 +714,29 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutGetBlock(layout);
 
   UI_block_layout_set_current(block, layout);
+  const bke::GeometrySet root_geometry = spreadsheet_get_display_geometry_set(sspreadsheet,
+                                                                              object);
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
-      *block,
-      "Data Set Tree View",
-      std::make_unique<GeometryDataSetTreeView>(
-          spreadsheet_get_display_geometry_set(sspreadsheet, object), *C));
-  tree_view->set_context_menu_title("Spreadsheet");
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "instance tree", false, IFACE_("Geometry"))) {
+    ui::AbstractTreeView *tree_view = UI_block_add_view(
+        *block,
+        "Instances Tree View",
+        std::make_unique<GeometryInstancesTreeView>(root_geometry, *C));
+    tree_view->set_context_menu_title("Instance");
+    ui::TreeViewBuilder::build_tree_view(*tree_view, *panel, {}, false);
+  }
+  if (uiLayout *panel = uiLayoutPanel(
+          C, layout, "geometry_domain_tree_view", false, IFACE_("Domain")))
+  {
+    bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
+        root_geometry, {sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
+    ui::AbstractTreeView *tree_view = UI_block_add_view(
+        *block,
+        "Data Set Tree View",
+        std::make_unique<GeometryDataSetTreeView>(std::move(instance_geometry), *C));
+    tree_view->set_context_menu_title("Domain");
+    ui::TreeViewBuilder::build_tree_view(*tree_view, *panel, {}, false);
+  }
 }
 
 }  // namespace blender::ed::spreadsheet

@@ -83,6 +83,13 @@ void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptio
   }
 }
 
+void TreeViewItemContainer::foreach_parent(ItemIterFn iter_fn) const
+{
+  for (ui::AbstractTreeViewItem *item = parent_; item; item = item->parent_) {
+    iter_fn(*item);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 /* Implementation for the base class virtual function. More specialized iterators below. */
@@ -620,6 +627,7 @@ bool AbstractTreeViewItem::matches(const AbstractViewItem &other) const
 
 class TreeViewLayoutBuilder {
   uiBlock &block_;
+  bool add_box_ = true;
 
   friend TreeViewBuilder;
 
@@ -643,8 +651,13 @@ void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
 {
   uiLayout &parent_layout = this->current_layout();
 
-  uiLayout *box = uiLayoutBox(&parent_layout);
-  uiLayoutColumn(box, true);
+  if (add_box_) {
+    uiLayout *box = uiLayoutBox(&parent_layout);
+    uiLayoutColumn(box, true);
+  }
+  else {
+    uiLayoutColumn(&parent_layout, true);
+  }
 
   tree_view.foreach_item([this](AbstractTreeViewItem &item) { build_row(item); },
                          AbstractTreeView::IterOptions::SkipCollapsed |
@@ -727,7 +740,8 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
 
 void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view,
                                       uiLayout &layout,
-                                      std::optional<StringRef> search_string)
+                                      std::optional<StringRef> search_string,
+                                      const bool add_box)
 {
   uiBlock &block = *uiLayoutGetBlock(&layout);
 
@@ -742,6 +756,7 @@ void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view,
   UI_block_layout_set_current(&block, &layout);
 
   TreeViewLayoutBuilder builder(layout);
+  builder.add_box_ = add_box;
   builder.build_from_tree(tree_view);
 }
 

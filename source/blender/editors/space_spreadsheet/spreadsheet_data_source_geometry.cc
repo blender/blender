@@ -12,6 +12,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
@@ -560,7 +561,7 @@ int get_instance_reference_icon(const bke::InstanceReference &reference)
       return ICON_OUTLINER_COLLECTION;
     }
     case bke::InstanceReference::Type::GeometrySet: {
-      return ICON_EMPTY_AXIS;
+      return ICON_GEOMETRY_SET;
     }
     case bke::InstanceReference::Type::None: {
       break;
@@ -632,13 +633,41 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
   return geometry_set;
 }
 
+bke::GeometrySet get_geometry_set_for_instance_ids(const bke::GeometrySet &root_geometry,
+                                                   const Span<SpreadsheetInstanceID> instance_ids)
+{
+  bke::GeometrySet geometry = root_geometry;
+  for (const SpreadsheetInstanceID &instance_id : instance_ids) {
+    const bke::Instances *instances = geometry.get_instances();
+    if (!instances) {
+      /* Return the best available geometry. */
+      return geometry;
+    }
+    const Span<bke::InstanceReference> references = instances->references();
+    if (instance_id.reference_index < 0 || instance_id.reference_index >= references.size()) {
+      /* Return the best available geometry. */
+      return geometry;
+    }
+    const bke::InstanceReference &reference = references[instance_id.reference_index];
+    bke::GeometrySet reference_geometry;
+    reference.to_geometry_set(reference_geometry);
+    geometry = reference_geometry;
+  }
+  return geometry;
+}
+
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+
+  const bke::GeometrySet root_geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet,
+                                                                                  object_eval);
+  const bke::GeometrySet geometry_set = get_geometry_set_for_instance_ids(
+      root_geometry_set, Span{sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
+
   const bke::AttrDomain domain = (bke::AttrDomain)sspreadsheet->attribute_domain;
   const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
   const int active_layer_index = sspreadsheet->active_layer_index;
-  bke::GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
   if (!geometry_set.has(component_type)) {
     return {};
   }
@@ -646,7 +675,9 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   if (component_type == bke::GeometryComponent::Type::Volume) {
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
-  Object *object_orig = DEG_get_original_object(object_eval);
+  Object *object_orig = sspreadsheet->instance_ids_num == 0 ?
+                            DEG_get_original_object(object_eval) :
+                            nullptr;
   return std::make_unique<GeometryDataSource>(
       object_orig, std::move(geometry_set), component_type, domain, active_layer_index);
 }
