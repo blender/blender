@@ -14,7 +14,6 @@
 #  include "GHOST_C-api.h"
 #  include "GPU_context.hh"
 #  include "GPU_init_exit.hh"
-#  include <epoxy/gl.h>
 #  include <iostream>
 #  include <string>
 
@@ -23,6 +22,9 @@
 #  else
 #    include "BLI_winstuff.h"
 #  endif
+
+/* Include after BLI_winstuff.h to avoid APIENTRY redefinition.  */
+#  include <epoxy/gl.h>
 
 namespace blender::gpu {
 
