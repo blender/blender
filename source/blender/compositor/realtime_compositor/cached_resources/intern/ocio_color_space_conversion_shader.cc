@@ -322,6 +322,10 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   GPUShader *bind_shader_and_resources()
   {
+    if (!shader_) {
+      return nullptr;
+    }
+
     GPU_shader_bind(shader_);
 
     for (auto item : float_uniforms_.items()) {
@@ -474,17 +478,22 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
                                                                std::string source,
                                                                std::string target)
 {
-#if defined(WITH_OCIO)
-  /* Get a GPU processor that transforms the source color space to the target color space. */
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
-  OCIO::ConstProcessorRcPtr processor = config->getProcessor(source.c_str(), target.c_str());
-  OCIO::ConstGPUProcessorRcPtr gpu_processor = processor->getDefaultGPUProcessor();
-
   /* Create a GPU shader creator and construct it based on the transforms in the default GPU
    * processor. */
   shader_creator_ = GPUShaderCreator::Create(context.get_precision());
-  auto ocio_shader_creator = std::static_pointer_cast<OCIO::GpuShaderCreator>(shader_creator_);
-  gpu_processor->extractGpuShaderInfo(ocio_shader_creator);
+
+#if defined(WITH_OCIO)
+  /* Get a GPU processor that transforms the source color space to the target color space. */
+  try {
+    OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+    OCIO::ConstProcessorRcPtr processor = config->getProcessor(source.c_str(), target.c_str());
+    OCIO::ConstGPUProcessorRcPtr gpu_processor = processor->getDefaultGPUProcessor();
+
+    auto ocio_shader_creator = std::static_pointer_cast<OCIO::GpuShaderCreator>(shader_creator_);
+    gpu_processor->extractGpuShaderInfo(ocio_shader_creator);
+  }
+  catch (OCIO::Exception &e) {
+  }
 #else
   UNUSED_VARS(context, source, target);
 #endif

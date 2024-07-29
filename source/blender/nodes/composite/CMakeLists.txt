@@ -134,6 +134,10 @@ set(LIB
   bf_realtime_compositor
 )
 
+if(WITH_OPENCOLORIO)
+  add_definitions(-DWITH_OCIO)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()

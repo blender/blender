@@ -4017,12 +4017,9 @@ ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *f
                                                                    const char *to_colorspace)
 {
   ColormanageProcessor *cm_processor;
-  ColorSpace *color_space;
 
   cm_processor = MEM_cnew<ColormanageProcessor>("colormanagement processor");
-
-  color_space = colormanage_colorspace_get_named(to_colorspace);
-  cm_processor->is_data_result = color_space->is_data;
+  cm_processor->is_data_result = IMB_colormanagement_space_name_is_data(to_colorspace);
 
   OCIO_ConstProcessorRcPtr *processor = create_colorspace_transform_processor(from_colorspace,
                                                                               to_colorspace);
