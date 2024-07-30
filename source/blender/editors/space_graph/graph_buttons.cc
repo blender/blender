@@ -187,7 +187,16 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   col = uiLayoutColumn(layout, false);
   if (ale->type == ANIMTYPE_FCURVE) {
     /* get user-friendly name for F-Curve */
-    icon = getname_anim_fcurve(name, ale->id, fcu);
+    const std::optional<int> optional_icon = getname_anim_fcurve(name, ale->id, fcu);
+    if (optional_icon) {
+      icon = *optional_icon;
+    }
+    else if (ale->id) {
+      icon = RNA_struct_ui_icon(ID_code_to_RNA_type(GS(ale->id->name)));
+    }
+    else {
+      icon = ICON_NONE;
+    }
   }
   else {
     /* NLA Control Curve, etc. */
@@ -962,7 +971,13 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   int icon = 0;
 
   /* get user-friendly 'name' for F-Curve */
-  icon = getname_anim_fcurve(name, id, fcu);
+  const std::optional<int> optional_icon = getname_anim_fcurve(name, id, fcu);
+  if (optional_icon) {
+    icon = *optional_icon;
+  }
+  else {
+    icon = RNA_struct_ui_icon(ID_code_to_RNA_type(GS(id->name)));
+  }
 
   /* panel layout... */
   row = uiLayoutRow(layout, true);

@@ -14,6 +14,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include <optional>
+
 struct AnimData;
 struct Depsgraph;
 struct ID;
@@ -906,8 +908,11 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
  *
  * \warning name buffer we're writing to cannot exceed 256 chars
  * (check anim_channels_defines.cc for details).
+ *
+ * \return the icon of whatever struct the F-Curve's RNA path resolves to.
+ * Returns std::nullopt if the path could not be resolved.
  */
-int getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
+std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
 
 /**
  * Get the name of an F-Curve that's animating a specific slot.

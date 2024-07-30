@@ -38,7 +38,7 @@ struct StructRNA;
 
 /* ----------------------- Getter functions ----------------------- */
 
-int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
+std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
   /* Could make an argument, it's a documented limit at the moment. */
   constexpr size_t name_maxncpy = 256;
@@ -47,19 +47,19 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   if (name == nullptr) {
     /* A 'get name' function should be able to get the name, otherwise it's a bug. */
     BLI_assert_unreachable();
-    return 0;
+    return {};
   }
   if (fcu == nullptr) {
     BLI_strncpy(name, RPT_("<invalid>"), name_maxncpy);
-    return 0;
+    return {};
   }
   if (fcu->rna_path == nullptr) {
     BLI_strncpy(name, RPT_("<no path>"), name_maxncpy);
-    return 0;
+    return {};
   }
   if (id == nullptr) {
     BLI_snprintf(name, name_maxncpy, "%s[%d]", fcu->rna_path, fcu->array_index);
-    return 0;
+    return {};
   }
 
   PointerRNA id_ptr = RNA_id_pointer_create(id);
@@ -73,9 +73,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
     /* Tag F-Curve as disabled - as not usable path. */
     fcu->flag |= FCURVE_DISABLED;
-
-    /* TODO: maybe change this to an 'error' icon instead? */
-    return RNA_struct_ui_icon(id_ptr.type);
+    return {};
   }
 
   const char *structname = nullptr, *propname = nullptr;
@@ -217,8 +215,8 @@ std::string getname_anim_fcurve_for_slot(Main &bmain,
 
   /* Check the Slot's users to see if we can find an ID* that can resolve the F-Curve. */
   for (ID *user : slot.users(bmain)) {
-    const int icon = getname_anim_fcurve(name_buffer, user, &fcurve);
-    if (icon) {
+    const std::optional<int> icon = getname_anim_fcurve(name_buffer, user, &fcurve);
+    if (icon.has_value()) {
       /* Managed to find a name! */
       return name_buffer;
     }
