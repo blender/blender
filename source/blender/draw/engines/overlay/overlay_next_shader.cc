@@ -89,17 +89,26 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_info(
             "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
       });
+
   lattice_points = selectable_shader(
       "overlay_edit_lattice_point", [](gpu::shader::ShaderCreateInfo &info) {
         info.additional_infos_.clear();
         info.additional_info(
             "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
       });
+
   lattice_wire = selectable_shader(
       "overlay_edit_lattice_wire", [](gpu::shader::ShaderCreateInfo &info) {
         info.additional_infos_.clear();
         info.additional_info(
             "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+      });
+
+  extra_ground_line = selectable_shader(
+      "overlay_extra_groundline", [](gpu::shader::ShaderCreateInfo &info) {
+        info.storage_buf(0, Qualifier::READ, "vec4", "data_buf[]");
+        info.define("inst_pos", "data_buf[gl_InstanceID].xyz");
+        info.vertex_inputs_.pop_last();
       });
 }
 

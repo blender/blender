@@ -70,7 +70,7 @@ struct SelectBuf {
     }
   }
 
-  void select_bind(PassSimple &pass)
+  void select_bind(PassSimple::Sub &pass)
   {
     if (selection_type != SelectionType::DISABLED) {
       select_buf.push_update();
