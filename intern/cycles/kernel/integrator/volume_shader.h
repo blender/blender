@@ -164,40 +164,34 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
 /* Phase Evaluation & Sampling */
 
 /* Randomly sample a volume phase function proportional to ShaderClosure.sample_weight. */
+/* TODO: this isn't quite correct, we don't weight anisotropy properly depending on color channels,
+ * even if this is perhaps not a common case */
 ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pick(
     ccl_private const ShaderVolumePhases *phases, ccl_private float2 *rand_phase)
 {
   int sampled = 0;
 
   if (phases->num_closure > 1) {
-    /* pick a phase closure based on sample weights */
-    float sum = 0.0f;
+    /* Pick a phase closure based on sample weights. */
+    /* For reservoir sampling, always accept the first in the stream. */
+    float sum = phases->closure[0].sample_weight;
 
-    for (int i = 0; i < phases->num_closure; i++) {
-      ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
-      sum += svc->sample_weight;
-    }
+    for (int i = 1; i < phases->num_closure; i++) {
+      const float sample_weight = phases->closure[i].sample_weight;
+      sum += sample_weight;
+      const float thresh = sample_weight / sum;
 
-    float r = (*rand_phase).x * sum;
-    float partial_sum = 0.0f;
-
-    for (int i = 0; i < phases->num_closure; i++) {
-      ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
-      float next_sum = partial_sum + svc->sample_weight;
-
-      if (r <= next_sum) {
-        /* Rescale to reuse for volume phase direction sample. */
+      /* Rescale random number to reuse for volume phase direction sample. */
+      if (rand_phase->x < thresh) {
         sampled = i;
-        (*rand_phase).x = (r - partial_sum) / svc->sample_weight;
-        break;
+        rand_phase->x /= thresh;
       }
-
-      partial_sum = next_sum;
+      else {
+        rand_phase->x = (rand_phase->x - thresh) / (1.0f - thresh);
+      }
     }
   }
 
-  /* TODO: this isn't quite correct, we don't weight anisotropy properly
-   * depending on color channels, even if this is perhaps not a common case */
   return &phases->closure[sampled];
 }
 
