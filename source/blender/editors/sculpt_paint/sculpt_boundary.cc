@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
@@ -746,7 +747,9 @@ static void edit_data_init_bmesh(BMesh *bm,
  * SculptBoundaryEditInfo. They calculate the data using the vertices that have the
  * max_propagation_steps value and them this data is copied to the rest of the vertices using the
  * original vertex index. */
-static void bend_data_init(SculptSession &ss, SculptBoundary &boundary)
+static void bend_data_init_mesh(const Span<float3> vert_positions,
+                                const Span<float3> vert_normals,
+                                SculptBoundary &boundary)
 {
   boundary.bend.pivot_rotation_axis = Array<float3>(boundary.edit_info.size(), float3(0));
   boundary.bend.pivot_positions = Array<float3>(boundary.edit_info.size(), float3(0));
@@ -756,34 +759,120 @@ static void bend_data_init(SculptSession &ss, SculptBoundary &boundary)
       continue;
     }
 
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
 
-    float dir[3];
-    float3 normal = SCULPT_vertex_normal_get(ss, vertex);
-    sub_v3_v3v3(
-        dir,
-        SCULPT_vertex_co_get(
-            ss, BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.edit_info[i].original_vertex_i)),
-        SCULPT_vertex_co_get(ss, vertex));
-    cross_v3_v3v3(
-        boundary.bend.pivot_rotation_axis[boundary.edit_info[i].original_vertex_i], dir, normal);
-    normalize_v3(boundary.bend.pivot_rotation_axis[boundary.edit_info[i].original_vertex_i]);
-    copy_v3_v3(boundary.bend.pivot_positions[boundary.edit_info[i].original_vertex_i],
-               SCULPT_vertex_co_get(ss, vertex));
+    const float3 normal = vert_normals[i];
+    const float3 dir = vert_positions[orig_vert_i] - vert_positions[i];
+    boundary.bend.pivot_rotation_axis[orig_vert_i] = math::normalize(math::cross(dir, normal));
+    boundary.bend.pivot_positions[orig_vert_i] = vert_positions[i];
   }
 
   for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
       continue;
     }
-    copy_v3_v3(boundary.bend.pivot_positions[i],
-               boundary.bend.pivot_positions[boundary.edit_info[i].original_vertex_i]);
-    copy_v3_v3(boundary.bend.pivot_rotation_axis[i],
-               boundary.bend.pivot_rotation_axis[boundary.edit_info[i].original_vertex_i]);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+
+    boundary.bend.pivot_positions[i] = boundary.bend.pivot_positions[orig_vert_i];
+    boundary.bend.pivot_rotation_axis[i] = boundary.bend.pivot_rotation_axis[orig_vert_i];
   }
 }
 
-static void slide_data_init(SculptSession &ss, SculptBoundary &boundary)
+static void bend_data_init_grids(const SubdivCCG &subdiv_ccg, SculptBoundary &boundary)
+{
+  const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  Span<CCGElem *> grids = subdiv_ccg.grids;
+
+  boundary.bend.pivot_rotation_axis = Array<float3>(boundary.edit_info.size(), float3(0));
+  boundary.bend.pivot_positions = Array<float3>(boundary.edit_info.size(), float3(0));
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
+      continue;
+    }
+
+    const SubdivCCGCoord vert = SubdivCCGCoord::from_index(key, i);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    const SubdivCCGCoord orig_vert = SubdivCCGCoord::from_index(key, orig_vert_i);
+
+    const float3 normal = CCG_grid_elem_no(key, grids[vert.grid_index], vert.x, vert.y);
+    const float3 dir = CCG_grid_elem_co(
+                           key, grids[orig_vert.grid_index], orig_vert.x, orig_vert.y) -
+                       CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y);
+    boundary.bend.pivot_rotation_axis[orig_vert_i] = math::normalize(math::cross(dir, normal));
+    boundary.bend.pivot_positions[orig_vert_i] = CCG_grid_elem_co(
+        key, grids[vert.grid_index], vert.x, vert.y);
+  }
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
+      continue;
+    }
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+
+    boundary.bend.pivot_positions[i] = boundary.bend.pivot_positions[orig_vert_i];
+    boundary.bend.pivot_rotation_axis[i] = boundary.bend.pivot_rotation_axis[orig_vert_i];
+  }
+}
+
+static void bend_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
+{
+  boundary.bend.pivot_rotation_axis = Array<float3>(boundary.edit_info.size(), float3(0));
+  boundary.bend.pivot_positions = Array<float3>(boundary.edit_info.size(), float3(0));
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
+      continue;
+    }
+
+    BMVert *vert = BM_vert_at_index(bm, i);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    BMVert *orig_vert = BM_vert_at_index(bm, orig_vert_i);
+
+    const float3 normal = vert->no;
+    const float3 dir = float3(orig_vert->co) - float3(vert->co);
+    boundary.bend.pivot_rotation_axis[orig_vert_i] = math::normalize(math::cross(dir, normal));
+    boundary.bend.pivot_positions[boundary.edit_info[i].original_vertex_i] = vert->co;
+  }
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
+      continue;
+    }
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    boundary.bend.pivot_positions[i] = boundary.bend.pivot_positions[orig_vert_i];
+    boundary.bend.pivot_rotation_axis[i] = boundary.bend.pivot_rotation_axis[orig_vert_i];
+  }
+}
+
+static void bend_data_init(const Object &object, SculptBoundary &boundary)
+{
+  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
+   * brush is done. */
+  SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  switch (pbvh.type()) {
+    case (bke::pbvh::Type::Mesh): {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> vert_normals = mesh.vert_normals();
+
+      bend_data_init_mesh(positions_eval, vert_normals, boundary);
+      break;
+    }
+    case (bke::pbvh::Type::Grids):
+      bend_data_init_grids(*ss.subdiv_ccg, boundary);
+      break;
+
+    case (bke::pbvh::Type::BMesh):
+      bend_data_init_bmesh(ss.bm, boundary);
+      break;
+  }
+}
+
+static void slide_data_init_mesh(const Span<float3> vert_positions, SculptBoundary &boundary)
 {
   boundary.slide.directions = Array<float3>(boundary.edit_info.size(), float3(0));
 
@@ -791,37 +880,158 @@ static void slide_data_init(SculptSession &ss, SculptBoundary &boundary)
     if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
       continue;
     }
-    sub_v3_v3v3(
-        boundary.slide.directions[boundary.edit_info[i].original_vertex_i],
-        SCULPT_vertex_co_get(
-            ss, BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.edit_info[i].original_vertex_i)),
-        SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(*ss.pbvh, i)));
-    normalize_v3(boundary.slide.directions[boundary.edit_info[i].original_vertex_i]);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    boundary.slide.directions[orig_vert_i] = math::normalize(vert_positions[orig_vert_i] -
+                                                             vert_positions[i]);
   }
 
   for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
       continue;
     }
-    copy_v3_v3(boundary.slide.directions[i],
-               boundary.slide.directions[boundary.edit_info[i].original_vertex_i]);
+    boundary.slide.directions[i] =
+        boundary.slide.directions[boundary.edit_info[i].original_vertex_i];
   }
 }
 
-static void twist_data_init(SculptSession &ss, SculptBoundary &boundary)
+static void slide_data_init_grids(const SubdivCCG &subdiv_ccg, SculptBoundary &boundary)
 {
-  zero_v3(boundary.twist.pivot_position);
-  Array<float3> face_verts(boundary.verts.size());
-  for (const int i : boundary.verts.index_range()) {
-    const PBVHVertRef vert = BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.verts[i]);
-    const float3 boundary_position = SCULPT_vertex_co_get(ss, vert);
-    add_v3_v3(boundary.twist.pivot_position, boundary_position);
-    copy_v3_v3(face_verts[i], boundary_position);
+  const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  Span<CCGElem *> grids = subdiv_ccg.grids;
+
+  boundary.slide.directions = Array<float3>(boundary.edit_info.size(), float3(0));
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
+      continue;
+    }
+    const SubdivCCGCoord vert = SubdivCCGCoord::from_index(key, i);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    const SubdivCCGCoord orig_vert = SubdivCCGCoord::from_index(key, orig_vert_i);
+
+    boundary.slide.directions[orig_vert_i] = math::normalize(
+        CCG_grid_elem_co(key, grids[orig_vert.grid_index], orig_vert.x, orig_vert.y) -
+        CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y));
   }
-  mul_v3_fl(boundary.twist.pivot_position, 1.0f / boundary.verts.size());
-  sub_v3_v3v3(
-      boundary.twist.rotation_axis, boundary.pivot_position, boundary.initial_vert_position);
-  normalize_v3(boundary.twist.rotation_axis);
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
+      continue;
+    }
+    boundary.slide.directions[i] =
+        boundary.slide.directions[boundary.edit_info[i].original_vertex_i];
+  }
+}
+
+static void slide_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
+{
+  boundary.slide.directions = Array<float3>(boundary.edit_info.size(), float3(0));
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
+      continue;
+    }
+    BMVert *vert = BM_vert_at_index(bm, i);
+    const int orig_vert_i = boundary.edit_info[i].original_vertex_i;
+    BMVert *orig_vert = BM_vert_at_index(bm, orig_vert_i);
+    boundary.slide.directions[orig_vert_i] = math::normalize(float3(orig_vert->co) -
+                                                             float3(vert->co));
+  }
+
+  for (const int i : boundary.edit_info.index_range()) {
+    if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
+      continue;
+    }
+    boundary.slide.directions[i] =
+        boundary.slide.directions[boundary.edit_info[i].original_vertex_i];
+  }
+}
+
+static void slide_data_init(const Object &object, SculptBoundary &boundary)
+{
+  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
+   * brush is done. */
+  SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  switch (pbvh.type()) {
+    case (bke::pbvh::Type::Mesh): {
+      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+
+      slide_data_init_mesh(positions_eval, boundary);
+      break;
+    }
+    case (bke::pbvh::Type::Grids):
+      slide_data_init_grids(*ss.subdiv_ccg, boundary);
+      break;
+    case (bke::pbvh::Type::BMesh):
+      slide_data_init_bmesh(ss.bm, boundary);
+      break;
+  }
+}
+
+static void populate_twist_data(const Span<float3> positions, SculptBoundary &boundary)
+{
+  boundary.twist.pivot_position = float3(0);
+  for (const float3 &position : positions) {
+    boundary.twist.pivot_position += position;
+  }
+  boundary.twist.pivot_position *= 1.0f / boundary.verts.size();
+  boundary.twist.rotation_axis = math::normalize(boundary.pivot_position -
+                                                 boundary.initial_vert_position);
+}
+
+static void twist_data_init_mesh(const Span<float3> vert_positions, SculptBoundary &boundary)
+{
+  Array<float3> positions(boundary.verts.size());
+  array_utils::gather(vert_positions, boundary.verts.as_span(), positions.as_mutable_span());
+  populate_twist_data(positions, boundary);
+}
+
+static void twist_data_init_grids(const SubdivCCG &subdiv_ccg, SculptBoundary &boundary)
+{
+  const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
+
+  Array<float3> positions(boundary.verts.size());
+  for (const int i : positions.index_range()) {
+    const SubdivCCGCoord vert = SubdivCCGCoord::from_index(key, boundary.verts[i]);
+    positions[i] = CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y);
+  }
+  populate_twist_data(positions, boundary);
+}
+
+static void twist_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
+{
+  Array<float3> positions(boundary.verts.size());
+  for (const int i : positions.index_range()) {
+    BMVert *vert = BM_vert_at_index(bm, i);
+    positions[i] = vert->co;
+  }
+  populate_twist_data(positions, boundary);
+}
+
+static void twist_data_init(const Object &object, SculptBoundary &boundary)
+{
+  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
+   * brush is done. */
+  SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  switch (pbvh.type()) {
+    case (bke::pbvh::Type::Mesh): {
+      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+
+      twist_data_init_mesh(positions_eval, boundary);
+      break;
+    }
+    case (bke::pbvh::Type::Grids):
+      twist_data_init_grids(*ss.subdiv_ccg, boundary);
+      break;
+    case (bke::pbvh::Type::BMesh):
+      twist_data_init_bmesh(ss.bm, boundary);
+      break;
+  }
 }
 
 /** \} */
@@ -1192,30 +1402,28 @@ void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nod
     ss.cache->boundaries[symm_area] = data_init(
         ob, &brush, initial_vert, ss.cache->initial_radius);
 
-    if (ss.cache->boundaries[symm_area]) {
-      switch (brush.boundary_deform_type) {
-        case BRUSH_BOUNDARY_DEFORM_BEND:
-          bend_data_init(ss, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_EXPAND:
-          slide_data_init(ss, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_TWIST:
-          twist_data_init(ss, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_INFLATE:
-        case BRUSH_BOUNDARY_DEFORM_GRAB:
-          /* Do nothing. These deform modes don't need any extra data to be precomputed. */
-          break;
-      }
-
-      init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+    /* No active boundary under the cursor. */
+    if (!ss.cache->boundaries[symm_area]) {
+      return;
     }
-  }
 
-  /* No active boundary under the cursor. */
-  if (!ss.cache->boundaries[symm_area]) {
-    return;
+    switch (brush.boundary_deform_type) {
+      case BRUSH_BOUNDARY_DEFORM_BEND:
+        bend_data_init(ob, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_EXPAND:
+        slide_data_init(ob, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_TWIST:
+        twist_data_init(ob, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_INFLATE:
+      case BRUSH_BOUNDARY_DEFORM_GRAB:
+        /* Do nothing. These deform modes don't need any extra data to be precomputed. */
+        break;
+    }
+
+    init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
   }
 
   switch (brush.boundary_deform_type) {
