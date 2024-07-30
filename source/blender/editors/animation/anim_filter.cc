@@ -1373,6 +1373,9 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
     if (show_only_errors && !fcurve_has_errors(ac, fcu)) {
       continue;
     }
+    if (skip_fcurve_selected_data(ac, fcu, animated_id, filter_mode)) {
+      continue;
+    }
 
     if (filter_mode & ANIMFILTER_TMP_PEEK) {
       /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
