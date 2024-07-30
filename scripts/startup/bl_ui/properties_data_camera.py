@@ -7,6 +7,7 @@ from bpy.types import Panel
 from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bl_ui.utils import PresetPanel
+from .space_properties import PropertiesAnimationMixin
 
 
 class CameraButtonsPanel:
@@ -547,6 +548,16 @@ class DATA_PT_camera_safe_areas_center_cut(CameraButtonsPanel, Panel):
         col.prop(safe_data, "action_center", slider=True)
 
 
+class DATA_PT_camera_animation(CameraButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+    _animated_id_context_property = 'camera'
+
+
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
@@ -595,6 +606,7 @@ classes = (
     DATA_PT_camera_background_image,
     DATA_PT_camera_display,
     DATA_PT_camera_display_composition_guides,
+    DATA_PT_camera_animation,
     DATA_PT_custom_props_camera,
 )
 

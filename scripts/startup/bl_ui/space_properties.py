@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Header, Panel
+from rna_prop_ui import PropertyPanel
 
 
 class PROPERTIES_HT_header(Header):
@@ -70,6 +71,66 @@ class PROPERTIES_PT_options(Panel):
         col = layout.column()
         col.label(text="Sync with Outliner")
         col.row().prop(space, "outliner_sync", expand=True)
+
+
+class PropertiesAnimationMixin:
+    """Mix-in class for Animation panels.
+
+    This class can be used to show a generic 'Animation' panel for IDs shown in
+    the properties editor. Specific ID types need specific subclasses.
+
+    For an example, see DATA_PT_camera_animation in properties_data_camera.py
+    """
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+    bl_label = "Animation"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_order = PropertyPanel.bl_order - 1  # Order just above the Custom Properties.
+
+    _animated_id_context_property = ""
+    """context.{_animatable_id_context_property} is used to find the animated ID."""
+
+    @classmethod
+    def _animated_id(cls, context):
+        assert cls._animated_id_context_property, f'set _animated_id_context_property on {cls}'
+
+        # If the pinned ID is of a different type, there could still be a an ID
+        # for which to show this panel. For example, a camera object can be
+        # pinned, and then this panel can be shown for its camera data.
+        return getattr(context, cls._animated_id_context_property, None)
+
+    @classmethod
+    def poll(cls, context):
+        animated_id = cls._animated_id(context)
+        return animated_id is not None
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.use_property_split = True
+        self.draw_action_and_slot_selector(context, col, self._animated_id(context))
+
+    @staticmethod
+    def draw_action_and_slot_selector(context, layout, animated_id):
+        layout.template_action(animated_id, new="action.new", unlink="action.unlink")
+
+        if not context.preferences.experimental.use_animation_baklava:
+            return
+
+        adt = animated_id.animation_data
+        if not adt or not adt.action:
+            return
+
+        # Only show the slot selector when a layered Action is assigned.
+        if adt.action.is_action_layered:
+            layout.template_search(
+                adt, "action_slot",
+                adt, "action_slots",
+                new="",  # TODO: add this operator.
+                unlink="",  # TODO: add this operator.
+            )
 
 
 classes = (
