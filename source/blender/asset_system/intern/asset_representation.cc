@@ -50,24 +50,24 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
 
 StringRefNull AssetRepresentation::get_name() const
 {
-  if (const ID *local_id = this->local_id()) {
-    return local_id->name + 2;
+  if (const ID *id = this->local_id()) {
+    return id->name + 2;
   }
   return std::get<ExternalAsset>(asset_).name;
 }
 
 ID_Type AssetRepresentation::get_id_type() const
 {
-  if (const ID *local_id = this->local_id()) {
-    return GS(local_id->name);
+  if (const ID *id = this->local_id()) {
+    return GS(id->name);
   }
   return ID_Type(std::get<ExternalAsset>(asset_).id_type);
 }
 
 AssetMetaData &AssetRepresentation::get_metadata() const
 {
-  if (const ID *local_id = this->local_id()) {
-    return *local_id->asset_data;
+  if (const ID *id = this->local_id()) {
+    return *id->asset_data;
   }
   return *std::get<ExternalAsset>(asset_).metadata_;
 }
