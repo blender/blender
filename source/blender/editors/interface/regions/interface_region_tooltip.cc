@@ -865,6 +865,11 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
         *data, std::move(enum_label), {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
 
+  /* Don't include further details if this is just a quick label tooltip. */
+  if (is_label) {
+    return data->fields.is_empty() ? nullptr : std::move(data);
+  }
+
   /* Enum field label & tip. */
   if (!enum_tip.empty()) {
     UI_tooltip_text_field_add(
