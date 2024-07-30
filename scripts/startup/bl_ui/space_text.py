@@ -310,6 +310,15 @@ class TEXT_MT_templates(Menu):
         layout = self.layout
         layout.menu("TEXT_MT_templates_py")
         layout.menu("TEXT_MT_templates_osl")
+        # We only have one Blender Manifest template for now,
+        # better to show it on the top level.
+        layout.separator()
+        self.path_menu(
+            bpy.utils.script_paths(subdir="templates_toml"),
+            "text.open",
+            props_default={"internal": True},
+            filter_ext=lambda ext: (ext.lower() == ".toml"),
+        )
 
 
 class TEXT_MT_select(Menu):
