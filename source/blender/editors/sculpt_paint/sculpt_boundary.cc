@@ -463,7 +463,7 @@ static void edit_data_init_mesh(OffsetIndices<int> faces,
 
   std::queue<int> current_iteration;
 
-  for (int i = 0; i < boundary.verts.size(); i++) {
+  for (const int i : boundary.verts.index_range()) {
     const int vert = boundary.verts[i];
     const int index = boundary.verts[i];
 
@@ -541,7 +541,7 @@ static void edit_data_init_grids(const SubdivCCG &subdiv_ccg,
 
   std::queue<SubdivCCGCoord> current_iteration;
 
-  for (int i = 0; i < boundary.verts.size(); i++) {
+  for (const int i : boundary.verts.index_range()) {
     const SubdivCCGCoord vert = SubdivCCGCoord::from_index(key, boundary.verts[i]);
 
     const int index = boundary.verts[i];
@@ -667,7 +667,7 @@ static void edit_data_init_bmesh(BMesh *bm,
 
   std::queue<BMVert *> current_iteration;
 
-  for (int i = 0; i < boundary.verts.size(); i++) {
+  for (const int i : boundary.verts.index_range()) {
     const int index = boundary.verts[i];
     BMVert *vert = BM_vert_at_index(bm, index);
 
@@ -748,11 +748,10 @@ static void edit_data_init_bmesh(BMesh *bm,
  * original vertex index. */
 static void bend_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
-  boundary.bend.pivot_rotation_axis = Array<float3>(totvert, float3(0));
-  boundary.bend.pivot_positions = Array<float3>(totvert, float3(0));
+  boundary.bend.pivot_rotation_axis = Array<float3>(boundary.edit_info.size(), float3(0));
+  boundary.bend.pivot_positions = Array<float3>(boundary.edit_info.size(), float3(0));
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
       continue;
     }
@@ -773,7 +772,7 @@ static void bend_data_init(SculptSession &ss, SculptBoundary &boundary)
                SCULPT_vertex_co_get(ss, vertex));
   }
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
       continue;
     }
@@ -786,10 +785,9 @@ static void bend_data_init(SculptSession &ss, SculptBoundary &boundary)
 
 static void slide_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
-  boundary.slide.directions = Array<float3>(totvert, float3(0));
+  boundary.slide.directions = Array<float3>(boundary.edit_info.size(), float3(0));
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num != boundary.max_propagation_steps) {
       continue;
     }
@@ -801,7 +799,7 @@ static void slide_data_init(SculptSession &ss, SculptBoundary &boundary)
     normalize_v3(boundary.slide.directions[boundary.edit_info[i].original_vertex_i]);
   }
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num == BOUNDARY_STEPS_NONE) {
       continue;
     }
@@ -814,7 +812,7 @@ static void twist_data_init(SculptSession &ss, SculptBoundary &boundary)
 {
   zero_v3(boundary.twist.pivot_position);
   Array<float3> face_verts(boundary.verts.size());
-  for (int i = 0; i < boundary.verts.size(); i++) {
+  for (const int i : boundary.verts.index_range()) {
     const PBVHVertRef vert = BKE_pbvh_index_to_vertex(*ss.pbvh, boundary.verts[i]);
     const float3 boundary_position = SCULPT_vertex_co_get(ss, vert);
     add_v3_v3(boundary.twist.pivot_position, boundary_position);
@@ -1112,15 +1110,11 @@ static void brush_smooth_task(Object &ob, const Brush &brush, bke::pbvh::Node *n
  * based on the brush curve and its propagation steps. The falloff goes from the boundary into
  * the mesh.
  */
-static void init_falloff(SculptSession &ss,
-                         SculptBoundary &boundary,
-                         const Brush &brush,
-                         const float radius)
+static void init_falloff(const Brush &brush, const float radius, SculptBoundary &boundary)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
   BKE_curvemapping_init(brush.curve);
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : boundary.edit_info.index_range()) {
     if (boundary.edit_info[i].propagation_steps_num != -1) {
       boundary.edit_info[i].strength_factor = BKE_brush_curve_strength(
           &brush, boundary.edit_info[i].propagation_steps_num, boundary.max_propagation_steps);
@@ -1215,7 +1209,7 @@ void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nod
           break;
       }
 
-      init_falloff(ss, *ss.cache->boundaries[symm_area], brush, ss.cache->initial_radius);
+      init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
     }
   }
 
@@ -1528,7 +1522,7 @@ void edges_preview_draw(const uint gpuattr,
   immUniformColor3fvAlpha(outline_col, outline_alpha);
   GPU_line_width(2.0f);
   immBegin(GPU_PRIM_LINES, ss.boundary_preview->edges.size() * 2);
-  for (int i = 0; i < ss.boundary_preview->edges.size(); i++) {
+  for (const int i : ss.boundary_preview->edges.index_range()) {
     immVertex3fv(gpuattr, ss.boundary_preview->edges[i].first);
     immVertex3fv(gpuattr, ss.boundary_preview->edges[i].second);
   }
