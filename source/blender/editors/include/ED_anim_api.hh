@@ -914,9 +914,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
  *
  * This function iterates the Slot's users to find an ID that allows it to resolve its RNA path.
  */
-std::string getname_anim_fcurve_bound(Main &bmain,
-                                      const blender::animrig::Slot &slot,
-                                      FCurve &fcurve);
+std::string getname_anim_fcurve_for_slot(Main &bmain,
+                                         const blender::animrig::Slot &slot,
+                                         FCurve &fcurve);
 
 /**
  * Automatically determine a color for the nth F-Curve.

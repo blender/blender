@@ -991,7 +991,7 @@ static void acf_fcurve_name(bAnimListElem *ale, char *name)
     }
 
     BLI_assert(ale->bmain);
-    const std::string fcurve_name = getname_anim_fcurve_bound(*ale->bmain, *slot, *fcurve);
+    const std::string fcurve_name = getname_anim_fcurve_for_slot(*ale->bmain, *slot, *fcurve);
     const size_t num_chars_copied = fcurve_name.copy(name, std::string::npos);
     name[num_chars_copied] = '\0';
 
