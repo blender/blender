@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include <pxr/usd/usd/stage.h>
+
 namespace blender::io::usd {
 
 /**
