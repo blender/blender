@@ -913,8 +913,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   int offset = 0;
   int sequence_len = 1;
 
-  const bool use_instancing = false;
-
   const eUSDTexImportMode import_textures_mode = eUSDTexImportMode(
       RNA_enum_get(op->ptr, "import_textures_mode"));
 
