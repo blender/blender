@@ -292,6 +292,7 @@ set(SRC
   engines/overlay/overlay_next_background.hh
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_empty.hh
+  engines/overlay/overlay_next_camera.hh
   engines/overlay/overlay_next_grid.hh
   engines/overlay/overlay_next_instance.hh
   engines/overlay/overlay_next_lattice.hh

@@ -12,6 +12,7 @@
 
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
+#include "overlay_next_camera.hh"
 #include "overlay_next_empty.hh"
 #include "overlay_next_grid.hh"
 #include "overlay_next_lattice.hh"
@@ -47,11 +48,12 @@ class Instance {
   struct OverlayLayer {
     const SelectionType selection_type_;
     Bounds bounds = {selection_type_};
+    Cameras cameras = {selection_type_};
+    Empties empties = {selection_type_};
     Lights lights = {selection_type_};
   } regular{selection_type_}, infront{selection_type_};
 
   Metaballs metaballs = {selection_type_};
-  Empties empties = {selection_type_};
   Lattices lattices;
   Speakers speakers = {selection_type_};
   Grid grid;

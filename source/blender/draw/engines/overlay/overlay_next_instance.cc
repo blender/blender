@@ -78,11 +78,12 @@ void Instance::begin_sync()
 
   background.begin_sync(resources, state);
   prepass.begin_sync(resources, state);
-  empties.begin_sync();
   lattices.begin_sync(resources, state);
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.bounds.begin_sync();
+    layer.cameras.begin_sync();
+    layer.empties.begin_sync();
     layer.lights.begin_sync();
   };
   begin_sync_layer(regular);
@@ -138,7 +139,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (!state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_EMPTY:
-        empties.object_sync(ob_ref, resources, state);
+        layer.empties.object_sync(ob_ref, resources, state);
+        break;
+      case OB_CAMERA:
+        layer.cameras.object_sync(ob_ref, resources, state);
         break;
       case OB_ARMATURE:
         break;
@@ -161,7 +165,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         speakers.object_sync(ob_ref, resources, state);
         break;
     }
-    regular.bounds.object_sync(ob_ref, resources, state);
+    layer.bounds.object_sync(ob_ref, resources, state);
   }
 }
 
@@ -171,13 +175,14 @@ void Instance::end_sync()
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
     layer.bounds.end_sync(resources, shapes, state);
+    layer.cameras.end_sync(resources, shapes, state);
+    layer.empties.end_sync(resources, shapes, state);
     layer.lights.end_sync(resources, shapes, state);
   };
   end_sync_layer(regular);
   end_sync_layer(infront);
 
   metaballs.end_sync(resources, shapes, state);
-  empties.end_sync(resources, shapes, state);
   speakers.end_sync(resources, shapes, state);
 }
 
@@ -243,15 +248,15 @@ void Instance::draw(Manager &manager)
 
   background.draw(resources, manager);
   regular.bounds.draw(resources.overlay_line_fb, manager, view);
+  regular.cameras.draw(resources.overlay_line_fb, manager, view);
+  regular.empties.draw(resources.overlay_line_fb, manager, view);
   regular.lights.draw(resources.overlay_line_fb, manager, view);
-  empties.draw(resources, manager, view);
   lattices.draw(resources, manager, view);
   metaballs.draw(resources, manager, view);
   speakers.draw(resources, manager, view);
 
   grid.draw(resources, manager, view);
 
-  empties.draw_in_front(resources, manager, view);
   /* TODO(: Breaks selection on M1 Max. */
   // lattices.draw_in_front(resources, manager, view);
   metaballs.draw_in_front(resources, manager, view);

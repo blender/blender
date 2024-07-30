@@ -87,6 +87,16 @@ class ShapeCache {
 
   BatchPtr speaker;
 
+  BatchPtr camera_distances;
+  BatchPtr camera_frame;
+  BatchPtr camera_tria_wire;
+  BatchPtr camera_tria;
+
+  BatchPtr camera_volume;
+  BatchPtr camera_volume_wire;
+
+  BatchPtr sphere_low_detail;
+
   BatchPtr ground_line;
 
   BatchPtr light_icon_outer_lines;
@@ -134,6 +144,7 @@ class ShaderModule {
   ShaderPtr depth_mesh;
   ShaderPtr extra_shape;
   ShaderPtr extra_wire_object;
+  ShaderPtr extra_wire;
   ShaderPtr extra_ground_line;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
@@ -287,6 +298,51 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     data_buf.push_update();
     pass.bind_ssbo("data_buf", &data_buf);
     pass.draw(shape, data_buf.size());
+  }
+};
+
+struct LineInstanceBuf : private select::SelectBuf {
+
+  StorageVectorBuffer<PointData> data_buf;
+  int color_id = 0;
+
+  LineInstanceBuf(const SelectionType selection_type, const char *name = nullptr)
+      : select::SelectBuf(selection_type), data_buf(name){};
+
+  void clear()
+  {
+    this->select_clear();
+    data_buf.clear();
+    color_id = 0;
+  }
+
+  void append(const float3 &start, const float3 &end, const float4 &color, select::ID select_id)
+  {
+    this->select_append(select_id);
+    data_buf.append({float4{start}, color});
+    data_buf.append({float4{end}, color});
+  }
+
+  void append(const float3 &start, const float3 &end, const int color_id, select::ID select_id)
+  {
+    this->color_id = color_id;
+    this->select_append(select_id);
+    data_buf.append({float4{start}, float4{}});
+    data_buf.append({float4{end}, float4{}});
+  }
+
+  void end_sync(PassSimple::Sub &pass)
+  {
+    if (data_buf.is_empty()) {
+      return;
+    }
+    this->select_bind(pass);
+    data_buf.push_update();
+    pass.bind_ssbo("data_buf", &data_buf);
+    if (color_id) {
+      pass.push_constant("colorid", color_id);
+    }
+    pass.draw_procedural(GPU_PRIM_LINES, 1, data_buf.size());
   }
 };
 
