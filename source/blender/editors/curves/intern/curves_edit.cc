@@ -264,14 +264,14 @@ void resize_curves(bke::CurvesGeometry &curves,
   std::optional<IndexRange> range = curves_to_resize.to_range();
   /* Check if we need to copy some curves over. Write the new sizes into the offsets. */
   if (range && curves.curves_range() == *range) {
+    curves_to_copy = {};
+    dst_curves.offsets_for_write().drop_back(1).copy_from(new_sizes);
+  }
+  else {
     curves_to_copy = curves_to_resize.complement(curves.curves_range(), memory);
     offset_indices::copy_group_sizes(
         curves.offsets(), curves_to_copy, dst_curves.offsets_for_write());
     array_utils::scatter(new_sizes, curves_to_resize, dst_curves.offsets_for_write());
-  }
-  else {
-    curves_to_copy = {};
-    dst_curves.offsets_for_write().drop_back(1).copy_from(new_sizes);
   }
   /* Accumulate the sizes written from `new_sizes` into offsets. */
   offset_indices::accumulate_counts_to_offsets(dst_curves.offsets_for_write());
