@@ -31,7 +31,7 @@ template<typename keyT, template<typename> typename hashT> class AllocStringStor
    *
    * \return `true` if the \a key is found in storage, false otherwise.
    */
-  bool contains(keyT &key)
+  bool contains(const keyT &key)
   {
     return storage_.count(key) != 0;
   }
@@ -41,7 +41,7 @@ template<typename keyT, template<typename> typename hashT> class AllocStringStor
    *
    * \return A pointer to the stored string if \a key is found, `nullptr` otherwise.
    */
-  const char *find(keyT &key)
+  const char *find(const keyT &key)
   {
     if (storage_.count(key) != 0) {
       return storage_[key].c_str();
@@ -56,7 +56,7 @@ template<typename keyT, template<typename> typename hashT> class AllocStringStor
    * \param alloc_string: The alloc string to store at \a key.
    * \return A pointer to the inserted stored string.
    */
-  const char *insert(keyT &key, std::string alloc_string)
+  const char *insert(const keyT &key, std::string alloc_string)
   {
 #ifndef NDEBUG
     assert(storage_.count(key) == 0);

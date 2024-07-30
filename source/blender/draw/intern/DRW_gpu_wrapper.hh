@@ -539,7 +539,7 @@ class Texture : NonCopyable {
           eGPUTextureFormat format,
           eGPUTextureUsage usage,
           int extent,
-          float *data = nullptr,
+          const float *data = nullptr,
           bool cubemap = false,
           int mip_len = 1)
       : name_(name)
@@ -552,7 +552,7 @@ class Texture : NonCopyable {
           eGPUTextureUsage usage,
           int extent,
           int layers,
-          float *data = nullptr,
+          const float *data = nullptr,
           bool cubemap = false,
           int mip_len = 1)
       : name_(name)
@@ -564,7 +564,7 @@ class Texture : NonCopyable {
           eGPUTextureFormat format,
           eGPUTextureUsage usage,
           int2 extent,
-          float *data = nullptr,
+          const float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
@@ -576,7 +576,7 @@ class Texture : NonCopyable {
           eGPUTextureUsage usage,
           int2 extent,
           int layers,
-          float *data = nullptr,
+          const float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
@@ -587,7 +587,7 @@ class Texture : NonCopyable {
           eGPUTextureFormat format,
           eGPUTextureUsage usage,
           int3 extent,
-          float *data = nullptr,
+          const float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
@@ -653,7 +653,7 @@ class Texture : NonCopyable {
   bool ensure_1d(eGPUTextureFormat format,
                  int extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                 float *data = nullptr,
+                 const float *data = nullptr,
                  int mip_len = 1)
   {
     return ensure_impl(extent, 0, 0, mip_len, format, usage, data, false, false);
@@ -667,7 +667,7 @@ class Texture : NonCopyable {
                        int extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                       float *data = nullptr,
+                       const float *data = nullptr,
                        int mip_len = 1)
   {
     BLI_assert(layers > 0);
@@ -681,7 +681,7 @@ class Texture : NonCopyable {
   bool ensure_2d(eGPUTextureFormat format,
                  int2 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                 float *data = nullptr,
+                 const float *data = nullptr,
                  int mip_len = 1)
   {
     return ensure_impl(UNPACK2(extent), 0, mip_len, format, usage, data, false, false);
@@ -695,7 +695,7 @@ class Texture : NonCopyable {
                        int2 extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                       float *data = nullptr,
+                       const float *data = nullptr,
                        int mip_len = 1)
   {
     BLI_assert(layers > 0);
@@ -709,7 +709,7 @@ class Texture : NonCopyable {
   bool ensure_3d(eGPUTextureFormat format,
                  int3 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                 float *data = nullptr,
+                 const float *data = nullptr,
                  int mip_len = 1)
   {
     return ensure_impl(UNPACK3(extent), mip_len, format, usage, data, false, false);
@@ -736,7 +736,7 @@ class Texture : NonCopyable {
                          int extent,
                          int layers,
                          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                         float *data = nullptr,
+                         const float *data = nullptr,
                          int mip_len = 1)
   {
     return ensure_impl(extent, extent, layers, mip_len, format, usage, data, true, true);
@@ -995,7 +995,7 @@ class Texture : NonCopyable {
                    int mip_len = 1,
                    eGPUTextureFormat format = GPU_RGBA8,
                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                   float *data = nullptr,
+                   const float *data = nullptr,
                    bool layered = false,
                    bool cubemap = false)
 
@@ -1116,13 +1116,15 @@ class TextureFromPool : public Texture, NonMovable {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_1d_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_1d(int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_1d_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
   bool ensure_2d(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_3d(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_cube(int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_cube_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) =
+      delete;
+  bool ensure_3d(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_cube(int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_cube_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) =
+      delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   GPUTexture *mip_view(int) = delete;
@@ -1145,13 +1147,13 @@ class TextureRef : public Texture {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_1d_array(int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_2d(int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_3d(int, int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_cube(int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_cube_array(int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_1d(int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_1d_array(int, int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_2d(int, int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_3d(int, int, int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_cube(int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_cube_array(int, int, int, eGPUTextureFormat, const float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   GPUTexture *mip_view(int) = delete;
