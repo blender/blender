@@ -36,6 +36,7 @@ __all__ = (
     "previews",
     "resource_path",
     "script_path_user",
+    "extension_path_user",
     "script_paths",
     "smpte_from_frame",
     "smpte_from_seconds",
