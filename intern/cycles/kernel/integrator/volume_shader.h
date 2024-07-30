@@ -174,7 +174,7 @@ ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pic
     float sum = 0.0f;
 
     for (int i = 0; i < phases->num_closure; i++) {
-      ccl_private const ShaderVolumeClosure *svc = &phases->closure[sampled];
+      ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
       sum += svc->sample_weight;
     }
 
@@ -196,7 +196,7 @@ ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pic
     }
   }
 
-  /* todo: this isn't quite correct, we don't weight anisotropy properly
+  /* TODO: this isn't quite correct, we don't weight anisotropy properly
    * depending on color channels, even if this is perhaps not a common case */
   return &phases->closure[sampled];
 }
@@ -218,13 +218,14 @@ ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderDa
     Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
     if (phase_pdf != 0.0f) {
-      bsdf_eval_accum(result_eval, eval);
+      bsdf_eval_accum(result_eval, eval * svc->sample_weight);
       sum_pdf += phase_pdf * svc->sample_weight;
     }
 
     sum_sample_weight += svc->sample_weight;
   }
 
+  bsdf_eval_mul(result_eval, 1.0f / sum_sample_weight);
   return (sum_sample_weight > 0.0f) ? sum_pdf / sum_sample_weight : 0.0f;
 }
 
