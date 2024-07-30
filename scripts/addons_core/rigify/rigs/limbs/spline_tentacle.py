@@ -1123,7 +1123,7 @@ def add_spline_snap_ik_to_fk(panel: 'PanelLayout', *,
 
     text = iface_("IK->FK ({:s})").format(rig_name)
     panel.operator(
-        f"pose.rigify_spline_tentacle_ik2fk_{rig_id}",
+        'pose.rigify_spline_tentacle_ik2fk_{rig_id}',
         text=text,
         translate=False,
         icon='SNAP_ON',
