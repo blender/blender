@@ -115,16 +115,16 @@ static void calculate_point_handles(const HandleType type_left,
     }
     const float3 dir = next_diff / next_len + prev_diff / prev_len;
 
-    /* The magic number 2.5614 is derived from approximating a circular arc at the control point. 
+    /* The magic number 2.5614 is derived from approximating a circular arc at the control point.
      * Given the constraints:
-     * 
+     *
      * - `P0=(0,1),P1=(c,1),P2=(1,c),P3=(1,0)`.
      * - The first derivative of the curve must agree with the circular arc derivative at the
      *   endpoints.
      * - Minimize the maximum radial drift.
-     *   one can compute `c ≈ 0.5519150244935105707435627`. 
+     *   one can compute `c ≈ 0.5519150244935105707435627`.
      *   The distance from P0 to P3 is `sqrt(2)`.
-     *  
+     *
      * The magic factor for `len` is `(sqrt(2) / 0.5519150244935105707435627) ≈ 2.562375546255352`.
      * In older code of blender a slightly worse approximation of 2.5614 is used. It's kept
      * for compatibility.

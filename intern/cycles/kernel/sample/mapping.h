@@ -133,7 +133,7 @@ ccl_device_inline float3 sample_uniform_cone(const float3 N,
      * To find this mapping, we consider the simplest sampling strategies for cosine-weighted
      * hemispheres and uniform cones. In both, phi is chosen as `2pi * random()`. For the former,
      * `r_disk(rand) = sqrt(rand)`. This is just naive disk sampling, since the projection to the
-     * hemisphere doesn't change the radius. 
+     * hemisphere doesn't change the radius.
      * For the latter, `r_cone(rand) = sin_from_cos(mix(cos_angle, 1, rand))`.
      *
      * So, to remap, we just invert r_disk `(-> rand(r_disk) = r_disk^2)` and insert it into
