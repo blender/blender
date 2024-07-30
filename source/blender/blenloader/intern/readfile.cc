@@ -1731,7 +1731,7 @@ static const char *get_alloc_name(FileData *fd,
   constexpr std::string_view STORAGE_ID = "readfile";
 
   /* NOTE: This is thread_local storage, so as long as the handling of a same FileData is not
-   * spread accross threads (which is not supported at all currently), this is thread-safe. */
+   * spread across threads (which is not supported at all currently), this is thread-safe. */
   if (!fd->storage_handle) {
     fd->storage_handle = &intern::memutil::alloc_string_storage_get<keyT, blender::DefaultHash>(
         std::string(STORAGE_ID));

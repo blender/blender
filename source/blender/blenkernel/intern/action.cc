@@ -452,7 +452,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
      * Note that the FCurves themselves have been written as part of the layered
      * animation writing code called above. Writing them again as part of the
      * handling of the legacy `action.fcurves` ListBase would corrupt the
-     * blendfile by generating two `BHead` `DATA` blocks with the same old
+     * blend-file by generating two `BHead` `DATA` blocks with the same old
      * address for the same ID.
      */
     action_blend_write_clear_legacy_fcurves_listbase(action.curves);

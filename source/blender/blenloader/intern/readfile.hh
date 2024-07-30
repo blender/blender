@@ -52,7 +52,7 @@ ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
 #endif
 
 /**
- * General data used during a blendfile reading.
+ * General data used during a blend-file reading.
  *
  * Note that this data (and its accesses) are absolutely not thread-safe currently. It should never
  * be accessed concurrently.

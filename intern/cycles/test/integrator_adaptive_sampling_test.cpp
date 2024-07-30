@@ -30,7 +30,7 @@ TEST(AdaptiveSampling, align_samples)
 {
   AdaptiveSampling adaptive_sampling;
   adaptive_sampling.use = true;
-  adaptive_sampling.min_samples = 11 /* rounded of sqrt(128) */;
+  adaptive_sampling.min_samples = 11 /* Rounded result of `sqrt(128)`. */;
   adaptive_sampling.adaptive_step = 4;
 
   /* Filtering will happen at the following samples:
@@ -85,7 +85,7 @@ TEST(AdaptiveSampling, need_filter)
 {
   AdaptiveSampling adaptive_sampling;
   adaptive_sampling.use = true;
-  adaptive_sampling.min_samples = 11 /* rounded of sqrt(128) */;
+  adaptive_sampling.min_samples = 11 /* Rounded result of `sqrt(128)`. */;
   adaptive_sampling.adaptive_step = 4;
 
   const vector<int> expected_samples_to_filter = {

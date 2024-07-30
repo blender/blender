@@ -83,7 +83,7 @@ std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage);
  * - Returns false if it's a Blender relative path.
  * - Returns true if the path is package-relative.
  * - Returns true is the path doesn't exist on the file system but can
- *   nonetheles be resolved by the USD asset resolver.
+ *   nonetheless be resolved by the USD asset resolver.
  * - Returns false otherwise.
  *
  * TODO(makowalski): the test currently requires a file-system stat.
@@ -134,7 +134,7 @@ bool write_to_path(const void *data, size_t size, const char *path, ReportList *
  * already exists, this function does nothing.
  *
  * \param path: path to record as a custom property
- * \param id: id for which to create the custom propery
+ * \param id: id for which to create the custom property
  */
 void ensure_usd_source_path_prop(const std::string &path, ID *id);
 

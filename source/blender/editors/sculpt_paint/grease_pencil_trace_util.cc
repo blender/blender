@@ -227,7 +227,7 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
       holes.span[curve_i] = (path->sign == '-');
     }
 
-    /* Potrace stores the last 3 points of a bezier segment.
+    /* POTRACE stores the last 3 points of a bezier segment.
      * The start point is the last segment's end point. */
     int point_i = points.last();
     auto next_point = [&]() {
@@ -238,7 +238,7 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
       const PathSegment &segment = path_segments[segment_i];
       switch (path_tags[segment_i]) {
         case POTRACE_CORNER:
-          /* Potrace corners are formed by straight lines from the previous/next point.
+          /* POTRACE corners are formed by straight lines from the previous/next point.
            * segment[0] is unused, segment[1] is the corner position, segment[2] is the next point.
            */
           handle_types_right[point_i] = BEZIER_HANDLE_VECTOR;

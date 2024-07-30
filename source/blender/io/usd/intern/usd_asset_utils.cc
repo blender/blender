@@ -368,7 +368,7 @@ std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage)
 
   const pxr::ArResolver &ar = pxr::ArGetResolver();
 
-  /* Resolove the './textures' relative path, with the stage path as an anchor. */
+  /* Resolve the `./textures` relative path, with the stage path as an anchor. */
   std::string textures_dir = ar.CreateIdentifierForNewAsset("./textures", stage_path);
 
   /* If parent of the stage path exists as a file system directory, try to create the
@@ -572,7 +572,7 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
    * file system. */
 
   /* We don't have a library to compute relative paths for URIs
-   * so we use the standard fielsystem calls to do so.  This
+   * so we use the standard file-system calls to do so. This
    * may not work for all URIs in theory, but is probably sufficient
    * for the subset of URIs we are likely to encounter in practice
    * currently.
@@ -604,8 +604,7 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
   /* Replace the common prefix up to the last slash with
    * a fake root directory to allow computing the relative path
    * excluding the URI.  We omit the URI because it might not
-   * be handled correctly by the standard filesystem path
-   * computaions. */
+   * be handled correctly by the standard file-system path computations. */
   resolved_path = "/root" + resolved_path.substr(last_slash_pos);
   resolved_anchor = "/root" + resolved_anchor.substr(last_slash_pos);
 

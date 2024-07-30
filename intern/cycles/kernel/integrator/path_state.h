@@ -275,7 +275,7 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
     }
   }
 
-  /* Probabilistic termination: use sqrt() to roughly match typical view
+  /* Probabilistic termination: use `sqrt()` to roughly match typical view
    * transform and do path termination a bit later on average. */
   Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4

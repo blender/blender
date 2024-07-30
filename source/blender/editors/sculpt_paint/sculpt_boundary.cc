@@ -1339,7 +1339,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(Object &object,
   /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr instead
    * of forcing a random active boundary from a corner. */
   /* TODO: Investigate whether initial_vert should actually be boundary_initial_vert. If
-   * initial_vert is correct, the above comment and the docstring for the relevant function should
+   * initial_vert is correct, the above comment and the doc-string for the relevant function should
    * be fixed. */
   if (!is_vert_in_editable_boundary_mesh(faces,
                                          corner_verts,

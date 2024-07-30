@@ -262,7 +262,7 @@ void resize_curves(bke::CurvesGeometry &curves,
   IndexMaskMemory memory;
   IndexMask curves_to_copy;
   std::optional<IndexRange> range = curves_to_resize.to_range();
-  /* Check if we need to copy some curves over. Write the new sizes into the offests. */
+  /* Check if we need to copy some curves over. Write the new sizes into the offsets. */
   if (range && curves.curves_range() == *range) {
     curves_to_copy = curves_to_resize.complement(curves.curves_range(), memory);
     offset_indices::copy_group_sizes(

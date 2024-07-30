@@ -934,7 +934,7 @@ ccl_device float surface_shader_average_roughness(ccl_private const ShaderData *
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF(sc->type)) {
-      /* sqrt once to undo the squaring from multiplying roughness on the
+      /* `sqrt()` once to undo the squaring from multiplying roughness on the
        * two axes, and once for the squared roughness convention. */
       float value = bsdf_get_roughness_pass_squared(sc);
       if (value >= 0.0f) {

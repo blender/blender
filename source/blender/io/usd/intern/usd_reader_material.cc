@@ -1172,7 +1172,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 
   /* File input may have a connected source, e.g., if it's been overridden by
-   * an input on the mateial. */
+   * an input on the material. */
   if (file_input.HasConnectedSource()) {
     pxr::UsdShadeConnectableAPI source;
     pxr::TfToken source_name;
