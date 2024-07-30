@@ -290,6 +290,7 @@ set(SRC
   engines/image/image_usage.hh
   engines/overlay/overlay_engine.h
   engines/overlay/overlay_next_background.hh
+  engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_empty.hh
   engines/overlay/overlay_next_grid.hh
   engines/overlay/overlay_next_instance.hh

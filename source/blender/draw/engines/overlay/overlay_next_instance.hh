@@ -11,6 +11,7 @@
 #include "overlay_next_private.hh"
 
 #include "overlay_next_background.hh"
+#include "overlay_next_bounds.hh"
 #include "overlay_next_empty.hh"
 #include "overlay_next_grid.hh"
 #include "overlay_next_lattice.hh"
@@ -45,7 +46,7 @@ class Instance {
 
   struct OverlayLayer {
     const SelectionType selection_type_;
-
+    Bounds bounds = {selection_type_};
     Lights lights = {selection_type_};
   } regular{selection_type_}, infront{selection_type_};
 

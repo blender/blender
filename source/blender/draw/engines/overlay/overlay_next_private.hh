@@ -79,6 +79,9 @@ class ShapeCache {
   BatchPtr circle;
   BatchPtr empty_sphere;
   BatchPtr empty_cone;
+  BatchPtr cylinder;
+  BatchPtr capsule_body;
+  BatchPtr capsule_cap;
   BatchPtr arrows;
   BatchPtr metaball_wire_circle;
 

@@ -81,7 +81,10 @@ void Instance::begin_sync()
   empties.begin_sync();
   lattices.begin_sync(resources, state);
 
-  auto begin_sync_layer = [&](OverlayLayer &layer) { layer.lights.begin_sync(); };
+  auto begin_sync_layer = [&](OverlayLayer &layer) {
+    layer.bounds.begin_sync();
+    layer.lights.begin_sync();
+  };
   begin_sync_layer(regular);
   begin_sync_layer(infront);
 
@@ -158,6 +161,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         speakers.object_sync(ob_ref, resources, state);
         break;
     }
+    regular.bounds.object_sync(ob_ref, resources, state);
   }
 }
 
@@ -166,6 +170,7 @@ void Instance::end_sync()
   resources.end_sync();
 
   auto end_sync_layer = [&](OverlayLayer &layer) {
+    layer.bounds.end_sync(resources, shapes, state);
     layer.lights.end_sync(resources, shapes, state);
   };
   end_sync_layer(regular);
@@ -237,7 +242,7 @@ void Instance::draw(Manager &manager)
   prepass.draw_in_front(resources, manager, view);
 
   background.draw(resources, manager);
-
+  regular.bounds.draw(resources.overlay_line_fb, manager, view);
   regular.lights.draw(resources.overlay_line_fb, manager, view);
   empties.draw(resources, manager, view);
   lattices.draw(resources, manager, view);
