@@ -1892,7 +1892,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 {
   G.debug_value = RNA_int_get(op->ptr, "debug_value");
-  ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
+  ED_screen_refresh(C, CTX_wm_manager(C), CTX_wm_window(C));
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;

@@ -293,7 +293,7 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
 /**
  * File read, set all screens, ....
  */
-void ED_screens_init(Main *bmain, wmWindowManager *wm);
+void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm);
 /**
  * Only for edge lines between areas.
  */
@@ -303,8 +303,8 @@ void ED_screen_draw_edges(wmWindow *win);
  * Make this screen usable.
  * for file read and first use, for scaling window, area moves.
  */
-void ED_screen_refresh(wmWindowManager *wm, wmWindow *win);
-void ED_screen_ensure_updated(bContext *C, wmWindowManager *wm, wmWindow *win, bScreen *screen);
+void ED_screen_refresh(bContext *C, wmWindowManager *wm, wmWindow *win);
+void ED_screen_ensure_updated(bContext *C, wmWindowManager *wm, wmWindow *win);
 void ED_screen_do_listen(bContext *C, const wmNotifier *note);
 /**
  * \brief Change the active screen.

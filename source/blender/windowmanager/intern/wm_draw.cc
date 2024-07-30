@@ -1565,13 +1565,11 @@ void wm_draw_update(bContext *C)
     CTX_wm_window_set(C, win);
 
     if (wm_draw_update_test_window(bmain, C, win)) {
-      bScreen *screen = WM_window_get_active_screen(win);
-
       /* Sets context window+screen. */
       wm_window_make_drawable(wm, win);
 
       /* Notifiers for screen redraw. */
-      ED_screen_ensure_updated(C, wm, win, screen);
+      ED_screen_ensure_updated(C, wm, win);
 
       wm_draw_window(C, win);
       wm_draw_update_clear_window(C, win);

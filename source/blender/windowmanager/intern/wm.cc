@@ -509,7 +509,7 @@ void WM_check(bContext *C)
   /* Case: file-read. */
   /* NOTE: this runs in background mode to set the screen context cb. */
   if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
-    ED_screens_init(bmain, wm);
+    ED_screens_init(C, bmain, wm);
     wm->init_flag |= WM_INIT_FLAG_WINDOW;
   }
 }
