@@ -140,7 +140,7 @@ char *DNA_member_id_rename(MemArena *mem_arena,
   BLI_assert(strlen(member_id_dst) == member_id_dst_len);
   BLI_assert(strlen(member_full_src) == member_full_src_len);
   BLI_assert(DNA_member_id_offset_start(member_full_src) == member_full_src_offset_len);
-  UNUSED_VARS_NDEBUG(member_src);
+  UNUSED_VARS_NDEBUG(member_id_src);
 
   const int member_full_dst_len = (member_full_src_len - member_id_src_len) + member_id_dst_len;
   char *member_full_dst = static_cast<char *>(
