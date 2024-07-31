@@ -1091,15 +1091,14 @@ static void twist_data_init(const Object &object, SculptBoundary &boundary)
  * Actual functions related to modifying vertices.
  * \{ */
 
-static float displacement_from_grab_delta_get(SculptSession &ss, SculptBoundary &boundary)
+static float displacement_from_grab_delta_get(const SculptSession &ss,
+                                              const SculptBoundary &boundary)
 {
-  float plane[4];
-  float pos[3];
-  float normal[3];
-  sub_v3_v3v3(normal, ss.cache->initial_location, boundary.pivot_position);
-  normalize_v3(normal);
+  float4 plane;
+  const float3 normal = math::normalize(ss.cache->initial_location - boundary.pivot_position);
   plane_from_point_normal_v3(plane, ss.cache->initial_location, normal);
-  add_v3_v3v3(pos, ss.cache->initial_location, ss.cache->grab_delta_symmetry);
+
+  const float3 pos = ss.cache->initial_location + ss.cache->grab_delta_symmetry;
   return dist_signed_to_plane_v3(pos, plane);
 }
 
