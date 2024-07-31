@@ -385,7 +385,7 @@ typedef struct bStretchToConstraint {
   char subtarget[64];
 } bStretchToConstraint;
 
-/* Rigid Body constraint */
+/* DEPRECATED: Rigid Body constraint */
 typedef struct bRigidBodyJointConstraint {
   struct Object *tar;
   struct Object *child;

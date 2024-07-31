@@ -6586,7 +6586,16 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
 {
   BLO_read_struct_list(reader, bConstraint, lb);
   LISTBASE_FOREACH (bConstraint *, con, lb) {
-    BLO_read_data_address(reader, &con->data);
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+    if (cti) {
+      con->data = BLO_read_struct_by_name_array(reader, cti->struct_name, 1, con->data);
+    }
+    else {
+      /* No `BLI_assert_unreachable()` here, this code can be reached in some cases, like the
+       * deprecated RigidBody contraint. */
+      con->data = nullptr;
+    }
+
     /* Patch for error introduced by changing constraints (don't know how). */
     /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
     /* FIXME This is likely dead code actually, since it used to be in
