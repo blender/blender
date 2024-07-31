@@ -102,6 +102,11 @@ PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 
+/**
+ * \note Any errors converting strings will return null with the error left as-is.
+ */
+PyObject *PyC_Tuple_PackArray_String(const char **array, uint len);
+
 PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], int dims_len);

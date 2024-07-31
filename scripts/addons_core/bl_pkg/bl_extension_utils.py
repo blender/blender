@@ -80,12 +80,6 @@ from typing import (
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-BLENDER_EXT_CMD = (
-    # When run from within Blender, it will point to Blender's local Python binary.
-    sys.executable,
-    os.path.normpath(os.path.join(BASE_DIR, "cli", "blender_ext.py")),
-)
-
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 # Locate inside `REPO_LOCAL_PRIVATE_DIR`.
@@ -213,6 +207,14 @@ def rmtree_with_fallback_or_error(
     return result
 
 
+def blender_ext_cmd(python_args: Sequence[str]) -> Sequence[str]:
+    return (
+        sys.executable,
+        *python_args,
+        os.path.normpath(os.path.join(BASE_DIR, "cli", "blender_ext.py")),
+    )
+
+
 # -----------------------------------------------------------------------------
 # Call JSON.
 #
@@ -230,8 +232,10 @@ def non_blocking_call(cmd: Sequence[str]) -> subprocess.Popen[bytes]:
 def command_output_from_json_0(
         args: Sequence[str],
         use_idle: bool,
+        *,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, bool, None]:
-    cmd = [*BLENDER_EXT_CMD, *args, "--output-type=JSON_0"]
+    cmd = [*blender_ext_cmd(python_args), *args, "--output-type=JSON_0"]
     ps = non_blocking_call(cmd)
     stdout = ps.stdout
     assert stdout is not None
@@ -538,6 +542,7 @@ def repo_sync(
         access_token: str,
         timeout: float,
         use_idle: bool,
+        python_args: Sequence[str],
         force_exit_ok: bool = False,
         dry_run: bool = False,
         demote_connection_errors_to_status: bool = False,
@@ -562,7 +567,7 @@ def repo_sync(
         *(("--force-exit-ok",) if force_exit_ok else ()),
         *(("--demote-connection-errors-to-status",) if demote_connection_errors_to_status else ()),
         *(("--extension-override", extension_override) if extension_override else ()),
-    ], use_idle=use_idle)
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 
@@ -573,6 +578,7 @@ def repo_upgrade(
         online_user_agent: str,
         access_token: str,
         use_idle: bool,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -584,7 +590,7 @@ def repo_upgrade(
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--access-token", access_token,
-    ], use_idle=use_idle)
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 
@@ -613,6 +619,7 @@ def pkg_install_files(
         files: Sequence[str],
         blender_version: Tuple[int, int, int],
         use_idle: bool,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -622,7 +629,7 @@ def pkg_install_files(
         "install-files", *files,
         "--local-dir", directory,
         "--blender-version", "{:d}.{:d}.{:d}".format(*blender_version),
-    ], use_idle=use_idle)
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 
@@ -637,6 +644,7 @@ def pkg_install(
         timeout: float,
         use_cache: bool,
         use_idle: bool,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -651,7 +659,7 @@ def pkg_install(
         "--access-token", access_token,
         "--local-cache", str(int(use_cache)),
         "--timeout", "{:g}".format(timeout),
-    ], use_idle=use_idle)
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 
@@ -661,6 +669,7 @@ def pkg_uninstall(
         user_directory: str,
         pkg_id_sequence: Sequence[str],
         use_idle: bool,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -670,7 +679,7 @@ def pkg_uninstall(
         "uninstall", ",".join(pkg_id_sequence),
         "--local-dir", directory,
         "--user-dir", user_directory,
-    ], use_idle=use_idle)
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 
@@ -681,12 +690,16 @@ def pkg_uninstall(
 def dummy_progress(
         *,
         use_idle: bool,
+        python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.dummy_progress()``.
     """
-    yield from command_output_from_json_0(["dummy-progress", "--time-duration=1.0"], use_idle=use_idle)
+    yield from command_output_from_json_0([
+        "dummy-progress",
+        "--time-duration=1.0",
+    ], use_idle=use_idle, python_args=python_args)
     yield [COMPLETE_ITEM]
 
 

@@ -24,6 +24,7 @@ import tempfile
 
 from typing import (
     Callable,
+    Tuple,
     Optional,
 )
 
@@ -393,7 +394,11 @@ def handle_icon(do_register: bool, all_users: bool) -> Optional[str]:
 # -----------------------------------------------------------------------------
 # Escalate Privileges
 
-def main_run_as_root(do_register: bool) -> Optional[str]:
+def main_run_as_root(
+        do_register: bool,
+        *,
+        python_args: Tuple[str, ...],
+) -> Optional[str]:
     # If the system prefix doesn't exist, fail with an error because it's highly likely that the
     # system won't use this when it has not been created.
     if not os.path.exists(SYSTEM_PREFIX):
@@ -403,11 +408,20 @@ def main_run_as_root(do_register: bool) -> Optional[str]:
     if prog is None:
         return "Error: command \"pkexec\" not found"
 
+    python_args_extra = (
+        # Skips users `site-packages` because they are only additional overhead for running this script.
+        "-s",
+    )
+
+    python_args = (
+        *python_args,
+        *(arg for arg in python_args_extra if arg not in python_args)
+    )
+
     cmd = [
         prog,
         sys.executable,
-        # Skips users `site-packages`.
-        "-s",
+        *python_args,
         __file__,
         BLENDER_BIN,
         "--action={:s}".format("register-allusers" if do_register else "unregister-allusers"),
@@ -476,7 +490,10 @@ def register_impl(do_register: bool, all_users: bool) -> Optional[str]:
         if all_users:
             if os.geteuid() != 0:
                 # Run this script with escalated privileges.
-                return main_run_as_root(do_register)
+                return main_run_as_root(
+                    do_register,
+                    python_args=__import__("bpy").app.python_args,
+                )
     else:
         assert BLENDER_BIN != ""
 

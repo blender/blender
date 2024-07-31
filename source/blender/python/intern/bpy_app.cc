@@ -373,6 +373,23 @@ static PyObject *bpy_app_autoexec_fail_message_get(PyObject * /*self*/, void * /
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_python_args_doc,
+    "Leading arguments to use when calling Python directly (via ``sys.executable``). "
+    "These arguments match settings Blender uses to "
+    "ensure Python runs with a compatible environment (read-only).");
+static PyObject *bpy_app_python_args_get(PyObject * /*self*/, void * /*closure*/)
+{
+  const char *args[1];
+  int args_num = 0;
+  if (!BPY_python_use_system_env_get()) {
+    /* Isolated Python environment. */
+    args[args_num++] = "-I";
+  }
+  return PyC_Tuple_PackArray_String(args, args_num);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_binary_path_doc,
     "The location of Blender's executable, useful for utilities that open new instances. "
     "Read-only unless Blender is built as a Python module - in this case the value is "
@@ -519,6 +536,8 @@ static PyGetSetDef bpy_app_getsets[] = {
      nullptr,
      (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET},
     {"autoexec_fail_message", bpy_app_autoexec_fail_message_get, nullptr, nullptr, nullptr},
+
+    {"python_args", bpy_app_python_args_get, nullptr, bpy_app_python_args_doc, nullptr},
 
     /* Support script authors setting the Blender binary path to use, otherwise this value
      * is not known when built as a Python module. */
