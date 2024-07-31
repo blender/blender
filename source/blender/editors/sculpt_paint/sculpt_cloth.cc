@@ -624,22 +624,20 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
 
-  BVHTreeRayHit hit;
-
   const float4x4 &object_to_world = object.object_to_world();
   const float4x4 &world_to_object = object.world_to_object();
 
   for (const ColliderCache &collider_cache : cloth_sim.collider_list) {
-    float ray_start[3], ray_normal[3];
-    float pos_world_space[3], prev_pos_world_space[3];
 
-    mul_v3_m4v3(pos_world_space, object_to_world.ptr(), cloth_sim.pos[i]);
-    mul_v3_m4v3(prev_pos_world_space, object_to_world.ptr(), cloth_sim.last_iteration_pos[i]);
-    sub_v3_v3v3(ray_normal, pos_world_space, prev_pos_world_space);
-    copy_v3_v3(ray_start, prev_pos_world_space);
+    const float3 pos_world_space = math::transform_point(object_to_world, cloth_sim.pos[i]);
+    const float3 prev_pos_world_space = math::transform_point(object_to_world,
+                                                              cloth_sim.last_iteration_pos[i]);
+
+    BVHTreeRayHit hit{};
     hit.index = -1;
-    hit.dist = len_v3(ray_normal);
-    normalize_v3(ray_normal);
+
+    const float3 ray_normal = math::normalize_and_get_length(
+        pos_world_space - prev_pos_world_space, hit.dist);
 
     ClothBrushCollision col;
     CollisionModifierData *collmd = collider_cache.collmd;
@@ -647,7 +645,7 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
     isect_ray_tri_watertight_v3_precalc(&col.isect_precalc, ray_normal);
 
     BLI_bvhtree_ray_cast_ex(collmd->bvhtree,
-                            ray_start,
+                            prev_pos_world_space,
                             ray_normal,
                             0.3f,
                             &hit,
@@ -659,23 +657,17 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
       continue;
     }
 
-    float3 collision_disp;
-    float3 movement_disp;
-    mul_v3_v3fl(collision_disp, hit.no, 0.005f);
-    sub_v3_v3v3(movement_disp, pos_world_space, prev_pos_world_space);
+    const float3 collision_disp = float3(hit.no) * 0.005f;
+
     float4 friction_plane;
-    float3 pos_on_friction_plane;
     plane_from_point_normal_v3(friction_plane, hit.co, hit.no);
+    float3 pos_on_friction_plane;
     closest_to_plane_v3(pos_on_friction_plane, friction_plane, pos_world_space);
-    sub_v3_v3v3(movement_disp, pos_on_friction_plane, hit.co);
+    constexpr float friction_factor = 0.35f;
+    const float3 movement_disp = (pos_on_friction_plane - float3(hit.co)) * friction_factor;
 
-    /* TODO(pablodp606): This can be exposed in a brush/filter property as friction. */
-    mul_v3_fl(movement_disp, 0.35f);
-
-    copy_v3_v3(cloth_sim.pos[i], hit.co);
-    add_v3_v3(cloth_sim.pos[i], movement_disp);
-    add_v3_v3(cloth_sim.pos[i], collision_disp);
-    mul_v3_m4v3(cloth_sim.pos[i], world_to_object.ptr(), cloth_sim.pos[i]);
+    cloth_sim.pos[i] = math::transform_point(world_to_object,
+                                             float3(hit.co) + movement_disp + collision_disp);
   }
 }
 
