@@ -737,7 +737,6 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
 
     cloth_sim.last_iteration_pos[i] = cloth_sim.pos[i];
 
-    cloth_sim.last_iteration_pos[i] = cloth_sim.pos[i];
     cloth_sim.acceleration[i] = float3(0);
 
     copy_v3_v3(vd.co, cloth_sim.pos[vd.index]);
