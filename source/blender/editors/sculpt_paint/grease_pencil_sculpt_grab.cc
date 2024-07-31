@@ -211,6 +211,8 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
         const float zfac = ED_view3d_calc_zfac(&rv3d, layer_origin);
         float3 mouse_delta;
         ED_view3d_win_to_delta(&region, mouse_delta_win, zfac, mouse_delta);
+        const float4x4 &world_to_layer = math::invert(params.layer.to_world_space(params.ob_eval));
+        mouse_delta = math::transform_direction(world_to_layer, mouse_delta);
 
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         MutableSpan<float3> positions = curves.positions_for_write();
