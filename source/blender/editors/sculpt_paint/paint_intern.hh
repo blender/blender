@@ -29,6 +29,8 @@ struct bContext;
 struct BMesh;
 struct BMVert;
 struct Brush;
+struct CCGElem;
+struct CCGKey;
 struct ColorManagedDisplay;
 struct ColorSpace;
 struct Depsgraph;
@@ -531,7 +533,7 @@ void average_neighbor_mask_bmesh(int mask_offset,
 
 /** Write to the mask attribute for each node, storing undo data. */
 void write_mask_mesh(Object &object,
-                     const Span<bke::pbvh::Node *> nodes,
+                     Span<bke::pbvh::Node *> nodes,
                      FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn);
 
 /**
@@ -539,8 +541,15 @@ void write_mask_mesh(Object &object,
  * if the data is actually changed.
  */
 void update_mask_mesh(Object &object,
-                      const Span<bke::pbvh::Node *> nodes,
+                      Span<bke::pbvh::Node *> nodes,
                       FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn);
+
+/** Check whether array data is the same as the stored mask for the referenced geometry. */
+bool mask_equals_array_grids(Span<CCGElem *> elems,
+                             const CCGKey &key,
+                             Span<int> grids,
+                             Span<float> values);
+bool mask_equals_array_bmesh(int mask_offset, const Set<BMVert *, 0> &verts, Span<float> values);
 
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);

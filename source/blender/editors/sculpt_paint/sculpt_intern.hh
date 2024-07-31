@@ -804,29 +804,6 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 /** \name Sculpt mesh accessor API
  * \{ */
 
-struct SculptMaskWriteInfo {
-  float *layer = nullptr;
-  int bm_offset = -1;
-};
-SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession &ss);
-inline void SCULPT_mask_vert_set(const blender::bke::pbvh::Type type,
-                                 const SculptMaskWriteInfo mask_write,
-                                 const float value,
-                                 PBVHVertexIter &vd)
-{
-  switch (type) {
-    case blender::bke::pbvh::Type::Mesh:
-      mask_write.layer[vd.index] = value;
-      break;
-    case blender::bke::pbvh::Type::BMesh:
-      BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
-      break;
-    case blender::bke::pbvh::Type::Grids:
-      CCG_elem_mask(vd.key, vd.grid) = value;
-      break;
-  }
-}
-
 /** Ensure random access; required for blender::bke::pbvh::Type::BMesh */
 void SCULPT_vertex_random_access_ensure(SculptSession &ss);
 
@@ -835,10 +812,6 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex);
 
 /** Get the normal for a given sculpt vertex; do not modify the result */
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex);
-
-float SCULPT_mask_get_at_grids_vert_index(const SubdivCCG &subdiv_ccg,
-                                          const CCGKey &key,
-                                          int vert_index);
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
 
@@ -1661,7 +1634,6 @@ namespace blender::ed::sculpt_paint::smooth {
 void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BMVert *v);
 
 float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex);
-float neighbor_mask_average(SculptSession &ss, SculptMaskWriteInfo write_info, PBVHVertRef vertex);
 
 void neighbor_color_average(OffsetIndices<int> faces,
                             Span<int> corner_verts,

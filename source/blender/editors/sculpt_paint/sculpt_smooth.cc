@@ -416,45 +416,6 @@ float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex)
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
-float neighbor_mask_average(SculptSession &ss,
-                            const SculptMaskWriteInfo write_info,
-                            PBVHVertRef vertex)
-{
-  float avg = 0.0f;
-  int total = 0;
-  SculptVertexNeighborIter ni;
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        avg += write_info.layer[ni.vertex.i];
-        total++;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      return avg / total;
-    }
-    case bke::pbvh::Type::Grids: {
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        avg += SCULPT_mask_get_at_grids_vert_index(
-            *ss.subdiv_ccg, BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg), ni.vertex.i);
-        total++;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      return avg / total;
-    }
-    case bke::pbvh::Type::BMesh: {
-      Vector<BMVert *, 64> neighbors;
-      for (BMVert *neighbor :
-           vert_neighbors_get_bmesh(*reinterpret_cast<BMVert *>(vertex.i), neighbors))
-      {
-        avg += BM_ELEM_CD_GET_FLOAT(neighbor, write_info.bm_offset);
-      }
-      return avg / neighbors.size();
-    }
-  }
-  BLI_assert_unreachable();
-  return 0.0f;
-}
-
 void neighbor_color_average(const OffsetIndices<int> faces,
                             const Span<int> corner_verts,
                             const GroupedSpan<int> vert_to_face_map,

@@ -289,6 +289,44 @@ void update_mask_mesh(Object &object,
   mask.finish();
 }
 
+bool mask_equals_array_grids(const Span<CCGElem *> elems,
+                             const CCGKey &key,
+                             const Span<int> grids,
+                             const Span<float> values)
+{
+  BLI_assert(grids.size() * key.grid_area == values.size());
+
+  const IndexRange range = grids.index_range();
+  return std::all_of(range.begin(), range.end(), [&](const int i) {
+    const int grid = grids[i];
+    const int node_verts_start = i * key.grid_area;
+
+    CCGElem *elem = elems[grid];
+    for (const int offset : IndexRange(key.grid_area)) {
+      if (CCG_elem_offset_mask(key, elem, i) != values[node_verts_start + offset]) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+bool mask_equals_array_bmesh(const int mask_offset,
+                             const Set<BMVert *, 0> &verts,
+                             const Span<float> values)
+{
+  BLI_assert(verts.size() == values.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    if (BM_ELEM_CD_GET_FLOAT(vert, mask_offset) != values[i]) {
+      return false;
+    }
+    i++;
+  }
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
