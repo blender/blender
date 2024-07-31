@@ -330,7 +330,7 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna, "clear_geometry", "rna_Mesh_clear_geometry");
   RNA_def_function_ui_description(
       func,
-      "Remove all geometry from the mesh. Note that this does not free shape keys or materials");
+      "Remove all geometry from the mesh. Note that this does not free shape keys or materials.");
 
   func = RNA_def_function(srna, "validate", "BKE_mesh_validate");
   RNA_def_function_ui_description(func,

@@ -550,7 +550,7 @@ const EnumPropertyItem rna_enum_operator_type_flag_items[] = {
      0,
      "Modal Priority",
      "Handle events before other modal operators without this option. Use with caution, do not "
-     "modify data that other modal operators assume is unchanged during their operation"},
+     "modify data that other modal operators assume is unchanged during their operation."},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

@@ -223,7 +223,7 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "The transformation of the target bone is evaluated relative to its local coordinate "
      "system, followed by a correction for the difference in target and owner rest pose "
      "orientations. When applied as local transform to the owner produces the same global "
-     "motion as the target if the parents are still in rest pose"},
+     "motion as the target if the parents are still in rest pose."},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1148,7 +1148,7 @@ static void rna_def_constraint_armature_deform(BlenderRNA *brna)
       "Use Envelopes",
       "Multiply weights by envelope for all bones, instead of acting like Vertex Group based "
       "blending. "
-      "The specified weights are still used, and only the listed bones are considered");
+      "The specified weights are still used, and only the listed bones are considered.");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "use_current_location", PROP_BOOLEAN, PROP_NONE);
@@ -1438,7 +1438,7 @@ static void rna_def_constraint_rotate_like(BlenderRNA *brna)
        0,
        "Offset (Legacy)",
        "Combine rotations like the original Offset checkbox. Does not work well for "
-       "multiple axis rotations"},
+       "multiple axis rotations."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1588,13 +1588,13 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
        0,
        "Uniform",
        "Volume is preserved when the object is scaled uniformly. "
-       "Deviations from uniform scale on non-free axes are passed through"},
+       "Deviations from uniform scale on non-free axes are passed through."},
       {SAMEVOL_SINGLE_AXIS,
        "SINGLE_AXIS",
        0,
        "Single Axis",
        "Volume is preserved when the object is scaled only on the free axis. "
-       "Non-free axis scaling is passed through"},
+       "Non-free axis scaling is passed through."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1647,14 +1647,14 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        "Before Original (Full)",
        "Apply copied transformation before original, using simple matrix multiplication as if "
        "the constraint target is a parent in Full Inherit Scale mode. "
-       "Will create shear when combining rotation and non-uniform scale"},
+       "Will create shear when combining rotation and non-uniform scale."},
       {TRANSLIKE_MIX_BEFORE,
        "BEFORE",
        0,
        "Before Original (Aligned)",
        "Apply copied transformation before original, as if the constraint target is a parent in "
        "Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels "
-       "for rotation and scale"},
+       "for rotation and scale."},
       {TRANSLIKE_MIX_BEFORE_SPLIT,
        "BEFORE_SPLIT",
        0,
@@ -1668,14 +1668,14 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        "After Original (Full)",
        "Apply copied transformation after original, using simple matrix multiplication as if "
        "the constraint target is a child in Full Inherit Scale mode. "
-       "Will create shear when combining rotation and non-uniform scale"},
+       "Will create shear when combining rotation and non-uniform scale."},
       {TRANSLIKE_MIX_AFTER,
        "AFTER",
        0,
        "After Original (Aligned)",
        "Apply copied transformation after original, as if the constraint target is a child in "
        "Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels "
-       "for rotation and scale"},
+       "for rotation and scale."},
       {TRANSLIKE_MIX_AFTER_SPLIT,
        "AFTER_SPLIT",
        0,
@@ -1785,14 +1785,14 @@ static void rna_def_constraint_action(BlenderRNA *brna)
        "Before Original (Full)",
        "Apply the action channels before the original transformation, as if applied to an "
        "imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation "
-       "and non-uniform scale"},
+       "and non-uniform scale."},
       {ACTCON_MIX_BEFORE,
        "BEFORE",
        0,
        "Before Original (Aligned)",
        "Apply the action channels before the original transformation, as if applied to an "
        "imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location "
-       "and Split Channels for rotation and scale"},
+       "and Split Channels for rotation and scale."},
       {ACTCON_MIX_BEFORE_SPLIT,
        "BEFORE_SPLIT",
        0,
@@ -1806,14 +1806,14 @@ static void rna_def_constraint_action(BlenderRNA *brna)
        "After Original (Full)",
        "Apply the action channels after the original transformation, as if applied to an "
        "imaginary child in Full Inherit Scale mode. Will create shear when combining rotation "
-       "and non-uniform scale"},
+       "and non-uniform scale."},
       {ACTCON_MIX_AFTER,
        "AFTER",
        0,
        "After Original (Aligned)",
        "Apply the action channels after the original transformation, as if applied to an "
        "imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location "
-       "and Split Channels for rotation and scale"},
+       "and Split Channels for rotation and scale."},
       {ACTCON_MIX_AFTER_SPLIT,
        "AFTER_SPLIT",
        0,

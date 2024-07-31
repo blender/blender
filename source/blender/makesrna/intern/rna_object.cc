@@ -2881,7 +2881,7 @@ static void rna_def_object_visibility(StructRNA *srna)
       "Shadow Catcher",
       "Only render shadows and reflections on this object, for compositing renders into real "
       "footage. Objects with this setting are considered to already exist in the footage, "
-      "objects without it are synthetic objects being composited into it");
+      "objects without it are synthetic objects being composited into it.");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 }
 

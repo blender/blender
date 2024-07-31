@@ -64,7 +64,7 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
      0,
      "XYZ=RGB Colors (ignored)",
      "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
-     "XYZ=RGB coloring is determined by the animation preferences"},
+     "XYZ=RGB coloring is determined by the animation preferences."},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -85,7 +85,7 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
      0,
      "XYZ=RGB Colors (ignored)",
      "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
-     "XYZ=RGB coloring is determined by the animation preferences"},
+     "XYZ=RGB coloring is determined by the animation preferences."},
     {INSERTKEY_REPLACE,
      "INSERTKEY_REPLACE",
      0,
@@ -1660,7 +1660,7 @@ static void rna_def_animdata(BlenderRNA *brna)
       "Action Slot Name",
       "The name of the action slot. The slot identifies which sub-set of the Action "
       "is considered to be for this data-block, and its name is used to find the right slot "
-      "when assigning an Action");
+      "when assigning an Action.");
 
   prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");

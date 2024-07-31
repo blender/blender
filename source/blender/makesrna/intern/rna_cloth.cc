@@ -916,7 +916,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
       "The maximum length an internal spring can have during creation. If the distance between "
       "internal points is greater than this, no internal spring will be created between these "
       "points. "
-      "A length of zero means that there is no length limit");
+      "A length of zero means that there is no length limit.");
   RNA_def_property_editable_func(prop, "rna_ClothSettings_internal_editable");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1005,7 +1005,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Pressure",
                            "The uniform pressure that is constantly applied to the mesh, in units "
-                           "of Pressure Scale. Can be negative");
+                           "of Pressure Scale. Can be negative.");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "target_volume", PROP_FLOAT, PROP_NONE);
@@ -1015,7 +1015,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Target Volume",
                            "The mesh volume where the inner/outer pressure will be the same. If "
-                           "set to zero the change in volume will not affect pressure");
+                           "set to zero the change in volume will not affect pressure.");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "pressure_factor", PROP_FLOAT, PROP_NONE);
@@ -1049,7 +1049,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
       "Pressure Vertex Group",
       "Vertex Group for where to apply pressure. Zero weight means no "
       "pressure while a weight of one means full pressure. Faces with a vertex "
-      "that has zero weight will be excluded from the volume calculation");
+      "that has zero weight will be excluded from the volume calculation.");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   /* unused */
@@ -1137,7 +1137,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Collision Quality",
-      "How many collision iterations should be done. (higher is better quality but slower)");
+      "How many collision iterations should be done (higher is better quality but slower)");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
 
   prop = RNA_def_property(srna, "impulse_clamp", PROP_FLOAT, PROP_NONE);

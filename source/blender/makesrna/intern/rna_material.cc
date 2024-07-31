@@ -698,7 +698,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Rotation",
                            "Additional rotation applied to dots and square texture of strokes. "
-                           "Only applies in texture shading mode");
+                           "Only applies in texture shading mode.");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* pass index for future compositing and editing tools */
@@ -843,14 +843,14 @@ void RNA_def_material(BlenderRNA *brna)
        0,
        "Fast",
        "Each face is considered as a medium interface. Gives correct results for manifold "
-       "geometry that contains no inner parts"},
+       "geometry that contains no inner parts."},
       {MA_VOLUME_ISECT_ACCURATE,
        "ACCURATE",
        0,
        "Accurate",
        "Faces are considered as medium interface only when they have different consecutive "
        "facing. Gives correct results as long as the max ray depth is not exceeded. Have "
-       "significant memory overhead compared to the fast method"},
+       "significant memory overhead compared to the fast method."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -913,13 +913,13 @@ void RNA_def_material(BlenderRNA *brna)
        0,
        "Dithered",
        "Allows for grayscale hashed transparency, and compatible with render passes and "
-       "raytracing. Also known as deferred rendering"},
+       "raytracing. Also known as deferred rendering."},
       {MA_SURFACE_METHOD_FORWARD,
        "BLENDED",
        0,
        "Blended",
        "Allows for colored transparency, but incompatible with render passes and raytracing. Also "
-       "known as forward rendering"},
+       "known as forward rendering."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1028,7 +1028,7 @@ void RNA_def_material(BlenderRNA *brna)
       prop,
       "Light Probe Volume Backface Culling",
       "Consider material single sided for light probe volume capture. "
-      "Additionally helps rejecting probes inside the object to avoid light leaks");
+      "Additionally helps rejecting probes inside the object to avoid light leaks.");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "use_transparent_shadow", PROP_BOOLEAN, PROP_NONE);
@@ -1048,7 +1048,7 @@ void RNA_def_material(BlenderRNA *brna)
       "Raytrace Transmission",
       "Use raytracing to determine transmitted color instead of using only light probes. "
       "This prevents the surface from contributing to the lighting of surfaces not using this "
-      "setting");
+      "setting.");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 #  if 1 /* This should be deleted in Blender 4.5 */
@@ -1059,7 +1059,7 @@ void RNA_def_material(BlenderRNA *brna)
       "Raytrace Transmission",
       "Use raytracing to determine transmitted color instead of using only light probes. "
       "This prevents the surface from contributing to the lighting of surfaces not using this "
-      "setting (Deprecated: use 'use_raytrace_refraction')");
+      "setting. Deprecated: use 'use_raytrace_refraction'.");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "use_sss_translucency", PROP_BOOLEAN, PROP_NONE);
@@ -1107,7 +1107,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Max Vertex Displacement",
                            "The max distance a vertex can be displaced. "
-                           "Displacements over this threshold may cause visibility issues");
+                           "Displacements over this threshold may cause visibility issues.");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   /* For Preview Render */

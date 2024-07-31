@@ -1110,19 +1110,19 @@ static void rna_def_image(BlenderRNA *brna)
        "Straight",
        "Store RGB and alpha channels separately with alpha acting as a mask, also known as "
        "unassociated alpha. Commonly used by image editing applications and file formats like "
-       "PNG"},
+       "PNG."},
       {IMA_ALPHA_PREMUL,
        "PREMUL",
        0,
        "Premultiplied",
        "Store RGB channels with alpha multiplied in, also known as associated alpha. The natural "
-       "format for renders and used by file formats like OpenEXR"},
+       "format for renders and used by file formats like OpenEXR."},
       {IMA_ALPHA_CHANNEL_PACKED,
        "CHANNEL_PACKED",
        0,
        "Channel Packed",
        "Different images are packed in the RGB and alpha channels, and they should not "
-       "affect each other. Channel packing is commonly used by game engines to save memory"},
+       "affect each other. Channel packing is commonly used by game engines to save memory."},
       {IMA_ALPHA_IGNORE,
        "NONE",
        0,
@@ -1385,7 +1385,7 @@ static void rna_def_image(BlenderRNA *brna)
       prop,
       "Seam Margin",
       "Margin to take into account when fixing UV seams during painting. Higher "
-      "number would improve seam-fixes for mipmaps, but decreases performance");
+      "number would improve seam-fixes for mipmaps, but decreases performance.");
   RNA_def_property_ui_range(prop, 1, 100, 1, 1);
 
   /* multiview */

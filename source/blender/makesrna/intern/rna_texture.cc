@@ -1583,7 +1583,7 @@ static void rna_def_texture(BlenderRNA *brna)
                            "Use Color Ramp",
                            "Map the texture intensity to the color ramp. "
                            "Note that the alpha value is used for image textures, "
-                           "enable \"Calculate Alpha\" for images without an alpha channel");
+                           "enable \"Calculate Alpha\" for images without an alpha channel.");
   RNA_def_property_update(prop, 0, "rna_Texture_update");
 
   prop = RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);

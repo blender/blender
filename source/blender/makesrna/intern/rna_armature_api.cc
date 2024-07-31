@@ -287,11 +287,7 @@ void RNA_api_bonecollection(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Assign the given bone to this collection");
   parm = RNA_def_pointer(
-      func,
-      "bone",
-      "AnyType",
-      "",
-      "Bone to assign to this collection. This must be a Bone, PoseBone, or EditBone");
+      func, "bone", "AnyType", "", "Bone, PoseBone, or EditBone to assign to this collection");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   /* return value */
   parm = RNA_def_boolean(func,
@@ -306,11 +302,7 @@ void RNA_api_bonecollection(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Remove the given bone from this collection");
   parm = RNA_def_pointer(
-      func,
-      "bone",
-      "AnyType",
-      "",
-      "Bone to remove from this collection. This must be a Bone, PoseBone, or EditBone");
+      func, "bone", "AnyType", "", "Bone, PoseBone, or EditBone to remove from this collection");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   /* return value */
   parm = RNA_def_boolean(func,

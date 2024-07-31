@@ -564,7 +564,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
       prop,
       "Copyright",
       "Copyright notice for this asset. An empty copyright notice does not necessarily indicate "
-      "that this is copyright-free. Contact the author if any clarification is needed");
+      "that this is copyright-free. Contact the author if any clarification is needed.");
 
   prop = RNA_def_property(srna, "license", PROP_STRING, PROP_NONE);
   RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
@@ -576,7 +576,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
                            "License",
                            "The type of license this asset is distributed under. An empty license "
                            "name does not necessarily indicate that this is free of licensing "
-                           "terms. Contact the author if any clarification is needed");
+                           "terms. Contact the author if any clarification is needed.");
 
   prop = RNA_def_property(srna, "tags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "AssetTag");
@@ -601,7 +601,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Catalog UUID",
                            "Identifier for the asset's catalog, used by Blender to look up the "
-                           "asset's catalog path. Must be a UUID according to RFC4122");
+                           "asset's catalog path. Must be a UUID according to RFC4122.");
 
   prop = RNA_def_property(srna, "catalog_simple_name", PROP_STRING, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

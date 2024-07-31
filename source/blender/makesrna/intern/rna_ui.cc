@@ -1794,7 +1794,7 @@ static void rna_def_panel(BlenderRNA *brna)
        0,
        "Instanced Panel",
        "Multiple panels with this type can be used as part of a list depending on data external "
-       "to the UI. Used to create panels for the modifiers and other stacks"},
+       "to the UI. Used to create panels for the modifiers and other stacks."},
       {PANEL_TYPE_HEADER_EXPAND,
        "HEADER_LAYOUT_EXPAND",
        0,
@@ -1864,7 +1864,7 @@ static void rna_def_panel(BlenderRNA *brna)
                            "If this is set, the panel gets a custom ID, otherwise it takes the "
                            "name of the class used to define the panel. For example, if the "
                            "class name is \"OBJECT_PT_hello\", and bl_idname is not set by the "
-                           "script, then bl_idname = \"OBJECT_PT_hello\"");
+                           "script, then bl_idname = \"OBJECT_PT_hello\".");
 
   prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->label");
@@ -2293,7 +2293,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
        0,
        "No Asset Dragging",
        "Disable the default asset dragging on drag events. Useful for implementing custom "
-       "dragging via custom key-map items"},
+       "dragging via custom key-map items."},
       {ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE,
        "DEFAULT_VISIBLE",
        0,
@@ -2375,7 +2375,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_ui_description(
       func,
       "Determine if an asset should be visible in the asset shelf. If this method returns a "
-      "non-null output, the asset will be visible");
+      "non-null output, the asset will be visible.");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", false, "", ""));
   parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "");
@@ -2413,10 +2413,10 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "settings.display_flag", ASSETSHELF_SHOW_NAMES);
-  RNA_def_property_ui_text(
-      prop,
-      "Show Names",
-      "Show the asset name together with the preview. Otherwise only the preview will be visible");
+  RNA_def_property_ui_text(prop,
+                           "Show Names",
+                           "Show the asset name together with the preview. Otherwise only the "
+                           "preview will be visible.");
   RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
 
   prop = RNA_def_property(srna, "preview_size", PROP_INT, PROP_UNSIGNED);

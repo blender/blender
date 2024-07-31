@@ -752,7 +752,7 @@ static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, ReportList 
   if (destination->asset_data == nullptr) {
     BKE_report(reports,
                RPT_ERROR,
-               "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset");
+               "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset.");
     return;
   }
 
@@ -2227,7 +2227,7 @@ static void rna_def_ID(BlenderRNA *brna)
       prop,
       "Session UID",
       "A session-wide unique identifier for the data block that remains the "
-      "same across renames and internal reallocations. It does change when reloading the file");
+      "same across renames and internal reallocations, unchanged when reloading the file");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
@@ -2294,7 +2294,7 @@ static void rna_def_ID(BlenderRNA *brna)
                            "Runtime Data",
                            "This data-block is runtime data, i.e. it won't be saved in .blend "
                            "file. Note that e.g. evaluated IDs are always runtime, so this value "
-                           "is only editable for data-blocks in Main data-base");
+                           "is only editable for data-blocks in Main data-base.");
 
   prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_ID_is_editable_get", nullptr);
@@ -2302,7 +2302,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Editable",
                            "This data-block is editable in the user interface. Linked datablocks "
-                           "are not editable, except if they were loaded as editable assets");
+                           "are not editable, except if they were loaded as editable assets.");
 
   prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_DOIT);
@@ -2360,7 +2360,7 @@ static void rna_def_ID(BlenderRNA *brna)
       func,
       "Get corresponding evaluated ID from the given dependency graph. Note that this does not "
       "ensure the dependency graph is fully evaluated, it just returns the result of the last "
-      "evaluation");
+      "evaluation.");
   parm = RNA_def_pointer(
       func, "depsgraph", "Depsgraph", "", "Dependency graph to perform lookup in");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -2372,7 +2372,7 @@ static void rna_def_ID(BlenderRNA *brna)
       func,
       "Create a copy of this data-block (not supported for all data-blocks). "
       "The result is added to the Blend-File Data (Main database), with all references to other "
-      "data-blocks ensured to be from within the same Blend-File Data");
+      "data-blocks ensured to be from within the same Blend-File Data.");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
   RNA_def_function_return(func, parm);
@@ -2570,7 +2570,7 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Editable",
                            "Datablocks in this library are editable despite being linked. Used by "
-                           "brush assets and their dependencies");
+                           "brush assets and their dependencies.");
 
   func = RNA_def_function(srna, "reload", "rna_Library_reload");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);

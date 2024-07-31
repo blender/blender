@@ -1052,7 +1052,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
                            "Points",
                            "Optimized access to shape keys point data, when using "
                            "foreach_get/foreach_set accessors. "
-                           "(Warning: Does not support legacy Curve shape keys)");
+                           "Warning: Does not support legacy Curve shape keys.");
   RNA_def_property_collection_funcs(prop,
                                     "rna_ShapeKey_points_begin",
                                     "rna_iterator_array_next",

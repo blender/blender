@@ -78,7 +78,7 @@ const EnumPropertyItem rna_enum_fcurve_auto_smoothing_items[] = {
      "Continuous Acceleration",
      "Automatic handles are adjusted to avoid jumps in acceleration, resulting "
      "in smoother curves. However, key changes may affect interpolation over a "
-     "larger stretch of the curve"},
+     "larger stretch of the curve."},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

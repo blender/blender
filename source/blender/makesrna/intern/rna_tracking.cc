@@ -1595,7 +1595,7 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
       prop, nullptr, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Normalize", "Normalize light intensities while tracking. Slower");
+      prop, "Normalize", "Normalize light intensities while tracking (Slower)");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
   /* markers */

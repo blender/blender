@@ -964,7 +964,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
        "CURVE",
        0,
        "Curve",
-       "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing"},
+       "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1442,7 +1442,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       prop,
       "Simplify",
       "Threashold in screen space used for the simplify algorithm. Points within this threashold "
-      "are treated as if they were in a straight line");
+      "are treated as if they were in a straight line.");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
 
   /* Curves for pressure */
@@ -1571,7 +1571,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Input Samples",
-      "Generate intermediate points for very fast mouse movements. Set to 0 to disable");
+      "Generated intermediate points for very fast mouse movements (Set to 0 to disable)");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 
@@ -1785,8 +1785,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop,
                            "Use Stabilizer",
-                           "Draw lines with a delay to allow smooth strokes. Press Shift key to "
-                           "override while drawing");
+                           "Draw lines with a delay to allow smooth strokes (press Shift key to "
+                           "override while drawing)");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "eraser_mode", PROP_ENUM, PROP_NONE);
@@ -2886,10 +2886,10 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_color_as_displacement", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag2", BRUSH_USE_COLOR_AS_DISPLACEMENT);
-  RNA_def_property_ui_text(prop,
-                           "Vector Displacement",
-                           "Handles each pixel color as individual vector for displacement. Works "
-                           "only with area plane mapping");
+  RNA_def_property_ui_text(
+      prop,
+      "Vector Displacement",
+      "Handle each pixel color as individual vector for displacement (area plane mapping only)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "normal_weight", PROP_FLOAT, PROP_FACTOR);
@@ -2907,7 +2907,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Volume Preservation",
                            "Poisson ratio for elastic deformation. Higher values preserve volume "
-                           "more, but also lead to more bulging");
+                           "more, but also lead to more bulging.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "rake_factor", PROP_FLOAT, PROP_FACTOR);
@@ -3076,7 +3076,7 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Topology Rake",
                            "Automatically align edges to the brush direction to "
                            "generate cleaner topology and define sharp features. "
-                           "Best used on low-poly meshes as it has a performance impact");
+                           "Best used on low-poly meshes as it has a performance impact.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "tilt_strength_factor", PROP_FLOAT, PROP_FACTOR);
@@ -3278,7 +3278,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Occlusion",
-      "Only affect vertices that are not occluded by other faces. (Slower performance)");
+      "Only affect vertices that are not occluded by other faces (Slower performance)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "automasking_view_normal_limit", PROP_FLOAT, PROP_ANGLE);
@@ -3469,7 +3469,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Curve",
-      "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing");
+      "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_smooth_stroke", PROP_BOOLEAN, PROP_NONE);

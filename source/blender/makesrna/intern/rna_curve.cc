@@ -2025,7 +2025,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Order U",
                            "NURBS order in the U direction. Higher values make each point "
-                           "influence a greater area, but have worse performance");
+                           "influence a greater area, but have worse performance.");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_u");
 
   prop = RNA_def_property(srna, "order_v", PROP_INT, PROP_NONE);
@@ -2036,7 +2036,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Order V",
                            "NURBS order in the V direction. Higher values make each point "
-                           "influence a greater area, but have worse performance");
+                           "influence a greater area, but have worse performance.");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
   prop = RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);

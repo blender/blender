@@ -3331,7 +3331,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Vertex Indices",
                            "Indices of vertices bound to the modifier. For Bézier curves, "
-                           "handles count as additional vertices");
+                           "handles count as additional vertices.");
 
   func = RNA_def_function(srna, "vertex_indices_set", "rna_HookModifier_vertex_indices_set");
   RNA_def_function_ui_description(
@@ -3430,14 +3430,14 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
        "Index Based",
        "Set the material on new faces based on the order of the material slot lists. If a "
        "material doesn't exist on the modifier object, the face will use the same material slot "
-       "or the first if the object doesn't have enough slots"},
+       "or the first if the object doesn't have enough slots."},
       {eBooleanModifierMaterialMode_Transfer,
        "TRANSFER",
        0,
        "Transfer",
        "Transfer materials from non-empty slots to the result mesh, adding new materials as "
        "necessary. For empty slots, fall back to using the same material index as the operand "
-       "mesh"},
+       "mesh."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -5260,7 +5260,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
        "Complex",
        "Output a manifold mesh even if the base mesh is non-manifold, "
        "where edges have 3 or more connecting faces. "
-       "This method is slower"},
+       "This method is slower."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6233,7 +6233,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Voxel Size",
                            "Size of the voxel in object space used for volume evaluation. Lower "
-                           "values preserve finer details");
+                           "values preserve finer details.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "adaptivity", PROP_FLOAT, PROP_DISTANCE);
@@ -6243,7 +6243,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
       prop,
       "Adaptivity",
       "Reduces the final face count by simplifying geometry where detail is not needed, "
-      "generating triangles. A value greater than 0 disables Fix Poles");
+      "generating triangles. A value greater than 0 disables Fix Poles.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_remove_disconnected", PROP_BOOLEAN, PROP_NONE);
@@ -6506,7 +6506,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
       "Fetch",
       "This is the distance from a lee shore, "
       "called the fetch, or the distance over which the wind blows with constant velocity. "
-      "Used by 'JONSWAP' and 'TMA' models");
+      "Used by 'JONSWAP' and 'TMA' models.");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "sharpen_peak_jonswap", PROP_FLOAT, PROP_UNSIGNED);
@@ -7819,7 +7819,7 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
                            "Node",
                            "Bake node or simulation output node that corresponds to this bake. "
                            "This node may be deeply nested in the modifier node group. It can be "
-                           "none in some cases like missing linked data blocks");
+                           "none in some cases like missing linked data blocks.");
   RNA_def_property_pointer_funcs(
       prop, "rna_NodesModifierBake_node_get", nullptr, nullptr, nullptr);
 
@@ -8586,7 +8586,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Handle Overlapping Edges",
-      "Allow edges in the same location (i.e. from edge split) to show properly. May run slower");
+      "Allow edges in the same location (i.e. from edge split) to show properly. May run slower.");
   RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_clip_plane_boundaries", PROP_BOOLEAN, PROP_NONE);
@@ -8604,7 +8604,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
                            "Crease Threshold",
                            "Angles smaller than this will be treated as creases. Crease angle "
                            "priority: object Line Art crease override > mesh auto smooth angle > "
-                           "Line Art default crease");
+                           "Line Art default crease.");
   RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_ANGLE);
@@ -8700,7 +8700,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Overlapping Edge Types",
                            "Allow an edge to have multiple overlapping types. This will create a "
-                           "separate stroke for each overlapping type");
+                           "separate stroke for each overlapping type.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "stroke_depth_offset", PROP_FLOAT, PROP_DISTANCE);
@@ -8806,7 +8806,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Shadow Region Filtering",
                            "Select feature lines that comes from lit or shaded regions. Will not "
-                           "affect cast shadow and light contour since they are at the border");
+                           "affect cast shadow and light contour since they are at the border.");
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
   prop = RNA_def_property(srna, "silhouette_filtering", PROP_ENUM, PROP_NONE);
@@ -8876,7 +8876,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Use Cache",
                            "Use cached scene data from the first Line Art modifier in the stack. "
-                           "Certain settings will be unavailable");
+                           "Certain settings will be unavailable.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "overscan", PROP_FLOAT, PROP_NONE);
@@ -8982,7 +8982,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
       "Shadow Camera Size",
       "Represents the \"Orthographic Scale\" of an orthographic camera. "
       "If the camera is positioned at the light's location with this scale, it will "
-      "represent the coverage of the shadow \"camera\"");
+      "represent the coverage of the shadow \"camera\".");
   RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
   RNA_def_property_range(prop, 0.0f, 10000.0f);
 
@@ -9395,7 +9395,7 @@ static void rna_def_modifier_grease_pencil_length(BlenderRNA *brna)
                            "Segment Influence",
                            "Factor to determine how much the length of the individual segments "
                            "should influence the final computed curvature. Higher factors makes "
-                           "small segments influence the overall curvature less");
+                           "small segments influence the overall curvature less.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_ANGLE);
@@ -9700,7 +9700,7 @@ static void rna_def_modifier_grease_pencil_dash_segment(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Material Index",
-      "Use this index on generated segment. -1 means using the existing material");
+      "Use this index on generated segment. -1 means using the existing material.");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
@@ -9874,7 +9874,7 @@ static void rna_def_modifier_grease_pencil_multiply(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_range(prop, -1, 1, 0.01, 3);
-  RNA_def_property_ui_text(prop, "Offset", "Offset of duplicates. -1 to 1: inner to outer");
+  RNA_def_property_ui_text(prop, "Offset", "Offset of duplicates, -1 to 1 (inner to outer)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "fading_thickness", PROP_FLOAT, PROP_NONE);
@@ -10381,12 +10381,12 @@ static void rna_def_modifier_grease_pencil_envelope(BlenderRNA *brna)
        "SEGMENTS",
        0,
        "Segments",
-       "Add segments to create the envelope. Keep the original stroke"},
+       "Add segments to create the envelope. Keep the original stroke."},
       {MOD_GREASE_PENCIL_ENVELOPE_FILLS,
        "FILLS",
        0,
        "Fills",
-       "Add fill segments to create the envelope. Don't keep the original stroke"},
+       "Add fill segments to create the envelope. Don't keep the original stroke."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -11086,7 +11086,7 @@ void RNA_def_modifier(BlenderRNA *brna)
       prop,
       "Execution Time",
       "Time in seconds that the modifier took to evaluate. This is only set on evaluated objects. "
-      "If multiple modifiers run in parallel, execution time is not a reliable metric");
+      "If multiple modifiers run in parallel, execution time is not a reliable metric.");
 
   prop = RNA_def_property(srna, "persistent_uid", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

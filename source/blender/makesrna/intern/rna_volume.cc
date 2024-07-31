@@ -362,7 +362,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop,
                            "Frame File Path",
                            "Volume file used for loading the volume at the current frame. Empty "
-                           "if the volume has not be loaded or the frame only exists in memory");
+                           "if the volume has not be loaded or the frame only exists in memory.");
 
   /* API */
   FunctionRNA *func;
@@ -515,7 +515,7 @@ static void rna_def_volume_render(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Precision",
                            "Specify volume data precision. Lower values reduce memory consumption "
-                           "at the cost of detail");
+                           "at the cost of detail.");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   static const EnumPropertyItem space_items[] = {
@@ -546,7 +546,7 @@ static void rna_def_volume_render(BlenderRNA *brna)
                            "Step Size",
                            "Distance between volume samples. Lower values render more detail at "
                            "the cost of performance. If set to zero, the step size is "
-                           "automatically determined based on voxel size");
+                           "automatically determined based on voxel size.");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   prop = RNA_def_property(srna, "clipping", PROP_FLOAT, PROP_NONE);

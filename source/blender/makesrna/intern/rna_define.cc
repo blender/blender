@@ -87,27 +87,6 @@ static void print_default_info(const PropertyDefRNA *dp)
 }
 #endif /* !RNA_RUNTIME */
 
-/* Duplicated code since we can't link in blenkernel or blenlib */
-
-/* pedantic check for final '.', note '...' are allowed though. */
-#ifndef NDEBUG
-#  define DESCR_CHECK(description, id1, id2) \
-    if (description && (description)[0]) { \
-      int i = strlen(description); \
-      if (i > 3 && (description)[i - 1] == '.' && (description)[i - 3] != '.') { \
-        CLOG_WARN(&LOG, \
-                  "'%s' description from '%s' '%s' ends with a '.' !", \
-                  description, \
-                  id1 ? id1 : "", \
-                  id2 ? id2 : ""); \
-      } \
-    } \
-    (void)0
-
-#else
-#  define DESCR_CHECK(description, id1, id2)
-#endif
-
 void rna_addtail(ListBase *listbase, void *vlink)
 {
   Link *link = static_cast<Link *>(vlink);
@@ -1270,8 +1249,6 @@ void RNA_def_struct_identifier_no_struct_map(StructRNA *srna, const char *identi
 
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description)
 {
-  DESCR_CHECK(description, srna->identifier, nullptr);
-
   srna->name = name;
   srna->description = description;
 }
@@ -1668,8 +1645,6 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description)
 {
-  DESCR_CHECK(description, prop->identifier, nullptr);
-
   prop->name = name;
   prop->description = description;
 }

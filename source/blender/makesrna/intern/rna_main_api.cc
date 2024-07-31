@@ -1125,7 +1125,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
                   "",
                   "Preserve all data layers in the mesh, like UV maps and vertex groups. "
                   "By default Blender only computes the subset of data layers needed for viewport "
-                  "display and rendering, for better performance");
+                  "display and rendering, for better performance.");
   RNA_def_pointer(
       func,
       "depsgraph",
