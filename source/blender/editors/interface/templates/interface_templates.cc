@@ -6800,14 +6800,10 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
 
     /* Icon and text separately is closer together with aligned layout. */
 
-    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB_DRAG) {
-      /* Negative space before all narrow mice icons. */
-      uiItemS_ex(layout, -0.5f);
-    }
     uiItemL(layout, "", icon);
-    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB) {
-      /* Negative space after non-drag mice icons. */
-      uiItemS_ex(layout, -0.5f);
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_MMB_SCROLL) {
+      /* Negative space after narrow mice icons. */
+      uiItemS_ex(layout, -0.9f);
     }
 
     uiItemS_ex(layout, 0.3f);

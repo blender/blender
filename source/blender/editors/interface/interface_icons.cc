@@ -559,6 +559,9 @@ int UI_icon_from_event_type(short event_type, short event_value)
   } while ((di = di->data.input.next));
 
   if (event_type == LEFTMOUSE) {
+    if (event_value == KM_DBL_CLICK) {
+      return ICON_MOUSE_LMB_2X;
+    }
     return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_LMB_DRAG : ICON_MOUSE_LMB;
   }
   if (event_type == MIDDLEMOUSE) {

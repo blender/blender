@@ -548,9 +548,11 @@ if(WITH_BLENDER)
       mod_wireframe
       monkey
       mouse_lmb
+      mouse_lmb_2x
       mouse_lmb_drag
       mouse_mmb
       mouse_mmb_drag
+      mouse_mmb_scroll
       mouse_move
       mouse_rmb
       mouse_rmb_drag

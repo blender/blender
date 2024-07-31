@@ -876,7 +876,7 @@ WorkspaceStatus::WorkspaceStatus(bContext *C)
 
 static constexpr float STATUS_AFTER_TEXT = 0.7f;
 static constexpr float STATUS_BEFORE_TEXT = 0.3f;
-static constexpr float STATUS_MOUSE_ICON_PAD = -0.5f;
+static constexpr float STATUS_MOUSE_ICON_PAD = -0.9f;
 
 static void ed_workspace_status_text_item(WorkSpace *workspace, std::string text)
 {
@@ -892,13 +892,9 @@ static void ed_workspace_status_mouse_item(WorkSpace *workspace,
                                            const bool inverted = false)
 {
   if (icon) {
-    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB_DRAG) {
-      /* Negative space before all narrow mice icons. */
-      ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_PAD);
-    }
     ed_workspace_status_item(workspace, {}, icon, 0.0f, inverted);
-    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_RMB) {
-      /* Negative space after non-drag mice icons. */
+    if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_MMB_SCROLL) {
+      /* Negative space after narrow mice icons. */
       ed_workspace_status_space(workspace, STATUS_MOUSE_ICON_PAD);
     }
   }
@@ -961,10 +957,6 @@ void WorkspaceStatus::opmodal(std::string text,
       }
       if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
-      }
-      if (kmi->val == KM_DBL_CLICK) {
-        ed_workspace_status_item(workspace_, "2" BLI_STR_UTF8_MULTIPLICATION_SIGN, ICON_NONE);
-        ed_workspace_status_space(workspace_, -0.7f);
       }
       ed_workspace_status_mouse_item(workspace_, icon, inverted);
       ed_workspace_status_text_item(workspace_, std::move(text));
