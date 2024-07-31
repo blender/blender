@@ -2576,8 +2576,16 @@ void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBase *fmodifiers)
 void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifiers, FCurve *curve)
 {
   LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+
     /* relink general data */
-    BLO_read_data_address(reader, &fcm->data);
+    if (fmi) {
+      fcm->data = BLO_read_struct_by_name_array(reader, fmi->struct_name, 1, fcm->data);
+    }
+    else {
+      BLI_assert_unreachable();
+      fcm->data = nullptr;
+    }
     fcm->curve = curve;
 
     /* do relinking of data for specific types */
