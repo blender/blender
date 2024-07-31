@@ -213,7 +213,7 @@ class Cameras {
 
         if (reconstruction->camnr) {
           const MovieReconstructedCamera *camera = reconstruction->cameras;
-          float3 v0, v1;
+          float3 v0, v1 = float3(0.0f);
           for (int a = 0; a < reconstruction->camnr; a++, camera++) {
             v0 = v1;
             v1 = math::transform_point(camera_mat, float3(camera->mat[3]));
