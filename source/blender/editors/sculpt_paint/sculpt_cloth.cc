@@ -281,7 +281,7 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
 {
   SculptSession &ss = *ob.sculpt;
 
-  const int node_index = POINTER_AS_INT(BLI_ghash_lookup(cloth_sim.node_state_index, node));
+  const int node_index = cloth_sim.node_state_index.lookup(node);
   if (cloth_sim.node_state[node_index] != SCULPT_CLOTH_NODE_UNINITIALIZED) {
     /* The simulation already contains constraints for this node. */
     return;
@@ -705,7 +705,7 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
 
   PBVHVertexIter vd;
 
-  const int node_index = POINTER_AS_INT(BLI_ghash_lookup(cloth_sim.node_state_index, node));
+  const int node_index = cloth_sim.node_state_index.lookup(node);
   if (cloth_sim.node_state[node_index] != SCULPT_CLOTH_NODE_ACTIVE) {
     return;
   }
@@ -981,10 +981,9 @@ static void cloth_sim_initialize_default_node_state(SculptSession &ss, Simulatio
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
   cloth_sim.node_state = Array<NodeSimState>(nodes.size());
-  cloth_sim.node_state_index = BLI_ghash_ptr_new("node sim state indices");
   for (const int i : nodes.index_range()) {
     cloth_sim.node_state[i] = SCULPT_CLOTH_NODE_UNINITIALIZED;
-    BLI_ghash_insert(cloth_sim.node_state_index, nodes[i], POINTER_FROM_INT(i));
+    cloth_sim.node_state_index.add(nodes[i], i);
   }
 }
 
@@ -1108,7 +1107,7 @@ static void copy_normals_to_array(const SculptSession &ss, MutableSpan<float3> n
       break;
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       Vector<bke::pbvh::Node *> all_nodes = bke::pbvh::search_gather(pbvh, {});
       threading::parallel_for(all_nodes.index_range(), 8, [&](const IndexRange range) {
         Vector<float3> node_normals;
@@ -1153,7 +1152,7 @@ void sim_activate_nodes(SimulationData &cloth_sim, Span<bke::pbvh::Node *> nodes
 {
   /* Activate the nodes inside the simulation area. */
   for (bke::pbvh::Node *node : nodes) {
-    const int node_index = POINTER_AS_INT(BLI_ghash_lookup(cloth_sim.node_state_index, node));
+    const int node_index = cloth_sim.node_state_index.lookup(node);
     cloth_sim.node_state[node_index] = SCULPT_CLOTH_NODE_ACTIVE;
   }
 }
@@ -1227,7 +1226,6 @@ void do_cloth_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 
 SimulationData::~SimulationData()
 {
-  BLI_ghash_free(this->node_state_index, nullptr, nullptr);
   if (this->collider_list) {
     BKE_collider_cache_free(&this->collider_list);
   }

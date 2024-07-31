@@ -1576,8 +1576,7 @@ struct SimulationData {
   ListBase *collider_list;
 
   int totnode;
-  /** #blender::bke::pbvh::Node pointer as a key, index in #SimulationData.node_state as value. */
-  GHash *node_state_index;
+  Map<const bke::pbvh::Node *, int> node_state_index;
   Array<NodeSimState> node_state;
 
   VArraySpan<float> mask_mesh;
