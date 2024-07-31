@@ -321,20 +321,6 @@ struct SculptVertexInfo {
   blender::BitVector<> boundary;
 };
 
-#define BOUNDARY_VERTEX_NONE -1
-#define BOUNDARY_STEPS_NONE -1
-
-struct SculptBoundaryEditInfo {
-  /* Vertex index from where the topology propagation reached this vertex. */
-  int original_vertex_i = BOUNDARY_VERTEX_NONE;
-
-  /* How many steps were needed to reach this vertex from the boundary. */
-  int propagation_steps_num = BOUNDARY_STEPS_NONE;
-
-  /* Strength that is used to deform this vertex. */
-  float strength_factor = 0.0f;
-};
-
 /* Data used for displaying extra visuals while using the Boundary brush. */
 struct SculptBoundaryPreview {
   blender::Vector<std::pair<blender::float3, blender::float3>> edges;
@@ -372,7 +358,16 @@ struct SculptBoundary {
 
   /* Indexed by vertex index, contains the topology information needed for boundary deformations.
    */
-  blender::Array<SculptBoundaryEditInfo> edit_info;
+  struct {
+    /* Vertex index from where the topology propagation reached this vertex. */
+    blender::Array<int> original_vertex_i;
+
+    /* How many steps were needed to reach this vertex from the boundary. */
+    blender::Array<int> propagation_steps_num;
+
+    /* Strength that is used to deform this vertex. */
+    blender::Array<float> strength_factor;
+  } edit_info;
 
   /* Bend Deform type. */
   struct {
