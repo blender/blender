@@ -174,8 +174,22 @@ void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
 
 /**
  * Write raw data.
+ *
+ * \warning Avoid using this function if possible. There are only a very few cases in current code
+ * where it is actually needed (e.g. the ShapeKey's data, since its items size varies depending on
+ * the type of geometry owning it, see #shapekey_blend_write).
+ *
+ * \warning Data written with this call have no type information attached to them in the blendfile.
+ * The main consequence is that there will be no handling of endianness conversion for them in
+ * readfile code.
+ * Basic types array functions (like #BLO_write_int8_array etc.) also use #BLO_write_raw
+ * internally, but if their matching read funtion is used to load the data (like
+ * #BLO_read_int8_array), the read function will take care of endianness conversion.
  */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);
+/**
+ * Slightly 'safer' code to write arrays of basic types data.
+ */
 void BLO_write_char_array(BlendWriter *writer, uint num, const char *data_ptr);
 void BLO_write_int8_array(BlendWriter *writer, uint num, const int8_t *data_ptr);
 void BLO_write_uint8_array(BlendWriter *writer, uint num, const uint8_t *data_ptr);
@@ -239,19 +253,37 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
  * \endcode
  *
- * Avoid using the generic BLO_read_data_address when possible, use typed functions instead.
+ * Avoid using the generic #BLO_read_data_address (and lowe-level API like
+ * #BLO_read_get_new_data_address) when possible, use the typed functions instead. Only data
+ * written with #BLO_write_raw should typically be read with #BLO_read_data_address.
  * \{ */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
+#define BLO_read_data_address(reader, ptr_p) \
+  *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
+
+/**
+ * Does not consider the read data as 'used'. It will still be freed by readfile code at the
+ * end of the reading process, if no other 'real' usage was detected for it.
+ *
+ * Typical valid usages include:
+ *   - Restoring pointers to a specific item in an array or list (usually 'active' item e.g.). The
+ *     found item is expected to also be read as part of its array/list storage reading.
+ *   - Doing temporary access to deprecated data as part of some versionning code.
+ */
 void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
                                           const void *old_address,
                                           size_t expected_size);
+
+/**
+ * The 'main' read function and helper macros for non-basic data types.
+ *
+ * NOTE: Currently the usage of the type info is very minimal/basic, it merely does a lose check on
+ * the data size.
+ */
 void *BLO_read_struct_array_with_size(BlendDataReader *reader,
                                       const void *old_address,
                                       size_t expected_size);
-
-#define BLO_read_data_address(reader, ptr_p) \
-  *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
 #define BLO_read_struct(reader, struct_name, ptr_p) \
   *((void **)ptr_p) = BLO_read_struct_array_with_size( \
       reader, *((void **)ptr_p), sizeof(struct_name))
