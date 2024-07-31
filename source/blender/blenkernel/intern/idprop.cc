@@ -1342,15 +1342,39 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
   if (prop->data.pointer) {
-    BLO_write_raw(writer, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+    /* Only write the actual data (`prop->len`), not the whole allocated buffer (`prop->totallen`).
+     */
+    switch (eIDPropertyType(prop->subtype)) {
+      case IDP_GROUP: {
+        BLO_write_pointer_array(writer, uint32_t(prop->len), prop->data.pointer);
 
-    if (prop->subtype == IDP_GROUP) {
-      IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
-      int a;
-
-      for (a = 0; a < prop->len; a++) {
-        IDP_BlendWrite(writer, array[a]);
+        IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
+        for (int i = 0; i < prop->len; i++) {
+          IDP_BlendWrite(writer, array[i]);
+        }
+        break;
       }
+      case IDP_DOUBLE:
+        BLO_write_double_array(
+            writer, uint32_t(prop->len), static_cast<double *>(prop->data.pointer));
+        break;
+      case IDP_INT:
+        BLO_write_int32_array(writer, uint32_t(prop->len), static_cast<int *>(prop->data.pointer));
+        break;
+      case IDP_FLOAT:
+        BLO_write_float_array(
+            writer, uint32_t(prop->len), static_cast<float *>(prop->data.pointer));
+        break;
+      case IDP_BOOLEAN:
+        BLO_write_int8_array(
+            writer, uint32_t(prop->len), static_cast<int8_t *>(prop->data.pointer));
+        break;
+      case IDP_STRING:
+      case IDP_ARRAY:
+      case IDP_ID:
+      case IDP_IDPARRAY:
+        BLI_assert_unreachable();
+        break;
     }
   }
 }
@@ -1506,23 +1530,33 @@ static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
 
-  if (prop->subtype == IDP_GROUP) {
-    BLO_read_pointer_array(reader, prop->len, &prop->data.pointer);
-    IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
-
-    for (int i = 0; i < prop->len; i++) {
-      IDP_DirectLinkProperty(array[i], reader);
+  switch (eIDPropertyType(prop->subtype)) {
+    case IDP_GROUP: {
+      BLO_read_pointer_array(reader, prop->len, &prop->data.pointer);
+      IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
+      for (int i = 0; i < prop->len; i++) {
+        IDP_DirectLinkProperty(array[i], reader);
+      }
+      break;
     }
-  }
-  else if (prop->subtype == IDP_DOUBLE) {
-    BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
-  }
-  else if (ELEM(prop->subtype, IDP_INT, IDP_FLOAT)) {
-    /* also used for floats */
-    BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
-  }
-  else if (prop->subtype == IDP_BOOLEAN) {
-    BLO_read_int8_array(reader, prop->len, (int8_t **)&prop->data.pointer);
+    case IDP_DOUBLE:
+      BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
+      break;
+    case IDP_INT:
+      BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
+      break;
+    case IDP_FLOAT:
+      BLO_read_float_array(reader, prop->len, (float **)&prop->data.pointer);
+      break;
+    case IDP_BOOLEAN:
+      BLO_read_int8_array(reader, prop->len, (int8_t **)&prop->data.pointer);
+      break;
+    case IDP_STRING:
+    case IDP_ARRAY:
+    case IDP_ID:
+    case IDP_IDPARRAY:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
