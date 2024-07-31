@@ -694,16 +694,10 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
 {
   SculptSession &ss = *ob.sculpt;
 
-  PBVHVertexIter vd;
-
-  const int node_index = cloth_sim.node_state_index.lookup(node);
-  if (cloth_sim.node_state[node_index] != SCULPT_CLOTH_NODE_ACTIVE) {
-    return;
-  }
-
   const auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
   auto_mask::NodeData automask_data = auto_mask::node_begin(ob, automasking, *node);
 
+  PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     auto_mask::node_update(automask_data, vd);
 
@@ -742,9 +736,6 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
     copy_v3_v3(vd.co, cloth_sim.pos[vd.index]);
   }
   BKE_pbvh_vertex_iter_end;
-
-  /* Disable the simulation on this node, it needs to be enabled again to continue. */
-  cloth_sim.node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
 }
 
 static void calc_constraint_factors(const Object &object,
@@ -916,10 +907,20 @@ void do_simulation_step(const Sculpt &sd,
   /* Update the constraints. */
   cloth_brush_satisfy_constraints(ob, brush, cloth_sim);
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  Vector<bke::pbvh::Node *> active_nodes;
+  for (bke::pbvh::Node *node : nodes) {
+    const int node_index = cloth_sim.node_state_index.lookup(node);
+    if (cloth_sim.node_state[node_index] == SCULPT_CLOTH_NODE_ACTIVE) {
+      active_nodes.append(node);
+      /* Nodes need to be enabled again to continue. */
+      cloth_sim.node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
+    }
+  }
+
+  threading::parallel_for(active_nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       do_cloth_brush_solve_simulation_task(
-          ob, brush, cloth_sim, CLOTH_SIMULATION_TIME_STEP, nodes[i]);
+          ob, brush, cloth_sim, CLOTH_SIMULATION_TIME_STEP, active_nodes[i]);
     }
   });
 }
