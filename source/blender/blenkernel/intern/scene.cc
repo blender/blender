@@ -1291,7 +1291,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, Editing, &sce->ed);
     Editing *ed = sce->ed;
 
-    BLO_read_struct(reader, Sequence, &ed->act_seq);
+    ed->act_seq = static_cast<Sequence *>(
+        BLO_read_get_new_data_address_no_us(reader, ed->act_seq, sizeof(Sequence)));
     ed->cache = nullptr;
     ed->prefetch_job = nullptr;
     ed->runtime.sequence_lookup = nullptr;
@@ -1323,7 +1324,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       else {
         seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset);
 
-        seqbase_poin = BLO_read_get_new_data_address(reader, seqbase_poin);
+        seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Sequence));
 
         if (seqbase_poin) {
           ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
@@ -1339,7 +1340,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       }
       else {
         channels_poin = POINTER_OFFSET(ed->displayed_channels, -channels_offset);
-        channels_poin = BLO_read_get_new_data_address(reader, channels_poin);
+        channels_poin = BLO_read_get_new_data_address_no_us(
+            reader, channels_poin, sizeof(SeqTimelineChannel));
 
         if (channels_poin) {
           ed->displayed_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
@@ -1360,7 +1362,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         }
         else {
           seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset);
-          seqbase_poin = BLO_read_get_new_data_address(reader, seqbase_poin);
+          seqbase_poin = BLO_read_get_new_data_address_no_us(
+              reader, seqbase_poin, sizeof(Sequence));
           if (seqbase_poin) {
             ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
           }
@@ -1374,7 +1377,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         }
         else {
           channels_poin = POINTER_OFFSET(ms->old_channels, -channels_offset);
-          channels_poin = BLO_read_get_new_data_address(reader, channels_poin);
+          channels_poin = BLO_read_get_new_data_address_no_us(
+              reader, channels_poin, sizeof(SeqTimelineChannel));
 
           if (channels_poin) {
             ms->old_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
