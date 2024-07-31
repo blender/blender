@@ -18,7 +18,7 @@ typedef struct FluidVertexVelocity {
 } FluidVertexVelocity;
 
 typedef struct FluidsimSettings {
-  /** For fast RNA access. */
+  /** DEPRECATED. For fast RNA access. */
   struct FluidsimModifierData *fmd;
   /* threadcont the calculation is done with */
   int threads;
