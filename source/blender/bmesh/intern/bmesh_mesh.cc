@@ -1342,6 +1342,16 @@ void BM_mesh_vert_coords_get(BMesh *bm, MutableSpan<float3> positions)
   }
 }
 
+void BM_mesh_vert_normals_get(BMesh *bm, MutableSpan<float3> normals)
+{
+  BMIter iter;
+  BMVert *v;
+  int i;
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    normals[i] = v->no;
+  }
+}
+
 Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm)
 {
   Array<float3> positions(bm->totvert);

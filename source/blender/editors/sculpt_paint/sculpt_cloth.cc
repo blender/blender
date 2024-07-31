@@ -42,6 +42,7 @@
 
 #include "ED_sculpt.hh"
 
+#include "mesh_brush_common.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -1072,36 +1073,80 @@ void ensure_nodes_constraints(const Sculpt &sd,
   cloth_sim.created_length_constraints.clear_and_shrink();
 }
 
+static void copy_positions_to_array(const SculptSession &ss, MutableSpan<float3> positions)
+{
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh:
+      positions.copy_from(BKE_pbvh_get_vert_positions(pbvh));
+      break;
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      Vector<bke::pbvh::Node *> all_nodes = bke::pbvh::search_gather(pbvh, {});
+      threading::parallel_for(all_nodes.index_range(), 8, [&](const IndexRange range) {
+        Vector<float3> node_positions;
+        for (const int i : range) {
+          const Span<int> grids = bke::pbvh::node_grid_indices(*all_nodes[i]);
+          gather_grids_positions(subdiv_ccg, grids, node_positions);
+          scatter_data_grids(subdiv_ccg, node_positions.as_span(), grids, positions);
+        }
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh:
+      BM_mesh_vert_coords_get(ss.bm, positions);
+      break;
+  }
+}
+
+static void copy_normals_to_array(const SculptSession &ss, MutableSpan<float3> normals)
+{
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh:
+      normals.copy_from(BKE_pbvh_get_vert_normals(pbvh));
+      break;
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      Vector<bke::pbvh::Node *> all_nodes = bke::pbvh::search_gather(pbvh, {});
+      threading::parallel_for(all_nodes.index_range(), 8, [&](const IndexRange range) {
+        Vector<float3> node_normals;
+        for (const int i : range) {
+          const Span<int> grids = bke::pbvh::node_grid_indices(*all_nodes[i]);
+
+          const int grid_verts_num = grids.size() * key.grid_area;
+          node_normals.resize(grid_verts_num);
+          gather_grids_normals(subdiv_ccg, grids, node_normals);
+          scatter_data_grids(subdiv_ccg, node_normals.as_span(), grids, normals);
+        }
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh:
+      BM_mesh_vert_normals_get(ss.bm, normals);
+      break;
+  }
+}
+
 void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim)
 {
-  const int totverts = SCULPT_vertex_count_get(ss);
-  const bool has_deformation_pos = !cloth_sim.deformation_pos.is_empty();
-  const bool has_softbody_pos = !cloth_sim.softbody_pos.is_empty();
-  for (int i = 0; i < totverts; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    copy_v3_v3(cloth_sim.last_iteration_pos[i], SCULPT_vertex_co_get(ss, vertex));
-    copy_v3_v3(cloth_sim.init_pos[i], SCULPT_vertex_co_get(ss, vertex));
-    cloth_sim.init_no[i] = SCULPT_vertex_normal_get(ss, vertex);
-    copy_v3_v3(cloth_sim.prev_pos[i], SCULPT_vertex_co_get(ss, vertex));
-    if (has_deformation_pos) {
-      copy_v3_v3(cloth_sim.deformation_pos[i], SCULPT_vertex_co_get(ss, vertex));
-      cloth_sim.deformation_strength[i] = 1.0f;
-    }
-    if (has_softbody_pos) {
-      copy_v3_v3(cloth_sim.softbody_pos[i], SCULPT_vertex_co_get(ss, vertex));
-    }
+  copy_positions_to_array(ss, cloth_sim.init_pos);
+  cloth_sim.last_iteration_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
+  cloth_sim.prev_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
+  if (!cloth_sim.deformation_pos.is_empty()) {
+    cloth_sim.deformation_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
+    cloth_sim.deformation_strength.fill(1.0f);
   }
+  if (!cloth_sim.softbody_pos.is_empty()) {
+    cloth_sim.softbody_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
+  }
+  copy_normals_to_array(ss, cloth_sim.init_no);
 }
 
 void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim)
 {
-  const int totverts = SCULPT_vertex_count_get(ss);
-  for (int i = 0; i < totverts; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    copy_v3_v3(cloth_sim.pos[i], SCULPT_vertex_co_get(ss, vertex));
-  }
+  copy_positions_to_array(ss, cloth_sim.pos);
 }
 
 void sim_activate_nodes(SimulationData &cloth_sim, Span<bke::pbvh::Node *> nodes)
@@ -1451,28 +1496,24 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  const int totverts = SCULPT_vertex_count_get(ss);
+  brush_store_simulation_state(ss, *ss.filter_cache->cloth_sim);
 
-  for (int i = 0; i < totverts; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
 
-    copy_v3_v3(ss.filter_cache->cloth_sim->pos[i], SCULPT_vertex_co_get(ss, vertex));
-  }
-
-  threading::parallel_for(ss.filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
       cloth_filter_apply_forces_task(
-          ob, sd, ClothFilterType(filter_type), filter_strength, ss.filter_cache->nodes[i]);
+          ob, sd, ClothFilterType(filter_type), filter_strength, nodes[i]);
     }
   });
 
   /* Activate all nodes. */
-  sim_activate_nodes(*ss.filter_cache->cloth_sim, ss.filter_cache->nodes);
+  sim_activate_nodes(*ss.filter_cache->cloth_sim, nodes);
 
   /* Update and write the simulation to the nodes. */
-  do_simulation_step(sd, ob, *ss.filter_cache->cloth_sim, ss.filter_cache->nodes);
+  do_simulation_step(sd, ob, *ss.filter_cache->cloth_sim, nodes);
 
-  for (bke::pbvh::Node *node : ss.filter_cache->nodes) {
+  for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_positions_update(node);
   }
 

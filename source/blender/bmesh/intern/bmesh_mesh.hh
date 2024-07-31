@@ -200,6 +200,8 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)
 
+void BM_mesh_vert_normals_get(BMesh *bm, blender::MutableSpan<blender::float3> positions);
+
 /* Vertex coords access. */
 void BM_mesh_vert_coords_get(BMesh *bm, blender::MutableSpan<blender::float3> positions);
 blender::Array<blender::float3> BM_mesh_vert_coords_alloc(BMesh *bm);
