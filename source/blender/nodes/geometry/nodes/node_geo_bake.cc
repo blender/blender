@@ -529,42 +529,6 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 };
 
-static void draw_bake_button(uiLayout *layout, const BakeDrawContext &ctx)
-{
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *row = uiLayoutRow(col, true);
-  {
-    PointerRNA ptr;
-    uiItemFullO(row,
-                "OBJECT_OT_geometry_node_bake_single",
-                IFACE_("Bake"),
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &ptr);
-    WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
-    RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
-    RNA_int_set(&ptr, "bake_id", ctx.bake->id);
-  }
-  {
-    uiLayout *subrow = uiLayoutRow(row, true);
-    uiLayoutSetActive(subrow, ctx.is_baked);
-    PointerRNA ptr;
-    uiItemFullO(subrow,
-                "OBJECT_OT_geometry_node_bake_delete_single",
-                "",
-                ICON_TRASH,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &ptr);
-    WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
-    RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
-    RNA_int_set(&ptr, "bake_id", ctx.bake->id);
-  }
-}
-
 static void node_extra_info(NodeExtraInfoParams &params)
 {
   BakeDrawContext ctx;
@@ -593,7 +557,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
     uiLayoutSetEnabled(row, !ctx.is_baked);
     uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
-  draw_bake_button(col, ctx);
+  draw_bake_button(ctx, col);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -616,7 +580,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
       uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 
-    draw_bake_button(col, ctx);
+    draw_bake_button(ctx, col);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiItemL(col, bake_state_str->c_str(), ICON_NONE);
     }
@@ -763,6 +727,42 @@ std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
     }
   }
   return std::nullopt;
+}
+
+void draw_bake_button(const BakeDrawContext &ctx, uiLayout *layout)
+{
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *row = uiLayoutRow(col, true);
+  {
+    PointerRNA ptr;
+    uiItemFullO(row,
+                "OBJECT_OT_geometry_node_bake_single",
+                IFACE_("Bake"),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
+    WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
+    RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
+    RNA_int_set(&ptr, "bake_id", ctx.bake->id);
+  }
+  {
+    uiLayout *subrow = uiLayoutRow(row, true);
+    uiLayoutSetActive(subrow, ctx.is_baked);
+    PointerRNA ptr;
+    uiItemFullO(subrow,
+                "OBJECT_OT_geometry_node_bake_delete_single",
+                "",
+                ICON_TRASH,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
+    WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
+    RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
+    RNA_int_set(&ptr, "bake_id", ctx.bake->id);
+  }
 }
 
 void draw_common_bake_settings(BakeDrawContext &ctx, uiLayout *layout)

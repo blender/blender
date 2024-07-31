@@ -323,37 +323,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiLayout *row = uiLayoutRow(col, true);
-    {
-      char bake_label[1024] = N_("Bake");
-
-      PointerRNA ptr;
-      uiItemFullO(row,
-                  "OBJECT_OT_geometry_node_bake_single",
-                  bake_label,
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
-      WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
-      RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
-      RNA_int_set(&ptr, "bake_id", ctx.bake->id);
-    }
-    {
-      PointerRNA ptr;
-      uiItemFullO(row,
-                  "OBJECT_OT_geometry_node_bake_delete_single",
-                  "",
-                  ICON_TRASH,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
-      WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
-      RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
-      RNA_int_set(&ptr, "bake_id", ctx.bake->id);
-    }
+    draw_bake_button(ctx, col);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiItemL(col, bake_state_str->c_str(), ICON_NONE);
     }
