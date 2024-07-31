@@ -267,6 +267,7 @@ std::optional<int32_t> find_nested_node_id_in_root(const SpaceNode &snode, const
   const bNode *node = &query_node;
   LISTBASE_FOREACH_BACKWARD (const bNodeTreePath *, path, &snode.treepath) {
     const bNodeTree *ntree = path->nodetree;
+    ntree->ensure_topology_cache();
     if (group_node_name) {
       node = group_node_by_name(*ntree, group_node_name);
     }
