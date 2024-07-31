@@ -628,16 +628,15 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
 
   BVHTreeRayHit hit;
 
-  float obmat_inv[4][4];
-  invert_m4_m4(obmat_inv, object.object_to_world().ptr());
+  const float4x4 &object_to_world = object.object_to_world();
+  const float4x4 &world_to_object = object.world_to_object();
 
   LISTBASE_FOREACH (ColliderCache *, collider_cache, cloth_sim.collider_list) {
     float ray_start[3], ray_normal[3];
     float pos_world_space[3], prev_pos_world_space[3];
 
-    mul_v3_m4v3(pos_world_space, object.object_to_world().ptr(), cloth_sim.pos[i]);
-    mul_v3_m4v3(
-        prev_pos_world_space, object.object_to_world().ptr(), cloth_sim.last_iteration_pos[i]);
+    mul_v3_m4v3(pos_world_space, object_to_world.ptr(), cloth_sim.pos[i]);
+    mul_v3_m4v3(prev_pos_world_space, object_to_world.ptr(), cloth_sim.last_iteration_pos[i]);
     sub_v3_v3v3(ray_normal, pos_world_space, prev_pos_world_space);
     copy_v3_v3(ray_start, prev_pos_world_space);
     hit.index = -1;
@@ -678,7 +677,7 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
     copy_v3_v3(cloth_sim.pos[i], hit.co);
     add_v3_v3(cloth_sim.pos[i], movement_disp);
     add_v3_v3(cloth_sim.pos[i], collision_disp);
-    mul_v3_m4v3(cloth_sim.pos[i], obmat_inv, cloth_sim.pos[i]);
+    mul_v3_m4v3(cloth_sim.pos[i], world_to_object.ptr(), cloth_sim.pos[i]);
   }
 }
 
