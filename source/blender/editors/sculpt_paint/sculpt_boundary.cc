@@ -1402,28 +1402,30 @@ void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nod
     ss.cache->boundaries[symm_area] = data_init(
         ob, &brush, initial_vert, ss.cache->initial_radius);
 
-    /* No active boundary under the cursor. */
-    if (!ss.cache->boundaries[symm_area]) {
-      return;
-    }
+    if (ss.cache->boundaries[symm_area]) {
+      switch (brush.boundary_deform_type) {
+        case BRUSH_BOUNDARY_DEFORM_BEND:
+          bend_data_init(ob, *ss.cache->boundaries[symm_area]);
+          break;
+        case BRUSH_BOUNDARY_DEFORM_EXPAND:
+          slide_data_init(ob, *ss.cache->boundaries[symm_area]);
+          break;
+        case BRUSH_BOUNDARY_DEFORM_TWIST:
+          twist_data_init(ob, *ss.cache->boundaries[symm_area]);
+          break;
+        case BRUSH_BOUNDARY_DEFORM_INFLATE:
+        case BRUSH_BOUNDARY_DEFORM_GRAB:
+          /* Do nothing. These deform modes don't need any extra data to be precomputed. */
+          break;
+      }
 
-    switch (brush.boundary_deform_type) {
-      case BRUSH_BOUNDARY_DEFORM_BEND:
-        bend_data_init(ob, *ss.cache->boundaries[symm_area]);
-        break;
-      case BRUSH_BOUNDARY_DEFORM_EXPAND:
-        slide_data_init(ob, *ss.cache->boundaries[symm_area]);
-        break;
-      case BRUSH_BOUNDARY_DEFORM_TWIST:
-        twist_data_init(ob, *ss.cache->boundaries[symm_area]);
-        break;
-      case BRUSH_BOUNDARY_DEFORM_INFLATE:
-      case BRUSH_BOUNDARY_DEFORM_GRAB:
-        /* Do nothing. These deform modes don't need any extra data to be precomputed. */
-        break;
+      init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
     }
+  }
 
-    init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+  /* No active boundary under the cursor. */
+  if (!ss.cache->boundaries[symm_area]) {
+    return;
   }
 
   switch (brush.boundary_deform_type) {
