@@ -1609,10 +1609,10 @@ void do_simulation_step(const Sculpt &sd,
                         Span<blender::bke::pbvh::Node *> nodes);
 
 void ensure_nodes_constraints(const Sculpt &sd,
-                              Object &ob,
-                              Span<blender::bke::pbvh::Node *> nodes,
+                              const Object &ob,
+                              Span<bke::pbvh::Node *> nodes,
                               SimulationData &cloth_sim,
-                              float initial_location[3],
+                              const float3 &initial_location,
                               float radius);
 
 /**
