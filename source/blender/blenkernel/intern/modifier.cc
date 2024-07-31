@@ -1135,8 +1135,11 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
 
   if (old_modifier_data->type == eModifierType_Fluidsim) {
     FluidsimModifierData *old_fluidsim_modifier_data = (FluidsimModifierData *)old_modifier_data;
+    /* Only get access to the data, do not mark it as used, otherwise there will be memory leak
+     * since readfile code won't free it. */
     FluidsimSettings *old_fluidsim_settings = static_cast<FluidsimSettings *>(
-        BLO_read_get_new_data_address(reader, old_fluidsim_modifier_data->fss));
+        BLO_read_get_new_data_address_no_us(
+            reader, old_fluidsim_modifier_data->fss, sizeof(FluidsimSettings)));
     switch (old_fluidsim_settings->type) {
       case OB_FLUIDSIM_ENABLE:
         modifier_ensure_type(fluid_modifier_data, 0);
@@ -1330,8 +1333,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
         /* Manta sim uses only one cache from now on, so store pointer convert */
         if (fmd->domain->ptcaches[1].first || fmd->domain->point_cache[1]) {
           if (fmd->domain->point_cache[1]) {
-            PointCache *cache = static_cast<PointCache *>(
-                BLO_read_get_new_data_address(reader, fmd->domain->point_cache[1]));
+            PointCache *cache = static_cast<PointCache *>(BLO_read_get_new_data_address_no_us(
+                reader, fmd->domain->point_cache[1], sizeof(PointCache)));
             if (cache->flag & PTCACHE_FAKE_SMOKE) {
               /* Manta-sim/smoke was already saved in "new format" and this cache is a fake one. */
             }
@@ -1340,7 +1343,6 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
                   "High resolution manta cache not available due to pointcache update. Please "
                   "reset the simulation.\n");
             }
-            BKE_ptcache_free(cache);
           }
           BLI_listbase_clear(&fmd->domain->ptcaches[1]);
           fmd->domain->point_cache[1] = nullptr;
