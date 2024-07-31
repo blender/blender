@@ -291,6 +291,17 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
   *((void **)ptr_p) = BLO_read_struct_array_with_size( \
       reader, *((void **)ptr_p), sizeof(struct_name) * (array_size))
 
+/**
+ * Similar to #BLO_read_struct_array_with_size, but can use a (DNA) type name instead of the type
+ * itself to find the expected data size.
+ *
+ * Somewhat mirrors #BLO_write_struct_array_by_name.
+ */
+void *BLO_read_struct_by_name_array(BlendDataReader *reader,
+                                    const char *struct_name,
+                                    uint32_t items_num,
+                                    const void *old_address);
+
 /* Read all elements in list
  *
  * Updates all `->prev` and `->next` pointers of the list elements.

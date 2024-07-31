@@ -4823,6 +4823,18 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
   return blo_verify_data_address(new_address, old_address, expected_size);
 }
 
+void *BLO_read_struct_by_name_array(BlendDataReader *reader,
+                                    const char *struct_name,
+                                    const uint32_t items_num,
+                                    const void *old_address)
+{
+  const int struct_index = DNA_struct_find_with_alias(reader->fd->memsdna, struct_name);
+  BLI_assert(STREQ(DNA_struct_identifier(const_cast<SDNA *>(reader->fd->memsdna), struct_index),
+                   struct_name));
+  const size_t struct_size = size_t(DNA_struct_size(reader->fd->memsdna, struct_index));
+  return BLO_read_struct_array_with_size(reader, old_address, struct_size * items_num);
+}
+
 ID *BLO_read_get_new_id_address(BlendLibReader *reader,
                                 ID *self_id,
                                 const bool is_linked_only,
