@@ -213,7 +213,7 @@ static float grease_pencil_layer_final_opacity_get(const GPENCIL_PrivateData *pd
 {
   const bool is_obact = ((pd->obact) && (pd->obact == ob));
   const bool is_fade = (pd->fade_layer_opacity > -1.0f) && (is_obact) &&
-                       grease_pencil.is_layer_active(&layer);
+                       (!grease_pencil.is_layer_active(&layer));
 
   /* Defines layer opacity. For active object depends of layer opacity factor, and
    * for no active object, depends if the fade grease pencil objects option is enabled. */
