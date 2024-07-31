@@ -36,7 +36,7 @@
 
 namespace blender::ed::sculpt_paint::auto_mask {
 
-Cache *active_cache_get(SculptSession &ss)
+const Cache *active_cache_get(const SculptSession &ss)
 {
   if (ss.cache) {
     return ss.cache->automasking.get();

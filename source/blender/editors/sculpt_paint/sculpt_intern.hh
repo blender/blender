@@ -1428,7 +1428,7 @@ float factor_get(const Cache *automasking,
 
 /* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */
-Cache *active_cache_get(SculptSession &ss);
+const Cache *active_cache_get(const SculptSession &ss);
 
 /**
  * Creates and initializes an automasking cache.
