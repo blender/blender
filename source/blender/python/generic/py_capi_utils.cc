@@ -351,6 +351,23 @@ PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len)
   return tuple;
 }
 
+PyObject *PyC_Tuple_PackArray_String(const char **array, uint len)
+{
+  /* Not part of numeric array packing but useful none the less. */
+  PyObject *tuple = PyTuple_New(len);
+  for (uint i = 0; i < len; i++) {
+    if (PyObject *value = PyUnicode_FromString(array[i])) {
+      PyTuple_SET_ITEM(tuple, i, value);
+    }
+    else {
+      Py_DECREF(tuple);
+      tuple = nullptr;
+      break;
+    }
+  }
+  return tuple;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

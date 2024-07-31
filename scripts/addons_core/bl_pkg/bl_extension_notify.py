@@ -220,6 +220,7 @@ def sync_status_generator(repos_and_do_online):
             timeout=network_timeout,
             # Never sleep while there is no input, as this blocks Blender.
             use_idle=False,
+            python_args=bpy.app.python_args,
             # Needed so the user can exit blender without warnings about a broken pipe.
             # TODO: write to a temporary location, once done:
             # There is no chance of corrupt data as the data isn't written directly to the target JSON.

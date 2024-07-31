@@ -1356,6 +1356,7 @@ class EXTENSIONS_OT_dummy_progress(Operator, _ExtCmdMixIn):
                 partial(
                     bl_extension_utils.dummy_progress,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ),
             ],
             batch_job_limit=1,
@@ -1410,6 +1411,7 @@ class EXTENSIONS_OT_repo_sync(Operator, _ExtCmdMixIn):
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 )
             )
             repos_lock.append(repo_item.directory)
@@ -1509,6 +1511,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
                     access_token=repo_item.access_token,
                     timeout=prefs.system.network_timeout,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ))
                 repos_lock.append(repo_item.directory)
 
@@ -1876,6 +1879,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ))
             self._repo_directories.add(repo_item.directory)
 
@@ -1997,6 +2001,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ))
 
             self._repo_directories.add(repo_item.directory)
@@ -2149,6 +2154,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
                     user_directory=repo_user_directory(repo_item.module),
                     pkg_id_sequence=pkg_id_sequence,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ))
             self._repo_directories.add(repo_item.directory)
             package_count += len(pkg_id_sequence)
@@ -2379,6 +2385,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                     files=pkg_files,
                     blender_version=bpy.app.version,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 )
             ],
             batch_job_limit=1,
@@ -2760,6 +2767,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     timeout=prefs.system.network_timeout,
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 )
             ],
             batch_job_limit=1,
@@ -3217,6 +3225,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
                     user_directory=repo_user_directory(repo_item.module),
                     pkg_id_sequence=(pkg_id, ),
                     use_idle=is_modal,
+                    python_args=bpy.app.python_args,
                 ),
             ],
             batch_job_limit=1,

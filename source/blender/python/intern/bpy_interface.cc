@@ -639,6 +639,11 @@ void BPY_python_use_system_env()
   py_use_system_env = true;
 }
 
+bool BPY_python_use_system_env_get()
+{
+  return py_use_system_env;
+}
+
 void BPY_python_backtrace(FILE *fp)
 {
   fputs("\n# Python backtrace\n", fp);
