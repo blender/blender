@@ -905,6 +905,7 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p)
   if (pf == nullptr) {
     return;
   }
+  /* NOTE: there is no way to handle endianness switch here. */
   pf->sharing_info = BLO_read_shared(reader, &pf->data, [&]() {
     BLO_read_data_address(reader, &pf->data);
     return blender::implicit_sharing::info_for_mem_free(const_cast<void *>(pf->data));

@@ -300,7 +300,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_string(writer, mesh->default_color_attribute);
 
   BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
-  BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
+  BLO_write_struct_array(writer, MSelect, mesh->totselect, mesh->mselect);
 
   CustomData_blend_write(
       writer, &mesh->vert_data, vert_layers, mesh->verts_num, CD_MASK_MESH.vmask, &mesh->id);

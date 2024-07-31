@@ -1372,7 +1372,9 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
-  BLO_write_raw(writer, size_t(prop->len), prop->data.pointer);
+  /* Do not use #BLO_write_string here, since 'bytes' sub-type of IDProperties may not be
+   * null-terminated. */
+  BLO_write_char_array(writer, uint(prop->len), static_cast<char *>(prop->data.pointer));
 }
 
 static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)

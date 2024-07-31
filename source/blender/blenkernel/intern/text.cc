@@ -187,7 +187,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
     }
 
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_raw(writer, tmp->len + 1, tmp->line);
+      BLO_write_string(writer, tmp->line);
     }
   }
 }

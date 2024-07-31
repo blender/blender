@@ -1186,7 +1186,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   else {
     if (spacetype == SPACE_VIEW3D) {
       if (region->regiontype == RGN_TYPE_WINDOW) {
-        BLO_read_data_address(reader, &region->regiondata);
+        BLO_read_struct(reader, RegionView3D, &region->regiondata);
 
         if (region->regiondata == nullptr) {
           /* To avoid crashing on some old files. */
