@@ -79,6 +79,7 @@
 #include "ED_object.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
 #include "ED_undo.hh"
 
 #include "IMB_imbuf.hh"
@@ -6301,6 +6302,39 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   UI_block_emboss_set(block, previous_emboss);
 }
 
+static bool uiTemplateInputStatusAzone(uiLayout *layout, AZone *az, ARegion *region)
+{
+  if (az->type == AZONE_AREA) {
+    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    if (U.experimental.use_docking) {
+      uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
+    }
+    else {
+      uiItemL(layout, IFACE_("Split/Join"), ICON_NONE);
+    }
+    uiItemS_ex(layout, 0.7f);
+    uiItemL(layout, "", ICON_EVENT_SHIFT);
+    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemL(layout, IFACE_("Duplicate into Window"), ICON_NONE);
+    uiItemS_ex(layout, 0.7f);
+    uiItemL(layout, "", ICON_EVENT_CTRL);
+    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemL(layout, IFACE_("Swap Areas"), ICON_NONE);
+    return true;
+  }
+
+  if (az->type == AZONE_REGION) {
+    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, 0.3f);
+    uiItemL(layout,
+            (region->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
+            ICON_NONE);
+    return true;
+  }
+
+  return false;
+}
+
 void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -6327,11 +6361,38 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     return;
   }
 
+  bScreen *screen = CTX_wm_screen(C);
+  ARegion *region = screen->active_region;
+  uiLayout *row = uiLayoutRow(layout, true);
+
+  if (region == nullptr) {
+    /* Check if over an action zone. */
+    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
+      LISTBASE_FOREACH (AZone *, az, &area_iter->actionzones) {
+        if (BLI_rcti_isect_pt_v(&az->rect, win->eventstate->xy)) {
+          region = az->region;
+          if (uiTemplateInputStatusAzone(row, az, region)) {
+            return;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  if (!region) {
+    /* On a gap between editors. */
+    uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemL(row, IFACE_("Resize"), ICON_NONE);
+    uiItemS_ex(row, 0.7f);
+    uiItemL(row, nullptr, ICON_MOUSE_RMB);
+    uiItemS_ex(row, -0.6f);
+    uiItemL(row, IFACE_("Options"), ICON_NONE);
+    return;
+  }
+
   /* Otherwise should cursor keymap status. */
   for (int i = 0; i < 3; i++) {
-    uiLayout *box = uiLayoutRow(layout, false);
-    uiLayout *col = uiLayoutColumn(box, false);
-    uiLayout *row = uiLayoutRow(col, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
     const char *msg = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
@@ -6339,20 +6400,18 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     const char *msg_drag = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                       WM_window_cursor_keymap_status_get(win, i, 1));
 
-    if (msg || (msg_drag == nullptr)) {
-      /* Icon and text separately are closer together with aligned layout. */
+    if (msg) {
       uiItemL(row, "", (ICON_MOUSE_LMB + i));
+      uiItemS_ex(row, -0.6f);
       uiItemL(row, msg ? msg : "", ICON_NONE);
+      uiItemS_ex(row, 0.7f);
     }
 
     if (msg_drag) {
       uiItemL(row, "", (ICON_MOUSE_LMB_DRAG + i));
       uiItemL(row, msg_drag, ICON_NONE);
+      uiItemS_ex(row, 0.7f);
     }
-
-    /* Use trick with empty string to keep icons in same position. */
-    row = uiLayoutRow(col, false);
-    uiItemL(row, "                                                                   ", ICON_NONE);
   }
 }
 
