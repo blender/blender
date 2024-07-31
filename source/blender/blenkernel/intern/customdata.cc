@@ -5337,8 +5337,8 @@ static void write_grid_paint_mask(BlendWriter *writer,
     for (int i = 0; i < count; i++) {
       const GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
-        const int gridsize = BKE_ccg_gridsize(gpm->level);
-        BLO_write_raw(writer, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
+        const uint32_t gridsize = uint32_t(BKE_ccg_gridsize(gpm->level));
+        BLO_write_float_array(writer, gridsize * gridsize, gpm->data);
       }
     }
   }
@@ -5357,19 +5357,21 @@ static void blend_write_layer_data(BlendWriter *writer,
           writer, count, static_cast<const MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
       break;
     case CD_PAINT_MASK:
-      BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
+      BLO_write_float_array(writer, count, static_cast<const float *>(layer.data));
       break;
     case CD_GRID_PAINT_MASK:
       write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
       break;
     case CD_PROP_BOOL:
-      BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));
+      BLI_STATIC_ASSERT(sizeof(bool) == sizeof(uint8_t),
+                        "bool type is expected to have the same size as uint8_t")
+      BLO_write_uint8_array(writer, count, static_cast<const uint8_t *>(layer.data));
       break;
     default: {
       const char *structname;
       int structnum;
       CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
-      if (structnum) {
+      if (structnum > 0) {
         int datasize = structnum * count;
         BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
       }
@@ -5457,8 +5459,44 @@ static void blend_read_paint_mask(BlendDataReader *reader,
 
 static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &layer, const int count)
 {
-  const size_t elem_size = CustomData_sizeof(eCustomDataType(layer.type));
-  BLO_read_struct_array(reader, char, elem_size *count, &layer.data);
+  switch (layer.type) {
+    case CD_MDEFORMVERT:
+      BLO_read_struct_array(reader, MDeformVert, count, &layer.data);
+      BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer.data));
+      break;
+    case CD_MDISPS:
+      BLO_read_struct_array(reader, MDisps, count, &layer.data);
+      blend_read_mdisps(
+          reader, count, static_cast<MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
+      break;
+    case CD_PAINT_MASK:
+      BLO_read_float_array(reader, count, reinterpret_cast<float **>(&layer.data));
+      break;
+    case CD_GRID_PAINT_MASK:
+      BLO_read_struct_array(reader, GridPaintMask, count, &layer.data);
+      blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer.data));
+      break;
+    case CD_PROP_BOOL:
+      BLI_STATIC_ASSERT(sizeof(bool) == sizeof(uint8_t),
+                        "bool type is expected to have the same size as uint8_t")
+      BLO_read_uint8_array(reader, count, reinterpret_cast<uint8_t **>(&layer.data));
+      break;
+    default: {
+      const char *structname;
+      int structnum;
+      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      if (structnum > 0) {
+        const int data_num = structnum * count;
+        layer.data = BLO_read_struct_by_name_array(reader, structname, data_num, layer.data);
+      }
+      else {
+        /* Can happen with deprecated types of customdata. */
+        const size_t elem_size = CustomData_sizeof(eCustomDataType(layer.type));
+        BLO_read_struct_array(reader, char, elem_size *count, &layer.data);
+      }
+    }
+  }
+
   if (CustomData_layer_ensure_data_exists(&layer, count)) {
     /* Under normal operations, this shouldn't happen, but...
      * For a CD_PROP_BOOL example, see #84935.
@@ -5466,17 +5504,6 @@ static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &laye
     CLOG_WARN(&LOG,
               "Allocated custom data layer that was not saved correctly for layer.type = %d.",
               layer.type);
-  }
-
-  if (layer.type == CD_MDISPS) {
-    blend_read_mdisps(
-        reader, count, static_cast<MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
-  }
-  else if (layer.type == CD_GRID_PAINT_MASK) {
-    blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer.data));
-  }
-  else if (layer.type == CD_MDEFORMVERT) {
-    BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer.data));
   }
 }
 
