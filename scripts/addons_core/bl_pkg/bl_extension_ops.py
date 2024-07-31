@@ -56,6 +56,9 @@ rna_prop_enable_on_install = BoolProperty(
     name="Enable on Install",
     description="Enable after installing",
     default=True,
+    # This is done as "enabling" has security implications (running code after the action).
+    # Using the last value would mean an action that isn't expected to enable the extension might unintentionally do so.
+    options={'SKIP_SAVE'}
 )
 rna_prop_enable_on_install_type_map = {
     "add-on": "Enable Add-on",
@@ -1845,6 +1848,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
             if pkg_manifest_local is None:
                 continue
 
+            repo_item = repos_all[repo_index]
             for pkg_id, item_remote in pkg_manifest_remote.items():
                 item_local = pkg_manifest_local.get(pkg_id)
                 if item_local is None:
@@ -1858,8 +1862,11 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
                     packages_to_upgrade[repo_index].append(pkg_id)
                     package_count += 1
 
-            if packages_to_upgrade[repo_index]:
-                handle_addons_info.append((repos_all[repo_index], list(packages_to_upgrade[repo_index])))
+            if (pkg_id_sequence_upgrade := _preferences_pkg_id_sequence_filter_enabled(
+                    repo_item,
+                    packages_to_upgrade[repo_index],
+            )):
+                handle_addons_info.append((repo_item, pkg_id_sequence_upgrade))
 
         cmd_batch = []
         for repo_index, pkg_id_sequence in enumerate(packages_to_upgrade):
