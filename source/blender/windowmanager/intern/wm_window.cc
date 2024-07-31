@@ -539,7 +539,7 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
   }
 
   str += " - Blender ";
-  str += BKE_blender_version_string_compact();
+  str += BKE_blender_version_string();
 
   GHOST_SetTitle(handle, str.c_str());
 

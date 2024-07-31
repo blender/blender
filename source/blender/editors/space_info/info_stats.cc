@@ -716,7 +716,8 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     if (info[0]) {
       ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
     }
-    ofs += BLI_snprintf_rlen(info + ofs, len - ofs, IFACE_("%s"), BKE_blender_version_string());
+    ofs += BLI_snprintf_rlen(
+        info + ofs, len - ofs, IFACE_("%s"), BKE_blender_version_string_compact());
   }
 
   return info;
