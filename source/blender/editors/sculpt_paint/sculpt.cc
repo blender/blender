@@ -3840,7 +3840,6 @@ static void do_brush_action(const Scene &scene,
   if (brush.deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss.cache->cloth_sim) {
       ss.cache->cloth_sim = cloth::brush_simulation_create(ob, 1.0f, 0.0f, 0.0f, false, true);
-      cloth::brush_simulation_init(ss, *ss.cache->cloth_sim);
     }
     cloth::brush_store_simulation_state(ss, *ss.cache->cloth_sim);
     cloth::ensure_nodes_constraints(

@@ -1597,7 +1597,6 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
                                                         float cloth_softbody_strength,
                                                         bool use_collisions,
                                                         bool needs_deform_coords);
-void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim);
 
 void sim_activate_nodes(SimulationData &cloth_sim, Span<blender::bke::pbvh::Node *> nodes);
 

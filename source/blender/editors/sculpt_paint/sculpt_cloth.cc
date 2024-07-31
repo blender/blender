@@ -945,89 +945,6 @@ static void cloth_sim_initialize_default_node_state(SculptSession &ss, Simulatio
   }
 }
 
-std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
-                                                        const float cloth_mass,
-                                                        const float cloth_damping,
-                                                        const float cloth_softbody_strength,
-                                                        const bool use_collisions,
-                                                        const bool needs_deform_coords)
-{
-  SculptSession &ss = *ob.sculpt;
-  const int totverts = SCULPT_vertex_count_get(ss);
-  std::unique_ptr<SimulationData> cloth_sim = std::make_unique<SimulationData>();
-
-  cloth_sim->length_constraints.reserve(CLOTH_LENGTH_CONSTRAINTS_BLOCK);
-
-  cloth_sim->acceleration = Array<float3>(totverts, float3(0));
-  cloth_sim->pos = Array<float3>(totverts, float3(0));
-  cloth_sim->prev_pos = Array<float3>(totverts, float3(0));
-  cloth_sim->last_iteration_pos = Array<float3>(totverts, float3(0));
-  cloth_sim->init_pos = Array<float3>(totverts, float3(0));
-  cloth_sim->init_no = Array<float3>(totverts, float3(0));
-  cloth_sim->length_constraint_tweak = Array<float>(totverts, 0.0f);
-
-  if (needs_deform_coords) {
-    cloth_sim->deformation_pos = Array<float3>(totverts, float3(0));
-    cloth_sim->deformation_strength = Array<float>(totverts, 0.0f);
-  }
-
-  if (cloth_softbody_strength > 0.0f) {
-    cloth_sim->softbody_pos = Array<float3>(totverts, float3(0));
-  }
-
-  cloth_sim->mass = cloth_mass;
-  cloth_sim->damping = cloth_damping;
-  cloth_sim->softbody_strength = cloth_softbody_strength;
-
-  if (use_collisions) {
-    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, ss.depsgraph);
-  }
-
-  cloth_sim_initialize_default_node_state(ss, *cloth_sim);
-
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      const Mesh *mesh = static_cast<const Mesh *>(ob.data);
-      const bke::AttributeAccessor attributes = mesh->attributes();
-      cloth_sim->mask_mesh = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
-      break;
-    }
-    case bke::pbvh::Type::BMesh:
-      cloth_sim->mask_cd_offset_bmesh = CustomData_get_offset_named(
-          &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-      break;
-    case bke::pbvh::Type::Grids:
-      cloth_sim->grid_key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      break;
-  }
-
-  return cloth_sim;
-}
-
-void ensure_nodes_constraints(const Sculpt &sd,
-                              const Object &ob,
-                              const Span<bke::pbvh::Node *> nodes,
-                              SimulationData &cloth_sim,
-                              const float3 &initial_location,
-                              const float radius)
-{
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-
-  /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
-   * storing the constraints per node. */
-  /* Currently all constrains are added to the same global array which can't be accessed from
-   * different threads. */
-
-  cloth_sim.created_length_constraints.clear();
-
-  for (const int i : nodes.index_range()) {
-    do_cloth_brush_build_constraints_task(
-        const_cast<Object &>(ob), brush, cloth_sim, initial_location, radius, nodes[i]);
-  }
-
-  cloth_sim.created_length_constraints.clear_and_shrink();
-}
-
 static void copy_positions_to_array(const SculptSession &ss, MutableSpan<float3> positions)
 {
   bke::pbvh::Tree &pbvh = *ss.pbvh;
@@ -1084,19 +1001,92 @@ static void copy_normals_to_array(const SculptSession &ss, MutableSpan<float3> n
   }
 }
 
-void brush_simulation_init(const SculptSession &ss, SimulationData &cloth_sim)
+std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
+                                                        const float cloth_mass,
+                                                        const float cloth_damping,
+                                                        const float cloth_softbody_strength,
+                                                        const bool use_collisions,
+                                                        const bool needs_deform_coords)
 {
-  copy_positions_to_array(ss, cloth_sim.init_pos);
-  cloth_sim.last_iteration_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
-  cloth_sim.prev_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
-  if (!cloth_sim.deformation_pos.is_empty()) {
-    cloth_sim.deformation_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
-    cloth_sim.deformation_strength.fill(1.0f);
+  SculptSession &ss = *ob.sculpt;
+  const int totverts = SCULPT_vertex_count_get(ss);
+  std::unique_ptr<SimulationData> cloth_sim = std::make_unique<SimulationData>();
+
+  cloth_sim->length_constraints.reserve(CLOTH_LENGTH_CONSTRAINTS_BLOCK);
+
+  cloth_sim->acceleration = Array<float3>(totverts, float3(0));
+  cloth_sim->pos = Array<float3>(totverts, float3(0));
+  cloth_sim->length_constraint_tweak = Array<float>(totverts, 0.0f);
+
+  cloth_sim->init_pos.reinitialize(totverts);
+  copy_positions_to_array(ss, cloth_sim->init_pos);
+
+  cloth_sim->last_iteration_pos = cloth_sim->init_pos;
+  cloth_sim->prev_pos = cloth_sim->init_pos;
+
+  cloth_sim->init_no.reinitialize(totverts);
+  copy_normals_to_array(ss, cloth_sim->init_no);
+
+  if (needs_deform_coords) {
+    cloth_sim->deformation_pos = cloth_sim->init_pos;
+    cloth_sim->deformation_strength = Array<float>(totverts, 1.0f);
   }
-  if (!cloth_sim.softbody_pos.is_empty()) {
-    cloth_sim.softbody_pos.as_mutable_span().copy_from(cloth_sim.init_pos);
+
+  if (cloth_softbody_strength > 0.0f) {
+    cloth_sim->softbody_pos = cloth_sim->init_pos;
   }
-  copy_normals_to_array(ss, cloth_sim.init_no);
+
+  cloth_sim->mass = cloth_mass;
+  cloth_sim->damping = cloth_damping;
+  cloth_sim->softbody_strength = cloth_softbody_strength;
+
+  if (use_collisions) {
+    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, ss.depsgraph);
+  }
+
+  cloth_sim_initialize_default_node_state(ss, *cloth_sim);
+
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh *mesh = static_cast<const Mesh *>(ob.data);
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      cloth_sim->mask_mesh = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+      break;
+    }
+    case bke::pbvh::Type::BMesh:
+      cloth_sim->mask_cd_offset_bmesh = CustomData_get_offset_named(
+          &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      break;
+    case bke::pbvh::Type::Grids:
+      cloth_sim->grid_key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+      break;
+  }
+
+  return cloth_sim;
+}
+
+void ensure_nodes_constraints(const Sculpt &sd,
+                              const Object &ob,
+                              const Span<bke::pbvh::Node *> nodes,
+                              SimulationData &cloth_sim,
+                              const float3 &initial_location,
+                              const float radius)
+{
+  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
+
+  /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
+   * storing the constraints per node. */
+  /* Currently all constrains are added to the same global array which can't be accessed from
+   * different threads. */
+
+  cloth_sim.created_length_constraints.clear();
+
+  for (const int i : nodes.index_range()) {
+    do_cloth_brush_build_constraints_task(
+        const_cast<Object &>(ob), brush, cloth_sim, initial_location, radius, nodes[i]);
+  }
+
+  cloth_sim.created_length_constraints.clear_and_shrink();
 }
 
 void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim)
@@ -1143,7 +1133,6 @@ void do_cloth_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
                                                     brush->cloth_constraint_softbody_strength,
                                                     (brush->flag2 & BRUSH_CLOTH_USE_COLLISION),
                                                     is_cloth_deform_brush(*brush));
-      brush_simulation_init(ss, *ss.cache->cloth_sim);
     }
 
     if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
@@ -1530,8 +1519,6 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       cloth_filter_is_deformation_filter(filter_type));
 
   ss.filter_cache->cloth_sim_pinch_point = SCULPT_active_vertex_co_get(ss);
-
-  brush_simulation_init(ss, *ss.filter_cache->cloth_sim);
 
   float3 origin(0);
   ensure_nodes_constraints(
