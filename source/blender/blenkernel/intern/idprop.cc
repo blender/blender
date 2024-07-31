@@ -1505,7 +1505,7 @@ static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
   prop->totallen = prop->len;
 
   if (prop->subtype == IDP_GROUP) {
-    BLO_read_pointer_array(reader, &prop->data.pointer);
+    BLO_read_pointer_array(reader, prop->len, &prop->data.pointer);
     IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
 
     for (int i = 0; i < prop->len; i++) {
