@@ -759,8 +759,11 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
       }
     }
   }
-
-  r_ctx.bake_still = r_ctx.bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL;
+  const Scene *scene = CTX_data_scene(C);
+  r_ctx.frame_range = bke::bake::get_node_bake_frame_range(
+      *scene, *r_ctx.object, *r_ctx.nmd, r_ctx.bake->id);
+  r_ctx.bake_still = node.type == GEO_NODE_BAKE &&
+                     r_ctx.bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL;
   r_ctx.is_baked = r_ctx.baked_range.has_value();
 
   return true;

@@ -87,6 +87,7 @@ struct BakeDrawContext {
   const NodesModifierBake *bake;
   PointerRNA bake_rna;
   std::optional<IndexRange> baked_range;
+  std::optional<IndexRange> frame_range;
   bool bake_still;
   bool is_baked;
 };
