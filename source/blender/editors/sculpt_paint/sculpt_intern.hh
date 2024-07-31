@@ -12,6 +12,7 @@
 #include <queue>
 
 #include "BKE_attribute.hh"
+#include "BKE_collision.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -1573,7 +1574,7 @@ struct SimulationData {
   Array<float3> prev_pos;
   Array<float3> last_iteration_pos;
 
-  ListBase *collider_list;
+  Vector<ColliderCache> collider_list;
 
   int totnode;
   Map<const bke::pbvh::Node *, int> node_state_index;

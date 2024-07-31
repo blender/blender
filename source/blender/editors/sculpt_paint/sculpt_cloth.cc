@@ -552,9 +552,10 @@ static void do_cloth_brush_apply_forces_task(Object &ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-static ListBase *cloth_brush_collider_cache_create(Object &object, Depsgraph *depsgraph)
+static Vector<ColliderCache> cloth_brush_collider_cache_create(Object &object,
+                                                               Depsgraph *depsgraph)
 {
-  ListBase *cache = nullptr;
+  Vector<ColliderCache> cache;
   DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
@@ -573,15 +574,12 @@ static ListBase *cloth_brush_collider_cache_create(Object &object, Depsgraph *de
     if (!cmd->bvhtree) {
       continue;
     }
-    if (cache == nullptr) {
-      cache = MEM_cnew<ListBase>(__func__);
-    }
 
-    ColliderCache *col = MEM_cnew<ColliderCache>(__func__);
-    col->ob = ob;
-    col->collmd = cmd;
+    ColliderCache col{};
+    col.ob = ob;
+    col.collmd = cmd;
     collision_move_object(cmd, 1.0, 0.0, true);
-    BLI_addtail(cache, col);
+    cache.append(col);
   }
   DEG_OBJECT_ITER_END;
   return cache;
@@ -631,7 +629,7 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
   const float4x4 &object_to_world = object.object_to_world();
   const float4x4 &world_to_object = object.world_to_object();
 
-  LISTBASE_FOREACH (ColliderCache *, collider_cache, cloth_sim.collider_list) {
+  for (const ColliderCache &collider_cache : cloth_sim.collider_list) {
     float ray_start[3], ray_normal[3];
     float pos_world_space[3], prev_pos_world_space[3];
 
@@ -644,7 +642,7 @@ static void cloth_brush_solve_collision(Object &object, SimulationData &cloth_si
     normalize_v3(ray_normal);
 
     ClothBrushCollision col;
-    CollisionModifierData *collmd = collider_cache->collmd;
+    CollisionModifierData *collmd = collider_cache.collmd;
     col.col_data = collmd;
     isect_ray_tri_watertight_v3_precalc(&col.isect_precalc, ray_normal);
 
@@ -728,9 +726,7 @@ static void do_cloth_brush_solve_simulation_task(Object &ob,
     cloth_sim.pos[i] += pos_diff * mask_v;
     cloth_sim.pos[i] += cloth_sim.acceleration[i] * mask_v;
 
-    if (cloth_sim.collider_list != nullptr) {
-      cloth_brush_solve_collision(ob, cloth_sim, i);
-    }
+    cloth_brush_solve_collision(ob, cloth_sim, i);
 
     cloth_sim.last_iteration_pos[i] = cloth_sim.pos[i];
 
@@ -1167,12 +1163,7 @@ void do_cloth_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
   do_simulation_step(sd, ob, *ss.cache->cloth_sim, nodes);
 }
 
-SimulationData::~SimulationData()
-{
-  if (this->collider_list) {
-    BKE_collider_cache_free(&this->collider_list);
-  }
-}
+SimulationData::~SimulationData() = default;
 
 void simulation_limits_draw(const uint gpuattr,
                             const Brush &brush,
