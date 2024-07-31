@@ -984,7 +984,11 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 
   BLO_read_struct(reader, bNodeLink, &sock->link);
   sock->typeinfo = nullptr;
+  /* FIXME Avoid using low-level untyped read function here. Although this seems to be only for
+   * versionning code now? Does not seem to be written anymore at least. */
   BLO_read_data_address(reader, &sock->storage);
+  /* FIXME Avoid using low-level untyped read function here. Most likely by just mirroring
+   * #write_node_socket_default_value ? */
   BLO_read_data_address(reader, &sock->default_value);
   BLO_read_string(reader, &sock->default_attribute_name);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
@@ -1094,6 +1098,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
        * `IDTypeInfo.foreach_cache` callback. */
     }
     else {
+      /* FIXME Avoid using low-level untyped read function here. Most likely by just mirroring
+       * the matching logic in #ntreeBlendWrite ? */
       BLO_read_data_address(reader, &node->storage);
     }
 
