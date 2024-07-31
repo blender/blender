@@ -2276,7 +2276,13 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
   }
   pose->ikdata = nullptr;
   if (pose->ikparam != nullptr) {
-    BLO_read_data_address(reader, &pose->ikparam);
+    const char *structname = BKE_pose_ikparam_get_name(pose);
+    if (structname) {
+      pose->ikparam = BLO_read_struct_by_name_array(reader, structname, 1, pose->ikparam);
+    }
+    else {
+      pose->ikparam = nullptr;
+    }
   }
 }
 
