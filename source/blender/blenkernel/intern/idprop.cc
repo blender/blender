@@ -1494,8 +1494,9 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       break;
     }
     case IDP_UI_DATA_TYPE_UNSUPPORTED: {
-      BLO_read_data_address(reader, &prop->ui_data);
       BLI_assert_unreachable();
+      /* Do not attempt to read unknown data. */
+      prop->ui_data = nullptr;
       break;
     }
   }
