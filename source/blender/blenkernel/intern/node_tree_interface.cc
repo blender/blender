@@ -590,7 +590,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       BLO_read_string(reader, &panel.name);
       BLO_read_string(reader, &panel.description);
-      BLO_read_pointer_array(reader, reinterpret_cast<void **>(&panel.items_array));
+      BLO_read_pointer_array(
+          reader, panel.items_num, reinterpret_cast<void **>(&panel.items_array));
       for (const int i : blender::IndexRange(panel.items_num)) {
         BLO_read_struct(reader, NodeEnumItem, &panel.items_array[i]);
         item_read_data(reader, *panel.items_array[i]);

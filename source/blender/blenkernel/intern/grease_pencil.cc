@@ -222,7 +222,9 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &grease_pencil->layers_data, grease_pencil->layers().size());
 
   /* Read materials. */
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&grease_pencil->material_array));
+  BLO_read_pointer_array(reader,
+                         grease_pencil->material_array_num,
+                         reinterpret_cast<void **>(&grease_pencil->material_array));
   /* Read vertex group names. */
   BLO_read_struct_list(reader, bDeformGroup, &grease_pencil->vertex_group_names);
 
@@ -3412,7 +3414,9 @@ void GreasePencil::print_layer_tree()
 
 static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *reader)
 {
-  BLO_read_pointer_array(reader, reinterpret_cast<void **>(&grease_pencil.drawing_array));
+  BLO_read_pointer_array(reader,
+                         grease_pencil.drawing_array_num,
+                         reinterpret_cast<void **>(&grease_pencil.drawing_array));
   for (int i = 0; i < grease_pencil.drawing_array_num; i++) {
     BLO_read_struct(reader, GreasePencilDrawingBase, &grease_pencil.drawing_array[i]);
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];

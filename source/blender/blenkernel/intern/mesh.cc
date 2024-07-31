@@ -327,7 +327,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  BLO_read_pointer_array(reader, (void **)&mesh->mat);
+  BLO_read_pointer_array(reader, mesh->totcol, (void **)&mesh->mat);
   /* This check added for python created meshes. */
   if (!mesh->mat) {
     mesh->totcol = 0;

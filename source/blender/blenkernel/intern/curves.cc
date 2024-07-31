@@ -135,7 +135,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_string(reader, &curves->surface_uv_map);
 
   /* Materials */
-  BLO_read_pointer_array(reader, (void **)&curves->mat);
+  BLO_read_pointer_array(reader, curves->totcol, (void **)&curves->mat);
 }
 
 IDTypeInfo IDType_ID_CV = {

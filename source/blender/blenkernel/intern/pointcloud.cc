@@ -141,7 +141,7 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);
 
   /* Materials */
-  BLO_read_pointer_array(reader, (void **)&pointcloud->mat);
+  BLO_read_pointer_array(reader, pointcloud->totcol, (void **)&pointcloud->mat);
 
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }

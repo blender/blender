@@ -281,7 +281,7 @@ void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **p
 void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p);
 void BLO_read_float3_array(BlendDataReader *reader, int array_size, float **ptr_p);
 void BLO_read_double_array(BlendDataReader *reader, int array_size, double **ptr_p);
-void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p);
+void BLO_read_pointer_array(BlendDataReader *reader, int array_size, void **ptr_p);
 
 /* Read null terminated string. */
 

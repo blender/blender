@@ -131,7 +131,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 {
   MetaBall *mb = (MetaBall *)id;
 
-  BLO_read_pointer_array(reader, (void **)&mb->mat);
+  BLO_read_pointer_array(reader, mb->totcol, (void **)&mb->mat);
 
   BLO_read_struct_list(reader, MetaElem, &(mb->elems));
 

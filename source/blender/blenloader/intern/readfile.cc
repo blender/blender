@@ -4990,7 +4990,7 @@ static void convert_pointer_array_32_to_64(BlendDataReader * /*reader*/,
   }
 }
 
-void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
+void BLO_read_pointer_array(BlendDataReader *reader, const int array_size, void **ptr_p)
 {
   FileData *fd = reader->fd;
 
@@ -5002,9 +5002,6 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
 
   int file_pointer_size = fd->filesdna->pointer_size;
   int current_pointer_size = fd->memsdna->pointer_size;
-
-  /* Over-allocation is fine, but might be better to pass the length as parameter. */
-  int array_size = MEM_allocN_len(orig_array) / file_pointer_size;
 
   void *final_array = nullptr;
 
@@ -5027,7 +5024,7 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p)
     MEM_freeN(orig_array);
   }
   else {
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
 
   *ptr_p = final_array;

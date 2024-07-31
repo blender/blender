@@ -736,7 +736,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_list(reader, bConstraintChannel, &ob->constraintChannels);
   /* >>> XXX deprecated - old animation system */
 
-  BLO_read_pointer_array(reader, (void **)&ob->mat);
+  BLO_read_pointer_array(reader, ob->totcol, (void **)&ob->mat);
   BLO_read_char_array(reader, ob->totcol, &ob->matbits);
 
   /* do it here, below old data gets converted */
@@ -808,7 +808,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     sb->scratch = nullptr;
     /* although not used anymore */
     /* still have to be loaded to be compatible with old files */
-    BLO_read_pointer_array(reader, (void **)&sb->keys);
+    BLO_read_pointer_array(reader, sb->totkey, (void **)&sb->keys);
     if (sb->keys) {
       for (int a = 0; a < sb->totkey; a++) {
         BLO_read_struct(reader, SBVertex, &sb->keys[a]);
