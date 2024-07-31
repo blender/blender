@@ -804,7 +804,39 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
     seq->seq3 = seq->seq2;
   }
 
-  BLO_read_data_address(reader, &seq->effectdata);
+  if (seq->effectdata) {
+    switch (seq->type) {
+      case SEQ_TYPE_COLOR:
+        BLO_read_struct(reader, SolidColorVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_SPEED:
+        BLO_read_struct(reader, SpeedControlVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_WIPE:
+        BLO_read_struct(reader, WipeVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_GLOW:
+        BLO_read_struct(reader, GlowVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_TRANSFORM:
+        BLO_read_struct(reader, TransformVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_GAUSSIAN_BLUR:
+        BLO_read_struct(reader, GaussianBlurVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_TEXT:
+        BLO_read_struct(reader, TextVars, &seq->effectdata);
+        break;
+      case SEQ_TYPE_COLORMIX:
+        BLO_read_struct(reader, ColorMixVars, &seq->effectdata);
+        break;
+      default:
+        BLI_assert_unreachable();
+        seq->effectdata = nullptr;
+        break;
+    }
+  }
+
   BLO_read_struct(reader, Stereo3dFormat, &seq->stereo3d_format);
 
   if (seq->type & SEQ_TYPE_EFFECT) {
@@ -825,7 +857,14 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
 
     /* `SEQ_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
     if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-      BLO_read_data_address(reader, &seq->strip->stripdata);
+      /* FIXME In #SEQ_TYPE_IMAGE case, there is currently no available information about the
+       * lenght of the stored array of #StripElem.
+       *
+       * This is 'not a problem' because the reading code only checks that the loaded buffer is at
+       * least large enough for the requested data (here a single #StripElem item), and always
+       * assign the whole read memory (without any truncating). But relying on this behavior is
+       * weak and should be addressed. */
+      BLO_read_struct(reader, StripElem, &seq->strip->stripdata);
     }
     else {
       seq->strip->stripdata = nullptr;
