@@ -3816,8 +3816,14 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBase *ptcaches)
             if (i == BPHYS_DATA_BOIDS) {
               BLO_write_struct_array(writer, BoidData, pm->totpoint, pm->data[i]);
             }
-            else {
-              BLO_write_raw(writer, MEM_allocN_len(pm->data[i]), pm->data[i]);
+            else if (i == BPHYS_DATA_INDEX) { /* Only 'cache type' to use uint values. */
+              BLO_write_uint32_array(
+                  writer, pm->totpoint, reinterpret_cast<uint32_t *>(&pm->data[i]));
+            }
+            else { /* All other types of caches use (vectors of) floats. */
+              /* data_size returns bytes. */
+              const uint32_t items_num = pm->totpoint * (BKE_ptcache_data_size(i) / sizeof(float));
+              BLO_write_float_array(writer, items_num, reinterpret_cast<float *>(&pm->data[i]));
             }
           }
         }
@@ -3845,11 +3851,13 @@ static void direct_link_pointcache_mem(BlendDataReader *reader, PTCacheMem *pm)
     if (i == BPHYS_DATA_BOIDS) {
       BLO_read_struct_array(reader, BoidData, pm->totpoint, &pm->data[i]);
     }
-    else {
+    else if (i == BPHYS_DATA_INDEX) { /* Only 'cache type' to use uint values. */
+      BLO_read_uint32_array(reader, pm->totpoint, reinterpret_cast<uint32_t **>(&pm->data[i]));
+    }
+    else { /* All other types of caches use (vectors of) floats. */
       /* data_size returns bytes. */
-      int tot = (BKE_ptcache_data_size(i) * pm->totpoint) / sizeof(int);
-      /* the cache saves non-struct data without DNA */
-      BLO_read_int32_array(reader, tot, reinterpret_cast<int **>(&pm->data[i]));
+      const uint32_t items_num = pm->totpoint * (BKE_ptcache_data_size(i) / sizeof(float));
+      BLO_read_float_array(reader, items_num, reinterpret_cast<float **>(&pm->data[i]));
     }
   }
 
