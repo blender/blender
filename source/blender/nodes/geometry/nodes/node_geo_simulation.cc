@@ -354,21 +354,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
       RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
       RNA_int_set(&ptr, "bake_id", ctx.bake->id);
     }
-    if (ctx.is_baked) {
-      char baked_range_label[64];
-      SNPRINTF(baked_range_label,
-               N_("Baked %d - %d"),
-               int(ctx.baked_range->first()),
-               int(ctx.baked_range->last()));
-      uiItemL(layout, baked_range_label, ICON_NONE);
-    }
-    else if (ctx.frame_range.has_value()) {
-      char simulation_range_label[64];
-      SNPRINTF(simulation_range_label,
-               N_("Frames %d - %d"),
-               int(ctx.frame_range->first()),
-               int(ctx.frame_range->last()));
-      uiItemL(layout, simulation_range_label, ICON_NONE);
+    if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
+      uiItemL(col, bake_state_str->c_str(), ICON_NONE);
     }
   }
   {

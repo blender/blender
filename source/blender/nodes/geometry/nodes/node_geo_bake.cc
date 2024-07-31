@@ -617,9 +617,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     }
 
     draw_bake_button(col, ctx);
-    if (ctx.is_baked) {
-      const std::string label = get_baked_string(ctx);
-      uiItemL(col, label.c_str(), ICON_NONE);
+    if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
+      uiItemL(col, bake_state_str->c_str(), ICON_NONE);
     }
   }
 
@@ -775,6 +774,23 @@ std::string get_baked_string(const BakeDrawContext &ctx)
     return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
   }
   return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
+}
+
+std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
+{
+  if (ctx.is_baked) {
+    if (ctx.bake_still) {
+      return fmt::format(RPT_("Baked Frame {}"), ctx.baked_range->first());
+    }
+    return fmt::format(RPT_("Baked {} - {}"), ctx.baked_range->first(), ctx.baked_range->last());
+  }
+  if (ctx.frame_range.has_value()) {
+    if (!ctx.bake_still) {
+      return fmt::format(
+          RPT_("Frames {} - {}"), ctx.frame_range->first(), ctx.frame_range->last());
+    }
+  }
+  return std::nullopt;
 }
 
 static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
