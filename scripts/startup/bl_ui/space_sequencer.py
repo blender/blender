@@ -41,9 +41,8 @@ def draw_color_balance(layout, color_balance):
 
     layout.prop(color_balance, "correction_method")
 
-    layout.use_property_split = False
-
     flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+    flow.use_property_split = False
 
     if color_balance.correction_method == 'LIFT_GAMMA_GAIN':
         col = flow.column()
@@ -2755,19 +2754,6 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
 
             if mod.show_expanded:
                 if sound is None:
-                    row = box.row()
-                    row.prop(mod, "input_mask_type", expand=True)
-
-                    if mod.input_mask_type == 'STRIP':
-                        sequences_object = ed
-                        if ed.meta_stack:
-                            sequences_object = ed.meta_stack[-1]
-                        box.prop_search(mod, "input_mask_strip", sequences_object, "sequences", text="Mask")
-                    else:
-                        box.prop(mod, "input_mask_id")
-                        row = box.row()
-                        row.prop(mod, "mask_time", expand=True)
-
                     if mod.type == 'COLOR_BALANCE':
                         box.prop(mod, "color_multiply")
                         draw_color_balance(box, mod.color_balance)
@@ -2794,6 +2780,22 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                             col.prop(mod, "key")
                             col.prop(mod, "offset")
                             col.prop(mod, "gamma")
+
+                    box.separator(type='LINE')
+
+                    col = box.column()
+                    row = col.row()
+                    row.prop(mod, "input_mask_type", expand=True)
+
+                    if mod.input_mask_type == 'STRIP':
+                        sequences_object = ed
+                        if ed.meta_stack:
+                            sequences_object = ed.meta_stack[-1]
+                        col.prop_search(mod, "input_mask_strip", sequences_object, "sequences", text="Mask")
+                    else:
+                        col.prop(mod, "input_mask_id")
+                        row = col.row()
+                        row.prop(mod, "mask_time", expand=True)
                 else:
                     if mod.type == 'SOUND_EQUALIZER':
                         # eq_row = box.row()
