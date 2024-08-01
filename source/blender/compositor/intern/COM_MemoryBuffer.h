@@ -252,50 +252,7 @@ class MemoryBuffer {
 
   void read_elem_bilinear(float x, float y, float *out) const
   {
-    /* Only clear past +/-1 borders to be able to smooth edges. */
-    if (x <= rect_.xmin - 1.0f || x >= rect_.xmax || y <= rect_.ymin - 1.0f || y >= rect_.ymax) {
-      clear_elem(out);
-      return;
-    }
-
-    if (is_a_single_elem_) {
-      if (x >= rect_.xmin && x < rect_.xmax - 1.0f && y >= rect_.ymin && y < rect_.ymax - 1.0f) {
-        memcpy(out, buffer_, get_elem_bytes_len());
-        return;
-      }
-
-      /* Do sampling at borders to smooth edges. */
-      const float last_x = get_width() - 1.0f;
-      const float rel_x = get_relative_x(x);
-      float single_x = 0.0f;
-      if (rel_x < 0.0f) {
-        single_x = rel_x;
-      }
-      else if (rel_x > last_x) {
-        single_x = rel_x - last_x;
-      }
-
-      const float last_y = get_height() - 1.0f;
-      const float rel_y = get_relative_y(y);
-      float single_y = 0.0f;
-      if (rel_y < 0.0f) {
-        single_y = rel_y;
-      }
-      else if (rel_y > last_y) {
-        single_y = rel_y - last_y;
-      }
-
-      math::interpolate_bilinear_border_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
-      return;
-    }
-
-    math::interpolate_bilinear_border_fl(buffer_,
-                                         out,
-                                         get_width(),
-                                         get_height(),
-                                         num_channels_,
-                                         get_relative_x(x),
-                                         get_relative_y(y));
+    read(out, x, y, PixelSampler::Bilinear);
   }
 
   void read_elem_bicubic_bspline(float x, float y, float *out) const
