@@ -549,14 +549,10 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     uint dummy_index = 0;
     const int mat4x4f_struct_index = DNA_struct_find_index_without_alias_ex(
         sdna, "mat4x4f", &dummy_index);
-    if (mat4x4f_struct_index >= 0) {
-#if 0 /* FIXME: This is using the wrong index. Code should be: */
+    if (mat4x4f_struct_index > 0) {
       SDNA_Struct *struct_info = sdna->structs[mat4x4f_struct_index];
       const int mat4x4f_type_index = struct_info->type_index;
       sdna->types_alignment[mat4x4f_type_index] = alignof(blender::float4x4);
-#else
-      sdna->types_alignment[mat4x4f_struct_index] = alignof(blender::float4x4);
-#endif
     }
   }
 
