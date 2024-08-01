@@ -876,33 +876,6 @@ static void bend_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
   }
 }
 
-static void bend_data_init(const Object &object, SculptBoundary &boundary)
-{
-  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
-   * brush is done. */
-  SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
-
-  switch (pbvh.type()) {
-    case (bke::pbvh::Type::Mesh): {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
-
-      bend_data_init_mesh(positions_eval, vert_normals, boundary);
-      break;
-    }
-    case (bke::pbvh::Type::Grids):
-      bend_data_init_grids(*ss.subdiv_ccg, boundary);
-      break;
-
-    case (bke::pbvh::Type::BMesh):
-      bend_data_init_bmesh(ss.bm, boundary);
-      break;
-  }
-}
-
 static void slide_data_init_mesh(const Span<float3> vert_positions, SculptBoundary &boundary)
 {
   BLI_assert(boundary.edit_info.original_vertex_i.size() ==
@@ -996,29 +969,6 @@ static void slide_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
   }
 }
 
-static void slide_data_init(const Object &object, SculptBoundary &boundary)
-{
-  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
-   * brush is done. */
-  SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
-
-  switch (pbvh.type()) {
-    case (bke::pbvh::Type::Mesh): {
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-
-      slide_data_init_mesh(positions_eval, boundary);
-      break;
-    }
-    case (bke::pbvh::Type::Grids):
-      slide_data_init_grids(*ss.subdiv_ccg, boundary);
-      break;
-    case (bke::pbvh::Type::BMesh):
-      slide_data_init_bmesh(ss.bm, boundary);
-      break;
-  }
-}
-
 static void populate_twist_data(const Span<float3> positions, SculptBoundary &boundary)
 {
   boundary.twist.pivot_position = float3(0);
@@ -1058,29 +1008,6 @@ static void twist_data_init_bmesh(BMesh *bm, SculptBoundary &boundary)
     positions[i] = vert->co;
   }
   populate_twist_data(positions, boundary);
-}
-
-static void twist_data_init(const Object &object, SculptBoundary &boundary)
-{
-  /* TODO: This method is to assist in refactoring, it should be removed when the rest of this
-   * brush is done. */
-  SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
-
-  switch (pbvh.type()) {
-    case (bke::pbvh::Type::Mesh): {
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-
-      twist_data_init_mesh(positions_eval, boundary);
-      break;
-    }
-    case (bke::pbvh::Type::Grids):
-      twist_data_init_grids(*ss.subdiv_ccg, boundary);
-      break;
-    case (bke::pbvh::Type::BMesh):
-      twist_data_init_bmesh(ss.bm, boundary);
-      break;
-  }
 }
 
 /** \} */
@@ -1435,6 +1362,188 @@ static void init_falloff(const Brush &brush, const float radius, SculptBoundary 
   }
 }
 
+static void init_boundary_mesh(Object &object,
+                               const Brush &brush,
+                               const ePaintSymmetryFlags symm_area)
+{
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+
+  const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+
+  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
+  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  if (initial_vert_ref.i == PBVH_REF_NONE) {
+    return;
+  }
+
+  std::optional<int> initial_vert;
+  if (ss.cache->mirror_symmetry_pass == 0) {
+    initial_vert = initial_vert_ref.i;
+  }
+  else {
+    float3 location;
+    flip_v3_v3(location, positions_eval[initial_vert_ref.i], symm_area);
+    initial_vert = nearest_vert_calc_mesh(
+        *ss.pbvh, positions_eval, hide_vert, location, ss.cache->radius_squared, false);
+  }
+
+  if (!initial_vert) {
+    return;
+  }
+
+  ss.cache->boundaries[symm_area] = boundary::data_init_mesh(
+      object, &brush, *initial_vert, ss.cache->initial_radius);
+
+  if (ss.cache->boundaries[symm_area]) {
+    switch (brush.boundary_deform_type) {
+      case BRUSH_BOUNDARY_DEFORM_BEND:
+        bend_data_init_mesh(positions_eval, vert_normals, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_EXPAND:
+        slide_data_init_mesh(positions_eval, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_TWIST:
+        twist_data_init_mesh(positions_eval, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_INFLATE:
+      case BRUSH_BOUNDARY_DEFORM_GRAB:
+        /* Do nothing. These deform modes don't need any extra data to be precomputed. */
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+  }
+}
+
+static void init_boundary_grids(Object &object,
+                                const Brush &brush,
+                                const ePaintSymmetryFlags symm_area)
+{
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  Span<CCGElem *> grids = subdiv_ccg.grids;
+
+  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
+  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  if (initial_vert_ref.i == PBVH_REF_NONE) {
+    return;
+  }
+
+  std::optional<SubdivCCGCoord> initial_vert;
+  if (ss.cache->mirror_symmetry_pass == 0) {
+    initial_vert = SubdivCCGCoord::from_index(key, initial_vert_ref.i);
+  }
+  else {
+    const SubdivCCGCoord active_vert = SubdivCCGCoord::from_index(key, initial_vert_ref.i);
+    float3 location;
+    flip_v3_v3(location,
+               CCG_grid_elem_co(key, grids[active_vert.grid_index], active_vert.x, active_vert.y),
+               symm_area);
+    initial_vert = nearest_vert_calc_grids(
+        pbvh, subdiv_ccg, location, ss.cache->radius_squared, false);
+  }
+
+  if (!initial_vert) {
+    return;
+  }
+
+  ss.cache->boundaries[symm_area] = boundary::data_init_grids(
+      object, &brush, *initial_vert, ss.cache->initial_radius);
+
+  if (ss.cache->boundaries[symm_area]) {
+    switch (brush.boundary_deform_type) {
+      case BRUSH_BOUNDARY_DEFORM_BEND:
+        bend_data_init_grids(subdiv_ccg, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_EXPAND:
+        slide_data_init_grids(subdiv_ccg, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_TWIST:
+        twist_data_init_grids(subdiv_ccg, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_INFLATE:
+      case BRUSH_BOUNDARY_DEFORM_GRAB:
+        /* Do nothing. These deform modes don't need any extra data to be precomputed. */
+        break;
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+  }
+}
+
+static void init_boundary_bmesh(Object &object,
+                                const Brush &brush,
+                                const ePaintSymmetryFlags symm_area)
+{
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+
+  BMesh *bm = ss.bm;
+
+  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
+  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  if (initial_vert_ref.i == PBVH_REF_NONE) {
+    return;
+  }
+
+  std::optional<BMVert *> initial_vert;
+  if (ss.cache->mirror_symmetry_pass == 0) {
+    initial_vert = reinterpret_cast<BMVert *>(initial_vert_ref.i);
+  }
+  else {
+    BMVert *active_vert = reinterpret_cast<BMVert *>(initial_vert_ref.i);
+    float3 location;
+    flip_v3_v3(location, active_vert->co, symm_area);
+    initial_vert = nearest_vert_calc_bmesh(pbvh, location, ss.cache->radius_squared, false);
+  }
+
+  if (!initial_vert) {
+    return;
+  }
+
+  ss.cache->boundaries[symm_area] = boundary::data_init_bmesh(
+      object, &brush, *initial_vert, ss.cache->initial_radius);
+
+  if (ss.cache->boundaries[symm_area]) {
+    switch (brush.boundary_deform_type) {
+      case BRUSH_BOUNDARY_DEFORM_BEND:
+        bend_data_init_bmesh(bm, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_EXPAND:
+        slide_data_init_bmesh(bm, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_TWIST:
+        twist_data_init_bmesh(bm, *ss.cache->boundaries[symm_area]);
+        break;
+      case BRUSH_BOUNDARY_DEFORM_INFLATE:
+      case BRUSH_BOUNDARY_DEFORM_GRAB:
+        /* Do nothing. These deform modes don't need any extra data to be precomputed. */
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+  }
+}
+
 void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1442,39 +1551,19 @@ void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nod
 
   const ePaintSymmetryFlags symm_area = ss.cache->mirror_symmetry_pass;
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-
-    PBVHVertRef initial_vert;
-
-    if (ss.cache->mirror_symmetry_pass == 0) {
-      initial_vert = SCULPT_active_vertex_get(ss);
-    }
-    else {
-      float location[3];
-      flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_area);
-      initial_vert = nearest_vert_calc(ob, location, ss.cache->radius_squared, false);
-    }
-
-    ss.cache->boundaries[symm_area] = data_init(
-        ob, &brush, initial_vert, ss.cache->initial_radius);
-
-    if (ss.cache->boundaries[symm_area]) {
-      switch (brush.boundary_deform_type) {
-        case BRUSH_BOUNDARY_DEFORM_BEND:
-          bend_data_init(ob, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_EXPAND:
-          slide_data_init(ob, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_TWIST:
-          twist_data_init(ob, *ss.cache->boundaries[symm_area]);
-          break;
-        case BRUSH_BOUNDARY_DEFORM_INFLATE:
-        case BRUSH_BOUNDARY_DEFORM_GRAB:
-          /* Do nothing. These deform modes don't need any extra data to be precomputed. */
-          break;
-      }
-
-      init_falloff(brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
+    switch (ss.pbvh->type()) {
+      case bke::pbvh::Type::Mesh:
+        init_boundary_mesh(ob, brush, symm_area);
+        break;
+      case bke::pbvh::Type::Grids:
+        init_boundary_grids(ob, brush, symm_area);
+        break;
+      case bke::pbvh::Type::BMesh:
+        init_boundary_bmesh(ob, brush, symm_area);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
     }
   }
 
