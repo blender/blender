@@ -89,7 +89,13 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
     case CTX_MODE_PAINT_WEIGHT: {
       opacity = is_edit_mode ? 1.0 : pd->overlay.weight_paint_mode_opacity;
       if (opacity > 0.0f) {
-        state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
+        state = DRW_STATE_WRITE_COLOR;
+        const bool is_workbench = (draw_ctx->v3d->shading.type <= OB_SOLID) ||
+                                  BKE_scene_uses_blender_workbench(draw_ctx->scene);
+        /* Support masked transparency in Workbench.
+         * EEVEE can't be supported since depth won't match. */
+        state |= is_workbench ? DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA :
+                                DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH;
         DRW_PASS_CREATE(psl->paint_color_ps, state | pd->clipping_state);
 
         const bool do_shading = draw_ctx->v3d->shading.type != OB_WIRE;
