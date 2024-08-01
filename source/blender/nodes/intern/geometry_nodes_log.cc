@@ -273,8 +273,8 @@ void GeoTreeLog::ensure_node_warnings()
   }
   for (GeoTreeLogger *tree_logger : tree_loggers_) {
     for (const GeoTreeLogger::WarningWithNode &warnings : tree_logger->node_warnings) {
-      this->nodes.lookup_or_add_default(warnings.node_id).warnings.append(warnings.warning);
-      this->all_warnings.append(warnings.warning);
+      this->nodes.lookup_or_add_default(warnings.node_id).warnings.add(warnings.warning);
+      this->all_warnings.add(warnings.warning);
     }
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
@@ -285,9 +285,10 @@ void GeoTreeLog::ensure_node_warnings()
     child_log.ensure_node_warnings();
     const std::optional<int32_t> &parent_node_id = child_log.tree_loggers_[0]->parent_node_id;
     if (parent_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*parent_node_id).warnings.extend(child_log.all_warnings);
+      this->nodes.lookup_or_add_default(*parent_node_id)
+          .warnings.add_multiple(child_log.all_warnings);
     }
-    this->all_warnings.extend(child_log.all_warnings);
+    this->all_warnings.add_multiple(child_log.all_warnings);
   }
   reduced_node_warnings_ = true;
 }
