@@ -263,12 +263,11 @@ static void calc_brush_simulation_falloff(const Brush &brush,
 #define CLOTH_DEFORMATION_TARGET_STRENGTH 0.01f
 #define CLOTH_DEFORMATION_GRAB_STRENGTH 0.1f
 
-static void cloth_brush_add_length_constraint(const SculptSession &ss,
-                                              SimulationData &cloth_sim,
+static void cloth_brush_add_length_constraint(SimulationData &cloth_sim,
                                               const int node_index,
                                               const int v1,
                                               const int v2,
-                                              const bool use_persistent)
+                                              const Span<float3> init_positions)
 {
   LengthConstraint length_constraint{};
 
@@ -282,17 +281,7 @@ static void cloth_brush_add_length_constraint(const SculptSession &ss,
 
   length_constraint.type = SCULPT_CLOTH_CONSTRAINT_STRUCTURAL;
 
-  PBVHVertRef vertex1 = BKE_pbvh_index_to_vertex(*ss.pbvh, v1);
-  PBVHVertRef vertex2 = BKE_pbvh_index_to_vertex(*ss.pbvh, v2);
-
-  if (use_persistent) {
-    length_constraint.length = math::distance(
-        float3(SCULPT_vertex_persistent_co_get(ss, vertex1)),
-        float3(SCULPT_vertex_persistent_co_get(ss, vertex2)));
-  }
-  else {
-    length_constraint.length = math::distance(cloth_sim.init_pos[v1], cloth_sim.init_pos[v2]);
-  }
+  length_constraint.length = math::distance(init_positions[v1], init_positions[v2]);
   length_constraint.strength = 1.0f;
 
   cloth_sim.length_constraints.append(length_constraint);
@@ -371,6 +360,7 @@ static void add_constraints_for_verts(const Object &object,
                                       const Brush *brush,
                                       const float3 &cloth_sim_initial_location,
                                       const float cloth_sim_radius,
+                                      const Span<float3> init_positions,
                                       const int node_index,
                                       const Span<int> verts,
                                       const Span<Vector<int>> vert_neighbors,
@@ -384,8 +374,6 @@ static void add_constraints_for_verts(const Object &object,
                                        brush->flag2 & BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY &&
                                        brush->cloth_simulation_area_type !=
                                            BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC;
-
-  const bool use_persistent = brush != nullptr && brush->flag & BRUSH_PERSISTENT;
 
   /* Brush can be nullptr in tools that use the solver without relying of constraints with
    * deformation positions. */
@@ -406,7 +394,7 @@ static void add_constraints_for_verts(const Object &object,
 
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
-    const float len_squared = math::distance_squared(cloth_sim.init_pos[vert],
+    const float len_squared = math::distance_squared(init_positions[vert],
                                                      cloth_sim_initial_location);
     if (len_squared < cloth_sim_radius_squared) {
       if (cloth_sim.softbody_strength > 0.0f) {
@@ -421,16 +409,14 @@ static void add_constraints_for_verts(const Object &object,
        * vertices, but constraints are repeated taking more memory than necessary. */
       for (const int neighbor : neighbors) {
         if (created_length_constraints.add({vert, neighbor})) {
-          cloth_brush_add_length_constraint(
-              ss, cloth_sim, node_index, vert, neighbor, use_persistent);
+          cloth_brush_add_length_constraint(cloth_sim, node_index, vert, neighbor, init_positions);
         }
       }
-      for (const int neigbor_a : neighbors) {
-        for (const int neighbor_b : neighbors) {
-          if (neigbor_a != neighbor_b) {
-            if (created_length_constraints.add({neigbor_a, neighbor_b})) {
-              cloth_brush_add_length_constraint(
-                  ss, cloth_sim, node_index, neigbor_a, neighbor_b, use_persistent);
+      for (const int a : neighbors) {
+        for (const int b : neighbors) {
+          if (a != b) {
+            if (created_length_constraints.add({a, b})) {
+              cloth_brush_add_length_constraint(cloth_sim, node_index, a, b, init_positions);
             }
           }
         }
@@ -473,7 +459,7 @@ static void add_constraints_for_verts(const Object &object,
 
     if (pin_simulation_boundary) {
       const float sim_falloff = cloth_brush_simulation_falloff_get(
-          *brush, ss.cache->initial_radius, ss.cache->location, cloth_sim.init_pos[vert]);
+          *brush, ss.cache->initial_radius, ss.cache->location, init_positions[vert]);
       /* Vertex is inside the area of the simulation without any falloff applied. */
       if (sim_falloff < 1.0f) {
         /* Create constraints with more strength the closer the vertex is to the simulation
@@ -521,6 +507,19 @@ void ensure_nodes_constraints(const Sculpt &sd,
                                                                   bke::AttrDomain::Point);
       const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
                                                                   bke::AttrDomain::Face);
+
+      Span<float3> init_positions;
+      VArraySpan<float3> persistent_position;
+      if (brush != nullptr && brush->flag & BRUSH_PERSISTENT) {
+        persistent_position = *attributes.lookup<float3>(".sculpt_persistent_co",
+                                                         bke::AttrDomain::Point);
+      }
+      if (persistent_position.is_empty()) {
+        init_positions = cloth_sim.init_pos;
+      }
+      else {
+        init_positions = persistent_position;
+      }
       for (const int i : nodes.index_range()) {
         const Span<int> verts = hide::node_visible_verts(*nodes[i], hide_vert, vert_indices);
         vert_neighbors.resize(verts.size());
@@ -530,6 +529,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
                                   brush,
                                   initial_location,
                                   radius,
+                                  init_positions,
                                   cloth_sim.node_state_index.lookup(nodes[i]),
                                   verts,
                                   vert_neighbors,
@@ -551,6 +551,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
                                   brush,
                                   initial_location,
                                   radius,
+                                  cloth_sim.init_pos,
                                   cloth_sim.node_state_index.lookup(nodes[i]),
                                   verts,
                                   vert_neighbors,
@@ -572,6 +573,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
                                   brush,
                                   initial_location,
                                   radius,
+                                  cloth_sim.init_pos,
                                   cloth_sim.node_state_index.lookup(nodes[i]),
                                   verts,
                                   vert_neighbors,

@@ -207,15 +207,6 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
   return {};
 }
 
-const float *SCULPT_vertex_persistent_co_get(const SculptSession &ss, PBVHVertRef vertex)
-{
-  if (ss.attrs.persistent_co) {
-    return (const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.persistent_co);
-  }
-
-  return SCULPT_vertex_co_get(ss, vertex);
-}
-
 const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   if (ss.pbvh->type() == blender::bke::pbvh::Type::Mesh) {
