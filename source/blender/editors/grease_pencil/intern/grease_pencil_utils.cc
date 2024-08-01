@@ -927,6 +927,58 @@ IndexMask retrieve_visible_points(Object &object,
       });
 }
 
+IndexMask retrieve_visible_bezier_handle_points(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                const int layer_index,
+                                                IndexMaskMemory &memory)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return IndexMask(0);
+  }
+
+  const Array<int> point_to_curve_map = curves.point_to_curve_map();
+  const VArray<int8_t> types = curves.curve_types();
+
+  const VArray<bool> selected_point = *curves.attributes().lookup_or_default<bool>(
+      ".selection", bke::AttrDomain::Point, true);
+  const VArray<bool> selected_left = *curves.attributes().lookup_or_default<bool>(
+      ".selection_handle_left", bke::AttrDomain::Point, true);
+  const VArray<bool> selected_right = *curves.attributes().lookup_or_default<bool>(
+      ".selection_handle_right", bke::AttrDomain::Point, true);
+
+  const IndexMask editable_points = ed::greasepencil::retrieve_editable_points(
+      object, drawing, layer_index, memory);
+
+  const IndexMask selected_points = IndexMask::from_predicate(
+      curves.points_range(), GrainSize(4096), memory, [&](const int64_t point_i) {
+        const bool is_selected = selected_point[point_i] || selected_left[point_i] ||
+                                 selected_right[point_i];
+        const bool is_bezier = types[point_to_curve_map[point_i]] == CURVE_TYPE_BEZIER;
+        return is_selected && is_bezier;
+      });
+
+  return IndexMask::from_intersection(editable_points, selected_points, memory);
+}
+
+IndexMask retrieve_visible_bezier_handle_elements(Object &object,
+                                                  const bke::greasepencil::Drawing &drawing,
+                                                  const int layer_index,
+                                                  const bke::AttrDomain selection_domain,
+                                                  IndexMaskMemory &memory)
+{
+  if (selection_domain == bke::AttrDomain::Curve) {
+    return ed::greasepencil::retrieve_editable_and_selected_strokes(
+        object, drawing, layer_index, memory);
+  }
+  else if (selection_domain == bke::AttrDomain::Point) {
+    return ed::greasepencil::retrieve_visible_bezier_handle_points(
+        object, drawing, layer_index, memory);
+  }
+  return {};
+}
+
 IndexMask retrieve_editable_and_selected_strokes(Object &object,
                                                  const bke::greasepencil::Drawing &drawing,
                                                  int layer_index,

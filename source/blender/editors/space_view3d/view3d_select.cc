@@ -3251,9 +3251,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           if (elements.is_empty()) {
             continue;
           }
-          /* Bezier handles are only visible when the control point is selected. */
           const IndexMask visible_handle_elements =
-              ed::greasepencil::retrieve_editable_and_selected_elements(
+              ed::greasepencil::retrieve_visible_bezier_handle_elements(
                   *vc.obedit, info.drawing, info.layer_index, selection_domain, memory);
           const bke::CurvesGeometry &curves = info.drawing.strokes();
           const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
@@ -3262,10 +3261,10 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           const auto range_consumer = [&](const IndexRange range,
                                           const Span<float3> positions,
                                           const StringRef selection_attribute_name) {
-            /* The control point must be visible for the Bezier handle attributes. */
-            const IndexMask mask = (selection_attribute_name != ".selection") ?
-                                       visible_handle_elements.slice_content(range) :
-                                       elements.slice_content(range);
+            const IndexMask mask = ((selection_attribute_name == ".selection") ?
+                                        elements :
+                                        visible_handle_elements)
+                                       .slice_content(range);
 
             std::optional<ed::curves::FindClosestData> new_closest_elem =
                 ed::curves::closest_elem_find_screen_space(vc,
