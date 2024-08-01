@@ -406,6 +406,33 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
   BKE_pbvh_vertex_iter_end;
 }
 
+void ensure_nodes_constraints(const Sculpt &sd,
+                              const Object &ob,
+                              const Span<bke::pbvh::Node *> nodes,
+                              SimulationData &cloth_sim,
+                              const float3 &initial_location,
+                              const float radius)
+{
+  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
+
+  /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
+   * storing the constraints per node. */
+  /* Currently all constrains are added to the same global array which can't be accessed from
+   * different threads. */
+
+  Set<OrderedEdge> created_length_constraints;
+
+  for (const int i : nodes.index_range()) {
+    do_cloth_brush_build_constraints_task(const_cast<Object &>(ob),
+                                          brush,
+                                          cloth_sim,
+                                          initial_location,
+                                          radius,
+                                          nodes[i],
+                                          created_length_constraints);
+  }
+}
+
 static void cloth_brush_apply_force_to_vertex(SimulationData &cloth_sim,
                                               const float3 &force,
                                               const int vertex_index)
@@ -1234,33 +1261,6 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
   }
 
   return cloth_sim;
-}
-
-void ensure_nodes_constraints(const Sculpt &sd,
-                              const Object &ob,
-                              const Span<bke::pbvh::Node *> nodes,
-                              SimulationData &cloth_sim,
-                              const float3 &initial_location,
-                              const float radius)
-{
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-
-  /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
-   * storing the constraints per node. */
-  /* Currently all constrains are added to the same global array which can't be accessed from
-   * different threads. */
-
-  Set<OrderedEdge> created_length_constraints;
-
-  for (const int i : nodes.index_range()) {
-    do_cloth_brush_build_constraints_task(const_cast<Object &>(ob),
-                                          brush,
-                                          cloth_sim,
-                                          initial_location,
-                                          radius,
-                                          nodes[i],
-                                          created_length_constraints);
-  }
 }
 
 void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim)
