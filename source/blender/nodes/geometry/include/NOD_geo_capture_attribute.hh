@@ -55,7 +55,8 @@ struct CaptureAttributeItemsAccessor {
 
   static bool supports_socket_type(const eNodeSocketDatatype socket_type)
   {
-    return bke::socket_type_to_custom_data_type(socket_type).has_value();
+    return bke::socket_type_to_custom_data_type(socket_type).has_value() &&
+           socket_type != SOCK_STRING;
   }
 
   static void init_with_socket_type_and_name(bNode &node,
