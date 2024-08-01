@@ -347,6 +347,12 @@ struct StrokeCache {
   /* Position of the mouse event in screen space, not modified by the stroke type. */
   float2 mouse_event;
 
+  /**
+   * Used by the color attribute paint brush tool to store the brush color during a stroke and
+   * composite it over the original color.
+   */
+  Array<float4> mix_colors;
+
   Array<float4> prev_colors;
   GArray<> prev_colors_vpaint;
 

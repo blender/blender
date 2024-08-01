@@ -251,6 +251,7 @@ struct LocalData {
   Vector<float> distances;
   Vector<float4> colors;
   Vector<float4> new_colors;
+  Vector<float4> mix_colors;
   Vector<Vector<int>> vert_neighbors;
 };
 
@@ -346,6 +347,7 @@ static void do_paint_brush_task(Object &object,
                                 const float4 wet_mix_sampled_color,
                                 bke::pbvh::Node &node,
                                 LocalData &tls,
+                                const MutableSpan<float4> mix_colors,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
   const SculptSession &ss = *object.sculpt;
@@ -410,7 +412,7 @@ static void do_paint_brush_task(Object &object,
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(object, node);
 
-  PBVHColorBufferNode *color_buffer = BKE_pbvh_node_color_buffer_get(&node);
+  MutableSpan<float4> color_buffer = gather_data_mesh(mix_colors.as_span(), verts, tls.mix_colors);
 
   if (brush.flag & BRUSH_USE_GRADIENT) {
     switch (brush.gradient_stroke_mode) {
@@ -449,16 +451,18 @@ static void do_paint_brush_task(Object &object,
     /* Interpolate with the wet_mix color for wet paint mixing. */
     blend_color_interpolate_float(
         paint_color, paint_color, wet_mix_color, ss.cache->paint_brush.wet_mix);
-    blend_color_mix_float(color_buffer->color[i], color_buffer->color[i], paint_color);
+    blend_color_mix_float(color_buffer[i], color_buffer[i], paint_color);
 
     /* Final mix over the original color using brush alpha. We apply auto-making again
      * at this point to avoid washing out non-binary masking modes like cavity masking. */
     float automasking = auto_mask.is_empty() ? 1.0f : auto_mask[i];
-    const float4 buffer_color = float4(color_buffer->color[i]) * alpha * automasking;
+    const float4 buffer_color = float4(color_buffer[i]) * alpha * automasking;
 
     IMB_blend_color_float(new_colors[i], orig_colors[i], buffer_color, IMB_BlendMode(brush.blend));
     new_colors[i] = math::clamp(new_colors[i], 0.0f, 1.0f);
   }
+
+  scatter_data_mesh(color_buffer.as_span(), verts, mix_colors);
 
   for (const int i : verts.index_range()) {
     color_vert_set(faces,
@@ -496,7 +500,6 @@ static void do_sample_wet_paint_task(const Object &object,
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-
   fill_factor_from_hide(mesh, verts, factors);
 
   tls.distances.resize(verts.size());
@@ -634,6 +637,10 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
     }
   }
 
+  if (ss.cache->mix_colors.is_empty()) {
+    ss.cache->mix_colors = Array<float4>(mesh.verts_num, float4(0));
+  }
+
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
@@ -649,6 +656,7 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
                           wet_color,
                           *nodes[i],
                           tls,
+                          ss.cache->mix_colors,
                           color_attribute);
     }
   });
