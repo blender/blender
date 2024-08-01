@@ -199,8 +199,7 @@ static void cloth_brush_add_length_constraint(const SculptSession &ss,
         float3(SCULPT_vertex_persistent_co_get(ss, vertex2)));
   }
   else {
-    length_constraint.length = math::distance(float3(SCULPT_vertex_co_get(ss, vertex1)),
-                                              float3(SCULPT_vertex_co_get(ss, vertex2)));
+    length_constraint.length = math::distance(cloth_sim.init_pos[v1], cloth_sim.init_pos[v2]);
   }
   length_constraint.strength = 1.0f;
 
