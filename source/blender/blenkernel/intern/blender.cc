@@ -118,26 +118,21 @@ static void blender_version_init()
     BLI_assert_msg(0, "Invalid Blender version cycle");
   }
 
-  const char *version_patch = "";
-  if (!STREQ(STRINGIFY(BLENDER_VERSION_PATCH), "0")) {
-    version_patch = "." STRINGIFY(BLENDER_VERSION_PATCH);
-  }
-
   const char *version_suffix = BKE_blender_version_is_lts() ? " LTS" : "";
 
   SNPRINTF(blender_version_string,
-           "%d.%01d%s%s%s",
+           "%d.%01d.%d%s%s",
            BLENDER_VERSION / 100,
            BLENDER_VERSION % 100,
-           version_patch,
+           BLENDER_VERSION_PATCH,
            version_suffix,
            version_cycle);
 
   SNPRINTF(blender_version_string_compact,
-           "%d.%01d%s%s",
+           "%d.%01d.%d%s",
            BLENDER_VERSION / 100,
            BLENDER_VERSION % 100,
-           version_patch,
+           BLENDER_VERSION_PATCH,
            version_cycle_compact);
 }
 
