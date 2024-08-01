@@ -2249,6 +2249,10 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
       col_bone = col_head = col_tail = ctx->const_color;
     }
     else {
+      if (bone.is_editbone() && bone.flag() & BONE_TIPSEL) {
+        col_tail = &G_draw.block.color_vertex_select.x;
+      }
+
       /* Draw root point if we are not connected to our parent. */
       if (!(bone.has_parent() && (boneflag & BONE_CONNECTED))) {
 
