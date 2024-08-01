@@ -887,9 +887,9 @@ static void ed_workspace_status_text_item(WorkSpace *workspace, std::string text
   }
 }
 
-static void ed_workspace_status_mouse_item(WorkSpace *workspace,
-                                           const int icon,
-                                           const bool inverted = false)
+static void ed_workspace_status_icon_item(WorkSpace *workspace,
+                                          const int icon,
+                                          const bool inverted = false)
 {
   if (icon) {
     ed_workspace_status_item(workspace, {}, icon, 0.0f, inverted);
@@ -908,8 +908,8 @@ static void ed_workspace_status_mouse_item(WorkSpace *workspace,
 
 void WorkspaceStatus::item(std::string text, const int icon1, const int icon2)
 {
-  ed_workspace_status_mouse_item(workspace_, icon1);
-  ed_workspace_status_mouse_item(workspace_, icon2);
+  ed_workspace_status_icon_item(workspace_, icon1);
+  ed_workspace_status_icon_item(workspace_, icon2);
   ed_workspace_status_text_item(workspace_, std::move(text));
 }
 
@@ -927,8 +927,8 @@ void WorkspaceStatus::item_bool(std::string text,
                                 const int icon1,
                                 const int icon2)
 {
-  ed_workspace_status_mouse_item(workspace_, icon1, inverted);
-  ed_workspace_status_mouse_item(workspace_, icon2, inverted);
+  ed_workspace_status_icon_item(workspace_, icon1, inverted);
+  ed_workspace_status_icon_item(workspace_, icon2, inverted);
   ed_workspace_status_text_item(workspace_, std::move(text));
 }
 
@@ -958,7 +958,7 @@ void WorkspaceStatus::opmodal(std::string text,
       if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
       }
-      ed_workspace_status_mouse_item(workspace_, icon, inverted);
+      ed_workspace_status_icon_item(workspace_, icon, inverted);
       ed_workspace_status_text_item(workspace_, std::move(text));
     }
   }
