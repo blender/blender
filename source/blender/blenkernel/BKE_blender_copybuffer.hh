@@ -14,24 +14,8 @@ struct Main;
 struct ReportList;
 struct bContext;
 
-/* Copy-buffer (wrapper for BKE_blendfile_write_partial). */
+/** Paste-buffer helper API. For copy, use directly the #PartialWriteContext API. */
 
-/**
- * Initialize a copy operation.
- */
-void BKE_copybuffer_copy_begin(Main *bmain_src);
-/**
- * Mark an ID to be copied. Should only be called after a call to #BKE_copybuffer_copy_begin.
- */
-void BKE_copybuffer_copy_tag_ID(ID *id);
-/**
- * Finalize a copy operation into given .blend file 'buffer'.
- *
- * \param filename: Full path to the .blend file used as copy/paste buffer.
- *
- * \return true on success, false otherwise.
- */
-bool BKE_copybuffer_copy_end(Main *bmain_src, const char *filename, ReportList *reports);
 /**
  * Paste data-blocks from the given .blend file 'buffer' (i.e. append them).
  *

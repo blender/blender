@@ -17,7 +17,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_blender_copybuffer.hh" /* own include */
-#include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
@@ -31,30 +30,8 @@
 #include "IMB_colormanagement.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Copy/Paste `.blend`, partial saves.
+/** \name Paste API based on 'partial' blendfiles.
  * \{ */
-
-void BKE_copybuffer_copy_begin(Main *bmain_src)
-{
-  BKE_blendfile_write_partial_begin(bmain_src);
-}
-
-void BKE_copybuffer_copy_tag_ID(ID *id)
-{
-  BKE_blendfile_write_partial_tag_ID(id, true);
-}
-
-bool BKE_copybuffer_copy_end(Main *bmain_src, const char *filename, ReportList *reports)
-{
-  const int write_flags = 0;
-  const eBLO_WritePathRemap remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
-
-  bool retval = BKE_blendfile_write_partial(bmain_src, filename, write_flags, remap_mode, reports);
-
-  BKE_blendfile_write_partial_end(bmain_src);
-
-  return retval;
-}
 
 /* Common helper for paste functions. */
 static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
