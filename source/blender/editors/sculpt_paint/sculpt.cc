@@ -5938,8 +5938,7 @@ static void sculpt_stroke_update_step(bContext *C,
    *
    * For some brushes, flushing is done in the brush code itself.
    */
-  if ((ELEM(brush.sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_CLOTH) ||
-       ss.pbvh->type() != bke::pbvh::Type::Mesh))
+  if ((ELEM(brush.sculpt_tool, SCULPT_TOOL_BOUNDARY) || ss.pbvh->type() != bke::pbvh::Type::Mesh))
   {
     if (ss.deform_modifiers_active) {
       SCULPT_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush.sculpt_tool));
