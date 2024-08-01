@@ -1526,7 +1526,6 @@ struct LengthConstraint {
 
 struct SimulationData {
   Vector<LengthConstraint> length_constraints;
-  Set<OrderedEdge> created_length_constraints;
   Array<float> length_constraint_tweak;
 
   /* Position anchors for deformation brushes. These positions are modified by the brush and the

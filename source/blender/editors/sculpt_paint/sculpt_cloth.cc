@@ -171,13 +171,6 @@ static void calc_brush_simulation_falloff(const Brush &brush,
 #define CLOTH_DEFORMATION_TARGET_STRENGTH 0.01f
 #define CLOTH_DEFORMATION_GRAB_STRENGTH 0.1f
 
-static bool cloth_brush_sim_has_length_constraint(SimulationData &cloth_sim,
-                                                  const int v1,
-                                                  const int v2)
-{
-  return cloth_sim.created_length_constraints.contains({v1, v2});
-}
-
 static void cloth_brush_add_length_constraint(const SculptSession &ss,
                                               SimulationData &cloth_sim,
                                               const int node_index,
@@ -212,9 +205,6 @@ static void cloth_brush_add_length_constraint(const SculptSession &ss,
   length_constraint.strength = 1.0f;
 
   cloth_sim.length_constraints.append(length_constraint);
-
-  /* Add the constraint to the #GSet to avoid creating it again. */
-  cloth_sim.created_length_constraints.add({v1, v2});
 }
 
 static void cloth_brush_add_softbody_constraint(SimulationData &cloth_sim,
@@ -291,7 +281,8 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
                                                   SimulationData &cloth_sim,
                                                   const float3 &cloth_sim_initial_location,
                                                   const float cloth_sim_radius,
-                                                  bke::pbvh::Node *node)
+                                                  bke::pbvh::Node *node,
+                                                  Set<OrderedEdge> &created_length_constraints)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -354,11 +345,15 @@ static void do_cloth_brush_build_constraints_task(Object &ob,
 
       for (int c_i = 0; c_i < tot_indices; c_i++) {
         for (int c_j = 0; c_j < tot_indices; c_j++) {
-          if (c_i != c_j && !cloth_brush_sim_has_length_constraint(
-                                cloth_sim, build_indices[c_i], build_indices[c_j]))
-          {
-            cloth_brush_add_length_constraint(
-                ss, cloth_sim, node_index, build_indices[c_i], build_indices[c_j], use_persistent);
+          if (c_i != c_j) {
+            if (created_length_constraints.add({build_indices[c_i], build_indices[c_j]})) {
+              cloth_brush_add_length_constraint(ss,
+                                                cloth_sim,
+                                                node_index,
+                                                build_indices[c_i],
+                                                build_indices[c_j],
+                                                use_persistent);
+            }
           }
         }
       }
@@ -1250,14 +1245,17 @@ void ensure_nodes_constraints(const Sculpt &sd,
   /* Currently all constrains are added to the same global array which can't be accessed from
    * different threads. */
 
-  cloth_sim.created_length_constraints.clear();
+  Set<OrderedEdge> created_length_constraints;
 
   for (const int i : nodes.index_range()) {
-    do_cloth_brush_build_constraints_task(
-        const_cast<Object &>(ob), brush, cloth_sim, initial_location, radius, nodes[i]);
+    do_cloth_brush_build_constraints_task(const_cast<Object &>(ob),
+                                          brush,
+                                          cloth_sim,
+                                          initial_location,
+                                          radius,
+                                          nodes[i],
+                                          created_length_constraints);
   }
-
-  cloth_sim.created_length_constraints.clear_and_shrink();
 }
 
 void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim)
