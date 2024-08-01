@@ -316,18 +316,7 @@ class MemoryBuffer {
 
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
   {
-    switch (sampler) {
-      case PixelSampler::Nearest:
-        read_elem_checked(x, y, out);
-        break;
-      case PixelSampler::Bilinear:
-        read_elem_bilinear(x, y, out);
-        break;
-      case PixelSampler::Bicubic:
-        /* Using same method as GPU compositor. Final results may still vary. */
-        read_elem_bicubic_bspline(x, y, out);
-        break;
-    }
+    read(out, x, y, sampler);
   }
 
   void read_elem_filtered(
@@ -534,17 +523,59 @@ class MemoryBuffer {
                    MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
                    MemoryBufferExtend extend_y = MemoryBufferExtend::Clip) const
   {
-    bool clip_x = (extend_x == MemoryBufferExtend::Clip && (x < rect_.xmin || x >= rect_.xmax));
-    bool clip_y = (extend_y == MemoryBufferExtend::Clip && (y < rect_.ymin || y >= rect_.ymax));
-    if (clip_x || clip_y) {
-      /* clip result outside rect is zero */
-      memset(result, 0, num_channels_ * sizeof(float));
+    // Extend is completely ignored for constants. This may need to be fixed in the future.
+    if (is_a_single_elem_) {
+      memcpy(result, buffer_, get_elem_bytes_len());
+      return;
     }
-    else {
-      float u = x;
-      float v = y;
-      this->wrap_pixel(u, v, extend_x, extend_y);
-      this->read_elem_sampled(u, v, sampler, result);
+
+    this->wrap_pixel(x, y, extend_x, extend_y);
+
+    if (sampler == PixelSampler::Nearest) {
+      read_elem_checked(int(floorf(x + 0.5f)), int(floorf(y + 0.5f)), result);
+      return;
+    }
+
+    x = get_relative_x(x);
+    y = get_relative_y(y);
+    const float w = get_width();
+    const float h = get_height();
+
+    // compute (linear interpolation) intersection with Clip
+    float mult = 1.0f;
+    if (extend_x == MemoryBufferExtend::Clip) {
+      mult = std::min(x + 1.0f, w - x);
+    }
+    if (extend_y == MemoryBufferExtend::Clip) {
+      mult = std::min(mult, std::min(y + 1.0f, h - y));
+    }
+    if (mult <= 0.0f) {
+      clear_elem(result);
+      return;
+    }
+
+    if (sampler == PixelSampler::Bilinear) {
+      // Sample using Extend or Repeat
+      math::interpolate_bilinear_wrap_fl(buffer_,
+                                         result,
+                                         w,
+                                         h,
+                                         num_channels_,
+                                         x,
+                                         y,
+                                         extend_x == MemoryBufferExtend::Repeat,
+                                         extend_y == MemoryBufferExtend::Repeat);
+    }
+    else {  // PixelSampler::Bicubic
+      // Sample using Extend (Repeat is not implemented by interpolate_cubic_bspline)
+      math::interpolate_cubic_bspline_fl(buffer_, result, w, h, num_channels_, x, y);
+    }
+
+    // Multiply by Clip intersection
+    if (mult < 1.0f) {
+      for (int i = 0; i < num_channels_; ++i) {
+        result[i] *= mult;
+      }
     }
   }
   void write_pixel(int x, int y, const float color[4]);
