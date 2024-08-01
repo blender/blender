@@ -375,58 +375,6 @@ class MemoryBuffer {
    */
   MemoryBuffer *inflate() const;
 
-  inline void wrap_pixel(int &x,
-                         int &y,
-                         MemoryBufferExtend extend_x,
-                         MemoryBufferExtend extend_y) const
-  {
-    const int w = get_width();
-    const int h = get_height();
-    x = x - rect_.xmin;
-    y = y - rect_.ymin;
-
-    switch (extend_x) {
-      case MemoryBufferExtend::Clip:
-        break;
-      case MemoryBufferExtend::Extend:
-        if (x < 0) {
-          x = 0;
-        }
-        if (x >= w) {
-          x = w - 1;
-        }
-        break;
-      case MemoryBufferExtend::Repeat:
-        x %= w;
-        if (x < 0) {
-          x += w;
-        }
-        break;
-    }
-
-    switch (extend_y) {
-      case MemoryBufferExtend::Clip:
-        break;
-      case MemoryBufferExtend::Extend:
-        if (y < 0) {
-          y = 0;
-        }
-        if (y >= h) {
-          y = h - 1;
-        }
-        break;
-      case MemoryBufferExtend::Repeat:
-        y %= h;
-        if (y < 0) {
-          y += h;
-        }
-        break;
-    }
-
-    x = x + rect_.xmin;
-    y = y + rect_.ymin;
-  }
-
   inline void wrap_pixel(float &x,
                          float &y,
                          MemoryBufferExtend extend_x,
