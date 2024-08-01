@@ -2599,6 +2599,13 @@ static int copy_material_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   Main *bmain = CTX_data_main(C);
 
+  /* Store some status info that may be affected by partial write process. */
+  const bool is_fake_user = (ma->id.flag & LIB_FAKEUSER) != 0;
+  const int usercount = ma->id.us;
+  if (!is_fake_user) {
+    id_fake_user_set(&ma->id);
+  }
+
   /* Mark is the material to use (others may be expanded). */
   BKE_copybuffer_copy_begin(bmain);
 
@@ -2606,6 +2613,12 @@ static int copy_material_exec(bContext *C, wmOperator *op)
 
   material_copybuffer_filepath_get(filepath, sizeof(filepath));
   BKE_copybuffer_copy_end(bmain, filepath, op->reports);
+
+  /* Restore some status info that may be affected by partial write process. */
+  if (!is_fake_user) {
+    id_fake_user_clear(&ma->id);
+  }
+  ma->id.us = usercount;
 
   /* We are all done! */
   BKE_report(op->reports, RPT_INFO, "Copied material to internal clipboard");
