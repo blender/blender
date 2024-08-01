@@ -18,6 +18,7 @@
 #include "BLI_array_utils.h"
 #include "BLI_color.hh"
 #include "BLI_color_mix.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
@@ -74,6 +75,7 @@
 #include "BKE_ccg.hh"
 #include "bmesh.hh"
 
+#include "mesh_brush_common.hh"
 #include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
 
@@ -1012,6 +1014,19 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   return true;
 }
 
+static void filter_factors_with_selection(const Span<bool> select_vert,
+                                          const Span<int> verts,
+                                          const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  for (const int i : verts.index_range()) {
+    if (!select_vert[verts[i]]) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
 static void do_vpaint_brush_blur_loops(const bContext *C,
                                        const VPaint &vp,
                                        VPaintData &vpd,
@@ -1021,12 +1036,11 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
+  const StrokeCache &cache = *ss.cache;
 
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
-  const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
@@ -1035,9 +1049,6 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  SculptBrushTest test_init;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
@@ -1046,6 +1057,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1058,21 +1070,36 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
     select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
   }
 
+  struct LocalData {
+    Vector<float> factors;
+    Vector<float> distances;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
-    SculptBrushTest test = test_init;
+    LocalData &tls = all_tls.local();
     for (const int i : range) {
-      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-        if (!hide_vert.is_empty() && hide_vert[vert]) {
-          continue;
-        }
-        if (!select_vert.is_empty() && !select_vert[vert]) {
-          continue;
-        }
-        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      tls.factors.resize(verts.size());
+      const MutableSpan<float> factors = tls.factors;
+      fill_factor_from_hide(mesh, verts, factors);
+      if (!select_vert.is_empty()) {
+        filter_factors_with_selection(select_vert, verts, factors);
+      }
+
+      tls.distances.resize(verts.size());
+      const MutableSpan<float> distances = tls.distances;
+      calc_brush_distances(
+          ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      filter_distances_with_radius(cache.radius, distances, factors);
+      calc_brush_strength_factors(cache, brush, distances, factors);
+
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+        if (factors[i] == 0.0f) {
           continue;
         }
 
-        float brush_strength = cache->bstrength;
+        float brush_strength = cache.bstrength;
         const float angle_cos = use_normal ?
                                     dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                     1.0f;
@@ -1082,7 +1109,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
           continue;
         }
 
-        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float brush_fade = factors[i];
 
         to_static_color_type(vpd.type, [&](auto dummy) {
           using T = decltype(dummy);
@@ -1165,12 +1192,11 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
                                        GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
+  const StrokeCache &cache = *ss.cache;
 
   const Brush &brush = *ss.cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
-  const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
@@ -1179,9 +1205,6 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  SculptBrushTest test_init;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
@@ -1190,6 +1213,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1202,21 +1226,36 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
     select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
   }
 
+  struct LocalData {
+    Vector<float> factors;
+    Vector<float> distances;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
-    SculptBrushTest test = test_init;
+    LocalData &tls = all_tls.local();
     for (const int i : range) {
-      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-        if (!hide_vert.is_empty() && hide_vert[vert]) {
-          continue;
-        }
-        if (!select_vert.is_empty() && !select_vert[vert]) {
-          continue;
-        }
-        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      tls.factors.resize(verts.size());
+      const MutableSpan<float> factors = tls.factors;
+      fill_factor_from_hide(mesh, verts, factors);
+      if (!select_vert.is_empty()) {
+        filter_factors_with_selection(select_vert, verts, factors);
+      }
+
+      tls.distances.resize(verts.size());
+      const MutableSpan<float> distances = tls.distances;
+      calc_brush_distances(
+          ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      filter_distances_with_radius(cache.radius, distances, factors);
+      calc_brush_strength_factors(cache, brush, distances, factors);
+
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+        if (factors[i] == 0.0f) {
           continue;
         }
 
-        float brush_strength = cache->bstrength;
+        float brush_strength = cache.bstrength;
         const float angle_cos = use_normal ?
                                     dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                     1.0f;
@@ -1225,7 +1264,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
         {
           continue;
         }
-        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float brush_fade = factors[i];
 
         /* Get the average face color */
         to_static_color_type(vpd.type, [&](auto dummy) {
@@ -1300,18 +1339,16 @@ static void do_vpaint_brush_smear(const bContext *C,
                                   GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
-
-  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
-  const StrokeCache *cache = ss.cache;
-  if (!cache->is_last_valid) {
+  StrokeCache &cache = *ss.cache;
+  if (!cache.is_last_valid) {
     return;
   }
 
-  const Brush &brush = *ob.sculpt->cache->brush;
+  const Brush &brush = *cache.brush;
   const Scene &scene = *CTX_data_scene(C);
   GMutableSpan g_color_curr = vpd.smear.color_curr;
   GMutableSpan g_color_prev_smear = vpd.smear.color_prev;
-  GMutableSpan g_color_prev = ss.cache->prev_colors_vpaint;
+  GMutableSpan g_color_prev = cache.prev_colors_vpaint;
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
 
@@ -1323,21 +1360,19 @@ static void do_vpaint_brush_smear(const bContext *C,
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   float brush_dir[3];
-  sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
-  project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
+  sub_v3_v3v3(brush_dir, cache.location, cache.last_location);
+  project_plane_v3_v3v3(brush_dir, brush_dir, cache.view_normal);
   if (normalize_v3(brush_dir) == 0.0f) {
     return;
   }
 
-  SculptBrushTest test_init;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1350,23 +1385,38 @@ static void do_vpaint_brush_smear(const bContext *C,
     select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
   }
 
+  struct LocalData {
+    Vector<float> factors;
+    Vector<float> distances;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
-    SculptBrushTest test = test_init;
+    LocalData &tls = all_tls.local();
     for (const int i : range) {
-      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-        if (!hide_vert.is_empty() && hide_vert[vert]) {
-          continue;
-        }
-        if (!select_vert.is_empty() && !select_vert[vert]) {
-          continue;
-        }
-        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      tls.factors.resize(verts.size());
+      const MutableSpan<float> factors = tls.factors;
+      fill_factor_from_hide(mesh, verts, factors);
+      if (!select_vert.is_empty()) {
+        filter_factors_with_selection(select_vert, verts, factors);
+      }
+
+      tls.distances.resize(verts.size());
+      const MutableSpan<float> distances = tls.distances;
+      calc_brush_distances(
+          ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      filter_distances_with_radius(cache.radius, distances, factors);
+      calc_brush_strength_factors(cache, brush, distances, factors);
+
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+        if (factors[i] == 0.0f) {
           continue;
         }
 
         /* Calculate the dot prod. between ray norm on surf and current vert
          * (ie splash prevention factor), and only paint front facing verts. */
-        float brush_strength = cache->bstrength;
+        float brush_strength = cache.bstrength;
         const float angle_cos = use_normal ?
                                     dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                     1.0f;
@@ -1375,7 +1425,7 @@ static void do_vpaint_brush_smear(const bContext *C,
         {
           continue;
         }
-        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float brush_fade = factors[i];
 
         bool do_color = false;
         /* Minimum dot product between brush direction and current
@@ -1411,7 +1461,7 @@ static void do_vpaint_brush_smear(const bContext *C,
                * selected vert to the neighbor. */
               float other_dir[3];
               sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[v_other_index]);
-              project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
+              project_plane_v3_v3v3(other_dir, other_dir, cache.view_normal);
 
               normalize_v3(other_dir);
 
@@ -1490,19 +1540,15 @@ static void calculate_average_color(VPaintData &vpd,
                                     const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
-  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
+  const StrokeCache &cache = *ss.cache;
 
-  StrokeCache *cache = ss.cache;
   const bool use_vert_sel = (mesh.editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) !=
                             0;
-
-  SculptBrushTest test_init;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test_init, brush.falloff_shape);
 
   const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1510,6 +1556,11 @@ static void calculate_average_color(VPaintData &vpd,
     select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
   }
 
+  struct LocalData {
+    Vector<float> factors;
+    Vector<float> distances;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   to_static_color_type(vpd.type, [&](auto dummy) {
     using T = decltype(dummy);
     using Color =
@@ -1520,23 +1571,30 @@ static void calculate_average_color(VPaintData &vpd,
 
     Array<VPaintAverageAccum<Blend>> accum(nodes.size());
     blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
-      SculptBrushTest test = test_init;
+      LocalData &tls = all_tls.local();
       for (const int i : range) {
         VPaintAverageAccum<Blend> &accum2 = accum[i];
         accum2.len = 0;
         memset(accum2.value, 0, sizeof(accum2.value));
 
-        for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-          if (!hide_vert.is_empty() && hide_vert[vert]) {
-            continue;
-          }
-          if (!select_vert.is_empty() && !select_vert[vert]) {
-            continue;
-          }
-          if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
-            continue;
-          }
-          if (BKE_brush_curve_strength(&brush, 0.0, cache->radius) <= 0.0f) {
+        const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide(mesh, verts, factors);
+        if (!select_vert.is_empty()) {
+          filter_factors_with_selection(select_vert, verts, factors);
+        }
+
+        tls.distances.resize(verts.size());
+        const MutableSpan<float> distances = tls.distances;
+        calc_brush_distances(
+            ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+        filter_distances_with_radius(cache.radius, distances, factors);
+        calc_brush_strength_factors(cache, brush, distances, factors);
+
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (factors[i] == 0.0f) {
             continue;
           }
 
@@ -1607,13 +1665,11 @@ static void vpaint_do_draw(const bContext *C,
                            GMutableSpan attribute)
 {
   SculptSession &ss = *ob.sculpt;
+  const StrokeCache &cache = *ss.cache;
 
   const Brush &brush = *ob.sculpt->cache->brush;
   const Scene &scene = *CTX_data_scene(C);
 
-  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
-
-  const StrokeCache *cache = ss.cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
@@ -1622,9 +1678,6 @@ static void vpaint_do_draw(const bContext *C,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  SculptBrushTest test_init;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, test_init, brush.falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
@@ -1634,6 +1687,7 @@ static void vpaint_do_draw(const bContext *C,
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+  const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1645,23 +1699,38 @@ static void vpaint_do_draw(const bContext *C,
     select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
   }
 
+  struct LocalData {
+    Vector<float> factors;
+    Vector<float> distances;
+  };
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
+    LocalData &tls = all_tls.local();
     for (const int i : range) {
-      SculptBrushTest test = test_init;
-      for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-        if (!hide_vert.is_empty() && hide_vert[vert]) {
-          continue;
-        }
-        if (!select_vert.is_empty() && !select_vert[vert]) {
-          continue;
-        }
-        if (!sculpt_brush_test_sq_fn(test, vert_positions[vert])) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+      tls.factors.resize(verts.size());
+      const MutableSpan<float> factors = tls.factors;
+      fill_factor_from_hide(mesh, verts, factors);
+      if (!select_vert.is_empty()) {
+        filter_factors_with_selection(select_vert, verts, factors);
+      }
+
+      tls.distances.resize(verts.size());
+      const MutableSpan<float> distances = tls.distances;
+      calc_brush_distances(
+          ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      filter_distances_with_radius(cache.radius, distances, factors);
+      calc_brush_strength_factors(cache, brush, distances, factors);
+
+      for (const int i : verts.index_range()) {
+        const int vert = verts[i];
+        if (factors[i] == 0.0f) {
           continue;
         }
 
         /* Calculate the dot product between ray normal on surface and current vertex
          * (ie splash prevention factor), and only paint front facing verts. */
-        float brush_strength = cache->bstrength;
+        float brush_strength = cache.bstrength;
         const float angle_cos = use_normal ?
                                     dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
                                     1.0f;
@@ -1670,7 +1739,7 @@ static void vpaint_do_draw(const bContext *C,
         {
           continue;
         }
-        const float brush_fade = BKE_brush_curve_strength(&brush, sqrtf(test.dist), cache->radius);
+        const float brush_fade = factors[i];
 
         to_static_color_type(vpd.type, [&](auto dummy) {
           using T = decltype(dummy);
@@ -1692,10 +1761,10 @@ static void vpaint_do_draw(const bContext *C,
              * brush texture will be oriented correctly.
              * This is the method also used in #sculpt_apply_texture(). */
             float symm_point[3];
-            if (cache->radial_symmetry_pass) {
-              mul_m4_v3(cache->symm_rot_mat_inv.ptr(), vpd.vertexcosnos[vert].co);
+            if (cache.radial_symmetry_pass) {
+              mul_m4_v3(cache.symm_rot_mat_inv.ptr(), vpd.vertexcosnos[vert].co);
             }
-            flip_v3_v3(symm_point, vpd.vertexcosnos[vert].co, cache->mirror_symmetry_pass);
+            flip_v3_v3(symm_point, vpd.vertexcosnos[vert].co, cache.mirror_symmetry_pass);
 
             tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
           }
