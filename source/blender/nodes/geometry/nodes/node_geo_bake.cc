@@ -249,6 +249,29 @@ static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBak
   return config;
 }
 
+/**
+ * This is used when the bake node should just pass-through the data and the caller of geometry
+ * nodes should not have to care about this.
+ */
+struct DummyDataBlockMap : public bake::BakeDataBlockMap {
+ private:
+  std::mutex mutex_;
+  Map<bake::BakeDataBlockID, ID *> map_;
+
+ public:
+  ID *lookup_or_remember_missing(const bake::BakeDataBlockID &key) override
+  {
+    std::lock_guard lock{mutex_};
+    return map_.lookup_default(key, nullptr);
+  }
+
+  void try_add(ID &id) override
+  {
+    std::lock_guard lock{mutex_};
+    map_.add(bake::BakeDataBlockID(id), &id);
+  }
+};
+
 class LazyFunctionForBakeNode final : public LazyFunction {
   const bNode &node_;
   Span<NodeGeometryBakeItem> bake_items_;
@@ -298,7 +321,8 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       return;
     }
     if (found_id->is_in_loop) {
-      this->set_default_outputs(params);
+      DummyDataBlockMap data_block_map;
+      this->pass_through(params, user_data, &data_block_map);
       return;
     }
     BakeNodeBehavior *behavior = user_data.call_data->bake_params->get(found_id->id);
