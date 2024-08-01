@@ -34,6 +34,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.hh"
+#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -790,8 +791,12 @@ void id_remap_fn(bContext *C,
 /** \name ID Copy Operator
  * \{ */
 
-static int outliner_id_copy_tag(SpaceOutliner *space_outliner, ListBase *tree)
+static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
+                                ListBase *tree,
+                                blender::bke::blendfile::PartialWriteContext &copybuffer)
 {
+  using namespace blender::bke::blendfile;
+
   int num_ids = 0;
 
   LISTBASE_FOREACH (TreeElement *, te, tree) {
@@ -799,15 +804,17 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner, ListBase *tree)
 
     /* if item is selected and is an ID, tag it as needing to be copied. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
-      ID *id = tselem->id;
-      if (!(id->tag & LIB_TAG_DOIT)) {
-        BKE_copybuffer_copy_tag_ID(tselem->id);
-        num_ids++;
-      }
+      copybuffer.id_add(tselem->id,
+                        PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
+                            PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                            PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                            PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                        nullptr);
+      num_ids++;
     }
 
     /* go over sub-tree */
-    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree);
+    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer);
   }
 
   return num_ids;
@@ -815,20 +822,21 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner, ListBase *tree)
 
 static int outliner_id_copy_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::bke::blendfile;
+
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  char filepath[FILE_MAX];
+  PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
 
-  BKE_copybuffer_copy_begin(bmain);
-
-  const int num_ids = outliner_id_copy_tag(space_outliner, &space_outliner->tree);
+  const int num_ids = outliner_id_copy_tag(space_outliner, &space_outliner->tree, copybuffer);
   if (num_ids == 0) {
     BKE_report(op->reports, RPT_INFO, "No selected data-blocks to copy");
     return OPERATOR_CANCELLED;
   }
 
+  char filepath[FILE_MAX];
   outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
-  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
+  copybuffer.write(filepath, *op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
 
