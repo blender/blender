@@ -1561,10 +1561,6 @@ struct SimulationData {
   Map<const bke::pbvh::Node *, int> node_state_index;
   Array<NodeSimState> node_state;
 
-  VArraySpan<float> mask_mesh;
-  int mask_cd_offset_bmesh;
-  CCGKey grid_key;
-
   ~SimulationData();
 };
 

@@ -1244,22 +1244,6 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
 
   cloth_sim_initialize_default_node_state(ss, *cloth_sim);
 
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      const Mesh *mesh = static_cast<const Mesh *>(ob.data);
-      const bke::AttributeAccessor attributes = mesh->attributes();
-      cloth_sim->mask_mesh = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
-      break;
-    }
-    case bke::pbvh::Type::BMesh:
-      cloth_sim->mask_cd_offset_bmesh = CustomData_get_offset_named(
-          &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-      break;
-    case bke::pbvh::Type::Grids:
-      cloth_sim->grid_key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      break;
-  }
-
   return cloth_sim;
 }
 
