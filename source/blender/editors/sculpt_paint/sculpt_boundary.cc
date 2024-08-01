@@ -888,7 +888,7 @@ static void bend_data_init(const Object &object, SculptBoundary &boundary)
       Mesh &mesh = *static_cast<Mesh *>(object.data);
 
       const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-      const Span<float3> vert_normals = mesh.vert_normals();
+      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
 
       bend_data_init_mesh(positions_eval, vert_normals, boundary);
       break;
