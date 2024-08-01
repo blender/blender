@@ -515,6 +515,46 @@ int vert_face_set_get(const SculptSession &ss, PBVHVertRef vertex)
   return 0;
 }
 
+bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
+                       const int *face_sets,
+                       const int vert,
+                       const int face_set)
+{
+  if (!face_sets) {
+    return face_set == SCULPT_FACE_SET_NONE;
+  }
+  const Span<int> faces = vert_to_face_map[vert];
+  return std::any_of(
+      faces.begin(), faces.end(), [&](const int face) { return face_sets[face] == face_set; });
+}
+
+bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
+                       const int *face_sets,
+                       const int grid,
+                       const int face_set)
+{
+  if (!face_sets) {
+    return face_set == SCULPT_FACE_SET_NONE;
+  }
+  const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid);
+  return face_sets[face] == face_set;
+}
+
+bool vert_has_face_set(const int face_set_offset, const BMVert &vert, const int face_set)
+{
+  if (face_set_offset == -1) {
+    return false;
+  }
+  BMIter iter;
+  BMFace *face;
+  BM_ITER_ELEM (face, &iter, &const_cast<BMVert &>(vert), BM_FACES_OF_VERT) {
+    if (BM_ELEM_CD_GET_INT(face, face_set_offset) == face_set) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool vert_has_face_set(const SculptSession &ss, PBVHVertRef vertex, int face_set)
 {
   switch (ss.pbvh->type()) {
