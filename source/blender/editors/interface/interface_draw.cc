@@ -1796,6 +1796,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   const uint size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
 
+  GPU_program_point_size(true);
+
   /* Calculate vertex colors based on text theme. */
   float color_vert[4], color_vert_select[4];
   UI_GetThemeColor4fv(TH_TEXT_HI, color_vert);
