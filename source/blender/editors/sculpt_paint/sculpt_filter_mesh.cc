@@ -446,7 +446,7 @@ static void mesh_filter_task(Object &ob,
         const float3 avg_co = smooth::neighbor_coords_average(ss, vd.vertex);
         float3 disp_avg = avg_co - float3(vd.co);
         disp_avg = disp_avg * smooth_ratio * pow2f(ss.filter_cache->sharpen_factor[vd.index]);
-        disp = disp_avg * disp_sharpen;
+        disp = disp_avg + disp_sharpen;
         /* Intensify details. */
         if (ss.filter_cache->sharpen_intensify_detail_strength > 0.0f) {
           float3 detail_strength = ss.filter_cache->detail_directions[vd.index];
