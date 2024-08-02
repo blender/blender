@@ -1188,10 +1188,8 @@ void do_simulation_step(const Sculpt &sd,
           solve_verts_simulation(
               object, brush, sim_location, vert_indices, factors, tls, cloth_sim);
 
-          int node_vert_index = 0;
           for (BMVert *vert : verts) {
             copy_v3_v3(vert->co, cloth_sim.pos[BM_elem_index_get(vert)]);
-            node_vert_index++;
           }
         }
       });
