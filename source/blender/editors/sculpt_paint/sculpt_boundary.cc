@@ -1029,25 +1029,18 @@ static float displacement_from_grab_delta_get(const SculptSession &ss,
   return dist_signed_to_plane_v3(pos, plane);
 }
 
-static void boundary_brush_bend_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void boundary_brush_bend_task(Object &ob,
+                                     const Brush &brush,
+                                     bke::pbvh::Node *node,
+                                     const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symm_area = ss.cache->mirror_symmetry_pass;
   SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  const float strength = ss.cache->bstrength;
-
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
-
-  const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
-  float angle_factor = disp / ss.cache->radius;
-  /* Angle Snapping when inverting the brush. */
-  if (ss.cache->invert) {
-    angle_factor = floorf(angle_factor * 10) / 10.0f;
-  }
-  const float angle = angle_factor * M_PI;
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -1071,25 +1064,25 @@ static void boundary_brush_bend_task(Object &ob, const Brush &brush, bke::pbvh::
     rotate_v3_v3v3fl(target_co,
                      t_orig_co,
                      boundary.bend.pivot_rotation_axis[vd.index],
-                     angle * boundary.edit_info.strength_factor[vd.index] * mask * automask);
+                     strength * boundary.edit_info.strength_factor[vd.index] * mask * automask);
     add_v3_v3(target_co, boundary.bend.pivot_positions[vd.index]);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void brush_slide_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void brush_slide_task(Object &ob,
+                             const Brush &brush,
+                             bke::pbvh::Node *node,
+                             const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symm_area = ss.cache->mirror_symmetry_pass;
   SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  const float strength = ss.cache->bstrength;
-
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
 
-  const float disp = displacement_from_grab_delta_get(ss, boundary);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
 
@@ -1111,27 +1104,25 @@ static void brush_slide_task(Object &ob, const Brush &brush, bke::pbvh::Node *no
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
                    boundary.slide.directions[vd.index],
-                   boundary.edit_info.strength_factor[vd.index] * disp * mask * automask *
-                       strength);
+                   boundary.edit_info.strength_factor[vd.index] * mask * automask * strength);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void brush_inflate_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void brush_inflate_task(Object &ob,
+                               const Brush &brush,
+                               bke::pbvh::Node *node,
+                               const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symm_area = ss.cache->mirror_symmetry_pass;
   SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  const float strength = ss.cache->bstrength;
-
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
-
-  const float disp = displacement_from_grab_delta_get(ss, boundary);
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (boundary.edit_info.propagation_steps_num[vd.index] == BOUNDARY_STEPS_NONE) {
@@ -1151,20 +1142,20 @@ static void brush_inflate_task(Object &ob, const Brush &brush, bke::pbvh::Node *
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
                    orig_data.no,
-                   boundary.edit_info.strength_factor[vd.index] * disp * mask * automask *
-                       strength);
+                   boundary.edit_info.strength_factor[vd.index] * mask * automask * strength);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void brush_grab_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void brush_grab_task(Object &ob,
+                            const Brush &brush,
+                            bke::pbvh::Node *node,
+                            const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symm_area = ss.cache->mirror_symmetry_pass;
   SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
-
-  const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
@@ -1194,27 +1185,20 @@ static void brush_grab_task(Object &ob, const Brush &brush, bke::pbvh::Node *nod
   BKE_pbvh_vertex_iter_end;
 }
 
-static void brush_twist_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void brush_twist_task(Object &ob,
+                             const Brush &brush,
+                             bke::pbvh::Node *node,
+                             const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symm_area = ss.cache->mirror_symmetry_pass;
   SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  const float strength = ss.cache->bstrength;
-
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       ob, ss.cache->automasking.get(), *node);
-
-  const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
-  float angle_factor = disp / ss.cache->radius;
-  /* Angle Snapping when inverting the brush. */
-  if (ss.cache->invert) {
-    angle_factor = floorf(angle_factor * 10) / 10.0f;
-  }
-  const float angle = angle_factor * M_PI;
 
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (boundary.edit_info.propagation_steps_num[vd.index] == BOUNDARY_STEPS_NONE) {
@@ -1236,20 +1220,21 @@ static void brush_twist_task(Object &ob, const Brush &brush, bke::pbvh::Node *no
     rotate_v3_v3v3fl(target_co,
                      t_orig_co,
                      boundary.twist.rotation_axis,
-                     angle * mask * automask * boundary.edit_info.strength_factor[vd.index]);
+                     strength * mask * automask * boundary.edit_info.strength_factor[vd.index]);
     add_v3_v3(target_co, boundary.twist.pivot_position);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-static void brush_smooth_task(Object &ob, const Brush &brush, bke::pbvh::Node *node)
+static void brush_smooth_task(Object &ob,
+                              const Brush &brush,
+                              bke::pbvh::Node *node,
+                              const float strength)
 {
   SculptSession &ss = *ob.sculpt;
   const int symmetry_pass = ss.cache->mirror_symmetry_pass;
   const SculptBoundary &boundary = *ss.cache->boundaries[symmetry_pass];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
-
-  const float strength = ss.cache->bstrength;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
@@ -1546,6 +1531,51 @@ static void init_boundary_bmesh(Object &object,
   }
 }
 
+static float get_mesh_strength(const SculptSession &ss, const Brush &brush)
+{
+  const int symm_area = ss.cache->mirror_symmetry_pass;
+  SculptBoundary &boundary = *ss.cache->boundaries[symm_area];
+
+  const float strength = ss.cache->bstrength;
+
+  switch (brush.boundary_deform_type) {
+    case BRUSH_BOUNDARY_DEFORM_BEND: {
+      const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
+      float angle_factor = disp / ss.cache->radius;
+      /* Angle Snapping when inverting the brush. */
+      if (ss.cache->invert) {
+        angle_factor = floorf(angle_factor * 10) / 10.0f;
+      }
+      return angle_factor * M_PI;
+    }
+    case BRUSH_BOUNDARY_DEFORM_EXPAND: {
+      return strength * displacement_from_grab_delta_get(ss, boundary);
+    }
+    case BRUSH_BOUNDARY_DEFORM_INFLATE: {
+      return strength * displacement_from_grab_delta_get(ss, boundary);
+    }
+    case BRUSH_BOUNDARY_DEFORM_GRAB:
+      return strength;
+    case BRUSH_BOUNDARY_DEFORM_TWIST: {
+      const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
+      float angle_factor = disp / ss.cache->radius;
+      /* Angle Snapping when inverting the brush. */
+      if (ss.cache->invert) {
+        angle_factor = floorf(angle_factor * 10) / 10.0f;
+      }
+      return angle_factor * M_PI;
+    }
+    case BRUSH_BOUNDARY_DEFORM_SMOOTH:
+      return strength;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return 0.0f;
+}
+
 void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *ob.sculpt;
@@ -1574,46 +1604,48 @@ void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nod
     return;
   }
 
+  const float strength = get_mesh_strength(ss, brush);
+
   switch (brush.boundary_deform_type) {
     case BRUSH_BOUNDARY_DEFORM_BEND:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          boundary_brush_bend_task(ob, brush, nodes[i]);
+          boundary_brush_bend_task(ob, brush, nodes[i], strength);
         }
       });
       break;
     case BRUSH_BOUNDARY_DEFORM_EXPAND:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          brush_slide_task(ob, brush, nodes[i]);
+          brush_slide_task(ob, brush, nodes[i], strength);
         }
       });
       break;
     case BRUSH_BOUNDARY_DEFORM_INFLATE:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          brush_inflate_task(ob, brush, nodes[i]);
+          brush_inflate_task(ob, brush, nodes[i], strength);
         }
       });
       break;
     case BRUSH_BOUNDARY_DEFORM_GRAB:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          brush_grab_task(ob, brush, nodes[i]);
+          brush_grab_task(ob, brush, nodes[i], strength);
         }
       });
       break;
     case BRUSH_BOUNDARY_DEFORM_TWIST:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          brush_twist_task(ob, brush, nodes[i]);
+          brush_twist_task(ob, brush, nodes[i], strength);
         }
       });
       break;
     case BRUSH_BOUNDARY_DEFORM_SMOOTH:
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          brush_smooth_task(ob, brush, nodes[i]);
+          brush_smooth_task(ob, brush, nodes[i], strength);
         }
       });
       break;
