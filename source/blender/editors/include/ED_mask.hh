@@ -168,7 +168,7 @@ bool ED_masklayer_frames_delete(MaskLayer *mask_layer);
 /**
  * Duplicate selected frames from given mask-layer.
  */
-void ED_masklayer_frames_duplicate(MaskLayer *mask_layer);
+bool ED_masklayer_frames_duplicate(MaskLayer *mask_layer);
 
 /**
  * Snap selected frames to ...

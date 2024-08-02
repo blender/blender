@@ -230,11 +230,13 @@ bool ED_masklayer_frames_delete(MaskLayer *mask_layer)
   return changed;
 }
 
-void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
+bool ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 {
+  bool changed = false;
+
   /* Error checking. */
   if (mask_layer == nullptr) {
-    return;
+    return changed;
   }
 
   /* Duplicate selected frames. */
@@ -250,8 +252,11 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 
       /* XXX: how to handle duplicate frames? */
       BLI_insertlinkafter(&mask_layer->splines_shapes, mask_layer_shape, mask_shape_dupe);
+      changed = true;
     }
   }
+
+  return changed;
 }
 
 /* -------------------------------------- */
