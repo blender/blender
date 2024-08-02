@@ -18,6 +18,7 @@
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_string_utils.hh"
 #include "BLI_threads.h"
 #include "BLT_translation.hh"
 
@@ -514,6 +515,20 @@ void BKE_collection_free_data(Collection *collection)
 {
   BKE_libblock_free_data(&collection->id, false);
   collection_free_data(&collection->id);
+}
+
+void BKE_collection_exporter_name_set(const ListBase *exporters,
+                                      CollectionExport *data,
+                                      const char *newname)
+{
+  /* Only use the new name if it's not empty. */
+  if (newname && newname[0] != '\0') {
+    const ListBase list = exporters ? *exporters : BLI_listbase_from_link((Link *)data);
+
+    STRNCPY(data->name, newname);
+    BLI_uniquename(
+        &list, data, newname, '.', offsetof(CollectionExport, name), sizeof(data->name));
+  }
 }
 
 void BKE_collection_exporter_free_data(CollectionExport *data)

@@ -68,6 +68,7 @@ typedef struct CollectionExport {
 
   /** Identifier that matches the #FileHandlerType.idname. */
   char fh_idname[64];
+  char name[64];
 
   IDProperty *export_properties;
   uint32_t flag;

@@ -2959,11 +2959,9 @@ static void draw_exporter_item(uiList * /*ui_list*/,
                                int /*index*/,
                                int /*flt_flag*/)
 {
-  char name[MAX_IDPROP_NAME];
-  RNA_string_get(itemptr, "name", name);
-
   uiLayout *row = uiLayoutRow(layout, false);
-  uiItemL(row, name, ICON_NONE);
+  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
