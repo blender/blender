@@ -862,6 +862,61 @@ static void GREASE_PENCIL_OT_frame_duplicate(wmOperatorType *ot)
       ot->srna, "all", false, "Duplicate all", "Duplicate active keyframes of all layer");
 }
 
+static int grease_pencil_active_frame_delete_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bool only_active = !RNA_boolean_get(op->ptr, "all");
+  const int current_frame = scene->r.cfra;
+  bool changed = false;
+
+  if (only_active) {
+    if (!grease_pencil.has_active_layer()) {
+      return OPERATOR_CANCELLED;
+    }
+
+    Layer &active_layer = *grease_pencil.get_active_layer();
+    if (std::optional<int> active_frame_number = active_layer.start_frame_at(current_frame)) {
+      changed |= grease_pencil.remove_frames(active_layer, {active_frame_number.value()});
+    }
+  }
+  else {
+    for (Layer *layer : grease_pencil.layers_for_write()) {
+      if (std::optional<int> active_frame_number = layer->start_frame_at(current_frame)) {
+        changed |= grease_pencil.remove_frames(*layer, {active_frame_number.value()});
+      }
+    }
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_active_frame_delete(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Delete active Frame(s)";
+  ot->idname = "GREASE_PENCIL_OT_active_frame_delete";
+  ot->description = "Delete the active Grease Pencil frame(s)";
+
+  /* callback */
+  ot->exec = grease_pencil_active_frame_delete_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "all", false, "Delete all", "Delete active keyframes of all layer");
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_frames()
@@ -870,4 +925,5 @@ void ED_operatortypes_grease_pencil_frames()
   WM_operatortype_append(GREASE_PENCIL_OT_insert_blank_frame);
   WM_operatortype_append(GREASE_PENCIL_OT_frame_clean_duplicate);
   WM_operatortype_append(GREASE_PENCIL_OT_frame_duplicate);
+  WM_operatortype_append(GREASE_PENCIL_OT_active_frame_delete);
 }
