@@ -29,11 +29,13 @@ GPU_SHADER_CREATE_INFO(eevee_volume_properties_data)
            Qualifier::READ,
            ImageType::FLOAT_3D,
            "in_emission_img")
-    .image(VOLUME_PROP_PHASE_IMG_SLOT,
-           GPU_RG16F,
+    .image(
+        VOLUME_PROP_PHASE_IMG_SLOT, GPU_R16F, Qualifier::READ, ImageType::FLOAT_3D, "in_phase_img")
+    .image(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT,
+           GPU_R16F,
            Qualifier::READ,
            ImageType::FLOAT_3D,
-           "in_phase_img");
+           "in_phase_weight_img");
 
 GPU_SHADER_CREATE_INFO(eevee_volume_scatter)
     .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
@@ -49,8 +51,8 @@ GPU_SHADER_CREATE_INFO(eevee_volume_scatter)
     .additional_info("eevee_volume_properties_data")
     .sampler(0, ImageType::FLOAT_3D, "scattering_history_tx")
     .sampler(1, ImageType::FLOAT_3D, "extinction_history_tx")
-    .image(4, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_3D, "out_scattering_img")
-    .image(5, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_3D, "out_extinction_img")
+    .image(5, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_3D, "out_scattering_img")
+    .image(6, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_3D, "out_extinction_img")
     .compute_source("eevee_volume_scatter_comp.glsl")
     .do_static_compilation(true);
 
