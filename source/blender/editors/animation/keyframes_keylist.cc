@@ -530,6 +530,7 @@ static ActKeyColumn *nalloc_ak_cel(void *data)
   /* Set as visible block. */
   ak->totblock = 1;
   ak->block.sel = ak->sel;
+  ak->block.flag |= ACTKEYBLOCK_FLAG_GPENCIL;
 
   return ak;
 }
