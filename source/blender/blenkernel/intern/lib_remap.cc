@@ -130,10 +130,10 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
                                ID_RECALC_SYNC_TO_EVAL | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         }
       }
-      if (GS(id_owner->name) == ID_NT) {
+      if (GS(id_self->name) == ID_NT) {
         /* Make sure that the node tree is updated after a property in it changed. Ideally, we
          * would know which nodes property was changed so that only this node is tagged. */
-        BKE_ntree_update_tag_all((bNodeTree *)id_owner);
+        BKE_ntree_update_tag_all((bNodeTree *)id_self);
       }
     }
   }
