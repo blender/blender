@@ -91,7 +91,8 @@ void realize_on_domain(Context &context,
   const float3x3 in_transformation = math::translate(input_transformation, input_translate);
 
   /* Transformation from output domain with 0,0 in lower-left to virtual compositing space. */
-  const float3x3 out_transformation = math::translate(domain.transformation, -float2(domain.size) / 2.0f);
+  const float3x3 out_transformation = math::translate(domain.transformation,
+                                                      -float2(domain.size) / 2.0f);
 
   /* Concatenate to get full transform from output space to input space */
   const float3x3 inverse_transformation = math::invert(in_transformation) * out_transformation;
