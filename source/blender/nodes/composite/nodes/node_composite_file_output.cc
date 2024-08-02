@@ -165,6 +165,8 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
   else {
     BKE_image_format_init(&sockdata->format, false);
   }
+  BKE_image_format_update_color_space_for_type(&sockdata->format);
+
   /* use node data format by default */
   sockdata->use_node_format = true;
   sockdata->save_as_render = true;
@@ -220,6 +222,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
   NodeImageMultiFile *nimf = MEM_cnew<NodeImageMultiFile>(__func__);
+  nimf->save_as_render = true;
   ImageFormatData *format = nullptr;
   node->storage = nimf;
 
@@ -238,6 +241,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   else {
     BKE_image_format_init(&nimf->format, false);
   }
+  BKE_image_format_update_color_space_for_type(&nimf->format);
 
   /* add one socket by default */
   ntreeCompositOutputFileAddSocket(ntree, node, "Image", format);
@@ -330,11 +334,27 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   PointerRNA active_input_ptr, op_ptr;
   uiLayout *row, *col;
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
-  const bool is_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 
   node_composit_buts_file_output(layout, C, ptr);
-  uiTemplateImageSettings(layout, &imfptr, true);
+
+  {
+    uiLayout *column = uiLayoutColumn(layout, true);
+    uiLayoutSetPropSep(column, true);
+    uiLayoutSetPropDecorate(column, false);
+    uiItemR(column, ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  const bool save_as_render = RNA_boolean_get(ptr, "save_as_render");
+  uiTemplateImageSettings(layout, &imfptr, save_as_render);
+
+  if (!save_as_render) {
+    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayoutSetPropSep(col, true);
+    uiLayoutSetPropDecorate(col, false);
+
+    PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
+    uiItemR(col, &linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+  }
 
   /* disable stereo output for multilayer, too much work for something that no one will use */
   /* if someone asks for that we can implement it */
@@ -442,23 +462,35 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
               nullptr,
               ICON_NONE);
 
-      const bool is_socket_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
       const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
 
-      if ((!is_exr && use_node_format) || (!is_socket_exr && !use_node_format)) {
-        uiItemR(col,
-                &active_input_ptr,
-                "save_as_render",
-                UI_ITEM_R_SPLIT_EMPTY_NAME,
-                nullptr,
-                ICON_NONE);
-      }
-
       if (!use_node_format) {
+        {
+          uiLayout *column = uiLayoutColumn(layout, true);
+          uiLayoutSetPropSep(column, true);
+          uiLayoutSetPropDecorate(column, false);
+          uiItemR(column,
+                  &active_input_ptr,
+                  "save_as_render",
+                  UI_ITEM_R_SPLIT_EMPTY_NAME,
+                  nullptr,
+                  ICON_NONE);
+        }
+
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
         col = uiLayoutColumn(layout, false);
         uiTemplateImageSettings(col, &imfptr, use_color_management);
+
+        if (!use_color_management) {
+          uiLayout *col = uiLayoutColumn(layout, true);
+          uiLayoutSetPropSep(col, true);
+          uiLayoutSetPropDecorate(col, false);
+
+          PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
+          uiItemR(
+              col, &linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+        }
 
         if (is_multiview) {
           col = uiLayoutColumn(layout, false);
@@ -516,6 +548,8 @@ class FileOutputOperation : public NodeOperation {
        * be stored in views. An exception to this is stereo images, which needs to have the same
        * structure as non-EXR images. */
       const auto &format = socket.use_node_format ? node_storage(bnode()).format : socket.format;
+      const bool save_as_render = socket.use_node_format ? node_storage(bnode()).save_as_render :
+                                                           socket.save_as_render;
       const bool is_exr = format.imtype == R_IMF_IMTYPE_OPENEXR;
       const int views_count = BKE_scene_multiview_num_views_get(&context().get_render_data());
       if (is_exr && !(format.views_format == R_IMF_VIEWS_STEREO_3D && views_count == 2)) {
@@ -528,7 +562,7 @@ class FileOutputOperation : public NodeOperation {
 
       const int2 size = result.domain().size;
       FileOutput &file_output = context().render_context()->get_file_output(
-          image_path, format, size, socket.save_as_render);
+          image_path, format, size, save_as_render);
 
       add_view_for_result(file_output, result, context().get_view_name().data());
 

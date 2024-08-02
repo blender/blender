@@ -25,6 +25,11 @@ void BKE_image_format_init(struct ImageFormatData *imf, const bool render);
 void BKE_image_format_copy(struct ImageFormatData *imf_dst, const struct ImageFormatData *imf_src);
 void BKE_image_format_free(struct ImageFormatData *imf);
 
+/* Updates the color space of the given image format based on its image type. This can be used to
+ * set a good default color space when the user changes the image type. See the implementation for
+ * more information on the logic. */
+void BKE_image_format_update_color_space_for_type(struct ImageFormatData *format);
+
 void BKE_image_format_blend_read_data(struct BlendDataReader *reader, struct ImageFormatData *imf);
 void BKE_image_format_blend_write(struct BlendWriter *writer, struct ImageFormatData *imf);
 

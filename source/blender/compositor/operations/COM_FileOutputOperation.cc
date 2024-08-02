@@ -169,6 +169,8 @@ void FileOutputOperation::execute_single_layer()
      * be stored in views. An exception to this is stereo images, which needs to have the same
      * structure as non-EXR images. */
     const auto &format = input.data->use_node_format ? node_data_->format : input.data->format;
+    const bool save_as_render = input.data->use_node_format ? node_data_->save_as_render :
+                                                              input.data->save_as_render;
     const bool is_exr = format.imtype == R_IMF_IMTYPE_OPENEXR;
     const int views_count = BKE_scene_multiview_num_views_get(context_->get_render_data());
     if (is_exr && !(format.views_format == R_IMF_VIEWS_STEREO_3D && views_count == 2)) {
@@ -181,7 +183,7 @@ void FileOutputOperation::execute_single_layer()
 
     const int2 size = int2(input.image_input->get_width(), input.image_input->get_height());
     realtime_compositor::FileOutput &file_output = context_->get_render_context()->get_file_output(
-        image_path, format, size, input.data->save_as_render);
+        image_path, format, size, save_as_render);
 
     add_view_for_input(file_output, input, context_->get_view_name());
 
