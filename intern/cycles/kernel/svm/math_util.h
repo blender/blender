@@ -34,7 +34,7 @@ ccl_device void svm_vector_math(ccl_private float *value,
       *vector = project(a, b);
       break;
     case NODE_VECTOR_MATH_REFLECT:
-      *vector = reflect(a, b);
+      *vector = reflect(a, safe_normalize(b));
       break;
     case NODE_VECTOR_MATH_REFRACT:
       *vector = refract(a, safe_normalize(b), param1);
