@@ -719,6 +719,13 @@ if(WITH_PULSEAUDIO)
   set_and_warn_library_found("PulseAudio" PULSE_FOUND WITH_PULSEAUDIO)
 endif()
 
+# PipeWire is intended to use the system library.
+if(WITH_PIPEWIRE)
+  find_package(PkgConfig)
+  pkg_check_modules(PIPEWIRE libpipewire-0.3)
+  set_and_warn_library_found("PipeWire" PIPEWIRE_FOUND WITH_PIPEWIRE)
+endif()
+
 # Audio IO
 if(WITH_SYSTEM_AUDASPACE)
   find_package_wrapper(Audaspace)
