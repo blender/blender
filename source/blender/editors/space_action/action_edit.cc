@@ -1040,7 +1040,7 @@ static bool duplicate_action_keys(bAnimContext *ac)
           static_cast<GreasePencilLayer *>(ale->data)->wrap());
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
-      ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
+      changed |= ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
     }
     else {
       BLI_assert(0);
