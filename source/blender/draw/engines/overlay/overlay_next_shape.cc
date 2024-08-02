@@ -514,41 +514,30 @@ ShapeCache::ShapeCache()
   /* speaker */
   {
     constexpr int segments = 16;
+    constexpr float bottom_r = 0.5f;
+    constexpr float bottom_z = -0.125f;
+    constexpr float step_z = 0.25f;
+    const Vector<float2> diamond = ring_vertices(bottom_r, 4);
+    Vector<float2> ring = ring_vertices(bottom_r, segments);
     Vector<Vertex> verts;
 
-    for (int j = 0; j < 3; j++) {
-      float z = 0.25f * j - 0.125f;
-      float r = (j == 0 ? 0.5f : 0.25f);
-
-      verts.append({{r, 0.0f, z}});
-
-      for (int i = 1; i < segments; i++) {
-        float x = cosf(2.0f * math::numbers::pi * i / segments) * r;
-        float y = sinf(2.0f * math::numbers::pi * i / segments) * r;
-        Vertex v{{x, y, z}};
-        verts.append(v);
-        verts.append(v);
-      }
-      Vertex v{{r, 0.0f, z}};
-      verts.append(v);
+    append_line_loop(verts, ring, bottom_z, VCLASS_NONE);
+    for (float2 &point : ring) {
+      point *= 0.5f;
+    }
+    for (const int j : IndexRange(1, 2)) {
+      const float z = step_z * j + bottom_z;
+      append_line_loop(verts, ring, z, VCLASS_NONE);
     }
 
-    for (int j = 0; j < 4; j++) {
-      float x = (((j + 1) % 2) * (j - 1)) * 0.5f;
-      float y = ((j % 2) * (j - 2)) * 0.5f;
-      for (int i = 0; i < 3; i++) {
-        if (i == 1) {
-          x *= 0.5f;
-          y *= 0.5f;
-        }
-
-        float z = 0.25f * i - 0.125f;
-        Vertex v{{x, y, z}};
-        verts.append(v);
-        if (i == 1) {
-          verts.append(v);
-        }
-      }
+    for (const float2 &point : diamond) {
+      Vertex vertex{float3{point, bottom_z}};
+      verts.append(vertex);
+      vertex.pos = float3{point * 0.5f, bottom_z + step_z};
+      verts.append(vertex);
+      verts.append(vertex);
+      vertex.pos.z += step_z;
+      verts.append(vertex);
     }
     speaker = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));

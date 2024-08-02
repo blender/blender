@@ -339,9 +339,7 @@ struct LineInstanceBuf : private select::SelectBuf {
     this->select_bind(pass);
     data_buf.push_update();
     pass.bind_ssbo("data_buf", &data_buf);
-    if (color_id) {
-      pass.push_constant("colorid", color_id);
-    }
+    pass.push_constant("colorid", color_id);
     pass.draw_procedural(GPU_PRIM_LINES, 1, data_buf.size());
   }
 };

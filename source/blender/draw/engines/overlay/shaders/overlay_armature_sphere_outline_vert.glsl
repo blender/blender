@@ -4,6 +4,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -13,6 +14,7 @@ vec2 proj(vec4 pos)
 
 void main()
 {
+  select_id_set(in_select_buf[gl_InstanceID]);
   vec4 bone_color, state_color;
   mat4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
