@@ -82,6 +82,7 @@ class VolumeModule {
   Texture prop_extinction_tx_;
   Texture prop_emission_tx_;
   Texture prop_phase_tx_;
+  Texture prop_phase_weight_tx_;
 
   /* Light Scattering. */
   PassSimple scatter_ps_ = {"Volumes.Scatter"};
@@ -172,6 +173,7 @@ class VolumeModule {
     GPUTexture *extinction_tx_ = nullptr;
     GPUTexture *emission_tx_ = nullptr;
     GPUTexture *phase_tx_ = nullptr;
+    GPUTexture *phase_weight_tx_ = nullptr;
     GPUTexture *occupancy_tx_ = nullptr;
 
     template<typename PassType> void bind_resources(PassType &pass)
@@ -180,6 +182,7 @@ class VolumeModule {
       pass.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &extinction_tx_);
       pass.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &emission_tx_);
       pass.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &phase_tx_);
+      pass.bind_image(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT, &phase_weight_tx_);
       pass.bind_image(VOLUME_OCCUPANCY_SLOT, &occupancy_tx_);
     }
   } properties;

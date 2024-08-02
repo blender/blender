@@ -164,6 +164,7 @@ void WorldVolumePipeline::render(View &view)
     inst_.volume.prop_extinction_tx_.clear(float4(0.0f));
     inst_.volume.prop_emission_tx_.clear(float4(0.0f));
     inst_.volume.prop_phase_tx_.clear(float4(0.0f));
+    inst_.volume.prop_phase_weight_tx_.clear(float4(0.0f));
     return;
   }
 

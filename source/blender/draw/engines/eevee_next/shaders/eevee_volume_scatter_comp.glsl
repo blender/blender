@@ -91,9 +91,10 @@ void main()
   vec3 P = drw_point_view_to_world(vP);
   vec3 V = drw_world_incident_vector(P);
 
-  vec2 phase = imageLoad(in_phase_img, froxel).rg;
+  float phase = imageLoad(in_phase_img, froxel).r;
+  float phase_weight = imageLoad(in_phase_weight_img, froxel).r;
   /* Divide by phase total weight, to compute the mean anisotropy. */
-  float s_anisotropy = phase.x / max(1.0, phase.y);
+  float s_anisotropy = phase / max(1.0, phase_weight);
 
 #ifdef VOLUME_LIGHTING
   vec3 direct_radiance = vec3(0.0);
