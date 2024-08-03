@@ -49,19 +49,36 @@ void PulseAudioDevice::updateRingBuffer()
 
 	while(m_valid)
 	{
-		size_t size = m_ring_buffer.getWriteSize();
-
-		size_t sample_count = size / samplesize;
-
-		if(sample_count > 0)
 		{
-			size = sample_count * samplesize;
+			std::lock_guard<ILockable> device_lock(*this);
 
-			buffer.assureSize(size);
+			if(m_playback)
+			{
+				size_t size = m_ring_buffer.getWriteSize();
 
-			mix(reinterpret_cast<data_t*>(buffer.getBuffer()), sample_count);
+				size_t sample_count = size / samplesize;
 
-			m_ring_buffer.write(reinterpret_cast<data_t*>(buffer.getBuffer()), size);
+				if(sample_count > 0)
+				{
+					size = sample_count * samplesize;
+
+					buffer.assureSize(size);
+
+					mix(reinterpret_cast<data_t*>(buffer.getBuffer()), sample_count);
+
+					m_ring_buffer.write(reinterpret_cast<data_t*>(buffer.getBuffer()), size);
+				}
+			}
+			else
+			{
+				if(m_ring_buffer.getReadSize() == 0)
+				{
+					AUD_pa_threaded_mainloop_lock(m_mainloop);
+					AUD_pa_stream_cork(m_stream, 1, nullptr, nullptr);
+					AUD_pa_stream_flush(m_stream, nullptr, nullptr);
+					AUD_pa_threaded_mainloop_unlock(m_mainloop);
+				}
+			}
 		}
 
 		m_mixingCondition.wait(lock);
@@ -91,12 +108,6 @@ void PulseAudioDevice::PulseAudio_request(pa_stream *stream, size_t total_bytes,
 
 		AUD_pa_stream_begin_write(stream, reinterpret_cast<void**>(&buffer), &num_bytes);
 
-		if(device->m_clear)
-		{
-			device->m_clear = false;
-			device->m_ring_buffer.clear();
-		}
-
 		size_t readsamples = device->m_ring_buffer.getReadSize();
 
 		readsamples = std::min(readsamples, size_t(num_bytes)) / sample_size;
@@ -120,22 +131,21 @@ void PulseAudioDevice::PulseAudio_request(pa_stream *stream, size_t total_bytes,
 
 void PulseAudioDevice::playing(bool playing)
 {
+	std::lock_guard<ILockable> lock(*this);
+
 	m_playback = playing;
 
-	AUD_pa_threaded_mainloop_lock(m_mainloop);
-	AUD_pa_stream_cork(m_stream, playing ? 0 : 1, nullptr, nullptr);
-	if(!playing)
+	if(playing)
 	{
-		AUD_pa_stream_flush(m_stream, nullptr, nullptr);
-		m_clear = true;
+		AUD_pa_threaded_mainloop_lock(m_mainloop);
+		AUD_pa_stream_cork(m_stream, 0, nullptr, nullptr);
+		AUD_pa_threaded_mainloop_unlock(m_mainloop);
 	}
-	AUD_pa_threaded_mainloop_unlock(m_mainloop);
 }
 
 PulseAudioDevice::PulseAudioDevice(const std::string &name, DeviceSpecs specs, int buffersize) :
 	m_synchronizer(this),
 	m_playback(false),
-	m_clear(false),
 	m_state(PA_CONTEXT_UNCONNECTED),
 	m_valid(true),
 	m_underflows(0)
