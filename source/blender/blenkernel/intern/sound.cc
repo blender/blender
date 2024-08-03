@@ -960,7 +960,7 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
   bScreen *screen;
   int animation_playing;
 
-  const double one_frame = 1.0 / FPS;
+  const double one_frame = 1.0 / FPS + (U.audiorate > 0 ? U.mixbufsize / (double)U.audiorate : 0.0);
   const double cur_time = FRA2TIME(scene->r.cfra);
 
   AUD_Device_lock(sound_device);
