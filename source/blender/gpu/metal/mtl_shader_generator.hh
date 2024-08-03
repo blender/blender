@@ -550,7 +550,8 @@ class MSLGeneratorInterface {
   void resolve_fragment_output_locations();
 
   /* Create shader interface for converted GLSL shader. */
-  MTLShaderInterface *bake_shader_interface(const char *name);
+  MTLShaderInterface *bake_shader_interface(const char *name,
+                                            const shader::ShaderCreateInfo *info = nullptr);
 
   /* Fetch combined shader source header. */
   char *msl_patch_default_get();

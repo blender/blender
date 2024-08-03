@@ -547,7 +547,6 @@ static void ensure_final_attribute(const Curves &curves,
   drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
   GPUVertFormat format = {0};
-  GPU_vertformat_deinterleave(&format);
   /* All attributes use vec4, see comment below. */
   GPU_vertformat_attr_add(&format, sampler_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 

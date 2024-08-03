@@ -780,6 +780,10 @@ std::string MTLShader::resources_declare(const ShaderCreateInfo &info) const
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
     print_resource(ss, res);
   }
+  ss << "\n/* Geometry Resources. */\n";
+  for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
+    print_resource(ss, res);
+  }
   /* NOTE: Push constant uniform data is generated during `generate_msl_from_glsl`
    * as the generated output is needed for all paths. This includes generation
    * of the push constant data structure (struct PushConstantBlock).
@@ -1446,7 +1450,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 #endif
 
   /* Bake shader interface. */
-  this->set_interface(msl_iface.bake_shader_interface(this->name));
+  this->set_interface(msl_iface.bake_shader_interface(this->name, info));
 
   /* Update other shader properties. */
   uses_gpu_layer = msl_iface.uses_gpu_layer;
@@ -1701,7 +1705,7 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   this->shader_compute_source_from_msl(msl_final_compute);
 
   /* Bake shader interface. */
-  this->set_interface(msl_iface.bake_shader_interface(this->name));
+  this->set_interface(msl_iface.bake_shader_interface(this->name, info));
 
   /* Compute dims. */
   this->compute_pso_common_state_.set_compute_workgroup_size(
@@ -1851,146 +1855,140 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 
   uint max_storage_buffer_location = 0;
 
+  const blender::Vector<ShaderCreateInfo::Resource> all_resources = info->resources_get_all_();
+
   /* Determine max sampler slot for image resource offset, when not using auto resource location,
    * as image resources cannot overlap sampler ranges. */
   int max_sampler_slot = 0;
   if (!create_info_->auto_resource_location_) {
-    for (int i = 0; i < 2; i++) {
-      const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
-                                                                       info->batch_resources_;
-      for (const ShaderCreateInfo::Resource &res : resources) {
-        if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
-          max_sampler_slot = max_ii(res.slot, max_sampler_slot);
-        }
+    for (const ShaderCreateInfo::Resource &res : all_resources) {
+      if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+        max_sampler_slot = max_ii(res.slot, max_sampler_slot);
       }
     }
   }
 
-  for (int i = 0; i < 2; i++) {
-    const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
-                                                                     info->batch_resources_;
-    for (const ShaderCreateInfo::Resource &res : resources) {
-      /* TODO(Metal): Consider adding stage flags to textures in create info. */
-      /* Handle sampler types. */
-      switch (res.bind_type) {
-        case shader::ShaderCreateInfo::Resource::BindType::SAMPLER: {
+  for (const ShaderCreateInfo::Resource &res : all_resources) {
+    /* TODO(Metal): Consider adding stage flags to textures in create info. */
+    /* Handle sampler types. */
+    switch (res.bind_type) {
+      case shader::ShaderCreateInfo::Resource::BindType::SAMPLER: {
 
-          /* Samplers to have access::sample by default. */
-          MSLTextureSamplerAccess access = MSLTextureSamplerAccess::TEXTURE_ACCESS_SAMPLE;
-          /* TextureBuffers must have read/write/read-write access pattern. */
-          if (res.sampler.type == ImageType::FLOAT_BUFFER ||
-              res.sampler.type == ImageType::INT_BUFFER ||
-              res.sampler.type == ImageType::UINT_BUFFER)
-          {
-            access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
-          }
+        /* Samplers to have access::sample by default. */
+        MSLTextureSamplerAccess access = MSLTextureSamplerAccess::TEXTURE_ACCESS_SAMPLE;
+        /* TextureBuffers must have read/write/read-write access pattern. */
+        if (res.sampler.type == ImageType::FLOAT_BUFFER ||
+            res.sampler.type == ImageType::INT_BUFFER ||
+            res.sampler.type == ImageType::UINT_BUFFER)
+        {
+          access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
+        }
 
-          MSLTextureResource msl_tex;
-          msl_tex.stage = ShaderStage::ANY;
-          msl_tex.type = res.sampler.type;
-          msl_tex.name = res.sampler.name;
-          msl_tex.access = access;
-          msl_tex.slot = texture_slot_id++;
-          msl_tex.location = (create_info_->auto_resource_location_) ? msl_tex.slot : res.slot;
-          msl_tex.is_texture_sampler = true;
-          BLI_assert(msl_tex.slot < MTL_MAX_TEXTURE_SLOTS);
+        MSLTextureResource msl_tex;
+        msl_tex.stage = ShaderStage::ANY;
+        msl_tex.type = res.sampler.type;
+        msl_tex.name = res.sampler.name;
+        msl_tex.access = access;
+        msl_tex.slot = texture_slot_id++;
+        msl_tex.location = (create_info_->auto_resource_location_) ? msl_tex.slot : res.slot;
+        msl_tex.is_texture_sampler = true;
+        BLI_assert(msl_tex.slot < MTL_MAX_TEXTURE_SLOTS);
 
-          texture_samplers.append(msl_tex);
-          max_tex_bind_index = max_ii(max_tex_bind_index, msl_tex.slot);
-        } break;
+        texture_samplers.append(msl_tex);
+        max_tex_bind_index = max_ii(max_tex_bind_index, msl_tex.slot);
+      } break;
 
-        case shader::ShaderCreateInfo::Resource::BindType::IMAGE: {
-          /* Flatten qualifier flags into final access state. */
-          MSLTextureSamplerAccess access;
-          if ((res.image.qualifiers & Qualifier::READ_WRITE) == Qualifier::READ_WRITE) {
-            access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READWRITE;
-          }
-          else if (bool(res.image.qualifiers & Qualifier::WRITE)) {
-            access = MSLTextureSamplerAccess::TEXTURE_ACCESS_WRITE;
-          }
-          else {
-            access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
-          }
+      case shader::ShaderCreateInfo::Resource::BindType::IMAGE: {
+        /* Flatten qualifier flags into final access state. */
+        MSLTextureSamplerAccess access;
+        if ((res.image.qualifiers & Qualifier::READ_WRITE) == Qualifier::READ_WRITE) {
+          access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READWRITE;
+        }
+        else if (bool(res.image.qualifiers & Qualifier::WRITE)) {
+          access = MSLTextureSamplerAccess::TEXTURE_ACCESS_WRITE;
+        }
+        else {
+          access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
+        }
 
-          /* Writeable image targets only assigned to Fragment and compute shaders. */
-          MSLTextureResource msl_image;
-          msl_image.stage = ShaderStage::FRAGMENT | ShaderStage::COMPUTE;
-          msl_image.type = res.image.type;
-          msl_image.name = res.image.name;
-          msl_image.access = access;
-          msl_image.slot = texture_slot_id++;
-          msl_image.location = (create_info_->auto_resource_location_) ? msl_image.slot : res.slot;
-          msl_image.is_texture_sampler = false;
-          BLI_assert(msl_image.slot < MTL_MAX_TEXTURE_SLOTS);
+        /* Writeable image targets only assigned to Fragment and compute shaders. */
+        MSLTextureResource msl_image;
+        msl_image.stage = ShaderStage::FRAGMENT | ShaderStage::COMPUTE;
+        msl_image.type = res.image.type;
+        msl_image.name = res.image.name;
+        msl_image.access = access;
+        msl_image.slot = texture_slot_id++;
+        msl_image.location = (create_info_->auto_resource_location_) ? msl_image.slot : res.slot;
+        msl_image.is_texture_sampler = false;
+        BLI_assert(msl_image.slot < MTL_MAX_TEXTURE_SLOTS);
 
-          texture_samplers.append(msl_image);
-          max_tex_bind_index = max_ii(max_tex_bind_index, msl_image.slot);
-        } break;
+        texture_samplers.append(msl_image);
+        max_tex_bind_index = max_ii(max_tex_bind_index, msl_image.slot);
+      } break;
 
-        case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER: {
-          MSLBufferBlock ubo;
-          BLI_assert(res.uniformbuf.type_name.size() > 0);
-          BLI_assert(res.uniformbuf.name.size() > 0);
-          int64_t array_offset = res.uniformbuf.name.find_first_of("[");
+      case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER: {
+        MSLBufferBlock ubo;
+        BLI_assert(res.uniformbuf.type_name.size() > 0);
+        BLI_assert(res.uniformbuf.name.size() > 0);
+        int64_t array_offset = res.uniformbuf.name.find_first_of("[");
 
-          /* We maintain two bind indices. "Slot" refers to the storage index buffer(N) in which
-           * we will bind the resource. "Location" refers to the explicit bind index specified
-           * in ShaderCreateInfo.
-           * NOTE: ubo.slot is offset by one, as first UBO slot is reserved for push constant data.
-           */
-          ubo.slot = 1 + (ubo_buffer_slot_id_++);
-          ubo.location = (create_info_->auto_resource_location_) ? ubo.slot : res.slot;
+        /* We maintain two bind indices. "Slot" refers to the storage index buffer(N) in which
+         * we will bind the resource. "Location" refers to the explicit bind index specified
+         * in ShaderCreateInfo.
+         * NOTE: ubo.slot is offset by one, as first UBO slot is reserved for push constant data.
+         */
+        ubo.slot = 1 + (ubo_buffer_slot_id_++);
+        ubo.location = (create_info_->auto_resource_location_) ? ubo.slot : res.slot;
 
-          BLI_assert(ubo.location >= 0 && ubo.location < MTL_MAX_BUFFER_BINDINGS);
+        BLI_assert(ubo.location >= 0 && ubo.location < MTL_MAX_BUFFER_BINDINGS);
 
-          ubo.qualifiers = shader::Qualifier::READ;
-          ubo.type_name = res.uniformbuf.type_name;
-          ubo.is_texture_buffer = false;
-          ubo.is_array = (array_offset > -1);
-          if (ubo.is_array) {
-            /* If is array UBO, strip out array tag from name. */
-            StringRef name_no_array = StringRef(res.uniformbuf.name.c_str(), array_offset);
-            ubo.name = name_no_array;
-          }
-          else {
-            ubo.name = res.uniformbuf.name;
-          }
-          ubo.stage = ShaderStage::ANY;
-          uniform_blocks.append(ubo);
-        } break;
+        ubo.qualifiers = shader::Qualifier::READ;
+        ubo.type_name = res.uniformbuf.type_name;
+        ubo.is_texture_buffer = false;
+        ubo.is_array = (array_offset > -1);
+        if (ubo.is_array) {
+          /* If is array UBO, strip out array tag from name. */
+          StringRef name_no_array = StringRef(res.uniformbuf.name.c_str(), array_offset);
+          ubo.name = name_no_array;
+        }
+        else {
+          ubo.name = res.uniformbuf.name;
+        }
+        ubo.stage = ShaderStage::ANY;
+        uniform_blocks.append(ubo);
+      } break;
 
-        case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER: {
-          MSLBufferBlock ssbo;
-          BLI_assert(res.storagebuf.type_name.size() > 0);
-          BLI_assert(res.storagebuf.name.size() > 0);
-          int64_t array_offset = res.storagebuf.name.find_first_of("[");
+      case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER: {
+        MSLBufferBlock ssbo;
+        BLI_assert(res.storagebuf.type_name.size() > 0);
+        BLI_assert(res.storagebuf.name.size() > 0);
+        int64_t array_offset = res.storagebuf.name.find_first_of("[");
 
-          /* We maintain two bind indices. "Slot" refers to the storage index buffer(N) in which
-           * we will bind the resource. "Location" refers to the explicit bind index specified
-           * in ShaderCreateInfo. */
-          ssbo.slot = storage_buffer_slot_id_++;
-          ssbo.location = (create_info_->auto_resource_location_) ? ssbo.slot : res.slot;
+        /* We maintain two bind indices. "Slot" refers to the storage index buffer(N) in which
+         * we will bind the resource. "Location" refers to the explicit bind index specified
+         * in ShaderCreateInfo. */
+        ssbo.slot = storage_buffer_slot_id_++;
+        ssbo.location = (create_info_->auto_resource_location_) ? ssbo.slot : res.slot;
 
-          max_storage_buffer_location = max_uu(max_storage_buffer_location, ssbo.location);
+        max_storage_buffer_location = max_uu(max_storage_buffer_location, ssbo.location);
 
-          BLI_assert(ssbo.location >= 0 && ssbo.location < MTL_MAX_BUFFER_BINDINGS);
+        BLI_assert(ssbo.location >= 0 && ssbo.location < MTL_MAX_BUFFER_BINDINGS);
 
-          ssbo.qualifiers = res.storagebuf.qualifiers;
-          ssbo.type_name = res.storagebuf.type_name;
-          ssbo.is_texture_buffer = false;
-          ssbo.is_array = (array_offset > -1);
-          if (ssbo.is_array) {
-            /* If is array UBO, strip out array tag from name. */
-            StringRef name_no_array = StringRef(res.storagebuf.name.c_str(), array_offset);
-            ssbo.name = name_no_array;
-          }
-          else {
-            ssbo.name = res.storagebuf.name;
-          }
-          ssbo.stage = ShaderStage::ANY;
-          storage_blocks.append(ssbo);
-        } break;
-      }
+        ssbo.qualifiers = res.storagebuf.qualifiers;
+        ssbo.type_name = res.storagebuf.type_name;
+        ssbo.is_texture_buffer = false;
+        ssbo.is_array = (array_offset > -1);
+        if (ssbo.is_array) {
+          /* If is array UBO, strip out array tag from name. */
+          StringRef name_no_array = StringRef(res.storagebuf.name.c_str(), array_offset);
+          ssbo.name = name_no_array;
+        }
+        else {
+          ssbo.name = res.storagebuf.name;
+        }
+        ssbo.stage = ShaderStage::ANY;
+        storage_blocks.append(ssbo);
+      } break;
     }
   }
 
@@ -3706,7 +3704,8 @@ static uint32_t name_buffer_copystr(char **name_buffer_ptr,
   return insert_offset;
 }
 
-MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *name)
+MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(
+    const char *name, const shader::ShaderCreateInfo *info)
 {
   MTLShaderInterface *interface = new MTLShaderInterface(name);
   interface->init();
@@ -3865,7 +3864,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
       this->get_sampler_argument_buffer_bind_index(ShaderStage::COMPUTE));
 
   /* Map Metal bindings to standardized ShaderInput struct name/binding index. */
-  interface->prepare_common_shader_inputs();
+  interface->prepare_common_shader_inputs(info);
 
   /* Resize name buffer to save some memory. */
   if (name_buffer_offset < name_buffer_size) {

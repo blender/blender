@@ -307,7 +307,7 @@ void MTLShaderInterface::map_builtins()
 }
 
 /* Populate #ShaderInput struct based on interface. */
-void MTLShaderInterface::prepare_common_shader_inputs()
+void MTLShaderInterface::prepare_common_shader_inputs(const shader::ShaderCreateInfo *info)
 {
   /* `ShaderInput inputs_` maps a uniform name to an external
    * uniform location, which is used as an array index to look-up
@@ -416,6 +416,17 @@ void MTLShaderInterface::prepare_common_shader_inputs()
     current_input->location = shd_ssbo.location;
     current_input->binding = shd_ssbo.location;
     current_input++;
+  }
+
+  if (info != nullptr) {
+    for (const shader::ShaderCreateInfo::Resource &res : info->geometry_resources_) {
+      if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER) {
+        ssbo_attr_mask_ |= (1 << res.slot);
+      }
+      else {
+        BLI_assert_msg(0, "Resource type is not supported for Geometry frequency");
+      }
+    }
   }
 
   /* Specialization Constants. */

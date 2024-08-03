@@ -409,13 +409,19 @@ void ShadowPass::object_sync(SceneState &scene_state,
   /* Unless we force the FAIL Method we add draw commands to both methods,
    * then the visibility compute shader selects the one needed */
 
+  GPUPrimType prim = GPU_PRIM_TRIS;
+  int tri_len = is_manifold ? 2 : 4;
+
   if (!force_fail_pass) {
     PassMain::Sub &ps = *get_pass_ptr(PASS, is_manifold);
-    ps.draw(geom_shadow, handle);
+    ps.draw_expand(geom_shadow, prim, tri_len, 1, handle);
   }
 
-  get_pass_ptr(fail_type, is_manifold, true)->draw(DRW_cache_object_surface_get(ob), handle);
-  get_pass_ptr(fail_type, is_manifold, false)->draw(geom_shadow, handle);
+  blender::gpu::Batch *geom_faces = DRW_cache_object_surface_get(ob);
+  /* Caps. */
+  get_pass_ptr(fail_type, is_manifold, true)->draw_expand(geom_faces, prim, 2, 1, handle);
+  /* Sides extrusion. */
+  get_pass_ptr(fail_type, is_manifold, false)->draw_expand(geom_shadow, prim, tri_len, 1, handle);
 }
 
 void ShadowPass::draw(Manager &manager,

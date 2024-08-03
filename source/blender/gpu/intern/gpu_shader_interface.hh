@@ -64,6 +64,8 @@ class ShaderInterface {
   uint8_t enabled_ima_mask_ = 0;
   uint64_t enabled_tex_mask_ = 0;
   uint16_t enabled_ssbo_mask_ = 0;
+  /* Bitmask to apply to enabled_ssbo_mask_ to get attributes that are sourced from SSBOs. */
+  uint16_t ssbo_attr_mask_ = 0;
   /** Location of builtin uniforms. Fast access, no lookup needed. */
   int32_t builtins_[GPU_NUM_UNIFORMS];
   int32_t builtin_blocks_[GPU_NUM_UNIFORM_BLOCKS];

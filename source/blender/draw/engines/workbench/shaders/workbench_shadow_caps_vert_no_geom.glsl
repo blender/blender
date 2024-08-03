@@ -3,24 +3,23 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
+#pragma BLENDER_REQUIRE(gpu_shader_attribute_load_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_index_load_lib.glsl)
 
 #ifdef DOUBLE_MANIFOLD
 #  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
-#  define emit_triangle_count 2
 #else
 #  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
-#  define emit_triangle_count 2
 #endif
 
 struct VertexData {
-  vec3 pos;           /* local position */
+  vec3 lP;            /* local position */
   vec4 frontPosition; /* final ndc position */
   vec4 backPosition;
 };
 
 /* Input geometry triangle list. */
-VertexData vData[3] = {};
+VertexData vData[3];
 
 #define DISCARD_VERTEX \
   gl_Position = vec4(0.0); \
@@ -78,30 +77,34 @@ void main()
   int output_triangle_id = output_vertex_id / 3;
 
   /* Source primitive data location derived from output primitive. */
-  int input_base_vertex_id = input_prim_index * 3;
+  int input_base_index = input_prim_index * 3;
 
   /* In data is triangles - Should be guaranteed. */
+  uint v0 = gpu_index_load(input_base_index + 0);
+  uint v1 = gpu_index_load(input_base_index + 1);
+  uint v2 = gpu_index_load(input_base_index + 2);
+
   /* Read input position data. */
-  vData[0].pos = vertex_fetch_attribute(input_base_vertex_id + 0, pos, vec3);
-  vData[1].pos = vertex_fetch_attribute(input_base_vertex_id + 1, pos, vec3);
-  vData[2].pos = vertex_fetch_attribute(input_base_vertex_id + 2, pos, vec3);
+  vData[0].lP = gpu_attr_load_float3(pos, gpu_attr_3, v0);
+  vData[1].lP = gpu_attr_load_float3(pos, gpu_attr_3, v1);
+  vData[2].lP = gpu_attr_load_float3(pos, gpu_attr_3, v2);
 
   /* Calculate front/back Positions. */
-  vData[0].frontPosition = point_object_to_ndc(vData[0].pos);
-  vData[0].backPosition = point_world_to_ndc(point_object_to_world(vData[0].pos) +
-                                             extrude_offset(vData[0].pos));
+  vData[0].frontPosition = point_object_to_ndc(vData[0].lP);
+  vData[0].backPosition = point_world_to_ndc(point_object_to_world(vData[0].lP) +
+                                             extrude_offset(vData[0].lP));
 
-  vData[1].frontPosition = point_object_to_ndc(vData[1].pos);
-  vData[1].backPosition = point_world_to_ndc(point_object_to_world(vData[1].pos) +
-                                             extrude_offset(vData[1].pos));
+  vData[1].frontPosition = point_object_to_ndc(vData[1].lP);
+  vData[1].backPosition = point_world_to_ndc(point_object_to_world(vData[1].lP) +
+                                             extrude_offset(vData[1].lP));
 
-  vData[2].frontPosition = point_object_to_ndc(vData[2].pos);
-  vData[2].backPosition = point_world_to_ndc(point_object_to_world(vData[2].pos) +
-                                             extrude_offset(vData[2].pos));
+  vData[2].frontPosition = point_object_to_ndc(vData[2].lP);
+  vData[2].backPosition = point_world_to_ndc(point_object_to_world(vData[2].lP) +
+                                             extrude_offset(vData[2].lP));
 
   /* Geometry shader equivalent calc. */
-  vec3 v10 = vData[0].pos - vData[1].pos;
-  vec3 v12 = vData[2].pos - vData[1].pos;
+  vec3 v10 = vData[0].lP - vData[1].lP;
+  vec3 v12 = vData[2].lP - vData[1].lP;
 
   vec3 lightDirection = normal_world_to_object(vec3(pass_data.light_direction_ws));
 

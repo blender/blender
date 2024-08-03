@@ -259,7 +259,7 @@ class MTLShaderInterface : public ShaderInterface {
                               uint32_t argument_buffer_bind_index_compute);
 
   /* Prepare #ShaderInput interface for binding resolution. */
-  void prepare_common_shader_inputs();
+  void prepare_common_shader_inputs(const shader::ShaderCreateInfo *info = nullptr);
 
   /* Fetch Uniforms. */
   const MTLShaderUniform &get_uniform(uint index) const;

@@ -21,6 +21,24 @@
 
 namespace blender::draw::command {
 
+static gpu::Batch *procedural_batch_get(GPUPrimType primitive)
+{
+  switch (primitive) {
+    case GPU_PRIM_POINTS:
+      return drw_cache_procedural_points_get();
+    case GPU_PRIM_LINES:
+      return drw_cache_procedural_lines_get();
+    case GPU_PRIM_TRIS:
+      return drw_cache_procedural_triangles_get();
+    case GPU_PRIM_TRI_STRIP:
+      return drw_cache_procedural_triangle_strips_get();
+    default:
+      /* Add new one as needed. */
+      BLI_assert_unreachable();
+      return nullptr;
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Commands Execution
  * \{ */
@@ -152,8 +170,19 @@ void Draw::execute(RecordingState &state) const
     GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
   }
 
-  GPU_batch_set_shader(batch, state.shader);
-  GPU_batch_draw_advanced(batch, vertex_first, vertex_len, 0, instance_len);
+  if (is_primitive_expansion()) {
+    /* Expanded drawcall. */
+    GPU_batch_bind_as_resources(batch, state.shader);
+
+    gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand.prim_type));
+    GPU_batch_set_shader(gpu_batch, state.shader);
+    GPU_batch_draw_advanced(gpu_batch, vertex_first, expand.vertex_len, 0, instance_len_get());
+  }
+  else {
+    /* Regular drawcall. */
+    GPU_batch_set_shader(batch, state.shader);
+    GPU_batch_draw_advanced(batch, vertex_first, vertex_len, 0, instance_len_get());
+  }
 }
 
 void DrawMulti::execute(RecordingState &state) const
@@ -166,11 +195,19 @@ void DrawMulti::execute(RecordingState &state) const
     const DrawGroup &group = groups[group_index];
 
     if (group.vertex_len > 0) {
-      if (GPU_shader_draw_parameters_support() == false) {
-        GPU_batch_resource_id_buf_set(group.gpu_batch, state.resource_id_buf);
+      gpu::Batch *batch = group.gpu_batch;
+
+      if (GPUPrimType(group.expanded_prim_type) != GPU_PRIM_NONE) {
+        /* Bind original batck as resource and use a procedural batch to issue the drawcall. */
+        GPU_batch_bind_as_resources(group.gpu_batch, state.shader);
+        batch = procedural_batch_get(GPUPrimType(group.expanded_prim_type));
       }
 
-      GPU_batch_set_shader(group.gpu_batch, state.shader);
+      if (GPU_shader_draw_parameters_support() == false) {
+        GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
+      }
+
+      GPU_batch_set_shader(batch, state.shader);
 
       constexpr intptr_t stride = sizeof(DrawCommand);
       /* We have 2 indirect command reserved per draw group. */
@@ -179,12 +216,12 @@ void DrawMulti::execute(RecordingState &state) const
       /* Draw negatively scaled geometry first. */
       if (group.len - group.front_facing_len > 0) {
         state.front_facing_set(true);
-        GPU_batch_draw_indirect(group.gpu_batch, indirect_buf, offset);
+        GPU_batch_draw_indirect(batch, indirect_buf, offset);
       }
 
       if (group.front_facing_len > 0) {
         state.front_facing_set(false);
-        GPU_batch_draw_indirect(group.gpu_batch, indirect_buf, offset + stride);
+        GPU_batch_draw_indirect(batch, indirect_buf, offset + stride);
       }
     }
 
@@ -492,8 +529,9 @@ std::string SpecializeConstant::serialize() const
 
 std::string Draw::serialize() const
 {
-  std::string inst_len = (instance_len == uint(-1)) ? "from_batch" : std::to_string(instance_len);
-  std::string vert_len = (vertex_len == uint(-1)) ? "from_batch" : std::to_string(vertex_len);
+  std::string inst_len = std::to_string(instance_len_get());
+  std::string vert_len = (vertex_len_get() == uint(-1)) ? "from_batch" :
+                                                          std::to_string(vertex_len);
   std::string vert_first = (vertex_first == uint(-1)) ? "from_batch" :
                                                         std::to_string(vertex_first);
   return std::string(".draw(inst_len=") + inst_len + ", vert_len=" + vert_len +
@@ -666,8 +704,22 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
      * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
     BLI_assert(batch_inst_len == 1);
 
-    if (cmd.vertex_len == uint(-1)) {
-      cmd.vertex_len = batch_vert_len;
+    uint32_t vert_len = cmd.vertex_len_get();
+    if (vert_len == uint(-1)) {
+      vert_len = batch_vert_len;
+    }
+
+    if (cmd.is_primitive_expansion()) {
+      IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
+          cmd.batch, GPUPrimType(cmd.expand.prim_type), vert_len, cmd.vertex_first);
+      IndexRange expanded_range = {vert_range.start() * cmd.expand.prim_len,
+                                   vert_range.size() * cmd.expand.prim_len};
+      BLI_assert(expanded_range.size() < (1 << 25));
+      cmd.expand.vertex_len = expanded_range.size();
+      cmd.vertex_first = expanded_range.start();
+    }
+    else {
+      cmd.vertex_len = vert_len;
     }
 
 #ifdef WITH_METAL_BACKEND
@@ -739,6 +791,17 @@ void DrawMultiBuf::bind(RecordingState &state,
     group.vertex_len = group.vertex_len == -1 ? batch_vert_len : group.vertex_len;
     group.vertex_first = group.vertex_first == -1 ? batch_vert_first : group.vertex_first;
     group.base_index = batch_base_index;
+
+    if (group.expanded_prim_type != GPU_PRIM_NONE) {
+      /* Expanded drawcall. */
+      IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
+          group.gpu_batch, group.expanded_prim_type, group.vertex_len, group.vertex_first);
+      group.vertex_first = vert_range.start() * group.expanded_prim_len;
+      group.vertex_len = vert_range.size() * group.expanded_prim_len;
+      /* Override base index to -1 as the generated drawcall will not use an index buffer and do
+       * the indirection manually inside the shader. */
+      group.base_index = -1;
+    }
 
 #ifdef WITH_METAL_BACKEND
     /* For SSBO vertex fetch, mutate output vertex count by ssbo vertex fetch expansion factor. */

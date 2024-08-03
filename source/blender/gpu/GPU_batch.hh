@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "BLI_index_range.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_index_buffer.hh"
@@ -99,6 +100,14 @@ class Batch {
                                    int count,
                                    intptr_t offset,
                                    intptr_t stride) = 0;
+
+  uint32_t vertex_count_get() const
+  {
+    if (elem) {
+      return elem_()->index_len_get();
+    }
+    return verts_(0)->vertex_len;
+  }
 
   /* Convenience casts. */
   IndexBuf *elem_() const
@@ -307,6 +316,11 @@ void GPU_batch_program_set_imm_shader(blender::gpu::Batch *batch);
 #define GPU_batch_texture_bind(batch, name, tex) \
   GPU_texture_bind(tex, GPU_shader_get_sampler_binding((batch)->shader, name));
 
+/**
+ * Bind vertex and index buffers to SSBOs using `Frequency::GEOMETRY`.
+ */
+void GPU_batch_bind_as_resources(blender::gpu::Batch *batch, GPUShader *shader);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -406,7 +420,15 @@ void GPU_batch_draw_parameter_get(blender::gpu::Batch *batch,
                                   int *r_vertex_count,
                                   int *r_vertex_first,
                                   int *r_base_index,
-                                  int *r_indices_count);
+                                  int *r_instance_count);
+
+/**
+ * Return vertex range for this #blender::gpu::Batch when using primitive expansions.
+ */
+blender::IndexRange GPU_batch_draw_expanded_parameter_get(blender::gpu::Batch *batch,
+                                                          GPUPrimType expanded_prim_type,
+                                                          int vertex_count,
+                                                          int vertex_first);
 
 /** \} */
 

@@ -811,6 +811,11 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
     print_resource(ss, vk_interface, res);
   }
 
+  ss << "\n/* Geometry Resources. */\n";
+  for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
+    print_resource(ss, vk_interface, res);
+  }
+
   /* Push constants. */
   const VKPushConstants::Layout &push_constants_layout = vk_interface.push_constants_layout_get();
   const VKPushConstants::StorageType push_constants_storage =

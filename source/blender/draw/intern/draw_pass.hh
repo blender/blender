@@ -263,6 +263,39 @@ class PassBase {
                        uint custom_id = 0);
 
   /**
+   * Record a regular draw call but replaces each original primitive by a set of the given
+   * primitive. Geometry attributes are still sourced from a `gpu::Batch`, however, the attributes
+   * indexing needs to be done manually inside the shader.
+   *
+   * \note primitive_type and primitive_len must be baked into the shader and without using
+   * specialization constant!
+   *
+   * \note A primitive_len count of 0 will discard the draw call. It will not be recorded.
+   * \note vertex_len and vertex_first are relative to the original primitive list.
+   * \note Only works for GPU_PRIM_POINTS, GPU_PRIM_LINES, GPU_PRIM_TRIS, GPU_PRIM_LINES_ADJ and
+   * GPU_PRIM_TRIS_ADJ original primitive types.
+   */
+  void draw_expand(gpu::Batch *batch,
+                   GPUPrimType primitive_type,
+                   uint primitive_len,
+                   uint instance_len,
+                   uint vertex_len = -1,
+                   uint vertex_first = -1,
+                   ResourceHandle handle = {0},
+                   uint custom_id = 0);
+
+  /**
+   * Shorter version for the common case.
+   * \note Implemented in derived class. Not a virtual function to avoid indirection.
+   */
+  void draw_expand(gpu::Batch *batch,
+                   GPUPrimType primitive_type,
+                   uint primitive_len,
+                   uint instance_len,
+                   ResourceHandle handle = {0},
+                   uint custom_id = 0);
+
+  /**
    * Indirect variants.
    * \note If needed, the resource id need to also be set accordingly in the DrawCommand.
    */
@@ -735,11 +768,6 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
     return;
   }
   BLI_assert(shader_);
-#ifdef WITH_METAL_BACKEND
-  /* TEMP: Note, shader_ is passed as part of the draw as vertex-expansion properties for SSBO
-   * vertex fetch need extracting at command generation time. */
-  GPUShader *draw_shader = GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr;
-#endif
   draw_commands_buf_.append_draw(headers_,
                                  commands_,
                                  batch,
@@ -747,18 +775,58 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
                                  vertex_len,
                                  vertex_first,
                                  handle,
-                                 custom_id
+                                 custom_id,
 #ifdef WITH_METAL_BACKEND
-                                 ,
-                                 draw_shader
+                                 GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr,
 #endif
-  );
+                                 GPU_PRIM_NONE,
+                                 0);
 }
 
 template<class T>
 inline void PassBase<T>::draw(gpu::Batch *batch, ResourceHandle handle, uint custom_id)
 {
   this->draw(batch, -1, -1, -1, handle, custom_id);
+}
+
+template<class T>
+inline void PassBase<T>::draw_expand(gpu::Batch *batch,
+                                     GPUPrimType primitive_type,
+                                     uint primitive_len,
+                                     uint instance_len,
+                                     uint vertex_len,
+                                     uint vertex_first,
+                                     ResourceHandle handle,
+                                     uint custom_id)
+{
+  if (instance_len == 0 || vertex_len == 0 || primitive_len == 0) {
+    return;
+  }
+  BLI_assert(shader_);
+  draw_commands_buf_.append_draw(headers_,
+                                 commands_,
+                                 batch,
+                                 instance_len,
+                                 vertex_len,
+                                 vertex_first,
+                                 handle,
+                                 custom_id,
+#ifdef WITH_METAL_BACKEND
+                                 GPU_shader_uses_ssbo_vertex_fetch(shader_) ? shader_ : nullptr,
+#endif
+                                 primitive_type,
+                                 primitive_len);
+}
+
+template<class T>
+inline void PassBase<T>::draw_expand(gpu::Batch *batch,
+                                     GPUPrimType primitive_type,
+                                     uint primitive_len,
+                                     uint instance_len,
+                                     ResourceHandle handle,
+                                     uint custom_id)
+{
+  this->draw_expand(batch, primitive_type, primitive_len, instance_len, -1, -1, handle, custom_id);
 }
 
 template<class T>
