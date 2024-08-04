@@ -272,6 +272,26 @@ class OperatorNonBlockingSyncHelper:
 # Internal Utilities
 #
 
+def _extensions_repo_uninstall_stale_package_fallback(
+        repo_directory,  # `str`
+        pkg_id_sequence,  # `List[str]`
+):  # `-> None`
+    # If uninstall failed, make the package stale (by renaming it & queue to remove later).
+    import addon_utils
+
+    paths_stale = []
+    for pkg_id in pkg_id_sequence:
+        path_abs = os.path.join(repo_directory, pkg_id)
+        if not os.path.exists(path_abs):
+            continue
+        paths_stale.append(path_abs)
+
+    if not paths_stale:
+        return
+
+    addon_utils.stale_pending_stage_paths(repo_directory, paths_stale)
+
+
 def _sequence_split_with_job_limit(items, job_limit):
     # When only one job is allowed at a time, there is no advantage to splitting the sequence.
     if job_limit == 1:
@@ -988,6 +1008,7 @@ def _extensions_repo_sync_wheels(repo_cache_store, extensions_enabled):
     addon_utils._extension_sync_wheels(
         local_dir=local_dir,
         wheel_list=wheel_list,
+        debug=bpy.app.debug_python,
     )
 
 
@@ -2116,6 +2137,7 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
     __slots__ = (
         *_ExtCmdMixIn.cls_slots,
         "_repo_directories",
+        "_pkg_id_sequence_from_directory"
     )
 
     def exec_command_iter(self, is_modal):
@@ -2135,6 +2157,8 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
         self._repo_directories = set()
         # pylint: disable-next=attribute-defined-outside-init
         self._theme_restore = _preferences_theme_state_create()
+        # pylint: disable-next=attribute-defined-outside-init
+        self._pkg_id_sequence_from_directory = {}
 
         # Track add-ons to disable before uninstalling.
         handle_addons_info = []
@@ -2167,6 +2191,8 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
             package_count += len(pkg_id_sequence)
 
             handle_addons_info.append((repo_item, pkg_id_sequence))
+
+            self._pkg_id_sequence_from_directory[repo_item.directory] = pkg_id_sequence
 
         if not cmd_batch:
             self.report({'ERROR'}, "No installed packages marked")
@@ -2201,6 +2227,12 @@ class EXTENSIONS_OT_package_uninstall_marked(Operator, _ExtCmdMixIn):
         # Unlock repositories.
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
+
+        for directory, pkg_id_sequence in self._pkg_id_sequence_from_directory.items():
+            _extensions_repo_uninstall_stale_package_fallback(
+                repo_directory=directory,
+                pkg_id_sequence=pkg_id_sequence,
+            )
 
         # Refresh installed packages for repositories that were operated on.
         repo_cache_store = repo_cache_store_ensure()
@@ -3239,6 +3271,11 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
         )
 
     def exec_command_finish(self, canceled):
+
+        _extensions_repo_uninstall_stale_package_fallback(
+            repo_directory=self.repo_directory,
+            pkg_id_sequence=[self.pkg_id],
+        )
 
         # Refresh installed packages for repositories that were operated on.
         repo_cache_store = repo_cache_store_ensure()

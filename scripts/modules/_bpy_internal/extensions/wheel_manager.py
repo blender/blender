@@ -16,9 +16,11 @@ __all__ = (
 import os
 import re
 import shutil
+import sys
 import zipfile
 
 from typing import (
+    Callable,
     Dict,
     List,
     Optional,
@@ -139,10 +141,39 @@ def _wheel_info_dir_from_zip(filepath_wheel: str) -> Optional[Tuple[str, List[st
     return dir_info, toplevel_paths_list
 
 
-def _rmtree_safe(dir_remove: str, expected_root: str) -> None:
+def _rmtree_safe(dir_remove: str, expected_root: str) -> Optional[Exception]:
     if not dir_remove.startswith(expected_root):
         raise Exception("Expected prefix not found")
-    shutil.rmtree(dir_remove)
+
+    ex_result = None
+
+    if sys.version_info < (3, 12):
+        def on_error(*args) -> None:  # type: ignore
+            nonlocal ex_result
+            print("Failed to remove:", args)
+            ex_result = args[2][0]
+
+        shutil.rmtree(dir_remove, onerror=on_error)
+    else:
+        def on_exc(*args) -> None:  # type: ignore
+            nonlocal ex_result
+            print("Failed to remove:", args)
+            ex_result = args[2]
+
+        shutil.rmtree(dir_remove, onexc=on_exc)
+
+    return ex_result
+
+
+def _remove_safe(file_remove: str) -> Optional[Exception]:
+    ex_result = None
+
+    try:
+        os.remove(file_remove)
+    except Exception as ex:
+        ex_result = ex
+
+    return ex_result
 
 
 def _zipfile_extractall_safe(
@@ -281,6 +312,8 @@ def apply_action(
         local_dir: str,
         local_dir_site_packages: str,
         wheel_list: List[WheelSource],
+        remove_error_fn: Callable[[str, Exception], None],
+        debug: bool,
 ) -> None:
     """
     :arg local_dir:
@@ -292,7 +325,6 @@ def apply_action(
        The path which wheels are extracted into.
        Typically: ``~/.config/blender/4.2/extensions/.local/lib/python3.11/site-packages``.
     """
-    debug = False
 
     # NOTE: we could avoid scanning the wheel directories however:
     # Recursively removing all paths on the users system can be considered relatively risky
@@ -357,10 +389,22 @@ def apply_action(
             if debug:
                 print("removing wheel:", filepath_rel)
 
+            ex: Optional[Exception] = None
             if os.path.isdir(filepath_abs):
-                _rmtree_safe(filepath_abs, local_dir)
+                ex = _rmtree_safe(filepath_abs, local_dir)
+                # For symbolic-links, use remove as a fallback.
+                if ex is not None:
+                    if _remove_safe(filepath_abs) is None:
+                        ex = None
             else:
-                os.remove(filepath_abs)
+                ex = _remove_safe(filepath_abs)
+
+            if ex:
+                if debug:
+                    print("failed to remove:", filepath_rel, str(ex), "setting stale")
+
+                # If the directory (or file) can't be removed, make it stale and try to remove it later.
+                remove_error_fn(filepath_abs, ex)
 
     # -----
     # Setup
