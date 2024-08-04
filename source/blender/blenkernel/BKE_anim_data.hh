@@ -8,13 +8,15 @@
  * \ingroup bke
  */
 
+#include <functional>
 #include <optional>
 
-#include "BLI_sys_types.h" /* for bool */
+#include "BLI_function_ref.hh"
 
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
+struct FCurve;
 struct ID;
 struct Library;
 struct LibraryForeachIDData;
@@ -170,3 +172,17 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id);
  * applied.
  */
 void BKE_animdata_liboverride_post_process(ID *id);
+
+/* ************************************* */
+/* Batch AnimData API */
+/* Loop over all datablocks applying callback */
+void BKE_animdata_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, AnimData *)> func);
+
+/** Apply the given callback function on all F-Curves attached to data in `main` database. */
+void BKE_fcurves_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, FCurve *)> func);
+
+/* Look over all f-curves of a given ID. */
+void BKE_fcurves_id_cb(struct ID *id, blender::FunctionRef<void(ID *, FCurve *)> func);
+
+/* ************************************* */
+/* TODO: overrides, remapping, and path-finding API's. */

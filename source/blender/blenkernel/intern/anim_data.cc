@@ -57,6 +57,8 @@
 
 static CLG_LogRef LOG = {"bke.anim_sys"};
 
+using blender::FunctionRef;
+
 /* ***************************************** */
 /* AnimData API */
 
@@ -1214,80 +1216,72 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 
 /* Apply Op to All FCurves in Database --------------------------- */
 
-/* "User-Data" wrapper used by BKE_fcurves_main_cb() */
-struct AllFCurvesCbWrapper {
-  ID_FCurve_Edit_Callback func; /* Operation to apply on F-Curve */
-  void *user_data;              /* Custom data for that operation */
-};
-
 /* Helper for adt_apply_all_fcurves_cb() - Apply wrapped operator to list of F-Curves */
 static void fcurves_apply_cb(ID *id,
                              ListBase *fcurves,
-                             ID_FCurve_Edit_Callback func,
-                             void *user_data)
+                             const FunctionRef<void(ID *, FCurve *)> func)
 {
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    func(id, fcu, user_data);
+    func(id, fcu);
   }
 }
 
 /* Helper for adt_apply_all_fcurves_cb() - Recursively go through each NLA strip */
-static void nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, AllFCurvesCbWrapper *wrapper)
+static void nlastrips_apply_all_curves_cb(ID *id,
+                                          ListBase *strips,
+                                          const FunctionRef<void(ID *, FCurve *)> func)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act) {
-      fcurves_apply_cb(id, &strip->act->curves, wrapper->func, wrapper->user_data);
+      fcurves_apply_cb(id, &strip->act->curves, func);
     }
 
     /* Check sub-strips (if meta-strips). */
-    nlastrips_apply_all_curves_cb(id, &strip->strips, wrapper);
+    nlastrips_apply_all_curves_cb(id, &strip->strips, func);
   }
 }
 
 /* Helper for BKE_fcurves_main_cb() - Dispatch wrapped operator to all F-Curves */
-static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
+static void adt_apply_all_fcurves_cb(ID *id,
+                                     AnimData *adt,
+                                     const FunctionRef<void(ID *, FCurve *)> func)
 {
-  AllFCurvesCbWrapper *wrapper = static_cast<AllFCurvesCbWrapper *>(wrapper_data);
-
   if (adt->action) {
-    fcurves_apply_cb(id, &adt->action->curves, wrapper->func, wrapper->user_data);
+    fcurves_apply_cb(id, &adt->action->curves, func);
   }
 
   if (adt->tmpact) {
-    fcurves_apply_cb(id, &adt->tmpact->curves, wrapper->func, wrapper->user_data);
+    fcurves_apply_cb(id, &adt->tmpact->curves, func);
   }
 
   /* free drivers - stored as a list of F-Curves */
-  fcurves_apply_cb(id, &adt->drivers, wrapper->func, wrapper->user_data);
+  fcurves_apply_cb(id, &adt->drivers, func);
 
   /* NLA Data - Animation Data for Strips */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    nlastrips_apply_all_curves_cb(id, &nlt->strips, wrapper);
+    nlastrips_apply_all_curves_cb(id, &nlt->strips, func);
   }
 }
 
-void BKE_fcurves_id_cb(ID *id, ID_FCurve_Edit_Callback func, void *user_data)
+void BKE_fcurves_id_cb(ID *id, const FunctionRef<void(ID *, FCurve *)> func)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != nullptr) {
-    AllFCurvesCbWrapper wrapper = {func, user_data};
-    adt_apply_all_fcurves_cb(id, adt, &wrapper);
+    adt_apply_all_fcurves_cb(id, adt, func);
   }
 }
 
-void BKE_fcurves_main_cb(Main *bmain, ID_FCurve_Edit_Callback func, void *user_data)
+void BKE_fcurves_main_cb(Main *bmain, const FunctionRef<void(ID *, FCurve *)> func)
 {
-  /* Wrap F-Curve operation stuff to pass to the general AnimData-level func */
-  AllFCurvesCbWrapper wrapper = {func, user_data};
-
   /* Use the AnimData-based function so that we don't have to reimplement all that stuff */
-  BKE_animdata_main_cb(bmain, adt_apply_all_fcurves_cb, &wrapper);
+  BKE_animdata_main_cb(bmain,
+                       [&](ID *id, AnimData *adt) { adt_apply_all_fcurves_cb(id, adt, func); });
 }
 
 /* Whole Database Ops -------------------------------------------- */
 
-void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *user_data)
+void BKE_animdata_main_cb(Main *bmain, const FunctionRef<void(ID *, AnimData *)> func)
 {
   ID *id;
 
@@ -1296,7 +1290,7 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
   for (id = static_cast<ID *>(first); id; id = static_cast<ID *>(id->next)) { \
     AnimData *adt = BKE_animdata_from_id(id); \
     if (adt) { \
-      func(id, adt, user_data); \
+      func(id, adt); \
     } \
   } \
   (void)0
@@ -1309,11 +1303,11 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
     if (ntp->nodetree) { \
       AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
       if (adt2) { \
-        func(id, adt2, user_data); \
+        func(id, adt2); \
       } \
     } \
     if (adt) { \
-      func(id, adt, user_data); \
+      func(id, adt); \
     } \
   } \
   (void)0
@@ -1412,115 +1406,10 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
                                           const int newSubscript,
                                           const bool verify_paths)
 {
-  /* TODO: use BKE_animdata_main_cb for looping over all data. */
-
-  ID *id;
-
-/* macro for less typing
- * - whether animdata exists is checked for by the main renaming callback, though taking
- *   this outside of the function may make things slightly faster?
- */
-#define RENAMEFIX_ANIM_IDS(first) \
-  for (id = static_cast<ID *>(first); id; id = static_cast<ID *>(id->next)) { \
-    AnimData *adt = BKE_animdata_from_id(id); \
-    BKE_animdata_fix_paths_rename( \
-        id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths); \
-  } \
-  (void)0
-
-/* Another version of this macro for node-trees. */
-#define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
-  for (id = static_cast<ID *>(first); id; id = static_cast<ID *>(id->next)) { \
-    AnimData *adt = BKE_animdata_from_id(id); \
-    NtId_Type *ntp = (NtId_Type *)id; \
-    if (ntp->nodetree) { \
-      AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
-      BKE_animdata_fix_paths_rename((ID *)ntp->nodetree, \
-                                    adt2, \
-                                    ref_id, \
-                                    prefix, \
-                                    oldName, \
-                                    newName, \
-                                    oldSubscript, \
-                                    newSubscript, \
-                                    verify_paths); \
-    } \
-    BKE_animdata_fix_paths_rename( \
-        id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths); \
-  } \
-  (void)0
-
-  /* nodes */
-  RENAMEFIX_ANIM_IDS(bmain->nodetrees.first);
-
-  /* textures */
-  RENAMEFIX_ANIM_NODETREE_IDS(bmain->textures.first, Tex);
-
-  /* lights */
-  RENAMEFIX_ANIM_NODETREE_IDS(bmain->lights.first, Light);
-
-  /* materials */
-  RENAMEFIX_ANIM_NODETREE_IDS(bmain->materials.first, Material);
-
-  /* cameras */
-  RENAMEFIX_ANIM_IDS(bmain->cameras.first);
-
-  /* shapekeys */
-  RENAMEFIX_ANIM_IDS(bmain->shapekeys.first);
-
-  /* metaballs */
-  RENAMEFIX_ANIM_IDS(bmain->metaballs.first);
-
-  /* curves */
-  RENAMEFIX_ANIM_IDS(bmain->curves.first);
-
-  /* armatures */
-  RENAMEFIX_ANIM_IDS(bmain->armatures.first);
-
-  /* lattices */
-  RENAMEFIX_ANIM_IDS(bmain->lattices.first);
-
-  /* meshes */
-  RENAMEFIX_ANIM_IDS(bmain->meshes.first);
-
-  /* particles */
-  RENAMEFIX_ANIM_IDS(bmain->particles.first);
-
-  /* speakers */
-  RENAMEFIX_ANIM_IDS(bmain->speakers.first);
-
-  /* movie clips */
-  RENAMEFIX_ANIM_IDS(bmain->movieclips.first);
-
-  /* objects */
-  RENAMEFIX_ANIM_IDS(bmain->objects.first);
-
-  /* masks */
-  RENAMEFIX_ANIM_IDS(bmain->masks.first);
-
-  /* worlds */
-  RENAMEFIX_ANIM_NODETREE_IDS(bmain->worlds.first, World);
-
-  /* linestyles */
-  RENAMEFIX_ANIM_IDS(bmain->linestyles.first);
-
-  /* grease pencil */
-  RENAMEFIX_ANIM_IDS(bmain->gpencils.first);
-
-  /* cache files */
-  RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
-
-  /* Hair Curves. */
-  RENAMEFIX_ANIM_IDS(bmain->hair_curves.first);
-
-  /* pointclouds */
-  RENAMEFIX_ANIM_IDS(bmain->pointclouds.first);
-
-  /* volumes */
-  RENAMEFIX_ANIM_IDS(bmain->volumes.first);
-
-  /* scenes */
-  RENAMEFIX_ANIM_NODETREE_IDS(bmain->scenes.first, Scene);
+  BKE_animdata_main_cb(bmain, [&](ID *id, AnimData *adt) {
+    BKE_animdata_fix_paths_rename(
+        id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths);
+  });
 }
 
 /* .blend file API -------------------------------------------- */

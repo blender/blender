@@ -206,27 +206,6 @@ void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *dstID,
                                        struct ListBase *basepaths);
 
-/* ************************************* */
-/* Batch AnimData API */
-
-/* Define for callback looper used in BKE_animdata_main_cb */
-typedef void (*ID_AnimData_Edit_Callback)(struct ID *id, struct AnimData *adt, void *user_data);
-
-/* Define for callback looper used in BKE_fcurves_main_cb */
-typedef void (*ID_FCurve_Edit_Callback)(struct ID *id, struct FCurve *fcu, void *user_data);
-
-/* Loop over all datablocks applying callback */
-void BKE_animdata_main_cb(struct Main *bmain, ID_AnimData_Edit_Callback func, void *user_data);
-
-/** Apply the given callback function on all F-Curves attached to data in `main` database. */
-void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void *user_data);
-
-/* Look over all f-curves of a given ID. */
-void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_data);
-
-/* ************************************* */
-/* TODO: overrides, remapping, and path-finding API's. */
-
 /* ------------ NLA Keyframing --------------- */
 
 typedef struct NlaKeyframingContext NlaKeyframingContext;
