@@ -36,7 +36,7 @@ const ModifierData *get_enabled_modifier(const Object &obj,
 {
   BLI_assert(depsgraph);
 
-  Scene *scene = DEG_get_input_scene(depsgraph);
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   eEvaluationMode mode = DEG_get_mode(depsgraph);
 
   LISTBASE_FOREACH (ModifierData *, md, &obj.modifiers) {

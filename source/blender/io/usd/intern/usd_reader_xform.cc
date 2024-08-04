@@ -62,7 +62,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float time,
                                  const float scale,
-                                 bool *r_is_constant)
+                                 bool *r_is_constant) const
 {
   BLI_assert(r_mat);
   BLI_assert(r_is_constant);

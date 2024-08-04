@@ -20,6 +20,6 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
 std::string image_cache_file_path();
 std::string get_image_cache_file(const std::string &file_name, bool mkdir = true);
-std::string cache_image_color(float color[4]);
+std::string cache_image_color(const float color[4]);
 
 };  // namespace blender::io::usd

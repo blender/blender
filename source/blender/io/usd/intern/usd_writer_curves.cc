@@ -438,7 +438,7 @@ void USDCurvesWriter::write_uv_data(const bke::CurvesGeometry &curves,
 }
 
 void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
-                                        pxr::UsdGeomCurves &usd_curves)
+                                        const pxr::UsdGeomCurves &usd_curves)
 {
   const bke::AttributeAccessor attributes = curves.attributes();
 

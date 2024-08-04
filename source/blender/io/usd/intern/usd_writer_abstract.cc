@@ -209,7 +209,7 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path() const
 }
 
 pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
-                                                             Material *material)
+                                                             Material *material) const
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
@@ -237,7 +237,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,
                                          const pxr::UsdTimeCode timecode,
-                                         pxr::UsdGeomImageable &usd_geometry)
+                                         const pxr::UsdGeomImageable &usd_geometry)
 {
   pxr::UsdAttribute attr_visibility = usd_geometry.CreateVisibilityAttr(pxr::VtValue(), true);
 

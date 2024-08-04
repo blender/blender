@@ -42,11 +42,11 @@ enum eUSDMtlNameCollisionMode {
  *  attributes / properties outside
  *  a prim's regular schema.
  */
-typedef enum eUSDAttrImportMode {
+enum eUSDAttrImportMode {
   USD_ATTR_IMPORT_NONE = 0,
   USD_ATTR_IMPORT_USER = 1,
   USD_ATTR_IMPORT_ALL = 2,
-} eUSDAttrImportMode;
+};
 
 /**
  *  Behavior when importing textures from a package
@@ -79,13 +79,13 @@ enum eSubdivExportMode {
   USD_SUBDIV_BEST_MATCH = 2,
 };
 
-typedef enum eUSDXformOpMode {
+enum eUSDXformOpMode {
   USD_XFORM_OP_TRS = 0,
   USD_XFORM_OP_TOS = 1,
   USD_XFORM_OP_MAT = 2,
-} eUSDXformOpMode;
+};
 
-typedef enum eUSDZTextureDownscaleSize {
+enum eUSDZTextureDownscaleSize {
   USD_TEXTURE_SIZE_CUSTOM = -1,
   USD_TEXTURE_SIZE_KEEP = 0,
   USD_TEXTURE_SIZE_256 = 256,
@@ -93,7 +93,7 @@ typedef enum eUSDZTextureDownscaleSize {
   USD_TEXTURE_SIZE_1024 = 1024,
   USD_TEXTURE_SIZE_2048 = 2048,
   USD_TEXTURE_SIZE_4096 = 4096
-} eUSDZTextureDownscaleSize;
+};
 
 /**
  *  Behavior when exporting textures.
@@ -237,13 +237,13 @@ USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_fl
  * When `as_background_job=false`, performs the export synchronously, and returns
  * true when the export was ok, and false if there were any errors.
  */
-bool USD_export(bContext *C,
+bool USD_export(const bContext *C,
                 const char *filepath,
                 const USDExportParams *params,
                 bool as_background_job,
                 ReportList *reports);
 
-bool USD_import(bContext *C,
+bool USD_import(const bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job,
@@ -267,7 +267,7 @@ void USD_get_transform(CacheReader *reader, float r_mat[4][4], float time, float
 
 /** Either modifies current_mesh in-place or constructs a new mesh. */
 void USD_read_geometry(CacheReader *reader,
-                       Object *ob,
+                       const Object *ob,
                        blender::bke::GeometrySet &geometry_set,
                        USDMeshReadParams params,
                        const char **err_str);

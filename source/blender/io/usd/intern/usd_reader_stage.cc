@@ -724,8 +724,8 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
       Collection *proto_coll = create_collection(bmain, instancer_protos_coll, coll_name.c_str());
       blender::Vector<USDPrimReader *> proto_readers = instancer_proto_readers_.lookup_default(
           proto_path, {});
-      for (USDPrimReader *reader : proto_readers) {
-        Object *ob = reader->object();
+      for (USDPrimReader *proto : proto_readers) {
+        Object *ob = proto->object();
         if (!ob) {
           continue;
         }

@@ -115,11 +115,11 @@ using InputSpecMap = blender::Map<std::string, InputSpec>;
 
 /* Static function forward declarations. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
-                                                     pxr::UsdShadeMaterial &material,
+                                                     const pxr::UsdShadeMaterial &material,
                                                      const char *name,
                                                      int type);
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
-                                                     pxr::UsdShadeMaterial &material,
+                                                     const pxr::UsdShadeMaterial &material,
                                                      bNode *node);
 static void create_uv_input(const USDExporterContext &usd_export_context,
                             bNodeSocket *input_socket,
@@ -129,7 +129,7 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
                             ReportList *reports);
 static void export_texture(const USDExporterContext &usd_export_context, bNode *node);
 static bNode *find_bsdf_node(Material *material);
-static void get_absolute_path(Image *ima, char *r_path);
+static void get_absolute_path(const Image *ima, char *r_path);
 static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
                                                 bNode *node);
 static const InputSpecMap &preview_surface_input_map();
@@ -184,7 +184,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     }
 
     /* Allow scaling inputs. */
-    float scale = 1.0;
+    float input_scale = 1.0;
 
     const InputSpec &input_spec = *spec;
     bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE);
@@ -198,9 +198,9 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         continue;
       }
 
-      scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
+      input_scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
 
-      if (scale == 0.0f) {
+      if (input_scale == 0.0f) {
         continue;
       }
     }
@@ -217,7 +217,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         /* If the input is a float, we check if there is also a Separate Color node in between, if
          * there is use the output channel from that, otherwise connect either the texture alpha or
          * red channels. */
-        bNodeLink *input_link_sep_color = traverse_channel(sock, SH_NODE_SEPARATE_COLOR);
+        const bNodeLink *input_link_sep_color = traverse_channel(sock, SH_NODE_SEPARATE_COLOR);
         if (input_link_sep_color) {
           if (STREQ(input_link_sep_color->fromsock->identifier, "Red")) {
             source_name = usdtokens::r;
@@ -316,10 +316,10 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
           }
           else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
             /* If this is the 1-minus node, we need to search upstream to find the less-than. */
-            bNodeSocket *sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value");
-            if (((bNodeSocketValueFloat *)sock->default_value)->value == 1.0f) {
-              sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value_001");
-              math_link = traverse_channel(sock, SH_NODE_MATH);
+            bNodeSocket *math_sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value");
+            if (((bNodeSocketValueFloat *)math_sock->default_value)->value == 1.0f) {
+              math_sock = blender::bke::nodeFindSocket(math_node, SOCK_IN, "Value_001");
+              math_link = traverse_channel(math_sock, SH_NODE_MATH);
               if (math_link && math_link->fromnode) {
                 math_node = math_link->fromnode;
 
@@ -347,15 +347,15 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       switch (sock->type) {
         case SOCK_FLOAT: {
           create_input<bNodeSocketValueFloat, float>(
-              preview_surface, input_spec, sock->default_value, scale);
+              preview_surface, input_spec, sock->default_value, input_scale);
         } break;
         case SOCK_VECTOR: {
           create_input<bNodeSocketValueVector, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value, scale);
+              preview_surface, input_spec, sock->default_value, input_scale);
         } break;
         case SOCK_RGBA: {
           create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value, scale);
+              preview_surface, input_spec, sock->default_value, input_scale);
         } break;
         default:
           break;
@@ -404,8 +404,8 @@ void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &
 
 /* Create USD Shade Material network from Blender viewport display settings. */
 static void create_usd_viewport_material(const USDExporterContext &usd_export_context,
-                                         Material *material,
-                                         pxr::UsdShadeMaterial &usd_material)
+                                         const Material *material,
+                                         const pxr::UsdShadeMaterial &usd_material)
 {
   /* Construct the shader. */
   pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);
@@ -452,14 +452,14 @@ static const InputSpecMap &preview_surface_input_map()
  * reader for the given default uv set. The primvar reader will be attached to
  * the 'st' input of the given USD texture shader. */
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,
-                                bNodeLink *uvmap_link,
-                                pxr::UsdShadeMaterial &usd_material,
-                                pxr::UsdShadeInput &usd_input,
+                                const bNodeLink *uvmap_link,
+                                const pxr::UsdShadeMaterial &usd_material,
+                                const pxr::UsdShadeInput &usd_input,
                                 const std::string &active_uvmap_name,
                                 ReportList *reports)
 
 {
-  bNode *uv_node = (uvmap_link && uvmap_link->fromnode ? uvmap_link->fromnode : nullptr);
+  const bNode *uv_node = (uvmap_link && uvmap_link->fromnode ? uvmap_link->fromnode : nullptr);
 
   BLI_assert(!uv_node || uv_node->type == SH_NODE_UVMAP);
 
@@ -475,7 +475,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
 
   std::string uv_name = active_uvmap_name;
   if (uv_node && uv_node->storage) {
-    NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(uv_node->storage);
+    const NodeShaderUVMap *shader_uv_map = static_cast<const NodeShaderUVMap *>(uv_node->storage);
     uv_name = shader_uv_map->uv_map;
   }
   if (usd_export_context.export_params.rename_uvmaps && uv_name == active_uvmap_name) {
@@ -596,7 +596,7 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
     return;
   }
 
-  bNodeLink *uvmap_link = traverse_channel(input_socket, SH_NODE_UVMAP);
+  const bNodeLink *uvmap_link = traverse_channel(input_socket, SH_NODE_UVMAP);
 
   /* Note that uvmap_link might be null, but create_uv_shader() can handle this case. */
   create_uvmap_shader(
@@ -608,7 +608,7 @@ static bool is_in_memory_texture(Image *ima)
   return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED;
 }
 
-static bool is_packed_texture(Image *ima)
+static bool is_packed_texture(const Image *ima)
 {
   return BKE_image_has_packedfile(ima);
 }
@@ -706,7 +706,7 @@ static void export_in_memory_texture(Image *ima,
 
 /* Get the absolute filepath of the given image.  Assumes
  * r_path result array is of length FILE_MAX. */
-static void get_absolute_path(Image *ima, char *r_path)
+static void get_absolute_path(const Image *ima, char *r_path)
 {
   /* Make absolute source path. */
   BLI_strncpy(r_path, ima->filepath, FILE_MAX);
@@ -714,13 +714,13 @@ static void get_absolute_path(Image *ima, char *r_path)
   BLI_path_normalize(r_path);
 }
 
-static pxr::TfToken get_node_tex_image_color_space(bNode *node)
+static pxr::TfToken get_node_tex_image_color_space(const bNode *node)
 {
   if (!node->id) {
     return pxr::TfToken();
   }
 
-  Image *ima = reinterpret_cast<Image *>(node->id);
+  const Image *ima = reinterpret_cast<const Image *>(node->id);
 
   if (IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
     return usdtokens::raw;
@@ -732,7 +732,7 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
   return pxr::TfToken();
 }
 
-static pxr::TfToken get_node_tex_image_wrap(bNode *node)
+static pxr::TfToken get_node_tex_image_wrap(const bNode *node)
 {
   if (node->type != SH_NODE_TEX_IMAGE) {
     return pxr::TfToken();
@@ -742,7 +742,7 @@ static pxr::TfToken get_node_tex_image_wrap(bNode *node)
     return pxr::TfToken();
   }
 
-  NodeTexImage *tex_image = static_cast<NodeTexImage *>(node->storage);
+  const NodeTexImage *tex_image = static_cast<const NodeTexImage *>(node->storage);
 
   pxr::TfToken wrap;
 
@@ -804,7 +804,7 @@ static bNode *find_bsdf_node(Material *material)
 
 /* Creates a USD Preview Surface shader based on the given cycles node name and type. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
-                                                     pxr::UsdShadeMaterial &material,
+                                                     const pxr::UsdShadeMaterial &material,
                                                      const char *name,
                                                      const int type)
 {
@@ -850,7 +850,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
  * More may be added in the future.
  */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
-                                                     pxr::UsdShadeMaterial &material,
+                                                     const pxr::UsdShadeMaterial &material,
                                                      bNode *node)
 {
   pxr::UsdShadeShader shader = create_usd_preview_shader(
@@ -881,7 +881,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
   return shader;
 }
 
-static std::string get_tex_image_asset_filepath(Image *ima)
+static std::string get_tex_image_asset_filepath(const Image *ima)
 {
   char filepath[FILE_MAX];
   get_absolute_path(ima, filepath);
@@ -1049,7 +1049,7 @@ static void copy_tiled_textures(Image *ima,
 }
 
 /* Copy the given image to the destination directory. */
-static void copy_single_file(Image *ima,
+static void copy_single_file(const Image *ima,
                              const std::string &dest_dir,
                              const bool allow_overwrite,
                              ReportList *reports)
@@ -1127,7 +1127,7 @@ static void export_texture(const USDExporterContext &usd_export_context, Image *
                  usd_export_context.export_params.worker_status->reports);
 }
 
-const pxr::TfToken token_for_input(const char *input_name)
+pxr::TfToken token_for_input(const char *input_name)
 {
   const InputSpecMap &input_map = preview_surface_input_map();
   const InputSpec *spec = input_map.lookup_ptr(input_name);
@@ -1159,7 +1159,7 @@ static pxr::SdfPath reflow_materialx_paths(pxr::SdfPath input_path,
                                            const Map<std::string, std::string> &rename_pairs)
 {
 
-  auto input_path_string = input_path.GetString();
+  const std::string &input_path_string = input_path.GetString();
   /* First we see if the path is in the rename_pairs,
    * otherwise we check if it starts with any items in the list plus a path separator (/ or .) .
    * Checking for the path separators, removes false positives from other prefixed elements. */
@@ -1188,7 +1188,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
                                           pxr::SdfPath usd_path,
                                           Material *material,
                                           const std::string &active_uvmap_name,
-                                          pxr::UsdShadeMaterial &usd_material)
+                                          const pxr::UsdShadeMaterial &usd_material)
 {
   blender::nodes::materialx::ExportParams export_params = {
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
@@ -1259,8 +1259,8 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
   Map<std::string, std::string> rename_pairs;
   for (const auto &temp_material_child : temp_material_prim.GetChildren()) {
     uint32_t conflict_counter = 0;
-    auto name = temp_material_child.GetName().GetString();
-    auto target_name = name;
+    const std::string &name = temp_material_child.GetName().GetString();
+    std::string target_name = name;
     while (used_names.contains(target_name)) {
       ++conflict_counter;
       target_name = name + "_mtlx" + std::to_string(conflict_counter);
@@ -1276,8 +1276,8 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     }
 
     temp_used_names.add(target_name);
-    auto original_path = temp_material_child.GetPath().GetString();
-    auto new_path =
+    const std::string &original_path = temp_material_child.GetPath().GetString();
+    const std::string new_path =
         temp_material_child.GetPath().ReplaceName(pxr::TfToken(target_name)).GetString();
 
     rename_pairs.add_overwrite(original_path, new_path);
@@ -1285,7 +1285,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
 
   /* We now need to find the connections from the material to the surface shader
    * and modify it to match the final target location */
-  for (auto &temp_material_output : temp_material.GetOutputs()) {
+  for (const auto &temp_material_output : temp_material.GetOutputs()) {
     pxr::SdfPathVector output_paths;
 
     temp_material_output.GetAttr().GetConnections(&output_paths);
@@ -1308,7 +1308,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     }
 
     /* First, we process any inputs */
-    for (auto &shader_input : temp_shader.GetInputs()) {
+    for (const auto &shader_input : temp_shader.GetInputs()) {
       pxr::SdfPathVector connection_paths;
       shader_input.GetAttr().GetConnections(&connection_paths);
 
@@ -1316,7 +1316,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
         continue;
       }
 
-      auto connection_path = connection_paths[0];
+      const pxr::SdfPath &connection_path = connection_paths[0];
 
       auto connection_source = pxr::UsdShadeConnectionSourceInfo(temp_stage, connection_path);
       auto connection_source_prim = connection_source.source.GetPrim();
@@ -1346,7 +1346,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     }
 
     /* Next we iterate through the outputs */
-    for (auto &shader_output : temp_shader.GetOutputs()) {
+    for (const auto &shader_output : temp_shader.GetOutputs()) {
       pxr::SdfPathVector connection_paths;
       shader_output.GetAttr().GetConnections(&connection_paths);
 

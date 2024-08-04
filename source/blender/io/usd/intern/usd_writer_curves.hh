@@ -55,7 +55,7 @@ class USDCurvesWriter final : public USDAbstractWriter {
                      const pxr::UsdGeomCurves &usd_curves);
 
   void write_custom_data(const blender::bke::CurvesGeometry &curves,
-                         pxr::UsdGeomCurves &usd_curves);
+                         const pxr::UsdGeomCurves &usd_curves);
 };
 
 }  // namespace blender::io::usd

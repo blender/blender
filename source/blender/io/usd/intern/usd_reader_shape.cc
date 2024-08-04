@@ -191,7 +191,7 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
 
   pxr::TfToken active_color_name;
 
-  for (pxr::UsdGeomPrimvar &pv : primvars) {
+  for (const pxr::UsdGeomPrimvar &pv : primvars) {
     if (!pv.HasValue()) {
       BKE_reportf(reports(),
                   RPT_WARNING,
@@ -206,7 +206,7 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
       continue;
     }
 
-    const pxr::TfToken name = pv.StripPrimvarsName(pv.GetPrimvarName());
+    const pxr::TfToken name = pxr::UsdGeomPrimvar::StripPrimvarsName(pv.GetPrimvarName());
 
     /* Skip reading primvars that have been read before and are not time varying. */
     if (primvar_time_varying_map_.contains(name) && !primvar_time_varying_map_.lookup(name)) {

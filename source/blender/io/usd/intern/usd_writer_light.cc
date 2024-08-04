@@ -42,7 +42,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
   pxr::UsdTimeCode timecode = get_export_time_code();
 
-  Light *light = static_cast<Light *>(context.object->data);
+  const Light *light = static_cast<const Light *>(context.object->data);
   pxr::UsdLuxLightAPI usd_light_api;
 
   switch (light->type) {

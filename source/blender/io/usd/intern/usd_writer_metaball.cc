@@ -49,7 +49,7 @@ void USDMetaballWriter::free_export_mesh(Mesh *mesh)
 
 bool USDMetaballWriter::is_basis_ball(Scene *scene, Object *ob) const
 {
-  Object *basis_ob = BKE_mball_basis_find(scene, ob);
+  const Object *basis_ob = BKE_mball_basis_find(scene, ob);
   return ob == basis_ob;
 }
 

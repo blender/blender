@@ -62,7 +62,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
                                                              usd_export_context_.usd_path);
 
   const Camera *camera = static_cast<const Camera *>(context.object->data);
-  Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
+  const Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
 
   usd_camera.CreateProjectionAttr().Set(pxr::UsdGeomTokens->perspective);
 

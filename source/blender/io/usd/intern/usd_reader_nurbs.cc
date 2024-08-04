@@ -179,11 +179,11 @@ Mesh *USDNurbsReader::read_mesh(Mesh * /*existing_mesh*/,
                                 const USDMeshReadParams params,
                                 const char ** /*err_str*/)
 {
-  pxr::UsdGeomCurves curve_prim_(prim_);
+  pxr::UsdGeomCurves curve_prim(prim_);
 
-  pxr::UsdAttribute widthsAttr = curve_prim_.GetWidthsAttr();
-  pxr::UsdAttribute vertexAttr = curve_prim_.GetCurveVertexCountsAttr();
-  pxr::UsdAttribute pointsAttr = curve_prim_.GetPointsAttr();
+  pxr::UsdAttribute widthsAttr = curve_prim.GetWidthsAttr();
+  pxr::UsdAttribute vertexAttr = curve_prim.GetCurveVertexCountsAttr();
+  pxr::UsdAttribute pointsAttr = curve_prim.GetPointsAttr();
 
   pxr::VtIntArray usdCounts;
 

@@ -85,14 +85,14 @@ struct PointerRNAToPython {
 /* Encapsulate arguments for scene export. */
 struct USDSceneExportContext {
 
-  USDSceneExportContext() : depsgraph_ptr({}) {}
+  USDSceneExportContext() = default;
 
   USDSceneExportContext(pxr::UsdStageRefPtr in_stage, Depsgraph *depsgraph) : stage(in_stage)
   {
     depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
   }
 
-  pxr::UsdStageRefPtr get_stage()
+  pxr::UsdStageRefPtr get_stage() const
   {
     return stage;
   }
@@ -103,17 +103,16 @@ struct USDSceneExportContext {
   }
 
   pxr::UsdStageRefPtr stage;
-  PointerRNA depsgraph_ptr;
+  PointerRNA depsgraph_ptr{};
 };
 
 /* Encapsulate arguments for scene import. */
 struct USDSceneImportContext {
-
-  USDSceneImportContext() {}
+  USDSceneImportContext() = default;
 
   USDSceneImportContext(pxr::UsdStageRefPtr in_stage) : stage(in_stage) {}
 
-  pxr::UsdStageRefPtr get_stage()
+  pxr::UsdStageRefPtr get_stage() const
   {
     return stage;
   }
@@ -123,11 +122,11 @@ struct USDSceneImportContext {
 
 /* Encapsulate arguments for material export. */
 struct USDMaterialExportContext {
-  USDMaterialExportContext() {}
+  USDMaterialExportContext() = default;
 
   USDMaterialExportContext(pxr::UsdStageRefPtr in_stage) : stage(in_stage) {}
 
-  pxr::UsdStageRefPtr get_stage()
+  pxr::UsdStageRefPtr get_stage() const
   {
     return stage;
   }
@@ -288,7 +287,7 @@ class OnMaterialExportInvoker : public USDHookInvoker {
  public:
   OnMaterialExportInvoker(pxr::UsdStageRefPtr stage,
                           Material *material,
-                          pxr::UsdShadeMaterial &usd_material,
+                          const pxr::UsdShadeMaterial &usd_material,
                           ReportList *reports)
       : hook_context_(stage), usd_material_(usd_material)
   {
@@ -343,7 +342,7 @@ void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportLi
 
 void call_material_export_hooks(pxr::UsdStageRefPtr stage,
                                 Material *material,
-                                pxr::UsdShadeMaterial &usd_material,
+                                const pxr::UsdShadeMaterial &usd_material,
                                 ReportList *reports)
 {
   if (hook_list().empty()) {

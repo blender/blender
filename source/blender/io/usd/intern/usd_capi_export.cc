@@ -181,7 +181,7 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     xf_api.SetRotate(pxr::GfVec3f(eul[0], eul[1], eul[2]));
   }
 
-  for (auto path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
+  for (const auto &path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
     auto xform = pxr::UsdGeomXform::Define(stage, path);
     /* Tag generated prims to allow filtering on import */
     xform.GetPrim().SetCustomDataByKey(pxr::TfToken("Blender:generated"), pxr::VtValue(true));
@@ -204,9 +204,9 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
     return;
   }
 
-  int image_size = ((enum_value == USD_TEXTURE_SIZE_CUSTOM ?
-                         data->params.usdz_downscale_custom_size :
-                         enum_value));
+  const int image_size = (enum_value == USD_TEXTURE_SIZE_CUSTOM) ?
+                             data->params.usdz_downscale_custom_size :
+                             enum_value;
 
   char texture_path[FILE_MAX];
   STRNCPY(texture_path, path);
@@ -292,8 +292,8 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   BLI_path_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
 
   char original_working_dir_buff[FILE_MAX];
-  char *original_working_dir = BLI_current_working_dir(original_working_dir_buff,
-                                                       sizeof(original_working_dir_buff));
+  const char *original_working_dir = BLI_current_working_dir(original_working_dir_buff,
+                                                             sizeof(original_working_dir_buff));
   /* Buffer is expected to be returned by #BLI_current_working_dir, although in theory other
    * returns are possible on some platforms, this is not handled by this code. */
   BLI_assert(original_working_dir == original_working_dir_buff);
@@ -351,7 +351,7 @@ std::string get_image_cache_file(const std::string &file_name, bool mkdir)
   return file_path;
 }
 
-std::string cache_image_color(float color[4])
+std::string cache_image_color(const float color[4])
 {
   char name[128];
   SNPRINTF(name,
@@ -640,7 +640,7 @@ static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *f
   job->usdz_filepath[0] = '\0';
 }
 
-bool USD_export(bContext *C,
+bool USD_export(const bContext *C,
                 const char *filepath,
                 const USDExportParams *params,
                 bool as_background_job,

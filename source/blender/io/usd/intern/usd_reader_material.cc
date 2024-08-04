@@ -167,7 +167,7 @@ static void link_nodes(
  * Note that the returned handle may be invalid if no layer could be found. */
 static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 {
-  for (auto PropertySpec : attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
+  for (const auto &PropertySpec : attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
     if (PropertySpec->HasDefaultValue() ||
         PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0)
     {
@@ -722,10 +722,10 @@ static IntermediateNode add_scale_bias(const pxr::UsdShadeShader &usd_shader,
 
   pxr::VtValue val;
   if (scale_input.Get(&val) && val.CanCast<pxr::GfVec4f>()) {
-    scale = val.Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
+    scale = pxr::VtValue::Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
   }
   if (bias_input.Get(&val) && val.CanCast<pxr::GfVec4f>()) {
-    bias = val.Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
+    bias = pxr::VtValue::Cast<pxr::GfVec4f>(val).UncheckedGet<pxr::GfVec4f>();
   }
 
   /* Nothing to be done if the values match their defaults. */
@@ -1257,7 +1257,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
-  if (udim_tiles.size() > 0) {
+  if (!udim_tiles.is_empty()) {
     add_udim_tiles(image, udim_tiles);
   }
 

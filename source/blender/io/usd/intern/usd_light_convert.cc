@@ -12,7 +12,6 @@
 
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec3f.h>
-#include <pxr/usd/ar/packageUtils.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xformCache.h>
@@ -28,7 +27,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
-#include "BLI_string.h"
+
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -217,10 +216,11 @@ static bool node_search(bNode *fromnode,
 
   if (!res->background_found && fromnode->type == SH_NODE_BACKGROUND) {
     /* Get light color and intensity */
-    bNodeSocketValueRGBA *color_data = bke::nodeFindSocket(fromnode, SOCK_IN, "Color")
-                                           ->default_value_typed<bNodeSocketValueRGBA>();
-    bNodeSocketValueFloat *strength_data = bke::nodeFindSocket(fromnode, SOCK_IN, "Strength")
-                                               ->default_value_typed<bNodeSocketValueFloat>();
+    const bNodeSocketValueRGBA *color_data = bke::nodeFindSocket(fromnode, SOCK_IN, "Color")
+                                                 ->default_value_typed<bNodeSocketValueRGBA>();
+    const bNodeSocketValueFloat *strength_data =
+        bke::nodeFindSocket(fromnode, SOCK_IN, "Strength")
+            ->default_value_typed<bNodeSocketValueFloat>();
 
     res->background_found = true;
     res->world_intensity = strength_data->value;
@@ -258,7 +258,7 @@ static bool node_search(bNode *fromnode,
   else if (res->env_tex_found && fromnode->type == SH_NODE_MAPPING) {
     copy_v3_fl(res->mapping_rot, 0.0f);
     if (bNodeSocket *socket = bke::nodeFindSocket(fromnode, SOCK_IN, "Rotation")) {
-      bNodeSocketValueVector *rot_value = static_cast<bNodeSocketValueVector *>(
+      const bNodeSocketValueVector *rot_value = static_cast<bNodeSocketValueVector *>(
           socket->default_value);
       copy_v3_v3(res->mapping_rot, rot_value->value);
     }

@@ -149,11 +149,11 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 
 void USDGenericMeshWriter::write_custom_data(const Object *obj,
                                              const Mesh *mesh,
-                                             pxr::UsdGeomMesh usd_mesh)
+                                             const pxr::UsdGeomMesh &usd_mesh)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
 
-  char *active_uvmap_name = nullptr;
+  const char *active_uvmap_name = nullptr;
   const int active_uv_set_index = CustomData_get_render_layer_index(&mesh->corner_data,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_set_index != -1) {
@@ -217,7 +217,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
       });
 }
 
-static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
+static std::optional<pxr::TfToken> convert_blender_domain_to_usd(
     const bke::AttrDomain blender_domain)
 {
   switch (blender_domain) {
@@ -235,7 +235,7 @@ static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
 }
 
 void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
-                                              pxr::UsdGeomMesh usd_mesh,
+                                              const pxr::UsdGeomMesh &usd_mesh,
                                               const bke::AttributeIDRef &attribute_id,
                                               const bke::AttributeMetaData &meta_data)
 {
@@ -273,7 +273,7 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
 }
 
 void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
-                                         pxr::UsdGeomMesh usd_mesh,
+                                         const pxr::UsdGeomMesh &usd_mesh,
                                          const bke::AttributeIDRef &attribute_id,
                                          const char *active_uvmap_name)
 {
@@ -304,7 +304,7 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
 }
 
 void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
-                                            pxr::UsdGeomMesh usd_mesh,
+                                            const pxr::UsdGeomMesh &usd_mesh,
                                             const bke::AttributeIDRef &attribute_id,
                                             const bke::AttributeMetaData &meta_data)
 {
@@ -524,7 +524,7 @@ pxr::TfToken USDGenericMeshWriter::get_subdiv_scheme(const SubsurfModifierData *
 }
 
 void USDGenericMeshWriter::write_subdiv(const pxr::TfToken &subdiv_scheme,
-                                        pxr::UsdGeomMesh &usd_mesh,
+                                        const pxr::UsdGeomMesh &usd_mesh,
                                         const SubsurfModifierData *subsurfData)
 {
   usd_mesh.CreateSubdivisionSchemeAttr().Set(subdiv_scheme);
@@ -656,7 +656,7 @@ void USDGenericMeshWriter::get_geometry_data(const Mesh *mesh, USDMeshData &usd_
 }
 
 void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
-                                            pxr::UsdGeomMesh usd_mesh,
+                                            const pxr::UsdGeomMesh &usd_mesh,
                                             const MaterialFaceGroups &usd_face_groups)
 {
   if (context.object->totcol == 0) {
@@ -691,7 +691,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     /* USD will require that prims with material bindings have the #MaterialBindingAPI applied
      * schema. While Bind() above will create the binding attribute, Apply() needs to be called as
      * well to add the #MaterialBindingAPI schema to the prim itself. */
-    material_binding_api.Apply(mesh_prim);
+    pxr::UsdShadeMaterialBindingAPI::Apply(mesh_prim);
   }
   else {
     /* Blender defaults to double-sided, but USD to single-sided. */
@@ -728,7 +728,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   }
 }
 
-void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
+void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh &usd_mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
 
@@ -764,7 +764,8 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }
 
-void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
+void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,
+                                                  const pxr::UsdGeomMesh &usd_mesh)
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */

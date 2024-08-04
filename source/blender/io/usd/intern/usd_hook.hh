@@ -22,7 +22,7 @@ void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportLi
 /** Call the 'on_material_export' hook functions defined in the registered #USDHook classes. */
 void call_material_export_hooks(pxr::UsdStageRefPtr stage,
                                 Material *material,
-                                pxr::UsdShadeMaterial &usd_material,
+                                const pxr::UsdShadeMaterial &usd_material,
                                 ReportList *reports);
 
 /** Call the 'on_import' chaser function defined in the registered USDHook classes. */
