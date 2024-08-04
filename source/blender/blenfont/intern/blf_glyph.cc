@@ -381,16 +381,19 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode, bool 
 
   /* Icon content has 100 units of padding around them. If
    * it has a subpixel width, shift by the fractional part. */
-  const float tx = fmod((image->width - 200.0f) * scale, 1.0f);
-  const float ty = fmod((image->height - 200.0f) * scale, 1.0f);
+  const float tx = fmod((1600.0f - image->width) * scale / 2.0f, 1.0f);
+  const float ty = fmod((1600.0f - image->height) * scale / 2.0f, 1.0f);
 
-  nsvgRasterize(rast, image, tx, -ty, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
+  nsvgRasterize(rast, image, tx, ty, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
   nsvgDeleteRasterizer(rast);
-  nsvgDelete(image);
 
   /* Bitmaps vary in size, so calculate the offsets needed when drawn. */
-  const int offset_x = int(round((gc->size - float(dest_w) + tx) / 2.0f));
-  const int offset_y = int(ceil((gc->size + float(dest_h) - ty) / 2.0f));
+  const int offset_x = std::max(int(round((gc->size - (image->width * scale) - tx) / 2.0f)),
+                                int(-100.0f * scale));
+  const int offset_y = std::max(int(ceil((gc->size + float(dest_h) - ty) / 2.0f)),
+                                dest_h - int(100.0f * scale));
+
+  nsvgDelete(image);
 
   std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
