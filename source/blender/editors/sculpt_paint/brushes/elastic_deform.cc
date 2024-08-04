@@ -115,6 +115,8 @@ static void calc_faces(const Sculpt &sd,
   calc_translations(
       brush, cache, kelvinet_params, cache.location, offset, orig_data.positions, translations);
 
+  scale_translations(translations, factors);
+
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
 
@@ -144,12 +146,12 @@ static void calc_grids(const Sculpt &sd,
     auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
   }
 
-  calc_brush_texture_factors(ss, brush, orig_data.positions, factors);
-
   tls.translations.resize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
       brush, cache, kelvinet_params, cache.location, offset, orig_data.positions, translations);
+
+  scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, orig_data.positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
@@ -185,6 +187,8 @@ static void calc_bmesh(const Sculpt &sd,
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
       brush, cache, kelvinet_params, cache.location, offset, orig_positions, translations);
+
+  scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, orig_positions, translations);
   apply_translations(translations, verts);
