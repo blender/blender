@@ -6259,7 +6259,7 @@ static void do_fake_neighbor_search_task(SculptSession &ss,
 {
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    int vd_topology_id = SCULPT_vertex_island_get(ss, vd.vertex);
+    int vd_topology_id = islands::vert_id_get(ss, vd.vertex);
     if (vd_topology_id != nvtd->current_topology_id &&
         ss.fake_neighbors.fake_neighbor_index[vd.index] == FAKE_NEIGHBOR_NONE)
     {
@@ -6294,7 +6294,7 @@ static PBVHVertRef fake_neighbor_search(Object &ob, const PBVHVertRef vertex, fl
   NearestVertexFakeNeighborData nvtd;
   nvtd.nearest_vertex.i = -1;
   nvtd.nearest_vertex_distance_sq = FLT_MAX;
-  nvtd.current_topology_id = SCULPT_vertex_island_get(ss, vertex);
+  nvtd.current_topology_id = islands::vert_id_get(ss, vertex);
 
   nvtd = threading::parallel_reduce(
       nodes.index_range(),
@@ -6370,7 +6370,7 @@ void SCULPT_fake_neighbors_ensure(Object &ob, const float max_dist)
     return;
   }
 
-  SCULPT_topology_islands_ensure(ob);
+  islands::ensure_cache(ob);
   fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {
@@ -6477,7 +6477,9 @@ void SCULPT_stroke_id_ensure(Object &ob)
   }
 }
 
-int SCULPT_vertex_island_get(const SculptSession &ss, PBVHVertRef vertex)
+namespace blender::ed::sculpt_paint::islands {
+
+int vert_id_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   if (ss.attrs.topology_island_key) {
     return *static_cast<uint8_t *>(SCULPT_vertex_attr_get(vertex, ss.attrs.topology_island_key));
@@ -6486,15 +6488,13 @@ int SCULPT_vertex_island_get(const SculptSession &ss, PBVHVertRef vertex)
   return -1;
 }
 
-void SCULPT_topology_islands_invalidate(SculptSession &ss)
+void invalidate(SculptSession &ss)
 {
   ss.islands_valid = false;
 }
 
-void SCULPT_topology_islands_ensure(Object &ob)
+void ensure_cache(Object &ob)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
 
   if (ss.attrs.topology_island_key && ss.islands_valid &&
@@ -6550,6 +6550,8 @@ void SCULPT_topology_islands_ensure(Object &ob)
 
   ss.islands_valid = true;
 }
+
+}  // namespace blender::ed::sculpt_paint::islands
 
 void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
                           const Object &ob,

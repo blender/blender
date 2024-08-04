@@ -79,7 +79,7 @@ void sync_all_from_faces(Object &object)
   SculptSession &ss = *object.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  SCULPT_topology_islands_invalidate(ss);
+  islands::invalidate(ss);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
@@ -536,7 +536,7 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
   /* End undo. */
   undo::push_end(ob);
 
-  SCULPT_topology_islands_invalidate(*ob.sculpt);
+  islands::invalidate(*ob.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -652,7 +652,7 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
   /* End undo. */
   undo::push_end(ob);
 
-  SCULPT_topology_islands_invalidate(*ob.sculpt);
+  islands::invalidate(*ob.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -802,7 +802,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
 
   undo::push_end(object);
 
-  SCULPT_topology_islands_invalidate(*object.sculpt);
+  islands::invalidate(*object.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -1148,7 +1148,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
   }
   undo::push_end(object);
 
-  SCULPT_topology_islands_invalidate(*object.sculpt);
+  islands::invalidate(*object.sculpt);
   tag_update_visibility(*C);
 
   return OPERATOR_FINISHED;
@@ -1305,7 +1305,7 @@ static void hide_show_apply_for_symmetry_pass(bContext &C, gesture::GestureData 
 }
 static void hide_show_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SCULPT_topology_islands_invalidate(*gesture_data.vc.obact->sculpt);
+  islands::invalidate(*gesture_data.vc.obact->sculpt);
   tag_update_visibility(C);
   undo::push_end(*gesture_data.vc.obact);
 }

@@ -518,7 +518,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
   generate_geometry(gesture_data);
-  SCULPT_topology_islands_invalidate(ss);
+  islands::invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
   undo::geometry_begin(*gesture_data.vc.obact, &op);
 }

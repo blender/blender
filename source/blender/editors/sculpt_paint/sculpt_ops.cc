@@ -244,7 +244,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
   }
 
-  SCULPT_topology_islands_invalidate(ss);
+  islands::invalidate(ss);
 
   /* Redraw. */
   SCULPT_pbvh_clear(ob);
