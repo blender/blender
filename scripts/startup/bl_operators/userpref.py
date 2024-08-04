@@ -38,20 +38,36 @@ def _zipfile_root_namelist(file_to_extract):
     return root_paths
 
 
-def _module_filesystem_remove(path_base, module_name):
+def _module_filesystem_remove(path_base, filenames):
     # Remove all Python modules with `module_name` in `base_path`.
-    # The `module_name` is expected to be a result from `_zipfile_root_namelist`.
+    # The `filenames` is expected to be a result from `_zipfile_root_namelist`.
     import os
     import shutil
-    module_name = os.path.splitext(module_name)[0]
+    module_names = {
+        filename_only for filename in filenames
+        # Excludes non module names including hidden (dot-files).
+        if (filename_only := os.path.splitext(filename)[0]).isidentifier()
+    }
+
+    paths_stale = []
     for f in os.listdir(path_base):
         f_base = os.path.splitext(f)[0]
-        if f_base == module_name:
+        if f_base in module_names:
             f_full = os.path.join(path_base, f)
             if os.path.isdir(f_full) and (not os.path.islink(f_full)):
-                shutil.rmtree(f_full)
+                shutil.rmtree(f_full, ignore_errors=True)
             else:
-                os.remove(f_full)
+                try:
+                    os.remove(f_full)
+                except Exception:
+                    pass
+
+            if os.path.exists(f_full):
+                paths_stale.append(f_full)
+
+    if paths_stale:
+        import addon_utils
+        addon_utils.stale_pending_stage_paths(path_base, paths_stale)
 
 
 class PREFERENCES_OT_keyconfig_activate(Operator):
@@ -719,8 +735,7 @@ class PREFERENCES_OT_addon_install(Operator):
                 return {'CANCELLED'}
 
             if self.overwrite:
-                for f in file_to_extract_root:
-                    _module_filesystem_remove(path_addons, f)
+                _module_filesystem_remove(path_addons, file_to_extract_root)
             else:
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_addons, os.path.basename(f))
@@ -738,7 +753,7 @@ class PREFERENCES_OT_addon_install(Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
-                _module_filesystem_remove(path_addons, os.path.basename(pyfile))
+                _module_filesystem_remove(path_addons, [os.path.basename(pyfile)])
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, rpt_("File already installed to {!r}").format(path_dest))
                 return {'CANCELLED'}
@@ -834,9 +849,15 @@ class PREFERENCES_OT_addon_remove(Operator):
 
         import shutil
         if isdir and (not os.path.islink(path)):
-            shutil.rmtree(path)
+            shutil.rmtree(path, ignore_errors=True)
         else:
-            os.remove(path)
+            try:
+                os.remove(path)
+            except Exception:
+                pass
+
+        if os.path.exists(path):
+            addon_utils.stale_pending_stage_paths(os.path.dirname(path), [path])
 
         addon_utils.modules_refresh()
 
@@ -973,8 +994,7 @@ class PREFERENCES_OT_app_template_install(Operator):
 
             file_to_extract_root = _zipfile_root_namelist(file_to_extract)
             if self.overwrite:
-                for f in file_to_extract_root:
-                    _module_filesystem_remove(path_app_templates, f)
+                _module_filesystem_remove(path_app_templates, file_to_extract_root)
             else:
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_app_templates, os.path.basename(f))
