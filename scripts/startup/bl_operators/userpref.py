@@ -48,7 +48,7 @@ def _module_filesystem_remove(path_base, module_name):
         f_base = os.path.splitext(f)[0]
         if f_base == module_name:
             f_full = os.path.join(path_base, f)
-            if os.path.isdir(f_full):
+            if os.path.isdir(f_full) and (not os.path.islink(f_full)):
                 shutil.rmtree(f_full)
             else:
                 os.remove(f_full)
