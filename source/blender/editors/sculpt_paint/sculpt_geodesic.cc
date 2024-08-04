@@ -77,11 +77,10 @@ static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
   return false;
 }
 
-static Array<float> geodesic_mesh_create(Object &ob,
-                                         const Set<int> &initial_verts,
-                                         const float limit_radius)
+Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const float limit_radius)
 {
   SculptSession &ss = *ob.sculpt;
+  BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
   Mesh *mesh = BKE_object_get_original_mesh(&ob);
 
   const int totvert = mesh->verts_num;
@@ -221,46 +220,6 @@ static Array<float> geodesic_mesh_create(Object &ob,
   BLI_LINKSTACK_FREE(queue_next);
 
   return dists;
-}
-
-/* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
- * distance to each vertex. In this case, only one of the initial vertices will be used to
- * calculate the distance. */
-static Array<float> geodesic_fallback_create(Object &ob, const Set<int> &initial_verts)
-{
-  SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(&ob);
-  const int totvert = mesh->verts_num;
-  Array<float> dists(totvert, 0.0f);
-  const int first_affected = *initial_verts.begin();
-  if (first_affected == SCULPT_GEODESIC_VERTEX_NONE) {
-    dists.fill(FLT_MAX);
-    return dists;
-  }
-
-  const float *first_affected_co = SCULPT_vertex_co_get(
-      ss, BKE_pbvh_index_to_vertex(*ss.pbvh, first_affected));
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, vertex));
-  }
-
-  return dists;
-}
-
-Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const float limit_radius)
-{
-  SculptSession &ss = *ob.sculpt;
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh:
-      return geodesic_mesh_create(ob, initial_verts, limit_radius);
-    case bke::pbvh::Type::BMesh:
-    case bke::pbvh::Type::Grids:
-      return geodesic_fallback_create(ob, initial_verts);
-  }
-  BLI_assert_unreachable();
-  return {};
 }
 
 Array<float> distances_create_from_vert_and_symm(Object &ob,
