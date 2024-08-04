@@ -224,23 +224,6 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
-float3 SCULPT_vertex_limit_surface_get(const SculptSession &ss, PBVHVertRef vertex)
-{
-  switch (ss.pbvh->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-    case blender::bke::pbvh::Type::BMesh:
-      return SCULPT_vertex_co_get(ss, vertex);
-    case blender::bke::pbvh::Type::Grids: {
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
-      float3 tmp;
-      BKE_subdiv_ccg_eval_limit_point(*ss.subdiv_ccg, coord, tmp);
-      return tmp;
-    }
-  }
-  BLI_assert_unreachable();
-  return {};
-}
 
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss)
 {

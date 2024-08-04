@@ -503,15 +503,19 @@ static void mesh_filter_surface_smooth_init(SculptSession &ss,
 
 static void mesh_filter_init_limit_surface_co(SculptSession &ss)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
-  filter::Cache *filter_cache = ss.filter_cache;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  filter_cache->limit_surface_co = Array<float3>(totvert);
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    filter_cache->limit_surface_co[i] = SCULPT_vertex_limit_surface_get(ss, vertex);
-  }
+  ss.filter_cache->limit_surface_co = Array<float3>(elems.size() * key.grid_area);
+  MutableSpan<float3> limit_positions = ss.filter_cache->limit_surface_co;
+  threading::parallel_for(elems.index_range(), 512, [&](const IndexRange range) {
+    for (const int grid : range) {
+      const int start = grid * key.grid_area;
+      BKE_subdiv_ccg_eval_limit_positions(
+          subdiv_ccg, key, grid, limit_positions.slice(start, key.grid_area));
+    }
+  });
 }
 
 static void mesh_filter_sharpen_init(const Object &object,
