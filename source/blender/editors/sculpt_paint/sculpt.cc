@@ -224,7 +224,6 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
-
 PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss)
 {
   if (ELEM(ss.pbvh->type(),
