@@ -87,7 +87,7 @@ typedef struct SDNA {
   /**
    * Contains the number of allocated items in both #members and #members_array_num arrays below.
    *
-   * Typically same as #members_len, unless after versionning DNA info (these arrays are
+   * Typically same as #members_len, unless after versioning DNA info (these arrays are
    * reallocated by chunks, see #DNA_sdna_patch_struct_member).
    */
   int members_num_alloc;

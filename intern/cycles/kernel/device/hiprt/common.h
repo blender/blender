@@ -524,7 +524,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   float ray_tmax = hit.t;
 
 #  ifdef __SHADOW_LINKING__
-  /* It doesn't seem like this is neccesary. */
+  /* It doesn't seem like this is necessary. */
   if (intersection_skip_shadow_link(nullptr, self, object)) {
     /* Ignore hit - continue traversal */
     return true;

@@ -985,7 +985,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   BLO_read_struct(reader, bNodeLink, &sock->link);
   sock->typeinfo = nullptr;
   /* FIXME Avoid using low-level untyped read function here. Although this seems to be only for
-   * versionning code now? Does not seem to be written anymore at least. */
+   * versioning code now? Does not seem to be written anymore at least. */
   BLO_read_data_address(reader, &sock->storage);
   /* FIXME Avoid using low-level untyped read function here. Most likely by just mirroring
    * #write_node_socket_default_value ? */

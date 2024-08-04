@@ -241,12 +241,12 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
   const GPUVertFormat *format = &vbo->format;
 
   if (format->deinterleaved == true) {
-    /* Deinterleaved attribute buffers are not supported for now. */
+    /* De-interleaved attribute buffers are not supported for now. */
     /* TODO(fclem): Detect this case and assert? */
     return 0u;
   }
   /* We need to support GPU OpenSubdiv meshes. This assert can be enabled back after we refactor
-   * our opensubdiv implementation to output the same layout as the regular mesh extraction. */
+   * our OpenSubdiv implementation to output the same layout as the regular mesh extraction. */
   // BLI_assert_msg(format->attr_len == 1, "Multi attribute buffers are not supported for now");
 
   char uniform_name[] = "gpu_attr_0";
@@ -291,7 +291,7 @@ void GPU_batch_bind_as_resources(Batch *batch, GPUShader *shader)
       GPU_shader_uniform_1i(shader, "gpu_index_base_index", batch->elem->index_base_get());
     }
     else {
-      /* Still fullfil the binding requirements even if the buffer will not be read. */
+      /* Still fulfill the binding requirements even if the buffer will not be read. */
       GPU_vertbuf_bind_as_ssbo(batch->verts[0], GPU_SSBO_INDEX_BUF_SLOT);
       GPU_shader_uniform_1b(shader, "gpu_index_no_buffer", true);
     }

@@ -504,7 +504,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
   /* Calculate 'sdna->pointer_size'.
    *
-   * NOTE: Cannot just do `sizeof(void *)` here, since the current DNA may come from a blendfile
+   * NOTE: Cannot just do `sizeof(void *)` here, since the current DNA may come from a blend-file
    * saved on a different system, using a different pointer size. So instead, use half the size of
    * the #ListBase struct (only made of two pointers).
    */
@@ -520,8 +520,8 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     const SDNA_Struct *struct_info = sdna->structs[struct_index];
     sdna->pointer_size = sdna->types_size[struct_info->type_index] / 2;
 
-    /* Should never fail, double-check that #ListBase struct is still what is should be (akak a
-     * couple of pointers and nothing else). */
+    /* Should never fail, double-check that #ListBase struct is still what is should be
+     * (a couple of pointers and nothing else). */
     if (UNLIKELY(struct_info->members_num != 2 || !ELEM(sdna->pointer_size, 4, 8))) {
       *r_error_message = "ListBase struct error: invalid computed pointer-size.";
       return false;

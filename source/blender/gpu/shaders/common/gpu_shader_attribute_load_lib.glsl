@@ -10,7 +10,7 @@
  * Implemented as macros to avoid compiler differences with buffer qualifiers.
  */
 
-/* Returns index in the first component. Needed for non trivialy packed data. */
+/** Returns index in the first component. Needed for non trivially packed data. */
 uint gpu_attr_load_index(uint vertex_index, ivec2 stride_and_offset)
 {
   return vertex_index * uint(stride_and_offset.x) + uint(stride_and_offset.y);

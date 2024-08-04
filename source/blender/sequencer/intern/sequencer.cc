@@ -858,7 +858,7 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
     /* `SEQ_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
     if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       /* FIXME In #SEQ_TYPE_IMAGE case, there is currently no available information about the
-       * lenght of the stored array of #StripElem.
+       * length of the stored array of #StripElem.
        *
        * This is 'not a problem' because the reading code only checks that the loaded buffer is at
        * least large enough for the requested data (here a single #StripElem item), and always

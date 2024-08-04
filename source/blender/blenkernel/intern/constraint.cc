@@ -6592,7 +6592,7 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
     }
     else {
       /* No `BLI_assert_unreachable()` here, this code can be reached in some cases, like the
-       * deprecated RigidBody contraint. */
+       * deprecated RigidBody constraint. */
       con->data = nullptr;
     }
 

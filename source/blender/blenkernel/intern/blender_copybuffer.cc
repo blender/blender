@@ -30,7 +30,7 @@
 #include "IMB_colormanagement.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Paste API based on 'partial' blendfiles.
+/** \name Paste API based on 'partial' blend-files.
  * \{ */
 
 /* Common helper for paste functions. */

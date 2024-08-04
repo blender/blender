@@ -179,11 +179,11 @@ void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
  * where it is actually needed (e.g. the ShapeKey's data, since its items size varies depending on
  * the type of geometry owning it, see #shapekey_blend_write).
  *
- * \warning Data written with this call have no type information attached to them in the blendfile.
- * The main consequence is that there will be no handling of endianness conversion for them in
- * readfile code.
+ * \warning Data written with this call have no type information attached to them
+ * in the blend-file. The main consequence is that there will be no handling of endianness
+ * conversion for them in readfile code.
  * Basic types array functions (like #BLO_write_int8_array etc.) also use #BLO_write_raw
- * internally, but if their matching read funtion is used to load the data (like
+ * internally, but if their matching read function is used to load the data (like
  * #BLO_read_int8_array), the read function will take care of endianness conversion.
  */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);
@@ -253,9 +253,10 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
  * \endcode
  *
- * Avoid using the generic #BLO_read_data_address (and lowe-level API like
- * #BLO_read_get_new_data_address) when possible, use the typed functions instead. Only data
- * written with #BLO_write_raw should typically be read with #BLO_read_data_address.
+ * Avoid using the generic #BLO_read_data_address
+ * (and low-level API like #BLO_read_get_new_data_address)
+ * when possible, use the typed functions instead.
+ * Only data written with #BLO_write_raw should typically be read with #BLO_read_data_address.
  * \{ */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
@@ -267,9 +268,9 @@ void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_add
  * end of the reading process, if no other 'real' usage was detected for it.
  *
  * Typical valid usages include:
- *   - Restoring pointers to a specific item in an array or list (usually 'active' item e.g.). The
- *     found item is expected to also be read as part of its array/list storage reading.
- *   - Doing temporary access to deprecated data as part of some versionning code.
+ * - Restoring pointers to a specific item in an array or list (usually 'active' item e.g.). The
+ *   found item is expected to also be read as part of its array/list storage reading.
+ * - Doing temporary access to deprecated data as part of some versioning code.
  */
 void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
                                           const void *old_address,

@@ -198,7 +198,7 @@ void DrawMulti::execute(RecordingState &state) const
       gpu::Batch *batch = group.gpu_batch;
 
       if (GPUPrimType(group.expanded_prim_type) != GPU_PRIM_NONE) {
-        /* Bind original batck as resource and use a procedural batch to issue the drawcall. */
+        /* Bind original batch as resource and use a procedural batch to issue the draw-call. */
         GPU_batch_bind_as_resources(group.gpu_batch, state.shader);
         batch = procedural_batch_get(GPUPrimType(group.expanded_prim_type));
       }

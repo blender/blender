@@ -323,7 +323,7 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
       });
     });
 
-    /* Copy the resulting values from the flat array back into the three posititon attributes for
+    /* Copy the resulting values from the flat array back into the three position attributes for
      * the left and right handles as well as the control points. */
     bke::curves::bezier::write_all_positions(curves, bezier_curves_to_smooth, all_positions);
 
