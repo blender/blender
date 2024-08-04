@@ -16,24 +16,19 @@
 
 namespace blender::io::usd {
 
-void read_color_data_primvar(Mesh *mesh,
-                             const pxr::UsdGeomPrimvar &primvar,
-                             double motion_sample_time,
-                             ReportList *reports,
-                             bool is_left_handed)
+template<typename USDT>
+static void read_color_data_primvar(Mesh *mesh,
+                                    const pxr::UsdGeomPrimvar &primvar,
+                                    double motion_sample_time,
+                                    ReportList *reports,
+                                    bool is_left_handed)
 {
-  if (!(mesh && primvar && primvar.HasValue())) {
-    return;
-  }
-
-  pxr::VtArray<pxr::GfVec3f> usd_colors = get_primvar_array<pxr::GfVec3f>(primvar,
-                                                                          motion_sample_time);
-
+  const pxr::VtArray<USDT> usd_colors = get_primvar_array<USDT>(primvar, motion_sample_time);
   if (usd_colors.empty()) {
     return;
   }
 
-  pxr::TfToken interp = primvar.GetInterpolation();
+  const pxr::TfToken interp = primvar.GetInterpolation();
 
   if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->corners_num) ||
       (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->corners_num) ||
@@ -75,17 +70,14 @@ void read_color_data_primvar(Mesh *mesh,
 
   if (ELEM(interp, pxr::UsdGeomTokens->constant)) {
     /* For situations where there's only a single item, flood fill the object. */
-    color_data.span.fill(
-        ColorGeometry4f(usd_colors[0][0], usd_colors[0][1], usd_colors[0][2], 1.0f));
+    color_data.span.fill(detail::convert_value<USDT, ColorGeometry4f>(usd_colors[0]));
   }
   /* Check for situations that allow for a straight-forward copy by index. */
   else if (interp == pxr::UsdGeomTokens->vertex ||
            (interp == pxr::UsdGeomTokens->faceVarying && !is_left_handed))
   {
     for (int i = 0; i < usd_colors.size(); i++) {
-      ColorGeometry4f color = ColorGeometry4f(
-          usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
-      color_data.span[i] = color;
+      color_data.span[i] = detail::convert_value<USDT, ColorGeometry4f>(usd_colors[i]);
     }
   }
   else {
@@ -127,14 +119,38 @@ void read_color_data_primvar(Mesh *mesh,
           continue;
         }
 
-        ColorGeometry4f color = ColorGeometry4f(
-            usd_colors[usd_index][0], usd_colors[usd_index][1], usd_colors[usd_index][2], 1.0f);
-        color_data.span[loop_index] = color;
+        color_data.span[loop_index] = detail::convert_value<USDT, ColorGeometry4f>(
+            usd_colors[usd_index]);
       }
     }
   }
 
   color_data.finish();
+}
+
+void read_color_data_primvar(Mesh *mesh,
+                             const pxr::UsdGeomPrimvar &primvar,
+                             double motion_sample_time,
+                             ReportList *reports,
+                             bool is_left_handed)
+{
+  if (!(mesh && primvar && primvar.HasValue())) {
+    return;
+  }
+
+  const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
+  if (ELEM(pv_type,
+           pxr::SdfValueTypeNames->Color3fArray,
+           pxr::SdfValueTypeNames->Color3hArray,
+           pxr::SdfValueTypeNames->Color3dArray))
+  {
+    read_color_data_primvar<pxr::GfVec3f>(
+        mesh, primvar, motion_sample_time, reports, is_left_handed);
+  }
+  else {
+    read_color_data_primvar<pxr::GfVec4f>(
+        mesh, primvar, motion_sample_time, reports, is_left_handed);
+  }
 }
 
 }  // namespace blender::io::usd

@@ -73,6 +73,9 @@ std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTy
     map.add_new(pxr::SdfValueTypeNames->Color3fArray, CD_PROP_COLOR);
     map.add_new(pxr::SdfValueTypeNames->Color3hArray, CD_PROP_COLOR);
     map.add_new(pxr::SdfValueTypeNames->Color3dArray, CD_PROP_COLOR);
+    map.add_new(pxr::SdfValueTypeNames->Color4fArray, CD_PROP_COLOR);
+    map.add_new(pxr::SdfValueTypeNames->Color4hArray, CD_PROP_COLOR);
+    map.add_new(pxr::SdfValueTypeNames->Color4dArray, CD_PROP_COLOR);
     map.add_new(pxr::SdfValueTypeNames->StringArray, CD_PROP_STRING);
     map.add_new(pxr::SdfValueTypeNames->BoolArray, CD_PROP_BOOL);
     map.add_new(pxr::SdfValueTypeNames->QuatfArray, CD_PROP_QUATERNION);
@@ -122,10 +125,21 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
       copy_primvar_to_blender_buffer<pxr::GfVec3f>(
           primvar, timecode, face_indices, attribute.span.typed<float3>());
       break;
-    case CD_PROP_COLOR:
-      copy_primvar_to_blender_buffer<pxr::GfVec3f>(
-          primvar, timecode, face_indices, attribute.span.typed<ColorGeometry4f>());
-      break;
+    case CD_PROP_COLOR: {
+      const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
+      if (ELEM(pv_type,
+               pxr::SdfValueTypeNames->Color3fArray,
+               pxr::SdfValueTypeNames->Color3hArray,
+               pxr::SdfValueTypeNames->Color3dArray))
+      {
+        copy_primvar_to_blender_buffer<pxr::GfVec3f>(
+            primvar, timecode, face_indices, attribute.span.typed<ColorGeometry4f>());
+      }
+      else {
+        copy_primvar_to_blender_buffer<pxr::GfVec4f>(
+            primvar, timecode, face_indices, attribute.span.typed<ColorGeometry4f>());
+      }
+    } break;
     case CD_PROP_BOOL:
       copy_primvar_to_blender_buffer<bool>(
           primvar, timecode, face_indices, attribute.span.typed<bool>());

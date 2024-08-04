@@ -325,12 +325,12 @@ void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
                                      pxr::UsdGeomTokens->vertex;
 
   pxr::UsdGeomPrimvar colors_pv = pv_api.CreatePrimvar(
-      pv_name, pxr::SdfValueTypeNames->Color3fArray, pv_interp);
+      pv_name, pxr::SdfValueTypeNames->Color4fArray, pv_interp);
 
   switch (meta_data.domain) {
     case bke::AttrDomain::Corner:
     case bke::AttrDomain::Point:
-      copy_blender_buffer_to_primvar<ColorGeometry4f, pxr::GfVec3f>(
+      copy_blender_buffer_to_primvar<ColorGeometry4f, pxr::GfVec4f>(
           buffer, timecode, colors_pv, usd_value_writer_);
       break;
     default:

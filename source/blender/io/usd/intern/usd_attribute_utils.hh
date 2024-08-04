@@ -62,6 +62,10 @@ template<> inline pxr::GfVec3f convert_value(const ColorGeometry4f value)
 {
   return pxr::GfVec3f(value.r, value.g, value.b);
 }
+template<> inline pxr::GfVec4f convert_value(const ColorGeometry4f value)
+{
+  return pxr::GfVec4f(value.r, value.g, value.b, value.a);
+}
 template<> inline pxr::GfQuatf convert_value(const math::Quaternion value)
 {
   return pxr::GfQuatf(value.w, value.x, value.y, value.z);
@@ -78,6 +82,10 @@ template<> inline float3 convert_value(const pxr::GfVec3f value)
 template<> inline ColorGeometry4f convert_value(const pxr::GfVec3f value)
 {
   return ColorGeometry4f(value[0], value[1], value[2], 1.0f);
+}
+template<> inline ColorGeometry4f convert_value(const pxr::GfVec4f value)
+{
+  return ColorGeometry4f(value[0], value[1], value[2], value[3]);
 }
 template<> inline math::Quaternion convert_value(const pxr::GfQuatf value)
 {
