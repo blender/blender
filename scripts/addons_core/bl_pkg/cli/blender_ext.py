@@ -566,10 +566,6 @@ def rmtree_with_fallback_or_error(
 
     On failure, a string will be returned containing the first error.
     """
-    try:
-        return shutil.rmtree(path)
-    except Exception as ex:
-        return str(ex)
 
     # Note that `shutil.rmtree` has link detection that doesn't match `os.path.islink` exactly,
     # so use it's callback that raises a link error and remove the link in that case.
