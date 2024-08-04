@@ -1372,8 +1372,7 @@ static void init_boundary_mesh(Object &object,
     initial_vert = initial_vert_ref.i;
   }
   else {
-    float3 location;
-    flip_v3_v3(location, positions_eval[initial_vert_ref.i], symm_area);
+    float3 location = symmetry_flip(positions_eval[initial_vert_ref.i], symm_area);
     initial_vert = nearest_vert_calc_mesh(
         *ss.pbvh, positions_eval, hide_vert, location, ss.cache->radius_squared, false);
   }
@@ -1433,10 +1432,9 @@ static void init_boundary_grids(Object &object,
   }
   else {
     const SubdivCCGCoord active_vert = SubdivCCGCoord::from_index(key, initial_vert_ref.i);
-    float3 location;
-    flip_v3_v3(location,
-               CCG_grid_elem_co(key, grids[active_vert.grid_index], active_vert.x, active_vert.y),
-               symm_area);
+    float3 location = symmetry_flip(
+        CCG_grid_elem_co(key, grids[active_vert.grid_index], active_vert.x, active_vert.y),
+        symm_area);
     initial_vert = nearest_vert_calc_grids(
         pbvh, subdiv_ccg, location, ss.cache->radius_squared, false);
   }
@@ -1494,8 +1492,7 @@ static void init_boundary_bmesh(Object &object,
   }
   else {
     BMVert *active_vert = reinterpret_cast<BMVert *>(initial_vert_ref.i);
-    float3 location;
-    flip_v3_v3(location, active_vert->co, symm_area);
+    float3 location = symmetry_flip(active_vert->co, symm_area);
     initial_vert = nearest_vert_calc_bmesh(pbvh, location, ss.cache->radius_squared, false);
   }
 

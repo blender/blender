@@ -85,7 +85,8 @@ static std::array<float4x4, 8> transform_matrices_init(
 {
   std::array<float4x4, 8> mats;
 
-  float final_pivot_pos[3], d_t[3], d_r[4], d_s[3];
+  float3 final_pivot_pos, d_t, d_s;
+  float d_r[4];
   float t_mat[4][4], r_mat[4][4], s_mat[4][4], pivot_mat[4][4], pivot_imat[4][4],
       transform_mat[4][4];
 
@@ -116,7 +117,7 @@ static std::array<float4x4, 8> transform_matrices_init(
 
     /* Translation matrix. */
     sub_v3_v3v3(d_t, ss.pivot_pos, start_pivot_pos);
-    SCULPT_flip_v3_by_symm_area(d_t, symm, v_symm, ss.init_pivot_pos);
+    d_t = SCULPT_flip_v3_by_symm_area(d_t, symm, v_symm, ss.init_pivot_pos);
     translate_m4(t_mat, d_t[0], d_t[1], d_t[2]);
 
     /* Rotation matrix. */
@@ -131,7 +132,7 @@ static std::array<float4x4, 8> transform_matrices_init(
     size_to_mat4(s_mat, d_s);
 
     /* Pivot matrix. */
-    SCULPT_flip_v3_by_symm_area(final_pivot_pos, symm, v_symm, start_pivot_pos);
+    final_pivot_pos = SCULPT_flip_v3_by_symm_area(final_pivot_pos, symm, v_symm, start_pivot_pos);
     translate_m4(pivot_mat, final_pivot_pos[0], final_pivot_pos[1], final_pivot_pos[2]);
     invert_m4_m4(pivot_imat, pivot_mat);
 
@@ -471,10 +472,7 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
       continue;
     }
 
-    float3 elastic_transform_pivot;
-    flip_v3_v3(elastic_transform_pivot, ss.pivot_pos, symmpass);
-    float3 elastic_transform_pivot_init;
-    flip_v3_v3(elastic_transform_pivot_init, ss.init_pivot_pos, symmpass);
+    const float3 elastic_transform_pivot = symmetry_flip(ss.pivot_pos, symmpass);
 
     const int symm_area = SCULPT_get_vertex_symm_area(elastic_transform_pivot);
     float4x4 elastic_transform_mat = transform_mats[symm_area];

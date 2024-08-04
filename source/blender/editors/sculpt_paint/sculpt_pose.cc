@@ -429,8 +429,7 @@ static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float3 &vertex
 {
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      float3 location;
-      flip_v3_v3(location, br_co, ePaintSymmetryFlags(i));
+      const float3 location = symmetry_flip(br_co, ePaintSymmetryFlags(i));
       if (math::distance(location, vertex) < radius) {
         return true;
       }
@@ -1176,11 +1175,10 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
                                                 SculptPoseIKChainSegment *segment,
                                                 const float3 &grab_location)
 {
-  float3 symm_head = segment->head;
-  float3 symm_orig = segment->orig;
-
-  SCULPT_flip_v3_by_symm_area(symm_head, symm, symm_area, grab_location);
-  SCULPT_flip_v3_by_symm_area(symm_orig, symm, symm_area, grab_location);
+  const float3 symm_head = SCULPT_flip_v3_by_symm_area(
+      segment->head, symm, symm_area, grab_location);
+  const float3 symm_orig = SCULPT_flip_v3_by_symm_area(
+      segment->orig, symm, symm_area, grab_location);
 
   float3 segment_origin_head = math::normalize(symm_head - symm_orig);
 
@@ -1224,14 +1222,13 @@ void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 
       float symm_rot[4];
       copy_qt_qt(symm_rot, ik_chain.segments[i].rot);
-      float3 symm_orig = ik_chain.segments[i].orig;
-      float3 symm_initial_orig = ik_chain.segments[i].initial_orig;
 
       /* Flip the origins and rotation quats of each segment. */
       SCULPT_flip_quat_by_symm_area(symm_rot, symm, symm_area, ss.cache->orig_grab_location);
-      SCULPT_flip_v3_by_symm_area(symm_orig, symm, symm_area, ss.cache->orig_grab_location);
-      SCULPT_flip_v3_by_symm_area(
-          symm_initial_orig, symm, symm_area, ss.cache->orig_grab_location);
+      float3 symm_orig = SCULPT_flip_v3_by_symm_area(
+          ik_chain.segments[i].orig, symm, symm_area, ss.cache->orig_grab_location);
+      float3 symm_initial_orig = SCULPT_flip_v3_by_symm_area(
+          ik_chain.segments[i].initial_orig, symm, symm_area, ss.cache->orig_grab_location);
 
       float pivot_local_space[4][4];
       unit_m4(pivot_local_space);

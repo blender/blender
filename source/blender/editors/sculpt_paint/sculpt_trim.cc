@@ -631,7 +631,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
   Mesh *trim_mesh = trim_operation->mesh;
   MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->verts_num; i++) {
-    flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], gesture_data.symmpass);
+    positions[i] = symmetry_flip(trim_operation->true_mesh_co[i], gesture_data.symmpass);
   }
   update_normals(gesture_data);
   apply_trim(gesture_data);

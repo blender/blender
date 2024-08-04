@@ -443,8 +443,8 @@ static PBVHVertRef get_vert_index_for_symmetry_pass(Object &ob,
     symm_vertex = original_vertex;
   }
   else {
-    float location[3];
-    flip_v3_v3(location, SCULPT_vertex_co_get(ss, original_vertex), ePaintSymmetryFlags(symm_it));
+    const float3 location = symmetry_flip(SCULPT_vertex_co_get(ss, original_vertex),
+                                          ePaintSymmetryFlags(symm_it));
     symm_vertex = nearest_vert_calc(ob, location, FLT_MAX, false);
   }
   return symm_vertex;
@@ -594,6 +594,7 @@ static Array<float> spherical_falloff_create(Object &ob, const PBVHVertRef v)
   const int totvert = SCULPT_vertex_count_get(ss);
 
   Array<float> dists(totvert, FLT_MAX);
+
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
