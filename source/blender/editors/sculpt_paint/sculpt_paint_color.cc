@@ -245,7 +245,7 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
   return colors;
 }
 
-struct LocalData {
+struct ColorPaintLocalData {
   Vector<float> factors;
   Vector<float> auto_mask;
   Vector<float> distances;
@@ -264,7 +264,7 @@ static void do_color_smooth_task(const Object &object,
                                  const Span<bool> hide_poly,
                                  const Brush &brush,
                                  const bke::pbvh::Node &node,
-                                 LocalData &tls,
+                                 ColorPaintLocalData &tls,
                                  bke::GSpanAttributeWriter &color_attribute)
 {
   const SculptSession &ss = *object.sculpt;
@@ -346,7 +346,7 @@ static void do_paint_brush_task(Object &object,
                                 const float4x4 &mat,
                                 const float4 wet_mix_sampled_color,
                                 bke::pbvh::Node &node,
-                                LocalData &tls,
+                                ColorPaintLocalData &tls,
                                 const MutableSpan<float4> mix_colors,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
@@ -489,7 +489,7 @@ static void do_sample_wet_paint_task(const Object &object,
                                      const bke::AttrDomain color_domain,
                                      const Brush &brush,
                                      const bke::pbvh::Node &node,
-                                     LocalData &tls,
+                                     ColorPaintLocalData &tls,
                                      SampleWetPaintData &swptd)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
@@ -568,9 +568,9 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   }
 
   if (ss.cache->alt_smooth) {
-    threading::EnumerableThreadSpecific<LocalData> all_tls;
+    threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      LocalData &tls = all_tls.local();
+      ColorPaintLocalData &tls = all_tls.local();
       for (const int i : range) {
         do_color_smooth_task(ob,
                              vert_positions,
@@ -594,13 +594,13 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
   /* Wet paint color sampling. */
   float4 wet_color(0);
   if (ss.cache->paint_brush.wet_mix > 0.0f) {
-    threading::EnumerableThreadSpecific<LocalData> all_tls;
+    threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
     const SampleWetPaintData swptd = threading::parallel_reduce(
         nodes.index_range(),
         1,
         SampleWetPaintData{},
         [&](const IndexRange range, SampleWetPaintData swptd) {
-          LocalData &tls = all_tls.local();
+          ColorPaintLocalData &tls = all_tls.local();
           for (const int i : range) {
             do_sample_wet_paint_task(ob,
                                      vert_positions,
@@ -641,9 +641,9 @@ void do_paint_brush(PaintModeSettings &paint_mode_settings,
     ss.cache->mix_colors = Array<float4>(mesh.verts_num, float4(0));
   }
 
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    LocalData &tls = all_tls.local();
+    ColorPaintLocalData &tls = all_tls.local();
     for (const int i : range) {
       do_paint_brush_task(ob,
                           vert_positions,
@@ -672,7 +672,7 @@ static void do_smear_brush_task(Object &object,
                                 const Span<bool> hide_poly,
                                 const Brush &brush,
                                 bke::pbvh::Node &node,
-                                LocalData &tls,
+                                ColorPaintLocalData &tls,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
   const SculptSession &ss = *object.sculpt;
@@ -861,9 +861,9 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
 
   /* Smooth colors mode. */
   if (ss.cache->alt_smooth) {
-    threading::EnumerableThreadSpecific<LocalData> all_tls;
+    threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      LocalData &tls = all_tls.local();
+      ColorPaintLocalData &tls = all_tls.local();
       for (const int i : range) {
         do_color_smooth_task(ob,
                              vert_positions,
@@ -893,9 +893,9 @@ void do_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
         }
       }
     });
-    threading::EnumerableThreadSpecific<LocalData> all_tls;
+    threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      LocalData &tls = all_tls.local();
+      ColorPaintLocalData &tls = all_tls.local();
       for (const int i : range) {
         do_smear_brush_task(ob,
                             vert_positions,
