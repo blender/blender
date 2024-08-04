@@ -5,10 +5,10 @@
 /** \file
  * \ingroup edsculpt
  */
-#include "DNA_mesh_types.h"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_polyfill_2d.h"
@@ -208,8 +208,6 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   SculptSession &ss = *gesture_data.ss;
   ViewContext &vc = gesture_data.vc;
 
-  const int totvert = SCULPT_vertex_count_get(ss);
-
   float shape_plane[4];
   float shape_origin[3];
   float shape_normal[3];
@@ -219,24 +217,23 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   float depth_front = FLT_MAX;
   float depth_back = -FLT_MAX;
 
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const float4x4 &object_to_world = vc.obact->object_to_world();
 
-    const float *vco = SCULPT_vertex_co_get(ss, vertex);
+  for (const int i : positions.index_range()) {
     /* Convert the coordinates to world space to calculate the depth. When generating the trimming
      * mesh, coordinates are first calculated in world space, then converted to object space to
      * store them. */
-    float world_space_vco[3];
-    mul_v3_m4v3(world_space_vco, vc.obact->object_to_world().ptr(), vco);
+    const float3 world_space_vco = math::transform_point(object_to_world, positions[i]);
     const float dist = dist_signed_to_plane_v3(world_space_vco, shape_plane);
-    depth_front = min_ff(dist, depth_front);
-    depth_back = max_ff(dist, depth_back);
+    depth_front = std::min(dist, depth_front);
+    depth_back = std::max(dist, depth_back);
   }
 
   if (trim_operation->use_cursor_depth) {
     float world_space_gesture_initial_location[3];
     mul_v3_m4v3(world_space_gesture_initial_location,
-                vc.obact->object_to_world().ptr(),
+                object_to_world.ptr(),
                 trim_operation->initial_location);
 
     float mid_point_depth;
