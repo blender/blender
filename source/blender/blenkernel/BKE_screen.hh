@@ -676,6 +676,10 @@ ScrArea *BKE_screen_find_area_from_space(const bScreen *screen,
                                          const SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 /**
+ * \note used to get proper RNA paths for spaces (editors).
+ */
+std::optional<std::string> BKE_screen_path_from_screen_to_space(const PointerRNA *ptr);
+/**
  * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  */

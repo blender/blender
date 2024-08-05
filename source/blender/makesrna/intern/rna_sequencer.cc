@@ -236,6 +236,11 @@ struct SequencesAllIterator {
   int index;
 };
 
+static std::optional<std::string> rna_SequenceEditor_path(const PointerRNA * /*ptr*/)
+{
+  return "sequence_editor";
+}
+
 static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
@@ -2397,6 +2402,7 @@ static void rna_def_editor(BlenderRNA *brna)
   };
   srna = RNA_def_struct(brna, "SequenceEditor", nullptr);
   RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene data-block");
+  RNA_def_struct_path_func(srna, "rna_SequenceEditor_path");
   RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
   RNA_def_struct_sdna(srna, "Editing");
 
