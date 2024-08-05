@@ -31,7 +31,7 @@ static void update_first_occurrence(Map<int, int> &map, const int root, const in
       });
 }
 
-void AtomicDisjointSet::calc_reduced_ids(MutableSpan<int> result) const
+int AtomicDisjointSet::calc_reduced_ids(MutableSpan<int> result) const
 {
   BLI_assert(result.size() == items_.size());
 
@@ -88,6 +88,7 @@ void AtomicDisjointSet::calc_reduced_ids(MutableSpan<int> result) const
       result[i] = id_by_root.lookup(result[i]);
     }
   });
+  return id_by_root.size();
 }
 
 int AtomicDisjointSet::count_sets() const

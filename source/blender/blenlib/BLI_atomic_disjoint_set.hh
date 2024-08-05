@@ -141,8 +141,9 @@ class AtomicDisjointSet {
    * Get an identifier for each id. This is deterministic and does not depend on the order of
    * joins. The ids are ordered by their first occurrence. Consequently, `result[0]` is always zero
    * (unless there are no elements).
+   * \return The total number of unique IDs.
    */
-  void calc_reduced_ids(MutableSpan<int> result) const;
+  int calc_reduced_ids(MutableSpan<int> result) const;
 
   /**
    * Count the number of disjoint sets.
