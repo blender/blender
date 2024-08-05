@@ -990,11 +990,6 @@ bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], 
   return is_in_symmetry_area;
 }
 
-struct NearestVertexData {
-  PBVHVertRef nearest_vertex;
-  float nearest_vertex_distance_sq;
-};
-
 namespace blender::ed::sculpt_paint {
 
 std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
