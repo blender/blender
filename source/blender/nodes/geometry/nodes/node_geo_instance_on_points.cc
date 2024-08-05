@@ -254,10 +254,12 @@ static void node_geo_exec(GeoNodeExecParams params)
         const int handle = dst_instances->add_reference(bke::InstanceReference{temp_set});
         dst_instances->add_instance(handle, float4x4::identity());
       }
-      GeometrySet::propagate_attributes_from_layer_to_instances(
-          geometry_set.get_grease_pencil()->attributes(),
-          geometry_set.get_instances_for_write()->attributes_for_write(),
-          propagation_info);
+      if (geometry_set.has_instances()) {
+        GeometrySet::propagate_attributes_from_layer_to_instances(
+            geometry_set.get_grease_pencil()->attributes(),
+            geometry_set.get_instances_for_write()->attributes_for_write(),
+            propagation_info);
+      }
       geometry_set.replace_grease_pencil(nullptr);
     }
     geometry_set.remove_geometry_during_modify();
