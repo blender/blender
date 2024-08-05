@@ -4498,7 +4498,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (const bNodeSocket *, input, &node->inputs) {
           const NodeImageMultiFileSocket *input_storage = static_cast<NodeImageMultiFileSocket *>(
               input->storage);
-          if (input_storage->save_as_render != first_save_as_render) {
+          if (bool(input_storage->save_as_render) != first_save_as_render) {
             all_inputs_have_same_save_as_render = false;
             break;
           }
