@@ -24,6 +24,7 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BKE_attribute.hh"
+#  include "BKE_context.hh"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_report.hh"
 
@@ -173,6 +174,14 @@ static GreasePencilFrame *rna_GreasePencilLayer_get_frame_at(GreasePencilLayer *
 {
   using namespace blender::bke::greasepencil;
   return static_cast<Layer *>(layer)->frame_at(frame_number);
+}
+
+static GreasePencilFrame *rna_GreasePencilLayer_current_frame(GreasePencilLayer *layer,
+                                                              bContext *C)
+{
+  using namespace blender::bke::greasepencil;
+  Scene *scene = CTX_data_scene(C);
+  return static_cast<Layer *>(layer)->frame_at(scene->r.cfra);
 }
 
 static GreasePencilLayer *rna_GreasePencil_layer_new(GreasePencil *grease_pencil,
@@ -523,6 +532,13 @@ void RNA_api_grease_pencil_layer(StructRNA *srna)
       func, "frame_number", 1, MINAFRAME, MAXFRAME, "Frame Number", "", MINAFRAME, MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "frame", "GreasePencilFrame", "Frame", "");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "current_frame", "rna_GreasePencilLayer_current_frame");
+  RNA_def_function_ui_description(
+      func, "The Grease Pencil frame at the current scene time on this layer");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_pointer(func, "frame", "GreasePencilFrame", "", "");
   RNA_def_function_return(func, parm);
 }
 
