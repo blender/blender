@@ -7751,6 +7751,20 @@ void calc_translations_to_plane(const Span<float3> positions,
   }
 }
 
+void filter_verts_outside_symmetry_area(const Span<float3> positions,
+                                        const float3 &pivot,
+                                        const ePaintSymmetryFlags symm,
+                                        const MutableSpan<float> factors)
+{
+  BLI_assert(positions.size() == factors.size());
+
+  for (const int i : positions.index_range()) {
+    if (!SCULPT_check_vertex_pivot_symmetry(positions[i], pivot, symm)) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
 void filter_plane_trim_limit_factors(const Brush &brush,
                                      const StrokeCache &cache,
                                      const Span<float3> translations,
