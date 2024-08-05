@@ -2219,7 +2219,6 @@ void ensure_valid_pivot(const Object &ob, Scene &scene);
  * \{
  * Each mesh island shell gets its own integer
  * key; these are temporary and internally limited to 8 bits.
- * Uses the `ss->topology_island_key` attribute.
  */
 
 namespace blender::ed::sculpt_paint::islands {
@@ -2231,7 +2230,7 @@ void ensure_cache(Object &object);
 void invalidate(SculptSession &ss);
 
 /** Get vertex island key. */
-int vert_id_get(const SculptSession &ss, PBVHVertRef vert);
+int vert_id_get(const SculptSession &ss, int vert);
 
 }
 

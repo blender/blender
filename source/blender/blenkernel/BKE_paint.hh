@@ -472,11 +472,17 @@ struct SculptAttributePointers {
   SculptAttribute *automasking_stroke_id = nullptr;
   SculptAttribute *automasking_cavity = nullptr;
 
-  SculptAttribute *topology_island_key = nullptr; /* CD_PROP_INT8 */
-
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex = nullptr;
   SculptAttribute *dyntopo_node_id_face = nullptr;
+};
+
+struct SculptTopologyIslandCache {
+  /**
+   * An ID for the island containing each geometry vertex. Will be empty if there is only a single
+   * island.
+   */
+  blender::Array<uint8_t> vert_island_ids;
 };
 
 struct SculptSession : blender::NonCopyable, blender::NonMovable {
@@ -657,7 +663,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   int last_automasking_settings_hash = 0;
   uchar last_automask_stroke_id = 0;
-  bool islands_valid = false; /* Is attrs.topology_island_key valid? */
+  std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
 
   SculptSession();
   ~SculptSession();

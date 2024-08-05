@@ -550,7 +550,8 @@ float factor_get(const Cache *automasking,
 
   if (!automasking->settings.topology_use_brush_limit &&
       automasking->settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-      islands::vert_id_get(ss, vert) != automasking->settings.initial_island_nr)
+      islands::vert_id_get(ss, BKE_pbvh_vertex_to_index(*ss.pbvh, vert)) !=
+          automasking->settings.initial_island_nr)
   {
     return 0.0f;
   }
@@ -957,7 +958,8 @@ std::unique_ptr<Cache> cache_init(const Sculpt &sd, const Brush *brush, Object &
 
   if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vertex.i != PBVH_REF_NONE) {
     islands::ensure_cache(ob);
-    automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vertex);
+    automasking->settings.initial_island_nr = islands::vert_id_get(
+        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, ss.active_vertex));
   }
 
   bool use_stroke_id = false;

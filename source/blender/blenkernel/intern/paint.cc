@@ -2346,8 +2346,6 @@ blender::bke::pbvh::Tree *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Ob
     return ob->sculpt->pbvh.get();
   }
 
-  ob->sculpt->islands_valid = false;
-
   if (ob->sculpt->bm != nullptr) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special pbvh::Tree. */
     ob->sculpt->pbvh = build_pbvh_for_dynamic_topology(ob);

@@ -148,7 +148,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
           islands::ensure_cache(ob);
           write_mask_mesh(ob, nodes, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
-              const int island = islands::vert_id_get(ss, PBVHVertRef{vert});
+              const int island = islands::vert_id_get(ss, vert);
               mask[vert] = BLI_hash_int_01(island + seed);
             }
           });
@@ -212,7 +212,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
                 const int verts_start = grid_index * key.grid_area;
                 BKE_subdiv_ccg_foreach_visible_grid_vert(
                     key, grid_hidden, grid_index, [&](const int i) {
-                      const int island = islands::vert_id_get(ss, PBVHVertRef{verts_start + i});
+                      const int island = islands::vert_id_get(ss, verts_start + i);
                       CCG_elem_offset_mask(key, grid, i) = BLI_hash_int_01(island + seed);
                     });
               });
@@ -242,7 +242,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
                 BM_ELEM_CD_SET_FLOAT(
                     vert,
                     offset,
-                    BLI_hash_int_01(islands::vert_id_get(ss, PBVHVertRef{intptr_t(vert)}) + seed));
+                    BLI_hash_int_01(islands::vert_id_get(ss, BM_elem_index_get(vert)) + seed));
                 break;
             }
           }

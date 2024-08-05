@@ -17,6 +17,7 @@
 #include "CLG_log.h"
 
 #include "BLI_array_utils.hh"
+#include "BLI_atomic_disjoint_set.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
@@ -6259,7 +6260,7 @@ static void do_fake_neighbor_search_task(SculptSession &ss,
 {
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    int vd_topology_id = islands::vert_id_get(ss, vd.vertex);
+    int vd_topology_id = islands::vert_id_get(ss, vd.index);
     if (vd_topology_id != nvtd->current_topology_id &&
         ss.fake_neighbors.fake_neighbor_index[vd.index] == FAKE_NEIGHBOR_NONE)
     {
@@ -6294,7 +6295,7 @@ static PBVHVertRef fake_neighbor_search(Object &ob, const PBVHVertRef vertex, fl
   NearestVertexFakeNeighborData nvtd;
   nvtd.nearest_vertex.i = -1;
   nvtd.nearest_vertex_distance_sq = FLT_MAX;
-  nvtd.current_topology_id = islands::vert_id_get(ss, vertex);
+  nvtd.current_topology_id = islands::vert_id_get(ss, BKE_pbvh_vertex_to_index(*ss.pbvh, vertex));
 
   nvtd = threading::parallel_reduce(
       nodes.index_range(),
@@ -6479,76 +6480,146 @@ void SCULPT_stroke_id_ensure(Object &ob)
 
 namespace blender::ed::sculpt_paint::islands {
 
-int vert_id_get(const SculptSession &ss, PBVHVertRef vertex)
+int vert_id_get(const SculptSession &ss, const int vert)
 {
-  if (ss.attrs.topology_island_key) {
-    return *static_cast<uint8_t *>(SCULPT_vertex_attr_get(vertex, ss.attrs.topology_island_key));
+  BLI_assert(ss.topology_island_cache);
+  if (!ss.topology_island_cache) {
+    /* The cache should be calculated whenever it's necessary.
+     * Still avoid crashing in release builds though. */
+    return 0;
   }
-
-  return -1;
+  const SculptTopologyIslandCache &cache = *ss.topology_island_cache;
+  if (!cache.vert_island_ids.is_empty()) {
+    return cache.vert_island_ids[vert];
+  }
+  return 0;
 }
 
 void invalidate(SculptSession &ss)
 {
-  ss.islands_valid = false;
+  ss.topology_island_cache.reset();
 }
 
-void ensure_cache(Object &ob)
+static SculptTopologyIslandCache vert_disjoint_set_to_islands(const AtomicDisjointSet &vert_sets,
+                                                              const int verts_num)
 {
-  SculptSession &ss = *ob.sculpt;
-
-  if (ss.attrs.topology_island_key && ss.islands_valid &&
-      ss.pbvh->type() != bke::pbvh::Type::BMesh)
-  {
-    return;
+  Array<int> island_indices(verts_num);
+  const int islands_num = vert_sets.calc_reduced_ids(island_indices);
+  if (islands_num == 1) {
+    return {};
   }
 
-  SculptAttributeParams params;
-  params.permanent = params.stroke_only = params.simple_array = false;
-
-  ss.attrs.topology_island_key = BKE_sculpt_attribute_ensure(
-      &ob,
-      bke::AttrDomain::Point,
-      CD_PROP_INT8,
-      SCULPT_ATTRIBUTE_NAME(topology_island_key),
-      &params);
-  SCULPT_vertex_random_access_ensure(ss);
-
-  int totvert = SCULPT_vertex_count_get(ss);
-  Set<PBVHVertRef> visit;
-  Vector<PBVHVertRef> stack;
-  uint8_t island_nr = 0;
-
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    if (visit.contains(vertex)) {
-      continue;
+  Array<uint8_t> island_ids(island_indices.size());
+  threading::parallel_for(island_ids.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      island_ids[i] = uint8_t(island_indices[i]);
     }
+  });
 
-    stack.clear();
-    stack.append(vertex);
-    visit.add(vertex);
+  SculptTopologyIslandCache cache;
+  cache.vert_island_ids = std::move(island_ids);
+  return cache;
+}
 
-    while (stack.size()) {
-      PBVHVertRef vertex2 = stack.pop_last();
-      SculptVertexNeighborIter ni;
+static SculptTopologyIslandCache calc_topology_islands_mesh(const Mesh &mesh)
+{
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  IndexMaskMemory memory;
+  const IndexMask visible_faces = hide_poly.is_empty() ?
+                                      IndexMask(faces.size()) :
+                                      IndexMask::from_bools_inverse(
+                                          faces.index_range(), hide_poly, memory);
 
-      *static_cast<uint8_t *>(
-          SCULPT_vertex_attr_get(vertex2, ss.attrs.topology_island_key)) = island_nr;
+  AtomicDisjointSet disjoint_set(mesh.verts_num);
+  visible_faces.foreach_index(GrainSize(1024), [&](const int face) {
+    const Span<int> face_verts = corner_verts.slice(faces[face]);
+    for (const int i : face_verts.index_range().drop_front(1)) {
+      disjoint_set.join(face_verts.first(), face_verts[i]);
+    }
+  });
+  return vert_disjoint_set_to_islands(disjoint_set, mesh.verts_num);
+}
 
-      SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, vertex2, ni) {
-        if (visit.add(ni.vertex) && hide::vert_any_face_visible_get(ss, ni.vertex)) {
-          stack.append(ni.vertex);
+/**
+ * \todo Take grid face visibility into account.
+ */
+static SculptTopologyIslandCache calc_topology_islands_grids(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const int verts_num = subdiv_ccg.grids.size() * key.grid_area;
+  AtomicDisjointSet disjoint_set(verts_num);
+  threading::parallel_for(subdiv_ccg.grids.index_range(), 512, [&](const IndexRange range) {
+    for (const int grid : range) {
+      SubdivCCGNeighbors neighbors;
+      for (const short y : IndexRange(key.grid_size)) {
+        for (const short x : IndexRange(key.grid_size)) {
+          const SubdivCCGCoord coord{grid, x, y};
+          SubdivCCGNeighbors neighbors;
+          BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, true, neighbors);
+          for (const SubdivCCGCoord neighbor : neighbors.coords) {
+            disjoint_set.join(coord.to_index(key), neighbor.to_index(key));
+          }
         }
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
     }
+  });
 
-    island_nr++;
+  return vert_disjoint_set_to_islands(disjoint_set, verts_num);
+}
+
+static SculptTopologyIslandCache calc_topology_islands_bmesh(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  BMesh &bm = *ss.bm;
+  BM_mesh_elem_index_ensure(&bm, BM_VERT);
+
+  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
+  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  AtomicDisjointSet disjoint_set(bm.totvert);
+  threading::parallel_for(nodes.index_range(), 1024, [&](const IndexRange range) {
+    for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
+      for (const BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
+        if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        disjoint_set.join(BM_elem_index_get(face->l_first->v),
+                          BM_elem_index_get(face->l_first->next->v));
+        disjoint_set.join(BM_elem_index_get(face->l_first->v),
+                          BM_elem_index_get(face->l_first->next->next->v));
+      }
+    }
+  });
+
+  return vert_disjoint_set_to_islands(disjoint_set, bm.totvert);
+}
+
+static SculptTopologyIslandCache calculate_cache(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
+      return calc_topology_islands_mesh(*static_cast<const Mesh *>(object.data));
+    case bke::pbvh::Type::Grids:
+      return calc_topology_islands_grids(object);
+    case bke::pbvh::Type::BMesh:
+      return calc_topology_islands_bmesh(object);
   }
+  BLI_assert_unreachable();
+  return {};
+}
 
-  ss.islands_valid = true;
+void ensure_cache(Object &object)
+{
+  SculptSession &ss = *object.sculpt;
+  if (ss.topology_island_cache) {
+    return;
+  }
+  ss.topology_island_cache = std::make_unique<SculptTopologyIslandCache>(calculate_cache(object));
 }
 
 }  // namespace blender::ed::sculpt_paint::islands

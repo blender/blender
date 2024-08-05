@@ -132,7 +132,9 @@ static bool is_vert_in_active_component(const SculptSession &ss,
                                         const PBVHVertRef v)
 {
   for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
-    if (islands::vert_id_get(ss, v) == expand_cache->active_connected_islands[i]) {
+    if (islands::vert_id_get(ss, BKE_pbvh_vertex_to_index(*ss.pbvh, v)) ==
+        expand_cache->active_connected_islands[i])
+    {
       return true;
     }
   }
@@ -1765,7 +1767,8 @@ static void find_active_connected_components_from_vert(Object &ob,
 
     const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, initial_vertex);
 
-    expand_cache->active_connected_islands[int(symm_it)] = islands::vert_id_get(ss, symm_vertex);
+    expand_cache->active_connected_islands[int(symm_it)] = islands::vert_id_get(
+        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, symm_vertex));
   }
 }
 
