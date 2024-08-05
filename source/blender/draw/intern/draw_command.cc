@@ -195,12 +195,12 @@ void DrawMulti::execute(RecordingState &state) const
     const DrawGroup &group = groups[group_index];
 
     if (group.vertex_len > 0) {
-      gpu::Batch *batch = group.gpu_batch;
+      gpu::Batch *batch = group.desc.gpu_batch;
 
-      if (GPUPrimType(group.expanded_prim_type) != GPU_PRIM_NONE) {
+      if (GPUPrimType(group.desc.expand_prim_type) != GPU_PRIM_NONE) {
         /* Bind original batch as resource and use a procedural batch to issue the draw-call. */
-        GPU_batch_bind_as_resources(group.gpu_batch, state.shader);
-        batch = procedural_batch_get(GPUPrimType(group.expanded_prim_type));
+        GPU_batch_bind_as_resources(group.desc.gpu_batch, state.shader);
+        batch = procedural_batch_get(GPUPrimType(group.desc.expand_prim_type));
       }
 
       if (GPU_shader_draw_parameters_support() == false) {
@@ -557,7 +557,7 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
   uint prefix_sum = 0u;
   for (DrawGroup &group : groups) {
     group.start = prefix_sum;
-    prefix_sum += group.front_proto_len + group.back_proto_len;
+    prefix_sum += group.front_facing_counter + group.back_facing_counter;
   }
 
   std::stringstream ss;
@@ -571,8 +571,8 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
 
     intptr_t offset = grp.start;
 
-    if (grp.back_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_proto_len})) {
+    if (grp.back_facing_counter > 0) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(handle.has_inverted_handedness());
@@ -580,11 +580,11 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
            << line_prefix << "    .proto(instance_len=" << std::to_string(proto.instance_len)
            << ", resource_id=" << std::to_string(handle.resource_index()) << ", back_face)";
       }
-      offset += grp.back_proto_len;
+      offset += grp.back_facing_counter;
     }
 
-    if (grp.front_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_proto_len})) {
+    if (grp.front_facing_counter > 0) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(!handle.has_inverted_handedness());
@@ -785,19 +785,31 @@ void DrawMultiBuf::bind(RecordingState &state,
 
     int batch_vert_len, batch_vert_first, batch_base_index, batch_inst_len;
     /* Now that GPUBatches are guaranteed to be finished, extract their parameters. */
-    GPU_batch_draw_parameter_get(
-        group.gpu_batch, &batch_vert_len, &batch_vert_first, &batch_base_index, &batch_inst_len);
+    GPU_batch_draw_parameter_get(group.desc.gpu_batch,
+                                 &batch_vert_len,
+                                 &batch_vert_first,
+                                 &batch_base_index,
+                                 &batch_inst_len);
 
-    group.vertex_len = group.vertex_len == -1 ? batch_vert_len : group.vertex_len;
-    group.vertex_first = group.vertex_first == -1 ? batch_vert_first : group.vertex_first;
+    group.vertex_len = group.desc.vertex_len == 0 ? batch_vert_len : group.desc.vertex_len;
+    group.vertex_first = group.desc.vertex_first == -1 ? batch_vert_first :
+                                                         group.desc.vertex_first;
     group.base_index = batch_base_index;
+    /* Instancing attributes are not supported using the new pipeline since we use the base
+     * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
+    BLI_assert(batch_inst_len == 1);
+    UNUSED_VARS_NDEBUG(batch_inst_len);
 
-    if (group.expanded_prim_type != GPU_PRIM_NONE) {
+    if (group.desc.expand_prim_type != GPU_PRIM_NONE) {
       /* Expanded drawcall. */
       IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
-          group.gpu_batch, group.expanded_prim_type, group.vertex_len, group.vertex_first);
-      group.vertex_first = vert_range.start() * group.expanded_prim_len;
-      group.vertex_len = vert_range.size() * group.expanded_prim_len;
+          group.desc.gpu_batch,
+          GPUPrimType(group.desc.expand_prim_type),
+          group.vertex_len,
+          group.vertex_first);
+
+      group.vertex_first = vert_range.start() * group.desc.expand_prim_len;
+      group.vertex_len = vert_range.size() * group.desc.expand_prim_len;
       /* Override base index to -1 as the generated drawcall will not use an index buffer and do
        * the indirection manually inside the shader. */
       group.base_index = -1;
@@ -807,7 +819,7 @@ void DrawMultiBuf::bind(RecordingState &state,
     /* For SSBO vertex fetch, mutate output vertex count by ssbo vertex fetch expansion factor. */
     if (group.gpu_shader) {
       int num_input_primitives = gpu_get_prim_count_from_type(group.vertex_len,
-                                                              group.gpu_batch->prim_type);
+                                                              group.desc.gpu_batch->prim_type);
       group.vertex_len = num_input_primitives *
                          GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(group.gpu_shader);
       /* Override base index to -1, as all SSBO calls are submitted as non-indexed, with the
@@ -817,12 +829,7 @@ void DrawMultiBuf::bind(RecordingState &state,
     }
 #endif
 
-    /* Instancing attributes are not supported using the new pipeline since we use the base
-     * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
-    BLI_assert(batch_inst_len == 1);
-    UNUSED_VARS_NDEBUG(batch_inst_len);
-
-    /* Now that we got the batch information, we can set the counters to 0. */
+    /* Reset counters to 0 for the GPU. */
     group.total_counter = group.front_facing_counter = group.back_facing_counter = 0;
   }
 

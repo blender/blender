@@ -33,7 +33,7 @@ struct DrawGroup {
   /** Number of non inverted scaling instances in this Group. */
   uint front_facing_len;
 
-  /** #gpu::Batch values to be copied to #DrawCommand after sorting (if not overridden). */
+  /** #gpu::Batch values (or subrange of) copied to #DrawCommand after sorting. */
   int vertex_len;
   int vertex_first;
   /* Set to -1 if not an indexed draw. */
@@ -42,39 +42,38 @@ struct DrawGroup {
   /** Atomic counters used during command sorting. */
   uint total_counter;
 
-#ifndef GPU_SHADER
-  /* NOTE: Union just to make sure the struct has always the same size on all platform. */
-  union {
-    struct {
-      /** For debug printing only. */
-      uint front_proto_len;
-      uint back_proto_len;
-      /** Needed to create the correct draw call. */
-      gpu::Batch *gpu_batch;
+  uint front_facing_counter;
+  uint back_facing_counter;
+
+  /* CPU specific region of the struct. Should be kept constant after recording.
+   * Can be used by GPU but needs to be initialized by GPU before usage. */
+#ifdef GPU_SHADER
+  uint _cpu_reserved_1;
+  uint _cpu_reserved_2;
+
+  uint _cpu_reserved_3;
+  uint _cpu_reserved_4;
+  uint _cpu_reserved_5;
+  uint _cpu_reserved_6;
+
+#else
+  struct {
+    /* Specific range of vertex to draw from the #gpu::Batch. */
+    uint32_t vertex_first;
+    /* Ugly packing to support expanded draws without inflating the struct.
+     * Makes vertex range restricted to smaller range for expanded draw. */
+    uint32_t expand_prim_type : 4;
+    uint32_t expand_prim_len : 3;
+    uint32_t vertex_len : 25;
+
+    /** Needed to create the correct draw call. */
+    gpu::Batch *gpu_batch;
 #  ifdef WITH_METAL_BACKEND
-      GPUShader *gpu_shader;
+    GPUShader *gpu_shader;
 #  else
-      uint64_t _cpu_pad0;
+    uint64_t _cpu_pad0;
 #  endif
-
-      GPUPrimType expanded_prim_type;
-      uint expanded_prim_len;
-    };
-    struct {
-#endif
-      uint front_facing_counter;
-      uint back_facing_counter;
-      /* These can be used for computation on GPU. But cannot be changed or set on CPU. */
-      uint _cpu_reserved_1;
-      uint _cpu_reserved_2;
-
-      uint _cpu_reserved_3;
-      uint _cpu_reserved_4;
-      uint _cpu_reserved_5;
-      uint _cpu_reserved_6;
-#ifndef GPU_SHADER
-    };
-  };
+  } desc;
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)

@@ -709,6 +709,8 @@ class DrawMultiBuf {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
     const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
 
+    BLI_assert(vertex_len != 0);
+    vertex_len = vertex_len == -1 ? 0 : vertex_len;
     instance_len = instance_len != -1 ? instance_len : 1;
 
     /* If there was some state changes since previous call, we have to create another command. */
@@ -738,13 +740,13 @@ class DrawMultiBuf {
       group.next = cmd.group_first;
       group.len = instance_len;
       group.front_facing_len = inverted ? 0 : instance_len;
-      group.gpu_batch = batch;
-      group.front_proto_len = 0;
-      group.back_proto_len = 0;
-      group.vertex_len = vertex_len;
-      group.vertex_first = vertex_first;
-      group.expanded_prim_type = expanded_prim_type;
-      group.expanded_prim_len = expanded_prim_len;
+      group.front_facing_counter = 0;
+      group.back_facing_counter = 0;
+      group.desc.vertex_len = vertex_len;
+      group.desc.vertex_first = vertex_first;
+      group.desc.gpu_batch = batch;
+      group.desc.expand_prim_type = expanded_prim_type;
+      group.desc.expand_prim_len = expanded_prim_len;
 #ifdef WITH_METAL_BACKEND
       group.gpu_shader = shader;
 #endif
@@ -752,8 +754,8 @@ class DrawMultiBuf {
       if (!custom_group) {
         group_id = new_group_id;
       }
-      /* For serialization only. */
-      (inverted ? group.back_proto_len : group.front_proto_len)++;
+      /* For serialization only. Reset before use on GPU. */
+      (inverted ? group.back_facing_counter : group.front_facing_counter)++;
       /* Append to list. */
       cmd.group_first = new_group_id;
     }
@@ -761,16 +763,16 @@ class DrawMultiBuf {
       DrawGroup &group = group_buf_[group_id];
       group.len += instance_len;
       group.front_facing_len += inverted ? 0 : instance_len;
-      /* For serialization only. */
-      (inverted ? group.back_proto_len : group.front_proto_len)++;
+      /* For serialization only. Reset before use on GPU. */
+      (inverted ? group.back_facing_counter : group.front_facing_counter)++;
       /* NOTE: We assume that primitive expansion is coupled to the shader itself. Meaning we rely
        * on shader bind to isolate the expanded draws into their own group (as there could be
        * regular draws and extended draws using the same batch mixed inside the same pass). This
        * will cause issues if this assumption is broken. Also it is very hard to detect this case
        * for error checking. At least we can check that expansion settings don't change inside a
        * group. */
-      BLI_assert(group.expanded_prim_type == expanded_prim_type);
-      BLI_assert(group.expanded_prim_len == expanded_prim_len);
+      BLI_assert(group.desc.expand_prim_type == expanded_prim_type);
+      BLI_assert(group.desc.expand_prim_len == expanded_prim_len);
 #ifdef WITH_METAL_BACKEND
       BLI_assert(group.gpu_shader == shader);
 #endif
