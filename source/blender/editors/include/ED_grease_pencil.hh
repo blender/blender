@@ -109,6 +109,10 @@ class DrawingPlacement {
                    const View3D &view3d,
                    const Object &eval_object,
                    const bke::greasepencil::Layer *layer);
+  DrawingPlacement(const DrawingPlacement &other);
+  DrawingPlacement(DrawingPlacement &&other);
+  DrawingPlacement &operator=(const DrawingPlacement &other);
+  DrawingPlacement &operator=(DrawingPlacement &&other);
   ~DrawingPlacement();
 
  public:

@@ -106,6 +106,71 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
   }
 }
 
+DrawingPlacement::DrawingPlacement(const DrawingPlacement &other)
+{
+  region_ = other.region_;
+  view3d_ = other.view3d_;
+
+  depth_ = other.depth_;
+  plane_ = other.plane_;
+
+  if (other.depth_cache_ != nullptr) {
+    depth_cache_ = static_cast<ViewDepths *>(MEM_dupallocN(other.depth_cache_));
+    depth_cache_->depths = static_cast<float *>(MEM_dupallocN(other.depth_cache_->depths));
+  }
+  use_project_only_selected_ = other.use_project_only_selected_;
+
+  surface_offset_ = other.surface_offset_;
+
+  placement_loc_ = other.placement_loc_;
+  placement_normal_ = other.placement_normal_;
+  placement_plane_ = other.placement_plane_;
+
+  layer_space_to_world_space_ = other.layer_space_to_world_space_;
+  world_space_to_layer_space_ = other.world_space_to_layer_space_;
+}
+
+DrawingPlacement::DrawingPlacement(DrawingPlacement &&other)
+{
+  region_ = other.region_;
+  view3d_ = other.view3d_;
+
+  depth_ = other.depth_;
+  plane_ = other.plane_;
+
+  std::swap(depth_cache_, other.depth_cache_);
+  use_project_only_selected_ = other.use_project_only_selected_;
+
+  surface_offset_ = other.surface_offset_;
+
+  placement_loc_ = other.placement_loc_;
+  placement_normal_ = other.placement_normal_;
+  placement_plane_ = other.placement_plane_;
+
+  layer_space_to_world_space_ = other.layer_space_to_world_space_;
+  world_space_to_layer_space_ = other.world_space_to_layer_space_;
+}
+
+DrawingPlacement &DrawingPlacement::operator=(const DrawingPlacement &other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) DrawingPlacement(other);
+  return *this;
+}
+
+DrawingPlacement &DrawingPlacement::operator=(DrawingPlacement &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) DrawingPlacement(std::move(other));
+  return *this;
+}
+
 DrawingPlacement::~DrawingPlacement()
 {
   if (depth_cache_ != nullptr) {
