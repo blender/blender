@@ -764,6 +764,9 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (!ELEM(oldbut->func_arg2, oldbut, but->func_arg2)) {
     return false;
   }
+  if (but->block_create_func != oldbut->block_create_func) {
+    return false;
+  }
   if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) ||
                       (but->pointype != oldbut->pointype)))
   {
