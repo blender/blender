@@ -417,6 +417,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
 
       bvh->custom_primitive_bound.alloc(num_triangles * num_bvh_steps);
       bvh->custom_prim_info.resize(num_triangles * num_bvh_steps);
+      bvh->prims_time.resize(num_triangles * num_bvh_steps);
 
       for (uint j = 0; j < num_triangles; j++) {
         Mesh::Triangle t = mesh->get_triangle(j);
@@ -888,6 +889,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
             int time_offset = bvh->prims_time.size();
             prim_time_map[geom] = time_offset;
 
+            bvh->prims_time.resize(time_offset + current_bvh->prims_time.size());
             memcpy(bvh->prims_time.data() + time_offset,
                    current_bvh->prims_time.data(),
                    current_bvh->prims_time.size() * sizeof(float2));
