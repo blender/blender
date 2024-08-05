@@ -501,14 +501,13 @@ static void mesh_filter_surface_smooth_init(SculptSession &ss,
   filter_cache->surface_smooth_current_vertex = current_vertex_displacement;
 }
 
-static void mesh_filter_init_limit_surface_co(SculptSession &ss)
+static void calc_limit_surface_positions(const Object &object, MutableSpan<float3> limit_positions)
 {
+  const SculptSession &ss = *object.sculpt;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  ss.filter_cache->limit_surface_co = Array<float3>(elems.size() * key.grid_area);
-  MutableSpan<float3> limit_positions = ss.filter_cache->limit_surface_co;
   threading::parallel_for(elems.index_range(), 512, [&](const IndexRange range) {
     for (const int grid : range) {
       const int start = grid * key.grid_area;
@@ -906,22 +905,16 @@ static void sculpt_filter_specific_init(const MeshFilterType filter_type,
   SculptSession &ss = *object.sculpt;
   switch (filter_type) {
     case MeshFilterType::SurfaceSmooth: {
-      const float shape_preservation = RNA_float_get(op->ptr, "surface_smooth_shape_preservation");
-      const float current_vertex_displacement = RNA_float_get(op->ptr,
-                                                              "surface_smooth_current_vertex");
-      mesh_filter_surface_smooth_init(ss, shape_preservation, current_vertex_displacement);
+      mesh_filter_surface_smooth_init(ss,
+                                      RNA_float_get(op->ptr, "surface_smooth_shape_preservation"),
+                                      RNA_float_get(op->ptr, "surface_smooth_current_vertex"));
       break;
     }
     case MeshFilterType::Sharpen: {
-      const float smooth_ratio = RNA_float_get(op->ptr, "sharpen_smooth_ratio");
-      const float intensify_detail_strength = RNA_float_get(op->ptr,
-                                                            "sharpen_intensify_detail_strength");
-      const int curvature_smooth_iterations = RNA_int_get(op->ptr,
-                                                          "sharpen_curvature_smooth_iterations");
       mesh_filter_sharpen_init(object,
-                               smooth_ratio,
-                               intensify_detail_strength,
-                               curvature_smooth_iterations,
+                               RNA_float_get(op->ptr, "sharpen_smooth_ratio"),
+                               RNA_float_get(op->ptr, "sharpen_intensify_detail_strength"),
+                               RNA_int_get(op->ptr, "sharpen_curvature_smooth_iterations"),
                                *ss.filter_cache);
       break;
     }
@@ -931,7 +924,8 @@ static void sculpt_filter_specific_init(const MeshFilterType filter_type,
       break;
     }
     case MeshFilterType::EraseDispacement: {
-      mesh_filter_init_limit_surface_co(ss);
+      ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(ss));
+      calc_limit_surface_positions(object, ss.filter_cache->limit_surface_co);
       break;
     }
     default:
