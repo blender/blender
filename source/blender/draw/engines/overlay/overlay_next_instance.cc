@@ -84,6 +84,7 @@ void Instance::begin_sync()
     layer.empties.begin_sync();
     layer.lattices.begin_sync(resources, state);
     layer.lights.begin_sync();
+    layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.prepass.begin_sync(resources, state);
     layer.speakers.begin_sync();
@@ -154,6 +155,9 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_LAMP:
         layer.lights.object_sync(ob_ref, resources, state);
         break;
+      case OB_LIGHTPROBE:
+        layer.light_probes.object_sync(ob_ref, resources, state);
+        break;
       case OB_MBALL:
         if (!in_edit_mode) {
           layer.metaballs.object_sync(ob_ref, resources, state);
@@ -178,6 +182,7 @@ void Instance::end_sync()
     layer.cameras.end_sync(resources, shapes, state);
     layer.empties.end_sync(resources, shapes, state);
     layer.lights.end_sync(resources, shapes, state);
+    layer.light_probes.end_sync(resources, shapes, state);
     layer.metaballs.end_sync(resources, shapes, state);
     layer.speakers.end_sync(resources, shapes, state);
   };
@@ -252,6 +257,7 @@ void Instance::draw(Manager &manager)
     layer.cameras.draw(framebuffer, manager, view);
     layer.empties.draw(framebuffer, manager, view);
     layer.lights.draw(framebuffer, manager, view);
+    layer.light_probes.draw(framebuffer, manager, view);
     layer.speakers.draw(framebuffer, manager, view);
     layer.lattices.draw(framebuffer, manager, view);
     layer.metaballs.draw(framebuffer, manager, view);

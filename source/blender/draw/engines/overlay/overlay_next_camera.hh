@@ -91,11 +91,11 @@ class Cameras {
                                     const View3D *v3d,
                                     const float4 &color,
                                     const ObjectRef &ob_ref,
+                                    const bool is_select,
                                     Resources &res,
                                     CallBuffers &call_buffers)
   {
     const DRWContextState *draw_ctx = DRW_context_state_get();
-    const bool is_select = DRW_state_is_select();
     Object *ob = ob_ref.object;
 
     MovieClip *clip = BKE_object_movieclip_get((Scene *)scene, ob, false);
@@ -236,6 +236,7 @@ class Cameras {
                                 const select::ID select_id,
                                 const Scene *scene,
                                 const View3D *v3d,
+                                const bool is_select,
                                 Resources &res,
                                 Object *ob,
                                 CallBuffers &call_buffers)
@@ -243,7 +244,6 @@ class Cameras {
     CameraInstanceData stereodata = instdata;
 
     const Camera *cam = static_cast<const Camera *>(ob->data);
-    const bool is_select = DRW_state_is_select();
     const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
     const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
@@ -374,7 +374,7 @@ class Cameras {
 
     const Camera *cam = static_cast<Camera *>(ob->data);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
-    const bool is_select = DRW_state_is_select();
+    const bool is_select = call_buffers_.selection_type_ == SelectionType::ENABLED;
     const bool is_active = (ob == camera_object);
     const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
 
@@ -447,7 +447,7 @@ class Cameras {
     else {
       /* Stereo cameras, volumes, plane drawing. */
       if (is_stereo3d_display_extra) {
-        stereoscopy_extra(data, select_id, scene, v3d, res, ob, call_buffers_);
+        stereoscopy_extra(data, select_id, scene, v3d, is_select, res, ob, call_buffers_);
       }
       else {
         call_buffers_.frame_buf.append(data, select_id);
@@ -489,8 +489,14 @@ class Cameras {
 
     /* Motion Tracking. */
     if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-      view3d_reconstruction(
-          select_id, scene, v3d, res.object_wire_color(ob_ref, state), ob_ref, res, call_buffers_);
+      view3d_reconstruction(select_id,
+                            scene,
+                            v3d,
+                            res.object_wire_color(ob_ref, state),
+                            ob_ref,
+                            is_select,
+                            res,
+                            call_buffers_);
     }
 
     // TODO: /* Background images. */

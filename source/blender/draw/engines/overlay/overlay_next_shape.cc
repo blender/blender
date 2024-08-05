@@ -187,15 +187,22 @@ static Vector<Vertex> sphere_axes_circles(const float radius,
   return verts;
 }
 
-static void light_append_direction_line(Vector<Vertex> &verts)
+static void light_append_direction_line(const char axis,
+                                        Span<float2> diamond,
+                                        Vector<Vertex> &verts)
 {
-  const Vector<float2> diamond = ring_vertices(1.2f, diamond_nsegments);
-  const float zsta = light_distance_z_get('z', true);
-  const float zend = light_distance_z_get('z', false);
+  const float zsta = light_distance_z_get(axis, true);
+  const float zend = light_distance_z_get(axis, false);
   verts.append({{0.0, 0.0, zsta}, VCLASS_LIGHT_DIST});
   verts.append({{0.0, 0.0, zend}, VCLASS_LIGHT_DIST});
   append_line_loop(verts, diamond, zsta, VCLASS_LIGHT_DIST | VCLASS_SCREENSPACE);
   append_line_loop(verts, diamond, zend, VCLASS_LIGHT_DIST | VCLASS_SCREENSPACE);
+}
+
+static void light_append_direction_line(Vector<Vertex> &verts)
+{
+  const Vector<float2> diamond = ring_vertices(1.2f, diamond_nsegments);
+  light_append_direction_line('z', diamond, verts);
 }
 
 static VertShaded sphere_lat_lon_vert(const float2 &lat_pt, const float2 &lon_pt)
@@ -268,6 +275,16 @@ ShapeCache::ShapeCache()
 
     quad_wire = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* quad_solid */
+  {
+    const Array<float2> quad = {{-1.0f, 1.0f}, {1.0f, 1.0f}, {-1.0f, -1.0f}, {1.0f, -1.0f}};
+    Vector<Vertex> verts;
+    for (const float2 &point : quad) {
+      verts.append({{point, 0.0f}, VCLASS_EMPTY_SCALED});
+    }
+    quad_solid = BatchPtr(GPU_batch_create_ex(
+        GPU_PRIM_TRI_STRIP, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   }
   /* plain_axes */
   {
@@ -531,9 +548,9 @@ ShapeCache::ShapeCache()
     }
 
     for (const float2 &point : diamond) {
-      Vertex vertex{float3{point, bottom_z}};
+      Vertex vertex{float3(point, bottom_z)};
       verts.append(vertex);
-      vertex.pos = float3{point * 0.5f, bottom_z + step_z};
+      vertex.pos = float3(point * 0.5f, bottom_z + step_z);
       verts.append(vertex);
       verts.append(vertex);
       vertex.pos.z += step_z;
@@ -759,6 +776,98 @@ ShapeCache::ShapeCache()
     light_append_direction_line(verts);
 
     light_area_square_lines = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* lightprobe_cube */
+  {
+    constexpr float r = 14.0f;
+    constexpr int flag = VCLASS_SCREENSPACE;
+    /* Icon */
+    constexpr float sin_pi_3 = 0.86602540378f;
+    constexpr float cos_pi_3 = 0.5f;
+    const Array<float2, 6> points = {
+        float2(0.0f, 1.0f) * r,
+        float2(sin_pi_3, cos_pi_3) * r,
+        float2(sin_pi_3, -cos_pi_3) * r,
+        float2(0.0f, -1.0f) * r,
+        float2(-sin_pi_3, -cos_pi_3) * r,
+        float2(-sin_pi_3, cos_pi_3) * r,
+    };
+
+    Vector<Vertex> verts;
+
+    append_line_loop(verts, points, 0.0f, flag);
+    for (const int i : IndexRange(3)) {
+      const float2 &point = points[i * 2 + 1];
+      verts.append(Vertex{{point, 0.0f}, flag});
+      verts.append(Vertex{{0.0f, 0.0f, 0.0f}, flag});
+    }
+
+    /* Direction Lines */
+    const Vector<float2> diamond = ring_vertices(1.2f, diamond_nsegments);
+    const std::string axes = "zZyYxX";
+    for (const char axis : axes) {
+      light_append_direction_line(axis, diamond, verts);
+    }
+
+    lightprobe_cube = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* lightprobe_planar */
+  {
+    constexpr float r = 20.0f;
+    /* Icon */
+    constexpr float sin_pi_3 = 0.86602540378f;
+    const Array<float2, 4> points = {
+        float2(0.0f, 0.5f) * r,
+        float2(sin_pi_3, 0.0f) * r,
+        float2(0.0f, -0.5f) * r,
+        float2(-sin_pi_3, 0.0f) * r,
+    };
+
+    Vector<Vertex> verts;
+
+    append_line_loop(verts, points, 0.0f, VCLASS_SCREENSPACE);
+    lightprobe_planar = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
+  /* lightprobe_grid */
+  {
+    constexpr float r = 14.0f;
+    constexpr int flag = VCLASS_SCREENSPACE;
+    /* Icon */
+    constexpr float sin_pi_3 = 0.86602540378f;
+    constexpr float cos_pi_3 = 0.5f;
+    const Array<float2, 6> points = {float2(0.0f, 1.0f) * r,
+                                     float2(sin_pi_3, cos_pi_3) * r,
+                                     float2(sin_pi_3, -cos_pi_3) * r,
+                                     float2(0.0f, -1.0f) * r,
+                                     float2(-sin_pi_3, -cos_pi_3) * r,
+                                     float2(-sin_pi_3, cos_pi_3) * r};
+    Vector<Vertex> verts;
+
+    append_line_loop(verts, points, 0.0f, flag);
+    /* Internal wires. */
+    for (const int i : IndexRange(6)) {
+      const float2 tr = points[(i / 2) * 2 + 1] * -0.5f;
+      const float2 t1 = points[i] + tr;
+      const float2 t2 = points[(i + 1) % 6] + tr;
+      verts.append({{t1, 0.0f}, flag});
+      verts.append({{t2, 0.0f}, flag});
+    }
+    for (const int i : IndexRange(3)) {
+      const float2 &point = points[i * 2 + 1];
+      verts.append(Vertex{{point, 0.0f}, flag});
+      verts.append(Vertex{{0.0f, 0.0f, 0.0f}, flag});
+    }
+    /* Direction Lines */
+    const Vector<float2> diamond = ring_vertices(1.2f, diamond_nsegments);
+    const std::string axes = "zZyYxX";
+    for (const char axis : axes) {
+      light_append_direction_line(axis, diamond, verts);
+    }
+
+    lightprobe_grid = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   }
 }

@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2016-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
@@ -24,4 +25,5 @@ void main()
 #else
   fragColor = finalColor;
 #endif
+  select_id_output(select_id);
 }

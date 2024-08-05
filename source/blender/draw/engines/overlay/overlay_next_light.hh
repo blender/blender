@@ -121,7 +121,7 @@ class Lights {
         /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
         theme_color[3] = -max_ff(la.radius, FLT_MIN);
         call_buffers_.spot_buf.append(data, select_id);
-        if ((la.mode & LA_SHOW_CONE) && !DRW_state_is_select()) {
+        if ((la.mode & LA_SHOW_CONE) && selection_type_ == SelectionType::DISABLED) {
           const float4 color_inside{0.0f, 0.0f, 0.0f, 0.5f};
           const float4 color_outside{1.0f, 1.0f, 1.0f, 0.3f};
           call_buffers_.spot_cone_front_buf.append(data.with_color(color_inside), select_id);
