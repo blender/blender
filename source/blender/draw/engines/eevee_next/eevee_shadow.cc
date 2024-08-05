@@ -615,7 +615,7 @@ void ShadowModule::init()
   }
 
   /* Read end of the swap-chain to avoid stall. */
-  {
+  if (inst_.is_viewport()) {
     if (inst_.sampling.finished_viewport()) {
       /* Swap enough to read the last one. */
       for (int i = 0; i < statistics_buf_.size(); i++) {
