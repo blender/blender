@@ -748,7 +748,7 @@ class DrawMultiBuf {
       group.desc.expand_prim_type = expanded_prim_type;
       group.desc.expand_prim_len = expanded_prim_len;
 #ifdef WITH_METAL_BACKEND
-      group.gpu_shader = shader;
+      group.desc.gpu_shader = shader;
 #endif
       /* Custom group are not to be registered in the group_ids_. */
       if (!custom_group) {
@@ -774,7 +774,7 @@ class DrawMultiBuf {
       BLI_assert(group.desc.expand_prim_type == expanded_prim_type);
       BLI_assert(group.desc.expand_prim_len == expanded_prim_len);
 #ifdef WITH_METAL_BACKEND
-      BLI_assert(group.gpu_shader == shader);
+      BLI_assert(group.desc.gpu_shader == shader);
 #endif
     }
   }

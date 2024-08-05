@@ -817,11 +817,12 @@ void DrawMultiBuf::bind(RecordingState &state,
 
 #ifdef WITH_METAL_BACKEND
     /* For SSBO vertex fetch, mutate output vertex count by ssbo vertex fetch expansion factor. */
-    if (group.gpu_shader) {
+    if (group.desc.gpu_shader) {
       int num_input_primitives = gpu_get_prim_count_from_type(group.vertex_len,
                                                               group.desc.gpu_batch->prim_type);
       group.vertex_len = num_input_primitives *
-                         GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(group.gpu_shader);
+                         GPU_shader_get_ssbo_vertex_fetch_num_verts_per_prim(
+                             group.desc.gpu_shader);
       /* Override base index to -1, as all SSBO calls are submitted as non-indexed, with the
        * index buffer indirection handled within the implementation. This is to ensure
        * command generation can correctly assigns baseInstance in the non-indexed formatting. */
