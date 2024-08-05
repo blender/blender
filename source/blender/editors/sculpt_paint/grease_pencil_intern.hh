@@ -80,7 +80,6 @@ struct GreasePencilStrokeParams {
   int layer_index;
   int frame_number;
   float multi_frame_falloff;
-  const ed::greasepencil::DrawingPlacement &placement;
   bke::greasepencil::Drawing &drawing;
 
   /* NOTE: accessing region in worker threads will return null,
@@ -92,7 +91,6 @@ struct GreasePencilStrokeParams {
                                                int layer_index,
                                                int frame_number,
                                                float multi_frame_falloff,
-                                               const ed::greasepencil::DrawingPlacement &placement,
                                                bke::greasepencil::Drawing &drawing);
 };
 
@@ -119,6 +117,7 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
   /** Previous mouse position for computing the direction. */
   float2 prev_mouse_position;
 
+  GreasePencilStrokeOperationCommon() {}
   GreasePencilStrokeOperationCommon(const BrushStrokeMode stroke_mode) : stroke_mode(stroke_mode)
   {
   }
@@ -131,6 +130,9 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
 
   void foreach_editable_drawing(
       const bContext &C, FunctionRef<bool(const GreasePencilStrokeParams &params)> fn) const;
+  void foreach_editable_drawing(const bContext &C,
+                                FunctionRef<bool(const GreasePencilStrokeParams &params,
+                                                 const DrawingPlacement &placement)> fn) const;
 };
 
 std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation();

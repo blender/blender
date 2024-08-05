@@ -39,35 +39,38 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   const Brush &brush = *BKE_paint_brush(&paint);
   const bool invert = this->is_inverted(brush);
 
-  this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
-    IndexMaskMemory selection_memory;
-    const IndexMask selection = point_selection_mask(params, selection_memory);
-    if (selection.is_empty()) {
-      return false;
-    }
+  this->foreach_editable_drawing(
+      C,
+      [&](const GreasePencilStrokeParams &params,
+          const ed::greasepencil::DrawingPlacement &placement) {
+        IndexMaskMemory selection_memory;
+        const IndexMask selection = point_selection_mask(params, selection_memory);
+        if (selection.is_empty()) {
+          return false;
+        }
 
-    Array<float2> view_positions = calculate_view_positions(params, selection);
-    bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
-    MutableSpan<float3> positions = curves.positions_for_write();
+        Array<float2> view_positions = calculate_view_positions(params, selection);
+        bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
+        MutableSpan<float3> positions = curves.positions_for_write();
 
-    const float2 target = extension_sample.mouse_position;
+        const float2 target = extension_sample.mouse_position;
 
-    selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-      const float2 &co = view_positions[point_i];
-      const float influence = brush_influence(
-          scene, brush, co, extension_sample, params.multi_frame_falloff);
-      if (influence <= 0.0f) {
-        return;
-      }
+        selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          const float2 &co = view_positions[point_i];
+          const float influence = brush_influence(
+              scene, brush, co, extension_sample, params.multi_frame_falloff);
+          if (influence <= 0.0f) {
+            return;
+          }
 
-      const float scale_offset = influence * influence / 25.0f;
-      const float scale = invert ? 1.0 + scale_offset : 1.0f - scale_offset;
-      positions[point_i] = params.placement.project(target + (co - target) * scale);
-    });
+          const float scale_offset = influence * influence / 25.0f;
+          const float scale = invert ? 1.0 + scale_offset : 1.0f - scale_offset;
+          positions[point_i] = placement.project(target + (co - target) * scale);
+        });
 
-    params.drawing.tag_positions_changed();
-    return true;
-  });
+        params.drawing.tag_positions_changed();
+        return true;
+      });
   this->stroke_extended(extension_sample);
 }
 

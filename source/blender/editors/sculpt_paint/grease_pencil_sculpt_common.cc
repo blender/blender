@@ -160,7 +160,6 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
     const int layer_index,
     const int frame_number,
     const float multi_frame_falloff,
-    const ed::greasepencil::DrawingPlacement &placement,
     bke::greasepencil::Drawing &drawing)
 {
   Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &object);
@@ -175,7 +174,6 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
           layer_index,
           frame_number,
           multi_frame_falloff,
-          placement,
           drawing};
 }
 
@@ -235,6 +233,42 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
 
   const Scene &scene = *CTX_data_scene(&C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  Object &object = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
+        scene,
+        depsgraph,
+        region,
+        object,
+        info.layer_index,
+        info.frame_number,
+        info.multi_frame_falloff,
+        info.drawing);
+    if (fn(params)) {
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+}
+
+void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
+    const bContext &C,
+    FunctionRef<bool(const GreasePencilStrokeParams &params, const DrawingPlacement &placement)>
+        fn) const
+{
+  using namespace blender::bke::greasepencil;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
   View3D &view3d = *CTX_wm_view3d(&C);
   ARegion &region = *CTX_wm_region(&C);
   Object &object = *CTX_data_active_object(&C);
@@ -246,7 +280,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     const Layer &layer = *grease_pencil.layer(info.layer_index);
 
-    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
+    DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
     if (placement.use_project_to_surface()) {
       placement.cache_viewport_depths(&depsgraph, &region, &view3d);
     }
@@ -263,9 +297,8 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
         info.layer_index,
         info.frame_number,
         info.multi_frame_falloff,
-        placement,
         info.drawing);
-    if (fn(params)) {
+    if (fn(params, placement)) {
       changed = true;
     }
   });

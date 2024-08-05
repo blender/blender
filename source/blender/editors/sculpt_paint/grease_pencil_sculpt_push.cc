@@ -38,33 +38,36 @@ void PushOperation::on_stroke_extended(const bContext &C, const InputSample &ext
   Paint &paint = *BKE_paint_get_active_from_context(&C);
   const Brush &brush = *BKE_paint_brush(&paint);
 
-  this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
-    IndexMaskMemory selection_memory;
-    const IndexMask selection = point_selection_mask(params, selection_memory);
-    if (selection.is_empty()) {
-      return false;
-    }
+  this->foreach_editable_drawing(
+      C,
+      [&](const GreasePencilStrokeParams &params,
+          const ed::greasepencil::DrawingPlacement &placement) {
+        IndexMaskMemory selection_memory;
+        const IndexMask selection = point_selection_mask(params, selection_memory);
+        if (selection.is_empty()) {
+          return false;
+        }
 
-    Array<float2> view_positions = calculate_view_positions(params, selection);
-    bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
-    MutableSpan<float3> positions = curves.positions_for_write();
+        Array<float2> view_positions = calculate_view_positions(params, selection);
+        bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
+        MutableSpan<float3> positions = curves.positions_for_write();
 
-    const float2 mouse_delta = this->mouse_delta(extension_sample);
+        const float2 mouse_delta = this->mouse_delta(extension_sample);
 
-    selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-      const float2 &co = view_positions[point_i];
-      const float influence = brush_influence(
-          scene, brush, co, extension_sample, params.multi_frame_falloff);
-      if (influence <= 0.0f) {
-        return;
-      }
+        selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+          const float2 &co = view_positions[point_i];
+          const float influence = brush_influence(
+              scene, brush, co, extension_sample, params.multi_frame_falloff);
+          if (influence <= 0.0f) {
+            return;
+          }
 
-      positions[point_i] = params.placement.project(co + mouse_delta * influence);
-    });
+          positions[point_i] = placement.project(co + mouse_delta * influence);
+        });
 
-    params.drawing.tag_positions_changed();
-    return true;
-  });
+        params.drawing.tag_positions_changed();
+        return true;
+      });
   this->stroke_extended(extension_sample);
 }
 

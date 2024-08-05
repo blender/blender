@@ -46,34 +46,38 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
    * - Continuous: Create multiple copies during the stroke (disabled)
    *
    * Here we only have the GPv2 behavior that actually works for now. */
-  this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
-    const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
-        bmain, object, params.drawing, false);
-    if (pasted_curves.is_empty()) {
-      return false;
-    }
+  this->foreach_editable_drawing(
+      C,
+      [&](const GreasePencilStrokeParams &params,
+          const ed::greasepencil::DrawingPlacement &placement) {
+        const IndexRange pasted_curves = ed::greasepencil::clipboard_paste_strokes(
+            bmain, object, params.drawing, false);
+        if (pasted_curves.is_empty()) {
+          return false;
+        }
 
-    bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
-    const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
-        pasted_curves);
-    const IndexRange pasted_points = IndexRange::from_begin_size(
-        pasted_points_by_curve[0].start(),
-        pasted_points_by_curve.total_size() - pasted_points_by_curve[0].start());
+        bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
+        const OffsetIndices<int> pasted_points_by_curve = curves.points_by_curve().slice(
+            pasted_curves);
+        const IndexRange pasted_points = IndexRange::from_begin_size(
+            pasted_points_by_curve[0].start(),
+            pasted_points_by_curve.total_size() - pasted_points_by_curve[0].start());
 
-    Array<float2> view_positions = calculate_view_positions(params, pasted_points);
-    const float2 center = arithmetic_mean(view_positions.as_mutable_span().slice(pasted_points));
-    const float2 &mouse_delta = start_sample.mouse_position - center;
+        Array<float2> view_positions = calculate_view_positions(params, pasted_points);
+        const float2 center = arithmetic_mean(
+            view_positions.as_mutable_span().slice(pasted_points));
+        const float2 &mouse_delta = start_sample.mouse_position - center;
 
-    MutableSpan<float3> positions = curves.positions_for_write();
-    threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
-      for (const int point_i : range) {
-        positions[point_i] = params.placement.project(view_positions[point_i] + mouse_delta);
-      }
-    });
-    params.drawing.tag_positions_changed();
+        MutableSpan<float3> positions = curves.positions_for_write();
+        threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
+          for (const int point_i : range) {
+            positions[point_i] = placement.project(view_positions[point_i] + mouse_delta);
+          }
+        });
+        params.drawing.tag_positions_changed();
 
-    return true;
-  });
+        return true;
+      });
 }
 
 void CloneOperation::on_stroke_extended(const bContext & /*C*/,
