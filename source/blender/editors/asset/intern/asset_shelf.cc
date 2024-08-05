@@ -331,11 +331,9 @@ void region_listen(const wmRegionListenerParams *params)
 
 void region_init(wmWindowManager *wm, ARegion *region)
 {
-  /* Region-data should've been created by a previously called #region_before_redraw(). */
-  RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
-  BLI_assert_msg(
-      shelf_regiondata,
-      "Region-data should've been created by a previously called `region_before_redraw()`.");
+  /* 4.2 LTS release specific workaround: create #RegionAssetShelf if not present yet, because of a
+   * bug #region_on_poll_success() might not have been called before init yet. */
+  RegionAssetShelf *shelf_regiondata = RegionAssetShelf::ensure_from_asset_shelf_region(*region);
 
   AssetShelf *active_shelf = shelf_regiondata->active_shelf;
 
