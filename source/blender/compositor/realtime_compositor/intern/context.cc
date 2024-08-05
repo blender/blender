@@ -101,7 +101,7 @@ GPUShader *Context::get_shader(const char *info_name)
 
 Result Context::create_result(ResultType type, ResultPrecision precision)
 {
-  return Result::Temporary(type, texture_pool_, precision);
+  return Result(*this, type, precision);
 }
 
 Result Context::create_result(ResultType type)
@@ -111,7 +111,7 @@ Result Context::create_result(ResultType type)
 
 Result Context::create_temporary_result(ResultType type, ResultPrecision precision)
 {
-  return Result::Temporary(type, texture_pool_, precision);
+  return Result::Temporary(*this, type, precision);
 }
 
 Result Context::create_temporary_result(ResultType type)

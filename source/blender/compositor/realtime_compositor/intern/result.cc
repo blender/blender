@@ -10,20 +10,20 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
+#include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_result.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::realtime_compositor {
 
-Result::Result(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
-    : type_(type), precision_(precision), texture_pool_(&texture_pool)
+Result::Result(Context &context, ResultType type, ResultPrecision precision)
+    : context_(&context), type_(type), precision_(precision)
 {
 }
 
-Result Result::Temporary(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
+Result Result::Temporary(Context &context, ResultType type, ResultPrecision precision)
 {
-  Result result = Result(type, texture_pool, precision);
+  Result result = Result(context, type, precision);
   result.set_initial_reference_count(1);
   result.reset();
   return result;
@@ -190,7 +190,7 @@ void Result::allocate_texture(Domain domain)
   }
 
   is_single_value_ = false;
-  texture_ = texture_pool_->acquire(domain.size, get_texture_format());
+  texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
   domain_ = domain;
 }
 
@@ -199,7 +199,7 @@ void Result::allocate_single_value()
   is_single_value_ = true;
   /* Single values are stored in 1x1 textures as well as the single value members. */
   const int2 texture_size{1, 1};
-  texture_ = texture_pool_->acquire(texture_size, get_texture_format());
+  texture_ = context_->texture_pool().acquire(texture_size, get_texture_format());
   domain_ = Domain::identity();
 }
 
@@ -276,7 +276,7 @@ void Result::steal_data(Result &source)
 
   is_single_value_ = source.is_single_value_;
   texture_ = source.texture_;
-  texture_pool_ = source.texture_pool_;
+  context_ = source.context_;
   domain_ = source.domain_;
 
   switch (type_) {
@@ -295,7 +295,7 @@ void Result::steal_data(Result &source)
   }
 
   source.texture_ = nullptr;
-  source.texture_pool_ = nullptr;
+  source.context_ = nullptr;
 }
 
 void Result::wrap_external(GPUTexture *texture)
@@ -390,7 +390,7 @@ void Result::set_initial_reference_count(int count)
 void Result::reset()
 {
   const int initial_reference_count = initial_reference_count_;
-  *this = Result(type_, *texture_pool_, precision_);
+  *this = Result(*context_, type_, precision_);
   initial_reference_count_ = initial_reference_count;
   reference_count_ = initial_reference_count;
 }
@@ -419,7 +419,7 @@ void Result::release()
   reference_count_--;
   if (reference_count_ == 0) {
     if (!is_external_) {
-      texture_pool_->release(texture_);
+      context_->texture_pool().release(texture_);
     }
     texture_ = nullptr;
   }

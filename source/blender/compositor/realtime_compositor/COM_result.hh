@@ -12,9 +12,10 @@
 
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::realtime_compositor {
+
+class Context;
 
 /* To add a new type, update the format related static methods in the Result class. */
 enum class ResultType : uint8_t {
@@ -48,8 +49,8 @@ enum class ResultPrecision : uint8_t {
  * represent an image or a single value. A result is typed, and can be of type color, vector, or
  * float. Single value results are stored in 1x1 textures to make them easily accessible in
  * shaders. But the same value is also stored in the value union member of the result for any
- * host-side processing. The texture of the result is allocated from the texture pool referenced by
- * the result.
+ * host-side processing. The texture of the result is allocated from the texture pool of the
+ * context referenced by the result.
  *
  * Results are reference counted and their textures are released once their reference count reaches
  * zero. After constructing a result, the set_initial_reference_count method is called to declare
@@ -79,6 +80,9 @@ enum class ResultPrecision : uint8_t {
  * reach zero, the texture will not be freed. */
 class Result {
  private:
+  /* The context that the result was created within, this should be initialized during
+   * construction. */
+  Context *context_ = nullptr;
   /* The base type of the result's texture or single value. */
   ResultType type_;
   /* The precision of the result's texture, host-side single values are always stored using full
@@ -90,9 +94,6 @@ class Result {
    * value, the value of which will be identical to that of the value member. See class description
    * for more information. */
   GPUTexture *texture_ = nullptr;
-  /* The texture pool used to allocate the texture of the result, this should be initialized during
-   * construction. */
-  TexturePool *texture_pool_ = nullptr;
   /* The number of operations that currently needs this result. At the time when the result is
    * computed, this member will have a value that matches initial_reference_count_. Once each
    * operation that needs the result no longer needs it, the release method is called and the
@@ -135,14 +136,13 @@ class Result {
   MetaData meta_data;
 
  public:
-  /* Construct a result of the given type and precision with the given texture pool that will be
-   * used to allocate and release the result's texture. */
-  Result(ResultType type, TexturePool &texture_pool, ResultPrecision precision);
+  /* Construct a result of the given type and precision within the given context. */
+  Result(Context &context, ResultType type, ResultPrecision precision);
 
   /* Identical to the standard constructor but initializes the reference count to 1. This is useful
    * to construct temporary results that are created and released by the developer manually, which
    * are typically used in operations that need temporary intermediate results. */
-  static Result Temporary(ResultType type, TexturePool &texture_pool, ResultPrecision precision);
+  static Result Temporary(Context &context, ResultType type, ResultPrecision precision);
 
   /* Returns the appropriate texture format based on the given result type and precision. */
   static eGPUTextureFormat texture_format(ResultType type, ResultPrecision precision);
@@ -160,8 +160,8 @@ class Result {
   eGPUTextureFormat get_texture_format() const;
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
-   * the size of the given domain from the result's texture pool, and set the domain of the result
-   * to the given domain.
+   * the size of the given domain from the texture pool, and set the domain of the result to the
+   * given domain.
    *
    * If the result should not be computed, that is, should_compute() returns false, yet this method
    * is called, that means the result is only being allocated because the shader that computes it
@@ -175,9 +175,9 @@ class Result {
    * Operation::release_unneeded_results() method. */
   void allocate_texture(Domain domain);
 
-  /* Declare the result to be a single value result, allocate a texture of an appropriate
-   * type with size 1x1 from the result's texture pool, and set the domain to be an identity
-   * domain. See class description for more information. */
+  /* Declare the result to be a single value result, allocate a texture of an appropriate type with
+   * size 1x1 from the  texture pool, and set the domain to be an identity domain. See class
+   * description for more information. */
   void allocate_single_value();
 
   /* Allocate a single value result and set its value to zero. This is called for results whose
@@ -281,7 +281,7 @@ class Result {
   void set_initial_reference_count(int count);
 
   /* Reset the result to prepare it for a new evaluation. This should be called before evaluating
-   * the operation that computes this result. Keep the type, precision, texture pool, and initial
+   * the operation that computes this result. Keep the type, precision, context, and initial
    * reference count, and rest all other members to their default value. Finally, set the value of
    * reference_count_ to the value of initial_reference_count_ since reference_count_ may have
    * already been decremented to zero in a previous evaluation. */

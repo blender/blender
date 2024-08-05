@@ -163,18 +163,18 @@ class Context {
   /* Get a GPU shader with the given info name and context's precision. */
   GPUShader *get_shader(const char *info_name);
 
-  /* Create a result of the given type and precision using the context's texture pool. */
+  /* Create a result of the given type and precision. */
   Result create_result(ResultType type, ResultPrecision precision);
 
-  /* Create a result of the given type using the context's texture pool and precision. */
+  /* Create a result of the given type using the context's precision. */
   Result create_result(ResultType type);
 
-  /* Create a temporary result of the given type and precision using the context's texture pool.
-   * See Result::Temporary for more information. */
+  /* Create a temporary result of the given type and precision; See Result::Temporary for more
+   * information. */
   Result create_temporary_result(ResultType type, ResultPrecision precision);
 
-  /* Create a temporary result of the given type using the context's texture pool and precision.
-   * See Result::Temporary for more information. */
+  /* Create a temporary result of the given type using the context's precision. See
+   * Result::Temporary for more information. */
   Result create_temporary_result(ResultType type);
 
   /* Get a reference to the texture pool of this context. */
