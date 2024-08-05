@@ -1218,7 +1218,7 @@ static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)
 static void screen_global_statusbar_area_refresh(wmWindow *win, bScreen *screen)
 {
   const short size_min = 1;
-  const short size_max = 0.8f * screen_global_header_size();
+  const short size_max = 0.85f * screen_global_header_size();
   const short size = (screen->flag & SCREEN_COLLAPSE_STATUSBAR) ? size_min : size_max;
   rcti rect;
 

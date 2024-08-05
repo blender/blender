@@ -384,7 +384,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode, bool 
   const float tx = fmod((1600.0f - image->width) * scale / 2.0f, 1.0f);
   const float ty = fmod((1600.0f - image->height) * scale / 2.0f, 1.0f);
 
-  nsvgRasterize(rast, image, tx, ty, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
+  nsvgRasterize(rast, image, tx, -ty, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
   nsvgDeleteRasterizer(rast);
 
   /* Bitmaps vary in size, so calculate the offsets needed when drawn. */
