@@ -2187,7 +2187,7 @@ static void undo_push(Object &ob, Cache *expand_cache)
     case TargetType::Colors: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
       /* The sculpt undo system needs corner indices for corner domain color attributes. */
-      BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+      BKE_pbvh_ensure_node_face_corners(*ss.pbvh, mesh.corner_tris());
       undo::push_nodes(ob, nodes, undo::Type::Color);
       break;
     }

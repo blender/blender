@@ -121,7 +121,7 @@ void cache_init(bContext *C,
 
   if (undo_type == undo::Type::Color) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-    BKE_pbvh_ensure_node_loops(pbvh, mesh.corner_tris());
+    BKE_pbvh_ensure_node_face_corners(pbvh, mesh.corner_tris());
   }
 
   ss.filter_cache->nodes = bke::pbvh::search_gather(

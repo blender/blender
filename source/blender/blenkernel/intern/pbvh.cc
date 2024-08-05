@@ -2846,8 +2846,8 @@ void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_c
   pbvh.subdiv_ccg_ = subdiv_ccg;
 }
 
-void BKE_pbvh_ensure_node_loops(blender::bke::pbvh::Tree &pbvh,
-                                const blender::Span<blender::int3> corner_tris)
+void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
+                                       const blender::Span<blender::int3> corner_tris)
 {
   using namespace blender;
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);

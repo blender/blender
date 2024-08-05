@@ -682,8 +682,8 @@ blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::p
 blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh);
 blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh);
 
-void BKE_pbvh_ensure_node_loops(blender::bke::pbvh::Tree &pbvh,
-                                blender::Span<blender::int3> corner_tris);
+void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
+                                       blender::Span<blender::int3> corner_tris);
 int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
 
 namespace blender::bke::pbvh {

@@ -1892,7 +1892,7 @@ static void vpaint_do_paint(bContext *C,
   if (attribute.domain == bke::AttrDomain::Corner) {
     /* The sculpt undo system needs bke::pbvh::Tree node corner indices for corner domain
      * color attributes. */
-    BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+    BKE_pbvh_ensure_node_face_corners(*ss.pbvh, mesh.corner_tris());
   }
 
   /* Paint those leaves. */
@@ -2288,7 +2288,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   const Mesh &mesh = *static_cast<const Mesh *>(obact.data);
   /* The sculpt undo system needs bke::pbvh::Tree node corner indices for corner domain
    * color attributes. */
-  BKE_pbvh_ensure_node_loops(*obact.sculpt->pbvh, mesh.corner_tris());
+  BKE_pbvh_ensure_node_face_corners(*obact.sculpt->pbvh, mesh.corner_tris());
 
   undo::push_nodes(obact, nodes, undo::Type::Color);
 

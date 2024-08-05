@@ -3680,7 +3680,7 @@ static void push_undo_nodes(Object &ob, const Brush &brush, const Span<bke::pbvh
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
     if (const bke::GAttributeReader attr = color::active_color_attribute(mesh)) {
       if (attr.domain == bke::AttrDomain::Corner) {
-        BKE_pbvh_ensure_node_loops(*ss.pbvh, mesh.corner_tris());
+        BKE_pbvh_ensure_node_face_corners(*ss.pbvh, mesh.corner_tris());
       }
     }
     undo::push_nodes(ob, nodes, undo::Type::Color);
