@@ -304,79 +304,209 @@ static bool sculpt_mesh_filter_is_continuous(MeshFilterType type)
               MeshFilterType::RelaxFaceSets);
 }
 
-static void mesh_filter_task(Object &ob,
-                             const MeshFilterType filter_type,
-                             const float filter_strength,
-                             bke::pbvh::Node *node)
+static void calc_smooth_filter(const Sculpt & /*sculpt*/,
+                               const float strength,
+                               Object &object,
+                               const Span<bke::pbvh::Node *> nodes)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
 
-  SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(ob, *node, undo::Type::Position);
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
 
-  /* When using the relax face sets meshes filter,
-   * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
-  /* This produces better results as the relax operation is no completely focused on the
-   * boundaries. */
-  const bool relax_face_sets = !(ss.filter_cache->iteration_count % 3 == 0);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.filter_cache->automasking.get(), *node);
+        float3 orig_co, val, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
 
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(orig_data, vd);
-    auto_mask::node_update(automask_data, vd);
-
-    float3 orig_co, val, disp, disp2, final_pos;
-    float3x3 transform;
-    float fade = vd.mask;
-    fade = 1.0f - fade;
-    fade *= filter_strength;
-    fade *= auto_mask::factor_get(
-        ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
-
-    if (fade == 0.0f && filter_type != MeshFilterType::SurfaceSmooth) {
-      /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
-       * laplacian_disp. This value is accessed from the vertex neighbors when deforming the
-       * vertices, so it is needed for all vertices even if they are not going to be displaced.
-       */
-      continue;
-    }
-
-    if (ELEM(filter_type, MeshFilterType::Relax, MeshFilterType::RelaxFaceSets) ||
-        ss.filter_cache->no_orig_co)
-    {
-      orig_co = vd.co;
-    }
-    else {
-      orig_co = orig_data.co;
-    }
-
-    if (filter_type == MeshFilterType::RelaxFaceSets) {
-      if (relax_face_sets == face_set::vert_has_unique_face_set(ss, vd.vertex)) {
-        continue;
-      }
-    }
-
-    switch (filter_type) {
-      case MeshFilterType::Smooth: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         const float3 avg = smooth::neighbor_coords_average_interior(ss, vd.vertex);
         val = avg - orig_co;
         val = orig_co + val * fade;
         disp = val - orig_co;
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::Inflate:
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_inflate_filter(const Sculpt & /*sculpt*/,
+                                const float strength,
+                                Object &object,
+                                const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         disp = float3(orig_data.no) * fade;
-        break;
-      case MeshFilterType::Scale:
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
+      }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_scale_filter(const Sculpt & /*sculpt*/,
+                              const float strength,
+                              Object &object,
+                              const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, val, disp, final_pos;
+        float3x3 transform;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         unit_m3(transform.ptr());
         scale_m3_fl(transform.ptr(), 1.0f + fade);
         val = orig_co;
         val = transform * val;
         disp = val - orig_co;
-        break;
-      case MeshFilterType::Sphere:
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
+      }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_sphere_filter(const Sculpt & /*sculpt*/,
+                               const float strength,
+                               Object &object,
+                               const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, val, disp, disp2, final_pos;
+        float3x3 transform;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         disp = math::normalize(orig_co);
         disp *= math::abs(fade);
 
@@ -392,8 +522,58 @@ static void mesh_filter_task(Object &ob,
         disp2 = val - orig_co;
 
         disp = math::midpoint(disp, disp2);
-        break;
-      case MeshFilterType::Random: {
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
+      }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_random_filter(const Sculpt & /*sculpt*/,
+                               const float strength,
+                               Object &object,
+                               const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         float3 normal;
         copy_v3_v3(normal, orig_data.no);
         /* Index is not unique for multi-resolution, so hash by vertex coordinates. */
@@ -402,19 +582,168 @@ static void mesh_filter_task(Object &ob,
                           BLI_hash_int_2d(hash_co[2], ss.filter_cache->random_seed);
         normal *= (hash * (1.0f / float(0xFFFFFFFF)) - 0.5f);
         disp = normal * fade;
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::Relax: {
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_relax_filter(const Sculpt & /*sculpt*/,
+                              const float strength,
+                              Object &object,
+                              const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, val, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        orig_co = vd.co;
+
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
         disp = val - float3(vd.co);
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::RelaxFaceSets: {
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_relax_face_sets_filter(const Sculpt & /*sculpt*/,
+                                        const float strength,
+                                        Object &object,
+                                        const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+
+  /* When using the relax face sets meshes filter,
+   * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
+  /* This produces better results as the relax operation is no completely focused on the
+   * boundaries. */
+  const bool relax_face_sets = !(ss.filter_cache->iteration_count % 3 == 0);
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, val, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        orig_co = vd.co;
+
+        if (relax_face_sets == face_set::vert_has_unique_face_set(ss, vd.vertex)) {
+          continue;
+        }
+
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
         disp = val - float3(vd.co);
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::SurfaceSmooth: {
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_surface_smooth_filter(const Sculpt & /*sculpt*/,
+                                       const float strength,
+                                       Object &object,
+                                       const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         smooth::surface_smooth_laplacian_step(ss,
                                               disp,
                                               vd.co,
@@ -422,9 +751,88 @@ static void mesh_filter_task(Object &ob,
                                               vd.vertex,
                                               orig_data.co,
                                               ss.filter_cache->surface_smooth_shape_preservation);
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::Sharpen: {
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        auto_mask::node_update(automask_data, vd);
+
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+
+        smooth::surface_smooth_displace_step(ss,
+                                             vd.co,
+                                             ss.filter_cache->surface_smooth_laplacian_disp,
+                                             vd.vertex,
+                                             ss.filter_cache->surface_smooth_current_vertex,
+                                             clamp_f(fade, 0.0f, 1.0f));
+      }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_sharpen_filter(const Sculpt & /*sculpt*/,
+                                const float strength,
+                                Object &object,
+                                const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         const float smooth_ratio = ss.filter_cache->sharpen_smooth_ratio;
 
         /* This filter can't work at full strength as it needs multiple iterations to reach a
@@ -453,40 +861,130 @@ static void mesh_filter_task(Object &ob,
           disp += detail_strength * -ss.filter_cache->sharpen_intensify_detail_strength *
                   ss.filter_cache->sharpen_factor[vd.index];
         }
-        break;
-      }
 
-      case MeshFilterType::EnhanceDetails: {
-        disp = ss.filter_cache->detail_directions[vd.index] * -fabsf(fade);
-        break;
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
+        copy_v3_v3(vd.co, final_pos);
       }
-      case MeshFilterType::EraseDispacement: {
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_enhance_details_filter(const Sculpt & /*sculpt*/,
+                                        const float strength,
+                                        Object &object,
+                                        const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
+        disp = ss.filter_cache->detail_directions[vd.index] * -fabsf(fade);
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
+      }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+    }
+  });
+}
+
+static void calc_erase_displacement_filter(const Sculpt & /*sculpt*/,
+                                           const float strength,
+                                           Object &object,
+                                           const Span<bke::pbvh::Node *> nodes)
+{
+  SculptSession &ss = *object.sculpt;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      SculptOrigVertData orig_data = SCULPT_orig_vert_data_init(
+          object, *nodes[i], undo::Type::Position);
+      auto_mask::NodeData automask_data = auto_mask::node_begin(
+          object, ss.filter_cache->automasking.get(), *nodes[i]);
+
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_orig_vert_data_update(orig_data, vd);
+        auto_mask::node_update(automask_data, vd);
+
+        float3 orig_co, disp, final_pos;
+        float fade = vd.mask;
+        fade = 1.0f - fade;
+        fade *= strength;
+        fade *= auto_mask::factor_get(
+            ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
+        if (fade == 0.0f) {
+          continue;
+        }
+        if (ss.filter_cache->no_orig_co) {
+          orig_co = vd.co;
+        }
+        else {
+          orig_co = orig_data.co;
+        }
+
         fade = clamp_f(fade, -1.0f, 1.0f);
         disp = ss.filter_cache->limit_surface_co[vd.index] - orig_co;
         disp *= fade;
-        break;
+
+        disp = to_orientation_space(*ss.filter_cache, disp);
+        for (int it = 0; it < 3; it++) {
+          if (!ss.filter_cache->enabled_axis[it]) {
+            disp[it] = 0.0f;
+          }
+        }
+        disp = to_object_space(*ss.filter_cache, disp);
+
+        final_pos = orig_co + disp;
+        copy_v3_v3(vd.co, final_pos);
       }
+      BKE_pbvh_vertex_iter_end;
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
     }
-
-    disp = to_orientation_space(*ss.filter_cache, disp);
-    for (int it = 0; it < 3; it++) {
-      if (!ss.filter_cache->enabled_axis[it]) {
-        disp[it] = 0.0f;
-      }
-    }
-    disp = to_object_space(*ss.filter_cache, disp);
-
-    if (ELEM(filter_type, MeshFilterType::SurfaceSmooth, MeshFilterType::Sharpen)) {
-      final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
-    }
-    else {
-      final_pos = orig_co + disp;
-    }
-    copy_v3_v3(vd.co, final_pos);
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_positions_update(node);
+  });
 }
 
 static void mesh_filter_surface_smooth_init(SculptSession &ss,
@@ -640,38 +1138,6 @@ static void mesh_filter_sharpen_init(const Object &object,
   }
 }
 
-static void mesh_filter_surface_smooth_displace_task(Object &ob,
-                                                     const float filter_strength,
-                                                     bke::pbvh::Node *node)
-{
-  SculptSession &ss = *ob.sculpt;
-  PBVHVertexIter vd;
-
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      ob, ss.filter_cache->automasking.get(), *node);
-
-  BKE_pbvh_vertex_iter_begin (*ss.pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    auto_mask::node_update(automask_data, vd);
-
-    float fade = vd.mask;
-    fade = 1.0f - fade;
-    fade *= filter_strength;
-    fade *= auto_mask::factor_get(
-        ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
-    if (fade == 0.0f) {
-      continue;
-    }
-
-    smooth::surface_smooth_displace_step(ss,
-                                         vd.co,
-                                         ss.filter_cache->surface_smooth_laplacian_disp,
-                                         vd.vertex,
-                                         ss.filter_cache->surface_smooth_current_vertex,
-                                         clamp_f(fade, 0.0f, 1.0f));
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
 enum {
   FILTER_MESH_MODAL_CANCEL = 1,
   FILTER_MESH_MODAL_CONFIRM,
@@ -711,32 +1177,46 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
-  float filter_strength = RNA_float_get(op->ptr, "strength");
+  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const float strength = RNA_float_get(op->ptr, "strength");
 
   SCULPT_vertex_random_access_ensure(ss);
 
   const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
-
-  /* The relax mesh filter needs updated normals. */
-  if (ELEM(filter_type, MeshFilterType::Relax, MeshFilterType::RelaxFaceSets)) {
-    bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
-  }
-
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      mesh_filter_task(ob, MeshFilterType(filter_type), filter_strength, nodes[i]);
-      BKE_pbvh_node_mark_positions_update(nodes[i]);
-    }
-  });
-
-  if (filter_type == MeshFilterType::SurfaceSmooth) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (const int i : range) {
-        mesh_filter_surface_smooth_displace_task(ob, filter_strength, nodes[i]);
-        BKE_pbvh_node_mark_positions_update(nodes[i]);
-      }
-    });
+  switch (filter_type) {
+    case MeshFilterType::Smooth:
+      calc_smooth_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Scale:
+      calc_scale_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Inflate:
+      calc_inflate_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Sphere:
+      calc_sphere_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Random:
+      calc_random_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Relax:
+      calc_relax_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::RelaxFaceSets:
+      calc_relax_face_sets_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::SurfaceSmooth:
+      calc_surface_smooth_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::Sharpen:
+      calc_sharpen_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::EnhanceDetails:
+      calc_enhance_details_filter(sd, strength, ob, nodes);
+      break;
+    case MeshFilterType::EraseDispacement:
+      calc_erase_displacement_filter(sd, strength, ob, nodes);
+      break;
   }
 
   ss.filter_cache->iteration_count++;
