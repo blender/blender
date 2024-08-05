@@ -11,61 +11,125 @@
  * Event codes are used as identifiers.
  */
 
-#include "GPU_state.hh"
-
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLF_api.hh"
+
+#include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
 
-static void icon_draw_rect_input_text(
-    const rctf *rect, const float color[4], const char *str, float font_size, float v_offset)
+static void icon_draw_icon(
+    rctf *rect, const int icon_id, const float aspect, const float alpha, const bool inverted)
 {
-  BLF_batch_draw_flush();
-  const int font_id = BLF_default();
-  BLF_color4fv(font_id, color);
-  BLF_size(font_id, font_size * UI_SCALE_FAC);
-  float width, height;
-  BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
-  const float x = trunc(rect->xmin + (((rect->xmax - rect->xmin) - width) / 2.0f));
-  const float y = rect->ymin + (((rect->ymax - rect->ymin) - height) / 2.0f) +
-                  (v_offset * UI_SCALE_FAC);
-  BLF_position(font_id, x, y, 0.0f);
-  BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
-  BLF_batch_draw_flush();
+  float color[4];
+  UI_GetThemeColor4fv(TH_TEXT, color);
+  if (alpha < 1.0f) {
+    color[3] *= alpha;
+  }
+
+  BLF_draw_svg_icon(uint(inverted ? icon_id + 1 : icon_id),
+                    rect->xmin,
+                    rect->ymin,
+                    float(ICON_DEFAULT_HEIGHT) / aspect,
+                    color,
+                    0.0f);
 }
 
-void icon_draw_rect_input(float x,
-                          float y,
-                          int w,
-                          int h,
-                          float /*alpha*/,
-                          short event_type,
-                          short /*event_value*/,
-                          bool inverted)
+static void icon_draw_rect_input_text(rctf *rect,
+                                      const char *str,
+                                      const float aspect,
+                                      const float alpha,
+                                      const bool inverted,
+                                      const int icon_bg = ICON_KEY_EMPTY1)
+{
+  icon_draw_icon(rect, icon_bg, aspect, alpha, inverted);
+
+  const float available_width = BLI_rctf_size_x(rect) - (3.0f * UI_SCALE_FAC);
+  const int font_id = BLF_default();
+  float color[4];
+  UI_GetThemeColor4fv(inverted ? TH_BACK : TH_TEXT, color);
+  if (alpha < 1.0f) {
+    color[3] *= alpha;
+  }
+  BLF_color4fv(font_id, color);
+
+  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+  float font_size = std::min(15.0f, fstyle->points) * UI_SCALE_FAC;
+  BLF_size(font_id, font_size);
+
+  float width, height;
+  BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
+  if (width > available_width) {
+    font_size *= available_width / width;
+    BLF_size(font_id, font_size);
+    BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
+  }
+
+  const float x = rect->xmin + UI_SCALE_FAC + ((available_width - width) / 2.0f);
+  const float v_offset = std::max((BLI_rctf_size_y(rect) - height) * 0.5f, (font_size * 0.4f));
+  BLF_position(font_id, x, rect->ymin + v_offset, 0.0f);
+  BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
+}
+
+float ui_event_icon_offset(const int icon)
+{
+  const enum {
+    UNIX,
+    MACOS,
+    MSWIN,
+  } platform =
+
+#if defined(__APPLE__)
+      MACOS
+#elif defined(_WIN32)
+      MSWIN
+#else
+      UNIX
+#endif
+      ;
+
+  if (ELEM(icon,
+           ICON_EVENT_ESC,
+           ICON_EVENT_DEL,
+           ICON_EVENT_HOME,
+           ICON_EVENT_END,
+           ICON_EVENT_BACKSPACE,
+           ICON_EVENT_PAUSE,
+           ICON_EVENT_INSERT,
+           ICON_EVENT_APP))
+  {
+    return 1.5f;
+  }
+  if (icon >= ICON_EVENT_PAD0 && icon <= ICON_EVENT_PADPERIOD) {
+    return 1.5f;
+  }
+  if (icon >= ICON_EVENT_F10 && icon <= ICON_EVENT_F24) {
+    return 1.5f;
+  }
+  if (platform != MACOS && ELEM(icon, ICON_EVENT_CTRL, ICON_EVENT_ALT, ICON_EVENT_OS)) {
+    return 1.5f;
+  }
+  if (icon == ICON_EVENT_OS && platform != MACOS && platform != MSWIN) {
+    return 1.5f;
+  }
+  if (icon == ICON_EVENT_SPACEKEY) {
+    return 3.0f;
+  }
+  return 0.0f;
+}
+
+void icon_draw_rect_input(
+    float x, float y, int w, int h, int icon, float aspect, float alpha, bool inverted)
 {
   rctf rect{};
-  rect.xmin = int(x) - U.pixelsize;
-  rect.xmax = int(x + w + U.pixelsize);
+  rect.xmin = int(x);
+  rect.xmax = int(x + w);
   rect.ymin = int(y);
   rect.ymax = int(y + h);
-
-  float color[4];
-  GPU_line_width(1.0f);
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-
-  if (inverted) {
-    UI_GetThemeColor4fv(TH_TEXT, color);
-    UI_draw_roundbox_aa(&rect, true, 3.0f * U.pixelsize, color);
-    UI_GetThemeColor4fv(TH_BACK, color);
-  }
-  else {
-    UI_GetThemeColor4fv(TH_TEXT, color);
-    UI_draw_roundbox_aa(&rect, false, 3.0f * U.pixelsize, color);
-  }
 
   const enum {
     UNIX,
@@ -82,328 +146,338 @@ void icon_draw_rect_input(float x,
 #endif
       ;
 
-  if ((event_type >= EVT_AKEY) && (event_type <= EVT_ZKEY)) {
-    const char str[2] = {char('A' + (event_type - EVT_AKEY)), '\0'};
-    icon_draw_rect_input_text(&rect, color, str, 13.0f, 0.0f);
+  const float offset = ui_event_icon_offset(icon);
+  if (offset >= 3.0f) {
+    rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 2.0f;
   }
-  else if ((event_type >= EVT_F1KEY) && (event_type <= EVT_F24KEY)) {
+  else if (offset >= 1.5f) {
+    rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 1.5f;
+  }
+
+  if ((icon >= ICON_EVENT_A) && (icon <= ICON_EVENT_Z)) {
+    const char str[2] = {char('A' + (icon - ICON_EVENT_A)), '\0'};
+    icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted);
+  }
+  else if ((icon >= ICON_EVENT_ZEROKEY) && (icon <= ICON_EVENT_NINEKEY)) {
+    const char str[2] = {char('0' + (icon - ICON_EVENT_ZEROKEY)), '\0'};
+    icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted);
+  }
+  else if ((icon >= ICON_EVENT_F1) && (icon <= ICON_EVENT_F24)) {
     char str[4];
-    SNPRINTF(str, "F%d", 1 + (event_type - EVT_F1KEY));
-    icon_draw_rect_input_text(&rect, color, str, event_type > EVT_F9KEY ? 8.5f : 11.5f, 0.0f);
+    SNPRINTF(str, "F%d", 1 + (icon - ICON_EVENT_F1));
+    icon_draw_rect_input_text(&rect,
+                              str,
+                              aspect,
+                              alpha,
+                              inverted,
+                              (icon >= ICON_EVENT_F10) ? ICON_KEY_EMPTY2 : ICON_KEY_EMPTY1);
   }
-  else if (event_type == EVT_LEFTSHIFTKEY) { /* Right Shift has already been converted to left. */
-    const char str[] = BLI_STR_UTF8_UPWARDS_WHITE_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 14.0f, 0.0f);
+  if (icon == ICON_EVENT_SHIFT) {
+    icon_draw_icon(&rect, ICON_KEY_SHIFT, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_LEFTCTRLKEY) { /* Right Ctrl has already been converted to left. */
+  else if (icon == ICON_EVENT_CTRL) {
     if (platform == MACOS) {
-      const char str[] = BLI_STR_UTF8_UP_ARROWHEAD;
-      icon_draw_rect_input_text(&rect, color, str, 21.0f, -8.0f);
+      icon_draw_icon(&rect, ICON_KEY_CONTROL, aspect, alpha, inverted);
     }
     else {
-      icon_draw_rect_input_text(&rect, color, "Ctrl", 9.0f, 0.0f);
+      icon_draw_rect_input_text(&rect, IFACE_("Ctrl"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
     }
   }
-  else if (event_type == EVT_LEFTALTKEY) { /* Right Alt has already been converted to left. */
+  else if (icon == ICON_EVENT_ALT) {
     if (platform == MACOS) {
-      const char str[] = BLI_STR_UTF8_OPTION_KEY;
-      icon_draw_rect_input_text(&rect, color, str, 13.0f, 0.0f);
+      icon_draw_icon(&rect, ICON_KEY_OPTION, aspect, alpha, inverted);
     }
     else {
-      icon_draw_rect_input_text(&rect, color, "Alt", 11.0f, 0.0f);
+      icon_draw_rect_input_text(&rect, IFACE_("Alt"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
     }
   }
-  else if (event_type == EVT_OSKEY) {
+  else if (icon == ICON_EVENT_OS) {
     if (platform == MACOS) {
-      const char str[] = BLI_STR_UTF8_PLACE_OF_INTEREST_SIGN;
-      icon_draw_rect_input_text(&rect, color, str, 13.0f, 0.0f);
+      icon_draw_icon(&rect, ICON_KEY_COMMAND, aspect, alpha, inverted);
     }
     else if (platform == MSWIN) {
-      const char str[] = BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X;
-      icon_draw_rect_input_text(&rect, color, str, 12.0f, 1.5f);
+      icon_draw_icon(&rect, ICON_KEY_WINDOWS, aspect, alpha, inverted);
     }
     else {
-      icon_draw_rect_input_text(&rect, color, "OS", 10.0f, 0.0f);
+      icon_draw_rect_input_text(&rect, IFACE_("OS"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
     }
   }
-  else if (event_type == EVT_DELKEY) {
-    icon_draw_rect_input_text(&rect, color, "Del", 9.0f, 0.0f);
+  else if (icon == ICON_EVENT_DEL) {
+    icon_draw_rect_input_text(&rect, IFACE_("Del"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_TABKEY) {
-    const char str[] = BLI_STR_UTF8_HORIZONTAL_TAB_KEY;
-    icon_draw_rect_input_text(&rect, color, str, 18.0f, -1.5f);
+  else if (icon == ICON_EVENT_TAB) {
+    icon_draw_icon(&rect, ICON_KEY_TAB, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_HOMEKEY) {
-    icon_draw_rect_input_text(&rect, color, "Home", 5.5f, 0.0f);
+  else if (icon == ICON_EVENT_HOME) {
+    icon_draw_rect_input_text(&rect, IFACE_("Home"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_ENDKEY) {
-    icon_draw_rect_input_text(&rect, color, "End", 8.0f, 0.0f);
+  else if (icon == ICON_EVENT_END) {
+    icon_draw_rect_input_text(&rect, IFACE_("End"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_RETKEY) {
-    const char str[] = BLI_STR_UTF8_RETURN_SYMBOL;
-    icon_draw_rect_input_text(&rect, color, str, 16.0f, -2.0f);
+  else if (icon == ICON_EVENT_RETURN) {
+    icon_draw_icon(&rect, ICON_KEY_RETURN, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_ESCKEY) {
-    if (platform == MACOS) {
-      const char str[] = BLI_STR_UTF8_BROKEN_CIRCLE_WITH_NORTHWEST_ARROW;
-      icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
-    }
-    else {
-      icon_draw_rect_input_text(&rect, color, "Esc", 9.0f, 0.0f);
-    }
+  else if (icon == ICON_EVENT_ESC) {
+    icon_draw_rect_input_text(&rect, IFACE_("Esc"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PAGEUPKEY) {
-    const char str[] = "P" BLI_STR_UTF8_UPWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 10.0f, 0.0f);
+  else if (icon == ICON_EVENT_PAGEUP) {
+    icon_draw_rect_input_text(&rect, "P" BLI_STR_UTF8_UPWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_PAGEDOWNKEY) {
-    const char str[] = "P" BLI_STR_UTF8_DOWNWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 10.0f, 0.0f);
+  else if (icon == ICON_EVENT_PAGEDOWN) {
+    icon_draw_rect_input_text(&rect, "P" BLI_STR_UTF8_DOWNWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_LEFTARROWKEY) {
-    const char str[] = BLI_STR_UTF8_LEFTWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 18.0f, 0.0f);
+  else if (icon == ICON_EVENT_LEFT_ARROW) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_LEFTWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_UPARROWKEY) {
-    const char str[] = BLI_STR_UTF8_UPWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
+  else if (icon == ICON_EVENT_UP_ARROW) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_UPWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_RIGHTARROWKEY) {
-    const char str[] = BLI_STR_UTF8_RIGHTWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 18.0f, 0.0f);
+  else if (icon == ICON_EVENT_RIGHT_ARROW) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_RIGHTWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_DOWNARROWKEY) {
-    const char str[] = BLI_STR_UTF8_DOWNWARDS_ARROW;
-    icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
+  else if (icon == ICON_EVENT_DOWN_ARROW) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_DOWNWARDS_ARROW, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_SPACEKEY) {
-    const char str[] = BLI_STR_UTF8_OPEN_BOX;
-    icon_draw_rect_input_text(&rect, color, str, 20.0f, 2.0f);
+  else if (icon == ICON_EVENT_SPACEKEY) {
+    icon_draw_rect_input_text(&rect, IFACE_("Space"), aspect, alpha, inverted, ICON_KEY_EMPTY3);
   }
-  else if (event_type == BUTTON4MOUSE) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "4", 12.0f, 0.0f);
+  else if (icon == ICON_EVENT_MOUSE_4) {
+    icon_draw_rect_input_text(
+        &rect, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "4", aspect, alpha, inverted);
   }
-  else if (event_type == BUTTON5MOUSE) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "5", 12.0f, 0.0f);
+  else if (icon == ICON_EVENT_MOUSE_5) {
+    icon_draw_rect_input_text(
+        &rect, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "5", aspect, alpha, inverted);
   }
-  else if (event_type == BUTTON6MOUSE) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "6", 12.0f, 0.0f);
+  else if (icon == ICON_EVENT_MOUSE_6) {
+    icon_draw_rect_input_text(
+        &rect, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "6", aspect, alpha, inverted);
   }
-  else if (event_type == BUTTON7MOUSE) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "7", 12.0f, 0.0f);
+  else if (icon == ICON_EVENT_MOUSE_7) {
+    icon_draw_rect_input_text(
+        &rect, BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "7", aspect, alpha, inverted);
   }
-  else if (event_type == TABLET_STYLUS) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_LOWER_RIGHT_PENCIL, 16.0f, 0.0f);
+  else if (icon == ICON_EVENT_TABLET_STYLUS) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_LOWER_RIGHT_PENCIL, aspect, alpha, inverted);
   }
-  else if (event_type == TABLET_ERASER) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_UPPER_RIGHT_PENCIL, 16.0f, 0.0f);
+  else if (icon == ICON_EVENT_TABLET_ERASER) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_UPPER_RIGHT_PENCIL, aspect, alpha, inverted);
   }
-  else if ((event_type >= EVT_ZEROKEY) && (event_type <= EVT_NINEKEY)) {
-    const char str[2] = {char('0' + (event_type - EVT_ZEROKEY)), '\0'};
-    icon_draw_rect_input_text(&rect, color, str, 13.0f, 0.0f);
-  }
-  else if ((event_type >= EVT_PAD0) && (event_type <= EVT_PAD9)) {
+  else if ((icon >= ICON_EVENT_PAD0) && (icon <= ICON_EVENT_PAD9)) {
     char str[5];
-    SNPRINTF(str, "%s%i", BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH, event_type - EVT_PAD0);
-    icon_draw_rect_input_text(&rect, color, str, 9.0f, 0.0f);
+    SNPRINTF(str, "%s%i", BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH, icon - ICON_EVENT_PAD0);
+    icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADASTERKEY) {
-    icon_draw_rect_input_text(
-        &rect, color, BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "6", 9.0f, 0.0f);
+  else if (icon == ICON_EVENT_PADASTER) {
+    icon_draw_rect_input_text(&rect,
+                              BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "6",
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADSLASHKEY) {
-    icon_draw_rect_input_text(
-        &rect, color, BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "/", 9.0f, 0.0f);
+  else if (icon == ICON_EVENT_PADSLASH) {
+    icon_draw_rect_input_text(&rect,
+                              BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "/",
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADMINUS) {
-    icon_draw_rect_input_text(
-        &rect, color, BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "-", 9.0f, 0.0f);
+  else if (icon == ICON_EVENT_PADMINUS) {
+    icon_draw_rect_input_text(&rect,
+                              BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "-",
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADENTER) {
+  else if (icon == ICON_EVENT_PADENTER) {
     icon_draw_rect_input_text(
         &rect,
-        color,
         BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH BLI_STR_UTF8_RETURN_SYMBOL,
-        8.0f,
-        0.0f);
+        aspect,
+        alpha,
+        inverted,
+        ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADPLUSKEY) {
-    icon_draw_rect_input_text(
-        &rect, color, BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "+", 9.0f, 0.0f);
-  }
-  else if (event_type == EVT_PAUSEKEY) {
-    icon_draw_rect_input_text(&rect, color, "Pause", 5.0f, 0.0f);
-  }
-  else if (event_type == EVT_INSERTKEY) {
-    icon_draw_rect_input_text(&rect, color, "Insert", 5.5f, 0.0f);
-  }
-  else if (event_type == EVT_UNKNOWNKEY) {
-    icon_draw_rect_input_text(&rect, color, " ", 12.0f, 0.0f);
-  }
-  else if (event_type == EVT_GRLESSKEY) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_GREATER_THAN_OR_LESS_THAN, 16.0f, 0.0f);
-  }
-  else if (event_type == EVT_MEDIAPLAY) {
+  else if (icon == ICON_EVENT_PADPLUS) {
     icon_draw_rect_input_text(&rect,
-                              color,
+                              BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "+",
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
+  }
+  else if (icon == ICON_EVENT_PADPERIOD) {
+    icon_draw_rect_input_text(&rect,
+                              BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH ".",
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
+  }
+  else if (icon == ICON_EVENT_PAUSE) {
+    icon_draw_rect_input_text(&rect, IFACE_("Pause"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
+  }
+  else if (icon == ICON_EVENT_INSERT) {
+    icon_draw_rect_input_text(&rect, IFACE_("Insert"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
+  }
+  else if (icon == ICON_EVENT_UNKNOWN) {
+    icon_draw_rect_input_text(&rect, " ", aspect, alpha, inverted);
+  }
+  else if (icon == ICON_EVENT_GRLESS) {
+    icon_draw_rect_input_text(
+        &rect, BLI_STR_UTF8_GREATER_THAN_OR_LESS_THAN, aspect, alpha, inverted);
+  }
+  else if (icon == ICON_EVENT_MEDIAPLAY) {
+    icon_draw_rect_input_text(&rect,
                               BLI_STR_UTF8_BLACK_RIGHT_POINTING_TRIANGLE_WITH_DOUBLE_VERTICAL_BAR,
-                              10.0f,
-                              1.0f);
+                              aspect,
+                              alpha,
+                              inverted);
   }
-  else if (event_type == EVT_MEDIASTOP) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_BLACK_SQUARE_FOR_STOP, 10.0f, 1.0f);
+  else if (icon == ICON_EVENT_MEDIASTOP) {
+    icon_draw_rect_input_text(&rect, BLI_STR_UTF8_BLACK_SQUARE_FOR_STOP, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_MEDIAFIRST) {
+  else if (icon == ICON_EVENT_MEDIAFIRST) {
     icon_draw_rect_input_text(&rect,
-                              color,
                               BLI_STR_UTF8_BLACK_LEFT_POINTING_DOUBLE_TRIANGLE_WITH_VERTICAL_BAR,
-                              11.0f,
-                              1.0f);
+                              aspect,
+                              alpha,
+                              inverted);
   }
-  else if (event_type == EVT_MEDIALAST) {
+  else if (icon == ICON_EVENT_MEDIALAST) {
     icon_draw_rect_input_text(&rect,
-                              color,
                               BLI_STR_UTF8_BLACK_RIGHT_POINTING_DOUBLE_TRIANGLE_WITH_VERTICAL_BAR,
-                              10.0f,
-                              1.0f);
+                              aspect,
+                              alpha,
+                              inverted);
   }
-  else if (event_type == EVT_APPKEY) {
-    icon_draw_rect_input_text(&rect, color, "App", 8.0f, 1.0f);
+  else if (icon == ICON_EVENT_APP) {
+    icon_draw_rect_input_text(&rect, IFACE_("App"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
-  else if (event_type == EVT_PADPERIOD) {
+  else if (icon == ICON_EVENT_CAPSLOCK) {
     icon_draw_rect_input_text(
-        &rect, color, BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH ".", 9.0f, 0.0f);
+        &rect, BLI_STR_UTF8_UPWARDS_UP_ARROW_FROM_BAR, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_CAPSLOCKKEY) {
-    icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_UPWARDS_UP_ARROW_FROM_BAR, 14.0f, 2.0f);
+  else if (icon == ICON_EVENT_BACKSPACE) {
+    icon_draw_icon(&rect, ICON_KEY_BACKSPACE, aspect, alpha, inverted);
   }
-  else if (event_type == EVT_LINEFEEDKEY) {
-    icon_draw_rect_input_text(&rect, color, "LF", 12.0f, 0.0f);
+  else if (icon == ICON_EVENT_SEMICOLON) {
+    icon_draw_rect_input_text(&rect, ";", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_BACKSPACEKEY) {
-    const char str[] = BLI_STR_UTF8_ERASE_TO_THE_LEFT;
-    icon_draw_rect_input_text(&rect, color, str, 14.0f, 0.0f);
+  else if (icon == ICON_EVENT_PERIOD) {
+    icon_draw_rect_input_text(&rect, ".", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_SEMICOLONKEY) {
-    icon_draw_rect_input_text(&rect, color, ";", 16.0f, 1.5f);
+  else if (icon == ICON_EVENT_COMMA) {
+    icon_draw_rect_input_text(&rect, ",", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_PERIODKEY) {
-    icon_draw_rect_input_text(&rect, color, ".", 18.0f, -2.0f);
+  else if (icon == ICON_EVENT_QUOTE) {
+    icon_draw_rect_input_text(&rect, "'", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_COMMAKEY) {
-    icon_draw_rect_input_text(&rect, color, ",", 18.0f, 0.0f);
+  else if (icon == ICON_EVENT_ACCENTGRAVE) {
+    icon_draw_rect_input_text(&rect, "`", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_QUOTEKEY) {
-    icon_draw_rect_input_text(&rect, color, "'", 18.0f, -6.0f);
+  else if (icon == ICON_EVENT_MINUS) {
+    icon_draw_rect_input_text(&rect, "-", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_ACCENTGRAVEKEY) {
-    icon_draw_rect_input_text(&rect, color, "`", 18.0f, -7.0f);
+  else if (icon == ICON_EVENT_PLUS) {
+    icon_draw_rect_input_text(&rect, "+", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_MINUSKEY) {
-    icon_draw_rect_input_text(&rect, color, "-", 18.0f, -5.0f);
+  else if (icon == ICON_EVENT_SLASH) {
+    icon_draw_rect_input_text(&rect, "/", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_PLUSKEY) {
-    icon_draw_rect_input_text(&rect, color, "+", 18.0f, -1.0f);
+  else if (icon == ICON_EVENT_BACKSLASH) {
+    icon_draw_rect_input_text(&rect, "\\", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_SLASHKEY) {
-    icon_draw_rect_input_text(&rect, color, "/", 13.0f, 1.0f);
+  else if (icon == ICON_EVENT_EQUAL) {
+    icon_draw_rect_input_text(&rect, "=", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_BACKSLASHKEY) {
-    icon_draw_rect_input_text(&rect, color, "\\", 13.0f, 1.0f);
+  else if (icon == ICON_EVENT_LEFTBRACKET) {
+    icon_draw_rect_input_text(&rect, "[", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_EQUALKEY) {
-    icon_draw_rect_input_text(&rect, color, "=", 18.0f, -2.5f);
+  else if (icon == ICON_EVENT_RIGHTBRACKET) {
+    icon_draw_rect_input_text(&rect, "]", aspect, alpha, inverted);
   }
-  else if (event_type == EVT_LEFTBRACKETKEY) {
-    icon_draw_rect_input_text(&rect, color, "[", 12.0f, 1.5f);
-  }
-  else if (event_type == EVT_RIGHTBRACKETKEY) {
-    icon_draw_rect_input_text(&rect, color, "]", 12.0f, 1.5f);
-  }
-  else if (ISNDOF_BUTTON(event_type)) {
-    if ((event_type >= NDOF_BUTTON_V1) && (event_type <= NDOF_BUTTON_V3)) {
+  else if (icon >= ICON_EVENT_NDOF_BUTTON_V1 && icon <= ICON_EVENT_NDOF_BUTTON_MINUS) {
+    if ((icon >= ICON_EVENT_NDOF_BUTTON_V1) && (icon <= ICON_EVENT_NDOF_BUTTON_V3)) {
       char str[7];
-      SNPRINTF(str, "%sv%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (event_type + 1) - NDOF_BUTTON_V1);
-      icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
+      SNPRINTF(str, "v%i", (icon + 1) - ICON_EVENT_NDOF_BUTTON_V1);
+      icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
-    if ((event_type >= NDOF_BUTTON_SAVE_V1) && (event_type <= NDOF_BUTTON_SAVE_V3)) {
+    if ((icon >= ICON_EVENT_NDOF_BUTTON_SAVE_V1) && (icon <= ICON_EVENT_NDOF_BUTTON_SAVE_V3)) {
       char str[7];
-      SNPRINTF(
-          str, "%ss%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (event_type + 1) - NDOF_BUTTON_SAVE_V1);
-      icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
+      SNPRINTF(str, "s%i", (icon + 1) - ICON_EVENT_NDOF_BUTTON_SAVE_V1);
+      icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if ((event_type >= NDOF_BUTTON_1) && (event_type <= NDOF_BUTTON_9)) {
-      char str[6];
-      SNPRINTF(str, "%s%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, (1 + event_type) - NDOF_BUTTON_1);
-      icon_draw_rect_input_text(&rect, color, str, 9.0f, 0.0f);
-    }
-    else if (event_type >= NDOF_BUTTON_10 && event_type <= NDOF_BUTTON_12) {
+    else if ((icon >= ICON_EVENT_NDOF_BUTTON_1) && (icon <= ICON_EVENT_NDOF_BUTTON_12)) {
       char str[7];
-      SNPRINTF(str, "%s1%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, event_type - NDOF_BUTTON_10);
-      icon_draw_rect_input_text(&rect, color, str, 7.5f, 0.0f);
+      SNPRINTF(str, "%i", (1 + icon) - ICON_EVENT_NDOF_BUTTON_1);
+      icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_MENU) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Me", 6.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_MENU) {
+      icon_draw_rect_input_text(&rect, "Me", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_FIT) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Ft", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_FIT) {
+      icon_draw_rect_input_text(&rect, "Ft", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_TOP) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Tp", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_TOP) {
+      icon_draw_rect_input_text(&rect, "Tp", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_BOTTOM) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Bt", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_BOTTOM) {
+      icon_draw_rect_input_text(&rect, "Bt", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_LEFT) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Le", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_LEFT) {
+      icon_draw_rect_input_text(&rect, "Le", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_RIGHT) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Ri", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_RIGHT) {
+      icon_draw_rect_input_text(&rect, "Ri", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_FRONT) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Fr", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_FRONT) {
+      icon_draw_rect_input_text(&rect, "Fr", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_BACK) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Bk", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_BACK) {
+      icon_draw_rect_input_text(&rect, "Bk", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_ISO1) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "I1", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_ISO1) {
+      icon_draw_rect_input_text(&rect, "I1", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_ISO2) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "I2", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_ISO2) {
+      icon_draw_rect_input_text(&rect, "I2", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_ROLL_CW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Rl", 7.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_ROLL_CW) {
+      icon_draw_rect_input_text(&rect, "Rl", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_ROLL_CCW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Rc", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_ROLL_CCW) {
+      icon_draw_rect_input_text(&rect, "Rc", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_SPIN_CW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Sp", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_SPIN_CW) {
+      icon_draw_rect_input_text(&rect, "Sp", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_SPIN_CCW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Sc", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_SPIN_CCW) {
+      icon_draw_rect_input_text(&rect, "Sc", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_TILT_CW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Ti", 8.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_TILT_CW) {
+      icon_draw_rect_input_text(&rect, "Ti", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_TILT_CCW) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Tc", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_TILT_CCW) {
+      icon_draw_rect_input_text(&rect, "Tc", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_ROTATE) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Ro", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_ROTATE) {
+      icon_draw_rect_input_text(&rect, "Ro", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_PANZOOM) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "PZ", 7.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_PANZOOM) {
+      icon_draw_rect_input_text(&rect, "PZ", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_DOMINANT) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "Dm", 6.5f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_DOMINANT) {
+      icon_draw_rect_input_text(&rect, "Dm", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_PLUS) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "+", 10.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_PLUS) {
+      icon_draw_rect_input_text(&rect, "+", aspect, alpha, inverted, ICON_KEY_RING);
     }
-    else if (event_type == NDOF_BUTTON_MINUS) {
-      icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "-", 10.0f, 0.0f);
+    else if (icon == ICON_EVENT_NDOF_BUTTON_MINUS) {
+      icon_draw_rect_input_text(&rect, "-", aspect, alpha, inverted, ICON_KEY_RING);
     }
   }
 }
