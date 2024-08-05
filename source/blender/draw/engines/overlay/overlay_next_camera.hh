@@ -367,6 +367,11 @@ class Cameras {
     const Scene *scene = state.scene;
     const RegionView3D *rv3d = state.rv3d;
 
+    if (v3d == nullptr) {
+      /* Can happen in when in UV view. */
+      return;
+    }
+
     const Camera *cam = static_cast<Camera *>(ob->data);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
     const bool is_select = DRW_state_is_select();
