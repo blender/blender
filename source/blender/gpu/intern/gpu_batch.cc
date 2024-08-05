@@ -266,7 +266,7 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
     /* Only support 4byte aligned attributes. */
     BLI_assert((format->stride % 4) == 0);
     BLI_assert((a->offset % 4) == 0);
-    int descriptor[2] = {format->stride / 4, a->offset / 4};
+    int descriptor[2] = {int(format->stride) / 4, int(a->offset) / 4};
     GPU_shader_uniform_2iv(shader, uniform_name, descriptor);
   }
   return bound_attr;
