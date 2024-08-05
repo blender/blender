@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3459,10 +3459,6 @@ msgid "Active curve spline"
 msgstr "Aktiivinen käyräsplini"
 
 
-msgid "Material Index"
-msgstr "Materiaali-indeksi"
-
-
 msgid "Viewport"
 msgstr "Näkymä"
 
@@ -4613,6 +4609,10 @@ msgstr "Automaattinen maskausmateriaali"
 
 msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
+
+
+msgid "Material Index"
+msgstr "Materiaali-indeksi"
 
 
 msgid "Active Grease Pencil layer"
@@ -5863,6 +5863,10 @@ msgid "File Output"
 msgstr "Tiedoston ulostulo"
 
 
+msgid "Save as Render"
+msgstr "Tallenna renderinä"
+
+
 msgid "Pixelate"
 msgstr "Pikselöi"
 
@@ -6581,10 +6585,6 @@ msgid "To node"
 msgstr "Noodiin"
 
 
-msgid "Save as Render"
-msgstr "Tallenna renderinä"
-
-
 msgid "Use Node Format"
 msgstr "Käytä noodiformaattia"
 
@@ -7126,11 +7126,6 @@ msgid "Show all Grease Pencil layers"
 msgstr "Näytä kaikki öljykynän tasot"
 
 
-msgctxt "Operator"
-msgid "Add Segment"
-msgstr "Lisää segmentti"
-
-
 msgid "Mouse location"
 msgstr "Hiiren sijainti"
 
@@ -7382,6 +7377,11 @@ msgstr "UV-taso"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Apina"
+
+
+msgctxt "Operator"
+msgid "Add Segment"
+msgstr "Lisää segmentti"
 
 
 msgctxt "Operator"
@@ -8838,6 +8838,18 @@ msgid "Remove Shortcut"
 msgstr "Poista pikakomento"
 
 
+msgid "OS"
+msgstr "OS"
+
+
+msgid "Home"
+msgstr "Koti"
+
+
+msgid "Esc"
+msgstr "Esc"
+
+
 msgid "Menu Missing:"
 msgstr "Valikko kateissa:"
 
@@ -8938,6 +8950,10 @@ msgstr "Nollaa käyrä"
 
 msgid "Sort By:"
 msgstr "Lajittele:"
+
+
+msgid "Swap Areas"
+msgstr "Vaihda alueet"
 
 
 msgid "Manual Scale"
@@ -9476,10 +9492,6 @@ msgid "Failed to open window!"
 msgstr "Ikkunan avaaminen epäonnistui!"
 
 
-msgid "Swap Areas"
-msgstr "Vaihda alueet"
-
-
 msgid "Restore Areas"
 msgstr "Palauta alueet"
 
@@ -9586,10 +9598,6 @@ msgstr "Tiedostopolku"
 
 msgid "File name"
 msgstr "Tiedostonimi"
-
-
-msgid "Home"
-msgstr "Koti"
 
 
 msgid "Desktop"
@@ -9937,38 +9945,6 @@ msgid "UV Vertex"
 msgstr "UV-kärki"
 
 
-msgid "Custom Camera"
-msgstr "Mukautettu kamera"
-
-
-msgid "Geometry Space"
-msgstr "Geometriatila"
-
-
-msgid "Depth Offset"
-msgstr "Syvyyssiirros"
-
-
-msgid "Edge Types"
-msgstr "Reunatyypit"
-
-
-msgid "Light Reference"
-msgstr "Valoreferenssi"
-
-
-msgid "Composition"
-msgstr "Kompositio"
-
-
-msgid "TextureMapping"
-msgstr "Tekstuurikartoittaminen"
-
-
-msgid "TimeOffset"
-msgstr "Aikasiirros"
-
-
 msgctxt "Action"
 msgid "Group"
 msgstr "Ryhmä"
@@ -10014,10 +9990,6 @@ msgid "Z Force"
 msgstr "Z-voima"
 
 
-msgid "Modify"
-msgstr "Muuta"
-
-
 msgid "Image not packed"
 msgstr "Kuvaa ei ole pakattu"
 
@@ -10025,6 +9997,10 @@ msgstr "Kuvaa ei ole pakattu"
 msgctxt "Key"
 msgid "Key"
 msgstr "Avain"
+
+
+msgid "Modify"
+msgstr "Muuta"
 
 
 msgid "CustomGroup"
@@ -10091,8 +10067,36 @@ msgid "Refresh"
 msgstr "Virkistä"
 
 
+msgid "TimeOffset"
+msgstr "Aikasiirros"
+
+
 msgid "Recenter"
 msgstr "Keskitä uudelleen"
+
+
+msgid "Custom Camera"
+msgstr "Mukautettu kamera"
+
+
+msgid "Geometry Space"
+msgstr "Geometriatila"
+
+
+msgid "Depth Offset"
+msgstr "Syvyyssiirros"
+
+
+msgid "Edge Types"
+msgstr "Reunatyypit"
+
+
+msgid "Light Reference"
+msgstr "Valoreferenssi"
+
+
+msgid "Composition"
+msgstr "Kompositio"
 
 
 msgid "MeshCache"
@@ -10924,16 +10928,8 @@ msgid "Win"
 msgstr "Win"
 
 
-msgid "OS"
-msgstr "OS"
-
-
 msgid "Bksp"
 msgstr "Bksp"
-
-
-msgid "Esc"
-msgstr "Esc"
 
 
 msgid "dbl-"

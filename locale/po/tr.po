@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -579,10 +579,6 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Etkin Eylem'in DOC yığınının sonucuna katkıda bulunduğu miktar"
 
 
-msgid "None"
-msgstr "Hiçbiri"
-
-
 msgid "Tweak Mode Action Storage"
 msgstr "İnce Ayar Kipi Eylemi Depolaması"
 
@@ -1123,10 +1119,6 @@ msgid "Catalog UUID"
 msgstr "Katalog UUID'si"
 
 
-msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
-msgstr "Varlığın kataloğu için tanımlayıcı; Blender tarafından varlığın katalog yoluna bakmak için kullanılır. RFC4122'ye göre bir UUID olmalıdır"
-
-
 msgid "Catalog Simple Name"
 msgstr "Katalog Yalın Adı"
 
@@ -1139,10 +1131,6 @@ msgid "Copyright"
 msgstr "Telif Hakkı"
 
 
-msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
-msgstr "Bu varlık için telif hakkı bildirisi. Boş bir telif hakkı bildirisi, bunun özünde telifsiz olduğunu bildirmez. Kesinleştirmeniz gerekiyorsa yazar ile iletişim kurun"
-
-
 msgid "Description"
 msgstr "Açıklama"
 
@@ -1153,10 +1141,6 @@ msgstr "Varlığın kullanıcıya gösterilecek bir açıklaması"
 
 msgid "License"
 msgstr "Lisans"
-
-
-msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
-msgstr "Bu varlığın dağıtıldığı lisansın türü. Boş bir lisans adı, bunun özünde lisans koşullarına bağlı olmadığı anlamına gelmez. Kesinleştirmeniz gerekiyorsa yazarla iletişim kurun"
 
 
 msgid "Tags"
@@ -1453,10 +1437,6 @@ msgid "No Asset Dragging"
 msgstr "Varlık Sürükleme Yok"
 
 
-msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
-msgstr "Sürükleme olaylarındaki saptanmış varlık sürüklemeyi devre dışı bırak. Özel düğme eşlem ögeleriyle özel sürükleme gerçeklemek için yararlıdır"
-
-
 msgid "Space Type"
 msgstr "Uzay Türü"
 
@@ -1483,10 +1463,6 @@ msgstr "Varlıkları ada göre süz"
 
 msgid "Show Names"
 msgstr "Adları Göster"
-
-
-msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
-msgstr "Varlık adını önizlemeyle birlikte göster. Aksi takdirde yalnızca önizleme görünürdür"
 
 
 msgid "Asset Tag"
@@ -1857,10 +1833,6 @@ msgid "Cage Extrusion"
 msgstr "Kafes Sıkımı"
 
 
-msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
-msgstr "Pişirme için belirtilen uzaklık ile etkin nesneyi şişirin. Bu, seçilen nesne örgülerinin dışına daha yakın noktalarla eşleşmeye yardımcı olur"
-
-
 msgid "Cage Object"
 msgstr "Kafes Nesnesi"
 
@@ -1919,10 +1891,6 @@ msgstr "Kenar piksellerini dışa doğru genişlet"
 
 msgid "Max Ray Distance"
 msgstr "En Büyük Işın Uzaklığı"
-
-
-msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
-msgstr "Etkin ve seçili nesneler arasındaki eşleşen noktalar için en büyük ışın uzaklığı. Sıfırsa sınırsızdır"
 
 
 msgid "Normal Space"
@@ -1991,6 +1959,10 @@ msgstr "Geçiş Süzgeci"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Etkin pişirme geçişinde içerilecek geçişler"
+
+
+msgid "None"
+msgstr "Hiçbiri"
 
 
 msgid "Emit"
@@ -3495,32 +3467,16 @@ msgid "End Handle Ease"
 msgstr "Bitiş Tutacını Yavaşlat"
 
 
-msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Esnek Kemik Yavaşça Çıkış kanalını, bitiş tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
-
-
 msgid "Start Handle Ease"
 msgstr "Başlangıç Tutacını Yavaşlat"
-
-
-msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Esnek Kemik Yavaşça Giriş kanalını, başlangıç tutamacının yerel Y ölçeği değeriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
 
 
 msgid "End Handle Scale"
 msgstr "Bitiş Tutacı Ölçeği"
 
 
-msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Esnek Kemik Dışa Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
-
-
 msgid "Start Handle Scale"
 msgstr "Başlangıç Tutacı Ölçeği"
-
-
-msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it"
-msgstr "Esnek Kemik İçe Ölçekle kanallarını, bitiş tutamacının yerel ölçek değerleriyle çarpın. Bu, Ölçek Yavaşlatma seçeneğinden sonra yapılır ve bundan etkilenmez"
 
 
 msgid "B-Bone Vertex Mapping Mode"
@@ -3703,10 +3659,6 @@ msgid "None (Legacy)"
 msgstr "Hiçbiri (Eskiden kalan)"
 
 
-msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox"
-msgstr "Üst öge yamulmasını tazmin etmeden üst öge ölçeklemesini yok say. Özgün 'Ölçeği Devral' onay kutusunun vereceği efekti yineler"
-
-
 msgid "Length"
 msgstr "Uzunluk"
 
@@ -3857,10 +3809,6 @@ msgstr "Bir armatür veri blokundaki kemik koleksiyonu"
 
 msgid "Bones"
 msgstr "Kemikler"
-
-
-msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
-msgstr "Bu kemik koleksiyonuna atanan kemikler. Armatür düzenleme kipinde, kemik koleksiyonu üyelikleri yalnızca düzenleme kipinden çıkıldığında eşzamanlandığından, bu her zaman boş bir kemik listesi döndürür"
 
 
 msgid "Is Editable"
@@ -4507,10 +4455,6 @@ msgid "Input Samples"
 msgstr "Girdi Örnekleri"
 
 
-msgid "Generate intermediate points for very fast mouse movements. Set to 0 to disable"
-msgstr "Çok hızlı fare hareketleri için orta noktalar üretin. Devre dışı bırakmak için 0 olarak ayarlayın"
-
-
 msgid "Material used for strokes drawn using this brush"
 msgstr "Bu fırça kullanılarak çizilen vuruşlarda kullanılan malzeme"
 
@@ -4767,10 +4711,6 @@ msgstr "Rastgele fırça ayarları"
 
 msgid "Use Stabilizer"
 msgstr "Dengeleyici Kullan"
-
-
-msgid "Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing"
-msgstr "Pürüzsüz vuruşları olanaklı kılmak için çizgileri gecikmeyle çizin. Çizerken geçersiz kılmak için Üst Karakter düğmesine basın"
 
 
 msgid "Use Pressure Strength"
@@ -5289,10 +5229,6 @@ msgid "Collision Quality"
 msgstr "Çarpışma Kalitesi"
 
 
-msgid "How many collision iterations should be done. (higher is better quality but slower)"
-msgstr "Kaç tane çarpışma yinelemesinin yapılması gerektiği (daha yüksek, daha iyi kalitedir; ancak daha yavaştır)"
-
-
 msgid "Restitution"
 msgstr "Doğrultma"
 
@@ -5553,10 +5489,6 @@ msgid "Internal Spring Max Length"
 msgstr "En Yüksek İçsel Yay Uzunluğu"
 
 
-msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit"
-msgstr "Bir içsel yayın oluşturma sırasında sahip olabileceği en büyük uzunluk. İçsel noktalar arasındaki uzaklık bundan büyük olursa bu noktalar arasında içsel yay oluşmayacaktır. Sıfır uzunluk, uzunluk sınırı olmadığı anlamına gelir"
-
-
 msgid "Check Internal Spring Normals"
 msgstr "İçsel Yay Normallerini Denetle"
 
@@ -5673,10 +5605,6 @@ msgid "Target Volume"
 msgstr "Hedef Hacim"
 
 
-msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure"
-msgstr "İç/dış basıncın aynı olacağı örgü hacmi. Sıfıra ayarlanırsa hacimdeki değişiklik basıncı etkilemez"
-
-
 msgid "Tension Spring Damping"
 msgstr "Gerilim Yayı Sönümlemesi"
 
@@ -5691,10 +5619,6 @@ msgstr "Kumaş hızı bu değerle çarpılır"
 
 msgid "Pressure"
 msgstr "Basınç"
-
-
-msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative"
-msgstr "Basınç ölçeği türünden, örgüye sürekli olarak uygulanan tek tür basınç. Negatif olabilir"
 
 
 msgid "Dynamic Base Mesh"
@@ -5755,10 +5679,6 @@ msgstr "Tepeciklerin sabitlenmesi için tepecik grubu"
 
 msgid "Pressure Vertex Group"
 msgstr "Basınç Tepecik Grubu"
-
-
-msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation"
-msgstr "Basınç uygulanacak yer için tepecik grubu. Sıfır ağırlık basınç yok anlamına gelirken, bir ağırlık tam basınç anlamına gelir. Sıfır ağırlığa sahip olan bir tepecik, hacim hesaplamasının dışında tutulacaktır"
 
 
 msgid "Shear Stiffness Vertex Group"
@@ -6214,10 +6134,6 @@ msgid "Support Loops"
 msgstr "Destek Döngüleri"
 
 
-msgid "Material Index"
-msgstr "Malzeme Endeksi"
-
-
 msgid "Viewport"
 msgstr "Görüş Alanı"
 
@@ -6553,10 +6469,6 @@ msgid "Frame is selected for editing in the Dope Sheet"
 msgstr "Kare, Döküm Kağıdı'nda düzenleme için seçili"
 
 
-msgid "Grease Pencil Layer"
-msgstr "Eskiz Kalemi Katmanı"
-
-
 msgid "Frames"
 msgstr "Kareler"
 
@@ -6565,25 +6477,8 @@ msgid "Layer is selected for editing in the Dope Sheet"
 msgstr "Katman, Döküm Kağıdı'nda düzenleme için seçili"
 
 
-msgid "ViewLayer"
-msgstr "Görünüm Katmanı"
-
-
 msgid "GPencil Sculpt Settings"
 msgstr "Gres Kalemiyle Yontma Ayarları"
-
-
-msgid "2D Image"
-msgstr "2B Görsel"
-
-
-msgctxt "GPencil"
-msgid "Rounded"
-msgstr "Yuvarlatılmış"
-
-
-msgid "UV Scale"
-msgstr "UV Ölçek"
 
 
 msgid "Window"
@@ -6598,48 +6493,24 @@ msgid "Tools"
 msgstr "Araçlar"
 
 
-msgid "Edit Mode"
-msgstr "Düzenleme Kipi"
+msgid "Material Index"
+msgstr "Malzeme Endeksi"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Lattice"
-msgstr "Dış Kafes"
-
-
-msgid "Deform strokes using lattice"
-msgstr "Vuruşları dış kafes kullanarak deforme et"
-
-
-msgid "Smooth"
-msgstr "Pürüzsüz"
-
-
-msgid "Lattice Modifier"
-msgstr "Dış Kafes Değiştiricisi"
-
-
-msgid "Lattice object to deform with"
-msgstr "Birlikte deforme edilecek dış kafes nesnesi"
-
-
-msgid "Steps"
-msgstr "Adımlar"
-
-
-msgid "Ping Pong"
-msgstr "Pin Pon"
-
-
-msgid "Space"
-msgstr "Boşluk"
+msgid "Grease Pencil Layer"
+msgstr "Eskiz Kalemi Katmanı"
 
 
 msgid "Translation"
 msgstr "Taşıma"
+
+
+msgid "ViewLayer"
+msgstr "Görünüm Katmanı"
+
+
+msgid "Ping Pong"
+msgstr "Pin Pon"
 
 
 msgid "Red"
@@ -6664,6 +6535,10 @@ msgstr "Gres Kalemi 3.0"
 
 msgid "Key"
 msgstr "Anahtar"
+
+
+msgid "Lattice"
+msgstr "Dış Kafes"
 
 
 msgid "Library"
@@ -7015,6 +6890,10 @@ msgid "Pinch"
 msgstr "Çimdikle"
 
 
+msgid "Space"
+msgstr "Boşluk"
+
+
 msgid "Airbrush"
 msgstr "Sprey Boya"
 
@@ -7132,36 +7011,12 @@ msgid "Use Nodes"
 msgstr "Düğüm kullan"
 
 
-msgid "Edit Line Color"
-msgstr "Çizgi Rengini Düzenle"
-
-
-msgid "Stroke Sculpt Mode"
-msgstr "Vuruş Yontma Kipi"
-
-
 msgid "2D Layers"
 msgstr "2B Katmanlar"
 
 
-msgid "Curve Editing"
-msgstr "Eğri Düzenleme"
-
-
-msgid "Edit strokes using curve handles"
-msgstr "Eğri tutaçlarını kullanarak vuruşları düzenle"
-
-
 msgid "Show Start Frame"
 msgstr "Başlangıç Karesini Göster"
-
-
-msgid "Stroke Edit Mode"
-msgstr "Vuruş Düzenleme Kipi"
-
-
-msgid "Edit Grease Pencil strokes instead of viewport data"
-msgstr "Görüş alanı verisi yerine Gres Kalemi vuruşlarını düzenle"
 
 
 msgid "Blank"
@@ -7344,6 +7199,10 @@ msgid "Object Mode"
 msgstr "Nesne Kipi"
 
 
+msgid "Edit Mode"
+msgstr "Düzenleme Kipi"
+
+
 msgid "Pose Mode"
 msgstr "Poz Kipi"
 
@@ -7450,6 +7309,10 @@ msgstr "Global Y"
 
 msgid "Global Z"
 msgstr "Global Z"
+
+
+msgid "Steps"
+msgstr "Adımlar"
 
 
 msgctxt "ParticleSettings"
@@ -7815,6 +7678,14 @@ msgid "Snap"
 msgstr "Yakala"
 
 
+msgid "Smooth"
+msgstr "Pürüzsüz"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
 msgid "Unwrap"
 msgstr "Açılım"
 
@@ -7974,8 +7845,20 @@ msgid "Brush"
 msgstr "Fırça"
 
 
+msgid "Lattice object to deform with"
+msgstr "Birlikte deforme edilecek dış kafes nesnesi"
+
+
+msgid "UV Scale"
+msgstr "UV Ölçek"
+
+
 msgid "Normalized"
 msgstr "Olağanlaştırılmış"
+
+
+msgid "Lattice Modifier"
+msgstr "Dış Kafes Değiştiricisi"
 
 
 msgid "Lattice deformation modifier"
@@ -8125,6 +8008,10 @@ msgstr "Sahne Boyutu"
 msgctxt "NodeTree"
 msgid "Add"
 msgstr "Ekle"
+
+
+msgid "Save as Render"
+msgstr "Sunum Olarak Kaydet"
 
 
 msgid "Rotate"
@@ -8297,10 +8184,6 @@ msgstr "Yinelenen ögeler koleksiyonu"
 
 msgid "Collection of simulation items"
 msgstr "Benzetim ögeleri koleksiyonu"
-
-
-msgid "Save as Render"
-msgstr "Sunum Olarak Kaydet"
 
 
 msgid "Tooltip"
@@ -9127,6 +9010,14 @@ msgid "Scene Origin"
 msgstr "Sahne Orijini"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
+msgstr "Pişirme için belirtilen uzaklık ile etkin nesneyi şişirin. Bu, seçilen nesne örgülerinin dışına daha yakın noktalarla eşleşmeye yardımcı olur"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Etkin ve seçili nesneler arasındaki eşleşen noktalar için en büyük ışın uzaklığı. Sıfırsa sınırsızdır"
+
+
 msgctxt "Operator"
 msgid "Transfer Mesh Data Layout"
 msgstr "Örgü Verisi Yerleşimini Aktar"
@@ -9151,17 +9042,13 @@ msgid "Stroke"
 msgstr "Vuruş"
 
 
-msgid "Object Data"
-msgstr "Nesne Verileri"
-
-
-msgid "New Shape"
-msgstr "Yeni Şekil"
-
-
 msgctxt "Operator"
 msgid "Join"
 msgstr "Birleştir"
+
+
+msgid "Object Data"
+msgstr "Nesne Verileri"
 
 
 msgctxt "Operator"
@@ -10388,6 +10275,10 @@ msgid "Toolbar Item"
 msgstr "Araç Çubuğu Ögesi"
 
 
+msgid "Curve Editing"
+msgstr "Eğri Düzenleme"
+
+
 msgid "Masking"
 msgstr "Maskeleme"
 
@@ -11522,14 +11413,6 @@ msgid "Report a bug with pre-filled version information"
 msgstr "Sürüm bilgisi önden doldurulmuş olarak bir hata bildir"
 
 
-msgid "Add-on Bug"
-msgstr "Eklenti Hatası"
-
-
-msgid "Report a bug in an add-on"
-msgstr "Bir eklentideki bir hatayı bildir"
-
-
 msgid "Release Notes"
 msgstr "Sürüm Notları"
 
@@ -11617,6 +11500,10 @@ msgstr "Ayarlı Değil"
 msgctxt "Operator"
 msgid "Bold"
 msgstr "Kalın"
+
+
+msgid "Edit Line Color"
+msgstr "Çizgi Rengini Düzenle"
 
 
 msgctxt "Operator"
@@ -12267,14 +12154,6 @@ msgid "No active attribute"
 msgstr "Etkin öznitelik yok"
 
 
-msgid "Unable to add a new Lattice modifier to object"
-msgstr "Nesneye yeni bir dış kafes değiştiricisi eklenemiyor"
-
-
-msgid "The existing Lattice modifier is already using a different Lattice object"
-msgstr "Var olan dış kafes değiştiricisi halihazırda başka bir dış kafes nesnesi kullanıyor"
-
-
 msgctxt "Operator"
 msgid "Open File Externally"
 msgstr "Dosyayı Dışarıdan Aç"
@@ -12854,22 +12733,6 @@ msgid "Press + and -, or scroll wheel to set blending"
 msgstr "Harmanlamayı ayarlamak için +, - düğmelerine basın veya sarma tekerleğini kullanın"
 
 
-msgid "Random Offset End"
-msgstr "Rastgele Ofset Bitişi"
-
-
-msgid "Material Step"
-msgstr "Malzeme Adımı"
-
-
-msgid "External library data"
-msgstr "Dış kitaplık verisi"
-
-
-msgid "Modify"
-msgstr "Değiştirici"
-
-
 msgctxt "Key"
 msgid "Key"
 msgstr "Anahtar"
@@ -12877,6 +12740,10 @@ msgstr "Anahtar"
 
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "Görünüm Katmanı '%s', '%s' nesnesini içermiyor"
+
+
+msgid "Modify"
+msgstr "Değiştirici"
 
 
 msgctxt "NodeTree"
@@ -12901,12 +12768,20 @@ msgid "Refresh"
 msgstr "Yenile"
 
 
+msgid "Material Step"
+msgstr "Malzeme Adımı"
+
+
 msgid "Pack External"
 msgstr "Dış Veri Paketle"
 
 
 msgid "Save External..."
 msgstr "Dış Veri Kaydet..."
+
+
+msgid "External library data"
+msgstr "Dış kitaplık verisi"
 
 
 msgctxt "Operator"

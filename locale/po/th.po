@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -224,10 +224,6 @@ msgstr "ล่าง"
 
 msgid "Action"
 msgstr "กระทำ"
-
-
-msgid "None"
-msgstr "ไม่มี"
 
 
 msgid "End Frame"
@@ -535,6 +531,10 @@ msgstr "-Z"
 
 msgid "Object"
 msgstr "วัตถุ"
+
+
+msgid "None"
+msgstr "ไม่มี"
 
 
 msgid "Internal"
@@ -1190,99 +1190,12 @@ msgid "Tools"
 msgstr "เครื่องมือ"
 
 
-msgid "Edit Mode"
-msgstr "โหมดแก้ไข"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Subdivide"
-msgstr "แบ่งย่อย"
-
-
-msgid "Smooth"
-msgstr "ราบเรียบ"
-
-
-msgid "Shift"
-msgstr "เลื่อน"
-
-
-msgctxt "Curve"
-msgid "Curve"
-msgstr "เส้นโค้ง"
-
-
-msgctxt "Curve"
-msgid "Smooth"
-msgstr "ราบเรียบ"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "กลม"
-
-
-msgctxt "Curve"
-msgid "Root"
-msgstr "ฐาน"
-
-
-msgctxt "Curve"
-msgid "Sharp"
-msgstr "แหลม"
-
-
-msgctxt "Curve"
-msgid "Linear"
-msgstr "เชิงเส้น"
-
-
-msgctxt "Curve"
-msgid "Constant"
-msgstr "คงที่"
-
-
-msgid "Step"
-msgstr "ขั้นตอน"
-
-
-msgid "Subdivisions"
-msgstr "แบ่งย่อย"
-
-
-msgid "Fixed"
-msgstr "คงที่"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Subdivision Type"
-msgstr "ชนิดของการแบ่งย่อย"
-
-
-msgid "Simple"
-msgstr "ง่าย ๆ"
+msgid "Translation"
+msgstr "แปลภาษา"
 
 
 msgid "Reverse"
 msgstr "ย้อนกลับ"
-
-
-msgid "Grid Subdivisions"
-msgstr "จำนวนการแบ่งย่อยของตาราง"
-
-
-msgid "Grid scale"
-msgstr "ขนาดตะแกรง"
-
-
-msgid "Translation"
-msgstr "แปลภาษา"
 
 
 msgid "Repeat"
@@ -1463,10 +1376,6 @@ msgstr "เส้นประ"
 
 msgid "Sorting"
 msgstr "เรียงตาม"
-
-
-msgid "Grid Settings"
-msgstr "การตั้งค่าตะแกรง"
 
 
 msgid "Selected"
@@ -1651,6 +1560,10 @@ msgid "Object Mode"
 msgstr "โหมดวัตถุ"
 
 
+msgid "Edit Mode"
+msgstr "โหมดแก้ไข"
+
+
 msgid "Pose Mode"
 msgstr "โหมดท่าทาง"
 
@@ -1700,6 +1613,10 @@ msgstr "ว่างเปล่า"
 
 msgid "Vertex Groups"
 msgstr "กลุ่มจุดยอด"
+
+
+msgid "Simple"
+msgstr "ง่าย ๆ"
 
 
 msgid "Display Color"
@@ -1949,12 +1866,41 @@ msgid "Mask Layer"
 msgstr "ชั้นหน้ากาก"
 
 
+msgctxt "Curve"
+msgid "Smooth"
+msgstr "ราบเรียบ"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "กลม"
+
+
+msgctxt "Curve"
+msgid "Root"
+msgstr "ฐาน"
+
+
+msgctxt "Curve"
+msgid "Sharp"
+msgstr "แหลม"
+
+
 msgid "Sharp falloff"
 msgstr "ลอยแหลม ๆ"
 
 
+msgctxt "Curve"
+msgid "Linear"
+msgstr "เชิงเส้น"
+
+
 msgid "Mask Layers"
 msgstr "ชั้นหน้ากาก"
+
+
+msgid "Fixed"
+msgstr "คงที่"
 
 
 msgid "Mix Color"
@@ -1985,8 +1931,20 @@ msgid "Files"
 msgstr "ไฟล์"
 
 
+msgid "Smooth"
+msgstr "ราบเรียบ"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Math"
@@ -2213,6 +2171,32 @@ msgstr "RGB ไปยัง XYZ"
 
 msgid "Texture Coordinates"
 msgstr "พิกัดพื้นผิว"
+
+
+msgid "Shift"
+msgstr "เลื่อน"
+
+
+msgctxt "Curve"
+msgid "Curve"
+msgstr "เส้นโค้ง"
+
+
+msgctxt "Curve"
+msgid "Constant"
+msgstr "คงที่"
+
+
+msgid "Step"
+msgstr "ขั้นตอน"
+
+
+msgid "Subdivisions"
+msgstr "แบ่งย่อย"
+
+
+msgid "Subdivision Type"
+msgstr "ชนิดของการแบ่งย่อย"
 
 
 msgid "Mask Modifier"
@@ -2909,20 +2893,6 @@ msgstr "ลิง"
 
 
 msgctxt "Operator"
-msgid "Apply Modifier"
-msgstr "นำการปรับแต่งไปใช้"
-
-
-msgid "New Shape"
-msgstr "รูปร่างใหม่"
-
-
-msgctxt "Operator"
-msgid "Copy Modifier"
-msgstr "คัดลอกการปรับแต่ง"
-
-
-msgctxt "Operator"
 msgid "Join"
 msgstr "เชื่อมโยง"
 
@@ -2933,6 +2903,16 @@ msgstr "ที่ถูกเลือกเท่านั้น"
 
 msgid "Sets the object interaction mode"
 msgstr "ตั้งโหมดที่จะกระทำกับวัตถุ"
+
+
+msgctxt "Operator"
+msgid "Apply Modifier"
+msgstr "นำการปรับแต่งไปใช้"
+
+
+msgctxt "Operator"
+msgid "Copy Modifier"
+msgstr "คัดลอกการปรับแต่ง"
 
 
 msgid "   With Empty Groups"
@@ -3786,6 +3766,10 @@ msgstr "ใช้การยึดติดกับการเลื่อน
 
 msgid "Grid Lines"
 msgstr "จำนวนเส้นของตาราง"
+
+
+msgid "Grid Subdivisions"
+msgstr "จำนวนการแบ่งย่อยของตาราง"
 
 
 msgid "Display X Axis"
@@ -4851,6 +4835,10 @@ msgid "%s: %s"
 msgstr "%s: %s"
 
 
+msgid "Esc"
+msgstr "Esc"
+
+
 msgid "Redo"
 msgstr "ทำอีกครั้ง"
 
@@ -5281,6 +5269,10 @@ msgid "%s '%s'"
 msgstr "%s '%s'"
 
 
+msgid "Subdivide"
+msgstr "แบ่งย่อย"
+
+
 msgid "Replace Original"
 msgstr "แทนที่อันดั้งเดิม"
 
@@ -5323,10 +5315,6 @@ msgstr "Win"
 
 msgid "Bksp"
 msgstr "ปุ่มย้อนถอยหลัง"
-
-
-msgid "Esc"
-msgstr "Esc"
 
 
 msgid "%s '%s' not found"

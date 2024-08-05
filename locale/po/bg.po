@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -444,32 +444,8 @@ msgid "Grid"
 msgstr "Мрежа"
 
 
-msgid "Triangle"
-msgstr "Триъгълник"
-
-
 msgid "Region Type"
 msgstr "Тип на Региона"
-
-
-msgid "Subdivide"
-msgstr "Подразделяне"
-
-
-msgid "Hook"
-msgstr "Кука"
-
-
-msgid "Lattice"
-msgstr "Решетка"
-
-
-msgid "Shaded"
-msgstr "Светлосенки"
-
-
-msgid "Merge"
-msgstr "Слей"
 
 
 msgid "Brush"
@@ -478,6 +454,10 @@ msgstr "Четка"
 
 msgid "Key"
 msgstr "Клавиш"
+
+
+msgid "Lattice"
+msgstr "Решетка"
 
 
 msgid "Mesh"
@@ -724,6 +704,10 @@ msgid "Languages..."
 msgstr "Езици..."
 
 
+msgid "Merge"
+msgstr "Слей"
+
+
 msgid "Import"
 msgstr "Внеси"
 
@@ -780,6 +764,10 @@ msgid "Screw"
 msgstr "Извиване"
 
 
+msgid "Hook"
+msgstr "Кука"
+
+
 msgid "Warp"
 msgstr "Изкр"
 
@@ -794,6 +782,10 @@ msgstr "Произволно"
 
 msgid "Protect"
 msgstr "Предпази"
+
+
+msgid "Shaded"
+msgstr "Светлосенки"
 
 
 msgid "Overwrite"
@@ -854,6 +846,10 @@ msgstr "Подповърхностно Разпръскване"
 
 msgid "Turbidity"
 msgstr "Мътност"
+
+
+msgid "Triangle"
+msgstr "Триъгълник"
 
 
 msgid "Mouse X"
@@ -1659,10 +1655,6 @@ msgid "Timeline"
 msgstr "Времева линия"
 
 
-msgid "Pose Library"
-msgstr "Библиотека с Пози"
-
-
 msgid "Sub"
 msgstr "Изв"
 
@@ -1842,6 +1834,14 @@ msgstr "{} (String)"
 
 msgid "{} (Integer)"
 msgstr "{} (Integer)"
+
+
+msgid "Subdivide"
+msgstr "Подразделяне"
+
+
+msgid "Pose Library"
+msgstr "Библиотека с Пози"
 
 
 msgid "English (English)"

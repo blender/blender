@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -157,10 +157,6 @@ msgid "Initial Velocity"
 msgstr "सुरुवातको गति "
 
 
-msgid "Step"
-msgstr "चरणमा "
-
-
 msgid "Reverse"
 msgstr "उल्टो"
 
@@ -215,6 +211,10 @@ msgstr "पुर्व-स्थापित संचालक संग्र
 
 msgid "Wireframe"
 msgstr "अन्धरुनी-ढाचा"
+
+
+msgid "Step"
+msgstr "चरणमा "
 
 
 msgid "Random Seed"
@@ -507,10 +507,6 @@ msgid "Quit Blender"
 msgstr "ब्लेंडर बन्द "
 
 
-msgid "Pose Library"
-msgstr "बस्तुको-मुद्रा भण्डार"
-
-
 msgid "Tip"
 msgstr "सानो उपाए "
 
@@ -561,4 +557,8 @@ msgstr "Radius:"
 
 msgid "Blender File View"
 msgstr "ब्लेंडरका फाएल देखाउने तरिका "
+
+
+msgid "Pose Library"
+msgstr "बस्तुको-मुद्रा भण्डार"
 

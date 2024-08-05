@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -598,10 +598,6 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "ﺪﻨﮐ‌ﯽﻣ ﺖﮐﺭﺎﺸﻣ NLA ﻪﺘﺴﺑ ﻪﺠﯿﺘﻧ ﺭﺩ ﻝﺎﻌﻓ ﻡﺍﺪﻗﺍ ﻪﮐ ﯼﺭﺍﺪﻘﻣ"
 
 
-msgid "None"
-msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
-
-
 msgid "Tweak Mode Action Storage"
 msgstr "ﯼﺯﺎﺳ ﻪﻨﯿﻬﺑ ﺖﻟﺎﺣ ﻡﺍﺪﻗﺍ ﯼﺯﺎﺳ ﻩﺮﯿﺧﺫ"
 
@@ -1053,6 +1049,10 @@ msgstr "ﺵﺮﺘﺴﮔ"
 
 msgid "Object"
 msgstr "ءﯽﺷ"
+
+
+msgid "None"
+msgstr "ﻡﺍﺪﮐ ﭻﯿﻫ"
 
 
 msgid "Indirect"
@@ -2267,14 +2267,6 @@ msgid "Frames"
 msgstr "ﺎﻫ‌ﻢﯾﺮﻓ"
 
 
-msgid "Parent Bone"
-msgstr "ﺪﻟﺍﻭ ﻥﺍﻮﺨﺘﺳﺍ"
-
-
-msgid "Parent Type"
-msgstr "ﺪﻟﺍﻭ ﻉﻮﻧ"
-
-
 msgid "Onion Skinning"
 msgstr "ﺯﺎﯿﭘ ﺖﺳﻮﭘ"
 
@@ -2295,55 +2287,16 @@ msgid "Tools"
 msgstr "ﺭﺍﺰﺑﺍ"
 
 
-msgid "Edit Mode"
-msgstr "ﯽﺸﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ"
+msgid "Local Matrix"
+msgstr "ﯽﻠﺤﻣ ﺲﮑﯾﺮﺗﺎﻣ"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
-msgid "Lattice"
-msgstr "ﻪﮑﺒﺷ"
-
-
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
-
-
-msgid "Maximum Gap"
-msgstr "ﻪﻠﺻﺎﻓ ﻪﻨﯿﺸﯿﺑ"
-
-
-msgctxt "Curve"
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
-
-
-msgctxt "Curve"
-msgid "Linear"
-msgstr "ﯽﻄﺧ"
-
-
-msgctxt "Curve"
-msgid "Constant"
-msgstr "ﺖﺑﺎﺛ"
-
-
-msgid "Camera Object"
-msgstr "ﻦﯿﺑﺭﻭﺩ ءﯽﺷ"
+msgid "Parent Bone"
+msgstr "ﺪﻟﺍﻭ ﻥﺍﻮﺨﺘﺳﺍ"
 
 
 msgid "Ping Pong"
 msgstr "ﮓﻨﭘ ﮓﻨﯿﭘ"
-
-
-msgid "Space"
-msgstr "ﺎﻀﻓ"
-
-
-msgid "Local Matrix"
-msgstr "ﯽﻠﺤﻣ ﺲﮑﯾﺮﺗﺎﻣ"
 
 
 msgid "Red"
@@ -2368,6 +2321,10 @@ msgstr "ﺖﻧﻮﻓ"
 
 msgid "Key"
 msgstr "ﺪﯿﻠﮐ"
+
+
+msgid "Lattice"
+msgstr "ﻪﮑﺒﺷ"
 
 
 msgid "Library"
@@ -2610,6 +2567,10 @@ msgid "Paint"
 msgstr "ﮓﻧﺭ"
 
 
+msgid "Space"
+msgstr "ﺎﻀﻓ"
+
+
 msgctxt "Unit"
 msgid "Velocity Unit"
 msgstr "ﺖﻋﺮﺳ ﯼﺎﮑﯾ"
@@ -2777,6 +2738,10 @@ msgid "Object Mode"
 msgstr "ءﯽﺷ ﺖﻟﺎﺣ"
 
 
+msgid "Edit Mode"
+msgstr "ﯽﺸﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ"
+
+
 msgid "Pose Mode"
 msgstr "ﺖﺳﮊ ﺖﻟﺎﺣ"
 
@@ -2811,6 +2776,10 @@ msgstr "ﺪﻨﻫﺩ ﯽﻣ ﺭﺍﺮﻗ ﺮﯿﺛﺎﺗ ﺖﺤﺗ ﺍﺭ ءﯽ�
 
 msgid "Motion Path"
 msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ"
+
+
+msgid "Parent Type"
+msgstr "ﺪﻟﺍﻭ ﻉﻮﻧ"
 
 
 msgid "Parent Vertices"
@@ -2989,6 +2958,16 @@ msgid "Orientation"
 msgstr "ﺖﻬﺟ"
 
 
+msgctxt "Curve"
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
+msgctxt "Curve"
+msgid "Linear"
+msgstr "ﯽﻄﺧ"
+
+
 msgid "Restrict View"
 msgstr "ﺶﯾﺎﻤﻧ ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
@@ -3032,8 +3011,16 @@ msgid "Marker"
 msgstr "ﺮﮕﻧﺎﺸﻧ"
 
 
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Math"
@@ -3141,6 +3128,19 @@ msgstr "ﻉﻮﻧ"
 msgctxt "Simulation"
 msgid "Brush"
 msgstr "ﻢﻠﻗ"
+
+
+msgid "Maximum Gap"
+msgstr "ﻪﻠﺻﺎﻓ ﻪﻨﯿﺸﯿﺑ"
+
+
+msgctxt "Curve"
+msgid "Constant"
+msgstr "ﺖﺑﺎﺛ"
+
+
+msgid "Camera Object"
+msgstr "ﻦﯿﺑﺭﻭﺩ ءﯽﺷ"
 
 
 msgid "Play Mode"
@@ -4047,13 +4047,13 @@ msgid "Duplicate Objects"
 msgstr "ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
 
 
-msgid "Object Data"
-msgstr "ءﯽﺷ ﯼﺎﻫ‌ﻩﺩﺍﺩ"
-
-
 msgctxt "Operator"
 msgid "Join"
 msgstr "ﻦﺘﺳﻮﯿﭘ"
+
+
+msgid "Object Data"
+msgstr "ءﯽﺷ ﯼﺎﻫ‌ﻩﺩﺍﺩ"
 
 
 msgctxt "Operator"
@@ -4964,6 +4964,14 @@ msgid "Reset Single to Default Value"
 msgstr "ﺽﺮﻓ ﺶﯿﭘ ﺭﺍﺪﻘﻣ ﻪﺑ ﯽﮑﺗ ﺩﺪﺠﻣ ﻢﯿﻈﻨﺗ"
 
 
+msgid "Home"
+msgstr "Home"
+
+
+msgid "Esc"
+msgstr "Esc"
+
+
 msgid "Active button not found"
 msgstr "ﺪﺸﻧ ﺖﻓﺎﯾ ﻝﺎﻌﻓ ﻪﻤﮐﺩ"
 
@@ -5205,10 +5213,6 @@ msgid "File name"
 msgstr "ﻞﯾﺎﻓ ﻡﺎﻧ"
 
 
-msgid "Home"
-msgstr "Home"
-
-
 msgid "Update Dependencies"
 msgstr "ﺎﻫ‌ﯽﮕﺘﺴﺑﺍﻭ ﯽﻧﺎﺳﺭ ﺯﻭﺭ‌ﻪﺑ"
 
@@ -5283,10 +5287,6 @@ msgstr "ﯽﻤﯾﺪﻗ"
 
 msgid "Blender File View"
 msgstr "ﺭﺪﻨﻠﺑ ﻞﯾﺎﻓ ﺶﯾﺎﻤﻧ"
-
-
-msgid "Esc"
-msgstr "Esc"
 
 
 msgid "English (English)"

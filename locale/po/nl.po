@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -307,10 +307,6 @@ msgid "Action Influence"
 msgstr "Invloed Actie"
 
 
-msgid "None"
-msgstr "Geen"
-
-
 msgid "After Current"
 msgstr "Na Huidige"
 
@@ -566,6 +562,10 @@ msgid "Object"
 msgstr "Object"
 
 
+msgid "None"
+msgstr "Geen"
+
+
 msgid "Direct"
 msgstr "Direct"
 
@@ -632,6 +632,10 @@ msgstr "Krommes"
 
 msgid "Filename"
 msgstr "Bestandsnaam"
+
+
+msgid "Annotation"
+msgstr "Annotatie"
 
 
 msgid "Grease Pencil"
@@ -1705,28 +1709,12 @@ msgid "Frame Number"
 msgstr "Framenummer"
 
 
-msgid "Breakdown"
-msgstr "Afbreken"
-
-
-msgid "Generated"
-msgstr "Gegenereerd"
-
-
-msgid "Grease Pencil Layer"
-msgstr "Vetkrijt laag"
-
-
 msgid "Active Frame"
 msgstr "Actieve Frame"
 
 
 msgid "Before Color"
 msgstr "Voor Kleur"
-
-
-msgid "Regular"
-msgstr "Normaal"
 
 
 msgid "Frames"
@@ -1757,20 +1745,8 @@ msgid "Top (X-Y)"
 msgstr "Bovenkant (X-Y)"
 
 
-msgid "2D Image"
-msgstr "2D Afbeelding"
-
-
-msgid "Triangles"
-msgstr "Driehoeken"
-
-
 msgid "Coordinates"
 msgstr "Coördinaten"
-
-
-msgid "Triangle"
-msgstr "Driehoek"
 
 
 msgid "Show Value"
@@ -1793,166 +1769,28 @@ msgid "Tools"
 msgstr "Gereedschappen"
 
 
-msgid "Time Offset"
-msgstr "Tijdsverschuiving"
+msgid "Reference"
+msgstr "Voorbeeld"
 
 
-msgid "Array"
-msgstr "Reeks"
+msgid "Breakdown"
+msgstr "Afbreken"
 
 
-msgid "Build"
-msgstr "Bouw"
+msgid "Generated"
+msgstr "Gegenereerd"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
+msgid "Grease Pencil Layer"
+msgstr "Vetkrijt laag"
 
 
-msgid "Smooth"
-msgstr "Glad"
-
-
-msgid "Inverse Materials"
-msgstr "Keer Materialen Om"
-
-
-msgid "Grow"
-msgstr "Groeien"
-
-
-msgid "Color Hue"
-msgstr "Kleurverzadiging"
-
-
-msgid "Custom Curve"
-msgstr "Aangepaste Kromme"
-
-
-msgid "Color Value"
-msgstr "Kleurwaarde"
-
-
-msgctxt "Curve"
-msgid "Falloff Type"
-msgstr "Type Afvlakking"
-
-
-msgctxt "Curve"
-msgid "No Falloff"
-msgstr "Geen Afvlakking"
-
-
-msgctxt "Curve"
-msgid "Curve"
-msgstr "Kromme"
-
-
-msgctxt "Curve"
-msgid "Smooth"
-msgstr "Glad"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Ball"
-
-
-msgctxt "Curve"
-msgid "Root"
-msgstr "Wortel"
-
-
-msgctxt "Curve"
-msgid "Inverse Square"
-msgstr "Inverse Wortel"
-
-
-msgctxt "Curve"
-msgid "Sharp"
-msgstr "Scherp"
-
-
-msgctxt "Curve"
-msgid "Linear"
-msgstr "Lineair"
-
-
-msgctxt "Curve"
-msgid "Constant"
-msgstr "Constant"
-
-
-msgid "Inverse Vertex Group"
-msgstr "Draai Groep van Punten Om"
-
-
-msgid "Used Length"
-msgstr "Gebruikte Lengte"
-
-
-msgid "Step"
-msgstr "Stap"
-
-
-msgid "Camera Object"
-msgstr "Camera Object"
-
-
-msgid "Use Custom Camera"
-msgstr "Gebruik Aangepaste Camera"
-
-
-msgid "All Lines"
-msgstr "Alle Lijnen"
-
-
-msgid "Use Material"
-msgstr "Gebruik Materiaal"
-
-
-msgid "Mirror Modifier"
-msgstr "Spiegel Aanpasser"
-
-
-msgid "Object used as center"
-msgstr "Object gebruikt als midden"
-
-
-msgid "Mirror the X axis"
-msgstr "Spiegel de X as"
-
-
-msgid "Mirror the Y axis"
-msgstr "Spiegel de Y as"
-
-
-msgid "Mirror the Z axis"
-msgstr "Spiegel de Z as"
-
-
-msgid "Duplicates"
-msgstr "Duplicaten"
-
-
-msgid "Fade"
-msgstr "Vervagen"
-
-
-msgid "Simple"
-msgstr "Simpel"
+msgid "Regular"
+msgstr "Normaal"
 
 
 msgid "Reverse"
 msgstr "Omgekeerd"
-
-
-msgid "Space"
-msgstr "Ruimte"
-
-
-msgid "Lowest"
-msgstr "Laagste"
 
 
 msgid "Repeat"
@@ -2101,6 +1939,10 @@ msgstr "Elastisch"
 
 msgid "Dots"
 msgstr "Stippen"
+
+
+msgid "Space"
+msgstr "Ruimte"
 
 
 msgid "Texture Slot"
@@ -2291,10 +2133,6 @@ msgid "Use Nodes"
 msgstr "Gebruik Nodes"
 
 
-msgid "Annotation"
-msgstr "Annotatie"
-
-
 msgid "Only selected keyframes"
 msgstr "Alleen geselecteerde sleutelframes"
 
@@ -2305,6 +2143,10 @@ msgstr "2D Lagen"
 
 msgid "3D Location"
 msgstr "3D Locatie"
+
+
+msgid "Fade"
+msgstr "Vervagen"
 
 
 msgctxt "Light"
@@ -2445,6 +2287,10 @@ msgstr "Globale Y"
 
 msgid "Global Z"
 msgstr "Globale Z"
+
+
+msgid "Simple"
+msgstr "Simpel"
 
 
 msgid "Cross"
@@ -2798,6 +2644,36 @@ msgid "Falloff"
 msgstr "Afvlakking"
 
 
+msgctxt "Curve"
+msgid "Smooth"
+msgstr "Glad"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Ball"
+
+
+msgctxt "Curve"
+msgid "Root"
+msgstr "Wortel"
+
+
+msgctxt "Curve"
+msgid "Inverse Square"
+msgstr "Inverse Wortel"
+
+
+msgctxt "Curve"
+msgid "Sharp"
+msgstr "Scherp"
+
+
+msgctxt "Curve"
+msgid "Linear"
+msgstr "Lineair"
+
+
 msgid "Calculate Holes"
 msgstr "Bereken Gaten"
 
@@ -2827,8 +2703,16 @@ msgid "Channel"
 msgstr "Kanaal"
 
 
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Import"
@@ -2973,6 +2857,18 @@ msgid "Data Transfer"
 msgstr "Gegevens Overdracht"
 
 
+msgid "Time Offset"
+msgstr "Tijdsverschuiving"
+
+
+msgid "Array"
+msgstr "Reeks"
+
+
+msgid "Build"
+msgstr "Bouw"
+
+
 msgid "Wave"
 msgstr "Golf"
 
@@ -3009,12 +2905,88 @@ msgid "Cut Edges"
 msgstr "Knip Randen"
 
 
+msgid "Grow"
+msgstr "Groeien"
+
+
+msgctxt "Curve"
+msgid "Falloff Type"
+msgstr "Type Afvlakking"
+
+
+msgctxt "Curve"
+msgid "No Falloff"
+msgstr "Geen Afvlakking"
+
+
+msgctxt "Curve"
+msgid "Curve"
+msgstr "Kromme"
+
+
+msgctxt "Curve"
+msgid "Constant"
+msgstr "Constant"
+
+
+msgid "Used Length"
+msgstr "Gebruikte Lengte"
+
+
+msgid "Step"
+msgstr "Stap"
+
+
+msgid "Camera Object"
+msgstr "Camera Object"
+
+
+msgid "Use Custom Camera"
+msgstr "Gebruik Aangepaste Camera"
+
+
+msgid "All Lines"
+msgstr "Alle Lijnen"
+
+
+msgid "Use Material"
+msgstr "Gebruik Materiaal"
+
+
+msgid "Object used as center"
+msgstr "Object gebruikt als midden"
+
+
+msgid "Mirror the X axis"
+msgstr "Spiegel de X as"
+
+
+msgid "Mirror the Y axis"
+msgstr "Spiegel de Y as"
+
+
+msgid "Mirror the Z axis"
+msgstr "Spiegel de Z as"
+
+
+msgid "Duplicates"
+msgstr "Duplicaten"
+
+
+msgid "Lowest"
+msgstr "Laagste"
+
+
 msgid "Overwrite"
 msgstr "Overschrijven"
 
 
 msgid "Time Mode"
 msgstr "Tijdsmodus"
+
+
+msgid "Mirror Modifier"
+msgstr "Spiegel Aanpasser"
 
 
 msgid "Mirror Axis"
@@ -3178,6 +3150,10 @@ msgid "Y Axis"
 msgstr "Y As"
 
 
+msgid "Triangles"
+msgstr "Driehoeken"
+
+
 msgid "Set Position"
 msgstr "Zet Positie"
 
@@ -3200,6 +3176,10 @@ msgstr "Z as"
 
 msgid "Sun Rotation"
 msgstr "Rotatie Zon"
+
+
+msgid "Triangle"
+msgstr "Driehoek"
 
 
 msgid "Z Axis"
@@ -4919,20 +4899,6 @@ msgstr "Aap"
 
 
 msgctxt "Operator"
-msgid "Apply Modifier"
-msgstr "Pas Aanpasser Toe"
-
-
-msgid "Object Data"
-msgstr "Object Gegevens"
-
-
-msgctxt "Operator"
-msgid "Copy Modifier"
-msgstr "Kopieer Aanpasser"
-
-
-msgctxt "Operator"
 msgid "Hide Collection"
 msgstr "Verberg Collectie"
 
@@ -5005,6 +4971,10 @@ msgid "Object Animation"
 msgstr "Object Animatie"
 
 
+msgid "Object Data"
+msgstr "Object Gegevens"
+
+
 msgctxt "Operator"
 msgid "Add Material Slot"
 msgstr "Voeg Materiaalplek Toe"
@@ -5043,6 +5013,16 @@ msgstr "Voeg Metabol toe"
 msgctxt "Operator"
 msgid "Set Object Mode"
 msgstr "Zet Object Modus"
+
+
+msgctxt "Operator"
+msgid "Apply Modifier"
+msgstr "Pas Aanpasser Toe"
+
+
+msgctxt "Operator"
+msgid "Copy Modifier"
+msgstr "Kopieer Aanpasser"
 
 
 msgctxt "Operator"
@@ -5766,6 +5746,10 @@ msgid "Modify Hidden"
 msgstr "Wijzig Verborgen"
 
 
+msgid "Custom Curve"
+msgstr "Aangepaste Kromme"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Type"
@@ -6380,6 +6364,10 @@ msgid "Export USD"
 msgstr "Exporteer USD"
 
 
+msgid "Preserve"
+msgstr "Behouden"
+
+
 msgid "Visible Only"
 msgstr "Alleen Zichtbare"
 
@@ -6574,10 +6562,6 @@ msgstr "Sla instellingen Op"
 
 msgid "Blend Files"
 msgstr "Blenderbestanden"
-
-
-msgid "Pose Library"
-msgstr "Poses Bibliotheek"
 
 
 msgctxt "Operator"
@@ -6983,10 +6967,6 @@ msgid "Particle Properties"
 msgstr "Deeltjeseigenschappen"
 
 
-msgid "Reference"
-msgstr "Voorbeeld"
-
-
 msgid "Find Text"
 msgstr "Vind Tekst"
 
@@ -7001,6 +6981,10 @@ msgstr "Laat leeg krachtveld zien"
 
 msgid "3D"
 msgstr "3D"
+
+
+msgid "Color Value"
+msgstr "Kleurwaarde"
 
 
 msgid "Force Field"
@@ -7458,10 +7442,6 @@ msgstr "Sorteren bij Naam"
 msgctxt "Operator"
 msgid "Delete All Groups"
 msgstr "Verwijder Alle Groepen"
-
-
-msgid "Preserve"
-msgstr "Behouden"
 
 
 msgid "Detail"
@@ -7924,10 +7904,6 @@ msgstr "Film"
 msgctxt "Operator"
 msgid "Fade"
 msgstr "Vervagen"
-
-
-msgid "Power:"
-msgstr "Kracht:"
 
 
 msgctxt "Operator"
@@ -9225,10 +9201,6 @@ msgid "Unpack File"
 msgstr "Pak Bestand Uit"
 
 
-msgid "Custom Camera"
-msgstr "Aangepaste Camera"
-
-
 msgctxt "Action"
 msgid "Group"
 msgstr "Groep"
@@ -9249,6 +9221,10 @@ msgstr "Punt is niet gevonden voor de opgegeven Spline"
 
 msgid "No active window in context!"
 msgstr "Geen actieve venster in context!"
+
+
+msgid "Custom Camera"
+msgstr "Aangepaste Camera"
 
 
 msgid "Create Armature"
@@ -9372,6 +9348,10 @@ msgstr "Geen operatie in context"
 
 msgid "Property cannot be both boolean and float"
 msgstr "Eigenschap kan niet boolean en float tegelijkertijd zijn"
+
+
+msgid "Pose Library"
+msgstr "Poses Bibliotheek"
 
 
 msgid "Import-Export"

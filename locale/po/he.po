@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -407,10 +407,6 @@ msgid "Collection"
 msgstr "ףסוא"
 
 
-msgid "Generated"
-msgstr "רצוימ"
-
-
 msgid "Window"
 msgstr "ןולח"
 
@@ -427,20 +423,8 @@ msgid "Tool Header"
 msgstr "ילכ תרתוכ"
 
 
-msgid "Edit Mode"
-msgstr "הכירע בצמ"
-
-
-msgid "Mirror"
-msgstr "הארמ"
-
-
-msgid "Smooth"
-msgstr "קלח"
-
-
-msgid "Space"
-msgstr "חוור"
+msgid "Generated"
+msgstr "רצוימ"
 
 
 msgid "Red Green Blue"
@@ -491,6 +475,10 @@ msgid "Smooth"
 msgstr "קלח"
 
 
+msgid "Space"
+msgstr "חוור"
+
+
 msgid "Up"
 msgstr "הלעמ"
 
@@ -534,6 +522,10 @@ msgstr "ילכ"
 
 msgid "Faces"
 msgstr "תואפ"
+
+
+msgid "Edit Mode"
+msgstr "הכירע בצמ"
 
 
 msgid "Sculpt Mode"
@@ -609,6 +601,14 @@ msgstr "Grease Pencil יאבצ"
 
 msgid "Languages..."
 msgstr "..תופש"
+
+
+msgid "Smooth"
+msgstr "קלח"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Add Modifier"

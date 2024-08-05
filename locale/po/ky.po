@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -105,10 +105,6 @@ msgid "Nothing"
 msgstr "Эч нерсе"
 
 
-msgid "None"
-msgstr "Жок"
-
-
 msgid "Drivers"
 msgstr "Драйверлер"
 
@@ -207,6 +203,10 @@ msgstr "-Z"
 
 msgid "Object"
 msgstr "Объект"
+
+
+msgid "None"
+msgstr "Жок"
 
 
 msgid "Emit"
@@ -833,10 +833,6 @@ msgid "Visibility"
 msgstr "Көрүнүү"
 
 
-msgid "Blend Mode"
-msgstr "Аралаштыруу режими"
-
-
 msgid "Window"
 msgstr "Терезе"
 
@@ -849,41 +845,8 @@ msgid "Tool Properties"
 msgstr "Аспаптын касиеттери"
 
 
-msgid "Edit Mode"
-msgstr "Оңдоо режими"
-
-
-msgid "Array"
-msgstr "Массив"
-
-
-msgid "Build"
-msgstr "Чогултуу"
-
-
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
-msgid "Hook"
-msgstr "Илмек"
-
-
-msgid "Smooth"
-msgstr "Тегиз"
-
-
-msgid "Shift"
-msgstr "Shift"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Сфера"
-
-
-msgid "Catmull-Clark"
-msgstr "Катмулл-Кларк"
+msgid "Blend Mode"
+msgstr "Аралаштыруу режими"
 
 
 msgid "Red"
@@ -1146,6 +1109,10 @@ msgid "Object Mode"
 msgstr "Объект режими"
 
 
+msgid "Edit Mode"
+msgstr "Оңдоо режими"
+
+
 msgid "Pose Mode"
 msgstr "Поза режими"
 
@@ -1347,6 +1314,11 @@ msgid "Circles"
 msgstr "Тегеректер"
 
 
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Сфера"
+
+
 msgid "Mask Layers"
 msgstr "Маска каттары"
 
@@ -1384,12 +1356,20 @@ msgid "Files"
 msgstr "Файлдар"
 
 
+msgid "Smooth"
+msgstr "Тегиз"
+
+
 msgid "UV"
 msgstr "UV"
 
 
 msgid "Align"
 msgstr "Түздөө"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgid "Import"
@@ -1448,6 +1428,14 @@ msgid "Ellipsoid"
 msgstr "Эллипсоид"
 
 
+msgid "Array"
+msgstr "Массив"
+
+
+msgid "Build"
+msgstr "Чогултуу"
+
+
 msgid "Decimate"
 msgstr "Аппроксимация"
 
@@ -1466,6 +1454,10 @@ msgstr "Триангуляция"
 
 msgid "Cast"
 msgstr "Өтүш"
+
+
+msgid "Hook"
+msgstr "Илмек"
 
 
 msgid "Explode"
@@ -1490,6 +1482,14 @@ msgstr "Кубоид"
 
 msgid "Settings"
 msgstr "Ырастоолор"
+
+
+msgid "Shift"
+msgstr "Shift"
+
+
+msgid "Catmull-Clark"
+msgstr "Катмулл-Кларк"
 
 
 msgid "Levels"
@@ -2165,13 +2165,13 @@ msgid "Monkey"
 msgstr "Маймыл"
 
 
-msgid "Object Data"
-msgstr "Объект маалыматтары"
-
-
 msgctxt "Operator"
 msgid "Join"
 msgstr "Бириктирүү"
+
+
+msgid "Object Data"
+msgstr "Объект маалыматтары"
 
 
 msgctxt "Operator"
@@ -3215,10 +3215,6 @@ msgid "Sound"
 msgstr "Үн"
 
 
-msgid "Gamma:"
-msgstr "Гамма:"
-
-
 msgctxt "Operator"
 msgid "Movie"
 msgstr "Тасма"
@@ -3734,13 +3730,13 @@ msgid "Group"
 msgstr "Топ"
 
 
-msgid "Modify"
-msgstr "Өзгөртүү"
-
-
 msgctxt "Key"
 msgid "Key"
 msgstr "Ачкыч"
+
+
+msgid "Modify"
+msgstr "Өзгөртүү"
 
 
 msgid "AO"

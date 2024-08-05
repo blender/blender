@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -435,20 +435,6 @@ msgid "Tools"
 msgstr "Tresnak"
 
 
-msgid "Speed Factor"
-msgstr "Azelerazio-faktorea"
-
-
-msgctxt "Curve"
-msgid "Curve"
-msgstr "Kurba"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Esfera"
-
-
 msgid "Sound"
 msgstr "Soinua"
 
@@ -578,6 +564,11 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Esfera"
+
+
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
@@ -620,6 +611,15 @@ msgstr "Loturak"
 
 msgid "New"
 msgstr "Berria"
+
+
+msgid "Speed Factor"
+msgstr "Azelerazio-faktorea"
+
+
+msgctxt "Curve"
+msgid "Curve"
+msgstr "Kurba"
 
 
 msgctxt "Curve"

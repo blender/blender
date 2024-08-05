@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -521,10 +521,6 @@ msgstr "Вплив дії"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Суми активних дій вносить свій внесок у результат стосу НЛА"
-
-
-msgid "None"
-msgstr "Немає"
 
 
 msgid "Drivers"
@@ -1407,10 +1403,6 @@ msgid "Cage Extrusion"
 msgstr "Видавлення остова"
 
 
-msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
-msgstr "Надути активний об'єкти до вказаної відстані для запікання. Це допомагає узгодити його з точками, ближчими до зовнішньої сторони вибраних сітей об'єктів"
-
-
 msgid "Cage Object"
 msgstr "Об'єкт остова"
 
@@ -1449,10 +1441,6 @@ msgstr "Розширити"
 
 msgid "Max Ray Distance"
 msgstr "Макс Відстань Променя"
-
-
-msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
-msgstr "Максимум відстані променя для узгодження точок між активним та вибраним об'єктами. Якщо нуль, то без ліміту"
 
 
 msgid "Normal Space"
@@ -1521,6 +1509,10 @@ msgstr "Фільтр проходів"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Проходи, які слід включити в активний прохід запікання"
+
+
+msgid "None"
+msgstr "Немає"
 
 
 msgid "Emit"
@@ -1841,6 +1833,10 @@ msgstr "Векторні шрифти"
 
 msgid "Vector font data-blocks"
 msgstr "Блоки даних векторних шрифтів"
+
+
+msgid "Annotation"
+msgstr "Анотація"
 
 
 msgid "Grease Pencil"
@@ -3083,10 +3079,6 @@ msgid "None (Legacy)"
 msgstr "Нема (Застаріле)"
 
 
-msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox"
-msgstr "Ігнорувати масштабування предка без компенсування для косування предка. Відтворює ефект вимикання стяга оригінального Спадкувати Масштаб"
-
-
 msgid "Length"
 msgstr "Довжина"
 
@@ -3653,10 +3645,6 @@ msgid "Input Samples"
 msgstr "Вибірки вводу"
 
 
-msgid "Generate intermediate points for very fast mouse movements. Set to 0 to disable"
-msgstr "Генерування проміжних точок для дуже швидких рухів миші. Задання як 0 дає вимкнення цієї опції"
-
-
 msgid "Material used for strokes drawn using this brush"
 msgstr "Матеріал, використовуваний для штрихів, нарисованих за допомогою цього пензля"
 
@@ -3863,10 +3851,6 @@ msgstr "Устави випадковості пензля"
 
 msgid "Use Stabilizer"
 msgstr "Вжити Стабілізатор"
-
-
-msgid "Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing"
-msgstr "Рисувати лінії із затримкою, щоб дозволити згладжені штрихи. Натискайте клавішу Shift  для перекриття у ході рисування"
 
 
 msgid "Use Pressure Strength"
@@ -4293,10 +4277,6 @@ msgid "Collision Quality"
 msgstr "Якість зіткнення"
 
 
-msgid "How many collision iterations should be done. (higher is better quality but slower)"
-msgstr "Кількість ітерацій для визначення зіткнень (більше - краща якість, але повільніше)"
-
-
 msgid "Restitution"
 msgstr "Відновлення"
 
@@ -4557,10 +4537,6 @@ msgid "Internal Spring Max Length"
 msgstr "Макс довжина внутрішньої пружності"
 
 
-msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit"
-msgstr "Максимальна довжина, яку внутрішня пружність може мати під час створення. Якщо відстань між внутрішніми точками є більшою, ніж це, жодна внутрішня пружність не буде створена між цими точками. Довжина у нуль означає, що там немає жодного ліміту довжини"
-
-
 msgid "Check Internal Spring Normals"
 msgstr "Перевірка нормалей внутрішньої пружності"
 
@@ -4677,10 +4653,6 @@ msgid "Target Volume"
 msgstr "Цільовий Об'єм"
 
 
-msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure"
-msgstr "Об'єм сіті, де внутрішній/зовнішній тиск буде однаковим. Якщо задано як нуль, то зміна в об'ємі не буде впливати на тиск"
-
-
 msgid "Tension Spring Damping"
 msgstr "Згасання Натягу Пружини"
 
@@ -4695,10 +4667,6 @@ msgstr "Швидкість тканини множиться на це знач�
 
 msgid "Pressure"
 msgstr "Натиск"
-
-
-msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative"
-msgstr "Рівномірний тиск, що стало застосовується до сіті, в одиницях Масштабу Тиску. Може бути від'ємним"
 
 
 msgid "Dynamic Base Mesh"
@@ -4759,10 +4727,6 @@ msgstr "Група вершин для фіксації вершин"
 
 msgid "Pressure Vertex Group"
 msgstr "Група Вершин Натиску"
-
-
-msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation"
-msgstr "Група Вершин для місця, де застосовувати натиск. Нульова вагомість означає відсутність натиску, тоді як вагомість в одиницю означає повний натиск. Грані з вершиною, що має нульову вагомість будуть виключені з розрахунку об'єму"
 
 
 msgid "Shear Stiffness Vertex Group"
@@ -5854,10 +5818,6 @@ msgid "Use Envelopes"
 msgstr "Вжити Оболонки"
 
 
-msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered"
-msgstr "Множить вагомості на оболонки для усіх костей, замість того, щоб діяти як Група Вершин базовано на змішуванні. Визначені вагомості все ще використовуються, і враховуються лише перераховані кістки"
-
-
 msgid "Use Current Location"
 msgstr "Вжити Поточну Локацію"
 
@@ -6220,10 +6180,6 @@ msgstr "Застосувати копійоване обертання післ�
 
 msgid "Offset (Legacy)"
 msgstr "Зсув (Застаріле)"
-
-
-msgid "Combine rotations like the original Offset checkbox. Does not work well for multiple axis rotations"
-msgstr "Комбінувати обертання, як зі стягом Зсув оригіналу. Не працює добре для обертань по кількох одночасно осях"
 
 
 msgid "DEPRECATED: Add original rotation into copied rotation"
@@ -6811,16 +6767,8 @@ msgid "Uniform"
 msgstr "Однаковий"
 
 
-msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through"
-msgstr "Об'єм зберігається, коли об'єкт масштабується однорідно. Відхилення від однорідного масштабу по не-вільних осях пропускаються"
-
-
 msgid "Single Axis"
 msgstr "Одна Вісь"
-
-
-msgid "Volume is preserved when the object is scaled only on the free axis. Non-free axis scaling is passed through"
-msgstr "Об'єм зберігається, коли об'єкт масштабується лише по вільній осі. Масштабування по не-вільних осях пропускаються"
 
 
 msgid "Volume of the bone at rest"
@@ -7993,14 +7941,6 @@ msgstr "Активний сплайн"
 
 msgid "Active curve spline"
 msgstr "Активний сплайн кривої"
-
-
-msgid "Dash"
-msgstr "Пунктир"
-
-
-msgid "Material Index"
-msgstr "Індекс матеріалу"
 
 
 msgid "Dependency Graph"
@@ -9388,10 +9328,6 @@ msgid "Bone is not visible when in Edit Mode"
 msgstr "Кістку не видно у режимі редагування"
 
 
-msgid "Length of the bone. Changing moves the tail end"
-msgstr "Довжина кістки. Змінювання переміщує хвостовий кінець"
-
-
 msgid "Bone is not able to be transformed when in Edit Mode"
 msgstr "Неможливо перетворити кістку в режимі редагування"
 
@@ -9614,10 +9550,6 @@ msgstr "Автоматичні держаки враховують лише ві
 
 msgid "Continuous Acceleration"
 msgstr "Продовжуване прискорення"
-
-
-msgid "Automatic handles are adjusted to avoid jumps in acceleration, resulting in smoother curves. However, key changes may affect interpolation over a larger stretch of the curve"
-msgstr "Автоматичні держаки наладнуються для уникання стрибків у прискоренні, результуючи у згладженіших кривих. Проте, зміни ключів можуть впливати на інтерполяцію через більший розтяг кривої"
 
 
 msgid "Color of the F-Curve in the Graph Editor"
@@ -11662,20 +11594,8 @@ msgid "End"
 msgstr "Кінець"
 
 
-msgid "Frame on which the simulation stops. This is the last frame that will be baked"
-msgstr "Кадр, на якому симуляція зупиняється. Це останній кадр, який буде запечено"
-
-
-msgid "Frame offset that is used when loading the simulation from the cache. It is not considered when baking the simulation, only when loading it"
-msgstr "Зсув кадрів, що використовується при завантаженні симуляції з кешу. Це не враховується при запіканні симуляції, лише при її завантаженні"
-
-
 msgid "Start"
 msgstr "Старт"
-
-
-msgid "Frame on which the simulation starts. This is the first frame that will be baked"
-msgstr "Кадр, на якому симуляція стартує. Це перший кадр, що буде запечено"
 
 
 msgid "Select the file format to be used for caching surface data"
@@ -11692,10 +11612,6 @@ msgstr "Вибрати формат файлу, що буде використо
 
 msgid "Resumable"
 msgstr "Відновлюване"
-
-
-msgid "Additional data will be saved so that the bake jobs can be resumed after pausing. Because more data will be written to disk it is recommended to avoid enabling this option when baking at high resolutions"
-msgstr "Додаткові дані будуть збережені так, що завдання запікання може бути відновлене після призупинення. Оскільки більше даних буде записано на диск, то рекомендується уникати вмикання цієї опції при запіканні з високими роздільностями"
 
 
 msgid "Change the cache type of the simulation"
@@ -11842,10 +11758,6 @@ msgid "Export Mantaflow Script"
 msgstr "Експорт Скрипту Mantaflow"
 
 
-msgid "Generate and export Mantaflow script from current domain settings during bake. This is only needed if you plan to analyze the cache (e.g. view grids, velocity vectors, particles) in Mantaflow directly (outside of Blender) after baking the simulation"
-msgstr "Генерувати та експортувати скрипт Mantaflow із поточними уставами домену під час запікання. Це потрібно лише в тому випадку, якщо ви плануєте аналізувати кеш (наприклад, сітки огляду, вектори скорості, частинки) безпосередньо у Mantaflow (поза Blender) після запікання симуляції"
-
-
 msgid "Flame Grid"
 msgstr "Решітка полум'я"
 
@@ -11888,10 +11800,6 @@ msgstr "Додаткове завихрення полум'я"
 
 msgid "FLIP Ratio"
 msgstr "Пропорція FLIP"
-
-
-msgid "PIC/FLIP Ratio. A value of 1.0 will result in a completely FLIP based simulation. Use a lower value for simulations which should produce smaller splashes"
-msgstr "Пропорція PIC/FLIP. Значення 1.0 буде давати повністю базовану на FLIP симуляцію. Використовуйте нижчі значення для симуляцій, які повинні продукувати менші плески."
 
 
 msgid "Fluid Collection"
@@ -12038,10 +11946,6 @@ msgid "Choose where to get guiding velocities from"
 msgstr "Обрати, звідки отримувати скорості напрямлення"
 
 
-msgid "Use a fluid domain for guiding (domain needs to be baked already so that velocities can be extracted). Guiding domain can be of any type (i.e. gas or liquid)"
-msgstr "Вжити домен рідини для напрямлення (домен повинен бути запечений вже, щоб скорості могли бути витягнені). Домен напрямлення може бути будь-якого типу (наприклад, газ або рідина)"
-
-
 msgid "Effector"
 msgstr "Ефектор"
 
@@ -12122,16 +12026,8 @@ msgid "Use union particle level set (faster but lower quality)"
 msgstr "Вжити об'єднану множину рівня частинок (швидше, але якість нижче)"
 
 
-msgid "Particle radius factor (higher value results in larger (meshed) particles). Needs to be adjusted after changing the mesh scale"
-msgstr "Фактор радіусу частинки (вище значення призводить до більших (сітчасті) частинок). Потребує налагоджування після змінювання масштабу сіті"
-
-
 msgid "Mesh scale"
 msgstr "Масштаб сіті"
-
-
-msgid "The mesh simulation is scaled up by this factor (compared to the base resolution of the domain). For best meshing, it is recommended to adjust the mesh particle radius alongside this value"
-msgstr "Симуляція сіті масштабується на цей фактор (порівняно з базовою роздільністю домену). Для кращої сіті рекомендується налагоджувати радіус частинки сіті разом з цим значенням"
 
 
 msgid "Smoothen Neg"
@@ -12226,10 +12122,6 @@ msgid "Particle number factor (higher value results in more particles)"
 msgstr "Фактор кількості частинок (вище значення дає більше частинок)"
 
 
-msgid "Particle radius factor. Increase this value if the simulation appears to leak volume, decrease it if the simulation seems to gain volume"
-msgstr "Фактор радіусу частинки. Збільшуйте це значення, якщо симуляція на вигляд протікає за об'єм, зменшуйте його, якщо симуляція на вигляд лише досягає об'єму"
-
-
 msgid "Randomness"
 msgstr "Випадковість"
 
@@ -12248,10 +12140,6 @@ msgstr "Симуляція частинок масштабується на це
 
 msgid "Maximum Resolution"
 msgstr "Максимальна Роздільність"
-
-
-msgid "Resolution used for the fluid domain. Value corresponds to the longest domain side (resolution for other domain sides is calculated automatically)"
-msgstr "Роздільність, що використовується для домену рідини. Значення відповідає найдовшій стороні домену (роздільність для інших сторін домену розраховується автоматично)"
 
 
 msgid "Gridlines"
@@ -12622,10 +12510,6 @@ msgid "Logarithmic Dissolve"
 msgstr "Логарифмічне Розчинення"
 
 
-msgid "Dissolve smoke in a logarithmic fashion. Dissolves quickly at first, but lingers longer"
-msgstr "Розчинення диму логарифмічно. Розчиняє швидко спершу, а далі затягується довше"
-
-
 msgid "Create liquid particle system"
 msgstr "Створити систему частинок рідини"
 
@@ -12680,10 +12564,6 @@ msgstr "Здійснити одиничноий розкрій об'єкта д�
 
 msgid "Speed Vectors"
 msgstr "Вектори швидкості"
-
-
-msgid "Caches velocities of mesh vertices. These will be used (automatically) when rendering with motion blur enabled"
-msgstr "Кешує скорості вершин сіті. Вони будуть використовуватися (автоматично) при рендерингу з увімкненим розмивом рухом"
 
 
 msgid "Spray"
@@ -13080,10 +12960,6 @@ msgstr "Задати розмір"
 
 msgid "Set particle size in simulation cells or use nearest cell"
 msgstr "Задати розмір частинки у комірці моделювання або взяти з найближчої комірки"
-
-
-msgid "Treat this object as a planar and unclosed mesh. Fluid will only be emitted from the mesh surface and based on the surface emission value"
-msgstr "Обробляти цей об'єкт як планарну та незакриту сіть. Рідина буде емітуватися лише з поверхні сіті та базуватися на значенні емісії поверхні"
 
 
 msgid "Use Texture"
@@ -13582,66 +13458,6 @@ msgid "Keep the computed view map and avoid recalculating it if mesh geometry is
 msgstr "Зберігати розраховану розкладку вигляду і уникати повторного розрахунку, якщо геометрія сіті не змінилась"
 
 
-msgid "Edit Curve"
-msgstr "Редагувати Криву"
-
-
-msgid "Edition Curve"
-msgstr "Крива Редагування"
-
-
-msgid "Curve Points"
-msgstr "Точки Кривої"
-
-
-msgid "Curve data points"
-msgstr "Точки даних кривої"
-
-
-msgid "Curve is selected for viewport editing"
-msgstr "Крива вибирається для редагування в оглядвікні"
-
-
-msgid "Point Index"
-msgstr "Індекс Точки"
-
-
-msgid "Index of the corresponding grease pencil stroke point"
-msgstr "Індекс відповідної точки штриха нарисного олівця"
-
-
-msgid "Pressure of the grease pencil stroke point"
-msgstr "Натиск точки штриха нарисного олівця"
-
-
-msgid "Color intensity (alpha factor) of the grease pencil stroke point"
-msgstr "Інтенсивність кольору (фактор альфа) точки штриха нарисного олівця"
-
-
-msgid "UV Factor"
-msgstr "Фактор UV"
-
-
-msgid "Internal UV factor"
-msgstr "Внутрішній фактор UV"
-
-
-msgid "UV Rotation"
-msgstr "Обертання UV"
-
-
-msgid "Internal UV factor for dot mode"
-msgstr "Внутрішній фактор UV для скалярного режиму"
-
-
-msgid "Vertex color of the grease pencil stroke point"
-msgstr "Колір вершин для точки штриха нарисного олівця"
-
-
-msgid "Grease Pencil Frame"
-msgstr "Кадр нарисного олівця"
-
-
 msgid "Collection of related sketches on a particular frame"
 msgstr "Колекція пов'язаних нарисів на даному кадрі"
 
@@ -13654,76 +13470,12 @@ msgid "The frame on which this sketch appears"
 msgstr "Кадр, на якому цей нарис з'являється"
 
 
-msgid "Paint Lock"
-msgstr "Заблокувати малювання"
-
-
-msgid "Frame is being edited (painted on)"
-msgstr "Кадр редагується (фарбується)"
-
-
-msgid "Keyframe Type"
-msgstr "Тип Ключкадру"
-
-
-msgid "Type of keyframe"
-msgstr "Тип ключкадру"
-
-
-msgid "Normal keyframe, e.g. for key poses"
-msgstr "Звичайний ключкадр, наприклад для ключових поз"
-
-
-msgid "Breakdown"
-msgstr "Розбивка"
-
-
-msgid "A breakdown pose, e.g. for transitions between key poses"
-msgstr "Поза розбивки, наприклад для переходів між ключовими позами"
-
-
-msgid "Moving Hold"
-msgstr "Утримування Рухання"
-
-
-msgid "A keyframe that is part of a moving hold"
-msgstr "Ключкадр, що є частиною утримання руху"
-
-
-msgid "Extreme"
-msgstr "Екстремально"
-
-
-msgid "An 'extreme' pose, or some other purpose as needed"
-msgstr "«Гранична» або інша нестандартна поза"
-
-
-msgid "Jitter"
-msgstr "Тремтіння"
-
-
-msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
-msgstr "Заповнювач або запечений ключовий кадр для особливих цілей"
-
-
-msgid "Generated"
-msgstr "Генероване"
-
-
 msgid "Frame is selected for editing in the Dope Sheet"
 msgstr "Кадр вибрано для редагування на Аркуші експозицій"
 
 
 msgid "Freehand curves defining the sketch on this frame"
 msgstr "Нарисовані криві, що визначають нарис на цьому кадрі"
-
-
-msgid "Grease Pencil Frames"
-msgstr "Кадри нарисних олівців"
-
-
-msgid "Collection of grease pencil frames"
-msgstr "Колекція кадрів нарисних олівців"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -13740,10 +13492,6 @@ msgstr "Крива інтерполяції"
 
 msgid "Custom curve to control 'sequence' interpolation between Grease Pencil frames"
 msgstr "Нетипова крива для керування інтерполяцією 'відеоряду' між кадрами Нарисного олівця"
-
-
-msgid "Grease Pencil Layer"
-msgstr "Шар нарисного олівця"
 
 
 msgid "Collection of related sketches"
@@ -13794,30 +13542,6 @@ msgid "Maximum number of frames to show before current frame"
 msgstr "Максимальна кількість кадрів для показу перед поточним кадром"
 
 
-msgid "Blend Mode"
-msgstr "Режим Змішання"
-
-
-msgid "Blend mode"
-msgstr "Режим змішання"
-
-
-msgid "Regular"
-msgstr "Звичайний"
-
-
-msgid "Hard Light"
-msgstr "Жорстке Світло"
-
-
-msgid "Custom Channel Color"
-msgstr "Власний колір каналу"
-
-
-msgid "Custom color for animation channel in Dopesheet"
-msgstr "Нетиповий колір для каналу анімації на Аркуші експозицій"
-
-
 msgid "Color for all strokes in this layer"
 msgstr "Колір для усіх штрихів у цьому шарі"
 
@@ -13830,20 +13554,8 @@ msgid "Sketches for this layer on different frames"
 msgstr "Нариси для цього шару на різних кадрах"
 
 
-msgid "Set layer Visibility"
-msgstr "Задати видимість шару"
-
-
 msgid "Layer name"
 msgstr "Назва шару"
-
-
-msgid "Is Parented"
-msgstr "Приріднене"
-
-
-msgid "True when the layer parent object is set"
-msgstr "Вірно, коли задано приріднення шару до об'єкта"
 
 
 msgid "Ruler"
@@ -13852,18 +13564,6 @@ msgstr "Мірник"
 
 msgid "This is a special ruler layer"
 msgstr "Це спеціальний шар мірника"
-
-
-msgid "Thickness Change"
-msgstr "Зміна товщини"
-
-
-msgid "Thickness change to apply to current strokes (in pixels)"
-msgstr "Зміна товщини для застосування до поточних штрихів (у пікселях)"
-
-
-msgid "Values for change location"
-msgstr "Значення для зміни локації"
 
 
 msgid "Locked"
@@ -13882,86 +13582,6 @@ msgid "Lock current frame displayed by layer"
 msgstr "Блокувати поточний кадр, відображений шаром"
 
 
-msgid "Disallow Locked Materials Editing"
-msgstr "Не дозволяти редагування блокованих матеріалів"
-
-
-msgid "Avoids editing locked materials in the layer"
-msgstr "Запобігає редагуванню блокованих матеріалів на цьому шарі"
-
-
-msgid "List of Masking Layers"
-msgstr "Список Шарів Маскування"
-
-
-msgid "Parent inverse transformation matrix"
-msgstr "Матриця трансформування обернено до предка"
-
-
-msgid "Matrix Layer Inverse"
-msgstr "Інверсія Матриці Шару"
-
-
-msgid "Local Layer transformation inverse matrix"
-msgstr "Інверсія матриці трансформації Локального Шару"
-
-
-msgid "Matrix Layer"
-msgstr "Матриця Шару"
-
-
-msgid "Local Layer transformation matrix"
-msgstr "Матриця трансформації Локального Шару"
-
-
-msgid "Layer Opacity"
-msgstr "Безпрозорість Шару"
-
-
-msgid "Parent object"
-msgstr "Предківський об'єкт"
-
-
-msgid "Parent Bone"
-msgstr "Предківська Кістка"
-
-
-msgid "Name of parent bone in case of a bone parenting relation"
-msgstr "Назва кістки-предка у разі зв'язку предок-нащадок"
-
-
-msgid "Parent Type"
-msgstr "Тип Приріднення"
-
-
-msgid "Type of parent relation"
-msgstr "Тип відношення приріднення"
-
-
-msgid "The layer is parented to an object"
-msgstr "Шар приріднений до об'єкта"
-
-
-msgid "The layer is parented to a bone"
-msgstr "Шар приріднений до кості"
-
-
-msgid "Pass Index"
-msgstr "Номер проходу"
-
-
-msgid "Index number for the \"Layer Index\" pass"
-msgstr "Індексний номер для проходу \"Індекс Шару\""
-
-
-msgid "Values for changes in rotation"
-msgstr "Значення для змін в оберті"
-
-
-msgid "Values for changes in scale"
-msgstr "Значення для змін у масштабі"
-
-
 msgid "Layer is selected for editing in the Dope Sheet"
 msgstr "Шар вибрано для редагування на Аркуші експозицій"
 
@@ -13970,28 +13590,8 @@ msgid "In Front"
 msgstr "Напереді"
 
 
-msgid "Show Points"
-msgstr "Показати точки"
-
-
 msgid "Thickness of annotation strokes"
 msgstr "Товщина штрихів анотацій"
-
-
-msgid "Tint Color"
-msgstr "Колір підбарвлення"
-
-
-msgid "Color for tinting stroke colors"
-msgstr "Колір для підбарвлення кольорів штрихів"
-
-
-msgid "Tint Factor"
-msgstr "Фактор підбарвлення"
-
-
-msgid "Factor of tinting color"
-msgstr "Фактор кольору підбарвлення"
 
 
 msgid "Onion Skinning"
@@ -14000,62 +13600,6 @@ msgstr "Покривання Калькою"
 
 msgid "Display annotation onion skins before and after the current frame"
 msgstr "Показати покриви кальки анотацій перед та після поточного кадру"
-
-
-msgid "Use Lights"
-msgstr "Вжити Освітлювачі"
-
-
-msgid "Enable the use of lights on stroke and fill materials"
-msgstr "Увімкнути використання освітлювачів на матеріалах штриха та заповнення"
-
-
-msgid "Use Mask"
-msgstr "Вжити маску"
-
-
-msgid "Display onion skins before and after the current frame"
-msgstr "Показати покриви кальки перед та після поточного кадру"
-
-
-msgid "Solo Mode"
-msgstr "Режим Соло"
-
-
-msgid "Vertex Paint Opacity"
-msgstr "Безпрозорість Малювання Вершин"
-
-
-msgid "Vertex Paint mix factor"
-msgstr "Фактор змішування Малювання Вершин"
-
-
-msgid "ViewLayer"
-msgstr "Шар Огляду"
-
-
-msgid "Only include Layer in this View Layer render output (leave blank to include always)"
-msgstr "Включає лише Шар у вивід рендера цього Шару Огляду (залиште порожнім для включання завжди)"
-
-
-msgid "Grease Pencil Masking Layers"
-msgstr "Шари Маскування Нарисного Олівця"
-
-
-msgid "List of Mask Layers"
-msgstr "Список Шарів Маски"
-
-
-msgid "Set mask Visibility"
-msgstr "Задати Видимість маски"
-
-
-msgid "Invert mask"
-msgstr "Інвертувати маску"
-
-
-msgid "Mask layer name"
-msgstr "Назва шару маски"
 
 
 msgid "Guides for drawing"
@@ -14238,84 +13782,8 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Використати криву для визначення товщини штриха примітива"
 
 
-msgid "Grease Pencil Stroke"
-msgstr "Штрих нарисного олівця"
-
-
 msgid "Freehand curve defining part of a sketch"
 msgstr "Рисована крива, що визначає частину нарису"
-
-
-msgid "Boundbox Max"
-msgstr "Макс Габариткоробки"
-
-
-msgid "Boundbox Min"
-msgstr "Мін Габариткоробки"
-
-
-msgid "Coordinate space that stroke is in"
-msgstr "Простір координат, в якому є цей штрих"
-
-
-msgid "Stroke is in screen-space"
-msgstr "Штрих у просторі екрана"
-
-
-msgid "3D Space"
-msgstr "Тривимірний простір"
-
-
-msgid "Stroke is in 3D-space"
-msgstr "Штрих у 3D-просторі"
-
-
-msgid "2D Space"
-msgstr "Двовимірний простір"
-
-
-msgid "Stroke is in 2D-space"
-msgstr "Штрих у 2D-просторі"
-
-
-msgid "2D Image"
-msgstr "Двовимірне зображення"
-
-
-msgid "Stroke is in 2D-space (but with special 'image' scaling)"
-msgstr "Штрих у 2D-просторі (але з особливим 'малюнковим' масштабуванням)"
-
-
-msgid "Temporary data for Edit Curve"
-msgstr "Тимчасові дані для Редагування Кривої"
-
-
-msgid "Stroke end extreme cap style"
-msgstr "Крайній стиль кришки кінця штриха"
-
-
-msgid "Amount of gradient along section of stroke"
-msgstr "Величина градієнта уздовж секції штриха"
-
-
-msgid "Has Curve Data"
-msgstr "Має Дані Кривої"
-
-
-msgid "Stroke has Curve data to edit shape"
-msgstr "Штрих має дані Кривої для редагування форми"
-
-
-msgid "No Fill"
-msgstr "Нема Заповнення"
-
-
-msgid "Special stroke to use as boundary for filling areas"
-msgstr "Спеціальний штрих для використання як рубежу для областей заповнення"
-
-
-msgid "Thickness of stroke (in pixels)"
-msgstr "Товщина штриха (у пікселях)"
 
 
 msgid "Stroke Points"
@@ -14326,128 +13794,12 @@ msgid "Stroke data points"
 msgstr "Точки даних штриха"
 
 
-msgid "Stroke is selected for viewport editing"
-msgstr "Штрих вибрано для редагування в області вигляду"
-
-
-msgid "Select Index"
-msgstr "Індекс Вибору"
-
-
-msgid "Index of selection used for interpolation"
-msgstr "Індекс вибрання, використовуваний для інтерполяції"
-
-
-msgid "Stroke start extreme cap style"
-msgstr "Крайній стиль кришки початку штриха"
-
-
-msgid "Triangles"
-msgstr "Трикутники"
-
-
-msgid "Triangulation data for HQ fill"
-msgstr "Дані трикутникування для високоякісного заповнення"
-
-
-msgid "Enable cyclic drawing, closing the stroke"
-msgstr "Увімкнути зациклення рисування, що замикає штрих"
-
-
-msgid "Rotation of the UV"
-msgstr "Обертання UV"
-
-
-msgid "UV Scale"
-msgstr "Масштаб UV"
-
-
-msgid "Scale of the UV"
-msgstr "Масштабування UV"
-
-
-msgid "UV Translation"
-msgstr "Пересування UV"
-
-
-msgid "Translation of default UV position"
-msgstr "Пересування стандартної позиції UV"
-
-
-msgid "Vertex Fill Color"
-msgstr "Колір Заповнення Вершини"
-
-
-msgid "Color used to mix with fill color to get final color"
-msgstr "Колір, що використовується для змішування з кольором заповнення для отримання фінального кольору"
-
-
-msgid "Grease Pencil Stroke Point"
-msgstr "Точка штриха нарисного олівця"
-
-
 msgid "Data point for freehand stroke curve"
 msgstr "Точка даних для мальованої кривої"
 
 
 msgid "Coordinates"
 msgstr "Координати"
-
-
-msgid "Pressure of tablet at point when drawing it"
-msgstr "Натиск на планшет при малюванні точки"
-
-
-msgid "Point is selected for viewport editing"
-msgstr "Точку вибрано для редагування в області вигляду"
-
-
-msgid "Color intensity (alpha factor)"
-msgstr "Інтенсивність кольору (фактор альфа)"
-
-
-msgid "UV Fill"
-msgstr "Заповнення UV"
-
-
-msgid "Internal UV factor for filling"
-msgstr "Внутрішній фактор UV для заповнювання"
-
-
-msgid "Color used to mix with point color to get final color"
-msgstr "Колір, що використовується для змішування з кольором точки для отримання фінального кольору"
-
-
-msgid "Grease Pencil Stroke Points"
-msgstr "Точки штрихів нарисних олівців"
-
-
-msgid "Collection of grease pencil stroke points"
-msgstr "Колекція точок штрихів нарисних олівців"
-
-
-msgid "Collection of grease pencil stroke"
-msgstr "Колекція штрихів нарисних олівців"
-
-
-msgid "Triangle"
-msgstr "Трикутник"
-
-
-msgid "Triangulation data for Grease Pencil fills"
-msgstr "Дані трикутникування для заповнень Нарисного Олівця"
-
-
-msgid "First triangle vertex index"
-msgstr "Індекс першої вершини трикутника"
-
-
-msgid "Second triangle vertex index"
-msgstr "Індекс другої вершини трикутника"
-
-
-msgid "Third triangle vertex index"
-msgstr "Індекс третьої вершини трикутника"
 
 
 msgctxt "Operator"
@@ -14700,1286 +14052,172 @@ msgid "Gizmo Properties"
 msgstr "Властивості гізмо"
 
 
-msgid "Modifier name"
-msgstr "Назва модифікатора"
+msgid "Dash"
+msgstr "Пунктир"
 
 
-msgid "Set modifier expanded in the user interface"
-msgstr "Розгорнути панель модифікатора"
+msgid "Material Index"
+msgstr "Індекс матеріалу"
 
 
-msgid "Edit Mode"
-msgstr "Режим Редагування"
+msgid "Attributes"
+msgstr "Атрибути"
 
 
-msgid "Display modifier in Edit mode"
-msgstr "Показати модифікатор у режимі редагування"
+msgid "Geometry attributes"
+msgstr "Атрибути геометрії"
 
 
-msgid "Use modifier during render"
-msgstr "Вжити модифікатор при рендерингу"
+msgid "Reference"
+msgstr "Орієнтир"
 
 
-msgid "Display modifier in viewport"
-msgstr "Показати модифікатор у вікні перегляду"
+msgid "Grease Pencil Frame"
+msgstr "Кадр нарисного олівця"
 
 
-msgid "Texture Mapping"
-msgstr "Розкладання текстури"
+msgid "Keyframe Type"
+msgstr "Тип Ключкадру"
 
 
-msgid "Time Offset"
-msgstr "Часовий зсув"
+msgid "Type of keyframe"
+msgstr "Тип ключкадру"
 
 
-msgid "Offset keyframes"
-msgstr "Зсув ключкадрів"
+msgid "Normal keyframe, e.g. for key poses"
+msgstr "Звичайний ключкадр, наприклад для ключових поз"
 
 
-msgid "Vertex Weight Proximity"
-msgstr "Близкість вагомостей вершин"
+msgid "Breakdown"
+msgstr "Розбивка"
 
 
-msgid "Array"
-msgstr "Масив"
+msgid "A breakdown pose, e.g. for transitions between key poses"
+msgstr "Поза розбивки, наприклад для переходів між ключовими позами"
 
 
-msgid "Create array of duplicate instances"
-msgstr "Створює масив дубльованих примірників"
+msgid "Moving Hold"
+msgstr "Утримування Рухання"
 
 
-msgid "Build"
-msgstr "Побудова"
+msgid "A keyframe that is part of a moving hold"
+msgstr "Ключкадр, що є частиною утримання руху"
 
 
-msgid "Create duplication of strokes"
-msgstr "Створює дублювання штрихів"
+msgid "Extreme"
+msgstr "Екстремально"
 
 
-msgid "Envelope"
-msgstr "Оболонка"
+msgid "An 'extreme' pose, or some other purpose as needed"
+msgstr "«Гранична» або інша нестандартна поза"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Jitter"
+msgstr "Тремтіння"
 
 
-msgid "Duplicate strokes like a mirror"
-msgstr "Дублює штрихи як дзеркалення"
+msgid "A filler or baked keyframe for keying on ones, or some other purpose as needed"
+msgstr "Заповнювач або запечений ключовий кадр для особливих цілей"
 
 
-msgid "Multiple Strokes"
-msgstr "Багато Штрихи"
+msgid "Generated"
+msgstr "Генероване"
 
 
-msgid "Produce multiple strokes along one stroke"
-msgstr "Продукувати багато штрихи уздовж одного штриха"
+msgid "Grease Pencil Frames"
+msgstr "Кадри нарисних олівців"
 
 
-msgid "Simplify stroke reducing number of points"
-msgstr "Спрощує штрих, скорочуючи кількість точок"
+msgid "Grease Pencil Layer"
+msgstr "Шар нарисного олівця"
 
 
-msgid "Subdivide"
-msgstr "Підподіл"
+msgid "Blend Mode"
+msgstr "Режим Змішання"
 
 
-msgid "Subdivide stroke adding more control points"
-msgstr "Підподіляє штрих, додаючи більше керувальних точок"
+msgid "Blend mode"
+msgstr "Режим змішання"
 
 
-msgid "Deform stroke points using armature object"
-msgstr "Деформує точки штриха, використовуючи об'єкт арматури"
+msgid "Regular"
+msgstr "Звичайний"
 
 
-msgid "Hook"
-msgstr "Гачок"
+msgid "Hard Light"
+msgstr "Жорстке Світло"
 
 
-msgid "Deform stroke points using objects"
-msgstr "Деформує точки штриха, використовуючи об'єкти"
-
-
-msgid "Lattice"
-msgstr "Ґратка"
-
-
-msgid "Deform strokes using lattice"
-msgstr "Деформує штрихи, використовуючи решітку"
-
-
-msgid "Add noise to strokes"
-msgstr "Додає шум у штрихи"
-
-
-msgid "Change stroke location, rotation or scale"
-msgstr "Змінює локацію, оберт або масштаб штриха"
-
-
-msgid "Project the shape onto another object"
-msgstr "Проектувати форму на інший об'єкт"
-
-
-msgid "Smooth"
-msgstr "Згладження"
-
-
-msgid "Smooth stroke"
-msgstr "Згладжує штрих"
-
-
-msgid "Change stroke thickness"
-msgstr "Змінює товщину штриха"
-
-
-msgid "Hue/Saturation"
-msgstr "Відтінок/насиченість"
-
-
-msgid "Apply changes to stroke colors"
-msgstr "Застосовує зміни до кольорів штрихів"
-
-
-msgid "Opacity of the strokes"
-msgstr "Безпрозорість штрихів"
-
-
-msgid "Tint strokes with new color"
-msgstr "Підбарвлює штрихи новим кольором"
-
-
-msgid "Armature Modifier"
-msgstr "Модифікатор Арматура"
-
-
-msgid "Change stroke using armature to deform modifier"
-msgstr "Змінює штрих, використовуючи арматуру у модифікаторі деформи"
-
-
-msgid "Invert vertex group influence"
-msgstr "Інвертувати вплив групи вершин"
-
-
-msgid "Armature object to deform with"
-msgstr "Арматурний об'єкт, яким деформувати"
-
-
-msgid "Use Bone Envelopes"
-msgstr "Вжити оболонки кісток"
-
-
-msgid "Bind Bone envelopes to armature modifier"
-msgstr "Прив'язати оболонки кісток до модифікатора арматури"
-
-
-msgid "Use Vertex Groups"
-msgstr "Вжити групи вершин"
-
-
-msgid "Bind vertex groups to armature modifier"
-msgstr "Прив'язати групи вершин до модифікатора арматури"
-
-
-msgid "Name of Vertex Group which determines influence of modifier per point"
-msgstr "Назва групи вершин, що визначає вплив модифікатора на точки"
-
-
-msgid "Instance Modifier"
-msgstr "Модифікатор Примірникування"
-
-
-msgid "Create grid of duplicate instances"
-msgstr "Створює ґратку дубльованих примірників"
-
-
-msgid "Constant Offset"
-msgstr "Постійне зміщення"
-
-
-msgid "Value for the distance between items"
-msgstr "Значення для відстані між елементами"
-
-
-msgid "Number of items"
-msgstr "Кількість елементів"
-
-
-msgid "Inverse Pass"
-msgstr "Інверсія Проходу"
-
-
-msgid "Inverse filter"
-msgstr "Інвертує фільтр"
-
-
-msgid "Inverse Layers"
-msgstr "Інверсія Шарів"
-
-
-msgid "Inverse Materials"
-msgstr "Інверсія Матеріалів"
-
-
-msgid "Pass"
-msgstr "Прохід"
-
-
-msgid "Layer pass index"
-msgstr "Індекс проходу шару"
-
-
-msgid "Material used for filtering effect"
-msgstr "Матеріал, що використовується для ефекту фільтрування"
-
-
-msgid "Use the location and rotation of another object to determine the distance and rotational change between arrayed items"
-msgstr "Використати місце та оберт іншого об'єкта для визначення відстані та оберту елементів масиву"
-
-
-msgid "Pass index"
-msgstr "Індекс проходу"
-
-
-msgid "Random Offset"
-msgstr "Випадковий Зсув"
-
-
-msgid "Value for changes in location"
-msgstr "Значення для змін у локації"
-
-
-msgid "Random Rotation"
-msgstr "Випадковий Оберт"
-
-
-msgid "Value for changes in rotation"
-msgstr "Значення для змін в обертанні"
-
-
-msgid "Value for changes in scale"
-msgstr "Значення для змін у масштабуванні"
-
-
-msgid "Relative Offset"
-msgstr "Відносне зміщення"
-
-
-msgid "The size of the geometry will determine the distance between arrayed items"
-msgstr "Розміри визначатимуть відстань між елементами масиву"
-
-
-msgid "Index of the material used for generated strokes (0 keep original material)"
-msgstr "Індекс матеріалу, використовуваний для генерованих штрихів (0 утримує оригінальний матеріал)"
-
-
-msgid "Random seed"
-msgstr "Базис випадковості"
-
-
-msgid "Enable offset"
-msgstr "Увімкнути зсув"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Додати трансформації іншого об'єкта до загального зміщення"
-
-
-msgid "Shift"
-msgstr "Shift"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Додати зсув відносно габаритної коробки об'єкта"
-
-
-msgid "Uniform Scale"
-msgstr "Рівномірна шкала"
-
-
-msgid "Use the same random seed for each scale axis for a uniform scale"
-msgstr "Вжити той же базис випадковості для кожної осі масштабування для однорідного масштабування"
-
-
-msgid "Build Modifier"
-msgstr "Модифікатор Побудова"
-
-
-msgid "Animate strokes appearing and disappearing"
-msgstr "Анімує появу та зникання штрихів"
-
-
-msgid "Time Alignment"
-msgstr "Вирівняння Часу"
-
-
-msgid "Align Start"
-msgstr "Вирівняння за Стартом"
-
-
-msgid "All strokes start at same time (i.e. short strokes finish earlier)"
-msgstr "Усі штрихи стартують одночасно (тобто, короткі штрихи завершуються раніше)"
-
-
-msgid "Align End"
-msgstr "Вирівняння за Кінцем"
-
-
-msgid "All strokes end at same time (i.e. short strokes start later)"
-msgstr "Усі штрихи закінчуються одночасно (тобто короткі штрихи стартують пізніше)"
-
-
-msgid "End Frame (when Restrict Frame Range is enabled)"
-msgstr "Кадр Кінця (коли увімкнено Обмежування Діапазону Кадрів)"
-
-
-msgid "Start Frame (when Restrict Frame Range is enabled)"
-msgstr "Кадр Старту (коли увімкнено Обмежування Діапазону Кадрів)"
-
-
-msgid "Maximum number of frames that the build effect can run for (unless another GP keyframe occurs before this time has elapsed)"
-msgstr "Максимальна кількість кадрів, упродовж яких може виконуватися ефект вибудовування (якщо тільки інший ключкадр Нарисного Олівця не трапиться перед тим, як цей час мине)"
-
-
-msgid "Sequential"
-msgstr "Послідовно"
-
-
-msgid "Strokes appear/disappear one after the other, but only a single one changes at a time"
-msgstr "Штрихи з'являються/зникають один за одним, але лише єдиний змінюється у часі"
-
-
-msgid "Concurrent"
-msgstr "Паралельно"
-
-
-msgid "Multiple strokes appear/disappear at once"
-msgstr "Одночасно кілька штрихів з'являються/зникають за раз"
-
-
-msgid "Defines how much of the stroke is visible"
-msgstr "Визначає, наскільки штрих є видимим"
-
-
-msgid "Speed Factor"
-msgstr "Коефіцієнт швидкості"
-
-
-msgid "Delay"
-msgstr "Затримка"
-
-
-msgid "Number of frames after each GP keyframe before the modifier has any effect"
-msgstr "Кількість кадрів після кожного ключкадра Нарисного Олівця, перед тим, як цей модифікатор матиме якийсь вплив"
-
-
-msgid "Timing"
-msgstr "Часування"
-
-
-msgid "Transition"
-msgstr "Переміщення"
-
-
-msgid "How are strokes animated (i.e. are they appearing or disappearing)"
-msgstr "Як анімуються штрихи (тобто, вони з'являються чи зникають)"
-
-
-msgid "Grow"
-msgstr "Збільшити"
-
-
-msgid "Show points in the order they occur in each stroke (e.g. for animating lines being drawn)"
-msgstr "Показує точки у порядку, як вони трапляються у кожному штриху (наприклад, для анімування рисування ліній)"
-
-
-msgid "Hide points from the end of each stroke to the start (e.g. for animating lines being erased)"
-msgstr "Ховає точки кожного штриха у порядку з кінця до початку (наприклад, для анімування стирання ліній)"
-
-
-msgid "Hide points in the order they occur in each stroke (e.g. for animating ink fading or vanishing after getting drawn)"
-msgstr "Ховає точки у порядку, як вони трапляються у кожному штриху (наприклад, для анімування вицвітання чорнила або зникання після нарисування)"
-
-
-msgid "Restrict Visible Points"
-msgstr "Обмежити Видимі Точки"
-
-
-msgid "Use a percentage factor to determine the visible points"
-msgstr "Вжити відсотковий фактор для визначення видимих точок"
-
-
-msgid "Only modify strokes during the specified frame range"
-msgstr "Лише модифікує штрих протягом вказаного діапазону кадрів"
-
-
-msgid "Hue/Saturation Modifier"
-msgstr "Модифікатор Відтінок/Насиченість"
-
-
-msgid "Change Hue/Saturation modifier"
-msgstr "Змінює модифікатор Відтінок/Насиченість"
-
-
-msgid "Custom curve to apply effect"
-msgstr "Власна крива для застосування ефекту"
-
-
-msgid "Color Hue"
-msgstr "Відтінок Кольору"
-
-
-msgid "Set what colors of the stroke are affected"
-msgstr "Задає, які кольори штриха задіюються"
-
-
-msgid "Modify fill and stroke colors"
-msgstr "Модифікує кольори заповнення та штриха"
-
-
-msgid "Modify stroke color only"
-msgstr "Модифікує лише колір штриха"
-
-
-msgid "Modify fill color only"
-msgstr "Модифікує лише колір заповнення"
-
-
-msgid "Color Saturation"
-msgstr "Насиченість Кольору"
-
-
-msgid "Custom Curve"
-msgstr "Власна крива"
-
-
-msgid "Use a custom curve to define color effect along the strokes"
-msgstr "Вжити власну криву для визначення ефекту кольору уздовж штрихів"
-
-
-msgid "Color Value"
-msgstr "Значення Кольору"
-
-
-msgid "Inverse VertexGroup"
-msgstr "Інверсія Групи Вершин"
-
-
-msgid "Vertex group name for modulating the deform"
-msgstr "Назва групи вершин для керування деформацією"
-
-
-msgid "Hook Modifier"
-msgstr "Модифікатор Гачок"
-
-
-msgid "Hook modifier to modify the location of stroke points"
-msgstr "Модифікатор Гачок для модифікування локації точок штриха"
-
-
-msgid "Hook Center"
-msgstr "Центр гака"
-
-
-msgid "Falloff Curve"
-msgstr "Крива спаду"
-
-
-msgid "Custom falloff curve"
-msgstr "Власна крива спаду"
-
-
-msgid "If not zero, the distance from the hook where influence ends"
-msgstr "Якщо не нуль, то відстань від гачка, де закінчується вплив"
-
-
-msgctxt "Curve"
-msgid "Falloff Type"
-msgstr "Тип спаду"
-
-
-msgctxt "Curve"
-msgid "No Falloff"
-msgstr "Без спаду"
-
-
-msgctxt "Curve"
-msgid "Curve"
-msgstr "Крива"
-
-
-msgctxt "Curve"
-msgid "Smooth"
-msgstr "Згладжено"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Сфера"
-
-
-msgctxt "Curve"
-msgid "Root"
-msgstr "Корінь"
-
-
-msgctxt "Curve"
-msgid "Inverse Square"
-msgstr "Обернено квадратично"
-
-
-msgctxt "Curve"
-msgid "Sharp"
-msgstr "Гостро"
-
-
-msgctxt "Curve"
-msgid "Linear"
-msgstr "Лінійно"
-
-
-msgctxt "Curve"
-msgid "Constant"
-msgstr "Постійно"
-
-
-msgid "Inverse Vertex Group"
-msgstr "Інверсія Групи Вершин"
-
-
-msgid "Reverse the transformation between this object and its target"
-msgstr "Розвернути трансформування між цим об'єктом та його ціллю"
-
-
-msgid "Parent Object for hook, also recalculates and clears offset"
-msgstr "Об'єкт-предок для гачка; також перераховує і зчищає зміщення"
-
-
-msgid "Relative force of the hook"
-msgstr "Відносна сила гачка"
-
-
-msgid "Name of Parent Bone for hook (if applicable), also recalculates and clears offset"
-msgstr "Назва батьківської кістки для гака (якщо є); також перераховує та зчищає зміщення"
-
-
-msgid "Uniform Falloff"
-msgstr "Однорідний спад"
-
-
-msgid "Compensate for non-uniform object scale"
-msgstr "Компенсувати для не-однорідних масштабів об'єктів"
-
-
-msgid "Lattice Modifier"
-msgstr "Модифікатор Ґратка"
-
-
-msgid "Lattice object to deform with"
-msgstr "Об'єкт-ґратка, яким деформувати"
-
-
-msgid "Strength of modifier effect"
-msgstr "Сила ефекту модифікатора"
-
-
-msgid "Point Density"
-msgstr "Щільність точок"
-
-
-msgid "Step"
-msgstr "Крок"
-
-
-msgid "Use random values over time"
-msgstr "Вживати випадкові значення з часом"
-
-
-msgid "Overscan"
-msgstr "Понадпрогляд"
-
-
-msgid "Shaded"
-msgstr "Відтінено"
-
-
-msgid "Boundaries"
-msgstr "Рубежі"
-
-
-msgid "Mirror Modifier"
-msgstr "Модифікатор Дзеркалення"
-
-
-msgid "Create mirroring strokes"
-msgstr "Створити дзеркалення штрихів"
-
-
-msgid "Object used as center"
-msgstr "Об'єкт, використовуваний як центр"
-
-
-msgid "Mirror the X axis"
-msgstr "Дзеркалення по осі X"
-
-
-msgid "Mirror the Y axis"
-msgstr "Дзеркалення по осі Y"
-
-
-msgid "Mirror the Z axis"
-msgstr "Дзеркалення по осі Z"
-
-
-msgid "Multiply Modifier"
-msgstr "Модифікатор Множення"
-
-
-msgid "Generate multiple strokes from one stroke"
-msgstr "Генерувати багато штрихи з одного штриха"
-
-
-msgid "Distance of duplications"
-msgstr "Відстань дуплікацій"
-
-
-msgid "Duplicates"
-msgstr "Дублікати"
-
-
-msgid "How many copies of strokes be displayed"
-msgstr "Скільки копій штрихів буде показуватися"
-
-
-msgid "Fade center"
-msgstr "Центр зникання"
-
-
-msgid "Fade influence of stroke's opacity"
-msgstr "Вплив зникання безпрозорості штриха"
-
-
-msgid "Fade influence of stroke's thickness"
-msgstr "Вплив зникання товщини штриха"
-
-
-msgid "Offset of duplicates. -1 to 1: inner to outer"
-msgstr "Зсув дублікатів. від -1 до 1: ізсередини до назовні"
-
-
-msgid "Fade"
-msgstr "Зникання"
-
-
-msgid "Fade the stroke thickness for each generated stroke"
-msgstr "Зникання товщини штриха для кожного генерованого штриха"
-
-
-msgid "Noise Modifier"
-msgstr "Модифікатор Шум"
-
-
-msgid "Noise effect modifier"
-msgstr "Модифікатор впливу шуму"
-
-
-msgid "Amount of noise to apply"
-msgstr "Величина шуму для застосування"
-
-
-msgid "Strength Factor"
-msgstr "Фактор Сили"
-
-
-msgid "Amount of noise to apply to opacity"
-msgstr "Величина шуму для застосування до безпрозорості"
-
-
-msgid "Thickness Factor"
-msgstr "Фактор Товщини"
-
-
-msgid "Amount of noise to apply to thickness"
-msgstr "Величина шуму для застосування до товщини"
-
-
-msgid "Noise Offset"
-msgstr "Зсув Шуму"
-
-
-msgid "Offset the noise along the strokes"
-msgstr "Зсув шуму вздовж штрихів"
-
-
-msgid "Scale the noise frequency"
-msgstr "Масштабувати частотність шуму"
-
-
-msgid "Steps"
-msgstr "Кроки"
-
-
-msgid "Noise Seed"
-msgstr "Базис Шуму"
-
-
-msgid "Use a custom curve to define noise effect along the strokes"
-msgstr "Вжити власну криву для визначення ефекту шуму уздовж штрихів"
-
-
-msgid "Offset Modifier"
-msgstr "Модифікатор Зсув"
-
-
-msgid "Offset Stroke modifier"
-msgstr "Модифікатор Зсув Штриха"
-
-
-msgid "Start Offset"
-msgstr "Початковий зсув"
-
-
-msgid "Opacity Modifier"
-msgstr "Модифікатор Безпрозорість"
-
-
-msgid "Opacity of Strokes modifier"
-msgstr "Модифікатор Безпрозорості Штрихів"
-
-
-msgid "Opacity Factor"
-msgstr "Фактор Безпрозорості"
-
-
-msgid "Factor of Opacity"
-msgstr "Фактор Безпрозорості"
-
-
-msgid "Factor of stroke hardness"
-msgstr "Фактор жорсткості штриха"
-
-
-msgid "Modify stroke hardness"
-msgstr "Модифікувати жорсткість штриха"
-
-
-msgid "Use a custom curve to define opacity effect along the strokes"
-msgstr "Вжити власну криву для визначення ефекту безпрозорості уздовж штрихів"
-
-
-msgid "Uniform Opacity"
-msgstr "Рівномірна Безпрозорість"
-
-
-msgid "Replace the stroke opacity"
-msgstr "Замінити безпрозорість штриха"
-
-
-msgid "Target Object"
-msgstr "Цільовий об'єкт"
-
-
-msgid "Subdivisions"
-msgstr "Поділи"
-
-
-msgid "Number of subdivisions"
-msgstr "Кількість підподілень"
-
-
-msgid "Keep Shape"
-msgstr "Зберегти форму"
-
-
-msgid "Shrinkwrap Modifier"
-msgstr "Модифікатор Обтягування"
-
-
-msgid "Shrink wrapping modifier to shrink wrap and object to a target"
-msgstr "Модифікатор обгортки для 'обтягування' об'єктом цільового об'єкта"
-
-
-msgid "Auxiliary Target"
-msgstr "Допоміжна ціль"
-
-
-msgid "Additional mesh target to shrink to"
-msgstr "Додаткова цільова сіть, до якої стиснути"
-
-
-msgid "Distance to keep from the target"
-msgstr "Підтримувана відстань до цільового об'єкта"
-
-
-msgid "Project Limit"
-msgstr "Межа проєктування"
-
-
-msgid "Subdivision Levels"
-msgstr "Рівні Підподілення"
-
-
-msgid "Number of subdivisions that must be performed before extracting vertices' positions and normals"
-msgstr "Кількість поділів, які мають бути виконані до отримання позицій вершин та нормалей"
-
-
-msgid "Mesh target to shrink to"
-msgstr "Цільова сіть, яку слід обтягнути"
-
-
-msgid "When projecting in the negative direction invert the face cull mode"
-msgstr "При проєктуванні у від'ємному напрямку інвертувати режим відкидання граней"
-
-
-msgid "Negative"
-msgstr "Негативний"
-
-
-msgid "Allow vertices to move in the negative direction of axis"
-msgstr "Дозволити вершинам рухатися у від'ємному напрямі осі"
-
-
-msgid "Positive"
-msgstr "Додатний"
-
-
-msgid "Allow vertices to move in the positive direction of axis"
-msgstr "Дозволити вершинам рухатися в додатному напрямі осі"
-
-
-msgid "Wrap Method"
-msgstr "Метод Обгортання"
-
-
-msgid "Shrink the mesh to the nearest target surface"
-msgstr "Стиснути сіть до найближчої цільової поверхні"
-
-
-msgid "Shrink the mesh to the nearest target surface along a given axis"
-msgstr "Стиснути сіть до найближчої цільової поверхні вздовж заданої осі"
-
-
-msgid "Shrink the mesh to the nearest target vertex"
-msgstr "Стиснути сіть до найближчої цільової вершини"
-
-
-msgid "Shrink the mesh to the nearest target surface along the interpolated vertex normals of the target"
-msgstr "Скоротити сіть до найближчої цільової поверхні уздовж інтерпольованих нормалей вершин цілі"
-
-
-msgid "Select how vertices are constrained to the target surface"
-msgstr "Вибрати, як вершини примушуються до цільової поверхні"
-
-
-msgid "Simplify Modifier"
-msgstr "Модифікатор Спрощення"
-
-
-msgid "Simplify Stroke modifier"
-msgstr "Модифікатор Спрощення Штриха"
-
-
-msgid "Distance between points"
-msgstr "Відстань між вершинами"
-
-
-msgid "Factor of Simplify"
-msgstr "Фактор Спрощення"
-
-
-msgid "Length of each segment"
-msgstr "Довжина кожного сегмента"
-
-
-msgid "How to simplify the stroke"
-msgstr "Як спрощувати штрих"
-
-
-msgid "Fixed"
-msgstr "Фіксовано"
-
-
-msgid "Delete alternating vertices in the stroke, except extremes"
-msgstr "Видалити поперемінні вершини у штриху, за винятком екстремумів"
-
-
-msgid "Adaptive"
-msgstr "Адаптивно"
-
-
-msgid "Use a Ramer-Douglas-Peucker algorithm to simplify the stroke preserving main shape"
-msgstr "Вжити алгоритм Рамера-Дугласа-Пекера для спрощення штриха, зберігаючи основну форму"
-
-
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Re-sample the stroke with segments of the specified length"
-msgstr "Повторно відібрати штрих зі сегментами визначеної довжини"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Simplify the stroke by merging vertices closer than a given distance"
-msgstr "Спростити штрих шляхом злиття вершин, що ближчі, ніж задана відстань"
-
-
-msgid "Sharp Threshold"
-msgstr "Гострий поріг"
-
-
-msgid "Number of times to apply simplify"
-msgstr "Кількість разів для застосування спрощення"
-
-
-msgid "Smooth Modifier"
-msgstr "Модифікатор згладжування"
-
-
-msgid "Smooth effect modifier"
-msgstr "Модифікатор ефекту згладження"
-
-
-msgid "Amount of smooth to apply"
-msgstr "Величина згладження для застосування"
-
-
-msgid "Number of times to apply smooth (high numbers can reduce fps)"
-msgstr "Кількість разів для застосування згладження (більші значення можуть зменшувати частоту кадрів відтворення)"
-
-
-msgid "Use a custom curve to define smooth effect along the strokes"
-msgstr "Вжити власну криву для визначення ефекту згладження уздовж штрихів"
-
-
-msgid "The modifier affects the position of the point"
-msgstr "Модифікатор задіює позицію точки"
-
-
-msgid "The modifier affects the color strength of the point"
-msgstr "Модифікатор задіює силу кольору точки"
-
-
-msgid "The modifier affects the thickness of the point"
-msgstr "Модифікатор задіює товщину точки"
-
-
-msgid "The modifier affects the UV rotation factor of the point"
-msgstr "Модифікатор задіює фактор обертання UV для точки"
-
-
-msgid "Subdivision Modifier"
-msgstr "Модифікатор Підподілення"
-
-
-msgid "Subdivide Stroke modifier"
-msgstr "Модифікатор Підподілення Штриха"
-
-
-msgid "Subdivision Type"
-msgstr "Тип поділу"
-
-
-msgid "Select type of subdivision algorithm"
-msgstr "Виберіть тип алгоритму поділу"
-
-
-msgid "Catmull-Clark"
-msgstr "Катмул-Кларк"
-
-
-msgid "Simple"
-msgstr "Простий"
-
-
-msgid "Texture Modifier"
-msgstr "Модифікатор Текстур"
-
-
-msgid "Transform stroke texture coordinates Modifier"
-msgstr "Модифікатор трансформи координат текстури штриха"
-
-
-msgid "Additional rotation applied to dots and square strokes"
-msgstr "Додаткове обертання застосоване до крапок та квадратиків штрихів"
-
-
-msgid "Fill Offset"
-msgstr "Зсув Заповнення"
-
-
-msgid "Additional offset of the fill UV"
-msgstr "Додатковий зсув UV заповнення"
-
-
-msgid "Fill Rotation"
-msgstr "Обертання Заповнення"
-
-
-msgid "Additional rotation of the fill UV"
-msgstr "Додаткове обертання UV заповнення"
-
-
-msgid "Fill Scale"
-msgstr "Масштаб Заповнення"
-
-
-msgid "Additional scale of the fill UV"
-msgstr "Додаткове масштабування UV заповнення"
-
-
-msgid "Fit Method"
-msgstr "Метод підгонки"
-
-
-msgid "Constant Length"
-msgstr "Постійна Довжина"
-
-
-msgid "Keep the texture at a constant length regardless of the length of each stroke"
-msgstr "Утримувати текстуру на постійній довжині незалежно від довжини кожного штриха"
-
-
-msgid "Stroke Length"
-msgstr "Довжина Штриха"
-
-
-msgid "Scale the texture to fit the length of each stroke"
-msgstr "Масштабувати текстуру для припасування до кожного штриха"
-
-
-msgid "Manipulate only stroke texture coordinates"
-msgstr "Маніпулювати лише координатами текстури штриха"
-
-
-msgid "Manipulate only fill texture coordinates"
-msgstr "Маніпулювати лише координатами текстури заповнення"
-
-
-msgid "Manipulate both stroke and fill texture coordinates"
-msgstr "Маніпулювати координатами текстури як штриха, так і заповнення"
-
-
-msgid "UV Offset"
-msgstr "Зсув UV"
-
-
-msgid "Offset value to add to stroke UVs"
-msgstr "Значення зсуву для додання до UVт штриха"
-
-
-msgid "Factor to scale the UVs"
-msgstr "Фактор для масштабування UVт"
-
-
-msgid "Thick Modifier"
-msgstr "Модифікатор Товстіння"
-
-
-msgid "Subdivide and Smooth Stroke modifier"
-msgstr "Модифікатор Підподілу та Згладження Штриха"
-
-
-msgid "Absolute thickness to apply everywhere"
-msgstr "Абсолютна товщина для застосування скрізь"
-
-
-msgid "Factor to multiply the thickness with"
-msgstr "Фактор для множення на товщину"
-
-
-msgid "Use a custom curve to define thickness change along the strokes"
-msgstr "Вжити власну криву для визначення зміни товщини уздовж штрихів"
-
-
-msgid "Uniform Thickness"
-msgstr "Рівномірна Товщина"
-
-
-msgid "Replace the stroke thickness"
-msgstr "Замінити товщину штриха"
-
-
-msgid "Time Offset Modifier"
-msgstr "Модифікатор Зсув Часу"
-
-
-msgid "Time offset modifier"
-msgstr "Модифікатор зсуву часу"
-
-
-msgid "Final frame of the range"
-msgstr "Фінальний кадр діапазону"
-
-
-msgid "Frame Scale"
-msgstr "Масштаб кадру"
-
-
-msgid "Evaluation time in seconds"
-msgstr "Розраховувати час у секундах"
-
-
-msgid "First frame of the range"
-msgstr "Перший кадр діапазону"
-
-
-msgid "Apply offset in usual animation direction"
-msgstr "Застосування зсуву у звичайному напрямку анімації"
-
-
-msgid "Reverse"
-msgstr "Зворотно"
-
-
-msgid "Apply offset in reverse animation direction"
-msgstr "Застосовує зсув у зворотному напрямку анімації"
-
-
-msgid "Fixed Frame"
-msgstr "Фіксований Кадр"
-
-
-msgid "Keep frame and do not change with time"
-msgstr "Утримує кадр та не змінює його з часом"
-
-
-msgid "Frame Offset"
-msgstr "Зсув кадрів"
-
-
-msgid "Number of frames to offset original keyframe number or frame to fix"
-msgstr "Кількість кадрів для зсуву оригінального номера ключкадра або кадр для зафіксування"
-
-
-msgid "Custom Range"
-msgstr "Власний діапазон"
-
-
-msgid "Define a custom range of frames to use in modifier"
-msgstr "Визначити власний діапазон кадрів для використання у модифікаторі"
-
-
-msgid "Keep Loop"
-msgstr "Утримання Зациклення"
-
-
-msgid "Retiming end frames and move to start of animation to keep loop"
-msgstr "Перечасовує кінцеві кадри та переміщує старт анімації, щоб утримувати зациклення"
-
-
-msgid "Tint Modifier"
-msgstr "Модифікатор Підбарвлення"
-
-
-msgid "Tint modifier"
-msgstr "Модифікатор підбарвлення"
-
-
-msgid "Color used for tinting"
-msgstr "Колір, використовуваний для підбарвлення"
-
-
-msgid "Color ramp used to define tinting colors"
-msgstr "Градієнт кольорів, що використовується для визначення кольорів підбарвлювання"
-
-
-msgid "Factor for tinting"
-msgstr "Фактор для підбарвлення"
-
-
-msgid "Parent object to define the center of the effect"
-msgstr "Предківський об'єкт для визначення центра ефекту"
-
-
-msgid "Defines the maximum distance of the effect"
-msgstr "Визначає максимальну відстань ефекту"
-
-
-msgid "Tint Type"
-msgstr "Тип Підбарвлення"
-
-
-msgid "Select type of tinting algorithm"
-msgstr "Вибрати тип алгоритму підбарвлювання"
-
-
-msgid "Use a custom curve to define vertex color effect along the strokes"
-msgstr "Вжити власну криву для визначення ефекту кольору вершин уздовж штрихів"
-
-
-msgid "Space"
-msgstr "Пропуск"
-
-
-msgid "Highest"
-msgstr "Верхній"
-
-
-msgid "Lowest"
-msgstr "Нижній"
-
-
-msgid "Vertex Group Element"
-msgstr "Елемент групи вершин"
-
-
-msgid "Weight value of a vertex in a vertex group"
-msgstr "Значення вагомості вершини у групі вершин"
-
-
-msgid "Group Index"
-msgstr "Індекс групи"
-
-
-msgid "Vertex Weight"
-msgstr "Вагомість вершини"
-
-
-msgid "Grid and Canvas Settings"
-msgstr "Устави Сітки та Полотна"
-
-
-msgid "Settings for grid and canvas in 3D viewport"
-msgstr "Устави для сітки та полотна у вікні 3D-огляду"
-
-
-msgid "Grid Color"
-msgstr "Колір Сітки"
-
-
-msgid "Color for grid lines"
-msgstr "Колір для ліній сітки"
-
-
-msgid "Grid Subdivisions"
-msgstr "Поділи сітки"
-
-
-msgid "Number of subdivisions in each side of symmetry line"
-msgstr "Кількість підподілень у кожний бік лінії симетрії"
-
-
-msgid "Offset of the canvas"
-msgstr "Зсув полотна"
-
-
-msgid "Grid Scale"
-msgstr "Масштаб сітки"
-
-
-msgid "Grid scale"
-msgstr "Масштаб сітки"
+msgid "List of Masking Layers"
+msgstr "Список Шарів Маскування"
 
 
 msgid "Local Matrix"
 msgstr "Локальна Матриця"
 
 
+msgid "Layer Opacity"
+msgstr "Безпрозорість Шару"
+
+
+msgid "Parent object"
+msgstr "Предківський об'єкт"
+
+
+msgid "Parent Bone"
+msgstr "Предківська Кістка"
+
+
+msgid "Pass Index"
+msgstr "Номер проходу"
+
+
+msgid "Index number for the \"Layer Index\" pass"
+msgstr "Індексний номер для проходу \"Індекс Шару\""
+
+
 msgid "Translation"
 msgstr "Переміщення"
+
+
+msgid "Use Lights"
+msgstr "Вжити Освітлювачі"
+
+
+msgid "Enable the use of lights on stroke and fill materials"
+msgstr "Увімкнути використання освітлювачів на матеріалах штриха та заповнення"
+
+
+msgid "Display onion skins before and after the current frame"
+msgstr "Показати покриви кальки перед та після поточного кадру"
+
+
+msgid "ViewLayer"
+msgstr "Шар Огляду"
+
+
+msgid "Only include Layer in this View Layer render output (leave blank to include always)"
+msgstr "Включає лише Шар у вивід рендера цього Шару Огляду (залиште порожнім для включання завжди)"
+
+
+msgid "Grease Pencil Masking Layers"
+msgstr "Шари Маскування Нарисного Олівця"
+
+
+msgid "List of Mask Layers"
+msgstr "Список Шарів Маски"
+
+
+msgid "Set mask Visibility"
+msgstr "Задати Видимість маски"
+
+
+msgid "Invert mask"
+msgstr "Інвертувати маску"
+
+
+msgid "Mask layer name"
+msgstr "Назва шару маски"
 
 
 msgid "Grease Pencil Mask Layers"
@@ -15998,24 +14236,8 @@ msgid "Active index in layer mask array"
 msgstr "Активний індекс у масиві шарів маски"
 
 
-msgid "Grease Pencil Layers"
-msgstr "Шари нарисного олівця"
-
-
-msgid "Collection of grease pencil layers"
-msgstr "Колекція шарів нарисних олівців"
-
-
-msgid "Active grease pencil layer"
-msgstr "Активний шар нарисного олівця"
-
-
 msgid "Active Layer Index"
 msgstr "Індекс активного шару"
-
-
-msgid "Index of active grease pencil layer"
-msgstr "Індекс активного шару нарисного олівця"
 
 
 msgid "Active Note"
@@ -16026,12 +14248,28 @@ msgid "Note/Layer to add annotation strokes to"
 msgstr "Нотатка/Шар для додання штрихів анотації"
 
 
+msgid "Apply offset in usual animation direction"
+msgstr "Застосування зсуву у звичайному напрямку анімації"
+
+
+msgid "Reverse"
+msgstr "Зворотно"
+
+
+msgid "Apply offset in reverse animation direction"
+msgstr "Застосовує зсув у зворотному напрямку анімації"
+
+
 msgid "Repeat"
 msgstr "Повтор"
 
 
 msgid "Frame Start"
 msgstr "Початковий кадр"
+
+
+msgid "Grease Pencil Layers"
+msgstr "Шари нарисного олівця"
 
 
 msgid "Active Grease Pencil layer"
@@ -16088,6 +14326,10 @@ msgstr "Шрифт"
 
 msgid "Key"
 msgstr "Ключ"
+
+
+msgid "Lattice"
+msgstr "Ґратка"
 
 
 msgid "Library"
@@ -16313,6 +14555,10 @@ msgstr "B-кістка"
 
 msgid "Display bones as boxes, showing subdivision and B-Splines"
 msgstr "Показати кістки, як паралелепіпеди, показуючи поділи та B-сплайни"
+
+
+msgid "Envelope"
+msgstr "Оболонка"
 
 
 msgid "Display bones as extruded spheres, showing deformation influence volume"
@@ -16867,10 +15113,6 @@ msgid "Maximum distance to search for disconnected loose parts in the mesh"
 msgstr "Максимальна відстань для пошуку від'єднаних незв'язаних частин у сіті"
 
 
-msgid "Poisson ratio for elastic deformation. Higher values preserve volume more, but also lead to more bulging"
-msgstr "Пропорція Пуассона для еластичної деформації. Вищі значення зберігають більше об'єм, але також призводять до більшого випинання"
-
-
 msgid "Falloff Angle"
 msgstr "Кут спаду"
 
@@ -17259,6 +15501,10 @@ msgid "Secondary Color"
 msgstr "Вторинний колір"
 
 
+msgid "Sharp Threshold"
+msgstr "Гострий поріг"
+
+
 msgid "Threshold below which, no sharpening is done"
 msgstr "Порг, нижче від якого загострювання не виконується"
 
@@ -17367,6 +15613,10 @@ msgid "Allows a single dot to be carefully positioned"
 msgstr "Дозволяє точно розмістити окрему точку"
 
 
+msgid "Space"
+msgstr "Пропуск"
+
+
 msgid "Limit brush application to the distance specified by spacing"
 msgstr "Обмежити застосування пензля відстанню, заданою інтервалом"
 
@@ -17453,10 +15703,6 @@ msgstr "Масштаб верхівки пензля по осі X"
 
 msgid "Topology Rake"
 msgstr "Гребінка Топології"
-
-
-msgid "Automatically align edges to the brush direction to generate cleaner topology and define sharp features. Best used on low-poly meshes as it has a performance impact"
-msgstr "Автоматично вирівнювати ребра у напрямку пензля для генерування чистішої топології та визначення чітких рис. Найкраще використовується на низько-полігональних сітях, оскільки має вплив на продуктивність"
 
 
 msgid "Unprojected Radius"
@@ -17919,6 +16165,10 @@ msgid "The time to use for looking up the data in the cache file, or to determin
 msgstr "Час, використовуваний для пошуку даних у файлі кешу або для визначення, який файл використовувати у послідовності файлів"
 
 
+msgid "Frame Offset"
+msgstr "Зсув кадрів"
+
+
 msgid "Subtracted from the current frame to use for looking up the data in the cache file, or to determine which file to use in a file sequence"
 msgstr "Віднято від поточного кадру для використання для пошуку даних у файлі кешу або для визначення, який файл використовувати у послідовності файлів"
 
@@ -17995,6 +16245,14 @@ msgid "List of background images"
 msgstr "Список зображень для фону"
 
 
+msgid "Max Longitude"
+msgstr "Найбільша довгота"
+
+
+msgid "Min Longitude"
+msgstr "Найменша довгота"
+
+
 msgid "Clip End"
 msgstr "Обрізати кінець"
 
@@ -18067,16 +16325,8 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Задати об'єктив кутом поля зору"
 
 
-msgid "Max Longitude"
-msgstr "Найбільша довгота"
-
-
 msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
 msgstr "Максимальна довгота (горизонтальний кут) для рівнопроміжкових об'єктивів"
-
-
-msgid "Min Longitude"
-msgstr "Найменша довгота"
 
 
 msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
@@ -18939,14 +17189,6 @@ msgid "Don't fill polygons while editing"
 msgstr "Не заповнювати багатокутників при редагуванні"
 
 
-msgid "Attributes"
-msgstr "Атрибути"
-
-
-msgid "Geometry attributes"
-msgstr "Атрибути геометрії"
-
-
 msgid "Normals"
 msgstr "Нормалі"
 
@@ -19535,24 +17777,8 @@ msgid "Freehand annotation sketchbook"
 msgstr "Блокнот для нарисів та нотаток"
 
 
-msgid "Curve conversion error threshold"
-msgstr "Поріг помилки конверсії кривої"
-
-
-msgid "Curve Resolution"
-msgstr "Роздільність Кривої"
-
-
-msgid "Number of segments generated between control points when editing strokes in curve mode"
-msgstr "Кількість сегментів, генерованих між керувальними точками при редагуванні штрихів у режимі кривої"
-
-
-msgid "Edit Line Color"
-msgstr "Колір Лінії Редагування"
-
-
-msgid "Color for editing line"
-msgstr "Колір для лінії правлення"
+msgid "Grease Pencil data-block"
+msgstr "Блоки даних нарисного олівця"
 
 
 msgid "Maximum number of frames to show after current frame (0 = don't show any frames after current)"
@@ -19561,54 +17787,6 @@ msgstr "Максимальна кількість кадрів для показ
 
 msgid "Maximum number of frames to show before current frame (0 = don't show any frames before current)"
 msgstr "Максимальна кількість кадрів для показу перед поточним кадром (0 = не показувати жодні кадри перед поточним)"
-
-
-msgid "Grid Settings"
-msgstr "Устави Сітки"
-
-
-msgid "Settings for grid and canvas in the 3D viewport"
-msgstr "Устави для сітки та полотна у вікні 3D-огляду"
-
-
-msgid "Annotation"
-msgstr "Анотація"
-
-
-msgid "Current data-block is an annotation"
-msgstr "Поточний блок даних є анотацією"
-
-
-msgid "Stroke Paint Mode"
-msgstr "Режим Малювання Штриха"
-
-
-msgid "Draw Grease Pencil strokes on click/drag"
-msgstr "Рисує штрихи Нарисного Олівця при клацку/перетягу"
-
-
-msgid "Stroke Sculpt Mode"
-msgstr "Режим Ліплення Штриха"
-
-
-msgid "Sculpt Grease Pencil strokes instead of viewport data"
-msgstr "Ліпити штрихи Нарисного олівця замість даних з вікна огляду"
-
-
-msgid "Stroke Vertex Paint Mode"
-msgstr "Режим Малювання Вершин Штриха"
-
-
-msgid "Grease Pencil vertex paint"
-msgstr "Малювання вершин Нарисного Олівця"
-
-
-msgid "Stroke Weight Paint Mode"
-msgstr "Режим Малювання Вагомостей Штриха"
-
-
-msgid "Grease Pencil weight paint"
-msgstr "Малювання вагомостей Нарисного Олівця"
 
 
 msgid "Onion Opacity"
@@ -19651,10 +17829,6 @@ msgid "Only selected keyframes"
 msgstr "Лише виділені ключкадри"
 
 
-msgid "Scale conversion factor for pixel size (use larger values for thicker lines)"
-msgstr "Фактор перетворення масштабу для піксельного розміру (використовуйте більші значення для товстіших ліній)"
-
-
 msgid "Stroke Depth Order"
 msgstr "Порядок Глибини Штрихів"
 
@@ -19679,44 +17853,8 @@ msgid "Display strokes using real 3D position in 3D space"
 msgstr "Показ штрихів використовує реальну 3D-позицію у 3D-просторі"
 
 
-msgid "Stroke Thickness"
-msgstr "Товщина Штриха"
-
-
-msgid "Set stroke thickness in screen space or world space"
-msgstr "Задання товщини штриха у просторі екрана або просторі світу"
-
-
-msgid "Set stroke thickness relative to the world space"
-msgstr "Задання товщини штриха відносно простору світу"
-
-
-msgid "Screen Space"
-msgstr "Простір екрана"
-
-
-msgid "Set stroke thickness relative to the screen space"
-msgstr "Задання товщини штриха відносно простору екрана"
-
-
-msgid "Adaptive Resolution"
-msgstr "Адаптивна Роздільність"
-
-
-msgid "Set the resolution of each editcurve segment dynamically depending on the length of the segment. The resolution is the number of points generated per unit distance"
-msgstr "Задається роздільність кожного сегмента кривої редагування динамічно, залежно від довжини сегмента. Ця роздільність є кількістю точок, генерованих на кожну одиницю відстані"
-
-
 msgid "Auto-Lock Layers"
 msgstr "Авто-Блокувати Шари"
-
-
-msgid "Curve Editing"
-msgstr "Редагування Кривою"
-
-
-msgid "Edit strokes using curve handles"
-msgstr "Редагувати штрихи за допомогою держаків кривої"
 
 
 msgid "Use Custom Ghost Colors"
@@ -19727,20 +17865,8 @@ msgid "Use custom colors for ghost frames"
 msgstr "Використати власні кольори для кадрів привидів"
 
 
-msgid "Always Show Ghosts"
-msgstr "Завжди показувати привиди"
-
-
-msgid "Ghosts are shown in renders and animation playback. Useful for special effects (e.g. motion blur)"
-msgstr "Привиди показуються у рендерах та програванні анімації. Корисно для спеціальних ефектів (наприклад, розмиву рухом)"
-
-
-msgid "Multiframe"
-msgstr "Багатокадр"
-
-
-msgid "Edit strokes from multiple grease pencil keyframes at the same time (keyframes must be selected to be included)"
-msgstr "Править штрихи з одночасно кількох ключкадрів нарисного олівця (ключкадри повинні бути виділеними, щоб задіюватися)"
+msgid "Fade"
+msgstr "Зникання"
 
 
 msgid "Display onion keyframes with a fade in color transparency"
@@ -19755,34 +17881,6 @@ msgid "Display onion keyframes for looping animations"
 msgstr "Показувати калькові ключкадри для зациклювання анімацій"
 
 
-msgid "Onion Skins"
-msgstr "Покриви Калькою"
-
-
-msgid "Show ghosts of the keyframes before and after the current frame"
-msgstr "Показує привиди ключкадрів перед та після поточного кадру"
-
-
-msgid "Stroke Edit Mode"
-msgstr "Режим Редагування Штриха"
-
-
-msgid "Edit Grease Pencil strokes instead of viewport data"
-msgstr "Редагувати штрихи нарисного олівця замість даних з вигляду"
-
-
-msgid "Surface Offset"
-msgstr "Зсув Поверхні"
-
-
-msgid "Offset amount when drawing in surface mode"
-msgstr "Величина зсуву при рисуванні у режимі поверхні"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Блоки даних нарисного олівця"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "Блок даних зображення, що посилається на зовнішнє або упаковане зображення"
 
@@ -19795,24 +17893,12 @@ msgid "Representation of alpha in the image file, to convert to and from when sa
 msgstr "Представлення альфа у файлі зображення, для конвертування в яке та з якого при збереженні та завантаженні зображення"
 
 
-msgid "Store RGB and alpha channels separately with alpha acting as a mask, also known as unassociated alpha. Commonly used by image editing applications and file formats like PNG"
-msgstr "Зберігати RGB та канали альфа окремо від альфа, що діє як маска, також відоме як неасоційоване альфа. Поширено використовується застосунками редагування зображень та форматами файлів як PNG"
-
-
 msgid "Premultiplied"
 msgstr "Передмножене"
 
 
-msgid "Store RGB channels with alpha multiplied in, also known as associated alpha. The natural format for renders and used by file formats like OpenEXR"
-msgstr "Зберігати RGB з помноженим альфа, також відоме як асоційоване альфа. Природний формат для рендерів та вживається форматами файлів як OpenEXR"
-
-
 msgid "Channel Packed"
 msgstr "Канал Упаковано"
-
-
-msgid "Different images are packed in the RGB and alpha channels, and they should not affect each other. Channel packing is commonly used by game engines to save memory"
-msgstr "Різні зображення упаковуються у канали RGB та альфа, і вони не повинні впливати один на одного. Пакування каналу поширено вживається рушіями ігор для заощадження пам'яті"
 
 
 msgid "Ignore alpha channel from the file and make image fully opaque"
@@ -20685,6 +18771,10 @@ msgid "Resolution Z"
 msgstr "Роздільність Z"
 
 
+msgid "Surface Offset"
+msgstr "Зсув Поверхні"
+
+
 msgid "Mask data-block defining mask for compositing"
 msgstr "Блок даних маски, що визначає маску для компонування"
 
@@ -21061,16 +19151,8 @@ msgid "Adaptivity"
 msgstr "Адаптивність"
 
 
-msgid "Reduces the final face count by simplifying geometry where detail is not needed, generating triangles. A value greater than 0 disables Fix Poles"
-msgstr "Зменшує фінальний рахунок граней шляхом спрощування геометрії там, де деталі не потрібні, генеруючи трикутники. Значення більше ніж 0 вимикає Виправити Полюси"
-
-
 msgid "Voxel Size"
 msgstr "Розмір Вокселя"
-
-
-msgid "Size of the voxel in object space used for volume evaluation. Lower values preserve finer details"
-msgstr "Розмір вокселя в просторі об'єкта, що використовується для оцінення об'єму. Менші значення краще збережуть деталі."
 
 
 msgid "Skin Vertices"
@@ -21689,14 +19771,6 @@ msgid "Settings for using the object as a field in physics simulation"
 msgstr "Параметри для використання об'єкта в якості поля при моделюванні фізики"
 
 
-msgid "Grease Pencil Modifiers"
-msgstr "Модифікатори Нарисного Олівця"
-
-
-msgid "Modifiers affecting the data of the grease pencil object"
-msgstr "Модифікатори, що задіюють дані об'єкта нарисного олівця"
-
-
 msgid "Instance Collection"
 msgstr "Примірник Колекції"
 
@@ -21849,6 +19923,10 @@ msgid "Object Mode"
 msgstr "Режим Об'єкта"
 
 
+msgid "Edit Mode"
+msgstr "Режим Редагування"
+
+
 msgid "Pose Mode"
 msgstr "Режим Пози"
 
@@ -21903,6 +19981,18 @@ msgstr "Шлях руху"
 
 msgid "Motion Path for this element"
 msgstr "Траєкторія руху даного елемента"
+
+
+msgid "Name of parent bone in case of a bone parenting relation"
+msgstr "Назва кістки-предка у разі зв'язку предок-нащадок"
+
+
+msgid "Parent Type"
+msgstr "Тип Приріднення"
+
+
+msgid "Type of parent relation"
+msgstr "Тип відношення приріднення"
 
 
 msgid "The object is parented to an object"
@@ -22376,6 +20466,10 @@ msgid "Create child particles"
 msgstr "Створити нащадкові частинки"
 
 
+msgid "Simple"
+msgstr "Простий"
+
+
 msgid "Interpolated"
 msgstr "З інтерполяцією"
 
@@ -22462,6 +20556,10 @@ msgstr "Відсоток частинок для показу у 3D-вікні"
 
 msgid "Size of particles on viewport"
 msgstr "Розмір частинок в оглядвікні"
+
+
+msgid "Steps"
+msgstr "Кроки"
 
 
 msgid "Distribution"
@@ -24030,10 +22128,6 @@ msgid "Set negative texture RGB and intensity values to zero, for some uses like
 msgstr "Обнулити від'ємні значення RGB та інтенсивності текстури; іноді, наприклад, для карти зміщень, цей параметр доцільно вимкнути, щоб отримати повне зміщення"
 
 
-msgid "Map the texture intensity to the color ramp. Note that the alpha value is used for image textures, enable \"Calculate Alpha\" for images without an alpha channel"
-msgstr "Розкласти інтенсивність текстури на градієнт кольорів. Зауважте, що значення альфа використовується для текстур зображення, увімкніть «Розрахувати Альфа» для зображень без каналу альфа."
-
-
 msgid "Make this a node-based texture"
 msgstr "Зробити текстурою на основі вузлів"
 
@@ -24982,10 +23076,6 @@ msgid "Is Interface Locked"
 msgstr "Є Інтерфейс Блокованим"
 
 
-msgid "If true, the interface is currently locked by a running job and data shouldn't be modified from application timers. Otherwise, the running job might conflict with the handler causing unexpected results or even crashes"
-msgstr "Якщо вірно, то інтерфейс поточно блокований виконуваним завданням і дані не повинні модифікуватися від таймерів застосунку. Інакше, виконуване завдання може конфліктувати з обробником, спричиняючи неочікувані результати або навіть збої"
-
-
 msgid "Key Configurations"
 msgstr "Конфігурації клавіш"
 
@@ -25648,6 +23738,10 @@ msgstr "Глобальний початковий кадр фільму/посл
 
 msgid "Layer in multilayer image"
 msgstr "Шар у багатошаровому зображенні"
+
+
+msgid "Pass"
+msgstr "Прохід"
 
 
 msgid "Pass in multilayer image"
@@ -26847,33 +24941,6 @@ msgstr "3D-маніп. кнопка 10"
 
 msgid "NdofB10"
 msgstr "NdofB10"
-
-
-msgctxt "UI_Events_KeyMaps"
-msgid "NDOF Button A"
-msgstr "3D-маніп. кнопка A"
-
-
-msgid "NdofBA"
-msgstr "NdofBA"
-
-
-msgctxt "UI_Events_KeyMaps"
-msgid "NDOF Button B"
-msgstr "3D-маніп. кнопка B"
-
-
-msgid "NdofBB"
-msgstr "NdofBB"
-
-
-msgctxt "UI_Events_KeyMaps"
-msgid "NDOF Button C"
-msgstr "3D-маніп. кнопка C"
-
-
-msgid "NdofBC"
-msgstr "NdofBC"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -28414,24 +26481,54 @@ msgid "Falloff"
 msgstr "Спад"
 
 
+msgctxt "Curve"
+msgid "Smooth"
+msgstr "Згладжено"
+
+
 msgid "Smooth falloff"
 msgstr "Згладжений спад"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Сфера"
 
 
 msgid "Spherical falloff"
 msgstr "Сферичний спад"
 
 
+msgctxt "Curve"
+msgid "Root"
+msgstr "Корінь"
+
+
 msgid "Root falloff"
 msgstr "Кореневий спад"
+
+
+msgctxt "Curve"
+msgid "Inverse Square"
+msgstr "Обернено квадратично"
 
 
 msgid "Inverse Square falloff"
 msgstr "Обернений квадратичний спад"
 
 
+msgctxt "Curve"
+msgid "Sharp"
+msgstr "Гостро"
+
+
 msgid "Sharp falloff"
 msgstr "Гострий спад"
+
+
+msgctxt "Curve"
+msgid "Linear"
+msgstr "Лінійно"
 
 
 msgid "Linear falloff"
@@ -28678,6 +26775,10 @@ msgid "Follow object rotation only"
 msgstr "Слідувати лише за обертанням об'єкта"
 
 
+msgid "Fixed"
+msgstr "Фіксовано"
+
+
 msgid "Do not follow drawing path or object rotation and keeps aligned with viewport"
 msgstr "Не слідувати по шляху рисування або за обертанням об'єкта та утримувати вирівняно за вікном огляду"
 
@@ -28788,6 +26889,10 @@ msgstr "Рисувати штрихи, вживаючи відокремлені
 
 msgid "Index number for the \"Color Index\" pass"
 msgstr "Номер індексу для проходу \"Індекс Кольору\""
+
+
+msgid "UV Factor"
+msgstr "Фактор UV"
 
 
 msgid "Texture Pixel Size factor along the stroke"
@@ -28999,6 +27104,10 @@ msgid "Move to Layer"
 msgstr "Перемістити на Шар"
 
 
+msgid "Smooth"
+msgstr "Згладження"
+
+
 msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
@@ -29009,6 +27118,14 @@ msgstr "UV"
 
 msgid "Align"
 msgstr "Вирівнювання"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Select Mode"
@@ -29063,6 +27180,10 @@ msgid "Node"
 msgstr "Вузол"
 
 
+msgid "Sample"
+msgstr "Вибірка"
+
+
 msgid "Node Color Specials"
 msgstr "Параметри кольору вузла"
 
@@ -29098,6 +27219,10 @@ msgstr "Смужка ефекту"
 msgctxt "Operator"
 msgid "Scene"
 msgstr "Сцена"
+
+
+msgid "Transition"
+msgstr "Переміщення"
 
 
 msgid "Change"
@@ -29841,6 +27966,10 @@ msgid "Ellipsoid"
 msgstr "Еліпсоїд"
 
 
+msgid "Negative"
+msgstr "Негативний"
+
+
 msgid "Set metaball as negative one"
 msgstr "Зробити метакулю негативною"
 
@@ -29861,12 +27990,36 @@ msgid "The active modifier in the list"
 msgstr "Активний модифікатор у списку"
 
 
+msgid "Modifier name"
+msgstr "Назва модифікатора"
+
+
+msgid "Set modifier expanded in the user interface"
+msgstr "Розгорнути панель модифікатора"
+
+
+msgid "Display modifier in Edit mode"
+msgstr "Показати модифікатор у режимі редагування"
+
+
 msgid "On Cage"
 msgstr "На остові"
 
 
 msgid "Adjust edit cage to modifier result"
 msgstr "Наладнати редаговану клітку під результат модификатора"
+
+
+msgid "Use modifier during render"
+msgstr "Вжити модифікатор при рендерингу"
+
+
+msgid "Display modifier in viewport"
+msgstr "Показати модифікатор у вікні перегляду"
+
+
+msgid "Vertex Weight Proximity"
+msgstr "Близкість вагомостей вершин"
 
 
 msgid "Data Transfer"
@@ -29945,6 +28098,26 @@ msgid "Set the vertex group weights based on the distance to another target obje
 msgstr "Установити вагомості групи вершин на основі відстані до іншої цілі"
 
 
+msgid "Hue/Saturation"
+msgstr "Відтінок/насиченість"
+
+
+msgid "Time Offset"
+msgstr "Часовий зсув"
+
+
+msgid "Offset keyframes"
+msgstr "Зсув ключкадрів"
+
+
+msgid "Texture Mapping"
+msgstr "Розкладання текстури"
+
+
+msgid "Array"
+msgstr "Масив"
+
+
 msgid "Create copies of the shape with offsets"
 msgstr "Створити копії форми зі зсувами"
 
@@ -29959,6 +28132,10 @@ msgstr "Генерувати схилені кутки шляхом додава
 
 msgid "Use another shape to cut, combine or perform a difference operation"
 msgstr "Вжити іншу форму для різання, комбінування або здійснення операції різниці"
+
+
+msgid "Build"
+msgstr "Побудова"
 
 
 msgid "Cause the faces of the mesh object to appear or disappear one after the other over time"
@@ -30073,6 +28250,18 @@ msgid "Convert faces into thickened edges"
 msgstr "Конвертувати грані у потовщені ребра"
 
 
+msgid "Duplicate strokes like a mirror"
+msgstr "Дублює штрихи як дзеркалення"
+
+
+msgid "Multiple Strokes"
+msgstr "Багато Штрихи"
+
+
+msgid "Simplify stroke reducing number of points"
+msgstr "Спрощує штрих, скорочуючи кількість точок"
+
+
 msgid "Deform the shape using an armature object"
 msgstr "Деформувати форму, використовуючи об'єкт арматури"
 
@@ -30097,6 +28286,10 @@ msgid "Offset vertices based on a texture"
 msgstr "Зсунути вершини на основі текстури"
 
 
+msgid "Hook"
+msgstr "Гачок"
+
+
 msgid "Deform specific points using another object"
 msgstr "Деформувати визначені точки, використовуючи інший об'єкт"
 
@@ -30119,6 +28312,10 @@ msgstr "Деформація сіті"
 
 msgid "Deform using a different mesh, which acts as a deformation cage"
 msgstr "Деформувати, використовуючи іншу сіть, яка діє як клітка деформації"
+
+
+msgid "Project the shape onto another object"
+msgstr "Проектувати форму на інший об'єкт"
 
 
 msgid "Simple Deform"
@@ -30181,6 +28378,18 @@ msgid "Deform volume based on noise or other vector fields"
 msgstr "Деформувати об'єм на основі шуму або інших полів вектора"
 
 
+msgid "Deform stroke points using objects"
+msgstr "Деформує точки штриха, використовуючи об'єкти"
+
+
+msgid "Change stroke thickness"
+msgstr "Змінює товщину штриха"
+
+
+msgid "Deform stroke points using armature object"
+msgstr "Деформує точки штриха, використовуючи об'єкт арматури"
+
+
 msgid "Dynamic Paint"
 msgstr "Динамічне малювання"
 
@@ -30221,8 +28430,28 @@ msgid "Apply this and all preceding deformation modifiers on splines' points rat
 msgstr "Застосувати цей і всі попередні модифікатори деформації до точок сплайнів, а не до заповненої кривої чи поверхні"
 
 
+msgid "Armature Modifier"
+msgstr "Модифікатор Арматура"
+
+
 msgid "Armature deformation modifier"
 msgstr "Модифікатор арматурної деформації"
+
+
+msgid "Invert vertex group influence"
+msgstr "Інвертувати вплив групи вершин"
+
+
+msgid "Armature object to deform with"
+msgstr "Арматурний об'єкт, яким деформувати"
+
+
+msgid "Use Bone Envelopes"
+msgstr "Вжити оболонки кісток"
+
+
+msgid "Bind Bone envelopes to armature modifier"
+msgstr "Прив'язати оболонки кісток до модифікатора арматури"
 
 
 msgid "Multi Modifier"
@@ -30231,6 +28460,18 @@ msgstr "Мультимодифікатор"
 
 msgid "Use same input as previous modifier, and mix results using overall vgroup"
 msgstr "Використати той ввід, що й попередній модифікатор та мішати результати, використовуючи спільну групу вершин"
+
+
+msgid "Use Vertex Groups"
+msgstr "Вжити групи вершин"
+
+
+msgid "Bind vertex groups to armature modifier"
+msgstr "Прив'язати групи вершин до модифікатора арматури"
+
+
+msgid "Name of Vertex Group which determines influence of modifier per point"
+msgstr "Назва групи вершин, що визначає вплив модифікатора на точки"
 
 
 msgid "Array Modifier"
@@ -30309,6 +28550,10 @@ msgid "Object Offset"
 msgstr "Зсув об'єктом"
 
 
+msgid "Use the location and rotation of another object to determine the distance and rotational change between arrayed items"
+msgstr "Використати місце та оберт іншого об'єкта для визначення відстані та оберту елементів масиву"
+
+
 msgid "U Offset"
 msgstr "Зсув U"
 
@@ -30329,12 +28574,20 @@ msgid "Relative Offset Displacement"
 msgstr "Відносний зсув зміщення"
 
 
+msgid "The size of the geometry will determine the distance between arrayed items"
+msgstr "Розміри визначатимуть відстань між елементами масиву"
+
+
 msgid "Start Cap"
 msgstr "Початкова заглушка"
 
 
 msgid "Mesh object to use as a start cap"
 msgstr "Сітьовий об'єкт для використання в якості початкової заглушки"
+
+
+msgid "Constant Offset"
+msgstr "Постійне зміщення"
 
 
 msgid "Add a constant offset"
@@ -30355,6 +28608,18 @@ msgstr "Злити Кінцеві Вершини"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Об'єднання вершин першої та останньої копій"
+
+
+msgid "Add another object's transformation to the total offset"
+msgstr "Додати трансформації іншого об'єкта до загального зміщення"
+
+
+msgid "Relative Offset"
+msgstr "Відносне зміщення"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Додати зсув відносно габаритної коробки об'єкта"
 
 
 msgid "Bevel Modifier"
@@ -30715,6 +28980,10 @@ msgstr "Просунутий рішач для найкращого резуль
 
 msgid "Allow self-intersection in operands"
 msgstr "Дозволити самоперетин в операндах"
+
+
+msgid "Build Modifier"
+msgstr "Модифікатор Побудова"
 
 
 msgid "Build effect modifier"
@@ -31657,12 +29926,764 @@ msgid "Fluid simulation modifier"
 msgstr "Модифікатор моделювання рідини"
 
 
+msgid "Vertex group name for modulating the deform"
+msgstr "Назва групи вершин для керування деформацією"
+
+
+msgid "Instance Modifier"
+msgstr "Модифікатор Примірникування"
+
+
+msgid "Create grid of duplicate instances"
+msgstr "Створює ґратку дубльованих примірників"
+
+
+msgid "Value for the distance between items"
+msgstr "Значення для відстані між елементами"
+
+
+msgid "Number of items"
+msgstr "Кількість елементів"
+
+
+msgid "Random Offset"
+msgstr "Випадковий Зсув"
+
+
+msgid "Value for changes in location"
+msgstr "Значення для змін у локації"
+
+
+msgid "Random Rotation"
+msgstr "Випадковий Оберт"
+
+
+msgid "Value for changes in rotation"
+msgstr "Значення для змін в обертанні"
+
+
+msgid "Value for changes in scale"
+msgstr "Значення для змін у масштабуванні"
+
+
+msgid "Index of the material used for generated strokes (0 keep original material)"
+msgstr "Індекс матеріалу, використовуваний для генерованих штрихів (0 утримує оригінальний матеріал)"
+
+
+msgid "Random seed"
+msgstr "Базис випадковості"
+
+
+msgid "Enable offset"
+msgstr "Увімкнути зсув"
+
+
+msgid "Shift"
+msgstr "Shift"
+
+
+msgid "Uniform Scale"
+msgstr "Рівномірна шкала"
+
+
+msgid "Use the same random seed for each scale axis for a uniform scale"
+msgstr "Вжити той же базис випадковості для кожної осі масштабування для однорідного масштабування"
+
+
+msgid "Animate strokes appearing and disappearing"
+msgstr "Анімує появу та зникання штрихів"
+
+
+msgid "Time Alignment"
+msgstr "Вирівняння Часу"
+
+
+msgid "Align Start"
+msgstr "Вирівняння за Стартом"
+
+
+msgid "All strokes start at same time (i.e. short strokes finish earlier)"
+msgstr "Усі штрихи стартують одночасно (тобто, короткі штрихи завершуються раніше)"
+
+
+msgid "Align End"
+msgstr "Вирівняння за Кінцем"
+
+
+msgid "All strokes end at same time (i.e. short strokes start later)"
+msgstr "Усі штрихи закінчуються одночасно (тобто короткі штрихи стартують пізніше)"
+
+
+msgid "End Frame (when Restrict Frame Range is enabled)"
+msgstr "Кадр Кінця (коли увімкнено Обмежування Діапазону Кадрів)"
+
+
+msgid "Start Frame (when Restrict Frame Range is enabled)"
+msgstr "Кадр Старту (коли увімкнено Обмежування Діапазону Кадрів)"
+
+
+msgid "Maximum number of frames that the build effect can run for (unless another GP keyframe occurs before this time has elapsed)"
+msgstr "Максимальна кількість кадрів, упродовж яких може виконуватися ефект вибудовування (якщо тільки інший ключкадр Нарисного Олівця не трапиться перед тим, як цей час мине)"
+
+
+msgid "Sequential"
+msgstr "Послідовно"
+
+
+msgid "Strokes appear/disappear one after the other, but only a single one changes at a time"
+msgstr "Штрихи з'являються/зникають один за одним, але лише єдиний змінюється у часі"
+
+
+msgid "Concurrent"
+msgstr "Паралельно"
+
+
+msgid "Multiple strokes appear/disappear at once"
+msgstr "Одночасно кілька штрихів з'являються/зникають за раз"
+
+
+msgid "Defines how much of the stroke is visible"
+msgstr "Визначає, наскільки штрих є видимим"
+
+
+msgid "Speed Factor"
+msgstr "Коефіцієнт швидкості"
+
+
+msgid "Delay"
+msgstr "Затримка"
+
+
+msgid "Number of frames after each GP keyframe before the modifier has any effect"
+msgstr "Кількість кадрів після кожного ключкадра Нарисного Олівця, перед тим, як цей модифікатор матиме якийсь вплив"
+
+
+msgid "Timing"
+msgstr "Часування"
+
+
+msgid "How are strokes animated (i.e. are they appearing or disappearing)"
+msgstr "Як анімуються штрихи (тобто, вони з'являються чи зникають)"
+
+
+msgid "Grow"
+msgstr "Збільшити"
+
+
+msgid "Show points in the order they occur in each stroke (e.g. for animating lines being drawn)"
+msgstr "Показує точки у порядку, як вони трапляються у кожному штриху (наприклад, для анімування рисування ліній)"
+
+
+msgid "Hide points from the end of each stroke to the start (e.g. for animating lines being erased)"
+msgstr "Ховає точки кожного штриха у порядку з кінця до початку (наприклад, для анімування стирання ліній)"
+
+
+msgid "Hide points in the order they occur in each stroke (e.g. for animating ink fading or vanishing after getting drawn)"
+msgstr "Ховає точки у порядку, як вони трапляються у кожному штриху (наприклад, для анімування вицвітання чорнила або зникання після нарисування)"
+
+
+msgid "Restrict Visible Points"
+msgstr "Обмежити Видимі Точки"
+
+
+msgid "Use a percentage factor to determine the visible points"
+msgstr "Вжити відсотковий фактор для визначення видимих точок"
+
+
+msgid "Only modify strokes during the specified frame range"
+msgstr "Лише модифікує штрих протягом вказаного діапазону кадрів"
+
+
+msgid "Modify fill and stroke colors"
+msgstr "Модифікує кольори заповнення та штриха"
+
+
+msgid "Modify stroke color only"
+msgstr "Модифікує лише колір штриха"
+
+
+msgid "Modify fill color only"
+msgstr "Модифікує лише колір заповнення"
+
+
+msgid "Custom curve to apply effect"
+msgstr "Власна крива для застосування ефекту"
+
+
+msgid "Hook Modifier"
+msgstr "Модифікатор Гачок"
+
+
+msgid "Hook modifier to modify the location of stroke points"
+msgstr "Модифікатор Гачок для модифікування локації точок штриха"
+
+
+msgid "Hook Center"
+msgstr "Центр гака"
+
+
+msgid "If not zero, the distance from the hook where influence ends"
+msgstr "Якщо не нуль, то відстань від гачка, де закінчується вплив"
+
+
+msgctxt "Curve"
+msgid "Falloff Type"
+msgstr "Тип спаду"
+
+
+msgctxt "Curve"
+msgid "No Falloff"
+msgstr "Без спаду"
+
+
+msgctxt "Curve"
+msgid "Curve"
+msgstr "Крива"
+
+
+msgctxt "Curve"
+msgid "Constant"
+msgstr "Постійно"
+
+
+msgid "Reverse the transformation between this object and its target"
+msgstr "Розвернути трансформування між цим об'єктом та його ціллю"
+
+
+msgid "Parent Object for hook, also recalculates and clears offset"
+msgstr "Об'єкт-предок для гачка; також перераховує і зчищає зміщення"
+
+
+msgid "Relative force of the hook"
+msgstr "Відносна сила гачка"
+
+
+msgid "Name of Parent Bone for hook (if applicable), also recalculates and clears offset"
+msgstr "Назва батьківської кістки для гака (якщо є); також перераховує та зчищає зміщення"
+
+
+msgid "Uniform Falloff"
+msgstr "Однорідний спад"
+
+
+msgid "Compensate for non-uniform object scale"
+msgstr "Компенсувати для не-однорідних масштабів об'єктів"
+
+
+msgid "Lattice object to deform with"
+msgstr "Об'єкт-ґратка, яким деформувати"
+
+
+msgid "Strength of modifier effect"
+msgstr "Сила ефекту модифікатора"
+
+
+msgid "Point Density"
+msgstr "Щільність точок"
+
+
+msgid "Step"
+msgstr "Крок"
+
+
+msgid "Use random values over time"
+msgstr "Вживати випадкові значення з часом"
+
+
+msgid "Overscan"
+msgstr "Понадпрогляд"
+
+
+msgid "Shaded"
+msgstr "Відтінено"
+
+
+msgid "Boundaries"
+msgstr "Рубежі"
+
+
+msgid "Object used as center"
+msgstr "Об'єкт, використовуваний як центр"
+
+
+msgid "Mirror the X axis"
+msgstr "Дзеркалення по осі X"
+
+
+msgid "Mirror the Y axis"
+msgstr "Дзеркалення по осі Y"
+
+
+msgid "Mirror the Z axis"
+msgstr "Дзеркалення по осі Z"
+
+
+msgid "Multiply Modifier"
+msgstr "Модифікатор Множення"
+
+
+msgid "Generate multiple strokes from one stroke"
+msgstr "Генерувати багато штрихи з одного штриха"
+
+
+msgid "Distance of duplications"
+msgstr "Відстань дуплікацій"
+
+
+msgid "Duplicates"
+msgstr "Дублікати"
+
+
+msgid "How many copies of strokes be displayed"
+msgstr "Скільки копій штрихів буде показуватися"
+
+
+msgid "Fade center"
+msgstr "Центр зникання"
+
+
+msgid "Fade influence of stroke's opacity"
+msgstr "Вплив зникання безпрозорості штриха"
+
+
+msgid "Fade influence of stroke's thickness"
+msgstr "Вплив зникання товщини штриха"
+
+
+msgid "Fade the stroke thickness for each generated stroke"
+msgstr "Зникання товщини штриха для кожного генерованого штриха"
+
+
+msgid "Noise effect modifier"
+msgstr "Модифікатор впливу шуму"
+
+
+msgid "Amount of noise to apply"
+msgstr "Величина шуму для застосування"
+
+
+msgid "Strength Factor"
+msgstr "Фактор Сили"
+
+
+msgid "Amount of noise to apply to opacity"
+msgstr "Величина шуму для застосування до безпрозорості"
+
+
+msgid "Thickness Factor"
+msgstr "Фактор Товщини"
+
+
+msgid "Amount of noise to apply to thickness"
+msgstr "Величина шуму для застосування до товщини"
+
+
+msgid "Noise Offset"
+msgstr "Зсув Шуму"
+
+
+msgid "Offset the noise along the strokes"
+msgstr "Зсув шуму вздовж штрихів"
+
+
+msgid "Scale the noise frequency"
+msgstr "Масштабувати частотність шуму"
+
+
+msgid "Noise Seed"
+msgstr "Базис Шуму"
+
+
+msgid "Values for change location"
+msgstr "Значення для зміни локації"
+
+
+msgid "Values for changes in rotation"
+msgstr "Значення для змін в оберті"
+
+
+msgid "Values for changes in scale"
+msgstr "Значення для змін у масштабі"
+
+
+msgid "Start Offset"
+msgstr "Початковий зсув"
+
+
+msgid "Opacity Factor"
+msgstr "Фактор Безпрозорості"
+
+
+msgid "Modify stroke hardness"
+msgstr "Модифікувати жорсткість штриха"
+
+
+msgid "Factor of stroke hardness"
+msgstr "Фактор жорсткості штриха"
+
+
+msgid "Uniform Opacity"
+msgstr "Рівномірна Безпрозорість"
+
+
+msgid "Target Object"
+msgstr "Цільовий об'єкт"
+
+
+msgid "Subdivisions"
+msgstr "Поділи"
+
+
+msgid "Number of subdivisions"
+msgstr "Кількість підподілень"
+
+
+msgid "Keep Shape"
+msgstr "Зберегти форму"
+
+
+msgid "Shrinkwrap Modifier"
+msgstr "Модифікатор Обтягування"
+
+
+msgid "Auxiliary Target"
+msgstr "Допоміжна ціль"
+
+
+msgid "Additional mesh target to shrink to"
+msgstr "Додаткова цільова сіть, до якої стиснути"
+
+
+msgid "Distance to keep from the target"
+msgstr "Підтримувана відстань до цільового об'єкта"
+
+
+msgid "Project Limit"
+msgstr "Межа проєктування"
+
+
+msgid "Subdivision Levels"
+msgstr "Рівні Підподілення"
+
+
+msgid "Number of subdivisions that must be performed before extracting vertices' positions and normals"
+msgstr "Кількість поділів, які мають бути виконані до отримання позицій вершин та нормалей"
+
+
+msgid "Mesh target to shrink to"
+msgstr "Цільова сіть, яку слід обтягнути"
+
+
+msgid "When projecting in the negative direction invert the face cull mode"
+msgstr "При проєктуванні у від'ємному напрямку інвертувати режим відкидання граней"
+
+
+msgid "Allow vertices to move in the negative direction of axis"
+msgstr "Дозволити вершинам рухатися у від'ємному напрямі осі"
+
+
+msgid "Positive"
+msgstr "Додатний"
+
+
+msgid "Allow vertices to move in the positive direction of axis"
+msgstr "Дозволити вершинам рухатися в додатному напрямі осі"
+
+
+msgid "Wrap Method"
+msgstr "Метод Обгортання"
+
+
+msgid "Shrink the mesh to the nearest target surface"
+msgstr "Стиснути сіть до найближчої цільової поверхні"
+
+
+msgid "Shrink the mesh to the nearest target surface along a given axis"
+msgstr "Стиснути сіть до найближчої цільової поверхні вздовж заданої осі"
+
+
+msgid "Shrink the mesh to the nearest target vertex"
+msgstr "Стиснути сіть до найближчої цільової вершини"
+
+
+msgid "Shrink the mesh to the nearest target surface along the interpolated vertex normals of the target"
+msgstr "Скоротити сіть до найближчої цільової поверхні уздовж інтерпольованих нормалей вершин цілі"
+
+
+msgid "Select how vertices are constrained to the target surface"
+msgstr "Вибрати, як вершини примушуються до цільової поверхні"
+
+
+msgid "Simplify Modifier"
+msgstr "Модифікатор Спрощення"
+
+
+msgid "Simplify Stroke modifier"
+msgstr "Модифікатор Спрощення Штриха"
+
+
+msgid "Distance between points"
+msgstr "Відстань між вершинами"
+
+
+msgid "Factor of Simplify"
+msgstr "Фактор Спрощення"
+
+
+msgid "Length of each segment"
+msgstr "Довжина кожного сегмента"
+
+
+msgid "How to simplify the stroke"
+msgstr "Як спрощувати штрих"
+
+
+msgid "Delete alternating vertices in the stroke, except extremes"
+msgstr "Видалити поперемінні вершини у штриху, за винятком екстремумів"
+
+
+msgid "Adaptive"
+msgstr "Адаптивно"
+
+
+msgid "Use a Ramer-Douglas-Peucker algorithm to simplify the stroke preserving main shape"
+msgstr "Вжити алгоритм Рамера-Дугласа-Пекера для спрощення штриха, зберігаючи основну форму"
+
+
+msgid "Re-sample the stroke with segments of the specified length"
+msgstr "Повторно відібрати штрих зі сегментами визначеної довжини"
+
+
+msgid "Simplify the stroke by merging vertices closer than a given distance"
+msgstr "Спростити штрих шляхом злиття вершин, що ближчі, ніж задана відстань"
+
+
+msgid "Number of times to apply simplify"
+msgstr "Кількість разів для застосування спрощення"
+
+
+msgid "Smooth Modifier"
+msgstr "Модифікатор згладжування"
+
+
+msgid "Smooth effect modifier"
+msgstr "Модифікатор ефекту згладження"
+
+
+msgid "Amount of smooth to apply"
+msgstr "Величина згладження для застосування"
+
+
+msgid "Number of times to apply smooth (high numbers can reduce fps)"
+msgstr "Кількість разів для застосування згладження (більші значення можуть зменшувати частоту кадрів відтворення)"
+
+
+msgid "The modifier affects the position of the point"
+msgstr "Модифікатор задіює позицію точки"
+
+
+msgid "The modifier affects the color strength of the point"
+msgstr "Модифікатор задіює силу кольору точки"
+
+
+msgid "The modifier affects the thickness of the point"
+msgstr "Модифікатор задіює товщину точки"
+
+
+msgid "The modifier affects the UV rotation factor of the point"
+msgstr "Модифікатор задіює фактор обертання UV для точки"
+
+
+msgid "Subdivision Modifier"
+msgstr "Модифікатор Підподілення"
+
+
+msgid "Subdivide Stroke modifier"
+msgstr "Модифікатор Підподілення Штриха"
+
+
+msgid "Subdivision Type"
+msgstr "Тип поділу"
+
+
+msgid "Select type of subdivision algorithm"
+msgstr "Виберіть тип алгоритму поділу"
+
+
+msgid "Catmull-Clark"
+msgstr "Катмул-Кларк"
+
+
+msgid "Transform stroke texture coordinates Modifier"
+msgstr "Модифікатор трансформи координат текстури штриха"
+
+
+msgid "Additional rotation applied to dots and square strokes"
+msgstr "Додаткове обертання застосоване до крапок та квадратиків штрихів"
+
+
+msgid "Fill Offset"
+msgstr "Зсув Заповнення"
+
+
+msgid "Additional offset of the fill UV"
+msgstr "Додатковий зсув UV заповнення"
+
+
+msgid "Fill Rotation"
+msgstr "Обертання Заповнення"
+
+
+msgid "Additional rotation of the fill UV"
+msgstr "Додаткове обертання UV заповнення"
+
+
+msgid "Fill Scale"
+msgstr "Масштаб Заповнення"
+
+
+msgid "Additional scale of the fill UV"
+msgstr "Додаткове масштабування UV заповнення"
+
+
+msgid "Fit Method"
+msgstr "Метод підгонки"
+
+
+msgid "Constant Length"
+msgstr "Постійна Довжина"
+
+
+msgid "Keep the texture at a constant length regardless of the length of each stroke"
+msgstr "Утримувати текстуру на постійній довжині незалежно від довжини кожного штриха"
+
+
+msgid "Stroke Length"
+msgstr "Довжина Штриха"
+
+
+msgid "Scale the texture to fit the length of each stroke"
+msgstr "Масштабувати текстуру для припасування до кожного штриха"
+
+
+msgid "Manipulate only stroke texture coordinates"
+msgstr "Маніпулювати лише координатами текстури штриха"
+
+
+msgid "Manipulate only fill texture coordinates"
+msgstr "Маніпулювати лише координатами текстури заповнення"
+
+
+msgid "Manipulate both stroke and fill texture coordinates"
+msgstr "Маніпулювати координатами текстури як штриха, так і заповнення"
+
+
+msgid "UV Offset"
+msgstr "Зсув UV"
+
+
+msgid "Offset value to add to stroke UVs"
+msgstr "Значення зсуву для додання до UVт штриха"
+
+
+msgid "UV Scale"
+msgstr "Масштаб UV"
+
+
+msgid "Factor to scale the UVs"
+msgstr "Фактор для масштабування UVт"
+
+
+msgid "Absolute thickness to apply everywhere"
+msgstr "Абсолютна товщина для застосування скрізь"
+
+
+msgid "Factor to multiply the thickness with"
+msgstr "Фактор для множення на товщину"
+
+
+msgid "Uniform Thickness"
+msgstr "Рівномірна Товщина"
+
+
+msgid "Replace the stroke thickness"
+msgstr "Замінити товщину штриха"
+
+
+msgid "Final frame of the range"
+msgstr "Фінальний кадр діапазону"
+
+
+msgid "Frame Scale"
+msgstr "Масштаб кадру"
+
+
+msgid "Evaluation time in seconds"
+msgstr "Розраховувати час у секундах"
+
+
+msgid "First frame of the range"
+msgstr "Перший кадр діапазону"
+
+
+msgid "Fixed Frame"
+msgstr "Фіксований Кадр"
+
+
+msgid "Keep frame and do not change with time"
+msgstr "Утримує кадр та не змінює його з часом"
+
+
+msgid "Number of frames to offset original keyframe number or frame to fix"
+msgstr "Кількість кадрів для зсуву оригінального номера ключкадра або кадр для зафіксування"
+
+
+msgid "Custom Range"
+msgstr "Власний діапазон"
+
+
+msgid "Define a custom range of frames to use in modifier"
+msgstr "Визначити власний діапазон кадрів для використання у модифікаторі"
+
+
+msgid "Keep Loop"
+msgstr "Утримання Зациклення"
+
+
+msgid "Retiming end frames and move to start of animation to keep loop"
+msgstr "Перечасовує кінцеві кадри та переміщує старт анімації, щоб утримувати зациклення"
+
+
+msgid "Color used for tinting"
+msgstr "Колір, використовуваний для підбарвлення"
+
+
+msgid "Factor for tinting"
+msgstr "Фактор для підбарвлення"
+
+
+msgid "Highest"
+msgstr "Верхній"
+
+
+msgid "Lowest"
+msgstr "Нижній"
+
+
 msgid "Hook modifier to modify the location of vertices"
 msgstr "Модифікатор Гачок для зміни розташування вершин"
 
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "Центра гачка, вживається для спаду та показу"
+
+
+msgid "Falloff Curve"
+msgstr "Крива спаду"
+
+
+msgid "Custom falloff curve"
+msgstr "Власна крива спаду"
 
 
 msgid "Vertex Indices"
@@ -31731,6 +30752,10 @@ msgstr "Згладити об'єкт уздовж осі Y"
 
 msgid "Smooth object along Z axis"
 msgstr "Згладити об'єкт уздовж осі Z"
+
+
+msgid "Lattice Modifier"
+msgstr "Модифікатор Ґратка"
 
 
 msgid "Lattice deformation modifier"
@@ -31915,6 +30940,10 @@ msgstr "Приблизна кількість вокселів уздовж од
 
 msgid "Smaller values result in a higher resolution output"
 msgstr "Менші значення дають вивід вищої роздільності"
+
+
+msgid "Mirror Modifier"
+msgstr "Модифікатор Дзеркалення"
 
 
 msgid "Mirroring modifier"
@@ -32279,10 +31308,6 @@ msgstr "Глибина від поверхні води до твердого д
 
 msgid "Fetch"
 msgstr "Нагін хвилі"
-
-
-msgid "This is the distance from a lee shore, called the fetch, or the distance over which the wind blows with constant velocity. Used by 'JONSWAP' and 'TMA' models"
-msgstr "Це відстань від підвітряного берега, що називається нагін хвилі, або відстань, дальше якої вітер дме з постійною скорістю. Використовується моделями 'JONSWAP' та 'TMA'"
 
 
 msgid "Cache Path"
@@ -32778,6 +31803,10 @@ msgid "Stretch V"
 msgstr "Розтяг V"
 
 
+msgid "Shrink wrapping modifier to shrink wrap and object to a target"
+msgstr "Модифікатор обгортки для 'обтягування' об'єктом цільового об'єкта"
+
+
 msgid "SimpleDeform Modifier"
 msgstr "Модифікатор простої деформації"
 
@@ -33030,10 +32059,6 @@ msgstr "Вивід потовщеної версії сіті шляхом пр�
 
 msgid "Complex"
 msgstr "Комплекс"
-
-
-msgid "Output a manifold mesh even if the base mesh is non-manifold, where edges have 3 or more connecting faces. This method is slower"
-msgstr "Вивід розгортної сіті, навіть якщо базова сіть є не-розгортною, де ребра мають 3 або більше з'єднаних з ними граней. Цей метод є повільнішим"
 
 
 msgid "Thickness of the shell"
@@ -34867,6 +33892,10 @@ msgid "Use green channel from footage for tracking"
 msgstr "Використати для відстеження зелений канал з відео"
 
 
+msgid "Use Mask"
+msgstr "Вжити маску"
+
+
 msgid "Use a grease pencil data-block as a mask to use only specified areas of pattern when tracking"
 msgstr "Використати блок даних нарисного олівця як маску на основі лише обведених штрихами Нарисного Олівця ділянок області патерну міток у ході відстеження"
 
@@ -35173,10 +34202,6 @@ msgstr "Вжити власний колір замість передбачен
 
 msgid "Display what the tracking algorithm sees in the preview"
 msgstr "Показати, який алгоритм відстеження показано у вікні попереднього перегляду"
-
-
-msgid "Normalize light intensities while tracking. Slower"
-msgstr "Нормалізувати інтенсивність світла при стеженні. Повільніше"
 
 
 msgid "Influence of this track on a final solution"
@@ -37028,6 +36053,14 @@ msgid "EXR Layer Slots"
 msgstr "Гнізда EXR-шарів"
 
 
+msgid "Save as Render"
+msgstr "Зберегти як Рендер"
+
+
+msgid "Apply render part of display transform when saving byte image"
+msgstr "Застосувати параметри керування кольором при збереженні байтового зображення"
+
+
 msgid "Pixelate"
 msgstr "Пікселізація"
 
@@ -37556,6 +36589,10 @@ msgid "Distribute the points randomly on the surface while taking a minimum dist
 msgstr "Розподілити точки випадково на поверхні, водночас враховуючи мінімальну відстань між точками"
 
 
+msgid "Triangles"
+msgstr "Трикутники"
+
+
 msgid "Primary"
 msgstr "Первинний"
 
@@ -37650,10 +36687,6 @@ msgstr "Елемент цільової геометрії для розраху
 
 msgid "Z Up"
 msgstr "Z Уверх"
-
-
-msgid "Font of the text. Falls back to the UI font by default"
-msgstr "Шрифт тексту. Стандартно падає назад до шрифту Інтерфейсу Користувача"
 
 
 msgid "Mouse Position"
@@ -37999,14 +37032,6 @@ msgstr "Трансформації точку"
 
 msgid "Transform a texture by inverse mapping the texture coordinate"
 msgstr "Трансформувати текстуру, інвертувавши розкладку текстурної координати"
-
-
-msgid "Transform a direction vector. Location is ignored"
-msgstr "Трансформувати вектор напрямку. Локація ігнорується"
-
-
-msgid "Transform a unit normal vector. Location is ignored"
-msgstr "Трансформувати одиничний вектор нормалі. Локація ігнорується"
 
 
 msgid "MixRGB"
@@ -38421,6 +37446,10 @@ msgid "Vertex color layer"
 msgstr "Шар кольору вершин"
 
 
+msgid "Vertex Weight"
+msgstr "Вагомість вершини"
+
+
 msgid "Vertex group weight"
 msgstr "Вагомість групи вершин"
 
@@ -38589,10 +37618,6 @@ msgid "Smooth F1"
 msgstr "Згладження F1"
 
 
-msgid "Smoothed version of F1. Weighted sum of neighbor voronoi cells"
-msgstr "Згладжена версія F1. виважена сума сусідніх комірок Вороного"
-
-
 msgid "Distance to Edge"
 msgstr "Відстань до Краю"
 
@@ -38665,6 +37690,10 @@ msgid "Use a sawtooth profile"
 msgstr "Пилкоподібний профіль"
 
 
+msgid "Triangle"
+msgstr "Трикутник"
+
+
 msgid "Use a triangle profile"
 msgstr "Вжити трикутний профіль"
 
@@ -38723,10 +37752,6 @@ msgstr "A векторний добуток B"
 
 msgid "Project A onto B"
 msgstr "Проектування A на B"
-
-
-msgid "Reflect A around the normal B. B doesn't need to be normalized"
-msgstr "Відбиття A навколо нормалі B. B не потребує бути нормалізованим"
 
 
 msgid "A dot B"
@@ -38999,14 +38024,6 @@ msgstr "Гніздо одношарового файлу вузла вивідн
 
 msgid "Subpath used for this slot"
 msgstr "Підшлях, що використовується цим гніздом"
-
-
-msgid "Save as Render"
-msgstr "Зберегти як Рендер"
-
-
-msgid "Apply render part of display transform when saving byte image"
-msgstr "Застосувати параметри керування кольором при збереженні байтового зображення"
 
 
 msgid "Use Node Format"
@@ -39347,14 +38364,6 @@ msgstr "Активний примус об'єкта"
 
 msgid "Object cast shadows in the 3D viewport"
 msgstr "Об'єкт відкидає тіні у 3D оглядвікні"
-
-
-msgid "Object Grease Pencil Modifiers"
-msgstr "Модифікатори Об'єктів Нарисного Олівця"
-
-
-msgid "Collection of object grease pencil modifiers"
-msgstr "Колекція модифікаторів об'єктів нарисного олівця"
 
 
 msgid "Object Modifiers"
@@ -46561,10 +45570,6 @@ msgid "Enter/Exit sculpt mode for Grease Pencil strokes"
 msgstr "Увійти/Вийти з режимі ліплення для штрихів Нарисного Олівця"
 
 
-msgid "Name of the modifier to edit"
-msgstr "Назва модифікатора для редагування"
-
-
 msgid "Select Grease Pencil strokes and/or stroke points"
 msgstr "Вибрати штрихи та/або точки штрихів Нарисного Олівця"
 
@@ -52777,12 +51782,20 @@ msgid "Bake image textures of selected objects"
 msgstr "Запекти графічні текстури вибраних об'єктів"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
+msgstr "Надути активний об'єкти до вказаної відстані для запікання. Це допомагає узгодити його з точками, ближчими до зовнішньої сторони вибраних сітей об'єктів"
+
+
 msgid "Object to use as cage, instead of calculating the cage from the active object with cage extrusion"
 msgstr "Об'єкт, що буде використано як остов, замість обчислення остова з активного об'єкта за допомогою видавлення"
 
 
 msgid "Vertical dimension of the baking map (external only)"
 msgstr "Вертикальний розмір карти запікання (лише зовнішньої)"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Максимум відстані променя для узгодження точок між активним та вибраним об'єктами. Якщо нуль, то без ліміту"
 
 
 msgid "Filter to combined, diffuse, glossy, transmission and subsurface passes"
@@ -52944,6 +51957,10 @@ msgstr "Прив'язати виправне згладжування"
 
 msgid "Bind base pose in Corrective Smooth modifier"
 msgstr "Прив'язати базову позу в модифікаторі виправного згладжування"
+
+
+msgid "Name of the modifier to edit"
+msgstr "Назва модифікатора для редагування"
 
 
 msgctxt "Operator"
@@ -53162,101 +52179,6 @@ msgstr "Мавпочка"
 
 msgid "Construct a Suzanne grease pencil object"
 msgstr "Сконструювати об'єкт нарисного олівця у вигляді Сюзанни"
-
-
-msgid "Add a procedural operation/effect to the active grease pencil object"
-msgstr "Додати процедурні операцію/ефект для активного об'єкта нарисного олівця"
-
-
-msgctxt "Operator"
-msgid "Apply Modifier"
-msgstr "Застосувати модифікатор"
-
-
-msgid "Apply modifier and remove from the stack"
-msgstr "Застосувати модифікатор і вилучити зі стосу"
-
-
-msgid "Apply As"
-msgstr "Застосувати Як"
-
-
-msgid "How to apply the modifier to the geometry"
-msgstr "Як застосувати модифікатор до геометрії"
-
-
-msgid "Object Data"
-msgstr "Дані об'єкта"
-
-
-msgid "Apply modifier to the object's data"
-msgstr "Застосувати модифікатора до даних об'єкта"
-
-
-msgid "New Shape"
-msgstr "Нова форма"
-
-
-msgid "Apply deform-only modifier to a new shape on this object"
-msgstr "Застосувати деформувальний модифікатор як новий ключ форми цього об'єкта"
-
-
-msgctxt "Operator"
-msgid "Copy Modifier"
-msgstr "Скопіювати модифікатор"
-
-
-msgid "Duplicate modifier at the same position in the stack"
-msgstr "Дублювати модифікатор у тій же позиції в стосі"
-
-
-msgctxt "Operator"
-msgid "Copy Modifier to Selected"
-msgstr "Копіювати Модифікатор на Вибране"
-
-
-msgid "Copy the modifier from the active object to all selected objects"
-msgstr "Копіювати модифікатор з активного об'єкта на всі вибрані об'єкти"
-
-
-msgctxt "Operator"
-msgid "Move Down Modifier"
-msgstr "Модифікатор донизу"
-
-
-msgid "Move modifier down in the stack"
-msgstr "Перемістити модифікатор у стосі донизу"
-
-
-msgctxt "Operator"
-msgid "Move Active Modifier to Index"
-msgstr "Перемістити Активний Модифікатор на Індекс"
-
-
-msgid "Change the modifier's position in the list so it evaluates after the set number of others"
-msgstr "Змінити позицію модифікатора у списку, щоб він обчислювався після заданої кількості інших модифікаторів"
-
-
-msgid "The index to move the modifier to"
-msgstr "Індекс, на який перемістити модифікатор"
-
-
-msgctxt "Operator"
-msgid "Move Up Modifier"
-msgstr "Модифікатор вгору"
-
-
-msgid "Move modifier up in the stack"
-msgstr "Перемістити модифікатор у стосі вгору"
-
-
-msgctxt "Operator"
-msgid "Remove Grease Pencil Modifier"
-msgstr "Вилучити Модифікатор Нарисного Олівця"
-
-
-msgid "Remove a modifier from the active grease pencil object"
-msgstr "Вилучити модифікатор з активного об'єкта нарисного олівця"
 
 
 msgctxt "Operator"
@@ -53642,6 +52564,10 @@ msgid "Make materials local to each data-block"
 msgstr "Зробити матеріали локальними для кожного блока даних"
 
 
+msgid "Object Data"
+msgstr "Дані об'єкта"
+
+
 msgid "Make single user object data"
 msgstr "Створити однокористувацькі дані об'єкта"
 
@@ -53766,6 +52692,15 @@ msgstr "Додати до активного об'єкта процедурну 
 
 
 msgctxt "Operator"
+msgid "Apply Modifier"
+msgstr "Застосувати модифікатор"
+
+
+msgid "Apply modifier and remove from the stack"
+msgstr "Застосувати модифікатор і вилучити зі стосу"
+
+
+msgctxt "Operator"
 msgid "Apply Modifier as Shape Key"
 msgstr "Застосувати Модифікатор як Ключ Форми"
 
@@ -53786,8 +52721,53 @@ msgid "Convert particles to a mesh object"
 msgstr "Конвертувати частинки у сітьовий об'єкт"
 
 
+msgctxt "Operator"
+msgid "Copy Modifier"
+msgstr "Скопіювати модифікатор"
+
+
+msgid "Duplicate modifier at the same position in the stack"
+msgstr "Дублювати модифікатор у тій же позиції в стосі"
+
+
+msgctxt "Operator"
+msgid "Copy Modifier to Selected"
+msgstr "Копіювати Модифікатор на Вибране"
+
+
+msgid "Copy the modifier from the active object to all selected objects"
+msgstr "Копіювати модифікатор з активного об'єкта на всі вибрані об'єкти"
+
+
+msgctxt "Operator"
+msgid "Move Down Modifier"
+msgstr "Модифікатор донизу"
+
+
+msgid "Move modifier down in the stack"
+msgstr "Перемістити модифікатор у стосі донизу"
+
+
+msgctxt "Operator"
+msgid "Move Active Modifier to Index"
+msgstr "Перемістити Активний Модифікатор на Індекс"
+
+
 msgid "Change the modifier's index in the stack so it evaluates after the set number of others"
 msgstr "Змінити індекс модифікатора у стеку, щоб він обчислювався після набору номерів інших"
+
+
+msgid "The index to move the modifier to"
+msgstr "Індекс, на який перемістити модифікатор"
+
+
+msgctxt "Operator"
+msgid "Move Up Modifier"
+msgstr "Модифікатор вгору"
+
+
+msgid "Move modifier up in the stack"
+msgstr "Перемістити модифікатор у стосі вгору"
 
 
 msgctxt "Operator"
@@ -59361,6 +58341,10 @@ msgstr "Збільшити Контраст"
 
 msgid "Decrease Contrast"
 msgstr "Зменшити Контраст"
+
+
+msgid "Custom Curve"
+msgstr "Власна крива"
 
 
 msgctxt "Operator"
@@ -65442,10 +64426,6 @@ msgid "Open a preset website in the web browser"
 msgstr "Відкрити вебсайт передустав у веббраузері"
 
 
-msgid "Optional identifier"
-msgstr "Факультативний ідентифікатор"
-
-
 msgid "Site"
 msgstr "Сайт"
 
@@ -65465,6 +64445,10 @@ msgstr "Вжити Устави для"
 
 msgid "Subdivision"
 msgstr "Поділ"
+
+
+msgid "Preserve"
+msgstr "Бережіння"
 
 
 msgid "UV Maps"
@@ -67059,6 +66043,10 @@ msgid "Brush Presets"
 msgstr "Передустави Пензлів"
 
 
+msgid "Curve Editing"
+msgstr "Редагування Кривою"
+
+
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
 
@@ -67089,10 +66077,6 @@ msgstr "Вимірювання"
 
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
-
-
-msgid "Pose Library"
-msgstr "Бібліотека поз"
 
 
 msgid "Quad View"
@@ -69370,10 +68354,6 @@ msgid "Windows Ink"
 msgstr "Windows Ink"
 
 
-msgid "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer"
-msgstr "Вживати природне API Windows Ink для сучасних пристроїв планшетів та пер. Вимагає Windows 8 або новіше"
-
-
 msgid "Wintab"
 msgstr "Wintab"
 
@@ -69504,10 +68484,6 @@ msgstr "Який стиль буде використовуватися для �
 
 msgid "Continue"
 msgstr "Продовження"
-
-
-msgid "Continuous zooming. The zoom direction and speed depends on how far along the set Zoom Axis the mouse has moved"
-msgstr "Продовжуване зумування. Напрям та швидкість зумування залежать від того, як далеко уздовж заданої Осі Зумування миша переміщена"
 
 
 msgid "Dolly"
@@ -70220,10 +69196,6 @@ msgstr "Крок оберту для клавіш цифрової клавіа�
 
 msgid "Enabled Add-ons Only"
 msgstr "Лише увімкнуті додатки"
-
-
-msgid "Only show enabled add-ons. Un-check to see all installed add-ons"
-msgstr "Показати лише увімкнуті додатки. Зніміть позначку, щоб побачити всі встановлені додатки. "
 
 
 msgid "Toolbox Column Layout"
@@ -72476,10 +71448,6 @@ msgstr "Дозволити спрощення сцени для швидшого
 
 msgid "Render Single Layer"
 msgstr "Рендер Одного Шару"
-
-
-msgid "Only render the active layer. Only affects rendering from the interface, ignored for rendering from command line"
-msgstr "Рендерити лише активний шар. Задіює рендеринг лише з інтерфейсу, ігнорується для рендерингу з командного рядка"
 
 
 msgid "Use Spherical Stereo"
@@ -77237,10 +76205,6 @@ msgid "Show rectangle area overlay"
 msgstr "Показати перекривання прямокутної області"
 
 
-msgid "Reference"
-msgstr "Орієнтир"
-
-
 msgid "Show reference frame only"
 msgstr "Показати лише кадр за посиланням"
 
@@ -77915,6 +76879,10 @@ msgstr "Точки сплайнів"
 
 msgid "Collection of spline points"
 msgstr "Колекція точок сплайнів"
+
+
+msgid "Color Value"
+msgstr "Значення Кольору"
 
 
 msgid "Stereo 3D Display"
@@ -80930,6 +79898,18 @@ msgid "Maintain the relative weights for the group"
 msgstr "Збереження відносних вагомостей для групи"
 
 
+msgid "Vertex Group Element"
+msgstr "Елемент групи вершин"
+
+
+msgid "Weight value of a vertex in a vertex group"
+msgstr "Значення вагомості вершини у групі вершин"
+
+
+msgid "Group Index"
+msgstr "Індекс групи"
+
+
 msgid "Collection of vertex groups"
 msgstr "Колекція груп вершин"
 
@@ -80990,12 +79970,20 @@ msgid "Canvas grid opacity"
 msgstr "Безпрозорість сітки полотна"
 
 
+msgid "Vertex Paint mix factor"
+msgstr "Фактор змішування Малювання Вершин"
+
+
 msgid "Grid Lines"
 msgstr "Лінії сітки"
 
 
 msgid "Number of grid lines to display in perspective view"
 msgstr "Кількість ліній сітки для показу в перспективі"
+
+
+msgid "Grid Scale"
+msgstr "Масштаб сітки"
 
 
 msgid "Multiplier for the distance between 3D View grid lines"
@@ -81008,6 +79996,10 @@ msgstr "Одиниці масштабу сітки"
 
 msgid "Grid cell size scaled by scene unit system settings"
 msgstr "Розмір комірок просторової сітки, масштабований за параметрами системи одиниць сцени"
+
+
+msgid "Grid Subdivisions"
+msgstr "Поділи сітки"
 
 
 msgid "Number of subdivisions between grid lines"
@@ -81206,6 +80198,10 @@ msgid "Show the object origin center dot for all (selected and unselected) objec
 msgstr "Показати початкові центральні точки всіх об'єктів (вибраних і не вибраних)"
 
 
+msgid "Onion Skins"
+msgstr "Покриви Калькою"
+
+
 msgid "Show the Onion Skinning Overlay"
 msgstr "Показ Накладки Покривання Калькою"
 
@@ -81372,6 +80368,10 @@ msgstr "Лише Лінії"
 
 msgid "Show Edit Lines only in multiframe"
 msgstr "Показувати Лінії Редагування лише у багатокадрі"
+
+
+msgid "Show ghosts of the keyframes before and after the current frame"
+msgstr "Показує привиди ключкадрів перед та після поточного кадру"
 
 
 msgid "Stroke Direction"
@@ -81950,10 +80950,6 @@ msgid "Frame File Path"
 msgstr "Шлях Файлу Кадру"
 
 
-msgid "Volume file used for loading the volume at the current frame. Empty if the volume has not be loaded or the frame only exists in memory"
-msgstr "Файл об'єму, що використовується для завантажування об'єму у поточний кадр. Порожньо, якщо об'єм не було завантажено або цей кадр існує лише в пам'яті"
-
-
 msgid "List of grids and metadata are loaded in memory"
 msgstr "Список сіток та метадані завантажуються у пам'ять"
 
@@ -81972,10 +80968,6 @@ msgstr "Утримувати безпрозорість та детальніс�
 
 msgid "Specify volume step size and density in world space"
 msgstr "Вказати розмір кроку та щільність об'єму у просторі світу"
-
-
-msgid "Distance between volume samples. Lower values render more detail at the cost of performance. If set to zero, the step size is automatically determined based on voxel size"
-msgstr "Відстань між вибірками об'єму. Вищі значення дають більш детальний рендер коштом продуктивності. Якщо задано як нуль, то розмір кроку автоматично визначається на основі розміру вокселя"
 
 
 msgid "Walk navigation settings"
@@ -83931,6 +82923,10 @@ msgid "Thickness Scale"
 msgstr "Масштаб Товщини"
 
 
+msgid "Edit Line Color"
+msgstr "Колір Лінії Редагування"
+
+
 msgctxt "Operator"
 msgid "Duplicate Empty Keyframes"
 msgstr "Дублювати Порожні Ключкадри"
@@ -84073,10 +83069,6 @@ msgid "Move to Bottom"
 msgstr "Перемістити на Низ"
 
 
-msgid "Preserve"
-msgstr "Бережіння"
-
-
 msgid "Resolution Viewport"
 msgstr "Роздільність Оглядвікна"
 
@@ -84163,6 +83155,10 @@ msgstr "Видалити Незв'язані Точки"
 msgctxt "Operator"
 msgid "Recalculate Geometry"
 msgstr "Перерахувати Геометрію"
+
+
+msgid "Stroke Thickness"
+msgstr "Товщина Штриха"
 
 
 msgid "Show Only on Keyframed"
@@ -86332,18 +85328,6 @@ msgid "Sync with Outliner"
 msgstr "Синхронізувати зі Структуратором"
 
 
-msgid "Lift:"
-msgstr "Підйом:"
-
-
-msgid "Gamma:"
-msgstr "Гамма:"
-
-
-msgid "Gain:"
-msgstr "Підсил:"
-
-
 msgid "Active Tools"
 msgstr "Активні Засоби"
 
@@ -86469,10 +85453,6 @@ msgstr "Зберігання"
 msgctxt "Operator"
 msgid "Set Overlay Region"
 msgstr "Задати Регіон Накладки"
-
-
-msgid "Offset:"
-msgstr "Зсув:"
 
 
 msgctxt "Operator"
@@ -88675,6 +87655,10 @@ msgid "Material Name"
 msgstr "Назва матеріалу"
 
 
+msgid "Multiframe"
+msgstr "Багатокадр"
+
+
 msgctxt "Operator"
 msgid "Frame Selected (Quad View)"
 msgstr "Вибране в Кадр (Чотирибічний Огляд)"
@@ -88838,6 +87822,10 @@ msgstr "Виступ"
 
 msgid "Valley"
 msgstr "Западина"
+
+
+msgid "Screen Space"
+msgstr "Простір екрана"
 
 
 msgid "No object selected, using cursor"
@@ -90261,14 +89249,6 @@ msgid "Active region not set"
 msgstr "Активну область не задано"
 
 
-msgid "Unable to add a new Armature modifier to object"
-msgstr "Недозволено додавати новий модифікатор Арматура на об'єкт"
-
-
-msgid "The existing Armature modifier is already using a different Armature object"
-msgstr "Наявний модифікатор Арматура вже використовує інший об'єкт типу Арматура"
-
-
 msgid "No Armature object in the view layer"
 msgstr "Нема жодного об'єкта типу Арматура у шарі огляду"
 
@@ -90319,14 +89299,6 @@ msgstr "Нема активного кольору для ізолювання"
 
 msgid "No Grease Pencil data"
 msgstr "Немає даних нарисного олівця"
-
-
-msgid "Unable to add a new Lattice modifier to object"
-msgstr "Немає змоги додати новий модифікатор Решітка для об'єкта"
-
-
-msgid "The existing Lattice modifier is already using a different Lattice object"
-msgstr "Наявний модифікатор Решітка вже використовується іншим об'єктом типу Решітка"
 
 
 msgid "Unable to find layer to add"
@@ -90720,6 +89692,18 @@ msgid "Online Python Reference"
 msgstr "Онлайнова довідка з Python"
 
 
+msgid "OS"
+msgstr "ОС"
+
+
+msgid "Home"
+msgstr "Домівка"
+
+
+msgid "Esc"
+msgstr "Esc"
+
+
 msgid "Animate property"
 msgstr "Анімувати властивість"
 
@@ -90904,6 +89888,10 @@ msgstr "Сортувати За:"
 
 msgid "Anim Player"
 msgstr "Програвач анімації"
+
+
+msgid "Swap Areas"
+msgstr "Обміняти Області"
 
 
 msgid "Manual Scale"
@@ -92034,66 +91022,6 @@ msgid "%s already in %s"
 msgstr "%s вже у %s"
 
 
-msgid "Only one modifier of this type is allowed"
-msgstr "Допускається лише один модифікатор цього типу"
-
-
-msgid "Cannot move modifier beyond the end of the stack"
-msgstr "Неможливо перемістити модифікатор поза кінець стеку"
-
-
-msgid "Modifier is disabled, skipping apply"
-msgstr "Модифікатор вимкнений, застосування пропущено"
-
-
-msgid "Cannot apply modifier for this object type"
-msgstr "Неможливо застосувати модифікатор до об'єкта такого типу"
-
-
-msgid "Modifiers cannot be applied in paint, sculpt or edit mode"
-msgstr "Модифікатори неможливо застосувати у режимах малювання, ліплення або редагування"
-
-
-msgid "Modifiers cannot be applied to multi-user data"
-msgstr "Неможливо застосувати модифікатори до багатокористувацьких даних"
-
-
-msgid "Applied modifier was not first, result may not be as expected"
-msgstr "Застосований модифікатор не був першим. Результат може бути неочікуваним"
-
-
-msgid "Modifiers cannot be added to object '%s'"
-msgstr "Неможливо додати модифікатори до об'єкта '%s'"
-
-
-msgid "Modifier '%s' not in object '%s'"
-msgstr "Модифікатор '%s' відсутній у об'єкта '%s'"
-
-
-msgid "Removed modifier: %s"
-msgstr "Вилучений модифікатор: %s"
-
-
-msgid "Applied modifier: %s"
-msgstr "Застосований модифікатор: %s"
-
-
-msgid "Source object '%s' is not a grease pencil object"
-msgstr "Джерельний об'єкт '%s' не є об'єктом нарисного олівця"
-
-
-msgid "Destination object '%s' is not a grease pencil object"
-msgstr "Об'єкт '%s' призначення не є об'єктом нарисного олівця"
-
-
-msgid "Cannot edit modifiers coming from linked data in a library override"
-msgstr "Неможливо редагувати модифікатори, що походять від пов'язаних даних у заміщенні бібліотеки"
-
-
-msgid "No supported objects were selected"
-msgstr "Жоден з підтримуваних об'єктів не було вибрано"
-
-
 msgid "Requires selected vertices or active vertex group"
 msgstr "Вимагає вибраних вершин або активної групи вершин"
 
@@ -92118,6 +91046,10 @@ msgid "Unable to execute '%s', error changing modes"
 msgstr "Неможливо виконати '%s', помилка зміни режиму"
 
 
+msgid "Only one modifier of this type is allowed"
+msgstr "Допускається лише один модифікатор цього типу"
+
+
 msgid "Cannot move above a modifier requiring original data"
 msgstr "Не можна помістити над модифікатором, що потребує оригінальних даних"
 
@@ -92134,12 +91066,24 @@ msgid "Cannot move modifier beyond the end of the list"
 msgstr "Неможливо перемістити модифікатор поза кінець списку"
 
 
+msgid "Cannot move modifier beyond the end of the stack"
+msgstr "Неможливо перемістити модифікатор поза кінець стеку"
+
+
+msgid "Modifier is disabled, skipping apply"
+msgstr "Модифікатор вимкнений, застосування пропущено"
+
+
 msgid "Only deforming modifiers can be applied to shapes"
 msgstr "До форм можна застосувати лише деформувальні модифікатори"
 
 
 msgid "Modifier is disabled or returned error, skipping apply"
 msgstr "Модифікатор вимкнений або повідомив про помилку, застосування пропущено"
+
+
+msgid "Cannot apply modifier for this object type"
+msgstr "Неможливо застосувати модифікатор до об'єкта такого типу"
 
 
 msgid "Modifier cannot be applied to a mesh with shape keys"
@@ -92162,8 +91106,16 @@ msgid "Modifiers cannot be applied in edit mode"
 msgstr "Модифікатори неможливо застосувати у режимі редагування"
 
 
+msgid "Modifiers cannot be applied to multi-user data"
+msgstr "Неможливо застосувати модифікатори до багатокористувацьких даних"
+
+
 msgid "Constructive modifier cannot be applied to multi-res data in sculpt mode"
 msgstr "Неможливо застосувати модифікатор, що будує, до мультироздільних даних у режимі ліплення"
+
+
+msgid "Applied modifier was not first, result may not be as expected"
+msgstr "Застосований модифікатор не був першим. Результат може бути неочікуваним"
 
 
 msgid "Reshape can work only with higher levels of subdivisions"
@@ -92182,6 +91134,14 @@ msgid "Modifier is disabled"
 msgstr "Модифікатор вимкнено"
 
 
+msgid "Modifiers cannot be added to object '%s'"
+msgstr "Неможливо додати модифікатори до об'єкта '%s'"
+
+
+msgid "Modifier '%s' not in object '%s'"
+msgstr "Модифікатор '%s' відсутній у об'єкта '%s'"
+
+
 msgid "Object '%s' does not support %s modifiers"
 msgstr "Об'єкт '%s' не підтримує %s модифікатори"
 
@@ -92194,6 +91154,14 @@ msgid "Copying modifier '%s' to object '%s' failed"
 msgstr "Збій копіювання модифікатора '%s' на об'єкт '%s'"
 
 
+msgid "Removed modifier: %s"
+msgstr "Вилучений модифікатор: %s"
+
+
+msgid "Applied modifier: %s"
+msgstr "Застосований модифікатор: %s"
+
+
 msgid "Modifier '%s' was not copied to any objects"
 msgstr "Модифікатор '%s' не було скопійовано на жоден з об'єктів"
 
@@ -92204,6 +91172,10 @@ msgstr "%d нові рівні перебудовано"
 
 msgid "Mesh '%s' has no skin vertex data"
 msgstr "Сіть '%s' не має даних вершин покриву"
+
+
+msgid "Cannot edit modifiers coming from linked data in a library override"
+msgstr "Неможливо редагувати модифікатори, що походять від пов'язаних даних у заміщенні бібліотеки"
 
 
 msgid "This modifier operation is not allowed from Edit mode"
@@ -92220,6 +91192,10 @@ msgstr "Жоден з вибраних об'єктів не є активним"
 
 msgid "Object type of source object is not supported"
 msgstr "Тип об'єкта для джерельного об'єкта не підтримується"
+
+
+msgid "No supported objects were selected"
+msgstr "Жоден з підтримуваних об'єктів не було вибрано"
 
 
 msgid "Set Parent To"
@@ -92766,10 +91742,6 @@ msgid "View layer '%s' could not be removed from scene '%s'"
 msgstr "Шар огляду '%s' не може бути вилучено зі сцени '%s'"
 
 
-msgid "Swap Areas"
-msgstr "Обміняти Області"
-
-
 msgid "Maximize Area"
 msgstr "Максимізувати область"
 
@@ -93123,6 +92095,10 @@ msgid "Y:"
 msgstr "Y:"
 
 
+msgid "Offset:"
+msgstr "Зсув:"
+
+
 msgid "Pattern Area:"
 msgstr "Область Патерну:"
 
@@ -93329,10 +92305,6 @@ msgstr "Назва файлу"
 
 msgid "Date Modified"
 msgstr "Дату Модифіковано"
-
-
-msgid "Home"
-msgstr "Домівка"
 
 
 msgid "Desktop"
@@ -93940,52 +92912,6 @@ msgid "Use view layer for rendering"
 msgstr "Вжити шар огляду для рендерингу"
 
 
-msgid ""
-"Temporarily hide in viewport\n"
-"* Shift to set children"
-msgstr ""
-"Тимчасово ховати у вікні огляду\n"
-"* Shift для задання нащадків"
-
-
-msgid ""
-"Disable selection in viewport\n"
-"* Shift to set children"
-msgstr ""
-"Вимкнути вибрання у вікні огляду\n"
-"* Shift для задання нащадків"
-
-
-msgid ""
-"Globally disable in viewports\n"
-"* Shift to set children"
-msgstr ""
-"Глобально вимкнути у вікнах огляду\n"
-"* Shift для задання нащадків"
-
-
-msgid ""
-"Globally disable in renders\n"
-"* Shift to set children"
-msgstr "Глобально вимкнути в рендерах* Shift для задання нащадків"
-
-
-msgid ""
-"Restrict visibility in the 3D View\n"
-"* Shift to set children"
-msgstr ""
-"Обмежити видимість у 3D Огляді\n"
-"* Shift для задання нащадків"
-
-
-msgid ""
-"Restrict selection in the 3D View\n"
-"* Shift to set children"
-msgstr ""
-"Обмежити вибрання в 3D Огляді\n"
-"* Shift для задання нащадків"
-
-
 msgid "Restrict visibility in the 3D View"
 msgstr "Обмежити видимість у 3D Огляді"
 
@@ -93994,71 +92920,12 @@ msgid "Restrict editing of strokes and keyframes in this layer"
 msgstr "Обмежити редагування штрихів та ключкадрів на цьому шарі"
 
 
-msgid ""
-"Temporarily hide in viewport\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections and objects"
-msgstr ""
-"Тимчасово сховати у вікні огляду\n"
-"* Ctrl для ізоляції колекції\n"
-"* Shift для задання всередині колекцій та об'єктів"
-
-
-msgid ""
-"Mask out objects in collection from view layer\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections"
-msgstr "Відмаскувати об'єкти в колекції від шару огляду* Ctrl для ізоляції колекції* Shift для задання всередині колекцій"
-
-
-msgid ""
-"Objects in collection only contribute indirectly (through shadows and reflections) in the view layer\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections"
-msgstr "Об'єкти в колекції братимуть участь лише побічно (через тіні та відбиття) на цьому шарі огляду* Ctrl для ізоляції колекції* Shift для задання всередині колекцій"
-
-
-msgid ""
-"Globally disable in viewports\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections and objects"
-msgstr ""
-"Глобально вимкнути у вікнах огляду\n"
-"* Ctrl для ізоляції колекції\n"
-"* Shift для задання всередині колекцій та об'єктів"
-
-
-msgid ""
-"Globally disable in renders\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections and objects"
-msgstr "Глобально вимкнути у рендерах* Ctrl для ізоляції колекції* Shift для задання всередині колекцій та об'єктів"
-
-
-msgid ""
-"Disable selection in viewport\n"
-"* Ctrl to isolate collection\n"
-"* Shift to set inside collections and objects"
-msgstr ""
-"Вимкнути вибрання у вікні огляду\n"
-"* Ctrl для ізоляції колекції\n"
-"* Shift для задання всередині колекцій та об'єктів"
-
-
 msgid "Change the object in the current mode"
 msgstr "Змінити об'єкт у поточному режимі"
 
 
 msgid "Remove from the current mode"
 msgstr "Вилучити з поточного режиму"
-
-
-msgid ""
-"Change the object in the current mode\n"
-"* Ctrl to add to the current mode"
-msgstr ""
-"Змінити об'єкт у поточному режимі\n"
-"* Ctrl для додання у поточний режим"
 
 
 msgid "Library path '%s' does not exist, correct this before saving"
@@ -95098,26 +93965,6 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Рендеринг штриха"
 
 
-msgid "Bind To"
-msgstr "Прив'язка До"
-
-
-msgid "Bone Envelopes"
-msgstr "Оболонки кісток"
-
-
-msgid "Custom Camera"
-msgstr "Власна камера"
-
-
-msgid "Stroke Fit Method"
-msgstr "Метод Підгонки Штриха"
-
-
-msgid "External library data"
-msgstr "Дані зовнішньої бібліотеки"
-
-
 msgctxt "Action"
 msgid "Group"
 msgstr "Група"
@@ -95187,12 +94034,12 @@ msgid "F-Curve '%s[%d]' already exists in action '%s'"
 msgstr "Ф-крива '%s[%d]' вже є у дії '%s'"
 
 
-msgid "F-Curve's action group '%s' not found in action '%s'"
-msgstr "Групу дії Ф-кривої '%s' не знайдено в дії '%s'"
-
-
 msgid "F-Curve not found in action '%s'"
 msgstr "Ф-криву не знайдено у дії '%s'"
+
+
+msgid "F-Curve's action group '%s' not found in action '%s'"
+msgstr "Групу дії Ф-кривої '%s' не знайдено в дії '%s'"
 
 
 msgid "Timeline marker '%s' not found in action '%s'"
@@ -95343,42 +94190,6 @@ msgid "Flame"
 msgstr "Полум'я"
 
 
-msgid "GPencilStrokePoints.pop: index out of range"
-msgstr "GPencilStrokePoints.pop: індекс за межами діапазону"
-
-
-msgid "Groups: No groups for this stroke"
-msgstr "Групи: Нема груп для цього штриха"
-
-
-msgid "GPencilStrokePoints: index out of range"
-msgstr "ТочкиШтрихаНарОлівця: індекс за межами діапазону"
-
-
-msgid "Stroke not found in grease pencil frame"
-msgstr "Штрих не знайдено у кадрі нарисного олівця"
-
-
-msgid "Frame not found in grease pencil layer"
-msgstr "Кадр не знайдено у шарі нарисного олівця"
-
-
-msgid "Layer not found in grease pencil data"
-msgstr "У даних нарисного олівця шар не знайдено"
-
-
-msgid "Mask not found in mask list"
-msgstr "Маска не знайдена у списку масок"
-
-
-msgid "Frame already exists on this frame number %d"
-msgstr "Кадр з номером %d вже є"
-
-
-msgid "Modify"
-msgstr "Змінити"
-
-
 msgid "Image not packed"
 msgstr "Зображення не упаковано"
 
@@ -95506,6 +94317,10 @@ msgstr "Кількість власних нормалей не відповід
 
 msgid "Metaball '%s' does not contain spline given"
 msgstr "Метакуля '%s' не містить даного сплайну"
+
+
+msgid "Modify"
+msgstr "Змінити"
 
 
 msgid "Negative vertex index in vertex_indices_set"
@@ -95880,10 +94695,6 @@ msgid "GizmoType '%s' not known"
 msgstr "Тип гізмо '%s' невідомий"
 
 
-msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used"
-msgstr "GizmoType '%s' є для групи гізмо 3D. Відклик 'draw_select' задається лише там, де буде використовуватися 'test_select'"
-
-
 msgid "Gizmo target property '%s.%s' not found"
 msgstr "Властивість цілі гізмо '%s.%s' не знайдено"
 
@@ -95922,6 +94733,14 @@ msgstr "Оператор '%s' не знайдено!"
 
 msgid "Gizmo group '%s' not found!"
 msgstr "Група гізмо '%s' не знайдена!"
+
+
+msgid "Bind To"
+msgstr "Прив'язка До"
+
+
+msgid "Bone Envelopes"
+msgstr "Оболонки кісток"
 
 
 msgid "First and Last Copies"
@@ -95964,8 +94783,20 @@ msgid "Refresh"
 msgstr "Освіження"
 
 
+msgid "Subdivide"
+msgstr "Підподіл"
+
+
+msgid "Stroke Fit Method"
+msgstr "Метод Підгонки Штриха"
+
+
 msgid "Recenter"
 msgstr "Перецентрування"
+
+
+msgid "Custom Camera"
+msgstr "Власна камера"
 
 
 msgid "Bisect"
@@ -96084,6 +94915,10 @@ msgid "Levels Viewport"
 msgstr "Рівні Оглядвікно"
 
 
+msgid "External library data"
+msgstr "Дані зовнішньої бібліотеки"
+
+
 msgctxt "Operator"
 msgid "Apply as Shape Key"
 msgstr "Застосувати як Ключ Форми"
@@ -96136,6 +94971,10 @@ msgstr "Знач."
 
 msgid "Result"
 msgstr "Результат"
+
+
+msgid "Point Index"
+msgstr "Індекс Точки"
 
 
 msgid "Planar"
@@ -96683,16 +95522,8 @@ msgid "Win"
 msgstr "Win"
 
 
-msgid "OS"
-msgstr "ОС"
-
-
 msgid "Bksp"
 msgstr "Bksp"
-
-
-msgid "Esc"
-msgstr "Esc"
 
 
 msgid "dbl-"
@@ -96829,6 +95660,10 @@ msgstr "Збій створення вікна, сумісного з часов
 
 msgid "Stereo 3D Mode requires the window to be fullscreen"
 msgstr "Для режиму 3D-стерео вікно має бути повноекранним"
+
+
+msgid "Pose Library"
+msgstr "Бібліотека поз"
 
 
 msgid "All Add-ons"

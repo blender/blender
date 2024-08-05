@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -599,10 +599,6 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "mængde, som den aktive handling bidrager til resultatet af NLA-stakken"
 
 
-msgid "None"
-msgstr "Ingen"
-
-
 msgid "Slot to temporarily hold the main action while in tweak mode"
 msgstr "Slot for midlertidigt at holde hovedhandlingen, mens du er i tweak-tilstand"
 
@@ -833,10 +829,6 @@ msgstr "Vis stier til stillinger inden for det specificerede område"
 
 msgid "Bake to active Camera"
 msgstr "Bag til aktivt kamera"
-
-
-msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
-msgstr "Bevægelsesstipunkter vil blive indbygget i kamerarummet på det aktive kamera. Det betyder, at de kun ser rigtigt ud, når de ser gennem det kamera. Skift kamera ved hjælp af markører er ikke understøttet"
 
 
 msgid "Any Type"
@@ -1143,10 +1135,6 @@ msgid "Catalog UUID"
 msgstr "Katalog UUID"
 
 
-msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
-msgstr "Identifikator for aktivets katalog, brugt af Blender til at slå aktivets katalogsti op. Skal være et UUID i henhold til RFC4122"
-
-
 msgid "Catalog Simple Name"
 msgstr "Katalog enkelt navn"
 
@@ -1159,10 +1147,6 @@ msgid "Copyright"
 msgstr "ophavsret"
 
 
-msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
-msgstr "Ophavsretsmeddelelse for dette aktiv. En tom ophavsretsmeddelelse betyder ikke nødvendigvis, at dette er ophavsretsfrit. Kontakt forfatteren, hvis der er behov for nogen afklaring"
-
-
 msgid "Description"
 msgstr "Beskrivelse"
 
@@ -1173,10 +1157,6 @@ msgstr "En beskrivelse af det aktiv, der skal vises for brugeren"
 
 msgid "License"
 msgstr "Licens"
-
-
-msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
-msgstr "Den type licens, som dette aktiv er distribueret under. Et tomt licensnavn betyder ikke nødvendigvis, at dette er fri for licensvilkår. Kontakt forfatteren, hvis der er behov for en afklaring"
 
 
 msgid "Tags"
@@ -1426,10 +1406,6 @@ msgid "No Asset Dragging"
 msgstr "Ingen aktiv træk"
 
 
-msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
-msgstr "Deaktiver standardaktivets træk ved trækhændelser. Nyttigt til at implementere tilpasset træk via brugerdefinerede nøglekortelementer"
-
-
 msgid "Visible by Default"
 msgstr "Synlig som standard"
 
@@ -1472,10 +1448,6 @@ msgstr "Filtrer aktiver efter navn"
 
 msgid "Show Names"
 msgstr "Vis Navne"
-
-
-msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
-msgstr "Vis aktivnavnet sammen med forhåndsvisningen. Ellers vil kun forhåndsvisningen være synlig"
 
 
 msgid "Asset Tag"
@@ -1758,10 +1730,6 @@ msgid "Cage Extrusion"
 msgstr "Bur ekstrudering"
 
 
-msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
-msgstr "Pust den aktive genstand op med den angivne afstand til bagning. Dette hjælper med at matche til punkter tættere på ydersiden af de valgte objektmasker"
-
-
 msgid "Cage Object"
 msgstr "Bur Objekt"
 
@@ -1804,10 +1772,6 @@ msgstr "Forlæng"
 
 msgid "Extend border pixels outwards"
 msgstr "Forlæng kantpixel udad"
-
-
-msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
-msgstr "Den maksimale stråleafstand for at matche punkter mellem de aktive og valgte objekter. Hvis nul, er der ingen grænse"
 
 
 msgid "Normal Space"
@@ -1876,6 +1840,10 @@ msgstr "Pass filter"
 
 msgid "Passes to include in the active baking pass"
 msgstr "Passer til at inkludere i det aktive bagepas"
+
+
+msgid "None"
+msgstr "Ingen"
 
 
 msgid "Emit"
@@ -2419,14 +2387,6 @@ msgid "Blend Mode"
 msgstr "Blandings måde"
 
 
-msgid "Camera Object"
-msgstr "Kamera objekt"
-
-
-msgid "Target Object"
-msgstr "Mål objekt"
-
-
 msgid "Ping Pong"
 msgstr "Ping pong"
 
@@ -2584,6 +2544,14 @@ msgid "New"
 msgstr "ny"
 
 
+msgid "Camera Object"
+msgstr "Kamera objekt"
+
+
+msgid "Target Object"
+msgstr "Mål objekt"
+
+
 msgid "Play Mode"
 msgstr "Afspilningstilstand"
 
@@ -2726,6 +2694,14 @@ msgstr "Afspil"
 
 msgid "Limit"
 msgstr "Grænse"
+
+
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
+msgstr "Pust den aktive genstand op med den angivne afstand til bagning. Dette hjælper med at matche til punkter tættere på ydersiden af de valgte objektmasker"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit"
+msgstr "Den maksimale stråleafstand for at matche punkter mellem de aktive og valgte objekter. Hvis nul, er der ingen grænse"
 
 
 msgid "Child"

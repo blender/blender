@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -555,10 +555,6 @@ msgid "Catalog UUID"
 msgstr "Katalog UUID"
 
 
-msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122"
-msgstr "Identifierare för tillgångens katalog, används av Blender för att hitta tillgångens sökväg. Måste vara ett UUID enligt RFC4122"
-
-
 msgid "Catalog Simple Name"
 msgstr "Katalog enkelt namn"
 
@@ -571,10 +567,6 @@ msgid "Copyright"
 msgstr "Upphovsrätt"
 
 
-msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
-msgstr "Upphovsrättsmeddelande för denna tillgång. Ett tomt meddelande betyder inte nödvändigtvis att den är fri från upphovsrätt. Kontakta skaparen om något behöver klargöras"
-
-
 msgid "Description"
 msgstr "Beskrivning"
 
@@ -585,10 +577,6 @@ msgstr "En beskrivning av tillgången som kommer visas för användaren"
 
 msgid "License"
 msgstr "Licens"
-
-
-msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
-msgstr "Typen av licens som denna tillgång distribueras under. Ett tomt licensnamn betyder inte nödvändigtvis att den är fri från licensvillkor. Kontakta skaparen om något behöver klargöras"
 
 
 msgid "Tags"
@@ -877,10 +865,6 @@ msgstr "Storlek på tillgångens förhandsvisning i pixlar"
 
 msgid "Show Names"
 msgstr "Visa namn"
-
-
-msgid "Show the asset name together with the preview. Otherwise only the preview will be visible"
-msgstr "Visa namnen på tillgångarna tillsammans med förhandsvisning. Annars visas endast förhandsvisningar"
 
 
 msgid "Asset Tag"
@@ -2700,10 +2684,6 @@ msgid "View"
 msgstr "Vy"
 
 
-msgid "Dash"
-msgstr "Streckad"
-
-
 msgid "Viewport"
 msgstr "Vy"
 
@@ -3278,16 +3258,8 @@ msgid "End"
 msgstr "Slut"
 
 
-msgid "Frame on which the simulation stops. This is the last frame that will be baked"
-msgstr "Bildruta då simuleringen slutar. Detta är den sista bildruta som kommer att bakas"
-
-
 msgid "Start"
 msgstr "Start"
-
-
-msgid "Frame on which the simulation starts. This is the first frame that will be baked"
-msgstr "Bildruta då simuleringen startar. Detta är den första bildrutan som kommer att bakas"
 
 
 msgid "Change the cache type of the simulation"
@@ -3403,36 +3375,12 @@ msgid "Use"
 msgstr "Använd"
 
 
-msgid "Keyframe Type"
-msgstr "Keyframe-typ"
-
-
-msgid "Type of keyframe"
-msgstr "Typ av keyframe"
-
-
-msgid "Blend Mode"
-msgstr "Blandningsläge"
-
-
-msgid "Blend mode"
-msgstr "Blandningsläge"
-
-
-msgid "Regular"
-msgstr "Vanlig"
-
-
 msgid "Frames"
 msgstr "Rutor"
 
 
 msgid "Layer name"
 msgstr "Lagernamn"
-
-
-msgid "Parent Type"
-msgstr "Typ av förälder"
 
 
 msgid "Onion Skinning"
@@ -3451,64 +3399,40 @@ msgid "Window"
 msgstr "Fönster"
 
 
-msgid "Offset keyframes"
-msgstr "Förskjut keyframes"
+msgid "Dash"
+msgstr "Streckad"
 
 
-msgid "Build"
-msgstr "Bygg upp"
+msgid "Attributes"
+msgstr "Attributer"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Geometry attributes"
+msgstr "Geometriattributer"
 
 
-msgid "Subdivide"
-msgstr "Dela upp"
+msgid "Color Attributes"
+msgstr "Färgattributer"
 
 
-msgid "Lattice"
-msgstr "Lattice"
+msgid "Keyframe Type"
+msgstr "Keyframe-typ"
 
 
-msgid "Smooth"
-msgstr "Jämn"
+msgid "Type of keyframe"
+msgstr "Typ av keyframe"
 
 
-msgid "Falloff Curve"
-msgstr "Avtagandekurva"
+msgid "Blend Mode"
+msgstr "Blandningsläge"
 
 
-msgid "Step"
-msgstr "Steg"
+msgid "Blend mode"
+msgstr "Blandningsläge"
 
 
-msgid "Steps"
-msgstr "Steg"
-
-
-msgid "Start Offset"
-msgstr "Startförskjutning"
-
-
-msgid "Subdivisions"
-msgstr "Uppdelningar"
-
-
-msgid "Negative"
-msgstr "Negativ"
-
-
-msgid "Frame Offset"
-msgstr "Rutförskjutning"
-
-
-msgid "Weight value of a vertex in a vertex group"
-msgstr "Viktningsvärde för en verte i en vertexgrupp"
-
-
-msgid "Grid Subdivisions"
-msgstr "Delningar av rutnät"
+msgid "Regular"
+msgstr "Vanlig"
 
 
 msgid "Repeat"
@@ -3553,6 +3477,10 @@ msgstr "Typsnitt"
 
 msgid "Grease Pencil v3"
 msgstr "Grease Pencil v3"
+
+
+msgid "Lattice"
+msgstr "Lattice"
 
 
 msgid "Library"
@@ -3915,6 +3843,10 @@ msgid "Show texture in viewport"
 msgstr "Visa textur i vy"
 
 
+msgid "Frame Offset"
+msgstr "Rutförskjutning"
+
+
 msgctxt "Unit"
 msgid "Second"
 msgstr "Sekund"
@@ -4031,18 +3963,6 @@ msgstr "Kapitäler"
 
 msgid "Fast Editing"
 msgstr "Snabbredigera"
-
-
-msgid "Attributes"
-msgstr "Attributer"
-
-
-msgid "Geometry attributes"
-msgstr "Geometriattributer"
-
-
-msgid "Color Attributes"
-msgstr "Färgattributer"
 
 
 msgid "Normals"
@@ -4385,6 +4305,10 @@ msgid "Particle Edit"
 msgstr "Partikelredigering"
 
 
+msgid "Parent Type"
+msgstr "Typ av förälder"
+
+
 msgid "Rotation in Eulers"
 msgstr "Rotation med Euler"
 
@@ -4476,6 +4400,10 @@ msgstr "Visa"
 
 msgid "Size of particles on viewport"
 msgstr "Storlek av partiklar i vy"
+
+
+msgid "Steps"
+msgstr "Steg"
 
 
 msgid "Stiffness"
@@ -5462,8 +5390,16 @@ msgid "Files"
 msgstr "Filer"
 
 
+msgid "Smooth"
+msgstr "Jämn"
+
+
 msgid "Align"
 msgstr "Justera"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Show/Hide Faces"
@@ -5686,6 +5622,18 @@ msgid "Ellipsoid"
 msgstr "Ellipsoid"
 
 
+msgid "Negative"
+msgstr "Negativ"
+
+
+msgid "Offset keyframes"
+msgstr "Förskjut keyframes"
+
+
+msgid "Build"
+msgstr "Bygg upp"
+
+
 msgid "Subdivision Surface"
 msgstr "Uppdelningsyta"
 
@@ -5713,6 +5661,22 @@ msgstr "Sidantal"
 msgctxt "Simulation"
 msgid "Type"
 msgstr "Typ"
+
+
+msgid "Step"
+msgstr "Steg"
+
+
+msgid "Start Offset"
+msgstr "Startförskjutning"
+
+
+msgid "Subdivisions"
+msgstr "Uppdelningar"
+
+
+msgid "Falloff Curve"
+msgstr "Avtagandekurva"
 
 
 msgid "Normalized"
@@ -5813,6 +5777,10 @@ msgstr "Anisotropisk"
 
 msgid "Lens Distortion"
 msgstr "Linsförvrängning"
+
+
+msgid "Save as Render"
+msgstr "Spara som rendering"
 
 
 msgid "A color picker"
@@ -6278,10 +6246,6 @@ msgstr "Justera text till vänster och höger"
 
 msgid "Align text to the left and the right, with equal character spacing"
 msgstr "Justera text till vänster och höger, med jämnt avstånd mellan tecken"
-
-
-msgid "Font of the text. Falls back to the UI font by default"
-msgstr "Typsnitt för texten. Använder gränssnittstypsnittet som standard"
 
 
 msgid "Let the text use more space than the specified height"
@@ -7145,10 +7109,6 @@ msgid "Collection of Node Links"
 msgstr "Samling av nodlänkar"
 
 
-msgid "Save as Render"
-msgstr "Spara som rendering"
-
-
 msgid "Node Outputs"
 msgstr "Nodoutputs"
 
@@ -7435,10 +7395,6 @@ msgstr "Standardattribut"
 
 msgid "Default Input"
 msgstr "Standardinput"
-
-
-msgid "Input to use when the socket is unconnected. Requires \"Hide Value\""
-msgstr "Input att använda när uttaget inte är anslutet. Kräver \"Dölj värde\""
 
 
 msgid "Socket description"
@@ -10422,10 +10378,6 @@ msgid "Monkey"
 msgstr "Apa"
 
 
-msgid "Object Data"
-msgstr "Objektdata"
-
-
 msgctxt "Operator"
 msgid "Hide Collection"
 msgstr "Dölj samling"
@@ -10617,6 +10569,10 @@ msgstr "Länka markering till en annan scen"
 msgctxt "Operator"
 msgid "Make Local"
 msgstr "Gör lokal"
+
+
+msgid "Object Data"
+msgstr "Objektdata"
 
 
 msgctxt "Operator"
@@ -11803,6 +11759,10 @@ msgid "Subdivision"
 msgstr "Uppdelning"
 
 
+msgid "Preserve"
+msgstr "Bevara"
+
+
 msgctxt "Operator"
 msgid "Close Window"
 msgstr "Stäng fönster"
@@ -12083,10 +12043,6 @@ msgstr "Användargränssnitt"
 
 msgid "Gradient Colors"
 msgstr "Gradientfärger"
-
-
-msgid "Pose Library"
-msgstr "Pose-bibliotek"
 
 
 msgctxt "Operator"
@@ -12438,10 +12394,6 @@ msgid "Windows Ink"
 msgstr "Windows Ink"
 
 
-msgid "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer"
-msgstr "Använd inbyggt Windows Ink API, för moderna tablets och pennenheter. Kräver Windows 8 eller nyare"
-
-
 msgid "Wintab"
 msgstr "Wintab"
 
@@ -12512,10 +12464,6 @@ msgstr "Vilken stil att använda för vyskalning"
 
 msgid "Continue"
 msgstr "Fortsätt"
-
-
-msgid "Continuous zooming. The zoom direction and speed depends on how far along the set Zoom Axis the mouse has moved"
-msgstr "Kontinuerlig zoomning. Zoom-riktning och hastighet beror på hur långt längs den angivna zoom-axeln som musen har flyttats"
 
 
 msgid "Zoom in and out based on mouse movement along the set Zoom Axis"
@@ -12646,10 +12594,6 @@ msgid "Register for All Users"
 msgstr "Registrera för alla användare"
 
 
-msgid "Make this Blender version open blend files for all users. Requires elevated privileges"
-msgstr "Få denna Blender-version att öppna blend-filer för alla användare. Kräver förhöjda privilegier"
-
-
 msgid "Maximum number of lines to store for the console buffer"
 msgstr "Maximalt antal rader att lagda i konsolens buffert"
 
@@ -12680,10 +12624,6 @@ msgstr "Föreslagen linjetjocklek och punktstorlek i pixlar, för tillägg som v
 
 msgid "UI Scale"
 msgstr "Gränssnittsskala"
-
-
-msgid "Size multiplier to use when displaying custom user interface elements, so that they are scaled correctly on screens with different DPI. This value is based on operating system DPI settings and Blender display scale"
-msgstr "Multiplikator för storlek att använda när anpassade gränssnittselement visas, så att de skalas korrekt på skärmar med olika DPI. Detta värde är baserat på operativsystemets DPI-inställning och Blenders visningsskala"
 
 
 msgid "Use Disk Cache"
@@ -12948,10 +12888,6 @@ msgstr "Bilder renderas i ett nytt fönster"
 
 msgid "Enabled Add-ons Only"
 msgstr "Endast aktiverade tillägg"
-
-
-msgid "Only show enabled add-ons. Un-check to see all installed add-ons"
-msgstr "Visa endast aktiverade tillägg. Avmarkera för att se alla installerade tillägg"
 
 
 msgid "Navigation Controls"
@@ -13480,6 +13416,14 @@ msgid "Add & Replace"
 msgstr "Lägg till & ersätt"
 
 
+msgid "Weight value of a vertex in a vertex group"
+msgstr "Viktningsvärde för en verte i en vertexgrupp"
+
+
+msgid "Grid Subdivisions"
+msgstr "Delningar av rutnät"
+
+
 msgid "Display X Axis"
 msgstr "Visa X-axeln"
 
@@ -13925,14 +13869,6 @@ msgid "Bug"
 msgstr "Bugg"
 
 
-msgid "Add-on Bug"
-msgstr "Tillägg bugg"
-
-
-msgid "Report a bug in an add-on"
-msgstr "Rapportera en bugg i ett tillägg"
-
-
 msgid "Read about what's new in this version of Blender"
 msgstr "Läs om vad som är nytt i denna version av Blender"
 
@@ -14201,10 +14137,6 @@ msgstr "Flytta till toppen"
 msgctxt "Operator"
 msgid "Move to Bottom"
 msgstr "Flytta till botten"
-
-
-msgid "Preserve"
-msgstr "Bevara"
 
 
 msgid "Name collisions: "
@@ -15189,10 +15121,6 @@ msgstr "Film"
 msgctxt "Operator"
 msgid "Image/Sequence"
 msgstr "Bild/sekvens"
-
-
-msgid "Offset:"
-msgstr "Förskjutning:"
 
 
 msgctxt "Operator"
@@ -16272,6 +16200,10 @@ msgid "Search"
 msgstr "Sök"
 
 
+msgid "Home"
+msgstr "Hem"
+
+
 msgid "Saturation:"
 msgstr "Mättnad:"
 
@@ -16457,6 +16389,10 @@ msgid "Y:"
 msgstr "Y:"
 
 
+msgid "Offset:"
+msgstr "Förskjutning:"
+
+
 msgid "Width:"
 msgstr "Bredd:"
 
@@ -16503,10 +16439,6 @@ msgstr "Filnamn, skriv över befintlig"
 
 msgid "File name"
 msgstr "Filnamn"
-
-
-msgid "Home"
-msgstr "Hem"
 
 
 msgid "Desktop"
@@ -16738,16 +16670,20 @@ msgid "parent"
 msgstr "förälder"
 
 
-msgid "Bone Envelopes"
-msgstr "Benomslutningar"
-
-
 msgid "Image '%s' could not be saved to '%s'"
 msgstr "Bild '%s' kunde inte sparas till '%s'"
 
 
 msgid "Add-on is no longer valid"
 msgstr "Tillägget är inte längre giltigt"
+
+
+msgid "Bone Envelopes"
+msgstr "Benomslutningar"
+
+
+msgid "Subdivide"
+msgstr "Dela upp"
 
 
 msgid "Recenter"
@@ -16929,6 +16865,10 @@ msgstr "Videoredigering"
 
 msgid "Cycles Render Engine"
 msgstr "Cycles renderingsmotor"
+
+
+msgid "Pose Library"
+msgstr "Pose-bibliotek"
 
 
 msgid "All Add-ons"

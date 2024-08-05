@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'de443e038c4e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-22 07:23+0000\n"
+"POT-Creation-Date: 2024-08-05 09:10+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -63,10 +63,6 @@ msgid "Hold"
 msgstr "Κράτα"
 
 
-msgid "None"
-msgstr "Κανένα"
-
-
 msgid "End Frame"
 msgstr "Τελευταίο Καρέ"
 
@@ -109,6 +105,10 @@ msgstr "Επέκταση"
 
 msgid "Object"
 msgstr "Αντικείμενο"
+
+
+msgid "None"
+msgstr "Κανένα"
 
 
 msgid "Emit"
@@ -343,30 +343,6 @@ msgid "Grid"
 msgstr "Πλέγμα"
 
 
-msgid "Edit Mode"
-msgstr "Κατάσταση Επεξεργασίας"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
-msgid "Subdivide"
-msgstr "Υποδιαίρεση"
-
-
-msgid "Lattice"
-msgstr "Πλέγμα"
-
-
-msgid "Shaded"
-msgstr "Με σκίαση"
-
-
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
 msgid "Repeat"
 msgstr "Repeat"
 
@@ -385,6 +361,10 @@ msgstr "Γραμματοσειρά"
 
 msgid "Key"
 msgstr "Κλειδί"
+
+
+msgid "Lattice"
+msgstr "Πλέγμα"
 
 
 msgid "Library"
@@ -511,6 +491,10 @@ msgid "Circle"
 msgstr "Κύκλος"
 
 
+msgid "Edit Mode"
+msgstr "Κατάσταση Επεξεργασίας"
+
+
 msgid "Vertex Paint"
 msgstr "Χρωματισμός κορυφών"
 
@@ -579,6 +563,14 @@ msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
 
 
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
 msgid "Import"
 msgstr "Εισαγωγή"
 
@@ -637,6 +629,10 @@ msgstr "Κύμα"
 
 msgid "New"
 msgstr "Νέο"
+
+
+msgid "Shaded"
+msgstr "Με σκίαση"
 
 
 msgid "Lines"
@@ -1026,6 +1022,10 @@ msgid "Layer:"
 msgstr "Στρώμα"
 
 
+msgid "Esc"
+msgstr "Esc"
+
+
 msgid "Cancel"
 msgstr "Ακύρωση"
 
@@ -1038,10 +1038,10 @@ msgid "Fields"
 msgstr "Πεδία"
 
 
+msgid "Subdivide"
+msgstr "Υποδιαίρεση"
+
+
 msgid "Life"
 msgstr "Ζωή"
-
-
-msgid "Esc"
-msgstr "Esc"
 
