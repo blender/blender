@@ -12,6 +12,7 @@
 #include "ply_data.hh"
 
 struct bContext;
+struct Mesh;
 struct Main;
 struct Scene;
 struct ViewLayer;
@@ -19,6 +20,8 @@ struct ViewLayer;
 namespace blender::io::ply {
 
 class PlyReadBuffer;
+
+Mesh *import_mesh(const PLYImportParams &import_params);
 
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const PLYImportParams &import_params);

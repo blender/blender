@@ -38,3 +38,8 @@ void PLY_import(bContext *C, const PLYImportParams *import_params)
   blender::io::ply::importer_main(C, *import_params);
   report_duration("import", start_time, import_params->filepath);
 }
+
+Mesh *PLY_import_mesh(const PLYImportParams *import_params)
+{
+  return blender::io::ply::import_mesh(*import_params);
+}

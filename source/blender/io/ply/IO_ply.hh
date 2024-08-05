@@ -14,6 +14,7 @@
 
 #include "IO_orientation.hh"
 
+struct Mesh;
 struct bContext;
 struct ReportList;
 
@@ -73,3 +74,5 @@ struct PLYImportParams {
 void PLY_export(bContext *C, const PLYExportParams *export_params);
 
 void PLY_import(bContext *C, const PLYImportParams *import_params);
+
+Mesh *PLY_import_mesh(const PLYImportParams *import_params);
