@@ -314,21 +314,28 @@ static void buttons_main_region_layout_properties(const bContext *C,
 
 const char *ED_buttons_search_string_get(SpaceProperties *sbuts)
 {
-  return sbuts->runtime->search_string;
+  return (sbuts->runtime) ? sbuts->runtime->search_string : "";
 }
 
 int ED_buttons_search_string_length(SpaceProperties *sbuts)
 {
-  return BLI_strnlen(sbuts->runtime->search_string, sizeof(sbuts->runtime->search_string));
+  return (sbuts->runtime) ?
+             BLI_strnlen(sbuts->runtime->search_string, sizeof(sbuts->runtime->search_string)) :
+             0;
 }
 
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
 {
-  STRNCPY(sbuts->runtime->search_string, value);
+  if (sbuts->runtime) {
+    STRNCPY(sbuts->runtime->search_string, value);
+  }
 }
 
 bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)
 {
+  if (!sbuts->runtime) {
+    return false;
+  }
   return BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, index);
 }
 
