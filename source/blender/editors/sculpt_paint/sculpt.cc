@@ -6783,9 +6783,11 @@ void scatter_data_vert_bmesh(const Span<T> node_data,
 }
 
 template void gather_data_mesh<bool>(Span<bool>, Span<int>, MutableSpan<bool>);
+template void gather_data_mesh<int>(Span<int>, Span<int>, MutableSpan<int>);
 template void gather_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
 template void gather_data_mesh<float3>(Span<float3>, Span<int>, MutableSpan<float3>);
 template void gather_data_mesh<float4>(Span<float4>, Span<int>, MutableSpan<float4>);
+template void gather_data_grids<int>(const SubdivCCG &, Span<int>, Span<int>, MutableSpan<int>);
 template void gather_data_grids<float>(const SubdivCCG &,
                                        Span<float>,
                                        Span<int>,
@@ -6794,6 +6796,7 @@ template void gather_data_grids<float3>(const SubdivCCG &,
                                         Span<float3>,
                                         Span<int>,
                                         MutableSpan<float3>);
+template void gather_data_vert_bmesh<int>(Span<int>, const Set<BMVert *, 0> &, MutableSpan<int>);
 template void gather_data_vert_bmesh<float>(Span<float>,
                                             const Set<BMVert *, 0> &,
                                             MutableSpan<float>);
@@ -7623,6 +7626,47 @@ void calc_vert_neighbors(const OffsetIndices<int> faces,
   BLI_assert(corner_verts.size() == faces.total_size());
   for (const int i : verts.index_range()) {
     vert_neighbors_get_mesh(verts[i], faces, corner_verts, vert_to_face, hide_poly, result[i]);
+  }
+}
+
+void calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
+                         const Span<int> grids,
+                         const MutableSpan<Vector<SubdivCCGCoord>> result)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  SubdivCCGNeighbors neighbors;
+  BLI_assert(result.size() == grids.size() * key.grid_area);
+  for (const int i : grids.index_range()) {
+    const int grid = grids[i];
+    const int node_verts_start = i * key.grid_area;
+
+    for (const int y : IndexRange(key.grid_size)) {
+      for (const int x : IndexRange(key.grid_size)) {
+        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
+        const int node_vert_index = node_verts_start + offset;
+
+        SubdivCCGCoord coord{};
+        coord.grid_index = grid;
+        coord.x = x;
+        coord.y = y;
+
+        BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
+
+        result[node_vert_index] = Vector<SubdivCCGCoord>(neighbors.coords.as_span());
+      }
+    }
+  }
+}
+void calc_vert_neighbors(Set<BMVert *, 0> verts, const MutableSpan<Vector<BMVert *>> result)
+{
+  BLI_assert(verts.size() == result.size());
+
+  int i = 0;
+  Vector<BMVert *, 64> neighbor_data;
+  for (BMVert *vert : verts) {
+    Span<BMVert *> verts = vert_neighbors_get_bmesh(*vert, neighbor_data);
+    result[i] = Vector<BMVert *>(verts);
+    i++;
   }
 }
 
