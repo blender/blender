@@ -1918,6 +1918,7 @@ BLI_NOINLINE static void calc_gravity_forces(const Span<float> factors,
                                              const filter::Cache &filter_cache,
                                              const MutableSpan<float3> forces)
 {
+  const float3x3 to_object_space = filter::to_object_space(filter_cache);
   for (const int i : forces.index_range()) {
     float3 force(0.0f);
     if (filter_cache.orientation == filter::FilterOrientation::View) {
@@ -1928,22 +1929,7 @@ BLI_NOINLINE static void calc_gravity_forces(const Span<float> factors,
     else {
       force[2] = -factors[i];
     }
-    forces[i] = filter::to_object_space(filter_cache, force);
-  }
-}
-
-BLI_NOINLINE static void apply_scale_to_verts(const Span<int> verts,
-                                              const Span<float> factors,
-                                              filter::Cache &filter_cache)
-{
-  MutableSpan<float3> init_pos = filter_cache.cloth_sim->init_pos;
-  for (const int i : verts.index_range()) {
-    const int vert = verts[i];
-    float3x3 transform = math::from_scale<float3x3>(float3(1.0f + factors[i]));
-    float3 disp = transform * init_pos[vert] - init_pos[vert];
-    float3 final_disp = filter::zero_disabled_axis_components(filter_cache, disp);
-    filter_cache.cloth_sim->deformation_pos[vert] = filter_cache.cloth_sim->init_pos[vert] +
-                                                    final_disp;
+    forces[i] = to_object_space * force;
   }
 }
 
@@ -1954,6 +1940,21 @@ struct FilterLocalData {
   Vector<float3> normals;
   Vector<float3> forces;
 };
+
+BLI_NOINLINE static void apply_scale_filter(filter::Cache &filter_cache,
+                                            const Span<int> verts,
+                                            const Span<float> factors,
+                                            FilterLocalData &tls)
+{
+  const MutableSpan translations = gather_data_mesh(
+      filter_cache.cloth_sim->init_pos.as_span(), verts, tls.forces);
+  scale_translations(translations, factors);
+  filter::zero_disabled_axis_components(filter_cache, translations);
+  for (const int i : verts.index_range()) {
+    filter_cache.cloth_sim->deformation_pos[verts[i]] =
+        filter_cache.cloth_sim->init_pos[verts[i]] + translations[i];
+  }
+}
 
 static void apply_filter_forces_mesh(const ClothFilterType filter_type,
                                      const float filter_strength,
@@ -2020,7 +2021,7 @@ static void apply_filter_forces_mesh(const ClothFilterType filter_type,
       apply_forces(cloth_sim, tls.forces, verts);
       break;
     case ClothFilterType::Scale:
-      apply_scale_to_verts(verts, factors, *ss.filter_cache);
+      apply_scale_filter(*ss.filter_cache, verts, factors, tls);
       break;
   }
 }
@@ -2091,7 +2092,7 @@ static void apply_filter_forces_grids(const ClothFilterType filter_type,
       apply_forces(cloth_sim, tls.forces, verts);
       break;
     case ClothFilterType::Scale:
-      apply_scale_to_verts(verts, factors, *ss.filter_cache);
+      apply_scale_filter(*ss.filter_cache, verts, factors, tls);
       break;
   }
 }
@@ -2162,7 +2163,7 @@ static void apply_filter_forces_bmesh(const ClothFilterType filter_type,
       apply_forces(cloth_sim, tls.forces, vert_indices);
       break;
     case ClothFilterType::Scale:
-      apply_scale_to_verts(vert_indices, factors, *ss.filter_cache);
+      apply_scale_filter(*ss.filter_cache, vert_indices, factors, tls);
       break;
   }
 }
@@ -2326,13 +2327,11 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   const int force_axis = RNA_enum_get(op->ptr, "force_axis");
-  ss.filter_cache->enabled_force_axis[0] = force_axis & CLOTH_FILTER_FORCE_X;
-  ss.filter_cache->enabled_force_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
-  ss.filter_cache->enabled_force_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
+  ss.filter_cache->enabled_axis[0] = force_axis & CLOTH_FILTER_FORCE_X;
+  ss.filter_cache->enabled_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
+  ss.filter_cache->enabled_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
 
-  filter::FilterOrientation orientation = filter::FilterOrientation(
-      RNA_enum_get(op->ptr, "orientation"));
-  ss.filter_cache->orientation = orientation;
+  ss.filter_cache->orientation = filter::FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

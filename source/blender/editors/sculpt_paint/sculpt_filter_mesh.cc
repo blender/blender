@@ -58,50 +58,63 @@
 
 namespace blender::ed::sculpt_paint::filter {
 
-float3 to_orientation_space(const filter::Cache &filter_cache, const float3 &vector)
+float3x3 to_orientation_space(const filter::Cache &filter_cache)
 {
   switch (filter_cache.orientation) {
     case FilterOrientation::Local:
-      /* Do nothing, Sculpt Mode already works in object space. */
-      return vector;
+      return float3x3::identity();
     case FilterOrientation::World:
-      return math::transform_point(float3x3(filter_cache.obmat), vector);
-      break;
-    case FilterOrientation::View: {
-      const float3 world_space = math::transform_point(float3x3(filter_cache.obmat), vector);
-      return math::transform_point(float3x3(filter_cache.viewmat), world_space);
-    }
+      return float3x3(filter_cache.obmat);
+    case FilterOrientation::View:
+      return float3x3(filter_cache.obmat * filter_cache.viewmat);
   }
   BLI_assert_unreachable();
-  return {};
+  return float3x3::identity();
 }
 
-float3 to_object_space(const filter::Cache &filter_cache, const float3 &vector)
+float3x3 to_object_space(const filter::Cache &filter_cache)
 {
   switch (filter_cache.orientation) {
     case FilterOrientation::Local:
-      /* Do nothing, Sculpt Mode already works in object space. */
-      return vector;
+      return float3x3::identity();
     case FilterOrientation::World:
-      return math::transform_point(float3x3(filter_cache.obmat_inv), vector);
-    case FilterOrientation::View: {
-      const float3 world_space = math::transform_point(float3x3(filter_cache.viewmat_inv), vector);
-      return math::transform_point(float3x3(filter_cache.obmat_inv), world_space);
-    }
+      return float3x3(filter_cache.obmat_inv);
+    case FilterOrientation::View:
+      return float3x3(filter_cache.viewmat_inv * filter_cache.obmat_inv);
   }
   BLI_assert_unreachable();
-  return {};
+  return float3x3::identity();
 }
 
-float3 zero_disabled_axis_components(const filter::Cache &filter_cache, const float3 &vector)
+void zero_disabled_axis_components(const filter::Cache &filter_cache,
+                                   const MutableSpan<float3> vectors)
 {
-  float3 v = to_orientation_space(filter_cache, vector);
-  for (int axis = 0; axis < 3; axis++) {
-    if (!filter_cache.enabled_force_axis[axis]) {
-      v[axis] = 0.0f;
+  if (filter_cache.enabled_axis[0] && filter_cache.enabled_axis[1] && filter_cache.enabled_axis[2])
+  {
+    return;
+  }
+
+  if (filter_cache.orientation == FilterOrientation::Local) {
+    for (const int i : vectors.index_range()) {
+      for (int axis = 0; axis < 3; axis++) {
+        if (!filter_cache.enabled_axis[axis]) {
+          vectors[i][axis] = 0.0f;
+        }
+      }
     }
   }
-  return to_object_space(filter_cache, v);
+
+  const float3x3 local_to_orientation = to_orientation_space(filter_cache);
+  const float3x3 orientation_to_object = to_object_space(filter_cache);
+  for (const int i : vectors.index_range()) {
+    float3 vector = local_to_orientation * vectors[i];
+    for (int axis = 0; axis < 3; axis++) {
+      if (!filter_cache.enabled_axis[axis]) {
+        vector[axis] = 0.0f;
+      }
+    }
+    vectors[i] = orientation_to_object * vector;
+  }
 }
 
 void cache_init(bContext *C,
@@ -304,20 +317,6 @@ static bool sculpt_mesh_filter_is_continuous(MeshFilterType type)
               MeshFilterType::RelaxFaceSets);
 }
 
-BLI_NOINLINE static void lock_translation_axes(const filter::Cache &cache,
-                                               const MutableSpan<float3> translations)
-{
-  for (const int i : translations.index_range()) {
-    translations[i] = to_orientation_space(cache, translations[i]);
-    for (int it = 0; it < 3; it++) {
-      if (!cache.enabled_axis[it]) {
-        translations[i][it] = 0.0f;
-      }
-    }
-    translations[i] = to_object_space(cache, translations[i]);
-  }
-}
-
 BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors,
                                        const float min,
                                        const float max)
@@ -397,7 +396,7 @@ static void calc_smooth_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -440,7 +439,7 @@ static void calc_smooth_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -480,7 +479,7 @@ static void calc_smooth_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -531,7 +530,7 @@ static void calc_inflate_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -564,7 +563,7 @@ static void calc_inflate_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -600,7 +599,7 @@ static void calc_inflate_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -651,7 +650,7 @@ static void calc_scale_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -684,7 +683,7 @@ static void calc_scale_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -719,7 +718,7 @@ static void calc_scale_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -786,7 +785,7 @@ static void calc_sphere_filter(const Sculpt &sd,
           calc_sphere_translations(orig_data.positions, factors, translations);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -818,7 +817,7 @@ static void calc_sphere_filter(const Sculpt &sd,
           calc_sphere_translations(orig_data.positions, factors, translations);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -852,7 +851,7 @@ static void calc_sphere_filter(const Sculpt &sd,
           calc_sphere_translations(orig_positions, factors, translations);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -916,7 +915,7 @@ static void calc_random_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -950,7 +949,7 @@ static void calc_random_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -987,7 +986,7 @@ static void calc_random_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -1033,13 +1032,13 @@ static void calc_relax_filter(const Sculpt & /*sd*/,
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
         disp = val - float3(vd.co);
 
-        disp = to_orientation_space(*ss.filter_cache, disp);
+        disp = to_orientation_space(*ss.filter_cache) * disp;
         for (int it = 0; it < 3; it++) {
           if (!ss.filter_cache->enabled_axis[it]) {
             disp[it] = 0.0f;
           }
         }
-        disp = to_object_space(*ss.filter_cache, disp);
+        disp = to_object_space(*ss.filter_cache) * disp;
 
         final_pos = orig_co + disp;
         copy_v3_v3(vd.co, final_pos);
@@ -1095,13 +1094,13 @@ static void calc_relax_face_sets_filter(const Sculpt & /*sd*/,
         smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
         disp = val - float3(vd.co);
 
-        disp = to_orientation_space(*ss.filter_cache, disp);
+        disp = to_orientation_space(*ss.filter_cache) * disp;
         for (int it = 0; it < 3; it++) {
           if (!ss.filter_cache->enabled_axis[it]) {
             disp[it] = 0.0f;
           }
         }
-        disp = to_object_space(*ss.filter_cache, disp);
+        disp = to_object_space(*ss.filter_cache) * disp;
 
         final_pos = orig_co + disp;
         copy_v3_v3(vd.co, final_pos);
@@ -1146,13 +1145,13 @@ static void calc_surface_smooth_filter(const Sculpt & /*sd*/,
                                               orig_data.co,
                                               ss.filter_cache->surface_smooth_shape_preservation);
 
-        disp = to_orientation_space(*ss.filter_cache, disp);
+        disp = to_orientation_space(*ss.filter_cache) * disp;
         for (int it = 0; it < 3; it++) {
           if (!ss.filter_cache->enabled_axis[it]) {
             disp[it] = 0.0f;
           }
         }
-        disp = to_object_space(*ss.filter_cache, disp);
+        disp = to_object_space(*ss.filter_cache) * disp;
 
         final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
         copy_v3_v3(vd.co, final_pos);
@@ -1251,13 +1250,13 @@ static void calc_sharpen_filter(const Sculpt & /*sd*/,
                   ss.filter_cache->sharpen_factor[vd.index];
         }
 
-        disp = to_orientation_space(*ss.filter_cache, disp);
+        disp = to_orientation_space(*ss.filter_cache) * disp;
         for (int it = 0; it < 3; it++) {
           if (!ss.filter_cache->enabled_axis[it]) {
             disp[it] = 0.0f;
           }
         }
-        disp = to_object_space(*ss.filter_cache, disp);
+        disp = to_object_space(*ss.filter_cache) * disp;
 
         final_pos = float3(vd.co) + disp * clamp_f(fade, 0.0f, 1.0f);
         copy_v3_v3(vd.co, final_pos);
@@ -1307,7 +1306,7 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 
           BKE_pbvh_node_mark_positions_update(nodes[i]);
@@ -1339,7 +1338,7 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_data.positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_data.positions, translations);
           apply_translations(translations, grids, subdiv_ccg);
 
@@ -1373,7 +1372,7 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           scale_translations(translations, factors);
           reset_translations_to_original(translations, positions, orig_positions);
 
-          lock_translation_axes(*ss.filter_cache, translations);
+          zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, orig_positions, translations);
           apply_translations(translations, verts);
 
@@ -1424,7 +1423,7 @@ static void calc_erase_displacement_filter(const Sculpt &sd,
       scale_translations(translations, factors);
       reset_translations_to_original(translations, positions, orig_data.positions);
 
-      lock_translation_axes(*ss.filter_cache, translations);
+      zero_disabled_axis_components(*ss.filter_cache, translations);
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
 
@@ -1931,8 +1930,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   ss.filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss.filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
 
-  FilterOrientation orientation = FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
-  ss.filter_cache->orientation = orientation;
+  ss.filter_cache->orientation = FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
 
   return OPERATOR_PASS_THROUGH;
 }

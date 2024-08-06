@@ -222,8 +222,7 @@ enum class FilterOrientation {
 };
 
 struct Cache {
-  bool enabled_axis[3];
-  bool enabled_force_axis[3];
+  std::array<bool, 3> enabled_axis;
   int random_seed;
 
   /* Used for alternating between filter operations in filters that need to apply different ones to
@@ -1468,9 +1467,9 @@ void cache_init(bContext *C,
 void register_operator_props(wmOperatorType *ot);
 
 /* Filter orientation utils. */
-float3 to_orientation_space(const filter::Cache &filter_cache, const float3 &vector);
-float3 to_object_space(const filter::Cache &filter_cache, const float3 &vector);
-float3 zero_disabled_axis_components(const filter::Cache &filter_cache, const float3 &vector);
+float3x3 to_orientation_space(const filter::Cache &filter_cache);
+float3x3 to_object_space(const filter::Cache &filter_cache);
+void zero_disabled_axis_components(const filter::Cache &filter_cache, MutableSpan<float3> vectors);
 
 }
 
