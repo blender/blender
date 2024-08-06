@@ -393,24 +393,32 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
 
     float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
     numhit_t max_recorded_hit = numhit_t(0);
+    float second_largest_t = 0.0f;
 
     for (numhit_t i = numhit_t(1); i < max_record_hits; ++i) {
       const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
       if (isect_t > max_t) {
+        second_largest_t = max_t;
         max_recorded_hit = i;
         max_t = isect_t;
       }
+      else if (isect_t > second_largest_t) {
+        second_largest_t = isect_t;
+      }
+    }
+
+    if (isect_index == max_record_hits && current_isect.t >= max_t) {
+      /* `ctx->max_t` was initialized to `ray->tmax` before the index exceeds the limit. Now that
+       * we have looped through the array, we can properly clamp `ctx->max_t`. */
+      ctx->max_t = max_t;
+      return;
     }
 
     isect_index = max_recorded_hit;
 
-    /* Limit the ray distance and avoid processing hits beyond this. */
-    ctx->max_t = max_t;
-
-    /* If it's further away than max_t, we don't record this transparent intersection. */
-    if (current_isect.t >= max_t) {
-      return;
-    }
+    /* After replacing `max_t` with `current_isect.t`, the new largest t would be either
+     * `current_isect.t` or the second largest t before. */
+    ctx->max_t = max(second_largest_t, current_isect.t);
   }
 
   integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
@@ -870,6 +878,7 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
   ctx.opaque_hit = false;
   ctx.isect_s = state;
   ctx.max_hits = numhit_t(max_hits);
+  ctx.max_t = ray->tmax;
   ctx.ray = ray;
   RTCRay rtc_ray;
   kernel_embree_setup_ray(*ray, rtc_ray, visibility);

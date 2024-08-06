@@ -62,6 +62,8 @@ ccl_device_inline
   const float tmax = ray->tmax;
   float tmax_hits = tmax;
 
+  uint isect_index = 0;
+
   *r_num_recorded_hits = 0;
   *r_throughput = 1.0f;
 
@@ -250,38 +252,32 @@ ccl_device_inline
 
               if (record_intersection) {
                 /* Test if we need to record this transparent intersection. */
-                const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
-                if (*r_num_recorded_hits < max_record_hits || isect.t < tmax_hits) {
-                  /* If maximum number of hits was reached, replace the intersection with the
-                   * highest distance. We want to find the N closest intersections. */
-                  const uint num_recorded_hits = min(*r_num_recorded_hits, max_record_hits);
-                  uint isect_index = num_recorded_hits;
-                  if (num_recorded_hits + 1 >= max_record_hits) {
-                    float max_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
-                    uint max_recorded_hit = 0;
-
-                    for (uint i = 1; i < num_recorded_hits; ++i) {
-                      const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
-                      if (isect_t > max_t) {
-                        max_recorded_hit = i;
-                        max_t = isect_t;
-                      }
-                    }
-
-                    if (num_recorded_hits >= max_record_hits) {
-                      isect_index = max_recorded_hit;
-                    }
-
-                    /* Limit the ray distance and stop counting hits beyond this. */
-                    tmax_hits = max(isect.t, max_t);
-                  }
-
-                  integrator_state_write_shadow_isect(state, &isect, isect_index);
-                }
 
                 /* Always increase the number of recorded hits, even beyond the maximum,
                  * so that we can detect this and trace another ray if needed. */
                 ++(*r_num_recorded_hits);
+
+                const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+                if (*r_num_recorded_hits <= max_record_hits || isect.t < tmax_hits) {
+                  integrator_state_write_shadow_isect(state, &isect, isect_index);
+
+                  if (*r_num_recorded_hits >= max_record_hits) {
+                    /* If the maximum number of hits is reached, find the furthest intersection to
+                     replace it with the next closer one. We want N closest intersections. */
+                    isect_index = 0;
+                    tmax_hits = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
+                    for (uint i = 1; i < max_record_hits; ++i) {
+                      const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+                      if (isect_t > tmax_hits) {
+                        isect_index = i;
+                        tmax_hits = isect_t;
+                      }
+                    }
+                  }
+                  else {
+                    isect_index = *r_num_recorded_hits;
+                  }
+                }
               }
             }
           }
