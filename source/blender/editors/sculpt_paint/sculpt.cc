@@ -5929,28 +5929,6 @@ static void sculpt_stroke_update_step(bContext *C,
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
 
-  /* TODO(sergey): This is not really needed for the solid shading,
-   * which does use pBVH drawing anyway, but texture and wireframe
-   * requires this.
-   *
-   * Could be optimized later, but currently don't think it's so
-   * much common scenario.
-   *
-   * Same applies to the DEG_id_tag_update() invoked from
-   * sculpt_flush_update_step().
-   *
-   * For some brushes, flushing is done in the brush code itself.
-   */
-  if ((ELEM(brush.sculpt_tool, SCULPT_TOOL_BOUNDARY) || ss.pbvh->type() != bke::pbvh::Type::Mesh))
-  {
-    if (ss.deform_modifiers_active) {
-      SCULPT_flush_stroke_deform(sd, ob, sculpt_tool_is_proxy_used(brush.sculpt_tool));
-    }
-    else if (ss.shapekey_active) {
-      sculpt_update_keyblock(ob);
-    }
-  }
-
   ss.cache->first_time = false;
   copy_v3_v3(ss.cache->true_last_location, ss.cache->true_location);
 
