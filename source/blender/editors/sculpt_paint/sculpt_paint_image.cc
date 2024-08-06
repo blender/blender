@@ -51,13 +51,6 @@ struct ImageData {
   }
 };
 
-struct TexturePaintingUserData {
-  Object *ob;
-  const Brush *brush;
-  Span<bke::pbvh::Node *> nodes;
-  ImageData image_data;
-};
-
 /** Reading and writing to image buffer with 4 float channels. */
 class ImageBufferFloat4 {
  private:
@@ -145,10 +138,10 @@ template<typename ImageBuffer> class PaintingKernel {
 
  public:
   explicit PaintingKernel(SculptSession &ss,
-                          const Brush *brush,
+                          const Brush &brush,
                           const int thread_id,
                           const Span<float3> positions)
-      : ss_(&ss), brush_(brush), thread_id_(thread_id), vert_positions_(positions.data())
+      : ss_(&ss), brush_(&brush), thread_id_(thread_id), vert_positions_(positions.data())
   {
     init_brush_strength();
     init_brush_test();
@@ -313,15 +306,15 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
   return brush_test;
 }
 
-static void do_paint_pixels(TexturePaintingUserData *data, const int n)
+static void do_paint_pixels(const Object &object,
+                            const Brush &brush,
+                            ImageData image_data,
+                            bke::pbvh::Node &node)
 {
-  Object *ob = data->ob;
-  SculptSession &ss = *ob->sculpt;
-  const Brush *brush = data->brush;
+  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *ss.pbvh;
-  bke::pbvh::Node *node = data->nodes[n];
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
-  NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
+  NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
@@ -334,31 +327,31 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   float brush_color[4];
 
 #ifdef DEBUG_PIXEL_NODES
-  uint hash = BLI_hash_int(POINTER_AS_UINT(node));
+  uint hash = BLI_hash_int(POINTER_AS_UINT(&node));
 
   brush_color[0] = float(hash & 255) / 255.0f;
   brush_color[1] = float((hash >> 8) & 255) / 255.0f;
   brush_color[2] = float((hash >> 16) & 255) / 255.0f;
 #else
   copy_v3_v3(brush_color,
-             ss.cache->invert ? BKE_brush_secondary_color_get(ss.scene, brush) :
-                                BKE_brush_color_get(ss.scene, brush));
+             ss.cache->invert ? BKE_brush_secondary_color_get(ss.scene, &brush) :
+                                BKE_brush_color_get(ss.scene, &brush));
 #endif
 
   brush_color[3] = 1.0f;
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss.cache->automasking.get(), *node);
+      object, ss.cache->automasking.get(), node);
 
-  ImageUser image_user = *data->image_data.image_user;
+  ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
   for (UDIMTilePixels &tile_data : node_data.tiles) {
-    LISTBASE_FOREACH (ImageTile *, tile, &data->image_data.image->tiles) {
+    LISTBASE_FOREACH (ImageTile *, tile, &image_data.image->tiles) {
       ImageTileWrapper image_tile(tile);
       if (image_tile.get_tile_number() == tile_data.tile_number) {
         image_user.tile = image_tile.get_tile_number();
 
-        ImBuf *image_buffer = BKE_image_acquire_ibuf(data->image_data.image, &image_user, nullptr);
+        ImBuf *image_buffer = BKE_image_acquire_ibuf(image_data.image, &image_user, nullptr);
         if (image_buffer == nullptr) {
           continue;
         }
@@ -395,7 +388,7 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
           }
         }
 
-        BKE_image_release_ibuf(data->image_data.image, image_buffer, nullptr);
+        BKE_image_release_ibuf(image_data.image, image_buffer, nullptr);
         pixels_updated |= tile_data.flags.dirty;
         break;
       }
@@ -456,26 +449,22 @@ static void push_undo(const NodeData &node_data,
   }
 }
 
-static void do_push_undo_tile(TexturePaintingUserData *data, const int n)
+static void do_push_undo_tile(Image &image, ImageUser &image_user, bke::pbvh::Node &node)
 {
-  bke::pbvh::Node *node = data->nodes[n];
-
-  NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
-  Image *image = data->image_data.image;
-  ImageUser *image_user = data->image_data.image_user;
+  NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
 
   ImBuf *tmpibuf = nullptr;
-  ImageUser local_image_user = *image_user;
-  LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+  ImageUser local_image_user = image_user;
+  LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
     image::ImageTileWrapper image_tile(tile);
     local_image_user.tile = image_tile.get_tile_number();
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &local_image_user, nullptr);
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &local_image_user, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
 
-    push_undo(node_data, *image, *image_user, image_tile, *image_buffer, &tmpibuf);
-    BKE_image_release_ibuf(image, image_buffer, nullptr);
+    push_undo(node_data, image, image_user, image_tile, *image_buffer, &tmpibuf);
+    BKE_image_release_ibuf(&image, image_buffer, nullptr);
   }
   if (tmpibuf) {
     IMB_freeImBuf(tmpibuf);
@@ -496,19 +485,22 @@ static Vector<image::TileNumber> collect_dirty_tiles(Span<bke::pbvh::Node *> nod
   return dirty_tiles;
 }
 static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
-                                           TexturePaintingUserData &user_data,
+                                           Image &image,
+                                           ImageUser &image_user,
                                            Span<TileNumber> tile_numbers_to_fix)
 {
   for (image::TileNumber tile_number : tile_numbers_to_fix) {
-    bke::pbvh::pixels::copy_pixels(
-        pbvh, *user_data.image_data.image, *user_data.image_data.image_user, tile_number);
+    bke::pbvh::pixels::copy_pixels(pbvh, image, image_user, tile_number);
   }
 }
 
-static void fix_non_manifold_seam_bleeding(Object &ob, TexturePaintingUserData &user_data)
+static void fix_non_manifold_seam_bleeding(Object &ob,
+                                           Image &image,
+                                           ImageUser &image_user,
+                                           const Span<bke::pbvh::Node *> nodes)
 {
-  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(user_data.nodes);
-  fix_non_manifold_seam_bleeding(*ob.sculpt->pbvh, user_data, dirty_tiles);
+  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(nodes);
+  fix_non_manifold_seam_bleeding(*ob.sculpt->pbvh, image, image_user, dirty_tiles);
 }
 
 /** \} */
@@ -551,34 +543,29 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob)
 void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const blender::Span<blender::bke::pbvh::Node *> texnodes)
+                                 const blender::Span<blender::bke::pbvh::Node *> nodes)
 {
   using namespace blender;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
-  TexturePaintingUserData data = {nullptr};
-  data.ob = &ob;
-  data.brush = brush;
-  data.nodes = texnodes;
-
-  if (!ImageData::init_active_image(ob, &data.image_data, paint_mode_settings)) {
+  ImageData image_data;
+  if (!ImageData::init_active_image(ob, &image_data, paint_mode_settings)) {
     return;
   }
 
-  threading::parallel_for(texnodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_push_undo_tile(&data, i);
+      do_push_undo_tile(*image_data.image, *image_data.image_user, *nodes[i]);
     }
   });
-  threading::parallel_for(texnodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_paint_pixels(&data, i);
+      do_paint_pixels(ob, *brush, image_data, *nodes[i]);
     }
   });
-  fix_non_manifold_seam_bleeding(ob, data);
+  fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes);
 
-  for (bke::pbvh::Node *node : texnodes) {
-    bke::pbvh::pixels::mark_image_dirty(
-        *node, *data.image_data.image, *data.image_data.image_user);
+  for (bke::pbvh::Node *node : nodes) {
+    bke::pbvh::pixels::mark_image_dirty(*node, *image_data.image, *image_data.image_user);
   }
 }
