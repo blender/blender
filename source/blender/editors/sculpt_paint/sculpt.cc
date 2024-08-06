@@ -1233,20 +1233,6 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_POSE);
 }
 
-static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
-{
-  return ELEM(sculpt_tool,
-              SCULPT_TOOL_SMOOTH,
-              SCULPT_TOOL_LAYER,
-              SCULPT_TOOL_POSE,
-              SCULPT_TOOL_DISPLACEMENT_SMEAR,
-              SCULPT_TOOL_BOUNDARY,
-              SCULPT_TOOL_CLOTH,
-              SCULPT_TOOL_PAINT,
-              SCULPT_TOOL_SMEAR,
-              SCULPT_TOOL_DRAW_FACE_SETS);
-}
-
 static bool sculpt_brush_use_topology_rake(const SculptSession &ss, const Brush &brush)
 {
   return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(brush.sculpt_tool) && (brush.topology_rake_factor > 0.0f) &&
