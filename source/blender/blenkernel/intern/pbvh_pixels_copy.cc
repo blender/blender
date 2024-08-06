@@ -109,11 +109,11 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
           continue;
         }
         const int3 &tri = mesh_data.corner_tris[primitive_id];
-        const uv_islands::MeshEdge &mesh_edge = mesh_data.edges[edge_id];
+        const int2 mesh_edge = mesh_data.edges[edge_id];
         Edge<CoordSpace::UV> edge;
 
-        edge.vertex_1.coordinate = find_uv(mesh_data, tri, mesh_edge.vert1);
-        edge.vertex_2.coordinate = find_uv(mesh_data, tri, mesh_edge.vert2);
+        edge.vertex_1.coordinate = find_uv(mesh_data, tri, mesh_edge[0]);
+        edge.vertex_2.coordinate = find_uv(mesh_data, tri, mesh_edge[1]);
         append(edge);
       }
     }

@@ -286,9 +286,9 @@ bool UVEdge::has_same_uv_vertices(const UVEdge &other) const
          has_same_vertices(other.vertices[0]->vertex, other.vertices[1]->vertex);
 }
 
-bool UVEdge::has_same_vertices(const MeshEdge &edge) const
+bool UVEdge::has_same_vertices(const int2 &edge) const
 {
-  return has_same_vertices(edge.vert1, edge.vert2);
+  return has_same_vertices(edge[0], edge[1]);
 }
 
 bool UVEdge::is_border_edge() const
@@ -425,9 +425,9 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
   uv_island.uv_primitives.append(uv_primitive);
   UVPrimitive *uv_primitive_ptr = &uv_island.uv_primitives.last();
   for (const int edge_i : mesh_data.primitive_to_edge_map[primitive_i]) {
-    const MeshEdge &edge = mesh_data.edges[edge_i];
-    const int loop_1 = get_uv_loop(mesh_data, tri, edge.vert1);
-    const int loop_2 = get_uv_loop(mesh_data, tri, edge.vert2);
+    const int2 &edge = mesh_data.edges[edge_i];
+    const int loop_1 = get_uv_loop(mesh_data, tri, edge[0]);
+    const int loop_2 = get_uv_loop(mesh_data, tri, edge[1]);
     UVEdge uv_edge_template;
     uv_edge_template.vertices[0] = uv_island.lookup_or_create(UVVertex(mesh_data, loop_1));
     uv_edge_template.vertices[1] = uv_island.lookup_or_create(UVVertex(mesh_data, loop_2));
@@ -585,8 +585,8 @@ struct Fan {
         const int3 &other_tri = mesh_data.corner_tris[other_primitive_i];
 
         for (const int edge_i : mesh_data.primitive_to_edge_map[other_primitive_i]) {
-          const MeshEdge &edge = mesh_data.edges[edge_i];
-          if (edge_i == current_edge || (edge.vert1 != vertex && edge.vert2 != vertex)) {
+          const int2 &edge = mesh_data.edges[edge_i];
+          if (edge_i == current_edge || (edge[0] != vertex && edge[1] != vertex)) {
             continue;
           }
           segments.append(FanSegment(mesh_data, other_primitive_i, other_tri, vertex));
@@ -850,12 +850,11 @@ static int find_fill_primitive(const MeshData &mesh_data, UVBorderCorner &corner
   }
   UVVertex *shared_vert = corner.second->get_uv_vertex(0);
   for (const int edge_i : mesh_data.vert_to_edge_map[shared_vert->vertex]) {
-    const MeshEdge &edge = mesh_data.edges[edge_i];
+    const int2 &edge = mesh_data.edges[edge_i];
     if (corner.first->edge->has_same_vertices(edge)) {
       for (const int primitive_i : mesh_data.edge_to_primitive_map[edge_i]) {
         const int3 &tri = mesh_data.corner_tris[primitive_i];
-        const int other_vert = primitive_get_other_uv_vertex(
-            mesh_data, tri, edge.vert1, edge.vert2);
+        const int other_vert = primitive_get_other_uv_vertex(mesh_data, tri, edge[0], edge[1]);
         if (other_vert == corner.second->get_uv_vertex(1)->vertex) {
           return primitive_i;
         }
