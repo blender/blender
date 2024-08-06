@@ -294,32 +294,21 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
                                                  const Span<UVPrimitivePaintInput> uv_primitives,
                                                  const Span<float3> positions)
 {
+  const float3 location = ss.cache ? ss.cache->location : ss.cursor_location;
+  const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
+  const Bounds<float3> brush_bounds(location - radius, location + radius);
+
   BitVector<> brush_test(uv_primitives.size());
-  SculptBrushTest test;
-  SCULPT_brush_test_init(ss, test);
-  float3 brush_min_bounds(test.location[0] - test.radius,
-                          test.location[1] - test.radius,
-                          test.location[2] - test.radius);
-  float3 brush_max_bounds(test.location[0] + test.radius,
-                          test.location[1] + test.radius,
-                          test.location[2] + test.radius);
   for (const int i : uv_primitives.index_range()) {
     const UVPrimitivePaintInput &paint_input = uv_primitives[i];
-    const int3 &vert_indices = vert_tris[paint_input.tri_index];
+    const int3 verts = vert_tris[paint_input.tri_index];
 
-    float3 triangle_min_bounds(positions[vert_indices[0]]);
-    float3 triangle_max_bounds(triangle_min_bounds);
-    for (int i = 1; i < 3; i++) {
-      const float3 &pos = positions[vert_indices[i]];
-      triangle_min_bounds.x = min_ff(triangle_min_bounds.x, pos.x);
-      triangle_min_bounds.y = min_ff(triangle_min_bounds.y, pos.y);
-      triangle_min_bounds.z = min_ff(triangle_min_bounds.z, pos.z);
-      triangle_max_bounds.x = max_ff(triangle_max_bounds.x, pos.x);
-      triangle_max_bounds.y = max_ff(triangle_max_bounds.y, pos.y);
-      triangle_max_bounds.z = max_ff(triangle_max_bounds.z, pos.z);
-    }
-    brush_test[i].set(isect_aabb_aabb_v3(
-        brush_min_bounds, brush_max_bounds, triangle_min_bounds, triangle_max_bounds));
+    Bounds<float3> tri_bounds(positions[verts[0]]);
+    math::min_max(positions[verts[1]], tri_bounds.min, tri_bounds.max);
+    math::min_max(positions[verts[2]], tri_bounds.min, tri_bounds.max);
+
+    brush_test[i].set(
+        isect_aabb_aabb_v3(brush_bounds.min, brush_bounds.max, tri_bounds.min, tri_bounds.max));
   }
   return brush_test;
 }
