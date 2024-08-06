@@ -185,8 +185,8 @@ static void split_pixel_node(
       UDIMTilePixels *tile1 = &data1->tiles[i];
       UDIMTilePixels *tile2 = &data2->tiles[i];
 
-      UVPrimitivePaintInput &uv_prim = data.uv_primitives.paint_input[row.uv_primitive_index];
-      int3 tri = pbvh_data.geom_primitives.vert_indices[uv_prim.geometry_primitive_index];
+      const UVPrimitivePaintInput uv_prim = data.uv_primitives[row.uv_primitive_index];
+      const int3 &tri = pbvh_data.vert_tris[uv_prim.tri_index];
 
       float verts[3][3];
 
@@ -406,12 +406,9 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 static void update_geom_primitives(Tree &pbvh, const uv_islands::MeshData &mesh_data)
 {
   PBVHData &pbvh_data = data_get(pbvh);
-  pbvh_data.clear_data();
-  for (const int3 &tri : mesh_data.corner_tris) {
-    pbvh_data.geom_primitives.append(int3(mesh_data.corner_verts[tri[0]],
-                                          mesh_data.corner_verts[tri[1]],
-                                          mesh_data.corner_verts[tri[2]]));
-  }
+  pbvh_data.vert_tris.reinitialize(mesh_data.corner_tris.size());
+  bke::mesh::vert_tris_from_corner_tris(
+      mesh_data.corner_verts, mesh_data.corner_tris, pbvh_data.vert_tris);
 }
 
 struct UVPrimitiveLookup {

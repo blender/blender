@@ -17,46 +17,9 @@
 
 namespace blender::bke::pbvh::pixels {
 
-/**
- * Data shared between pixels that belong to the same triangle.
- *
- * Data is stored as a list of structs, grouped by usage to improve performance (improves CPU
- * cache prefetching).
- */
-struct PaintGeometryPrimitives {
-  /** Data accessed by the inner loop of the painting brush. */
-  Vector<int3> vert_indices;
-
- public:
-  void append(const int3 vert_indices)
-  {
-    this->vert_indices.append(vert_indices);
-  }
-
-  const int3 &get_vert_indices(const int index) const
-  {
-    return vert_indices[index];
-  }
-
-  void clear()
-  {
-    vert_indices.clear();
-  }
-
-  int64_t size() const
-  {
-    return vert_indices.size();
-  }
-
-  int64_t mem_size() const
-  {
-    return this->vert_indices.as_span().size_in_bytes();
-  }
-};
-
 struct UVPrimitivePaintInput {
-  /** Corresponding index into PaintGeometryPrimitives */
-  int64_t geometry_primitive_index;
+  /** Corresponding index into triangles */
+  int64_t tri_index;
   /**
    * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
    *
@@ -70,44 +33,9 @@ struct UVPrimitivePaintInput {
    * delta_barycentric_coord_u is initialized in a later stage as it requires image tile
    * dimensions.
    */
-  UVPrimitivePaintInput(int64_t geometry_primitive_index)
-      : geometry_primitive_index(geometry_primitive_index), delta_barycentric_coord_u(0.0f, 0.0f)
+  UVPrimitivePaintInput(int64_t tri_index)
+      : tri_index(tri_index), delta_barycentric_coord_u(0.0f, 0.0f)
   {
-  }
-};
-
-struct PaintUVPrimitives {
-  /** Data accessed by the inner loop of the painting brush. */
-  Vector<UVPrimitivePaintInput> paint_input;
-
-  void append(int64_t geometry_primitive_index)
-  {
-    this->paint_input.append(UVPrimitivePaintInput(geometry_primitive_index));
-  }
-
-  UVPrimitivePaintInput &last()
-  {
-    return paint_input.last();
-  }
-
-  const UVPrimitivePaintInput &get_paint_input(uint64_t index) const
-  {
-    return paint_input[index];
-  }
-
-  void clear()
-  {
-    paint_input.clear();
-  }
-
-  int64_t size() const
-  {
-    return paint_input.size();
-  }
-
-  int64_t mem_size() const
-  {
-    return size() * sizeof(UVPrimitivePaintInput);
   }
 };
 
@@ -179,7 +107,7 @@ struct NodeData {
 
   Vector<UDIMTilePixels> tiles;
   Vector<UDIMTileUndo> undo_regions;
-  PaintUVPrimitives uv_primitives;
+  Vector<UVPrimitivePaintInput> uv_primitives;
 
   NodeData()
   {
@@ -411,14 +339,14 @@ struct CopyPixelTiles {
  */
 struct PBVHData {
   /* Per UVPRimitive contains the paint data. */
-  PaintGeometryPrimitives geom_primitives;
+  Array<int3> vert_tris;
 
   /** Per ImageTile the pixels to copy to fix non-manifold bleeding. */
   CopyPixelTiles tiles_copy_pixels;
 
   void clear_data()
   {
-    geom_primitives.clear();
+    this->vert_tris = {};
   }
 };
 
