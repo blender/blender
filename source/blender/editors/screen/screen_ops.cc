@@ -5624,6 +5624,42 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
  * Animation Playback with Timer.
  * \{ */
 
+void ED_reset_audio_device(bContext *C)
+{
+  /* If sound was playing back when we changed any sound settings, we need to make sure that
+   * we reinitalize the playback state properly. Audaspace pauses playback on re-initializing
+   * the playback device, so we need to make sure we re-initalize the playback state on our
+   * end as well. (Otherwise the sound device might be in a weird state and crashes Blender)
+   */
+  bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
+  wmWindow *timer_win = nullptr;
+  const bool is_playing = screen != nullptr;
+  bool playback_sync = false;
+  int play_direction = 0;
+
+  if (is_playing) {
+    ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
+    timer_win = screen->animtimer->win;
+    /* -1 means play backwards. */
+    play_direction = (sad->flag & ANIMPLAY_FLAG_REVERSE) ? -1 : 1;
+    playback_sync = sad->flag & ANIMPLAY_FLAG_SYNC;
+    /* Stop playback. */
+    ED_screen_animation_play(C, 0, 0);
+  }
+  Main *bmain = CTX_data_main(C);
+  /* Re-initalize the audio device. */
+  BKE_sound_init(bmain);
+  if (is_playing) {
+    /* We need to set the context window to the window that was playing back previously.
+     * Otherwise we will attach the new playback timer to an other window.
+     */
+    wmWindow *win = CTX_wm_window(C);
+    CTX_wm_window_set(C, timer_win);
+    ED_screen_animation_play(C, playback_sync, play_direction);
+    CTX_wm_window_set(C, win);
+  }
+}
+
 bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {

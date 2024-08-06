@@ -37,6 +37,8 @@
 #include "BKE_sound.h"
 #include "BKE_studiolight.h"
 
+#include "ED_screen.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -902,9 +904,9 @@ static void rna_UserDef_subdivision_update(Main *bmain, Scene *scene, PointerRNA
   rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_UserDef_audio_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)
+static void rna_UserDef_audio_update(bContext *C, PointerRNA * /*ptr*/)
 {
-  BKE_sound_init(bmain);
+  ED_reset_audio_device(C);
   USERDEF_TAG_DIRTY;
 }
 
@@ -6428,6 +6430,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, audio_mixing_samples_items);
   RNA_def_property_ui_text(
       prop, "Audio Mixing Buffer", "Number of samples used by the audio mixing buffer");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
   prop = RNA_def_property(srna, "audio_device", PROP_ENUM, PROP_NONE);
@@ -6435,24 +6438,28 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, audio_device_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_userdef_audio_device_itemf");
   RNA_def_property_ui_text(prop, "Audio Device", "Audio output device");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
   prop = RNA_def_property(srna, "audio_sample_rate", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "audiorate");
   RNA_def_property_enum_items(prop, audio_rate_items);
   RNA_def_property_ui_text(prop, "Audio Sample Rate", "Audio sample rate");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
   prop = RNA_def_property(srna, "audio_sample_format", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "audioformat");
   RNA_def_property_enum_items(prop, audio_format_items);
   RNA_def_property_ui_text(prop, "Audio Sample Format", "Audio sample format");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
   prop = RNA_def_property(srna, "audio_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "audiochannels");
   RNA_def_property_enum_items(prop, audio_channel_items);
   RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 #  ifdef WITH_CYCLES
