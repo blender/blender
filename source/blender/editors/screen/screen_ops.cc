@@ -4031,14 +4031,18 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
       WorkspaceStatus status(C);
       if (jd->sa1 && jd->sa1 == jd->sa2) {
         status.item(IFACE_("Select Split"), ICON_MOUSE_LMB);
-      }
-      else if (jd->dock_target == AreaDockTarget::None) {
-        status.item(IFACE_("Select Area"), ICON_MOUSE_LMB);
+        status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+        status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
       }
       else {
-        status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
+        if (jd->dock_target == AreaDockTarget::None) {
+          status.item(IFACE_("Select Area"), ICON_MOUSE_LMB);
+        }
+        else {
+          status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
+        }
+        status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
       }
-      status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
       break;
     }
     case LEFTMOUSE:
