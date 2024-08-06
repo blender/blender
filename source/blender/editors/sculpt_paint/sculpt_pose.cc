@@ -195,7 +195,9 @@ static void calc_mesh(const Sculpt &sd,
       write_translations(sd, object, positions_eval, verts, translations, positions_orig);
       break;
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      apply_translations(translations, verts, cache.cloth_sim->deformation_pos);
+      add_arrays(translations, orig_data.positions);
+      scatter_data_mesh(
+          translations.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
 }
