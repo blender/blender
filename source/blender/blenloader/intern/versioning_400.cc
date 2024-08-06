@@ -4545,6 +4545,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 16)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->eevee.flag |= SCE_EEVEE_FAST_GI_ENABLED;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

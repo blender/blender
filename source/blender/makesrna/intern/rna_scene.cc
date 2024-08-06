@@ -8327,6 +8327,14 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
   /* Fast GI approximation */
 
+  prop = RNA_def_property(srna, "use_fast_gi", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_EEVEE_FAST_GI_ENABLED);
+  RNA_def_property_ui_text(prop,
+                           "Fast GI Approximation",
+                           "Use faster global illumination technique for high roughness surfaces");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
   prop = RNA_def_property(srna, "fast_gi_thickness_near", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(
       prop,

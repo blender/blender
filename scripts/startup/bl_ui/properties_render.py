@@ -623,7 +623,6 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
         options = context.scene.eevee.ray_tracing_options
 
         col.prop(options, "resolution_scale")
-        col.prop(options, "trace_max_roughness", text="Max Roughness")
 
 
 class RENDER_PT_eevee_next_screen_trace(RenderButtonsPanel, Panel):
@@ -663,29 +662,42 @@ class RENDER_PT_eevee_next_gi_approximation(RenderButtonsPanel, Panel):
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        self.layout.active = context.scene.eevee.use_raytracing
+        props = context.scene.eevee
+        self.layout.prop(props, "use_fast_gi", text="")
+
     def draw(self, context):
         scene = context.scene
         props = scene.eevee
+        options = scene.eevee.ray_tracing_options
 
         layout = self.layout
-        layout.active = props.use_raytracing
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(props, "fast_gi_method")
-        layout.prop(props, "fast_gi_resolution", text="Resolution")
+        col = layout.column()
+        col.active = props.use_raytracing and props.use_fast_gi
+        col.prop(options, "trace_max_roughness", text="Threshold")
 
-        col = layout.column(align=True)
-        col.prop(props, "fast_gi_ray_count", text="Rays")
-        col.prop(props, "fast_gi_step_count", text="Steps")
-        col.prop(props, "fast_gi_quality", text="Precision")
+        is_valid = props.use_raytracing and props.use_fast_gi and props.ray_tracing_options.trace_max_roughness < 1
 
-        col = layout.column(align=True)
-        col.prop(props, "fast_gi_distance")
-        col.prop(props, "fast_gi_thickness_near", text="Thickness Near")
-        col.prop(props, "fast_gi_thickness_far", text="Far")
+        col = layout.column()
+        col.active = is_valid
+        col.prop(props, "fast_gi_method")
+        col.prop(props, "fast_gi_resolution", text="Resolution")
 
-        layout.prop(props, "fast_gi_bias", text="Bias")
+        sub = col.column(align=True)
+        sub.prop(props, "fast_gi_ray_count", text="Rays")
+        sub.prop(props, "fast_gi_step_count", text="Steps")
+        sub.prop(props, "fast_gi_quality", text="Precision")
+
+        sub = col.column(align=True)
+        sub.prop(props, "fast_gi_distance")
+        sub.prop(props, "fast_gi_thickness_near", text="Thickness Near")
+        sub.prop(props, "fast_gi_thickness_far", text="Far")
+
+        col.prop(props, "fast_gi_bias", text="Bias")
 
 
 class RENDER_PT_eevee_next_denoise(RenderButtonsPanel, Panel):

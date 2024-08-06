@@ -29,6 +29,10 @@ void RayTraceModule::init()
   const SceneEEVEE &sce_eevee = inst_.scene->eevee;
 
   ray_tracing_options_ = sce_eevee.ray_tracing_options;
+  if ((sce_eevee.flag & SCE_EEVEE_FAST_GI_ENABLED) == 0) {
+    ray_tracing_options_.trace_max_roughness = 1.0f;
+  }
+
   tracing_method_ = RaytraceEEVEE_Method(sce_eevee.ray_tracing_method);
   fast_gi_ray_count_ = sce_eevee.fast_gi_ray_count;
   fast_gi_step_count_ = sce_eevee.fast_gi_step_count;
