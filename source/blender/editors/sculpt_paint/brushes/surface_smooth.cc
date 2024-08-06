@@ -295,9 +295,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
         const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.laplacian_disp.resize(positions.size());
-        const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-        gather_data_grids(subdiv_ccg, all_laplacian_disp.as_span(), grids, laplacian_disp);
+        const MutableSpan<float3> laplacian_disp = gather_data_grids(
+            subdiv_ccg, all_laplacian_disp.as_span(), grids, tls.laplacian_disp);
 
         tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
@@ -401,9 +400,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
         const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
         const Span<float> factors = all_factors.as_span().slice(node_offsets[i]);
 
-        tls.laplacian_disp.resize(positions.size());
-        const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
-        gather_data_vert_bmesh(all_laplacian_disp.as_span(), verts, laplacian_disp);
+        const MutableSpan<float3> laplacian_disp = gather_data_vert_bmesh(
+            all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
         tls.average_positions.resize(positions.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;

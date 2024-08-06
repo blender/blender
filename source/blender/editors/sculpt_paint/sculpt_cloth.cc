@@ -975,9 +975,8 @@ static void calc_constraint_factors(const Object &object,
             auto_mask::calc_grids_factors(object, *automasking, *nodes[i], grids, factors);
           }
           if (ss.cache) {
-            tls.positions.resize(grid_verts_num);
-            const MutableSpan<float3> positions = tls.positions;
-            gather_data_grids(subdiv_ccg, init_positions, grids, positions);
+            const Span<float3> positions = gather_data_grids(
+                subdiv_ccg, init_positions, grids, tls.positions);
             calc_brush_simulation_falloff(
                 *brush, ss.cache->radius, sim_location, positions, factors);
           }
@@ -999,9 +998,8 @@ static void calc_constraint_factors(const Object &object,
             auto_mask::calc_vert_factors(object, *automasking, *nodes[i], verts, factors);
           }
           if (ss.cache) {
-            tls.positions.resize(verts.size());
-            const MutableSpan<float3> positions = tls.positions;
-            gather_data_vert_bmesh(init_positions, verts, positions);
+            const MutableSpan<float3> positions = gather_data_vert_bmesh(
+                init_positions, verts, tls.positions);
             calc_brush_simulation_falloff(
                 *brush, ss.cache->radius, sim_location, positions, factors);
           }

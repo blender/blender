@@ -1158,13 +1158,12 @@ static void calc_bend_mesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.new_positions.resize(verts.size());
-  const MutableSpan<float3> new_positions = tls.new_positions;
-
   const Span<float3> pivot_positions = gather_data_mesh(
       vert_pivot_positions, verts, tls.pivot_positions);
   const Span<float3> pivot_axes = gather_data_mesh(vert_pivot_axes, verts, tls.pivot_axes);
 
+  tls.new_positions.resize(verts.size());
+  const MutableSpan<float3> new_positions = tls.new_positions;
   calc_bend_position(orig_data.positions, pivot_positions, pivot_axes, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1221,14 +1220,13 @@ static void calc_bend_grids(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.new_positions.resize(grid_verts_num);
-  const MutableSpan<float3> new_positions = tls.new_positions;
-
   const Span<float3> pivot_positions = gather_data_grids(
       subdiv_ccg, vert_pivot_positions, grids, tls.pivot_positions);
   const Span<float3> pivot_axes = gather_data_grids(
       subdiv_ccg, vert_pivot_axes, grids, tls.pivot_axes);
 
+  tls.new_positions.resize(grid_verts_num);
+  const MutableSpan<float3> new_positions = tls.new_positions;
   calc_bend_position(orig_data.positions, pivot_positions, pivot_axes, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1288,13 +1286,12 @@ static void calc_bend_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.new_positions.resize(verts.size());
-  const MutableSpan<float3> new_positions = tls.new_positions;
-
   const Span<float3> pivot_positions = gather_data_vert_bmesh(
       vert_pivot_positions, verts, tls.pivot_positions);
   const Span<float3> pivot_axes = gather_data_vert_bmesh(vert_pivot_axes, verts, tls.pivot_axes);
 
+  tls.new_positions.resize(verts.size());
+  const MutableSpan<float3> new_positions = tls.new_positions;
   calc_bend_position(orig_positions, pivot_positions, pivot_axes, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1576,12 +1573,11 @@ static void calc_slide_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.new_positions.resize(verts.size());
-  const MutableSpan<float3> new_positions = tls.new_positions;
-
   const Span<float3> slide_directions = gather_data_vert_bmesh(
       vert_slide_directions, verts, tls.pivot_positions);
 
+  tls.new_positions.resize(verts.size());
+  const MutableSpan<float3> new_positions = tls.new_positions;
   calc_slide_position(orig_positions, slide_directions, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1736,7 +1732,6 @@ static void calc_inflate_mesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_inflate_position(orig_data.positions, orig_data.normals, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1793,7 +1788,6 @@ static void calc_inflate_grids(const Sculpt &sd,
 
   tls.new_positions.resize(grid_verts_num);
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_inflate_position(orig_data.positions, orig_data.normals, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -1853,7 +1847,6 @@ static void calc_inflate_bmesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_inflate_position(orig_positions, orig_normals, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -2005,7 +1998,6 @@ static void calc_grab_mesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_grab_position(orig_data.positions, grab_delta_symmetry, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -2063,7 +2055,6 @@ static void calc_grab_grids(const Sculpt &sd,
 
   tls.new_positions.resize(grid_verts_num);
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_grab_position(orig_data.positions, grab_delta_symmetry, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -2124,7 +2115,6 @@ static void calc_grab_bmesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_grab_position(orig_positions, grab_delta_symmetry, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {
@@ -2281,7 +2271,6 @@ static void calc_twist_mesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_twist_position(
       orig_data.positions, twist_pivot_position, twist_axis, factors, new_positions);
 
@@ -2341,7 +2330,6 @@ static void calc_twist_grids(const Sculpt &sd,
 
   tls.new_positions.resize(grid_verts_num);
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_twist_position(
       orig_data.positions, twist_pivot_position, twist_axis, factors, new_positions);
 
@@ -2404,7 +2392,6 @@ static void calc_twist_bmesh(const Sculpt &sd,
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-
   calc_twist_position(orig_positions, twist_pivot_position, twist_axis, factors, new_positions);
 
   switch (eBrushDeformTarget(deform_target)) {

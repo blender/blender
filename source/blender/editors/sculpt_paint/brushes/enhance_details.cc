@@ -123,9 +123,8 @@ static void calc_grids(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.translations.resize(positions.size());
-  const MutableSpan<float3> translations = tls.translations;
-  gather_data_grids(subdiv_ccg, all_translations, grids, translations);
+  const MutableSpan<float3> translations = gather_data_grids(
+      subdiv_ccg, all_translations, grids, tls.translations);
   scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, positions, translations);
@@ -169,9 +168,8 @@ static void calc_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.translations.resize(verts.size());
-  const MutableSpan<float3> translations = tls.translations;
-  gather_data_vert_bmesh(all_translations, verts, translations);
+  const MutableSpan<float3> translations = gather_data_vert_bmesh(
+      all_translations, verts, tls.translations);
   scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, positions, translations);

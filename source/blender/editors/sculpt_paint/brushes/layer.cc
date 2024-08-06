@@ -250,9 +250,8 @@ static void calc_grids(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  tls.displacement_factors.resize(positions.size());
-  const MutableSpan<float> displacement_factors = tls.displacement_factors;
-  gather_data_grids(subdiv_ccg, layer_displacement_factor.as_span(), grids, displacement_factors);
+  const MutableSpan<float> displacement_factors = gather_data_grids(
+      subdiv_ccg, layer_displacement_factor.as_span(), grids, tls.displacement_factors);
 
   offset_displacement_factors(displacement_factors, factors, cache.bstrength);
   if (key.has_mask) {
@@ -317,9 +316,8 @@ static void calc_bmesh(const Sculpt &sd,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  tls.displacement_factors.resize(verts.size());
-  const MutableSpan<float> displacement_factors = tls.displacement_factors;
-  gather_data_vert_bmesh(layer_displacement_factor.as_span(), verts, displacement_factors);
+  const MutableSpan<float> displacement_factors = gather_data_vert_bmesh(
+      layer_displacement_factor.as_span(), verts, tls.displacement_factors);
 
   offset_displacement_factors(displacement_factors, factors, cache.bstrength);
 
