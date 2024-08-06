@@ -55,6 +55,7 @@ void USDSceneDelegate::populate(Depsgraph *depsgraph)
   params.use_instancing = true;
   params.relative_paths = false;  /* Unnecessary. */
   params.export_textures = false; /* Don't copy all textures, is slow. */
+  params.export_subdiv = USD_SUBDIV_TESSELLATE;
   params.evaluation_mode = DEG_get_mode(depsgraph);
   params.generate_preview_surface = !use_materialx;
   params.generate_materialx_network = use_materialx;
