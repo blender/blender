@@ -70,6 +70,15 @@ def _module_filesystem_remove(path_base, filenames):
         addon_utils.stale_pending_stage_paths(path_base, paths_stale)
 
 
+def _wm_wait_cursor(value):
+    for wm in bpy.data.window_managers:
+        for window in wm.windows:
+            if value:
+                window.cursor_modal_set('WAIT')
+            else:
+                window.cursor_modal_restore()
+
+
 class PREFERENCES_OT_keyconfig_activate(Operator):
     bl_idname = "preferences.keyconfig_activate"
     bl_label = "Activate Keyconfig"
@@ -467,9 +476,13 @@ class PREFERENCES_OT_addon_enable(Operator):
             nonlocal err_str
             err_str = str(ex)
 
-        module_name = self.module
+        # Refreshing wheels can be slow, use the wait cursor.
+        cursor_set = self.options.is_invoke
+        if cursor_set:
+            _wm_wait_cursor(True)
 
         # Ensure any wheels are setup before enabling.
+        module_name = self.module
         is_extension = addon_utils.check_extension(module_name)
         if is_extension:
             addon_utils.extensions_refresh(ensure_wheels=True, addon_modules_pending=[module_name])
@@ -491,7 +504,7 @@ class PREFERENCES_OT_addon_enable(Operator):
                         "though it is enabled"
                     ).format(info_ver)
                 )
-            return {'FINISHED'}
+            result = {'FINISHED'}
         else:
 
             if err_str:
@@ -501,7 +514,12 @@ class PREFERENCES_OT_addon_enable(Operator):
                 # Since the add-on didn't work, remove any wheels it may have installed.
                 addon_utils.extensions_refresh(ensure_wheels=True)
 
-            return {'CANCELLED'}
+            result = {'CANCELLED'}
+
+        if cursor_set:
+            _wm_wait_cursor(False)
+
+        return result
 
 
 class PREFERENCES_OT_addon_disable(Operator):
@@ -525,6 +543,11 @@ class PREFERENCES_OT_addon_disable(Operator):
             err_str = traceback.format_exc()
             print(err_str)
 
+        # Refreshing wheels can be slow, use the wait cursor.
+        cursor_set = self.options.is_invoke
+        if cursor_set:
+            _wm_wait_cursor(True)
+
         module_name = self.module
         is_extension = addon_utils.check_extension(module_name)
         addon_utils.disable(module_name, default_set=True, handle_error=err_cb)
@@ -533,6 +556,9 @@ class PREFERENCES_OT_addon_disable(Operator):
 
         if err_str:
             self.report({'ERROR'}, err_str)
+
+        if cursor_set:
+            _wm_wait_cursor(False)
 
         return {'FINISHED'}
 
