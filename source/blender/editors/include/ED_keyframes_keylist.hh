@@ -158,7 +158,8 @@ int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 /**
  * Add the keyframes of the F-Curve to the keylist.
  * \param adt: can be a nullptr.
- * \param range: only adds keys in the given range to the keylist.
+ * \param range: adds keys in the given range to the keylist plus 1 extra on each side if
+ * available.
  */
 void fcurve_to_keylist(
     AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag, blender::float2 range);

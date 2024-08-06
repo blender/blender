@@ -1095,6 +1095,25 @@ void cachefile_to_keylist(bDopeSheet *ads,
   ANIM_animdata_freelist(&anim_data);
 }
 
+static inline void set_up_beztriple_chain(BezTripleChain &chain,
+                                          const FCurve *fcu,
+                                          const int key_index,
+                                          const bool do_extremes,
+                                          const bool is_cyclic)
+{
+  chain.cur = &fcu->bezt[key_index];
+
+  /* Neighbor columns, accounting for being cyclic. */
+  if (do_extremes) {
+    chain.prev = (key_index > 0) ? &fcu->bezt[key_index - 1] :
+                 is_cyclic       ? &fcu->bezt[fcu->totvert - 2] :
+                                   nullptr;
+    chain.next = (key_index + 1 < fcu->totvert) ? &fcu->bezt[key_index + 1] :
+                 is_cyclic                      ? &fcu->bezt[1] :
+                                                  nullptr;
+  }
+}
+
 void fcurve_to_keylist(AnimData *adt,
                        FCurve *fcu,
                        AnimKeylist *keylist,
@@ -1118,32 +1137,52 @@ void fcurve_to_keylist(AnimData *adt,
    * for the case that no keyframes get added to the key-columns, which happens when the given
    * range doesn't overlap with the existing keyframes. */
   blender::Bounds<int> index_bounds(int(fcu->totvert), 0);
+  /* The following is used to find the keys that are JUST outside the range. This is done so
+   * drawing in the dope sheet can create lines that extend off-screen. */
+  float left_outside_key_x = -FLT_MAX;
+  float right_outside_key_x = FLT_MAX;
+  int left_outside_key_index = -1;
+  int right_outside_key_index = -1;
   /* Loop through beztriples, making ActKeysColumns. */
   for (int v = 0; v < fcu->totvert; v++) {
     /* Not using binary search to limit the range because the FCurve might not be sorted e.g. when
      * transforming in the Dope Sheet. */
     const float x = fcu->bezt[v].vec[1][0];
+    if (x < range[0] && x > left_outside_key_x) {
+      left_outside_key_x = x;
+      left_outside_key_index = v;
+    }
+    if (x > range[1] && x < right_outside_key_x) {
+      right_outside_key_x = x;
+      right_outside_key_index = v;
+    }
     if (x < range[0] || x > range[1]) {
       continue;
     }
     blender::math::min_max(v, index_bounds.min, index_bounds.max);
-    chain.cur = &fcu->bezt[v];
-
-    /* Neighbor columns, accounting for being cyclic. */
-    if (do_extremes) {
-      chain.prev = (v > 0)   ? &fcu->bezt[v - 1] :
-                   is_cyclic ? &fcu->bezt[fcu->totvert - 2] :
-                               nullptr;
-      chain.next = (v + 1 < fcu->totvert) ? &fcu->bezt[v + 1] :
-                   is_cyclic              ? &fcu->bezt[1] :
-                                            nullptr;
-    }
+    set_up_beztriple_chain(chain, fcu, v, do_extremes, is_cyclic);
 
     add_bezt_to_keycolumns_list(keylist, &chain);
   }
 
-  if (!index_bounds.is_empty()) {
-    update_keyblocks(keylist, &fcu->bezt[index_bounds.min], index_bounds.max - index_bounds.min);
+  if (left_outside_key_index >= 0) {
+    set_up_beztriple_chain(chain, fcu, left_outside_key_index, do_extremes, is_cyclic);
+    add_bezt_to_keycolumns_list(keylist, &chain);
+    /* Checking min and max because the FCurve might not be sorted. */
+    index_bounds.min = blender::math::min(index_bounds.min, left_outside_key_index);
+    index_bounds.max = blender::math::max(index_bounds.max, left_outside_key_index);
+  }
+  if (right_outside_key_index >= 0) {
+    set_up_beztriple_chain(chain, fcu, right_outside_key_index, do_extremes, is_cyclic);
+    add_bezt_to_keycolumns_list(keylist, &chain);
+    index_bounds.min = blender::math::min(index_bounds.min, right_outside_key_index);
+    index_bounds.max = blender::math::max(index_bounds.max, right_outside_key_index);
+  }
+  /* Not using index_bounds.is_empty() because that returns true if min and max are the same. That
+   * is a valid configuration in this case though. */
+  if (index_bounds.min <= index_bounds.max) {
+    update_keyblocks(
+        keylist, &fcu->bezt[index_bounds.min], (index_bounds.max + 1) - index_bounds.min);
   }
 
   if (adt) {
