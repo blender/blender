@@ -338,8 +338,10 @@ endif()
 # compiler options
 
 if(AUDASPACE_STANDALONE)
+	set(CMAKE_CXX_STANDARD 17)
+	set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 	if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-		add_definitions(-std=c++11)
 		list(APPEND CMAKE_C_COMPILER_FLAGS "-fvisibility=hidden")
 		list(APPEND CMAKE_CXX_COMPILER_FLAGS "-fvisibility=hidden")
 	endif()
