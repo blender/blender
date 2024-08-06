@@ -331,12 +331,7 @@ static void calc_smooth_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         fade = clamp_f(fade, -1.0f, 1.0f);
         const float3 avg = smooth::neighbor_coords_average_interior(ss, vd.vertex);
@@ -388,12 +383,7 @@ static void calc_inflate_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         disp = float3(orig_data.no) * fade;
 
@@ -442,12 +432,7 @@ static void calc_scale_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         unit_m3(transform.ptr());
         scale_m3_fl(transform.ptr(), 1.0f + fade);
@@ -500,12 +485,7 @@ static void calc_sphere_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         disp = math::normalize(orig_co);
         disp *= math::abs(fade);
@@ -567,12 +547,7 @@ static void calc_random_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         float3 normal;
         copy_v3_v3(normal, orig_data.no);
@@ -737,12 +712,7 @@ static void calc_surface_smooth_filter(const Sculpt & /*sculpt*/,
         fade *= strength;
         fade *= auto_mask::factor_get(
             ss.filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         smooth::surface_smooth_laplacian_step(ss,
                                               disp,
@@ -826,12 +796,7 @@ static void calc_sharpen_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         const float smooth_ratio = ss.filter_cache->sharpen_smooth_ratio;
 
@@ -906,12 +871,7 @@ static void calc_enhance_details_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         disp = ss.filter_cache->detail_directions[vd.index] * -fabsf(fade);
 
@@ -959,12 +919,7 @@ static void calc_erase_displacement_filter(const Sculpt & /*sculpt*/,
         if (fade == 0.0f) {
           continue;
         }
-        if (ss.filter_cache->no_orig_co) {
-          orig_co = vd.co;
-        }
-        else {
-          orig_co = orig_data.co;
-        }
+        orig_co = orig_data.co;
 
         fade = clamp_f(fade, -1.0f, 1.0f);
         disp = ss.filter_cache->limit_surface_co[vd.index] - orig_co;
@@ -1509,20 +1464,10 @@ static int sculpt_mesh_filter_exec(bContext *C, wmOperator *op)
   int ret = sculpt_mesh_filter_start(C, op);
 
   if (ret == OPERATOR_PASS_THROUGH) {
-    Object &ob = *CTX_data_active_object(C);
-    SculptSession &ss = *ob.sculpt;
-
     int iterations = RNA_int_get(op->ptr, "iteration_count");
-    bool has_history = RNA_collection_length(op->ptr, "event_history") > 0;
-
-    if (!has_history) {
-      ss.filter_cache->no_orig_co = true;
-    }
 
     for (int i = 0; i < iterations; i++) {
       sculpt_mesh_filter_apply_with_history(C, op);
-
-      ss.filter_cache->no_orig_co = true;
     }
 
     sculpt_mesh_filter_end(C);
