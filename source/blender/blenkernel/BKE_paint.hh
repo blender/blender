@@ -565,8 +565,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::ed::sculpt_paint::expand::Cache *expand_cache = nullptr;
 
   /* Cursor data and active vertex for tools */
-  PBVHVertRef active_vertex = PBVHVertRef{PBVH_REF_NONE};
-
   int active_face_index = -1;
   int active_grid_index = -1;
 
@@ -667,6 +665,12 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   SculptSession();
   ~SculptSession();
+
+  PBVHVertRef active_vertex() const;
+  void set_active_vertex(PBVHVertRef vert);
+
+ private:
+  PBVHVertRef active_vertex_ = PBVHVertRef{PBVH_REF_NONE};
 };
 
 void BKE_sculptsession_free(Object *ob);

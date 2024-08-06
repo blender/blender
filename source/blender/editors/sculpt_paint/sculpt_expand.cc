@@ -1655,7 +1655,7 @@ static PBVHVertRef target_vert_update_and_get(bContext *C, Object &ob, const flo
   SculptSession &ss = *ob.sculpt;
   SculptCursorGeometryInfo sgi;
   if (SCULPT_cursor_geometry_info_update(C, &sgi, mval, false)) {
-    return SCULPT_active_vertex_get(ss);
+    return ss.active_vertex();
   }
   return BKE_pbvh_make_vref(SCULPT_EXPAND_VERTEX_NONE);
 }
@@ -1788,7 +1788,7 @@ static void set_initial_components_for_mouse(bContext *C,
   if (initial_vertex.i == SCULPT_EXPAND_VERTEX_NONE) {
     /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
      * vertex in the sculpt session. */
-    initial_vertex = SCULPT_active_vertex_get(ss);
+    initial_vertex = ss.active_vertex();
   }
 
   int initial_vertex_i = BKE_pbvh_vertex_to_index(*ss.pbvh, initial_vertex);

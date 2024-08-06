@@ -1736,6 +1736,24 @@ SculptSession::~SculptSession()
   MEM_SAFE_FREE(this->last_paint_canvas_key);
 }
 
+PBVHVertRef SculptSession::active_vertex() const
+{
+  if (ELEM(this->pbvh->type(),
+           blender::bke::pbvh::Type::Mesh,
+           blender::bke::pbvh::Type::Grids,
+           blender::bke::pbvh::Type::BMesh))
+  {
+    return active_vertex_;
+  }
+
+  return {PBVH_REF_NONE};
+}
+
+void SculptSession::set_active_vertex(const PBVHVertRef vert)
+{
+  active_vertex_ = vert;
+}
+
 static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
                                                           Object *ob,
                                                           const bool auto_create_mdisps)

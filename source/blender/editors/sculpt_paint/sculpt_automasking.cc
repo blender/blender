@@ -956,10 +956,10 @@ std::unique_ptr<Cache> cache_init(const Sculpt &sd, const Brush *brush, Object &
 
   int mode = calc_effective_bits(sd, brush);
 
-  if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vertex.i != PBVH_REF_NONE) {
+  if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vertex().i != PBVH_REF_NONE) {
     islands::ensure_cache(ob);
     automasking->settings.initial_island_nr = islands::vert_id_get(
-        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, ss.active_vertex));
+        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, ss.active_vertex()));
   }
 
   bool use_stroke_id = false;

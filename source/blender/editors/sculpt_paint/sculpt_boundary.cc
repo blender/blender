@@ -3110,7 +3110,7 @@ static void init_boundary_mesh(Object &object,
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
 
   /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  PBVHVertRef initial_vert_ref = ss.active_vertex();
   if (initial_vert_ref.i == PBVH_REF_NONE) {
     return;
   }
@@ -3169,7 +3169,7 @@ static void init_boundary_grids(Object &object,
   Span<CCGElem *> grids = subdiv_ccg.grids;
 
   /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  PBVHVertRef initial_vert_ref = ss.active_vertex();
   if (initial_vert_ref.i == PBVH_REF_NONE) {
     return;
   }
@@ -3230,7 +3230,7 @@ static void init_boundary_bmesh(Object &object,
   BMesh *bm = ss.bm;
 
   /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = SCULPT_active_vertex_get(ss);
+  PBVHVertRef initial_vert_ref = ss.active_vertex();
   if (initial_vert_ref.i == PBVH_REF_NONE) {
     return;
   }

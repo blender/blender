@@ -612,7 +612,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
   }
 
   std::queue<PBVHVertRef> non_visited_verts;
-  non_visited_verts.push(SCULPT_active_vertex_get(ss));
+  non_visited_verts.push(ss.active_vertex());
 
   while (!non_visited_verts.empty()) {
     PBVHVertRef from_v = non_visited_verts.front();
@@ -650,7 +650,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Object &ob = *CTX_data_active_object(C);
   Brush &brush = *BKE_paint_brush(&sd.paint);
   SculptSession &ss = *ob.sculpt;
-  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  PBVHVertRef active_vertex = ss.active_vertex();
 
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -879,7 +879,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   undo::push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
-  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  const PBVHVertRef active_vertex = ss.active_vertex();
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
