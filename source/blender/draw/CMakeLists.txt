@@ -526,13 +526,11 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
   engines/workbench/shaders/workbench_prepass_vert.glsl
-  engines/workbench/shaders/workbench_shadow_caps_geom.glsl
-  engines/workbench/shaders/workbench_shadow_caps_vert_no_geom.glsl
+  engines/workbench/shaders/workbench_shadow_caps_vert.glsl
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
-  engines/workbench/shaders/workbench_shadow_geom.glsl
+  engines/workbench/shaders/workbench_shadow_lib.glsl
   engines/workbench/shaders/workbench_shadow_vert.glsl
   engines/workbench/shaders/workbench_shadow_visibility_comp.glsl
-  engines/workbench/shaders/workbench_shadow_vert_no_geom.glsl
   engines/workbench/shaders/workbench_transparent_accum_frag.glsl
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
   engines/workbench/shaders/workbench_volume_frag.glsl
