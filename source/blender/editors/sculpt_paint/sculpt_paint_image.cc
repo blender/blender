@@ -150,8 +150,7 @@ template<typename ImageBuffer> class PaintingKernel {
   bool paint(const Span<int3> vert_tris,
              const Span<UVPrimitivePaintInput> uv_primitives,
              const PackedPixelRow &pixel_row,
-             ImBuf *image_buffer,
-             auto_mask::NodeData *automask_data)
+             ImBuf *image_buffer)
   {
     image_accessor_.set_image_position(image_buffer, pixel_row.start_image_coordinate);
     const UVPrimitivePaintInput paint_input = uv_primitives[pixel_row.uv_primitive_index];
@@ -181,7 +180,7 @@ template<typename ImageBuffer> class PaintingKernel {
           mask,
           BKE_pbvh_make_vref(PBVH_REF_NONE),
           thread_id_,
-          automask_data);
+          nullptr);
       float4 paint_color = brush_color_ * falloff_strength * brush_strength_;
       float4 buffer_color;
 
@@ -340,9 +339,6 @@ static void do_paint_pixels(const Object &object,
 
   brush_color[3] = 1.0f;
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(
-      object, ss.cache->automasking.get(), node);
-
   ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
   for (UDIMTilePixels &tile_data : node_data.tiles) {
@@ -369,18 +365,12 @@ static void do_paint_pixels(const Object &object,
           }
           bool pixels_painted = false;
           if (image_buffer->float_buffer.data != nullptr) {
-            pixels_painted = kernel_float4.paint(pbvh_data.vert_tris,
-                                                 node_data.uv_primitives,
-                                                 pixel_row,
-                                                 image_buffer,
-                                                 &automask_data);
+            pixels_painted = kernel_float4.paint(
+                pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, image_buffer);
           }
           else {
-            pixels_painted = kernel_byte4.paint(pbvh_data.vert_tris,
-                                                node_data.uv_primitives,
-                                                pixel_row,
-                                                image_buffer,
-                                                &automask_data);
+            pixels_painted = kernel_byte4.paint(
+                pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, image_buffer);
           }
 
           if (pixels_painted) {
