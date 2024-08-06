@@ -121,13 +121,53 @@ class ImageBufferByte4 {
   }
 };
 
+static float3 calc_pixel_position(const Span<float3> vert_positions,
+                                  const Span<int3> vert_tris,
+                                  const int tri_index,
+                                  const float2 &barycentric_weight)
+{
+  const int3 &verts = vert_tris[tri_index];
+  const float3 weights(barycentric_weight.x,
+                       barycentric_weight.y,
+                       1.0f - barycentric_weight.x - barycentric_weight.y);
+  float3 result;
+  interp_v3_v3v3v3(result,
+                   vert_positions[verts[0]],
+                   vert_positions[verts[1]],
+                   vert_positions[verts[2]],
+                   weights);
+  return result;
+}
+
+static void calc_pixel_row_positions(const Span<float3> vert_positions,
+                                     const Span<int3> vert_tris,
+                                     const Span<UVPrimitivePaintInput> uv_primitives,
+                                     const PackedPixelRow &pixel_row,
+                                     const MutableSpan<float3> positions)
+{
+  const float3 start = calc_pixel_position(vert_positions,
+                                           vert_tris,
+                                           uv_primitives[pixel_row.uv_primitive_index].tri_index,
+                                           pixel_row.start_barycentric_coord);
+  const float3 next = calc_pixel_position(
+      vert_positions,
+      vert_tris,
+      uv_primitives[pixel_row.uv_primitive_index].tri_index,
+      pixel_row.start_barycentric_coord +
+          uv_primitives[pixel_row.uv_primitive_index].delta_barycentric_coord_u);
+  const float3 delta = next - start;
+  for (const int i : IndexRange(pixel_row.num_pixels)) {
+    positions[i] = start + delta * i;
+  }
+}
+
 template<typename ImageBuffer> class PaintingKernel {
   ImageBuffer image_accessor_;
 
   SculptSession *ss_;
   const Brush *brush_;
   const int thread_id_;
-  const float3 *vert_positions_;
+  ;
 
   float4 brush_color_;
   float brush_strength_;
@@ -137,30 +177,21 @@ template<typename ImageBuffer> class PaintingKernel {
   const char *last_used_color_space_ = nullptr;
 
  public:
-  explicit PaintingKernel(SculptSession &ss,
-                          const Brush &brush,
-                          const int thread_id,
-                          const Span<float3> positions)
-      : ss_(&ss), brush_(&brush), thread_id_(thread_id), vert_positions_(positions.data())
+  explicit PaintingKernel(SculptSession &ss, const Brush &brush, const int thread_id)
+      : ss_(&ss), brush_(&brush), thread_id_(thread_id)
   {
     init_brush_strength();
     init_brush_test();
   }
 
-  bool paint(const Span<int3> vert_tris,
-             const Span<UVPrimitivePaintInput> uv_primitives,
+  bool paint(const Span<float3> pixel_positions,
              const PackedPixelRow &pixel_row,
              ImBuf *image_buffer)
   {
     image_accessor_.set_image_position(image_buffer, pixel_row.start_image_coordinate);
-    const UVPrimitivePaintInput paint_input = uv_primitives[pixel_row.uv_primitive_index];
-    float3 pixel_pos = get_start_pixel_pos(vert_tris, paint_input, pixel_row);
-    const float3 delta_pixel_pos = get_delta_pixel_pos(
-        vert_tris, paint_input, pixel_row, pixel_pos);
     bool pixels_painted = false;
     for (int x = 0; x < pixel_row.num_pixels; x++) {
-      if (!brush_test_fn_(test_, pixel_pos)) {
-        pixel_pos += delta_pixel_pos;
+      if (!brush_test_fn_(test_, pixel_positions[x])) {
         image_accessor_.next_pixel();
         continue;
       }
@@ -173,7 +204,7 @@ template<typename ImageBuffer> class PaintingKernel {
       const float falloff_strength = SCULPT_brush_strength_factor(
           *ss_,
           *brush_,
-          pixel_pos,
+          pixel_positions[x],
           sqrtf(test_.dist),
           normal,
           face_normal,
@@ -199,7 +230,6 @@ template<typename ImageBuffer> class PaintingKernel {
       pixels_painted = true;
 
       image_accessor_.next_pixel();
-      pixel_pos += delta_pixel_pos;
     }
     return pixels_painted;
   }
@@ -235,49 +265,6 @@ template<typename ImageBuffer> class PaintingKernel {
   void init_brush_test()
   {
     brush_test_fn_ = SCULPT_brush_test_init_with_falloff_shape(*ss_, test_, brush_->falloff_shape);
-  }
-
-  /**
-   * Extract the starting pixel position from the given encoded_pixels belonging to the triangle.
-   */
-  float3 get_start_pixel_pos(const Span<int3> vert_tris,
-                             const UVPrimitivePaintInput &paint_input,
-                             const PackedPixelRow &encoded_pixels) const
-  {
-    return init_pixel_pos(vert_tris, paint_input, encoded_pixels.start_barycentric_coord);
-  }
-
-  /**
-   * Extract the delta pixel position that will be used to advance a Pixel instance to the next
-   * pixel.
-   */
-  float3 get_delta_pixel_pos(const Span<int3> vert_tris,
-                             const UVPrimitivePaintInput &paint_input,
-                             const PackedPixelRow &encoded_pixels,
-                             const float3 &start_pixel) const
-  {
-    float3 result = init_pixel_pos(vert_tris,
-                                   paint_input,
-                                   encoded_pixels.start_barycentric_coord +
-                                       paint_input.delta_barycentric_coord_u);
-    return result - start_pixel;
-  }
-
-  float3 init_pixel_pos(const Span<int3> vert_tris,
-                        const UVPrimitivePaintInput &paint_input,
-                        const float2 &barycentric_weights) const
-  {
-    const int3 &vert_indices = vert_tris[paint_input.tri_index];
-    float3 result;
-    const float3 barycentric(barycentric_weights.x,
-                             barycentric_weights.y,
-                             1.0f - barycentric_weights.x - barycentric_weights.y);
-    interp_v3_v3v3v3(result,
-                     vert_positions_[vert_indices[0]],
-                     vert_positions_[vert_indices[1]],
-                     vert_positions_[vert_indices[2]],
-                     barycentric);
-    return result;
   }
 };
 
@@ -320,10 +307,10 @@ static void do_paint_pixels(const Object &object,
   BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, pbvh_data.vert_tris, node_data.uv_primitives, positions);
 
-  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, positions);
-  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, positions);
+  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id);
+  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id);
 
-  float brush_color[4];
+  float4 brush_color;
 
 #ifdef DEBUG_PIXEL_NODES
   uint hash = BLI_hash_int(POINTER_AS_UINT(&node));
@@ -338,6 +325,8 @@ static void do_paint_pixels(const Object &object,
 #endif
 
   brush_color[3] = 1.0f;
+
+  Vector<float3> pixel_positions;
 
   ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
@@ -363,14 +352,17 @@ static void do_paint_pixels(const Object &object,
           if (!brush_test[pixel_row.uv_primitive_index]) {
             continue;
           }
+
+          pixel_positions.resize(pixel_row.num_pixels);
+          calc_pixel_row_positions(
+              positions, pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, pixel_positions);
+
           bool pixels_painted = false;
           if (image_buffer->float_buffer.data != nullptr) {
-            pixels_painted = kernel_float4.paint(
-                pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, image_buffer);
+            pixels_painted = kernel_float4.paint(pixel_positions, pixel_row, image_buffer);
           }
           else {
-            pixels_painted = kernel_byte4.paint(
-                pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, image_buffer);
+            pixels_painted = kernel_byte4.paint(pixel_positions, pixel_row, image_buffer);
           }
 
           if (pixels_painted) {
