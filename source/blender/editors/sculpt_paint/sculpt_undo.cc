@@ -2150,8 +2150,12 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
     const float *co;
     const float *no;
     BM_log_original_vert_data(&const_cast<BMLog &>(bm_log), const_cast<BMVert *>(vert), &co, &no);
-    positions[i] = co;
-    normals[i] = no;
+    if (!positions.is_empty()) {
+      positions[i] = co;
+    }
+    if (!normals.is_empty()) {
+      normals[i] = no;
+    }
     i++;
   }
 }

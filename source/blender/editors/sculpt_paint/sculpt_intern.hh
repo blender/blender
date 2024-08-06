@@ -1644,11 +1644,6 @@ void neighbor_color_average(OffsetIndices<int> faces,
                             Span<Vector<int>> vert_neighbors,
                             MutableSpan<float4> smooth_colors);
 
-/**
- * Mask the mesh boundaries smoothing only the mesh surface without using auto-masking.
- */
-float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef vertex);
-
 void neighbor_position_average_grids(const SubdivCCG &subdiv_ccg,
                                      Span<int> grids,
                                      MutableSpan<float3> new_positions);

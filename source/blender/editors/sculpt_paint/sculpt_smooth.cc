@@ -313,44 +313,6 @@ void neighbor_position_average_interior_bmesh(const Set<BMVert *, 0> &verts,
   }
 }
 
-float3 neighbor_coords_average_interior(const SculptSession &ss, PBVHVertRef vertex)
-{
-  float3 avg(0);
-  int total = 0;
-  int neighbor_count = 0;
-  const bool is_boundary = boundary::vert_is_boundary(ss, vertex);
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    neighbor_count++;
-    if (is_boundary) {
-      /* Boundary vertices use only other boundary vertices. */
-      if (boundary::vert_is_boundary(ss, ni.vertex)) {
-        avg += SCULPT_vertex_co_get(ss, ni.vertex);
-        total++;
-      }
-    }
-    else {
-      /* Interior vertices use all neighbors. */
-      avg += SCULPT_vertex_co_get(ss, ni.vertex);
-      total++;
-    }
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  /* Do not modify corner vertices. */
-  if (neighbor_count <= 2 && is_boundary) {
-    return SCULPT_vertex_co_get(ss, vertex);
-  }
-
-  /* Avoid division by 0 when there are no neighbors. */
-  if (total == 0) {
-    return SCULPT_vertex_co_get(ss, vertex);
-  }
-
-  return avg / total;
-}
-
 void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BMVert *v)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
