@@ -48,7 +48,7 @@ static Result horizontal_pass(Context &context, Result &input, int distance, int
   const Domain domain = input.domain();
   const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-  Result output = context.create_temporary_result(ResultType::Float);
+  Result output = context.create_result(ResultType::Float);
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 

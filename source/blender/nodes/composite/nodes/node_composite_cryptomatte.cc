@@ -325,7 +325,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
   Result compute_matte(Vector<GPUTexture *> &layers)
   {
     const Domain domain = compute_domain();
-    Result output_matte = context().create_temporary_result(ResultType::Float);
+    Result output_matte = context().create_result(ResultType::Float);
     output_matte.allocate_texture(domain);
 
     /* Clear the matte to zero to ready it to accumulate the coverage. */

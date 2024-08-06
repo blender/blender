@@ -53,21 +53,19 @@ class InpaintOperation : public NodeOperation {
     Result inpainting_boundary = compute_inpainting_boundary();
 
     /* Compute a jump flooding table to get the closest boundary pixel to each pixel. */
-    Result flooded_boundary = context().create_temporary_result(ResultType::Int2,
-                                                                ResultPrecision::Half);
+    Result flooded_boundary = context().create_result(ResultType::Int2, ResultPrecision::Half);
     jump_flooding(context(), inpainting_boundary, flooded_boundary);
     inpainting_boundary.release();
 
-    Result filled_region = context().create_temporary_result(ResultType::Color);
-    Result distance_to_boundary = context().create_temporary_result(ResultType::Float,
-                                                                    ResultPrecision::Half);
-    Result smoothing_radius = context().create_temporary_result(ResultType::Float,
-                                                                ResultPrecision::Half);
+    Result filled_region = context().create_result(ResultType::Color);
+    Result distance_to_boundary = context().create_result(ResultType::Float,
+                                                          ResultPrecision::Half);
+    Result smoothing_radius = context().create_result(ResultType::Float, ResultPrecision::Half);
     fill_inpainting_region(
         flooded_boundary, filled_region, distance_to_boundary, smoothing_radius);
     flooded_boundary.release();
 
-    Result smoothed_region = context().create_temporary_result(ResultType::Color);
+    Result smoothed_region = context().create_result(ResultType::Color);
     symmetric_separable_blur_variable_size(context(),
                                            filled_region,
                                            smoothed_region,
@@ -94,8 +92,7 @@ class InpaintOperation : public NodeOperation {
     const Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
-    Result inpainting_boundary = context().create_temporary_result(ResultType::Int2,
-                                                                   ResultPrecision::Half);
+    Result inpainting_boundary = context().create_result(ResultType::Int2, ResultPrecision::Half);
     const Domain domain = compute_domain();
     inpainting_boundary.allocate_texture(domain);
     inpainting_boundary.bind_as_image(shader, "boundary_img");

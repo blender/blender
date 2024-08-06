@@ -100,19 +100,19 @@ static void blur_pass(Context &context, Result &input, Result &output, float sig
 
   const Domain domain = input.domain();
 
-  Result first_causal_result = context.create_temporary_result(ResultType::Color);
+  Result first_causal_result = context.create_result(ResultType::Color);
   first_causal_result.allocate_texture(domain);
   first_causal_result.bind_as_image(shader, "first_causal_output_img");
 
-  Result first_non_causal_result = context.create_temporary_result(ResultType::Color);
+  Result first_non_causal_result = context.create_result(ResultType::Color);
   first_non_causal_result.allocate_texture(domain);
   first_non_causal_result.bind_as_image(shader, "first_non_causal_output_img");
 
-  Result second_causal_result = context.create_temporary_result(ResultType::Color);
+  Result second_causal_result = context.create_result(ResultType::Color);
   second_causal_result.allocate_texture(domain);
   second_causal_result.bind_as_image(shader, "second_causal_output_img");
 
-  Result second_non_causal_result = context.create_temporary_result(ResultType::Color);
+  Result second_non_causal_result = context.create_result(ResultType::Color);
   second_non_causal_result.allocate_texture(domain);
   second_non_causal_result.bind_as_image(shader, "second_non_causal_output_img");
 
@@ -146,7 +146,7 @@ void van_vliet_gaussian_blur(Context &context, Result &input, Result &output, fl
                  "Van Vliet filter is less accurate for sigma values less than 32. Use Deriche "
                  "filter instead or direct convolution instead.");
 
-  Result horizontal_pass_result = context.create_temporary_result(ResultType::Color);
+  Result horizontal_pass_result = context.create_result(ResultType::Color);
   blur_pass(context, input, horizontal_pass_result, sigma.x);
   blur_pass(context, horizontal_pass_result, output, sigma.y);
   horizontal_pass_result.release();

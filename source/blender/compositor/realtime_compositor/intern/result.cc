@@ -21,14 +21,6 @@ Result::Result(Context &context, ResultType type, ResultPrecision precision)
 {
 }
 
-Result Result::Temporary(Context &context, ResultType type, ResultPrecision precision)
-{
-  Result result = Result(context, type, precision);
-  result.set_initial_reference_count(1);
-  result.reset();
-  return result;
-}
-
 eGPUTextureFormat Result::texture_format(ResultType type, ResultPrecision precision)
 {
   switch (precision) {

@@ -198,7 +198,7 @@ class ZCombineOperation : public NodeOperation {
     second_z.bind_as_texture(shader, "second_z_tx");
 
     const Domain domain = compute_domain();
-    Result mask = context().create_temporary_result(ResultType::Float);
+    Result mask = context().create_result(ResultType::Float);
     mask.allocate_texture(domain);
     mask.bind_as_image(shader, "mask_img");
 
@@ -209,7 +209,7 @@ class ZCombineOperation : public NodeOperation {
     mask.unbind_as_image();
     GPU_shader_unbind();
 
-    Result anti_aliased_mask = context().create_temporary_result(ResultType::Float);
+    Result anti_aliased_mask = context().create_result(ResultType::Float);
     smaa(context(), mask, anti_aliased_mask);
     mask.release();
 

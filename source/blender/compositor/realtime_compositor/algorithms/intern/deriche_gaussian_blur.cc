@@ -79,11 +79,11 @@ static void blur_pass(Context &context, Result &input, Result &output, float sig
 
   const Domain domain = input.domain();
 
-  Result causal_result = context.create_temporary_result(ResultType::Color);
+  Result causal_result = context.create_result(ResultType::Color);
   causal_result.allocate_texture(domain);
   causal_result.bind_as_image(shader, "causal_output_img");
 
-  Result non_causal_result = context.create_temporary_result(ResultType::Color);
+  Result non_causal_result = context.create_result(ResultType::Color);
   non_causal_result.allocate_texture(domain);
   non_causal_result.bind_as_image(shader, "non_causal_output_img");
 
@@ -110,7 +110,7 @@ void deriche_gaussian_blur(Context &context, Result &input, Result &output, floa
                  "Deriche filter is not accurate nor numerically stable for sigma values larger "
                  "than 32. Use Van Vliet filter instead.");
 
-  Result horizontal_pass_result = context.create_temporary_result(ResultType::Color);
+  Result horizontal_pass_result = context.create_result(ResultType::Color);
   blur_pass(context, input, horizontal_pass_result, sigma.x);
   blur_pass(context, horizontal_pass_result, output, sigma.y);
   horizontal_pass_result.release();

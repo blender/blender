@@ -70,7 +70,7 @@ static Result detect_edges(Context &context,
   GPU_texture_filter_mode(input.texture(), true);
   input.bind_as_texture(shader, "input_tx");
 
-  Result edges = context.create_temporary_result(ResultType::Color);
+  Result edges = context.create_result(ResultType::Color);
   edges.allocate_texture(input.domain());
   edges.bind_as_image(shader, "edges_img");
 
@@ -98,7 +98,7 @@ static Result calculate_blending_weights(Context &context, Result &edges, int co
   smaa_precomputed_textures.bind_area_texture(shader, "area_tx");
   smaa_precomputed_textures.bind_search_texture(shader, "search_tx");
 
-  Result weights = context.create_temporary_result(ResultType::Color);
+  Result weights = context.create_result(ResultType::Color);
   weights.allocate_texture(edges.domain());
   weights.bind_as_image(shader, "weights_img");
 

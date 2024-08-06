@@ -217,7 +217,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
 
   input_result.bind_as_texture(shader, "input_tx");
 
-  Result preview_result = context.create_temporary_result(ResultType::Color);
+  Result preview_result = context.create_result(ResultType::Color);
   preview_result.allocate_texture(Domain(preview_size));
   preview_result.bind_as_image(shader, "preview_img");
 

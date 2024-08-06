@@ -77,7 +77,7 @@ class CornerPinOperation : public NodeOperation {
     }
 
     Result plane_mask = compute_plane_mask(homography_matrix);
-    Result anti_aliased_plane_mask = context().create_temporary_result(ResultType::Float);
+    Result anti_aliased_plane_mask = context().create_result(ResultType::Float);
     smaa(context(), plane_mask, anti_aliased_plane_mask);
     plane_mask.release();
 
@@ -129,7 +129,7 @@ class CornerPinOperation : public NodeOperation {
     GPU_shader_uniform_mat3_as_mat4(shader, "homography_matrix", homography_matrix.ptr());
 
     const Domain domain = compute_domain();
-    Result plane_mask = context().create_temporary_result(ResultType::Float);
+    Result plane_mask = context().create_result(ResultType::Float);
     plane_mask.allocate_texture(domain);
     plane_mask.bind_as_image(shader, "mask_img");
 

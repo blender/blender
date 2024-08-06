@@ -42,15 +42,13 @@ void jump_flooding(Context &context, Result &input, Result &output)
 
   /* First, run a jump flooding pass with a step size of 1. This initial pass is proposed by the
    * 1+FJA variant to improve accuracy. */
-  Result initial_flooded_result = context.create_temporary_result(ResultType::Int2,
-                                                                  ResultPrecision::Half);
+  Result initial_flooded_result = context.create_result(ResultType::Int2, ResultPrecision::Half);
   initial_flooded_result.allocate_texture(input.domain());
   jump_flooding_pass(context, input, initial_flooded_result, 1);
 
   /* We compute the result using a ping-pong buffer, so create an intermediate result. */
   Result *result_to_flood = &initial_flooded_result;
-  Result intermediate_result = context.create_temporary_result(ResultType::Int2,
-                                                               ResultPrecision::Half);
+  Result intermediate_result = context.create_result(ResultType::Int2, ResultPrecision::Half);
   intermediate_result.allocate_texture(input.domain());
   Result *result_after_flooding = &intermediate_result;
 

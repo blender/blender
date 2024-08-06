@@ -176,7 +176,7 @@ class DefocusOperation : public NodeOperation {
     Result &input_radius = get_input("Z");
     input_radius.bind_as_texture(shader, "radius_tx");
 
-    Result output_radius = context().create_temporary_result(ResultType::Float);
+    Result output_radius = context().create_result(ResultType::Float);
     const Domain domain = input_radius.domain();
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
@@ -205,7 +205,7 @@ class DefocusOperation : public NodeOperation {
     Result &input_depth = get_input("Z");
     input_depth.bind_as_texture(shader, "depth_tx");
 
-    Result output_radius = context().create_temporary_result(ResultType::Float);
+    Result output_radius = context().create_result(ResultType::Float);
     const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
@@ -221,7 +221,7 @@ class DefocusOperation : public NodeOperation {
      * focus---that is, objects whose defocus radius is small---are not affected by nearby out of
      * focus objects, hence the use of dilation. */
     const float morphological_radius = compute_maximum_defocus_radius();
-    Result eroded_radius = context().create_temporary_result(ResultType::Float);
+    Result eroded_radius = context().create_result(ResultType::Float);
     morphological_blur(context(), output_radius, eroded_radius, float2(morphological_radius));
     output_radius.release();
 

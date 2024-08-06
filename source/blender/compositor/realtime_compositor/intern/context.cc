@@ -109,16 +109,6 @@ Result Context::create_result(ResultType type)
   return create_result(type, get_precision());
 }
 
-Result Context::create_temporary_result(ResultType type, ResultPrecision precision)
-{
-  return Result::Temporary(*this, type, precision);
-}
-
-Result Context::create_temporary_result(ResultType type)
-{
-  return create_temporary_result(type, get_precision());
-}
-
 TexturePool &Context::texture_pool()
 {
   return texture_pool_;

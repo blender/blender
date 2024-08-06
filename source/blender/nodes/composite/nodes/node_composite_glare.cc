@@ -167,7 +167,7 @@ class GlareOperation : public NodeOperation {
         return execute_bloom(highlights_result);
       default:
         BLI_assert_unreachable();
-        return context().create_temporary_result(ResultType::Color);
+        return context().create_result(ResultType::Color);
     }
   }
 
@@ -187,7 +187,7 @@ class GlareOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     const int2 glare_size = get_glare_size();
-    Result highlights_result = context().create_temporary_result(ResultType::Color);
+    Result highlights_result = context().create_result(ResultType::Color);
     highlights_result.allocate_texture(glare_size);
     highlights_result.bind_as_image(shader, "output_img");
 
@@ -250,7 +250,7 @@ class GlareOperation : public NodeOperation {
     /* The horizontal pass is applied in-plane, so copy the highlights to a new image since the
      * highlights result is still needed by the vertical pass. */
     const int2 glare_size = get_glare_size();
-    Result horizontal_pass_result = context().create_temporary_result(ResultType::Color);
+    Result horizontal_pass_result = context().create_result(ResultType::Color);
     horizontal_pass_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(horizontal_pass_result.texture(), highlights_result.texture());
@@ -307,7 +307,7 @@ class GlareOperation : public NodeOperation {
     /* The diagonal pass is applied in-plane, so copy the highlights to a new image since the
      * highlights result is still needed by the anti-diagonal pass. */
     const int2 glare_size = get_glare_size();
-    Result diagonal_pass_result = context().create_temporary_result(ResultType::Color);
+    Result diagonal_pass_result = context().create_result(ResultType::Color);
     diagonal_pass_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(diagonal_pass_result.texture(), highlights_result.texture());
@@ -348,7 +348,7 @@ class GlareOperation : public NodeOperation {
     /* Create an initially zero image where streaks will be accumulated. */
     const float4 zero_color = float4(0.0f);
     const int2 glare_size = get_glare_size();
-    Result accumulated_streaks_result = context().create_temporary_result(ResultType::Color);
+    Result accumulated_streaks_result = context().create_result(ResultType::Color);
     accumulated_streaks_result.allocate_texture(glare_size);
     GPU_texture_clear(accumulated_streaks_result.texture(), GPU_DATA_FLOAT, zero_color);
 
@@ -387,12 +387,12 @@ class GlareOperation : public NodeOperation {
     /* Copy the highlights result into a new image because the output will be copied to the input
      * after each iteration and the highlights result is still needed to compute other streaks. */
     const int2 glare_size = get_glare_size();
-    Result input_streak_result = context().create_temporary_result(ResultType::Color);
+    Result input_streak_result = context().create_result(ResultType::Color);
     input_streak_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     GPU_texture_copy(input_streak_result.texture(), highlights_result.texture());
 
-    Result output_streak_result = context().create_temporary_result(ResultType::Color);
+    Result output_streak_result = context().create_result(ResultType::Color);
     output_streak_result.allocate_texture(glare_size);
 
     /* For the given number of iterations, apply the streak filter in the given direction. The
@@ -531,7 +531,7 @@ class GlareOperation : public NodeOperation {
     /* Create an initially zero image where ghosts will be accumulated. */
     const float4 zero_color = float4(0.0f);
     const int2 glare_size = get_glare_size();
-    Result accumulated_ghosts_result = context().create_temporary_result(ResultType::Color);
+    Result accumulated_ghosts_result = context().create_result(ResultType::Color);
     accumulated_ghosts_result.allocate_texture(glare_size);
     GPU_texture_clear(accumulated_ghosts_result.texture(), GPU_DATA_FLOAT, zero_color);
 
@@ -573,7 +573,7 @@ class GlareOperation : public NodeOperation {
    * the center of the image. */
   Result compute_base_ghost(Result &highlights_result)
   {
-    Result small_ghost_result = context().create_temporary_result(ResultType::Color);
+    Result small_ghost_result = context().create_result(ResultType::Color);
     symmetric_separable_blur(context(),
                              highlights_result,
                              small_ghost_result,
@@ -582,7 +582,7 @@ class GlareOperation : public NodeOperation {
                              false,
                              false);
 
-    Result big_ghost_result = context().create_temporary_result(ResultType::Color);
+    Result big_ghost_result = context().create_result(ResultType::Color);
     symmetric_separable_blur(context(),
                              highlights_result,
                              big_ghost_result,
@@ -605,7 +605,7 @@ class GlareOperation : public NodeOperation {
     big_ghost_result.bind_as_texture(shader, "big_ghost_tx");
 
     const int2 glare_size = get_glare_size();
-    Result base_ghost_result = context().create_temporary_result(ResultType::Color);
+    Result base_ghost_result = context().create_result(ResultType::Color);
     base_ghost_result.allocate_texture(glare_size);
     base_ghost_result.bind_as_image(shader, "combined_ghost_img");
 
@@ -745,7 +745,7 @@ class GlareOperation : public NodeOperation {
      * return a copy of the highlights. This is a sanitization of a corner case, so no need to
      * worry about optimizing the copy away. */
     if (chain_length < 2) {
-      Result bloom_result = context().create_temporary_result(ResultType::Color);
+      Result bloom_result = context().create_result(ResultType::Color);
       bloom_result.allocate_texture(highlights_result.domain());
       GPU_texture_copy(bloom_result.texture(), highlights_result.texture());
       return bloom_result;
@@ -787,7 +787,7 @@ class GlareOperation : public NodeOperation {
    * one pixel. */
   Array<Result> compute_bloom_downsample_chain(Result &highlights_result, int chain_length)
   {
-    const Result downsampled_result = context().create_temporary_result(ResultType::Color);
+    const Result downsampled_result = context().create_result(ResultType::Color);
     Array<Result> downsample_chain(chain_length, downsampled_result);
 
     /* We assign the original highlights result to the first result of the chain to make the code
@@ -850,7 +850,7 @@ class GlareOperation : public NodeOperation {
 
   Result execute_fog_glow(Result &highlights_result)
   {
-    Result fog_glow_result = context().create_temporary_result(ResultType::Color);
+    Result fog_glow_result = context().create_result(ResultType::Color);
     fog_glow_result.allocate_texture(highlights_result.domain());
 
 #if defined(WITH_FFTW3)

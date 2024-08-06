@@ -135,7 +135,7 @@ class KeyingOperation : public NodeOperation {
 
     Result chroma = extract_input_chroma();
 
-    Result blurred_chroma = context().create_temporary_result(ResultType::Color);
+    Result blurred_chroma = context().create_result(ResultType::Color);
     symmetric_separable_blur(
         context(), chroma, blurred_chroma, float2(blur_size) / 2, R_FILTER_BOX);
     chroma.release();
@@ -154,7 +154,7 @@ class KeyingOperation : public NodeOperation {
     Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
-    Result output = context().create_temporary_result(ResultType::Color);
+    Result output = context().create_result(ResultType::Color);
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
@@ -177,7 +177,7 @@ class KeyingOperation : public NodeOperation {
 
     new_chroma.bind_as_texture(shader, "new_chroma_tx");
 
-    Result output = context().create_temporary_result(ResultType::Color);
+    Result output = context().create_result(ResultType::Color);
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
@@ -203,7 +203,7 @@ class KeyingOperation : public NodeOperation {
     Result &key_color = get_input("Key Color");
     key_color.bind_as_texture(shader, "key_tx");
 
-    Result output = context().create_temporary_result(ResultType::Float);
+    Result output = context().create_result(ResultType::Float);
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
@@ -258,7 +258,7 @@ class KeyingOperation : public NodeOperation {
     Result &core_matte = get_input("Core Matte");
     core_matte.bind_as_texture(shader, "core_matte_tx");
 
-    Result output_matte = context().create_temporary_result(ResultType::Float);
+    Result output_matte = context().create_result(ResultType::Float);
     output_matte.allocate_texture(input_matte.domain());
     output_matte.bind_as_image(shader, "output_matte_img");
 
@@ -289,7 +289,7 @@ class KeyingOperation : public NodeOperation {
       return output_matte;
     }
 
-    Result blurred_matte = context().create_temporary_result(ResultType::Float);
+    Result blurred_matte = context().create_result(ResultType::Float);
     symmetric_separable_blur(
         context(), input_matte, blurred_matte, float2(blur_size) / 2, R_FILTER_BOX);
 
@@ -308,7 +308,7 @@ class KeyingOperation : public NodeOperation {
       return output_matte;
     }
 
-    Result morphed_matte = context().create_temporary_result(ResultType::Float);
+    Result morphed_matte = context().create_result(ResultType::Float);
     morphological_distance(context(), input_matte, morphed_matte, distance);
 
     return morphed_matte;
@@ -326,7 +326,7 @@ class KeyingOperation : public NodeOperation {
       return output_matte;
     }
 
-    Result feathered_matte = context().create_temporary_result(ResultType::Float);
+    Result feathered_matte = context().create_result(ResultType::Float);
     morphological_distance_feather(
         context(), input_matte, feathered_matte, distance, node_storage(bnode()).feather_falloff);
 

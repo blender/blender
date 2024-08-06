@@ -151,7 +151,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
         "Plane Track Deform Homography Matrices");
 
     Result plane_mask = compute_plane_mask(homography_matrices, homography_matrices_buffer);
-    Result anti_aliased_plane_mask = context().create_temporary_result(ResultType::Float);
+    Result anti_aliased_plane_mask = context().create_result(ResultType::Float);
     smaa(context(), plane_mask, anti_aliased_plane_mask);
     plane_mask.release();
 
@@ -215,7 +215,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
     GPU_uniformbuf_bind(homography_matrices_buffer, ubo_location);
 
     const Domain domain = compute_domain();
-    Result plane_mask = context().create_temporary_result(ResultType::Float);
+    Result plane_mask = context().create_result(ResultType::Float);
     plane_mask.allocate_texture(domain);
     plane_mask.bind_as_image(shader, "mask_img");
 

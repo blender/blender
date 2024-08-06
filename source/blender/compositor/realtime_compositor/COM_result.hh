@@ -100,13 +100,13 @@ class Result {
    * reference count is decremented, until it reaches zero, where the result's texture is then
    * released. If this result have a master result, then this reference count is irrelevant and
    * shadowed by the reference count of the master result. */
-  int reference_count_;
+  int reference_count_ = 1;
   /* The number of operations that reference and use this result at the time when it was initially
    * computed. Since reference_count_ is decremented and always becomes zero at the end of the
    * evaluation, this member is used to reset the reference count of the results for later
    * evaluations by calling the reset method. This member is also used to determine if this result
    * should be computed by calling the should_compute method. */
-  int initial_reference_count_;
+  int initial_reference_count_ = 1;
   /* If the result is a single value, this member stores the value of the result, the value of
    * which will be identical to that stored in the texture member. The active union member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
@@ -138,11 +138,6 @@ class Result {
  public:
   /* Construct a result of the given type and precision within the given context. */
   Result(Context &context, ResultType type, ResultPrecision precision);
-
-  /* Identical to the standard constructor but initializes the reference count to 1. This is useful
-   * to construct temporary results that are created and released by the developer manually, which
-   * are typically used in operations that need temporary intermediate results. */
-  static Result Temporary(Context &context, ResultType type, ResultPrecision precision);
 
   /* Returns the appropriate texture format based on the given result type and precision. */
   static eGPUTextureFormat texture_format(ResultType type, ResultPrecision precision);
