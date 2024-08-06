@@ -184,13 +184,43 @@ def repo_stats_calc_outdated_for_repo_directory(repo_cache_store, repo_directory
 
 
 def repo_stats_calc_blocked(repo_cache_store):
+    import os
+
+    # Use a directory subset to avoid additional work for local only or missing repositories.
+    directory_subset = set()
+
+    for repo_item in bpy.context.preferences.extensions.repos:
+        if not repo_item.enabled:
+            continue
+        if not repo_item.use_remote_url:
+            continue
+        if not repo_item.remote_url:
+            continue
+
+        repo_directory = repo_item.directory
+        if not os.path.isdir(repo_directory):
+            continue
+
+        directory_subset.add(repo_directory)
+
+    if not directory_subset:
+        return 0
+
     block_count = 0
     for (
             pkg_manifest_remote,
             pkg_manifest_local,
     ) in zip(
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
-        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_remote_ensure(
+            error_fn=print,
+            directory_subset=directory_subset,
+            ignore_missing=True,
+        ),
+        repo_cache_store.pkg_manifest_from_local_ensure(
+            error_fn=print,
+            directory_subset=directory_subset,
+            ignore_missing=True,
+        ),
     ):
         if (pkg_manifest_remote is None) or (pkg_manifest_local is None):
             continue
