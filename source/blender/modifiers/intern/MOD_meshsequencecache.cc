@@ -20,6 +20,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -143,19 +144,20 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
   return false;
 }
 
-static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
+static Mesh *generate_bounding_box_mesh(const std::optional<Bounds<float3>> &bounds,
+                                        Material **mat,
+                                        short totcol)
 {
-  using namespace blender;
-  const std::optional<Bounds<float3>> bounds = org_mesh->bounds_min_max();
   if (!bounds) {
     return nullptr;
   }
 
   Mesh *result = geometry::create_cuboid_mesh(bounds->max - bounds->min, 2, 2, 2);
-  if (org_mesh->mat) {
-    result->mat = static_cast<Material **>(MEM_dupallocN(org_mesh->mat));
-    result->totcol = org_mesh->totcol;
+  if (mat) {
+    result->mat = static_cast<Material **>(MEM_dupallocN(mat));
+    result->totcol = totcol;
   }
+
   BKE_mesh_translate(result, math::midpoint(bounds->min, bounds->max), false);
 
   return result;
@@ -196,12 +198,17 @@ static void modify_geometry_set(ModifierData *md,
   /* Do not process data if using a render procedural, return a box instead for displaying in the
    * viewport. */
   if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    const Mesh *org_mesh = nullptr;
+    Mesh *bbox = nullptr;
     if (geometry_set->has_mesh()) {
-      org_mesh = geometry_set->get_mesh();
+      const Mesh *mesh = geometry_set->get_mesh();
+      bbox = generate_bounding_box_mesh(mesh->bounds_min_max(), mesh->mat, mesh->totcol);
+    }
+    else if (geometry_set->has_pointcloud()) {
+      const PointCloud *pointcloud = geometry_set->get_pointcloud();
+      bbox = generate_bounding_box_mesh(
+          pointcloud->bounds_min_max(), pointcloud->mat, pointcloud->totcol);
     }
 
-    Mesh *bbox = generate_bounding_box_mesh(org_mesh);
     *geometry_set = bke::GeometrySet::from_mesh(bbox, bke::GeometryOwnershipType::Editable);
     return;
   }
@@ -277,7 +284,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* Do not process data if using a render procedural, return a box instead for displaying in the
    * viewport. */
   if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    return generate_bounding_box_mesh(org_mesh);
+    return generate_bounding_box_mesh(org_mesh->bounds_min_max(), org_mesh->mat, org_mesh->totcol);
   }
 
   /* If this invocation is for the ORCO mesh, and the mesh hasn't changed topology, we
