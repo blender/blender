@@ -14,7 +14,6 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_geom.h"
-#include "BLI_task.h"
 #ifdef DEBUG_PIXEL_NODES
 #  include "BLI_hash.h"
 #endif
@@ -29,6 +28,7 @@
 
 #include "bmesh.hh"
 
+#include "mesh_brush_common.hh"
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::paint::image {
@@ -164,55 +164,23 @@ static void calc_pixel_row_positions(const Span<float3> vert_positions,
 template<typename ImageBuffer> class PaintingKernel {
   ImageBuffer image_accessor_;
 
-  SculptSession *ss_;
-  const Brush *brush_;
-  const int thread_id_;
-  ;
-
   float4 brush_color_;
-  float brush_strength_;
 
-  SculptBrushTestFn brush_test_fn_;
-  SculptBrushTest test_;
   const char *last_used_color_space_ = nullptr;
 
  public:
-  explicit PaintingKernel(SculptSession &ss, const Brush &brush, const int thread_id)
-      : ss_(&ss), brush_(&brush), thread_id_(thread_id)
-  {
-    init_brush_strength();
-    init_brush_test();
-  }
+  explicit PaintingKernel() {}
 
-  bool paint(const Span<float3> pixel_positions,
+  bool paint(const Brush &brush,
              const PackedPixelRow &pixel_row,
+             const Span<float> factors,
              ImBuf *image_buffer)
   {
     image_accessor_.set_image_position(image_buffer, pixel_row.start_image_coordinate);
     bool pixels_painted = false;
     for (int x = 0; x < pixel_row.num_pixels; x++) {
-      if (!brush_test_fn_(test_, pixel_positions[x])) {
-        image_accessor_.next_pixel();
-        continue;
-      }
-
       float4 color = image_accessor_.read_pixel(image_buffer);
-      const float3 normal(0.0f, 0.0f, 0.0f);
-      const float3 face_normal(0.0f, 0.0f, 0.0f);
-      const float mask = 0.0f;
-
-      const float falloff_strength = SCULPT_brush_strength_factor(
-          *ss_,
-          *brush_,
-          pixel_positions[x],
-          sqrtf(test_.dist),
-          normal,
-          face_normal,
-          mask,
-          BKE_pbvh_make_vref(PBVH_REF_NONE),
-          thread_id_,
-          nullptr);
-      float4 paint_color = brush_color_ * falloff_strength * brush_strength_;
+      float4 paint_color = brush_color_ * factors[x];
       float4 buffer_color;
 
 #ifdef DEBUG_PIXEL_NODES
@@ -224,8 +192,8 @@ template<typename ImageBuffer> class PaintingKernel {
 #endif
 
       blend_color_mix_float(buffer_color, color, paint_color);
-      buffer_color *= brush_->alpha;
-      IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush_->blend));
+      buffer_color *= brush.alpha;
+      IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush.blend));
       image_accessor_.write_pixel(image_buffer, color);
       pixels_painted = true;
 
@@ -255,16 +223,6 @@ template<typename ImageBuffer> class PaintingKernel {
     IMB_colormanagement_processor_apply_v4(cm_processor, brush_color_);
     IMB_colormanagement_processor_free(cm_processor);
     last_used_color_space_ = to_colorspace;
-  }
-
- private:
-  void init_brush_strength()
-  {
-    brush_strength_ = ss_->cache->bstrength;
-  }
-  void init_brush_test()
-  {
-    brush_test_fn_ = SCULPT_brush_test_init_with_falloff_shape(*ss_, test_, brush_->falloff_shape);
   }
 };
 
@@ -298,17 +256,17 @@ static void do_paint_pixels(const Object &object,
                             bke::pbvh::Node &node)
 {
   SculptSession &ss = *object.sculpt;
+  const StrokeCache &cache = *ss.cache;
   bke::pbvh::Tree &pbvh = *ss.pbvh;
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
   BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, pbvh_data.vert_tris, node_data.uv_primitives, positions);
 
-  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id);
-  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id);
+  PaintingKernel<ImageBufferFloat4> kernel_float4;
+  PaintingKernel<ImageBufferByte4> kernel_byte4;
 
   float4 brush_color;
 
@@ -327,6 +285,8 @@ static void do_paint_pixels(const Object &object,
   brush_color[3] = 1.0f;
 
   Vector<float3> pixel_positions;
+  Vector<float> factors;
+  Vector<float> distances;
 
   ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
@@ -357,12 +317,24 @@ static void do_paint_pixels(const Object &object,
           calc_pixel_row_positions(
               positions, pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, pixel_positions);
 
+          factors.resize(pixel_positions.size());
+          factors.fill(1.0f);
+
+          distances.resize(pixel_positions.size());
+          calc_brush_distances(
+              ss, pixel_positions, eBrushFalloffShape(brush.falloff_shape), distances);
+          filter_distances_with_radius(cache.radius, distances, factors);
+          apply_hardness_to_distances(cache, distances);
+          calc_brush_strength_factors(cache, brush, distances, factors);
+          calc_brush_texture_factors(ss, brush, pixel_positions, factors);
+          scale_factors(factors, cache.bstrength);
+
           bool pixels_painted = false;
           if (image_buffer->float_buffer.data != nullptr) {
-            pixels_painted = kernel_float4.paint(pixel_positions, pixel_row, image_buffer);
+            pixels_painted = kernel_float4.paint(brush, pixel_row, factors, image_buffer);
           }
           else {
-            pixels_painted = kernel_byte4.paint(pixel_positions, pixel_row, image_buffer);
+            pixels_painted = kernel_byte4.paint(brush, pixel_row, factors, image_buffer);
           }
 
           if (pixels_painted) {
