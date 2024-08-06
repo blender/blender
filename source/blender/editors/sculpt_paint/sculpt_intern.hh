@@ -1141,21 +1141,6 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSessio
                                                               char falloff_shape);
 void SCULPT_cube_tip_init(const Sculpt &sd, const Object &ob, const Brush &brush, float mat[4][4]);
 
-/**
- * Return a multiplier for brush strength on a particular vertex.
- */
-float SCULPT_brush_strength_factor(
-    SculptSession &ss,
-    const Brush &br,
-    const float point[3],
-    float len,
-    const float vno[3],
-    const float fno[3],
-    float mask,
-    const PBVHVertRef vertex,
-    int thread_id,
-    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data);
-
 /** Sample the brush's texture value. */
 void sculpt_apply_texture(const SculptSession &ss,
                           const Brush &brush,
@@ -1390,12 +1375,11 @@ struct NodeData {
  */
 NodeData node_begin(const Object &object, const Cache *automasking, const bke::pbvh::Node &node);
 
-/* Call before factor_get and SCULPT_brush_strength_factor. */
+/* Call before factor_get. */
 void node_update(NodeData &automask_data, const PBVHVertexIter &vd);
 void node_update(NodeData &automask_data, const BMVert &vert);
 /**
- * Call before factor_get and SCULPT_brush_strength_factor. The index is in the range of the
- * pbvh::Tree node's vertex indices.
+ * Call before factor_get. The index is in the range of the pbvh::Tree node's vertex indices.
  */
 void node_update(NodeData &automask_data, int i);
 

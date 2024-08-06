@@ -1880,15 +1880,6 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSessio
   return ss.cache->view_normal;
 }
 
-static float frontface(const Brush &brush, const float3 &view_normal, const float3 &normal)
-{
-  using namespace blender;
-  if (!(brush.flag & BRUSH_FRONTFACE)) {
-    return 1.0f;
-  }
-  return std::max(math::dot(normal, view_normal), 0.0f);
-}
-
 #if 0
 
 static bool sculpt_brush_test_cyl(SculptBrushTest *test,
@@ -2799,26 +2790,6 @@ static float brush_strength(const Sculpt &sd,
   }
 }
 
-static float sculpt_apply_hardness(const blender::ed::sculpt_paint::StrokeCache &cache,
-                                   const float input_len)
-{
-  float final_len = input_len;
-  const float hardness = cache.paint_brush.hardness;
-  float p = input_len / cache.radius;
-  if (p < hardness) {
-    final_len = 0.0f;
-  }
-  else if (hardness == 1.0f) {
-    final_len = cache.radius;
-  }
-  else {
-    p = (p - hardness) / (1.0f - hardness);
-    final_len = p * cache.radius;
-  }
-
-  return final_len;
-}
-
 void sculpt_apply_texture(const SculptSession &ss,
                           const Brush &brush,
                           const float brush_point[3],
@@ -2883,41 +2854,6 @@ void sculpt_apply_texture(const SculptSession &ss,
       *r_value = BKE_brush_sample_tex_3d(scene, &brush, mtex, point_3d, r_rgba, 0, ss.tex_pool);
     }
   }
-}
-
-float SCULPT_brush_strength_factor(
-    SculptSession &ss,
-    const Brush &brush,
-    const float brush_point[3],
-    float len,
-    const float vno[3],
-    const float fno[3],
-    float mask,
-    const PBVHVertRef vertex,
-    int thread_id,
-    const blender::ed::sculpt_paint::auto_mask::NodeData *automask_data)
-{
-  using namespace blender::ed::sculpt_paint;
-  StrokeCache *cache = ss.cache;
-
-  float avg = 1.0f;
-  float rgba[4];
-  sculpt_apply_texture(ss, brush, brush_point, thread_id, &avg, rgba);
-
-  /* Hardness. */
-  const float final_len = sculpt_apply_hardness(*cache, len);
-
-  /* Falloff curve. */
-  avg *= BKE_brush_curve_strength(&brush, final_len, cache->radius);
-  avg *= frontface(brush, cache->view_normal, vno ? vno : fno);
-
-  /* Paint mask. */
-  avg *= 1.0f - mask;
-
-  /* Auto-masking. */
-  avg *= auto_mask::factor_get(cache->automasking.get(), ss, vertex, automask_data);
-
-  return avg;
 }
 
 void SCULPT_calc_vertex_displacement(const SculptSession &ss,
