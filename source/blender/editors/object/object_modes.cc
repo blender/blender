@@ -408,11 +408,10 @@ static bool object_transfer_mode_poll(bContext *C)
 }
 
 /* Update the viewport rotation origin to the mouse cursor. */
-static void object_transfer_mode_reposition_view_pivot(bContext *C, const int mval[2])
+static void object_transfer_mode_reposition_view_pivot(ARegion *region,
+                                                       Scene *scene,
+                                                       const int mval[2])
 {
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-
   float global_loc[3];
   if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, nullptr)) {
     return;
@@ -430,82 +429,95 @@ static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob
   ob_dst_eval->runtime->overlay_mode_transfer_start_time = BLI_time_now_seconds();
 }
 
-static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)
+static bool object_transfer_mode_to_base(bContext *C,
+                                         wmOperator *op,
+                                         Scene *scene,
+                                         Object * /*ob_src*/,
+                                         Object *ob_dst,
+                                         const eObjectMode mode_dst)
 {
-  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (base_dst == nullptr) {
-    return false;
-  }
-
-  Object *ob_dst = base_dst->object;
-  Object *ob_src = CTX_data_active_object(C);
-
-  if (ob_dst == ob_src) {
-    return false;
-  }
-
-  const eObjectMode last_mode = (eObjectMode)ob_src->mode;
-  if (!mode_compat_test(ob_dst, last_mode)) {
-    return false;
-  }
-
-  bool mode_transferred = false;
-
+  /* Undo is handled manually here, such that the entry in the user-visible undo history is named
+   * from the expected mode toggle operator name, and not the 'Transfer Mode' operator itself.
+   *
+   * The undo grouping is needed to ensure that only one step is visible, even though there may be
+   * two undo steps stored when executed successfully (moving source object to Object mode, and
+   * then target object to the previous mode of source object). */
   ED_undo_group_begin(C);
 
-  if (mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
-    Object *ob_dst_orig = DEG_get_original_object(ob_dst);
+  const bool mode_transferred = mode_set_ex(C, OB_MODE_OBJECT, true, op->reports);
+  if (mode_transferred) {
     BKE_view_layer_synced_ensure(scene, view_layer);
-    Base *base = BKE_view_layer_base_find(view_layer, ob_dst_orig);
+    Base *base_dst = BKE_view_layer_base_find(view_layer, ob_dst);
     BKE_view_layer_base_deselect_all(scene, view_layer);
-    BKE_view_layer_base_select_and_set_active(view_layer, base);
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    BKE_view_layer_base_select_and_set_active(view_layer, base_dst);
 
-    ED_undo_push(C, "Change Active");
-
-    ob_dst_orig = DEG_get_original_object(ob_dst);
-    mode_set_ex(C, last_mode, true, op->reports);
+    mode_set_ex(C, mode_dst, true, op->reports);
 
     if (RNA_boolean_get(op->ptr, "use_flash_on_transfer")) {
       object_overlay_mode_transfer_animation_start(C, ob_dst);
     }
-
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-    ED_outliner_select_sync_from_object_tag(C);
-
-    WM_toolsystem_update_from_context_view3d(C);
-    mode_transferred = true;
   }
 
   ED_undo_group_end(C);
+
   return mode_transferred;
 }
 
 static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Scene *scene = CTX_data_scene(C);
+  ARegion *region = CTX_wm_region(C);
   Object *ob_src = CTX_data_active_object(C);
-  const eObjectMode src_mode = (eObjectMode)ob_src->mode;
+  const eObjectMode mode_src = eObjectMode(ob_src->mode);
 
   Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
+  if (!base_dst) {
+    BKE_reportf(op->reports, RPT_ERROR, "No target object to transfer the mode to");
+    return OPERATOR_CANCELLED;
+  }
 
-  if ((base_dst != nullptr) &&
-      (!ID_IS_EDITABLE(base_dst->object) || ID_IS_OVERRIDE_LIBRARY(base_dst->object)))
-  {
+  Object *ob_dst = base_dst->object;
+  BLI_assert(ob_dst->id.orig_id == nullptr);
+  if (!ID_IS_EDITABLE(ob_dst) || !ID_IS_EDITABLE(ob_src)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
-                "Unable to execute, %s object is linked",
-                base_dst->object->id.name + 2);
+                "Unable to transfer mode, the source and/or target objects are not editable");
     return OPERATOR_CANCELLED;
   }
-  const bool mode_transferred = object_transfer_mode_to_base(C, op, base_dst);
-  if (!mode_transferred) {
+  if (ID_IS_OVERRIDE_LIBRARY(ob_dst) && !ELEM(mode_src, OB_MODE_OBJECT, OB_MODE_POSE)) {
+    BKE_reportf(
+        op->reports,
+        RPT_ERROR,
+        "Current mode of source object '%s' is not compatible with target liboverride object '%s'",
+        ob_src->id.name + 2,
+        ob_dst->id.name + 2);
+    return OPERATOR_CANCELLED;
+  }
+  if (!mode_compat_test(ob_dst, mode_src)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Current mode of source object '%s' is not compatible with target object '%s'",
+                ob_src->id.name + 2,
+                ob_dst->id.name + 2);
     return OPERATOR_CANCELLED;
   }
 
-  if (src_mode & OB_MODE_ALL_PAINT) {
-    object_transfer_mode_reposition_view_pivot(C, event->mval);
+  const bool mode_transferred = object_transfer_mode_to_base(
+      C, op, scene, ob_src, ob_dst, mode_src);
+  if (!mode_transferred) {
+    /* Error report should have been set by #object_transfer_mode_to_base call here. */
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+  ED_outliner_select_sync_from_object_tag(C);
+
+  WM_toolsystem_update_from_context_view3d(C);
+  if (mode_src & OB_MODE_ALL_PAINT) {
+    object_transfer_mode_reposition_view_pivot(region, scene, event->mval);
   }
 
   return OPERATOR_FINISHED;
@@ -524,7 +536,7 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
   ot->invoke = object_transfer_mode_invoke;
   ot->poll = object_transfer_mode_poll;
 
-  /* Undo push is handled by the operator. */
+  /* Undo push is handled by the operator, see #object_transfer_mode_to_base for details. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   ot->cursor_pending = WM_CURSOR_EYEDROPPER;
