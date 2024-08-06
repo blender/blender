@@ -3841,8 +3841,15 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   }
 
   /* Convert to local coordinates in sa2. */
-  const int x = event->xy[0] + jd->win1->posx - jd->win2->posx - jd->sa2->totrct.xmin;
-  const int y = event->xy[1] + jd->win1->posy - jd->win2->posy - jd->sa2->totrct.ymin;
+  int win1_posx = jd->win1->posx;
+  int win1_posy = jd->win1->posy;
+  int win2_posx = jd->win2->posx;
+  int win2_posy = jd->win2->posy;
+  WM_window_pixels_coords(jd->win1, &win1_posx, &win1_posy);
+  WM_window_pixels_coords(jd->win2, &win2_posx, &win2_posy);
+
+  const int x = event->xy[0] + win1_posx - win2_posx - jd->sa2->totrct.xmin;
+  const int y = event->xy[1] + win1_posy - win2_posy - jd->sa2->totrct.ymin;
 
   const float fac_x = float(x) / float(jd->sa2->winx);
   const float fac_y = float(y) / float(jd->sa2->winy);
