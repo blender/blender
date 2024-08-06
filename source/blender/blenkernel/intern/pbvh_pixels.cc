@@ -143,30 +143,19 @@ struct UVPrimitiveLookup {
   }
 };
 
-struct EncodePixelsUserData {
-  const uv_islands::MeshData *mesh_data;
-  Image *image;
-  ImageUser *image_user;
-  Tree *pbvh;
-  Vector<Node *> *nodes;
-  const uv_islands::UVIslandsMask *uv_masks;
-  /** Lookup to retrieve the UV primitives based on the primitive index. */
-  const UVPrimitiveLookup *uv_primitive_lookup;
-};
-
-static void do_encode_pixels(EncodePixelsUserData *data, const int n)
+static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
+                             const uv_islands::UVIslandsMask &uv_masks,
+                             const UVPrimitiveLookup &uv_prim_lookup,
+                             Image &image,
+                             ImageUser &image_user,
+                             Node &node)
 {
-  const uv_islands::MeshData &mesh_data = *data->mesh_data;
-  Image *image = data->image;
-  ImageUser image_user = *data->image_user;
-  Node *node = (*data->nodes)[n];
-  NodeData *node_data = static_cast<NodeData *>(node->pixels_);
-  const uv_islands::UVIslandsMask &uv_masks = *data->uv_masks;
+  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
 
-  LISTBASE_FOREACH (ImageTile *, tile, &data->image->tiles) {
+  LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
     image::ImageTileWrapper image_tile(tile);
     image_user.tile = image_tile.get_tile_number();
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, nullptr);
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &image_user, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
@@ -175,10 +164,8 @@ static void do_encode_pixels(EncodePixelsUserData *data, const int n)
     tile_data.tile_number = image_tile.get_tile_number();
     float2 tile_offset = float2(image_tile.get_tile_offset());
 
-    for (const int geom_prim_index : node->prim_indices_) {
-      for (const UVPrimitiveLookup::Entry &entry :
-           data->uv_primitive_lookup->lookup[geom_prim_index])
-      {
+    for (const int geom_prim_index : node.prim_indices_) {
+      for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[geom_prim_index]) {
         uv_islands::UVBorder uv_border = entry.uv_primitive->extract_border();
         float2 uvs[3] = {
             entry.uv_primitive->get_uv_vertex(mesh_data, 0)->uv - tile_offset,
@@ -217,7 +204,7 @@ static void do_encode_pixels(EncodePixelsUserData *data, const int n)
                                    maxy);
       }
     }
-    BKE_image_release_ibuf(image, image_buffer, nullptr);
+    BKE_image_release_ibuf(&image, image_buffer, nullptr);
 
     if (tile_data.pixel_rows.is_empty()) {
       continue;
@@ -304,13 +291,13 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
   return true;
 }
 
-static void apply_watertight_check(Tree &pbvh, Image *image, ImageUser *image_user)
+static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_user)
 {
-  ImageUser watertight = *image_user;
-  LISTBASE_FOREACH (ImageTile *, tile_data, &image->tiles) {
+  ImageUser watertight = image_user;
+  LISTBASE_FOREACH (ImageTile *, tile_data, &image.tiles) {
     image::ImageTileWrapper image_tile(tile_data);
     watertight.tile = image_tile.get_tile_number();
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &watertight, nullptr);
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &watertight, nullptr);
     if (image_buffer == nullptr) {
       continue;
     }
@@ -339,47 +326,46 @@ static void apply_watertight_check(Tree &pbvh, Image *image, ImageUser *image_us
         }
       }
     }
-    BKE_image_release_ibuf(image, image_buffer, nullptr);
+    BKE_image_release_ibuf(&image, image_buffer, nullptr);
   }
-  BKE_image_partial_update_mark_full_update(image);
+  BKE_image_partial_update_mark_full_update(&image);
 }
 
-static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
+static bool update_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser &image_user)
 {
   Vector<Node *> nodes_to_update;
-
   if (!find_nodes_to_update(pbvh, nodes_to_update)) {
     return false;
   }
 
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&mesh->corner_data,
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&mesh.corner_data,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
     return false;
   }
 
-  const AttributeAccessor attributes = mesh->attributes();
+  const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, AttrDomain::Corner);
 
   uv_islands::MeshData mesh_data(
-      mesh->corner_tris(), mesh->corner_verts(), uv_map, pbvh.vert_positions_);
+      mesh.corner_tris(), mesh.corner_verts(), uv_map, pbvh.vert_positions_);
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
-  ImageUser tile_user = *image_user;
-  LISTBASE_FOREACH (ImageTile *, tile_data, &image->tiles) {
+  ImageUser tile_user = image_user;
+  LISTBASE_FOREACH (ImageTile *, tile_data, &image.tiles) {
     image::ImageTileWrapper image_tile(tile_data);
     tile_user.tile = image_tile.get_tile_number();
-    ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, nullptr);
+    ImBuf *tile_buffer = BKE_image_acquire_ibuf(&image, &tile_user, nullptr);
     if (tile_buffer == nullptr) {
       continue;
     }
     uv_masks.add_tile(float2(image_tile.get_tile_x_offset(), image_tile.get_tile_y_offset()),
                       ushort2(tile_buffer->x, tile_buffer->y));
-    BKE_image_release_ibuf(image, tile_buffer, nullptr);
+    BKE_image_release_ibuf(&image, tile_buffer, nullptr);
   }
   uv_masks.add(mesh_data, islands);
-  uv_masks.dilate(image->seam_margin);
+  uv_masks.dilate(image.seam_margin);
 
   islands.extract_borders();
   islands.extend_borders(mesh_data, uv_masks);
@@ -387,18 +373,10 @@ static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image
 
   UVPrimitiveLookup uv_primitive_lookup(mesh_data.corner_tris.size(), islands);
 
-  EncodePixelsUserData user_data;
-  user_data.mesh_data = &mesh_data;
-  user_data.pbvh = &pbvh;
-  user_data.image = image;
-  user_data.image_user = image_user;
-  user_data.nodes = &nodes_to_update;
-  user_data.uv_primitive_lookup = &uv_primitive_lookup;
-  user_data.uv_masks = &uv_masks;
-
   threading::parallel_for(nodes_to_update.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_encode_pixels(&user_data, i);
+      do_encode_pixels(
+          mesh_data, uv_masks, uv_primitive_lookup, image, image_user, *nodes_to_update[i]);
     }
   });
   if (USE_WATERTIGHT_CHECK) {
@@ -406,7 +384,7 @@ static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image
   }
 
   /* Add solution for non-manifold parts of the model. */
-  copy_update(pbvh, *image, *image_user, mesh_data);
+  copy_update(pbvh, image, image_user, mesh_data);
 
   /* Rebuild the undo regions. */
   for (Node *node : nodes_to_update) {
@@ -500,7 +478,7 @@ void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
 
 namespace blender::bke::pbvh {
 
-void build_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
+void build_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser &image_user)
 {
   pixels::update_pixels(pbvh, mesh, image, image_user);
 }

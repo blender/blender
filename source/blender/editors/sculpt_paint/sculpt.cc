@@ -3254,7 +3254,7 @@ static void sculpt_pbvh_update_pixels(PaintModeSettings &paint_mode_settings,
 {
   using namespace blender;
   BLI_assert(ob.type == OB_MESH);
-  Mesh *mesh = (Mesh *)ob.data;
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
 
   Image *image;
   ImageUser *image_user;
@@ -3262,7 +3262,7 @@ static void sculpt_pbvh_update_pixels(PaintModeSettings &paint_mode_settings,
     return;
   }
 
-  bke::pbvh::build_pixels(*ss.pbvh, mesh, image, image_user);
+  bke::pbvh::build_pixels(*ss.pbvh, mesh, *image, *image_user);
 }
 
 /** \} */
