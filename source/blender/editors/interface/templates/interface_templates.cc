@@ -6324,7 +6324,6 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, AZone *az, ARegion *reg
 
   if (az->type == AZONE_REGION) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
-    uiItemS_ex(layout, 0.3f);
     uiItemL(layout,
             (region->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
             ICON_NONE);
@@ -6389,7 +6388,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     uiItemL(row, IFACE_("Resize"), ICON_NONE);
     uiItemS_ex(row, 0.7f);
     uiItemL(row, nullptr, ICON_MOUSE_RMB);
-    uiItemS_ex(row, -0.6f);
+    uiItemS_ex(row, -0.5f);
     uiItemL(row, IFACE_("Options"), ICON_NONE);
     return;
   }
@@ -6405,7 +6404,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
     if (msg) {
       uiItemL(row, "", (ICON_MOUSE_LMB + i));
-      uiItemS_ex(row, -0.6f);
+      uiItemS_ex(row, -0.5f);
       uiItemL(row, msg ? msg : "", ICON_NONE);
       uiItemS_ex(row, 0.7f);
     }
@@ -6830,8 +6829,6 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
       icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
 #endif
       uiItemL(layout, "", icon);
-
-      uiItemS_ex(layout, 0.3f);
       uiItemL(layout, xyz_label, ICON_NONE);
       uiItemS_ex(layout, 0.7f);
       return 3;
@@ -6865,7 +6862,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     uiItemL(layout, "", icon);
     if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_MMB_SCROLL) {
       /* Negative space after narrow mice icons. */
-      uiItemS_ex(layout, -0.9f);
+      uiItemS_ex(layout, -0.5f);
     }
 
     const float offset = ui_event_icon_offset(icon);
@@ -6873,7 +6870,6 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
       uiItemS_ex(layout, offset);
     }
 
-    uiItemS_ex(layout, 0.3f);
     uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), ICON_NONE);
     uiItemS_ex(layout, 0.7f);
     ok = true;
