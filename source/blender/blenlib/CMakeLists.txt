@@ -198,6 +198,7 @@ set(SRC
   BLI_bounds.hh
   BLI_bounds_types.hh
   BLI_boxpack_2d.h
+  BLI_build_config.h
   BLI_buffer.h
   BLI_cache_mutex.hh
   BLI_color.hh
@@ -510,6 +511,7 @@ if(WITH_GTESTS)
     tests/BLI_bit_ref_test.cc
     tests/BLI_bit_span_test.cc
     tests/BLI_bit_vector_test.cc
+    tests/BLI_build_config_test.cc
     tests/BLI_bitmap_test.cc
     tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
