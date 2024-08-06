@@ -361,8 +361,8 @@ constexpr bool USE_WATERTIGHT_CHECK = false;
 static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
                                        const ImBuf *image_buffer,
                                        const uv_islands::UVIslandsMask &uv_mask,
-                                       const int64_t uv_island_index,
-                                       const int64_t uv_primitive_index,
+                                       const int uv_island_index,
+                                       const int uv_primitive_index,
                                        const float2 uvs[3],
                                        const float2 tile_offset,
                                        const int minx,
@@ -494,7 +494,7 @@ static void do_encode_pixels(EncodePixelsUserData *data, const int n)
         const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
         /* TODO: Perform bounds check */
-        int64_t uv_prim_index = node_data->uv_primitives.size();
+        int uv_prim_index = node_data->uv_primitives.size();
         node_data->uv_primitives.append(geom_prim_index);
         UVPrimitivePaintInput &paint_input = node_data->uv_primitives.last();
 
@@ -544,9 +544,9 @@ static bool should_pixels_be_updated(const Node &node)
   return true;
 }
 
-static int64_t count_nodes_to_update(Tree &pbvh)
+static int count_nodes_to_update(Tree &pbvh)
 {
-  int64_t result = 0;
+  int result = 0;
   for (Node &node : pbvh.nodes_) {
     if (should_pixels_be_updated(node)) {
       result++;
@@ -566,7 +566,7 @@ static int64_t count_nodes_to_update(Tree &pbvh)
  */
 static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
 {
-  int64_t nodes_to_update_len = count_nodes_to_update(pbvh);
+  int nodes_to_update_len = count_nodes_to_update(pbvh);
   if (nodes_to_update_len == 0) {
     return false;
   }
@@ -729,8 +729,8 @@ static bool update_pixels(Tree &pbvh, Mesh *mesh, Image *image, ImageUser *image
 #ifdef DO_PRINT_STATISTICS
   /* Print some statistics about compression ratio. */
   {
-    int64_t compressed_data_len = 0;
-    int64_t num_pixels = 0;
+    int compressed_data_len = 0;
+    int num_pixels = 0;
     for (int n = 0; n < pbvh->totnode; n++) {
       Node *node = &pbvh->nodes[n];
       if ((node->flag & PBVH_Leaf) == 0) {

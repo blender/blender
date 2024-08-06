@@ -19,7 +19,7 @@ namespace blender::bke::pbvh::pixels {
 
 struct UVPrimitivePaintInput {
   /** Corresponding index into triangles */
-  int64_t tri_index;
+  int tri_index;
   /**
    * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
    *
@@ -33,7 +33,7 @@ struct UVPrimitivePaintInput {
    * delta_barycentric_coord_u is initialized in a later stage as it requires image tile
    * dimensions.
    */
-  UVPrimitivePaintInput(int64_t tri_index)
+  UVPrimitivePaintInput(int tri_index)
       : tri_index(tri_index), delta_barycentric_coord_u(0.0f, 0.0f)
   {
   }
