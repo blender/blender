@@ -11,6 +11,7 @@
 
 #include "ED_paint.hh"
 
+#include "BLI_bit_vector.hh"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_geom.h"
 #include "BLI_task.h"
@@ -290,12 +291,12 @@ template<typename ImageBuffer> class PaintingKernel {
   }
 };
 
-static std::vector<bool> init_uv_primitives_brush_test(SculptSession &ss,
-                                                       PaintGeometryPrimitives &geom_primitives,
-                                                       PaintUVPrimitives &uv_primitives,
-                                                       const Span<float3> positions)
+static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
+                                                 PaintGeometryPrimitives &geom_primitives,
+                                                 PaintUVPrimitives &uv_primitives,
+                                                 const Span<float3> positions)
 {
-  std::vector<bool> brush_test(uv_primitives.size());
+  BitVector<> brush_test(uv_primitives.size());
   SculptBrushTest test;
   SCULPT_brush_test_init(ss, test);
   float3 brush_min_bounds(test.location[0] - test.radius,
@@ -320,8 +321,8 @@ static std::vector<bool> init_uv_primitives_brush_test(SculptSession &ss,
       triangle_max_bounds.y = max_ff(triangle_max_bounds.y, pos.y);
       triangle_max_bounds.z = max_ff(triangle_max_bounds.z, pos.z);
     }
-    brush_test[uv_prim_index] = isect_aabb_aabb_v3(
-        brush_min_bounds, brush_max_bounds, triangle_min_bounds, triangle_max_bounds);
+    brush_test[uv_prim_index].set(isect_aabb_aabb_v3(
+        brush_min_bounds, brush_max_bounds, triangle_min_bounds, triangle_max_bounds));
   }
   return brush_test;
 }
@@ -338,7 +339,7 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
 
-  std::vector<bool> brush_test = init_uv_primitives_brush_test(
+  BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, pbvh_data.geom_primitives, node_data.uv_primitives, positions);
 
   PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, positions);
