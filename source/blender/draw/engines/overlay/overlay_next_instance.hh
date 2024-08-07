@@ -10,6 +10,7 @@
 
 #include "overlay_next_private.hh"
 
+#include "overlay_next_antialiasing.hh"
 #include "overlay_next_background.hh"
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
@@ -59,6 +60,8 @@ class Instance {
   } regular{selection_type_}, infront{selection_type_};
 
   Grid grid;
+
+  AntiAliasing anti_aliasing;
 
   Instance(const SelectionType selection_type) : selection_type_(selection_type){};
 

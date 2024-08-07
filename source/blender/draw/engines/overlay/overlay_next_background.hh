@@ -67,6 +67,12 @@ class Background {
     }
 
     bg_ps_.init();
+    bg_ps_.framebuffer_set(&res.overlay_output_fb);
+    /* Don't clear background for the node editor. The node editor draws the background and we
+     * need to mask out the image from the already drawn overlay color buffer. */
+    if (state.space_type != SPACE_NODE) {
+      bg_ps_.clear_color(float4(0.0f));
+    }
     bg_ps_.state_set(pass_state);
     bg_ps_.shader_set(res.shaders.background_fill.get());
     bg_ps_.bind_ubo("globalsBlock", &res.globals_buf);
@@ -85,9 +91,8 @@ class Background {
     }
   }
 
-  void draw(Resources &res, Manager &manager)
+  void draw(Manager &manager)
   {
-    GPU_framebuffer_bind(res.overlay_color_only_fb);
     manager.submit(bg_ps_);
   }
 };

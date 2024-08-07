@@ -143,6 +143,7 @@ class ShaderModule {
   ShaderPtr grid = shader("overlay_grid");
   ShaderPtr background_fill = shader("overlay_background");
   ShaderPtr background_clip_bound = shader("overlay_clipbound");
+  ShaderPtr anti_aliasing = shader("overlay_antialiasing");
 
   /** Selectable Shaders */
   ShaderPtr armature_sphere_outline;
@@ -180,8 +181,15 @@ struct Resources : public select::SelectMap {
   Framebuffer overlay_color_only_fb = {"overlay_color_only_fb"};
   Framebuffer overlay_line_fb = {"overlay_line_fb"};
   Framebuffer overlay_line_in_front_fb = {"overlay_line_in_front_fb"};
+  Framebuffer overlay_output_fb = {"overlay_output_fb"};
 
+  /* Target containing line direction and data for line expansion and anti-aliasing. */
   TextureFromPool line_tx = {"line_tx"};
+  /* Target containing overlay color before anti-aliasing. */
+  TextureFromPool overlay_tx = {"overlay_tx"};
+
+  /* Texture that are usually allocated inside. These are fallback when they aren't.
+   * They are then wrapped inside the #TextureRefs below. */
   TextureFromPool depth_in_front_alloc_tx = {"overlay_depth_in_front_tx"};
   TextureFromPool color_overlay_alloc_tx = {"overlay_color_overlay_alloc_tx"};
   TextureFromPool color_render_alloc_tx = {"overlay_color_render_alloc_tx"};
@@ -191,11 +199,12 @@ struct Resources : public select::SelectMap {
   GlobalsUboStorage theme_settings;
   /* References, not owned. */
   GPUUniformBuf *globals_buf;
+  TextureRef weight_ramp_tx;
+  /* Wrappers around #DefaultTextureList members. */
   TextureRef depth_tx;
   TextureRef depth_in_front_tx;
   TextureRef color_overlay_tx;
   TextureRef color_render_tx;
-  TextureRef weight_ramp_tx;
 
   Resources(const SelectionType selection_type_, ShaderModule &shader_module)
       : select::SelectMap(selection_type_), shaders(shader_module){};
