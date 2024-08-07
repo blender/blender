@@ -350,7 +350,8 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                               gpu::VertBuf *orco_vbo);
 
 void extract_normals(const MeshRenderData &mr, bool use_hq, gpu::VertBuf &vbo);
-void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
+void extract_normals_subdiv(const MeshRenderData &mr,
+                            const DRWSubdivCache &subdiv_cache,
                             gpu::VertBuf &pos_nor,
                             gpu::VertBuf &lnor);
 
