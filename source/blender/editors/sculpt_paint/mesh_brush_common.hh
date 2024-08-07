@@ -93,9 +93,9 @@ void transform_positions(const float4x4 &transform, MutableSpan<float3> position
 
 /** Fill the output array with all positions in the geometry referenced by the indices. */
 void gather_grids_positions(const CCGKey &key,
-                            const Span<CCGElem *> elems,
-                            const Span<int> grids,
-                            const MutableSpan<float3> positions);
+                            Span<CCGElem *> elems,
+                            Span<int> grids,
+                            MutableSpan<float3> positions);
 inline MutableSpan<float3> gather_grids_positions(const SubdivCCG &subdiv_ccg,
                                                   const Span<int> grids,
                                                   Vector<float3> &positions)
@@ -204,10 +204,10 @@ void calc_front_face(const float3 &view_normal,
                      MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      const Set<BMVert *, 0> &verts,
-                     const MutableSpan<float> factors);
+                     MutableSpan<float> factors);
 void calc_front_face(const float3 &view_normal,
                      const Set<BMFace *, 0> &faces,
-                     const MutableSpan<float> factors);
+                     MutableSpan<float> factors);
 
 /**
  * When the 3D view's clipping planes are enabled, brushes shouldn't have any effect on vertices
@@ -233,7 +233,7 @@ void calc_brush_distances(const SculptSession &ss,
                           MutableSpan<float> r_distances);
 void calc_brush_distances(const SculptSession &ss,
                           Span<float3> positions,
-                          const eBrushFalloffShape falloff_shape,
+                          eBrushFalloffShape falloff_shape,
                           MutableSpan<float> r_distances);
 
 /** Set the factor to zero for all distances greater than the radius. */
@@ -253,9 +253,9 @@ void calc_brush_cube_distances(const SculptSession &ss,
 void calc_brush_cube_distances(const SculptSession &ss,
                                const Brush &brush,
                                const float4x4 &mat,
-                               const Span<float3> positions,
-                               const MutableSpan<float> r_distances,
-                               const MutableSpan<float> factors);
+                               Span<float3> positions,
+                               MutableSpan<float> r_distances,
+                               MutableSpan<float> factors);
 
 /**
  * Scale the distances based on the brush radius and the cached "hardness" setting, which increases
@@ -314,12 +314,12 @@ void calc_vert_factors(const Object &object,
  * Calculate all auto-masking influence on each face.
  */
 void calc_face_factors(const Object &object,
-                       const OffsetIndices<int> faces,
-                       const Span<int> corner_verts,
+                       OffsetIndices<int> faces,
+                       Span<int> corner_verts,
                        const Cache &cache,
                        const bke::pbvh::Node &node,
-                       const Span<int> face_indices,
-                       const MutableSpan<float> factors);
+                       Span<int> face_indices,
+                       MutableSpan<float> factors);
 
 }  // namespace auto_mask
 
@@ -444,8 +444,8 @@ void calc_vert_neighbors_interior(OffsetIndices<int> faces,
                                   Span<int> corner_verts,
                                   BitSpan boundary_verts,
                                   const SubdivCCG &subdiv_ccg,
-                                  const Span<int> grids,
-                                  const MutableSpan<Vector<SubdivCCGCoord>> result);
+                                  Span<int> grids,
+                                  MutableSpan<Vector<SubdivCCGCoord>> result);
 void calc_vert_neighbors_interior(const Set<BMVert *, 0> &verts,
                                   MutableSpan<Vector<BMVert *>> result);
 

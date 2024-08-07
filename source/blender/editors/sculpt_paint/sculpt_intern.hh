@@ -963,22 +963,17 @@ int active_face_set_get(const SculptSession &ss);
 int vert_face_set_get(const SculptSession &ss, PBVHVertRef vertex);
 
 bool vert_has_face_set(const SculptSession &ss, PBVHVertRef vertex, int face_set);
-bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
+bool vert_has_face_set(GroupedSpan<int> vert_to_face_map,
                        const int *face_sets,
-                       const int vert,
-                       const int face_set);
-bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
-                       const int *face_sets,
-                       const int grid,
-                       const int face_set);
-bool vert_has_face_set(const int face_set_offset, const BMVert &vert, const int face_set);
+                       int vert,
+                       int face_set);
+bool vert_has_face_set(const SubdivCCG &subdiv_ccg, const int *face_sets, int grid, int face_set);
+bool vert_has_face_set(int face_set_offset, const BMVert &vert, int face_set);
 bool vert_has_unique_face_set(const SculptSession &ss, PBVHVertRef vertex);
-bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
-                              const int *face_sets,
-                              int vert);
-bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
-                              const Span<int> corner_verts,
-                              const OffsetIndices<int> faces,
+bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map, const int *face_sets, int vert);
+bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map,
+                              Span<int> corner_verts,
+                              OffsetIndices<int> faces,
                               const int *face_sets,
                               const SubdivCCG &subdiv_ccg,
                               SubdivCCGCoord coord);
@@ -1064,20 +1059,20 @@ PBVHVertRef nearest_vert_calc(const Object &object,
                               float max_distance,
                               bool use_original);
 std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
-                                          const Span<float3> vert_positions,
-                                          const Span<bool> hide_vert,
+                                          Span<float3> vert_positions,
+                                          Span<bool> hide_vert,
                                           const float3 &location,
-                                          const float max_distance,
-                                          const bool use_original);
+                                          float max_distance,
+                                          bool use_original);
 std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbvh,
                                                       const SubdivCCG &subdiv_ccg,
                                                       const float3 &location,
-                                                      const float max_distance,
-                                                      const bool use_original);
+                                                      float max_distance,
+                                                      bool use_original);
 std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
                                                 const float3 &location,
-                                                const float max_distance,
-                                                const bool use_original);
+                                                float max_distance,
+                                                bool use_original);
 }
 
 float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss);
@@ -1110,8 +1105,8 @@ bool SCULPT_brush_test_sphere_sq(SculptBrushTest &test, const float co[3]);
 bool SCULPT_brush_test_cube(SculptBrushTest &test,
                             const float co[3],
                             const float local[4][4],
-                            const float roundness,
-                            const float tip_scale_x);
+                            float roundness,
+                            float tip_scale_x);
 bool SCULPT_brush_test_circle_sq(SculptBrushTest &test, const float co[3]);
 
 namespace blender::ed::sculpt_paint {
@@ -1145,7 +1140,7 @@ void SCULPT_cube_tip_init(const Sculpt &sd, const Object &ob, const Brush &brush
 void sculpt_apply_texture(const SculptSession &ss,
                           const Brush &brush,
                           const float brush_point[3],
-                          const int thread_id,
+                          int thread_id,
                           float *r_value,
                           float r_rgba[4]);
 
@@ -1298,39 +1293,37 @@ constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
 /**
  * Converts from Sculpt#constant_detail to the pbvh::Tree max edge length.
  */
-float constant_to_detail_size(const float constant_detail, const Object &ob);
+float constant_to_detail_size(float constant_detail, const Object &ob);
 
 /**
  * Converts from Sculpt#detail_percent to the pbvh::Tree max edge length.
  */
-float brush_to_detail_size(const float brush_percent, const float brush_radius);
+float brush_to_detail_size(float brush_percent, float brush_radius);
 
 /**
  * Converts from Sculpt#detail_size to the pbvh::Tree max edge length.
  */
-float relative_to_detail_size(const float relative_detail,
-                              const float brush_radius,
-                              const float pixel_radius,
-                              const float pixel_size);
+float relative_to_detail_size(float relative_detail,
+                              float brush_radius,
+                              float pixel_radius,
+                              float pixel_size);
 
 /**
  * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_percent value.
  *
  * Corresponds to a change from Constant & Manual Detailing to Brush Detailing.
  */
-float constant_to_brush_detail(const float constant_detail,
-                               const float brush_radius,
-                               const Object &ob);
+float constant_to_brush_detail(float constant_detail, float brush_radius, const Object &ob);
 
 /**
  * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_size value.
  *
  * Corresponds to a change from Constant & Manual Detailing to Relative Detailing.
  */
-float constant_to_relative_detail(const float constant_detail,
-                                  const float brush_radius,
-                                  const float pixel_radius,
-                                  const float pixel_size,
+float constant_to_relative_detail(float constant_detail,
+                                  float brush_radius,
+                                  float pixel_radius,
+                                  float pixel_size,
                                   const Object &ob);
 }
 }
@@ -1731,7 +1724,7 @@ void push_begin(Object &ob, const wmOperator *op);
  */
 void push_begin_ex(Object &ob, const char *name);
 void push_end(Object &ob);
-void push_end_ex(Object &ob, const bool use_nested_undo);
+void push_end_ex(Object &ob, bool use_nested_undo);
 
 void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
 BMLogEntry *get_bmesh_log_entry();
@@ -2104,9 +2097,7 @@ void swap_gathered_colors(Span<int> indices,
                           MutableSpan<float4> r_colors);
 
 /* Stores colors from the elements in indices into colors. */
-void gather_colors(const GSpan color_attribute,
-                   const Span<int> indices,
-                   MutableSpan<float4> r_colors);
+void gather_colors(GSpan color_attribute, Span<int> indices, MutableSpan<float4> r_colors);
 
 /* Like gather_colors but handles loop->vert conversion */
 void gather_colors_vert(OffsetIndices<int> faces,
