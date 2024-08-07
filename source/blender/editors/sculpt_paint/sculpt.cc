@@ -1792,7 +1792,6 @@ bool SCULPT_brush_test_cube(SculptBrushTest &test,
                             const float roundness,
                             const float /*tip_scale_x*/)
 {
-  float side = 1.0f;
   float local_co[3];
 
   mul_v3_m4v3(local_co, local, co);
@@ -1801,27 +1800,22 @@ bool SCULPT_brush_test_cube(SculptBrushTest &test,
   local_co[1] = fabsf(local_co[1]);
   local_co[2] = fabsf(local_co[2]);
 
-  /* Keep the square and circular brush tips the same size. */
-  side += (1.0f - side) * roundness;
-
   const float hardness = 1.0f - roundness;
-  const float constant_side = hardness * side;
-  const float falloff_side = roundness * side;
 
-  if (!(local_co[0] <= side && local_co[1] <= side && local_co[2] <= side)) {
+  if (!(local_co[0] <= 1.0f && local_co[1] <= 1.0f && local_co[2] <= 1.0f)) {
     /* Outside the square. */
     return false;
   }
-  if (min_ff(local_co[0], local_co[1]) > constant_side) {
+  if (min_ff(local_co[0], local_co[1]) > hardness) {
     /* Corner, distance to the center of the corner circle. */
     float r_point[3];
-    copy_v3_fl(r_point, constant_side);
-    test.dist = len_v2v2(r_point, local_co) / falloff_side;
+    copy_v3_fl(r_point, hardness);
+    test.dist = len_v2v2(r_point, local_co) / roundness;
     return true;
   }
-  if (max_ff(local_co[0], local_co[1]) > constant_side) {
+  if (max_ff(local_co[0], local_co[1]) > hardness) {
     /* Side, distance to the square XY axis. */
-    test.dist = (max_ff(local_co[0], local_co[1]) - constant_side) / falloff_side;
+    test.dist = (max_ff(local_co[0], local_co[1]) - hardness) / roundness;
     return true;
   }
 
