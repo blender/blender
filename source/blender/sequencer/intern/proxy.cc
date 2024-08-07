@@ -184,7 +184,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   return true;
 }
 
-bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize)
+bool SEQ_can_use_proxy(const SeqRenderData *context, const Sequence *seq, int psize)
 {
   if (seq->strip->proxy == nullptr || !context->use_proxies) {
     return false;

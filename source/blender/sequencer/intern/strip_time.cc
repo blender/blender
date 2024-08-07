@@ -57,7 +57,7 @@ int seq_time_strip_original_content_length_get(const Scene *scene, const Sequenc
   return seq->len / SEQ_time_media_playback_rate_factor_get(scene, seq);
 }
 
-float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
+float SEQ_give_frame_index(const Scene *scene, const Sequence *seq, float timeline_frame)
 {
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
@@ -94,10 +94,6 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
   }
   /* Clamp frame index to strip content frame range. */
   frame_index = clamp_f(frame_index, 0, frame_index_max);
-
-  if (seq->strobe < 1.0f) {
-    seq->strobe = 1.0f;
-  }
 
   if (seq->strobe > 1.0f) {
     frame_index -= fmodf(double(frame_index), double(seq->strobe));

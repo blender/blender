@@ -126,7 +126,7 @@ static bool seq_cache_hashcmp(const void *a_, const void *b_)
 }
 
 static float seq_cache_timeline_frame_to_frame_index(Scene *scene,
-                                                     Sequence *seq,
+                                                     const Sequence *seq,
                                                      float timeline_frame,
                                                      int type)
 {

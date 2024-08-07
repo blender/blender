@@ -11,9 +11,7 @@
 struct Depsgraph;
 struct GSet;
 struct ListBase;
-struct ListBase;
 struct Main;
-struct ProxyJob;
 struct Scene;
 struct SeqIndexBuildContext;
 struct SeqRenderData;
@@ -31,7 +29,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_status);
 void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop);
 void SEQ_proxy_set(Sequence *seq, bool value);
-bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize);
+bool SEQ_can_use_proxy(const SeqRenderData *context, const Sequence *seq, int psize);
 int SEQ_rendersize_to_proxysize(int render_size);
 double SEQ_rendersize_to_scale_factor(int render_size);
 

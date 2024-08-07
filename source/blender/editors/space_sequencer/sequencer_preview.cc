@@ -178,7 +178,7 @@ static void preview_endjob(void *data)
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
 
-void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
+void sequencer_preview_add_sound(const bContext *C, const Sequence *seq)
 {
   wmJob *wm_job;
   PreviewJob *pj;

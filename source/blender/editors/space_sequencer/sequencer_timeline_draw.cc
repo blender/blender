@@ -400,7 +400,7 @@ static void color3ubv_from_seq(const Scene *curscene,
   UI_Theme_Restore(&theme_state);
 }
 
-static void waveform_job_start_if_needed(const bContext *C, Sequence *seq)
+static void waveform_job_start_if_needed(const bContext *C, const Sequence *seq)
 {
   bSound *sound = seq->sound;
 

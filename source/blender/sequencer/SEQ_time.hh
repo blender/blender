@@ -65,7 +65,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
  */
 bool SEQ_time_strip_intersects_frame(const Scene *scene, const Sequence *seq, int timeline_frame);
 /* Convert timeline frame so strip frame index. */
-float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame);
+float SEQ_give_frame_index(const Scene *scene, const Sequence *seq, float timeline_frame);
 /**
  * Returns true if strip has frames without content to render.
  */

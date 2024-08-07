@@ -12,12 +12,12 @@ struct ListBase;
 struct Scene;
 struct Sequence;
 
-bool SEQ_transform_sequence_can_be_translated(Sequence *seq);
+bool SEQ_transform_sequence_can_be_translated(const Sequence *seq);
 /**
  * Used so we can do a quick check for single image seq
  * since they work a bit differently to normal image seq's (during transform).
  */
-bool SEQ_transform_single_image_check(Sequence *seq);
+bool SEQ_transform_single_image_check(const Sequence *seq);
 bool SEQ_transform_test_overlap(const Scene *scene, ListBase *seqbasep, Sequence *test);
 bool SEQ_transform_test_overlap_seq_seq(const Scene *scene, Sequence *seq1, Sequence *seq2);
 void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delta);

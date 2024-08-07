@@ -340,7 +340,7 @@ void SEQUENCER_OT_rename_channel(wmOperatorType *ot);
 
 /* `sequencer_preview.cc` */
 
-void sequencer_preview_add_sound(const bContext *C, Sequence *seq);
+void sequencer_preview_add_sound(const bContext *C, const Sequence *seq);
 
 /* `sequencer_add.cc` */
 
