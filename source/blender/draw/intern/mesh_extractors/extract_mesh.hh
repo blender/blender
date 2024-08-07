@@ -270,7 +270,8 @@ void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
                               gpu::IndexBuf &fdots);
 
 void extract_normals(const MeshRenderData &mr, bool use_hq, gpu::VertBuf &vbo);
-void extract_normals_subdiv(const DRWSubdivCache &subdiv_cache,
+void extract_normals_subdiv(const MeshRenderData &mr,
+                            const DRWSubdivCache &subdiv_cache,
                             gpu::VertBuf &pos_nor,
                             gpu::VertBuf &lnor);
 void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo);

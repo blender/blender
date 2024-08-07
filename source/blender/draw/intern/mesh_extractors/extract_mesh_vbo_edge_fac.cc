@@ -231,12 +231,14 @@ void extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
                                    subdiv_cache.num_subdiv_loops +
                                        subdiv_loose_edges_num(mr, subdiv_cache) * 2);
 
-  gpu::VertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
+  if (mr.faces_num > 0) {
+    gpu::VertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
 
-  draw_subdiv_build_edge_fac_buffer(
-      subdiv_cache, &pos_nor, subdiv_cache.edges_draw_flag, poly_other_map, &vbo);
+    draw_subdiv_build_edge_fac_buffer(
+        subdiv_cache, &pos_nor, subdiv_cache.edges_draw_flag, poly_other_map, &vbo);
 
-  GPU_vertbuf_discard(poly_other_map);
+    GPU_vertbuf_discard(poly_other_map);
+  }
 
   const int loose_edges_num = subdiv_loose_edges_num(mr, subdiv_cache);
   if (loose_edges_num == 0) {
