@@ -73,9 +73,6 @@
  */
 #define USEDWORD MAKE_ID('u', 's', 'e', 'd')
 
-/* Currently totalloc isn't used. */
-// #define USE_TOTALLOC
-
 /* optimize pool size */
 #define USE_CHUNK_POW2
 
@@ -131,10 +128,6 @@ struct BLI_mempool {
   uint maxchunks;
   /** Number of elements currently in use. */
   uint totused;
-#ifdef USE_TOTALLOC
-  /** Number of elements allocated in total. */
-  uint totalloc;
-#endif
 };
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
@@ -298,10 +291,6 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   VALGRIND_MAKE_MEM_UNDEFINED(curnode, pool->esize);
 #endif
 
-#ifdef USE_TOTALLOC
-  pool->totalloc += pool->pchunk;
-#endif
-
   /* final pointer in the previously allocated chunk is wrong */
   if (last_tail) {
     BLI_asan_unpoison(last_tail, pool->esize - POISON_REDZONE_SIZE);
@@ -393,9 +382,6 @@ BLI_mempool *BLI_mempool_create(uint esize, uint elem_num, uint pchunk, uint fla
   pool->flag = flag;
   pool->free = NULL; /* mempool_chunk_add assigns */
   pool->maxchunks = maxchunks;
-#ifdef USE_TOTALLOC
-  pool->totalloc = 0;
-#endif
   pool->totused = 0;
 
   if (elem_num) {
@@ -524,10 +510,6 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
     first->next = NULL;
     pool->chunk_tail = first;
 
-#ifdef USE_TOTALLOC
-    pool->totalloc = pool->pchunk;
-#endif
-
     /* Temporary allocation so VALGRIND doesn't complain when setting freed blocks 'next'. */
 #ifdef WITH_MEM_VALGRIND
     VALGRIND_MEMPOOL_ALLOC(pool, CHUNK_DATA(first), pool->csize);
@@ -588,30 +570,6 @@ void *BLI_mempool_findelem(BLI_mempool *pool, uint index)
 
   mempool_asan_unlock(pool);
   return NULL;
-}
-
-void BLI_mempool_as_table(BLI_mempool *pool, void **data)
-{
-  BLI_mempool_iter iter;
-  void *elem;
-  void **p = data;
-
-  BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
-
-  BLI_mempool_iternew(pool, &iter);
-
-  while ((elem = BLI_mempool_iterstep(&iter))) {
-    *p++ = elem;
-  }
-
-  BLI_assert((ptrdiff_t)(p - data) == (ptrdiff_t)pool->totused);
-}
-
-void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
-{
-  void **data = MEM_mallocN((size_t)pool->totused * sizeof(void *), allocstr);
-  BLI_mempool_as_table(pool, data);
-  return data;
 }
 
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
@@ -885,10 +843,6 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
   /* re-initialize */
   pool->free = NULL;
   pool->totused = 0;
-#ifdef USE_TOTALLOC
-  pool->totalloc = 0;
-#endif
-
   chunks_temp = pool->chunks;
   pool->chunks = NULL;
   pool->chunk_tail = NULL;

@@ -55,20 +55,6 @@ void *BLI_mempool_findelem(BLI_mempool *pool, unsigned int index) ATTR_WARN_UNUS
     ATTR_NONNULL(1);
 
 /**
- * Fill in \a data with pointers to each element of the mempool,
- * to create lookup table.
- *
- * \param pool: Pool to create a table from.
- * \param data: array of pointers at least the size of 'pool->totused'
- */
-void BLI_mempool_as_table(BLI_mempool *pool, void **data) ATTR_NONNULL(1, 2);
-/**
- * A version of #BLI_mempool_as_table that allocates and returns the data.
- */
-void **BLI_mempool_as_tableN(BLI_mempool *pool,
-                             const char *allocstr) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2);
-/**
  * Fill in \a data with the contents of the mempool.
  */
 void BLI_mempool_as_array(BLI_mempool *pool, void *data) ATTR_NONNULL(1, 2);
