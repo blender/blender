@@ -49,7 +49,7 @@ enum {
    * Also used for most Editors ID usages (active node tree in the Node editor, shown image in the
    * Image editor, and so on).
    *
-   * See also #LIB_INDIRECT_WEAK_LINK in DNA_ID.h
+   * See also #ID_FLAG_INDIRECT_WEAK_LINK in DNA_ID.h
    */
   IDWALK_CB_DIRECT_WEAK_LINK = (1 << 3),
 
@@ -488,7 +488,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain, int tag, LibQueryUnusedIDsData &p
  * which prevents their deletion by 'basic' usage checks.
  *
  * \param do_init_tag: if \a true, all linked data are checked, if \a false,
- * only linked data-blocks already tagged with #LIB_TAG_DOIT are checked.
+ * only linked data-blocks already tagged with #ID_TAG_DOIT are checked.
  */
 void BKE_library_unused_linked_data_set_tag(Main *bmain, bool do_init_tag);
 /**

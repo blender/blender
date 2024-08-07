@@ -402,7 +402,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
    * 'fake user' flag, or the (runtime-only, cleared on next file load) 'extra user' tag, depending
    * on whether #SET_FAKE_USER is set or not.
    *
-   * Also handles the setting of the #LIB_CLIPBOARD_MARK flag if #SET_CLIPBOARD_MARK is set.
+   * Also handles the setting of the #ID_FLAG_CLIPBOARD_MARK flag if #SET_CLIPBOARD_MARK is set.
    */
   void process_added_id(ID *ctx_id, const IDAddOperations operations);
   /**

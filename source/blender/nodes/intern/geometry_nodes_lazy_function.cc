@@ -4454,7 +4454,7 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
     }
   }
   if (const ID *id_orig = DEG_get_original_id(const_cast<ID *>(&btree.id))) {
-    if (id_orig->tag & LIB_TAG_MISSING) {
+    if (id_orig->tag & ID_TAG_MISSING) {
       return nullptr;
     }
   }

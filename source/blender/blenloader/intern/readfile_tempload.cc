@@ -33,7 +33,7 @@ TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
                                                         &temp_lib_ctx->bf_reports);
 
   BLO_library_link_params_init(
-      &temp_lib_ctx->liblink_params, temp_lib_ctx->bmain_base, 0, LIB_TAG_TEMP_MAIN);
+      &temp_lib_ctx->liblink_params, temp_lib_ctx->bmain_base, 0, ID_TAG_TEMP_MAIN);
 
   temp_lib_ctx->bmain_lib = BLO_library_link_begin(
       &temp_lib_ctx->blendhandle, blend_file_path, &temp_lib_ctx->liblink_params);

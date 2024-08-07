@@ -121,7 +121,7 @@ static void mesh_copy_data(Main *bmain,
   mesh_dst->runtime->subsurf_face_dot_tags = mesh_src->runtime->subsurf_face_dot_tags;
   mesh_dst->runtime->subsurf_optimal_display_edges =
       mesh_src->runtime->subsurf_optimal_display_edges;
-  if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
+  if ((mesh_src->id.tag & ID_TAG_NO_MAIN) == 0) {
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime->deformed_only = true;
   }
@@ -162,7 +162,7 @@ static void mesh_copy_data(Main *bmain,
 
   CustomData_MeshMasks mask = CD_MASK_MESH;
 
-  if (mesh_src->id.tag & LIB_TAG_NO_MAIN) {
+  if (mesh_src->id.tag & ID_TAG_NO_MAIN) {
     /* For copies in depsgraph, keep data like #CD_ORIGINDEX and #CD_ORCO. */
     CustomData_MeshMasks_update(&mask, &CD_MASK_DERIVEDMESH);
   }
@@ -764,7 +764,7 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
 void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 {
   /* User counts aren't handled, don't copy into a mesh from #G_MAIN. */
-  BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL));
+  BLI_assert(me_dst->id.tag & (ID_TAG_NO_MAIN | ID_TAG_COPIED_ON_EVAL));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
   copy_attribute_names(*me_src, *me_dst);

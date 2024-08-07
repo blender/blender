@@ -1338,7 +1338,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   }
 
   tgpf->ima = BKE_image_add_from_imbuf(tgpf->bmain, ibuf, "GP_fill");
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+  tgpf->ima->id.tag |= ID_TAG_DOIT;
 
   BKE_image_release_ibuf(tgpf->ima, ibuf, nullptr);
 
@@ -1566,7 +1566,7 @@ static bool gpencil_boundaryfill_area(tGPDfill *tgpf)
   /* release ibuf */
   BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+  tgpf->ima->id.tag |= ID_TAG_DOIT;
   /* free temp stack data */
   BLI_stack_free(stack);
 
@@ -1604,7 +1604,7 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
   /* release ibuf */
   BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+  tgpf->ima->id.tag |= ID_TAG_DOIT;
 }
 
 /* Invert image to paint inverse area. */
@@ -1638,7 +1638,7 @@ static void gpencil_invert_image(tGPDfill *tgpf)
   /* release ibuf */
   BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+  tgpf->ima->id.tag |= ID_TAG_DOIT;
 }
 
 /* Mark and clear processed areas. */
@@ -1704,7 +1704,7 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
   /* release ibuf */
   BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
 
-  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+  tgpf->ima->id.tag |= ID_TAG_DOIT;
 }
 
 /**

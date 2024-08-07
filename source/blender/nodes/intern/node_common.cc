@@ -470,7 +470,7 @@ void node_group_declare(NodeDeclarationBuilder &b)
   if (!group) {
     return;
   }
-  if (ID_IS_LINKED(&group->id) && (group->id.tag & LIB_TAG_MISSING)) {
+  if (ID_IS_LINKED(&group->id) && (group->id.tag & ID_TAG_MISSING)) {
     r_declaration.skip_updating_sockets = true;
     return;
   }

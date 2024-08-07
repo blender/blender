@@ -1252,7 +1252,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
    * accessed. */
   BLI_assert(snode->id == nullptr || snode->nodetree == nullptr ||
-             (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||
+             (snode->nodetree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0 ||
              snode->nodetree == bke::ntreeFromID(snode->id));
 
   /* This is mainly here for readfile case ('lib_link' process), as in such case there is no access
@@ -1270,7 +1270,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     for (path = path->next; path != nullptr; path = path->next) {
       BLI_assert(path->nodetree != nullptr);
       if (allow_pointer_access) {
-        BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+        BLI_assert((path->nodetree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0);
       }
 
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(

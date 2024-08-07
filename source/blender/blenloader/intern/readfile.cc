@@ -2083,14 +2083,14 @@ static void direct_link_id_common(
     id->session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
-  if ((id_tag & LIB_TAG_TEMP_MAIN) == 0) {
+  if ((id_tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_ensure(id);
   }
 
   id->lib = current_library;
   if (id->lib) {
     /* Always fully clear fake user flag for linked data. */
-    id->flag &= ~LIB_FAKEUSER;
+    id->flag &= ~ID_FLAG_FAKEUSER;
   }
   id->us = ID_FAKE_USERS(id);
   id->icon_id = 0;
@@ -2100,7 +2100,7 @@ static void direct_link_id_common(
 
   /* Initialize with provided tag. */
   if (BLO_read_data_is_undo(reader)) {
-    id->tag = (id_tag & ~LIB_TAG_KEEP_ON_UNDO) | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+    id->tag = (id_tag & ~ID_TAG_KEEP_ON_UNDO) | (id->tag & ID_TAG_KEEP_ON_UNDO);
   }
   else {
     id->tag = id_tag;
@@ -2113,7 +2113,7 @@ static void direct_link_id_common(
     BLO_read_struct(reader, LibraryWeakReference, &id->library_weak_reference);
   }
 
-  if (id_tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
+  if (id_tag & ID_TAG_ID_LINK_PLACEHOLDER) {
     /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
      * no further data to read. */
     return;
@@ -2136,7 +2136,7 @@ static void direct_link_id_common(
     IDP_BlendDataRead(reader, &id->properties);
   }
 
-  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+  id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   /* NOTE: It is important to not clear the recalc flags for undo/redo.
    * Preserving recalc flags on redo/undo is the only way to make dependency graph detect
@@ -2221,7 +2221,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
      * so we can't step into other libraries since `totscene` is only for this library.
      *
      * Also, other libraries may not have been linked yet,
-     * while we could check #LIB_TAG_NEED_LINK the library pointer check is sufficient. */
+     * while we could check #ID_TAG_NEED_LINK the library pointer check is sufficient. */
     if (sce->id.lib != sce_iter->id.lib) {
       return true;
     }
@@ -2374,16 +2374,16 @@ static ID *create_placeholder(Main *mainvar,
   BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
   BKE_libblock_init_empty(ph_id);
   ph_id->lib = mainvar->curlib;
-  ph_id->tag = tag | LIB_TAG_MISSING;
+  ph_id->tag = tag | ID_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
   ph_id->icon_id = 0;
 
   if (was_liboverride) {
-    /* 'Abuse' `LIB_TAG_LIBOVERRIDE_NEED_RESYNC` to mark that placeholder missing linked ID as
+    /* 'Abuse' `ID_TAG_LIBOVERRIDE_NEED_RESYNC` to mark that placeholder missing linked ID as
      * being a liboverride.
      *
      * This will be used by the liboverride resync process, see #lib_override_library_resync. */
-    ph_id->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+    ph_id->tag |= ID_TAG_LIBOVERRIDE_NEED_RESYNC;
   }
 
   BLI_addtail(lb, ph_id);
@@ -2393,7 +2393,7 @@ static ID *create_placeholder(Main *mainvar,
     BKE_main_idmap_insert_id(mainvar->id_map, ph_id);
   }
 
-  if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
+  if ((tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_ensure(ph_id);
   }
 
@@ -2406,7 +2406,7 @@ static void placeholders_ensure_valid(Main *bmain)
    * otherwise the inconsistency between both will lead to crashes (especially in Eevee?). */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     ID *obdata = static_cast<ID *>(ob->data);
-    if (obdata != nullptr && obdata->tag & LIB_TAG_MISSING) {
+    if (obdata != nullptr && obdata->tag & ID_TAG_MISSING) {
       BKE_object_materials_test(bmain, ob, obdata);
     }
   }
@@ -2422,7 +2422,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
   /* Read part of datablock that is common between real and embedded datablocks. */
   direct_link_id_common(&reader, main->curlib, id, id_old, tag);
 
-  if (tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
+  if (tag & ID_TAG_ID_LINK_PLACEHOLDER) {
     /* For placeholder we only need to set the tag, no further data to read. */
     id->tag = tag;
     return true;
@@ -2542,7 +2542,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
     /* Update mappings accordingly. */
     LISTBASE_FOREACH (ID *, id_iter, new_lb) {
       BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
-      id_iter->tag |= LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
+      id_iter->tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
     }
   }
 }
@@ -2557,7 +2557,7 @@ static void read_undo_move_libmain_data(
   BLI_addtail(fd->mainlist, libmain);
   BLI_addtail(&new_main->libraries, libmain->curlib);
 
-  curlib->id.tag |= LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
+  curlib->id.tag |= ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
   BKE_main_idmap_insert_id(fd->new_idmap_uid, &curlib->id);
   if (bhead != nullptr) {
     oldnewmap_lib_insert(fd, bhead->old, &curlib->id, GS(curlib->id.name));
@@ -2674,14 +2674,14 @@ static void read_libblock_undo_restore_identical(
   BLI_assert((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0);
   BLI_assert(id_old != nullptr);
 
-  /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
+  /* Do not add ID_TAG_NEW here, this should not be needed/used in undo case anyway (as
    * this is only for do_version-like code), but for sake of consistency, and also because
    * it will tell us which ID is re-used from old Main, and which one is actually newly read. */
-  /* Also do not add LIB_TAG_NEED_LINK, this ID will never be re-liblinked, hence that tag will
+  /* Also do not add ID_TAG_NEED_LINK, this ID will never be re-liblinked, hence that tag will
    * never be cleared, leading to critical issue in link/append code. */
   /* Some tags need to be preserved here. */
-  id_old->tag = ((id_tag | LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) & ~LIB_TAG_KEEP_ON_UNDO) |
-                (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
+  id_old->tag = ((id_tag | ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) & ~ID_TAG_KEEP_ON_UNDO) |
+                (id_old->tag & ID_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
@@ -2751,7 +2751,7 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
    * lib-linking to restore some data that should never be affected by undo, e.g. the 3D cursor of
    * #Scene. */
   id_old->orig_id = id;
-  id_old->tag |= LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE | LIB_TAG_NEED_LINK;
+  id_old->tag |= ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE | ID_TAG_NEED_LINK;
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
@@ -2930,18 +2930,18 @@ static BHead *read_libblock(FileData *fd,
 
   /* Set tag for new datablock to indicate lib linking and versioning needs
    * to be done still. */
-  id_tag |= (LIB_TAG_NEED_LINK | LIB_TAG_NEW);
+  id_tag |= (ID_TAG_NEED_LINK | ID_TAG_NEW);
 
   if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Read placeholder for linked datablock. */
-    id_tag |= LIB_TAG_ID_LINK_PLACEHOLDER;
+    id_tag |= ID_TAG_ID_LINK_PLACEHOLDER;
 
     if (placeholder_set_indirect_extern) {
-      if (id->flag & LIB_INDIRECT_WEAK_LINK) {
-        id_tag |= LIB_TAG_INDIRECT;
+      if (id->flag & ID_FLAG_INDIRECT_WEAK_LINK) {
+        id_tag |= ID_TAG_INDIRECT;
       }
       else {
-        id_tag |= LIB_TAG_EXTERN;
+        id_tag |= ID_TAG_EXTERN;
       }
     }
 
@@ -3242,14 +3242,13 @@ static void lib_link_all(FileData *fd, Main *bmain)
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
-    if ((id->tag & (LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) !=
-        0)
+    if ((id->tag & (ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) != 0)
     {
       BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
        * it at all. */
-      BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+      BLI_assert((id->tag & ID_TAG_NEED_LINK) == 0);
 
       /* Some data that should be persistent, like the 3DCursor or the tool settings, are
        * stored in IDs affected by undo, like Scene. So this requires some specific handling. */
@@ -3263,7 +3262,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       continue;
     }
 
-    if ((id->tag & LIB_TAG_NEED_LINK) != 0) {
+    if ((id->tag & ID_TAG_NEED_LINK) != 0) {
       /* Not all original pointer values can be considered as valid.
        * Handling of DNA deprecated data should never be needed in undo case. */
       const int flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
@@ -3272,7 +3271,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
 
       after_liblink_id_process(&reader, id);
 
-      id->tag &= ~LIB_TAG_NEED_LINK;
+      id->tag &= ~ID_TAG_NEED_LINK;
     }
 
     /* Some data that should be persistent, like the 3DCursor or the tool settings, are
@@ -3294,7 +3293,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
   /* Double check we do not have any 'need link' tag remaining, this should never be the case once
    * this function has run. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+    BLI_assert((id->tag & ID_TAG_NEED_LINK) == 0);
   }
   FOREACH_MAIN_ID_END;
 #endif
@@ -3482,7 +3481,7 @@ static void read_undo_remap_noundo_data(FileData *fd)
     if (ID_IS_LINKED(id_iter)) {
       continue;
     }
-    if ((id_iter->tag & LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO) == 0) {
+    if ((id_iter->tag & ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO) == 0) {
       continue;
     }
 
@@ -3622,7 +3621,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
           bhead = blo_bhead_next(fd, bhead);
         }
         else {
-          bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, false, nullptr);
+          bhead = read_libblock(fd, bfd->main, bhead, ID_TAG_LOCAL, false, nullptr);
         }
     }
 
@@ -3732,14 +3731,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       return bfd;
     }
 
-    /* After all data has been read and versioned, uses LIB_TAG_NEW. Theoretically this should
+    /* After all data has been read and versioned, uses ID_TAG_NEW. Theoretically this should
      * not be calculated in the undo case, but it is currently needed even on undo to recalculate
      * a cache. */
     blender::bke::ntreeUpdateAllNew(bfd->main);
 
     placeholders_ensure_valid(bfd->main);
 
-    BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
+    BKE_main_id_tag_all(bfd->main, ID_TAG_NEW, false);
 
     /* Must happen before applying liboverrides, as this process may fully invalidate e.g. view
      * layer pointers in case a Scene is a liboverride. */
@@ -4003,7 +4002,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (id == nullptr) {
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, &id);
+      read_libblock(fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, false, &id);
       BLI_assert(id != nullptr);
       id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
 
@@ -4016,8 +4015,8 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     else {
       /* Convert any previously read weak link to regular link
        * to signal that we want to read this data-block. */
-      if (id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
-        id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+      if (id->tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
       /* "id" is either a placeholder or real ID that is already in the
@@ -4052,20 +4051,16 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
     ID *id = library_id_is_yet_read(fd, mainvar, bhead);
     if (id == nullptr) {
-      read_libblock(fd,
-                    mainvar,
-                    bhead,
-                    fd->id_tag_extra | LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT,
-                    false,
-                    &id);
+      read_libblock(
+          fd, mainvar, bhead, fd->id_tag_extra | ID_TAG_NEED_EXPAND | ID_TAG_INDIRECT, false, &id);
       BLI_assert(id != nullptr);
       id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, static_cast<ID *>(id->prev));
     }
     else {
       /* Convert any previously read weak link to regular link
        * to signal that we want to read this data-block. */
-      if (id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
-        id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+      if (id->tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
       /* this is actually only needed on UI call? when ID was already read before,
@@ -4118,7 +4113,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
     ID *id_iter;
 
     FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if ((id_iter->tag & LIB_TAG_NEED_EXPAND) == 0) {
+      if ((id_iter->tag & ID_TAG_NEED_EXPAND) == 0) {
         continue;
       }
 
@@ -4134,7 +4129,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
       BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;
-      id_iter->tag &= ~LIB_TAG_NEED_EXPAND;
+      id_iter->tag &= ~ID_TAG_NEED_EXPAND;
     }
     FOREACH_MAIN_ID_END;
   }
@@ -4163,8 +4158,8 @@ static ID *link_named_part(
     id = library_id_is_yet_read(fd, mainl, bhead);
     if (id == nullptr) {
       /* not read yet */
-      const int tag = ((force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN) | fd->id_tag_extra);
-      read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND, false, &id);
+      const int tag = ((force_indirect ? ID_TAG_INDIRECT : ID_TAG_EXTERN) | fd->id_tag_extra);
+      read_libblock(fd, mainl, bhead, tag | ID_TAG_NEED_EXPAND, false, &id);
 
       if (id) {
         /* sort by name in list */
@@ -4176,17 +4171,17 @@ static ID *link_named_part(
       /* already linked */
       CLOG_WARN(&LOG, "Append: ID '%s' is already linked", id->name);
       oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
-      if (!force_indirect && (id->tag & LIB_TAG_INDIRECT)) {
-        id->tag &= ~LIB_TAG_INDIRECT;
-        id->flag &= ~LIB_INDIRECT_WEAK_LINK;
-        id->tag |= LIB_TAG_EXTERN;
+      if (!force_indirect && (id->tag & ID_TAG_INDIRECT)) {
+        id->tag &= ~ID_TAG_INDIRECT;
+        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
+        id->tag |= ID_TAG_EXTERN;
       }
     }
   }
   else if (use_placeholders) {
     /* XXX flag part is weak! */
     id = create_placeholder(
-        mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN, false);
+        mainl, idcode, name, force_indirect ? ID_TAG_INDIRECT : ID_TAG_EXTERN, false);
   }
   else {
     id = nullptr;
@@ -4229,7 +4224,7 @@ static Main *library_link_begin(Main *mainvar,
   /* Only allow specific tags to be set as extra,
    * otherwise this could conflict with library loading logic.
    * Other flags can be added here, as long as they are safe. */
-  BLI_assert((id_tag_extra & ~LIB_TAG_TEMP_MAIN) == 0);
+  BLI_assert((id_tag_extra & ~ID_TAG_TEMP_MAIN) == 0);
 
   fd->id_tag_extra = id_tag_extra;
 
@@ -4306,7 +4301,7 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
     BLI_listbase_clear(lbarray_newid[i]);
 
     LISTBASE_FOREACH_MUTABLE (ID *, id, lbarray[i]) {
-      if (id->tag & LIB_TAG_NEW) {
+      if (id->tag & ID_TAG_NEW) {
         BLI_remlink(lbarray[i], id);
         BLI_addtail(lbarray_newid[i], id);
       }
@@ -4398,7 +4393,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
    * `do_versions_after_linking()`. */
   BKE_main_id_refcount_recompute(mainvar, false);
 
-  /* After all data has been read and versioned, uses LIB_TAG_NEW. */
+  /* After all data has been read and versioned, uses ID_TAG_NEW. */
   blender::bke::ntreeUpdateAllNew(mainvar);
 
   placeholders_ensure_valid(mainvar);
@@ -4412,7 +4407,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   add_main_to_main(mainvar, main_newid);
   BKE_main_free(main_newid);
 
-  BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
+  BKE_main_id_tag_all(mainvar, ID_TAG_NEW, false);
 
   /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
    * `BKE_lib_override_library_main_update`, see #103062.
@@ -4481,7 +4476,7 @@ static int has_linked_ids_to_read(Main *mainvar)
 
   while (a--) {
     LISTBASE_FOREACH (ID *, id, lbarray[a]) {
-      if ((id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & LIB_INDIRECT_WEAK_LINK)) {
+      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
         return true;
       }
     }
@@ -4495,7 +4490,7 @@ static void read_library_linked_id(
 {
   BHead *bhead = nullptr;
   const bool is_valid = BKE_idtype_idcode_is_linkable(GS(id->name)) ||
-                        ((id->tag & LIB_TAG_EXTERN) == 0);
+                        ((id->tag & ID_TAG_EXTERN) == 0);
 
   if (fd) {
     bhead = find_bhead_from_idname(fd, id->name);
@@ -4512,11 +4507,11 @@ static void read_library_linked_id(
                      library_parent_filepath(mainvar->curlib));
   }
 
-  id->tag &= ~LIB_TAG_ID_LINK_PLACEHOLDER;
-  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+  id->tag &= ~ID_TAG_ID_LINK_PLACEHOLDER;
+  id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   if (bhead) {
-    id->tag |= LIB_TAG_NEED_EXPAND;
+    id->tag |= ID_TAG_NEED_EXPAND;
     // printf("read lib block %s\n", id->name);
     read_libblock(fd, mainvar, bhead, id->tag, false, r_id);
   }
@@ -4557,7 +4552,7 @@ static void read_library_linked_ids(FileData *basefd,
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
-      if ((id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & LIB_INDIRECT_WEAK_LINK)) {
+      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
         BLI_remlink(lbarray[a], id);
         if (mainvar->id_map != nullptr) {
           BKE_main_idmap_remove_id(mainvar->id_map, id);
@@ -4603,7 +4598,7 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
-      if ((id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) && (id->flag & LIB_INDIRECT_WEAK_LINK)) {
+      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
         CLOG_INFO(&LOG, 3, "Dropping weak link to '%s'", id->name);
         change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, nullptr);
         BLI_freelinkN(lbarray[a], id);
@@ -4676,7 +4671,7 @@ static FileData *read_library_file_data(FileData *basefd,
   }
   else {
     mainptr->curlib->runtime.filedata = nullptr;
-    mainptr->curlib->id.tag |= LIB_TAG_MISSING;
+    mainptr->curlib->id.tag |= ID_TAG_MISSING;
     /* Set lib version to current main one... Makes assert later happy. */
     mainptr->versionfile = mainptr->curlib->runtime.versionfile = mainl->versionfile;
     mainptr->subversionfile = mainptr->curlib->runtime.subversionfile = mainl->subversionfile;

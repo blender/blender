@@ -99,11 +99,10 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
 {
   ID *self_id = cb_data->self_id;
   ID **id_pointer = cb_data->id_pointer;
-  BLI_assert((self_id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0);
+  BLI_assert((self_id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0);
 
   ID *id = *id_pointer;
-  if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0)
-  {
+  if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0) {
     bool do_stop_iter = true;
     if (GS(self_id->name) == ID_OB) {
       Object *ob_self = (Object *)self_id;
@@ -230,7 +229,7 @@ static void memfile_undosys_step_decode(
      * data-blocks, at least evaluated copies need to be updated... */
     ID *id = nullptr;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      if (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) {
+      if (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) {
         BKE_library_foreach_ID_link(
             bmain, id, memfile_undosys_step_id_reused_cb, nullptr, IDWALK_READONLY);
       }
@@ -239,7 +238,7 @@ static void memfile_undosys_step_decode(
        * modified IDs should already have other depsgraph update tags anyway.
        * However, for the sake of consistency, it's better to effectively use it,
        * since content of that ID pointer does have been modified. */
-      uint recalc_flags = id->recalc | ((id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) ?
+      uint recalc_flags = id->recalc | ((id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) ?
                                             ID_RECALC_SYNC_TO_EVAL :
                                             IDRecalcFlag(0));
       /* Tag depsgraph to update data-block for changes that happened between the
@@ -251,7 +250,7 @@ static void memfile_undosys_step_decode(
       bNodeTree *nodetree = blender::bke::ntreeFromID(id);
       if (nodetree != nullptr) {
         recalc_flags = nodetree->id.recalc;
-        if (id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
+        if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
           recalc_flags |= ID_RECALC_SYNC_TO_EVAL;
         }
         if (recalc_flags != 0) {
@@ -262,7 +261,7 @@ static void memfile_undosys_step_decode(
         Scene *scene = (Scene *)id;
         if (scene->master_collection != nullptr) {
           recalc_flags = scene->master_collection->id.recalc;
-          if (id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
+          if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
             recalc_flags |= ID_RECALC_SYNC_TO_EVAL;
           }
           if (recalc_flags != 0) {
@@ -278,8 +277,8 @@ static void memfile_undosys_step_decode(
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       /* Clear temporary tag. */
-      id->tag &= ~(LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO |
-                   LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE);
+      id->tag &= ~(ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | ID_TAG_UNDO_OLD_ID_REUSED_NOUNDO |
+                   ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE);
 
       /* We only start accumulating from this point, any tags set up to here
        * are already part of the current undo state. This is done in a second

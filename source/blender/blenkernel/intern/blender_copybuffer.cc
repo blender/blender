@@ -39,7 +39,7 @@ static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
                               ReportList *reports)
 {
   /* Tag existing IDs in given `bmain_dst` as already existing. */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   BKE_blendfile_link(lapp_context, reports);
 
@@ -55,7 +55,7 @@ static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
 
   /* This must be unset, otherwise these object won't link into other scenes from this blend
    * file. */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   /* Recreate dependency graph to include new objects. */
   DEG_relations_tag_update(bmain);

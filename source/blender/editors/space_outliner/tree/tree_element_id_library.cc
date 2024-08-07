@@ -33,7 +33,7 @@ StringRefNull TreeElementIDLibrary::get_warning() const
         "recommended");
   }
 
-  if (library.id.tag & LIB_TAG_MISSING) {
+  if (library.id.tag & ID_TAG_MISSING) {
     return RPT_("Missing library");
   }
 

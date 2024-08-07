@@ -950,7 +950,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     *r_path = "";
   }
 
-  if ((id == nullptr) || (id->flag & LIB_EMBEDDED_DATA) == 0) {
+  if ((id == nullptr) || (id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
     return id;
   }
 

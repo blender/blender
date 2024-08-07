@@ -497,11 +497,11 @@ void WM_toolsystem_refresh_active(bContext *C)
     CTX_wm_region_set(C, context_prev.region);
   }
 
-  BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_DOIT);
+  BKE_workspace_id_tag_all_visible(bmain, ID_TAG_DOIT);
 
   LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-    if (workspace->id.tag & LIB_TAG_DOIT) {
-      workspace->id.tag &= ~LIB_TAG_DOIT;
+    if (workspace->id.tag & ID_TAG_DOIT) {
+      workspace->id.tag &= ~ID_TAG_DOIT;
       /* Refresh to ensure data is initialized.
        * This is needed because undo can load a state which no longer has the underlying DNA data
        * needed for the tool (un-initialized paint-slots for eg), see: #64339. */

@@ -61,7 +61,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
    * then be handled by `BKE_lib_override_library_create()` just as for a regular override
    * creation.
    */
-  ob_proxy->proxy->id.tag |= LIB_TAG_DOIT;
+  ob_proxy->proxy->id.tag |= ID_TAG_DOIT;
   ob_proxy->proxy->id.newid = &ob_proxy->id;
   BKE_lib_override_library_init(&ob_proxy->id, &ob_proxy->proxy->id);
   ob_proxy->id.override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
@@ -78,7 +78,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     if (!ID_IS_LINKED(id_iter) || id_iter->lib == ob_proxy->id.lib) {
-      id_iter->tag |= LIB_TAG_DOIT;
+      id_iter->tag |= ID_TAG_DOIT;
     }
   }
   FOREACH_MAIN_ID_END;

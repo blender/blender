@@ -108,7 +108,7 @@ Image *image_render_end(Main &bmain, GPUOffScreen *buffer)
   }
 
   Image *ima = BKE_image_add_from_imbuf(&bmain, ibuf, "Grease Pencil Fill");
-  ima->id.tag |= LIB_TAG_DOIT;
+  ima->id.tag |= ID_TAG_DOIT;
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 

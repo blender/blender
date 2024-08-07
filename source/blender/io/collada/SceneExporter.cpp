@@ -36,7 +36,7 @@ void SceneExporter::exportHierarchy()
   /* Ensure all objects in the export_set are marked */
   for (node = this->export_settings.get_export_set(); node; node = node->next) {
     Object *ob = (Object *)node->link;
-    ob->id.tag |= LIB_TAG_DOIT;
+    ob->id.tag |= ID_TAG_DOIT;
   }
 
   /* Now find all exportable base objects (highest in export hierarchy) */

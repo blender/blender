@@ -279,7 +279,7 @@ static void gather_socket_link_operations(const bContext &C,
 
   search_link_ops.append({IFACE_("Reroute"), add_reroute_node_fn});
 
-  const bool is_node_group = !(node_tree.id.flag & LIB_EMBEDDED_DATA);
+  const bool is_node_group = !(node_tree.id.flag & ID_FLAG_EMBEDDED_DATA);
 
   if (is_node_group && socket.in_out == SOCK_IN) {
     search_link_ops.append({IFACE_("Group Input"), add_group_input_node_fn});

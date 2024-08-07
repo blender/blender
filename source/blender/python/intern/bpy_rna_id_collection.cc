@@ -315,7 +315,7 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
   }
 
   if (ids) {
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
     PyObject *ids_fast = PySequence_Fast(ids, "batch_remove");
     if (ids_fast == nullptr) {
@@ -334,7 +334,7 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
         goto error;
       }
 
-      id->tag |= LIB_TAG_DOIT;
+      id->tag |= ID_TAG_DOIT;
     }
     Py_DECREF(ids_fast);
 
@@ -407,7 +407,7 @@ static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject
   }
 
   /* Tag all IDs to delete. */
-  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, unused_ids_data);
+  BKE_lib_query_unused_ids_tag(bmain, ID_TAG_DOIT, unused_ids_data);
 
   if (unused_ids_data.num_total[INDEX_ID_NULL] == 0) {
     return PyLong_FromSize_t(0);

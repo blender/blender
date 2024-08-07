@@ -86,21 +86,21 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
   ID *id = static_cast<ID *>(idv);
 
   if (use_flag_from_idtag) {
-    if ((id->tag & LIB_TAG_NO_MAIN) != 0) {
+    if ((id->tag & ID_TAG_NO_MAIN) != 0) {
       flag |= LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_DEG_TAG;
     }
     else {
       flag &= ~LIB_ID_FREE_NO_MAIN;
     }
 
-    if ((id->tag & LIB_TAG_NO_USER_REFCOUNT) != 0) {
+    if ((id->tag & ID_TAG_NO_USER_REFCOUNT) != 0) {
       flag |= LIB_ID_FREE_NO_USER_REFCOUNT;
     }
     else {
       flag &= ~LIB_ID_FREE_NO_USER_REFCOUNT;
     }
 
-    if ((id->tag & LIB_TAG_NOT_ALLOCATED) != 0) {
+    if ((id->tag & ID_TAG_NOT_ALLOCATED) != 0) {
       flag |= LIB_ID_FREE_NOT_ALLOCATED;
     }
     else {
@@ -328,7 +328,7 @@ static size_t id_delete(Main *bmain,
    * deleted IDs may not be properly decreased by the remappings (since `NO_MAIN` ID user-counts
    * is never affected). */
   for (ID *id : ids_to_delete) {
-    id->tag |= LIB_TAG_NO_MAIN;
+    id->tag |= ID_TAG_NO_MAIN;
     /* User-count needs to be reset artificially, since some usages may not be cleared in batch
      * deletion (typically, if one deleted ID uses another deleted ID, this may not be cleared by
      * remapping code, depending on order in which these are handled). */
@@ -356,7 +356,7 @@ static size_t id_delete(Main *bmain,
 void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags)
 {
   ID *id = static_cast<ID *>(idv);
-  BLI_assert_msg((id->tag & LIB_TAG_NO_MAIN) == 0, "Cannot be used with IDs outside of Main");
+  BLI_assert_msg((id->tag & ID_TAG_NO_MAIN) == 0, "Cannot be used with IDs outside of Main");
 
   blender::Set<ID *> ids_to_delete = {id};
   id_delete(bmain, ids_to_delete, extra_remapping_flags);
@@ -372,7 +372,7 @@ size_t BKE_id_multi_tagged_delete(Main *bmain)
   blender::Set<ID *> ids_to_delete;
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    if (id_iter->tag & LIB_TAG_DOIT) {
+    if (id_iter->tag & ID_TAG_DOIT) {
       ids_to_delete.add(id_iter);
     }
   }

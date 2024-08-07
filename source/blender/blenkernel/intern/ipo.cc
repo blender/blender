@@ -2460,7 +2460,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
     ipo->id.us = 0;
-    ipo->id.flag &= ~LIB_FAKEUSER;
+    ipo->id.flag &= ~ID_FLAG_FAKEUSER;
   }
 
   /* free unused drivers from actions + ipos */

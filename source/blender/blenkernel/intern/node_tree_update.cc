@@ -1501,7 +1501,7 @@ class NodeTreeMainUpdater {
     for (const bNestedNodePath &path : old_id_by_path.keys()) {
       const bNode *node = ntree.node_by_id(path.node_id);
       if (node && node->is_group() && node->id) {
-        if (node->id->tag & LIB_TAG_MISSING) {
+        if (node->id->tag & ID_TAG_MISSING) {
           nested_node_paths.append(path);
         }
       }

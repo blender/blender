@@ -1053,10 +1053,10 @@ bool deg_validate_eval_copy_datablock(ID *id_cow)
 void deg_tag_eval_copy_id(deg::Depsgraph &depsgraph, ID *id_cow, const ID *id_orig)
 {
   BLI_assert(id_cow != id_orig);
-  BLI_assert((id_orig->tag & LIB_TAG_COPIED_ON_EVAL) == 0);
-  id_cow->tag |= LIB_TAG_COPIED_ON_EVAL;
+  BLI_assert((id_orig->tag & ID_TAG_COPIED_ON_EVAL) == 0);
+  id_cow->tag |= ID_TAG_COPIED_ON_EVAL;
   /* This ID is no longer localized, is a self-sustaining copy now. */
-  id_cow->tag &= ~LIB_TAG_LOCALIZED;
+  id_cow->tag &= ~ID_TAG_LOCALIZED;
   id_cow->orig_id = (ID *)id_orig;
   id_cow->runtime.depsgraph = &reinterpret_cast<::Depsgraph &>(depsgraph);
 }

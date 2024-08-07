@@ -2465,7 +2465,7 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac,
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
     LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer->freestyle_config.linesets) {
       if (lineset->linestyle) {
-        lineset->linestyle->id.tag |= LIB_TAG_DOIT;
+        lineset->linestyle->id.tag |= ID_TAG_DOIT;
       }
     }
   }
@@ -2482,10 +2482,10 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac,
       ListBase tmp_data = {nullptr, nullptr};
       size_t tmp_items = 0;
 
-      if ((linestyle == nullptr) || !(linestyle->id.tag & LIB_TAG_DOIT)) {
+      if ((linestyle == nullptr) || !(linestyle->id.tag & ID_TAG_DOIT)) {
         continue;
       }
-      linestyle->id.tag &= ~LIB_TAG_DOIT;
+      linestyle->id.tag &= ~ID_TAG_DOIT;
 
       /* add scene-level animation channels */
       BEGIN_ANIMFILTER_SUBCHANNELS (FILTER_LS_SCED(linestyle)) {

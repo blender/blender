@@ -923,11 +923,11 @@ static void clean_viewport_memory_base(Base *base)
 
   Object *object = base->object;
 
-  if (object->id.tag & LIB_TAG_DOIT) {
+  if (object->id.tag & ID_TAG_DOIT) {
     return;
   }
 
-  object->id.tag &= ~LIB_TAG_DOIT;
+  object->id.tag &= ~ID_TAG_DOIT;
   if (RE_allow_render_generic_object(object)) {
     BKE_object_free_derived_caches(object);
   }
@@ -939,7 +939,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
   Base *base;
 
   /* Tag all the available objects. */
-  BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
+  BKE_main_id_tag_listbase(&bmain->objects, ID_TAG_DOIT, true);
 
   /* Go over all the visible objects. */
 

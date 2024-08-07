@@ -204,8 +204,8 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 {
-  const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
-                              (id->flag & LIB_EMBEDDED_DATA) == 0;
+  const bool id_in_mainlist = (id->tag & ID_TAG_NO_MAIN) == 0 &&
+                              (id->flag & ID_FLAG_EMBEDDED_DATA) == 0;
 
   if (id_in_mainlist) {
     BKE_main_namemap_remove_name(bmain, id, id->name + 2);
@@ -216,8 +216,8 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   id_fake_user_clear(id);
 
   id->lib = nullptr;
-  id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
-  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+  id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
+  id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
   if (id_in_mainlist) {
     if (BKE_id_new_name_validate(bmain, which_libbase(bmain, GS(id->name)), id, nullptr, false)) {
       bmain->is_memfile_undo_written = false;
@@ -226,7 +226,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 
   /* Conceptually, an ID made local is not the same as the linked one anymore. Reflect that by
    * regenerating its session UID. */
-  if ((id->tag & LIB_TAG_TEMP_MAIN) == 0) {
+  if ((id->tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_renew(id);
   }
 
@@ -274,10 +274,10 @@ void id_lib_extern(ID *id)
 {
   if (id && ID_IS_LINKED(id)) {
     BLI_assert(BKE_idtype_idcode_is_linkable(GS(id->name)));
-    if (id->tag & LIB_TAG_INDIRECT) {
-      id->tag &= ~LIB_TAG_INDIRECT;
-      id->flag &= ~LIB_INDIRECT_WEAK_LINK;
-      id->tag |= LIB_TAG_EXTERN;
+    if (id->tag & ID_TAG_INDIRECT) {
+      id->tag &= ~ID_TAG_INDIRECT;
+      id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
+      id->tag |= ID_TAG_EXTERN;
       id->lib->runtime.parent = nullptr;
     }
   }
@@ -287,8 +287,8 @@ void id_lib_indirect_weak_link(ID *id)
 {
   if (id && ID_IS_LINKED(id)) {
     BLI_assert(BKE_idtype_idcode_is_linkable(GS(id->name)));
-    if (id->tag & LIB_TAG_INDIRECT) {
-      id->flag |= LIB_INDIRECT_WEAK_LINK;
+    if (id->tag & ID_TAG_INDIRECT) {
+      id->flag |= ID_FLAG_INDIRECT_WEAK_LINK;
     }
   }
 }
@@ -297,39 +297,39 @@ void id_us_ensure_real(ID *id)
 {
   if (id) {
     const int limit = ID_FAKE_USERS(id);
-    id->tag |= LIB_TAG_EXTRAUSER;
+    id->tag |= ID_TAG_EXTRAUSER;
     if (id->us <= limit) {
-      if (id->us < limit || ((id->us == limit) && (id->tag & LIB_TAG_EXTRAUSER_SET))) {
+      if (id->us < limit || ((id->us == limit) && (id->tag & ID_TAG_EXTRAUSER_SET))) {
         CLOG_ERROR(&LOG,
                    "ID user count error: %s (from '%s')",
                    id->name,
                    id->lib ? id->lib->runtime.filepath_abs : "[Main]");
       }
       id->us = limit + 1;
-      id->tag |= LIB_TAG_EXTRAUSER_SET;
+      id->tag |= ID_TAG_EXTRAUSER_SET;
     }
   }
 }
 
 void id_us_clear_real(ID *id)
 {
-  if (id && (id->tag & LIB_TAG_EXTRAUSER)) {
-    if (id->tag & LIB_TAG_EXTRAUSER_SET) {
+  if (id && (id->tag & ID_TAG_EXTRAUSER)) {
+    if (id->tag & ID_TAG_EXTRAUSER_SET) {
       id->us--;
       BLI_assert(id->us >= ID_FAKE_USERS(id));
     }
-    id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+    id->tag &= ~(ID_TAG_EXTRAUSER | ID_TAG_EXTRAUSER_SET);
   }
 }
 
 void id_us_plus_no_lib(ID *id)
 {
   if (id) {
-    if ((id->tag & LIB_TAG_EXTRAUSER) && (id->tag & LIB_TAG_EXTRAUSER_SET)) {
+    if ((id->tag & ID_TAG_EXTRAUSER) && (id->tag & ID_TAG_EXTRAUSER_SET)) {
       BLI_assert(id->us >= 1);
       /* No need to increase count, just tag extra user as no more set.
        * Avoids annoying & inconsistent +1 in user count. */
-      id->tag &= ~LIB_TAG_EXTRAUSER_SET;
+      id->tag &= ~ID_TAG_EXTRAUSER_SET;
     }
     else {
       BLI_assert(id->us >= 0);
@@ -368,7 +368,7 @@ void id_us_min(ID *id)
       id->us--;
     }
 
-    if ((id->us == limit) && (id->tag & LIB_TAG_EXTRAUSER)) {
+    if ((id->us == limit) && (id->tag & ID_TAG_EXTRAUSER)) {
       /* We need an extra user here, but never actually incremented user count for it so far,
        * do it now. */
       id_us_ensure_real(id);
@@ -378,16 +378,16 @@ void id_us_min(ID *id)
 
 void id_fake_user_set(ID *id)
 {
-  if (id && !(id->flag & LIB_FAKEUSER)) {
-    id->flag |= LIB_FAKEUSER;
+  if (id && !(id->flag & ID_FLAG_FAKEUSER)) {
+    id->flag |= ID_FLAG_FAKEUSER;
     id_us_plus(id);
   }
 }
 
 void id_fake_user_clear(ID *id)
 {
-  if (id && (id->flag & LIB_FAKEUSER)) {
-    id->flag &= ~LIB_FAKEUSER;
+  if (id && (id->flag & ID_FLAG_FAKEUSER)) {
+    id->flag &= ~ID_FLAG_FAKEUSER;
     id_us_min(id);
   }
 }
@@ -399,7 +399,7 @@ void BKE_id_newptr_and_tag_clear(ID *id)
     return;
   }
 
-  id->newid->tag &= ~LIB_TAG_NEW;
+  id->newid->tag &= ~ID_TAG_NEW;
   id->newid = nullptr;
 
   /* Deal with embedded data too. */
@@ -580,7 +580,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const int flags)
 
   /* Skip indirectly linked IDs, unless the whole library is made local, or handling them is
    * explicitly requested. */
-  if (!(lib_local || (flags & LIB_ID_MAKELOCAL_INDIRECT) != 0) && (id->tag & LIB_TAG_INDIRECT)) {
+  if (!(lib_local || (flags & LIB_ID_MAKELOCAL_INDIRECT) != 0) && (id->tag & ID_TAG_INDIRECT)) {
     return false;
   }
 
@@ -626,7 +626,7 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
   /* Increase used IDs refcount if needed and required. */
   if ((data->flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && (cb_flag & IDWALK_CB_USER)) {
     if ((data->flag & LIB_ID_CREATE_NO_MAIN) != 0) {
-      BLI_assert(cb_data->self_id->tag & LIB_TAG_NO_MAIN);
+      BLI_assert(cb_data->self_id->tag & ID_TAG_NO_MAIN);
       id_us_plus_no_lib(id);
     }
     else {
@@ -718,7 +718,7 @@ ID *BKE_id_copy_in_lib(Main *bmain,
     BLI_assert(!owner_library || newid->lib == *owner_library);
     /* Expanding local linked ID usages should never be needed with embedded IDs - this will be
      * handled together with their owner ID copying code. */
-    if (!ID_IS_LINKED(newid) && (newid->flag & LIB_EMBEDDED_DATA) == 0) {
+    if (!ID_IS_LINKED(newid) && (newid->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
       lib_id_copy_ensure_local(bmain, id, newid, 0);
     }
     /* If the ID was copied into a library, ensure paths are properly remapped, and that it has a
@@ -727,8 +727,8 @@ ID *BKE_id_copy_in_lib(Main *bmain,
       if (newid->lib != id->lib) {
         lib_id_library_local_paths(bmain, newid->lib, id->lib, newid);
       }
-      if ((newid->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT)) == 0) {
-        newid->tag |= LIB_TAG_EXTERN;
+      if ((newid->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT)) == 0) {
+        newid->tag |= ID_TAG_EXTERN;
       }
     }
   }
@@ -860,7 +860,7 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
   }
 
   id.lib = owner_id.lib;
-  id.tag |= LIB_TAG_INDIRECT;
+  id.tag |= ID_TAG_INDIRECT;
 
   BKE_main_namemap_remove_name(&bmain, &id, id.name + 2);
   ListBase *lb = which_libbase(&bmain, GS(id.name));
@@ -1085,17 +1085,17 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   ID *id = static_cast<ID *>(idv);
 
   BLI_assert(bmain != nullptr);
-  if ((id->tag & LIB_TAG_NO_MAIN) == 0) {
+  if ((id->tag & ID_TAG_NO_MAIN) == 0) {
     return;
   }
 
-  if ((id->tag & LIB_TAG_NOT_ALLOCATED) != 0) {
+  if ((id->tag & ID_TAG_NOT_ALLOCATED) != 0) {
     /* We cannot add non-allocated ID to Main! */
     return;
   }
 
   /* We cannot allow non-userrefcounting IDs in Main database! */
-  if ((id->tag & LIB_TAG_NO_USER_REFCOUNT) != 0) {
+  if ((id->tag & ID_TAG_NO_USER_REFCOUNT) != 0) {
     BKE_library_foreach_ID_link(bmain, id, libblock_management_us_plus, nullptr, IDWALK_NOP);
   }
 
@@ -1106,7 +1106,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
    * overrides for recursive resync. */
   BKE_id_new_name_validate(bmain, lb, id, nullptr, true);
   /* alphabetic insertion: is in new_id */
-  id->tag &= ~(LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT);
+  id->tag &= ~(ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT);
   bmain->is_memfile_undo_written = false;
   BKE_main_unlock(bmain);
 
@@ -1118,7 +1118,7 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv)
   ID *id = static_cast<ID *>(idv);
 
   BLI_assert(bmain != nullptr);
-  if ((id->tag & LIB_TAG_NO_MAIN) != 0) {
+  if ((id->tag & ID_TAG_NO_MAIN) != 0) {
     return;
   }
 
@@ -1128,7 +1128,7 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv)
   BKE_main_lock(bmain);
   BLI_remlink(lb, id);
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
-  id->tag |= LIB_TAG_NO_MAIN;
+  id->tag |= ID_TAG_NO_MAIN;
   bmain->is_memfile_undo_written = false;
   BKE_main_unlock(bmain);
 }
@@ -1137,12 +1137,12 @@ void BKE_libblock_management_usercounts_set(Main *bmain, void *idv)
 {
   ID *id = static_cast<ID *>(idv);
 
-  if ((id->tag & LIB_TAG_NO_USER_REFCOUNT) == 0) {
+  if ((id->tag & ID_TAG_NO_USER_REFCOUNT) == 0) {
     return;
   }
 
   BKE_library_foreach_ID_link(bmain, id, libblock_management_us_plus, nullptr, IDWALK_NOP);
-  id->tag &= ~LIB_TAG_NO_USER_REFCOUNT;
+  id->tag &= ~ID_TAG_NO_USER_REFCOUNT;
 }
 
 void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv)
@@ -1150,12 +1150,12 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv)
   ID *id = static_cast<ID *>(idv);
 
   /* We do not allow IDs in Main database to not be userrefcounting. */
-  if ((id->tag & LIB_TAG_NO_USER_REFCOUNT) != 0 || (id->tag & LIB_TAG_NO_MAIN) != 0) {
+  if ((id->tag & ID_TAG_NO_USER_REFCOUNT) != 0 || (id->tag & ID_TAG_NO_MAIN) != 0) {
     return;
   }
 
   BKE_library_foreach_ID_link(bmain, id, libblock_management_us_min, nullptr, IDWALK_NOP);
-  id->tag |= LIB_TAG_NO_USER_REFCOUNT;
+  id->tag |= ID_TAG_NO_USER_REFCOUNT;
 }
 
 void BKE_main_id_tag_listbase(ListBase *lb, const int tag, const bool value)
@@ -1317,13 +1317,13 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
 
   if (id) {
     if ((flag & LIB_ID_CREATE_NO_MAIN) != 0) {
-      id->tag |= LIB_TAG_NO_MAIN;
+      id->tag |= ID_TAG_NO_MAIN;
     }
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0) {
-      id->tag |= LIB_TAG_NO_USER_REFCOUNT;
+      id->tag |= ID_TAG_NO_USER_REFCOUNT;
     }
     if (flag & LIB_ID_CREATE_LOCAL) {
-      id->tag |= LIB_TAG_LOCALIZED;
+      id->tag |= ID_TAG_LOCALIZED;
     }
 
     id->icon_id = 0;
@@ -1430,7 +1430,7 @@ static uint global_session_uid = 0;
 void BKE_lib_libblock_session_uid_ensure(ID *id)
 {
   if (id->session_uid == MAIN_ID_SESSION_UID_UNSET) {
-    BLI_assert((id->tag & LIB_TAG_TEMP_MAIN) == 0); /* Caller must ensure this. */
+    BLI_assert((id->tag & ID_TAG_TEMP_MAIN) == 0); /* Caller must ensure this. */
     id->session_uid = atomic_add_and_fetch_uint32(&global_session_uid, 1);
     /* In case overflow happens, still assign a valid ID. This way opening files many times works
      * correctly. */
@@ -1495,7 +1495,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   ID *new_id = *r_newid;
   int flag = orig_flag;
 
-  const bool is_embedded_id = (id->flag & LIB_EMBEDDED_DATA) != 0;
+  const bool is_embedded_id = (id->flag & ID_FLAG_EMBEDDED_DATA) != 0;
 
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != nullptr);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
@@ -1511,21 +1511,21 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   }
 
   /* The id->flag bits to copy over. */
-  const int copy_idflag_mask = LIB_EMBEDDED_DATA;
+  const int copy_idflag_mask = ID_FLAG_EMBEDDED_DATA;
   /* The id->tag bits to copy over. */
   const int copy_idtag_mask =
       /* Only copy potentially existing 'linked' tags if the new ID is being placed into a library.
        *
        * Further tag and paths remapping is handled in #BKE_id_copy_in_lib.
        */
-      ((owner_library && *owner_library) ? (LIB_TAG_EXTERN | LIB_TAG_INDIRECT) : 0);
+      ((owner_library && *owner_library) ? (ID_TAG_EXTERN | ID_TAG_INDIRECT) : 0);
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
     /* TODO: do we want to memset(0) whole mem before filling it? */
     STRNCPY(new_id->name, id->name);
     new_id->us = 0;
-    new_id->tag |= LIB_TAG_NOT_ALLOCATED | LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT;
+    new_id->tag |= ID_TAG_NOT_ALLOCATED | ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT;
     new_id->lib = owner_library ? *owner_library : id->lib;
     /* TODO: Do we want/need to copy more from ID struct itself? */
   }
@@ -1536,10 +1536,10 @@ void BKE_libblock_copy_in_lib(Main *bmain,
   BLI_assert(new_id != nullptr);
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
-    new_id->tag |= LIB_TAG_COPIED_ON_EVAL;
+    new_id->tag |= ID_TAG_COPIED_ON_EVAL;
   }
   else {
-    new_id->tag &= ~LIB_TAG_COPIED_ON_EVAL;
+    new_id->tag &= ~ID_TAG_COPIED_ON_EVAL;
   }
 
   const size_t id_len = BKE_libblock_get_alloc_info(GS(new_id->name), nullptr);
@@ -1556,7 +1556,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
   /* Embedded ID data handling. */
   if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    new_id->tag &= ~LIB_TAG_NO_MAIN;
+    new_id->tag &= ~ID_TAG_NO_MAIN;
   }
   /* NOTE: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
    * NOTE: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
@@ -1590,7 +1590,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
     else if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
       /* Just ensure virtual overrides do get properly tagged, there is not actual override data to
        * copy here. */
-      new_id->flag |= LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+      new_id->flag |= ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
     }
   }
 
@@ -1905,8 +1905,8 @@ void BKE_main_id_refcount_recompute(Main *bmain, const bool do_linked_only)
     }
     id->us = ID_FAKE_USERS(id);
     /* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
-    if (id->tag & LIB_TAG_EXTRAUSER) {
-      id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+    if (id->tag & ID_TAG_EXTRAUSER) {
+      id->tag &= ~(ID_TAG_EXTRAUSER | ID_TAG_EXTRAUSER_SET);
       id_us_ensure_real(id);
     }
     if (ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS)) {
@@ -1974,14 +1974,14 @@ static void library_make_local_copying_check(ID *id,
       library_make_local_copying_check(from_id, loop_tags, id_relations, done_ids);
     }
 
-    if (from_id->tag & LIB_TAG_DOIT) {
+    if (from_id->tag & ID_TAG_DOIT) {
       /* This user will be fully local in future, so far so good,
        * nothing to do here but check next user. */
     }
     else {
       /* This user won't be fully local in future, so current ID won't be either.
        * And we are done checking it. */
-      id->tag &= ~LIB_TAG_DOIT;
+      id->tag &= ~ID_TAG_DOIT;
       break;
     }
   }
@@ -2034,24 +2034,24 @@ void BKE_library_make_local(Main *bmain,
     for (; id; id = static_cast<ID *>(id->next)) {
       ID *ntree = (ID *)blender::bke::ntreeFromID(id);
 
-      id->tag &= ~LIB_TAG_DOIT;
+      id->tag &= ~ID_TAG_DOIT;
       if (ntree != nullptr) {
-        ntree->tag &= ~LIB_TAG_DOIT;
+        ntree->tag &= ~ID_TAG_DOIT;
       }
 
       if (!ID_IS_LINKED(id)) {
-        id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
-        id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+        id->tag &= ~(ID_TAG_EXTERN | ID_TAG_INDIRECT | ID_TAG_NEW);
+        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
         if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
             ELEM(lib, nullptr, id->override_library->reference->lib) &&
-            ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
+            ((untagged_only == false) || !(id->tag & ID_TAG_PRE_EXISTING)))
         {
           /* Validating liboverride hierarchy root pointers will happen later in this function,
            * rather than doing it for each and every localized ID. */
           BKE_lib_override_library_make_local(nullptr, id);
         }
       }
-      /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data
+      /* The check on the fourth line (ID_TAG_PRE_EXISTING) is done so it's possible to tag data
        * you don't want to be made local, used for appending data,
        * so any libdata already linked won't become local (very nasty
        * to discover all your links are lost after appending).
@@ -2063,18 +2063,18 @@ void BKE_library_make_local(Main *bmain,
        * This is ok-ish on 'make local' side of things
        * (since those are handled by their 'owner' IDs),
        * but complicates slightly the pre-processing of relations between IDs at step 2... */
-      else if (!do_skip && id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
+      else if (!do_skip && id->tag & (ID_TAG_EXTERN | ID_TAG_INDIRECT | ID_TAG_NEW) &&
                ELEM(lib, nullptr, id->lib) &&
-               ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
+               ((untagged_only == false) || !(id->tag & ID_TAG_PRE_EXISTING)))
       {
         BLI_linklist_prepend_arena(&todo_ids, id, linklist_mem);
-        id->tag |= LIB_TAG_DOIT;
+        id->tag |= ID_TAG_DOIT;
 
         /* Tag those nasty non-ID node-trees,
          * but do not add them to todo list, making them local is handled by 'owner' ID.
          * This is needed for library_make_local_copying_check() to work OK at step 2. */
         if (ntree != nullptr) {
-          ntree->tag |= LIB_TAG_DOIT;
+          ntree->tag |= ID_TAG_DOIT;
         }
       }
       else {
@@ -2118,14 +2118,14 @@ void BKE_library_make_local(Main *bmain,
     it_next = it->next;
     ID *id = static_cast<ID *>(it->link);
 
-    if (id->tag & LIB_TAG_DOIT) {
+    if (id->tag & ID_TAG_DOIT) {
       /* We know all users of this object are local or will be made fully local, even if
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
       BKE_lib_id_clear_library_data(bmain, id, make_local_flags);
       BKE_lib_id_expand_local(bmain, id, 0);
-      id->tag &= ~LIB_TAG_DOIT;
+      id->tag &= ~ID_TAG_DOIT;
 
       if (GS(id->name) == ID_OB) {
         BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
@@ -2185,7 +2185,7 @@ void BKE_library_make_local(Main *bmain,
     /* Special hack for groups... Thing is, since we can't instantiate them here, we need to
      * ensure they remain 'alive' (only instantiation is a real group 'user'... *sigh* See
      * #49722. */
-    if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
+    if (GS(id->name) == ID_GR && (id->tag & ID_TAG_INDIRECT) != 0) {
       id_us_ensure_real(id->newid);
     }
   }
@@ -2270,7 +2270,7 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
   if (add_lib_hint) {
     name[i++] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_OVERRIDE_LIBRARY(id) ? 'O' : ' ';
   }
-  name[i++] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
+  name[i++] = (id->flag & ID_FLAG_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
   name[i++] = ' ';
 
   BKE_id_full_name_get(name + i, id, separator_char);
@@ -2340,7 +2340,7 @@ bool BKE_id_can_use_id(const ID &id_from, const ID &id_to)
     return false;
   }
   /* Can't point from ID in main database to one outside of it. */
-  if (!(id_from.tag & LIB_TAG_NO_MAIN) && (id_to.tag & LIB_TAG_NO_MAIN)) {
+  if (!(id_from.tag & ID_TAG_NO_MAIN) && (id_to.tag & ID_TAG_NO_MAIN)) {
     return false;
   }
 

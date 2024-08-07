@@ -1038,8 +1038,9 @@ static void write_libraries(WriteData *wd, Main *main)
       found_one = false;
       while (!found_one && tot--) {
         for (id = static_cast<ID *>(lbarray[tot]->first); id; id = static_cast<ID *>(id->next)) {
-          if (id->us > 0 && ((id->tag & LIB_TAG_EXTERN) || ((id->tag & LIB_TAG_INDIRECT) &&
-                                                            (id->flag & LIB_INDIRECT_WEAK_LINK))))
+          if (id->us > 0 &&
+              ((id->tag & ID_TAG_EXTERN) ||
+               ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK))))
           {
             found_one = true;
             break;
@@ -1074,8 +1075,9 @@ static void write_libraries(WriteData *wd, Main *main)
       /* Write link placeholders for all direct linked IDs. */
       while (a--) {
         for (id = static_cast<ID *>(lbarray[a]->first); id; id = static_cast<ID *>(id->next)) {
-          if (id->us > 0 && ((id->tag & LIB_TAG_EXTERN) || ((id->tag & LIB_TAG_INDIRECT) &&
-                                                            (id->flag & LIB_INDIRECT_WEAK_LINK))))
+          if (id->us > 0 &&
+              ((id->tag & ID_TAG_EXTERN) ||
+               ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK))))
           {
             if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
               CLOG_ERROR(&LOG,
@@ -1219,7 +1221,7 @@ static void id_buffer_init_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const 
 
   /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
   if (is_undo) {
-    temp_id->tag &= LIB_TAG_KEEP_ON_UNDO;
+    temp_id->tag &= ID_TAG_KEEP_ON_UNDO;
   }
   else {
     temp_id->tag = 0;
@@ -1260,7 +1262,7 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   BLI_assert(!ID_IS_LINKED(self_id));
   BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
 
-  if (self_id->tag & LIB_TAG_RUNTIME) {
+  if (self_id->tag & ID_TAG_RUNTIME) {
     return IDWALK_RET_NOP;
   }
 
@@ -1333,8 +1335,8 @@ static bool write_file_handle(Main *mainvar,
            *     easily discoverable and browsable from the main UI. */
         }
         else {
-          id_iter->tag |= LIB_TAG_INDIRECT;
-          id_iter->tag &= ~LIB_TAG_EXTERN;
+          id_iter->tag |= ID_TAG_INDIRECT;
+          id_iter->tag &= ~ID_TAG_EXTERN;
         }
       }
     }
@@ -1392,8 +1394,8 @@ static bool write_file_handle(Main *mainvar,
       for (; id; id = static_cast<ID *>(id->next)) {
         /* We should never attempt to write non-regular IDs
          * (i.e. all kind of temp/runtime ones). */
-        BLI_assert(
-            (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
+        BLI_assert((id->tag & (ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT | ID_TAG_NOT_ALLOCATED)) ==
+                   0);
 
         /* We only write unused IDs in undo case. */
         if (!wd->use_memfile) {
@@ -1430,7 +1432,7 @@ static bool write_file_handle(Main *mainvar,
           }
         }
 
-        if ((id->tag & LIB_TAG_RUNTIME) != 0 && !wd->use_memfile) {
+        if ((id->tag & ID_TAG_RUNTIME) != 0 && !wd->use_memfile) {
           /* Runtime IDs are never written to .blend files, and they should not influence
            * (in)direct status of linked IDs they may use. */
           continue;
@@ -1439,7 +1441,7 @@ static bool write_file_handle(Main *mainvar,
         const bool do_override = !ELEM(override_storage, nullptr, bmain) &&
                                  ID_IS_OVERRIDE_LIBRARY_REAL(id);
 
-        /* If not writing undo data, properly set directly linked IDs as `LIB_TAG_EXTERN`. */
+        /* If not writing undo data, properly set directly linked IDs as `ID_TAG_EXTERN`. */
         if (!wd->use_memfile) {
           BKE_library_foreach_ID_link(bmain,
                                       id,

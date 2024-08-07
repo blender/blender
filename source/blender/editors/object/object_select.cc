@@ -1299,11 +1299,11 @@ static bool object_select_more_less(bContext *C, const bool select)
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
     ob->flag &= ~OB_DONE;
-    ob->id.tag &= ~LIB_TAG_DOIT;
+    ob->id.tag &= ~ID_TAG_DOIT;
     /* parent may be in another scene */
     if (ob->parent) {
       ob->parent->flag &= ~OB_DONE;
-      ob->parent->id.tag &= ~LIB_TAG_DOIT;
+      ob->parent->id.tag &= ~ID_TAG_DOIT;
     }
   }
 
@@ -1319,8 +1319,8 @@ static bool object_select_more_less(bContext *C, const bool select)
     Object *ob = ((Base *)ptr.data)->object;
     if (ob->parent) {
       if ((ob->flag & OB_DONE) != (ob->parent->flag & OB_DONE)) {
-        ob->id.tag |= LIB_TAG_DOIT;
-        ob->parent->id.tag |= LIB_TAG_DOIT;
+        ob->id.tag |= ID_TAG_DOIT;
+        ob->parent->id.tag |= ID_TAG_DOIT;
       }
     }
   }
@@ -1332,7 +1332,7 @@ static bool object_select_more_less(bContext *C, const bool select)
   for (PointerRNA &ptr : ctx_base_list) {
     Base *base = static_cast<Base *>(ptr.data);
     Object *ob = base->object;
-    if ((ob->id.tag & LIB_TAG_DOIT) && ((base->flag & BASE_SELECTED) != select_flag)) {
+    if ((ob->id.tag & ID_TAG_DOIT) && ((base->flag & BASE_SELECTED) != select_flag)) {
       base_select(base, eObjectSelect_Mode(select_mode));
       changed = true;
     }

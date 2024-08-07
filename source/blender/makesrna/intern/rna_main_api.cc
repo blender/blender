@@ -120,7 +120,7 @@ static void rna_Main_ID_remove(Main *bmain,
                                bool do_ui_user)
 {
   ID *id = static_cast<ID *>(id_ptr->data);
-  if (id->tag & LIB_TAG_NO_MAIN) {
+  if (id->tag & ID_TAG_NO_MAIN) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is outside of main database and cannot be removed from it",
@@ -212,7 +212,7 @@ static void rna_Main_scenes_remove(
 
 static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name, ID *data)
 {
-  if (data != nullptr && (data->tag & LIB_TAG_NO_MAIN)) {
+  if (data != nullptr && (data->tag & ID_TAG_NO_MAIN)) {
     BKE_report(reports,
                RPT_ERROR,
                "Cannot create object in main database with an evaluated data data-block");
@@ -810,7 +810,7 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
 #  define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type) \
     static void rna_Main_##_func_name##_tag(Main *bmain, bool value) \
     { \
-      BKE_main_id_tag_listbase(&bmain->_listbase_name, LIB_TAG_DOIT, value); \
+      BKE_main_id_tag_listbase(&bmain->_listbase_name, ID_TAG_DOIT, value); \
     }
 
 RNA_MAIN_ID_TAG_FUNCS_DEF(cameras, cameras, ID_CA)

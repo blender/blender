@@ -76,7 +76,7 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
 
 StringRefNull TreeElementOverridesBase::get_warning() const
 {
-  if (id.flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
+  if (id.flag & ID_FLAG_LIB_OVERRIDE_RESYNC_LEFTOVER) {
     return RPT_("This override data-block is not needed anymore, but was detected as user-edited");
   }
 

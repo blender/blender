@@ -276,7 +276,7 @@ static void clear_single_image(Image *image, ClearFlag flag)
   const float disp_alpha[4] = {0.5f, 0.5f, 0.5f, 0.0f};
   const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
-  if ((image->id.tag & LIB_TAG_DOIT) == 0) {
+  if ((image->id.tag & ID_TAG_DOIT) == 0) {
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
@@ -294,7 +294,7 @@ static void clear_single_image(Image *image, ClearFlag flag)
         IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
       }
 
-      image->id.tag |= LIB_TAG_DOIT;
+      image->id.tag |= ID_TAG_DOIT;
 
       BKE_image_release_ibuf(image, ibuf, nullptr);
     }
@@ -306,7 +306,7 @@ static void clear_images_poly(Image **ob_image_array, int ob_image_array_len, Cl
   for (int i = 0; i < ob_image_array_len; i++) {
     Image *image = ob_image_array[i];
     if (image) {
-      image->id.tag &= ~LIB_TAG_DOIT;
+      image->id.tag &= ~ID_TAG_DOIT;
     }
   }
 
@@ -320,7 +320,7 @@ static void clear_images_poly(Image **ob_image_array, int ob_image_array_len, Cl
   for (int i = 0; i < ob_image_array_len; i++) {
     Image *image = ob_image_array[i];
     if (image) {
-      image->id.tag &= ~LIB_TAG_DOIT;
+      image->id.tag &= ~ID_TAG_DOIT;
     }
   }
 }

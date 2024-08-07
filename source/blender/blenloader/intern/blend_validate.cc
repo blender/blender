@@ -220,9 +220,9 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     bNodeTree *node_tree = blender::bke::ntreeFromID(id_iter);
     if (node_tree) {
-      if (node_tree->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
+      if (node_tree->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) {
         if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
-          node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+          node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
         }
       }
     }
@@ -230,9 +230,9 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
     if (GS(id_iter->name) == ID_SCE) {
       Scene *scene = reinterpret_cast<Scene *>(id_iter);
       if (scene->master_collection &&
-          (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE))
+          (scene->master_collection->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE))
       {
-        scene->master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+        scene->master_collection->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
       }
     }
   }
@@ -243,30 +243,31 @@ void BLO_main_validate_embedded_flag(Main *bmain, ReportList * /*reports*/)
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    if (id_iter->flag & LIB_EMBEDDED_DATA) {
+    if (id_iter->flag & ID_FLAG_EMBEDDED_DATA) {
       CLOG_ERROR(
           &LOG, "ID %s is flagged as embedded, while existing in Main data-base", id_iter->name);
-      id_iter->flag &= ~LIB_EMBEDDED_DATA;
+      id_iter->flag &= ~ID_FLAG_EMBEDDED_DATA;
     }
 
     bNodeTree *node_tree = blender::bke::ntreeFromID(id_iter);
     if (node_tree) {
-      if ((node_tree->id.flag & LIB_EMBEDDED_DATA) == 0) {
+      if ((node_tree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
         CLOG_ERROR(&LOG,
                    "ID %s has an embedded nodetree which is not flagged as embedded",
                    id_iter->name);
-        node_tree->id.flag |= LIB_EMBEDDED_DATA;
+        node_tree->id.flag |= ID_FLAG_EMBEDDED_DATA;
       }
     }
 
     if (GS(id_iter->name) == ID_SCE) {
       Scene *scene = reinterpret_cast<Scene *>(id_iter);
-      if (scene->master_collection && (scene->master_collection->id.flag & LIB_EMBEDDED_DATA) == 0)
+      if (scene->master_collection &&
+          (scene->master_collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0)
       {
         CLOG_ERROR(&LOG,
                    "ID %s has an embedded Collection which is not flagged as embedded",
                    id_iter->name);
-        scene->master_collection->id.flag |= LIB_EMBEDDED_DATA;
+        scene->master_collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
       }
     }
   }

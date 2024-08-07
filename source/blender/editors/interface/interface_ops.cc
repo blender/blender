@@ -1270,7 +1270,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
         for (const PointerRNA &ob_ptr : lb) {
           Object *ob = (Object *)ob_ptr.owner_id;
           if (ID *id_data = static_cast<ID *>(ob->data)) {
-            id_data->tag |= LIB_TAG_DOIT;
+            id_data->tag |= ID_TAG_DOIT;
           }
         }
 
@@ -1278,7 +1278,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
         for (const PointerRNA &link : lb) {
           Object *ob = (Object *)link.owner_id;
           ID *id_data = static_cast<ID *>(ob->data);
-          if ((id_data == nullptr) || (id_data->tag & LIB_TAG_DOIT) == 0 ||
+          if ((id_data == nullptr) || (id_data->tag & ID_TAG_DOIT) == 0 ||
               !ID_IS_EDITABLE(id_data) || (GS(id_data->name) != id_code))
           {
             continue;
@@ -1287,7 +1287,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
           new_lb.append(RNA_id_pointer_create(id_data));
 
           if (id_data) {
-            id_data->tag &= ~LIB_TAG_DOIT;
+            id_data->tag &= ~ID_TAG_DOIT;
           }
         }
 

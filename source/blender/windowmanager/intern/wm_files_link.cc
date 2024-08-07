@@ -277,8 +277,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   /* Tag everything, all untagged data can be made local
    * its also generally useful to know what is new.
    *
-   * Take extra care `BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false)` is called after! */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+   * Take extra care `BKE_main_id_flag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* We define our working data...
    * Note that here, each item 'uses' one library, and only one. */
@@ -346,7 +346,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     /* Early out in case there is nothing to link. */
     BKE_blendfile_link_append_context_free(lapp_context);
     /* Clear pre existing tag. */
-    BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+    BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
     return OPERATOR_CANCELLED;
   }
 
@@ -373,7 +373,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   /* Important we unset, otherwise these object won't
    * link into other scenes from this blend file. */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   /* TODO(sergey): Use proper flag for tagging here. */
 
@@ -528,7 +528,7 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
 {
   const bool do_append = (flag & FILE_LINK) == 0;
   /* Tag everything so we can make local only the new datablock. */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* Define working data, with just the one item we want to link. */
   LibraryLink_Params lapp_params;
@@ -555,7 +555,7 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   return id;
 }
@@ -663,7 +663,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   /* Important we unset, otherwise these object won't link into other scenes from this blend file.
    */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   /* Recreate dependency graph to include new IDs. */
   DEG_relations_tag_update(bmain);
@@ -802,7 +802,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
   /* Important we unset, otherwise these object won't link into other scenes from this blend
    * file.
    */
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   /* Recreate dependency graph to include new IDs. */
   DEG_relations_tag_update(bmain);

@@ -576,7 +576,7 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
 
 bool BKE_brush_delete(Main *bmain, Brush *brush)
 {
-  if (brush->id.tag & LIB_TAG_INDIRECT) {
+  if (brush->id.tag & ID_TAG_INDIRECT) {
     return false;
   }
   if (ID_REAL_USERS(brush) <= 1 && ID_EXTRA_USERS(brush) == 0 &&

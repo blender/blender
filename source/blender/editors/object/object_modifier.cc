@@ -277,7 +277,7 @@ bool iter_other(Main *bmain,
   ID *ob_data_id = static_cast<ID *>(orig_ob->data);
   int users = ob_data_id->us;
 
-  if (ob_data_id->flag & LIB_FAKEUSER) {
+  if (ob_data_id->flag & ID_FLAG_FAKEUSER) {
     users--;
   }
 

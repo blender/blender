@@ -361,7 +361,7 @@ void BLO_read_invalidate_message(BlendHandle *bh, Main *bmain, const char *messa
 enum eBLOLibLinkFlags {
   /** Generate a placeholder (empty ID) if not found in current lib file. */
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
-  /** Force loaded ID to be tagged as #LIB_TAG_INDIRECT (used in reload context only). */
+  /** Force loaded ID to be tagged as #ID_TAG_INDIRECT (used in reload context only). */
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
   /** Set fake user on appended IDs. */
   BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
@@ -485,7 +485,7 @@ using BLOExpandDoitCallback = void (*)(void *fdhandle, Main *mainvar, void *idv)
 
 /**
  * Loop over all ID data in Main to mark relations.
- * Set (id->tag & LIB_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
+ * Set (id->tag & ID_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
  *
  * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.

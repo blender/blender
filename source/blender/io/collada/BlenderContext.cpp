@@ -85,17 +85,17 @@ bool bc_is_in_Export_set(LinkNode *export_set,
 
 int bc_is_marked(Object *ob)
 {
-  return ob && (ob->id.tag & LIB_TAG_DOIT);
+  return ob && (ob->id.tag & ID_TAG_DOIT);
 }
 
 void bc_remove_mark(Object *ob)
 {
-  ob->id.tag &= ~LIB_TAG_DOIT;
+  ob->id.tag &= ~ID_TAG_DOIT;
 }
 
 void bc_set_mark(Object *ob)
 {
-  ob->id.tag |= LIB_TAG_DOIT;
+  ob->id.tag |= ID_TAG_DOIT;
 }
 
 BlenderContext::BlenderContext(bContext *C)

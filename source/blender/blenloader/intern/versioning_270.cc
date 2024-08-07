@@ -1059,7 +1059,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     a = set_listbasepointers(bmain, lbarray);
     while (a--) {
       LISTBASE_FOREACH (ID *, id, lbarray[a]) {
-        id->flag &= LIB_FAKEUSER;
+        id->flag &= ID_FLAG_FAKEUSER;
 
         /* NOTE: This is added in 4.1 code.
          *
@@ -1068,7 +1068,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
          * them should still be valid on code from 9 years ago. */
         bNodeTree *node_tree = blender::bke::ntreeFromID(id);
         if (node_tree) {
-          node_tree->id.flag &= LIB_FAKEUSER;
+          node_tree->id.flag &= ID_FLAG_FAKEUSER;
         }
       }
     }

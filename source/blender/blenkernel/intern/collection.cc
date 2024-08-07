@@ -146,7 +146,7 @@ static void collection_copy_data(Main *bmain,
   const Collection *collection_src = (const Collection *)id_src;
 
   BLI_assert(((collection_src->flag & COLLECTION_IS_MASTER) != 0) ==
-             ((collection_src->id.flag & LIB_EMBEDDED_DATA) != 0));
+             ((collection_src->id.flag & ID_FLAG_EMBEDDED_DATA) != 0));
 
   /* Do not copy collection's preview (same behavior as for objects). */
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO: temp hack. */
@@ -242,7 +242,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
      * anyway... */
     const int cb_flag = ((parent->collection != nullptr &&
                           (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
-                          (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                          (parent->collection->id.flag & ID_FLAG_EMBEDDED_DATA) != 0) ?
                              IDWALK_CB_EMBEDDED_NOT_OWNING :
                              IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
@@ -252,7 +252,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static ID **collection_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
-  if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
+  if ((id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
 
@@ -317,12 +317,12 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
    * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
    */
   if (BLO_read_fileversion_get(reader) > 300) {
-    BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == nullptr);
+    BLI_assert((collection->id.flag & ID_FLAG_EMBEDDED_DATA) != 0 || owner_id == nullptr);
   }
   BLI_assert(owner_id == nullptr || owner_id->lib == collection->id.lib);
-  if (owner_id != nullptr && (collection->id.flag & LIB_EMBEDDED_DATA) == 0) {
+  if (owner_id != nullptr && (collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
     /* This is unfortunate, but currently a lot of existing files (including startup ones) have
-     * missing `LIB_EMBEDDED_DATA` flag.
+     * missing `ID_FLAG_EMBEDDED_DATA` flag.
      *
      * NOTE: Using do_version is not a solution here, since this code will be called before any
      * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
@@ -334,7 +334,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
                 collection->id.name,
                 owner_id->name);
     }
-    collection->id.flag |= LIB_EMBEDDED_DATA;
+    collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
   }
 
   memset(&collection->runtime, 0, sizeof(collection->runtime));
@@ -725,7 +725,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
   const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
-  const int id_create_flag = (collection->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
+  const int id_create_flag = (collection->id.tag & ID_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
 
   if (!is_subprocess) {
     BKE_main_id_newptr_and_tag_clear(bmain);
@@ -750,17 +750,17 @@ Collection *BKE_collection_duplicate(Main *bmain,
   if (!is_subprocess) {
     /* `collection_duplicate_recursive` will also tag our 'root' collection, which is not required
      * unless its duplication is a sub-process of another one. */
-    collection_new->id.tag &= ~LIB_TAG_NEW;
+    collection_new->id.tag &= ~ID_TAG_NEW;
 
-    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
+    /* This code will follow into all ID links using an ID tagged with ID_TAG_NEW. */
     BKE_libblock_relink_to_newid(bmain, &collection_new->id, 0);
 
 #ifndef NDEBUG
     /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-      if (id_iter->tag & LIB_TAG_NEW) {
-        BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
+      if (id_iter->tag & ID_TAG_NEW) {
+        BLI_assert((id_iter->tag & ID_TAG_NEW) == 0);
       }
     }
     FOREACH_MAIN_ID_END;
@@ -984,7 +984,7 @@ Collection *BKE_collection_master_add(Scene *scene)
   /* Not an actual datablock, but owned by scene. */
   Collection *master_collection = static_cast<Collection *>(BKE_libblock_alloc_in_lib(
       nullptr, scene->id.lib, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN));
-  master_collection->id.flag |= LIB_EMBEDDED_DATA;
+  master_collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
   master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
@@ -1004,12 +1004,12 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
 {
   if (object->instance_collection) {
     Collection *dup_collection = object->instance_collection;
-    if ((dup_collection->id.tag & LIB_TAG_DOIT) == 0) {
+    if ((dup_collection->id.tag & ID_TAG_DOIT) == 0) {
       /* Cycle already exists in collections, let's prevent further creepiness. */
       return true;
     }
     /* flag the object to identify cyclic dependencies in further dupli collections */
-    dup_collection->id.tag &= ~LIB_TAG_DOIT;
+    dup_collection->id.tag &= ~ID_TAG_DOIT;
 
     if (dup_collection == collection) {
       return true;
@@ -1023,7 +1023,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
     /* un-flag the object, it's allowed to have the same collection multiple times in parallel */
-    dup_collection->id.tag |= LIB_TAG_DOIT;
+    dup_collection->id.tag |= ID_TAG_DOIT;
   }
 
   return false;
@@ -1032,7 +1032,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
 bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection *collection)
 {
   /* first flag all collections */
-  BKE_main_id_tag_listbase(&bmain->collections, LIB_TAG_DOIT, true);
+  BKE_main_id_tag_listbase(&bmain->collections, ID_TAG_DOIT, true);
 
   return collection_object_cyclic_check_internal(object, collection);
 }
@@ -1075,7 +1075,7 @@ bool BKE_collection_has_object_recursive_instanced(Collection *collection, Objec
 bool BKE_collection_has_object_recursive_instanced_orig_id(Collection *collection_eval,
                                                            Object *object_eval)
 {
-  BLI_assert(collection_eval->id.tag & LIB_TAG_COPIED_ON_EVAL);
+  BLI_assert(collection_eval->id.tag & ID_TAG_COPIED_ON_EVAL);
   const ID *ob_orig = DEG_get_original_id(&object_eval->id);
   const ListBase objects = BKE_collection_object_cache_instanced_get(collection_eval);
   LISTBASE_FOREACH (Base *, base, &objects) {
@@ -1444,7 +1444,7 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     return false;
   }
 
-  const int id_create_flag = (collection->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
+  const int id_create_flag = (collection->id.tag & ID_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
   if (!collection_object_add(bmain, collection, ob, nullptr, id_create_flag, true)) {
     return false;
   }
@@ -1511,7 +1511,7 @@ bool BKE_collection_object_remove(Main *bmain,
     return false;
   }
 
-  const int id_create_flag = (collection->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
+  const int id_create_flag = (collection->id.tag & ID_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
   if (!collection_object_remove(bmain, collection, ob, id_create_flag, free_us)) {
     return false;
   }
@@ -1562,7 +1562,7 @@ static bool scene_collections_object_remove(
     Main *bmain, Scene *scene, Object *ob, const bool free_us, Collection *collection_skip)
 {
   bool removed = false;
-  const int id_create_flag = (scene->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
+  const int id_create_flag = (scene->id.tag & ID_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
 
   /* If given object is removed from all collections in given scene, then it can also be safely
    * removed from rigidbody world for given scene. */
@@ -1942,7 +1942,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
 
     /* Can happen when remapping data partially out-of-Main (during advanced ID management
      * operations like lib-override resync e.g.). */
-    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL)) != 0) {
+    if ((child->collection->id.tag & (ID_TAG_NO_MAIN | ID_TAG_COPIED_ON_EVAL)) != 0) {
       continue;
     }
 
@@ -1966,7 +1966,7 @@ static void collection_parents_rebuild_recursive(Collection *collection)
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     /* See comment above in `BKE_collection_parent_relations_rebuild`. */
-    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL)) != 0) {
+    if ((child->collection->id.tag & (ID_TAG_NO_MAIN | ID_TAG_COPIED_ON_EVAL)) != 0) {
       continue;
     }
     collection_parents_rebuild_recursive(child->collection);

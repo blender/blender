@@ -279,7 +279,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;
           if (ID_IS_LINKED(collection)) {
-            collection->id.tag |= LIB_TAG_INDIRECT;
+            collection->id.tag |= ID_TAG_INDIRECT;
           }
           collections[layer] = collection;
 
@@ -5434,7 +5434,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       bNodeTree *ntree = blender::bke::ntreeFromID(id);
       if (ntree) {
-        ntree->id.flag |= LIB_EMBEDDED_DATA;
+        ntree->id.flag |= ID_FLAG_EMBEDDED_DATA;
       }
     }
     FOREACH_MAIN_ID_END;
@@ -5451,7 +5451,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Older files do not have a master collection, which is then added through
        * `BKE_collection_master_add()`, so everything is fine. */
       if (scene->master_collection != nullptr) {
-        scene->master_collection->id.flag |= LIB_EMBEDDED_DATA;
+        scene->master_collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
       }
     }
   }

@@ -316,7 +316,7 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   Scene *scene_src = nullptr;
   /* Find the scene we pasted that contains the strips. It should be tagged. */
   LISTBASE_FOREACH (Scene *, scene_iter, &bmain_src->scenes) {
-    if (scene_iter->id.flag & LIB_CLIPBOARD_MARK) {
+    if (scene_iter->id.flag & ID_FLAG_CLIPBOARD_MARK) {
       scene_src = scene_iter;
       break;
     }

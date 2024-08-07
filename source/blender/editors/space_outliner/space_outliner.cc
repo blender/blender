@@ -485,7 +485,7 @@ static void outliner_foreach_id(SpaceLink *space_link, LibraryForeachIDData *dat
       /* NOTE: Outliner ID pointers are never `IDWALK_CB_DIRECT_WEAK_LINK`, they should never
        * enforce keeping a reference to some linked data. */
       const int cb_flag = (tselem->id != nullptr && allow_pointer_access &&
-                           (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
+                           (tselem->id->flag & ID_FLAG_EMBEDDED_DATA) != 0) ?
                               IDWALK_CB_EMBEDDED_NOT_OWNING :
                               IDWALK_CB_NOP;
       BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, cb_flag);

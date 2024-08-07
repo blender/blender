@@ -576,7 +576,7 @@ static bool bake_object_check(const Scene *scene,
         continue;
       }
 
-      image->id.tag |= LIB_TAG_DOIT;
+      image->id.tag |= ID_TAG_DOIT;
     }
   }
 
@@ -650,7 +650,7 @@ static bool bake_objects_check(Main *bmain,
                                const eBakeTarget target)
 {
   /* error handling and tag (in case multiple materials share the same image) */
-  BKE_main_id_tag_idcode(bmain, ID_IM, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_idcode(bmain, ID_IM, ID_TAG_DOIT, false);
 
   if (is_selected_to_active) {
     int tot_objects = 0;
@@ -701,7 +701,7 @@ static bool bake_objects_check(Main *bmain,
 static void bake_targets_clear(Main *bmain, const bool is_tangent)
 {
   LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    if ((image->id.tag & LIB_TAG_DOIT) != 0) {
+    if ((image->id.tag & ID_TAG_DOIT) != 0) {
       RE_bake_ibuf_clear(image, is_tangent);
     }
   }
@@ -751,7 +751,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
       MEM_callocN(sizeof(Image *) * targets->materials_num, __func__));
 
   /* Error handling and tag (in case multiple materials share the same image). */
-  BKE_main_id_tag_idcode(bkr->main, ID_IM, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_idcode(bkr->main, ID_IM, ID_TAG_DOIT, false);
 
   targets->images = nullptr;
 
@@ -763,7 +763,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
 
     /* Some materials have no image, we just ignore those cases.
      * Also setup each image only once. */
-    if (image && !(image->id.tag & LIB_TAG_DOIT)) {
+    if (image && !(image->id.tag & ID_TAG_DOIT)) {
       LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
         /* Add bake image. */
         targets->images = static_cast<BakeImage *>(
@@ -773,7 +773,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
         targets->images_num++;
       }
 
-      image->id.tag |= LIB_TAG_DOIT;
+      image->id.tag |= ID_TAG_DOIT;
     }
   }
 

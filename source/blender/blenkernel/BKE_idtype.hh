@@ -59,7 +59,7 @@ enum {
    *
    * \note The implementation of the expected behaviors related to this characteristic is somewhat
    * fragile and inconsistent currently. In most case though, code is expected to ensure that such
-   * IDs have at least an 'extra user' (#LIB_TAG_EXTRAUSER).
+   * IDs have at least an 'extra user' (#ID_TAG_EXTRAUSER).
    */
   IDTYPE_FLAGS_NEVER_UNUSED = 1 << 6,
 };

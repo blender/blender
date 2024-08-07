@@ -853,7 +853,7 @@ enum {
   NTREE_VIEWER_BORDER = 1 << 4,
   /**
    * Tree is localized copy, free when deleting node groups.
-   * NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead.
+   * NOTE: DEPRECATED, use (id->tag & ID_TAG_LOCALIZED) instead.
    */
   // NTREE_IS_LOCALIZED = 1 << 5,
 };

@@ -1580,10 +1580,10 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 int UI_icon_from_library(const ID *id)
 {
   if (ID_IS_LINKED(id)) {
-    if (id->tag & LIB_TAG_MISSING) {
+    if (id->tag & ID_TAG_MISSING) {
       return ICON_LIBRARY_DATA_BROKEN;
     }
-    if (id->tag & LIB_TAG_INDIRECT) {
+    if (id->tag & ID_TAG_INDIRECT) {
       return ICON_LIBRARY_DATA_INDIRECT;
     }
     return ICON_LIBRARY_DATA_DIRECT;

@@ -156,17 +156,17 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
      * For example, BKE_mesh_new_from_object() called on an evaluated
      * object will cause such situation.
      */
-    if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
+    if (force_user_refcount || (old_id->tag & ID_TAG_NO_MAIN) == 0) {
       id_us_min(old_id);
     }
-    if (new_id != nullptr && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
-      /* Do not handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
+    if (new_id != nullptr && (force_user_refcount || (new_id->tag & ID_TAG_NO_MAIN) == 0)) {
+      /* Do not handle ID_TAG_INDIRECT/ID_TAG_EXTERN here. */
       id_us_plus_no_lib(new_id);
     }
   }
   else if (cb_flag & IDWALK_CB_USER_ONE) {
     id_us_ensure_real(new_id);
-    /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
+    /* We cannot affect old_id->us directly, ID_TAG_EXTRAUSER(_SET)
      * are assumed to be set as needed, that extra user is processed in final handling. */
   }
 }
@@ -190,7 +190,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   /* Those asserts ensure the general sanity of ID tags regarding 'embedded' ID data (root
    * node-trees and co). */
   BLI_assert(id_owner == id_remap_data->id_owner);
-  BLI_assert(id_self == id_owner || (id_self->flag & LIB_EMBEDDED_DATA) != 0);
+  BLI_assert(id_self == id_owner || (id_self->flag & ID_FLAG_EMBEDDED_DATA) != 0);
 
   /* Early exit when id pointer isn't set. */
   if (*id_p == nullptr) {
@@ -436,7 +436,7 @@ static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, IDRemap *id_
     /* XXX We may not want to always 'transfer' fake-user from old to new id...
      *     Think for now it's desired behavior though,
      *     we can always add an option (flag) to control this later if needed. */
-    if (old_id != nullptr && (old_id->flag & LIB_FAKEUSER) && new_id != nullptr) {
+    if (old_id != nullptr && (old_id->flag & ID_FLAG_FAKEUSER) && new_id != nullptr) {
       id_fake_user_clear(old_id);
       id_fake_user_set(new_id);
     }
@@ -444,12 +444,12 @@ static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, IDRemap *id_
     id_us_clear_real(old_id);
   }
 
-  if (new_id != nullptr && (new_id->tag & LIB_TAG_INDIRECT) &&
+  if (new_id != nullptr && (new_id->tag & ID_TAG_INDIRECT) &&
       (new_id->runtime.remap.status & ID_REMAP_IS_LINKED_DIRECT))
   {
-    new_id->tag &= ~LIB_TAG_INDIRECT;
-    new_id->flag &= ~LIB_INDIRECT_WEAK_LINK;
-    new_id->tag |= LIB_TAG_EXTERN;
+    new_id->tag &= ~ID_TAG_INDIRECT;
+    new_id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
+    new_id->tag |= ID_TAG_EXTERN;
   }
 }
 
@@ -514,7 +514,7 @@ static void libblock_remap_data(
 #ifdef DEBUG_PRINT
     printf("\tchecking id %s (%p, %p)\n", id->name, id, id->lib);
 #endif
-    id_remap_data.id_owner = (id->flag & LIB_EMBEDDED_DATA) ? BKE_id_owner_get(id) : id;
+    id_remap_data.id_owner = (id->flag & ID_FLAG_EMBEDDED_DATA) ? BKE_id_owner_get(id) : id;
     libblock_remap_data_preprocess(id_remap_data.id_owner, remap_type, id_remapper);
     BKE_library_foreach_ID_link(
         bmain, id, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);
@@ -570,7 +570,7 @@ static void libblock_remap_foreach_idpair(ID *old_id, ID *new_id, Main *bmain, i
     /* If old_id was used by some ugly 'user_one' stuff (like Image or Clip editors...), and user
      * count has actually been incremented for that, we have to decrease once more its user
      * count... unless we had to skip some 'user_one' cases. */
-    if ((old_id->tag & LIB_TAG_EXTRAUSER_SET) &&
+    if ((old_id->tag & ID_TAG_EXTRAUSER_SET) &&
         !(old_id->runtime.remap.status & ID_REMAP_IS_USER_ONE_SKIPPED))
     {
       id_us_clear_real(old_id);
@@ -592,9 +592,9 @@ static void libblock_remap_foreach_idpair(ID *old_id, ID *new_id, Main *bmain, i
   const int skipped_direct = old_id->runtime.remap.skipped_direct;
   if (skipped_direct == 0) {
     /* old_id is assumed to not be used directly anymore... */
-    if (old_id->lib && (old_id->tag & LIB_TAG_EXTERN)) {
-      old_id->tag &= ~LIB_TAG_EXTERN;
-      old_id->tag |= LIB_TAG_INDIRECT;
+    if (old_id->lib && (old_id->tag & ID_TAG_EXTERN)) {
+      old_id->tag &= ~ID_TAG_EXTERN;
+      old_id->tag |= ID_TAG_INDIRECT;
     }
   }
 
@@ -898,7 +898,7 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
       relink_data->id_remapper.add(id, id->newid);
       id = id->newid;
     }
-    if (id->tag & LIB_TAG_NEW) {
+    if (id->tag & ID_TAG_NEW) {
       libblock_relink_to_newid_prepare_data(bmain, id, relink_data);
     }
   }
@@ -913,7 +913,7 @@ static void libblock_relink_to_newid_prepare_data(Main *bmain,
     return;
   }
 
-  id->tag &= ~LIB_TAG_NEW;
+  id->tag &= ~ID_TAG_NEW;
   relink_data->ids.append(id);
   BKE_library_foreach_ID_link(bmain, id, id_relink_to_newid_looper, relink_data, 0);
 }

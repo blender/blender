@@ -437,13 +437,13 @@ static void versions_gpencil_add_main(Main *bmain, ListBase *lb, ID *id, const c
 {
   BLI_addtail(lb, id);
   id->us = 1;
-  id->flag = LIB_FAKEUSER;
+  id->flag = ID_FLAG_FAKEUSER;
   *((short *)id->name) = ID_GD_LEGACY;
 
   BKE_id_new_name_validate(bmain, lb, id, name, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
 
-  if ((id->tag & LIB_TAG_TEMP_MAIN) == 0) {
+  if ((id->tag & ID_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uid_ensure(id);
   }
 

@@ -255,7 +255,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
   bool skip = true;
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    ob->id.tag &= ~LIB_TAG_DOIT;
+    ob->id.tag &= ~ID_TAG_DOIT;
     ob = poseAnim_object_get(ob);
 
     /* Ensure validity of the settings from the context. */
@@ -264,7 +264,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
     }
 
     if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
-      ob->id.tag |= LIB_TAG_DOIT;
+      ob->id.tag |= ID_TAG_DOIT;
       skip = false;
     }
   }
@@ -285,7 +285,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
     bPoseChannel *pchan = pfl->pchan;
 
-    if ((pfl->ob->id.tag & LIB_TAG_DOIT) == 0) {
+    if ((pfl->ob->id.tag & ID_TAG_DOIT) == 0) {
       continue;
     }
 
@@ -301,7 +301,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
    * - do not calculate unless there are paths already to update...
    */
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    if (ob->id.tag & LIB_TAG_DOIT) {
+    if (ob->id.tag & ID_TAG_DOIT) {
       if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
         // ED_pose_clear_paths(C, ob); /* XXX for now, don't need to clear. */
         /* TODO(sergey): Should ensure we can use more narrow update range here. */

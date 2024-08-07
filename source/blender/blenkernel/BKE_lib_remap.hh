@@ -199,9 +199,9 @@ void BKE_libblock_relink_multiple(Main *bmain,
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
- * in the dependency tree of IDs for all data-blocks tagged with `LIB_TAG_NEW`.
+ * in the dependency tree of IDs for all data-blocks tagged with `ID_TAG_NEW`.
  *
- * \note `LIB_TAG_NEW` is cleared.
+ * \note `ID_TAG_NEW` is cleared.
  *
  * Very specific usage, not sure we'll keep it on the long run,
  * currently only used in Object/Collection duplication code.

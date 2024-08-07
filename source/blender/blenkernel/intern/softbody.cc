@@ -3172,7 +3172,7 @@ void sbFree(Object *ob)
     return;
   }
 
-  const bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0;
+  const bool is_orig = (ob->id.tag & ID_TAG_COPIED_ON_EVAL) == 0;
 
   free_softbody_intern(sb);
 

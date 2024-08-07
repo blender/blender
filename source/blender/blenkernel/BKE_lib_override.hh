@@ -128,7 +128,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain, ID *reference_id, bool 
  * \note By default, it will only remap newly created local overriding data-blocks between
  * themselves, to avoid 'enforcing' those overrides into all other usages of the linked data in
  * main. You can add more local IDs to be remapped to use new overriding ones by setting their
- * LIB_TAG_DOIT tag.
+ * ID_TAG_DOIT tag.
  *
  * \param owner_library: the library in which the overrides should be created. Besides versioning
  * and resync code path, this should always be NULL (i.e. the local .blend file).
@@ -166,7 +166,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
  * \note Currently it only does special things if given \a id_root is an object or collection, more
  * specific behaviors may be added in the future for other ID types.
  *
- * \note It will override all IDs tagged with \a LIB_TAG_DOIT, and it does not clear that tag at
+ * \note It will override all IDs tagged with \a ID_TAG_DOIT, and it does not clear that tag at
  * its beginning, so caller code can add extra data-blocks to be overridden as well.
  *
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
@@ -280,7 +280,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
  * Advanced 'smart' function to delete library overrides (including their existing override
  * hierarchy) and remap their usages to their linked reference IDs.
  *
- * \note All IDs tagged with #LIB_TAG_DOIT will be deleted.
+ * \note All IDs tagged with #ID_TAG_DOIT will be deleted.
  *
  * \param id_root: The root liboverride ID to delete.
  */
@@ -416,7 +416,7 @@ void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports);
  * Check that status of local data-block is still valid against current reference one.
  *
  * It means that all overridable, but not overridden, properties' local values must be equal to
- * reference ones. Clears #LIB_TAG_OVERRIDE_OK if they do not.
+ * reference ones. Clears #ID_TAG_LIBOVERRIDE_REFOK if they do not.
  *
  * This is typically used to detect whether some property has been changed in local and a new
  * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
@@ -428,7 +428,7 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local);
  * Check that status of reference data-block is still valid against current local one.
  *
  * It means that all non-overridden properties' local values must be equal to reference ones.
- * Clears LIB_TAG_OVERRIDE_OK if they do not.
+ * Clears ID_TAG_LIBOVERRIDE_REFOK if they do not.
  *
  * This is typically used to detect whether some reference has changed and local
  * needs to be updated against it.

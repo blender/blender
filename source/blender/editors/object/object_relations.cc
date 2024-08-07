@@ -2060,7 +2060,7 @@ static int tag_localizable_looper(LibraryIDLinkCallbackData *cb_data)
 {
   ID **id_pointer = cb_data->id_pointer;
   if (*id_pointer) {
-    (*id_pointer)->tag &= ~LIB_TAG_DOIT;
+    (*id_pointer)->tag &= ~ID_TAG_DOIT;
   }
 
   return IDWALK_RET_NOP;
@@ -2070,18 +2070,18 @@ static void tag_localizable_objects(bContext *C, const int mode)
 {
   Main *bmain = CTX_data_main(C);
 
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
-  /* Set LIB_TAG_DOIT flag for all selected objects, so next we can check whether
+  /* Set ID_TAG_DOIT flag for all selected objects, so next we can check whether
    * object is gonna to become local or not.
    */
   CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
-    object->id.tag |= LIB_TAG_DOIT;
+    object->id.tag |= ID_TAG_DOIT;
 
     /* If obdata is also going to become local, mark it as such too. */
     if (mode == MAKE_LOCAL_SELECT_OBDATA && object->data) {
       ID *data_id = (ID *)object->data;
-      data_id->tag |= LIB_TAG_DOIT;
+      data_id->tag |= ID_TAG_DOIT;
     }
   }
   CTX_DATA_END;
@@ -2095,13 +2095,13 @@ static void tag_localizable_objects(bContext *C, const int mode)
   for (Object *object = static_cast<Object *>(bmain->objects.first); object;
        object = static_cast<Object *>(object->id.next))
   {
-    if ((object->id.tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(object)) {
+    if ((object->id.tag & ID_TAG_DOIT) == 0 && ID_IS_LINKED(object)) {
       BKE_library_foreach_ID_link(
           nullptr, &object->id, tag_localizable_looper, nullptr, IDWALK_READONLY);
     }
     if (object->data) {
       ID *data_id = (ID *)object->data;
-      if ((data_id->tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(data_id)) {
+      if ((data_id->tag & ID_TAG_DOIT) == 0 && ID_IS_LINKED(data_id)) {
         BKE_library_foreach_ID_link(
             nullptr, data_id, tag_localizable_looper, nullptr, IDWALK_READONLY);
       }
@@ -2148,7 +2148,7 @@ static void make_local_animdata_tag_strips(ListBase *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->act) {
-      strip->act->id.tag &= ~LIB_TAG_PRE_EXISTING;
+      strip->act->id.tag &= ~ID_TAG_PRE_EXISTING;
     }
 
     make_local_animdata_tag_strips(&strip->strips);
@@ -2161,10 +2161,10 @@ static void make_local_animdata_tag(AnimData *adt)
   if (adt) {
     /* Actions - Active and Temp */
     if (adt->action) {
-      adt->action->id.tag &= ~LIB_TAG_PRE_EXISTING;
+      adt->action->id.tag &= ~ID_TAG_PRE_EXISTING;
     }
     if (adt->tmpact) {
-      adt->tmpact->id.tag &= ~LIB_TAG_PRE_EXISTING;
+      adt->tmpact->id.tag &= ~ID_TAG_PRE_EXISTING;
     }
 
     /* Drivers */
@@ -2180,7 +2180,7 @@ static void make_local_animdata_tag(AnimData *adt)
 static void make_local_material_tag(Material *ma)
 {
   if (ma) {
-    ma->id.tag &= ~LIB_TAG_PRE_EXISTING;
+    ma->id.tag &= ~ID_TAG_PRE_EXISTING;
     make_local_animdata_tag(BKE_animdata_from_id(&ma->id));
 
     /* About node-trees: root one is made local together with material,
@@ -2195,13 +2195,13 @@ static int make_local_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "type");
   int a;
 
-  /* NOTE: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
+  /* NOTE: we (ab)use ID_TAG_PRE_EXISTING to cherry pick which ID to make local... */
   if (mode == MAKE_LOCAL_ALL) {
     const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Collection *collection = CTX_data_collection(C);
 
-    BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+    BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
     /* De-select so the user can differentiate newly instanced from existing objects. */
     BKE_view_layer_base_deselect_all(scene, view_layer);
@@ -2213,18 +2213,18 @@ static int make_local_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+    BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
     tag_localizable_objects(C, mode);
 
     CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-      if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
+      if ((ob->id.tag & ID_TAG_DOIT) == 0) {
         continue;
       }
 
-      ob->id.tag &= ~LIB_TAG_PRE_EXISTING;
+      ob->id.tag &= ~ID_TAG_PRE_EXISTING;
       make_local_animdata_tag(BKE_animdata_from_id(&ob->id));
       LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-        psys->part->id.tag &= ~LIB_TAG_PRE_EXISTING;
+        psys->part->id.tag &= ~ID_TAG_PRE_EXISTING;
       }
 
       if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
@@ -2250,7 +2250,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
           ob->data != nullptr)
       {
         ID *ob_data = static_cast<ID *>(ob->data);
-        ob_data->tag &= ~LIB_TAG_PRE_EXISTING;
+        ob_data->tag &= ~ID_TAG_PRE_EXISTING;
         make_local_animdata_tag(BKE_animdata_from_id(ob_data));
       }
     }
@@ -2417,7 +2417,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
 
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
   /* For the time being, replace selected linked objects by their overrides in all collections.
    * While this may not be the absolute best behavior in all cases, in most common one this should
@@ -2432,7 +2432,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
                             POINTER_FROM_UINT(coll_ob_iter->ob->id.session_uid)))
         {
           /* Tag for remapping when creating overrides. */
-          coll_iter->id.tag |= LIB_TAG_DOIT;
+          coll_iter->id.tag |= ID_TAG_DOIT;
           break;
         }
       }

@@ -492,7 +492,7 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
     return;
   }
-  if (id->tag & LIB_TAG_INDIRECT) {
+  if (id->tag & ID_TAG_INDIRECT) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
     return;
   }
@@ -504,17 +504,17 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
     return;
   }
   if (te->idcode == ID_WS) {
-    BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_PRE_EXISTING);
-    if (id->tag & LIB_TAG_PRE_EXISTING) {
+    BKE_workspace_id_tag_all_visible(bmain, ID_TAG_PRE_EXISTING);
+    if (id->tag & ID_TAG_PRE_EXISTING) {
       BKE_reportf(
           reports, RPT_WARNING, "Cannot delete currently visible workspace id '%s'", id->name);
-      BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_PRE_EXISTING, false);
+      BKE_main_id_tag_idcode(bmain, ID_WS, ID_TAG_PRE_EXISTING, false);
       return;
     }
-    BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_PRE_EXISTING, false);
+    BKE_main_id_tag_idcode(bmain, ID_WS, ID_TAG_PRE_EXISTING, false);
   }
 
-  id->tag |= LIB_TAG_DOIT;
+  id->tag |= ID_TAG_DOIT;
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
@@ -575,19 +575,19 @@ static int outliner_id_delete_invoke(bContext *C, wmOperator *op, const wmEvent 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   int id_tagged_num = 0;
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     if ((id_tagged_num += outliner_id_delete_tag(C, op->reports, te, fmval)) != 0) {
       break;
     }
   }
   if (id_tagged_num == 0) {
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
     return OPERATOR_CANCELLED;
   }
 
   BKE_id_multi_tagged_delete(bmain);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
   return OPERATOR_FINISHED;
 }
 
@@ -2292,7 +2292,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   data.do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
 
   /* Tag all IDs to delete. */
-  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, data);
+  BKE_lib_query_unused_ids_tag(bmain, ID_TAG_DOIT, data);
 
   if (data.num_total[INDEX_ID_NULL] == 0) {
     BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");

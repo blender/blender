@@ -1193,7 +1193,7 @@ static void setup_app_data(bContext *C,
     ID *id_iter;
     int missing_linked_ids_num = 0;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-      if (ID_IS_LINKED(id_iter) && (id_iter->tag & LIB_TAG_MISSING)) {
+      if (ID_IS_LINKED(id_iter) && (id_iter->tag & ID_TAG_MISSING)) {
         missing_linked_ids_num++;
         BLO_reportf_wrap(reports,
                          RPT_INFO,
@@ -1711,9 +1711,9 @@ void PartialWriteContext::preempt_session_uid(ID *ctx_id, uint session_uid)
               "Non-matching IDs sharing the same session UID in the partial write context.");
     BKE_main_idmap_remove_id(this->bmain.id_map, matching_ctx_id);
     /* FIXME: Allow #BKE_lib_libblock_session_uid_renew to work with temp IDs? */
-    matching_ctx_id->tag &= ~LIB_TAG_TEMP_MAIN;
+    matching_ctx_id->tag &= ~ID_TAG_TEMP_MAIN;
     BKE_lib_libblock_session_uid_renew(matching_ctx_id);
-    matching_ctx_id->tag |= LIB_TAG_TEMP_MAIN;
+    matching_ctx_id->tag |= ID_TAG_TEMP_MAIN;
     BKE_main_idmap_insert_id(this->bmain.id_map, matching_ctx_id);
     BLI_assert(BKE_main_idmap_lookup_uid(this->bmain.id_map, session_uid) == nullptr);
   }
@@ -1736,7 +1736,7 @@ void PartialWriteContext::process_added_id(ID *ctx_id,
   }
 
   if (set_clipboard_mark) {
-    ctx_id->flag |= LIB_CLIPBOARD_MARK;
+    ctx_id->flag |= ID_FLAG_CLIPBOARD_MARK;
   }
 }
 
@@ -1750,7 +1750,7 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
                                    nullptr,
                                    nullptr,
                                    (LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT));
-  ctx_root_id->tag |= LIB_TAG_TEMP_MAIN;
+  ctx_root_id->tag |= ID_TAG_TEMP_MAIN;
   if (regenerate_session_uid) {
     /* Calling #BKE_lib_libblock_session_uid_renew is not needed here, copying already generated a
      * new one. */
@@ -1801,7 +1801,7 @@ Library *PartialWriteContext::ensure_library(blender::StringRefNull library_abso
     const char *library_name = BLI_path_basename(library_absolute_path.c_str());
     ctx_lib = static_cast<Library *>(
         BKE_id_new_in_lib(&this->bmain, nullptr, ID_LI, library_name));
-    ctx_lib->id.tag |= LIB_TAG_TEMP_MAIN;
+    ctx_lib->id.tag |= ID_TAG_TEMP_MAIN;
     id_us_min(&ctx_lib->id);
     this->libraries_map_.add(library_absolute_path, ctx_lib);
   }
@@ -1826,7 +1826,7 @@ ID *PartialWriteContext::id_add(
   UNUSED_VARS_NDEBUG(add_dependencies, clear_dependencies, duplicate_dependencies);
 
   /* Do not directly add an embedded ID. Add its owner instead. */
-  if (id->flag & LIB_EMBEDDED_DATA) {
+  if (id->flag & ID_FLAG_EMBEDDED_DATA) {
     id = BKE_id_owner_get(const_cast<ID *>(id), true);
   }
 
@@ -1982,7 +1982,7 @@ ID *PartialWriteContext::id_create(const short id_type,
   }
   ID *ctx_id = static_cast<ID *>(
       BKE_id_new_in_lib(&this->bmain, ctx_library, id_type, id_name.c_str()));
-  ctx_id->tag |= LIB_TAG_TEMP_MAIN;
+  ctx_id->tag |= ID_TAG_TEMP_MAIN;
   id_us_min(ctx_id);
   this->process_added_id(ctx_id, options.operations);
   /* See function doc about why handling of #matching_uid_map_ can be skipped here. */
@@ -2012,7 +2012,7 @@ void PartialWriteContext::remove_unused(const bool clear_extra_user)
     }
     FOREACH_MAIN_ID_END;
   }
-  BKE_lib_query_unused_ids_tag(&this->bmain, LIB_TAG_DOIT, parameters);
+  BKE_lib_query_unused_ids_tag(&this->bmain, ID_TAG_DOIT, parameters);
 
   CLOG_INFO(&LOG_PARTIALWRITE,
             3,
@@ -2020,7 +2020,7 @@ void PartialWriteContext::remove_unused(const bool clear_extra_user)
             parameters.num_total[INDEX_ID_NULL]);
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (&this->bmain, id_iter) {
-    if ((id_iter->tag & LIB_TAG_DOIT) != 0) {
+    if ((id_iter->tag & ID_TAG_DOIT) != 0) {
       BKE_main_idmap_remove_id(matching_uid_map_, id_iter);
     }
   }

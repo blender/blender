@@ -24,8 +24,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports);
 bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports);
 
 /**
- * Check that the `LIB_EMBEDDED_DATA_LIB_OVERRIDE` flag for embedded IDs actually matches reality
- * of embedded IDs being used by a liboverride ID.
+ * Check that the `ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE` flag for embedded IDs actually matches
+ * reality of embedded IDs being used by a liboverride ID.
  *
  * This is needed because embedded IDs did not get their flag properly cleared when runtime data
  * was split in `ID.tag`, which can create crashing situations in some rare cases, see #117795.
@@ -33,8 +33,8 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports);
 void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList *reports);
 
 /**
- * Check that the `LIB_EMBEDDED_DATA` flag is correctly set for embedded IDs, and not for any Main
- * ID.
+ * Check that the `ID_FLAG_EMBEDDED_DATA` flag is correctly set for embedded IDs, and not for any
+ * Main ID.
  *
  * NOTE: It is unknown why/how this can happen, but there are some files out there that have e.g.
  * Objects flagged as embedded data... See e.g. the `(Anim) Hero p23 for 2.blend` file from our

@@ -620,8 +620,8 @@ static blender::Vector<Base *> do_pose_tag_select_op_prepare(const ViewContext *
       Bone *bone = pchan->bone;
       bone->flag &= ~BONE_DONE;
     }
-    arm->id.tag |= LIB_TAG_DOIT;
-    ob->id.tag &= ~LIB_TAG_DOIT;
+    arm->id.tag |= ID_TAG_DOIT;
+    ob->id.tag &= ~ID_TAG_DOIT;
     bases.append(base);
   };
 
@@ -668,8 +668,8 @@ static bool do_pose_tag_select_op_exec(blender::MutableSpan<Base *> bases, const
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     /* Don't handle twice. */
-    if (arm->id.tag & LIB_TAG_DOIT) {
-      arm->id.tag &= ~LIB_TAG_DOIT;
+    if (arm->id.tag & ID_TAG_DOIT) {
+      arm->id.tag &= ~ID_TAG_DOIT;
     }
     else {
       continue;
@@ -4069,7 +4069,7 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
 
   for (Base *base : bases) {
     Object *obedit = base->object;
-    obedit->id.tag &= ~LIB_TAG_DOIT;
+    obedit->id.tag &= ~ID_TAG_DOIT;
 
     bArmature *arm = static_cast<bArmature *>(obedit->data);
     ED_armature_ebone_listbase_temp_clear(arm->edbo);
@@ -4086,14 +4086,14 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
       EditBone *ebone;
       Base *base_edit = ED_armature_base_and_ebone_from_select_buffer(bases, select_id, &ebone);
       ebone->temp.i |= select_id & BONESEL_ANY;
-      base_edit->object->id.tag |= LIB_TAG_DOIT;
+      base_edit->object->id.tag |= ID_TAG_DOIT;
     }
   }
 
   for (Base *base : bases) {
     Object *obedit = base->object;
-    if (obedit->id.tag & LIB_TAG_DOIT) {
-      obedit->id.tag &= ~LIB_TAG_DOIT;
+    if (obedit->id.tag & ID_TAG_DOIT) {
+      obedit->id.tag &= ~ID_TAG_DOIT;
       changed |= ED_armature_edit_select_op_from_tagged(static_cast<bArmature *>(obedit->data),
                                                         sel_op);
     }
@@ -4138,7 +4138,7 @@ static bool do_object_box_select(bContext *C,
   const int hits = view3d_opengl_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(vc->view_layer)) {
-    base->object->id.tag &= ~LIB_TAG_DOIT;
+    base->object->id.tag &= ~ID_TAG_DOIT;
   }
 
   blender::Vector<Base *> bases;
@@ -4171,14 +4171,14 @@ static bool do_object_box_select(bContext *C,
     bPoseChannel *pchan_dummy;
     Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, buf_iter->id, &pchan_dummy);
     if (base != nullptr) {
-      base->object->id.tag |= LIB_TAG_DOIT;
+      base->object->id.tag |= ID_TAG_DOIT;
     }
   }
 
   for (Base *base = static_cast<Base *>(object_bases->first); base && hits; base = base->next) {
     if (BASE_SELECTABLE(v3d, base)) {
       const bool is_select = base->flag & BASE_SELECTED;
-      const bool is_inside = base->object->id.tag & LIB_TAG_DOIT;
+      const bool is_inside = base->object->id.tag & ID_TAG_DOIT;
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
         blender::ed::object::base_select(base,
@@ -4239,7 +4239,7 @@ static bool do_pose_box_select(bContext *C,
       for (; buf_iter != buf_end; buf_iter++) {
         /* should never fail */
         if (bone != nullptr) {
-          base->object->id.tag |= LIB_TAG_DOIT;
+          base->object->id.tag |= ID_TAG_DOIT;
           bone->flag |= BONE_DONE;
         }
 

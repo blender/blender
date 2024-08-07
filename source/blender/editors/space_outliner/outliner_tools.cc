@@ -944,7 +944,7 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
 {
   if (ob) {
     Main *bmain = CTX_data_main(C);
-    if (ob->id.tag & LIB_TAG_INDIRECT) {
+    if (ob->id.tag & ID_TAG_INDIRECT) {
       BKE_reportf(
           reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", ob->id.name + 2);
       return;
@@ -976,7 +976,7 @@ static void id_local_fn(bContext *C,
                         TreeStoreElem * /*tsep*/,
                         TreeStoreElem *tselem)
 {
-  if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
+  if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & ID_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
     if (BKE_lib_id_make_local(bmain, tselem->id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR)) {
       BKE_id_newptr_and_tag_clear(tselem->id);
@@ -1078,7 +1078,8 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
   ID *id_root_reference = tselem->id;
 
   if (!BKE_idtype_idcode_is_linkable(GS(id_root_reference->name)) ||
-      (id_root_reference->flag & (LIB_EMBEDDED_DATA | LIB_EMBEDDED_DATA_LIB_OVERRIDE)) != 0)
+      (id_root_reference->flag & (ID_FLAG_EMBEDDED_DATA | ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE)) !=
+          0)
   {
     return;
   }
@@ -1181,7 +1182,7 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
         if (ID_IS_LINKED(id_current_hierarchy_root)) {
           /* No local 'anchor' was found for the hierarchy to override, do not proceed, as this
            * would most likely generate invisible/confusing/hard to use and manage overrides. */
-          BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+          BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Invalid anchor ('%s') found, needed to create library override from "
@@ -1200,7 +1201,7 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
       /* If some element in the tree needs to be overridden, but its ID is not overridable,
        * abort. */
       if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_current_hierarchy_root)) {
-        BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+        BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
         BKE_reportf(reports,
                     RPT_WARNING,
                     "Could not create library override from data-block '%s', one of its parents "
@@ -1209,7 +1210,7 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
                     id_current_hierarchy_root->name);
         return;
       }
-      id_current_hierarchy_root->tag |= LIB_TAG_DOIT;
+      id_current_hierarchy_root->tag |= ID_TAG_DOIT;
       id_hierarchy_root_reference = id_current_hierarchy_root;
     }
 
@@ -1222,7 +1223,7 @@ static void id_override_library_create_hierarchy_pre_process(bContext *C,
            id_hierarchy_root_reference->override_library->reference->lib ==
                id_root_reference->lib)))
     {
-      BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+      BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Invalid hierarchy root ('%s') found, needed to create library override from "
@@ -1277,10 +1278,10 @@ static void id_override_library_create_hierarchy(
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
       if (ID_IS_LINKED(id_iter) || ID_IS_OVERRIDE_LIBRARY(id_iter)) {
-        id_iter->tag &= ~LIB_TAG_DOIT;
+        id_iter->tag &= ~ID_TAG_DOIT;
       }
       else {
-        id_iter->tag |= LIB_TAG_DOIT;
+        id_iter->tag |= ID_TAG_DOIT;
       }
     }
     FOREACH_MAIN_ID_END;
@@ -1331,7 +1332,7 @@ static void id_override_library_create_hierarchy(
       }
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(&bmain);
-      BKE_main_id_tag_all(&bmain, LIB_TAG_DOIT, false);
+      BKE_main_id_tag_all(&bmain, ID_TAG_DOIT, false);
     }
     else {
       BLI_assert_unreachable();
@@ -2328,10 +2329,10 @@ static void outliner_batch_delete_object_tag(ReportList *reports,
                                              Scene *scene,
                                              Object *object)
 {
-  if (object->id.tag & LIB_TAG_INDIRECT) {
+  if (object->id.tag & ID_TAG_INDIRECT) {
     BKE_reportf(
         reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", object->id.name + 2);
-    BLI_assert((object->id.tag & LIB_TAG_DOIT) == 0);
+    BLI_assert((object->id.tag & ID_TAG_DOIT) == 0);
   }
   /* FIXME: This code checking object user-count won't work as expected if a same object belongs to
    * more than one collection in the scene. */
@@ -2344,10 +2345,10 @@ static void outliner_batch_delete_object_tag(ReportList *reports,
                 "one user",
                 object->id.name + 2,
                 scene->id.name + 2);
-    BLI_assert((object->id.tag & LIB_TAG_DOIT) == 0);
+    BLI_assert((object->id.tag & ID_TAG_DOIT) == 0);
   }
 
-  object->id.tag |= LIB_TAG_DOIT;
+  object->id.tag |= ID_TAG_DOIT;
 }
 
 static void outliner_batch_delete_object_hierarchy_tag(
@@ -2367,7 +2368,7 @@ static void outliner_batch_delete_object_hierarchy_tag(
     Object *parent_ob_iter;
     for (parent_ob_iter = base_iter->object->parent;
          (parent_ob_iter != nullptr && parent_ob_iter != object &&
-          (parent_ob_iter->id.tag & LIB_TAG_DOIT) == 0);
+          (parent_ob_iter->id.tag & ID_TAG_DOIT) == 0);
          parent_ob_iter = parent_ob_iter->parent)
     {
       /* pass */
@@ -2381,7 +2382,7 @@ static void outliner_batch_delete_object_hierarchy_tag(
        * practice though. */
       for (parent_ob_iter = base_iter->object;
            (parent_ob_iter != nullptr && parent_ob_iter != object &&
-            (parent_ob_iter->id.tag & LIB_TAG_DOIT) == 0);
+            (parent_ob_iter->id.tag & ID_TAG_DOIT) == 0);
            parent_ob_iter = parent_ob_iter->parent)
       {
         outliner_batch_delete_object_tag(reports, bmain, scene, parent_ob_iter);
@@ -2395,7 +2396,7 @@ static void object_batch_delete_hierarchy_tag_fn(bContext *C,
                                                  Scene *scene,
                                                  Object *ob)
 {
-  if (ob->id.tag & LIB_TAG_DOIT) {
+  if (ob->id.tag & ID_TAG_DOIT) {
     /* Object has already been processed and tagged for removal as part of another parenting
      * hierarchy. */
 #ifndef NDEBUG
@@ -2430,7 +2431,7 @@ static void object_batch_delete_hierarchy_tag_fn(bContext *C,
 static void outliner_batch_delete_object_hierarchy(Main *bmain, Scene *scene)
 {
   LISTBASE_FOREACH (Object *, ob_iter, &bmain->objects) {
-    if ((ob_iter->id.tag & LIB_TAG_DOIT) == 0) {
+    if ((ob_iter->id.tag & ID_TAG_DOIT) == 0) {
       continue;
     }
 
@@ -2440,7 +2441,7 @@ static void outliner_batch_delete_object_hierarchy(Main *bmain, Scene *scene)
      * from another scene) should not be deleted. They also need to be tagged for depsgraph update.
      */
     if (ob_iter->id.us != 0) {
-      ob_iter->id.tag &= ~LIB_TAG_DOIT;
+      ob_iter->id.tag &= ~ID_TAG_DOIT;
       DEG_id_tag_update_ex(bmain, &ob_iter->id, ID_RECALC_BASE_FLAGS);
     }
   }
@@ -2678,7 +2679,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
                          &object_delete_data);
 
   if (delete_hierarchy) {
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
     BKE_view_layer_synced_ensure(scene, view_layer);
 
@@ -2950,7 +2951,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_DELETE: {
       if (idlevel > 0) {
-        BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+        BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
         outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_delete_tag_fn);
         BKE_id_multi_tagged_delete(bmain);
         WM_event_add_notifier(C, NC_OBJECT, nullptr);
@@ -3084,7 +3085,7 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
   eOutlinerLibOpTypes event = (eOutlinerLibOpTypes)RNA_enum_get(op->ptr, "type");
   switch (event) {
     case OL_LIB_DELETE: {
-      BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+      BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
       outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_delete_tag_fn);
       BKE_id_multi_tagged_delete(bmain);
       ED_undo_push(C, "Delete Library");

@@ -243,12 +243,12 @@ static eContextResult screen_ctx_objects_in_mode_unique_data(const bContext *C,
 
   if (obact && (obact->mode != OB_MODE_OBJECT)) {
     FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, obact->type, obact->mode, ob_iter) {
-      ob_iter->id.tag |= LIB_TAG_DOIT;
+      ob_iter->id.tag |= ID_TAG_DOIT;
     }
     FOREACH_OBJECT_IN_MODE_END;
     FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, obact->type, obact->mode, ob_iter) {
-      if (ob_iter->id.tag & LIB_TAG_DOIT) {
-        ob_iter->id.tag &= ~LIB_TAG_DOIT;
+      if (ob_iter->id.tag & ID_TAG_DOIT) {
+        ob_iter->id.tag &= ~ID_TAG_DOIT;
         CTX_data_id_list_add(result, &ob_iter->id);
       }
     }

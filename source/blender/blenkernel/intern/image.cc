@@ -1585,21 +1585,21 @@ void BKE_image_free_all_textures(Main *bmain)
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {
-    ima->id.tag &= ~LIB_TAG_DOIT;
+    ima->id.tag &= ~ID_TAG_DOIT;
   }
 
   for (tex = static_cast<Tex *>(bmain->textures.first); tex;
        tex = static_cast<Tex *>(tex->id.next))
   {
     if (tex->ima) {
-      tex->ima->id.tag |= LIB_TAG_DOIT;
+      tex->ima->id.tag |= ID_TAG_DOIT;
     }
   }
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {
-    if (ima->cache && (ima->id.tag & LIB_TAG_DOIT)) {
+    if (ima->cache && (ima->id.tag & ID_TAG_DOIT)) {
 #ifdef CHECK_FREED_SIZE
       uintptr_t old_size = image_mem_size(ima);
 #endif

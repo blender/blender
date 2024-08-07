@@ -185,7 +185,7 @@ enum {
   /**
    * That code (#BKE_main_collections_parent_relations_rebuild and the like)
    * is called from very low-level places, like e.g ID remapping...
-   * Using a generic tag like #LIB_TAG_DOIT for this is just impossible, we need our very own.
+   * Using a generic tag like #ID_TAG_DOIT for this is just impossible, we need our very own.
    */
   COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
   /**

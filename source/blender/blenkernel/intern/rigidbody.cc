@@ -88,7 +88,7 @@ static void RB_constraint_delete(void * /*con*/) {}
 
 void BKE_rigidbody_free_world(Scene *scene)
 {
-  bool is_orig = (scene->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0;
+  bool is_orig = (scene->id.tag & ID_TAG_COPIED_ON_EVAL) == 0;
   RigidBodyWorld *rbw = scene->rigidbody_world;
   scene->rigidbody_world = nullptr;
 
@@ -145,7 +145,7 @@ void BKE_rigidbody_free_world(Scene *scene)
 
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
 {
-  bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0;
+  bool is_orig = (ob->id.tag & ID_TAG_COPIED_ON_EVAL) == 0;
   RigidBodyOb *rbo = ob->rigidbody_object;
 
   /* sanity check */

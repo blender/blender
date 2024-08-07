@@ -376,7 +376,7 @@ void outliner_collection_delete(
        * or that are used by (linked to...) other linked scene/collection. */
       bool skip = false;
       if (!ID_IS_EDITABLE(collection)) {
-        if (collection->id.tag & LIB_TAG_INDIRECT) {
+        if (collection->id.tag & ID_TAG_INDIRECT) {
           skip = true;
         }
         else {
@@ -387,7 +387,7 @@ void outliner_collection_delete(
               break;
             }
             if (parent->flag & COLLECTION_IS_MASTER) {
-              BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
+              BLI_assert(parent->id.flag & ID_FLAG_EMBEDDED_DATA);
 
               ID *scene_owner = BKE_id_owner_get(&parent->id);
               BLI_assert(scene_owner != nullptr);
@@ -635,7 +635,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
                                                                          scene->master_collection;
   }
   else if (parent != nullptr && (parent->flag & COLLECTION_IS_MASTER) != 0) {
-    BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
+    BLI_assert(parent->id.flag & ID_FLAG_EMBEDDED_DATA);
 
     Scene *scene_owner = reinterpret_cast<Scene *>(BKE_id_owner_get(&parent->id));
     BLI_assert(scene_owner != nullptr);

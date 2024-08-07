@@ -1221,7 +1221,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
   Main *bmain = nullptr;
   BMeshToMeshParams params{};
   params.update_shapekey_indices = true;
-  if (mesh->id.tag & LIB_TAG_NO_MAIN) {
+  if (mesh->id.tag & ID_TAG_NO_MAIN) {
     /* Mesh might be coming from a self-contained source like object.to_mesh(). No need to remap
      * anything in this case. */
   }

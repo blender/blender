@@ -168,11 +168,11 @@ enum {
 
   /** Very similar to #LIB_ID_CREATE_NO_MAIN, and should never be used with it (typically combined
    * with #LIB_ID_CREATE_LOCALIZE or #LIB_ID_COPY_LOCALIZE in fact).
-   * It ensures that IDs created with it will get the #LIB_TAG_LOCALIZED tag, and uses some
+   * It ensures that IDs created with it will get the #ID_TAG_LOCALIZED tag, and uses some
    * specific code in some copy cases (mostly for node trees). */
   LIB_ID_CREATE_LOCAL = 1 << 9,
 
-  /** Create for the depsgraph, when set #LIB_TAG_COPIED_ON_EVAL must be set.
+  /** Create for the depsgraph, when set #ID_TAG_COPIED_ON_EVAL must be set.
    * Internally this is used to share some pointers instead of duplicating them. */
   LIB_ID_COPY_SET_COPIED_ON_WRITE = 1 << 10,
 
@@ -336,7 +336,7 @@ void BKE_libblock_free_data_py(ID *id);
  * At that point, given id is assumed to not be used by any other data-block already
  * (might not be actually true, in case e.g. several inter-related IDs get freed together...).
  * However, they might still be using (referencing) other IDs, this code takes care of it if
- * #LIB_TAG_NO_USER_REFCOUNT is not defined.
+ * #ID_TAG_NO_USER_REFCOUNT is not defined.
  *
  * \param bmain: #Main database containing the freed #ID,
  * can be NULL in case it's a temp ID outside of any #Main.
@@ -378,7 +378,7 @@ void BKE_id_delete(Main *bmain, void *idv) ATTR_NONNULL();
  */
 void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags) ATTR_NONNULL(1, 2);
 /**
- * Properly delete all IDs tagged with \a LIB_TAG_DOIT, in given \a bmain database.
+ * Properly delete all IDs tagged with \a ID_TAG_DOIT, in given \a bmain database.
  *
  * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
  * (several times faster when deleting most of the IDs at once).
@@ -718,7 +718,7 @@ char *BKE_id_to_unique_string_key(const ID *id);
  * \param bmain: Almost certainly global main.
  * \param lib: If not NULL, only make local data-blocks from this library.
  * \param untagged_only: If true, only make local data-blocks not tagged with
- * #LIB_TAG_PRE_EXISTING.
+ * #ID_TAG_PRE_EXISTING.
  * \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
  * \param clear_asset_data: If true, clear the asset metadata on all localized data-blocks, making
@@ -779,7 +779,7 @@ void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after);
 
 void BKE_id_blend_write(BlendWriter *writer, ID *id);
 
-#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & LIB_TAG_DOIT))
+#define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & ID_TAG_DOIT))
 
 /* `lib_id_eval.cc` */
 

@@ -468,10 +468,10 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
    */
   BLI_assert(!do_append || !create_liboverrides);
 
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* here appending/linking starts */
-  const int id_tag_extra = self->bmain_is_temp ? int(LIB_TAG_TEMP_MAIN) : 0;
+  const int id_tag_extra = self->bmain_is_temp ? int(ID_TAG_TEMP_MAIN) : 0;
   LibraryLink_Params liblink_params;
   BLO_library_link_params_init(&liblink_params, bmain, self->flag, id_tag_extra);
 
@@ -572,7 +572,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
 #endif  // USE_RNA_DATABLOCKS
 
   BKE_blendfile_link_append_context_free(lapp_context);
-  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false);
 
   BKE_reports_free(&self->reports);
 

@@ -1467,18 +1467,18 @@ static void count_images(MultiresBakeRender *bkr)
   for (int i = 0; i < bkr->ob_image.len; i++) {
     Image *ima = bkr->ob_image.array[i];
     if (ima) {
-      ima->id.tag &= ~LIB_TAG_DOIT;
+      ima->id.tag &= ~ID_TAG_DOIT;
     }
   }
 
   for (int i = 0; i < bkr->ob_image.len; i++) {
     Image *ima = bkr->ob_image.array[i];
     if (ima) {
-      if ((ima->id.tag & LIB_TAG_DOIT) == 0) {
+      if ((ima->id.tag & ID_TAG_DOIT) == 0) {
         LinkData *data = BLI_genericNodeN(ima);
         BLI_addtail(&bkr->image, data);
         bkr->tot_image++;
-        ima->id.tag |= LIB_TAG_DOIT;
+        ima->id.tag |= ID_TAG_DOIT;
       }
     }
   }
@@ -1486,7 +1486,7 @@ static void count_images(MultiresBakeRender *bkr)
   for (int i = 0; i < bkr->ob_image.len; i++) {
     Image *ima = bkr->ob_image.array[i];
     if (ima) {
-      ima->id.tag &= ~LIB_TAG_DOIT;
+      ima->id.tag &= ~ID_TAG_DOIT;
     }
   }
 }
@@ -1555,7 +1555,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
       BKE_image_release_ibuf(ima, ibuf, nullptr);
     }
 
-    ima->id.tag |= LIB_TAG_DOIT;
+    ima->id.tag |= ID_TAG_DOIT;
   }
 }
 

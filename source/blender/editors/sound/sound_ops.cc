@@ -237,10 +237,10 @@ static void sound_update_animation_flags(Scene *scene)
   const FCurve *fcu;
   bool driven;
 
-  if (scene->id.tag & LIB_TAG_DOIT) {
+  if (scene->id.tag & ID_TAG_DOIT) {
     return;
   }
-  scene->id.tag |= LIB_TAG_DOIT;
+  scene->id.tag |= ID_TAG_DOIT;
 
   if (scene->ed != nullptr) {
     SEQ_for_each_callback(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
@@ -259,7 +259,7 @@ static int sound_update_animation_flags_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
-  BKE_main_id_tag_idcode(CTX_data_main(C), ID_SCE, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_idcode(CTX_data_main(C), ID_SCE, ID_TAG_DOIT, false);
   sound_update_animation_flags(CTX_data_scene(C));
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   return OPERATOR_FINISHED;

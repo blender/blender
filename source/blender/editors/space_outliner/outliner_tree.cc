@@ -199,7 +199,7 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
     for (lineset = view_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
       FreestyleLineStyle *linestyle = lineset->linestyle;
       if (linestyle) {
-        linestyle->id.tag |= LIB_TAG_DOIT;
+        linestyle->id.tag |= ID_TAG_DOIT;
       }
     }
   }
@@ -207,10 +207,10 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
     for (lineset = view_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
       FreestyleLineStyle *linestyle = lineset->linestyle;
       if (linestyle) {
-        if (!(linestyle->id.tag & LIB_TAG_DOIT)) {
+        if (!(linestyle->id.tag & ID_TAG_DOIT)) {
           continue;
         }
-        linestyle->id.tag &= ~LIB_TAG_DOIT;
+        linestyle->id.tag &= ~ID_TAG_DOIT;
         AbstractTreeDisplay::add_element(
             space_outliner, lb, reinterpret_cast<ID *>(linestyle), nullptr, te, TSE_SOME_ID, 0);
       }

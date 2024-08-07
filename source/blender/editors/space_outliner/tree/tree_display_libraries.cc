@@ -72,7 +72,7 @@ ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
 
     TreeElement *parent = (TreeElement *)lib->runtime.parent->id.newid;
 
-    if (tselem->id->tag & LIB_TAG_INDIRECT) {
+    if (tselem->id->tag & ID_TAG_INDIRECT) {
       /* Only remove from 'first level' if lib is not also directly used. */
       BLI_remlink(&tree, ten);
       BLI_addtail(&parent->subtree, ten);
