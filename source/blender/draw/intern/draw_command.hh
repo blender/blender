@@ -350,19 +350,11 @@ struct SpecializeConstant {
 
 struct Draw {
   gpu::Batch *batch;
-  /* Negative instance count denote expanded draw. */
-  int32_t instance_len;
+  uint16_t instance_len;
+  uint8_t expand_prim_type; /* #GPUPrimType */
+  uint8_t expand_prim_len;
   uint32_t vertex_first;
-  union {
-    /* Ugly packing to support expanded draws without inflating the struct.
-     * Makes vertex range restricted to smaller range for expanded draw. */
-    struct {
-      uint32_t prim_type : 4;
-      uint32_t prim_len : 3;
-      uint32_t vertex_len : 25;
-    } expand;
-    uint32_t vertex_len;
-  };
+  uint32_t vertex_len;
   ResourceHandle handle;
 #ifdef WITH_METAL_BACKEND
   /* Shader is required for extracting SSBO vertex fetch expansion parameters during draw command
@@ -388,41 +380,17 @@ struct Draw {
 #ifdef WITH_METAL_BACKEND
     this->shader = shader;
 #endif
-    BLI_assert((instance_len > 0) && (instance_len < ~uint32_t(0)));
-    if (expanded_prim_type != GPU_PRIM_NONE) {
-      this->instance_len = -int32_t(instance_len);
-      BLI_assert(expanded_prim_type < (1 << 4));
-      BLI_assert(expanded_prim_len < (1 << 3));
-      BLI_assert(vertex_len == uint(-1) || vertex_len < (1 << 25));
-      BLI_assert(vertex_len != 0);
-      this->expand.prim_type = expanded_prim_type;
-      this->expand.prim_len = expanded_prim_len;
-      /* Cannot store auto vertex len value, store it as 0 as this is an invalid input here. */
-      this->expand.vertex_len = (vertex_len == uint(-1)) ? 0 : vertex_len;
-    }
-    else {
-      this->instance_len = instance_len;
-      this->vertex_len = vertex_len;
-    }
+    BLI_assert(instance_len < SHRT_MAX);
+    this->instance_len = uint16_t(instance_len);
+    this->vertex_len = vertex_len;
     this->vertex_first = vertex_first;
+    this->expand_prim_type = expanded_prim_type;
+    this->expand_prim_len = expanded_prim_len;
   }
 
   bool is_primitive_expansion() const
   {
-    return instance_len < 0;
-  }
-
-  uint32_t instance_len_get() const
-  {
-    return is_primitive_expansion() ? -instance_len : instance_len;
-  }
-
-  uint32_t vertex_len_get() const
-  {
-    if (is_primitive_expansion()) {
-      return (expand.vertex_len == 0) ? uint(-1) : vertex_len;
-    }
-    return vertex_len;
+    return expand_prim_type != GPU_PRIM_NONE;
   }
 
   void execute(RecordingState &state) const;

@@ -172,16 +172,22 @@ void Draw::execute(RecordingState &state) const
 
   if (is_primitive_expansion()) {
     /* Expanded drawcall. */
+    IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
+        batch, GPUPrimType(expand_prim_type), vertex_len, vertex_first);
+    IndexRange expanded_range = {vert_range.start() * expand_prim_len,
+                                 vert_range.size() * expand_prim_len};
+
     GPU_batch_bind_as_resources(batch, state.shader);
 
-    gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand.prim_type));
+    gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand_prim_type));
     GPU_batch_set_shader(gpu_batch, state.shader);
-    GPU_batch_draw_advanced(gpu_batch, vertex_first, expand.vertex_len, 0, instance_len_get());
+    GPU_batch_draw_advanced(
+        gpu_batch, expanded_range.start(), expanded_range.size(), 0, instance_len);
   }
   else {
     /* Regular drawcall. */
     GPU_batch_set_shader(batch, state.shader);
-    GPU_batch_draw_advanced(batch, vertex_first, vertex_len, 0, instance_len_get());
+    GPU_batch_draw_advanced(batch, vertex_first, vertex_len, 0, instance_len);
   }
 }
 
@@ -529,9 +535,8 @@ std::string SpecializeConstant::serialize() const
 
 std::string Draw::serialize() const
 {
-  std::string inst_len = std::to_string(instance_len_get());
-  std::string vert_len = (vertex_len_get() == uint(-1)) ? "from_batch" :
-                                                          std::to_string(vertex_len);
+  std::string inst_len = std::to_string(instance_len);
+  std::string vert_len = (vertex_len == uint(-1)) ? "from_batch" : std::to_string(vertex_len);
   std::string vert_first = (vertex_first == uint(-1)) ? "from_batch" :
                                                         std::to_string(vertex_first);
   return std::string(".draw(inst_len=") + inst_len + ", vert_len=" + vert_len +
@@ -704,22 +709,8 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
      * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */
     BLI_assert(batch_inst_len == 1);
 
-    uint32_t vert_len = cmd.vertex_len_get();
-    if (vert_len == uint(-1)) {
-      vert_len = batch_vert_len;
-    }
-
-    if (cmd.is_primitive_expansion()) {
-      IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
-          cmd.batch, GPUPrimType(cmd.expand.prim_type), vert_len, cmd.vertex_first);
-      IndexRange expanded_range = {vert_range.start() * cmd.expand.prim_len,
-                                   vert_range.size() * cmd.expand.prim_len};
-      BLI_assert(expanded_range.size() < (1 << 25));
-      cmd.expand.vertex_len = expanded_range.size();
-      cmd.vertex_first = expanded_range.start();
-    }
-    else {
-      cmd.vertex_len = vert_len;
+    if (cmd.vertex_len == uint(-1)) {
+      cmd.vertex_len = batch_vert_len;
     }
 
 #ifdef WITH_METAL_BACKEND
