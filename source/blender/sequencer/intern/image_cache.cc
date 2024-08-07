@@ -824,8 +824,11 @@ bool seq_cache_put_if_possible(
     return true;
   }
 
-  seq_cache_set_temp_cache_linked(scene, scene->ed->cache->last_key);
-  scene->ed->cache->last_key = nullptr;
+  if (scene->ed->cache) {
+    seq_cache_set_temp_cache_linked(scene, scene->ed->cache->last_key);
+    scene->ed->cache->last_key = nullptr;
+  }
+
   return false;
 }
 
@@ -866,7 +869,9 @@ void seq_cache_thumbnail_put(const SeqRenderData *context,
 void seq_cache_put(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i)
 {
-  if (i == nullptr || context->skip_cache || context->is_proxy_render || context->for_render || !seq) {
+  if (i == nullptr || context->skip_cache || context->is_proxy_render || context->for_render ||
+      !seq)
+  {
     return;
   }
 
