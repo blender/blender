@@ -24,9 +24,6 @@
 
 namespace blender::bke::pbvh::pixels {
 
-constexpr int depth_limit = 40;
-constexpr int pixel_leaf_limit = 256 * 256;
-
 /**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
  */
