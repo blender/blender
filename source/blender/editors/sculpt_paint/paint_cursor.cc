@@ -1771,7 +1771,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     active_vertex_co = SCULPT_vertex_co_for_grab_active_get(*pcontext->ss, active_vert);
   }
   else {
-    active_vertex_co = SCULPT_active_vertex_co_get(*pcontext->ss);
+    active_vertex_co = SCULPT_vertex_co_get(*pcontext->ss, active_vert);
   }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
