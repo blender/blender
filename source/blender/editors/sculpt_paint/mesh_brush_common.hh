@@ -243,15 +243,13 @@ void filter_distances_with_radius(float radius, Span<float> distances, MutableSp
  * Calculate distances based on a "square" brush tip falloff and ignore vertices that are too far
  * away.
  */
-void calc_brush_cube_distances(const SculptSession &ss,
-                               const Brush &brush,
+void calc_brush_cube_distances(const Brush &brush,
                                const float4x4 &mat,
                                Span<float3> positions,
                                Span<int> verts,
                                MutableSpan<float> r_distances,
                                MutableSpan<float> factors);
-void calc_brush_cube_distances(const SculptSession &ss,
-                               const Brush &brush,
+void calc_brush_cube_distances(const Brush &brush,
                                const float4x4 &mat,
                                Span<float3> positions,
                                MutableSpan<float> r_distances,

@@ -1185,11 +1185,6 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
 void SCULPT_brush_test_init(const SculptSession &ss, SculptBrushTest &test);
 
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest &test, const float co[3]);
-bool SCULPT_brush_test_cube(SculptBrushTest &test,
-                            const float co[3],
-                            const float local[4][4],
-                            float roundness,
-                            float tip_scale_x);
 bool SCULPT_brush_test_circle_sq(SculptBrushTest &test, const float co[3]);
 
 namespace blender::ed::sculpt_paint {

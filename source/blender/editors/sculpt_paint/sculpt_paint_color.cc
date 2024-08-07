@@ -370,7 +370,7 @@ static void do_paint_brush_task(Object &object,
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   if (brush.tip_roundness < 1.0f) {
-    calc_brush_cube_distances(ss, brush, mat, vert_positions, verts, distances, factors);
+    calc_brush_cube_distances(brush, mat, vert_positions, verts, distances, factors);
     scale_factors(distances, cache.radius);
   }
   else {
