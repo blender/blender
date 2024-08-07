@@ -860,7 +860,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     /* Keep occupancy at about 0.5 (this is more of an empirical figure which seems to match scenes
      * with good performance without forcing occupancy to be higher). */
     int num_samples_to_occupy = state_.occupancy_num_samples;
-    if (state_.occupancy < 0.5f) {
+    if (state_.occupancy > 0 && state_.occupancy < 0.5f) {
       num_samples_to_occupy = lround(state_.occupancy_num_samples * 0.7f / state_.occupancy);
     }
 
