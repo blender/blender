@@ -961,9 +961,6 @@ Span<int> vert_neighbors_get_mesh(int vert,
                                   Vector<int> &r_neighbors);
 }
 
-PBVHVertRef SCULPT_active_vertex_get(const SculptSession &ss);
-const float *SCULPT_active_vertex_co_get(const SculptSession &ss);
-
 /* Returns pbvh::Tree deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
 blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss);
