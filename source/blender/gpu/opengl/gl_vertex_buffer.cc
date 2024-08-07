@@ -93,6 +93,8 @@ void GLVertBuf::bind()
 
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
     vbo_size_ = this->size_used_get();
+
+    BLI_assert(vbo_size_ != 0);
     /* Orphan the vbo to avoid sync then upload data. */
     glBufferData(GL_ARRAY_BUFFER, ceil_to_multiple_ul(vbo_size_, 16), nullptr, to_gl(usage_));
     /* Do not transfer data from host to device when buffer is device only. */
