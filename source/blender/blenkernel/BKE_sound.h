@@ -180,8 +180,6 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene);
 
 double BKE_sound_sync_scene(struct Scene *scene);
 
-int BKE_sound_scene_playing(struct Scene *scene);
-
 void BKE_sound_free_waveform(struct bSound *sound);
 
 void BKE_sound_read_waveform(struct Main *bmain, struct bSound *sound, bool *stop);

@@ -1050,27 +1050,6 @@ double BKE_sound_sync_scene(Scene *scene)
   return NAN_FLT;
 }
 
-int BKE_sound_scene_playing(Scene *scene)
-{
-  sound_verify_evaluated_id(&scene->id);
-
-  /* Ugly: Blender doesn't like it when the animation is played back during rendering */
-  if (G.is_rendering) {
-    return -1;
-  }
-
-  /* In case of a "None" audio device, we have no playback information. */
-  if (AUD_Device_getRate(sound_device) == AUD_RATE_INVALID) {
-    return -1;
-  }
-
-  if (scene->audio.flag & AUDIO_SYNC) {
-    return AUD_isSynchronizerPlaying();
-  }
-
-  return -1;
-}
-
 void BKE_sound_free_waveform(bSound *sound)
 {
   if ((sound->tags & SOUND_TAGS_WAVEFORM_NO_RELOAD) == 0) {
@@ -1400,10 +1379,6 @@ void BKE_sound_seek_scene(Main * /*bmain*/, Scene * /*scene*/) {}
 double BKE_sound_sync_scene(Scene * /*scene*/)
 {
   return NAN_FLT;
-}
-int BKE_sound_scene_playing(Scene * /*scene*/)
-{
-  return -1;
 }
 void BKE_sound_read_waveform(Main *bmain,
                              bSound *sound,
