@@ -134,7 +134,7 @@ def main():
     if device != 'CPU' or 'OSL' in args.blocklist:
         blocklist += BLOCKLIST_OSL
     if device == 'OPTIX':
-        blocklist += BLAOCKLIST_OPTIX
+        blocklist += BLOCKLIST_OPTIX
     if device == 'METAL':
         blocklist += BLOCKLIST_METAL
 
