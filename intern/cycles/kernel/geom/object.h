@@ -172,7 +172,7 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals kg,
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
     if ((sd->object != OBJECT_NONE) || (sd->type == PRIMITIVE_LAMP)) {
-      *N = normalize(transform_direction_transposed_auto(&sd->ob_tfm_motion, *N));
+      *N = safe_normalize(transform_direction_transposed_auto(&sd->ob_tfm_motion, *N));
     }
     return;
   }
@@ -180,11 +180,11 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals kg,
 
   if (sd->object != OBJECT_NONE) {
     Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-    *N = normalize(transform_direction_transposed(&tfm, *N));
+    *N = safe_normalize(transform_direction_transposed(&tfm, *N));
   }
   else if (sd->type == PRIMITIVE_LAMP) {
     Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
-    *N = normalize(transform_direction_transposed(&tfm, *N));
+    *N = safe_normalize(transform_direction_transposed(&tfm, *N));
   }
 }
 
