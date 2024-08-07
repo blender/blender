@@ -357,27 +357,6 @@ void bmesh_four_neighbor_average(float avg[3], const float3 &direction, const BM
   }
 }
 
-/* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
- * account. */
-
-float3 neighbor_coords_average(SculptSession &ss, PBVHVertRef vertex)
-{
-  float3 avg(0);
-  int total = 0;
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    avg += SCULPT_vertex_co_get(ss, ni.vertex);
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    return avg / total;
-  }
-  return SCULPT_vertex_co_get(ss, vertex);
-}
-
 void neighbor_color_average(const OffsetIndices<int> faces,
                             const Span<int> corner_verts,
                             const GroupedSpan<int> vert_to_face_map,
@@ -402,51 +381,39 @@ void neighbor_color_average(const OffsetIndices<int> faces,
 /* HC Smooth Algorithm. */
 /* From: Improved Laplacian Smoothing of Noisy Surface Meshes */
 
-void surface_smooth_laplacian_step(SculptSession &ss,
-                                   float *disp,
-                                   const float co[3],
+void surface_smooth_laplacian_step(const Span<float3> positions,
+                                   const Span<float3> orig_positions,
+                                   const Span<float3> average_positions,
+                                   const float alpha,
                                    MutableSpan<float3> laplacian_disp,
-                                   const PBVHVertRef vertex,
-                                   const float origco[3],
-                                   const float alpha)
+                                   MutableSpan<float3> translations)
 {
-  float weigthed_o[3], weigthed_q[3], d[3];
-  int v_index = BKE_pbvh_vertex_to_index(*ss.pbvh, vertex);
+  BLI_assert(positions.size() == orig_positions.size());
+  BLI_assert(positions.size() == average_positions.size());
+  BLI_assert(positions.size() == laplacian_disp.size());
+  BLI_assert(positions.size() == translations.size());
 
-  const float3 laplacian_smooth_co = neighbor_coords_average(ss, vertex);
-
-  mul_v3_v3fl(weigthed_o, origco, alpha);
-  mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
-  add_v3_v3v3(d, weigthed_o, weigthed_q);
-  sub_v3_v3v3(laplacian_disp[v_index], laplacian_smooth_co, d);
-
-  sub_v3_v3v3(disp, laplacian_smooth_co, co);
+  for (const int i : average_positions.index_range()) {
+    const float3 weighted_o = orig_positions[i] * alpha;
+    const float3 weighted_q = positions[i] * (1.0f - alpha);
+    const float3 d = weighted_o + weighted_q;
+    laplacian_disp[i] = average_positions[i] - d;
+    translations[i] = average_positions[i] - positions[i];
+  }
 }
 
-void surface_smooth_displace_step(SculptSession &ss,
-                                  float *co,
-                                  MutableSpan<float3> laplacian_disp,
-                                  const PBVHVertRef vertex,
+void surface_smooth_displace_step(const Span<float3> laplacian_disp,
+                                  const Span<float3> average_laplacian_disp,
                                   const float beta,
-                                  const float fade)
+                                  const MutableSpan<float3> translations)
 {
-  float b_avg[3] = {0.0f, 0.0f, 0.0f};
-  float b_current_vertex[3];
-  int total = 0;
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    add_v3_v3(b_avg, laplacian_disp[ni.index]);
-    total++;
-  }
+  BLI_assert(laplacian_disp.size() == average_laplacian_disp.size());
+  BLI_assert(laplacian_disp.size() == translations.size());
 
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-  if (total > 0) {
-    int v_index = BKE_pbvh_vertex_to_index(*ss.pbvh, vertex);
-
-    mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
-    madd_v3_v3fl(b_current_vertex, laplacian_disp[v_index], beta);
-    mul_v3_fl(b_current_vertex, clamp_f(fade, 0.0f, 1.0f));
-    sub_v3_v3(co, b_current_vertex);
+  for (const int i : laplacian_disp.index_range()) {
+    float3 b_current_vert = average_laplacian_disp[i] * (1.0f - beta);
+    b_current_vert += laplacian_disp[i] * beta;
+    translations[i] = -b_current_vert;
   }
 }
 
