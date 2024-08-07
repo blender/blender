@@ -165,13 +165,8 @@ int SCULPT_vertex_count_get(const SculptSession &ss)
 const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   switch (ss.pbvh->type()) {
-    case blender::bke::pbvh::Type::Mesh: {
-      if (ss.shapekey_active || ss.deform_modifiers_active) {
-        const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
-        return positions[vertex.i];
-      }
-      return ss.vert_positions[vertex.i];
-    }
+    case blender::bke::pbvh::Type::Mesh:
+      return BKE_pbvh_get_vert_positions(*ss.pbvh)[vertex.i];
     case blender::bke::pbvh::Type::BMesh:
       return ((BMVert *)vertex.i)->co;
     case blender::bke::pbvh::Type::Grids: {
@@ -223,21 +218,6 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
 
   /* Everything else, such as sculpting on multires. */
   return SCULPT_vertex_co_get(ss, vertex);
-}
-
-MutableSpan<float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss)
-{
-  switch (ss.pbvh->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      if (ss.shapekey_active || ss.deform_modifiers_active) {
-        return BKE_pbvh_get_vert_positions(*ss.pbvh);
-      }
-      return ss.vert_positions;
-    case blender::bke::pbvh::Type::BMesh:
-    case blender::bke::pbvh::Type::Grids:
-      return {};
-  }
-  return {};
 }
 
 float *SCULPT_brush_deform_target_vertex_co_get(SculptSession &ss,

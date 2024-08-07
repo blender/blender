@@ -1473,7 +1473,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data,
   SculptSession &ss = *gesture_data.ss;
   const bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  const Span<float3> positions = ss.vert_positions;
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> tri_faces = mesh.corner_tri_faces();

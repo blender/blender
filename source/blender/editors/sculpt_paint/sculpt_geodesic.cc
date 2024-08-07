@@ -88,7 +88,7 @@ Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const f
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  const Span<float3> vert_positions = SCULPT_mesh_deformed_positions_get(ss);
+  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
   const Span<int2> edges = mesh->edges();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();

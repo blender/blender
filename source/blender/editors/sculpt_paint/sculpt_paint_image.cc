@@ -260,7 +260,7 @@ static void do_paint_pixels(const Object &object,
   bke::pbvh::Tree &pbvh = *ss.pbvh;
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
-  const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
 
   BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, pbvh_data.vert_tris, node_data.uv_primitives, positions);
