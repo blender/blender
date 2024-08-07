@@ -8,8 +8,6 @@
  * \ingroup bke
  */
 
-#include <optional>
-
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_map.hh"

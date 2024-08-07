@@ -20,8 +20,6 @@
 #include "DNA_scene_enums.h"
 #include "DNA_vec_types.h"
 
-#include <memory>
-
 enum class PaintMode : int8_t;
 
 struct ARegion;
