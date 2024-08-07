@@ -225,11 +225,6 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
-const float *SCULPT_active_vertex_co_get(const SculptSession &ss)
-{
-  return SCULPT_vertex_co_get(ss, ss.active_vert_ref());
-}
-
 MutableSpan<float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss)
 {
   switch (ss.pbvh->type()) {
