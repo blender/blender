@@ -1922,37 +1922,51 @@ void PointDensityTextureNode::compile(SVMCompiler &compiler)
   const bool use_density = !density_out->links.empty();
   const bool use_color = !color_out->links.empty();
 
-  if (use_density || use_color) {
-    if (handle.empty()) {
-      ImageManager *image_manager = compiler.scene->image_manager;
-      handle = image_manager->add_image(filename.string(), image_params());
-    }
+  if (!(use_density || use_color)) {
+    return;
+  }
 
-    const int slot = handle.svm_slot();
-    if (slot != -1) {
-      compiler.stack_assign(vector_in);
-      compiler.add_node(NODE_TEX_VOXEL,
-                        slot,
-                        compiler.encode_uchar4(compiler.stack_assign(vector_in),
-                                               compiler.stack_assign_if_linked(density_out),
-                                               compiler.stack_assign_if_linked(color_out),
-                                               space));
-      if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
-        compiler.add_node(tfm.x);
-        compiler.add_node(tfm.y);
-        compiler.add_node(tfm.z);
-      }
+  /* Point Density is only supported for volume shaders. */
+  if (compiler.output_type() != SHADER_TYPE_VOLUME) {
+    if (use_density) {
+      compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(density_out));
     }
-    else {
-      if (use_density) {
-        compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(density_out));
-      }
-      if (use_color) {
-        compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
-        compiler.add_node(
-            NODE_VALUE_V,
-            make_float3(TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B));
-      }
+    if (use_color) {
+      compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
+      compiler.add_node(NODE_VALUE_V, zero_float3());
+    }
+    return;
+  }
+
+  if (handle.empty()) {
+    ImageManager *image_manager = compiler.scene->image_manager;
+    handle = image_manager->add_image(filename.string(), image_params());
+  }
+
+  const int slot = handle.svm_slot();
+  if (slot != -1) {
+    compiler.stack_assign(vector_in);
+    compiler.add_node(NODE_TEX_VOXEL,
+                      slot,
+                      compiler.encode_uchar4(compiler.stack_assign(vector_in),
+                                             compiler.stack_assign_if_linked(density_out),
+                                             compiler.stack_assign_if_linked(color_out),
+                                             space));
+    if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
+      compiler.add_node(tfm.x);
+      compiler.add_node(tfm.y);
+      compiler.add_node(tfm.z);
+    }
+  }
+  else {
+    if (use_density) {
+      compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(density_out));
+    }
+    if (use_color) {
+      compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
+      compiler.add_node(
+          NODE_VALUE_V,
+          make_float3(TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B));
     }
   }
 }
@@ -1965,20 +1979,28 @@ void PointDensityTextureNode::compile(OSLCompiler &compiler)
   const bool use_density = !density_out->links.empty();
   const bool use_color = !color_out->links.empty();
 
-  if (use_density || use_color) {
-    if (handle.empty()) {
-      ImageManager *image_manager = compiler.scene->image_manager;
-      handle = image_manager->add_image(filename.string(), image_params());
-    }
-
-    compiler.parameter_texture("filename", handle);
-    if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
-      compiler.parameter("mapping", tfm);
-      compiler.parameter("use_mapping", 1);
-    }
-    compiler.parameter(this, "interpolation");
-    compiler.add(this, "node_voxel_texture");
+  if (!(use_density || use_color)) {
+    return;
   }
+
+  /* Point Density is only supported for volume shaders. */
+  if (compiler.output_type() != SHADER_TYPE_VOLUME) {
+    compiler.add(this, "node_voxel_texture_zero");
+    return;
+  }
+
+  if (handle.empty()) {
+    ImageManager *image_manager = compiler.scene->image_manager;
+    handle = image_manager->add_image(filename.string(), image_params());
+  }
+
+  compiler.parameter_texture("filename", handle);
+  if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
+    compiler.parameter("mapping", tfm);
+    compiler.parameter("use_mapping", 1);
+  }
+  compiler.parameter(this, "interpolation");
+  compiler.add(this, "node_voxel_texture");
 }
 
 /* Normal */

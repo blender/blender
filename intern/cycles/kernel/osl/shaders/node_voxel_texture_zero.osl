@@ -1,0 +1,18 @@
+/* SPDX-FileCopyrightText: 2011-2024 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_voxel_texture_zero(
+    string filename = "",
+    string interpolation = "linear",
+    int use_mapping = 0,
+    matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    point Vector = P,
+    output float Density = 0,
+    output color Color = 0)
+{
+  Density = 0;
+  Color = color(0, 0, 0);
+}
