@@ -438,9 +438,6 @@ static void restore_position_mesh(Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  /* No need for float comparison here (memory is exactly equal or not). */
-  MutableSpan<float3> positions = ss.vert_positions;
-
   if (ss.shapekey_active) {
     float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(&object, ss.shapekey_active);
     MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss.shapekey_active->totelem);
@@ -476,6 +473,9 @@ static void restore_position_mesh(Object &object,
     MEM_freeN(vertCos);
   }
   else {
+    Mesh &mesh = *static_cast<Mesh *>(object.data);
+    MutableSpan<float3> positions = mesh.vert_positions_for_write();
+
     for (const std::unique_ptr<Node> &unode : unodes) {
       const Span<int> verts = unode->vert_indices.as_span().take_front(unode->unique_verts_num);
       if (!unode->orig_position.is_empty()) {

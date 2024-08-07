@@ -1938,7 +1938,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss.vert_positions = mesh_orig->vert_positions_for_write();
     ss.faces = mesh_orig->faces();
     ss.corner_verts = mesh_orig->corner_verts();
   }

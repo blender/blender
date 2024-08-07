@@ -233,7 +233,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       sculpt_session->multires.level = mmd->sculptlvl;
       sculpt_session->totvert = mesh->verts_num;
       sculpt_session->faces_num = mesh->faces_num;
-      sculpt_session->vert_positions = {};
       sculpt_session->faces = {};
       sculpt_session->corner_verts = {};
     }
