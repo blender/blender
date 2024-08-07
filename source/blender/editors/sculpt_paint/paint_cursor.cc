@@ -1683,10 +1683,13 @@ static void paint_cursor_pose_brush_segments_draw(PaintCursorContext *pcontext)
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
   GPU_line_width(2.0f);
 
-  immBegin(GPU_PRIM_LINES, ss.pose_ik_chain_preview->segments.size() * 2);
-  for (const int i : ss.pose_ik_chain_preview->segments.index_range()) {
-    immVertex3fv(pcontext->pos, ss.pose_ik_chain_preview->segments[i].initial_orig);
-    immVertex3fv(pcontext->pos, ss.pose_ik_chain_preview->segments[i].initial_head);
+  BLI_assert(ss.pose_ik_chain_preview->initial_head_coords.size() ==
+             ss.pose_ik_chain_preview->initial_orig_coords.size());
+
+  immBegin(GPU_PRIM_LINES, ss.pose_ik_chain_preview->initial_head_coords.size() * 2);
+  for (const int i : ss.pose_ik_chain_preview->initial_head_coords.index_range()) {
+    immVertex3fv(pcontext->pos, ss.pose_ik_chain_preview->initial_orig_coords[i]);
+    immVertex3fv(pcontext->pos, ss.pose_ik_chain_preview->initial_head_coords[i]);
   }
 
   immEnd();
@@ -1697,10 +1700,10 @@ static void paint_cursor_pose_brush_origins_draw(PaintCursorContext *pcontext)
 
   SculptSession &ss = *pcontext->ss;
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-  for (const int i : ss.pose_ik_chain_preview->segments.index_range()) {
+  for (const int i : ss.pose_ik_chain_preview->initial_orig_coords.index_range()) {
     cursor_draw_point_screen_space(pcontext->pos,
                                    pcontext->region,
-                                   ss.pose_ik_chain_preview->segments[i].initial_orig,
+                                   ss.pose_ik_chain_preview->initial_orig_coords[i],
                                    pcontext->vc.obact->object_to_world().ptr(),
                                    3);
   }
@@ -1802,7 +1805,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
       }
 
       /* Generate a new pose brush preview from the current cursor location. */
-      ss.pose_ik_chain_preview = pose::ik_chain_init(
+      ss.pose_ik_chain_preview = pose::preview_ik_chain_init(
           *pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
     }
 

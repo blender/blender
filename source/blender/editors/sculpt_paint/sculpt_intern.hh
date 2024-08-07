@@ -287,17 +287,41 @@ struct Cache {
 
 }
 
+/** Pose Brush IK Chain. */
+struct SculptPoseIKChainSegment {
+  float3 orig;
+  float3 head;
+
+  float3 initial_orig;
+  float3 initial_head;
+  float len;
+  float3 scale;
+  float rot[4];
+  Array<float> weights;
+
+  /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
+   * axis. */
+  std::array<float4x4, PAINT_SYMM_AREAS> trans_mat;
+  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat;
+  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat_inv;
+};
+
+struct SculptPoseIKChain {
+  Array<SculptPoseIKChainSegment> segments;
+  float3 grab_delta_offset;
+};
+
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  blender::Vector<int> verts;
+  Vector<int> verts;
 
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
-  blender::Map<int, float> distance;
+  Map<int, float> distance;
 
   /* Data for drawing the preview. */
-  blender::Vector<std::pair<blender::float3, blender::float3>> edges;
+  Vector<std::pair<float3, float3>> edges;
 
   /* Initial vertex index in the boundary which is closest to the current sculpt active vertex. */
   int initial_vert_i;
@@ -305,12 +329,12 @@ struct SculptBoundary {
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active
    * vertex that was used to initialize the boundary. This is used as a reference to check how much
    * the deformation will go into the mesh and to calculate the strength of the brushes. */
-  blender::float3 pivot_position;
+  float3 pivot_position;
 
   /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
    * during the brush action. This allows to use them as a reference positions and vectors for some
    * brush effects. */
-  blender::float3 initial_vert_position;
+  float3 initial_vert_position;
 
   /* Maximum number of topology steps that were calculated from the boundary. */
   int max_propagation_steps;
@@ -319,30 +343,30 @@ struct SculptBoundary {
    */
   struct {
     /* Vertex index from where the topology propagation reached this vertex. */
-    blender::Array<int> original_vertex_i;
+    Array<int> original_vertex_i;
 
     /* How many steps were needed to reach this vertex from the boundary. */
-    blender::Array<int> propagation_steps_num;
+    Array<int> propagation_steps_num;
 
     /* Strength that is used to deform this vertex. */
-    blender::Array<float> strength_factor;
+    Array<float> strength_factor;
   } edit_info;
 
   /* Bend Deform type. */
   struct {
-    blender::Array<blender::float3> pivot_rotation_axis;
-    blender::Array<blender::float3> pivot_positions;
+    Array<float3> pivot_rotation_axis;
+    Array<float3> pivot_positions;
   } bend;
 
   /* Slide Deform type. */
   struct {
-    blender::Array<blender::float3> directions;
+    Array<float3> directions;
   } slide;
 
   /* Twist Deform type. */
   struct {
-    blender::float3 rotation_axis;
-    blender::float3 pivot_position;
+    float3 rotation_axis;
+    float3 pivot_position;
   } twist;
 };
 
@@ -2094,11 +2118,11 @@ void calc_pose_data(Object &ob,
                     float3 &r_pose_origin,
                     MutableSpan<float> r_pose_factor);
 void pose_brush_init(Object &ob, SculptSession &ss, const Brush &brush);
-std::unique_ptr<SculptPoseIKChain> ik_chain_init(Object &ob,
-                                                 SculptSession &ss,
-                                                 const Brush &brush,
-                                                 const float3 &initial_location,
-                                                 float radius);
+std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(Object &ob,
+                                                                SculptSession &ss,
+                                                                const Brush &brush,
+                                                                const float3 &initial_location,
+                                                                float radius);
 
 }
 

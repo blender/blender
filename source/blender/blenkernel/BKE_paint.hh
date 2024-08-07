@@ -290,28 +290,10 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
 #define SCULPT_FACE_SET_NONE 0
 
-/** Pose Brush IK Chain. */
-struct SculptPoseIKChainSegment {
-  blender::float3 orig;
-  blender::float3 head;
-
-  blender::float3 initial_orig;
-  blender::float3 initial_head;
-  float len;
-  blender::float3 scale;
-  float rot[4];
-  blender::Array<float> weights;
-
-  /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
-   * axis. */
-  std::array<blender::float4x4, PAINT_SYMM_AREAS> trans_mat;
-  std::array<blender::float4x4, PAINT_SYMM_AREAS> pivot_mat;
-  std::array<blender::float4x4, PAINT_SYMM_AREAS> pivot_mat_inv;
-};
-
-struct SculptPoseIKChain {
-  blender::Array<SculptPoseIKChainSegment> segments;
-  blender::float3 grab_delta_offset;
+/* Data used for displaying extra visuals while using the Pose brush */
+struct SculptPoseIKChainPreview {
+  blender::Array<blender::float3> initial_orig_coords;
+  blender::Array<blender::float3> initial_head_coords;
 };
 
 struct SculptVertexInfo {
@@ -528,7 +510,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   /* Pose Brush Preview */
   blender::float3 pose_origin;
-  std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
+  std::unique_ptr<SculptPoseIKChainPreview> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
   std::unique_ptr<SculptBoundaryPreview> boundary_preview;

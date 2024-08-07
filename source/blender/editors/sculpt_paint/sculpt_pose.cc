@@ -1023,11 +1023,11 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
   return ik_chain;
 }
 
-std::unique_ptr<SculptPoseIKChain> ik_chain_init(Object &ob,
-                                                 SculptSession &ss,
-                                                 const Brush &brush,
-                                                 const float3 &initial_location,
-                                                 const float radius)
+static std::unique_ptr<SculptPoseIKChain> ik_chain_init(Object &ob,
+                                                        SculptSession &ss,
+                                                        const Brush &brush,
+                                                        const float3 &initial_location,
+                                                        const float radius)
 {
   std::unique_ptr<SculptPoseIKChain> ik_chain;
 
@@ -1078,6 +1078,25 @@ void pose_brush_init(Object &ob, SculptSession &ss, const Brush &brush)
       });
     }
   }
+}
+
+std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(Object &ob,
+                                                                SculptSession &ss,
+                                                                const Brush &brush,
+                                                                const float3 &initial_location,
+                                                                const float radius)
+{
+  const SculptPoseIKChain chain = *ik_chain_init(ob, ss, brush, initial_location, radius);
+  std::unique_ptr<SculptPoseIKChainPreview> preview = std::make_unique<SculptPoseIKChainPreview>();
+
+  preview->initial_head_coords.reinitialize(chain.segments.size());
+  preview->initial_orig_coords.reinitialize(chain.segments.size());
+  for (const int i : chain.segments.index_range()) {
+    preview->initial_head_coords[i] = chain.segments[i].initial_head;
+    preview->initial_orig_coords[i] = chain.segments[i].initial_orig;
+  }
+
+  return preview;
 }
 
 static void sculpt_pose_do_translate_deform(SculptSession &ss, const Brush &brush)
