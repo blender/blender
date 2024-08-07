@@ -207,7 +207,7 @@ class Instance {
   /* Render. */
 
   void render_sync();
-  void render_frame(RenderLayer *render_layer, const char *view_name);
+  void render_frame(RenderEngine *engine, RenderLayer *render_layer, const char *view_name);
   void store_metadata(RenderResult *render_result);
 
   /* Viewport. */
