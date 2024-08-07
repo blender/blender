@@ -218,35 +218,6 @@ void FillDataBMesh::add_initial_with_symmetry(const Object &object,
   }
 }
 
-void add_active(const Object &ob, const SculptSession &ss, FillData &flood, float radius)
-{
-  add_initial_with_symmetry(ob, ss, flood, ss.active_vertex(), radius);
-}
-
-void FillDataMesh::add_active(const Object &object, const SculptSession &ss, const float radius)
-{
-  PBVHVertRef active_vert = ss.active_vertex();
-  this->add_initial_with_symmetry(object, *ss.pbvh, active_vert.i, radius);
-}
-
-void FillDataGrids::add_active(const Object &object, const SculptSession &ss, const float radius)
-{
-  PBVHVertRef active_vert = ss.active_vertex();
-
-  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, active_vert.i);
-
-  this->add_initial_with_symmetry(object, *ss.pbvh, subdiv_ccg, coord, radius);
-}
-
-void FillDataBMesh::add_active(const Object &object, const SculptSession &ss, const float radius)
-{
-  PBVHVertRef active_vert = ss.active_vertex();
-  this->add_initial_with_symmetry(
-      object, *ss.pbvh, reinterpret_cast<BMVert *>(active_vert.i), radius);
-}
-
 void execute(SculptSession &ss,
              FillData &flood,
              FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func)

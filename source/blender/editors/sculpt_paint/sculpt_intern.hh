@@ -1273,7 +1273,6 @@ struct FillDataMesh {
                                  const bke::pbvh::Tree &pbvh,
                                  int vertex,
                                  float radius);
-  void add_active(const Object &object, const SculptSession &ss, float radius);
   void execute(Object &object,
                GroupedSpan<int> vert_to_face_map,
                FunctionRef<bool(int from_v, int to_v)> func);
@@ -1292,7 +1291,6 @@ struct FillDataGrids {
                                  const SubdivCCG &subdiv_ccg,
                                  SubdivCCGCoord vertex,
                                  float radius);
-  void add_active(const Object &object, const SculptSession &ss, float radius);
   void execute(
       Object &object,
       const SubdivCCG &subdiv_ccg,
@@ -1311,7 +1309,6 @@ struct FillDataBMesh {
                                  const bke::pbvh::Tree &pbvh,
                                  BMVert *vertex,
                                  float radius);
-  void add_active(const Object &object, const SculptSession &ss, float radius);
   void execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
 };
 
@@ -1322,7 +1319,6 @@ FillData init_fill(SculptSession &ss);
 
 void add_initial(FillData &flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData &flood, PBVHVertRef vertex);
-void add_active(const Object &ob, const SculptSession &ss, FillData &flood, float radius);
 void add_initial_with_symmetry(
     const Object &ob, const SculptSession &ss, FillData &flood, PBVHVertRef vertex, float radius);
 void execute(SculptSession &ss,
