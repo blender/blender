@@ -51,7 +51,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
-  int soffx = WM_window_pixels_x(win) * 0.5f;
+  int soffx = WM_window_native_pixel_x(win) * 0.5f;
   if (view == STEREO_LEFT_ID) {
     if (!cross_eyed) {
       soffx = 0;
@@ -63,8 +63,8 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
     }
   }
 
-  const int sizex = WM_window_pixels_x(win);
-  const int sizey = WM_window_pixels_y(win);
+  const int sizex = WM_window_native_pixel_x(win);
+  const int sizey = WM_window_native_pixel_y(win);
 
   /* `wmOrtho` for the screen has this same offset. */
   const float halfx = GLA_PIXEL_OFS / sizex;
@@ -101,14 +101,14 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 
   int soffy;
   if (view == STEREO_LEFT_ID) {
-    soffy = WM_window_pixels_y(win) * 0.5f;
+    soffy = WM_window_native_pixel_y(win) * 0.5f;
   }
   else { /* #STEREO_RIGHT_ID. */
     soffy = 0;
   }
 
-  const int sizex = WM_window_pixels_x(win);
-  const int sizey = WM_window_pixels_y(win);
+  const int sizex = WM_window_native_pixel_x(win);
+  const int sizey = WM_window_native_pixel_y(win);
 
   /* `wmOrtho` for the screen has this same offset. */
   const float halfx = GLA_PIXEL_OFS / sizex;
@@ -173,7 +173,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int r_mouse_xy[2])
   }
 
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
-    const int half_x = WM_window_pixels_x(win) / 2;
+    const int half_x = WM_window_native_pixel_x(win) / 2;
     /* Right half of the screen. */
     if (r_mouse_xy[0] > half_x) {
       r_mouse_xy[0] -= half_x;
@@ -181,7 +181,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int r_mouse_xy[2])
     r_mouse_xy[0] *= 2;
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_TOPBOTTOM) {
-    const int half_y = WM_window_pixels_y(win) / 2;
+    const int half_y = WM_window_native_pixel_y(win) / 2;
     /* Upper half of the screen. */
     if (r_mouse_xy[1] > half_y) {
       r_mouse_xy[1] -= half_y;

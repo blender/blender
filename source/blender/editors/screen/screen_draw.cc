@@ -166,8 +166,8 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
-  const int winsize_x = WM_window_pixels_x(win);
-  const int winsize_y = WM_window_pixels_y(win);
+  const int winsize_x = WM_window_native_pixel_x(win);
+  const int winsize_y = WM_window_native_pixel_y(win);
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
 

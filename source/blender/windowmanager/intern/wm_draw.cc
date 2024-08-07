@@ -352,7 +352,7 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
     }
   }
   if (grab_state->wrap_axis & GHOST_kAxisY) {
-    const int height = WM_window_pixels_y(win);
+    const int height = WM_window_native_pixel_y(win);
     const int min = height - grab_state->bounds[1];
     const int max = height - grab_state->bounds[3];
     if (min != max) {
@@ -1197,8 +1197,8 @@ static void wm_draw_window(bContext *C, wmWindow *win)
     /* For side-by-side and top-bottom, we need to render each view to an
      * an off-screen texture and then draw it. This used to happen for all
      * stereo methods, but it's less efficient than drawing directly. */
-    const int width = WM_window_pixels_x(win);
-    const int height = WM_window_pixels_y(win);
+    const int width = WM_window_native_pixel_x(win);
+    const int height = WM_window_native_pixel_y(win);
     GPUOffScreen *offscreen = GPU_offscreen_create(
         width, height, false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
@@ -1285,8 +1285,8 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
     GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
   }
 
-  r_size[0] = WM_window_pixels_x(win);
-  r_size[1] = WM_window_pixels_y(win);
+  r_size[0] = WM_window_native_pixel_x(win);
+  r_size[1] = WM_window_native_pixel_y(win);
   const uint rect_len = r_size[0] * r_size[1];
   uint8_t *rect = static_cast<uint8_t *>(MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__));
 
@@ -1348,8 +1348,8 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
   /* Draw into an off-screen buffer and read its contents. */
-  r_size[0] = WM_window_pixels_x(win);
-  r_size[1] = WM_window_pixels_y(win);
+  r_size[0] = WM_window_native_pixel_x(win);
+  r_size[1] = WM_window_native_pixel_y(win);
 
   /* Determine desired offscreen format depending on HDR availability. */
   eGPUTextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
@@ -1376,7 +1376,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
                                                  float r_col[3])
 {
   /* A version of #WM_window_pixels_read_from_offscreen that reads a single sample. */
-  const int size[2] = {WM_window_pixels_x(win), WM_window_pixels_y(win)};
+  const int size[2] = {WM_window_native_pixel_x(win), WM_window_native_pixel_y(win)};
   zero_v3(r_col);
 
   /* While this shouldn't happen, return in the case it does. */

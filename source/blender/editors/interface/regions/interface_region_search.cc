@@ -802,7 +802,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
 
     BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 
-    int winx = WM_window_pixels_x(win);
+    int winx = WM_window_native_pixel_x(win);
     // winy = WM_window_pixels_y(win);  /* UNUSED */
     // wm_window_get_size(win, &winx, &winy);
 

@@ -507,8 +507,8 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
 static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  const int winsize_x = WM_window_pixels_x(win);
-  const int winsize_y = WM_window_pixels_y(win);
+  const int winsize_x = WM_window_native_pixel_x(win);
+  const int winsize_y = WM_window_native_pixel_y(win);
 
   /* For multi-window drags, we only do this if mouse inside. */
   if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > winsize_x || event->xy[1] > winsize_y)
@@ -1088,7 +1088,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     return;
   }
 
-  const int winsize_y = WM_window_pixels_y(win);
+  const int winsize_y = WM_window_native_pixel_y(win);
   int x, y;
   if (drag->imb) {
     const int icon_width = wm_drag_imbuf_icon_width_get(drag);

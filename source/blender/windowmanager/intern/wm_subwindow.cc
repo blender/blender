@@ -73,8 +73,8 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
 
 void wmWindowViewport(wmWindow *win)
 {
-  int width = WM_window_pixels_x(win);
-  int height = WM_window_pixels_y(win);
+  int width = WM_window_native_pixel_x(win);
+  int height = WM_window_native_pixel_y(win);
 
   GPU_viewport(0, 0, width, height);
   GPU_scissor(0, 0, width, height);

@@ -1208,8 +1208,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 {
   const float pad_px = UI_TIP_PADDING;
   wmWindow *win = CTX_wm_window(C);
-  const int winx = WM_window_pixels_x(win);
-  const int winy = WM_window_pixels_y(win);
+  const int winx = WM_window_native_pixel_x(win);
+  const int winy = WM_window_native_pixel_y(win);
   const uiStyle *style = UI_style_get();
   rcti rect_i;
   int font_flag = 0;

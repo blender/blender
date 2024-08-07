@@ -501,8 +501,8 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
   const rcti *rect = static_cast<const rcti *>(gt->customdata);
-  const int winsize_x = WM_window_pixels_x(win);
-  const int winsize_y = WM_window_pixels_y(win);
+  const int winsize_x = WM_window_native_pixel_x(win);
+  const int winsize_y = WM_window_native_pixel_y(win);
 
   float x1, x2, y1, y2;
 
