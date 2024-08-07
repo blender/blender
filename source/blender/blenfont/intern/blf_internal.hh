@@ -106,7 +106,8 @@ void blf_draw_svg_icon(FontBLF *font,
                        float y,
                        float size,
                        float color[4] = nullptr,
-                       float outline_alpha = 1.0f);
+                       float outline_alpha = 1.0f,
+                       bool multicolor = false);
 
 blender::Array<uchar> blf_svg_icon_bitmap(
     FontBLF *font, uint icon_id, float size, int *r_width, int *r_height);

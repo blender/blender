@@ -1385,26 +1385,26 @@ static void icon_draw_size(float x,
     icon_draw_rect_input(x, y, w, h, icon_id, aspect, alpha, inverted);
   }
   else if (ELEM(di->type, ICON_TYPE_SVG_MONO, ICON_TYPE_SVG_COLOR)) {
-    /* Monochrome icon that uses text or theme color. */
     float outline_intensity = mono_border ? (btheme->tui.icon_border_intensity > 0.0f ?
                                                  btheme->tui.icon_border_intensity :
                                                  0.5f) :
                                             0.0f;
-    if (di->type == ICON_TYPE_SVG_COLOR) {
-      BLF_draw_svg_icon(
-          uint(icon_id), x, y, float(draw_size) / aspect, nullptr, outline_intensity);
+    float color[4];
+    if (mono_rgba) {
+      rgba_uchar_to_float(color, (const uchar *)mono_rgba);
     }
     else {
-      float color[4];
-      if (mono_rgba) {
-        rgba_uchar_to_float(color, (const uchar *)mono_rgba);
-      }
-      else {
-        UI_GetThemeColor4fv(TH_TEXT, color);
-      }
-      color[3] *= alpha;
-      BLF_draw_svg_icon(uint(icon_id), x, y, float(draw_size) / aspect, color, outline_intensity);
+      UI_GetThemeColor4fv(TH_TEXT, color);
     }
+
+    color[3] *= alpha;
+    BLF_draw_svg_icon(uint(icon_id),
+                      x,
+                      y,
+                      float(draw_size) / aspect,
+                      color,
+                      outline_intensity,
+                      di->type == ICON_TYPE_SVG_COLOR);
 
     if (text_overlay && text_overlay->text[0] != '\0') {
       /* Handle the little numbers on top of the icon. */

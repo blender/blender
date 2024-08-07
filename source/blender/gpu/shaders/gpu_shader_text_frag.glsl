@@ -81,6 +81,7 @@ void main()
   /* Colored glyphs: do not do filtering or blurring. */
   if (num_channels == 4) {
     fragColor.rgba = sample_glyph_rgba(uv_base).rgba;
+    fragColor.a *= color_flat.a;
     return;
   }
 
