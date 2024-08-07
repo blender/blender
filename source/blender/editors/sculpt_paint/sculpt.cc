@@ -227,7 +227,7 @@ const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHV
 
 const float *SCULPT_active_vertex_co_get(const SculptSession &ss)
 {
-  return SCULPT_vertex_co_get(ss, ss.active_vertex());
+  return SCULPT_vertex_co_get(ss, ss.active_vert_ref());
 }
 
 MutableSpan<float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss)
@@ -4671,7 +4671,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings &ups, Object &ob, con
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
       copy_v3_v3(cache->orig_grab_location,
-                 SCULPT_vertex_co_for_grab_active_get(ss, ss.active_vertex()));
+                 SCULPT_vertex_co_for_grab_active_get(ss, ss.active_vert_ref()));
     }
     else {
       copy_v3_v3(cache->orig_grab_location, cache->true_location);
@@ -5178,7 +5178,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
 
   /* Update the active vertex of the SculptSession. */
   const PBVHVertRef active_vertex = srd.active_vertex;
-  ss.set_active_vertex(active_vertex);
+  ss.set_active_vert(active_vertex);
   SCULPT_vertex_random_access_ensure(ss);
   copy_v3_v3(out->active_vertex_co, SCULPT_vertex_co_get(ss, active_vertex));
 

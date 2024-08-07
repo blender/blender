@@ -1411,7 +1411,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
-  pcontext->prev_active_vertex = ss.active_vertex();
+  pcontext->prev_active_vertex = ss.active_vert_ref();
   if (!ups.stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
         C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
@@ -1733,7 +1733,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
   BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
   ss.boundary_preview = boundary::preview_data_init(
-      *pcontext->vc.obact, pcontext->brush, ss.active_vertex(), pcontext->radius);
+      *pcontext->vc.obact, pcontext->brush, ss.active_vert_ref(), pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
@@ -1760,7 +1760,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   paint_cursor_update_object_space_radius(pcontext);
 
-  const PBVHVertRef active_vert = pcontext->ss->active_vertex();
+  const PBVHVertRef active_vert = pcontext->ss->active_vert_ref();
 
   /* Setup drawing. */
   wmViewport(&pcontext->region->winrct);

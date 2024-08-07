@@ -3109,18 +3109,17 @@ static void init_boundary_mesh(Object &object,
   const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
   const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
 
-  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = ss.active_vertex();
-  if (initial_vert_ref.i == PBVH_REF_NONE) {
+  ActiveVert initial_vert_ref = ss.active_vert();
+  if (std::holds_alternative<std::monostate>(initial_vert_ref)) {
     return;
   }
 
   std::optional<int> initial_vert;
   if (ss.cache->mirror_symmetry_pass == 0) {
-    initial_vert = initial_vert_ref.i;
+    initial_vert = std::get<int>(initial_vert_ref);
   }
   else {
-    float3 location = symmetry_flip(positions_eval[initial_vert_ref.i], symm_area);
+    float3 location = symmetry_flip(positions_eval[std::get<int>(initial_vert_ref)], symm_area);
     initial_vert = nearest_vert_calc_mesh(
         *ss.pbvh, positions_eval, hide_vert, location, ss.cache->radius_squared, false);
   }
@@ -3168,18 +3167,17 @@ static void init_boundary_grids(Object &object,
   const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   Span<CCGElem *> grids = subdiv_ccg.grids;
 
-  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = ss.active_vertex();
-  if (initial_vert_ref.i == PBVH_REF_NONE) {
+  ActiveVert initial_vert_ref = ss.active_vert();
+  if (std::holds_alternative<std::monostate>(initial_vert_ref)) {
     return;
   }
 
   std::optional<SubdivCCGCoord> initial_vert;
   if (ss.cache->mirror_symmetry_pass == 0) {
-    initial_vert = SubdivCCGCoord::from_index(key, initial_vert_ref.i);
+    initial_vert = std::get<SubdivCCGCoord>(initial_vert_ref);
   }
   else {
-    const SubdivCCGCoord active_vert = SubdivCCGCoord::from_index(key, initial_vert_ref.i);
+    const SubdivCCGCoord active_vert = std::get<SubdivCCGCoord>(initial_vert_ref);
     float3 location = symmetry_flip(
         CCG_grid_elem_co(key, grids[active_vert.grid_index], active_vert.x, active_vert.y),
         symm_area);
@@ -3229,18 +3227,17 @@ static void init_boundary_bmesh(Object &object,
 
   BMesh *bm = ss.bm;
 
-  /* TODO: Remove PBVHVertRef here once we decide how we are storing the active_vertex value. */
-  PBVHVertRef initial_vert_ref = ss.active_vertex();
-  if (initial_vert_ref.i == PBVH_REF_NONE) {
+  ActiveVert initial_vert_ref = ss.active_vert();
+  if (std::holds_alternative<std::monostate>(initial_vert_ref)) {
     return;
   }
 
   std::optional<BMVert *> initial_vert;
   if (ss.cache->mirror_symmetry_pass == 0) {
-    initial_vert = reinterpret_cast<BMVert *>(initial_vert_ref.i);
+    initial_vert = std::get<BMVert *>(initial_vert_ref);
   }
   else {
-    BMVert *active_vert = reinterpret_cast<BMVert *>(initial_vert_ref.i);
+    BMVert *active_vert = std::get<BMVert *>(initial_vert_ref);
     float3 location = symmetry_flip(active_vert->co, symm_area);
     initial_vert = nearest_vert_calc_bmesh(pbvh, location, ss.cache->radius_squared, false);
   }

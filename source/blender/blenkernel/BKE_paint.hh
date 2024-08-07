@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <variant>
+
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_map.hh"
@@ -74,6 +76,7 @@ struct Scene;
 struct Sculpt;
 struct SculptSession;
 struct SubdivCCG;
+struct SubdivCCGCoord;
 struct Tex;
 struct ToolSettings;
 struct UnifiedPaintSettings;
@@ -406,6 +409,8 @@ struct SculptTopologyIslandCache {
   blender::Array<uint8_t> vert_island_ids;
 };
 
+using ActiveVert = std::variant<std::monostate, int, SubdivCCGCoord, BMVert *>;
+
 struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -587,11 +592,13 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   SculptSession();
   ~SculptSession();
 
-  PBVHVertRef active_vertex() const;
-  void set_active_vertex(PBVHVertRef vert);
+  PBVHVertRef active_vert_ref() const;
+  ActiveVert active_vert() const;
+
+  void set_active_vert(PBVHVertRef vert);
 
  private:
-  PBVHVertRef active_vertex_ = PBVHVertRef{PBVH_REF_NONE};
+  PBVHVertRef active_vert_ = PBVHVertRef{PBVH_REF_NONE};
 };
 
 void BKE_sculptsession_free(Object *ob);

@@ -609,7 +609,7 @@ void calc_pose_data(Object &ob,
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial_with_symmetry(
-      ob, ss, flood, ss.active_vertex(), !r_pose_factor.is_empty() ? radius : 0.0f);
+      ob, ss, flood, ss.active_vert_ref(), !r_pose_factor.is_empty() ? radius : 0.0f);
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
@@ -815,7 +815,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets(Object &o
 
   int current_face_set = SCULPT_FACE_SET_NONE;
 
-  PBVHVertRef current_vertex = ss.active_vertex();
+  PBVHVertRef current_vertex = ss.active_vert_ref();
 
   for (const int i : ik_chain->segments.index_range()) {
     const bool is_first_iteration = i == 0;
@@ -871,7 +871,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets(Object &o
     current_vertex = next_vertex;
   }
 
-  pose_ik_chain_origin_heads_init(*ik_chain, SCULPT_vertex_co_get(ss, ss.active_vertex()));
+  pose_ik_chain_origin_heads_init(*ik_chain, SCULPT_vertex_co_get(ss, ss.active_vert_ref()));
 
   return ik_chain;
 }
@@ -938,7 +938,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
 
   std::unique_ptr<SculptPoseIKChain> ik_chain = pose_ik_chain_new(1, totvert);
 
-  const PBVHVertRef active_vertex = ss.active_vertex();
+  const PBVHVertRef active_vertex = ss.active_vert_ref();
   int active_vertex_index = BKE_pbvh_vertex_to_index(*ss.pbvh, active_vertex);
 
   const int active_face_set = face_set::active_face_set_get(ss);
@@ -1012,7 +1012,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
 
   {
     flood_fill::FillData flood = flood_fill::init_fill(ss);
-    flood_fill::add_initial_with_symmetry(ob, ss, flood, ss.active_vertex(), radius);
+    flood_fill::add_initial_with_symmetry(ob, ss, flood, ss.active_vert_ref(), radius);
     MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
     flood_fill::execute(
         ss, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool /*is_duplicate*/) {
