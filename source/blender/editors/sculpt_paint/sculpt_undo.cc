@@ -432,33 +432,37 @@ static bool restore_active_shape_key(bContext &C,
   return true;
 }
 
-static void restore_position_mesh(Object &object, Node &unode, MutableSpan<bool> modified_verts)
+static void restore_position_mesh(Object &object,
+                                  const Span<std::unique_ptr<Node>> unodes,
+                                  MutableSpan<bool> modified_verts)
 {
   SculptSession &ss = *object.sculpt;
 
   /* No need for float comparison here (memory is exactly equal or not). */
-  const Span<int> index = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
   MutableSpan<float3> positions = ss.vert_positions;
 
   if (ss.shapekey_active) {
     float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(&object, ss.shapekey_active);
     MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss.shapekey_active->totelem);
 
-    if (!unode.orig_position.is_empty()) {
-      if (ss.deform_modifiers_active) {
-        for (const int i : index.index_range()) {
-          restore_deformed(ss, unode, i, index[i], key_positions[index[i]]);
+    for (const std::unique_ptr<Node> &unode : unodes) {
+      const Span<int> verts = unode->vert_indices.as_span().take_front(unode->unique_verts_num);
+      if (!unode->orig_position.is_empty()) {
+        if (ss.deform_modifiers_active) {
+          for (const int i : verts.index_range()) {
+            restore_deformed(ss, *unode, i, verts[i], key_positions[verts[i]]);
+          }
+        }
+        else {
+          for (const int i : verts.index_range()) {
+            std::swap(key_positions[verts[i]], unode->orig_position[i]);
+          }
         }
       }
       else {
-        for (const int i : index.index_range()) {
-          std::swap(key_positions[index[i]], unode.orig_position[i]);
+        for (const int i : verts.index_range()) {
+          std::swap(key_positions[verts[i]], unode->position[i]);
         }
-      }
-    }
-    else {
-      for (const int i : index.index_range()) {
-        std::swap(key_positions[index[i]], unode.position[i]);
       }
     }
 
@@ -472,24 +476,27 @@ static void restore_position_mesh(Object &object, Node &unode, MutableSpan<bool>
     MEM_freeN(vertCos);
   }
   else {
-    if (!unode.orig_position.is_empty()) {
-      if (ss.deform_modifiers_active) {
-        for (const int i : index.index_range()) {
-          restore_deformed(ss, unode, i, index[i], positions[index[i]]);
-          modified_verts[index[i]] = true;
+    for (const std::unique_ptr<Node> &unode : unodes) {
+      const Span<int> verts = unode->vert_indices.as_span().take_front(unode->unique_verts_num);
+      if (!unode->orig_position.is_empty()) {
+        if (ss.deform_modifiers_active) {
+          for (const int i : verts.index_range()) {
+            restore_deformed(ss, *unode, i, verts[i], positions[verts[i]]);
+            modified_verts[verts[i]] = true;
+          }
+        }
+        else {
+          for (const int i : verts.index_range()) {
+            std::swap(positions[verts[i]], unode->orig_position[i]);
+            modified_verts[verts[i]] = true;
+          }
         }
       }
       else {
-        for (const int i : index.index_range()) {
-          std::swap(positions[index[i]], unode.orig_position[i]);
-          modified_verts[index[i]] = true;
+        for (const int i : verts.index_range()) {
+          std::swap(positions[verts[i]], unode->position[i]);
+          modified_verts[verts[i]] = true;
         }
-      }
-    }
-    else {
-      for (const int i : index.index_range()) {
-        std::swap(positions[index[i]], unode.position[i]);
-        modified_verts[index[i]] = true;
       }
     }
   }
@@ -954,9 +961,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           return;
         }
         Array<bool> modified_verts(ss.totvert, false);
-        for (std::unique_ptr<Node> &unode : step_data.nodes) {
-          restore_position_mesh(object, *unode, modified_verts);
-        }
+        restore_position_mesh(object, step_data.nodes, modified_verts);
         bke::pbvh::search_callback(*ss.pbvh, {}, [&](bke::pbvh::Node &node) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(node))) {
             BKE_pbvh_node_mark_positions_update(&node);
