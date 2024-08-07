@@ -1024,12 +1024,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* flush sculpt and editmode changes */
   ED_editors_flush_edits_ex(bmain, true, false);
 
-  /* cleanup sequencer caches before starting user triggered render.
-   * otherwise, invalidated cache entries can make their way into
-   * the output rendering. We can't put that into RE_RenderFrame,
-   * since sequence rendering can call that recursively... (peter) */
-  SEQ_cache_cleanup(scene);
-
   /* store spare
    * get view3d layer, local layer, make this nice api call to render
    * store spare */

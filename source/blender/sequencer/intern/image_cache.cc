@@ -746,7 +746,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *r_view_area_safe)
 ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
 {
 
-  if (context->skip_cache || context->is_proxy_render || !seq) {
+  if (context->skip_cache || context->is_proxy_render || context->for_render || !seq) {
     return nullptr;
   }
 
@@ -866,7 +866,7 @@ void seq_cache_thumbnail_put(const SeqRenderData *context,
 void seq_cache_put(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i)
 {
-  if (i == nullptr || context->skip_cache || context->is_proxy_render || !seq) {
+  if (i == nullptr || context->skip_cache || context->is_proxy_render || context->for_render || !seq) {
     return;
   }
 
