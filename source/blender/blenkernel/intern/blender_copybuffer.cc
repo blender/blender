@@ -50,6 +50,9 @@ static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
   /* Append, rather than linking */
   BKE_blendfile_append(lapp_context, reports);
 
+  /* Instantiate loose data in the scene (e.g. add object to the active collection). */
+  BKE_blendfile_link_append_instantiate_loose(lapp_context, reports);
+
   /* This must be unset, otherwise these object won't link into other scenes from this blend
    * file. */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);

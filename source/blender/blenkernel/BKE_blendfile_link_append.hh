@@ -169,6 +169,12 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports);
 
 /**
+ * Instantiate loose data in the scene (e.g. add object to the active collection).
+ */
+void BKE_blendfile_link_append_instantiate_loose(BlendfileLinkAppendContext *lapp_context,
+                                                 ReportList *reports);
+
+/**
  * Options controlling the behavior of liboverrides creation.
  */
 enum eBKELibLinkOverride {
