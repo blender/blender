@@ -55,11 +55,13 @@ static const EnumPropertyItem image_source_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "BLI_math_base.h"
 #  include "BLI_math_vector.h"
 
 #  include "BKE_global.hh"
+#  include "BKE_screen.hh"
 
 #  include "GPU_texture.hh"
 
@@ -67,6 +69,8 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "IMB_imbuf_types.hh"
 
 #  include "ED_node.hh"
+
+#  include "DNA_space_types.h"
 
 static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {
@@ -267,8 +271,6 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
 static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
-    // ImageUser *iuser = ptr->data;
-
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:
       case ID_TE:
@@ -277,8 +279,23 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
         return rna_Node_ImageUser_path(ptr);
       case ID_CA:
         return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
-      case ID_SCR:
+      case ID_SCR: {
+        const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
+        const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
+        int area_index;
+        int space_index;
+        LISTBASE_FOREACH_INDEX (ScrArea *, area, &screen->areabase, area_index) {
+          LISTBASE_FOREACH_INDEX (SpaceLink *, sl, &area->spacedata, space_index) {
+            if (sl->spacetype == SPACE_IMAGE) {
+              SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+              if (&sima->iuser == iuser) {
+                return fmt::format("areas[{}].spaces[{}].image_user", area_index, space_index);
+              }
+            }
+          }
+        }
         return " ... image_user";
+      }
       default:
         break;
     }
