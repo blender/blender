@@ -1795,10 +1795,6 @@ bool SCULPT_brush_test_cube(SculptBrushTest &test,
   float side = 1.0f;
   float local_co[3];
 
-  if (sculpt_brush_test_clipping(test, co)) {
-    return false;
-  }
-
   mul_v3_m4v3(local_co, local, co);
 
   local_co[0] = fabsf(local_co[0]);
