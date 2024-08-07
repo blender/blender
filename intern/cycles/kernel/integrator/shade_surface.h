@@ -60,11 +60,7 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
    * - Instead of ray offset, can we tweak P to lie within the triangle?
    */
 
-#ifndef __METALRT__
-  /* MetalRT and Cycles triangle tests aren't numerically identical, meaning this method
-   * isn't robust for MetalRT. In this case, just applying the ray offset uniformly gives
-   * identical looking results.
-   */
+  /* TODO: Investigate if there are better ray offsetting algorithms for each BVH/device. */
 
   float3 verts[3];
   if (sd->type == PRIMITIVE_TRIANGLE) {
@@ -87,11 +83,7 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
   if (ray_triangle_intersect_self(local_ray_P, local_ray_D, verts)) {
     return ray_P;
   }
-  else
-#endif
-  {
-    return ray_offset(ray_P, sd->Ng);
-  }
+  return ray_offset(ray_P, sd->Ng);
 }
 
 ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
