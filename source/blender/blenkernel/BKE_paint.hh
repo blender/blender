@@ -326,65 +326,6 @@ struct SculptBoundaryPreview {
   blender::float3 initial_vert_position;
 };
 
-struct SculptBoundary {
-  /* Vertex indices of the active boundary. */
-  blender::Vector<int> verts;
-
-  /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
-   * account the length of all edges between them. Any vertex that is not in the boundary will have
-   * a distance of 0. */
-  blender::Map<int, float> distance;
-
-  /* Data for drawing the preview. */
-  blender::Vector<std::pair<blender::float3, blender::float3>> edges;
-
-  /* Initial vertex index in the boundary which is closest to the current sculpt active vertex. */
-  int initial_vert_i;
-
-  /* Vertex that at max_propagation_steps from the boundary and closest to the original active
-   * vertex that was used to initialize the boundary. This is used as a reference to check how much
-   * the deformation will go into the mesh and to calculate the strength of the brushes. */
-  blender::float3 pivot_position;
-
-  /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
-   * during the brush action. This allows to use them as a reference positions and vectors for some
-   * brush effects. */
-  blender::float3 initial_vert_position;
-
-  /* Maximum number of topology steps that were calculated from the boundary. */
-  int max_propagation_steps;
-
-  /* Indexed by vertex index, contains the topology information needed for boundary deformations.
-   */
-  struct {
-    /* Vertex index from where the topology propagation reached this vertex. */
-    blender::Array<int> original_vertex_i;
-
-    /* How many steps were needed to reach this vertex from the boundary. */
-    blender::Array<int> propagation_steps_num;
-
-    /* Strength that is used to deform this vertex. */
-    blender::Array<float> strength_factor;
-  } edit_info;
-
-  /* Bend Deform type. */
-  struct {
-    blender::Array<blender::float3> pivot_rotation_axis;
-    blender::Array<blender::float3> pivot_positions;
-  } bend;
-
-  /* Slide Deform type. */
-  struct {
-    blender::Array<blender::float3> directions;
-  } slide;
-
-  /* Twist Deform type. */
-  struct {
-    blender::float3 rotation_axis;
-    blender::float3 pivot_position;
-  } twist;
-};
-
 struct SculptFakeNeighbors {
   bool use_fake_neighbors;
 
