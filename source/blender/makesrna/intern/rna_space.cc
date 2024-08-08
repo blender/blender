@@ -1584,6 +1584,23 @@ static std::optional<std::string> rna_View3DShading_path(const PointerRNA *ptr)
   if (GS(ptr->owner_id->name) == ID_SCE) {
     return "display.shading";
   }
+  else if (GS(ptr->owner_id->name) == ID_SCR) {
+    const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
+    const View3DShading *shading = static_cast<View3DShading *>(ptr->data);
+    int area_index;
+    int space_index;
+    LISTBASE_FOREACH_INDEX (ScrArea *, area, &screen->areabase, area_index) {
+      LISTBASE_FOREACH_INDEX (SpaceLink *, sl, &area->spacedata, space_index) {
+        if (sl->spacetype == SPACE_VIEW3D) {
+          View3D *v3d = reinterpret_cast<View3D *>(sl);
+          if (&v3d->shading == shading) {
+            return fmt::format("areas[{}].spaces[{}].shading", area_index, space_index);
+          }
+        }
+      }
+    }
+  }
+
   return "shading";
 }
 
