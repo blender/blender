@@ -109,6 +109,8 @@ struct GPUPass {
   bool should_optimize;
   /** Whether pass is in the GPUPass cache. */
   bool cached;
+  /** Protects pass shader from being created from multiple threads at the same time. */
+  ThreadMutex shader_creation_mutex;
 };
 
 /* -------------------------------------------------------------------- */
@@ -809,6 +811,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
      * Optimized passes cannot be optimized further, even if the heuristic is still not
      * favorable. */
     pass->should_optimize = (!optimize_graph) && codegen.should_optimize_heuristic();
+    BLI_mutex_init(&pass->shader_creation_mutex);
 
     codegen.create_info = nullptr;
 
@@ -914,11 +917,13 @@ bool GPU_pass_finalize_compilation(GPUPass *pass, GPUShader *shader)
 
 bool GPU_pass_compile(GPUPass *pass, const char *shname)
 {
+  BLI_mutex_lock(&pass->shader_creation_mutex);
   bool success = true;
   if (GPUShaderCreateInfo *info = GPU_pass_begin_compilation(pass, shname)) {
     GPUShader *shader = GPU_shader_create_from_info(info);
     success = GPU_pass_finalize_compilation(pass, shader);
   }
+  BLI_mutex_unlock(&pass->shader_creation_mutex);
   return success;
 }
 
@@ -930,6 +935,7 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
 static void gpu_pass_free(GPUPass *pass)
 {
   BLI_assert(pass->refcount == 0);
+  BLI_mutex_end(&pass->shader_creation_mutex);
   if (pass->shader) {
     GPU_shader_free(pass->shader);
   }
