@@ -232,11 +232,11 @@ set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 # Additionally, keep the PYTHON_PIP_VERSION in sync with the pip version bundled
 # into Python.
 
-set(PYTHON_VERSION 3.11.7)
+set(PYTHON_VERSION 3.11.9)
 set(PYTHON_SHORT_VERSION 3.11)
 set(PYTHON_SHORT_VERSION_NO_DOTS 311)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH d96c7e134c35a8c46236f8a0e566b69c)
+set(PYTHON_HASH 22ea467e7d915477152e99d5da856ddc)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_CPE "cpe:2.3:a:python:python:${PYTHON_VERSION}:-:*:*:*:*:*:*")
@@ -247,8 +247,8 @@ set(PYTHON_HOMEPAGE https://www.python.org/)
 # The version needs to be kept in symc with the version bundled in Python.
 # Currently it is done manually by tracking _PIP_VERSION variable in the
 # `Lib/ensurepip/__init__.py`. For example,
-#   https://github.com/python/cpython/tree/v3.11.7/Lib/ensurepip/__init__.py
-set(PYTHON_PIP_VERSION 23.2.1)
+#   https://github.com/python/cpython/tree/v3.11.9/Lib/ensurepip/__init__.py
+set(PYTHON_PIP_VERSION 24.0)
 set(PYTHON_PIP_CPE "cpe:2.3:a:pypa:pip:${PYTHON_PIP_VERSION}:*:*:*:*:*:*:*")
 
 set(TBB_YEAR 2020)
