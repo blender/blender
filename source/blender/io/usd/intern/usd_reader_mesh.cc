@@ -211,7 +211,9 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   readFaceSetsSample(bmain, mesh, motionSampleTime);
 
-  if (mesh_prim_.GetPointsAttr().ValueMightBeTimeVarying()) {
+  if (mesh_prim_.GetPointsAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetVelocitiesAttr().ValueMightBeTimeVarying())
+  {
     is_time_varying_ = true;
   }
 
