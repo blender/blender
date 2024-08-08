@@ -2229,23 +2229,62 @@ float sculpt_calc_radius(const ViewContext &vc,
                          float3 location);
 }
 
-inline void *SCULPT_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
+inline void *SCULPT_vertex_attr_get(const PBVHVertRef vert, const SculptAttribute *attr)
 {
   if (attr->data) {
     char *p = (char *)attr->data;
-    int idx = (int)vertex.i;
+    int idx = (int)vert.i;
 
     if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
+      BMElem *v = (BMElem *)vert.i;
       idx = v->head.index;
     }
 
-    return p + attr->elem_size * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+    return p + attr->elem_size * idx;
   }
 
-  return NULL;
+  BMElem *v = (BMElem *)vert.i;
+  return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+}
+inline void *SCULPT_vertex_attr_get(const int vert, const SculptAttribute *attr)
+{
+  if (attr->data) {
+    char *p = (char *)attr->data;
+
+    return p + attr->elem_size * vert;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+inline void *SCULPT_vertex_attr_get(const CCGKey &key,
+                                    const SubdivCCGCoord vert,
+                                    const SculptAttribute *attr)
+{
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = vert.to_index(key);
+
+    return p + attr->elem_size * idx;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+inline void *SCULPT_vertex_attr_get(const BMVert *vert, const SculptAttribute *attr)
+{
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = BM_elem_index_get(vert);
+
+    if (attr->data_for_bmesh) {
+      idx = vert->head.index;
+    }
+
+    return p + attr->elem_size * idx;
+  }
+
+  return BM_ELEM_CD_GET_VOID_P(vert, attr->bmesh_cd_offset);
 }
