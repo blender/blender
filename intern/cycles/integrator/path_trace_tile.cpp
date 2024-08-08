@@ -86,6 +86,10 @@ bool PathTraceTile::set_pass_pixels(const string_view pass_name,
   if (!pass) {
     return false;
   }
+  if (pass->offset == PASS_UNUSED) {
+    /* Happens when attempting to set pixels of a pass with compositing when baking. */
+    return false;
+  }
 
   const float exposure = buffer_params.exposure;
   const int num_samples = 1;
