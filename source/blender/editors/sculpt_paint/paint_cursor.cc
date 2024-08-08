@@ -1147,17 +1147,13 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
 
 static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
                                                const Brush &brush,
-                                               const bool is_multires,
-                                               const SculptSession &ss)
+                                               const Object &object)
 {
   if (!(brush.flag & BRUSH_GRAB_ACTIVE_VERTEX)) {
     return;
   }
 
-  if (is_multires) {
-    return;
-  }
-
+  const SculptSession &ss = *object.sculpt;
   if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
     return;
   }
@@ -1175,10 +1171,11 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
   }
 
   GPU_line_width(1.0f);
-  if (ss.preview_vert_count > 0) {
-    immBegin(GPU_PRIM_LINES, ss.preview_vert_count);
-    for (int i = 0; i < ss.preview_vert_count; i++) {
-      immVertex3fv(gpuattr, SCULPT_vertex_co_for_grab_active_get(ss, ss.preview_vert_list[i]));
+  if (!ss.preview_verts.is_empty()) {
+    const Span<float3> positions = vert_positions_for_grab_active_get(object);
+    immBegin(GPU_PRIM_LINES, ss.preview_verts.size());
+    for (const int vert : ss.preview_verts) {
+      immVertex3fv(gpuattr, positions[vert]);
     }
     immEnd();
   }
@@ -1258,7 +1255,6 @@ struct PaintCursorContext {
 
   bool is_stroke_active;
   bool is_cursor_over_mesh;
-  bool is_multires;
   float radius;
 
   /* 3D view cursor position and normal. */
@@ -1433,8 +1429,6 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   if (pcontext->is_cursor_over_mesh) {
     paint_cursor_update_unprojected_radius(ups, brush, vc, pcontext->scene_space_location);
   }
-
-  pcontext->is_multires = ss.pbvh != nullptr && ss.pbvh->type() == bke::pbvh::Type::Grids;
 
   pcontext->sd = CTX_data_tool_settings(pcontext->C)->sculpt;
 }
@@ -1769,7 +1763,14 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   const float *active_vertex_co;
   if (brush.sculpt_tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
-    active_vertex_co = SCULPT_vertex_co_for_grab_active_get(*pcontext->ss, active_vert);
+    SculptSession &ss = *pcontext->ss;
+    if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
+      const Span<float3> positions = vert_positions_for_grab_active_get(*pcontext->vc.obact);
+      active_vertex_co = positions[active_vert.i];
+    }
+    else {
+      active_vertex_co = SCULPT_vertex_co_get(*pcontext->ss, active_vert);
+    }
   }
   else {
     active_vertex_co = SCULPT_vertex_co_get(*pcontext->ss, active_vert);
@@ -1846,8 +1847,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
     geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
-    sculpt_geometry_preview_lines_draw(
-        pcontext->pos, *pcontext->brush, pcontext->is_multires, *pcontext->ss);
+    sculpt_geometry_preview_lines_draw(pcontext->pos, *pcontext->brush, *pcontext->vc.obact);
   }
 
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_POSE) {
@@ -1937,7 +1937,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
   /* Draw the special active cursors different tools may have. */
 
   if (brush.sculpt_tool == SCULPT_TOOL_GRAB) {
-    sculpt_geometry_preview_lines_draw(pcontext->pos, brush, pcontext->is_multires, ss);
+    sculpt_geometry_preview_lines_draw(pcontext->pos, brush, *pcontext->vc.obact);
   }
 
   if (brush.sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {

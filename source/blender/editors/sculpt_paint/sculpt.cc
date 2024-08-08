@@ -203,22 +203,22 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
   return {};
 }
 
-const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHVertRef vertex)
+namespace blender::ed::sculpt_paint {
+
+Span<float3> vert_positions_for_grab_active_get(const Object &object)
 {
-  if (ss.pbvh->type() == blender::bke::pbvh::Type::Mesh) {
+  const SculptSession &ss = *object.sculpt;
+  BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
+  if (ss.shapekey_active) {
     /* Always grab active shape key if the sculpt happens on shapekey. */
-    if (ss.shapekey_active) {
-      const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
-      return positions[vertex.i];
-    }
-
-    /* Sculpting on the base mesh. */
-    return ss.vert_positions[vertex.i];
+    return BKE_pbvh_get_vert_positions(*ss.pbvh);
   }
-
-  /* Everything else, such as sculpting on multires. */
-  return SCULPT_vertex_co_get(ss, vertex);
+  /* Otherwise use the base mesh positions. */
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  return mesh.vert_positions();
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 float *SCULPT_brush_deform_target_vertex_co_get(SculptSession &ss,
                                                 const int deform_target,
@@ -4612,7 +4612,9 @@ static bool sculpt_needs_delta_for_tip_orientation(const Brush &brush)
               SCULPT_TOOL_SNAKE_HOOK);
 }
 
-static void sculpt_update_brush_delta(UnifiedPaintSettings &ups, Object &ob, const Brush &brush)
+static void sculpt_update_brush_delta(UnifiedPaintSettings &ups,
+                                      const Object &ob,
+                                      const Brush &brush)
 {
   SculptSession &ss = *ob.sculpt;
   StrokeCache *cache = ss.cache;
@@ -4645,8 +4647,13 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings &ups, Object &ob, con
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
-      copy_v3_v3(cache->orig_grab_location,
-                 SCULPT_vertex_co_for_grab_active_get(ss, ss.active_vert_ref()));
+      if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
+        const Span<float3> positions = vert_positions_for_grab_active_get(ob);
+        cache->orig_grab_location = positions[ss.active_vert_ref().i];
+      }
+      else {
+        cache->orig_grab_location = SCULPT_vertex_co_get(ss, ss.active_vert_ref());
+      }
     }
     else {
       copy_v3_v3(cache->orig_grab_location, cache->true_location);

@@ -581,8 +581,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
 
-  ss.preview_vert_count = 0;
-  int totpoints = 0;
+  ss.preview_verts = {};
 
   /* This function is called from the cursor drawing code, so the tree may not be build yet. */
   if (!ss.pbvh) {
@@ -593,54 +592,52 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
     return;
   }
 
-  if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
+  if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
     return;
   }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
-  float brush_co[3];
-  copy_v3_v3(brush_co, SCULPT_vertex_co_get(ss, ss.active_vert_ref()));
+  const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+  /* Always grab active shape key if the sculpt happens on shapekey. */
+  const Span<float3> positions = ss.shapekey_active ? BKE_pbvh_get_vert_positions(*ss.pbvh) :
+                                                      mesh.vert_positions();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  BitVector<> visited_verts(SCULPT_vertex_count_get(ss));
+  const int active_vert = ss.active_vert_ref().i;
+  const float3 brush_co = positions[active_vert];
+  const float radius_sq = radius * radius;
 
-  /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
-  const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
+  Vector<int> preview_verts;
+  Vector<int> neighbors;
+  BitVector<> visited_verts(positions.size());
+  std::queue<int> queue;
+  queue.push(active_vert);
+  while (!queue.empty()) {
+    const int from_vert = queue.front();
+    queue.pop();
 
-  if (ss.preview_vert_list == nullptr) {
-    ss.preview_vert_list = MEM_cnew_array<PBVHVertRef>(max_preview_verts, __func__);
-  }
-
-  std::queue<PBVHVertRef> non_visited_verts;
-  non_visited_verts.push(ss.active_vert_ref());
-
-  while (!non_visited_verts.empty()) {
-    PBVHVertRef from_v = non_visited_verts.front();
-    non_visited_verts.pop();
-
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
-      if (totpoints + (ni.neighbors.size() * 2) < max_preview_verts) {
-        PBVHVertRef to_v = ni.vertex;
-        int to_v_i = ni.index;
-        ss.preview_vert_list[totpoints] = from_v;
-        totpoints++;
-        ss.preview_vert_list[totpoints] = to_v;
-        totpoints++;
-        if (visited_verts[to_v_i]) {
-          continue;
-        }
-        visited_verts[to_v_i].set();
-        const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
-        if (len_squared_v3v3(brush_co, co) < radius * radius) {
-          non_visited_verts.push(to_v);
-        }
+    neighbors.clear();
+    for (const int neighbor : vert_neighbors_get_mesh(
+             from_vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+    {
+      preview_verts.append(from_vert);
+      preview_verts.append(neighbor);
+      if (visited_verts[neighbor]) {
+        continue;
+      }
+      visited_verts[neighbor].set();
+      if (math::distance_squared(brush_co, positions[neighbor]) < radius_sq) {
+        queue.push(neighbor);
       }
     }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  ss.preview_vert_count = totpoints;
+  ss.preview_verts = preview_verts.as_span();
 }
 
 static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)

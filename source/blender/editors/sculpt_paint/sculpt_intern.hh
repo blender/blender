@@ -902,10 +902,14 @@ const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVert
 
 bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
 
+namespace blender::ed::sculpt_paint {
+
 /**
  * Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled.
  */
-const float *SCULPT_vertex_co_for_grab_active_get(const SculptSession &ss, PBVHVertRef vertex);
+Span<float3> vert_positions_for_grab_active_get(const Object &object);
+
+}
 
 /**
  * Returns the pointer to the coordinates that should be edited from a brush tool iterator

@@ -423,7 +423,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   Depsgraph *depsgraph = nullptr;
 
   /* These are always assigned to base mesh data when using Type::Mesh. */
-  blender::MutableSpan<blender::float3> vert_positions;
   blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
 
@@ -509,8 +508,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   Scene *scene = nullptr;
 
   /* Dynamic mesh preview */
-  PBVHVertRef *preview_vert_list = nullptr;
-  int preview_vert_count = 0;
+  blender::Array<int> preview_verts;
 
   /* Pose Brush Preview */
   blender::float3 pose_origin;
