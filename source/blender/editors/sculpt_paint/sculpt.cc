@@ -3800,26 +3800,6 @@ static void do_brush_action(const Scene &scene,
   ups.last_stroke_valid = true;
 }
 
-/* Flush displacement from deformed bke::pbvh::Tree vertex to original mesh. */
-static void sculpt_flush_pbvhvert_deform(SculptSession &ss,
-                                         const PBVHVertexIter &vd,
-                                         MutableSpan<float3> positions)
-{
-  float disp[3], newco[3];
-  int index = vd.vert_indices[vd.i];
-
-  sub_v3_v3v3(disp, vd.co, ss.deform_cos[index]);
-  mul_m3_v3(ss.deform_imats[index].ptr(), disp);
-  add_v3_v3v3(newco, disp, ss.orig_cos[index]);
-
-  ss.deform_cos[index] = vd.co;
-  ss.orig_cos[index] = newco;
-
-  if (!ss.shapekey_active) {
-    copy_v3_v3(positions[index], newco);
-  }
-}
-
 }  // namespace blender::ed::sculpt_paint
 
 /**
@@ -3836,56 +3816,6 @@ static void sculpt_update_keyblock(Object &ob)
   }
   else {
     SCULPT_vertcos_to_key(ob, ss.shapekey_active, BKE_pbvh_get_vert_positions(*ss.pbvh));
-  }
-}
-
-void SCULPT_flush_stroke_deform(const Sculpt & /*sd*/, Object &ob, bool is_proxy_used)
-{
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
-
-  if (is_proxy_used && ss.deform_modifiers_active) {
-    /* This brushes aren't using proxies, so sculpt_combine_proxies() wouldn't propagate needed
-     * deformation to original base. */
-
-    Mesh *mesh = (Mesh *)ob.data;
-    Vector<bke::pbvh::Node *> nodes;
-    Array<float3> vertCos;
-
-    if (ss.shapekey_active) {
-      /* Mesh could have isolated verts which wouldn't be in BVH, to deal with this we copy old
-       * coordinates over new ones and then update coordinates for all vertices from BVH. */
-      vertCos = ss.orig_cos;
-    }
-
-    nodes = bke::pbvh::search_gather(*ss.pbvh, {});
-
-    MutableSpan<float3> positions = mesh->vert_positions_for_write();
-
-    threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
-      for (const int i : range) {
-        PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (*ss.pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-          sculpt_flush_pbvhvert_deform(ss, vd, positions);
-
-          if (vertCos.is_empty()) {
-            continue;
-          }
-
-          int index = vd.vert_indices[vd.i];
-          copy_v3_v3(vertCos[index], ss.orig_cos[index]);
-        }
-        BKE_pbvh_vertex_iter_end;
-      }
-    });
-
-    if (!vertCos.is_empty()) {
-      SCULPT_vertcos_to_key(ob, ss.shapekey_active, vertCos);
-    }
-  }
-  else if (ss.shapekey_active) {
-    sculpt_update_keyblock(ob);
   }
 }
 

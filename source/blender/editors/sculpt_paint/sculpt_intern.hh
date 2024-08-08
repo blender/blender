@@ -774,11 +774,6 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
 void SCULPT_pbvh_clear(Object &ob);
 
 /**
- * Flush displacement from deformed blender::bke::pbvh::Tree to original layer.
- */
-void SCULPT_flush_stroke_deform(const Sculpt &sd, Object &ob, bool is_proxy_used);
-
-/**
  * Should be used after modifying the mask or Face Sets IDs.
  */
 void SCULPT_tag_update_overlays(bContext *C);

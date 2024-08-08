@@ -2306,10 +2306,6 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   ss.filter_cache->iteration_count++;
 
-  if (ss.deform_modifiers_active || ss.shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, ob, true);
-  }
-
   flush_update_step(C, UpdateType::Position);
 }
 
