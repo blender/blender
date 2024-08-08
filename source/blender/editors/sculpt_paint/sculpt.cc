@@ -727,7 +727,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession &ss,
   }
 
   if (ss.fake_neighbors.use_fake_neighbors) {
-    BLI_assert(ss.fake_neighbors.fake_neighbor_index != nullptr);
+    BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
     if (ss.fake_neighbors.fake_neighbor_index[vertex.i] != FAKE_NEIGHBOR_NONE) {
       sculpt_vertex_neighbor_add(
           iter,
@@ -784,7 +784,7 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession &ss,
   }
 
   if (ss.fake_neighbors.use_fake_neighbors) {
-    BLI_assert(ss.fake_neighbors.fake_neighbor_index != nullptr);
+    BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
     if (ss.fake_neighbors.fake_neighbor_index[vertex.i] != FAKE_NEIGHBOR_NONE) {
       int v = ss.fake_neighbors.fake_neighbor_index[vertex.i];
       sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v), v);
@@ -5916,12 +5916,7 @@ enum {
 static void fake_neighbor_init(SculptSession &ss, const float max_dist)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  ss.fake_neighbors.fake_neighbor_index = static_cast<int *>(
-      MEM_malloc_arrayN(totvert, sizeof(int), "fake neighbor"));
-  for (int i = 0; i < totvert; i++) {
-    ss.fake_neighbors.fake_neighbor_index[i] = FAKE_NEIGHBOR_NONE;
-  }
-
+  ss.fake_neighbors.fake_neighbor_index = Array<int>(totvert, FAKE_NEIGHBOR_NONE);
   ss.fake_neighbors.current_max_distance = max_dist;
 }
 
@@ -5938,7 +5933,7 @@ static void fake_neighbor_add(SculptSession &ss, PBVHVertRef v_a, PBVHVertRef v_
 
 static void sculpt_pose_fake_neighbors_free(SculptSession &ss)
 {
-  MEM_SAFE_FREE(ss.fake_neighbors.fake_neighbor_index);
+  ss.fake_neighbors.fake_neighbor_index = {};
 }
 
 struct NearestVertexFakeNeighborData {
@@ -6177,7 +6172,8 @@ void SCULPT_fake_neighbors_ensure(Object &ob, const float max_dist)
   /* Fake neighbors were already initialized with the same distance, so no need to be
    * recalculated.
    */
-  if (ss.fake_neighbors.fake_neighbor_index && ss.fake_neighbors.current_max_distance == max_dist)
+  if (!ss.fake_neighbors.fake_neighbor_index.is_empty() &&
+      ss.fake_neighbors.current_max_distance == max_dist)
   {
     return;
   }
@@ -6205,14 +6201,14 @@ void SCULPT_fake_neighbors_ensure(Object &ob, const float max_dist)
 void SCULPT_fake_neighbors_enable(Object &ob)
 {
   SculptSession &ss = *ob.sculpt;
-  BLI_assert(ss.fake_neighbors.fake_neighbor_index != nullptr);
+  BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
   ss.fake_neighbors.use_fake_neighbors = true;
 }
 
 void SCULPT_fake_neighbors_disable(Object &ob)
 {
   SculptSession &ss = *ob.sculpt;
-  BLI_assert(ss.fake_neighbors.fake_neighbor_index != nullptr);
+  BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
   ss.fake_neighbors.use_fake_neighbors = false;
 }
 

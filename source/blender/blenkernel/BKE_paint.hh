@@ -318,7 +318,7 @@ struct SculptFakeNeighbors {
   float current_max_distance;
 
   /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
-  int *fake_neighbor_index;
+  blender::Array<int> fake_neighbor_index;
 };
 
 /* Session data (mode-specific) */

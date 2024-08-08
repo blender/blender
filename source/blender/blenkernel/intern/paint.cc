@@ -1665,8 +1665,7 @@ static void sculptsession_free_pbvh(Object *object)
   ss->preview_verts = {};
 
   ss->vertex_info.boundary.clear_and_shrink();
-
-  MEM_SAFE_FREE(ss->fake_neighbors.fake_neighbor_index);
+  ss->fake_neighbors.fake_neighbor_index = {};
 }
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
