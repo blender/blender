@@ -1663,114 +1663,6 @@ bool SCULPT_get_redraw_rect(const ARegion &region,
   return true;
 }
 
-/************************ Brush Testing *******************/
-
-void SCULPT_brush_test_init(const SculptSession &ss, SculptBrushTest &test)
-{
-  using namespace blender;
-  RegionView3D *rv3d = ss.cache ? ss.cache->vc->rv3d : ss.rv3d;
-  View3D *v3d = ss.cache ? ss.cache->vc->v3d : ss.v3d;
-
-  test.radius_squared = ss.cache ? ss.cache->radius_squared : ss.cursor_radius * ss.cursor_radius;
-  test.radius = std::sqrt(test.radius_squared);
-
-  if (ss.cache) {
-    test.location = ss.cache->location;
-    test.mirror_symmetry_pass = ss.cache->mirror_symmetry_pass;
-    test.radial_symmetry_pass = ss.cache->radial_symmetry_pass;
-    test.symm_rot_mat_inv = ss.cache->symm_rot_mat_inv;
-  }
-  else {
-    test.location = ss.cursor_location;
-    test.mirror_symmetry_pass = ePaintSymmetryFlags(0);
-    test.radial_symmetry_pass = 0;
-
-    test.symm_rot_mat_inv = float4x4::identity();
-  }
-
-  /* Just for initialize. */
-  test.dist = 0.0f;
-
-  /* Only for 2D projection. */
-  zero_v4(test.plane_view);
-  zero_v4(test.plane_tool);
-
-  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    test.clip_rv3d = rv3d;
-  }
-  else {
-    test.clip_rv3d = nullptr;
-  }
-}
-
-BLI_INLINE bool sculpt_brush_test_clipping(const SculptBrushTest &test, const float co[3])
-{
-  RegionView3D *rv3d = test.clip_rv3d;
-  if (!rv3d) {
-    return false;
-  }
-  float3 symm_co = blender::ed::sculpt_paint::symmetry_flip(co, test.mirror_symmetry_pass);
-  if (test.radial_symmetry_pass) {
-    mul_m4_v3(test.symm_rot_mat_inv.ptr(), symm_co);
-  }
-  return ED_view3d_clipping_test(rv3d, symm_co, true);
-}
-
-bool SCULPT_brush_test_sphere_sq(SculptBrushTest &test, const float co[3])
-{
-  float distsq = len_squared_v3v3(co, test.location);
-
-  if (distsq > test.radius_squared) {
-    return false;
-  }
-  if (sculpt_brush_test_clipping(test, co)) {
-    return false;
-  }
-  test.dist = distsq;
-  return true;
-}
-
-bool SCULPT_brush_test_circle_sq(SculptBrushTest &test, const float co[3])
-{
-  float co_proj[3];
-  closest_to_plane_normalized_v3(co_proj, test.plane_view, co);
-  float distsq = len_squared_v3v3(co_proj, test.location);
-
-  if (distsq > test.radius_squared) {
-    return false;
-  }
-
-  if (sculpt_brush_test_clipping(test, co)) {
-    return false;
-  }
-
-  test.dist = distsq;
-  return true;
-}
-
-SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(const SculptSession &ss,
-                                                            SculptBrushTest &test,
-                                                            char falloff_shape)
-{
-  if (!ss.cache && !ss.filter_cache) {
-    falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
-  }
-
-  SCULPT_brush_test_init(ss, test);
-  SculptBrushTestFn sculpt_brush_test_sq_fn;
-  if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
-  }
-  else {
-    BLI_assert(falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
-    const float3 view_normal = ss.cache ? ss.cache->view_normal : ss.filter_cache->view_normal;
-
-    plane_from_point_normal_v3(test.plane_view, test.location, view_normal);
-    sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
-  }
-  return sculpt_brush_test_sq_fn;
-}
-
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSession &ss,
                                                               char falloff_shape)
 {
@@ -1780,33 +1672,6 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSessio
   BLI_assert(falloff_shape == PAINT_FALLOFF_SHAPE_TUBE);
   return ss.cache->view_normal;
 }
-
-#if 0
-
-static bool sculpt_brush_test_cyl(SculptBrushTest *test,
-                                  float co[3],
-                                  float location[3],
-                                  const float area_no[3])
-{
-  if (sculpt_brush_test_sphere_fast(test, co)) {
-    float t1[3], t2[3], t3[3], dist;
-
-    sub_v3_v3v3(t1, location, co);
-    sub_v3_v3v3(t2, x2, location);
-
-    cross_v3_v3v3(t3, area_no, t1);
-
-    dist = len_v3(t3) / len_v3(t2);
-
-    test.dist = dist;
-
-    return true;
-  }
-
-  return false;
-}
-
-#endif
 
 /* ===== Sculpting =====
  */
@@ -1907,19 +1772,6 @@ static float area_normal_and_center_get_normal_radius(const SculptSession &ss, c
   return test_radius;
 }
 
-static SculptBrushTestFn area_normal_and_center_get_normal_test(const SculptSession &ss,
-                                                                const Brush &brush,
-                                                                SculptBrushTest &r_test)
-{
-  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, r_test, brush.falloff_shape);
-
-  r_test.radius = area_normal_and_center_get_normal_radius(ss, brush);
-  r_test.radius_squared = r_test.radius * r_test.radius;
-
-  return sculpt_brush_normal_test_sq_fn;
-}
-
 static float area_normal_and_center_get_position_radius(const SculptSession &ss,
                                                         const Brush &brush)
 {
@@ -1942,41 +1794,55 @@ static float area_normal_and_center_get_position_radius(const SculptSession &ss,
   return test_radius;
 }
 
-static SculptBrushTestFn area_normal_and_center_get_area_test(const SculptSession &ss,
-                                                              const Brush &brush,
-                                                              SculptBrushTest &r_test)
-{
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, r_test, brush.falloff_shape);
-
-  r_test.radius = area_normal_and_center_get_position_radius(ss, brush);
-  r_test.radius_squared = r_test.radius * r_test.radius;
-
-  return sculpt_brush_area_test_sq_fn;
-}
-
 /* Weight the normals towards the center. */
-static float area_normal_calc_weight(const float distance, const float radius)
+static float area_normal_calc_weight(const float distance, const float radius_inv)
 {
-  float p = 1.0f - (std::sqrt(distance) / radius);
+  float p = 1.0f - (distance * radius_inv);
   return std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 }
 
 /* Weight the coordinates towards the center. */
 static float3 area_center_calc_weighted(const float3 &test_location,
                                         const float distance,
-                                        const float radius,
+                                        const float radius_inv,
                                         const float3 &co)
 {
   /* Weight the coordinates towards the center. */
-  float p = 1.0f - (std::sqrt(distance) / radius);
+  float p = 1.0f - (distance * radius_inv);
   const float afactor = std::clamp(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
   const float3 disp = (co - test_location) * (1.0f - afactor);
   return test_location + disp;
 }
 
-static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
+static void accumulate_area_center(const float3 &test_location,
+                                   const float3 &position,
+                                   const float distance,
+                                   const float radius_inv,
+                                   const int flip_index,
+                                   AreaNormalCenterData &anctd)
+{
+  anctd.area_cos[flip_index] += area_center_calc_weighted(
+      test_location, distance, radius_inv, position);
+  anctd.count_co[flip_index] += 1;
+}
+
+static void accumulate_area_normal(const float3 &normal,
+                                   const float distance,
+                                   const float radius_inv,
+                                   const int flip_index,
+                                   AreaNormalCenterData &anctd)
+{
+  anctd.area_nos[flip_index] += normal * area_normal_calc_weight(distance, radius_inv);
+  anctd.count_no[flip_index] += 1;
+}
+
+struct SampleLocalData {
+  Vector<float3> positions;
+  Vector<float> distances;
+};
+
+static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   const Span<float3> vert_positions,
                                                   const Span<float3> vert_normals,
                                                   const Span<bool> hide_vert,
@@ -1984,170 +1850,205 @@ static void calc_area_normal_and_center_node_mesh(const SculptSession &ss,
                                                   const bool use_area_nos,
                                                   const bool use_area_cos,
                                                   const bke::pbvh::Node &node,
+                                                  SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
 {
+  const SculptSession &ss = *object.sculpt;
+  const float3 &location = ss.cache ? ss.cache->location : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
-  SculptBrushTest normal_test;
-  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
-      ss, brush, normal_test);
+  const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
+  const float position_radius_sq = position_radius * position_radius;
+  const float position_radius_inv = math::rcp(position_radius);
+  const float normal_radius = area_normal_and_center_get_normal_radius(ss, brush);
+  const float normal_radius_sq = normal_radius * normal_radius;
+  const float normal_radius_inv = math::rcp(normal_radius);
 
-  SculptBrushTest area_test;
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = area_normal_and_center_get_area_test(
-      ss, brush, area_test);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
 
   if (ss.cache && !ss.cache->accum) {
     if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
-      const Span<float3> orig_positions = unode->position;
-      const Span<float3> orig_normals = unode->normal;
-      const Span<int> verts = bke::pbvh::node_unique_verts(node);
+      const Span<float3> orig_positions = unode->position.as_span().take_front(verts.size());
+      const Span<float3> orig_normals = unode->normal.as_span().take_front(verts.size());
+
+      tls.distances.reinitialize(verts.size());
+      const MutableSpan<float> distances_sq = tls.distances;
+      calc_brush_distances_squared(
+          ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
       for (const int i : verts.index_range()) {
         const int vert = verts[i];
         if (!hide_vert.is_empty() && hide_vert[vert]) {
           continue;
         }
-        const float3 &co = orig_positions[i];
-        const float3 &no = orig_normals[i];
-
-        const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-        const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+        const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
+        const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
         if (!normal_test_r && !area_test_r) {
           continue;
         }
-
-        const int flip_index = math::dot(view_normal, no) <= 0.0f;
-        if (use_area_cos && area_test_r) {
-          anctd.area_cos[flip_index] += area_center_calc_weighted(
-              area_test.location, area_test.dist, area_test.radius, co);
-          anctd.count_co[flip_index] += 1;
+        const float3 &normal = orig_normals[i];
+        const float distance = std::sqrt(distances_sq[i]);
+        const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+        if (area_test_r) {
+          accumulate_area_center(
+              location, orig_positions[i], distance, position_radius_inv, flip_index, anctd);
         }
-        if (use_area_nos && normal_test_r) {
-          anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                     normal_test.radius);
-          anctd.count_no[flip_index] += 1;
+        if (normal_test_r) {
+          accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
         }
       }
       return;
     }
   }
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  tls.distances.reinitialize(verts.size());
+  const MutableSpan<float> distances_sq = tls.distances;
+  calc_brush_distances_squared(
+      ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
-    const float3 &co = vert_positions[vert];
-    const float3 &no = vert_normals[vert];
-
-    const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-    const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+    const bool normal_test_r = distances_sq[i] <= normal_radius_sq;
+    const bool area_test_r = distances_sq[i] <= position_radius_sq;
     if (!normal_test_r && !area_test_r) {
       continue;
     }
-
-    const int flip_index = math::dot(view_normal, no) <= 0.0f;
-    if (use_area_cos && area_test_r) {
-      anctd.area_cos[flip_index] += area_center_calc_weighted(
-          area_test.location, area_test.dist, area_test.radius, co);
-      anctd.count_co[flip_index] += 1;
+    const float3 &normal = vert_normals[vert];
+    const float distance = std::sqrt(distances_sq[i]);
+    const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+    if (area_test_r) {
+      accumulate_area_center(
+          location, vert_positions[vert], distance, position_radius_inv, flip_index, anctd);
     }
-    if (use_area_nos && normal_test_r) {
-      anctd.area_nos[flip_index] += no *
-                                    area_normal_calc_weight(normal_test.dist, normal_test.radius);
-      anctd.count_no[flip_index] += 1;
+    if (normal_test_r) {
+      accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
     }
   }
 }
 
-static void calc_area_normal_and_center_node_grids(const SculptSession &ss,
+static void calc_area_normal_and_center_node_grids(const Object &object,
                                                    const Brush &brush,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const bke::pbvh::Node &node,
+                                                   SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
+  const SculptSession &ss = *object.sculpt;
+  const float3 &location = ss.cache ? ss.cache->location : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
+  const float position_radius_sq = position_radius * position_radius;
+  const float position_radius_inv = math::rcp(position_radius);
+  const float normal_radius = area_normal_and_center_get_normal_radius(ss, brush);
+  const float normal_radius_sq = normal_radius * normal_radius;
+  const float normal_radius_inv = math::rcp(normal_radius);
+
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
 
-  SculptBrushTest normal_test;
-  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
-      ss, brush, normal_test);
-
-  SculptBrushTest area_test;
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = area_normal_and_center_get_area_test(
-      ss, brush, area_test);
-
-  const undo::Node *unode = nullptr;
-  bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    unode = undo::get_node(&node, undo::Type::Position);
-    if (unode) {
-      use_original = !unode->position.is_empty();
+    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+      const Span<float3> orig_positions = unode->position.as_span();
+      const Span<float3> orig_normals = unode->normal.as_span();
+
+      tls.distances.reinitialize(orig_positions.size());
+      const MutableSpan<float> distances_sq = tls.distances;
+      calc_brush_distances_squared(
+          ss, orig_positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
+      for (const int i : grids.index_range()) {
+        const int node_verts_start = i * key.grid_area;
+        const int grid = grids[i];
+        for (const int offset : IndexRange(key.grid_area)) {
+          if (!grid_hidden.is_empty() && grid_hidden[grid][offset]) {
+            continue;
+          }
+          const int vert = node_verts_start + offset;
+
+          const bool normal_test_r = use_area_nos && distances_sq[vert] <= normal_radius_sq;
+          const bool area_test_r = use_area_cos && distances_sq[vert] <= position_radius_sq;
+          if (!normal_test_r && !area_test_r) {
+            continue;
+          }
+          const float3 &normal = orig_normals[vert];
+          const float distance = std::sqrt(distances_sq[vert]);
+          const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+          if (area_test_r) {
+            accumulate_area_center(
+                location, orig_positions[vert], distance, position_radius_inv, flip_index, anctd);
+          }
+          if (normal_test_r) {
+            accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
+          }
+        }
+      }
+      return;
     }
   }
 
-  int i = 0;
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
-    CCGElem *elem = grids[grid];
-    for (const int j : IndexRange(key.grid_area)) {
-      if (!grid_hidden.is_empty() && grid_hidden[grid][j]) {
-        i++;
+  const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+  tls.distances.reinitialize(positions.size());
+  const MutableSpan<float> distances_sq = tls.distances;
+  calc_brush_distances_squared(
+      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
+  for (const int i : grids.index_range()) {
+    const int node_verts_start = i * key.grid_area;
+    const int grid = grids[i];
+    CCGElem *elem = elems[grid];
+    for (const int offset : IndexRange(key.grid_area)) {
+      if (!grid_hidden.is_empty() && grid_hidden[grid][offset]) {
         continue;
       }
-      float3 co;
-      float3 no;
-      if (use_original) {
-        co = unode->position[i];
-        no = unode->normal[i];
-      }
-      else {
-        co = CCG_elem_offset_co(key, elem, j);
-        no = CCG_elem_offset_no(key, elem, j);
-      }
+      const int vert = node_verts_start + offset;
 
-      const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-      const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+      const bool normal_test_r = use_area_nos && distances_sq[vert] <= normal_radius_sq;
+      const bool area_test_r = use_area_cos && distances_sq[vert] <= position_radius_sq;
       if (!normal_test_r && !area_test_r) {
-        i++;
         continue;
       }
-
-      const int flip_index = math::dot(view_normal, no) <= 0.0f;
-      if (use_area_cos && area_test_r) {
-        anctd.area_cos[flip_index] += area_center_calc_weighted(
-            area_test.location, area_test.dist, area_test.radius, co);
-        anctd.count_co[flip_index] += 1;
+      const float3 &normal = CCG_elem_offset_no(key, elem, offset);
+      const float distance = std::sqrt(distances_sq[vert]);
+      const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+      if (area_test_r) {
+        accumulate_area_center(location,
+                               CCG_elem_offset_co(key, elem, offset),
+                               distance,
+                               position_radius_inv,
+                               flip_index,
+                               anctd);
       }
-      if (use_area_nos && normal_test_r) {
-        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                   normal_test.radius);
-        anctd.count_no[flip_index] += 1;
+      if (normal_test_r) {
+        accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
-
-      i++;
     }
   }
 }
 
-static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
+static void calc_area_normal_and_center_node_bmesh(const Object &object,
                                                    const Brush &brush,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const bool has_bm_orco,
                                                    const bke::pbvh::Node &node,
+                                                   SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
+  const SculptSession &ss = *object.sculpt;
+  const float3 &location = ss.cache ? ss.cache->location : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal : ss.cursor_view_normal;
-  SculptBrushTest normal_test;
-  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = area_normal_and_center_get_normal_test(
-      ss, brush, normal_test);
-
-  SculptBrushTest area_test;
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = area_normal_and_center_get_area_test(
-      ss, brush, area_test);
+  const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
+  const float position_radius_sq = position_radius * position_radius;
+  const float position_radius_inv = math::rcp(position_radius);
+  const float normal_radius = area_normal_and_center_get_normal_radius(ss, brush);
+  const float normal_radius_sq = normal_radius * normal_radius;
+  const float normal_radius_inv = math::rcp(normal_radius);
 
   const undo::Node *unode = nullptr;
   bool use_original = false;
@@ -2167,74 +2068,115 @@ static void calc_area_normal_and_center_node_bmesh(const SculptSession &ss,
     BKE_pbvh_node_get_bm_orco_data(
         &const_cast<bke::pbvh::Node &>(node), &orco_tris, &orco_tris_num, &orco_coords, nullptr);
 
+    tls.positions.resize(orco_tris_num);
+    const MutableSpan<float3> positions = tls.positions;
     for (int i = 0; i < orco_tris_num; i++) {
       const float *co_tri[3] = {
           orco_coords[orco_tris[i][0]],
           orco_coords[orco_tris[i][1]],
           orco_coords[orco_tris[i][2]],
       };
-      float3 co;
-      closest_on_tri_to_point_v3(co, normal_test.location, UNPACK3(co_tri));
+      closest_on_tri_to_point_v3(positions[i], location, UNPACK3(co_tri));
+    }
 
-      const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-      const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+    tls.distances.reinitialize(positions.size());
+    const MutableSpan<float> distances_sq = tls.distances;
+    calc_brush_distances_squared(
+        ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
+    for (int i = 0; i < orco_tris_num; i++) {
+      const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
+      const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
       if (!normal_test_r && !area_test_r) {
         continue;
       }
+      const float3 normal = math::normal_tri(float3(orco_coords[orco_tris[i][0]]),
+                                             float3(orco_coords[orco_tris[i][1]]),
+                                             float3(orco_coords[orco_tris[i][2]]));
 
-      float3 no;
-      normal_tri_v3(no, UNPACK3(co_tri));
-
-      const int flip_index = math::dot(view_normal, no) <= 0.0f;
-      if (use_area_cos && area_test_r) {
-        anctd.area_cos[flip_index] += area_center_calc_weighted(
-            area_test.location, area_test.dist, area_test.radius, co);
-        anctd.count_co[flip_index] += 1;
+      const float distance = std::sqrt(distances_sq[i]);
+      const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+      if (area_test_r) {
+        accumulate_area_center(
+            location, positions[i], distance, position_radius_inv, flip_index, anctd);
       }
-      if (use_area_nos && normal_test_r) {
-        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                   normal_test.radius);
-        anctd.count_no[flip_index] += 1;
+      if (normal_test_r) {
+        accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
     }
+    return;
   }
-  else {
-    for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&const_cast<bke::pbvh::Node &>(node))) {
+
+  const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
+      &const_cast<bke::pbvh::Node &>(node));
+  if (use_original) {
+    tls.positions.resize(verts.size());
+    const MutableSpan<float3> positions = tls.positions;
+    Array<float3> normals(verts.size());
+    orig_position_data_gather_bmesh(*ss.bm_log, verts, positions, normals);
+
+    tls.distances.reinitialize(positions.size());
+    const MutableSpan<float> distances_sq = tls.distances;
+    calc_brush_distances_squared(
+        ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
+    int i = 0;
+    for (BMVert *vert : verts) {
       if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+        i++;
         continue;
       }
-      float3 co;
-      float3 no;
-      if (use_original) {
-        const float *temp_co;
-        const float *temp_no_s;
-        BM_log_original_vert_data(ss.bm_log, vert, &temp_co, &temp_no_s);
-        co = temp_co;
-        no = temp_no_s;
-      }
-      else {
-        co = vert->co;
-        no = vert->no;
-      }
-
-      const bool normal_test_r = sculpt_brush_normal_test_sq_fn(normal_test, co);
-      const bool area_test_r = sculpt_brush_area_test_sq_fn(area_test, co);
+      const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
+      const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
       if (!normal_test_r && !area_test_r) {
+        i++;
         continue;
       }
-
-      const int flip_index = math::dot(view_normal, no) <= 0.0f;
-      if (use_area_cos && area_test_r) {
-        anctd.area_cos[flip_index] += area_center_calc_weighted(
-            area_test.location, area_test.dist, area_test.radius, co);
-        anctd.count_co[flip_index] += 1;
+      const float3 &normal = normals[i];
+      const float distance = std::sqrt(distances_sq[i]);
+      const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+      if (area_test_r) {
+        accumulate_area_center(
+            location, positions[i], distance, position_radius_inv, flip_index, anctd);
       }
-      if (use_area_nos && normal_test_r) {
-        anctd.area_nos[flip_index] += no * area_normal_calc_weight(normal_test.dist,
-                                                                   normal_test.radius);
-        anctd.count_no[flip_index] += 1;
+      if (normal_test_r) {
+        accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
       }
+      i++;
     }
+    return;
+  }
+
+  const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
+
+  tls.distances.reinitialize(positions.size());
+  const MutableSpan<float> distances_sq = tls.distances;
+  calc_brush_distances_squared(
+      ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
+
+  int i = 0;
+  for (BMVert *vert : verts) {
+    if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+      i++;
+      continue;
+    }
+    const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
+    const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
+    if (!normal_test_r && !area_test_r) {
+      i++;
+      continue;
+    }
+    const float3 &normal = vert->no;
+    const float distance = std::sqrt(distances_sq[i]);
+    const int flip_index = math::dot(view_normal, normal) <= 0.0f;
+    if (area_test_r) {
+      accumulate_area_center(
+          location, positions[i], distance, position_radius_inv, flip_index, anctd);
+    }
+    if (normal_test_r) {
+      accumulate_area_normal(normal, distance, normal_radius_inv, flip_index, anctd);
+    }
+    i++;
   }
 }
 
@@ -2265,6 +2207,7 @@ void calc_area_center(const Brush &brush,
   int n;
 
   AreaNormalCenterData anctd;
+  threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
@@ -2278,8 +2221,9 @@ void calc_area_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_mesh(ss,
+              calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
                                                     hide_vert,
@@ -2287,6 +2231,7 @@ void calc_area_center(const Brush &brush,
                                                     false,
                                                     true,
                                                     *nodes[i],
+                                                    tls,
                                                     anctd);
             }
             return anctd;
@@ -2302,9 +2247,10 @@ void calc_area_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, false, true, has_bm_orco, *nodes[i], anctd);
+                  ob, brush, false, true, has_bm_orco, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2317,8 +2263,10 @@ void calc_area_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_grids(ss, brush, false, true, *nodes[i], anctd);
+              calc_area_normal_and_center_node_grids(
+                  ob, brush, false, true, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2355,6 +2303,7 @@ std::optional<float3> calc_area_normal(const Brush &brush,
   SculptSession &ss = *ob.sculpt;
 
   AreaNormalCenterData anctd;
+  threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
@@ -2368,8 +2317,9 @@ std::optional<float3> calc_area_normal(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_mesh(ss,
+              calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
                                                     hide_vert,
@@ -2377,6 +2327,7 @@ std::optional<float3> calc_area_normal(const Brush &brush,
                                                     true,
                                                     false,
                                                     *nodes[i],
+                                                    tls,
                                                     anctd);
             }
             return anctd;
@@ -2392,9 +2343,10 @@ std::optional<float3> calc_area_normal(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, false, has_bm_orco, *nodes[i], anctd);
+                  ob, brush, true, false, has_bm_orco, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2407,8 +2359,10 @@ std::optional<float3> calc_area_normal(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_grids(ss, brush, true, false, *nodes[i], anctd);
+              calc_area_normal_and_center_node_grids(
+                  ob, brush, true, false, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2437,6 +2391,7 @@ void calc_area_normal_and_center(const Brush &brush,
   int n;
 
   AreaNormalCenterData anctd;
+  threading::EnumerableThreadSpecific<SampleLocalData> all_tls;
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
@@ -2450,8 +2405,9 @@ void calc_area_normal_and_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_mesh(ss,
+              calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
                                                     hide_vert,
@@ -2459,6 +2415,7 @@ void calc_area_normal_and_center(const Brush &brush,
                                                     true,
                                                     true,
                                                     *nodes[i],
+                                                    tls,
                                                     anctd);
             }
             return anctd;
@@ -2474,9 +2431,10 @@ void calc_area_normal_and_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ss, brush, true, true, has_bm_orco, *nodes[i], anctd);
+                  ob, brush, true, true, has_bm_orco, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2489,8 +2447,9 @@ void calc_area_normal_and_center(const Brush &brush,
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
+            SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_grids(ss, brush, true, true, *nodes[i], anctd);
+              calc_area_normal_and_center_node_grids(ob, brush, true, true, *nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -6892,11 +6851,11 @@ void filter_region_clip_factors(const SculptSession &ss,
   }
 }
 
-void calc_brush_distances(const SculptSession &ss,
-                          const Span<float3> positions,
-                          const Span<int> verts,
-                          const eBrushFalloffShape falloff_shape,
-                          const MutableSpan<float> r_distances)
+void calc_brush_distances_squared(const SculptSession &ss,
+                                  const Span<float3> positions,
+                                  const Span<int> verts,
+                                  const eBrushFalloffShape falloff_shape,
+                                  const MutableSpan<float> r_distances)
 {
   BLI_assert(verts.size() == r_distances.size());
 
@@ -6909,20 +6868,32 @@ void calc_brush_distances(const SculptSession &ss,
     for (const int i : verts.index_range()) {
       float3 projected;
       closest_to_plane_normalized_v3(projected, test_plane, positions[verts[i]]);
-      r_distances[i] = math::distance(projected, test_location);
+      r_distances[i] = math::distance_squared(projected, test_location);
     }
   }
   else {
     for (const int i : verts.index_range()) {
-      r_distances[i] = math::distance(test_location, positions[verts[i]]);
+      r_distances[i] = math::distance_squared(test_location, positions[verts[i]]);
     }
   }
 }
 
 void calc_brush_distances(const SculptSession &ss,
                           const Span<float3> positions,
+                          const Span<int> verts,
                           const eBrushFalloffShape falloff_shape,
                           const MutableSpan<float> r_distances)
+{
+  calc_brush_distances_squared(ss, positions, verts, falloff_shape, r_distances);
+  for (float &value : r_distances) {
+    value = std::sqrt(value);
+  }
+}
+
+void calc_brush_distances_squared(const SculptSession &ss,
+                                  const Span<float3> positions,
+                                  const eBrushFalloffShape falloff_shape,
+                                  const MutableSpan<float> r_distances)
 {
   BLI_assert(positions.size() == r_distances.size());
 
@@ -6935,13 +6906,24 @@ void calc_brush_distances(const SculptSession &ss,
     for (const int i : positions.index_range()) {
       float3 projected;
       closest_to_plane_normalized_v3(projected, test_plane, positions[i]);
-      r_distances[i] = math::distance(projected, test_location);
+      r_distances[i] = math::distance_squared(projected, test_location);
     }
   }
   else {
     for (const int i : positions.index_range()) {
-      r_distances[i] = math::distance(test_location, positions[i]);
+      r_distances[i] = math::distance_squared(test_location, positions[i]);
     }
+  }
+}
+
+void calc_brush_distances(const SculptSession &ss,
+                          const Span<float3> positions,
+                          const eBrushFalloffShape falloff_shape,
+                          const MutableSpan<float> r_distances)
+{
+  calc_brush_distances_squared(ss, positions, falloff_shape, r_distances);
+  for (float &value : r_distances) {
+    value = std::sqrt(value);
   }
 }
 

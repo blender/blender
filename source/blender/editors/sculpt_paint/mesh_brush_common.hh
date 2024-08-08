@@ -235,6 +235,15 @@ void calc_brush_distances(const SculptSession &ss,
                           Span<float3> positions,
                           eBrushFalloffShape falloff_shape,
                           MutableSpan<float> r_distances);
+void calc_brush_distances_squared(const SculptSession &ss,
+                                  Span<float3> vert_positions,
+                                  Span<int> vert_indices,
+                                  eBrushFalloffShape falloff_shape,
+                                  MutableSpan<float> r_distances);
+void calc_brush_distances_squared(const SculptSession &ss,
+                                  Span<float3> positions,
+                                  eBrushFalloffShape falloff_shape,
+                                  MutableSpan<float> r_distances);
 
 /** Set the factor to zero for all distances greater than the radius. */
 void filter_distances_with_radius(float radius, Span<float> distances, MutableSpan<float> factors);
