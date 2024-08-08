@@ -1120,6 +1120,13 @@ rbConstraint *RB_constraint_new_motor(float pivot[3],
 void RB_constraint_delete(rbConstraint *con)
 {
   btTypedConstraint *constraint = reinterpret_cast<btTypedConstraint *>(con);
+
+  /* If the constraint has disabled collisions between the bodies, those bodies
+   * will have a pointer back to the constraint. We need to remove the constraint
+   * from each body to avoid dereferencing the deleted constraint later (#91369) */
+  constraint->getRigidBodyA().removeConstraintRef(constraint);
+  constraint->getRigidBodyB().removeConstraintRef(constraint);
+
   delete constraint;
 }
 
