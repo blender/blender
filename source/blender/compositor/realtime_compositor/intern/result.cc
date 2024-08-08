@@ -182,7 +182,12 @@ void Result::allocate_texture(Domain domain)
   }
 
   is_single_value_ = false;
-  texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
+  if (context_->use_gpu()) {
+    texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
+  }
+  else {
+    /* TODO: Host side allocation. */
+  }
   domain_ = domain;
 }
 
@@ -191,7 +196,12 @@ void Result::allocate_single_value()
   is_single_value_ = true;
   /* Single values are stored in 1x1 textures as well as the single value members. */
   const int2 texture_size{1, 1};
-  texture_ = context_->texture_pool().acquire(texture_size, get_texture_format());
+  if (context_->use_gpu()) {
+    texture_ = context_->texture_pool().acquire(texture_size, get_texture_format());
+  }
+  else {
+    /* TODO: Host side allocation. */
+  }
   domain_ = Domain::identity();
 }
 

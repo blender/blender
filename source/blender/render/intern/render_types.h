@@ -211,11 +211,11 @@ struct Render : public BaseRender {
   struct Depsgraph *pipeline_depsgraph = nullptr;
   Scene *pipeline_scene_eval = nullptr;
 
-  /* Realtime GPU Compositor.
+  /* Realtime Compositor.
    * NOTE: Use bare pointer instead of smart pointer because the RealtimeCompositor is a fully
    * opaque type. */
-  blender::render::RealtimeCompositor *gpu_compositor = nullptr;
-  std::mutex gpu_compositor_mutex;
+  blender::render::RealtimeCompositor *compositor = nullptr;
+  std::mutex compositor_mutex;
 
   /* Callbacks for the corresponding base class method implementation. */
   void (*display_init_cb)(void *handle, RenderResult *rr) = nullptr;

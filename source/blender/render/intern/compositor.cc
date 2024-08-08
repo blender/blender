@@ -193,6 +193,11 @@ class Context : public realtime_compositor::Context {
     return *input_data_.node_tree;
   }
 
+  bool use_gpu() const override
+  {
+    return this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
+  }
+
   bool use_file_output() const override
   {
     return this->render_context() != nullptr;
@@ -587,45 +592,52 @@ class RealtimeCompositor {
 
   ~RealtimeCompositor()
   {
-    /* Free resources with GPU context enabled. Cleanup may happen from the
-     * main thread, and we must use the main context there. */
-    if (BLI_thread_is_main()) {
-      DRW_gpu_context_enable();
-    }
-    else {
-      DRW_render_context_enable(&render_);
+    const bool use_gpu = context_->use_gpu();
+    if (use_gpu) {
+      /* Free resources with GPU context enabled. Cleanup may happen from the
+       * main thread, and we must use the main context there. */
+      if (BLI_thread_is_main()) {
+        DRW_gpu_context_enable();
+      }
+      else {
+        DRW_render_context_enable(&render_);
+      }
     }
 
     context_.reset();
     texture_pool_.reset();
 
-    if (BLI_thread_is_main()) {
-      DRW_gpu_context_disable();
-    }
-    else {
-      DRW_render_context_disable(&render_);
+    if (use_gpu) {
+      if (BLI_thread_is_main()) {
+        DRW_gpu_context_disable();
+      }
+      else {
+        DRW_render_context_disable(&render_);
+      }
     }
   }
 
   /* Evaluate the compositor and output to the scene render result. */
   void execute(const ContextInputData &input_data)
   {
-    /* For main thread rendering in background mode, blocking rendering, or when we do not have a
-     * render system GPU context, use the DRW context directly, while for threaded rendering when
-     * we have a render system GPU context, use the render's system GPU context to avoid blocking
-     * with the global DST. */
-    void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
-    if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
-      DRW_gpu_context_enable();
-    }
-    else {
+    if (context_->use_gpu()) {
+      /* For main thread rendering in background mode, blocking rendering, or when we do not have a
+       * render system GPU context, use the DRW context directly, while for threaded rendering when
+       * we have a render system GPU context, use the render's system GPU context to avoid blocking
+       * with the global DST. */
       void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
-      WM_system_gpu_context_activate(re_system_gpu_context);
+      if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
+        DRW_gpu_context_enable();
+      }
+      else {
+        void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+        WM_system_gpu_context_activate(re_system_gpu_context);
 
-      void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
+        void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
 
-      GPU_render_begin();
-      GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
+        GPU_render_begin();
+        GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
+      }
     }
 
     context_->update_input_data(input_data);
@@ -641,14 +653,17 @@ class RealtimeCompositor {
     context_->viewer_output_to_viewer_image();
     texture_pool_->free_unused_and_reset();
 
-    if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
-      DRW_gpu_context_disable();
-    }
-    else {
-      GPU_render_end();
-      GPU_context_active_set(nullptr);
+    if (context_->use_gpu()) {
       void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
-      WM_system_gpu_context_release(re_system_gpu_context);
+      if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
+        DRW_gpu_context_disable();
+      }
+      else {
+        GPU_render_end();
+        GPU_context_active_set(nullptr);
+        void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+        WM_system_gpu_context_release(re_system_gpu_context);
+      }
     }
   }
 };
@@ -662,25 +677,25 @@ void Render::compositor_execute(const Scene &scene,
                                 blender::realtime_compositor::RenderContext *render_context,
                                 blender::realtime_compositor::Profiler *profiler)
 {
-  std::unique_lock lock(gpu_compositor_mutex);
+  std::unique_lock lock(this->compositor_mutex);
 
   blender::render::ContextInputData input_data(
       scene, render_data, node_tree, view_name, render_context, profiler);
 
-  if (gpu_compositor == nullptr) {
-    gpu_compositor = new blender::render::RealtimeCompositor(*this, input_data);
+  if (this->compositor == nullptr) {
+    this->compositor = new blender::render::RealtimeCompositor(*this, input_data);
   }
 
-  gpu_compositor->execute(input_data);
+  this->compositor->execute(input_data);
 }
 
 void Render::compositor_free()
 {
-  std::unique_lock lock(gpu_compositor_mutex);
+  std::unique_lock lock(this->compositor_mutex);
 
-  if (gpu_compositor != nullptr) {
-    delete gpu_compositor;
-    gpu_compositor = nullptr;
+  if (this->compositor != nullptr) {
+    delete this->compositor;
+    this->compositor = nullptr;
   }
 }
 

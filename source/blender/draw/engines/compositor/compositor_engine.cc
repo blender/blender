@@ -69,6 +69,11 @@ class Context : public realtime_compositor::Context {
     return *DRW_context_state_get()->scene->nodetree;
   }
 
+  bool use_gpu() const override
+  {
+    return true;
+  }
+
   bool use_file_output() const override
   {
     return false;

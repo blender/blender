@@ -51,6 +51,9 @@ class Context {
   /* Get the node tree used for compositing. */
   virtual const bNodeTree &get_node_tree() const = 0;
 
+  /* True if the compositor should use GPU acceleration. */
+  virtual bool use_gpu() const = 0;
+
   /* True if the compositor should write file outputs, false otherwise. */
   virtual bool use_file_output() const = 0;
 

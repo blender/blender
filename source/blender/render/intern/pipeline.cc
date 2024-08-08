@@ -650,7 +650,7 @@ void RE_FreeAllPersistentData()
 static void re_gpu_texture_caches_free(Render *re)
 {
   /* Free persistent compositor that may be using these textures. */
-  if (re->gpu_compositor) {
+  if (re->compositor) {
     RE_compositor_free(*re);
   }
 
