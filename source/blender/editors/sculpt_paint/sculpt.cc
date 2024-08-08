@@ -5284,9 +5284,7 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
    * Note: Despite the Cloth and Boundary brush using original coordinates, the brushes do not
    * expect this restoration to happen on every stroke step. Performing this restoration causes
    * issues with the cloth simulation mode for those brushes.
-   * TODO: Investigate removing this step using the same technique as the layer brush-- in the
-   * brush, apply the translation between the result of the last brush step and the result of the
-   * latest brush step.
+   * TODO: Remove this with #reset_translations_to_original.
    */
   if (ELEM(brush->sculpt_tool,
            SCULPT_TOOL_ELASTIC_DEFORM,
@@ -7032,6 +7030,18 @@ void calc_brush_texture_factors(const SculptSession &ss,
     sculpt_apply_texture(ss, brush, positions[i], thread_id, &texture_value, texture_rgba);
 
     factors[i] *= texture_value;
+  }
+}
+
+void reset_translations_to_original(const MutableSpan<float3> translations,
+                                    const Span<float3> positions,
+                                    const Span<float3> orig_positions)
+{
+  BLI_assert(translations.size() == orig_positions.size());
+  BLI_assert(translations.size() == positions.size());
+  for (const int i : translations.index_range()) {
+    const float3 prev_translation = positions[i] - orig_positions[i];
+    translations[i] -= prev_translation;
   }
 }
 

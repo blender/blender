@@ -326,18 +326,6 @@ BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors,
   }
 }
 
-BLI_NOINLINE static void reset_translations_to_original(const MutableSpan<float3> translations,
-                                                        const Span<float3> positions,
-                                                        const Span<float3> orig_positions)
-{
-  BLI_assert(translations.size() == orig_positions.size());
-  BLI_assert(translations.size() == positions.size());
-  for (const int i : translations.index_range()) {
-    const float3 prev_translation = positions[i] - orig_positions[i];
-    translations[i] -= prev_translation;
-  }
-}
-
 static void calc_smooth_filter(const Sculpt &sd,
                                const float strength,
                                Object &object,

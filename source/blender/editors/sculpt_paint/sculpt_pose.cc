@@ -122,6 +122,7 @@ static void pose_solve_scale_chain(SculptPoseIKChain &ik_chain, const float scal
 }
 
 struct BrushLocalData {
+  Vector<float3> positions;
   Vector<float> factors;
   Vector<float> segment_weights;
   Vector<float3> segment_translations;
@@ -164,6 +165,7 @@ static void calc_mesh(const Sculpt &sd,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   tls.factors.resize(verts.size());
@@ -192,6 +194,7 @@ static void calc_mesh(const Sculpt &sd,
 
   switch (eBrushDeformTarget(brush.deform_target)) {
     case BRUSH_DEFORM_TARGET_GEOMETRY:
+      reset_translations_to_original(translations, positions, orig_data.positions);
       write_translations(sd, object, positions_eval, verts, translations, positions_orig);
       break;
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -213,21 +216,22 @@ static void calc_grids(const Sculpt &sd,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
-  tls.factors.resize(orig_data.positions.size());
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   if (cache.automasking) {
     auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
   }
 
-  tls.translations.resize(orig_data.positions.size());
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   translations.fill(float3(0));
 
-  tls.segment_weights.resize(orig_data.positions.size());
-  tls.segment_translations.resize(orig_data.positions.size());
+  tls.segment_weights.resize(positions.size());
+  tls.segment_translations.resize(positions.size());
   const MutableSpan<float> segment_weights = tls.segment_weights;
   const MutableSpan<float3> segment_translations = tls.segment_translations;
 
@@ -241,6 +245,7 @@ static void calc_grids(const Sculpt &sd,
 
   switch (eBrushDeformTarget(brush.deform_target)) {
     case BRUSH_DEFORM_TARGET_GEOMETRY:
+      reset_translations_to_original(translations, positions, orig_data.positions);
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
       break;
@@ -264,7 +269,7 @@ static void calc_bmesh(const Sculpt &sd,
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
-
+  const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
   Array<float3> orig_positions(verts.size());
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
@@ -295,6 +300,7 @@ static void calc_bmesh(const Sculpt &sd,
 
   switch (eBrushDeformTarget(brush.deform_target)) {
     case BRUSH_DEFORM_TARGET_GEOMETRY:
+      reset_translations_to_original(translations, positions, orig_positions);
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
       break;

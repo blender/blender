@@ -344,6 +344,17 @@ void apply_translations(Span<float3> translations, const Set<BMVert *, 0> &verts
 void project_translations(MutableSpan<float3> translations, const float3 &plane);
 
 /**
+ * Cancel out translations already applied over the course of the operation from the new
+ * translations. This is used for tools that calculate new positions based on the original
+ * positions for the entirety of an operation. Conceptually this is the same as resetting the
+ * positions before each step of the operation, but combining that into the same loop should be
+ * preferrable for performance.
+ */
+void reset_translations_to_original(MutableSpan<float3> translations,
+                                    Span<float3> positions,
+                                    Span<float3> orig_positions);
+
+/**
  * Rotate translations to account for rotations from procedural deformation.
  *
  * \todo Don't invert `deform_imats` on object evaluation. Instead just invert them on-demand in
