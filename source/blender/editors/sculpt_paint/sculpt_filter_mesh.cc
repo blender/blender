@@ -1029,7 +1029,7 @@ static void calc_relax_filter(const Sculpt & /*sd*/,
         }
         orig_co = vd.co;
 
-        smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
+        smooth::relax_vertex(ss, vd.vertex, clamp_f(fade, 0.0f, 1.0f), false, val);
         disp = val - float3(vd.co);
 
         disp = to_orientation_space(*ss.filter_cache) * disp;
@@ -1091,7 +1091,7 @@ static void calc_relax_face_sets_filter(const Sculpt & /*sd*/,
           continue;
         }
 
-        smooth::relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
+        smooth::relax_vertex(ss, vd.vertex, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
         disp = val - float3(vd.co);
 
         disp = to_orientation_space(*ss.filter_cache) * disp;

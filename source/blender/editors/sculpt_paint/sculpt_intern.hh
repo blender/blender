@@ -1688,7 +1688,7 @@ void surface_smooth_displace_step(Span<float3> laplacian_disp,
 
 /* Slide/Relax */
 void relax_vertex(SculptSession &ss,
-                  PBVHVertexIter *vd,
+                  PBVHVertRef vert,
                   float factor,
                   bool filter_boundary_face_sets,
                   float *r_final_pos);
