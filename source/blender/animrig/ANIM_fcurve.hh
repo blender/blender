@@ -71,6 +71,8 @@ void initialize_bezt(BezTriple *beztr,
 /**
  * Delete the keyframe at `time` on `fcurve` if a key exists there.
  *
+ * This does NOT delete the FCurve if it ends up empty. That is for the caller to do.
+ *
  * \note `time` is in fcurve time, not scene time.  Any time remapping must be
  * done prior to calling this function.
  *

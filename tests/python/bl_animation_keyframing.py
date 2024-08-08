@@ -688,6 +688,42 @@ class NlaInsertTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertAlmostEqual(fcurve_loc_x.keyframe_points[-1].co[1], 1.0, 8)
 
 
+class KeyframeDeleteTest(AbstractKeyframingTest, unittest.TestCase):
+
+    def test_delete_in_v3d_pose_mode(self):
+        armature = _create_armature()
+        bpy.context.scene.frame_set(1)
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+        self.assertTrue(armature.animation_data is not None)
+        self.assertTrue(armature.animation_data.action is not None)
+        action = armature.animation_data.action
+        self.assertEqual(len(action.fcurves), 3)
+
+        bpy.ops.object.mode_set(mode='POSE')
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            bpy.context.scene.frame_set(5)
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
+            # This should have added new FCurves for the pose bone.
+            self.assertEqual(len(action.fcurves), 6)
+
+            bpy.ops.anim.keyframe_delete_v3d()
+            # No Fcurves should yet be deleted.
+            self.assertEqual(len(action.fcurves), 6)
+            self.assertEqual(len(action.fcurves[0].keyframe_points), 1)
+            bpy.context.scene.frame_set(1)
+            bpy.ops.anim.keyframe_delete_v3d()
+            # This should leave the object level keyframes of the armature
+            self.assertEqual(len(action.fcurves), 3)
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_delete_v3d()
+        # The last FCurves should be deleted from the object now.
+        self.assertEqual(len(action.fcurves), 0)
+
+
 def main():
     global args
     import argparse

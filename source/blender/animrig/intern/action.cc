@@ -1530,6 +1530,25 @@ FCurve *action_fcurve_ensure(Main *bmain,
   return fcu;
 }
 
+bool action_fcurve_remove(Action &action, FCurve &fcu)
+{
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
+      if (!(strip->type() == Strip::Type::Keyframe)) {
+        continue;
+      }
+      KeyframeStrip &key_strip = strip->template as<KeyframeStrip>();
+      for (ChannelBag *bag : key_strip.channelbags()) {
+        const bool removed = bag->fcurve_remove(fcu);
+        if (removed) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 ID *action_slot_get_id_for_keying(Main &bmain,
                                   Action &action,
                                   const slot_handle_t slot_handle,

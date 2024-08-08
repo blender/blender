@@ -893,6 +893,14 @@ FCurve *action_fcurve_ensure(Main *bmain,
 FCurve *action_fcurve_find(bAction *act, FCurveDescriptor fcurve_descriptor);
 
 /**
+ * Remove the given FCurve from the action by searching for it in all channelbags.
+ * This assumes that an FCurve can only exist in an action once.
+ *
+ *  \returns true if the given FCurve was removed.
+ */
+bool action_fcurve_remove(Action &action, FCurve &fcu);
+
+/**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.
  *
  * (NOTE: although this function exists for handling situations caused by the

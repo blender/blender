@@ -88,6 +88,9 @@ FCurve *create_fcurve_for_channel(const FCurveDescriptor fcurve_descriptor)
 
 bool fcurve_delete_keyframe_at_time(FCurve *fcurve, const float time)
 {
+  if (BKE_fcurve_is_protected(fcurve)) {
+    return false;
+  }
   bool found;
 
   const int index = BKE_fcurve_bezt_binarysearch_index(
