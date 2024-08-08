@@ -175,10 +175,9 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_no_geom)
     .push_constant(Type::BOOL, "do_smooth_wire")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(2, Type::MAT4, "inst_obmat")
-    .vertex_out(overlay_armature_shape_wire_geom_iface)
-    .vertex_out(overlay_armature_shape_wire_geom_noperspective_iface)
+    .vertex_out(overlay_armature_wire_iface)
     .vertex_source("overlay_armature_shape_wire_vert_no_geom.glsl")
-    .fragment_source("overlay_armature_shape_wire_frag.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .typedef_source("overlay_shader_shared.h")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 #endif
