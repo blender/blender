@@ -3802,23 +3802,6 @@ static void do_brush_action(const Scene &scene,
 
 }  // namespace blender::ed::sculpt_paint
 
-/**
- * Copy the modified vertices from the #bke::pbvh::Tree to the active key.
- */
-static void sculpt_update_keyblock(Object &ob)
-{
-  SculptSession &ss = *ob.sculpt;
-
-  /* Key-block update happens after handling deformation caused by modifiers,
-   * so ss.orig_cos would be updated with new stroke. */
-  if (!ss.orig_cos.is_empty()) {
-    SCULPT_vertcos_to_key(ob, ss.shapekey_active, ss.orig_cos);
-  }
-  else {
-    SCULPT_vertcos_to_key(ob, ss.shapekey_active, BKE_pbvh_get_vert_positions(*ss.pbvh));
-  }
-}
-
 void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &cache,
                                       const ePaintSymmetryFlags symm,
                                       const char axis,
@@ -5482,13 +5465,6 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
   if (update_type == UpdateType::Position) {
     if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
       BKE_pbvh_bmesh_after_stroke(*ss.pbvh);
-    }
-
-    /* Optimization: if there is locked key and active modifiers present in */
-    /* the stack, keyblock is updating at each step. otherwise we could update */
-    /* keyblock only when stroke is finished. */
-    if (ss.shapekey_active && !ss.deform_modifiers_active) {
-      sculpt_update_keyblock(ob);
     }
   }
 
