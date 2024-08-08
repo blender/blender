@@ -17,6 +17,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_screen.hh"
 
@@ -66,11 +67,10 @@ struct _uilist_item {
  * Container for the item vector and additional info.
  */
 struct TemplateListItems {
-  _uilist_item *item_vec;
+  blender::Vector<_uilist_item> item_vec = {};
   /* Index of the active item following visual order. I.e. unlike
    * TemplateListInputData.active_item_idx, this is the index after sorting. */
-  int active_item_idx;
-  int tot_items;
+  int active_item_idx = 0;
 };
 
 struct TemplateListLayoutDrawData {
@@ -503,7 +503,6 @@ static void ui_template_list_collect_display_items(const bContext *C,
                                                    TemplateListItems *r_items)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
-  memset(r_items, 0, sizeof(*r_items));
 
   /* Filter list items! (not for compact layout, though) */
   if (input_data->dataptr.data && input_data->prop) {
@@ -524,26 +523,12 @@ static void ui_template_list_collect_display_items(const bContext *C,
 
     items_shown = dyn_data->items_shown;
     if (items_shown >= 0) {
-      r_items->item_vec = static_cast<_uilist_item *>(
-          MEM_mallocN(sizeof(*r_items->item_vec) * items_shown, __func__));
+      r_items->item_vec.resize(items_shown);
       // printf("%s: items shown: %d.\n", __func__, items_shown);
 
       ui_template_list_collect_items(
           &input_data->dataptr, input_data->prop, ui_list, input_data->active_item_idx, r_items);
     }
-    if (dyn_data->items_shown >= 0) {
-      r_items->tot_items = dyn_data->items_shown;
-    }
-    else {
-      r_items->tot_items = dyn_data->items_len;
-    }
-  }
-}
-
-static void ui_template_list_free_items(TemplateListItems *items)
-{
-  if (items->item_vec) {
-    MEM_freeN(items->item_vec);
   }
 }
 
@@ -574,11 +559,11 @@ static void uilist_prepare(uiList *ui_list,
 
   int activei_row;
   if (columns > 1) {
-    dyn_data->height = int(ceil(double(items->tot_items) / double(columns)));
+    dyn_data->height = int(ceil(double(items->item_vec.size()) / double(columns)));
     activei_row = int(floor(double(items->active_item_idx) / double(columns)));
   }
   else {
-    dyn_data->height = items->tot_items;
+    dyn_data->height = items->item_vec.size();
     activei_row = items->active_item_idx;
   }
 
@@ -595,7 +580,7 @@ static void uilist_prepare(uiList *ui_list,
 
   /* If list length changes or list is tagged to check this,
    * and active is out of view, scroll to it. */
-  if ((ui_list->list_last_len != items->tot_items) ||
+  if ((ui_list->list_last_len != items->item_vec.size()) ||
       (ui_list->flag & UILST_SCROLL_TO_ACTIVE_ITEM))
   {
     if (activei_row < ui_list->list_scroll) {
@@ -609,12 +594,12 @@ static void uilist_prepare(uiList *ui_list,
 
   const int max_scroll = max_ii(0, dyn_data->height - actual_rows);
   CLAMP(ui_list->list_scroll, 0, max_scroll);
-  ui_list->list_last_len = items->tot_items;
+  ui_list->list_last_len = items->item_vec.size();
   dyn_data->visual_height = actual_rows;
   r_visual_info->visual_items = actual_rows * columns;
   r_visual_info->start_idx = ui_list->list_scroll * columns;
   r_visual_info->end_idx = min_ii(r_visual_info->start_idx + actual_rows * columns,
-                                  items->tot_items);
+                                  items->item_vec.size());
 }
 
 static void uilist_resize_update(bContext *C, uiList *ui_list)
@@ -834,7 +819,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
 
       /* Add scroll-bar. */
-      if (items->tot_items > visual_info.visual_items) {
+      if (items->item_vec.size() > visual_info.visual_items) {
         uiLayoutColumn(row, false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
@@ -981,7 +966,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
 
       /* Add scroll-bar. */
-      if (items->tot_items > visual_info.visual_items) {
+      if (items->item_vec.size() > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
@@ -1076,7 +1061,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         }
       }
 
-      if (items->tot_items > visual_info.visual_items) {
+      if (items->item_vec.size() > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
@@ -1274,8 +1259,6 @@ uiList *uiTemplateList_ex(uiLayout *layout,
   layout_data.columns = columns;
 
   ui_template_list_layout_draw(C, ui_list, layout, &input_data, &items, &layout_data, flags);
-
-  ui_template_list_free_items(&items);
 
   return ui_list;
 }
