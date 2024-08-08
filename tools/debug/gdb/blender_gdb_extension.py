@@ -477,7 +477,7 @@ class LazyFunctionEvalFilter:
     def frame_to_name(frame):
         function_name = frame.function()
         if (function_name.startswith("blender::fn::lazy_function::LazyFunction::execute")
-            or function_name.startswith("blender::fn::lazy_function::Executor::push_to_task_pool")):
+                or function_name.startswith("blender::fn::lazy_function::Executor::push_to_task_pool")):
             return "Execute Lazy Function"
 
 
