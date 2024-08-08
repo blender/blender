@@ -848,6 +848,7 @@ class NODE_PT_quality(bpy.types.Panel):
         col = layout.column()
         col.prop(tree, "use_viewer_border")
 
+
 class NODE_PT_compositor_debug(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
