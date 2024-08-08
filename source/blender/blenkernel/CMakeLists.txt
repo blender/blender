@@ -476,7 +476,7 @@ set(SRC
   BKE_object_types.hh
   BKE_ocean.h
   BKE_outliner_treehash.hh
-  BKE_packedFile.h
+  BKE_packedFile.hh
   BKE_paint.hh
   BKE_particle.h
   BKE_pbvh.hh

@@ -45,7 +45,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object_types.hh"
-#include "BKE_packedFile.h"
+#include "BKE_packedFile.hh"
 #include "BKE_vfont.hh"
 #include "BKE_vfontdata.hh"
 

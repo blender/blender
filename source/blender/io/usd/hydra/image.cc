@@ -16,7 +16,7 @@
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_main.hh"
-#include "BKE_packedFile.h"
+#include "BKE_packedFile.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

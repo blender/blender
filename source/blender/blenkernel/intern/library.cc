@@ -27,7 +27,7 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_packedFile.h"
+#include "BKE_packedFile.hh"
 
 /* Unused currently. */
 // static CLG_LogRef LOG = {.identifier = "bke.library"};
