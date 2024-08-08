@@ -110,6 +110,8 @@ void paint_cursor_delete_textures()
   BKE_paint_invalidate_overlay_all();
 }
 
+namespace blender::ed::sculpt_paint {
+
 static int same_tex_snap(TexSnapshot *snap, MTex *mtex, ViewContext *vc, bool col, float zoom)
 {
   return (/* make brush smaller shouldn't cause a resample */
@@ -1068,7 +1070,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
   if (!mesh) {
     mesh = static_cast<const Mesh *>(ob.data);
   }
-  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
+  const Bounds<float3> bounds = *mesh->bounds_min_max();
   float orgLoc[3], location[3];
   int tile_pass = 0;
   int start[3];
@@ -1113,14 +1115,14 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             const float radius)
 {
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  blender::float3 location;
+  float3 location;
   float symm_rot_mat[4][4];
 
   for (int i = 0; i <= symm; i++) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)))) {
 
       /* Axis Symmetry. */
-      location = blender::ed::sculpt_paint::symmetry_flip(true_location, ePaintSymmetryFlags(i));
+      location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
       cursor_draw_point_screen_space(gpuattr, region, location, ob.object_to_world().ptr(), 3);
 
       /* Tiling. */
@@ -1130,8 +1132,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
       for (char raxis = 0; raxis < 3; raxis++) {
         for (int r = 1; r < sd.radial_symm[raxis]; r++) {
           float angle = 2 * M_PI * r / sd.radial_symm[int(raxis)];
-          location = blender::ed::sculpt_paint::symmetry_flip(true_location,
-                                                              ePaintSymmetryFlags(i));
+          location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
           unit_m4(symm_rot_mat);
           rotate_m4(symm_rot_mat, raxis + 'X', angle);
           mul_m4_v3(symm_rot_mat, location);
@@ -1157,7 +1158,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
     return;
   }
 
-  if (ss.pbvh->type() != blender::bke::pbvh::Type::Mesh) {
+  if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
     return;
   }
 
@@ -1355,7 +1356,7 @@ static bool paint_cursor_context_init(bContext *C,
     copy_v3_fl(pcontext->outline_col, 0.8f);
   }
 
-  const bool is_brush_tool = blender::ed::sculpt_paint::paint_brush_tool_poll(C);
+  const bool is_brush_tool = paint_brush_tool_poll(C);
   if (!is_brush_tool) {
     /* Use a default color for tools that are not brushes. */
     pcontext->outline_alpha = 0.8f;
@@ -1433,7 +1434,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
     paint_cursor_update_unprojected_radius(ups, brush, vc, pcontext->scene_space_location);
   }
 
-  pcontext->is_multires = ss.pbvh != nullptr && ss.pbvh->type() == blender::bke::pbvh::Type::Grids;
+  pcontext->is_multires = ss.pbvh != nullptr && ss.pbvh->type() == bke::pbvh::Type::Grids;
 
   pcontext->sd = CTX_data_tool_settings(pcontext->C)->sculpt;
 }
@@ -1505,7 +1506,6 @@ static void grease_pencil_eraser_draw(PaintCursorContext *pcontext)
 
 static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 {
-  using namespace blender;
   if (pcontext->region && !BLI_rcti_isect_pt(&pcontext->region->winrct, pcontext->x, pcontext->y))
   {
     return;
@@ -1726,7 +1726,6 @@ static void paint_cursor_preview_boundary_data_pivot_draw(PaintCursorContext *pc
 
 static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pcontext)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *pcontext->ss;
   /* Needed for updating the necessary SculptSession data in order to initialize the
    * boundary data for the preview. */
@@ -1738,7 +1737,6 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
 {
-  using namespace blender::ed::sculpt_paint;
   const Brush &brush = *pcontext->brush;
 
   /* 2D falloff is better represented with the default 2D cursor,
@@ -1903,7 +1901,6 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
 static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorContext *pcontext)
 {
-  using namespace blender::ed::sculpt_paint;
   BLI_assert(pcontext->ss != nullptr);
   BLI_assert(pcontext->mode == PaintMode::Sculpt);
 
@@ -2123,13 +2120,15 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
   }
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 /* Public API */
 
 void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C))
 {
   if (paint && !paint->paint_cursor) {
     paint->paint_cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, paint_draw_cursor, nullptr);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, blender::ed::sculpt_paint::paint_draw_cursor, nullptr);
   }
 
   /* Invalidate the paint cursors. */
