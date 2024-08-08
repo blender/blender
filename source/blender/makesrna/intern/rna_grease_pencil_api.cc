@@ -391,8 +391,8 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "add_curves", "rna_GreasePencilDrawing_add_curves");
-  RNA_def_function_ui_description(func, "Add new curves with provided sizes at the end");
+  func = RNA_def_function(srna, "add_strokes", "rna_GreasePencilDrawing_add_curves");
+  RNA_def_function_ui_description(func, "Add new strokes with provided sizes at the end");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_int_array(func,
                            "sizes",
@@ -401,15 +401,15 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
                            1,
                            INT_MAX,
                            "Sizes",
-                           "The number of points in each curve",
+                           "The number of points in each stroke",
                            1,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "remove_curves", "rna_GreasePencilDrawing_remove_curves");
+  func = RNA_def_function(srna, "remove_strokes", "rna_GreasePencilDrawing_remove_curves");
   RNA_def_function_ui_description(func,
-                                  "Remove all curves. If indices are provided, remove only the "
-                                  "curves with the given indices.");
+                                  "Remove all strokes. If indices are provided, remove only the "
+                                  "strokes with the given indices.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_int_array(func,
                            "indices",
@@ -418,17 +418,17 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
                            0,
                            INT_MAX,
                            "Indices",
-                           "The indices of the curves to remove",
+                           "The indices of the strokes to remove",
                            0,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 
-  func = RNA_def_function(srna, "resize_curves", "rna_GreasePencilDrawing_resize_curves");
+  func = RNA_def_function(srna, "resize_strokes", "rna_GreasePencilDrawing_resize_curves");
   RNA_def_function_ui_description(
       func,
-      "Resize all existing curves. If indices are provided, resize only the curves with the given "
-      "indices. If the new size for a curve is smaller, the curve is trimmed. If "
-      "the new size for a curve is larger, the new end values are default initialized.");
+      "Resize all existing strkoes. If indices are provided, resize only the strokes with the "
+      "given indices. If the new size for a stroke is smaller, the stroke is trimmed. If "
+      "the new size for a stroke is larger, the new end values are default initialized.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_int_array(func,
                            "sizes",
@@ -437,7 +437,7 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
                            1,
                            INT_MAX,
                            "Sizes",
-                           "The number of points in each curve",
+                           "The number of points in each stroke",
                            1,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
@@ -448,7 +448,7 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
                            0,
                            INT_MAX,
                            "Indices",
-                           "The indices of the curves to resize",
+                           "The indices of the stroke to resize",
                            0,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
