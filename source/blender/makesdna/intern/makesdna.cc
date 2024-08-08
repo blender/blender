@@ -42,6 +42,7 @@
 #include "BLI_system.h"    /* for 'BLI_system_backtrace' stub. */
 #include "BLI_utildefines.h"
 
+#include "DNA_sdna_types.h"
 #include "dna_utils.h"
 
 #define SDNA_MAX_FILENAME_LENGTH 255
@@ -956,13 +957,15 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
   fprintf(file_verify, "\n");
 
   /* Multiple iterations to handle nested structs. */
-  int unknown = structs_num;
+  /* 'raw data' SDNA_RAW_DATA_STRUCT_INDEX fake struct should be ignored here. */
+  int unknown = structs_num - 1;
   while (unknown) {
     const int lastunknown = unknown;
     unknown = 0;
 
     /* check all structs... */
-    for (int a = 0; a < structs_num; a++) {
+    BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
+    for (int a = SDNA_RAW_DATA_STRUCT_INDEX + 1; a < structs_num; a++) {
       const short *structpoin = structs[a];
       const int struct_type_index = structpoin[0];
       const char *struct_type_name = version_struct_alias_from_static(types[struct_type_index]);
@@ -1322,6 +1325,22 @@ static int make_structDNA(const char *base_directory,
   add_type("uint64_t", 8); /* SDNA_TYPE_UINT64 */
   add_type("void", 0);     /* SDNA_TYPE_VOID */
   add_type("int8_t", 1);   /* SDNA_TYPE_INT8 */
+
+  /* Fake place-holder struct definition used to get an identifier for raw, untyped bytes buffers
+   * in blend-files.
+   *
+   * It will be written into the blend-files SDNA, but it must never be used in the source code.
+   * Trying to declare `struct raw_data` in DNA headers will cause a build error.
+   *
+   * NOTE: While not critical, since all blend-files before introduction of this 'raw_data'
+   * type/struct have been using the `0` value for raw data #BHead.SDNAnr, it's best to reserve
+   * that first struct index to this raw data explicitly. */
+  const int raw_data_type_index = add_type("raw_data", 0); /* SDNA_TYPE_RAW_DATA */
+  short *raw_data_struct_info = add_struct(raw_data_type_index);
+  /* There are no members in this struct. */
+  raw_data_struct_info[1] = 0;
+  BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
+  BLI_assert(raw_data_struct_info == structs[SDNA_RAW_DATA_STRUCT_INDEX]);
 
   /* the defines above shouldn't be output in the padding file... */
   const int firststruct = types_num;
