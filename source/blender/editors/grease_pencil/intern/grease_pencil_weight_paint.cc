@@ -252,10 +252,12 @@ static int weight_sample_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
           const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
           const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d,
                                                                               layer_to_world);
+          const bke::CurvesGeometry &curves = info.drawing.strokes();
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
-                                                         info.drawing.strokes().points_by_curve(),
+                                                         curves.points_by_curve(),
                                                          deformation.positions,
+                                                         curves.cyclic(),
                                                          projection,
                                                          points,
                                                          bke::AttrDomain::Point,
