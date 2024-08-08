@@ -102,6 +102,7 @@ using blender::Vector;
 static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
 namespace blender::ed::sculpt_paint {
+
 float sculpt_calc_radius(const ViewContext &vc,
                          const Brush &brush,
                          const Scene &scene,
@@ -114,9 +115,8 @@ float sculpt_calc_radius(const ViewContext &vc,
     return BKE_brush_unprojected_radius_get(&scene, &brush);
   }
 }
-}  // namespace blender::ed::sculpt_paint
 
-bool ED_sculpt_report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
+bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -129,6 +129,8 @@ bool ED_sculpt_report_if_shape_key_is_locked(const Object &ob, ReportList *repor
 
   return false;
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt bke::pbvh::Tree Abstraction API
@@ -5835,7 +5837,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
   }
   if (!SCULPT_tool_is_attribute_only(brush.sculpt_tool) &&
-      ED_sculpt_report_if_shape_key_is_locked(ob, op->reports))
+      report_if_shape_key_is_locked(ob, op->reports))
   {
     return OPERATOR_CANCELLED;
   }

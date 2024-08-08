@@ -272,7 +272,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_sculptmode_exit_ex(*bmain, *depsgraph, *scene, *ob);
+      sculpt_paint::object_sculpt_mode_exit(*bmain, *depsgraph, *scene, *ob);
     }
   }
   else if (ob->mode & OB_MODE_POSE) {

@@ -43,7 +43,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   SculptSession &ss = *ob.sculpt;
 
   /* Avoid editing locked shapes. */
-  if (t->mode != TFM_DUMMY && ED_sculpt_report_if_shape_key_is_locked(ob, t->reports)) {
+  if (t->mode != TFM_DUMMY && sculpt_paint::report_if_shape_key_is_locked(ob, t->reports)) {
     return;
   }
 

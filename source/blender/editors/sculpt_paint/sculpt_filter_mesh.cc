@@ -2278,7 +2278,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  if (ED_sculpt_report_if_shape_key_is_locked(ob, op->reports)) {
+  if (report_if_shape_key_is_locked(ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

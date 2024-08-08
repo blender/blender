@@ -179,7 +179,8 @@ void ED_editors_init(bContext *C)
     else if (mode & OB_MODE_ALL_SCULPT) {
       if (obact == ob) {
         if (mode == OB_MODE_SCULPT) {
-          ED_object_sculptmode_enter_ex(*bmain, *depsgraph, *scene, *ob, true, reports);
+          blender::ed::sculpt_paint::object_sculpt_mode_enter(
+              *bmain, *depsgraph, *scene, *ob, true, reports);
         }
         else if (mode == OB_MODE_VERTEX_PAINT) {
           ED_object_vpaintmode_enter_ex(*bmain, *depsgraph, *scene, *ob);
