@@ -5,6 +5,8 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_material.h"
+#include "BKE_paint.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
@@ -15,6 +17,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
+
 #include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
@@ -426,6 +429,11 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
   Object &object = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const auto flip_mode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
+  Paint &paint = scene.toolsettings->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(&paint);
+  Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
+      CTX_data_main(&C), &object, brush);
+  const int material_index = BKE_object_material_index_get(&object, material);
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
     Layer &layer = *grease_pencil.layer(layer_index);
@@ -455,6 +463,12 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
           positions);
       interpolated_curves.tag_positions_changed();
     }
+
+    bke::SpanAttributeWriter<int> materials =
+        interpolated_curves.attributes_for_write().lookup_or_add_for_write_span<int>(
+            "material_index", bke::AttrDomain::Curve);
+    materials.span.fill(material_index);
+    materials.finish();
 
     dst_drawing->strokes_for_write() = std::move(interpolated_curves);
     dst_drawing->tag_topology_changed();
