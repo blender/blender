@@ -508,8 +508,6 @@ bool parent_set(ReportList *reports,
   bPoseChannel *pchan_eval = nullptr;
   Object *parent_eval = DEG_get_evaluated_object(depsgraph, par);
 
-  DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
   /* Preconditions. */
   if (ob == par) {
     /* Parenting an object to itself is impossible. */
@@ -585,7 +583,6 @@ bool parent_set(ReportList *reports,
     ob->parent = par;
     /* Always clear parentinv matrix for sake of consistency, see #41950. */
     unit_m4(ob->parentinv);
-    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
 
   /* Handle types. */
@@ -746,6 +743,7 @@ bool parent_set(ReportList *reports,
     invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
 
+  DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   return true;
 }
@@ -848,7 +846,10 @@ static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_co
   KDTree_3d *tree = nullptr;
   int tree_tot;
 
-  tree = BKE_object_as_kdtree(parenting_context->par, &tree_tot);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *par_eval = DEG_get_evaluated_object(depsgraph, parenting_context->par);
+
+  tree = BKE_object_as_kdtree(par_eval, &tree_tot);
   BLI_assert(tree != nullptr);
 
   if (tree_tot < (parenting_context->is_vertex_tri ? 3 : 1)) {
