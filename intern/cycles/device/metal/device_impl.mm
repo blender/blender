@@ -14,6 +14,7 @@
 #  include "util/path.h"
 #  include "util/time.h"
 
+#  include <TargetConditionals.h>
 #  include <crt_externs.h>
 
 CCL_NAMESPACE_BEGIN
@@ -351,6 +352,10 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   NSProcessInfo *processInfo = [NSProcessInfo processInfo];
   NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
   global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
+
+#  if TARGET_CPU_ARM64
+  global_defines += "#define __KERNEL_METAL_TARGET_CPU_ARM64__\n";
+#  endif
 
   /* Replace specific KernelData "dot" dereferences with a Metal function_constant identifier of
    * the same character length. Build a string of all active constant values which is then hashed
