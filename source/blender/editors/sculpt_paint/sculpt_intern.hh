@@ -911,14 +911,6 @@ Span<float3> vert_positions_for_grab_active_get(const Object &object);
 
 }
 
-/**
- * Returns the pointer to the coordinates that should be edited from a brush tool iterator
- * depending on the given deformation target.
- */
-float *SCULPT_brush_deform_target_vertex_co_get(SculptSession &ss,
-                                                int deform_target,
-                                                PBVHVertexIter *iter);
-
 void SCULPT_vertex_neighbors_get(const SculptSession &ss,
                                  PBVHVertRef vertex,
                                  bool include_duplicates,
@@ -964,10 +956,6 @@ Span<int> vert_neighbors_get_mesh(int vert,
                                   Span<bool> hide_poly,
                                   Vector<int> &r_neighbors);
 }
-
-/* Returns pbvh::Tree deformed vertices array if shape keys or deform modifiers are used, otherwise
- * returns mesh original vertices array. */
-blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptSession &ss);
 
 /* Fake Neighbors */
 

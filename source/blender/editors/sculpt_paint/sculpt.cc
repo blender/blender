@@ -220,19 +220,6 @@ Span<float3> vert_positions_for_grab_active_get(const Object &object)
 
 }  // namespace blender::ed::sculpt_paint
 
-float *SCULPT_brush_deform_target_vertex_co_get(SculptSession &ss,
-                                                const int deform_target,
-                                                PBVHVertexIter *iter)
-{
-  switch (deform_target) {
-    case BRUSH_DEFORM_TARGET_GEOMETRY:
-      return iter->co;
-    case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      return ss.cache->cloth_sim->deformation_pos[iter->index];
-  }
-  return iter->co;
-}
-
 ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(const Object &object)
 {
   const Mesh *mesh = static_cast<const Mesh *>(object.data);
