@@ -25,7 +25,7 @@ extern "C" {
 /** Blender patch version for bug-fix releases. */
 #define BLENDER_VERSION_PATCH 1
 /** Blender release cycle stage: alpha/beta/rc/release. */
-#define BLENDER_VERSION_CYCLE release
+#define BLENDER_VERSION_CYCLE rc
 /** Blender release type suffix. LTS or blank. */
 #define BLENDER_VERSION_SUFFIX LTS
 
