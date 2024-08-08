@@ -21,8 +21,10 @@
 #include "DNA_space_types.h"
 
 #include "BLI_kdtree.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -812,10 +814,123 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int uv_remove_doubles_to_selected_shared_vertex(bContext *C, wmOperator *op)
+{
+  /* NOTE: The calculation for the center-point of loops belonging to a vertex will be skewed
+   * if one UV coordinate holds more loops than the others. */
+
+  Scene *scene = CTX_data_scene(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+
+  /* Only use the squared distance, to avoid a square-root. */
+  const float threshold_sq = math::square(RNA_float_get(op->ptr, "threshold"));
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    BMVert *v;
+    BMLoop *l;
+    BMIter viter, liter;
+
+    /* The `changed` variable keeps track if any loops from the current object are merged. */
+    blender::Vector<float *> uvs;
+    uvs.reserve(32);
+    bool changed = false;
+
+    BM_ITER_MESH (v, &viter, em->bm, BM_VERTS_OF_MESH) {
+
+      BLI_assert(uvs.size() == 0);
+      BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+        if (uvedit_uv_select_test(scene, l, offsets)) {
+          uvs.append(BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv));
+        }
+      }
+      if (uvs.size() <= 1) {
+        uvs.clear();
+        continue;
+      }
+
+      while (uvs.size() > 1) {
+        const int uvs_num = uvs.size();
+        float2 uv_average = {0.0f, 0.0f};
+        for (const float *luv : uvs) {
+          uv_average += float2(luv);
+        }
+        uv_average /= uvs_num;
+
+        /* Find the loop closest to the uv_average. This loop will be the base that all
+         * other loop's distances are calculated from. */
+
+        float dist_best_sq = math::distance_squared(uv_average, float2(uvs[0]));
+        float *uv_ref = uvs[0];
+        int uv_ref_index = 0;
+        for (int i = 1; i < uvs_num; i++) {
+          const float dist_test_sq = math::distance_squared(uv_average, float2(uvs[i]));
+          if (dist_test_sq < dist_best_sq) {
+            dist_best_sq = dist_test_sq;
+            uv_ref = uvs[i];
+            uv_ref_index = i;
+          }
+        }
+
+        const int uvs_end = uvs_num - 1;
+        std::swap(uvs[uv_ref_index], uvs[uvs_end]);
+
+        /* Move all the UVs within threshold to the end of the array. Sum of all UV coordinates
+         * within threshold is initialized with `uv_ref` coordinate data since while loop
+         * ends once it hits `uv_ref` UV. */
+        float2 uv_merged_average = {uv_ref[0], uv_ref[1]};
+        int i = 0;
+        int uvs_num_merged = 1;
+        while (uvs[i] != uv_ref && i < uvs_num - uvs_num_merged) {
+          const float dist_test_sq = len_squared_v2v2(uv_ref, uvs[i]);
+          if (dist_test_sq < threshold_sq) {
+            uv_merged_average += float2(uvs[i]);
+            std::swap(uvs[i], uvs[uvs_end - uvs_num_merged]);
+            uvs_num_merged++;
+            if (dist_test_sq != 0.0f) {
+              changed = true;
+            }
+          }
+          else {
+            i++;
+          }
+        }
+
+        /* Recalculate `uv_average` so it only considers UV's that are being included in merge
+         * operation. Then Shift all loops to that position. */
+        if (uvs_num_merged > 1) {
+          uv_merged_average /= uvs_num_merged;
+
+          for (int j = uvs_num - uvs_num_merged; j < uvs_num; j++) {
+            copy_v2_v2(uvs[j], uv_merged_average);
+          }
+        }
+
+        uvs.resize(uvs_num - uvs_num_merged);
+      }
+      uvs.clear();
+    }
+    if (changed) {
+      uvedit_live_unwrap_update(sima, scene, obedit);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
 static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 {
   if (RNA_boolean_get(op->ptr, "use_unselected")) {
     return uv_remove_doubles_to_unselected(C, op);
+  }
+  if (RNA_boolean_get(op->ptr, "use_shared_vertex")) {
+    return uv_remove_doubles_to_selected_shared_vertex(C, op);
   }
   return uv_remove_doubles_to_selected(C, op);
 }
@@ -847,6 +962,8 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
                   false,
                   "Unselected",
                   "Merge selected to other unselected vertices");
+  RNA_def_boolean(
+      ot->srna, "use_shared_vertex", false, "Shared Vertex", "Weld UVs based on shared vertices");
 }
 
 /** \} */
