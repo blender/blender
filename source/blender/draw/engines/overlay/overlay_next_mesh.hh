@@ -288,11 +288,14 @@ class Meshes {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    GPU_debug_group_begin("Mesh Edit");
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_prepass_ps_, view);
     manager.submit(edit_mesh_analysis_ps_, view);
 
     if (xray_enabled) {
+      GPU_debug_group_end();
       return;
     }
 
@@ -307,6 +310,8 @@ class Meshes {
     manager.submit(edit_mesh_verts_ps_, view_edit_vert);
     manager.submit(edit_mesh_skin_roots_ps_, view_edit_vert);
     manager.submit(edit_mesh_facedots_ps_, view_edit_vert);
+
+    GPU_debug_group_end();
   }
 
   void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
@@ -315,6 +320,8 @@ class Meshes {
       return;
     }
 
+    GPU_debug_group_begin("Mesh Edit Color Only");
+
     view_edit_cage.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
     view_edit_edge.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.0f));
     view_edit_vert.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.5f));
@@ -327,6 +334,8 @@ class Meshes {
     manager.submit(edit_mesh_verts_ps_, view_edit_vert);
     manager.submit(edit_mesh_skin_roots_ps_, view_edit_vert);
     manager.submit(edit_mesh_facedots_ps_, view_edit_vert);
+
+    GPU_debug_group_end();
   }
 
  private:
