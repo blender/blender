@@ -750,6 +750,10 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   /* Add three for each bezier point, (one left, one right and one for the center point). */
   total_line_points_num += total_bezier_point_num * 3;
 
+  if (total_points_num == 0) {
+    return;
+  }
+
   GPU_vertbuf_data_alloc(*cache->edit_points_pos, total_points_num);
   GPU_vertbuf_data_alloc(*cache->edit_points_selection, total_points_num);
   GPU_vertbuf_data_alloc(*cache->edit_line_pos, total_line_points_num);
