@@ -472,6 +472,17 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
     new_opacities[point] = opacity;
   }
 
+  /* Initialize the rest of the attributes with default values. */
+  Set<std::string> point_attributes_to_skip = {"position", "radius", "opacity", "vertex_color"};
+  Set<std::string> curve_attributes_to_skip = {};
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::fill_attribute_range_default(
+      attributes, bke::AttrDomain::Point, point_attributes_to_skip, curve_points);
+  bke::fill_attribute_range_default(attributes,
+                                    bke::AttrDomain::Curve,
+                                    curve_attributes_to_skip,
+                                    curves.curves_range().take_back(1));
+
   ptd.drawing->tag_topology_changed();
   ptd.drawing->set_texture_matrices({ptd.texture_space},
                                     IndexRange::from_single(curves.curves_range().last()));
