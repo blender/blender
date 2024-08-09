@@ -926,48 +926,49 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
-   * side. */
-  if (cache->num_subdiv_loops > 0) {
-    cache->patch_coords = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache->patch_coords, cache->num_subdiv_loops);
+   * side.
+   *
+   * These VBOs are created even when there are no faces and only loose geometry. This avoids the
+   * need for many null checks. Binding them must be avoided if they are empty though. */
+  cache->patch_coords = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->patch_coords, cache->num_subdiv_loops);
 
-    cache->corner_patch_coords = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache->corner_patch_coords, cache->num_subdiv_loops);
+  cache->corner_patch_coords = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->corner_patch_coords, cache->num_subdiv_loops);
 
-    cache->verts_orig_index = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache->verts_orig_index, cache->num_subdiv_loops);
+  cache->verts_orig_index = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->verts_orig_index, cache->num_subdiv_loops);
 
-    cache->edges_orig_index = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache->edges_orig_index, cache->num_subdiv_loops);
+  cache->edges_orig_index = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->edges_orig_index, cache->num_subdiv_loops);
 
-    cache->edges_draw_flag = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(cache->edges_draw_flag, cache->num_subdiv_loops);
+  cache->edges_draw_flag = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->edges_draw_flag, cache->num_subdiv_loops);
 
-    cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
+  cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
 
-    cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
+  cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
 
-    cache->subdiv_loop_face_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
+  cache->subdiv_loop_face_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
 
-    /* Initialize context pointers and temporary buffers. */
-    ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(cache->patch_coords);
-    ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(cache->verts_orig_index);
-    ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(cache->edges_orig_index);
-    ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(cache->edges_draw_flag);
-  }
+  /* Initialize context pointers and temporary buffers. */
+  ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(cache->patch_coords);
+  ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(cache->verts_orig_index);
+  ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(cache->edges_orig_index);
+  ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(cache->edges_draw_flag);
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
@@ -1248,23 +1249,22 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
 
   /* Save coordinates for corners, as attributes may vary for each loop connected to the same
    * vertex. */
-  if (cache.num_subdiv_loops > 0) {
-    memcpy(GPU_vertbuf_get_data(cache.corner_patch_coords),
-           cache_building_context.patch_coords,
-           sizeof(CompressedPatchCoord) * cache.num_subdiv_loops);
+  memcpy(GPU_vertbuf_get_data(cache.corner_patch_coords),
+         cache_building_context.patch_coords,
+         sizeof(CompressedPatchCoord) * cache.num_subdiv_loops);
 
-    for (int i = 0; i < cache.num_subdiv_loops; i++) {
-      const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
-      if (first_loop_index[vertex] != -1) {
-        continue;
-      }
-
-      for (int i = 0; i < cache.num_subdiv_loops; i++) {
-        const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
-        cache_building_context.patch_coords[i] =
-            cache_building_context.patch_coords[first_loop_index[vertex]];
-      }
+  for (int i = 0; i < cache.num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    if (first_loop_index[vertex] != -1) {
+      continue;
     }
+    first_loop_index[vertex] = i;
+  }
+
+  for (int i = 0; i < cache.num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    cache_building_context.patch_coords[i] =
+        cache_building_context.patch_coords[first_loop_index[vertex]];
   }
 
   /* Cleanup. */
