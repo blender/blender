@@ -1060,7 +1060,6 @@ SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
 /**
  * Update a #SculptOrigVertData for a particular vertex from the blender::bke::pbvh::Tree iterator.
  */
-void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter);
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert);
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, int i);
 
@@ -1387,7 +1386,6 @@ struct NodeData {
 NodeData node_begin(const Object &object, const Cache *automasking, const bke::pbvh::Node &node);
 
 /* Call before factor_get. */
-void node_update(NodeData &automask_data, const PBVHVertexIter &vd);
 void node_update(NodeData &automask_data, const BMVert &vert);
 /**
  * Call before factor_get. The index is in the range of the pbvh::Tree node's vertex indices.

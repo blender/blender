@@ -703,13 +703,6 @@ NodeData node_begin(const Object &object, const Cache *automasking, const bke::p
   return automask_data;
 }
 
-void node_update(auto_mask::NodeData &automask_data, const PBVHVertexIter &vd)
-{
-  if (automask_data.orig_data) {
-    SCULPT_orig_vert_data_update(*automask_data.orig_data, vd);
-  }
-}
-
 void node_update(auto_mask::NodeData &automask_data, const BMVert &vert)
 {
   if (automask_data.orig_data) {

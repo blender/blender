@@ -1266,31 +1266,6 @@ SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
   return data;
 }
 
-void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const PBVHVertexIter &iter)
-{
-  using namespace blender::ed::sculpt_paint;
-  if (orig_data.undo_type == undo::Type::Position) {
-    if (orig_data.bm_log) {
-      BM_log_original_vert_data(orig_data.bm_log, iter.bm_vert, &orig_data.co, &orig_data.no);
-    }
-    else {
-      orig_data.co = orig_data.coords[iter.i];
-      orig_data.no = orig_data.normals[iter.i];
-    }
-  }
-  else if (orig_data.undo_type == undo::Type::Color) {
-    orig_data.col = orig_data.colors[iter.i];
-  }
-  else if (orig_data.undo_type == undo::Type::Mask) {
-    if (orig_data.bm_log) {
-      orig_data.mask = BM_log_original_mask(orig_data.bm_log, iter.bm_vert);
-    }
-    else {
-      orig_data.mask = orig_data.vmasks[iter.i];
-    }
-  }
-}
-
 void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert)
 {
   using namespace blender::ed::sculpt_paint;
