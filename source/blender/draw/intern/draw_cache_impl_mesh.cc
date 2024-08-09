@@ -1682,7 +1682,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.edit_data);
     if (!do_subdivision) {
       /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
-      DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.vnor);
+      DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.vnor);
     }
   }
   assert_deps_valid(MBC_EDIT_VNOR,
