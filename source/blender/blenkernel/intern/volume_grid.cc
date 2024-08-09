@@ -63,7 +63,7 @@ VolumeGridData::VolumeGridData(std::shared_ptr<openvdb::GridBase> grid)
     : grid_(std::move(grid)), tree_loaded_(true), transform_loaded_(true), meta_data_loaded_(true)
 {
   BLI_assert(grid_);
-  BLI_assert(grid_.unique());
+  BLI_assert(grid_.use_count() == 1);
   BLI_assert(grid_->isTreeUnique());
 
   tree_sharing_info_ = MEM_new<OpenvdbTreeSharingInfo>(__func__, grid_->baseTreePtr());
@@ -224,7 +224,7 @@ void VolumeGridData::unload_tree_if_possible() const
   if (!this->is_reloadable()) {
     return;
   }
-  if (!tree_access_token_.unique()) {
+  if (tree_access_token_.use_count() != 1) {
     /* Some code is using the tree currently, so it can't be freed. */
     return;
   }
@@ -287,7 +287,7 @@ void VolumeGridData::ensure_grid_loaded() const
     loaded_grid = openvdb::FloatGrid::create();
   }
   BLI_assert(loaded_grid);
-  BLI_assert(loaded_grid.unique());
+  BLI_assert(loaded_grid.use_count() == 1);
   BLI_assert(loaded_grid->isTreeUnique());
 
   if (grid_) {
