@@ -957,6 +957,8 @@ template<class T> inline void PassBase<T>::state_set(DRWState state, int clip_pl
   if (clip_plane_count > 0) {
     state |= DRW_STATE_CLIP_PLANES;
   }
+  /* Assumed to always be enabled. */
+  state |= DRW_STATE_PROGRAM_POINT_SIZE;
   create_command(Type::StateSet).state_set = {state, clip_plane_count};
 }
 
