@@ -896,6 +896,7 @@ def dump_src_messages(msgs, reports, settings):
                 rel_path = os.path.relpath(path, settings.SOURCE_DIR)
             except ValueError:
                 rel_path = path
+            rel_path = PurePath(rel_path).as_posix()
             if rel_path in forbidden:
                 continue
             elif rel_path not in forced:

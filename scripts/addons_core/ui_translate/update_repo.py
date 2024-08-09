@@ -28,18 +28,6 @@ import tempfile
 
 # Operators ###################################################################
 
-def i18n_updatetranslation_work_repo_callback(pot, lng, settings):
-    if not lng['use']:
-        return
-    if os.path.isfile(lng['po_path']):
-        po = utils_i18n.I18nMessages(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
-        po.update(pot)
-    else:
-        po = pot
-    po.write(kind="PO", dest=lng['po_path'])
-    print("{} PO written!".format(lng['uid']))
-
-
 class UI_OT_i18n_updatetranslation_work_repo(Operator):
     """Update i18n working repository (po files)"""
     bl_idname = "ui.i18n_updatetranslation_work_repo"
@@ -57,7 +45,8 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
         i18n_sett = context.window_manager.i18n_update_settings
         self.settings.FILE_NAME_POT = i18n_sett.pot_path
 
-        context.window_manager.progress_begin(0, len(i18n_sett.langs) + 1)
+        num_langs = len(i18n_sett.langs)
+        context.window_manager.progress_begin(0, num_langs + 1)
         context.window_manager.progress_update(0)
         if not self.use_skip_pot_gen:
             env = os.environ.copy()
@@ -86,34 +75,31 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
                 return {'CANCELLED'}
 
         # Now we should have a valid POT file, we have to merge it in all languages po's...
+        # NOTE: While on linux sub-processes are `os.fork`ed by default,
+        #       on Windows and OSX they are `spawn`ed.
+        #       See https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+        #       This is a problem because spawned processes do not inherit the whole environment
+        #       of the current (Blender-customized) python. In pratice, the `bpy` module won't load e.g.
+        #       So care must be taken that the callback passed to the executor does not rely on any
+        #       Blender-specific modules etc. This is why it is using a class method from `bl_i18n_utils`
+        #       module, rather than a local function of this current Blender-only module.
         with concurrent.futures.ProcessPoolExecutor() as exctr:
             pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
-            num_langs = len(i18n_sett.langs)
-            for progress, _ in enumerate(exctr.map(i18n_updatetranslation_work_repo_callback,
-                                                   (pot,) * num_langs,
-                                                   [dict(lng.items()) for lng in i18n_sett.langs],
-                                                   (self.settings,) * num_langs,
-                                                   chunksize=4)):
+            for progress, _ in enumerate(
+                    exctr.map(utils_i18n.I18nMessages.update_from_pot_callback,
+                              (pot,) * num_langs,
+                              [dict(lng.items()) for lng in i18n_sett.langs],
+                              (self.settings,) * num_langs,
+                              chunksize=4)):
                 context.window_manager.progress_update(progress + 2)
+
         context.window_manager.progress_end()
+        print("", flush=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
-
-
-def i18n_cleanuptranslation_work_repo_callback(lng, settings):
-    if not lng['use']:
-        print("Skipping {} language ({}).".format(lng['name'], lng['uid']))
-        return
-    po = utils_i18n.I18nMessages(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
-    errs = po.check(fix=True)
-    cleanedup_commented = po.clean_commented()
-    po.write(kind="PO", dest=lng['po_path'])
-    print("Processing {} language ({}).\n"
-          "Cleaned up {} commented messages.\n".format(lng['name'], lng['uid'], cleanedup_commented) +
-          ("Errors in this po, solved as best as possible!\n\t" + "\n\t".join(errs) if errs else "") + "\n")
 
 
 class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
@@ -128,41 +114,22 @@ class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
         # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
         stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
-        context.window_manager.progress_begin(0, len(i18n_sett.langs) + 1)
+        num_langs = len(i18n_sett.langs)
+        context.window_manager.progress_begin(0, num_langs + 1)
         context.window_manager.progress_update(0)
+        # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
+        #       of the `ProcessPoolExecutor`.
         with concurrent.futures.ProcessPoolExecutor() as exctr:
-            num_langs = len(i18n_sett.langs)
-            for progress, _ in enumerate(exctr.map(i18n_cleanuptranslation_work_repo_callback,
-                                                   [dict(lng.items()) for lng in i18n_sett.langs],
-                                                   (self.settings,) * num_langs,
-                                                   chunksize=4)):
+            for progress, _ in enumerate(
+                    exctr.map(utils_i18n.I18nMessages.cleanup_callback,
+                              [dict(lng.items()) for lng in i18n_sett.langs],
+                              (self.settings,) * num_langs,
+                              chunksize=4)):
                 context.window_manager.progress_update(progress + 1)
 
         context.window_manager.progress_end()
-
+        print("", flush=True)
         return {'FINISHED'}
-
-
-def i18n_updatetranslation_blender_repo_callback(lng, settings):
-    reports = []
-    if lng['uid'] in settings.IMPORT_LANGUAGES_SKIP:
-        reports.append(
-            "Skipping {} language ({}), edit settings if you want to enable it.".format(
-                lng['name'], lng['uid']))
-        return lng['uid'], 0.0, reports
-    if not lng['use']:
-        reports.append("Skipping {} language ({}).".format(lng['name'], lng['uid']))
-        return lng['uid'], 0.0, reports
-    po = utils_i18n.I18nMessages(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
-    errs = po.check(fix=True)
-    reports.append("Processing {} language ({}).\n"
-                   "Cleaned up {} commented messages.\n".format(lng['name'], lng['uid'], po.clean_commented()) +
-                   ("Errors in this po, solved as best as possible!\n\t" + "\n\t".join(errs) if errs else ""))
-    if lng['uid'] in settings.IMPORT_LANGUAGES_RTL:
-        po.rtl_process()
-    po.write(kind="PO_COMPACT", dest=lng['po_path_blender'])
-    po.update_info()
-    return lng['uid'], po.nbr_trans_msgs / po.nbr_msgs, reports
 
 
 class UI_OT_i18n_updatetranslation_blender_repo(Operator):
@@ -177,17 +144,22 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
         # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
         stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
-        context.window_manager.progress_begin(0, len(i18n_sett.langs) + 1)
+        num_langs = len(i18n_sett.langs)
+        context.window_manager.progress_begin(0, num_langs + 1)
         context.window_manager.progress_update(0)
+        # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
+        #       of the `ProcessPoolExecutor`.
         with concurrent.futures.ProcessPoolExecutor() as exctr:
-            num_langs = len(i18n_sett.langs)
-            for progress, (lng_uid, stats_val, reports) in enumerate(exctr.map(i18n_updatetranslation_blender_repo_callback, [
-                    dict(lng.items()) for lng in i18n_sett.langs], (self.settings,) * num_langs, chunksize=4)):
+            for progress, (lng_uid, stats_val, reports) in enumerate(
+                    exctr.map(utils_i18n.I18nMessages.update_to_blender_repo_callback,
+                              [dict(lng.items()) for lng in i18n_sett.langs],
+                              (self.settings,) * num_langs,
+                              chunksize=4)):
                 context.window_manager.progress_update(progress + 1)
                 stats[lng_uid] = stats_val
                 print("".join(reports) + "\n")
 
-        print("Generating languages' menu...")
+        print("Generating languages' menu...", flush=True)
         context.window_manager.progress_update(progress + 2)
         languages_menu_lines = utils_languages_menu.gen_menu_file(stats, self.settings)
         with open(os.path.join(self.settings.BLENDER_I18N_ROOT, self.settings.LANGUAGES_FILE), 'w', encoding="utf8") as f:
@@ -239,8 +211,9 @@ class UI_OT_i18n_updatetranslation_statistics(Operator):
         data = data + "\n" + buff.getvalue()
         text.from_string(data)
         self.report({'INFO'}, "Info written to %s text datablock!" % self.report_name)
-        context.window_manager.progress_end()
 
+        context.window_manager.progress_end()
+        print("", flush=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):

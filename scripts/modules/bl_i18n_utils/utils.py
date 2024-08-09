@@ -6,6 +6,7 @@
 
 import collections
 import os
+import platform
 import re
 import struct
 import tempfile
@@ -1047,7 +1048,9 @@ class I18nMessages:
                     msgstr_lines.append(line)
                 else:
                     self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
-                    # self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
+                    # self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope:\n\t\t{}"
+                    #                             "\n\tComments:{}\n\tContext:{}\n\tKey:{}\n\tMessage:{}".format(
+                    #                                 line, comment_lines, msgctxt_lines, msgid_lines, msgstr_lines)))
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:
@@ -1200,6 +1203,80 @@ class I18nMessages:
         "PO_COMPACT": lambda s, fn: s.write_messages_to_po(fn, True),
         "MO": write_messages_to_mo,
     }
+
+    @classmethod
+    def update_from_pot_callback(cls, pot, lng, settings):
+        """
+        Update or create a single PO file (specified by a filepath) from the given POT `I18nMessages` data.
+
+        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        """
+        import sys
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+        if not lng['use']:
+            return
+        if os.path.isfile(lng['po_path']):
+            po = cls(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
+            po.update(pot)
+        else:
+            po = pot
+        po.write(kind="PO", dest=lng['po_path'])
+        print("{} PO written!".format(lng['uid']))
+
+    @classmethod
+    def cleanup_callback(cls, lng, settings):
+        """
+        Cleanup a single PO file (specified by a filepath).
+
+        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        """
+        import sys
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+        if not lng['use']:
+            return
+        po = cls(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
+        errs = po.check(fix=True)
+        cleanedup_commented = po.clean_commented()
+        po.write(kind="PO", dest=lng['po_path'])
+        print("Processing {} language ({}).\n"
+              "Cleaned up {} commented messages.\n".format(lng['name'], lng['uid'], cleanedup_commented) +
+              ("Errors in this po, solved as best as possible!\n\t" + "\n\t".join(errs) if errs else "") + "\n")
+
+    @classmethod
+    def update_to_blender_repo_callback(cls, lng, settings):
+        """
+        Cleanup and write a single PO file (specified by a filepath) into the relevant Blender source 'compact' PO file.
+
+        Callback usable in a context where Blender specific modules (like `bpy`) are not available.
+        """
+        import sys
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+        reports = []
+        if lng['uid'] in settings.IMPORT_LANGUAGES_SKIP:
+            reports.append(
+                "Skipping {} language ({}), edit settings if you want to enable it.".format(
+                    lng['name'], lng['uid']))
+            return lng['uid'], 0.0, reports
+        if not lng['use']:
+            reports.append("Skipping {} language ({}).".format(lng['name'], lng['uid']))
+            return lng['uid'], 0.0, reports
+        po = cls(uid=lng['uid'], kind='PO', src=lng['po_path'], settings=settings)
+        errs = po.check(fix=True)
+        reports.append("Processing {} language ({}).\n"
+                       "Cleaned up {} commented messages.\n".format(lng['name'], lng['uid'], po.clean_commented()) +
+                       ("Errors in this po, solved as best as possible!\n\t" + "\n\t".join(errs) if errs else ""))
+        if lng['uid'] in settings.IMPORT_LANGUAGES_RTL:
+            if platform.system not in {'Linux'}:
+                reports.append("Skipping RtL processing of {} language ({}), "
+                               "this is only supported on Linux currently.".format(lng['name'], lng['uid']))
+            else:
+                po.rtl_process()
+        po.write(kind="PO_COMPACT", dest=lng['po_path_blender'])
+        po.update_info()
+        return lng['uid'], po.nbr_trans_msgs / po.nbr_msgs, reports
 
 
 class I18n:
