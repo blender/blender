@@ -1669,7 +1669,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_ibo_request(cache.batch.edit_vertices, &mbuflist->ibo.points);
     DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.pos);
     DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.edit_data);
-    if (!do_subdivision) {
+    if (!do_subdivision || do_cage) {
       /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
       DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.vnor);
     }
@@ -1680,7 +1680,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_ibo_request(cache.batch.edit_edges, &mbuflist->ibo.lines);
     DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.pos);
     DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.edit_data);
-    if (!do_subdivision) {
+    if (!do_subdivision || do_cage) {
       /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
       DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.vnor);
     }
