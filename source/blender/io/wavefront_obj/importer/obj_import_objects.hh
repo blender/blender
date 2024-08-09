@@ -27,16 +27,47 @@ struct GlobalVertices {
   Vector<float3> vert_normals;
 
   /**
-   * Vertex colors might not be present in the file at all, or only
-   * provided for some meshes. Store them in chunks as they are
-   * spelled out in the file, e.g. if there are 10 vertices in sequence, all
-   * with `xyzrgb` colors, they will be one block.
+   * Vertex color for each vertex. -1 indicates no vertex color was specified.
+   * Being shorter than vertices also means the missing vertices had no color.
    */
-  struct VertexColorsBlock {
-    Vector<float3> colors;
-    int start_vertex_index;
-  };
-  Vector<VertexColorsBlock> vertex_colors;
+  Vector<float3> vertex_colors;
+  /**
+   * Block of colors buffered for #MRGB extension.
+   * Flushed to vertex_colors when complete (at next vertex or end-of-file).
+   */
+  Vector<float3> mrgb_block;
+
+  void set_vertex_color(size_t index, float3 color)
+  {
+    if (index >= vertex_colors.size()) {
+      vertex_colors.resize(index + 1, float3(-1.0, -1.0, -1.0));
+    }
+    vertex_colors[index] = color;
+  }
+
+  bool has_vertex_color(size_t index) const
+  {
+    return index < vertex_colors.size() && vertex_colors[index].x >= 0.0;
+  }
+
+  void flush_mrgb_block()
+  {
+    if (!mrgb_block.is_empty()) {
+      /* Set color of the last mrgb_block.size() verts. */
+      size_t start_of_block = 0;
+      if (mrgb_block.size() <= vertices.size()) {
+        start_of_block = vertices.size() - mrgb_block.size();
+      }
+      if (start_of_block == 0) {
+        vertex_colors = std::move(mrgb_block);
+      }
+      else {
+        vertex_colors.resize(start_of_block, float3(-1.0, -1.0, -1.0));
+        vertex_colors.extend(mrgb_block);
+      }
+      mrgb_block.clear();
+    }
+  }
 };
 
 /**
