@@ -19,7 +19,7 @@ namespace blender::io::hydra {
 
 CLG_LOGREF_DECLARE_GLOBAL(LOG_HYDRA_SCENE, "hydra.scene");
 
-bool HydraSceneDelegate::ShadingSettings::operator==(const ShadingSettings &other)
+bool HydraSceneDelegate::ShadingSettings::operator==(const ShadingSettings &other) const
 {
   bool ret = use_scene_lights == other.use_scene_lights &&
              use_scene_world == other.use_scene_world;

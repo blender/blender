@@ -45,7 +45,7 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
     float studiolight_rotation;
     float studiolight_intensity;
 
-    bool operator==(const ShadingSettings &other);
+    bool operator==(const ShadingSettings &other) const;
   };
 
   Depsgraph *depsgraph = nullptr;
