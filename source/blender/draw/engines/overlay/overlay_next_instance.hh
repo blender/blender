@@ -15,6 +15,7 @@
 #include "overlay_next_bounds.hh"
 #include "overlay_next_camera.hh"
 #include "overlay_next_empty.hh"
+#include "overlay_next_force_field.hh"
 #include "overlay_next_grid.hh"
 #include "overlay_next_lattice.hh"
 #include "overlay_next_light.hh"
@@ -52,6 +53,7 @@ class Instance {
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Empties empties = {selection_type_};
+    ForceFields force_fields = {selection_type_};
     Lattices lattices;
     Lights lights = {selection_type_};
     LightProbes light_probes = {selection_type_};
