@@ -127,11 +127,8 @@ void copy_blender_buffer_to_primvar(const VArray<BlenderT> &buffer,
     }
   }
 
-  if (!primvar.HasValue() && timecode != pxr::UsdTimeCode::Default()) {
+  if (!primvar.HasValue()) {
     primvar.Set(usd_data, pxr::UsdTimeCode::Default());
-  }
-  else {
-    primvar.Set(usd_data, timecode);
   }
 
   value_writer.SetAttribute(primvar.GetAttr(), usd_data, timecode);
