@@ -51,6 +51,81 @@ bool rna_GPencil_datablocks_annotations_poll(PointerRNA * /*ptr*/, const Pointer
   return (gpd->flag & GP_DATA_ANNOTATIONS) != 0;
 }
 
+static bGPDframe *rna_annotation_frame_new(bGPDlayer *layer,
+                                           ReportList *reports,
+                                           int frame_number,
+                                           bool active)
+{
+  bGPDframe *frame;
+
+  if (BKE_gpencil_layer_frame_find(layer, frame_number)) {
+    BKE_reportf(reports, RPT_ERROR, "Frame already exists on this frame number %d", frame_number);
+    return nullptr;
+  }
+
+  frame = BKE_gpencil_frame_addnew(layer, frame_number);
+  if (active) {
+    layer->actframe = BKE_gpencil_layer_frame_get(layer, frame_number, GP_GETFRAME_USE_PREV);
+  }
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+
+  return frame;
+}
+
+static void rna_annotation_frame_remove(bGPDlayer *layer,
+                                        ReportList *reports,
+                                        PointerRNA *frame_ptr)
+{
+  bGPDframe *frame = static_cast<bGPDframe *>(frame_ptr->data);
+  if (BLI_findindex(&layer->frames, frame) == -1) {
+    BKE_report(reports, RPT_ERROR, "Frame not found in annotation layer");
+    return;
+  }
+
+  BKE_gpencil_layer_frame_delete(layer, frame);
+  RNA_POINTER_INVALIDATE(frame_ptr);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+}
+
+static bGPDframe *rna_annotation_frame_copy(bGPDlayer *layer, bGPDframe *src)
+{
+  bGPDframe *frame = BKE_gpencil_frame_duplicate(src, true);
+
+  while (BKE_gpencil_layer_frame_find(layer, frame->framenum)) {
+    frame->framenum++;
+  }
+
+  BLI_addtail(&layer->frames, frame);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+
+  return frame;
+}
+
+static bGPDlayer *rna_annotation_layer_new(bGPdata *gpd, const char *name, bool setactive)
+{
+  bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, name, setactive != 0, false);
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+
+  return gpl;
+}
+
+static void rna_annotation_layer_remove(bGPdata *gpd, ReportList *reports, PointerRNA *layer_ptr)
+{
+  bGPDlayer *layer = static_cast<bGPDlayer *>(layer_ptr->data);
+  if (BLI_findindex(&gpd->layers, layer) == -1) {
+    BKE_report(reports, RPT_ERROR, "Layer not found in annotation data");
+    return;
+  }
+
+  BKE_gpencil_layer_delete(gpd, layer);
+  RNA_POINTER_INVALIDATE(layer_ptr);
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+}
+
 static std::optional<std::string> rna_annotation_layer_path(const PointerRNA *ptr)
 {
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ptr->data);
@@ -231,6 +306,50 @@ static void rna_def_annotation_frame(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_annotation_update");
 }
 
+static void rna_def_annotation_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "GPencilFrames");
+  srna = RNA_def_struct(brna, "GPencilFrames", nullptr);
+  RNA_def_struct_sdna(srna, "bGPDlayer");
+  RNA_def_struct_ui_text(srna, "Annotation Frames", "Collection of annotation frames");
+
+  func = RNA_def_function(srna, "new", "rna_annotation_frame_new");
+  RNA_def_function_ui_description(func, "Add a new annotation frame");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int(func,
+                     "frame_number",
+                     1,
+                     MINAFRAME,
+                     MAXFRAME,
+                     "Frame Number",
+                     "The frame on which this sketch appears",
+                     MINAFRAME,
+                     MAXFRAME);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_boolean(func, "active", false, "Active", "");
+  parm = RNA_def_pointer(func, "frame", "GPencilFrame", "", "The newly created frame");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_annotation_frame_remove");
+  RNA_def_function_ui_description(func, "Remove an annotation frame");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "frame", "GPencilFrame", "Frame", "The frame to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "copy", "rna_annotation_frame_copy");
+  RNA_def_function_ui_description(func, "Copy an annotation frame");
+  parm = RNA_def_pointer(func, "source", "GPencilFrame", "Source", "The source frame");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "copy", "GPencilFrame", "", "The newly copied frame");
+  RNA_def_function_return(func, parm);
+}
+
 static void rna_def_annotation_layer(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -256,6 +375,7 @@ static void rna_def_annotation_layer(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "frames", nullptr);
   RNA_def_property_struct_type(prop, "GPencilFrame");
   RNA_def_property_ui_text(prop, "Frames", "Sketches for this layer on different frames");
+  rna_def_annotation_frames_api(brna, prop);
 
   /* Active Frame */
   prop = RNA_def_property(srna, "active_frame", PROP_POINTER, PROP_NONE);
@@ -380,11 +500,29 @@ static void rna_def_annotation_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
+  PropertyRNA *parm;
 
   RNA_def_property_srna(cprop, "GreasePencilLayers");
   srna = RNA_def_struct(brna, "GreasePencilLayers", nullptr);
   RNA_def_struct_sdna(srna, "bGPdata");
   RNA_def_struct_ui_text(srna, "Annotation Layers", "Collection of annotation layers");
+
+  func = RNA_def_function(srna, "new", "rna_annotation_layer_new");
+  RNA_def_function_ui_description(func, "Add a new annotation layer");
+  parm = RNA_def_string(func, "name", "Layer", MAX_NAME, "Name", "Name of the layer");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_boolean(
+      func, "set_active", true, "Set Active", "Set the newly created layer to the active layer");
+  parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The newly created layer");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_annotation_layer_remove");
+  RNA_def_function_ui_description(func, "Remove a annotation layer");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The layer to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(prop,
