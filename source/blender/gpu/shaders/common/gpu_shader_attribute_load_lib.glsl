@@ -16,6 +16,32 @@ uint gpu_attr_load_index(uint vertex_index, ivec2 stride_and_offset)
   return vertex_index * uint(stride_and_offset.x) + uint(stride_and_offset.y);
 }
 
+vec4 gpu_attr_decode_1010102_snorm(uint in_data)
+{
+  /* TODO(fclem): Improve this. */
+  uint4 v_data = uint4(in_data) >> uint4(0, 10, 20, 30);
+  bvec4 v_sign = greaterThan(v_data & uint4(0x3FF, 0x3FF, 0x3FF, 0x3),
+                             uint4(0x1FF, 0x1FF, 0x1FF, 0x1));
+  uint4 v_data_u = floatBitsToUint(mix(uintBitsToFloat(v_data), uintBitsToFloat(~v_data), v_sign));
+  vec4 mag = float4(v_data_u & uint4(0x1FF, 0x1FF, 0x1FF, 0x1)) / vec4(0x1FF, 0x1FF, 0x1FF, 0x1);
+  return mix(mag, -mag, v_sign);
+}
+
+vec4 gpu_attr_decode_short4_to_float4_snorm(uint data0, uint data1)
+{
+  /* TODO(fclem): Improve this. */
+  uint4 v_data = uint4(data0, data0 >> 16u, data1, data1 >> 16u);
+  bvec4 v_sign = greaterThan(v_data & uint4(0xFFFF), uint4(0x7FFF));
+  uint4 v_data_u = floatBitsToUint(mix(uintBitsToFloat(v_data), uintBitsToFloat(~v_data), v_sign));
+  vec4 mag = float4(v_data_u & 0x7FFFu) / float(0x7FFF);
+  return mix(mag, -mag, v_sign);
+}
+
+uvec4 gpu_attr_decode_uchar4_to_uint4(uint in_data)
+{
+  return (uvec4(in_data) >> uvec4(0, 8, 16, 24)) & uvec4(0xFF);
+}
+
 /* TODO(fclem): Once the stride and offset are made obsolete, we can think of wrapping vec3 into
  * structs of floats as they do not have the 16byte alignment restriction. */
 
@@ -33,3 +59,18 @@ uint gpu_attr_load_index(uint vertex_index, ivec2 stride_and_offset)
 /* Assumes _data is declared as an array of int. */
 #define gpu_attr_load_int3(_data, _stride_and_offset, _i) \
   gpu_attr_load_triplet(uvec3, _data, _stride_and_offset, _i)
+
+/* Assumes _data is declared as an array of uint. */
+#define gpu_attr_load_uint_1010102_snorm(_data, _stride_and_offset, _i) \
+  gpu_attr_decode_1010102_snorm(_data[gpu_attr_load_index(_i, _stride_and_offset)])
+
+/* TODO(fclem): Once the stride and offset are made obsolete, we can think of wrapping short4 into
+ * structs of uint as they do not have the 16byte alignment restriction. */
+
+/* Assumes _data is declared as an array of uint. */
+#define gpu_attr_load_short4_snorm(_data, _stride_and_offset, _i) \
+  gpu_attr_decode_short4_to_float4_snorm(_data[gpu_attr_load_index(_i, _stride_and_offset) + 0], \
+                                         _data[gpu_attr_load_index(_i, _stride_and_offset) + 1])
+/* Assumes _data is declared as an array of uint. */
+#define gpu_attr_load_uchar4(_data, _stride_and_offset, _i) \
+  gpu_attr_decode_uchar4_to_uint4(_data[gpu_attr_load_index(_i, _stride_and_offset)])

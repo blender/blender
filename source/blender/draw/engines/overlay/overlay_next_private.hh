@@ -10,6 +10,8 @@
 
 #include "BLI_function_ref.hh"
 
+#include "GPU_matrix.hh"
+
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 #include "UI_resources.hh"
@@ -56,7 +58,24 @@ struct State {
   short v3d_gridflag; /* TODO: move to #View3DOverlay. */
   int cfra;
   DRWState clipping_state;
+
+  float view_dist_get(const float4x4 &winmat) const
+  {
+    float view_dist = rv3d->dist;
+    /* Special exception for orthographic camera:
+     * `view_dist` isn't used as the depth range isn't the same. */
+    if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
+      view_dist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+    }
+    return view_dist;
+  }
 };
+
+static inline float4x4 winmat_polygon_offset(float4x4 winmat, float view_dist, float offset)
+{
+  winmat[3][2] -= GPU_polygon_offset_calc(winmat.ptr(), view_dist, offset);
+  return winmat;
+}
 
 /**
  * Contains all overlay generic geometry batches.
@@ -148,10 +167,20 @@ class ShaderModule {
 
  public:
   /** Shaders */
-  ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr anti_aliasing = shader("overlay_antialiasing");
   ShaderPtr background_fill = shader("overlay_background");
   ShaderPtr background_clip_bound = shader("overlay_clipbound");
-  ShaderPtr anti_aliasing = shader("overlay_antialiasing");
+  ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr mesh_analysis;
+  ShaderPtr mesh_edit_depth;
+  ShaderPtr mesh_edit_edge = shader("overlay_edit_mesh_edge_next");
+  ShaderPtr mesh_edit_face = shader("overlay_edit_mesh_face_next");
+  ShaderPtr mesh_edit_vert = shader("overlay_edit_mesh_vert_next");
+  ShaderPtr mesh_edit_facedot = shader("overlay_edit_mesh_facedot_next");
+  ShaderPtr mesh_edit_skin_root;
+  ShaderPtr mesh_face_normal, mesh_face_normal_subdiv;
+  ShaderPtr mesh_loop_normal, mesh_loop_normal_subdiv;
+  ShaderPtr mesh_vert_normal;
 
   /** Selectable Shaders */
   ShaderPtr armature_sphere_outline;
@@ -177,6 +206,8 @@ class ShaderModule {
   {
     return ShaderPtr(GPU_shader_create_from_info_name(create_info_name));
   }
+  ShaderPtr shader(const char *create_info_name,
+                   FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch);
   ShaderPtr selectable_shader(const char *create_info_name);
   ShaderPtr selectable_shader(const char *create_info_name,
                               FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch);
@@ -202,6 +233,8 @@ struct Resources : public select::SelectMap {
   TextureFromPool depth_in_front_alloc_tx = {"overlay_depth_in_front_tx"};
   TextureFromPool color_overlay_alloc_tx = {"overlay_color_overlay_alloc_tx"};
   TextureFromPool color_render_alloc_tx = {"overlay_color_render_alloc_tx"};
+
+  Texture dummy_depth_tx = {"dummy_depth_tx"};
 
   /** TODO(fclem): Copy of G_data.block that should become theme colors only and managed by the
    * engine. */

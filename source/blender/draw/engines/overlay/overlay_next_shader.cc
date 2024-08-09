@@ -12,6 +12,24 @@ namespace blender::draw::overlay {
 
 ShaderModule *ShaderModule::g_shader_modules[2][2] = {{nullptr}};
 
+ShaderModule::ShaderPtr ShaderModule::shader(
+    const char *create_info_name,
+    const FunctionRef<void(gpu::shader::ShaderCreateInfo &info)> patch)
+{
+  const gpu::shader::ShaderCreateInfo *info_ptr =
+      reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
+          GPU_shader_create_info_get(create_info_name));
+  BLI_assert(info_ptr != nullptr);
+
+  /* Perform a copy for patching. */
+  gpu::shader::ShaderCreateInfo info = *info_ptr;
+
+  patch(info);
+
+  return ShaderPtr(
+      GPU_shader_create_from_info(reinterpret_cast<const GPUShaderCreateInfo *>(&info)));
+}
+
 ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_name)
 {
   /* TODO: This is what it should be like with all variations defined with create infos. */
@@ -63,9 +81,89 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(
 
 using namespace blender::gpu::shader;
 
+static void shader_patch_common(gpu::shader::ShaderCreateInfo &info)
+{
+  info.additional_infos_.clear();
+  info.additional_info(
+      "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+}
+
+static void shader_patch_edit_mesh_normal_common(gpu::shader::ShaderCreateInfo &info)
+{
+  shader_patch_common(info);
+  info.defines_.clear(); /* Removes WORKAROUND_INDEX_LOAD_INCLUDE. */
+  info.vertex_inputs_.clear();
+  info.additional_info("gpu_index_load");
+  info.storage_buf(1, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY);
+}
+
 ShaderModule::ShaderModule(const SelectionType selection_type, const bool clipping_enabled)
     : selection_type_(selection_type), clipping_enabled_(clipping_enabled)
 {
+  /** Shaders */
+
+  mesh_analysis = shader("overlay_edit_mesh_analysis",
+                         [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
+  mesh_edit_face = shader("overlay_edit_mesh_face", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+    info.additional_info("overlay_edit_mesh_common");
+  });
+  mesh_edit_vert = shader("overlay_edit_mesh_vert", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+    info.additional_info("overlay_edit_mesh_common");
+  });
+
+  mesh_edit_depth = shader("overlay_edit_mesh_depth",
+                           [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
+  mesh_edit_skin_root = shader(
+      "overlay_edit_mesh_skin_root", [](gpu::shader::ShaderCreateInfo &info) {
+        shader_patch_common(info);
+        /* TODO(fclem): Use correct vertex format. For now we read the format manually. */
+        info.storage_buf(0, Qualifier::READ, "float", "size[]", Frequency::GEOMETRY);
+        info.vertex_inputs_.clear();
+        info.define("VERTEX_PULL");
+      });
+
+  mesh_face_normal = shader("overlay_edit_mesh_normal", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_edit_mesh_normal_common(info);
+    info.define("FACE_NORMAL");
+    info.push_constant(gpu::shader::Type::BOOL, "hq_normals");
+    info.storage_buf(0, Qualifier::READ, "uint", "norAndFlag[]", Frequency::GEOMETRY);
+  });
+
+  mesh_face_normal_subdiv = shader(
+      "overlay_edit_mesh_normal", [](gpu::shader::ShaderCreateInfo &info) {
+        shader_patch_edit_mesh_normal_common(info);
+        info.define("FACE_NORMAL");
+        info.define("FLOAT_NORMAL");
+        info.storage_buf(0, Qualifier::READ, "vec4", "norAndFlag[]", Frequency::GEOMETRY);
+      });
+
+  mesh_loop_normal = shader("overlay_edit_mesh_normal", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_edit_mesh_normal_common(info);
+    info.define("LOOP_NORMAL");
+    info.push_constant(gpu::shader::Type::BOOL, "hq_normals");
+    info.storage_buf(0, Qualifier::READ, "uint", "lnor[]", Frequency::GEOMETRY);
+  });
+
+  mesh_loop_normal_subdiv = shader(
+      "overlay_edit_mesh_normal", [](gpu::shader::ShaderCreateInfo &info) {
+        shader_patch_edit_mesh_normal_common(info);
+        info.define("LOOP_NORMAL");
+        info.define("FLOAT_NORMAL");
+        info.storage_buf(0, Qualifier::READ, "vec4", "lnor[]", Frequency::GEOMETRY);
+      });
+
+  mesh_vert_normal = shader("overlay_edit_mesh_normal", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_edit_mesh_normal_common(info);
+    info.define("VERT_NORMAL");
+    info.storage_buf(0, Qualifier::READ, "uint", "vnor[]", Frequency::GEOMETRY);
+  });
+
+  /** Selectable Shaders */
+
   armature_sphere_outline = selectable_shader(
       "overlay_armature_sphere_outline", [](gpu::shader::ShaderCreateInfo &info) {
         info.storage_buf(0, Qualifier::READ, "mat4", "data_buf[]");

@@ -20,6 +20,7 @@
 #include "overlay_next_lattice.hh"
 #include "overlay_next_light.hh"
 #include "overlay_next_lightprobe.hh"
+#include "overlay_next_mesh.hh"
 #include "overlay_next_metaball.hh"
 #include "overlay_next_prepass.hh"
 #include "overlay_next_relation.hh"
@@ -58,6 +59,7 @@ class Instance {
     Lights lights = {selection_type_};
     LightProbes light_probes = {selection_type_};
     Metaballs metaballs = {selection_type_};
+    Meshes meshes;
     Prepass prepass;
     Relations relations;
     Speakers speakers = {selection_type_};

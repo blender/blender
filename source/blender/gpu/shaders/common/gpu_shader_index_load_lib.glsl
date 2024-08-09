@@ -9,9 +9,10 @@
  * buffer.
  */
 
-#ifndef GPU_INDEX_LOAD
-#  error Missing gpu_index_load create info dependency
-#endif
+#ifndef WORKAROUND_INDEX_LOAD_INCLUDE
+#  ifndef GPU_INDEX_LOAD
+#    error Missing gpu_index_load create info dependency
+#  endif
 
 /**
  * Returns the resolved index after index buffer (a.k.a. element buffer) indirection.
@@ -30,3 +31,5 @@ uint gpu_index_load(uint element_index)
 
   return raw_index + uint(gpu_index_base_index);
 }
+
+#endif

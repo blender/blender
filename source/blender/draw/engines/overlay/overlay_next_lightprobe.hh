@@ -204,6 +204,11 @@ class LightProbes {
   {
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
+  }
+
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_dots_, view);
   }
 };
