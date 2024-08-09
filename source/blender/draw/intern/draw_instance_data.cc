@@ -215,6 +215,9 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
         GPU_vertbuf_data_resize(*handle->buf, target_buf_size);
       }
       GPU_vertbuf_data_len_set(*handle->buf, vert_len);
+      if (vert_len > 0) {
+        GPU_vertbuf_use(handle->buf); /* Send data. */
+      }
     }
   }
   /* Finish pending instancing batches. */
