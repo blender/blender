@@ -1669,6 +1669,10 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_ibo_request(cache.batch.edit_vertices, &mbuflist->ibo.points);
     DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.pos);
     DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.edit_data);
+    if (!do_subdivision) {
+      /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
+      DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.vnor);
+    }
   }
   assert_deps_valid(MBC_EDIT_EDGES,
                     {BUFFER_INDEX(ibo.lines), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.edit_data)});
@@ -1676,6 +1680,10 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     DRW_ibo_request(cache.batch.edit_edges, &mbuflist->ibo.lines);
     DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.pos);
     DRW_vbo_request(cache.batch.edit_edges, &mbuflist->vbo.edit_data);
+    if (!do_subdivision) {
+      /* For GPU subdivision, vertex normals are included in the `pos` VBO. */
+      DRW_vbo_request(cache.batch.edit_vertices, &mbuflist->vbo.vnor);
+    }
   }
   assert_deps_valid(MBC_EDIT_VNOR,
                     {BUFFER_INDEX(ibo.points), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.vnor)});
