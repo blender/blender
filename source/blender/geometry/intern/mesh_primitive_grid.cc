@@ -146,8 +146,12 @@ Mesh *create_grid_mesh(const int verts_x,
     calculate_uvs(mesh, positions, corner_verts, size_x, size_y, uv_map_id);
   }
 
-  mesh->tag_loose_verts_none();
-  mesh->tag_loose_edges_none();
+  if (verts_x > 1 || verts_y > 1) {
+    mesh->tag_loose_verts_none();
+  }
+  if (verts_x > 1 && verts_y > 1) {
+    mesh->tag_loose_edges_none();
+  }
   mesh->tag_overlapping_none();
 
   const float3 bounds = float3(size_x * 0.5f, size_y * 0.5f, 0.0f);
