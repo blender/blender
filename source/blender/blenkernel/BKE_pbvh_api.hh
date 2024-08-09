@@ -231,8 +231,6 @@ BLI_INLINE BMesh *BKE_pbvh_get_bmesh(blender::bke::pbvh::Tree &pbvh)
   return pbvh.bm_;
 }
 
-Mesh *BKE_pbvh_get_mesh(blender::bke::pbvh::Tree &pbvh);
-
 BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
 {
   PBVHVertRef ret = {i};

@@ -779,7 +779,7 @@ static void sculpt_mask_by_color_contiguous(Object &object,
   flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial(flood, vertex);
 
-  flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+  flood_fill::execute(object, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return sculpt_mask_by_color_contiguous_floodfill(
         ss, from_v, to_v, is_duplicate, colors, active_color, threshold, invert, new_mask);
   });

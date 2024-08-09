@@ -810,7 +810,7 @@ void calc_pose_data(Object &ob,
   int tot_co = 0;
   float3 pose_origin(0);
   float3 fallback_floodfill_origin = initial_location;
-  flood_fill::execute(ss, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
+  flood_fill::execute(ob, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
     return pose_topology_floodfill(ss,
                                    initial_location,
                                    radius,
@@ -1008,7 +1008,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets(Object &o
 
     const float3 pose_initial_co = SCULPT_vertex_co_get(ss, current_vertex);
     flood_fill::execute(
-        ss, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
+        ob, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
           return pose_face_sets_floodfill(ss,
                                           pose_initial_co,
                                           radius,
@@ -1125,7 +1125,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
     int masked_face_set_it = 0;
     flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial(flood, active_vertex);
-    flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
       return pose_face_sets_fk_find_masked_floodfill(ss,
                                                      active_face_set,
                                                      from_v,
@@ -1187,7 +1187,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
     flood_fill::add_initial_with_symmetry(ob, ss, flood, ss.active_vert_ref(), radius);
     MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
     flood_fill::execute(
-        ss, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool /*is_duplicate*/) {
+        ob, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool /*is_duplicate*/) {
           return pose_face_sets_fk_set_weights_floodfill(ss, to_v, masked_face_set, fk_weights);
         });
   }

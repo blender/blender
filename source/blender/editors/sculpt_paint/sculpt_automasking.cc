@@ -248,15 +248,16 @@ static float calc_view_normal_factor(const Cache &automasking,
 }
 
 static float calc_view_occlusion_factor(const Cache &automasking,
-                                        SculptSession &ss,
+                                        const Object &object,
                                         PBVHVertRef vertex,
                                         uchar stroke_id)
 {
+  SculptSession &ss = *object.sculpt;
   char f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion);
 
   if (stroke_id != automasking.current_stroke_id) {
     f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion) =
-        SCULPT_vertex_is_occluded(ss, SCULPT_vertex_co_get(ss, vertex), true) ? 2 : 1;
+        SCULPT_vertex_is_occluded(object, SCULPT_vertex_co_get(ss, vertex), true) ? 2 : 1;
   }
 
   return f == 2;
@@ -502,10 +503,11 @@ static float calc_cavity_factor(const Cache *automasking, SculptSession &ss, PBV
 }
 
 static float factor_get(const Cache *automasking,
-                        SculptSession &ss,
+                        const Object &object,
                         PBVHVertRef vert,
                         const std::optional<float3> &orig_normal)
 {
+  SculptSession &ss = *object.sculpt;
   float mask = 1.0f;
 
   /* Since brush normal mode depends on the current mirror symmetry pass
@@ -536,7 +538,7 @@ static float factor_get(const Cache *automasking,
   bool do_occlusion = (automasking->settings.flags &
                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
-  if (do_occlusion && calc_view_occlusion_factor(*automasking, ss, vert, stroke_id)) {
+  if (do_occlusion && calc_view_occlusion_factor(*automasking, object, vert, stroke_id)) {
     return automasking_factor_end(ss, automasking, vert, 0.0f);
   }
 
@@ -589,8 +591,6 @@ void calc_vert_factors(const Object &object,
                        const Span<int> verts,
                        const MutableSpan<float> factors)
 {
-  SculptSession &ss = *object.sculpt;
-
   Span<float3> orig_normals;
   if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
     if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
@@ -600,7 +600,7 @@ void calc_vert_factors(const Object &object,
 
   for (const int i : verts.index_range()) {
     factors[i] *= factor_get(&cache,
-                             ss,
+                             object,
                              BKE_pbvh_make_vref(verts[i]),
                              orig_normals.is_empty() ? std::nullopt :
                                                        std::make_optional(orig_normals[i]));
@@ -611,17 +611,15 @@ void calc_face_factors(const Object &object,
                        const OffsetIndices<int> faces,
                        const Span<int> corner_verts,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::Node & /*node*/,
                        const Span<int> face_indices,
                        const MutableSpan<float> factors)
 {
-  SculptSession &ss = *object.sculpt;
-
   for (const int i : face_indices.index_range()) {
     const Span<int> face_verts = corner_verts.slice(faces[face_indices[i]]);
     float sum = 0.0f;
     for (const int vert : face_verts) {
-      sum += factor_get(&cache, ss, BKE_pbvh_make_vref(vert), std::nullopt);
+      sum += factor_get(&cache, object, BKE_pbvh_make_vref(vert), std::nullopt);
     }
     factors[i] *= sum * math::rcp(float(face_verts.size()));
   }
@@ -650,7 +648,7 @@ void calc_grids_factors(const Object &object,
     for (const int offset : IndexRange(key.grid_area)) {
       factors[node_start + offset] *= factor_get(
           &cache,
-          ss,
+          object,
           BKE_pbvh_make_vref(grids_start + offset),
           orig_normals.is_empty() ? std::nullopt :
                                     std::make_optional(orig_normals[node_start + offset]));
@@ -660,7 +658,7 @@ void calc_grids_factors(const Object &object,
 
 void calc_vert_factors(const Object &object,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::Node & /*node*/,
                        const Set<BMVert *, 0> &verts,
                        const MutableSpan<float> factors)
 {
@@ -674,7 +672,7 @@ void calc_vert_factors(const Object &object,
   int i = 0;
   for (BMVert *vert : verts) {
     factors[i] *= factor_get(&cache,
-                             ss,
+                             object,
                              BKE_pbvh_make_vref(intptr_t(vert)),
                              orig_normals.is_empty() ? std::nullopt :
                                                        std::make_optional(orig_normals[i]));
@@ -928,7 +926,7 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
 
     if (int(mode) & BRUSH_AUTOMASKING_VIEW_NORMAL) {
       if (int(mode) & BRUSH_AUTOMASKING_VIEW_OCCLUSION) {
-        f *= calc_view_occlusion_factor(automasking, ss, vertex, -1);
+        f *= calc_view_occlusion_factor(automasking, ob, vertex, -1);
       }
 
       f *= calc_view_normal_factor(automasking, ss, vertex, {});

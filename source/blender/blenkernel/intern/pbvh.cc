@@ -2710,11 +2710,6 @@ void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes)
 
 }  // namespace blender::bke::pbvh
 
-Mesh *BKE_pbvh_get_mesh(blender::bke::pbvh::Tree &pbvh)
-{
-  return pbvh.mesh_;
-}
-
 blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh)
 {
   BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);

@@ -603,7 +603,7 @@ static Array<float> topology_falloff_create(Object &ob, const PBVHVertRef v)
   flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial_with_symmetry(ob, ss, flood, v, FLT_MAX);
 
-  flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return topology_floodfill_fn(ss, from_v, to_v, is_duplicate, dists);
   });
 
@@ -661,7 +661,7 @@ static Array<float> normals_falloff_create(Object &ob,
   fdata.edge_sensitivity = edge_sensitivity;
   fdata.original_normal = SCULPT_vertex_normal_get(ss, v);
 
-  flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return normal_floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
   });
 
@@ -983,7 +983,7 @@ static void topology_from_state_boundary(Object &ob,
   });
 
   MutableSpan<float> dists = expand_cache.vert_falloff;
-  flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return topology_floodfill_fn(ss, from_v, to_v, is_duplicate, dists);
   });
 }
@@ -1237,12 +1237,13 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
   color_attribute.finish();
 }
 
-static void write_mask_data(SculptSession &ss, const Span<float> mask)
+static void write_mask_data(Object &object, const Span<float> mask)
 {
+  SculptSession &ss = *object.sculpt;
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh *mesh = BKE_pbvh_get_mesh(*ss.pbvh);
-      bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       attributes.remove(".sculpt_mask");
       attributes.add<float>(".sculpt_mask",
                             bke::AttrDomain::Point,
@@ -1288,7 +1289,7 @@ static void restore_original_state(bContext *C, Object &ob, Cache &expand_cache)
   SculptSession &ss = *ob.sculpt;
   switch (expand_cache.target) {
     case TargetType::Mask:
-      write_mask_data(ss, expand_cache.original_mask);
+      write_mask_data(ob, expand_cache.original_mask);
       flush_update_step(C, UpdateType::Mask);
       flush_update_done(C, ob, UpdateType::Mask);
       SCULPT_tag_update_overlays(C);
@@ -2344,7 +2345,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
     if (RNA_boolean_get(op->ptr, "use_auto_mask")) {
       if (any_nonzero_mask(ob)) {
-        write_mask_data(ss, Array<float>(SCULPT_vertex_count_get(ss), 1.0f));
+        write_mask_data(ob, Array<float>(SCULPT_vertex_count_get(ss), 1.0f));
       }
     }
   }

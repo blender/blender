@@ -250,12 +250,13 @@ int active_face_set_get(const SculptSession &ss)
 
 namespace hide {
 
-bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex)
+bool vert_visible_get(const Object &object, PBVHVertRef vertex)
 {
+  const SculptSession &ss = *object.sculpt;
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh *mesh = BKE_pbvh_get_mesh(*ss.pbvh);
-      const bke::AttributeAccessor attributes = mesh->attributes();
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray hide_vert = *attributes.lookup_or_default<bool>(
           ".hide_vert", bke::AttrDomain::Point, false);
       return !hide_vert[vertex.i];
@@ -6080,9 +6081,10 @@ void SCULPT_fake_neighbors_free(Object &ob)
   sculpt_pose_fake_neighbors_free(ss);
 }
 
-bool SCULPT_vertex_is_occluded(SculptSession &ss, const float3 &position, bool original)
+bool SCULPT_vertex_is_occluded(const Object &object, const float3 &position, bool original)
 {
   using namespace blender;
+  SculptSession &ss = *object.sculpt;
   float ray_start[3], ray_end[3], ray_normal[3], face_normal[3];
 
   ViewContext *vc = ss.cache ? ss.cache->vc : &ss.filter_cache->vc;
@@ -6107,8 +6109,9 @@ bool SCULPT_vertex_is_occluded(SculptSession &ss, const float3 &position, bool o
   srd.face_normal = face_normal;
   srd.corner_verts = ss.corner_verts;
   if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
-    srd.corner_tris = BKE_pbvh_get_mesh(*ss.pbvh)->corner_tris();
-    srd.corner_tri_faces = BKE_pbvh_get_mesh(*ss.pbvh)->corner_tri_faces();
+    const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+    srd.corner_tris = mesh.corner_tris();
+    srd.corner_tri_faces = mesh.corner_tri_faces();
   }
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);

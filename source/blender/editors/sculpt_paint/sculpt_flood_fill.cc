@@ -218,10 +218,11 @@ void FillDataBMesh::add_initial_with_symmetry(const Object &object,
   }
 }
 
-void execute(SculptSession &ss,
+void execute(Object &object,
              FillData &flood,
              FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func)
 {
+  SculptSession &ss = *object.sculpt;
   while (!flood.queue.empty()) {
     PBVHVertRef from_v = flood.queue.front();
     flood.queue.pop();
@@ -235,7 +236,7 @@ void execute(SculptSession &ss,
         continue;
       }
 
-      if (!hide::vert_visible_get(ss, to_v)) {
+      if (!hide::vert_visible_get(object, to_v)) {
         continue;
       }
 
