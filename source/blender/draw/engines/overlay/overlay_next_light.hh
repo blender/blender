@@ -57,7 +57,7 @@ class Lights {
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
     ExtraInstanceData data(ob_ref.object->object_to_world(),
-                           float4{res.object_wire_color(ob_ref, state).xyz(), 1.0f},
+                           float4(res.object_wire_color(ob_ref, state).xyz(), 1.0f),
                            1.0f);
     float4 &theme_color = data.color_;
 
@@ -103,7 +103,7 @@ class Lights {
       case LA_SPOT: {
         /* Previous implementation was using the clip-end distance as cone size.
          * We cannot do this anymore so we use a fixed size of 10. (see #72871) */
-        rescale_m4(matrix.ptr(), float3{10.0f, 10.0f, 10.0f});
+        rescale_m4(matrix.ptr(), float3(10.0f, 10.0f, 10.0f));
         /* For cycles and EEVEE the spot attenuation is:
          * `y = (1/sqrt(1 + x^2) - a)/((1 - a) b)`
          * x being the tangent of the angle between the light direction and the generatrix of the

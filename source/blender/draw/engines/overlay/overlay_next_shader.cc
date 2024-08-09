@@ -25,6 +25,8 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
   gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
       GPU_shader_create_info_get(create_info_name));
 
+  info.define("OVERLAY_NEXT");
+
   if (selection_type_ != SelectionType::DISABLED) {
     info.define("SELECT_ENABLE");
   }
@@ -41,6 +43,8 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(
       GPU_shader_create_info_get(create_info_name));
 
   patch(info);
+
+  info.define("OVERLAY_NEXT");
 
   if (selection_type_ != SelectionType::DISABLED) {
     info.define("SELECT_ENABLE");
@@ -84,7 +88,7 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 
   extra_wire = selectable_shader("overlay_extra_wire", [](gpu::shader::ShaderCreateInfo &info) {
     info.typedef_source("overlay_shader_shared.h");
-    info.storage_buf(0, Qualifier::READ, "PointData", "data_buf[]");
+    info.storage_buf(0, Qualifier::READ, "VertexData", "data_buf[]");
     info.push_constant(gpu::shader::Type::INT, "colorid");
     info.define("pos", "data_buf[gl_VertexID].pos_.xyz");
     info.define("color", "data_buf[gl_VertexID].color_");
@@ -102,6 +106,18 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_infos_.clear();
         info.additional_info(
             "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+      });
+
+  extra_loose_points = selectable_shader(
+      "overlay_extra_loose_point", [](gpu::shader::ShaderCreateInfo &info) {
+        info.typedef_source("overlay_shader_shared.h");
+        info.storage_buf(0, Qualifier::READ, "VertexData", "data_buf[]");
+        info.define("pos", "data_buf[gl_VertexID].pos_.xyz");
+        info.define("vertex_color", "data_buf[gl_VertexID].color_");
+        info.vertex_inputs_.pop_last();
+        info.vertex_inputs_.pop_last();
+        info.additional_infos_.clear();
+        info.additional_info("draw_view", "draw_modelmat_new", "draw_globals");
       });
 
   lattice_points = selectable_shader(

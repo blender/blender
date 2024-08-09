@@ -87,6 +87,7 @@ void Instance::begin_sync()
     layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.prepass.begin_sync(resources, state);
+    layer.relations.begin_sync();
     layer.speakers.begin_sync();
   };
   begin_sync_layer(regular);
@@ -172,6 +173,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
     }
     layer.bounds.object_sync(ob_ref, resources, state);
+    layer.relations.object_sync(ob_ref, resources, state);
   }
 }
 
@@ -186,6 +188,7 @@ void Instance::end_sync()
     layer.lights.end_sync(resources, shapes, state);
     layer.light_probes.end_sync(resources, shapes, state);
     layer.metaballs.end_sync(resources, shapes, state);
+    layer.relations.end_sync(resources, state);
     layer.speakers.end_sync(resources, shapes, state);
   };
   end_sync_layer(regular);
@@ -281,6 +284,7 @@ void Instance::draw(Manager &manager)
     layer.speakers.draw(framebuffer, manager, view);
     layer.lattices.draw(framebuffer, manager, view);
     layer.metaballs.draw(framebuffer, manager, view);
+    layer.relations.draw(framebuffer, manager, view);
   };
 
   draw_layer(regular, resources.overlay_line_fb);

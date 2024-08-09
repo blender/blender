@@ -1171,7 +1171,7 @@ OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get()
   DRW_shgroup_instance_format(g_formats.point_extra,
                               {
                                   {"pos", DRW_ATTR_FLOAT, 3},
-                                  {"colorid", DRW_ATTR_INT, 1},
+                                  {"vertex_color", DRW_ATTR_FLOAT, 4},
                               });
   DRW_shgroup_instance_format(g_formats.instance_bone,
                               {

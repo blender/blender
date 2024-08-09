@@ -302,6 +302,7 @@ set(SRC
   engines/overlay/overlay_next_metaball.hh
   engines/overlay/overlay_next_prepass.hh
   engines/overlay/overlay_next_private.hh
+  engines/overlay/overlay_next_relation.hh
   engines/overlay/overlay_next_speaker.hh
   engines/overlay/overlay_private.hh
   engines/select/select_defines.hh

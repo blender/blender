@@ -164,7 +164,7 @@ GPU_SHADER_INTERFACE_INFO(overlay_extra_loose_point_iface, "").smooth(Type::VEC4
 GPU_SHADER_CREATE_INFO(overlay_extra_loose_point)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
-    .push_constant(Type::VEC4, "ucolor")
+    .vertex_in(1, Type::VEC4, "vertex_color")
     .vertex_out(overlay_extra_loose_point_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "lineOutput")
