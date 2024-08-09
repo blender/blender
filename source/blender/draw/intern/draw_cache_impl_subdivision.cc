@@ -568,7 +568,7 @@ void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
   GPU_vertbuf_init_with_format_ex(buffer, get_origindex_format(), GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(buffer, num_loops + loose_len);
 
-  buffer.data<int32_t>().copy_from({vert_origindex, num_loops});
+  buffer.data<int32_t>().take_front(num_loops).copy_from({vert_origindex, num_loops});
 }
 
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
@@ -925,51 +925,52 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
-   * side. */
-  if (cache->num_subdiv_loops > 0) {
-    cache->patch_coords = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        *cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*cache->patch_coords, cache->num_subdiv_loops);
+   * side.
+   *
+   * These VBOs are created even when there are no faces and only loose geometry. This avoids the
+   * need for many null checks. Binding them must be avoided if they are empty though. */
+  cache->patch_coords = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      *cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->patch_coords, cache->num_subdiv_loops);
 
-    cache->corner_patch_coords = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        *cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*cache->corner_patch_coords, cache->num_subdiv_loops);
+  cache->corner_patch_coords = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      *cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->corner_patch_coords, cache->num_subdiv_loops);
 
-    cache->verts_orig_index = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        *cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*cache->verts_orig_index, cache->num_subdiv_loops);
+  cache->verts_orig_index = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      *cache->verts_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->verts_orig_index, cache->num_subdiv_loops);
 
-    cache->edges_orig_index = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        *cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*cache->edges_orig_index, cache->num_subdiv_loops);
+  cache->edges_orig_index = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      *cache->edges_orig_index, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->edges_orig_index, cache->num_subdiv_loops);
 
-    cache->edges_draw_flag = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(
-        *cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*cache->edges_draw_flag, cache->num_subdiv_loops);
+  cache->edges_draw_flag = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      *cache->edges_draw_flag, get_origindex_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(*cache->edges_draw_flag, cache->num_subdiv_loops);
 
-    cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
+  cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
 
-    cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
+  cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
 
-    cache->subdiv_loop_face_index = static_cast<int *>(
-        MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
+  cache->subdiv_loop_face_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
 
-    /* Initialize context pointers and temporary buffers. */
-    ctx->patch_coords = cache->patch_coords->data<CompressedPatchCoord>().data();
-    ctx->subdiv_loop_vert_index = cache->verts_orig_index->data<int>().data();
-    ctx->subdiv_loop_edge_index = cache->edges_orig_index->data<int>().data();
-    ctx->subdiv_loop_edge_draw_flag = cache->edges_draw_flag->data<int>().data();
-    ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
-    ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
-    ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
-  }
+  /* Initialize context pointers and temporary buffers. */
+  ctx->patch_coords = cache->patch_coords->data<CompressedPatchCoord>().data();
+  ctx->subdiv_loop_vert_index = cache->verts_orig_index->data<int>().data();
+  ctx->subdiv_loop_edge_index = cache->edges_orig_index->data<int>().data();
+  ctx->subdiv_loop_edge_draw_flag = cache->edges_draw_flag->data<int>().data();
+  ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
+  ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
+  ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
 
   ctx->orig_index_vert = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->vert_data, CD_ORIGINDEX));
