@@ -122,12 +122,12 @@ static float normal_calc(const SculptSession &ss,
                          float3 &normal,
                          float limit_lower,
                          float limit_upper,
-                         const NodeData &automask_data)
+                         const std::optional<float3> &orig_normal)
 {
   float3 normal_v;
 
-  if (automask_data.orig_data) {
-    normal_v = automask_data.orig_data->no;
+  if (orig_normal) {
+    normal_v = *orig_normal;
   }
   else {
     normal_v = SCULPT_vertex_normal_get(ss, vertex);
@@ -203,7 +203,7 @@ static bool needs_factors_cache(const Sculpt &sd, const Brush *brush)
 static float calc_brush_normal_factor(const Cache *automasking,
                                       const SculptSession &ss,
                                       PBVHVertRef vertex,
-                                      const NodeData &automask_data)
+                                      const std::optional<float3> &orig_normal)
 {
   float falloff = automasking->settings.start_normal_falloff * M_PI;
   float3 initial_normal;
@@ -220,13 +220,13 @@ static float calc_brush_normal_factor(const Cache *automasking,
                      initial_normal,
                      automasking->settings.start_normal_limit - falloff * 0.5f,
                      automasking->settings.start_normal_limit + falloff * 0.5f,
-                     automask_data);
+                     orig_normal);
 }
 
 static float calc_view_normal_factor(const Cache &automasking,
                                      const SculptSession &ss,
                                      PBVHVertRef vertex,
-                                     const NodeData &automask_data)
+                                     const std::optional<float3> &orig_normal)
 {
   float falloff = automasking.settings.view_normal_falloff * M_PI;
 
@@ -244,14 +244,13 @@ static float calc_view_normal_factor(const Cache &automasking,
                      view_normal,
                      automasking.settings.view_normal_limit,
                      automasking.settings.view_normal_limit + falloff,
-                     automask_data);
+                     orig_normal);
 }
 
 static float calc_view_occlusion_factor(const Cache &automasking,
                                         SculptSession &ss,
                                         PBVHVertRef vertex,
-                                        uchar stroke_id,
-                                        const NodeData & /*automask_data*/)
+                                        uchar stroke_id)
 {
   char f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion);
 
@@ -502,15 +501,11 @@ static float calc_cavity_factor(const Cache *automasking, SculptSession &ss, PBV
   return factor;
 }
 
-float factor_get(const Cache *automasking,
-                 SculptSession &ss,
-                 PBVHVertRef vert,
-                 const NodeData *automask_data)
+static float factor_get(const Cache *automasking,
+                        SculptSession &ss,
+                        PBVHVertRef vert,
+                        const std::optional<float3> &orig_normal)
 {
-  if (!automasking || vert.i == PBVH_REF_NONE) {
-    return 1.0f;
-  }
-
   float mask = 1.0f;
 
   /* Since brush normal mode depends on the current mirror symmetry pass
@@ -518,7 +513,7 @@ float factor_get(const Cache *automasking,
   if ((ss.cache || ss.filter_cache) &&
       (automasking->settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
   {
-    mask *= calc_brush_normal_factor(automasking, ss, vert, *automask_data);
+    mask *= calc_brush_normal_factor(automasking, ss, vert, orig_normal);
   }
 
   /* If the cache is initialized with valid info, use the cache. This is used when the
@@ -541,9 +536,7 @@ float factor_get(const Cache *automasking,
   bool do_occlusion = (automasking->settings.flags &
                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
-  if (do_occlusion &&
-      calc_view_occlusion_factor(*automasking, ss, vert, stroke_id, *automask_data))
-  {
+  if (do_occlusion && calc_view_occlusion_factor(*automasking, ss, vert, stroke_id)) {
     return automasking_factor_end(ss, automasking, vert, 0.0f);
   }
 
@@ -580,7 +573,7 @@ float factor_get(const Cache *automasking,
   if ((ss.cache || ss.filter_cache) &&
       (automasking->settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
   {
-    mask *= calc_view_normal_factor(*automasking, ss, vert, *automask_data);
+    mask *= calc_view_normal_factor(*automasking, ss, vert, orig_normal);
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
@@ -588,12 +581,6 @@ float factor_get(const Cache *automasking,
   }
 
   return automasking_factor_end(ss, automasking, vert, mask);
-}
-
-static void mesh_orig_vert_data_update(SculptOrigVertData &orig_data, const int i)
-{
-  orig_data.co = orig_data.coords[i];
-  orig_data.no = orig_data.normals[i];
 }
 
 void calc_vert_factors(const Object &object,
@@ -604,13 +591,19 @@ void calc_vert_factors(const Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  NodeData data = node_begin(object, &cache, node);
+  Span<float3> orig_normals;
+  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+      orig_normals = unode->normal.as_span();
+    }
+  }
 
   for (const int i : verts.index_range()) {
-    if (data.orig_data) {
-      mesh_orig_vert_data_update(*data.orig_data, i);
-    }
-    factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(verts[i]), &data);
+    factors[i] *= factor_get(&cache,
+                             ss,
+                             BKE_pbvh_make_vref(verts[i]),
+                             orig_normals.is_empty() ? std::nullopt :
+                                                       std::make_optional(orig_normals[i]));
   }
 }
 
@@ -624,19 +617,11 @@ void calc_face_factors(const Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  NodeData data = node_begin(object, &cache, node);
-  /* NOTE: We explicitly nullify data.orig_data here as we currently cannot go from mesh vert index
-   * to the undo node array index. The only brush this method is currently used for is the Draw
-   * Face Set brush, which never modifies the position of the vertices in a brush stroke. This
-   * needs to be implemented in the future if brushes that iterate over faces need original
-   * position and normal data. */
-  data.orig_data = std::nullopt;
-
   for (const int i : face_indices.index_range()) {
     const Span<int> face_verts = corner_verts.slice(faces[face_indices[i]]);
     float sum = 0.0f;
     for (const int vert : face_verts) {
-      sum += factor_get(&cache, ss, BKE_pbvh_make_vref(vert), &data);
+      sum += factor_get(&cache, ss, BKE_pbvh_make_vref(vert), std::nullopt);
     }
     factors[i] *= sum * math::rcp(float(face_verts.size()));
   }
@@ -651,17 +636,24 @@ void calc_grids_factors(const Object &object,
   SculptSession &ss = *object.sculpt;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  NodeData data = node_begin(object, &cache, node);
+
+  Span<float3> orig_normals;
+  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+      orig_normals = unode->normal.as_span();
+    }
+  }
 
   for (const int i : grids.index_range()) {
     const int node_start = i * key.grid_area;
     const int grids_start = grids[i] * key.grid_area;
     for (const int offset : IndexRange(key.grid_area)) {
-      if (data.orig_data) {
-        mesh_orig_vert_data_update(*data.orig_data, node_start + offset);
-      }
       factors[node_start + offset] *= factor_get(
-          &cache, ss, BKE_pbvh_make_vref(grids_start + offset), &data);
+          &cache,
+          ss,
+          BKE_pbvh_make_vref(grids_start + offset),
+          orig_normals.is_empty() ? std::nullopt :
+                                    std::make_optional(orig_normals[node_start + offset]));
     }
   }
 }
@@ -674,53 +666,22 @@ void calc_vert_factors(const Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  NodeData data = node_begin(object, &cache, node);
+  Array<float3> orig_normals;
+  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    orig_position_data_gather_bmesh(*ss.bm_log, verts, {}, orig_normals);
+  }
 
   int i = 0;
   for (BMVert *vert : verts) {
-    if (data.orig_data) {
-      BM_log_original_vert_data(
-          data.orig_data->bm_log, vert, &data.orig_data->co, &data.orig_data->no);
-    }
-    factors[i] *= factor_get(&cache, ss, BKE_pbvh_make_vref(intptr_t(vert)), &data);
+    factors[i] *= factor_get(&cache,
+                             ss,
+                             BKE_pbvh_make_vref(intptr_t(vert)),
+                             orig_normals.is_empty() ? std::nullopt :
+                                                       std::make_optional(orig_normals[i]));
     i++;
   }
 }
 
-NodeData node_begin(const Object &object, const Cache *automasking, const bke::pbvh::Node &node)
-{
-  if (!automasking) {
-    return {};
-  }
-
-  NodeData automask_data;
-  if (automasking->settings.flags &
-      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
-  {
-    automask_data.orig_data = SCULPT_orig_vert_data_init(object, node, undo::Type::Position);
-  }
-  return automask_data;
-}
-
-void node_update(auto_mask::NodeData &automask_data, const BMVert &vert)
-{
-  if (automask_data.orig_data) {
-    SCULPT_orig_vert_data_update(*automask_data.orig_data, vert);
-  }
-}
-
-void node_update(auto_mask::NodeData &automask_data, const int i)
-{
-  if (automask_data.orig_data) {
-    SCULPT_orig_vert_data_update(*automask_data.orig_data, i);
-  }
-}
-
-/**
- * Flood fill automask to connected vertices.
- *
- * Limited to vertices inside the brush radius if the tool requires it.
- */
 static void fill_topology_automasking_factors_mesh(const Sculpt &sd,
                                                    Object &ob,
                                                    const Span<float3> vert_positions)
@@ -960,8 +921,6 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
   const int totvert = SCULPT_vertex_count_get(ss);
 
   /* No need to build original data since this is only called at the beginning of strokes. */
-  NodeData nodedata;
-
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
@@ -969,10 +928,10 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
 
     if (int(mode) & BRUSH_AUTOMASKING_VIEW_NORMAL) {
       if (int(mode) & BRUSH_AUTOMASKING_VIEW_OCCLUSION) {
-        f *= calc_view_occlusion_factor(automasking, ss, vertex, -1, nodedata);
+        f *= calc_view_occlusion_factor(automasking, ss, vertex, -1);
       }
 
-      f *= calc_view_normal_factor(automasking, ss, vertex, nodedata);
+      f *= calc_view_normal_factor(automasking, ss, vertex, {});
     }
 
     if (ss.attrs.automasking_stroke_id) {

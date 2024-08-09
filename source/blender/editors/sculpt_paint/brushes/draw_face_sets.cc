@@ -393,18 +393,6 @@ static void calc_bmesh(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  /* Disable auto-masking code path which rely on an undo step to access original data.
-   *
-   * This is because the dynamic topology uses BMesh Log based undo system, which creates a
-   * single node for the undo step, and its type could be different for the needs of the
-   * brush undo and the original data access.
-   *
-   * For the brushes like Draw the ss.cache->automasking is set to nullptr at the first step
-   * of the brush, as there is an explicit check there for the brushes which support dynamic
-   * topology. Do it locally here for the Draw Face Set brush here, to mimic the behavior of
-   * the other brushes but without marking the brush as supporting dynamic topology. */
-  auto_mask::node_begin(object, nullptr, node);
-
   calc_brush_texture_factors(ss, brush, positions, factors);
   scale_factors(factors, strength);
 

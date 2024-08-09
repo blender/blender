@@ -1062,25 +1062,6 @@ void filter_verts_with_unique_face_sets_bmesh(bool unique,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Original Data API
- * \{ */
-
-/**
- * Initialize a #SculptOrigVertData for accessing original vertex data;
- * handles #BMesh, #Mesh, and multi-resolution.
- */
-SculptOrigVertData SCULPT_orig_vert_data_init(const Object &ob,
-                                              const blender::bke::pbvh::Node &node,
-                                              blender::ed::sculpt_paint::undo::Type type);
-/**
- * Update a #SculptOrigVertData for a particular vertex from the blender::bke::pbvh::Tree iterator.
- */
-void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, const BMVert &vert);
-void SCULPT_orig_vert_data_update(SculptOrigVertData &orig_data, int i);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Brush Utilities.
  * \{ */
 
@@ -1390,27 +1371,6 @@ struct Cache {
   bool can_reuse_mask;
   uchar current_stroke_id;
 };
-
-struct NodeData {
-  std::optional<SculptOrigVertData> orig_data;
-};
-
-/**
- * Call before pbvh::Tree vertex iteration.
- */
-NodeData node_begin(const Object &object, const Cache *automasking, const bke::pbvh::Node &node);
-
-/* Call before factor_get. */
-void node_update(NodeData &automask_data, const BMVert &vert);
-/**
- * Call before factor_get. The index is in the range of the pbvh::Tree node's vertex indices.
- */
-void node_update(NodeData &automask_data, int i);
-
-float factor_get(const Cache *automasking,
-                 SculptSession &ss,
-                 PBVHVertRef vertex,
-                 const NodeData *automask_data);
 
 /* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */
