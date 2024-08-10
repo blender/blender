@@ -109,7 +109,7 @@ static bool gpencil_modifier_type_valid(const int type)
  * Free internal modifier data variables, this function should
  * not free the md variable itself.
  */
-static void gpencil_modifier_free_data(struct GpencilModifierData *md)
+static void gpencil_modifier_free_data(GpencilModifierData *md)
 {
   switch (GpencilModifierType(md->type)) {
     case eGpencilModifierType_Noise: {
@@ -230,8 +230,8 @@ static void gpencil_modifier_free_data(struct GpencilModifierData *md)
  * stores. This is used for linking on file load and for
  * unlinking data-blocks or forwarding data-block references.
  */
-static void gpencil_modifier_foreach_ID_link(struct GpencilModifierData *md,
-                                             struct Object *ob,
+static void gpencil_modifier_foreach_ID_link(GpencilModifierData *md,
+                                             Object *ob,
                                              GreasePencilIDWalkFunc walk,
                                              void *user_data)
 {

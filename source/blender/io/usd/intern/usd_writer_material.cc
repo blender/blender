@@ -646,7 +646,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
     char file_body[FILE_MAX];
     char file_ext[FILE_MAX];
     BLI_string_split_suffix(file_name, FILE_MAX, file_body, file_ext);
-    BLI_snprintf(file_name, FILE_MAX, "%s.<UDIM>%s", file_body, file_ext);
+    SNPRINTF(file_name, "%s.<UDIM>%s", file_body, file_ext);
   }
 
   return file_name;
@@ -1423,7 +1423,7 @@ static void export_packed_texture(Image *ima,
     if (imapf->filepath[0] != '\0') {
       /* Get the file name from the original path. */
       /* Make absolute source path. */
-      BLI_strncpy(image_abs_path, imapf->filepath, FILE_MAX);
+      STRNCPY(image_abs_path, imapf->filepath);
       USD_path_abs(
           image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
       BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);

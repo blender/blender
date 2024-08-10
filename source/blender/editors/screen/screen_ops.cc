@@ -3583,7 +3583,7 @@ static void area_join_draw_cb(const wmWindow * /*win*/, void *userdata)
   }
 }
 
-static void area_join_dock_cb(const struct wmWindow *win, void *userdata)
+static void area_join_dock_cb(const wmWindow *win, void *userdata)
 {
   const wmOperator *op = static_cast<wmOperator *>(userdata);
   sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);

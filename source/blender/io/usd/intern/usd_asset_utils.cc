@@ -616,7 +616,7 @@ std::string get_relative_path(const std::string &path, const std::string &anchor
   }
 
   char result_path[FILE_MAX];
-  BLI_strncpy(result_path, resolved_path.c_str(), FILE_MAX);
+  STRNCPY(result_path, resolved_path.c_str());
   BLI_path_rel(result_path, anchor_parent_dir);
 
   if ((result_path[0] != '\0') && (BLI_strnlen(result_path, FILE_MAX) > 2) &&

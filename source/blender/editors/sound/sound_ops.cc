@@ -699,7 +699,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
       {AUD_CHANNELS_SURROUND51, "SURROUND51", 0, "5.1 Surround", "5.1 surround sound"},
       {AUD_CHANNELS_SURROUND61, "SURROUND61", 0, "6.1 Surround", "6.1 surround sound"},
       {AUD_CHANNELS_SURROUND71, "SURROUND71", 0, "7.1 Surround", "7.1 surround sound"},
-      {0, NULL, 0, NULL, NULL}};
+      {0, nullptr, 0, nullptr, nullptr}};
 
 #endif /* WITH_AUDASPACE */
 

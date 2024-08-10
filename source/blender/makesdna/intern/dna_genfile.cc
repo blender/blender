@@ -1776,7 +1776,7 @@ int DNA_struct_alignment(const SDNA *sdna, const int struct_index)
   return sdna->types_alignment[struct_index];
 }
 
-const char *DNA_struct_identifier(struct SDNA *sdna, const int struct_index)
+const char *DNA_struct_identifier(SDNA *sdna, const int struct_index)
 {
   DNA_sdna_alias_data_ensure(sdna);
   const SDNA_Struct *struct_info = sdna->structs[struct_index];

@@ -1908,12 +1908,12 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
       srna, "F-Curves", "Collection of F-Curves for a specific action slot, on a specific strip");
 
   /* ChannelBag.fcurves.new(...) */
-  extern struct FCurve *ActionChannelBagFCurves_new_func(struct ID * _selfid,
-                                                         struct ActionChannelBag * _self,
-                                                         Main * bmain,
-                                                         ReportList * reports,
-                                                         const char *data_path,
-                                                         int index);
+  extern FCurve *ActionChannelBagFCurves_new_func(ID * _selfid,
+                                                  ActionChannelBag * _self,
+                                                  Main * bmain,
+                                                  ReportList * reports,
+                                                  const char *data_path,
+                                                  int index);
 
   func = RNA_def_function(srna, "new", "rna_ChannelBag_fcurve_new");
   RNA_def_function_ui_description(func, "Add an F-Curve to the channelbag");
