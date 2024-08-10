@@ -8,6 +8,7 @@ from typing import (
 )
 
 IGNORE_SOURCE = (
+    "/lib/",
     "/test/",
     "/tests/gtests/",
 
