@@ -6405,7 +6405,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     if (msg) {
       uiItemL(row, "", (ICON_MOUSE_LMB + i));
       uiItemS_ex(row, -0.5f);
-      uiItemL(row, msg ? msg : "", ICON_NONE);
+      uiItemL(row, msg, ICON_NONE);
       uiItemS_ex(row, 0.7f);
     }
 

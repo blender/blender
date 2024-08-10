@@ -411,7 +411,7 @@ void icon_draw_rect_input(const float x,
     icon_draw_rect_input_text(&rect, "]", aspect, alpha, inverted);
   }
   else if (icon_id >= ICON_EVENT_NDOF_BUTTON_V1 && icon_id <= ICON_EVENT_NDOF_BUTTON_MINUS) {
-    if ((icon_id >= ICON_EVENT_NDOF_BUTTON_V1) && (icon_id <= ICON_EVENT_NDOF_BUTTON_V3)) {
+    if (/* `(icon_id >= ICON_EVENT_NDOF_BUTTON_V1) &&` */ (icon_id <= ICON_EVENT_NDOF_BUTTON_V3)) {
       char str[7];
       SNPRINTF(str, "v%i", (icon_id + 1) - ICON_EVENT_NDOF_BUTTON_V1);
       icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
