@@ -1339,7 +1339,7 @@ int ui_id_icon_get(const bContext *C, ID *id, bool big);
 
 /* interface_icons_event.cc */
 
-float ui_event_icon_offset(const int icon);
+float ui_event_icon_offset(int icon_id);
 
 void icon_draw_rect_input(
     float x, float y, int w, int h, int icon_id, float aspect, float alpha, bool inverted);
