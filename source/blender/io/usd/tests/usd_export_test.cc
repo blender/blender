@@ -37,6 +37,7 @@
 #include "WM_api.hh"
 
 #include "usd.hh"
+#include "usd_utils.hh"
 #include "usd_writer_material.hh"
 
 namespace blender::io::usd {
@@ -309,6 +310,33 @@ TEST_F(UsdExportTest, usd_export_material)
                                 << output_filename;
 
   compare_blender_image_to_usd_image_shader(image_node, image_prim);
+}
+
+TEST(utilities, make_safe_name)
+{
+  ASSERT_EQ(make_safe_name("", false), std::string("_"));
+  ASSERT_EQ(make_safe_name("1", false), std::string("_"));
+  ASSERT_EQ(make_safe_name("1Test", false), std::string("_Test"));
+
+  ASSERT_EQ(make_safe_name("Test", false), std::string("Test"));
+  ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b__zier___world"));
+  ASSERT_EQ(make_safe_name("Test|ハローワールド", false),
+            std::string("Test______________________"));
+  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", false),
+            std::string("Test___________________________"));
+  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", false), std::string("Test____hello_____w__rld"));
+
+#if PXR_VERSION >= 2403
+  ASSERT_EQ(make_safe_name("", true), std::string("_"));
+  ASSERT_EQ(make_safe_name("1", true), std::string("_"));
+  ASSERT_EQ(make_safe_name("1Test", true), std::string("_Test"));
+
+  ASSERT_EQ(make_safe_name("Test", true), std::string("Test"));
+  ASSERT_EQ(make_safe_name("Test|$bézier @ world", true), std::string("Test__bézier___world"));
+  ASSERT_EQ(make_safe_name("Test|ハローワールド", true), std::string("Test_ハローワールド"));
+  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", true), std::string("Test_Γεια_σου_κόσμε"));
+  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", true), std::string("Test__hello___wórld"));
+#endif
 }
 
 }  // namespace blender::io::usd
