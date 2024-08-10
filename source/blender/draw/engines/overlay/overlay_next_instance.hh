@@ -60,7 +60,7 @@ class Instance {
     LightProbes light_probes = {selection_type_};
     Metaballs metaballs = {selection_type_};
     Meshes meshes;
-    Prepass prepass;
+    Prepass prepass = {selection_type_};
     Relations relations;
     Speakers speakers = {selection_type_};
   } regular{selection_type_}, infront{selection_type_};
