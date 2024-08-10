@@ -505,7 +505,7 @@ ShapeCache::ShapeCache()
         }
       }
       /* Axis name. */
-      Vector<float2> *axis_names[3] = {&x_axis_name, &y_axis_name, &z_axis_name};
+      const Vector<float2> *axis_names[3] = {&x_axis_name, &y_axis_name, &z_axis_name};
       for (float2 axis_name_vert : *(axis_names[axis])) {
         int flag = VCLASS_EMPTY_AXES | VCLASS_EMPTY_AXES_NAME | VCLASS_SCREENALIGNED;
         verts.append({{axis_name_vert * 4.0f, axis + 0.25f}, flag});

@@ -22,8 +22,11 @@
 
 #include "interface_intern.hh"
 
-static void icon_draw_icon(
-    rctf *rect, const int icon_id, const float aspect, const float alpha, const bool inverted)
+static void icon_draw_icon(const rctf *rect,
+                           const int icon_id,
+                           const float aspect,
+                           const float alpha,
+                           const bool inverted)
 {
   float color[4];
   UI_GetThemeColor4fv(TH_TEXT, color);
@@ -39,7 +42,7 @@ static void icon_draw_icon(
                     0.0f);
 }
 
-static void icon_draw_rect_input_text(rctf *rect,
+static void icon_draw_rect_input_text(const rctf *rect,
                                       const char *str,
                                       const float aspect,
                                       const float alpha,
