@@ -11,7 +11,7 @@ void main()
   vert_in.lN = vnor;
   vert_in.e_data = data;
 
-  /* Vertex, Facedot and Face case. */
+  /* Vertex, Face-dot and Face case. */
   VertOut vert_out = vertex_main(vert_in);
 
   gl_Position = vert_out.gpu_position;

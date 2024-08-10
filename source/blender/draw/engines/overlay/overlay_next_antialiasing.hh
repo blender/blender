@@ -5,7 +5,7 @@
 /** \file
  * \ingroup draw_engine
  *
- * Overlay antialiasing:
+ * Overlay anti-aliasing:
  *
  * Most of the overlays are wires which causes a lot of flickering in motions
  * due to aliasing problems.

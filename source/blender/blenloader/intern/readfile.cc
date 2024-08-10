@@ -1800,7 +1800,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
     BHead *bh_orig = bh;
 #endif
 
-    /* Endianess switch is based on file DNA.
+    /* Endianness switch is based on file DNA.
      *
      * NOTE: raw data (aka #SDNA_RAW_DATA_STRUCT_INDEX #SDNAnr) is not handled here, it's up to
      * the calling code to manage this. */

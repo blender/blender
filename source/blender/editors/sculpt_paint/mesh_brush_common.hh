@@ -348,7 +348,7 @@ void project_translations(MutableSpan<float3> translations, const float3 &plane)
  * translations. This is used for tools that calculate new positions based on the original
  * positions for the entirety of an operation. Conceptually this is the same as resetting the
  * positions before each step of the operation, but combining that into the same loop should be
- * preferrable for performance.
+ * preferable for performance.
  */
 void reset_translations_to_original(MutableSpan<float3> translations,
                                     Span<float3> positions,

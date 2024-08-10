@@ -5,7 +5,7 @@
 /**
  * Render shadow casters extrusion caps.
  * Manifold meshes generate caps for triangles facing the light.
- * Non-Manifold meshes generate caps for all triangles and invert the winding for backfacing ones.
+ * Non-Manifold meshes generate caps for all triangles and invert the winding for back-facing ones.
  *
  * This shader uses triangle primitive to know the geometric normals of a triangle.
  * Two triangles are generated for each original triangle facing the light. One in front of the

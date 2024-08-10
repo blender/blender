@@ -135,8 +135,8 @@ bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
 /* -------------------------------------------------------------------- */
 /** \name Sculpt bke::pbvh::Tree Abstraction API
  *
- * This is read-only, for writing use bke::pbvh::Tree vertex iterators. There vd.index matches
- * the indices used here.
+ * This is read-only, for writing use #bke::pbvh::Tree vertex iterators.
+ * There `vd.index` matches the indices used here.
  *
  * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
  * different index for each grid.

@@ -404,6 +404,7 @@ dict_custom = {
     "thumbstick",
     "tokenize",
     "tokenizing",
+    "toolchain",
     "trackpad",
     "transcode",
     "transmissive",

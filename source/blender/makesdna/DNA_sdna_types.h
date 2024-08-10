@@ -134,7 +134,7 @@ typedef struct SDNA {
 /**
  * The struct index representing type-less bytes buffers.
  *
- * Although code has historically (pre-4.3) be fairly flacky (logically incorrect, see inline
+ * Although code has historically (pre-4.3) be fairly flaky (logically incorrect, see inline
  * code-comments for #DNA_struct_get_compareflags regarding this), most of read/write blend-file
  * code would assume that the `0` value was raw data, so keep it at this value.
  */

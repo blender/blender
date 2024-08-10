@@ -41,7 +41,7 @@
  * The commonly detected CPU capabilities are:
  * - Family: `ARCH_CPU_<FAMILY>_FAMILY`
  * - CPU bitness: `ARCH_CPU_<32|64>_BITS`
- * - Endianess: `ARCH_CPU_<LITTLE|BIG>_ENDIAN`
+ * - Endianness: `ARCH_CPU_<LITTLE|BIG>_ENDIAN`
  *
  * Supported CPU families: X86, S390, PPC, ARM, MIPS.
  */
@@ -50,9 +50,9 @@
 
 /**
  * All commonly used symbols (which are checked on a "top" level, from outside of any
- * platform-specific ifdef block) are to be explicitly defined to 0 when they are not "active".
+ * platform-specific `ifdef` block) are to be explicitly defined to 0 when they are not "active".
  * Such an approach helps catching cases when one is attempted to access build configuration
- * variable without including the header by simply using the -Wundef compiler attribute.
+ * variable without including the header by simply using the `-Wundef` compiler attribute.
  */
 
 /* -------------------------------------------------------------------- */
@@ -62,7 +62,7 @@
 #if defined(__native_client__)
 /* __native_client__ must be first, so that other OS_ defines are not set. */
 #  define OS_NACL 1
-/* OS_NACL comes in two sandboxing technology flavors, SFI or Non-SFI. PNaCl toolchain defines
+/* OS_NACL comes in two sand-boxing technology flavors, SFI or Non-SFI. PNaCl toolchain defines
  * __native_client_nonsfi__ macro in Non-SFI build mode, while it does not in SFI build mode. */
 #  if defined(__native_client_nonsfi__)
 #    define OS_NACL_NONSFI
@@ -75,7 +75,7 @@
 #  define OS_ANDROID 1
 #elif defined(__APPLE__)
 /* Only include TargetConditions after testing ANDROID as some android builds on mac don't have
- * this header available and it's not needed unless the target is really mac/ios. */
+ * this header available and it's not needed unless the target is really mac/IOS. */
 #  include <TargetConditionals.h>
 #  define OS_MAC 1
 #  if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
@@ -87,10 +87,10 @@
 #  define OS_HPUX 1
 #elif defined(__linux__)
 #  define OS_LINUX 1
-/* Include a system header to pull in features.h for glibc/uclibc macros. */
+/* Include a system header to pull in features.h for GLIBC/UCLIBC macros. */
 #  include <unistd.h>
 #  if defined(__GLIBC__) && !defined(__UCLIBC__)
-/* We really are using glibc, not uClibc pretending to be glibc. */
+/* We really are using GLIBC, not UCLIBC pretending to be GLIBC. */
 #    define LIBC_GLIBC 1
 #  endif
 #elif defined(__sgi)
