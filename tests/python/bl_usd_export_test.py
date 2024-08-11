@@ -318,6 +318,81 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
         self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
 
+    def test_export_mesh_subd(self):
+        """Test exporting Subdivision Surface attributes and values"""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_mesh_subd.blend"))
+        export_path = self.tempdir / "usd_mesh_subd.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_subdivision='BEST_MATCH',
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_none_boundary_smooth_all/mesh1"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'all')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_corners_boundary_smooth_all/mesh2"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'cornersOnly')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_corners_junctions_boundary_smooth_all/mesh3"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'cornersPlus1')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_corners_junctions_concave_boundary_smooth_all/mesh4"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'cornersPlus2')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_boundaries_boundary_smooth_all/mesh5"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_all_boundary_smooth_all/mesh6"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'none')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/uv_smooth_boundaries_boundary_smooth_keep/mesh7"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeAndCorner')
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_verts/crease_verts"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+        self.assertEqual(len(mesh.GetCornerIndicesAttr().Get()), 7)
+        usd_vert_sharpness = mesh.GetCornerSharpnessesAttr().Get()
+        self.assertEqual(len(usd_vert_sharpness), 7)
+        # A 1.0 crease is INFINITE (10) in USD
+        self.assertAlmostEqual(min(usd_vert_sharpness), 0.1, 5)
+        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp < 1]), 6)
+        self.assertEqual(len([sharp for sharp in usd_vert_sharpness if sharp == 10]), 1)
+
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_edge/crease_edge"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+        self.assertEqual(len(mesh.GetCreaseIndicesAttr().Get()), 20)
+        usd_crease_lengths = mesh.GetCreaseLengthsAttr().Get()
+        self.assertEqual(len(usd_crease_lengths), 10)
+        self.assertTrue(all([length == 2 for length in usd_crease_lengths]))
+        usd_crease_sharpness = mesh.GetCreaseSharpnessesAttr().Get()
+        self.assertEqual(len(usd_crease_sharpness), 10)
+        # A 1.0 crease is INFINITE (10) in USD
+        self.assertAlmostEqual(min(usd_crease_sharpness), 0.1, 5)
+        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 1]), 9)
+        self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp == 10]), 1)
+
     def test_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"

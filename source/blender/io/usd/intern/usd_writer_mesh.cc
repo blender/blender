@@ -166,7 +166,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
          * Skip edge domain because USD doesn't have a good conversion for them. */
         if (attribute_id.name()[0] == '.' || attribute_id.is_anonymous() ||
             meta_data.domain == bke::AttrDomain::Edge ||
-            ELEM(attribute_id.name(), "position", "material_index", "velocity"))
+            ELEM(attribute_id.name(), "position", "material_index", "velocity", "crease_vert"))
         {
           return true;
         }
@@ -459,7 +459,7 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     usd_value_writer_.SetAttribute(
         attr_corner_indices, pxr::VtValue(usd_mesh_data.corner_indices), timecode);
     usd_value_writer_.SetAttribute(
-        attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
+        attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.corner_sharpnesses), timecode);
   }
 
   write_custom_data(context.object, mesh, usd_mesh);
@@ -638,9 +638,10 @@ static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
   }
   const VArraySpan creases(*attribute);
   for (const int i : creases.index_range()) {
-    const float sharpness = creases[i];
+    const float crease = creases[i];
 
-    if (sharpness != 0.0f) {
+    if (crease > 0.0f) {
+      const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
       usd_mesh_data.corner_indices.push_back(i);
       usd_mesh_data.corner_sharpnesses.push_back(sharpness);
     }
