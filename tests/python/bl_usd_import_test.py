@@ -609,14 +609,27 @@ class USDImportTest(AbstractUSDTest):
     def test_import_light_types(self):
         """Test importing light types and attributes."""
 
+        def rename_active(new_name):
+            active_ob = bpy.context.view_layer.objects.active
+            active_ob.name = new_name
+            active_ob.data.name = new_name
+
         # Use the current scene to first create and export the lights
         bpy.ops.object.light_add(type='POINT', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
         bpy.context.active_object.data.energy = 2
         bpy.context.active_object.data.shadow_soft_size = 2.2
 
         bpy.ops.object.light_add(type='SPOT', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Spot")
         bpy.context.active_object.data.energy = 3
         bpy.context.active_object.data.shadow_soft_size = 3.3
+        bpy.context.active_object.data.spot_blend = 0.25
+        bpy.context.active_object.data.spot_size = math.radians(60)
+
+        bpy.ops.object.light_add(type='SPOT', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Spot_point")
+        bpy.context.active_object.data.energy = 3.5
+        bpy.context.active_object.data.shadow_soft_size = 0
         bpy.context.active_object.data.spot_blend = 0.25
         bpy.context.active_object.data.spot_size = math.radians(60)
 
@@ -625,15 +638,30 @@ class USDImportTest(AbstractUSDTest):
         bpy.context.active_object.data.angle = math.radians(1)
 
         bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Area_rect")
         bpy.context.active_object.data.energy = 5
         bpy.context.active_object.data.shape = 'RECTANGLE'
         bpy.context.active_object.data.size = 0.5
         bpy.context.active_object.data.size_y = 1.5
 
         bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Area_square")
+        bpy.context.active_object.data.energy = 5.5
+        bpy.context.active_object.data.shape = 'SQUARE'
+        bpy.context.active_object.data.size = 0.7
+
+        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Area_disk")
         bpy.context.active_object.data.energy = 6
         bpy.context.active_object.data.shape = 'DISK'
         bpy.context.active_object.data.size = 2
+
+        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        rename_active("Area_ellipse")
+        bpy.context.active_object.data.energy = 6.5
+        bpy.context.active_object.data.shape = 'ELLIPSE'
+        bpy.context.active_object.data.size = 3
+        bpy.context.active_object.data.size_y = 5
 
         test_path = self.tempdir / "temp_lights.usda"
         res = bpy.ops.wm.usd_export(filepath=str(test_path), evaluation_mode="RENDER")
@@ -646,7 +674,7 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
         lights = [o for o in bpy.data.objects if o.type == 'LIGHT']
-        self.assertEqual(5, len(lights), f"Test scene {infile} should have 5 lights; found {len(lights)}")
+        self.assertEqual(8, len(lights), f"Test scene {infile} should have 8 lights; found {len(lights)}")
 
         blender_light = bpy.data.lights["Point"]
         self.assertAlmostEqual(blender_light.energy, 2, 3)
@@ -658,20 +686,36 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(blender_light.spot_blend, 0.25, 3)
         self.assertAlmostEqual(blender_light.spot_size, math.radians(60), 3)
 
+        blender_light = bpy.data.lights["Spot_point"]
+        self.assertAlmostEqual(blender_light.energy, 3.5, 3)
+        self.assertAlmostEqual(blender_light.shadow_soft_size, 0, 3)
+        self.assertAlmostEqual(blender_light.spot_blend, 0.25, 3)
+        self.assertAlmostEqual(blender_light.spot_size, math.radians(60), 3)
+
         blender_light = bpy.data.lights["Sun"]
         self.assertAlmostEqual(blender_light.energy, 4, 3)
         self.assertAlmostEqual(blender_light.angle, math.radians(1), 3)
 
-        blender_light = bpy.data.lights["Area"]
+        blender_light = bpy.data.lights["Area_rect"]
         self.assertAlmostEqual(blender_light.energy, 5, 3)
         self.assertEqual(blender_light.shape, 'RECTANGLE')
         self.assertAlmostEqual(blender_light.size, 0.5, 3)
         self.assertAlmostEqual(blender_light.size_y, 1.5, 3)
 
-        blender_light = bpy.data.lights["Area_001"]
+        blender_light = bpy.data.lights["Area_square"]
+        self.assertAlmostEqual(blender_light.energy, 5.5, 3)
+        self.assertEqual(blender_light.shape, 'RECTANGLE')  # We read as rectangle to mirror what USD supports
+        self.assertAlmostEqual(blender_light.size, 0.7, 3)
+
+        blender_light = bpy.data.lights["Area_disk"]
         self.assertAlmostEqual(blender_light.energy, 6, 3)
         self.assertEqual(blender_light.shape, 'DISK')
         self.assertAlmostEqual(blender_light.size, 2, 3)
+
+        blender_light = bpy.data.lights["Area_ellipse"]
+        self.assertAlmostEqual(blender_light.energy, 6.5, 3)
+        self.assertEqual(blender_light.shape, 'DISK')  # We read as disk to mirror what USD supports
+        self.assertAlmostEqual(blender_light.size, 4, 3)
 
     def check_attribute(self, blender_data, attribute_name, domain, data_type, elements_len):
         attr = blender_data.attributes[attribute_name]
