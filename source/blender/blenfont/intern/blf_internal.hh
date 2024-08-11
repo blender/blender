@@ -110,7 +110,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        bool multicolor = false);
 
 blender::Array<uchar> blf_svg_icon_bitmap(
-    FontBLF *font, uint icon_id, float size, int *r_width, int *r_height);
+    FontBLF *font, uint icon_id, float size, int *r_width, int *r_height, bool multicolor = false);
 
 blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
                                                          blender::StringRef str,

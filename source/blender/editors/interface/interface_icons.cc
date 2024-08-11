@@ -1859,6 +1859,8 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
   return nullptr;
 #else
 
+  constexpr bool show_color = false;
+
   int icon_id = ICON_NONE;
   switch (icon) {
     case ALERT_ICON_WARNING:
@@ -1883,12 +1885,15 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
 
   int width;
   int height;
-  blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(icon_id, size, &width, &height);
+  blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(icon_id, size, &width, &height, show_color);
   if (bitmap.is_empty()) {
     return nullptr;
   }
   ImBuf *ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
   IMB_flipy(ibuf);
+  if (show_color) {
+    IMB_premultiply_alpha(ibuf);
+  }
   return ibuf;
 #endif
 }

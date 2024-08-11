@@ -298,6 +298,7 @@ void WM_OT_splash(wmOperatorType *ot)
 
 static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg*/)
 {
+  constexpr bool show_color = false;
   const uiStyle *style = UI_style_get_dpi();
   const int dialog_width = style->widget.points * 42 * UI_SCALE_FAC;
 
@@ -317,13 +318,16 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
   int width;
   int height;
   blender::Array<uchar> bitmap = BLF_svg_icon_bitmap(
-      ICON_BLENDER_LOGO_LARGE, size, &width, &height);
+      ICON_BLENDER_LOGO_LARGE, size, &width, &height, show_color);
   if (!bitmap.is_empty()) {
     ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
   }
 
   if (ibuf) {
     IMB_flipy(ibuf);
+    if (show_color) {
+      IMB_premultiply_alpha(ibuf);
+    }
 
     bTheme *btheme = UI_GetTheme();
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
@@ -335,7 +339,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
     /* The logo image. */
     row = uiLayoutRow(layout, false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
-    uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, color);
+    uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, show_color ? nullptr : color);
 
     /* Padding below the logo. */
     row = uiLayoutRow(layout, false);

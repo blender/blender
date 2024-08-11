@@ -631,15 +631,16 @@ void BLF_draw_svg_icon(uint icon_id,
 #endif /* WITH_HEADLESS */
 }
 
-blender::Array<uchar> BLF_svg_icon_bitmap(uint icon_id, float size, int *r_width, int *r_height)
+blender::Array<uchar> BLF_svg_icon_bitmap(
+    uint icon_id, float size, int *r_width, int *r_height, bool multicolor)
 {
 #ifndef WITH_HEADLESS
   FontBLF *font = global_font[0];
   if (font) {
-    return blf_svg_icon_bitmap(font, icon_id, size, r_width, r_height);
+    return blf_svg_icon_bitmap(font, icon_id, size, r_width, r_height, multicolor);
   }
 #else
-  UNUSED_VARS(icon_id, size, r_width, r_height);
+  UNUSED_VARS(icon_id, size, r_width, r_height, multicolor);
 #endif /* WITH_HEADLESS */
   return {};
 }
