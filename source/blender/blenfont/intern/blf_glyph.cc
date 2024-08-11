@@ -352,13 +352,18 @@ static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, uint charcode)
   return result;
 }
 
-static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc, uint charcode, bool color)
+static GlyphBLF *blf_glyph_cache_add_svg(
+    GlyphCacheBLF *gc,
+    uint charcode,
+    bool color,
+    blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr)
 {
-  const char *svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
-  /* NanoSVG alters the source file while parsing. */
-  char *writeable = BLI_strdup(svg_source);
-  NSVGimage *image = nsvgParse(writeable, "px", 96.0f);
-  MEM_freeN(writeable);
+  std::string svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
+  if (edit_source_cb) {
+    edit_source_cb(svg_source);
+  }
+
+  NSVGimage *image = nsvgParse(svg_source.data(), "px", 96.0f);
 
   if (image == nullptr) {
     return blf_glyph_cache_add_blank(gc, charcode);
@@ -1393,13 +1398,16 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
 }
 
 #ifndef WITH_HEADLESS
-GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc, const uint icon_id, bool color)
+GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc,
+                                const uint icon_id,
+                                bool color,
+                                blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, icon_id + BLF_ICON_OFFSET, 0);
   if (g) {
     return g;
   }
-  return blf_glyph_cache_add_svg(gc, icon_id + BLF_ICON_OFFSET, color);
+  return blf_glyph_cache_add_svg(gc, icon_id + BLF_ICON_OFFSET, color, edit_source_cb);
 }
 #endif /* WITH_HEADLESS */
 

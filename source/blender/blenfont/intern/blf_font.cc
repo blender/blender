@@ -532,7 +532,8 @@ void blf_draw_svg_icon(FontBLF *font,
                        float size,
                        float color[4],
                        float outline_alpha,
-                       bool multicolor)
+                       bool multicolor,
+                       blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
   blf_font_size(font, size);
   font->pos[0] = int(x);
@@ -557,7 +558,7 @@ void blf_draw_svg_icon(FontBLF *font,
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   blf_batch_draw_begin(font);
 
-  GlyphBLF *g = blf_glyph_ensure_icon(gc, icon_id, multicolor);
+  GlyphBLF *g = blf_glyph_ensure_icon(gc, icon_id, multicolor, edit_source_cb);
   if (g) {
     blf_glyph_draw(font, gc, g, 0, 0);
   }
