@@ -103,8 +103,6 @@
 
 #include "BLO_read_write.hh"
 
-#define NODE_DEFAULT_MAX_WIDTH 700
-
 using blender::Array;
 using blender::Map;
 using blender::MutableSpan;
@@ -149,6 +147,7 @@ static void ntree_init_data(ID *id)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   ntree->tree_interface.init_data();
   ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
+  ntree->default_group_node_width = GROUP_NODE_DEFAULT_WIDTH;
   ntree_set_typeinfo(ntree, nullptr);
 }
 

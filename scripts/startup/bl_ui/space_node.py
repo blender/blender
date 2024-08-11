@@ -1020,6 +1020,7 @@ class NODE_PT_node_tree_properties(Panel):
             layout.prop(group, "description", text="Description")
 
         layout.prop(group, "color_tag")
+        layout.prop(group, "default_group_node_width", text="Node Width")
 
         if group.bl_idname == "GeometryNodeTree":
             header, body = layout.panel("group_usage")

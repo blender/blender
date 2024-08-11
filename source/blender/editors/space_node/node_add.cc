@@ -322,6 +322,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
      */
     group_node->flag &= ~NODE_OPTIONS;
   }
+  group_node->width = node_group->default_group_node_width;
 
   group_node->id = &node_group->id;
   id_us_plus(group_node->id);
@@ -424,6 +425,7 @@ static bool add_node_group_asset(const bContext &C,
   }
   /* By default, don't show the data-block selector since it's not usually necessary for assets. */
   group_node->flag &= ~NODE_OPTIONS;
+  group_node->width = node_group->default_group_node_width;
 
   group_node->id = &node_group->id;
   id_us_plus(group_node->id);

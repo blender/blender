@@ -52,6 +52,9 @@ def draw_node_group_add_menu(context, layout):
                 ops = props.settings.add()
                 ops.name = "node_tree"
                 ops.value = "bpy.data.node_groups[{!r}]".format(group.name)
+                ops = props.settings.add()
+                ops.name = "width"
+                ops.value = repr(group.default_group_node_width)
 
 
 def draw_assets_for_catalog(layout, catalog_path):

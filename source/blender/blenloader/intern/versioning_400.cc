@@ -4551,6 +4551,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 17)) {
+    FOREACH_NODETREE_BEGIN (bmain, tree, id) {
+      if (tree->default_group_node_width == 0) {
+        tree->default_group_node_width = GROUP_NODE_DEFAULT_WIDTH;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
