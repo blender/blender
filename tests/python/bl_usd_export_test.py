@@ -283,6 +283,41 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 3)
         self.check_primvar_missing(prim, "sp_mat4x4")
 
+    def test_export_attributes_varying(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_varying_test.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 16):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_attribute_varying_test.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        #
+        # Validate Mesh data
+        #
+        mesh1 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh1/mesh1"))
+        mesh2 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh2/mesh2"))
+        mesh3 = UsdGeom.Mesh(stage.GetPrimAtPath("/root/mesh3/mesh3"))
+
+        sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]
+
+        # Positions (should be sparsely written)
+        self.assertEqual(mesh1.GetPointsAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(mesh2.GetPointsAttr().GetTimeSamples(), [])
+        self.assertEqual(mesh3.GetPointsAttr().GetTimeSamples(), [])
+        # Velocity (should be sparsely written)
+        self.assertEqual(mesh1.GetVelocitiesAttr().GetTimeSamples(), [])
+        self.assertEqual(mesh2.GetVelocitiesAttr().GetTimeSamples(), sparse_frames)
+        self.assertEqual(mesh3.GetVelocitiesAttr().GetTimeSamples(), [])
+        # Regular primvar (should be sparsely written)
+        self.assertEqual(UsdGeom.PrimvarsAPI(mesh1).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(mesh2).GetPrimvar("test").GetTimeSamples(), [])
+        self.assertEqual(UsdGeom.PrimvarsAPI(mesh3).GetPrimvar("test").GetTimeSamples(), sparse_frames)
+
     def test_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"

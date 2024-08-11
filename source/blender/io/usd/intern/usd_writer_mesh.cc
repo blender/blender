@@ -769,26 +769,24 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
-  AttributeOwner owner = AttributeOwner::from_id(const_cast<ID *>(&mesh->id));
-  CustomDataLayer *velocity_layer = BKE_attribute_find(
-      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
-
-  if (velocity_layer == nullptr) {
+  const VArraySpan velocity = *mesh->attributes().lookup<float3>("velocity",
+                                                                 blender::bke::AttrDomain::Point);
+  if (velocity.is_empty()) {
     return;
   }
 
-  const float(*velocities)[3] = reinterpret_cast<float(*)[3]>(velocity_layer->data);
-
   /* Export per-vertex velocity vectors. */
+  Span<pxr::GfVec3f> data = velocity.cast<pxr::GfVec3f>();
   pxr::VtVec3fArray usd_velocities;
-  usd_velocities.reserve(mesh->verts_num);
-
-  for (int vertex_idx = 0, totvert = mesh->verts_num; vertex_idx < totvert; ++vertex_idx) {
-    usd_velocities.push_back(pxr::GfVec3f(velocities[vertex_idx]));
-  }
+  usd_velocities.assign(data.begin(), data.end());
 
   pxr::UsdTimeCode timecode = get_export_time_code();
-  usd_mesh.CreateVelocitiesAttr().Set(usd_velocities, timecode);
+  pxr::UsdAttribute attr_vel = usd_mesh.CreateVelocitiesAttr(pxr::VtValue(), true);
+  if (!attr_vel.HasValue()) {
+    attr_vel.Set(usd_velocities, pxr::UsdTimeCode::Default());
+  }
+
+  usd_value_writer_.SetAttribute(attr_vel, usd_velocities, timecode);
 }
 
 USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx)
