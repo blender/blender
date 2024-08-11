@@ -1889,7 +1889,6 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
   }
   ImBuf *ibuf = IMB_allocFromBuffer(bitmap.data(), nullptr, width, height, 4);
   IMB_flipy(ibuf);
-  IMB_premultiply_alpha(ibuf);
   return ibuf;
 #endif
 }

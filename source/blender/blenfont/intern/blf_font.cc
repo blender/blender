@@ -586,7 +586,7 @@ blender::Array<uchar> blf_svg_icon_bitmap(
 
   *r_width = g->dims[0];
   *r_height = g->dims[1];
-  blender::Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4, 255);
+  blender::Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4);
 
   if (g->num_channels == 4) {
     memcpy(bitmap.data(), g->bitmap, size_t(bitmap.size()));
@@ -595,6 +595,9 @@ blender::Array<uchar> blf_svg_icon_bitmap(
     for (int64_t y = 0; y < int64_t(g->dims[1]); y++) {
       for (int64_t x = 0; x < int64_t(g->dims[0]); x++) {
         int64_t offs_in = (y * int64_t(g->pitch)) + x;
+        bitmap[int64_t(offs_in * 4)] = g->bitmap[offs_in];
+        bitmap[int64_t(offs_in * 4 + 1)] = g->bitmap[offs_in];
+        bitmap[int64_t(offs_in * 4 + 2)] = g->bitmap[offs_in];
         bitmap[int64_t(offs_in * 4 + 3)] = g->bitmap[offs_in];
       }
     }

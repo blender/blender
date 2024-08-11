@@ -324,7 +324,6 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
 
   if (ibuf) {
     IMB_flipy(ibuf);
-    IMB_premultiply_alpha(ibuf);
 
     bTheme *btheme = UI_GetTheme();
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
