@@ -8788,6 +8788,7 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
         if ob.active_material:
             row.prop(ob.active_material, "name", text='')
 
+
 class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
