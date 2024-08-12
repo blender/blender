@@ -4,6 +4,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
 bool is_edge_sharpness_visible(float wd)
 {
@@ -12,10 +13,17 @@ bool is_edge_sharpness_visible(float wd)
 
 void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 {
+#ifdef OBINFO_NEW
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
+  bool is_from_set = flag_test(ob_flag, OBJECT_FROM_SET);
+  bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
+#else
   int flag = int(abs(ObjectInfo.w));
   bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
   bool is_from_set = (flag & DRW_BASE_FROM_SET) != 0;
   bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
+#endif
 
   if (is_from_set) {
     rim_col = colorWire.rgb;

@@ -181,6 +181,12 @@ class ShaderModule {
   ShaderPtr mesh_face_normal, mesh_face_normal_subdiv;
   ShaderPtr mesh_loop_normal, mesh_loop_normal_subdiv;
   ShaderPtr mesh_vert_normal;
+  ShaderPtr outline_prepass_mesh;
+  ShaderPtr outline_prepass_wire;
+  ShaderPtr outline_prepass_curves;
+  ShaderPtr outline_prepass_pointcloud;
+  ShaderPtr outline_prepass_gpencil;
+  ShaderPtr outline_detect = shader("overlay_outline_detect");
 
   /** Selectable Shaders */
   ShaderPtr armature_sphere_outline;
@@ -217,11 +223,20 @@ class ShaderModule {
 struct Resources : public select::SelectMap {
   ShaderModule &shaders;
 
-  Framebuffer overlay_fb = {"overlay_fb"};
-  Framebuffer overlay_in_front_fb = {"overlay_in_front_fb"};
+  /* Overlay Color. */
   Framebuffer overlay_color_only_fb = {"overlay_color_only_fb"};
+  /* Overlay Color, Line Data. */
+  Framebuffer overlay_line_only_fb = {"overlay_line_only_fb"};
+  /* Depth, Overlay Color. */
+  Framebuffer overlay_fb = {"overlay_fb"};
+  /* Depth, Overlay Color, Line Data. */
   Framebuffer overlay_line_fb = {"overlay_line_fb"};
+  /* Depth In-Front, Overlay Color. */
+  Framebuffer overlay_in_front_fb = {"overlay_in_front_fb"};
+  /* Depth In-Front, Overlay Color, Line Data. */
   Framebuffer overlay_line_in_front_fb = {"overlay_line_in_front_fb"};
+
+  /* Output Color. */
   Framebuffer overlay_output_fb = {"overlay_output_fb"};
 
   /* Target containing line direction and data for line expansion and anti-aliasing. */

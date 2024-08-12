@@ -16,13 +16,13 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass)
     /* Using uint because 16bit uint can contain more ids than int. */
     .fragment_out(0, Type::UINT, "out_object_id")
     .fragment_source("overlay_outline_prepass_frag.glsl")
-    .additional_info("draw_resource_handle", "draw_globals");
+    .additional_info("draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_mesh)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_source("overlay_outline_prepass_vert.glsl")
-    .additional_info("draw_mesh", "overlay_outline_prepass")
+    .additional_info("draw_mesh", "draw_resource_handle", "overlay_outline_prepass")
     .additional_info("draw_object_infos");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_mesh_clipped)
@@ -34,21 +34,20 @@ GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_wire_iface, "vert").flat(Type:
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves)
     .do_static_compilation(true)
     .vertex_source("overlay_outline_prepass_curves_vert.glsl")
-    .additional_info("draw_hair", "overlay_outline_prepass")
+    .additional_info("draw_hair", "draw_resource_handle", "overlay_outline_prepass")
     .additional_info("draw_object_infos");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_outline_prepass_curves", "drw_clipped");
 
-GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_common)
-    .vertex_in(0, Type::VEC3, "pos")
-    .additional_info("draw_mesh", "overlay_outline_prepass")
-    .additional_info("draw_object_infos");
-
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_wire_common")
+    .additional_info("overlay_outline_prepass",
+                     "draw_object_infos",
+                     "draw_mesh",
+                     "draw_resource_handle")
+    .vertex_in(0, Type::VEC3, "pos")
     .define("USE_GEOM")
     .vertex_out(overlay_outline_prepass_wire_iface)
     .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
@@ -59,7 +58,11 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_no_geom)
     .metal_backend_only(true)
     .do_static_compilation(true)
-    .additional_info("overlay_outline_prepass_wire_common")
+    .vertex_in(0, Type::VEC3, "pos")
+    .additional_info("overlay_outline_prepass",
+                     "draw_object_infos",
+                     "draw_mesh",
+                     "draw_resource_handle")
     .vertex_source("overlay_outline_prepass_vert_no_geom.glsl");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_clipped)
@@ -96,7 +99,7 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil_clipped)
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
     .do_static_compilation(true)
     .vertex_source("overlay_outline_prepass_pointcloud_vert.glsl")
-    .additional_info("draw_pointcloud", "overlay_outline_prepass")
+    .additional_info("draw_pointcloud", "draw_resource_handle", "overlay_outline_prepass")
     .additional_info("draw_object_infos");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud_clipped)

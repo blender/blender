@@ -206,6 +206,13 @@ template<typename MatT, typename RotationT>
                                 const RotationT &rotation);
 
 /**
+ * Create a transform matrix with translation and scale applied in this order.
+ */
+template<typename MatT, int ScaleDim>
+[[nodiscard]] MatT from_loc_scale(const typename MatT::loc_type &location,
+                                  const VecBase<typename MatT::base_type, ScaleDim> &scale);
+
+/**
  * Create a transform matrix with translation, rotation and scale applied in this order.
  */
 template<typename MatT, typename RotationT, int ScaleDim>
@@ -1405,6 +1412,15 @@ template<typename MatT, typename RotationT>
   using MatRotT =
       MatBase<typename MatT::base_type, MatT::loc_type::type_length, MatT::loc_type::type_length>;
   MatT mat = MatT(from_rotation<MatRotT>(rotation));
+  mat.location() = location;
+  return mat;
+}
+
+template<typename MatT, int ScaleDim>
+[[nodiscard]] MatT from_loc_scale(const typename MatT::loc_type &location,
+                                  const VecBase<typename MatT::base_type, ScaleDim> &scale)
+{
+  MatT mat = MatT(from_scale<MatT>(scale));
   mat.location() = location;
   return mat;
 }

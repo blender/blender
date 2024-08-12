@@ -17,12 +17,14 @@
 #include "overlay_next_empty.hh"
 #include "overlay_next_facing.hh"
 #include "overlay_next_force_field.hh"
+#include "overlay_next_grease_pencil.hh"
 #include "overlay_next_grid.hh"
 #include "overlay_next_lattice.hh"
 #include "overlay_next_light.hh"
 #include "overlay_next_lightprobe.hh"
 #include "overlay_next_mesh.hh"
 #include "overlay_next_metaball.hh"
+#include "overlay_next_outline.hh"
 #include "overlay_next_prepass.hh"
 #include "overlay_next_relation.hh"
 #include "overlay_next_speaker.hh"
@@ -49,6 +51,7 @@ class Instance {
 
   /** Overlay types. */
   Background background;
+  Outline outline;
 
   struct OverlayLayer {
     const SelectionType selection_type_;
@@ -57,6 +60,7 @@ class Instance {
     Empties empties = {selection_type_};
     Facing facing = {selection_type_};
     ForceFields force_fields = {selection_type_};
+    GreasePencil grease_pencil;
     Lattices lattices;
     Lights lights = {selection_type_};
     LightProbes light_probes = {selection_type_};
@@ -85,7 +89,13 @@ class Instance {
   void draw(Manager &manager);
 
  private:
-  bool object_is_edit_mode(const Object *ob);
+  bool object_is_selected(const ObjectRef &ob_ref);
+  bool object_is_edit_mode(const Object *object);
+  bool object_is_paint_mode(const Object *object);
+  /* Checks for both curve sculpt and regular sculpt mode. */
+  bool object_is_sculpt_mode(const ObjectRef &ob_ref);
+  /* Checks only for sculpt mode. */
+  bool object_is_sculpt_mode(const Object *object);
 };
 
 }  // namespace blender::draw::overlay

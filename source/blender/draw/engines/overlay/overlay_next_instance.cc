@@ -10,6 +10,8 @@
 
 #include "ED_view3d.hh"
 
+#include "BKE_paint.hh"
+
 #include "draw_debug.hh"
 
 #include "overlay_next_instance.hh"
@@ -85,6 +87,7 @@ void Instance::begin_sync()
   resources.begin_sync();
 
   background.begin_sync(resources, state);
+  outline.begin_sync(resources, state);
 
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.bounds.begin_sync();
@@ -112,7 +115,9 @@ void Instance::begin_sync()
 void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 {
   const bool in_edit_mode = object_is_edit_mode(ob_ref.object);
-  const bool needs_prepass = true; /* TODO */
+  const bool in_paint_mode = object_is_paint_mode(ob_ref.object);
+  const bool in_sculpt_mode = object_is_sculpt_mode(ob_ref);
+  const bool needs_prepass = !state.xray_enabled; /* TODO */
 
   OverlayLayer &layer = (state.use_in_front && ob_ref.object->dtx & OB_DRAW_IN_FRONT) ? infront :
                                                                                         regular;
@@ -189,6 +194,22 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.force_fields.object_sync(ob_ref, resources, state);
     layer.bounds.object_sync(ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
+
+    if (object_is_selected(ob_ref)) {
+      if (in_edit_mode || in_paint_mode || in_sculpt_mode) {
+        /* Disable outlines for objects in sculpt, paint or edit mode. */
+      }
+      else if ((ob_ref.object->base_flag & BASE_FROM_DUPLI) &&
+               (object_is_edit_mode(ob_ref.dupli_parent) ||
+                object_is_sculpt_mode(ob_ref.dupli_parent) ||
+                object_is_paint_mode(ob_ref.dupli_parent)))
+      {
+        /* Disable outlines for objects instanced by an object in sculpt, paint or edit mode. */
+      }
+      else {
+        outline.object_sync(manager, ob_ref, state);
+      }
+    }
   }
 }
 
@@ -273,12 +294,15 @@ void Instance::draw(Manager &manager)
                                      GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
                                      GPU_ATTACHMENT_TEXTURE(resources.line_tx));
     resources.overlay_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx),
-                                         GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
+                                         GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
     resources.overlay_line_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx),
-                                              GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx),
+                                              GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
                                               GPU_ATTACHMENT_TEXTURE(resources.line_tx));
   }
 
+  resources.overlay_line_only_fb.ensure(GPU_ATTACHMENT_NONE,
+                                        GPU_ATTACHMENT_TEXTURE(resources.overlay_tx),
+                                        GPU_ATTACHMENT_TEXTURE(resources.line_tx));
   resources.overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
                                          GPU_ATTACHMENT_TEXTURE(resources.overlay_tx));
   resources.overlay_output_fb.ensure(GPU_ATTACHMENT_NONE,
@@ -290,6 +314,8 @@ void Instance::draw(Manager &manager)
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
   infront.prepass.draw(resources.overlay_line_in_front_fb, manager, view);
+
+  outline.draw(resources, manager, view);
 
   auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     regular.facing.draw(framebuffer, manager, view);
@@ -338,11 +364,46 @@ void Instance::draw(Manager &manager)
   resources.read_result();
 }
 
-bool Instance::object_is_edit_mode(const Object *ob)
+bool Instance::object_is_selected(const ObjectRef &ob_ref)
 {
-  if (DRW_object_is_in_edit_mode(ob)) {
+  return (ob_ref.object->base_flag & BASE_SELECTED);
+}
+
+bool Instance::object_is_paint_mode(const Object *object)
+{
+  if (object->type == OB_GREASE_PENCIL && state.object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) {
+    return true;
+  }
+  return (object == state.active_base->object) && (state.object_mode & OB_MODE_ALL_PAINT);
+}
+
+bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
+{
+  if (state.object_mode == OB_MODE_SCULPT_CURVES) {
+    const Object *active_object = state.active_base->object;
+    const bool is_active_object = ob_ref.object == active_object;
+
+    bool is_geonode_preview = ob_ref.dupli_object && ob_ref.dupli_object->preview_base_geometry;
+    bool is_active_dupli_parent = ob_ref.dupli_parent == active_object;
+    return is_active_object || (is_active_dupli_parent && is_geonode_preview);
+  };
+
+  return false;
+}
+
+bool Instance::object_is_sculpt_mode(const Object *object)
+{
+  if (object->sculpt && (object->sculpt->mode_type == OB_MODE_SCULPT)) {
+    return object == state.active_base->object;
+  }
+  return false;
+}
+
+bool Instance::object_is_edit_mode(const Object *object)
+{
+  if (DRW_object_is_in_edit_mode(object)) {
     /* Also check for context mode as the object mode is not 100% reliable. (see T72490) */
-    switch (ob->type) {
+    switch (object->type) {
       case OB_MESH:
         return state.ctx_mode == CTX_MODE_EDIT_MESH;
       case OB_ARMATURE:

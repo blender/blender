@@ -171,8 +171,11 @@ GPU_SHADER_CREATE_INFO(draw_gpencil_new)
     .sampler(0, ImageType::FLOAT_BUFFER, "gp_pos_tx")
     .sampler(1, ImageType::FLOAT_BUFFER, "gp_col_tx")
     /* Per Object */
-    .define("gpThicknessScale", "1.0") /* TODO(fclem): Replace with object info. */
+    .push_constant(Type::FLOAT, "gpThicknessScale") /* TODO(fclem): Replace with object info. */
+    .push_constant(Type::FLOAT, "gpThicknessWorldScale") /* TODO(fclem): Same as above. */
+    .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
     /* Per Layer */
+    .push_constant(Type::FLOAT, "gpThicknessOffset")
     .additional_info("draw_modelmat_new",
                      "draw_resource_id_varying",
                      "draw_view",

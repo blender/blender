@@ -5,6 +5,7 @@
 #pragma USE_SSBO_VERTEX_FETCH(LineList, 2)
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
 #define DISCARD_VERTEX \
   gl_Position = vec4(0.0); \
@@ -12,8 +13,13 @@
 
 uint outline_colorid_get(void)
 {
+#ifdef OBINFO_NEW
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
+#else
   int flag = int(abs(ObjectInfo.w));
   bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
+#endif
 
   if (isTransform) {
     return 0u; /* colorTransform */
