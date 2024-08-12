@@ -274,13 +274,13 @@ static bool face_state_get(SculptSession &ss,
                            const Span<bool> hide_poly,
                            const Span<int> face_sets,
                            Cache *expand_cache,
-                           const int f)
+                           const int face)
 {
-  if (!hide_poly.is_empty() && hide_poly[f]) {
+  if (!hide_poly.is_empty() && hide_poly[face]) {
     return false;
   }
 
-  if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, f)) {
+  if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, face)) {
     return false;
   }
 
@@ -294,7 +294,7 @@ static bool face_state_get(SculptSession &ss,
   bool enabled = false;
 
   if (expand_cache->snap_enabled_face_sets) {
-    const int face_set = expand_cache->original_face_sets[f];
+    const int face_set = expand_cache->original_face_sets[face];
     enabled = expand_cache->snap_enabled_face_sets->contains(face_set);
   }
   else {
@@ -302,12 +302,12 @@ static bool face_state_get(SculptSession &ss,
                            SCULPT_EXPAND_LOOP_THRESHOLD;
 
     const float active_factor = fmod(expand_cache->active_falloff, loop_len);
-    const float falloff_factor = fmod(expand_cache->face_falloff[f], loop_len);
+    const float falloff_factor = fmod(expand_cache->face_falloff[face], loop_len);
     enabled = falloff_factor < active_factor;
   }
 
   if (expand_cache->falloff_type == FalloffType::ActiveFaceSet) {
-    if (face_sets[f] == expand_cache->initial_active_face_set) {
+    if (face_sets[face] == expand_cache->initial_active_face_set) {
       enabled = false;
     }
   }
