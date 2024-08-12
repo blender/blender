@@ -37,9 +37,14 @@ set LLVM_DIR=
 :DetectionComplete	
 	set CC=%LLVM_DIR%\bin\clang-cl
 	set CXX=%LLVM_DIR%\bin\clang-cl
-	rem build and tested against 2019 16.2
-	set CFLAGS=-m64 -fmsc-version=1922
-	set CXXFLAGS=-m64 -fmsc-version=1922
+	if "%PROCESSOR_ARCHITECTURE%" == "ARM64" (
+		set CFLAGS=-m64
+		set CXXFLAGS=-m64
+	) else (
+		rem build and tested against 2019 16.2
+		set CFLAGS=-m64 -fmsc-version=1922
+		set CXXFLAGS=-m64 -fmsc-version=1922
+	)
 )
 
 if "%WITH_ASAN%"=="1" (

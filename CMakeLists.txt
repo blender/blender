@@ -410,6 +410,10 @@ option(WITH_OPENMP "Enable OpenMP (has to be supported by the compiler)" ON)
 if(UNIX AND NOT APPLE)
   option(WITH_OPENMP_STATIC "Link OpenMP statically (only used by the release environment)" OFF)
   mark_as_advanced(WITH_OPENMP_STATIC)
+elseif(WIN32 AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+  # At time of testing (LLVM 18.1.6) OMP is not included in public LLVM builds for Windows ARM64
+  set(WITH_OPENMP OFF)
+  set(WITH_OPENMP_STATIC OFF)
 endif()
 
 if(WITH_GHOST_X11)
@@ -2167,6 +2171,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
       C_WARN_CLANG_CL_BITFIELD_ENUM_CONVERSION -Wno-bitfield-enum-conversion # 1
       C_WARN_CLANG_CL_UNUSED_LAMBDA_CAPTURE -Wno-unused-lambda-capture # 1
       C_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR_MODIFIED -Wno-shadow-field-in-constructor-modified # 1
+      # And some additional ones that came up when using LLVM 18.1.8 on Windows ARM64
+      C_WARN_CLANG_CL_SWITCH_DEFAULT -Wno-switch-default
+      C_WARN_CLANG_CL_NAN_INFINITY_DISABLED -Wno-nan-infinity-disabled
     )
 
   add_check_cxx_compiler_flags(
@@ -2298,6 +2305,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
       CXX_WARN_CLANG_CL_BITFIELD_ENUM_CONVERSION -Wno-bitfield-enum-conversion # 1
       CXX_WARN_CLANG_CL_UNUSED_LAMBDA_CAPTURE -Wno-unused-lambda-capture # 1
       CXX_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR_MODIFIED -Wno-shadow-field-in-constructor-modified # 1
+      # And some additional ones that came up when using LLVM 18.1.8 on Windows ARM64
+      CXX_WARN_CLANG_CL_SWITCH_DEFAULT -Wno-switch-default
+      CXX_WARN_CLANG_CL_NAN_INFINITY_DISABLED -Wno-nan-infinity-disabled
     )
   endif()
 

@@ -625,7 +625,7 @@ void MatchFinder_Init(CMatchFinder *p)
     #endif
   #endif
 
-  #if defined(_MSC_VER) && defined(MY_CPU_ARM64)
+  #if defined(_MSC_VER) && defined(MY_CPU_ARM64) && !defined(__clang__)
     #include <arm64_neon.h>
   #else
     #include <arm_neon.h>
