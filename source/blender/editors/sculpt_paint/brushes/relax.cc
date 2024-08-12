@@ -57,25 +57,16 @@ static float3 translation_to_plane(const float3 &current_position,
   return smooth_closest_plane - current_position;
 }
 
-static bool get_normal_boundary(const float3 &current_position,
-                                const Span<float3> vert_positions,
-                                const Span<int> neighbors,
-                                float3 &r_new_normal)
+static float3 calc_boundary_normal_corner(const float3 &current_position,
+                                          const Span<float3> vert_positions,
+                                          const Span<int> neighbors)
 {
-  /* If we are not dealing with a corner vertex, skip this step.*/
-  if (neighbors.size() != 2) {
-    return false;
-  }
-
   float3 normal(0);
   for (const int vert : neighbors) {
     const float3 to_neighbor = vert_positions[vert] - current_position;
     normal += math::normalize(to_neighbor);
   }
-
-  r_new_normal = math::normalize(normal);
-
-  return true;
+  return math::normalize(normal);
 }
 
 static float3 average_positions(const Span<float3> vert_positions, const Span<int> neighbors)
@@ -88,27 +79,18 @@ static float3 average_positions(const Span<float3> vert_positions, const Span<in
   return result;
 }
 
-static bool get_normal_boundary(const CCGKey &key,
-                                const Span<CCGElem *> elems,
-                                const float3 &current_position,
-                                const Span<SubdivCCGCoord> neighbors,
-                                float3 &r_new_normal)
+static float3 calc_boundary_normal_corner(const CCGKey &key,
+                                          const Span<CCGElem *> elems,
+                                          const float3 &current_position,
+                                          const Span<SubdivCCGCoord> neighbors)
 {
-  /* If we are not dealing with a corner vertex, skip this step.*/
-  if (neighbors.size() != 2) {
-    return false;
-  }
-
   float3 normal(0);
   for (const SubdivCCGCoord &coord : neighbors) {
     const float3 to_neighbor = CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y) -
                                current_position;
     normal += math::normalize(to_neighbor);
   }
-
-  r_new_normal = math::normalize(normal);
-
-  return true;
+  return math::normalize(normal);
 }
 
 static float3 average_positions(const CCGKey &key,
@@ -132,25 +114,16 @@ static float3 average_positions(const CCGKey &key,
   return result;
 }
 
-static bool get_normal_boundary(const float3 &current_position,
-                                const Span<BMVert *> neighbors,
-                                float3 &r_new_normal)
+static float3 calc_boundary_normal_corner(const float3 &current_position,
+                                          const Span<BMVert *> neighbors)
 {
-  /* If we are not dealing with a corner vertex, skip this step.*/
-  if (neighbors.size() != 2) {
-    return false;
-  }
-
   float3 normal(0);
   for (BMVert *vert : neighbors) {
     const float3 neighbor_pos = vert->co;
     const float3 to_neighbor = neighbor_pos - current_position;
     normal += math::normalize(to_neighbor);
   }
-
-  r_new_normal = math::normalize(normal);
-
-  return true;
+  return math::normalize(normal);
 }
 
 static float3 average_positions(const Span<const BMVert *> verts)
@@ -217,21 +190,15 @@ BLI_NOINLINE static void calc_relaxed_translations_faces(const Span<float3> vert
 
     /* Normal Calculation */
     float3 normal;
-    if (is_boundary) {
-      bool has_boundary_normal = get_normal_boundary(
-          vert_positions[verts[i]], vert_positions, neighbors[i], normal);
-
-      if (!has_boundary_normal) {
-        normal = vert_normals[verts[i]];
+    if (is_boundary && neighbors[i].size() == 2) {
+      normal = calc_boundary_normal_corner(vert_positions[verts[i]], vert_positions, neighbors[i]);
+      if (math::is_zero(normal)) {
+        translations[i] = float3(0);
+        continue;
       }
     }
     else {
       normal = vert_normals[verts[i]];
-    }
-
-    if (math::is_zero(normal)) {
-      translations[i] = float3(0);
-      continue;
     }
 
     const float3 translation = translation_to_plane(
@@ -325,21 +292,16 @@ BLI_NOINLINE static void calc_relaxed_translations_grids(const SubdivCCG &subdiv
 
         /* Normal Calculation */
         float3 normal;
-        if (is_boundary) {
-          bool has_boundary_normal = get_normal_boundary(
-              key, elems, positions[node_vert], neighbors[node_vert], normal);
-
-          if (!has_boundary_normal) {
-            normal = CCG_elem_offset_no(key, elem, offset);
+        if (is_boundary && neighbors[i].size() == 2) {
+          normal = calc_boundary_normal_corner(
+              key, elems, positions[node_vert], neighbors[node_vert]);
+          if (math::is_zero(normal)) {
+            translations[node_vert] = float3(0);
+            continue;
           }
         }
         else {
           normal = CCG_elem_offset_no(key, elem, offset);
-        }
-
-        if (math::is_zero(normal)) {
-          translations[node_vert] = float3(0);
-          continue;
         }
 
         const float3 translation = translation_to_plane(
@@ -413,21 +375,16 @@ BLI_NOINLINE static void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> 
 
     /* Normal Calculation */
     float3 normal;
-    if (is_boundary) {
-      bool has_boundary_normal = get_normal_boundary(positions[i], neighbors[i], normal);
-
-      if (!has_boundary_normal) {
-        normal = vert->no;
+    if (is_boundary && neighbors[i].size() == 2) {
+      normal = calc_boundary_normal_corner(positions[i], neighbors[i]);
+      if (math::is_zero(normal)) {
+        translations[i] = float3(0);
+        i++;
+        continue;
       }
     }
     else {
       normal = vert->no;
-    }
-
-    if (math::is_zero(normal)) {
-      translations[i] = float3(0);
-      i++;
-      continue;
     }
 
     const float3 translation = translation_to_plane(positions[i], normal, smoothed_position);
