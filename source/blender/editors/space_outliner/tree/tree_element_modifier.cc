@@ -93,6 +93,14 @@ void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
                   TSE_LINKED_OB,
                   0);
     }
+    else if (md->type == eModifierType_Nodes) {
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((NodesModifierData *)md)->node_group),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_NODE_TREE,
+                  0);
+    }
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 

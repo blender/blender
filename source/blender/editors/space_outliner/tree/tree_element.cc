@@ -30,6 +30,7 @@
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
 #include "tree_element_layer_collection.hh"
+#include "tree_element_linked_node_tree.hh"
 #include "tree_element_linked_object.hh"
 #include "tree_element_modifier.hh"
 #include "tree_element_nla.hh"
@@ -181,6 +182,8 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
           legacy_te,
           *reinterpret_cast<Object *>(owner_id),
           *static_cast<ModifierDataStoreElem *>(create_data));
+    case TSE_LINKED_NODE_TREE:
+      return std::make_unique<TreeElementLinkedNodeTree>(legacy_te, *owner_id);
     case TSE_LINKED_OB:
       return std::make_unique<TreeElementLinkedObject>(legacy_te, *owner_id);
     case TSE_VIEW_COLLECTION_BASE:

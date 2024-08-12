@@ -75,6 +75,7 @@ set(SRC
   tree/tree_element_label.cc
   tree/tree_element_layer_collection.cc
   tree/tree_element_linked_object.cc
+  tree/tree_element_linked_node_tree.cc
   tree/tree_element_modifier.cc
   tree/tree_element_nla.cc
   tree/tree_element_overrides.cc
@@ -118,6 +119,7 @@ set(SRC
   tree/tree_element_label.hh
   tree/tree_element_layer_collection.hh
   tree/tree_element_linked_object.hh
+  tree/tree_element_linked_node_tree.hh
   tree/tree_element_modifier.hh
   tree/tree_element_nla.hh
   tree/tree_element_overrides.hh

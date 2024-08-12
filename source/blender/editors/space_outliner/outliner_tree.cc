@@ -344,6 +344,9 @@ TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
   else if (ELEM(type, TSE_MODIFIER, TSE_MODIFIER_BASE)) {
     /* pass */
   }
+  else if (type == TSE_LINKED_NODE_TREE) {
+    /* pass */
+  }
   else if (type == TSE_LINKED_OB) {
     /* pass */
   }
