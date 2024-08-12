@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -43004,6 +43004,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "要焊接的頂點彼此之間的最大距離"
 
 
+msgid "Shared Vertex"
+msgstr "共享的頂點"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "重設"
@@ -53836,10 +53840,6 @@ msgstr "共享的位置"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "選取位在相同位置上並共享網格頂點的 UV"
-
-
-msgid "Shared Vertex"
-msgstr "共享的頂點"
 
 
 msgid "Filter Vertex groups for Display"

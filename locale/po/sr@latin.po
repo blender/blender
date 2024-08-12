@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -19313,6 +19313,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Minimalno rastojanje među spojenim temenima"
 
 
+msgid "Shared Vertex"
+msgstr "Deljena temena"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Resetuj"
@@ -23488,10 +23492,6 @@ msgstr "UV izbor i način prikaza"
 
 msgid "Shared Location"
 msgstr "Deljena lokacija"
-
-
-msgid "Shared Vertex"
-msgstr "Deljena temena"
 
 
 msgid "All Vertex Groups"

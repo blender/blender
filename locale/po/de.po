@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -39022,6 +39022,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Entfernung zwischen zwei Knochen oder Objekten"
 
 
+msgid "Shared Vertex"
+msgstr "Gemeinsamer Knoten"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Zurücksetzen"
@@ -49569,10 +49573,6 @@ msgstr "UV Selektionsmodus"
 
 msgid "UV selection and display mode"
 msgstr "UV Selektions- und Anzeigemodus"
-
-
-msgid "Shared Vertex"
-msgstr "Gemeinsamer Knoten"
 
 
 msgid "All Vertex Groups"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -61411,6 +61411,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Найбільша відстань між вершинами що зливаються"
 
 
+msgid "Shared Vertex"
+msgstr "Спільна вершина"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Скинути"
@@ -79548,10 +79552,6 @@ msgstr "Спільне розташування"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Виділити вершини UV, що знаходяться у тій ж локації та сумісні з вершиною сіті"
-
-
-msgid "Shared Vertex"
-msgstr "Спільна вершина"
 
 
 msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"

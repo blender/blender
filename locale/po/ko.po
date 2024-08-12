@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -53541,6 +53541,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "용접된 버텍스 사이의 최대 거리"
 
 
+msgid "Shared Vertex"
+msgstr "공유된 버텍스"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "재설정"
@@ -69520,10 +69524,6 @@ msgstr "공유된 위치"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "동일한 위치에 있는 UV 선택 및 메쉬 버텍스 공유"
-
-
-msgid "Shared Vertex"
-msgstr "공유된 버텍스"
 
 
 msgid "Filter Vertex groups for Display"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-07-15 07:55+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -83636,6 +83636,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "統合する頂点間の最大距離"
 
 
+msgid "Shared Vertex"
+msgstr "共有する頂点"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "リセット"
@@ -109038,10 +109042,6 @@ msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "メッシュの頂点を共有する同じ位置のUVを選択します"
 
 
-msgid "Shared Vertex"
-msgstr "共有する頂点"
-
-
 msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"
 msgstr "メッシュの頂点を共有する UV を，同じ位置にあるかどうかに関わらず選択します"
 
@@ -130920,10 +130920,6 @@ msgid "Unable to execute '%s', error changing modes"
 msgstr "「%s」を実行できません．モード変更でエラー"
 
 
-msgid "Unable to execute, %s object is linked"
-msgstr "実行できません．オブジェクト「%s」はリンク中です"
-
-
 msgid "Apply Modifier"
 msgstr "モディファイアーを適用"
 
@@ -144703,128 +144699,4 @@ msgstr "最大時の半径の係数"
 
 msgid "Shrinkwrap Hair Curves"
 msgstr "ヘアーカーブシュリンクラップ"
-
-
-msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from above"
-msgstr "ヘアーカーブをメッシュサーフェスの下（もしくは上）からシュリンクラップします"
-
-
-msgid "Surface geometry used for shrinkwrap"
-msgstr "シュリンクラップで使用するサーフェスジオメトリ"
-
-
-msgid "Surface object used for shrinkwrap"
-msgstr "シュリンクラップで使用するサーフェスオブジェクト"
-
-
-msgid "Distance from the surface used for shrinkwrap"
-msgstr "シュリンクラップで使用する，サーフェスからの距離"
-
-
-msgid "Blend shrinkwrap for points above the surface"
-msgstr "サーフェスの上のポイントとシュリンクラップをブレンドします"
-
-
-msgid "Smoothing Steps"
-msgstr "スムージングステップ数"
-
-
-msgid "Amount of steps of smoothing applied after shrinkwrap"
-msgstr "シュリンクラップ後に適用されるスムージングのステップ数"
-
-
-msgid "Lock Roots"
-msgstr "根元をロック"
-
-
-msgid "Lock the position of root points"
-msgstr "根元のポイントの位置をロックします"
-
-
-msgid "Smooth Hair Curves"
-msgstr "ヘアーカーブスムージング"
-
-
-msgid "Smoothes the shape of hair curves"
-msgstr "ヘアーカーブの形状をスムージングします"
-
-
-msgid "Amount of smoothing"
-msgstr "スムージングの量"
-
-
-msgid "Amount of smoothing steps"
-msgstr "スムージングステップの量"
-
-
-msgid "Weight used for smoothing"
-msgstr "スムージングに使用するウェイト"
-
-
-msgid "Lock Tips"
-msgstr "先端をロック"
-
-
-msgid "Lock tip position when smoothing"
-msgstr "スムージング時に先端の位置をロックします"
-
-
-msgid "Straighten Hair Curves"
-msgstr "ヘアーカーブストレート化"
-
-
-msgid "Straightens hair curves between root and tip"
-msgstr "ヘアーカーブの根元と先端の間をまっすぐにします"
-
-
-msgid "Amount of straightening"
-msgstr "ストレート化の量"
-
-
-msgid "Trim Hair Curves"
-msgstr "ヘアーカーブトリム"
-
-
-msgid "Trims or scales hair curves to a certain length"
-msgstr "ヘアーカーブを指定の長さにカットまたはスケーリングします"
-
-
-msgid "Scale each curve uniformly to reach the target length"
-msgstr "各カーブのスケールを，ターゲットの長さに達するよう統一します"
-
-
-msgid "Multiply the original length by a factor"
-msgstr "元の長さを係数で乗算します"
-
-
-msgid "Replace Length"
-msgstr "長さを置換"
-
-
-msgid "Use the length input to fully replace the original length"
-msgstr "長さ入力を使用し，元の長さを完全に置き換えます"
-
-
-msgid "Target length for the operation"
-msgstr "処理のターゲットの長さ"
-
-
-msgid "Mask to blend overall effect"
-msgstr "エフェクト全体のブレンドのマスク"
-
-
-msgid "Trim hair curves randomly up to a certain amount"
-msgstr "ヘアーカーブを指定の量までランダムにトリミングします"
-
-
-msgid "Smooth by Angle"
-msgstr "角度でスムーズ"
-
-
-msgid "Maximum face angle for smooth edges"
-msgstr "スムーズ辺の最大の面の角度"
-
-
-msgid "Ignore Sharpness"
-msgstr "シャープを無視"
 

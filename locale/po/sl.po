@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
-"PO-Revision-Date: 2024-08-04 20:56+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"PO-Revision-Date: 2024-08-11 22:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -851,6 +851,10 @@ msgid "Action Slot Name"
 msgstr "Ime akcijskega polja"
 
 
+msgid "The name of the action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action."
+msgstr "Ime akcijskega polja. Polje določa, katera podmnožica akcije je namenjena temu podatkovnemu bloku, in z njegovim imenom lahko poiščemo pravo polje, ko dodeljujemo akcijo."
+
+
 msgid "Slots"
 msgstr "Polja"
 
@@ -1097,6 +1101,10 @@ msgstr "Prikaže gibanje na podanem intervalu"
 
 msgid "Bake to active Camera"
 msgstr "Poračunaj za aktivno kamero"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported."
+msgstr "Točke gibalne poti bodo vpete v prostor aktivne kamere. To pomeni, da se bodo pravilno prikazovale le, če jih boste gledali skozi to kamero. Preklapljanje kamer z oznakami ni podprto."
 
 
 msgid "Any Type"
@@ -1427,6 +1435,10 @@ msgid "Catalog UUID"
 msgstr "UUID kataloga"
 
 
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122."
+msgstr "Identifikator kataloga, ki mu sredstvo pripada. Z njegovo pomočjo Blender poišče pot do kataloga sredstva. Identifikator mora biti UUID, definiran po RFC4122."
+
+
 msgid "Catalog Simple Name"
 msgstr "Preprosto ime kataloga"
 
@@ -1439,6 +1451,10 @@ msgid "Copyright"
 msgstr "Avtorske pravice"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "Obvestilo o avtorskih pravicah za to sredstvo. Prazno polje ne pomeni nujno, da sredstvo ni zaščiteno z avtorskimi pravicami. Če kaj ni jasno, stopite v stik z avtorjem."
+
+
 msgid "Description"
 msgstr "Opis"
 
@@ -1449,6 +1465,10 @@ msgstr "Opis sredstva, ki bo viden uporabniku"
 
 msgid "License"
 msgstr "Licenca"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "Vrsta licence, po kateri naj se sredstvo deli naprej. Prazno polje ne pomeni nujno, da sredstvo ni zaščiteno z licenco. Če kaj ni jasno, stopite v stik z avtorjem."
 
 
 msgid "Tags"
@@ -1783,6 +1803,10 @@ msgid "No Asset Dragging"
 msgstr "Brez vlečenja sredstev"
 
 
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
+msgstr "Onemogoči privzeto vlečenje sredstev z miško. To je uporabno, če želimo implementirati prilagojeno vlečenje preko preslikav tipk."
+
+
 msgid "Visible by Default"
 msgstr "Privzeto vidna"
 
@@ -1825,6 +1849,10 @@ msgstr "Filtrira sredstva po imenu"
 
 msgid "Show Names"
 msgstr "Pokaži imena"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "Pokaže ime sredstva skupaj s predogledom. V nasprotnem primeru bo viden le predogled."
 
 
 msgid "Asset Tag"
@@ -6595,7 +6623,7 @@ msgstr "So podatki"
 
 
 msgid "Treat image as non-color data without color management, like normal or displacement maps"
-msgstr "Sliko obravnava kakor nebarvne podatke, kot so teksture normal ali odmikov"
+msgstr "Sliko obravnava kakor nebarvne podatke, kot so teksture normal ali odstopanj"
 
 
 msgid "Input Color Space"
@@ -9083,11 +9111,11 @@ msgstr "Notranja bližina"
 
 
 msgid "Paint Alpha"
-msgstr "Alfa barve"
+msgstr "Risalna alfa"
 
 
 msgid "Paint Color"
-msgstr "Barva"
+msgstr "Risalna barva"
 
 
 msgid "Proximity Distance"
@@ -9095,11 +9123,11 @@ msgstr "Meja bližine"
 
 
 msgid "Paint Color Ramp"
-msgstr "Barvni trak barve"
+msgstr "Risalni barvni trak"
 
 
 msgid "Paint Source"
-msgstr "Barvni vir"
+msgstr "Risalni vir"
 
 
 msgid "Object Center"
@@ -9119,7 +9147,7 @@ msgstr "Prostornina mreže"
 
 
 msgid "Paint Wetness"
-msgstr "Vlažnost barve"
+msgstr "Vlažnost nanosa"
 
 
 msgid "Particle Systems"
@@ -9192,6 +9220,1610 @@ msgstr "Uporabi polmer delca"
 
 msgid "Only Use Alpha"
 msgstr "Uporabi samo alfo"
+
+
+msgid "Multiply Alpha"
+msgstr "Množenje z alfo"
+
+
+msgid "Replace Color"
+msgstr "Zamenjaj barvo"
+
+
+msgid "Multiply Depth"
+msgstr "Množenje z globino"
+
+
+msgid "Max Velocity"
+msgstr "Največja hitrost"
+
+
+msgid "Velocity Color Ramp"
+msgstr "Barvni trak hitrosti"
+
+
+msgid "Clamp Waves"
+msgstr "Obrez valov"
+
+
+msgid "Factor"
+msgstr "Faktor"
+
+
+msgctxt "Simulation"
+msgid "Wave Type"
+msgstr "Vrsta vala"
+
+
+msgctxt "Simulation"
+msgid "Depth Change"
+msgstr "Sprememba globine"
+
+
+msgctxt "Simulation"
+msgid "Obstacle"
+msgstr "Ovira"
+
+
+msgctxt "Simulation"
+msgid "Force"
+msgstr "Sila"
+
+
+msgctxt "Simulation"
+msgid "Reflect Only"
+msgstr "Samo odboji"
+
+
+msgid "Canvas Settings"
+msgstr "Nastavitve platna"
+
+
+msgid "Paint Surface List"
+msgstr "Seznam slikarskih površin"
+
+
+msgid "Paint Surface"
+msgstr "Slikarska površina"
+
+
+msgid "Brush Collection"
+msgstr "Zbirka čopičev"
+
+
+msgid "Influence Scale"
+msgstr "Jakost vpliva"
+
+
+msgid "Radius Scale"
+msgstr "Polmer"
+
+
+msgid "Color Dry"
+msgstr "Sušenje barve"
+
+
+msgid "Color Spread"
+msgstr "Razlivanje barve"
+
+
+msgid "Max Displace"
+msgstr "Največje odstopanje"
+
+
+msgid "Displace Factor"
+msgstr "Faktor odstopanja"
+
+
+msgid "Displacement"
+msgstr "Odstopanje"
+
+
+msgid "Dissolve Time"
+msgstr "Čas raztapljanja"
+
+
+msgid "Acceleration"
+msgstr "Pospešek"
+
+
+msgid "Velocity"
+msgstr "Hitrost"
+
+
+msgid "Dry Time"
+msgstr "Čas sušenja"
+
+
+msgid "Effect Type"
+msgstr "Vrsta učinka"
+
+
+msgid "Spread"
+msgstr "Razlivanje"
+
+
+msgid "Drip"
+msgstr "Kapljanje"
+
+
+msgid "Shrink"
+msgstr "Krčenje"
+
+
+msgid "Sub-Steps"
+msgstr "Podkoraki"
+
+
+msgid "File Format"
+msgstr "Format datoteke"
+
+
+msgid "PNG"
+msgstr "PNG"
+
+
+msgid "OpenEXR"
+msgstr "OpenEXR"
+
+
+msgid "Output Path"
+msgstr "Izhodna pot"
+
+
+msgid "Resolution"
+msgstr "Ločljivost"
+
+
+msgid "Initial Color"
+msgstr "Začetna barva"
+
+
+msgid "UV Texture"
+msgstr "Tekstura UV"
+
+
+msgid "Data Layer"
+msgstr "Podatkovna plast"
+
+
+msgid "Texture"
+msgstr "Tekstura"
+
+
+msgid "Is Active"
+msgstr "Je aktivna"
+
+
+msgid "Use Cache"
+msgstr "Uporabi predpomnjenje"
+
+
+msgid "Output Name"
+msgstr "Izhodno ime"
+
+
+msgid "Point Cache"
+msgstr "Točkovni predpomnilnik"
+
+
+msgid "Shrink Speed"
+msgstr "Hitrost krčenja"
+
+
+msgid "Spread Speed"
+msgstr "Hitrost razlivanja"
+
+
+msgid "Format"
+msgstr "Format"
+
+
+msgid "Surface Format"
+msgstr "Format površine"
+
+
+msgid "Vertex"
+msgstr "Oglišče"
+
+
+msgid "Image Sequence"
+msgstr "Slikovna sekvenca"
+
+
+msgid "Surface Type"
+msgstr "Vrsta površine"
+
+
+msgid "Paint"
+msgstr "Slikanje"
+
+
+msgid "Anti-Aliasing"
+msgstr "Glajenje robov"
+
+
+msgctxt "Simulation"
+msgid "Dissolve"
+msgstr "Raztapljanje"
+
+
+msgid "Slow"
+msgstr "Počasno"
+
+
+msgid "Use Drip"
+msgstr "Uporabi kapljanje"
+
+
+msgid "Dry"
+msgstr "Sušenje"
+
+
+msgid "Incremental"
+msgstr "Postopno"
+
+
+msgid "Use Output"
+msgstr "Uporabi izhod"
+
+
+msgid "Premultiply Alpha"
+msgstr "Predmnoženje alfe"
+
+
+msgid "Use Shrink"
+msgstr "Uporabi krčenje"
+
+
+msgid "Use Spread"
+msgstr "Uporabi razlivanje"
+
+
+msgid "Open Borders"
+msgstr "Prepustni robovi"
+
+
+msgid "UV Map"
+msgstr "Preslikava UV"
+
+
+msgid "Smoothness"
+msgstr "Gladkost"
+
+
+msgid "Spring"
+msgstr "Prožnost"
+
+
+msgid "Timescale"
+msgstr "Časovno skaliranje"
+
+
+msgid "Canvas Surfaces"
+msgstr "Površine platna"
+
+
+msgid "Active Surface"
+msgstr "Aktivna površina"
+
+
+msgid "Active Point Cache Index"
+msgstr "Predpomnilniški indeks aktivne točke"
+
+
+msgid "Curve Mapping"
+msgstr "Preslikava krivulje"
+
+
+msgid "Edit Bone"
+msgstr "Urejevalna kost"
+
+
+msgid "Edit Bone Matrix"
+msgstr "Matrika urejevalne kosti"
+
+
+msgid "Roll"
+msgstr "Obrat"
+
+
+msgid "Head Select"
+msgstr "Izbira glave"
+
+
+msgid "Tail Select"
+msgstr "Izbira repa"
+
+
+msgid "Use For Growing Hair"
+msgstr "Uporabi za rast dlake"
+
+
+msgid "Boid"
+msgstr "Boid"
+
+
+msgid "Charge"
+msgstr "Naboj"
+
+
+msgid "Effector Collection"
+msgstr "Zbirka izvršiteljev"
+
+
+msgid "Curve Guide"
+msgstr "Krivuljno vodilo"
+
+
+msgid "Drag"
+msgstr "Upor"
+
+
+msgid "Force"
+msgstr "Sila"
+
+
+msgid "Harmonic"
+msgstr "Harmonično nihanje"
+
+
+msgid "Lennard-Jones"
+msgstr "Lennard-Jones"
+
+
+msgid "Magnetic"
+msgstr "Magnet"
+
+
+msgid "Fluid Flow"
+msgstr "Tekočinski tok"
+
+
+msgid "Turbulence"
+msgstr "Turbulenca"
+
+
+msgid "Vortex"
+msgstr "Vrtinec"
+
+
+msgid "Wind"
+msgstr "Veter"
+
+
+msgid "Enum Item Definition"
+msgstr "Definicija elementa naštevne strukture"
+
+
+msgid "Identifier"
+msgstr "Identifikator"
+
+
+msgid "F-Curve"
+msgstr "F-krivulja"
+
+
+msgid "RNA Array Index"
+msgstr "Indeks polja RNA"
+
+
+msgid "Auto Handle Smoothing"
+msgstr "Samodejno glajenje ročic"
+
+
+msgid "Continuous Acceleration"
+msgstr "Zvezno pospeševanje"
+
+
+msgid "Auto Rainbow"
+msgstr "Samodejna mavrica"
+
+
+msgid "Auto XYZ to RGB"
+msgstr "Samodejno XYZ v RGB"
+
+
+msgid "Auto WXYZ to YRGB"
+msgstr "Samodejno WXYZ v YRGB"
+
+
+msgid "User Defined"
+msgstr "Po meri"
+
+
+msgid "Driver"
+msgstr "Krmilo"
+
+
+msgid "Extrapolation"
+msgstr "Ekstrapolacija"
+
+
+msgid "Group"
+msgstr "Skupina"
+
+
+msgid "Keyframes"
+msgstr "Ključni okvirji"
+
+
+msgid "Modifiers"
+msgstr "Modifikatorji"
+
+
+msgid "Muted"
+msgstr "Suspendirano"
+
+
+msgid "Sampled Points"
+msgstr "Vzorčene točke"
+
+
+msgid "Keyframe Points"
+msgstr "Točke ključnih okvirjev"
+
+
+msgid "F-Curve Modifiers"
+msgstr "Modifikatorji F-krivulj"
+
+
+msgid "Active F-Curve Modifier"
+msgstr "Aktivni modifikator F-krivulje"
+
+
+msgid "F-Curve Sample"
+msgstr "Vzorec F-krivulje"
+
+
+msgid "FFmpeg Settings"
+msgstr "Nastavitve FFmpeg"
+
+
+msgid "Bitrate"
+msgstr "Bitna hitrost"
+
+
+msgid "Audio Channels"
+msgstr "Zvočni kanali"
+
+
+msgid "Mono"
+msgstr "Mono"
+
+
+msgid "4 Channels"
+msgstr "4 kanali"
+
+
+msgid "5.1 Surround"
+msgstr "Prostorski 5.1"
+
+
+msgid "7.1 Surround"
+msgstr "Prostorski 7.1"
+
+
+msgid "Audio Codec"
+msgstr "Zvočni kodek"
+
+
+msgid "No Audio"
+msgstr "Brez zvoka"
+
+
+msgid "AAC"
+msgstr "AAC"
+
+
+msgid "AC3"
+msgstr "AC3"
+
+
+msgid "FLAC"
+msgstr "FLAC"
+
+
+msgid "MP2"
+msgstr "MP2"
+
+
+msgid "MP3"
+msgstr "MP3"
+
+
+msgid "Opus"
+msgstr "Opus"
+
+
+msgid "PCM"
+msgstr "PCM"
+
+
+msgid "Vorbis"
+msgstr "Vorbis"
+
+
+msgid "Sample Rate"
+msgstr "Hitrost vzorčenja"
+
+
+msgctxt "Sound"
+msgid "Volume"
+msgstr "Glasnost"
+
+
+msgid "Buffersize"
+msgstr "Velikost medpomnilnika"
+
+
+msgid "Video Codec"
+msgstr "Slikovni kodek"
+
+
+msgid "No Video"
+msgstr "Brez slike"
+
+
+msgid "DNxHD"
+msgstr "DNxHD"
+
+
+msgid "DV"
+msgstr "DV"
+
+
+msgid "Flash Video"
+msgstr "Flash Video"
+
+
+msgid "H.264"
+msgstr "H.264"
+
+
+msgid "HuffYUV"
+msgstr "HuffYUV"
+
+
+msgid "MPEG-1"
+msgstr "MPEG-1"
+
+
+msgid "MPEG-2"
+msgstr "MPEG-2"
+
+
+msgid "MPEG-4 (divx)"
+msgstr "MPEG-4 (divx)"
+
+
+msgid "QuickTime Animation"
+msgstr "QuickTime Animation"
+
+
+msgid "Theora"
+msgstr "Theora"
+
+
+msgid "WebM / VP9"
+msgstr "WebM / VP9"
+
+
+msgid "AV1"
+msgstr "AV1"
+
+
+msgid "Output Quality"
+msgstr "Izhodna kakovost"
+
+
+msgid "Constant Bitrate"
+msgstr "Stalna bitna hitrost"
+
+
+msgid "Lossless"
+msgstr "Brezizgubno"
+
+
+msgid "Perceptually Lossless"
+msgstr "Zaznavno brezizgubno"
+
+
+msgid "High Quality"
+msgstr "Visoka kakovost"
+
+
+msgid "Medium Quality"
+msgstr "Povprečna kakovost"
+
+
+msgid "Low Quality"
+msgstr "Nizka kakovost"
+
+
+msgid "Very Low Quality"
+msgstr "Zelo nizka kakovost"
+
+
+msgid "Lowest Quality"
+msgstr "Najnižja kakovost"
+
+
+msgid "Encoding Speed"
+msgstr "Hitrost kodiranja"
+
+
+msgid "Slowest"
+msgstr "Najpočasnejše"
+
+
+msgid "Good"
+msgstr "Dobro"
+
+
+msgid "Realtime"
+msgstr "Realnočasno"
+
+
+msgid "Container"
+msgstr "Vsebnik"
+
+
+msgid "MPEG-4"
+msgstr "MPEG-4"
+
+
+msgid "AVI"
+msgstr "AVI"
+
+
+msgid "QuickTime"
+msgstr "QuickTime"
+
+
+msgid "Ogg"
+msgstr "Ogg"
+
+
+msgid "Matroska"
+msgstr "Matroska"
+
+
+msgid "Flash"
+msgstr "Flash"
+
+
+msgid "WebM"
+msgstr "WebM"
+
+
+msgid "Keyframe Interval"
+msgstr "Interval ključnih okvirjev"
+
+
+msgid "Max B-Frames"
+msgstr "Največ okvirjev B"
+
+
+msgid "Max Rate"
+msgstr "Največja hitrost"
+
+
+msgid "Min Rate"
+msgstr "Najmanjša hitrost"
+
+
+msgid "Mux Rate"
+msgstr "Hitrost multipleksiranja"
+
+
+msgid "Mux Packet Size"
+msgstr "Velikost paketov multipleksiranja"
+
+
+msgid "Autosplit Output"
+msgstr "Samodejno ločen izhod"
+
+
+msgid "Lossless Output"
+msgstr "Brezizguben izhod"
+
+
+msgid "Use Max B-Frames"
+msgstr "Navzgor omeji okvirje B"
+
+
+msgid "F-Modifier"
+msgstr "F-modifikator"
+
+
+msgid "Blend In"
+msgstr "Priliv"
+
+
+msgid "Blend Out"
+msgstr "Odliv"
+
+
+msgid "Disabled"
+msgstr "Onemogočeno"
+
+
+msgctxt "Action"
+msgid "Type"
+msgstr "Vrsta"
+
+
+msgid "F-Curve Modifier Type"
+msgstr "Vrsta F-krivuljnega modifikatorja"
+
+
+msgctxt "Action"
+msgid "Invalid"
+msgstr "Neveljavno"
+
+
+msgctxt "Action"
+msgid "Generator"
+msgstr "Tvornik"
+
+
+msgctxt "Action"
+msgid "Built-In Function"
+msgstr "Vgrajena funkcija"
+
+
+msgctxt "Action"
+msgid "Envelope"
+msgstr "Ovoj"
+
+
+msgctxt "Action"
+msgid "Cycles"
+msgstr "Cikli"
+
+
+msgctxt "Action"
+msgid "Noise"
+msgstr "Šum"
+
+
+msgctxt "Action"
+msgid "Limits"
+msgstr "Meje"
+
+
+msgctxt "Action"
+msgid "Stepped Interpolation"
+msgstr "Stopničasta interpolacija"
+
+
+msgid "Use Influence"
+msgstr "Uporabi vpliv"
+
+
+msgid "Restrict Frame Range"
+msgstr "Omeji interval okvirjev"
+
+
+msgid "Cycles F-Modifier"
+msgstr "F-modifikator Cikli"
+
+
+msgid "After Cycles"
+msgstr "Poznejši cikli"
+
+
+msgid "Before Cycles"
+msgstr "Predhodni cikli"
+
+
+msgid "After Mode"
+msgstr "Poznejši način"
+
+
+msgid "No Cycles"
+msgstr "Brez ciklov"
+
+
+msgid "Repeat Motion"
+msgstr "Ponavljanje gibanja"
+
+
+msgid "Repeat with Offset"
+msgstr "Ponavljanje z odmikom"
+
+
+msgid "Repeat Mirrored"
+msgstr "Zrcaljeno ponavljanje"
+
+
+msgid "Before Mode"
+msgstr "Predhodni način"
+
+
+msgid "Envelope F-Modifier"
+msgstr "F-modifikator Ovoj"
+
+
+msgid "Control Points"
+msgstr "Kontrolne točke"
+
+
+msgid "Default Maximum"
+msgstr "Privzeta zgornja meja"
+
+
+msgid "Default Minimum"
+msgstr "Privzeta spodnja meja"
+
+
+msgid "Reference Value"
+msgstr "Sklicna vrednost"
+
+
+msgid "Built-In Function F-Modifier"
+msgstr "F-modifikator Vgrajena funkcija"
+
+
+msgid "Amplitude"
+msgstr "Amplituda"
+
+
+msgid "Sine"
+msgstr "Sinus"
+
+
+msgid "Cosine"
+msgstr "Kosinus"
+
+
+msgid "Square Root"
+msgstr "Kvadratni koren"
+
+
+msgid "Natural Logarithm"
+msgstr "Naravni logaritem"
+
+
+msgid "Normalized Sine"
+msgstr "Normaliziran sinus"
+
+
+msgid "sin(x) / x"
+msgstr "sin(x) / x"
+
+
+msgid "Phase Multiple"
+msgstr "Fazni množitelj"
+
+
+msgid "Phase Offset"
+msgstr "Fazni odmik"
+
+
+msgid "Value Offset"
+msgstr "Vrednostni odmik"
+
+
+msgid "Generator F-Modifier"
+msgstr "F-modifikator Tvornik"
+
+
+msgid "Coefficients"
+msgstr "Koeficienti"
+
+
+msgid "Expanded Polynomial"
+msgstr "Razčlenjeni polinom"
+
+
+msgid "Factorized Polynomial"
+msgstr "Faktorizirani polinom"
+
+
+msgid "Polynomial Order"
+msgstr "Stopnja polinoma"
+
+
+msgid "Limit F-Modifier"
+msgstr "F-modifikator Meje"
+
+
+msgid "Noise F-Modifier"
+msgstr "F-modifikator Šum"
+
+
+msgid "Phase"
+msgstr "Faza"
+
+
+msgid "Stepped Interpolation F-Modifier"
+msgstr "F-modifikator Stopničasta interpolacija"
+
+
+msgid "Step Size"
+msgstr "Velikost koraka"
+
+
+msgid "Use End Frame"
+msgstr "Uporabi zaključni okvir"
+
+
+msgid "Use Start Frame"
+msgstr "Uporabi začetni okvir"
+
+
+msgid "Envelope Control Point"
+msgstr "Kontrolna točka ovoja"
+
+
+msgid "Frame"
+msgstr "Okvir"
+
+
+msgid "Field Settings"
+msgstr "Nastavitve polja"
+
+
+msgid "Maximum Distance"
+msgstr "Največja razdalja"
+
+
+msgid "Falloff Power"
+msgstr "Moč slabenja"
+
+
+msgid "Cone"
+msgstr "Stožec"
+
+
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgid "Tube"
+msgstr "Tulec"
+
+
+msgid "Flow"
+msgstr "Pretok"
+
+
+msgid "Amount"
+msgstr "Količina"
+
+
+msgid "Shape"
+msgstr "Oblika"
+
+
+msgid "Axis"
+msgstr "Os"
+
+
+msgid "Frequency"
+msgstr "Frekvenca"
+
+
+msgctxt "ParticleSettings"
+msgid "Kink"
+msgstr "Sukanje"
+
+
+msgctxt "ParticleSettings"
+msgid "None"
+msgstr "Brez"
+
+
+msgctxt "ParticleSettings"
+msgid "Braid"
+msgstr "Kita"
+
+
+msgctxt "ParticleSettings"
+msgid "Curl"
+msgstr "Kodranje"
+
+
+msgctxt "ParticleSettings"
+msgid "Radial"
+msgstr "Radialno"
+
+
+msgctxt "ParticleSettings"
+msgid "Roll"
+msgstr "Obračanje"
+
+
+msgctxt "ParticleSettings"
+msgid "Rotation"
+msgstr "Rotacija"
+
+
+msgctxt "ParticleSettings"
+msgid "Wave"
+msgstr "Val"
+
+
+msgid "Harmonic Damping"
+msgstr "Blaženje harmonika"
+
+
+msgid "Inflow"
+msgstr "Pritok"
+
+
+msgid "Linear Drag"
+msgstr "Linearni upor"
+
+
+msgid "Noise"
+msgstr "Šum"
+
+
+msgid "Quadratic Drag"
+msgstr "Kvadratni upor"
+
+
+msgid "Radial Falloff Power"
+msgstr "Moč radialnega upadanja"
+
+
+msgid "Maximum Radial Distance"
+msgstr "Največja radialna razdalja"
+
+
+msgid "Minimum Radial Distance"
+msgstr "Najmanjša radialna razdalja"
+
+
+msgid "Rest Length"
+msgstr "Dolžina v mirovanju"
+
+
+msgid "Seed"
+msgstr "Seme"
+
+
+msgid "Every Point"
+msgstr "Vse točke"
+
+
+msgid "Size"
+msgstr "Velikost"
+
+
+msgid "Domain Object"
+msgstr "Domenski objekt"
+
+
+msgid "Texture Mode"
+msgstr "Teksturni način"
+
+
+msgid "Curl"
+msgstr "Kodranje"
+
+
+msgid "Gradient"
+msgstr "Preliv"
+
+
+msgid "Nabla"
+msgstr "Nabla"
+
+
+msgid "2D"
+msgstr "2D"
+
+
+msgid "Use Global Coordinates"
+msgstr "Uporabi globalne koordinate"
+
+
+msgid "Gravity Falloff"
+msgstr "Slabenje težnosti"
+
+
+msgid "Weights"
+msgstr "Uteži"
+
+
+msgid "Use Max"
+msgstr "Uporabi zgornjo mejo"
+
+
+msgid "Use Min"
+msgstr "Uporabi spodnjo mejo"
+
+
+msgid "Multiple Springs"
+msgstr "Več vzmeti"
+
+
+msgid "Use Coordinates"
+msgstr "Uporabi koordinate"
+
+
+msgid "Root Texture Coordinates"
+msgstr "Temeljne teksturne koordinate"
+
+
+msgid "Apply Density"
+msgstr "Upoštevaj gostoto"
+
+
+msgid "Wind Factor"
+msgstr "Vpliv vetra"
+
+
+msgid "Z Direction"
+msgstr "Smer po Z"
+
+
+msgid "Both Z"
+msgstr "Obe smeri po Z"
+
+
+msgid "File Select Asset Filter"
+msgstr "Filter izbora sredstvenih datotek"
+
+
+msgid "Fonts"
+msgstr "Pisave"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Slogi potez Freestyle"
+
+
+msgid "Particles Settings"
+msgstr "Nastavitve delcev"
+
+
+msgid "Node Trees"
+msgstr "Vozliščna drevesa"
+
+
+msgid "File Select Parameters"
+msgstr "Parametri izbire datotek"
+
+
+msgid "Save"
+msgstr "Shrani"
+
+
+msgid "File Handler Type"
+msgstr "Vrsta datotečnega krmilnika"
+
+
+msgid "Operator"
+msgstr "Operator"
+
+
+msgid "File Extensions"
+msgstr "Datotečne končnice"
+
+
+msgid "Label"
+msgstr "Označba"
+
+
+msgid "FBX"
+msgstr "FBX"
+
+
+msgid "glTF 2.0"
+msgstr "glTF 2.0"
+
+
+msgid "File Select Entry"
+msgstr "Vpis v datotečni izbiri"
+
+
+msgid "Icon ID"
+msgstr "ID ikone"
+
+
+msgid "Relative Path"
+msgstr "Relativna pot"
+
+
+msgid "File Select ID Filter"
+msgstr "Filter po ID"
+
+
+msgid "Animations"
+msgstr "Animacije"
+
+
+msgid "Environment"
+msgstr "Okolje"
+
+
+msgid "Images & Sounds"
+msgstr "Slike in zvoki"
+
+
+msgid "Miscellaneous"
+msgstr "Ostalo"
+
+
+msgid "Objects & Collections"
+msgstr "Objekti in zbirke"
+
+
+msgid "Directory"
+msgstr "Imenik"
+
+
+msgid "Display Size"
+msgstr "Velikost prikaza"
+
+
+msgid "Tiny"
+msgstr "Drobno"
+
+
+msgid "Small"
+msgstr "Majhno"
+
+
+msgid "Medium"
+msgstr "Srednje"
+
+
+msgid "Big"
+msgstr "Veliko"
+
+
+msgid "Large"
+msgstr "Ogromno"
+
+
+msgid "Display Mode"
+msgstr "Način prikaza"
+
+
+msgid "Vertical List"
+msgstr "Padajoči seznam"
+
+
+msgid "Horizontal List"
+msgstr "Vodoravni seznam"
+
+
+msgid "Thumbnails"
+msgstr "Predogledne sličice"
+
+
+msgid "File Name"
+msgstr "Ime datoteke"
+
+
+msgid "Extension Filter"
+msgstr "Filter končnic"
+
+
+msgid "Filter ID Types"
+msgstr "Filter vrst ID"
+
+
+msgid "Name or Tag Filter"
+msgstr "Filter po imenu ali etiketi"
+
+
+msgid "Recursion"
+msgstr "Rekurzija"
+
+
+msgid "Blend File"
+msgstr "Datoteka Blend"
+
+
+msgid "One Level"
+msgstr "En nivo"
+
+
+msgid "Two Levels"
+msgstr "Dva nivoja"
+
+
+msgid "Three Levels"
+msgstr "Trije nivoji"
+
+
+msgid "File Modification Date"
+msgstr "Datum spremembe datoteke"
+
+
+msgid "File Size"
+msgstr "Velikost datoteke"
+
+
+msgid "Sort"
+msgstr "Razvrščanje"
+
+
+msgid "Extension"
+msgstr "Končnica"
+
+
+msgid "Modified Date"
+msgstr "Datum spremembe"
+
+
+msgid "Title"
+msgstr "Naslov"
+
+
+msgid "Filter Files"
+msgstr "Filter datotek"
+
+
+msgid "Only Assets"
+msgstr "Samo sredstva"
+
+
+msgid "Filter Blender Backup Files"
+msgstr "Filter Blenderjevih varnostnih kopij"
+
+
+msgid "Filter Blender"
+msgstr "Filter Blenderjevih datotek"
+
+
+msgid "Filter Blender IDs"
+msgstr "Filter Blenderjevih ID"
+
+
+msgid "Filter Folder"
+msgstr "Filter map"
+
+
+msgid "Filter Fonts"
+msgstr "Filter pisav"
+
+
+msgid "Filter Images"
+msgstr "Filter slik"
+
+
+msgid "Filter Movies"
+msgstr "Filter videoposnetkov"
+
+
+msgid "Filter Script"
+msgstr "Filter skriptov"
+
+
+msgid "Filter Sound"
+msgstr "Filter zvokov"
+
+
+msgid "Filter Text"
+msgstr "Filter besedil"
+
+
+msgid "Filter Volume"
+msgstr "Filter volumnov"
+
+
+msgid "Library Browser"
+msgstr "Knjižnični brskalnik"
+
+
+msgid "Reverse Sorting"
+msgstr "Obratna razvrstitev"
+
+
+msgid "Asset Select Parameters"
+msgstr "Parametri izbiranja sredstev"
+
+
+msgid "Filter Asset Types"
+msgstr "Filter vrst sredstev"
+
+
+msgid "Import Method"
+msgstr "Metoda uvoza"
+
+
+msgid "Follow Preferences"
+msgstr "Upoštevaj nastavitve"
+
+
+msgid "Link"
+msgstr "Poveži"
+
+
+msgid "Append"
+msgstr "Prekopiraj"
+
+
+msgid "Append (Reuse Data)"
+msgstr "Prekopiraj (deli podatke)"
+
+
+msgid "Float2 Attribute Value"
+msgstr "2D realnoštevilska vrednost atributa"
+
+
+msgid "2D vector"
+msgstr "2D vektor"
+
+
+msgid "Matrix Attribute Value"
+msgstr "Matrična vrednost atributa"
+
+
+msgid "Matrix"
+msgstr "Matrika"
+
+
+msgid "Float Attribute Value"
+msgstr "Realnoštevilska vrednost atributa"
+
+
+msgid "Float Color Attribute Value"
+msgstr "Realnoštevilska barvna vrednost atributa"
+
+
+msgid "Float Vector Attribute Value"
+msgstr "Realnoštevilska vektorska vrednost atributa"
+
+
+msgid "3D vector"
+msgstr "3D vektor"
+
+
+msgid "Read-Only Vector"
+msgstr "Vektor samo za branje"
+
+
+msgid "Domain Settings"
+msgstr "Nastavitve domene"
+
+
+msgid "Additional"
+msgstr "Dodatnih"
+
+
+msgid "Buoyancy Density"
+msgstr "Vzgonska gostota"
+
+
+msgid "Buoyancy Heat"
+msgstr "Vzgonska toplota"
+
+
+msgid "End"
+msgstr "Konec"
+
+
+msgid "Start"
+msgstr "Začetek"
+
+
+msgid "Resumable"
+msgstr "Zna nadaljevati"
+
+
+msgid "Replay"
+msgstr "S predvajanjem"
+
+
+msgid "Modular"
+msgstr "Modularen"
+
+
+msgid "Cell Size"
+msgstr "Velikost celic"
+
+
+msgid "CFL"
+msgstr "CFL"
+
+
+msgid "Clipping"
+msgstr "Rezanje"
+
+
+msgid "Color Grid"
+msgstr "Barvna mreža"
+
+
+msgid "Field"
+msgstr "Polje"
+
+
+msgid "Clear In Obstacle"
+msgstr "Odstrani v ovirah"
+
+
+msgid "Density Grid"
+msgstr "Mreža gostote"
+
+
+msgid "Cubic"
+msgstr "Kubična"
+
+
+msgid "Closest"
+msgstr "Pravilo najbližjega"
+
+
+msgid "Dissolve Speed"
+msgstr "Hitrost raztapljanja"
+
+
+msgid "Smoke Grid Resolution"
+msgstr "Ločljivost dimne mreže"
+
+
+msgid "Domain Type"
+msgstr "Vrsta domene"
+
+
+msgid "Gas"
+msgstr "Plin"
+
+
+msgid "Liquid"
+msgstr "Tekočina"
+
+
+msgid "Export Mantaflow Script"
+msgstr "Izvoz skripta Metaflow"
+
+
+msgid "Flame Grid"
+msgstr "Plamenska mreža"
+
+
+msgid "Smoke"
+msgstr "Dim"
+
+
+msgid "Smoke Color"
+msgstr "Barva dima"
+
+
+msgid "Vorticity"
+msgstr "Vrtinčnost"
+
+
+msgid "FLIP Ratio"
+msgstr "Razmerje FLIP"
+
+
+msgid "Fluid Collection"
+msgstr "Zbirka tekoče"
+
+
+msgid "Force Collection"
+msgstr "Zbirka sil"
+
+
+msgid "Obstacle Distance"
+msgstr "Razdalja do ovire"
+
+
+msgid "Obstacle Threshold"
+msgstr "Prag ovire"
+
+
+msgid "Cell Type"
+msgstr "Vrsta celice"
+
+
+msgid "Fluid"
+msgstr "Tekočina"
+
+
+msgid "Obstacle"
+msgstr "Ovira"
 
 
 msgid "Dash Modifier Segment"
@@ -9283,6 +10915,10 @@ msgid "Marker"
 msgstr "Oznaka"
 
 
+msgid "Cycles"
+msgstr "Cycles"
+
+
 msgid "Handles"
 msgstr "ročice"
 
@@ -9297,4 +10933,8 @@ msgstr "Največja možna razdalja žarka za iskanje ujemanj med točkami aktivne
 
 msgid "handle"
 msgstr "ročica"
+
+
+msgid "Select Area"
+msgstr "Izbira območja"
 

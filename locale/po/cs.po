@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -30027,6 +30027,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Minimální vzdálenost mezi slučovanými vrcholy"
 
 
+msgid "Shared Vertex"
+msgstr "Přidat UVkouly"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Znovu obnovit"
@@ -38258,10 +38262,6 @@ msgstr "Mód vybírání vertexů"
 
 msgid "Shared Location"
 msgstr "Původni pozice"
-
-
-msgid "Shared Vertex"
-msgstr "Přidat UVkouly"
 
 
 msgid "All Vertex Groups"

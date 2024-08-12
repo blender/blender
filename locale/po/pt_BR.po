@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -48338,6 +48338,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Distância máxima entre os vértices fundidos."
 
 
+msgid "Shared Vertex"
+msgstr "Vértices compartilhados"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Redefinir"
@@ -61609,10 +61613,6 @@ msgstr "Localização compartilhada"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Seleciona as UVs que estão na mesma localização e compartilham um vértice de malha."
-
-
-msgid "Shared Vertex"
-msgstr "Vértices compartilhados"
 
 
 msgid "Filter Vertex groups for Display"

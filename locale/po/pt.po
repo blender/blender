@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
-"PO-Revision-Date: 2024-08-02 18:56+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"PO-Revision-Date: 2024-08-12 05:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -408,6 +408,10 @@ msgstr "Usado"
 
 msgid "Slot Display Name"
 msgstr "Nome de exibição do compartimento"
+
+
+msgid "Name of the slot for showing in the interface. It is the name, without the first two characters that identify what kind of data-block it animates."
+msgstr "Nome do compartimento para mostrar no interface. É o nome sem os dois primeiros caracteres que identificam que tipo de bloco de dados o mesmo anima."
 
 
 msgid "Selection state of the slot"
@@ -854,6 +858,10 @@ msgid "Action Slot Name"
 msgstr "Nome do Compartimento de Acção"
 
 
+msgid "The name of the action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action."
+msgstr "Um nome do compartimento da acção. O compartimento de acção identifica que sub conjunto da Acção é considerado como pertencendo este bloco de dados, e o seu nome é usado para encontrar o compartimento certo quando atribuir uma Acção."
+
+
 msgid "Slots"
 msgstr "Compartimentos"
 
@@ -1100,6 +1108,10 @@ msgstr "Exibe caminhos das poses e movimentos dentro de um intervalo especificad
 
 msgid "Bake to active Camera"
 msgstr "Fazer bake para a Câmara activa"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported."
+msgstr "Os pontos do traçado de movimento serão calculados para o espaço de coordenadas da câmara activa. Isto significa que só aparecerão correctamente quando vendo por essa câmara. Mudar de câmara usando marcadores não é suportado."
 
 
 msgid "Any Type"
@@ -1430,6 +1442,10 @@ msgid "Catalog UUID"
 msgstr "UUID do Catálogo"
 
 
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122."
+msgstr "Identificador do catálogo de recursos, usado pelo Blender para encontrar o caminho do catálogo de recursos. Deve ser um UUID de acordo com RFC4122."
+
+
 msgid "Catalog Simple Name"
 msgstr "Nome Simples do Catálogo"
 
@@ -1442,6 +1458,10 @@ msgid "Copyright"
 msgstr "Direitos de Autor"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "Aviso de direitos de autor para este recurso. Um campo de direitos de autor vazio não significa obrigatoriamente que esteja livre de direitos de autor. Contacte o autor se for necessária clarificação."
+
+
 msgid "Description"
 msgstr "Descrição"
 
@@ -1452,6 +1472,10 @@ msgstr "Descrição do recurso a ser exibida ao utilizador"
 
 msgid "License"
 msgstr "Licença"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "O tipo de licença sobre a qual é distribuído o recurso. Um nome de licença ausente não indica obrigatoriamente que o recurso é livre de termos de licenças. Contacte o autor se for necessária clarificação."
 
 
 msgid "Tags"
@@ -1786,6 +1810,10 @@ msgid "No Asset Dragging"
 msgstr "Impedir arrastar recurso"
 
 
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
+msgstr "Desactivar o comportamento de arraste de recursos pré definido em eventos de arrastar. Útil para implementar comportamento personalizado ao arrastar via atalhos de teclado personalizados."
+
+
 msgid "Visible by Default"
 msgstr "Visível por defeito"
 
@@ -1828,6 +1856,10 @@ msgstr "Filtrar recursos por nome"
 
 msgid "Show Names"
 msgstr "Mostrar nomes"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "Mostrar o nome do recurso junto com a pré-visualização. Caso contrário apenas a pré-visualização será visível."
 
 
 msgid "Asset Tag"
@@ -2218,6 +2250,10 @@ msgid "Cage Extrusion"
 msgstr "Extrusão da jaula"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes."
+msgstr "Insuflar o objecto pela distância especificada para pré-calcular. Isto ajuda a corresponder pontos mais próximo do exterior das malhas do objecto seleccionado."
+
+
 msgid "Cage Object"
 msgstr "Objecto de jaula"
 
@@ -2276,6 +2312,10 @@ msgstr "Expandir pixeis de fronteira para fora"
 
 msgid "Max Ray Distance"
 msgstr "Distância Máxima de Raios"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit."
+msgstr "A distância máxima dos raios para corresponder pontos entre o objecto activo e objectos seleccionados. Se for zero, não há limite."
 
 
 msgid "Normal Space"
@@ -3884,16 +3924,32 @@ msgid "End Handle Ease"
 msgstr "Suavização de Saída do Manípulo"
 
 
+msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multiplicar o Canal de Suavização de Saída do B-Bone pelo valor da escala Y local do manípulo final. Efectuado depois da opção de Suavização de Redimensionamento e não é afectada pela mesma."
+
+
 msgid "Start Handle Ease"
 msgstr "Suavização do Manípulo Inicial"
+
+
+msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multiplicar o Canal de Suavização de Entrada do B-Bone pelo valor da escala Y local do manípulo inicial. Efectuado depois da opção de Suavização de Redimensionamento e não é afectada pela mesma."
 
 
 msgid "End Handle Scale"
 msgstr "Escala do Manípulo Final"
 
 
+msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multiplicar os Canais de Escala do B-Bone pelos valores locais de escala do manípulo final. Isto é feito depois da opção de Suavização de Redimensionamento e não é afectada pela mesma."
+
+
 msgid "Start Handle Scale"
 msgstr "Escala do Manípulo Inicial"
+
+
+msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multiplicar os canais de Escala de Entrada do B-Bone pelos valores da escala locais do manípulo inicial. Efectuado depois da opção de Suavização de Redimensionamento e não é afectada pela mesma."
 
 
 msgid "B-Bone Vertex Mapping Mode"
@@ -4076,6 +4132,10 @@ msgid "None (Legacy)"
 msgstr "Nenhum (Legado)"
 
 
+msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox."
+msgstr "Ignorar escala do pai sem compensar cisalhamento do pai. Replica o efeito de desactivar a original caixa de verificação Herdar Escala."
+
+
 msgid "Length"
 msgstr "Comprimento"
 
@@ -4228,12 +4288,24 @@ msgid "Bones"
 msgstr "Ossos"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode."
+msgstr "Ossos adicionados a esta colecção de ossos. No modo de edição de armação retorna sempre uma lista vazia, uma vez que a associação a colecções só é sincronizada quando sair do modo de edição."
+
+
 msgid "Child Number"
 msgstr "Número de Descendente"
 
 
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "Índice desta colecção na lista de descendente do pai. Tenha em atenção que encontrar este índice requer varrer todas as colecções de ossos, aceda com precaução."
+
+
 msgid "Index"
 msgstr "Índice"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "Índice desta colecção de ossos na lista armature.collections_all da armação. Tenha em atenção que encontrar este índice requer analisar todas as colecções de ossos, aceda com moderação."
 
 
 msgid "Is Editable"
@@ -4284,8 +4356,16 @@ msgid "Effective Visibility"
 msgstr "Efectividade de Visibilidade"
 
 
+msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'."
+msgstr "Se esta colecção de ossos está efectivamente visível na janela de visualização. Verdadeiro quando esta colecção de ossos e todos os ascendentes estão visíveis, ou quando está marcada como 'solo'."
+
+
 msgid "Unique within the Armature"
 msgstr "Único dentro da Armação"
+
+
+msgid "Parent bone collection. Note that accessing this requires a scan of all the bone collections to find the parent."
+msgstr "Colecção de ossos pai. Acesso requer varrer todas as colecções de ossos para encontrar ascendente."
 
 
 msgid "Color Set ID"
@@ -4354,6 +4434,10 @@ msgstr "Colecção de ossos activa da armação"
 
 msgid "Active Collection Index"
 msgstr "Índice da Colecção Activa"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`."
+msgstr "Índice da colecção de ossos activa da Armação; -1 se não houver colecção activa. Note que este valor indexa a sequência de colecções de ossos subjacente, que pode não estar na ordem esperada. Colecções de ossos raiz são listadas primeiro, e irmãos são sempre sequenciais. Fora isso colecções de ossos podem estar em qualquer ordem, e incrementar ou reduzir este índice pode fazer a colecção de ossos activa saltar de forma inesperada. Para resultados mais previsíveis, use `active` ou `active_name`."
 
 
 msgid "Active Collection Name"
@@ -5003,6 +5087,10 @@ msgid "Input Samples"
 msgstr "Amostras de entrada"
 
 
+msgid "Generated intermediate points for very fast mouse movements (Set to 0 to disable)"
+msgstr "Gerar pontos intermédios para movimentos de rato muito rápidos (definir como 0 para desactivar)"
+
+
 msgid "Material used for strokes drawn using this brush"
 msgstr "Material usado para traços desenhados usando este pincel"
 
@@ -5137,6 +5225,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Factor do Simplificar usando algoritmo adaptativo"
 
 
+msgid "Threashold in screen space used for the simplify algorithm. Points within this threashold are treated as if they were in a straight line."
+msgstr "Limite em unidades de ecrã usado pelo algoritmo simplificar. Pontos dentro deste limite são tratados como se fossem uma linha recta."
+
+
 msgid "Active Layer"
 msgstr "Camada ativa"
 
@@ -5263,6 +5355,10 @@ msgstr "Definições do pincel de aleatoriedade"
 
 msgid "Use Stabilizer"
 msgstr "Usar estabilizador"
+
+
+msgid "Draw lines with a delay to allow smooth strokes (press Shift key to override while drawing)"
+msgstr "Desenhar linhas com um atraso para permitir traços suaves (carregue na tecla Shift para desactivar enquanto desenha)"
 
 
 msgid "Use Pressure Strength"
@@ -5785,6 +5881,10 @@ msgid "Collision Quality"
 msgstr "Qualidade das colisões"
 
 
+msgid "How many collision iterations should be done (higher is better quality but slower)"
+msgstr "Quantas iterações de colisão devem ser feitas. (valores mais são melhores mas mais lentos)"
+
+
 msgid "Restitution"
 msgstr "Restituição"
 
@@ -6047,6 +6147,10 @@ msgid "Internal Spring Max Length"
 msgstr "Comprimento Máximo das Molas Internas"
 
 
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit."
+msgstr "O comprimento máximo que uma mola pode ter durante a criação. Se a distância entre dois pontos for maior que este valor não será criada uma mola entre eles. Um comprimento de zero significa que não há limite."
+
+
 msgid "Check Internal Spring Normals"
 msgstr "Verificar Normais das Molas Internas"
 
@@ -6163,6 +6267,10 @@ msgid "Target Volume"
 msgstr "Volume Alvo"
 
 
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure."
+msgstr "O volume da malha onde a pressão interior/exterior será igual. Se for zero a mudança de volume não afectará a pressão."
+
+
 msgid "Tension Spring Damping"
 msgstr "Amortecimento das molas de tem"
 
@@ -6177,6 +6285,10 @@ msgstr "A velocidade do tecido é multiplicada por este valor."
 
 msgid "Pressure"
 msgstr "Pressão"
+
+
+msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative."
+msgstr "A pressão uniforme que é constantemente aplicada à malha, em unidades de Escala de Pressão. Pode ser negativa."
 
 
 msgid "Dynamic Base Mesh"
@@ -6241,6 +6353,10 @@ msgstr "Grupo de vértices para fixação dos vértices."
 
 msgid "Pressure Vertex Group"
 msgstr "Grupo de Vértices de Pressão"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation."
+msgstr "Grupo de Vértices onde aplicar pressão. Peso de zero significa sem pressão, peso de um significa pressão total. Faces com vértices que tenham um peso zero serão excluídas do cálculo de volume."
 
 
 msgid "Shear Stiffness Vertex Group"
@@ -6839,6 +6955,10 @@ msgid "High Dynamic Range"
 msgstr "Alto Intervalo Dinâmico"
 
 
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors."
+msgstr "Activar exibição em alto intervalo dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' e 'AgX' não geram cores HDR."
+
+
 msgid "Use White Balance"
 msgstr "Usar Equilíbrio de Brancos"
 
@@ -7280,6 +7400,10 @@ msgid "Local Space (Owner Orientation)"
 msgstr "Espaço Local (Orientação do Dono)"
 
 
+msgid "The transformation of the target bone is evaluated relative to its local coordinate system, followed by a correction for the difference in target and owner rest pose orientations. When applied as local transform to the owner produces the same global motion as the target if the parents are still in rest pose."
+msgstr "A transformação do osso alvo é avaliada relativamente ao seu sistema de coordenadas local, seguido de uma correcção para a diferença de orientação entre a pose de descanso do alvo e do dono. Quando aplicada como transformação local ao dono, produz o mesmo movimento global que o alvo se os pais ainda não estiverem em pose de descanso."
+
+
 msgid "Camera Solver"
 msgstr "Solucionador de câmara"
 
@@ -7536,8 +7660,16 @@ msgid "Before Original (Full)"
 msgstr "Antes da Original (Completa)"
 
 
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Aplicar os canais de acção antes da transformação original, como se fosse aplicado a um pai imaginário em Modo de Herança de Escala Completa. Irá criar cisalhamento quando combinando rotação e escala não uniforme."
+
+
 msgid "Before Original (Aligned)"
 msgstr "Antes da Original (Alinhada)"
+
+
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Aplicar os canais de transformação antes da transformação original, como se aplicada a um pai imaginário em modo Herdar Escala Alinhada. Isto usa efectivamente Completa para a posição e Canais Separados para rotação e escala."
 
 
 msgid "Before Original (Split Channels)"
@@ -7552,8 +7684,16 @@ msgid "After Original (Full)"
 msgstr "Após Original (Completa)"
 
 
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Aplicar os canais de acção após a a transformação original, como se fosse aplicada a um descendente imaginário em modo Herança de Escala Completa. Irá criar cisalhamento quando combinando rotação com escala não-uniforme."
+
+
 msgid "After Original (Aligned)"
 msgstr "Após Original (Alinhada)"
+
+
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Aplicar os canais de acção após a transformação original, como se fosse aplicada a um descendente imaginário em modo Herança de Escala Alinhada. Usa efectivamente Completa para a posição, e Canais Separados para rotação e escala."
 
 
 msgid "After Original (Split Channels)"
@@ -7646,6 +7786,10 @@ msgstr "Ossos Alvo"
 
 msgid "Use Envelopes"
 msgstr "Usar Envelopes"
+
+
+msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered."
+msgstr "Multiplicar pesos por envelope para todos os ossos, em vez de agir como mistura baseada em Grupos de Vértices. Os pesos especificados ainda são usados, e apenas os ossos listados são tidos em consideração."
 
 
 msgid "Use Current Location"
@@ -8012,6 +8156,10 @@ msgid "Offset (Legacy)"
 msgstr "Afastamento (Legado)"
 
 
+msgid "Combine rotations like the original Offset checkbox. Does not work well for multiple axis rotations."
+msgstr "Combina rotações como a caixa de verificação de Afastamento original. Não funciona bem com rotações de eixos múltiplos."
+
+
 msgid "DEPRECATED: Add original rotation into copied rotation"
 msgstr "Descontinuado: Adicionar a rotação original para a rotação copiada"
 
@@ -8092,8 +8240,24 @@ msgid "Replace the original transformation with copied"
 msgstr "Substituir a transformação original com a copiada"
 
 
+msgid "Apply copied transformation before original, using simple matrix multiplication as if the constraint target is a parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Aplicar transformação copiada antes da original, usando multiplicações de matrizes simples como se o alvo da restrição fosse um pai em modo Herdar Escala Completa. Irá causar cisalhamento quando combinar rotação e escala não uniforme."
+
+
+msgid "Apply copied transformation before original, as if the constraint target is a parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Aplicar transformação copiada antes da original, como se o alvo da restrição fosse um pai em modo Herdar Escala Alinhada. Usa efectivamente Completa para posição e Canais Separados para rotação e escala."
+
+
 msgid "Apply copied transformation before original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
 msgstr "Aplicar transformação copiada antes da original, lidando com posição rotação e escala separadamente, semelhante a uma sequência de três restrições Copiar"
+
+
+msgid "Apply copied transformation after original, using simple matrix multiplication as if the constraint target is a child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Aplicar transformação copiada após original, usando multiplicações de matriz simples como se o alvo da restrição for um descendente em modo de Herança Total de Escala. Irá criar cisalhamento quando combinar rotação e escala não uniforme."
+
+
+msgid "Apply copied transformation after original, as if the constraint target is a child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Aplicar transformação copiada após original, como se o alvo da restrição fosse um descendente em mode Herança de Escala Alinhada. Usa efectivamente Completa para a localização e Canais Separados para rotação e escala."
 
 
 msgid "Apply copied transformation after original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
@@ -8645,8 +8809,16 @@ msgid "Uniform"
 msgstr "Uniformizar"
 
 
+msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through."
+msgstr "Volume é preservado quando o objecto tem escala uniforme. Desvios da escala uniforme em eixos não livres são ignorados."
+
+
 msgid "Single Axis"
 msgstr "Eixo Único"
+
+
+msgid "Volume is preserved when the object is scaled only on the free axis. Non-free axis scaling is passed through."
+msgstr "O volume é preservado quando o object é redimensionado apenas no eixo livre. Escala em em eixos não livres é ignorada."
 
 
 msgid "Volume of the bone at rest"
@@ -11490,6 +11662,10 @@ msgstr "Localização do final da cabeça do osso."
 
 msgid "Bone is not visible when in Edit Mode"
 msgstr "O osso não é visível durante o modo de edição."
+
+
+msgid "Length of the bone. Changing moves the tail end."
+msgstr "Comprimento do osso. Alterar move a ponta da cauda."
 
 
 msgid "Bone is not able to be transformed when in Edit Mode"
@@ -67525,6 +67701,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Distância máxima entre os vértices fundidos."
 
 
+msgid "Shared Vertex"
+msgstr "Vértices compartilhados"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Redefinir"
@@ -79620,10 +79800,6 @@ msgstr "Localização compartilhada"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Seleciona as UVs que estão na mesma localização e compartilham um vértice de malha."
-
-
-msgid "Shared Vertex"
-msgstr "Vértices compartilhados"
 
 
 msgid "Filter Vertex groups for Display"

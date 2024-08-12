@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
-"PO-Revision-Date: 2024-08-05 09:11+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"PO-Revision-Date: 2024-08-12 05:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -1013,6 +1013,10 @@ msgid "Bake to active Camera"
 msgstr "烘焙到活动摄像机"
 
 
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported."
+msgstr "运动路径会被烘焙到活动摄像机的相机空间中。这意味着只有在当前摄像机下预览时，运动路径才会正常演示。通过标记切换摄像机是不支持的。"
+
+
 msgid "Any Type"
 msgstr "任意类型"
 
@@ -1341,6 +1345,10 @@ msgid "Catalog UUID"
 msgstr "目录 UUID"
 
 
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122."
+msgstr "资产目录的标识符，用于查找资产的目录路径。必须是符合RFC4122的UUID。"
+
+
 msgid "Catalog Simple Name"
 msgstr "目录简单名称"
 
@@ -1353,6 +1361,10 @@ msgid "Copyright"
 msgstr "版权"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "此资产的版权声明。空的版权声明并不一定表示这是无版权的。如果需要任何澄清，请联系作者。"
+
+
 msgid "Description"
 msgstr "描述"
 
@@ -1363,6 +1375,10 @@ msgstr "为用户显示的资产的说明"
 
 msgid "License"
 msgstr "许可证"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "分发此资产的许可证类型。空许可证名称并不一定表示它没有许可条款。如果需要任何澄清，请联系作者。"
 
 
 msgid "Tags"
@@ -1697,6 +1713,10 @@ msgid "No Asset Dragging"
 msgstr "禁用资产拖放"
 
 
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
+msgstr "在拖动中禁用默认的资产拖动。这有助于通过自定义快捷键实现自定义拖动。"
+
+
 msgid "Visible by Default"
 msgstr "默认可见"
 
@@ -1739,6 +1759,10 @@ msgstr "按名称筛选资产"
 
 msgid "Show Names"
 msgstr "显示名称"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "同时显示资产名称和预览，否则只显示预览。"
 
 
 msgid "Asset Tag"
@@ -2129,6 +2153,10 @@ msgid "Cage Extrusion"
 msgstr "罩体挤出"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes."
+msgstr "按指定的烘焙距离膨胀活动物体。这有助于匹配更靠近选定物体外侧的点。"
+
+
 msgid "Cage Object"
 msgstr "罩式物体"
 
@@ -2187,6 +2215,10 @@ msgstr "向外扩展边界像素"
 
 msgid "Max Ray Distance"
 msgstr "最大光线距离"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit."
+msgstr "活动物体和选定物体之间匹配点的最大光线距离。如果为零，则没有限制。"
 
 
 msgid "Normal Space"
@@ -3791,16 +3823,32 @@ msgid "End Handle Ease"
 msgstr "结束控制柄缓动"
 
 
+msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "将柔性骨骼淡出通道乘以结束控制柄的局部Y向缩放值。这是在缩放缓动选项后执行的，且不受其影响。"
+
+
 msgid "Start Handle Ease"
 msgstr "起始控制柄缓动"
+
+
+msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "将柔性骨骼淡入通道乘以起始控制柄的局部Y向缩放值。这是在缩放缓动选项后执行的，且不受其影响。"
 
 
 msgid "End Handle Scale"
 msgstr "结束控制柄缩放"
 
 
+msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "将柔性骨骼尾端缩放通道乘以结束控制柄的局部缩放值。这是在缩放缓动选项后执行的，且不受其影响。"
+
+
 msgid "Start Handle Scale"
 msgstr "起始控制柄缩放"
+
+
+msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "将柔性骨骼首端缩放通道乘以起始控制柄的局部缩放值。这是在缩放缓动选项后执行的，且不受其影响。"
 
 
 msgid "B-Bone Vertex Mapping Mode"
@@ -3983,6 +4031,10 @@ msgid "None (Legacy)"
 msgstr "无(旧版)"
 
 
+msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox."
+msgstr "忽略父级缩放，不补偿父剪切。复制禁用原始继承缩放复选框的效果。"
+
+
 msgid "Length"
 msgstr "长度"
 
@@ -4135,12 +4187,24 @@ msgid "Bones"
 msgstr "骨骼"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode."
+msgstr "骨骼被分配到此骨骼集合，在骨架编辑模式下此将永远返回一个空的骨骼列表，因为骨骼集合成员资格仅在退出编辑模式时同步。"
+
+
 msgid "Child Number"
 msgstr "子级编号"
 
 
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "该集合在其父级的子级列表中的编号。需注意，搜寻此编号需要扫描所有骨骼集合，因此访问时应慎重。"
+
+
 msgid "Index"
 msgstr "编号"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "该骨骼集合在 armature.collections_all 阵列中的编号。需注意，搜寻此编号需要扫描所有骨骼集合，因此访问时应慎重。"
 
 
 msgid "Is Editable"
@@ -4191,8 +4255,16 @@ msgid "Effective Visibility"
 msgstr "有效可见性"
 
 
+msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'."
+msgstr "此骨骼集合的作用在视图中是否可见。当骨骼集合及其所有祖辈级可见、或者被标记为 '孤立' 时，取值为真(ture)。"
+
+
 msgid "Unique within the Armature"
 msgstr "骨架内唯一"
+
+
+msgid "Parent bone collection. Note that accessing this requires a scan of all the bone collections to find the parent."
+msgstr "返回父级骨骼集合。注意这里需要对所有骨骼集合扫描一遍才能找出全部父级。"
 
 
 msgid "Color Set ID"
@@ -4261,6 +4333,10 @@ msgstr "骨架的活动骨骼集合"
 
 msgid "Active Collection Index"
 msgstr "活动集合索引"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`."
+msgstr "骨架的活动骨骼集合的编号；当没有活动集合时返回 -1。需注意此编号是按骨骼集合底层数组排序的，可能会与您期待的顺序有所不同。根集合会优先列出，而平级集合总是会次第列出。除此之外，骨骼集合可能会以任意顺序列出，所以对编号进行增减操作可能让骨骼集合以意料之外的方式瞬移。如要使用一个更加可预料的编号接口，请使用\"active\"或\"active_name\"。"
 
 
 msgid "Active Collection Name"
@@ -5948,6 +6024,10 @@ msgid "Internal Spring Max Length"
 msgstr "内部弹簧最大长度"
 
 
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit."
+msgstr "内部弹簧在创建过程中的最大长度。如果内部点之间的距离大于此，则在这些点之间不会创建内部弹簧。长度为零表示没有长度限制。"
+
+
 msgid "Check Internal Spring Normals"
 msgstr "检查内部弹簧法向"
 
@@ -6064,6 +6144,10 @@ msgid "Target Volume"
 msgstr "目标体积"
 
 
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure."
+msgstr "内/外压力相同时的网格体积。如果设置为零，则体积不会影响压力。"
+
+
 msgid "Tension Spring Damping"
 msgstr "绷紧弹性阻尼"
 
@@ -6142,6 +6226,10 @@ msgstr "用于钉固顶点的顶点组"
 
 msgid "Pressure Vertex Group"
 msgstr "压力顶点组"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation."
+msgstr "用于定义何处施加压力的顶点组。零权重意味着没有压力，而权重为 1 表示满压。零权重顶点所在的面将从体积计算中排除。"
 
 
 msgid "Shear Stiffness Vertex Group"
@@ -6740,6 +6828,10 @@ msgid "High Dynamic Range"
 msgstr "高动态范围（HDR）"
 
 
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors."
+msgstr "在渲染的视口中启用高动态范围显示，取消显示亮度，这需要一个支持HDR的显示器和为HDR设计的视图变换，Filmic和AgX不生成HDR颜色。"
+
+
 msgid "View Transform"
 msgstr "查看变换"
 
@@ -7161,6 +7253,10 @@ msgid "Local Space (Owner Orientation)"
 msgstr "局部空间(所有者方位)"
 
 
+msgid "The transformation of the target bone is evaluated relative to its local coordinate system, followed by a correction for the difference in target and owner rest pose orientations. When applied as local transform to the owner produces the same global motion as the target if the parents are still in rest pose."
+msgstr "相对于其局部坐标系进行评估目标骨骼的变换，然后对目标和所有者静置姿态方位的差异进行校正。当对所有者应用为本地变换时，如果父级仍处于静置状态，则生成与目标相同的全局运动。"
+
+
 msgid "Camera Solver"
 msgstr "摄像机解算"
 
@@ -7417,8 +7513,16 @@ msgid "Before Original (Full)"
 msgstr "初始前(完整)"
 
 
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "在初始变换之前应用动作通道，就好像在完整继承缩放模式下应用于假想的父级一样。将旋转和不均匀缩放组合时将创建切变。"
+
+
 msgid "Before Original (Aligned)"
 msgstr "初始前(对齐)"
+
+
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "在初始变换之前应用动作通道，就好像应用于对齐继承缩放模式中的假想父级一样。这有效地使用完全的位置和拆分通道的旋转和缩放。"
 
 
 msgid "Before Original (Split Channels)"
@@ -7433,8 +7537,16 @@ msgid "After Original (Full)"
 msgstr "初始后(完整)"
 
 
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "在初始变换后应用动作通道，就像应用于具有完整继承缩放的假想子级一样。将旋转和不均匀缩放组合时将创建切变。"
+
+
 msgid "After Original (Aligned)"
 msgstr "初始后(对齐)"
+
+
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "在初始变换后应用动作通道，就好像应用于处于对齐继承缩放模式的假想子级一样。这有效地使用完整的位置和拆分通道的旋转和缩放。"
 
 
 msgid "After Original (Split Channels)"
@@ -7527,6 +7639,10 @@ msgstr "目标骨骼"
 
 msgid "Use Envelopes"
 msgstr "使用骨骼封套"
+
+
+msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered."
+msgstr "将所有骨骼的权重乘以骨骼封套，而不使用类似顶点组混合的方式。仍然使用指定的权重，并且只考虑列出的骨骼。"
 
 
 msgid "Use Current Location"
@@ -7893,6 +8009,10 @@ msgid "Offset (Legacy)"
 msgstr "偏移(旧版)"
 
 
+msgid "Combine rotations like the original Offset checkbox. Does not work well for multiple axis rotations."
+msgstr "如同原始偏移复选框一样合并旋转。不适用于多轴旋转。"
+
+
 msgid "DEPRECATED: Add original rotation into copied rotation"
 msgstr "已弃用: 为已复制的旋转添加初始旋转"
 
@@ -7973,8 +8093,24 @@ msgid "Replace the original transformation with copied"
 msgstr "使用复制替换原始变换"
 
 
+msgid "Apply copied transformation before original, using simple matrix multiplication as if the constraint target is a parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "在原始之前应用被复制变换，使用简单的矩阵乘法，就好像约束目标为完全继承缩放模式中的父级一样。将旋转和非均匀缩放组合时将创建切变。"
+
+
+msgid "Apply copied transformation before original, as if the constraint target is a parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "在原始之前应用被复制变换，就好像约束目标为对齐继承缩放模式中的父级一样。这有效地使用完整的位置以及旋转和缩放的拆分通道。"
+
+
 msgid "Apply copied transformation before original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
 msgstr "在原始之前应用被复制变换，分开处理位置、旋转和缩放，类似于三个复制约束的序列"
+
+
+msgid "Apply copied transformation after original, using simple matrix multiplication as if the constraint target is a child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "在原始后应用被复制变换，使用简单的矩阵乘法，就好像约束目标为完全继承缩放模式下的子级一样。将旋转和不均匀缩放组合时创建切变。"
+
+
+msgid "Apply copied transformation after original, as if the constraint target is a child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "在原始之后应用被复制变换，就好像约束目标为对齐继承缩放模式中的子级一样。这有效地使用完整的位置以及旋转和缩放的拆分通道。"
 
 
 msgid "Apply copied transformation after original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
@@ -8526,8 +8662,16 @@ msgid "Uniform"
 msgstr "均衡"
 
 
+msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through."
+msgstr "仅当物体按比例缩放时才保持体积不变。忽略受控制轴向在按比例缩放时导致的偏差。"
+
+
 msgid "Single Axis"
 msgstr "单一轴向"
+
+
+msgid "Volume is preserved when the object is scaled only on the free axis. Non-free axis scaling is passed through."
+msgstr "只有在当不受控制的轴向上缩放才保持体积不变。忽略受控制轴向上的缩放。"
 
 
 msgid "Volume of the bone at rest"
@@ -11367,6 +11511,10 @@ msgid "Bone is not visible when in Edit Mode"
 msgstr "骨骼在编辑模式下不可见"
 
 
+msgid "Length of the bone. Changing moves the tail end."
+msgstr "骨骼的长度。更改移动尾端。"
+
+
 msgid "Bone is not able to be transformed when in Edit Mode"
 msgstr "编辑模式骨骼不能移动"
 
@@ -11589,6 +11737,10 @@ msgstr "自动控制柄仅考虑相邻帧"
 
 msgid "Continuous Acceleration"
 msgstr "持续加速度"
+
+
+msgid "Automatic handles are adjusted to avoid jumps in acceleration, resulting in smoother curves. However, key changes may affect interpolation over a larger stretch of the curve."
+msgstr "调整自动控柄，以避免加速时跳跃，从而形成更平滑的曲线。但是，修改关键帧可能会影响较大范围内的曲线插值。"
 
 
 msgid "Color of the F-Curve in the Graph Editor"
@@ -13941,6 +14093,10 @@ msgid "End"
 msgstr "结束"
 
 
+msgid "Frame offset that is used when loading the simulation from the cache. It is not considered when baking the simulation, only when loading it."
+msgstr "从缓存加载模拟时使用的帧偏移量。烘焙模拟时不考虑该值，仅在加载模拟时考虑。"
+
+
 msgid "Start"
 msgstr "起始"
 
@@ -13959,6 +14115,10 @@ msgstr "选择要用于缓存粒子数据的文件格式"
 
 msgid "Resumable"
 msgstr "可恢复"
+
+
+msgid "Additional data will be saved so that the bake jobs can be resumed after pausing. Because more data will be written to disk it is recommended to avoid enabling this option when baking at high resolutions."
+msgstr "将保存其他数据，以便在暂停后可以恢复烘焙作业。由于将更多数据写入磁盘，因此建议避免在高分辨率烘焙时启用此选项。"
 
 
 msgid "Change the cache type of the simulation"
@@ -14113,6 +14273,10 @@ msgid "Export Mantaflow Script"
 msgstr "导出Mantaflow脚本"
 
 
+msgid "Generate and export Mantaflow script from current domain settings during bake. This is only needed if you plan to analyze the cache (e.g. view grids, velocity vectors, particles) in Mantaflow directly (outside of Blender) after baking the simulation."
+msgstr "在烘焙期间从当前域设置生成和导出Mantaflow脚本。只有在烘焙模拟后直接（在 Blender 外部）分析流体流中的缓存（比如视图网格、速度矢量、粒子）时，才需要这样做。"
+
+
 msgid "Flame Grid"
 msgstr "火焰网格"
 
@@ -14155,6 +14319,10 @@ msgstr "火焰的附加涡旋"
 
 msgid "FLIP Ratio"
 msgstr "FLIP 比率"
+
+
+msgid "PIC/FLIP Ratio. A value of 1.0 will result in a completely FLIP based simulation. Use a lower value for simulations which should produce smaller splashes."
+msgstr "PIC/FLIP 比率。值为 1.0 将产生完全基于 FLIP 的模拟。如需产生较小飞溅，需对模拟使用较低的值。"
 
 
 msgid "Fluid Collection"
@@ -14301,6 +14469,10 @@ msgid "Choose where to get guiding velocities from"
 msgstr "选择从何处获得引导速度"
 
 
+msgid "Use a fluid domain for guiding (domain needs to be baked already so that velocities can be extracted). Guiding domain can be of any type (i.e. gas or liquid)."
+msgstr "使用流体域进行引导（域需要烘焙，以便可以提取速度）。引导域可以是任意类型的（即气态或固态）。"
+
+
 msgid "Effector"
 msgstr "效果器"
 
@@ -14381,8 +14553,16 @@ msgid "Use union particle level set (faster but lower quality)"
 msgstr "使用联合粒子水平集(更快但质量较低)"
 
 
+msgid "Particle radius factor (higher value results in larger (meshed) particles). Needs to be adjusted after changing the mesh scale."
+msgstr "粒子半径因子（值越高，（网格化）粒子越大）。修改网格缩放后需要调整。"
+
+
 msgid "Mesh scale"
 msgstr "网格缩放"
+
+
+msgid "The mesh simulation is scaled up by this factor (compared to the base resolution of the domain). For best meshing, it is recommended to adjust the mesh particle radius alongside this value."
+msgstr "网格模拟按此因子缩放（与域的基本分辨率相比）。为获得最佳网格化，建议配合使用该值调整网格粒子半径。"
 
 
 msgid "Smoothen Neg"
@@ -14482,6 +14662,10 @@ msgid "Particle number factor (higher value results in more particles)"
 msgstr "粒子数因子(值越高，粒子越多)"
 
 
+msgid "Particle radius factor. Increase this value if the simulation appears to leak volume, decrease it if the simulation seems to gain volume."
+msgstr "粒子半径因子。如果模拟出现体积泄漏，则调高该值；如果模拟似乎有体积增加，则调小该值。"
+
+
 msgid "Randomness"
 msgstr "随机性"
 
@@ -14500,6 +14684,10 @@ msgstr "粒子模拟按此因子缩放 (与域的基本分辨率相比)"
 
 msgid "Maximum Resolution"
 msgstr "最高精度"
+
+
+msgid "Resolution used for the fluid domain. Value corresponds to the longest domain side (resolution for other domain sides is calculated automatically)."
+msgstr "用于流体域的分辨率。值对应于最长的域边（自动计算其他域端的分辨率）。"
 
 
 msgid "Gridlines"
@@ -14878,6 +15066,10 @@ msgid "Logarithmic Dissolve"
 msgstr "对数式消融"
 
 
+msgid "Dissolve smoke in a logarithmic fashion. Dissolves quickly at first, but lingers longer."
+msgstr "以对数方式消融烟雾。起初消散得很快，但残留时间较长。"
+
+
 msgid "Create liquid particle system"
 msgstr "创建液体粒子系统"
 
@@ -14932,6 +15124,10 @@ msgstr "执行域对象的单个切片"
 
 msgid "Speed Vectors"
 msgstr "速度矢量"
+
+
+msgid "Caches velocities of mesh vertices. These will be used (automatically) when rendering with motion blur enabled."
+msgstr "缓存网格顶点的速度。在启用运动模糊的情况下渲染时，将 (自动) 使用。"
 
 
 msgid "Spray"
@@ -15355,6 +15551,10 @@ msgstr "设置尺寸"
 
 msgid "Set particle size in simulation cells or use nearest cell"
 msgstr "在模拟单元格中设置粒子大小或使用最近的单元格"
+
+
+msgid "Treat this object as a planar and unclosed mesh. Fluid will only be emitted from the mesh surface and based on the surface emission value."
+msgstr "将此物体视为平面且非闭合的网格。流体将仅从网格表面发射，并基于表面发射值。"
 
 
 msgid "Use Texture"
@@ -16599,6 +16799,10 @@ msgid "Material Index"
 msgstr "材质编号"
 
 
+msgid "Use this index on generated segment. -1 means using the existing material."
+msgstr "在生成的线段上使用此编号。-1 表示使用现有材质。"
+
+
 msgid "Name of the dash segment"
 msgstr "虚线段名称"
 
@@ -17066,6 +17270,10 @@ msgid "Editable"
 msgstr "可编辑的"
 
 
+msgid "This data-block is editable in the user interface. Linked datablocks are not editable, except if they were loaded as editable assets."
+msgstr "此数据块在用户界面中可以编辑，链接的数据块不可编辑，除非它们作为可编辑资产被加载。"
+
+
 msgid "Embedded Data"
 msgstr "嵌入的数据"
 
@@ -17100,6 +17308,10 @@ msgstr "该数据块是丢失链接数据的占位符(比如，它是不能再�
 
 msgid "Runtime Data"
 msgstr "运行时数据"
+
+
+msgid "This data-block is runtime data, i.e. it won't be saved in .blend file. Note that e.g. evaluated IDs are always runtime, so this value is only editable for data-blocks in Main data-base."
+msgstr "此数据块是运行时数据，也就是说它不会保存在 .blend 文件中。请注意，例如，被评估的ID始终是运行时，因此此值只能对主数据库中的数据块可编辑。"
 
 
 msgid "Library file the data-block is linked from"
@@ -17277,6 +17489,10 @@ msgstr "用于此数据块的动画数据"
 
 msgid "Axes Position"
 msgstr "轴位置"
+
+
+msgid "The position for the axes on the bone. Increasing the value moves it closer to the tip; decreasing moves it closer to the root."
+msgstr "骨骼上轴的位置。调高该值使其更接近尖端，调低将移至更靠近根部。"
 
 
 msgid "Bone Collections (Roots)"
@@ -18234,6 +18450,10 @@ msgid "Scale"
 msgstr "缩放"
 
 
+msgid "Poisson ratio for elastic deformation. Higher values preserve volume more, but also lead to more bulging."
+msgstr "弹性变形的泊松比。值越高，保留体积越多，但也会导致更多的膨胀。"
+
+
 msgid "Falloff Angle"
 msgstr "衰减角度"
 
@@ -19121,6 +19341,10 @@ msgid "Topology Rake"
 msgstr "拓扑耙(Topology Rake)"
 
 
+msgid "Automatically align edges to the brush direction to generate cleaner topology and define sharp features. Best used on low-poly meshes as it has a performance impact."
+msgstr "自动对齐边线与笔刷方向，以生成清晰而且锐利特征明确的动态拓扑。最适用于低多边形网格，因为它会影响性能。"
+
+
 msgid "Unprojected Radius"
 msgstr "未投影半径"
 
@@ -19259,6 +19483,10 @@ msgstr "重写叠加层"
 
 msgid "Don't show overlay during a stroke"
 msgstr "在下笔时不显示叠加"
+
+
+msgid "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing."
+msgstr "使用一条贝塞尔曲线定义笔画曲线。根据间隔分离点。"
 
 
 msgid "Custom Icon"
@@ -21732,12 +21960,24 @@ msgid "Representation of alpha in the image file, to convert to and from when sa
 msgstr "图像文件中的alpha表示，在保存和加载图像时进行转换"
 
 
+msgid "Store RGB and alpha channels separately with alpha acting as a mask, also known as unassociated alpha. Commonly used by image editing applications and file formats like PNG."
+msgstr "分开存储RGB和alpha通道，使用alpha作为遮罩，也称为未关联的alpha。常用于图像编辑应用程序和PNG等文件格式。"
+
+
 msgid "Premultiplied"
 msgstr "预乘型"
 
 
+msgid "Store RGB channels with alpha multiplied in, also known as associated alpha. The natural format for renders and used by file formats like OpenEXR."
+msgstr "存储与alpha相乘后的RGB通道，也称为关联alpha。渲染和OpenEXR等文件格式使用的自然格式。"
+
+
 msgid "Channel Packed"
 msgstr "通道打包"
+
+
+msgid "Different images are packed in the RGB and alpha channels, and they should not affect each other. Channel packing is commonly used by game engines to save memory."
+msgstr "在RGB和alpha通道中打包不同的图像，且不相互影响。游戏引擎通常使用通道打包来节省内存。"
 
 
 msgid "Ignore alpha channel from the file and make image fully opaque"
@@ -22028,6 +22268,10 @@ msgid "Seam Margin"
 msgstr "缝合边距"
 
 
+msgid "Margin to take into account when fixing UV seams during painting. Higher number would improve seam-fixes for mipmaps, but decreases performance."
+msgstr "在绘制过程中修复UV缝合线时要考虑的余量。调高数值可提高mipmap的接缝修复，但会降低性能。"
+
+
 msgid "Width and height of the image buffer in pixels, zero when image data can't be loaded"
 msgstr "图像缓冲的宽和高(单位为像素), 当无法加载图像数据时, 值为零"
 
@@ -22291,6 +22535,10 @@ msgid "Path to the library .blend file"
 msgstr ".blend 库文件路径"
 
 
+msgid "Datablocks in this library are editable despite being linked. Used by brush assets and their dependencies."
+msgstr "尽管已链接，此库中的数据块也是可编辑的，由笔刷资产及其依赖项使用。"
+
+
 msgid "Library Overrides Need resync"
 msgstr "库重写需要重新同步"
 
@@ -22510,6 +22758,10 @@ msgid "Shadows Resolution Limit"
 msgstr "阴影精度限制"
 
 
+msgid "Minimum size of a shadow map pixel. Higher values use less memory at the cost of shadow quality."
+msgstr "阴影贴图像素的最小尺寸，较高的值使用较少的内存，但会牺牲阴影质量。"
+
+
 msgid "Shadow Soft Size"
 msgstr "阴影软尺寸"
 
@@ -22568,6 +22820,10 @@ msgstr "使用屏幕空间光线追踪来矫正靠近遮挡物的阴影，或者
 
 msgid "Shadow Jitter"
 msgstr "阴影抖动"
+
+
+msgid "Enable jittered soft shadows to increase shadow precision (disabled in viewport unless enabled in the render settings). Has a high performance impact."
+msgstr "启用抖动的软阴影来提高阴影精细度 (除非在渲染设置中启用，否则在视口中也禁用)，对性能影响很高。"
 
 
 msgid "Point Light"
@@ -23163,6 +23419,10 @@ msgid "Max Vertex Displacement"
 msgstr "最大顶点置换"
 
 
+msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues."
+msgstr "顶点可以置换的最大距离，超过此阈值的位移可能会导致可见性问题。"
+
+
 msgid "Metallic"
 msgstr "金属度"
 
@@ -23399,6 +23659,10 @@ msgid "Light Probe Volume Backface Culling"
 msgstr "光照探头体积背面剔除"
 
 
+msgid "Consider material single sided for light probe volume capture. Additionally helps rejecting probes inside the object to avoid light leaks."
+msgstr "考虑使用单面材质进行光探测体积捕获。此外，还有助于排除物体内部的探头，以避免漏光。"
+
+
 msgid "Shadow Backface Culling"
 msgstr "阴影背面剔除"
 
@@ -23421,6 +23685,14 @@ msgstr "使用当前世界背景给预览渲染作为光照"
 
 msgid "Raytrace Transmission"
 msgstr "光线追踪透射"
+
+
+msgid "Use raytracing to determine transmitted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting."
+msgstr "使用光线追踪来确定折射的颜色，替代仅使用光照探头，这样可以防止表面对未使用该设置的表面照明产生影响。"
+
+
+msgid "Use raytracing to determine transmitted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting. Deprecated: use 'use_raytrace_refraction'."
+msgstr "使用光线追踪来确定折射的颜色，替代仅使用光照探头，这样可以防止表面对未使用该设置的表面照明产生影响（已弃用：使用“use_raytrace_refraction使用光追折射”）。"
 
 
 msgid "Subsurface Translucency"
@@ -23467,8 +23739,16 @@ msgid "Fast"
 msgstr "快速"
 
 
+msgid "Each face is considered as a medium interface. Gives correct results for manifold geometry that contains no inner parts."
+msgstr "每个面都被视为一个中等界面，给未包含内部元素的流形几何体提供正确的结果。"
+
+
 msgid "Accurate"
 msgstr "精确"
+
+
+msgid "Faces are considered as medium interface only when they have different consecutive facing. Gives correct results as long as the max ray depth is not exceeded. Have significant memory overhead compared to the fast method."
+msgstr "当面具有不同的连续面时，它们才被视为中等界面。只要不超过最大光线深度，就会给出正确的结果。与快速方法相比，具有显著的内存消耗。"
 
 
 msgid "Mesh data-block defining geometric surfaces"
@@ -23477,6 +23757,10 @@ msgstr "定义几何体表面的网格数据块"
 
 msgid "Corner Normals"
 msgstr "拐角法向"
+
+
+msgid "The \"slit\" normal direction of each face corner, influenced by vertex normals, sharp faces, sharp edges, and custom normals. May be empty."
+msgstr "每个面角的“狭缝”法线方向，受顶点法线、锐面、锐边和自定义法线的影响，可能是空的。"
 
 
 msgid "Edges"
@@ -23571,8 +23855,16 @@ msgid "Adaptivity"
 msgstr "适应性"
 
 
+msgid "Reduces the final face count by simplifying geometry where detail is not needed, generating triangles. A value greater than 0 disables Fix Poles."
+msgstr "通过简化不需要细节的几何体，生成三角形，减少最终面数。值大于 0，禁用修复极点。"
+
+
 msgid "Voxel Size"
 msgstr "体素大小"
+
+
+msgid "Size of the voxel in object space used for volume evaluation. Lower values preserve finer details."
+msgstr "用于体积计算的物体空间中的体素大小。值越低，细节保留越好。"
 
 
 msgid "Skin Vertices"
@@ -23641,6 +23933,10 @@ msgstr "使用基于拓扑的镜像方式 (当网格两侧具有匹配且唯一�
 
 msgid "Mirror Vertex Groups"
 msgstr "镜像顶点组"
+
+
+msgid "Mirror the left/right vertex groups when painting. The symmetry axis is determined by the symmetry settings."
+msgstr "绘制时镜像左/右顶点组。对称轴由对称设置决定。"
 
 
 msgid "Bone Selection"
@@ -23729,6 +24025,10 @@ msgstr "所有 UV 循环层"
 
 msgid "Vertex Colors"
 msgstr "顶点色"
+
+
+msgid "Legacy vertex color layers. Deprecated, use color attributes instead."
+msgstr "旧版顶点颜色图层。已弃用，改用颜色属性。"
 
 
 msgid "Vertex Normals"
@@ -24441,6 +24741,10 @@ msgstr "渲染物体作为阻隔或遮罩，在图像中创建alpha值为零的�
 
 msgid "Shadow Catcher"
 msgstr "阴影捕捉"
+
+
+msgid "Only render shadows and reflections on this object, for compositing renders into real footage. Objects with this setting are considered to already exist in the footage, objects without it are synthetic objects being composited into it."
+msgstr "仅在此物体上渲染阴影和反射，用于合成渲染成真实的素材。具有此设置的物体被认为已经存在于素材中，没有此设置的物体作为合成物体被合成到其中。"
 
 
 msgid "Light linking settings"
@@ -27190,6 +27494,10 @@ msgid "Set negative texture RGB and intensity values to zero, for some uses like
 msgstr "将纹理中负的RGB值和强度值设置为0，对于其他使用(比如置换贴图)可以禁用此选项来获得完整数值范围"
 
 
+msgid "Map the texture intensity to the color ramp. Note that the alpha value is used for image textures, enable \"Calculate Alpha\" for images without an alpha channel."
+msgstr "将纹理强度映射到渐变。请注意，alpha值用于图像纹理，为没有 Alpha 通道的图像启用\"计算 Alpha\"。"
+
+
 msgid "Make this a node-based texture"
 msgstr "将其作为节点纹理"
 
@@ -28196,6 +28504,14 @@ msgid "Maintained by community developers"
 msgstr "由社区开发者进行维护"
 
 
+msgid "Testing"
+msgstr "测试版"
+
+
+msgid "Newly contributed scripts (excluded from release builds)"
+msgstr "新近贡献的脚本 (不包含在发布版本中)"
+
+
 msgid "Addon Tags"
 msgstr "插件标签"
 
@@ -28254,6 +28570,10 @@ msgstr "可更新扩展的数量"
 
 msgid "Is Interface Locked"
 msgstr "接口是否锁定"
+
+
+msgid "If true, the interface is currently locked by a running job and data shouldn't be modified from application timers. Otherwise, the running job might conflict with the handler causing unexpected results or even crashes."
+msgstr "如果为真，则接口当前由正在运行的作业锁定，不应从应用程序计时器修改数据。否则，正在运行的作业可能与处理程序冲突，从而导致意外结果甚至崩溃。"
 
 
 msgid "Key Configurations"
@@ -28468,12 +28788,24 @@ msgid "Sun Angle"
 msgstr "太阳角度"
 
 
+msgid "Maximum size of a shadow map pixel. Higher values use less memory at the cost of shadow quality."
+msgstr "阴影贴图像素的最大尺寸，较高的值使用较少的内存，但会牺牲阴影质量。"
+
+
 msgid "Sun Threshold"
 msgstr "太阳阈值"
 
 
+msgid "If non-zero, the maximum value for world contribution that will be recorded inside the world light probe. The excess contribution is converted to a sun light. This reduces the light bleeding caused by very bright light sources."
+msgstr "如果非零，则表示将在世界光探头内部记录的世界贡献最大值，多余的贡献将转换为太阳光，这可以减少由非常亮的光源引起的光溢出。"
+
+
 msgid "Finite Volume"
 msgstr "有限体积"
+
+
+msgid "The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly."
+msgstr "世界的体积被用于旧的EEVEE渲染，需要进行转换才能正确渲染。"
 
 
 msgid "Use shader nodes to render the world"
@@ -32785,6 +33117,10 @@ msgid "Do not follow drawing path or object rotation and keeps aligned with view
 msgstr "不沿着绘图路径或对象旋转，并与视口保持对齐"
 
 
+msgid "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode."
+msgstr "应用于笔画的点和方形纹理的额外旋转。仅适用于纹理着色模式。"
+
+
 msgid "Fill Color"
 msgstr "填充色"
 
@@ -34508,6 +34844,10 @@ msgid "Execution Time"
 msgstr "执行时间"
 
 
+msgid "Time in seconds that the modifier took to evaluate. This is only set on evaluated objects. If multiple modifiers run in parallel, execution time is not a reliable metric."
+msgstr "修改器解算所花费的时间 (单位: 秒)。这仅在被解算物体上设置。如果多个修改器并行运行，则执行时间不是一个可靠的指标。"
+
+
 msgid "The active modifier in the list"
 msgstr "列表中的活动修改器"
 
@@ -35604,8 +35944,16 @@ msgid "Index Based"
 msgstr "基于编号"
 
 
+msgid "Set the material on new faces based on the order of the material slot lists. If a material doesn't exist on the modifier object, the face will use the same material slot or the first if the object doesn't have enough slots."
+msgstr "根据材质槽列表的顺序在新生面上设置材质。如果修改器物体上不存在材质，则面将使用相同的材质槽，如果物体没有足够的槽，则使用第一个材质槽。"
+
+
 msgid "Transfer"
 msgstr "传递"
+
+
+msgid "Transfer materials from non-empty slots to the result mesh, adding new materials as necessary. For empty slots, fall back to using the same material index as the operand mesh."
+msgstr "将材质从非空槽传递到结果网格，并根据需要添加新材质。对于空槽，回退到使用与操作数网格相同的材质编号。"
 
 
 msgid "Mesh object to use for Boolean operation"
@@ -37135,8 +37483,16 @@ msgid "Deform the stroke to best match the envelope shape"
 msgstr "使笔画变形以最好地匹配封套形状"
 
 
+msgid "Add segments to create the envelope. Keep the original stroke."
+msgstr "添加段以创建封套。保留原始笔画。"
+
+
 msgid "Fills"
 msgstr "填充"
+
+
+msgid "Add fill segments to create the envelope. Don't keep the original stroke."
+msgstr "添加填充段以创建封套。不保留原始笔画。"
 
 
 msgid "Skip Segments"
@@ -37327,6 +37683,10 @@ msgid "Segment Influence"
 msgstr "线段影响"
 
 
+msgid "Factor to determine how much the length of the individual segments should influence the final computed curvature. Higher factors makes small segments influence the overall curvature less."
+msgstr "决定单个线段的长度对最终计算曲率产生多大影响的系数。系数越大，小线段对整体曲率的影响越小。"
+
+
 msgid "Start Factor"
 msgstr "起点系数"
 
@@ -37377,6 +37737,10 @@ msgstr "图像距离小于该值的线段将被链接在一起"
 
 msgid "Crease Threshold"
 msgstr "折痕阈值"
+
+
+msgid "Angles smaller than this will be treated as creases. Crease angle priority: object Line Art crease override > mesh auto smooth angle > Line Art default crease."
+msgstr "小于此值的角度将被视为折痕。折痕角度优先级：物体线条画折痕覆盖 > 网格自动平滑角度 > 线条画默认折痕。"
 
 
 msgid "Invert source vertex group values"
@@ -37447,8 +37811,16 @@ msgid "Shadow Camera Size"
 msgstr "阴影摄像机尺寸"
 
 
+msgid "Represents the \"Orthographic Scale\" of an orthographic camera. If the camera is positioned at the light's location with this scale, it will represent the coverage of the shadow \"camera\"."
+msgstr "此值表示正交摄像机的“正交缩放”。如果将此缩放值的摄像机放在灯光位置，它将表示阴影“摄像机”的覆盖范围。"
+
+
 msgid "Shadow Region Filtering"
 msgstr "阴影区域过滤"
+
+
+msgid "Select feature lines that comes from lit or shaded regions. Will not affect cast shadow and light contour since they are at the border."
+msgstr "选择来自照明或阴影区域的要素线。不会影响投射阴影和光线轮廓，因为它们位于边界。"
 
 
 msgid "Not filtering any lines based on illumination region"
@@ -37567,6 +37939,10 @@ msgid "Remove all back faces to speed up calculation, this will create edges in 
 msgstr "移除所有背面以加快计算速度，这将创建与禁用时不同的遮挡级别的边缘"
 
 
+msgid "Use cached scene data from the first Line Art modifier in the stack. Certain settings will be unavailable."
+msgstr "使用堆栈中第一个“线条画”修改器中缓存的场景数据。某些设置将不可用。"
+
+
 msgid "Clipping Boundaries"
 msgstr "截断区间"
 
@@ -37633,6 +38009,10 @@ msgstr "从Freestyle标记边生成笔画"
 
 msgid "Handle Overlapping Edges"
 msgstr "处理重叠边"
+
+
+msgid "Allow edges in the same location (i.e. from edge split) to show properly. May run slower."
+msgstr "允许在同一位置 (即拆分边) 中的边正确显示。可能运行速度较慢。"
 
 
 msgid "Filter Face Marks"
@@ -37817,6 +38197,10 @@ msgstr "基于名称匹配输出顶点组"
 
 msgid "Overlapping Edge Types"
 msgstr "重叠边缘类型"
+
+
+msgid "Allow an edge to have multiple overlapping types. This will create a separate stroke for each overlapping type."
+msgstr "允许边缘具有多个重叠类型。这将为每个重叠类型创建一个单独的笔画。"
 
 
 msgid "Project contour lines using a light source object"
@@ -38563,6 +38947,10 @@ msgid "Vertex Indices"
 msgstr "顶点编号"
 
 
+msgid "Indices of vertices bound to the modifier. For Bézier curves, handles count as additional vertices."
+msgstr "绑定到修改器的顶点编号。对于贝塞尔曲线，控制点计为附加顶点。"
+
+
 msgid "Laplacian Deform Modifier"
 msgstr "拉普拉斯塑形修改器"
 
@@ -39237,6 +39625,10 @@ msgstr "固实地面在水面下的深度"
 
 msgid "Fetch"
 msgstr "吹程"
+
+
+msgid "This is the distance from a lee shore, called the fetch, or the distance over which the wind blows with constant velocity. Used by 'JONSWAP' and 'TMA' models."
+msgstr "到下风岸的距离称为吹程，或风以恒定的速度吹过的距离。用于 'JONSWAP' 和 'TMA' 模型。"
 
 
 msgid "Cache Path"
@@ -40039,6 +40431,10 @@ msgstr "通过简单的挤出输出网格的实体化版本"
 
 msgid "Complex"
 msgstr "复杂"
+
+
+msgid "Output a manifold mesh even if the base mesh is non-manifold, where edges have 3 or more connecting faces. This method is slower."
+msgstr "即便基础网格是非流形网格 (一条边有三个以上相邻面)，也还是输出流形网格。该方法较慢。"
 
 
 msgid "Thickness of the shell"
@@ -42441,6 +42837,10 @@ msgid "End Frame (manipulated from UI)"
 msgstr "结束帧(从 UI 操作)"
 
 
+msgid "End frame of the NLA strip. Note: changing this value also updates the value of the strip's repeats or its action's end frame. If only the end frame should be changed, see the \"frame_end\" property instead."
+msgstr "NLA 片段的结束帧。注意：更改此值也会更新片段重复或其动作结束帧的值。如果只应更改结束帧，请参阅“frame_end”属性。"
+
+
 msgid "Start Frame (raw value)"
 msgstr "起始帧 (原始值)"
 
@@ -42451,6 +42851,10 @@ msgstr "与frame_start相同，除了可以设置任何值，包括创建无效�
 
 msgid "Start Frame (manipulated from UI)"
 msgstr "起始帧(从 UI 操作)"
+
+
+msgid "Start frame of the NLA strip. Note: changing this value also updates the value of the strip's end frame. If only the start frame should be changed, see the \"frame_start\" property instead."
+msgstr "NLA片段的起始帧。注意：更改此值也会更新片段结束帧的值。如果只应更改起始帧，请参阅“frame_start”属性。"
 
 
 msgid "Amount the strip contributes to the current result"
@@ -43853,6 +44257,14 @@ msgid "No prefiltering, use when guiding passes are noise-free"
 msgstr "无预过滤，当引导通道无噪点时使用"
 
 
+msgid "Denoise image and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time."
+msgstr "图像和引导通道一起降噪。当引导通道有噪点时，使用最少的额外处理时间，提高质量。"
+
+
+msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
+msgstr "在图像降噪之前，预先过滤嘈杂的引导通道。当引导通道有噪点时，使用额外的处理时间，提高质量。"
+
+
 msgid "HDR"
 msgstr "HDR"
 
@@ -44347,12 +44759,28 @@ msgid "Eccentricity"
 msgstr "离心率"
 
 
+msgid "Controls how directional the filter is. 0 means the filter is completely omnidirectional while 2 means it is maximally directed along the edges of the image."
+msgstr "控制滤镜方向，0表示滤镜完全全向，2表示它最大地沿着图像的边缘定向。"
+
+
+msgid "Controls the sharpness of the filter. 0 means completely smooth while 1 means completely sharp."
+msgstr "控制滤镜的锐度，0 表示完全平滑，1 表示完全锐利。"
+
+
 msgid "Uniformity"
 msgstr "一致性"
 
 
+msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions."
+msgstr "控制滤镜方向的均匀性，值越高，方向越平均。"
+
+
 msgid "High Precision"
 msgstr "高精度"
+
+
+msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
+msgstr "使用一种更准确但更慢的方法。当输出含有不良噪点时使用。"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -46595,7 +47023,7 @@ msgstr "几何到实例"
 
 
 msgid "Convert each input geometry into an instance, which can be much faster than the Join Geometry node when the inputs are large"
-msgstr "将各个输入几何体转换为实例，当输入较庞大时会比合并几何体节点更快"
+msgstr "将各个输入几何体转换为实例，当输入较庞大时会比合并几何节点更快"
 
 
 msgid "Get Named Grid"
@@ -47049,6 +47477,10 @@ msgstr "活动项"
 
 msgid "Enum Definition (deprecated)"
 msgstr "枚举定义（已弃用）"
+
+
+msgid "The enum definition can now be accessed directly on the node. This exists for backward compatibility."
+msgstr "现在可以直接在节点上访问枚举定义，为了向后兼容性而存在的。"
 
 
 msgid "Merge by Distance"
@@ -47687,6 +48119,10 @@ msgid "Z Up"
 msgstr "Z 向上"
 
 
+msgid "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points is vertical, the X axis is used."
+msgstr "计算垂直于 Z 轴和曲线切线的法向。如果一系列点是垂直的，则使用 X 轴。"
+
+
 msgid "Use the stored custom normal attribute as the final normals"
 msgstr "使用存储的自定义法向属性作为最终法向"
 
@@ -47891,6 +48327,10 @@ msgid "Align text to the left and the right, with equal character spacing"
 msgstr "按照均等的字符间隔, 向左右两侧对齐"
 
 
+msgid "Font of the text. Falls back to the UI font by default."
+msgstr "文本字体。默认会退回界面字体。"
+
+
 msgid "Let the text use more space than the specified height"
 msgstr "让文本使用比指定高度更多的空间"
 
@@ -47901,6 +48341,10 @@ msgstr "缩放至适配"
 
 msgid "Scale the text size to fit inside the width and height"
 msgstr "缩放文本大小，以在宽度和高度上匹配"
+
+
+msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
+msgstr "仅输出匹配宽度和高度的曲线。将其余部分输出至\"其余\"。"
 
 
 msgid "Pivot point position relative to character"
@@ -48384,8 +48828,16 @@ msgid "Chiang"
 msgstr "Chiang式模型"
 
 
+msgid "Near-field hair scattering model by Chiang et al. 2016, suitable for close-up looks, but is more noisy when viewing from a distance."
+msgstr "Chiang等人在2016年提出的近场毛发散射模型，适合近距离观察，但远距离观察时噪点较多。"
+
+
 msgid "Huang"
 msgstr "Huang式模型"
+
+
+msgid "Multi-scale hair scattering model by Huang et al. 2022, suitable for viewing both up close and from a distance, supports elliptical cross-sections and has more precise highlight in forward scattering directions."
+msgstr "Huang 等人在2022年提出的多重缩放毛发散射模型，适合远距离观察，支持椭圆截面，在前向散射方向有更精确的高光。"
 
 
 msgid "Color Parametrization"
@@ -48454,6 +48906,10 @@ msgstr "基于体积散射的近似体积算法，使用散射半径自动校正
 
 msgid "Random Walk (Skin)"
 msgstr "随机游走(皮肤)"
+
+
+msgid "Volumetric approximation to physically based volume scattering, with scattering radius automatically adjusted to match color textures. Designed for skin shading."
+msgstr "基于体积散射的近似体积算法，使用散射半径自动校正匹配颜色纹理，设计用于皮肤着色。"
 
 
 msgid "Ray Portal BSDF"
@@ -48778,6 +49234,14 @@ msgstr "变换一个点"
 
 msgid "Transform a texture by inverse mapping the texture coordinate"
 msgstr "通过反向映射纹理坐标对纹理进行变换"
+
+
+msgid "Transform a direction vector (Location is ignored)"
+msgstr "变换一个方向矢量 (忽略位置)"
+
+
+msgid "Transform a unit normal vector (Location is ignored)"
+msgstr "变换一个单位法向矢量 (忽略位置)"
 
 
 msgid "Mix values by a factor"
@@ -49210,6 +49674,10 @@ msgstr "等距圆柱型或经纬型投影"
 
 msgid "Projection from an orthographic photo of a mirror ball"
 msgstr "源自一个球面反射镜的正交型照片投影"
+
+
+msgid "Use the 2D vector (X, Y) as input. The Z component is ignored."
+msgstr "使用二维矢量 (X, Y) 作为输入。忽略Z向分量。"
 
 
 msgid "Use the 3D vector (X, Y, Z) as input"
@@ -49650,6 +50118,10 @@ msgid "Smooth F1"
 msgstr "平滑 F1"
 
 
+msgid "Smoothed version of F1. Weighted sum of neighbor voronoi cells."
+msgstr "平滑版本的 F1。相邻沃罗诺伊单元的加权总和。"
+
+
 msgid "Distance to Edge"
 msgstr "到边缘的距离"
 
@@ -49835,6 +50307,10 @@ msgstr "A投影至B"
 msgctxt "NodeTree"
 msgid "Reflect"
 msgstr "反射"
+
+
+msgid "Reflect A around the normal B. B doesn't need to be normalized."
+msgstr "沿向量B反射向量A，B不需要规格化。"
 
 
 msgctxt "NodeTree"
@@ -50248,6 +50724,10 @@ msgstr "连线有效"
 
 msgid "Multi Input Sort ID"
 msgstr "多项输入排序 ID"
+
+
+msgid "Used to sort multiple links coming into the same input. The highest ID is at the top."
+msgstr "用于给接入同一输入端的多条线路排序。最大ID位于顶部。"
 
 
 msgid "To node"
@@ -50690,6 +51170,10 @@ msgid "Default Input"
 msgstr "默认输入"
 
 
+msgid "Input to use when the socket is unconnected. Requires \"Hide Value\"."
+msgstr "接口未连接时使用的输入接口，需要“隐藏值”。"
+
+
 msgid "Socket description"
 msgstr "接口描述"
 
@@ -50888,6 +51372,10 @@ msgstr "烘焙结束的帧"
 
 msgid "Frame where the baking starts"
 msgstr "烘焙起始的帧"
+
+
+msgid "Bake node or simulation output node that corresponds to this bake. This node may be deeply nested in the modifier node group. It can be none in some cases like missing linked data blocks."
+msgstr "烘焙对应此烘焙结果的节点或者模拟输出节点。这个节点可以深度嵌入修改器节点组。在一些类似丢失关联数据块的情况下烘焙结果可能为空。"
 
 
 msgid "Custom Path"
@@ -62825,6 +63313,10 @@ msgid "Switch brush to smooth mode for duration of stroke"
 msgstr "在画笔持续时间内将笔刷切换到平滑模式"
 
 
+msgid "Erase"
+msgstr "擦除"
+
+
 msgctxt "Operator"
 msgid "Set Curve Caps"
 msgstr "设置曲线端点"
@@ -73121,7 +73613,7 @@ msgstr "计算模拟到帧"
 
 
 msgid "Calculate simulations in geometry nodes modifiers from the start to current frame"
-msgstr "从开始到当前帧的几何体节点修改器中计算模拟"
+msgstr "从开始到当前帧的几何节点修改器中计算模拟"
 
 
 msgid "Calculate all selected objects instead of just the active object"
@@ -76765,6 +77257,10 @@ msgstr "需要访问令牌"
 
 msgid "Repository requires an access token"
 msgstr "存储库需要访问令牌"
+
+
+msgid "Manually set the path for extensions to be stored. When disabled a user's extensions directory is created."
+msgstr "手动设置扩展的存储路径。禁用时会创建一个用户扩展目录。"
 
 
 msgid "Check for Updates on Startup"
@@ -83379,6 +83875,10 @@ msgstr "在彼此半径范围内的选中的 UV 顶点将被焊接在一起"
 
 msgid "Maximum distance between welded vertices"
 msgstr "焊接顶点之间的最大间隔"
+
+
+msgid "Shared Vertex"
+msgstr "共用顶点"
 
 
 msgctxt "Operator"
@@ -92904,6 +93404,10 @@ msgid "Windows Ink"
 msgstr "Windows Ink"
 
 
+msgid "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer."
+msgstr "使用原生 Windows Ink API，用于现代平板电脑和笔设备。需要 Windows 8 或更高版本。"
+
+
 msgid "Wintab"
 msgstr "Wintab"
 
@@ -93066,6 +93570,10 @@ msgstr "选择视图缩放的比例风格"
 
 msgid "Continue"
 msgstr "持续"
+
+
+msgid "Continuous zooming. The zoom direction and speed depends on how far along the set Zoom Axis the mouse has moved."
+msgstr "持续缩放。缩放的方向和速度取决于鼠标沿缩放方向移动的距离。"
 
 
 msgid "Dolly"
@@ -93404,6 +93912,10 @@ msgid "Max Shader Compilation Subprocesses"
 msgstr "最大着色器编译子进程"
 
 
+msgid "Max number of parallel shader compilation subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). Setting it to 0 disables subprocess shader compilation."
+msgstr "并行着色器编译子进程的最大数量，钳制在CPU支持的最大线程数内，（需要重新启动Blender才能使更改生效）。设为0将禁用子进程着色器编译。"
+
+
 msgid "Memory Cache Limit"
 msgstr "内存缓存限值"
 
@@ -93416,12 +93928,24 @@ msgid "Network Connection Limit"
 msgstr "网络连接限制"
 
 
+msgid "Limit the number of simultaneous internet connections online operations may make at once. Zero disables the limit."
+msgstr "限制在线操作同时进行互联网连接的次数。零值表示禁用限制。"
+
+
 msgid "Network Timeout"
 msgstr "网络超时"
 
 
+msgid "The time in seconds to wait for online operations before a connection may fail with a time-out error. Zero uses the systems default."
+msgstr "在连接出现超时错误之前，在线操作的等待秒数。零值表示使用系统默认。"
+
+
 msgid "Register for All Users"
 msgstr "为所有用户注册"
+
+
+msgid "Make this Blender version open blend files for all users. Requires elevated privileges."
+msgstr "使此 Blender 版本对所有用户注册 blend 文件，需要提升权限。"
 
 
 msgid "Maximum number of lines to store for the console buffer"
@@ -93520,6 +94044,10 @@ msgid "UI Scale"
 msgstr "UI缩放"
 
 
+msgid "Size multiplier to use when displaying custom user interface elements, so that they are scaled correctly on screens with different DPI. This value is based on operating system DPI settings and Blender display scale."
+msgstr "自定义界面元素时使用的大小乘数，这样它们在不同的DPI下才能正确缩放显示。该数值基于操作系统的DPI设置和Blender显示缩放。"
+
+
 msgid "Edit Mode Smooth Wires"
 msgstr "编辑模式平滑线框"
 
@@ -93538,6 +94066,10 @@ msgstr "启用GPU加速计算队列中的最后一个表面细分修改器"
 
 msgid "Allow Online Access"
 msgstr "允许联机访问"
+
+
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "允许Blender访问互联网。遵循此设置的插件仅在启用时才能连接到互联网。然而，Blender无法防止第三方插件违反此规则。"
 
 
 msgid "Overlay Smooth Wires"
@@ -93924,6 +94456,10 @@ msgid "FPS Average Samples"
 msgstr "FPS平均采样"
 
 
+msgid "The number of frames to use for calculating FPS average. Zero to calculate this automatically, where the number of samples matches the target FPS."
+msgstr "用于计算平均帧率的帧数，设置为零将自动设置，其中样本数量与目标帧率匹配。"
+
+
 msgid "Render Display Type"
 msgstr "渲染显示类型"
 
@@ -93958,6 +94494,10 @@ msgstr "使用小键盘(2 4 6 8)做旋转操作的步进值"
 
 msgid "Enabled Add-ons Only"
 msgstr "仅已启用插件"
+
+
+msgid "Only show enabled add-ons. Un-check to see all installed add-ons."
+msgstr "仅显示已启用插件。取消勾选查看全部已安装插件。"
 
 
 msgid "Toolbox Column Layout"
@@ -97302,6 +97842,10 @@ msgid "Accumulate samples by reprojecting last tracing results"
 msgstr "通过重现上次追踪结果积累采样"
 
 
+msgid "Determines the number of rays per pixel. Higher resolution uses more memory."
+msgstr "确定每像素的光线数。更高的精度使用更多的内存。"
+
+
 msgid "1:1"
 msgstr "1:1"
 
@@ -97360,6 +97904,10 @@ msgstr "使用屏幕追踪时，用于检测交叉点的表面厚度"
 
 msgid "Raytrace Max Roughness"
 msgstr "光线追踪最大粗糙度"
+
+
+msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use fast GI approximation. A value of 1 will disable fast GI approximation."
+msgstr "使用光追的最大糙度，越高的粗糙表面将使用“快速GI近似”，值为1表示禁用“快速GI近似”。"
 
 
 msgid "Enable noise reduction techniques for raytraced effects"
@@ -98368,6 +98916,10 @@ msgstr "对于在视图中显示网格，跳过自定义法向和面拐法向的
 
 msgid "Render Single Layer"
 msgstr "渲染单个层"
+
+
+msgid "Only render the active layer. Only affects rendering from the interface, ignored for rendering from command line."
+msgstr "只渲染活动层，只在界面渲染模式下可用，命令行渲染将被忽略。"
 
 
 msgid "Use Spherical Stereo"
@@ -99454,16 +100006,32 @@ msgid "Clamp Surface Direct"
 msgstr "钳制表面直接光"
 
 
+msgid "If non-zero, the maximum value for lights contribution on a surface. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by light objects."
+msgstr "若为非零值，则代表在表面上灯光贡献取最大值。较高的值将被按比例缩小，以避免产生过多的噪点以及缓慢的聚敛，以牺牲精确度为代价。用于灯光物体。"
+
+
 msgid "Clamp Surface Indirect"
 msgstr "钳制表面间接光"
+
+
+msgid "If non-zero, the maximum value for indirect lighting on surface. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by ray-tracing and light-probes."
+msgstr "若为非零值，则代表在表面上间接光取最大值。较高的值将被按比例缩小，以避免产生过多的噪点以及缓慢的聚敛，以牺牲精确度为代价。用于光线追踪和光照探头。"
 
 
 msgid "Clamp Volume Direct"
 msgstr "钳制体积直接光"
 
 
+msgid "If non-zero, the maximum value for lights contribution in volumes. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by light objects."
+msgstr "若为非零值，则代表在体积内灯光贡献取最大值。较高的值将被按比例缩小，以避免产生过多的噪点以及缓慢的聚敛，以牺牲精确度为代价。用于灯光物体。"
+
+
 msgid "Clamp Volume Indirect"
 msgstr "钳制体积间接光"
+
+
+msgid "If non-zero, the maximum value for indirect lighting in volumes. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by light-probes."
+msgstr "若为非零值，则代表在体积内间接光取最大值。较高的值将被按比例缩小，以避免产生过多的噪点以及缓慢的聚敛，以牺牲精确度为代价。用于光照探头。"
 
 
 msgid "Bias the shading normal to reduce self intersection artifacts"
@@ -99502,6 +100070,10 @@ msgid "Amount of GI ray to trace for each pixel"
 msgstr "每个像素要跟踪的GI射线量"
 
 
+msgid "Control the quality of the fast GI lighting. Higher resolution uses more memory."
+msgstr "控制快速GI照明的质量，更高的分辨率使用更多的内存。"
+
+
 msgid "Step Count"
 msgstr "步幅数"
 
@@ -99514,8 +100086,16 @@ msgid "Far Thickness"
 msgstr "远端厚度"
 
 
+msgid "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
+msgstr "计算快速GI和环境遮蔽 (AO) 时曲面的角度厚度，减少远端几何体的能量损失和遮蔽缺失。"
+
+
 msgid "Near Thickness"
 msgstr "近端厚度"
+
+
+msgid "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
+msgstr "计算快速GI和环境遮挡时曲面的几何厚度，减少漏光和漏接遮蔽。"
 
 
 msgid "Cubemap Display Size"
@@ -99730,6 +100310,10 @@ msgid "Screen-Trace"
 msgstr "屏幕追踪"
 
 
+msgid "Raytrace against the depth buffer. Fallback to light probes for invalid rays."
+msgstr "对深度缓冲进行光线追踪。无效光线回退到光照探头。"
+
+
 msgid "Reflection Trace Options"
 msgstr "反射追踪选项"
 
@@ -99898,6 +100482,10 @@ msgid "Jittered Shadows (Viewport)"
 msgstr "抖动阴影 (视图)"
 
 
+msgid "Enable jittered shadows on the viewport. (Jittered shadows are always enabled for final renders)."
+msgstr "在视口上启用抖动阴影。（对于最终渲染，始终启用抖动阴影）。"
+
+
 msgid "Enable shadow casting from lights"
 msgstr "启用光源的阴影投射"
 
@@ -99966,12 +100554,20 @@ msgid "Volume Max Ray Depth"
 msgstr "体积最大光线深度"
 
 
+msgid "Maximum surface intersection count used by the accurate volume intersection method. Will create artifact if it is exceeded. Higher count increases VRAM usage."
+msgstr "精确体积相交方法使用的最大曲面相交计数。如果超过，将创建伪影。数越高，VRAM (显存) 的使用率就越高。"
+
+
 msgid "Exponential Sampling"
 msgstr "指数型采样"
 
 
 msgid "Distribute more samples closer to the camera"
 msgstr "越靠近摄像机分布越多的采样"
+
+
+msgid "Number of steps to compute volumetric effects. Higher step count increase VRAM usage and quality."
+msgstr "计算体积效果的步数。更高的步数会提高VRAM的使用量和质量。"
 
 
 msgid "Volumetric Shadow Samples"
@@ -99984,6 +100580,10 @@ msgstr "计算体积投影的采样值"
 
 msgid "Start distance of the volumetric effect"
 msgstr "体积效果的起始距离"
+
+
+msgid "Control the quality of the volumetric effects. Higher resolution uses more memory."
+msgstr "控制体积效果的品质。更高的分辨率会使用更多内存。"
 
 
 msgid "Grease Pencil Render"
@@ -102148,6 +102748,10 @@ msgstr "切换该形态键"
 
 msgid "Name of Shape Key"
 msgstr "形态键名称"
+
+
+msgid "Optimized access to shape keys point data, when using foreach_get/foreach_set accessors. Warning: Does not support legacy Curve shape keys."
+msgstr "形态键点数据的优化访问方式，当使用了 foreach_get/foreach_set 访问器时（警告：不支持旧版曲线形态键）。"
 
 
 msgid "Relative Key"
@@ -105209,8 +105813,16 @@ msgid "Order U"
 msgstr "阶数 U"
 
 
+msgid "NURBS order in the U direction. Higher values make each point influence a greater area, but have worse performance."
+msgstr "U 方向上的NURBS阶数。值越高，每个点影响的区域越大，但性能越差。"
+
+
 msgid "Order V"
 msgstr "阶数 V"
+
+
+msgid "NURBS order in the V direction. Higher values make each point influence a greater area, but have worse performance."
+msgstr "V 方向上的NURBS阶数。值越高，每个点影响的区域越大，但性能越差。"
 
 
 msgid "Points U"
@@ -106418,6 +107030,10 @@ msgstr "字体的主题设置"
 
 msgid "Character Weight"
 msgstr "字符粗细"
+
+
+msgid "Weight of the characters. 100-900, 400 is normal."
+msgstr "字符的粗细，100-900, 400为常规。"
 
 
 msgid "Font size in points"
@@ -108208,8 +108824,16 @@ msgid "Add weight data for new strokes"
 msgstr "为新笔画添加权重数据"
 
 
+msgid "Weight data for new strokes is added according to the current vertex group and weight. If no vertex group selected, weight is not added."
+msgstr "新笔划的权重数据将根据当前顶点组和权重添加。如果未选择顶点组，则不添加权重。"
+
+
 msgid "Cycle-Aware Keying"
 msgstr "循环感知插帧"
+
+
+msgid "For channels with cyclic extrapolation, keyframe insertion is automatically remapped inside the cycle time range, and keeps ends in sync. Curves newly added to actions with a Manual Frame Range and Cyclic Animation are automatically made cyclic."
+msgstr "对于具有循环外插的通道，在周期时间范围内自动重新映射关键帧插入，并保持结束点同步。新添加到具有手动帧范围和循环动画的动作中的曲线将自动变为循环曲线。"
 
 
 msgid "Auto Keying"
@@ -108518,10 +109142,6 @@ msgstr "共享位置"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "选择在同一位置上共享网格点的UV"
-
-
-msgid "Shared Vertex"
-msgstr "共用顶点"
 
 
 msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"
@@ -108913,6 +109533,10 @@ msgstr "默认导入方法"
 
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "确定资产的导入方式，除非被资产浏览器覆盖"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "导入资产为被复制数据块，同时避免多个副本嵌套，通常是很重的数据。比如，材质资产的纹理或物体资产的网格不必每次导入此资产时都进行复制。资产实例共享数据。"
 
 
 msgid "Identifier (not necessarily unique) for the asset library"
@@ -110489,6 +111113,10 @@ msgid "Frame File Path"
 msgstr "帧文件路径"
 
 
+msgid "Volume file used for loading the volume at the current frame. Empty if the volume has not be loaded or the frame only exists in memory."
+msgstr "用于在当前帧加载体积的体积文件。如果未加载体积或帧仅存在于内存中，则为空。"
+
+
 msgid "List of grids and metadata are loaded in memory"
 msgstr "栅格和元数据列表已加载到内存中"
 
@@ -110499,6 +111127,10 @@ msgstr "体积渲染"
 
 msgid "Volume object render settings"
 msgstr "体积物体渲染设置"
+
+
+msgid "Specify volume data precision. Lower values reduce memory consumption at the cost of detail."
+msgstr "指定体积数据精度。调低数值可降低内存消耗，但会牺牲细节。"
 
 
 msgid "Full float (Use 32 bit for all data)"
@@ -110527,6 +111159,10 @@ msgstr "无视物体的缩放，保持体积的不透明度和细节程度不变
 
 msgid "Specify volume step size and density in world space"
 msgstr "指定世界空间中体积的步长大小和密度"
+
+
+msgid "Distance between volume samples. Lower values render more detail at the cost of performance. If set to zero, the step size is automatically determined based on voxel size."
+msgstr "体积采样之间的距离。调低数值，可以牺牲性能为代价呈现更多细节。如果设置为零，步长大小会根据体素大小自动确定。"
 
 
 msgid "Walk navigation settings"
@@ -110850,8 +111486,16 @@ msgid "Haptic Duration"
 msgstr "触觉持续时间"
 
 
+msgid "Haptic duration in seconds. 0.0 is the minimum supported duration."
+msgstr "触觉持续时间，单位秒。0.0是支持的最小持续时间。"
+
+
 msgid "Haptic Frequency"
 msgstr "触觉频率"
+
+
+msgid "Frequency of the haptic vibration in hertz. 0.0 specifies the OpenXR runtime's default frequency."
+msgstr "触觉振动的频率，单位赫兹。0.0 为 OpenXR 运行时的默认频率。"
 
 
 msgid "Haptic Match User Paths"
@@ -118623,6 +119267,10 @@ msgid "Sculpt Curves"
 msgstr "雕刻曲线"
 
 
+msgid "Legacy Icon"
+msgstr "旧版图标"
+
+
 msgid "Sample Bias"
 msgstr "采样偏移量"
 
@@ -121445,6 +122093,10 @@ msgstr "偏移"
 
 msgid "Resolutions"
 msgstr "分辨率"
+
+
+msgid "Linear Modifiers"
+msgstr "线性修改器"
 
 
 msgid "Preview Zoom"
@@ -128465,6 +129117,14 @@ msgid "Esc"
 msgstr "Esc"
 
 
+msgid "Pause"
+msgstr "暂停"
+
+
+msgid "Insert"
+msgstr "插入"
+
+
 msgid "Animate property"
 msgstr "动画属性"
 
@@ -128651,8 +129311,16 @@ msgid "Movie"
 msgstr "影片"
 
 
+msgid "Users: {}"
+msgstr "用户: {}"
+
+
 msgid "File not found"
 msgstr "文件未找到"
+
+
+msgid "Choose {} data-block to be assigned to this user"
+msgstr "选择 {} 数据块指定给此用户"
 
 
 msgid ""
@@ -128853,6 +129521,18 @@ msgid "Anim Player"
 msgstr "动画播放器"
 
 
+msgid "Split/Dock"
+msgstr "分离/停靠"
+
+
+msgid "Split/Join"
+msgstr "分离/合并"
+
+
+msgid "Duplicate into Window"
+msgstr "复制到窗口内"
+
+
 msgid "Swap Areas"
 msgstr "区域互换"
 
@@ -128983,6 +129663,10 @@ msgid ""
 msgstr ""
 "文件由较新的Blender保存\n"
 "({}), 可能会丢失数据"
+
+
+msgid "This file is managed by the Blender asset system and cannot be overridden"
+msgstr "此文件由Blender资产系统管理，无法被覆写"
 
 
 msgid "Only Alembic Procedurals supported"
@@ -130340,6 +131024,14 @@ msgid "Exported '%s'"
 msgstr "已导出 '%s'"
 
 
+msgid "Exported %d files from collection '%s'"
+msgstr "已导出 %d 个文件于集合 '%s'"
+
+
+msgid "Exported %d files from %d collections"
+msgstr "已导出 %d 个文件于 %d 个集合"
+
+
 msgid "Add IK"
 msgstr "添加 IK"
 
@@ -130534,10 +131226,6 @@ msgstr "未能找到钩挂修改器"
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "无法执行 '%s', 改变模式时出错"
-
-
-msgid "Unable to execute, %s object is linked"
-msgstr "无法运行，%s 对象已经链接"
 
 
 msgid "Apply Modifier"
@@ -136161,6 +136849,10 @@ msgid "%s is not compatible with any 'refresh' options"
 msgstr "%s 与任何“刷新”选项都不兼容"
 
 
+msgid "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset."
+msgstr "资产数据只能分配给资产。请使用 asset_mark() 标记为资产。"
+
+
 msgid "Asset data cannot be None"
 msgstr "资产数据不能为空"
 
@@ -137805,6 +138497,10 @@ msgid "GizmoType '%s' not known"
 msgstr "未知操控器类型 '%s'"
 
 
+msgid "GizmoType '%s' is for a 3D gizmo-group. The 'draw_select' callback is set where only 'test_select' will be used."
+msgstr "操控器类型 '%s' 用于三维操控器组. 在将用到 'test_select' 的位置设置了 'draw_select' 回调。"
+
+
 msgid "%s area type does not support gizmos"
 msgstr "%s 区域类型不支持操控器"
 
@@ -139195,6 +139891,10 @@ msgstr "已烘焙帧 {}"
 
 msgid "Baked {} - {}"
 msgstr "已烘焙 {} - {}"
+
+
+msgid "Frames {} - {}"
+msgstr "帧 {} - {}"
 
 
 msgid "How many times to blur the values for all elements"
@@ -140831,7 +141531,7 @@ msgstr "排序权重"
 
 
 msgid "All geometry groups as separate instances"
-msgstr "把所有几何节点组拆分为单独的实例"
+msgstr "把所有几何群组拆分为单独的实例"
 
 
 msgid "The group ID of each group instance"
@@ -142246,12 +142946,36 @@ msgid "Saving it with this Blender (%s) may cause loss of data"
 msgstr "使用此版 Blender (%s) 保存可能会导致数据丢失"
 
 
+msgid "This file is managed by the Blender asset system. It can only be"
+msgstr "此文件由Blender资产系统管理，只能被"
+
+
+msgid "saved as a new, regular file."
+msgstr "另存为新的常规文件。"
+
+
+msgid "Cannot overwrite asset system files. Save as new file"
+msgstr "无法覆写资产系统文件。另存为"
+
+
+msgid "with an older Blender version?"
+msgstr "较旧的 Blender 版本的文件？"
+
+
 msgid "Overwrite file with an older Blender version?"
 msgstr "使用较旧的 Blender 版本覆盖文件？"
 
 
+msgid "Cannot overwrite asset system files. Save as new file?"
+msgstr "无法覆写资产系统文件。另存为新文件？"
+
+
 msgid "Save changes before closing?"
 msgstr "是否在关闭之前保存更改？"
+
+
+msgid "Cannot overwrite files that are managed by the asset system"
+msgstr "无法覆写由资产系统管理的文件"
 
 
 msgid "Unable to create user config path"
@@ -142726,6 +143450,126 @@ msgstr "皮革"
 
 msgid "Silk"
 msgstr "丝绸"
+
+
+msgid "Illuminant A"
+msgstr "光源 A"
+
+
+msgid "Illuminant B"
+msgstr "光源 B"
+
+
+msgid "Illuminant C"
+msgstr "光源 C"
+
+
+msgid "Illuminant D50"
+msgstr "光源 D50"
+
+
+msgid "Illuminant D55"
+msgstr "光源 D55"
+
+
+msgid "Illuminant D65"
+msgstr "光源 D65"
+
+
+msgid "Illuminant D75"
+msgstr "光源 D75"
+
+
+msgid "Illuminant D93"
+msgstr "光源 D93"
+
+
+msgid "Illuminant E"
+msgstr "光源 E"
+
+
+msgid "Illuminant F1"
+msgstr "光源 F1"
+
+
+msgid "Illuminant F10"
+msgstr "光源 F10"
+
+
+msgid "Illuminant F11"
+msgstr "光源 F11"
+
+
+msgid "Illuminant F12"
+msgstr "光源 F12"
+
+
+msgid "Illuminant F2"
+msgstr "光源 F2"
+
+
+msgid "Illuminant F3"
+msgstr "光源 F3"
+
+
+msgid "Illuminant F4"
+msgstr "光源 F4"
+
+
+msgid "Illuminant F5"
+msgstr "光源 F5"
+
+
+msgid "Illuminant F6"
+msgstr "光源 F6"
+
+
+msgid "Illuminant F7"
+msgstr "光源 F7"
+
+
+msgid "Illuminant F8"
+msgstr "光源 F8"
+
+
+msgid "Illuminant F9"
+msgstr "光源 F9"
+
+
+msgid "Illuminant LED-B1"
+msgstr "光源 LED-B1"
+
+
+msgid "Illuminant LED-B2"
+msgstr "光源 LED-B2"
+
+
+msgid "Illuminant LED-B3"
+msgstr "光源 LED-B3"
+
+
+msgid "Illuminant LED-B4"
+msgstr "光源 LED-B4"
+
+
+msgid "Illuminant LED-B5"
+msgstr "光源 LED-B5"
+
+
+msgid "Illuminant LED-BH1"
+msgstr "光源 LED-BH1"
+
+
+msgid "Illuminant LED-RGB1"
+msgstr "光源 LED-RGB1"
+
+
+msgid "Illuminant LED-V1"
+msgstr "光源 LED-V1"
+
+
+msgid "Illuminant LED-V2"
+msgstr "光源 LED-V2"
 
 
 msgid "Fast Global Illumination"

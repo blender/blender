@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -16,116 +16,116 @@ msgstr ""
 
 
 msgid "Valid"
-msgstr "ףקת"
+msgstr "תקף"
 
 
 msgid "Name"
-msgstr "םש"
+msgstr "שם"
 
 
 msgid "Name of the AOV"
-msgstr "AOV-ה םש"
+msgstr "שם ה-AOV"
 
 
 msgid "Color"
-msgstr "עבצ"
+msgstr "צבע"
 
 
 msgid "Value"
-msgstr "ךרע"
+msgstr "ערך"
 
 
 msgid "List of AOVs"
-msgstr "AOVs לש תמישר"
+msgstr "רשימת של AOVs"
 
 
 msgid "Collection of AOVs"
-msgstr "AOVs לש ףסוא"
+msgstr "אוסף של AOVs"
 
 
 msgid "Color Set"
-msgstr "םיעבצ טס"
+msgstr "סט צבעים"
 
 
 msgid "Default Colors"
-msgstr "לדחמ תרירב יעבצ"
+msgstr "צבעי ברירת מחדל"
 
 
 msgid "Colors"
-msgstr "םיעבצ"
+msgstr "צבעים"
 
 
 msgid "Select"
-msgstr "רחוב"
+msgstr "בוחר"
 
 
 msgid "Replace"
-msgstr "ףלחה"
+msgstr "החלף"
 
 
 msgid "Add"
-msgstr "ףסוה"
+msgstr "הוסף"
 
 
 msgid "Subtract"
-msgstr "ריסחהל"
+msgstr "להחסיר"
 
 
 msgid "Multiply"
-msgstr "ליפכהל"
+msgstr "להכפיל"
 
 
 msgid "Module"
-msgstr "לודומ"
+msgstr "מודול"
 
 
 msgid "Module name"
-msgstr "לודומה םש"
+msgstr "שם המודול"
 
 
 msgid "Off"
-msgstr "יובכ"
+msgstr "כבוי"
 
 
 msgid "Full"
-msgstr "אלמ"
+msgstr "מלא"
 
 
 msgid "Center"
-msgstr "זכרמ"
+msgstr "מרכז"
 
 
 msgid "Animation Data"
-msgstr "היצמינא ינותנ"
+msgstr "נתוני אנימציה"
 
 
 msgid "Hold"
-msgstr "קיזחהל"
+msgstr "להחזיק"
 
 
 msgid "Heads"
-msgstr "םישאר"
+msgstr "ראשים"
 
 
 msgid "Tails"
-msgstr "תובנז"
+msgstr "זנבות"
 
 
 msgid "After Current"
-msgstr "יחכונה ירחא"
+msgstr "אחרי הנוכחי"
 
 
 msgid "Before Current"
-msgstr "יחכונה ינפל"
+msgstr "לפני הנוכחי"
 
 
 msgid "Width"
-msgstr "בחור"
+msgstr "רוחב"
 
 
 msgctxt "ID"
 msgid "Collection"
-msgstr "ףסוא"
+msgstr "אוסף"
 
 
 msgctxt "ID"
@@ -135,41 +135,41 @@ msgstr "Grease Pencil"
 
 msgctxt "ID"
 msgid "Image"
-msgstr "הנומת"
+msgstr "תמונה"
 
 
 msgctxt "ID"
 msgid "Text"
-msgstr "טסקט"
+msgstr "טקסט"
 
 
 msgctxt "ID"
 msgid "Texture"
-msgstr "םקרמ"
+msgstr "מרקם"
 
 
 msgid "Data Type"
-msgstr "םינותנ סופיט"
+msgstr "טיפוס נתונים"
 
 
 msgid "Vector"
-msgstr "רוטקו"
+msgstr "וקטור"
 
 
 msgid "Edge"
-msgstr "עלצ"
+msgstr "צלע"
 
 
 msgid "Face"
-msgstr "האפ"
+msgstr "פאה"
 
 
 msgid "Indirect"
-msgstr "ףיקע"
+msgstr "עקיף"
 
 
 msgid "Collections"
-msgstr "םיפסוא"
+msgstr "אוספים"
 
 
 msgid "Grease Pencil"
@@ -177,446 +177,446 @@ msgstr "Grease Pencil"
 
 
 msgid "Images"
-msgstr "תונומת"
+msgstr "תמונות"
 
 
 msgid "Texts"
-msgstr "םיטסקט"
+msgstr "טקסטים"
 
 
 msgid "Textures"
-msgstr "םימקרמ"
+msgstr "מרקמים"
 
 
 msgid "Collection of cameras"
-msgstr "תומלצמ לש ףסוא"
+msgstr "אוסף של מצלמות"
 
 
 msgid "Collection of collections"
-msgstr "םיפסוא לש ףסוא"
+msgstr "אוסף של אוספים"
 
 
 msgid "Collection of images"
-msgstr "תונומת לש ףסוא"
+msgstr "אוסף של תמונות"
 
 
 msgid "Collection of lights"
-msgstr "תורוא לש ףסוא"
+msgstr "אוסף של אורות"
 
 
 msgid "Collection of texts"
-msgstr "םיטסקט לש ףסוא"
+msgstr "אוסף של טקסטים"
 
 
 msgid "Collection of textures"
-msgstr "םימקרמ לש ףסוא"
+msgstr "אוסף של מרקמים"
 
 
 msgid "Collection of worlds"
-msgstr "תומלוע לש ףסוא"
+msgstr "אוסף של עולמות"
 
 
 msgid "Speed"
-msgstr "תוריהמ"
+msgstr "מהירות"
 
 
 msgid "Strength"
-msgstr "המצוע"
+msgstr "עוצמה"
 
 
 msgid "Random"
-msgstr "יארקא"
+msgstr "אקראי"
 
 
 msgid "Head"
-msgstr "שאר"
+msgstr "ראש"
 
 
 msgid "Select Head"
-msgstr "שאר רחוב"
+msgstr "בוחר ראש"
 
 
 msgid "Select Tail"
-msgstr "בנז רחוב"
+msgstr "בוחר זנב"
 
 
 msgid "Tail"
-msgstr "בנז"
+msgstr "זנב"
 
 
 msgid "Vertex Color"
-msgstr "דוקדוק עבצ"
+msgstr "צבע קודקוד"
 
 
 msgctxt "Amount"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgid "Saturation"
-msgstr "היוור"
+msgstr "רוויה"
 
 
 msgid "Image"
-msgstr "הנומת"
+msgstr "תמונה"
 
 
 msgid "Rotation"
-msgstr "בוביס"
+msgstr "סיבוב"
 
 
 msgid "Left"
-msgstr "לאמש"
+msgstr "שמאל"
 
 
 msgid "Right"
-msgstr "ןימי"
+msgstr "ימין"
 
 
 msgid "Gamma"
-msgstr "אמג"
+msgstr "גמא"
 
 
 msgid "Constant"
-msgstr "עובק"
+msgstr "קבוע"
 
 
 msgid "Position"
-msgstr "םוקמ"
+msgstr "מקום"
 
 
 msgid "Output"
-msgstr "טלפ"
+msgstr "פלט"
 
 
 msgid "Error"
-msgstr "האיגש"
+msgstr "שגיאה"
 
 
 msgid "Head/Tail"
-msgstr "בנז/שאר"
+msgstr "ראש/זנב"
 
 
 msgid "Default"
-msgstr "לדחמ תרירב"
+msgstr "ברירת מחדל"
 
 
 msgid "Location"
-msgstr "םוקימ"
+msgstr "מיקום"
 
 
 msgid "White Level"
-msgstr "ןבל תמר"
+msgstr "רמת לבן"
 
 
 msgid "Surface"
-msgstr "חטשמ"
+msgstr "משטח"
 
 
 msgid "View"
-msgstr "הגוצת"
+msgstr "תצוגה"
 
 
 msgid "Scene"
-msgstr "הנצס"
+msgstr "סצנה"
 
 
 msgid "Only Show Selected"
-msgstr "םירחבנ גצה קר"
+msgstr "רק הצג נבחרים"
 
 
 msgid "Bone Name"
-msgstr "םצעה םש"
+msgstr "שם העצם"
 
 
 msgctxt "Brush"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgid "Shrink"
-msgstr "ץווכ"
+msgstr "כווץ"
 
 
 msgid "UV Texture"
-msgstr "UV םקרמ"
+msgstr "מרקם UV"
 
 
 msgid "Texture"
-msgstr "םקרמ"
+msgstr "מרקם"
 
 
 msgid "Vertex"
-msgstr "דוקדוק"
+msgstr "קודקוד"
 
 
 msgid "Head Select"
-msgstr "שאר תריחב"
+msgstr "בחירת ראש"
 
 
 msgid "Modifiers"
-msgstr "םינשמ"
+msgstr "משנים"
 
 
 msgid "Frequency"
-msgstr "תורידת"
+msgstr "תדירות"
 
 
 msgctxt "ParticleSettings"
 msgid "Rotation"
-msgstr "בוביס"
+msgstr "סיבוב"
 
 
 msgid "Size"
-msgstr "לדוג"
+msgstr "גודל"
 
 
 msgid "Animations"
-msgstr "תויצמינא"
+msgstr "אנימציות"
 
 
 msgid "Environment"
-msgstr "הביבס"
+msgstr "סביבה"
 
 
 msgid "Sort"
-msgstr "ןיימ"
+msgstr "מיין"
 
 
 msgid "End"
-msgstr "ףוס"
+msgstr "סוף"
 
 
 msgid "Start"
-msgstr "הלחתה"
+msgstr "התחלה"
 
 
 msgid "Time"
-msgstr "ןמז"
+msgstr "זמן"
 
 
 msgid "Density"
-msgstr "תופיפצ"
+msgstr "צפיפות"
 
 
 msgid "Vertex Group"
-msgstr "דוקדוק תצובק"
+msgstr "קבוצת קודקוד"
 
 
 msgid "Collection"
-msgstr "ףסוא"
+msgstr "אוסף"
 
 
 msgid "Window"
-msgstr "ןולח"
+msgstr "חלון"
 
 
 msgid "Header"
-msgstr "תרתוכ"
+msgstr "כותרת"
 
 
 msgid "Tools"
-msgstr "םילכ"
+msgstr "כלים"
 
 
 msgid "Tool Header"
-msgstr "ילכ תרתוכ"
+msgstr "כותרת כלי"
 
 
 msgid "Generated"
-msgstr "רצוימ"
+msgstr "מיוצר"
 
 
 msgid "Red Green Blue"
-msgstr "לוחכ קורי םודא"
+msgstr "אדום ירוק כחול"
 
 
 msgid "Red"
-msgstr "םודא"
+msgstr "אדום"
 
 
 msgid "Green"
-msgstr "קורי"
+msgstr "ירוק"
 
 
 msgid "Blue"
-msgstr "לוחכ"
+msgstr "כחול"
 
 
 msgid "Mask"
-msgstr "הכסמ"
+msgstr "מסכה"
 
 
 msgid "World"
-msgstr "םלוע"
+msgstr "עולם"
 
 
 msgid "Full Name"
-msgstr "אלמ םש"
+msgstr "שם מלא"
 
 
 msgctxt "Curves"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgctxt "GPencil"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgctxt "GPencil"
 msgid "Strength"
-msgstr "המצוע"
+msgstr "עוצמה"
 
 
 msgctxt "Mask"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgid "Space"
-msgstr "חוור"
+msgstr "רווח"
 
 
 msgid "Up"
-msgstr "הלעמ"
+msgstr "מעלה"
 
 
 msgid "Path"
-msgstr "ביתנ"
+msgstr "נתיב"
 
 
 msgid "Mean"
-msgstr "עצוממ"
+msgstr "ממוצע"
 
 
 msgctxt "Material"
 msgid "Hair"
-msgstr "רעיש"
+msgstr "שיער"
 
 
 msgid "Roughness"
-msgstr "תוסג"
+msgstr "גסות"
 
 
 msgid "Specular"
-msgstr "רלקפסא"
+msgstr "אספקלר"
 
 
 msgid "Edges"
-msgstr "תועלצ"
+msgstr "צלעות"
 
 
 msgid "Vertex Colors"
-msgstr "דוקדוק יעבצ"
+msgstr "צבעי קודקוד"
 
 
 msgid "Vertices"
-msgstr "םידוקדוק"
+msgstr "קודקודים"
 
 
 msgid "Tool"
-msgstr "ילכ"
+msgstr "כלי"
 
 
 msgid "Faces"
-msgstr "תואפ"
+msgstr "פאות"
 
 
 msgid "Edit Mode"
-msgstr "הכירע בצמ"
+msgstr "מצב עריכה"
 
 
 msgid "Sculpt Mode"
-msgstr "לוסיפ בצמ"
+msgstr "מצב פיסול"
 
 
 msgid "Vertex Paint"
-msgstr "םידוקדוק תעיבצ"
+msgstr "צביעת קודקודים"
 
 
 msgid "Weight Paint"
-msgstr "לקשמ תעיבצ"
+msgstr "צביעת משקל"
 
 
 msgid "Vertex Groups"
-msgstr "דוקדוק תוצובק"
+msgstr "קבוצות קודקוד"
 
 
 msgid "Number"
-msgstr "רפסמ"
+msgstr "מספר"
 
 
 msgid "Hair"
-msgstr "רעיש"
+msgstr "שיער"
 
 
 msgid "Quadratic"
-msgstr "יעוביר"
+msgstr "ריבועי"
 
 
 msgid "Mist"
-msgstr "לפרע"
+msgstr "ערפל"
 
 
 msgid "Animation"
-msgstr "היצמינא"
+msgstr "אנימציה"
 
 
 msgid "Black"
-msgstr "רוחש"
+msgstr "שחור"
 
 
 msgid "White"
-msgstr "ןבל"
+msgstr "לבן"
 
 
 msgid "Color Management"
-msgstr "עבצ לוהינ"
+msgstr "ניהול צבע"
 
 
 msgctxt "UI_Events_KeyMaps"
 msgid "Pen"
-msgstr "טע"
+msgstr "עט"
 
 
 msgctxt "UI_Events_KeyMaps"
 msgid "Eraser"
-msgstr "קחמ"
+msgstr "מחק"
 
 
 msgid "Group Name"
-msgstr "הצובק םש"
+msgstr "שם קבוצה"
 
 
 msgctxt "FreestyleLineStyle"
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgid "Grease Pencil Color"
-msgstr "Grease Pencil יאבצ"
+msgstr "צבאי Grease Pencil"
 
 
 msgid "Languages..."
-msgstr "..תופש"
+msgstr "שפות.."
 
 
 msgid "Smooth"
-msgstr "קלח"
+msgstr "חלק"
 
 
 msgid "Mirror"
-msgstr "הארמ"
+msgstr "מראה"
 
 
 msgid "Add Modifier"
-msgstr "הנשמ ףסוה"
+msgstr "הוסף משנה"
 
 
 msgid "Apply"
-msgstr "לחה"
+msgstr "החל"
 
 
 msgid "Python"
@@ -624,212 +624,212 @@ msgstr "Python"
 
 
 msgid "System"
-msgstr "תכרעמ"
+msgstr "מערכת"
 
 
 msgid "Face Data"
-msgstr "האפ ינותנ"
+msgstr "נתוני פאה"
 
 
 msgid "Convert"
-msgstr "רמה"
+msgstr "המר"
 
 
 msgid "Vertex group name"
-msgstr "דוקדוק תצובק םש"
+msgstr "שם קבוצת קודקוד"
 
 
 msgid "Edge Data"
-msgstr "עלצ ינותנ"
+msgstr "נתוני צלע"
 
 
 msgid "Vertex Data"
-msgstr "דוקדוק ינותנ"
+msgstr "נתוני קודקוד"
 
 
 msgid "Lift"
-msgstr "יוליע"
+msgstr "עילוי"
 
 
 msgid "Combine Color"
-msgstr "עבצ בלש"
+msgstr "שלב צבע"
 
 
 msgctxt "Image"
 msgid "Edge"
-msgstr "עלצ"
+msgstr "צלע"
 
 
 msgid "Combined"
-msgstr "בלשמ"
+msgstr "משלב"
 
 
 msgid "Y Axis"
-msgstr "Y ריצ"
+msgstr "ציר Y"
 
 
 msgid "Background"
-msgstr "עקר"
+msgstr "רקע"
 
 
 msgid "Reflection"
-msgstr "תופקתשה"
+msgstr "השתקפות"
 
 
 msgid "Emission"
-msgstr "הטילפ"
+msgstr "פליטה"
 
 
 msgctxt "Operator"
 msgid "Select All"
-msgstr "לכה רחוב"
+msgstr "בוחר הכל"
 
 
 msgid "Down"
-msgstr "הטמ"
+msgstr "מטה"
 
 
 msgid "Flip Names"
-msgstr "תומש ךופיה"
+msgstr "היפוך שמות"
 
 
 msgctxt "Operator"
 msgid "Flip Names"
-msgstr "תומש ךופיה"
+msgstr "היפוך שמות"
 
 
 msgctxt "Operator"
 msgid "Select Grouped"
-msgstr "םיצבוקמ רחב"
+msgstr "בחר מקובצים"
 
 
 msgctxt "Python console"
 msgid "Language"
-msgstr "הפש"
+msgstr "שפה"
 
 
 msgid "Lamp"
-msgstr "הרונמ"
+msgstr "מנורה"
 
 
 msgid "Eraser"
-msgstr "קחמ"
+msgstr "מחק"
 
 
 msgctxt "Operator"
 msgid "Select Vertex Color"
-msgstr "דוקדוק עבצ רחוב"
+msgstr "בוחר צבע קודקוד"
 
 
 msgid "Both"
-msgstr "םהינש"
+msgstr "שניהם"
 
 
 msgctxt "Operator"
 msgid "Select Vertex Group"
-msgstr "דוקדוק תצובק רחב"
+msgstr "בחר קבוצת קודקוד"
 
 
 msgid "Remove"
-msgstr "רסה"
+msgstr "הסר"
 
 
 msgid "Image Name"
-msgstr "הנומת םש"
+msgstr "שם תמונה"
 
 
 msgctxt "Mesh"
 msgid "Vertex Groups"
-msgstr "דוקדוק תוצובק"
+msgstr "קבוצות קודקוד"
 
 
 msgctxt "Operator"
 msgid "Sort Vertex Groups"
-msgstr "דוקדוק תוצובק ןיימ"
+msgstr "מיין קבוצות קודקוד"
 
 
 msgid "Sort vertex groups"
-msgstr "דוקדוק תוצובק ןיימ"
+msgstr "מיין קבוצות קודקוד"
 
 
 msgid "Rename"
-msgstr "םש הנש"
+msgstr "שנה שם"
 
 
 msgctxt "Operator"
 msgid "Rename"
-msgstr "םש הנש"
+msgstr "שנה שם"
 
 
 msgid "Reset"
-msgstr "לוחתא"
+msgstr "אתחול"
 
 
 msgctxt "Operator"
 msgid "Replace"
-msgstr "ףילחהל"
+msgstr "להחליף"
 
 
 msgid "Select All"
-msgstr "לכה רחוב"
+msgstr "בוחר הכל"
 
 
 msgid "Header Text"
-msgstr "תרתוכ טסקט"
+msgstr "טקסט כותרת"
 
 
 msgid "Export Vertex Colors"
-msgstr "דוקדוק יעבצ אציי"
+msgstr "ייצא צבעי קודקוד"
 
 
 msgid "UV Sculpting"
-msgstr "UV לוסיפ"
+msgstr "פיסול UV"
 
 
 msgid "Color Picker"
-msgstr "םיעבצ רחוב"
+msgstr "בוחר צבעים"
 
 
 msgid "Manual"
-msgstr "ינדי"
+msgstr "ידני"
 
 
 msgid "Header Position"
-msgstr "תרתוכ םוקימ"
+msgstr "מיקום כותרת"
 
 
 msgid "Language"
-msgstr "הפש"
+msgstr "שפה"
 
 
 msgid "Password"
-msgstr "המסיס"
+msgstr "סיסמה"
 
 
 msgid "Language Name"
-msgstr "הפשה םש"
+msgstr "שם השפה"
 
 
 msgid "Languages"
-msgstr "תופש"
+msgstr "שפות"
 
 
 msgctxt "Sequence"
 msgid "Image"
-msgstr "הנומת"
+msgstr "תמונה"
 
 
 msgctxt "Sequence"
 msgid "Movie"
-msgstr "טרס"
+msgstr "סרט"
 
 
 msgid "Grease Pencil Sculpt"
-msgstr "Grease Pencil לוסיפ"
+msgstr "פיסול Grease Pencil"
 
 
 msgid "Sort by Name"
-msgstr "םש יפל ןיימ"
+msgstr "מיין לפי שם"
 
 
 msgid "AOV"
@@ -837,7 +837,7 @@ msgstr "AOV"
 
 
 msgid "Error Message"
-msgstr "האיגש תעדוה"
+msgstr "הודעת שגיאה"
 
 
 msgctxt "WindowManager"
@@ -847,12 +847,12 @@ msgstr "Grease Pencil"
 
 msgctxt "WindowManager"
 msgid "Image"
-msgstr "הנומת"
+msgstr "תמונה"
 
 
 msgctxt "WindowManager"
 msgid "Animation"
-msgstr "היצמינא"
+msgstr "אנימציה"
 
 
 msgid "Credits"
@@ -861,271 +861,271 @@ msgstr "תודות"
 
 msgctxt "Operator"
 msgid "Sort by Name"
-msgstr "םש יפל ןיימ"
+msgstr "מיין לפי שם"
 
 
 msgid "Detail"
-msgstr "טוריפ"
+msgstr "פירוט"
 
 
 msgid "Dimension"
-msgstr "דמימ"
+msgstr "מימד"
 
 
 msgid "name"
-msgstr "םש"
+msgstr "שם"
 
 
 msgid "Sort By"
-msgstr "יפל ןיימ"
+msgstr "מיין לפי"
 
 
 msgctxt "Operator"
 msgid "Vertex"
-msgstr "דוקדוק"
+msgstr "קודקוד"
 
 
 msgctxt "Operator"
 msgid "Edge"
-msgstr "עלצ"
+msgstr "צלע"
 
 
 msgctxt "Operator"
 msgid "Face"
-msgstr "האפ"
+msgstr "פאה"
 
 
 msgctxt "Operator"
 msgid "Movie"
-msgstr "טרס"
+msgstr "סרט"
 
 
 msgid "Location:"
-msgstr "‏:םוקימ"
+msgstr "מיקום:‏"
 
 
 msgid "Nothing selected"
-msgstr "רבד רחבנ אל"
+msgstr "לא נבחר דבר"
 
 
 msgctxt "Operator"
 msgid "Change Shortcut"
-msgstr "ךרד־רוציק הנש"
+msgstr "שנה קיצור־דרך"
 
 
 msgctxt "Operator"
 msgid "Reset All to Default Values"
-msgstr "לדחמה תרירב יכרעל לכה לחתא"
+msgstr "אתחל הכל לערכי ברירת המחדל"
 
 
 msgctxt "Operator"
 msgid "Remove Shortcut"
-msgstr "ךרד־רוציק רסה"
+msgstr "הסר קיצור־דרך"
 
 
 msgid "%d items"
-msgstr "‪%d‬ םיטירפ"
+msgstr "%d פריטים"
 
 
 msgid "Red:"
-msgstr ":םודא"
+msgstr "אדום:"
 
 
 msgid "Green:"
-msgstr ":קורי"
+msgstr "ירוק:"
 
 
 msgid "Blue:"
-msgstr ":לוחכ"
+msgstr "כחול:"
 
 
 msgid "Saturation:"
-msgstr ":היוור"
+msgstr "רוויה:"
 
 
 msgid "Cancel"
-msgstr "לוטיב"
+msgstr "ביטול"
 
 
 msgid "Movie"
-msgstr "טרס"
+msgstr "סרט"
 
 
 msgid "No Properties"
-msgstr "םינייפאמ אלל"
+msgstr "ללא מאפיינים"
 
 
 msgid "Sort By:"
-msgstr ":יפל ןיימ"
+msgstr "מיין לפי:"
 
 
 msgid "Delete points"
-msgstr "תודוקנ קחמ"
+msgstr "מחק נקודות"
 
 
 msgid "Stop this job"
-msgstr "וז הדובע רוצע"
+msgstr "עצור עבודה זו"
 
 
 msgid "vertex data"
-msgstr "דוקדוק ינותנ"
+msgstr "נתוני קודקוד"
 
 
 msgid "edge data"
-msgstr "עלצ ינותנ"
+msgstr "נתוני צלע"
 
 
 msgid "face data"
-msgstr "האפ ינותנ"
+msgstr "נתוני פאה"
 
 
 msgid "Fields"
-msgstr "תודש"
+msgstr "שדות"
 
 
 msgid "File Path:"
-msgstr ":ץבוק ביתנ"
+msgstr "נתיב קובץ:"
 
 
 msgid "File path"
-msgstr "ץבוק ביתנ"
+msgstr "נתיב קובץ"
 
 
 msgid "File name"
-msgstr "ץבוק םש"
+msgstr "שם קובץ"
 
 
 msgid "Movies"
-msgstr "םיטרס"
+msgstr "סרטים"
 
 
 msgid "Value:"
-msgstr ":ךרע"
+msgstr "ערך:"
 
 
 msgid "Select Layer"
-msgstr "הבכש רחב"
+msgstr "בחר שכבה"
 
 
 msgid "Label Size"
-msgstr "תיוות לדוג"
+msgstr "גודל תווית"
 
 
 msgid "Squash"
-msgstr "ךעמ"
+msgstr "מעך"
 
 
 msgid "Disconnect"
-msgstr "קתנ"
+msgstr "נתק"
 
 
 msgid "Dependency Loop"
-msgstr "תויולת תאלול"
+msgstr "לולאת תלויות"
 
 
 msgid "Vertex:"
-msgstr ":דוקדוק"
+msgstr "קודקוד:"
 
 
 msgid "Median:"
-msgstr ":ןויצח"
+msgstr "חציון:"
 
 
 msgid "Vertex Data:"
-msgstr ":דוקדוק ינותנ"
+msgstr "נתוני קודקוד:"
 
 
 msgid "Radius X:"
-msgstr ":X סוידר"
+msgstr "רדיוס X:"
 
 
 msgid "Radius Y:"
-msgstr ":Y סוידר"
+msgstr "רדיוס Y:"
 
 
 msgid "Edge Data:"
-msgstr ":עלצ ינותנ"
+msgstr "נתוני צלע:"
 
 
 msgid "Weight:"
-msgstr ":לקשמ"
+msgstr "משקל:"
 
 
 msgid "Radius:"
-msgstr ":סוידר"
+msgstr "רדיוס:"
 
 
 msgid "Mean Radius:"
-msgstr ":עצוממ סוידר"
+msgstr "רדיוס ממוצע:"
 
 
 msgid "Modify"
-msgstr "הנש"
+msgstr "שנה"
 
 
 msgid "Missing header"
-msgstr "תרתוכ הרסח"
+msgstr "חסרה כותרת"
 
 
 msgid "Color Space:"
-msgstr ":עבצ בחרמ"
+msgstr "מרחב צבע:"
 
 
 msgid "Key Color"
-msgstr "חתפמ עבצ"
+msgstr "צבע מפתח"
 
 
 msgid "Image 1"
-msgstr "1 הנומת"
+msgstr "תמונה 1"
 
 
 msgid "Image 2"
-msgstr "2 הנומת"
+msgstr "תמונה 2"
 
 
 msgid "Path:"
-msgstr ":ביתנ"
+msgstr "נתיב:"
 
 
 msgid "Add Input"
-msgstr "טלק ףסוה"
+msgstr "הוסף קלט"
 
 
 msgid "Std Dev"
-msgstr "ןקת תייטס"
+msgstr "סטיית תקן"
 
 
 msgctxt "NodeTree"
 msgid "Rotations"
-msgstr "םיבוביס"
+msgstr "סיבובים"
 
 
 msgid "Incoming"
-msgstr "סנכנ"
+msgstr "נכנס"
 
 
 msgid "Color2"
-msgstr "2עבצ"
+msgstr "צבע2"
 
 
 msgid "Row Height"
-msgstr "הרוש הבוג"
+msgstr "גובה שורה"
 
 
 msgid "Bricks 1"
-msgstr "1 םינבל"
+msgstr "לבנים 1"
 
 
 msgid "Bricks 2"
-msgstr "2 םינבל"
+msgstr "לבנים 2"
 
 
 msgctxt "WorkSpace"
 msgid "Animation"
-msgstr "היצמינא"
+msgstr "אנימציה"
 
 
 msgctxt "WorkSpace"
 msgid "Modeling"
-msgstr "תונמגוד"
+msgstr "דוגמנות"
 

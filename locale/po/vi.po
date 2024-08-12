@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -77156,6 +77156,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Khoảng cách tối đa giữa các điểm đỉnh đã được hàn gắn"
 
 
+msgid "Shared Vertex"
+msgstr "Có Cùng Điểm Đỉnh"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Hoàn Lại"
@@ -100022,10 +100026,6 @@ msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Chọn UV nằm tại cùng một vị trí và có chung một điểm đỉnh khung lưới"
 
 
-msgid "Shared Vertex"
-msgstr "Có Cùng Điểm Đỉnh"
-
-
 msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"
 msgstr "Chọn các UV có cùng một điểm đỉnh khung lưới, bất kể chúng có nằm ở cùng một vị trí hay không"
 
@@ -118503,10 +118503,6 @@ msgstr "Không tìm thấy bộ điều chỉnh móc/mắc/gài"
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "Không thể thi hành '%s', lỗi xảy ra trong khi đổi chế độ"
-
-
-msgid "Unable to execute, %s object is linked"
-msgstr "Không thể thi hành được, đối tượng %s là đối tượng liên kết"
 
 
 msgid "Apply modifier as a new shapekey and keep it in the stack"

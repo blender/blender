@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'e981389bddb1')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-05 09:10+0000\n"
+"POT-Creation-Date: 2024-08-10 16:31+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -73105,6 +73105,10 @@ msgid "Maximum distance between welded vertices"
 msgstr "Umbali wa juu zaidi kati ya vipeo vilivyounganishwa"
 
 
+msgid "Shared Vertex"
+msgstr "Kipeo cha Pamoja"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Weka upya"
@@ -93837,10 +93841,6 @@ msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Chagua UV ambazo ziko katika eneo moja na ushiriki vertex ya matundu"
 
 
-msgid "Shared Vertex"
-msgstr "Kipeo cha Pamoja"
-
-
 msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"
 msgstr "Chagua UV zinazoshiriki vertex ya matundu, iwe ziko katika eneo moja au la."
 
@@ -111176,10 +111176,6 @@ msgstr "Haikuweza kupata kirekebisha ndoano"
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "Haiwezi kutekeleza '%s', hali za kubadilisha makosa"
-
-
-msgid "Unable to execute, %s object is linked"
-msgstr "Imeshindwa kutekeleza, kitu %s kimeunganishwa"
 
 
 msgid "Apply modifier as a new shapekey and keep it in the stack"
