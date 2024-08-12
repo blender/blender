@@ -101,6 +101,11 @@ if(WITH_OPENVDB)
     # for details.
     string(APPEND CMAKE_CXX_FLAGS " /wd4251")
   endif()
+
+  # This works around the issue described in #120317 and https://github.com/AcademySoftwareFoundation/openvdb/pull/1786
+  if(MSVC_CLANG)
+    set_source_files_properties(${MANTA_PP}/fileio/iovdb.cpp PROPERTIES COMPILE_FLAGS -fno-delayed-template-parsing)
+  endif()
 endif()
 
 set(SRC
