@@ -383,10 +383,12 @@ void clip_and_lock_translations(const Sculpt &sd,
  * shape key positions must be kept in sync, and shape keys dependent on the active key must also
  * be modified.
  */
-void apply_translations_to_shape_keys(Object &object,
-                                      Span<int> verts,
-                                      Span<float3> translations,
-                                      MutableSpan<float3> positions_mesh);
+void update_shape_keys(Object &object,
+                       const Mesh &mesh,
+                       const KeyBlock &active_key,
+                       Span<int> verts,
+                       Span<float3> translations,
+                       Span<float3> positions_orig);
 
 /**
  * Currently the pbvh::Tree owns its own copy of deformed positions that needs to be updated to
