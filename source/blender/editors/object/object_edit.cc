@@ -325,7 +325,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "select", true, "Select", "");
+  RNA_def_boolean(ot->srna, "select", true, "Select", "Select revealed objects");
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
