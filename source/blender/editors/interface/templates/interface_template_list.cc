@@ -772,7 +772,10 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               editable ? TIP_("Double click to rename") : "");
+                               editable ? TIP_("Select List Item "
+                                               "(Double click to rename)") :
+                                          TIP_("Select List Item"));
+
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname)))
           {
