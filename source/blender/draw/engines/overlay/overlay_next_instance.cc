@@ -318,7 +318,7 @@ void Instance::draw(Manager &manager)
   outline.draw(resources, manager, view);
 
   auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
-    regular.facing.draw(framebuffer, manager, view);
+    layer.facing.draw(framebuffer, manager, view);
   };
 
   overlay_fb_draw(regular, resources.overlay_fb);
