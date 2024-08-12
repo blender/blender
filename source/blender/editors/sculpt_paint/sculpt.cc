@@ -132,16 +132,6 @@ bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
 
 }  // namespace blender::ed::sculpt_paint
 
-/* -------------------------------------------------------------------- */
-/** \name Sculpt bke::pbvh::Tree Abstraction API
- *
- * This is read-only, for writing use #bke::pbvh::Tree vertex iterators.
- * There `vd.index` matches the indices used here.
- *
- * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
- * different index for each grid.
- * \{ */
-
 void SCULPT_vertex_random_access_ensure(SculptSession &ss)
 {
   if (ss.pbvh->type() == blender::bke::pbvh::Type::BMesh) {
