@@ -90,7 +90,8 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
                               (pot,) * num_langs,
                               [dict(lng.items()) for lng in i18n_sett.langs],
                               (self.settings,) * num_langs,
-                              chunksize=4)):
+                              chunksize=4,
+                              timeout=60)):
                 context.window_manager.progress_update(progress + 2)
 
         context.window_manager.progress_end()
@@ -124,7 +125,8 @@ class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
                     exctr.map(utils_i18n.I18nMessages.cleanup_callback,
                               [dict(lng.items()) for lng in i18n_sett.langs],
                               (self.settings,) * num_langs,
-                              chunksize=4)):
+                              chunksize=4,
+                              timeout=60)):
                 context.window_manager.progress_update(progress + 1)
 
         context.window_manager.progress_end()
@@ -154,7 +156,8 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
                     exctr.map(utils_i18n.I18nMessages.update_to_blender_repo_callback,
                               [dict(lng.items()) for lng in i18n_sett.langs],
                               (self.settings,) * num_langs,
-                              chunksize=4)):
+                              chunksize=4,
+                              timeout=60)):
                 context.window_manager.progress_update(progress + 1)
                 stats[lng_uid] = stats_val
                 print("".join(reports) + "\n")
