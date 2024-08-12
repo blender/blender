@@ -4761,6 +4761,7 @@ def km_grease_pencil_sculpt_mode(params):
             "VIEW3D_AST_brush_gpencil_sculpt",
             {"type": 'SPACE', "value": 'PRESS', "shift": True}
         ),
+        *_template_items_context_panel("VIEW3D_PT_greasepencil_sculpt_context_menu", params.context_menu_event),
     ])
 
     return keymap

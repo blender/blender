@@ -8788,6 +8788,33 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
         if ob.active_material:
             row.prop(ob.active_material, "name", text='')
 
+class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Sculpt"
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        brush = tool_settings.gpencil_sculpt_paint.brush
+        layout = self.layout
+
+        ups = tool_settings.unified_paint_settings
+        size_owner = ups if ups.use_unified_size else brush
+        strength_owner = ups if ups.use_unified_strength else brush
+        layout.prop(size_owner, "size", text='')
+        layout.prop(strength_owner, "strength", text='')
+
+        layer = context.object.data.layers.active
+
+        if layer:
+            layout.label(text="Active Layer")
+            row = layout.row(align=True)
+            row.operator_context = 'EXEC_REGION_WIN'
+            row.menu("GREASE_PENCIL_MT_Layers", text='', icon='GREASEPENCIL')
+            row.prop(layer, "name", text='')
+            row.operator("grease_pencil.layer_remove", text="", icon='X')
+
 
 def draw_gpencil_layer_active(context, layout):
     gpl = context.active_gpencil_layer
@@ -9661,6 +9688,7 @@ classes = (
     VIEW3D_AST_brush_gpencil_weight,
     GREASE_PENCIL_MT_Layers,
     VIEW3D_PT_greasepencil_draw_context_menu,
+    VIEW3D_PT_greasepencil_sculpt_context_menu,
 )
 
 
