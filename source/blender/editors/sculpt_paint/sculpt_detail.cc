@@ -192,7 +192,6 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
   SculptCursorGeometryInfo sgi;
-  SCULPT_vertex_random_access_ensure(ss);
 
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
