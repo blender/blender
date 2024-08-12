@@ -589,7 +589,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  const int active_vert = ss.active_vert_ref().i;
+  const int active_vert = std::get<int>(ss.active_vert());
   const float3 brush_co = positions[active_vert];
   const float radius_sq = radius * radius;
 
@@ -628,7 +628,6 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Object &ob = *CTX_data_active_object(C);
   Brush &brush = *BKE_paint_brush(&sd.paint);
   SculptSession &ss = *ob.sculpt;
-  PBVHVertRef active_vertex = ss.active_vert_ref();
 
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -654,8 +653,12 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
     active_vertex_color = float4(1.0f);
   }
   const GVArraySpan colors = *color_attribute;
-  active_vertex_color = color::color_vert_get(
-      faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, active_vertex.i);
+  active_vertex_color = color::color_vert_get(faces,
+                                              corner_verts,
+                                              vert_to_face_map,
+                                              colors,
+                                              color_attribute.domain,
+                                              std::get<int>(ss.active_vert()));
 
   float color_srgb[3];
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);

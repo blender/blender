@@ -1251,7 +1251,7 @@ struct PaintCursorContext {
   SculptSession *ss;
 
   /* Previous active vertex, used to determine if the preview is updated for the pose brush.  */
-  PBVHVertRef prev_active_vertex;
+  int prev_active_vert_index;
 
   bool is_stroke_active;
   bool is_cursor_over_mesh;
@@ -1408,7 +1408,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
-  pcontext->prev_active_vertex = ss.active_vert_ref();
+  pcontext->prev_active_vert_index = ss.active_vert_index();
   if (!ups.stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
         C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
@@ -1750,9 +1750,11 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     return;
   }
 
+  BLI_assert(pcontext->vc.obact);
+  Object &active_object = *pcontext->vc.obact;
   paint_cursor_update_object_space_radius(pcontext);
 
-  const PBVHVertRef active_vert = pcontext->ss->active_vert_ref();
+  SCULPT_vertex_random_access_ensure(*pcontext->ss);
 
   /* Setup drawing. */
   wmViewport(&pcontext->region->winrct);
@@ -1761,19 +1763,19 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   /* Cursor location symmetry points. */
 
-  const float *active_vertex_co;
+  float3 active_vertex_co;
   if (brush.sculpt_tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
     SculptSession &ss = *pcontext->ss;
     if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
-      const Span<float3> positions = vert_positions_for_grab_active_get(*pcontext->vc.obact);
-      active_vertex_co = positions[active_vert.i];
+      const Span<float3> positions = vert_positions_for_grab_active_get(active_object);
+      active_vertex_co = positions[std::get<int>(ss.active_vert())];
     }
     else {
-      active_vertex_co = SCULPT_vertex_co_get(*pcontext->ss, active_vert);
+      active_vertex_co = pcontext->ss->active_vert_position(active_object);
     }
   }
   else {
-    active_vertex_co = SCULPT_vertex_co_get(*pcontext->ss, active_vert);
+    active_vertex_co = pcontext->ss->active_vert_position(active_object);
   }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
@@ -1781,7 +1783,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                                     pcontext->region,
                                     active_vertex_co,
                                     *pcontext->sd,
-                                    *pcontext->vc.obact,
+                                    active_object,
                                     pcontext->radius);
   }
 
@@ -1794,9 +1796,10 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
      * cursor won't be tagged to update, so always initialize the preview chain if it is
      * nullptr before drawing it. */
     SculptSession &ss = *pcontext->ss;
-    const bool update_previews = pcontext->prev_active_vertex.i != active_vert.i;
+    const bool update_previews = pcontext->prev_active_vert_index !=
+                                 pcontext->ss->active_vert_index();
     if (update_previews || !ss.pose_ik_chain_preview) {
-      BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
+      BKE_sculpt_update_object_for_edit(pcontext->depsgraph, &active_object, false);
 
       /* Free the previous pose brush preview. */
       if (ss.pose_ik_chain_preview) {
@@ -1805,7 +1808,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
       /* Generate a new pose brush preview from the current cursor location. */
       ss.pose_ik_chain_preview = pose::preview_ik_chain_init(
-          *pcontext->vc.obact, ss, brush, pcontext->location, pcontext->radius);
+          active_object, ss, brush, pcontext->location, pcontext->radius);
     }
 
     /* Draw the pose brush rotation origins. */
@@ -1818,7 +1821,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         pcontext->pos,
         pcontext->region,
         SCULPT_vertex_co_get(*pcontext->ss, pcontext->ss->expand_cache->initial_active_vertex),
-        pcontext->vc.obact->object_to_world().ptr(),
+        active_object.object_to_world().ptr(),
         2);
   }
 
@@ -1840,14 +1843,14 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                             nullptr);
 
   GPU_matrix_push();
-  GPU_matrix_mul(pcontext->vc.obact->object_to_world().ptr());
+  GPU_matrix_mul(active_object.object_to_world().ptr());
 
   /* Drawing Cursor overlays in 3D object space. */
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_GRAB &&
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
     geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
-    sculpt_geometry_preview_lines_draw(pcontext->pos, *pcontext->brush, *pcontext->vc.obact);
+    sculpt_geometry_preview_lines_draw(pcontext->pos, *pcontext->brush, active_object);
   }
 
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_POSE) {

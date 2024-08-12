@@ -4475,10 +4475,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings &ups,
     if (tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
       if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
         const Span<float3> positions = vert_positions_for_grab_active_get(ob);
-        cache->orig_grab_location = positions[ss.active_vert_ref().i];
+        cache->orig_grab_location = positions[std::get<int>(ss.active_vert())];
       }
       else {
-        cache->orig_grab_location = SCULPT_vertex_co_get(ss, ss.active_vert_ref());
+        cache->orig_grab_location = ss.active_vert_position(ob);
       }
     }
     else {

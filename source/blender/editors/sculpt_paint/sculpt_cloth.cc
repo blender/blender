@@ -2312,7 +2312,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       use_collisions,
       cloth_filter_is_deformation_filter(filter_type));
 
-  ss.filter_cache->cloth_sim_pinch_point = SCULPT_vertex_co_get(ss, ss.active_vert_ref());
+  ss.filter_cache->cloth_sim_pinch_point = ss.active_vert_position(ob);
 
   float3 origin(0);
   ensure_nodes_constraints(

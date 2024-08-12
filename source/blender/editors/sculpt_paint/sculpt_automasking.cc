@@ -1014,10 +1014,10 @@ std::unique_ptr<Cache> cache_init(const Sculpt &sd, const Brush *brush, Object &
 
   int mode = calc_effective_bits(sd, brush);
 
-  if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vert_ref().i != PBVH_REF_NONE) {
+  SCULPT_vertex_random_access_ensure(ss);
+  if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vert_index() != -1) {
     islands::ensure_cache(ob);
-    automasking->settings.initial_island_nr = islands::vert_id_get(
-        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, ss.active_vert_ref()));
+    automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vert_index());
   }
 
   bool use_stroke_id = false;

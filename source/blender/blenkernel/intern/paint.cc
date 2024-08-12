@@ -1767,6 +1767,48 @@ ActiveVert SculptSession::active_vert() const
   return {};
 }
 
+int SculptSession::active_vert_index() const
+{
+  const ActiveVert vert = this->active_vert();
+  if (std::holds_alternative<int>(vert)) {
+    return std::get<int>(vert);
+  }
+  else if (std::holds_alternative<SubdivCCGCoord>(vert)) {
+    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(vert);
+    return coord.to_index(BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg));
+  }
+  else if (std::holds_alternative<BMVert *>(vert)) {
+    BMVert *bm_vert = std::get<BMVert *>(vert);
+    return BM_elem_index_get(bm_vert);
+  }
+
+  return -1;
+}
+
+blender::float3 SculptSession::active_vert_position(const Object & /*object*/) const
+{
+  const ActiveVert vert = this->active_vert();
+  if (std::holds_alternative<int>(vert)) {
+    /* TODO: When we remove mesh positions from PBVH, this should be replaced with the positions
+     * array accessed via the object param */
+    const Span<float3> positions = BKE_pbvh_get_vert_positions(*this->pbvh);
+    return positions[std::get<int>(vert)];
+  }
+  else if (std::holds_alternative<SubdivCCGCoord>(vert)) {
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
+    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(vert);
+
+    return CCG_grid_elem_co(key, this->subdiv_ccg->grids[coord.grid_index], coord.x, coord.y);
+  }
+  else if (std::holds_alternative<BMVert *>(vert)) {
+    BMVert *bm_vert = std::get<BMVert *>(vert);
+    return bm_vert->co;
+  }
+
+  BLI_assert_unreachable();
+  return float3(std::numeric_limits<float>::infinity());
+}
+
 void SculptSession::set_active_vert(const PBVHVertRef vert)
 {
   active_vert_ = vert;

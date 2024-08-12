@@ -891,7 +891,7 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
   }
   /* Pivot to active vertex. */
   else if (mode == PivotPositionMode::ActiveVert) {
-    copy_v3_v3(ss.pivot_pos, SCULPT_vertex_co_get(ss, ss.active_vert_ref()));
+    copy_v3_v3(ss.pivot_pos, ss.active_vert_position(ob));
   }
   /* Pivot to ray-cast surface. */
   else if (mode == PivotPositionMode::CursorSurface) {
