@@ -90,6 +90,7 @@ void Instance::begin_sync()
     layer.bounds.begin_sync();
     layer.cameras.begin_sync();
     layer.empties.begin_sync();
+    layer.facing.begin_sync(resources, state);
     layer.force_fields.begin_sync();
     layer.lattices.begin_sync(resources, state);
     layer.lights.begin_sync();
@@ -113,7 +114,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool in_edit_mode = object_is_edit_mode(ob_ref.object);
   const bool needs_prepass = true; /* TODO */
 
-  OverlayLayer &layer = (ob_ref.object->dtx & OB_DRAW_IN_FRONT) ? infront : regular;
+  OverlayLayer &layer = (state.use_in_front && ob_ref.object->dtx & OB_DRAW_IN_FRONT) ? infront :
+                                                                                        regular;
 
   if (needs_prepass) {
     switch (ob_ref.object->type) {
@@ -183,9 +185,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         layer.speakers.object_sync(ob_ref, resources, state);
         break;
     }
-    if (ob_ref.object->pd && ob_ref.object->pd->forcefield) {
-      layer.force_fields.object_sync(ob_ref, resources, state);
-    }
+    layer.facing.object_sync(manager, ob_ref, state);
+    layer.force_fields.object_sync(ob_ref, resources, state);
     layer.bounds.object_sync(ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
   }
@@ -289,6 +290,12 @@ void Instance::draw(Manager &manager)
 
   regular.prepass.draw(resources.overlay_line_fb, manager, view);
   infront.prepass.draw(resources.overlay_line_in_front_fb, manager, view);
+
+  auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+    regular.facing.draw(framebuffer, manager, view);
+  };
+
+  overlay_fb_draw(regular, resources.overlay_fb);
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.bounds.draw(framebuffer, manager, view);

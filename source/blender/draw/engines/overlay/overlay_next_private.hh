@@ -191,6 +191,7 @@ class ShaderModule {
   ShaderPtr extra_wire;
   ShaderPtr extra_loose_points;
   ShaderPtr extra_ground_line;
+  ShaderPtr facing;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
 

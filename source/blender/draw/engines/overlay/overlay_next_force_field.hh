@@ -52,6 +52,9 @@ class ForceFields {
 
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!ob_ref.object->pd || !ob_ref.object->pd->forcefield) {
+      return;
+    }
     const select::ID select_id = res.select_id(ob_ref);
     const Object *ob = ob_ref.object;
     PartDeflect *pd = ob->pd;

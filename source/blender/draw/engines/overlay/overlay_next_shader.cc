@@ -176,6 +176,12 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
     info.additional_info("draw_view", "draw_modelmat_new", "draw_resource_handle_new");
   });
 
+  facing = shader("overlay_facing", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info(
+        "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+  });
+
   extra_shape = selectable_shader("overlay_extra", [](gpu::shader::ShaderCreateInfo &info) {
     info.storage_buf(0, Qualifier::READ, "ExtraInstanceData", "data_buf[]");
     info.define("color", "data_buf[gl_InstanceID].color_");
