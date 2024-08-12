@@ -1580,10 +1580,11 @@ static void icon_draw_size(float x,
       else {
         UI_GetThemeColor4ubv(TH_TEXT, text_color);
       }
+      const bool is_light = rgb_to_grayscale_byte(text_color) > 96;
       const float zoom_factor = w / UI_ICON_SIZE;
       uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
       fstyle_small.points *= zoom_factor * 0.8f;
-      fstyle_small.shadow = short(FontShadowType::Outline);
+      fstyle_small.shadow = short(is_light ? FontShadowType::Outline : FontShadowType::None);
       fstyle_small.shadx = 0;
       fstyle_small.shady = 0;
       rcti text_rect = {int(x), int(x + UI_UNIT_X * zoom_factor), int(y), int(y)};
