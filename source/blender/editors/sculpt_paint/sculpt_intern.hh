@@ -601,7 +601,7 @@ struct Cache {
 
   /* Indexed by base mesh face index, precalculated falloff value of that face. These values are
    * calculated from the per vertex falloff (*vert_falloff) when needed. */
-  float *face_falloff;
+  Array<float> face_falloff;
   float max_face_falloff;
 
   /* Falloff value of the active element (vertex or base mesh face) that Expand will expand to. */
