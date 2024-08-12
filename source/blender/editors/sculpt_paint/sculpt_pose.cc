@@ -449,7 +449,6 @@ static void grow_factors_bmesh(const ePaintSymmetryFlags symm,
 
   Vector<BMVert *, 64> neighbors;
 
-  int i = 0;
   for (BMVert *bm_vert : verts) {
     const int vert = BM_elem_index_get(bm_vert);
 
@@ -472,8 +471,6 @@ static void grow_factors_bmesh(const ePaintSymmetryFlags symm,
         gftd.pos_count++;
       }
     }
-
-    i++;
   }
 }
 
