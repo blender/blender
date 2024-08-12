@@ -1173,13 +1173,8 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
-          for (const int i : verts.index_range()) {
-            if (relax_face_sets ==
-                face_set::vert_has_unique_face_set(vert_to_face_map, ss.face_sets, verts[i]))
-            {
-              factors[i] = 0.0f;
-            }
-          }
+          face_set::filter_verts_with_unique_face_sets_mesh(
+              vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
 
           tls.new_positions.resize(verts.size());
           const MutableSpan<float3> new_positions = tls.new_positions;
@@ -1227,26 +1222,14 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
-          for (const int i : grids.index_range()) {
-            const int node_start = i * key.grid_area;
-            const int grid = grids[i];
-            for (const short y : IndexRange(key.grid_size)) {
-              for (const short x : IndexRange(key.grid_size)) {
-                const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-                const int node_vert = node_start + offset;
-                if (relax_face_sets ==
-                    face_set::vert_has_unique_face_set(vert_to_face_map,
-                                                       corner_verts,
-                                                       faces,
-                                                       ss.face_sets,
-                                                       subdiv_ccg,
-                                                       SubdivCCGCoord{grid, x, y}))
-                {
-                  factors[node_vert] = 0.0f;
-                }
-              }
-            }
-          }
+          face_set::filter_verts_with_unique_face_sets_grids(vert_to_face_map,
+                                                             corner_verts,
+                                                             faces,
+                                                             subdiv_ccg,
+                                                             ss.face_sets,
+                                                             relax_face_sets,
+                                                             grids,
+                                                             factors);
 
           tls.new_positions.resize(positions.size());
           const MutableSpan<float3> new_positions = tls.new_positions;
@@ -1302,13 +1285,7 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
-          int i = 0;
-          for (BMVert *vert : verts) {
-            if (relax_face_sets == face_set::vert_has_unique_face_set(vert)) {
-              factors[i] = 0.0f;
-            }
-            i++;
-          }
+          face_set::filter_verts_with_unique_face_sets_bmesh(relax_face_sets, verts, factors);
 
           tls.new_positions.resize(verts.size());
           const MutableSpan<float3> new_positions = tls.new_positions;

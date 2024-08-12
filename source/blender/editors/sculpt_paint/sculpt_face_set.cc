@@ -206,6 +206,72 @@ Array<int> duplicate_face_sets(const Mesh &mesh)
   return face_sets;
 }
 
+void filter_verts_with_unique_face_sets_mesh(const GroupedSpan<int> vert_to_face_map,
+                                             const int *face_sets,
+                                             const bool unique,
+                                             const Span<int> verts,
+                                             const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  for (const int i : verts.index_range()) {
+    if (unique == face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, verts[i])) {
+      factors[i] = 0.0f;
+    }
+  }
+}
+
+void filter_verts_with_unique_face_sets_grids(const GroupedSpan<int> vert_to_face_map,
+                                              const Span<int> corner_verts,
+                                              const OffsetIndices<int> faces,
+                                              const SubdivCCG &subdiv_ccg,
+                                              const int *face_sets,
+                                              const bool unique,
+                                              const Span<int> grids,
+                                              const MutableSpan<float> factors)
+{
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  BLI_assert(grids.size() * key.grid_area == factors.size());
+
+  for (const int i : grids.index_range()) {
+    const int node_start = i * key.grid_area;
+    for (const int y : IndexRange(key.grid_size)) {
+      for (const int x : IndexRange(key.grid_size)) {
+        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
+        const int node_vert = node_start + offset;
+        if (factors[node_vert] == 0.0f) {
+          continue;
+        }
+
+        SubdivCCGCoord coord{};
+        coord.grid_index = grids[i];
+        coord.x = x;
+        coord.y = y;
+        if (unique == face_set::vert_has_unique_face_set(
+                          vert_to_face_map, corner_verts, faces, face_sets, subdiv_ccg, coord))
+        {
+          factors[node_vert] = 0.0f;
+        }
+      }
+    }
+  }
+}
+
+void filter_verts_with_unique_face_sets_bmesh(const bool unique,
+                                              const Set<BMVert *, 0> verts,
+                                              const MutableSpan<float> factors)
+{
+  BLI_assert(verts.size() == factors.size());
+
+  int i = 0;
+  for (const BMVert *vert : verts) {
+    if (unique == face_set::vert_has_unique_face_set(vert)) {
+      factors[i] = 0.0f;
+    }
+    i++;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -424,73 +424,6 @@ static std::array<float, 4> iteration_strengths(const float strength, const int 
   return {modified_strength, modified_strength, strength, strength};
 }
 
-BLI_NOINLINE static void filter_factors_on_face_sets_mesh(const GroupedSpan<int> vert_to_face_map,
-                                                          const int *face_sets,
-                                                          const bool relax_face_sets,
-                                                          const Span<int> verts,
-                                                          const MutableSpan<float> factors)
-{
-  BLI_assert(verts.size() == factors.size());
-
-  for (const int i : verts.index_range()) {
-    if (relax_face_sets ==
-        face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, verts[i]))
-    {
-      factors[i] = 0.0f;
-    }
-  }
-}
-BLI_NOINLINE static void filter_factors_on_face_sets_grids(const GroupedSpan<int> vert_to_face_map,
-                                                           const Span<int> corner_verts,
-                                                           const OffsetIndices<int> faces,
-                                                           const SubdivCCG &subdiv_ccg,
-                                                           const int *face_sets,
-                                                           const bool relax_face_sets,
-                                                           const Span<int> grids,
-                                                           const MutableSpan<float> factors)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  BLI_assert(grids.size() * key.grid_area == factors.size());
-
-  for (const int i : grids.index_range()) {
-    const int node_start = i * key.grid_area;
-    for (const int y : IndexRange(key.grid_size)) {
-      for (const int x : IndexRange(key.grid_size)) {
-        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert = node_start + offset;
-        if (factors[node_vert] == 0.0f) {
-          continue;
-        }
-
-        SubdivCCGCoord coord{};
-        coord.grid_index = grids[i];
-        coord.x = x;
-        coord.y = y;
-        if (relax_face_sets ==
-            face_set::vert_has_unique_face_set(
-                vert_to_face_map, corner_verts, faces, face_sets, subdiv_ccg, coord))
-        {
-          factors[node_vert] = 0.0f;
-        }
-      }
-    }
-  }
-}
-BLI_NOINLINE static void filter_factors_on_face_sets_bmesh(const bool relax_face_sets,
-                                                           const Set<BMVert *, 0> verts,
-                                                           const MutableSpan<float> factors)
-{
-  BLI_assert(verts.size() == factors.size());
-
-  int i = 0;
-  for (const BMVert *vert : verts) {
-    if (relax_face_sets == face_set::vert_has_unique_face_set(vert)) {
-      factors[i] = 0.0f;
-    }
-    i++;
-  }
-}
-
 BLI_NOINLINE static void calc_factors_faces(const Brush &brush,
                                             const Span<float3> positions_eval,
                                             const Span<float3> vert_normals,
@@ -529,7 +462,7 @@ BLI_NOINLINE static void calc_factors_faces(const Brush &brush,
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
-  filter_factors_on_face_sets_mesh(
+  face_set::filter_verts_with_unique_face_sets_mesh(
       ss.vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
 }
 
@@ -648,14 +581,14 @@ BLI_NOINLINE static void calc_factors_grids(const Brush &brush,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  filter_factors_on_face_sets_grids(ss.vert_to_face_map,
-                                    corner_verts,
-                                    faces,
-                                    subdiv_ccg,
-                                    ss.face_sets,
-                                    relax_face_sets,
-                                    grids,
-                                    factors);
+  face_set::filter_verts_with_unique_face_sets_grids(ss.vert_to_face_map,
+                                                     corner_verts,
+                                                     faces,
+                                                     subdiv_ccg,
+                                                     ss.face_sets,
+                                                     relax_face_sets,
+                                                     grids,
+                                                     factors);
 }
 
 static void do_relax_face_sets_brush_grids(const Sculpt &sd,
@@ -765,7 +698,7 @@ static void calc_factors_bmesh(Object &object,
   scale_factors(factors, strength);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
-  filter_factors_on_face_sets_bmesh(relax_face_sets, verts, factors);
+  face_set::filter_verts_with_unique_face_sets_bmesh(relax_face_sets, verts, factors);
 }
 
 static void do_relax_face_sets_brush_bmesh(const Sculpt &sd,

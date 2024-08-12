@@ -1040,6 +1040,23 @@ int ensure_face_sets_bmesh(Object &object);
 Array<int> duplicate_face_sets(const Mesh &mesh);
 Set<int> gather_hidden_face_sets(Span<bool> hide_poly, Span<int> face_sets);
 
+void filter_verts_with_unique_face_sets_mesh(GroupedSpan<int> vert_to_face_map,
+                                             const int *face_sets,
+                                             bool unique,
+                                             Span<int> verts,
+                                             MutableSpan<float> factors);
+void filter_verts_with_unique_face_sets_grids(GroupedSpan<int> vert_to_face_map,
+                                              Span<int> corner_verts,
+                                              OffsetIndices<int> faces,
+                                              const SubdivCCG &subdiv_ccg,
+                                              const int *face_sets,
+                                              bool unique,
+                                              Span<int> grids,
+                                              MutableSpan<float> factors);
+void filter_verts_with_unique_face_sets_bmesh(bool unique,
+                                              const Set<BMVert *, 0> verts,
+                                              MutableSpan<float> factors);
+
 }
 
 }
