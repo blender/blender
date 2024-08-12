@@ -379,37 +379,36 @@ static BitVector<> enabled_state_to_bitmap(SculptSession &ss, Cache *expand_cach
  * enabled vertices. This is defined as vertices that are enabled and at least have one connected
  * vertex that is not enabled.
  */
-static BitVector<> boundary_from_enabled(SculptSession &ss,
-                                         const BitSpan enabled_verts,
-                                         const bool use_mesh_boundary)
+static IndexMask boundary_from_enabled(SculptSession &ss,
+                                       const BitSpan enabled_verts,
+                                       const bool use_mesh_boundary,
+                                       IndexMaskMemory &memory)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
 
   BitVector<> boundary_verts(totvert);
-  for (int i = 0; i < totvert; i++) {
-    if (!enabled_verts[i]) {
-      continue;
-    }
+  return IndexMask::from_predicate(
+      enabled_verts.index_range(), GrainSize(1024), memory, [&](const int vert) {
+        if (!enabled_verts[vert]) {
+          return false;
+        }
 
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+        PBVHVertRef vert_ref = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
 
-    bool is_expand_boundary = false;
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      if (!enabled_verts[ni.index]) {
-        is_expand_boundary = true;
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+        SculptVertexNeighborIter ni;
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vert_ref, ni) {
+          if (!enabled_verts[ni.index]) {
+            return true;
+          }
+        }
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    if (use_mesh_boundary && boundary::vert_is_boundary(ss, vertex)) {
-      is_expand_boundary = true;
-    }
+        if (use_mesh_boundary && boundary::vert_is_boundary(ss, vert_ref)) {
+          return true;
+        }
 
-    boundary_verts[i].set(is_expand_boundary);
-  }
-
-  return boundary_verts;
+        return false;
+      });
 }
 
 static void check_topology_islands(Object &ob, FalloffType falloff_type)
@@ -867,15 +866,10 @@ static void geodesics_from_state_boundary(Object &ob,
   SculptSession &ss = *ob.sculpt;
   BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
 
+  IndexMaskMemory memory;
+  const IndexMask boundary_verts = boundary_from_enabled(ss, enabled_verts, false, memory);
   Set<int> initial_verts;
-  const BitVector<> boundary_verts = boundary_from_enabled(ss, enabled_verts, false);
-  const int totvert = SCULPT_vertex_count_get(ss);
-  for (int i = 0; i < totvert; i++) {
-    if (!boundary_verts[i]) {
-      continue;
-    }
-    initial_verts.add(i);
-  }
+  boundary_verts.foreach_index([&](const int vert) { initial_verts.add(vert); });
 
   MEM_SAFE_FREE(expand_cache->face_falloff);
 
@@ -897,17 +891,15 @@ static void topology_from_state_boundary(Object &ob,
 
   expand_cache->vert_falloff.reinitialize(totvert);
   expand_cache->vert_falloff.fill(0);
-  const BitVector<> boundary_verts = boundary_from_enabled(ss, enabled_verts, false);
+
+  IndexMaskMemory memory;
+  const IndexMask boundary_verts = boundary_from_enabled(ss, enabled_verts, false, memory);
 
   flood_fill::FillData flood = flood_fill::init_fill(ss);
-  for (int i = 0; i < totvert; i++) {
-    if (!boundary_verts[i]) {
-      continue;
-    }
-
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+  boundary_verts.foreach_index([&](const int vert) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
     flood_fill::add_and_skip_initial(flood, vertex);
-  }
+  });
 
   MutableSpan<float> dists = expand_cache->vert_falloff;
   flood_fill::execute(ss, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
@@ -1679,7 +1671,9 @@ static void reposition_pivot(bContext *C, Object &ob, Cache *expand_cache)
    * mesh from the boundary of the mask that was just created. */
   const float use_mesh_boundary = expand_cache->falloff_type != FalloffType::BoundaryTopology;
 
-  BitVector<> boundary_verts = boundary_from_enabled(ss, enabled_verts, use_mesh_boundary);
+  IndexMaskMemory memory;
+  const IndexMask boundary_verts = boundary_from_enabled(
+      ss, enabled_verts, use_mesh_boundary, memory);
 
   /* Ignore invert state, as this is the expected behavior in most cases and mask are created in
    * inverted state by default. */
@@ -1690,26 +1684,22 @@ static void reposition_pivot(bContext *C, Object &ob, Cache *expand_cache)
 
   const float *expand_init_co = SCULPT_vertex_co_get(ss, expand_cache->initial_active_vertex);
 
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-    if (!boundary_verts[i]) {
-      continue;
-    }
+  boundary_verts.foreach_index([&](const int vert) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
 
     if (!is_vert_in_active_component(ss, expand_cache, vertex)) {
-      continue;
+      return;
     }
 
     const float *vertex_co = SCULPT_vertex_co_get(ss, vertex);
 
     if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
-      continue;
+      return;
     }
 
     add_v3_v3(avg, vertex_co);
     total++;
-  }
+  });
 
   if (total > 0) {
     mul_v3_v3fl(ss.pivot_pos, avg, 1.0f / total);
