@@ -37,9 +37,15 @@ void datadropper_win_area_find(const bContext *C,
  *
  * Special check for image or nodes where we MAY have HDR pixels which don't display.
  *
+ * \param eye: Internal state of the color eyedropper, may be nullptr for other users.
+ *
  * \note Exposed by 'eyedropper_intern.hh' for use with color band picking.
  */
-void eyedropper_color_sample_fl(bContext *C, const int event_xy[2], float r_col[3]);
+struct Eyedropper;
+void eyedropper_color_sample_fl(bContext *C,
+                                struct Eyedropper *eye,
+                                const int event_xy[2],
+                                float r_col[3]);
 
 /* Used for most eye-dropper operators. */
 enum {

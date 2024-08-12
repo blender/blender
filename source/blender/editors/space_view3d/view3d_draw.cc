@@ -2712,24 +2712,21 @@ bool ED_view3d_calc_render_border(
 /** \name Viewport color picker
  * \{ */
 
-bool ED_view3d_viewport_color_sample(ARegion *region, const int mval[2], float r_col[3])
+bool ViewportColorSampleSession::init(ARegion *region)
 {
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   if (viewport == nullptr) {
     return false;
   }
 
-  GPUTexture *color_tx = GPU_viewport_color_texture(viewport, 0);
-  if (color_tx == nullptr) {
+  GPUTexture *color_tex = GPU_viewport_color_texture(viewport, 0);
+  if (color_tex == nullptr) {
     return false;
   }
 
-  const int tex_w = GPU_texture_width(color_tx);
-  const int tex_h = GPU_texture_height(color_tx);
-
-  if (mval[0] >= min_ii(region->winx, tex_w) || mval[1] >= min_ii(region->winy, tex_h)) {
-    return false;
-  }
+  tex_w = GPU_texture_width(color_tex);
+  tex_h = GPU_texture_height(color_tex);
+  BLI_rcti_init(&valid_rect, 0, min_ii(region->winx, tex_w) - 1, 0, min_ii(region->winy, tex_h));
 
   /* Copying pixels from textures only works when HOST_READ usage is enabled on them.
    * However, doing so can have performance impact, which we don't want for the viewport.
@@ -2737,17 +2734,30 @@ bool ED_view3d_viewport_color_sample(ARegion *region, const int mval[2], float r
    * copy that back to the host.
    * Since color picking is a fairly rare operation, the inefficiency here doesn't really
    * matter, and it means the viewport doesn't need HOST_READ. */
-  GPUTexture *copy_tx = GPU_texture_create_2d(
-      "copy_tx", tex_w, tex_h, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_HOST_READ, nullptr);
+  tex = GPU_texture_create_2d(
+      "copy_tex", tex_w, tex_h, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_HOST_READ, nullptr);
+  if (tex == nullptr) {
+    return false;
+  }
 
-  GPU_texture_copy(copy_tx, color_tx);
+  GPU_texture_copy(tex, color_tex);
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+  data = static_cast<blender::ushort4 *>(GPU_texture_read(tex, GPU_DATA_HALF_FLOAT, 0));
 
-  blender::ushort4 *data = (blender::ushort4 *)GPU_texture_read(copy_tx, GPU_DATA_HALF_FLOAT, 0);
+  return true;
+}
+
+bool ViewportColorSampleSession::sample(const int mval[2], float r_col[3])
+{
+  if (tex == nullptr || data == nullptr) {
+    return false;
+  }
+
+  if (!BLI_rcti_isect_pt_v(&valid_rect, mval)) {
+    return false;
+  }
+
   blender::ushort4 pixel = data[mval[1] * tex_w + mval[0]];
-
-  MEM_freeN(data);
-  GPU_texture_free(copy_tx);
 
   if (half_to_float(pixel.w) < 0.5f) {
     /* Background etc. are not rendered to the viewport texture, so fall back to basic color
@@ -2760,6 +2770,16 @@ bool ED_view3d_viewport_color_sample(ARegion *region, const int mval[2], float r
   r_col[2] = half_to_float(pixel.z);
 
   return true;
+}
+
+ViewportColorSampleSession::~ViewportColorSampleSession()
+{
+  if (data != nullptr) {
+    MEM_freeN(data);
+  }
+  if (tex != nullptr) {
+    GPU_texture_free(tex);
+  }
 }
 
 /** \} */

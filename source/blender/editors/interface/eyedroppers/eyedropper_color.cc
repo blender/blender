@@ -79,6 +79,7 @@ struct Eyedropper {
 
   bNode *crypto_node;
   CryptomatteSession *cryptomatte_session;
+  ViewportColorSampleSession *viewport_session;
 };
 
 static void eyedropper_draw_cb(const wmWindow * /*window*/, void *arg)
@@ -170,6 +171,11 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
   if (eye->cryptomatte_session) {
     BKE_cryptomatte_free(eye->cryptomatte_session);
     eye->cryptomatte_session = nullptr;
+  }
+
+  if (eye->viewport_session) {
+    MEM_delete(eye->viewport_session);
+    eye->viewport_session = nullptr;
   }
 
   MEM_SAFE_FREE(op->customdata);
@@ -417,7 +423,10 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
   return false;
 }
 
-void eyedropper_color_sample_fl(bContext *C, const int event_xy[2], float r_col[3])
+void eyedropper_color_sample_fl(bContext *C,
+                                Eyedropper *eye,
+                                const int event_xy[2],
+                                float r_col[3])
 {
   ScrArea *area = nullptr;
 
@@ -454,8 +463,15 @@ void eyedropper_color_sample_fl(bContext *C, const int event_xy[2], float r_col[
           return;
         }
       }
-      else if (area->spacetype == SPACE_VIEW3D) {
-        if (ED_view3d_viewport_color_sample(region, mval, r_col)) {
+      else if (eye != nullptr && area->spacetype == SPACE_VIEW3D) {
+        /* Viewport color picking involves a fairly expensive operation to copy the GPU viewport
+         * back to the CPU, so to support smooth dragging with the eyedropper, we keep the copy
+         * around for the entire operation. */
+        if (eye->viewport_session == nullptr) {
+          eye->viewport_session = MEM_new<ViewportColorSampleSession>("viewport_session");
+          eye->viewport_session->init(region);
+        }
+        if (eye->viewport_session->sample(mval, r_col)) {
           return;
         }
       }
@@ -515,7 +531,7 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, const int even
     }
   }
   else {
-    eyedropper_color_sample_fl(C, event_xy, col);
+    eyedropper_color_sample_fl(C, eye, event_xy, col);
   }
 
   if (!eye->crypto_node) {

@@ -124,7 +124,7 @@ static void eyedropper_colorband_sample_point(bContext *C,
   if (eye->event_xy_last[0] != m_xy[0] || eye->event_xy_last[1] != m_xy[1]) {
     float4 col;
     col[3] = 1.0f; /* TODO: sample alpha */
-    eyedropper_color_sample_fl(C, m_xy, col);
+    eyedropper_color_sample_fl(C, nullptr, m_xy, col);
     eye->color_buffer.append(col);
     copy_v2_v2_int(eye->event_xy_last, m_xy);
     eye->is_set = true;

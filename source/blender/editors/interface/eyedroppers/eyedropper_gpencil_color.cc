@@ -252,7 +252,7 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
 /* Sample the color below cursor. */
 static void eyedropper_gpencil_color_sample(bContext *C, EyedropperGPencil *eye, const int m_xy[2])
 {
-  eyedropper_color_sample_fl(C, m_xy, eye->color);
+  eyedropper_color_sample_fl(C, nullptr, m_xy, eye->color);
 }
 
 /* Cancel operator. */

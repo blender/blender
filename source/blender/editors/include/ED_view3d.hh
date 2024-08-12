@@ -889,7 +889,19 @@ bool ED_view3d_depth_read_cached_seg(
 /**
  * Returns viewport color in linear space, matching #ED_space_node_color_sample().
  */
-bool ED_view3d_viewport_color_sample(ARegion *region, const int mval[2], float r_col[3]);
+class ViewportColorSampleSession {
+  GPUTexture *tex = nullptr;
+  blender::ushort4 *data = nullptr;
+  int tex_w, tex_h;
+  rcti valid_rect;
+
+ public:
+  ViewportColorSampleSession() = default;
+  ~ViewportColorSampleSession();
+
+  bool init(ARegion *region);
+  bool sample(const int mval[2], float r_col[3]);
+};
 
 enum eV3DSelectMode {
   /* all elements in the region, ignore depth */
