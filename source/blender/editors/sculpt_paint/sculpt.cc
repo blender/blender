@@ -430,6 +430,17 @@ int vert_face_set_get(const SculptSession &ss, PBVHVertRef vertex)
   return 0;
 }
 
+int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
+                      const Span<int> face_sets,
+                      const int vert)
+{
+  int face_set = std::numeric_limits<int>::lowest();
+  for (const int face : vert_to_face_map[vert]) {
+    face_set = std::max(face_sets[face], face_set);
+  }
+  return face_set;
+}
+
 bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
                        const int *face_sets,
                        const int vert,
