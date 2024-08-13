@@ -382,10 +382,14 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
 #  endif
 
       /* Subtract the inner interval from the current hit interval. */
+      const float eps = 0.001f;
       float2 tp0 = make_float2(tp.x, min(tp.y, tc_inner.x));
       float2 tp1 = make_float2(max(tp.x, tc_inner.y), tp.y);
-      bool valid0 = valid && (tp0.x <= tp0.y);
-      bool valid1 = valid && (tp1.x <= tp1.y);
+      /* The X component should be less than the Y component for a valid intersection,
+       * but due to precision issues, the X component can sometimes be greater than
+       * Y by a small amount, leading to missing intersections. */
+      bool valid0 = valid && ((tp0.x - tp0.y) < eps);
+      bool valid1 = valid && ((tp1.x - tp1.y) < eps);
       if (!(valid0 || valid1)) {
         continue;
       }
