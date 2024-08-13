@@ -38,13 +38,20 @@ template<> inline float edge_factor_calc<float>(const float3 &a, const float3 &b
   /* Re-scale to the slider range. */
   float fac = (200 * (cosine - 1.0f)) + 1.0f;
   CLAMP(fac, 0.0f, 1.0f);
-  return fac;
+  /* 1.0 is a reserved value to force hide the wire. */
+  constexpr float factor = 254.0f / 255.0f;
+  return fac * factor;
 }
 
 template<> inline uint8_t edge_factor_calc<uint8_t>(const float3 &a, const float3 &b)
 {
+  const float cosine = math::dot(a, b);
+
+  /* Re-scale to the slider range. */
+  float fac = (200 * (cosine - 1.0f)) + 1.0f;
+  CLAMP(fac, 0.0f, 1.0f);
   /* 255 is a reserved value to force hide the wire. */
-  return uint8_t(edge_factor_calc<float>(a, b) * 254);
+  return fac * 254;
 }
 
 template<typename T>
