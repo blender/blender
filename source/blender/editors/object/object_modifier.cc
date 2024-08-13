@@ -23,6 +23,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
@@ -49,6 +50,7 @@
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
@@ -985,6 +987,190 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
   }
 }
 
+static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
+                                             Object *ob,
+                                             Object *ob_eval,
+                                             GreasePencil &grease_pencil_orig,
+                                             ModifierData *md_eval,
+                                             ReportList *reports)
+{
+  using namespace bke;
+  using namespace bke::greasepencil;
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  GreasePencil *grease_pencil_src = ob_eval->runtime->data_orig ?
+                                        reinterpret_cast<GreasePencil *>(
+                                            ob_eval->runtime->data_orig) :
+                                        &grease_pencil_orig;
+  const int eval_frame = int(DEG_get_ctime(depsgraph));
+  GreasePencil *grease_pencil_temp = reinterpret_cast<GreasePencil *>(
+      BKE_id_copy_ex(nullptr, &grease_pencil_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
+  grease_pencil_temp->runtime->eval_frame = eval_frame;
+  GeometrySet geometry_set = GeometrySet::from_grease_pencil(grease_pencil_temp,
+                                                             GeometryOwnershipType::Owned);
+
+  ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
+  mti->modify_geometry_set(md_eval, &mectx, &geometry_set);
+  if (!geometry_set.has_grease_pencil()) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Evaluated geometry from modifier does not contain grease pencil geometry");
+    return false;
+  }
+  GreasePencil &grease_pencil_result =
+      *geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
+
+  /* Anonymous attributes shouldn't be available on original geometry. */
+  grease_pencil_result.attributes_for_write().remove_anonymous();
+
+  Map<const Layer *, const Layer *> eval_to_orig_layer_map;
+  {
+    Set<Layer *> mapped_original_layers;
+    TreeNode *previous_node = nullptr;
+    const Span<const Layer *> result_layers = grease_pencil_result.layers();
+    for (const Layer *layer_eval : result_layers) {
+      /* Check if the original geometry has a layer with the same name. */
+      TreeNode *node_orig = grease_pencil_orig.find_node_by_name(layer_eval->name());
+      if (!node_orig || node_orig->is_group()) {
+        /* No layer with the same name found. Create a new layer. */
+        Layer &layer_orig = grease_pencil_orig.add_layer(layer_eval->name());
+        /* Make sure to add a new keyframe with a new drawing. */
+        grease_pencil_orig.insert_frame(layer_orig, eval_frame);
+        node_orig = &layer_orig.as_node();
+      }
+      BLI_assert(node_orig != nullptr);
+      Layer &layer_orig = node_orig->as_layer();
+      layer_orig.opacity = layer_eval->opacity;
+      layer_orig.set_local_transform(layer_eval->local_transform());
+
+      /* Insert the updated node after the previous node. This keeps the layer order consistent. */
+      if (previous_node) {
+        BLI_assert(node_orig != nullptr);
+        grease_pencil_orig.move_node_after(*node_orig, *previous_node);
+      }
+      previous_node = node_orig;
+
+      /* Add new mapping for layer_eval -> layer_orig*/
+      eval_to_orig_layer_map.add_new(layer_eval, &layer_orig);
+      mapped_original_layers.add_new(&layer_orig);
+    }
+
+    /* Remove all the unmapped layers from the original geometry. */
+    /* IMPORTANT: We copy the span of pointers into a local array here, because the runtime cache
+     * of the layers actually changes while we remove the layers. */
+    const Array<Layer *> original_layers = grease_pencil_orig.layers_for_write();
+    for (Layer *layer_orig : original_layers) {
+      if (!mapped_original_layers.contains(layer_orig)) {
+        grease_pencil_orig.remove_layer(*layer_orig);
+      }
+    }
+  }
+
+  /* Update the drawings. */
+  VectorSet<Drawing *> all_updated_drawings;
+  for (auto [layer_eval, layer_orig] : eval_to_orig_layer_map.items()) {
+    Drawing *drawing_eval = grease_pencil_result.get_drawing_at(*layer_eval, eval_frame);
+    if (drawing_eval) {
+      /* Anonymous attributes shouldn't be available on original geometry. */
+      drawing_eval->strokes_for_write().attributes_for_write().remove_anonymous();
+    }
+    Drawing *drawing_orig = grease_pencil_orig.get_drawing_at(*layer_orig, eval_frame);
+    if (drawing_orig && drawing_eval) {
+      /* Write the data to the original drawing. */
+      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes_for_write());
+      drawing_orig->tag_topology_changed();
+      all_updated_drawings.add_new(drawing_orig);
+    }
+  }
+
+  /* Get the original material pointers from the result geometry. */
+  VectorSet<Material *> original_materials;
+  const Span<Material *> eval_materials = Span{grease_pencil_result.material_array,
+                                               grease_pencil_result.material_array_num};
+  for (Material *eval_material : eval_materials) {
+    if (eval_material != nullptr && eval_material->id.orig_id != nullptr) {
+      original_materials.add_new(reinterpret_cast<Material *>(eval_material->id.orig_id));
+    }
+  }
+
+  /* Build material indices mapping. This maps the materials indices on the original geometry to
+   * the material indices used in the result geometry. The material indices for the drawings in the
+   * result geometry are already correct, but this might not be the case for all drawings in the
+   * original geometry (like for drawings that are not visible on the frame that the modifier is
+   * being applied on). */
+  Array<int> material_indices_map(grease_pencil_orig.material_array_num);
+  for (const int mat_i : IndexRange(grease_pencil_orig.material_array_num)) {
+    Material *material = grease_pencil_orig.material_array[mat_i];
+    const int map_index = original_materials.index_of_try(material);
+    if (map_index != -1) {
+      material_indices_map[mat_i] = map_index;
+    }
+  }
+
+  /* Remap material indices for all other drawings. */
+  if (!material_indices_map.is_empty() &&
+      !array_utils::indices_are_range(material_indices_map,
+                                      IndexRange(grease_pencil_orig.material_array_num)))
+  {
+    for (GreasePencilDrawingBase *base : grease_pencil_orig.drawings()) {
+      if (base->type != GP_DRAWING) {
+        continue;
+      }
+      Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+      if (all_updated_drawings.contains(&drawing)) {
+        /* Skip remapping drawings that already have been updated. */
+        continue;
+      }
+      MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
+      if (!attributes.contains("material_index")) {
+        continue;
+      }
+      SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+          "material_index", AttrDomain::Curve);
+      for (int &material_index : material_indices.span) {
+        if (material_index >= 0 && material_index < material_indices_map.size()) {
+          material_index = material_indices_map[material_index];
+        }
+      }
+      material_indices.finish();
+    }
+  }
+
+  /* Convert the layer map into an index mapping. */
+  Array<int> eval_to_orig_layer_indices_map(grease_pencil_result.layers().size());
+  for (const int layer_eval_i : grease_pencil_result.layers().index_range()) {
+    const Layer *layer_eval = grease_pencil_result.layer(layer_eval_i);
+    const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
+    const int layer_orig_index = *grease_pencil_orig.get_layer_index(*layer_orig);
+    eval_to_orig_layer_indices_map[layer_eval_i] = layer_orig_index;
+  }
+
+  /* Propagate layer attributes. */
+  AttributeAccessor src_attributes = grease_pencil_result.attributes();
+  MutableAttributeAccessor dst_attributes = grease_pencil_orig.attributes_for_write();
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
+    const GVArraySpan src = *src_attributes.lookup(id, AttrDomain::Layer);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, AttrDomain::Layer, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
+    attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      array_utils::scatter(
+          src.typed<T>(), eval_to_orig_layer_indices_map.as_span(), dst.span.typed<T>());
+    });
+    dst.finish();
+    return true;
+  });
+
+  Main *bmain = DEG_get_bmain(depsgraph);
+  BKE_object_material_from_eval_data(bmain, ob, &grease_pencil_result.id);
+  return true;
+}
+
 static bool modifier_apply_obdata(
     ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
@@ -1144,6 +1330,19 @@ static bool modifier_apply_obdata(
     Main *bmain = DEG_get_bmain(depsgraph);
     BKE_object_material_from_eval_data(bmain, ob, &pointcloud_eval->id);
     BKE_pointcloud_nomain_to_pointcloud(pointcloud_eval, &points);
+  }
+  else if (ob->type == OB_GREASE_PENCIL) {
+    if (mti->modify_geometry_set == nullptr) {
+      BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to grease pencil geometry");
+      return false;
+    }
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    GreasePencil &grease_pencil_orig = *static_cast<GreasePencil *>(ob->data);
+    if (!apply_grease_pencil_for_modifier(
+            depsgraph, ob, ob_eval, grease_pencil_orig, md_eval, reports))
+    {
+      return false;
+    }
   }
   else {
     /* TODO: implement for volumes. */
