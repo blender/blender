@@ -46,8 +46,8 @@ enum class ResultPrecision : uint8_t {
  * Result
  *
  * A result represents the computed value of an output of an operation. A result can either
- * represent an image or a single value. A result is typed, and can be of type color, vector, or
- * float. Single value results are stored in 1x1 textures to make them easily accessible in
+ * represent an image or a single value. A result is typed, and can be of types like color, vector,
+ * or float. Single value results are stored in 1x1 textures to make them easily accessible in
  * shaders. But the same value is also stored in the value union member of the result for any
  * host-side processing. The GPU texture of the result can either be allocated from the texture
  * pool of the context referenced by the result or it can be allocated directly from the GPU
@@ -85,12 +85,12 @@ class Result {
    * construction. */
   Context *context_ = nullptr;
   /* The base type of the result's texture or single value. */
-  ResultType type_;
+  ResultType type_ = ResultType::Float;
   /* The precision of the result's texture, host-side single values are always stored using full
    * precision. */
   ResultPrecision precision_ = ResultPrecision::Half;
   /* If true, the result is a single value, otherwise, the result is a texture. */
-  bool is_single_value_;
+  bool is_single_value_ = false;
   /* A GPU texture storing the result data. This will be a 1x1 texture if the result is a single
    * value, the value of which will be identical to that of the value member. See class description
    * for more information. */
@@ -115,7 +115,7 @@ class Result {
   union {
     float float_value_;
     float4 vector_value_;
-    float4 color_value_;
+    float4 color_value_ = float4(0.0f);
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
    * COM_domain.hh for more information. */
