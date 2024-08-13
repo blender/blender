@@ -52,6 +52,157 @@
 /* *********************************************** */
 /* FCurves <-> PoseChannels Links */
 
+/**
+ * Types of transforms applied to the given item:
+ * - these are the return flags for #BKE_action_get_item_transform_flags()
+ */
+typedef enum eAction_TransformFlags {
+  /* location */
+  ACT_TRANS_LOC = (1 << 0),
+  /* rotation */
+  ACT_TRANS_ROT = (1 << 1),
+  /* scaling */
+  ACT_TRANS_SCALE = (1 << 2),
+
+  /* bbone shape - for all the parameters, provided one is set */
+  ACT_TRANS_BBONE = (1 << 3),
+
+  /* strictly not a transform, but custom properties are also
+   * quite often used in modern rigs
+   */
+  ACT_TRANS_PROP = (1 << 4),
+
+  /* all flags */
+  ACT_TRANS_ONLY = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
+  ACT_TRANS_ALL = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
+} eAction_TransformFlags;
+
+static eAction_TransformFlags get_item_transform_flags(bAction *act,
+                                                       Object *ob,
+                                                       bPoseChannel *pchan,
+                                                       ListBase *curves)
+{
+  PointerRNA ptr;
+  short flags = 0;
+
+  /* build PointerRNA from provided data to obtain the paths to use */
+  if (pchan) {
+    ptr = RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan);
+  }
+  else if (ob) {
+    ptr = RNA_id_pointer_create((ID *)ob);
+  }
+  else {
+    return eAction_TransformFlags(0);
+  }
+
+  /* get the basic path to the properties of interest */
+  const std::optional<std::string> basePath = RNA_path_from_ID_to_struct(&ptr);
+  if (!basePath) {
+    return eAction_TransformFlags(0);
+  }
+
+  /* search F-Curves for the given properties
+   * - we cannot use the groups, since they may not be grouped in that way...
+   */
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+    const char *bPtr = nullptr, *pPtr = nullptr;
+
+    /* If enough flags have been found,
+     * we can stop checking unless we're also getting the curves. */
+    if ((flags == ACT_TRANS_ALL) && (curves == nullptr)) {
+      break;
+    }
+
+    /* just in case... */
+    if (fcu->rna_path == nullptr) {
+      continue;
+    }
+
+    /* step 1: check for matching base path */
+    bPtr = strstr(fcu->rna_path, basePath->c_str());
+
+    if (bPtr) {
+      /* we must add len(basePath) bytes to the match so that we are at the end of the
+       * base path so that we don't get false positives with these strings in the names
+       */
+      bPtr += strlen(basePath->c_str());
+
+      /* step 2: check for some property with transforms
+       * - to speed things up, only check for the ones not yet found
+       *   unless we're getting the curves too
+       * - if we're getting the curves, the BLI_genericNodeN() creates a LinkData
+       *   node wrapping the F-Curve, which then gets added to the list
+       * - once a match has been found, the curve cannot possibly be any other one
+       */
+      if ((curves) || (flags & ACT_TRANS_LOC) == 0) {
+        pPtr = strstr(bPtr, "location");
+        if (pPtr) {
+          flags |= ACT_TRANS_LOC;
+
+          if (curves) {
+            BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
+          continue;
+        }
+      }
+
+      if ((curves) || (flags & ACT_TRANS_SCALE) == 0) {
+        pPtr = strstr(bPtr, "scale");
+        if (pPtr) {
+          flags |= ACT_TRANS_SCALE;
+
+          if (curves) {
+            BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
+          continue;
+        }
+      }
+
+      if ((curves) || (flags & ACT_TRANS_ROT) == 0) {
+        pPtr = strstr(bPtr, "rotation");
+        if (pPtr) {
+          flags |= ACT_TRANS_ROT;
+
+          if (curves) {
+            BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
+          continue;
+        }
+      }
+
+      if ((curves) || (flags & ACT_TRANS_BBONE) == 0) {
+        /* bbone shape properties */
+        pPtr = strstr(bPtr, "bbone_");
+        if (pPtr) {
+          flags |= ACT_TRANS_BBONE;
+
+          if (curves) {
+            BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
+          continue;
+        }
+      }
+
+      if ((curves) || (flags & ACT_TRANS_PROP) == 0) {
+        /* custom properties only */
+        pPtr = strstr(bPtr, "[\"");
+        if (pPtr) {
+          flags |= ACT_TRANS_PROP;
+
+          if (curves) {
+            BLI_addtail(curves, BLI_genericNodeN(fcu));
+          }
+          continue;
+        }
+      }
+    }
+  }
+
+  /* return flags found */
+  return eAction_TransformFlags(flags);
+}
+
 /* helper for poseAnim_mapping_get() -> get the relevant F-Curves per PoseChannel */
 static void fcurves_to_pchan_links_get(ListBase *pfLinks,
                                        Object *ob,
@@ -59,8 +210,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
                                        bPoseChannel *pchan)
 {
   ListBase curves = {nullptr, nullptr};
-  const eAction_TransformFlags transFlags = BKE_action_get_item_transform_flags(
-      act, ob, pchan, &curves);
+  const eAction_TransformFlags transFlags = get_item_transform_flags(act, ob, pchan, &curves);
 
   pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
 

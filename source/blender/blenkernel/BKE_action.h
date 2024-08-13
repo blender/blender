@@ -44,42 +44,6 @@ struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 /* Action API ----------------- */
 
 /**
- * Types of transforms applied to the given item:
- * - these are the return flags for #BKE_action_get_item_transform_flags()
- */
-typedef enum eAction_TransformFlags {
-  /* location */
-  ACT_TRANS_LOC = (1 << 0),
-  /* rotation */
-  ACT_TRANS_ROT = (1 << 1),
-  /* scaling */
-  ACT_TRANS_SCALE = (1 << 2),
-
-  /* bbone shape - for all the parameters, provided one is set */
-  ACT_TRANS_BBONE = (1 << 3),
-
-  /* strictly not a transform, but custom properties are also
-   * quite often used in modern rigs
-   */
-  ACT_TRANS_PROP = (1 << 4),
-
-  /* all flags */
-  ACT_TRANS_ONLY = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
-  ACT_TRANS_ALL = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
-} eAction_TransformFlags;
-
-/**
- * Return flags indicating which transforms the given object/posechannel has
- * - if 'curves' is provided, a list of links to these curves are also returned
- *   whose nodes WILL NEED FREEING.
- */
-eAction_TransformFlags BKE_action_get_item_transform_flags(struct bAction *act,
-                                                           struct Object *ob,
-                                                           struct bPoseChannel *pchan,
-                                                           ListBase *curves)
-    ATTR_WARN_UNUSED_RESULT;
-
-/**
  * Calculate the extents of given action.
  */
 void BKE_action_frame_range_calc(const struct bAction *act,
