@@ -247,7 +247,7 @@ void importer_main(Main *bmain,
   /* Object matrix and finishing up. */
   float global_scale = import_params.global_scale;
   if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {
-    global_scale *= scene->unit.scale_length;
+    global_scale /= scene->unit.scale_length;
   }
   float scale_vec[3] = {global_scale, global_scale, global_scale};
   float obmat3x3[3][3];
