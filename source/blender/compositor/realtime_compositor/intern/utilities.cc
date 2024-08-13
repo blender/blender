@@ -212,7 +212,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
   GPU_shader_bind(shader);
 
   if (input_result.type() == ResultType::Float) {
-    GPU_texture_swizzle_set(input_result.texture(), "rrr1");
+    GPU_texture_swizzle_set(input_result, "rrr1");
   }
 
   input_result.bind_as_texture(shader, "input_tx");
@@ -229,7 +229,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
   float *preview_pixels = static_cast<float *>(
-      GPU_texture_read(preview_result.texture(), GPU_DATA_FLOAT, 0));
+      GPU_texture_read(preview_result, GPU_DATA_FLOAT, 0));
   preview_result.release();
 
   ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
@@ -247,7 +247,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
 
   /* Restore original swizzle mask set above. */
   if (input_result.type() == ResultType::Float) {
-    GPU_texture_swizzle_set(input_result.texture(), "rgba");
+    GPU_texture_swizzle_set(input_result, "rgba");
   }
 
   IMB_colormanagement_processor_free(color_processor);

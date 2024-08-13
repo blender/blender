@@ -2,8 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_assert.h"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
@@ -21,7 +24,7 @@ Result::Result(Context &context, ResultType type, ResultPrecision precision)
 {
 }
 
-eGPUTextureFormat Result::texture_format(ResultType type, ResultPrecision precision)
+eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision precision)
 {
   switch (precision) {
     case ResultPrecision::Half:
@@ -60,7 +63,7 @@ eGPUTextureFormat Result::texture_format(ResultType type, ResultPrecision precis
   return GPU_RGBA32F;
 }
 
-eGPUTextureFormat Result::texture_format(eGPUTextureFormat format, ResultPrecision precision)
+eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPrecision precision)
 {
   switch (precision) {
     case ResultPrecision::Half:
@@ -166,9 +169,15 @@ ResultType Result::type(eGPUTextureFormat format)
   return ResultType::Color;
 }
 
-eGPUTextureFormat Result::get_texture_format() const
+Result::operator GPUTexture *() const
 {
-  return Result::texture_format(type_, precision_);
+  BLI_assert(storage_type_ == ResultStorageType::GPU);
+  return gpu_texture_;
+}
+
+eGPUTextureFormat Result::get_gpu_texture_format() const
+{
+  return Result::gpu_texture_format(type_, precision_);
 }
 
 void Result::allocate_texture(Domain domain, bool from_pool)
@@ -182,39 +191,16 @@ void Result::allocate_texture(Domain domain, bool from_pool)
   }
 
   is_single_value_ = false;
-  if (context_->use_gpu()) {
-    is_from_pool_ = from_pool;
-    if (from_pool) {
-      texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
-    }
-    else {
-      texture_ = GPU_texture_create_2d("Compositor Texture",
-                                       domain.size.x,
-                                       domain.size.y,
-                                       1,
-                                       this->get_texture_format(),
-                                       GPU_TEXTURE_USAGE_GENERAL,
-                                       nullptr);
-    }
-  }
-  else {
-    /* TODO: Host side allocation. */
-  }
+  this->allocate_data(domain.size, from_pool);
   domain_ = domain;
 }
 
 void Result::allocate_single_value()
 {
+  /* Single values are stored in 1x1 textures as well as the single value members. Further, they
+   * are always allocated from the pool. */
   is_single_value_ = true;
-  /* Single values are stored in 1x1 textures as well as the single value members. */
-  const int2 texture_size{1, 1};
-  if (context_->use_gpu()) {
-    is_from_pool_ = true;
-    texture_ = context_->texture_pool().acquire(texture_size, get_texture_format());
-  }
-  else {
-    /* TODO: Host side allocation. */
-  }
+  this->allocate_data(int2(1), true);
   domain_ = Domain::identity();
 }
 
@@ -231,41 +217,52 @@ void Result::allocate_invalid()
     case ResultType::Color:
       set_color_value(float4(0.0f));
       break;
-    default:
-      /* Other types are internal and do not support single values. */
-      BLI_assert_unreachable();
+    case ResultType::Float2:
+      set_float2_value(float2(0.0f));
+      break;
+    case ResultType::Float3:
+      set_float3_value(float3(0.0f));
+      break;
+    case ResultType::Int2:
+      set_int2_value(int2(0));
       break;
   }
 }
 
 void Result::bind_as_texture(GPUShader *shader, const char *texture_name) const
 {
+  BLI_assert(storage_type_ == ResultStorageType::GPU);
+
   /* Make sure any prior writes to the texture are reflected before reading from it. */
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
 
   const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
-  GPU_texture_bind(texture_, texture_image_unit);
+  GPU_texture_bind(gpu_texture_, texture_image_unit);
 }
 
 void Result::bind_as_image(GPUShader *shader, const char *image_name, bool read) const
 {
+  BLI_assert(storage_type_ == ResultStorageType::GPU);
+
   /* Make sure any prior writes to the texture are reflected before reading from it. */
   if (read) {
     GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
 
   const int image_unit = GPU_shader_get_sampler_binding(shader, image_name);
-  GPU_texture_image_bind(texture_, image_unit);
+  GPU_texture_image_bind(gpu_texture_, image_unit);
 }
 
 void Result::unbind_as_texture() const
 {
-  GPU_texture_unbind(texture_);
+  BLI_assert(storage_type_ == ResultStorageType::GPU);
+  GPU_texture_unbind(gpu_texture_);
 }
 
 void Result::unbind_as_image() const
 {
-  GPU_texture_image_unbind(texture_);
+  BLI_assert(storage_type_ == ResultStorageType::GPU);
+  GPU_texture_image_unbind(gpu_texture_);
 }
 
 void Result::pass_through(Result &target)
@@ -286,44 +283,53 @@ void Result::pass_through(Result &target)
 void Result::steal_data(Result &source)
 {
   BLI_assert(type_ == source.type_);
-  BLI_assert(!is_allocated() && source.is_allocated());
+  BLI_assert(precision_ == source.precision_);
+  BLI_assert(!this->is_allocated() && source.is_allocated());
   BLI_assert(master_ == nullptr && source.master_ == nullptr);
 
-  is_single_value_ = source.is_single_value_;
-  is_from_pool_ = source.is_from_pool_;
-  texture_ = source.texture_;
-  context_ = source.context_;
-  domain_ = source.domain_;
+  /* Overwrite everything except reference counts. */
+  const int reference_count = reference_count_;
+  const int initial_reference_count = initial_reference_count_;
+  *this = source;
+  reference_count_ = reference_count;
+  initial_reference_count_ = initial_reference_count;
 
-  switch (type_) {
-    case ResultType::Float:
-      float_value_ = source.float_value_;
-      break;
-    case ResultType::Vector:
-      vector_value_ = source.vector_value_;
-      break;
-    case ResultType::Color:
-      color_value_ = source.color_value_;
-      break;
-    default:
-      /* Other types are internal and do not support single values. */
-      break;
-  }
-
-  source.texture_ = nullptr;
-  source.context_ = nullptr;
+  source.reset();
 }
 
 void Result::wrap_external(GPUTexture *texture)
 {
-  BLI_assert(GPU_texture_format(texture) == get_texture_format());
-  BLI_assert(!is_allocated());
+  BLI_assert(GPU_texture_format(texture) == this->get_gpu_texture_format());
+  BLI_assert(!this->is_allocated());
   BLI_assert(!master_);
 
-  texture_ = texture;
+  gpu_texture_ = texture;
+  storage_type_ = ResultStorageType::GPU;
   is_external_ = true;
   is_single_value_ = false;
   domain_ = Domain(int2(GPU_texture_width(texture), GPU_texture_height(texture)));
+}
+
+void Result::wrap_external(float *texture, int2 size)
+{
+  BLI_assert(!this->is_allocated());
+  BLI_assert(!master_);
+
+  float_texture_ = texture;
+  storage_type_ = ResultStorageType::FloatCPU;
+  is_external_ = true;
+  domain_ = Domain(size);
+}
+
+void Result::wrap_external(int *texture, int2 size)
+{
+  BLI_assert(!this->is_allocated());
+  BLI_assert(!master_);
+
+  integer_texture_ = texture;
+  storage_type_ = ResultStorageType::IntegerCPU;
+  is_external_ = true;
+  domain_ = Domain(size);
 }
 
 void Result::set_transformation(const float3x3 &transformation)
@@ -343,21 +349,49 @@ RealizationOptions &Result::get_realization_options()
 
 float Result::get_float_value() const
 {
+  BLI_assert(type_ == ResultType::Float);
+  BLI_assert(is_single_value_);
   return float_value_;
 }
 
 float4 Result::get_vector_value() const
 {
+  BLI_assert(type_ == ResultType::Vector);
+  BLI_assert(is_single_value_);
   return vector_value_;
 }
 
 float4 Result::get_color_value() const
 {
+  BLI_assert(type_ == ResultType::Color);
+  BLI_assert(is_single_value_);
   return color_value_;
+}
+
+float2 Result::get_float2_value() const
+{
+  BLI_assert(type_ == ResultType::Float2);
+  BLI_assert(is_single_value_);
+  return float2_value_;
+}
+
+float3 Result::get_float3_value() const
+{
+  BLI_assert(type_ == ResultType::Float3);
+  BLI_assert(is_single_value_);
+  return float3_value_;
+}
+
+int2 Result::get_int2_value() const
+{
+  BLI_assert(type_ == ResultType::Int2);
+  BLI_assert(is_single_value_);
+  return int2_value_;
 }
 
 float Result::get_float_value_default(float default_value) const
 {
+  BLI_assert(type_ == ResultType::Float);
   if (is_single_value()) {
     return get_float_value();
   }
@@ -366,6 +400,7 @@ float Result::get_float_value_default(float default_value) const
 
 float4 Result::get_vector_value_default(const float4 &default_value) const
 {
+  BLI_assert(type_ == ResultType::Vector);
   if (is_single_value()) {
     return get_vector_value();
   }
@@ -374,28 +409,158 @@ float4 Result::get_vector_value_default(const float4 &default_value) const
 
 float4 Result::get_color_value_default(const float4 &default_value) const
 {
+  BLI_assert(type_ == ResultType::Color);
   if (is_single_value()) {
     return get_color_value();
   }
   return default_value;
 }
 
+float2 Result::get_float2_value_default(const float2 &default_value) const
+{
+  BLI_assert(type_ == ResultType::Float2);
+  if (is_single_value()) {
+    return get_float2_value();
+  }
+  return default_value;
+}
+
+float3 Result::get_float3_value_default(const float3 &default_value) const
+{
+  BLI_assert(type_ == ResultType::Float3);
+  if (is_single_value()) {
+    return get_float3_value();
+  }
+  return default_value;
+}
+
+int2 Result::get_int2_value_default(const int2 &default_value) const
+{
+  BLI_assert(type_ == ResultType::Int2);
+  if (is_single_value()) {
+    return get_int2_value();
+  }
+  return default_value;
+}
+
 void Result::set_float_value(float value)
 {
+  BLI_assert(type_ == ResultType::Float);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
   float_value_ = value;
-  GPU_texture_update(texture_, GPU_DATA_FLOAT, &float_value_);
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, &value);
+      break;
+    case ResultStorageType::FloatCPU:
+      *float_texture_ = value;
+      break;
+    case ResultStorageType::IntegerCPU:
+      BLI_assert_unreachable();
+      break;
+  }
 }
 
 void Result::set_vector_value(const float4 &value)
 {
+  BLI_assert(type_ == ResultType::Vector);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
   vector_value_ = value;
-  GPU_texture_update(texture_, GPU_DATA_FLOAT, vector_value_);
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+      break;
+    case ResultStorageType::FloatCPU:
+      copy_v4_v4(float_texture_, value);
+      break;
+    case ResultStorageType::IntegerCPU:
+      BLI_assert_unreachable();
+      break;
+  }
 }
 
 void Result::set_color_value(const float4 &value)
 {
+  BLI_assert(type_ == ResultType::Color);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
   color_value_ = value;
-  GPU_texture_update(texture_, GPU_DATA_FLOAT, color_value_);
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+      break;
+    case ResultStorageType::FloatCPU:
+      copy_v4_v4(float_texture_, value);
+      break;
+    case ResultStorageType::IntegerCPU:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+void Result::set_float2_value(const float2 &value)
+{
+  BLI_assert(type_ == ResultType::Float2);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
+  float2_value_ = value;
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+      break;
+    case ResultStorageType::FloatCPU:
+      copy_v2_v2(float_texture_, value);
+      break;
+    case ResultStorageType::IntegerCPU:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+void Result::set_float3_value(const float3 &value)
+{
+  BLI_assert(type_ == ResultType::Float3);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
+  float3_value_ = value;
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+      break;
+    case ResultStorageType::FloatCPU:
+      copy_v3_v3(float_texture_, value);
+      break;
+    case ResultStorageType::IntegerCPU:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+void Result::set_int2_value(const int2 &value)
+{
+  BLI_assert(type_ == ResultType::Int2);
+  BLI_assert(is_single_value_);
+  BLI_assert(this->is_allocated());
+
+  int2_value_ = value;
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      GPU_texture_update(gpu_texture_, GPU_DATA_INT, value);
+      break;
+    case ResultStorageType::FloatCPU:
+      BLI_assert_unreachable();
+      break;
+    case ResultStorageType::IntegerCPU:
+      copy_v2_v2_int(integer_texture_, value);
+      break;
+  }
 }
 
 void Result::set_initial_reference_count(int count)
@@ -441,13 +606,25 @@ void Result::release()
     return;
   }
 
-  if (is_from_pool_) {
-    context_->texture_pool().release(texture_);
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      if (is_from_pool_) {
+        context_->texture_pool().release(gpu_texture_);
+      }
+      else {
+        GPU_texture_free(gpu_texture_);
+      }
+      gpu_texture_ = nullptr;
+      break;
+    case ResultStorageType::FloatCPU:
+      MEM_freeN(float_texture_);
+      float_texture_ = nullptr;
+      break;
+    case ResultStorageType::IntegerCPU:
+      MEM_freeN(integer_texture_);
+      integer_texture_ = nullptr;
+      break;
   }
-  else {
-    GPU_texture_free(texture_);
-  }
-  texture_ = nullptr;
 }
 
 bool Result::should_compute()
@@ -468,13 +645,8 @@ ResultPrecision Result::precision() const
 void Result::set_precision(ResultPrecision precision)
 {
   /* Changing the precision can only be done if it wasn't allocated yet. */
-  BLI_assert(!is_allocated());
+  BLI_assert(!this->is_allocated());
   precision_ = precision;
-}
-
-bool Result::is_texture() const
-{
-  return !is_single_value_;
 }
 
 bool Result::is_single_value() const
@@ -484,12 +656,14 @@ bool Result::is_single_value() const
 
 bool Result::is_allocated() const
 {
-  return texture_ != nullptr;
-}
-
-GPUTexture *Result::texture() const
-{
-  return texture_;
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      return gpu_texture_ != nullptr;
+    case ResultStorageType::FloatCPU:
+      return float_texture_ != nullptr;
+    case ResultStorageType::IntegerCPU:
+      return integer_texture_ != nullptr;
+  }
 }
 
 int Result::reference_count() const
@@ -504,6 +678,59 @@ int Result::reference_count() const
 const Domain &Result::domain() const
 {
   return domain_;
+}
+
+void Result::allocate_data(int2 size, bool from_pool)
+{
+  if (context_->use_gpu()) {
+    is_from_pool_ = from_pool;
+    if (from_pool) {
+      gpu_texture_ = context_->texture_pool().acquire(size, this->get_gpu_texture_format());
+    }
+    else {
+      gpu_texture_ = GPU_texture_create_2d(__func__,
+                                           size.x,
+                                           size.y,
+                                           1,
+                                           this->get_gpu_texture_format(),
+                                           GPU_TEXTURE_USAGE_GENERAL,
+                                           nullptr);
+    }
+  }
+  else {
+    switch (type_) {
+      case ResultType::Float:
+        float_texture_ = static_cast<float *>(
+            MEM_malloc_arrayN(size.x * size.y, sizeof(float), __func__));
+        storage_type_ = ResultStorageType::FloatCPU;
+        break;
+
+      case ResultType::Vector:
+      case ResultType::Color:
+        float_texture_ = static_cast<float *>(
+            MEM_malloc_arrayN(size.x * size.y, sizeof(float4), __func__));
+        storage_type_ = ResultStorageType::FloatCPU;
+        break;
+
+      case ResultType::Float2:
+        float_texture_ = static_cast<float *>(
+            MEM_malloc_arrayN(size.x * size.y, sizeof(float2), __func__));
+        storage_type_ = ResultStorageType::FloatCPU;
+        break;
+
+      case ResultType::Float3:
+        float_texture_ = static_cast<float *>(
+            MEM_malloc_arrayN(size.x * size.y, sizeof(float3), __func__));
+        storage_type_ = ResultStorageType::FloatCPU;
+        break;
+
+      case ResultType::Int2:
+        integer_texture_ = static_cast<int *>(
+            MEM_malloc_arrayN(size.x * size.y, sizeof(int2), __func__));
+        storage_type_ = ResultStorageType::IntegerCPU;
+        break;
+    }
+  }
 }
 
 }  // namespace blender::realtime_compositor

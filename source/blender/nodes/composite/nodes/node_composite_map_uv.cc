@@ -70,15 +70,15 @@ class MapUVOperation : public NodeOperation {
 
     const Result &input_image = get_input("Image");
     if (nearest_neighbour) {
-      GPU_texture_mipmap_mode(input_image.texture(), false, false);
-      GPU_texture_anisotropic_filter(input_image.texture(), false);
+      GPU_texture_mipmap_mode(input_image, false, false);
+      GPU_texture_anisotropic_filter(input_image, false);
     }
     else {
-      GPU_texture_mipmap_mode(input_image.texture(), true, true);
-      GPU_texture_anisotropic_filter(input_image.texture(), true);
+      GPU_texture_mipmap_mode(input_image, true, true);
+      GPU_texture_anisotropic_filter(input_image, true);
     }
 
-    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
     const Result &input_uv = get_input("UV");

@@ -116,8 +116,8 @@ class ScaleOperation : public NodeOperation {
     GPU_shader_bind(shader);
 
     Result &input = get_input("Image");
-    GPU_texture_filter_mode(input.texture(), true);
-    GPU_texture_extend_mode(input.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_filter_mode(input, true);
+    GPU_texture_extend_mode(input, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input.bind_as_texture(shader, "input_tx");
 
     Result &x_scale = get_input("X");

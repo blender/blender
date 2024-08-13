@@ -76,7 +76,7 @@ class BokehImageOperation : public NodeOperation {
         node_storage(bnode()).lensshift);
 
     Result &output = get_result("Image");
-    output.wrap_external(bokeh_kernel.texture());
+    output.wrap_external(bokeh_kernel);
   }
 
   Domain compute_domain() override

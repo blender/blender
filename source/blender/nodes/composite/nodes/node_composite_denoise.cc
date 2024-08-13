@@ -113,7 +113,7 @@ class DenoiseOperation : public NodeOperation {
     /* Download the input texture and set it as both the input and output of the filter to denoise
      * it in-place. */
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    float *color = static_cast<float *>(GPU_texture_read(input_image.texture(), data_format, 0));
+    float *color = static_cast<float *>(GPU_texture_read(input_image, data_format, 0));
     oidn::FilterRef filter = device.newFilter("RT");
     filter.setImage("color", color, oidn::Format::Float3, width, height, 0, pixel_stride);
     filter.setImage("output", color, oidn::Format::Float3, width, height, 0, pixel_stride);
@@ -126,7 +126,7 @@ class DenoiseOperation : public NodeOperation {
     float *albedo = nullptr;
     Result &input_albedo = get_input("Albedo");
     if (!input_albedo.is_single_value()) {
-      albedo = static_cast<float *>(GPU_texture_read(input_albedo.texture(), data_format, 0));
+      albedo = static_cast<float *>(GPU_texture_read(input_albedo, data_format, 0));
 
       if (should_denoise_auxiliary_passes()) {
         oidn::FilterRef albedoFilter = device.newFilter("RT");
@@ -149,7 +149,7 @@ class DenoiseOperation : public NodeOperation {
     float *normal = nullptr;
     Result &input_normal = get_input("Normal");
     if (albedo && !input_normal.is_single_value()) {
-      normal = static_cast<float *>(GPU_texture_read(input_normal.texture(), data_format, 0));
+      normal = static_cast<float *>(GPU_texture_read(input_normal, data_format, 0));
 
       if (should_denoise_auxiliary_passes()) {
         oidn::FilterRef normalFilter = device.newFilter("RT");
@@ -169,7 +169,7 @@ class DenoiseOperation : public NodeOperation {
     filter.execute();
 
     output_image.allocate_texture(input_image.domain());
-    GPU_texture_update(output_image.texture(), data_format, color);
+    GPU_texture_update(output_image, data_format, color);
 
     MEM_freeN(color);
     if (albedo) {

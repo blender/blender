@@ -67,7 +67,7 @@ static Result detect_edges(Context &context,
   GPU_shader_uniform_1f(
       shader, "smaa_local_contrast_adaptation_factor", local_contrast_adaptation_factor);
 
-  GPU_texture_filter_mode(input.texture(), true);
+  GPU_texture_filter_mode(input, true);
   input.bind_as_texture(shader, "input_tx");
 
   Result edges = context.create_result(ResultType::Color);
@@ -90,7 +90,7 @@ static Result calculate_blending_weights(Context &context, Result &edges, int co
 
   GPU_shader_uniform_1i(shader, "smaa_corner_rounding", corner_rounding);
 
-  GPU_texture_filter_mode(edges.texture(), true);
+  GPU_texture_filter_mode(edges, true);
   edges.bind_as_texture(shader, "edges_tx");
 
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
@@ -140,10 +140,10 @@ static void blend_neighborhood(Context &context, Result &input, Result &weights,
   GPUShader *shader = context.get_shader(get_blend_shader_name(input.type()));
   GPU_shader_bind(shader);
 
-  GPU_texture_filter_mode(input.texture(), true);
+  GPU_texture_filter_mode(input, true);
   input.bind_as_texture(shader, "input_tx");
 
-  GPU_texture_filter_mode(weights.texture(), true);
+  GPU_texture_filter_mode(weights, true);
   weights.bind_as_texture(shader, "weights_tx");
 
   output.allocate_texture(input.domain());

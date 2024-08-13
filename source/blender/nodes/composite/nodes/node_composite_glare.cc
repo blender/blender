@@ -183,7 +183,7 @@ class GlareOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "threshold", node_storage(bnode()).threshold);
 
     const Result &input_image = get_input("Image");
-    GPU_texture_filter_mode(input_image.texture(), true);
+    GPU_texture_filter_mode(input_image, true);
     input_image.bind_as_texture(shader, "input_tx");
 
     const int2 glare_size = get_glare_size();
@@ -253,7 +253,7 @@ class GlareOperation : public NodeOperation {
     Result horizontal_pass_result = context().create_result(ResultType::Color);
     horizontal_pass_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    GPU_texture_copy(horizontal_pass_result.texture(), highlights_result.texture());
+    GPU_texture_copy(horizontal_pass_result, highlights_result);
 
     GPUShader *shader = context().get_shader("compositor_glare_simple_star_horizontal_pass");
     GPU_shader_bind(shader);
@@ -310,7 +310,7 @@ class GlareOperation : public NodeOperation {
     Result diagonal_pass_result = context().create_result(ResultType::Color);
     diagonal_pass_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    GPU_texture_copy(diagonal_pass_result.texture(), highlights_result.texture());
+    GPU_texture_copy(diagonal_pass_result, highlights_result);
 
     GPUShader *shader = context().get_shader("compositor_glare_simple_star_diagonal_pass");
     GPU_shader_bind(shader);
@@ -350,7 +350,7 @@ class GlareOperation : public NodeOperation {
     const int2 glare_size = get_glare_size();
     Result accumulated_streaks_result = context().create_result(ResultType::Color);
     accumulated_streaks_result.allocate_texture(glare_size);
-    GPU_texture_clear(accumulated_streaks_result.texture(), GPU_DATA_FLOAT, zero_color);
+    GPU_texture_clear(accumulated_streaks_result, GPU_DATA_FLOAT, zero_color);
 
     /* For each streak, compute its direction and apply a streak filter in that direction, then
      * accumulate the result into the accumulated streaks result. */
@@ -390,7 +390,7 @@ class GlareOperation : public NodeOperation {
     Result input_streak_result = context().create_result(ResultType::Color);
     input_streak_result.allocate_texture(glare_size);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    GPU_texture_copy(input_streak_result.texture(), highlights_result.texture());
+    GPU_texture_copy(input_streak_result, highlights_result);
 
     Result output_streak_result = context().create_result(ResultType::Color);
     output_streak_result.allocate_texture(glare_size);
@@ -408,9 +408,8 @@ class GlareOperation : public NodeOperation {
       GPU_shader_uniform_3fv(shader, "fade_factors", fade_factors);
       GPU_shader_uniform_2fv(shader, "streak_vector", streak_vector);
 
-      GPU_texture_filter_mode(input_streak_result.texture(), true);
-      GPU_texture_extend_mode(input_streak_result.texture(),
-                              GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+      GPU_texture_filter_mode(input_streak_result, true);
+      GPU_texture_extend_mode(input_streak_result, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
       input_streak_result.bind_as_texture(shader, "input_streak_tx");
 
       output_streak_result.bind_as_image(shader, "output_streak_img");
@@ -425,7 +424,7 @@ class GlareOperation : public NodeOperation {
        * copying for the last iteration since it is not needed. */
       if (iteration != iterations_range.last()) {
         GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-        GPU_texture_copy(input_streak_result.texture(), output_streak_result.texture());
+        GPU_texture_copy(input_streak_result, output_streak_result);
       }
     }
 
@@ -533,7 +532,7 @@ class GlareOperation : public NodeOperation {
     const int2 glare_size = get_glare_size();
     Result accumulated_ghosts_result = context().create_result(ResultType::Color);
     accumulated_ghosts_result.allocate_texture(glare_size);
-    GPU_texture_clear(accumulated_ghosts_result.texture(), GPU_DATA_FLOAT, zero_color);
+    GPU_texture_clear(accumulated_ghosts_result, GPU_DATA_FLOAT, zero_color);
 
     /* For the given number of iterations, accumulate four ghosts with different scales and color
      * modulators. The result of the previous iteration is used as the input of the current
@@ -558,7 +557,7 @@ class GlareOperation : public NodeOperation {
        * copying for the last iteration since it is not needed. */
       if (i != iterations_range.last()) {
         GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-        GPU_texture_copy(input_ghost_result.texture(), accumulated_ghosts_result.texture());
+        GPU_texture_copy(input_ghost_result, accumulated_ghosts_result);
       }
     }
 
@@ -596,12 +595,12 @@ class GlareOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_glare_ghost_base");
     GPU_shader_bind(shader);
 
-    GPU_texture_filter_mode(small_ghost_result.texture(), true);
-    GPU_texture_extend_mode(small_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_filter_mode(small_ghost_result, true);
+    GPU_texture_extend_mode(small_ghost_result, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     small_ghost_result.bind_as_texture(shader, "small_ghost_tx");
 
-    GPU_texture_filter_mode(big_ghost_result.texture(), true);
-    GPU_texture_extend_mode(big_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_filter_mode(big_ghost_result, true);
+    GPU_texture_extend_mode(big_ghost_result, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     big_ghost_result.bind_as_texture(shader, "big_ghost_tx");
 
     const int2 glare_size = get_glare_size();
@@ -747,7 +746,7 @@ class GlareOperation : public NodeOperation {
     if (chain_length < 2) {
       Result bloom_result = context().create_result(ResultType::Color);
       bloom_result.allocate_texture(highlights_result.domain());
-      GPU_texture_copy(bloom_result.texture(), highlights_result.texture());
+      GPU_texture_copy(bloom_result, highlights_result);
       return bloom_result;
     }
 
@@ -761,7 +760,7 @@ class GlareOperation : public NodeOperation {
 
     for (const int i : upsample_passes_range) {
       Result &input = downsample_chain[upsample_passes_range.last() - i + 1];
-      GPU_texture_filter_mode(input.texture(), true);
+      GPU_texture_filter_mode(input, true);
       input.bind_as_texture(shader, "input_tx");
 
       const Result &output = downsample_chain[upsample_passes_range.last() - i];
@@ -812,7 +811,7 @@ class GlareOperation : public NodeOperation {
       }
 
       const Result &input = downsample_chain[i];
-      GPU_texture_filter_mode(input.texture(), true);
+      GPU_texture_filter_mode(input, true);
       input.bind_as_texture(shader, "input_tx");
 
       Result &output = downsample_chain[i + 1];
@@ -894,7 +893,7 @@ class GlareOperation : public NodeOperation {
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
     float *highlights_buffer = static_cast<float *>(
-        GPU_texture_read(highlights_result.texture(), GPU_DATA_FLOAT, 0));
+        GPU_texture_read(highlights_result, GPU_DATA_FLOAT, 0));
 
     /* Zero pad the image to the required spatial domain size, storing each channel in planar
      * format for better cache locality, that is, RRRR...GGGG...BBBB. */
@@ -989,9 +988,9 @@ class GlareOperation : public NodeOperation {
     fftwf_free(image_spatial_domain);
     fftwf_free(image_frequency_domain);
 
-    GPU_texture_update(fog_glow_result.texture(), GPU_DATA_FLOAT, output.data());
+    GPU_texture_update(fog_glow_result, GPU_DATA_FLOAT, output.data());
 #else
-    GPU_texture_copy(fog_glow_result.texture(), highlights_result.texture());
+    GPU_texture_copy(fog_glow_result, highlights_result.texture());
 #endif
 
     return fog_glow_result;
@@ -1020,7 +1019,7 @@ class GlareOperation : public NodeOperation {
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
-    GPU_texture_filter_mode(glare_result.texture(), true);
+    GPU_texture_filter_mode(glare_result, true);
     glare_result.bind_as_texture(shader, "glare_tx");
 
     const Domain domain = compute_domain();

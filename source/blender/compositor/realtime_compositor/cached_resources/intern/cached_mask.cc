@@ -142,7 +142,7 @@ CachedMask::CachedMask(Context &context,
       size.x,
       size.y,
       1,
-      Result::texture_format(ResultType::Float, context.get_precision()),
+      Result::gpu_texture_format(ResultType::Float, context.get_precision()),
       GPU_TEXTURE_USAGE_SHADER_READ,
       evaluated_mask.data());
 }

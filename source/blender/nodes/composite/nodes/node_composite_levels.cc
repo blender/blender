@@ -129,17 +129,17 @@ class LevelsOperation : public NodeOperation {
     const Result &input = get_input("Image");
     switch (get_channel()) {
       case CMP_NODE_LEVLES_RED:
-        return sum_red(context(), input.texture());
+        return sum_red(context(), input);
       case CMP_NODE_LEVLES_GREEN:
-        return sum_green(context(), input.texture());
+        return sum_green(context(), input);
       case CMP_NODE_LEVLES_BLUE:
-        return sum_blue(context(), input.texture());
+        return sum_blue(context(), input);
       case CMP_NODE_LEVLES_LUMINANCE_BT709:
-        return sum_luminance(context(), input.texture(), float3(luminance_coefficients_bt709_));
+        return sum_luminance(context(), input, float3(luminance_coefficients_bt709_));
       case CMP_NODE_LEVLES_LUMINANCE: {
         float luminance_coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-        return sum_luminance(context(), input.texture(), float3(luminance_coefficients));
+        return sum_luminance(context(), input, float3(luminance_coefficients));
       }
       default:
         BLI_assert_unreachable();
@@ -159,19 +159,19 @@ class LevelsOperation : public NodeOperation {
     const Result &input = get_input("Image");
     switch (get_channel()) {
       case CMP_NODE_LEVLES_RED:
-        return sum_red_squared_difference(context(), input.texture(), subtrahend);
+        return sum_red_squared_difference(context(), input, subtrahend);
       case CMP_NODE_LEVLES_GREEN:
-        return sum_green_squared_difference(context(), input.texture(), subtrahend);
+        return sum_green_squared_difference(context(), input, subtrahend);
       case CMP_NODE_LEVLES_BLUE:
-        return sum_blue_squared_difference(context(), input.texture(), subtrahend);
+        return sum_blue_squared_difference(context(), input, subtrahend);
       case CMP_NODE_LEVLES_LUMINANCE_BT709:
         return sum_luminance_squared_difference(
-            context(), input.texture(), float3(luminance_coefficients_bt709_), subtrahend);
+            context(), input, float3(luminance_coefficients_bt709_), subtrahend);
       case CMP_NODE_LEVLES_LUMINANCE: {
         float luminance_coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
         return sum_luminance_squared_difference(
-            context(), input.texture(), float3(luminance_coefficients), subtrahend);
+            context(), input, float3(luminance_coefficients), subtrahend);
       }
       default:
         BLI_assert_unreachable();

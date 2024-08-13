@@ -233,7 +233,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPUTexture *texture;
     const ResultType result_type = (channel == TEXTURE_RGB_CHANNEL) ? ResultType::Float3 :
                                                                       ResultType::Float;
-    const eGPUTextureFormat texture_format = Result::texture_format(result_type, precision_);
+    const eGPUTextureFormat texture_format = Result::gpu_texture_format(result_type, precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
 #  if OCIO_VERSION_HEX >= 0x02030000
     if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D) {
@@ -276,7 +276,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
         size,
         size,
         1,
-        Result::texture_format(ResultType::Float3, precision_),
+        Result::gpu_texture_format(ResultType::Float3, precision_),
         GPU_TEXTURE_USAGE_SHADER_READ,
         values);
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
@@ -309,7 +309,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     shader_create_info_.local_group_size(16, 16);
     shader_create_info_.sampler(0, ImageType::FLOAT_2D, input_sampler_name());
     shader_create_info_.image(0,
-                              Result::texture_format(ResultType::Color, precision_),
+                              Result::gpu_texture_format(ResultType::Color, precision_),
                               Qualifier::WRITE,
                               ImageType::FLOAT_2D,
                               output_image_name());

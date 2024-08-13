@@ -93,7 +93,7 @@ DistortionGrid::DistortionGrid(
       size.x,
       size.y,
       1,
-      Result::texture_format(ResultType::Float2, context.get_precision()),
+      Result::gpu_texture_format(ResultType::Float2, context.get_precision()),
       GPU_TEXTURE_USAGE_SHADER_READ,
       *distortion_grid.data());
 }

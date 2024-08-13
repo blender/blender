@@ -104,14 +104,14 @@ void realize_on_domain(Context &context,
    * interpolation. */
   const bool use_bilinear = ELEM(
       realization_options.interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
-  GPU_texture_filter_mode(input.texture(), use_bilinear);
+  GPU_texture_filter_mode(input, use_bilinear);
 
   /* If the input wraps, set a repeating wrap mode for out-of-bound texture access. Otherwise,
    * make out-of-bound texture access return zero by setting a clamp to border extend mode. */
-  GPU_texture_extend_mode_x(input.texture(),
+  GPU_texture_extend_mode_x(input,
                             realization_options.wrap_x ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
                                                          GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
-  GPU_texture_extend_mode_y(input.texture(),
+  GPU_texture_extend_mode_y(input,
                             realization_options.wrap_y ? GPU_SAMPLER_EXTEND_MODE_REPEAT :
                                                          GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 

@@ -96,7 +96,7 @@ void MorphologicalDistanceFeatherWeights::compute_weights(Context &context, int 
       "Weights",
       size,
       1,
-      Result::texture_format(ResultType::Float, context.get_precision()),
+      Result::gpu_texture_format(ResultType::Float, context.get_precision()),
       GPU_TEXTURE_USAGE_GENERAL,
       weights.data());
 }
@@ -147,7 +147,7 @@ void MorphologicalDistanceFeatherWeights::compute_distance_falloffs(Context &con
       "Distance Factors",
       size,
       1,
-      Result::texture_format(ResultType::Float, context.get_precision()),
+      Result::gpu_texture_format(ResultType::Float, context.get_precision()),
       GPU_TEXTURE_USAGE_GENERAL,
       falloffs.data());
 }

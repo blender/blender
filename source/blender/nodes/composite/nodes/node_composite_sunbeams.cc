@@ -74,8 +74,8 @@ class SunBeamsOperation : public NodeOperation {
     GPU_shader_uniform_2fv(shader, "source", node_storage(bnode()).source);
     GPU_shader_uniform_1i(shader, "max_steps", max_steps);
 
-    GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_filter_mode(input_image, true);
+    GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();

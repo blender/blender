@@ -95,7 +95,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
      * is enabled, since summed area tables are less precise. */
     Result &size_input = get_input("Size");
     if (!node_storage(bnode()).high_precision &&
-        (size_input.is_texture() || size_input.get_float_value() > 5.0f))
+        (!size_input.is_single_value() || size_input.get_float_value() > 5.0f))
     {
       execute_classic_summed_area_table();
       return;

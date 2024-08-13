@@ -17,7 +17,7 @@ namespace blender::realtime_compositor {
 
 class Context;
 
-/* To add a new type, update the format related static methods in the Result class. */
+/* Make sure to update the format related static methods in the Result class. */
 enum class ResultType : uint8_t {
   /* The following types are user facing and can be used as inputs and outputs of operations. They
    * either represent the base type of the result texture or a single value result. The color type
@@ -29,17 +29,27 @@ enum class ResultType : uint8_t {
   Color,
 
   /* The following types are for internal use only, not user facing, and can't be used as inputs
-   * and outputs of operations. Furthermore, they can't be single values and thus always need to be
-   * allocated as textures. It follows that they needn't be handled in implicit operations like
+   * and outputs of operations. It follows that they needn't be handled in implicit operations like
    * type conversion, shader, or single value reduction operations. */
   Float2,
   Float3,
   Int2,
 };
 
+/* The precision of the data. CPU data is always stored using full precision at the moment. */
 enum class ResultPrecision : uint8_t {
   Full,
   Half,
+};
+
+/* The type of storage used to hold the result data. */
+enum class ResultStorageType : uint8_t {
+  /* Stored as a GPUTexture on the GPU. */
+  GPU,
+  /* Stored as a contiguous float buffer the CPU. */
+  FloatCPU,
+  /* Stored as a contiguous integer buffer the CPU. */
+  IntegerCPU,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -91,10 +101,16 @@ class Result {
   ResultPrecision precision_ = ResultPrecision::Half;
   /* If true, the result is a single value, otherwise, the result is a texture. */
   bool is_single_value_ = false;
-  /* A GPU texture storing the result data. This will be a 1x1 texture if the result is a single
-   * value, the value of which will be identical to that of the value member. See class description
-   * for more information. */
-  GPUTexture *texture_ = nullptr;
+  /* The type of storage used to hold the data. Used to correctly interpret the data union. */
+  ResultStorageType storage_type_ = ResultStorageType::GPU;
+  /* A texture storing the result pixel data, either stored in a GPU texture or a raw contagious
+   * array on CPU. This will be a 1x1 texture if the result is a single value, the value of which
+   * will be identical to that of the value member. See class description for more information. */
+  union {
+    GPUTexture *gpu_texture_ = nullptr;
+    float *float_texture_;
+    int *integer_texture_;
+  };
   /* The number of operations that currently needs this result. At the time when the result is
    * computed, this member will have a value that matches initial_reference_count_. Once each
    * operation that needs the result no longer needs it, the release method is called and the
@@ -116,6 +132,9 @@ class Result {
     float float_value_;
     float4 vector_value_;
     float4 color_value_ = float4(0.0f);
+    float2 float2_value_;
+    float3 float3_value_;
+    int2 int2_value_;
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
    * COM_domain.hh for more information. */
@@ -144,20 +163,24 @@ class Result {
   /* Construct a result of the given type and precision within the given context. */
   Result(Context &context, ResultType type, ResultPrecision precision);
 
-  /* Returns the appropriate texture format based on the given result type and precision. */
-  static eGPUTextureFormat texture_format(ResultType type, ResultPrecision precision);
+  /* Returns the appropriate GPU texture format based on the given result type and precision. */
+  static eGPUTextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 
-  /* Returns the texture format that corresponds to the give one, but with the given precision. */
-  static eGPUTextureFormat texture_format(eGPUTextureFormat format, ResultPrecision precision);
+  /* Returns the GPU texture format that corresponds to the give one, but whose precision is the
+   * given precision. */
+  static eGPUTextureFormat gpu_texture_format(eGPUTextureFormat format, ResultPrecision precision);
 
-  /* Returns the precision of the given format. */
+  /* Returns the precision of the given GPU texture format. */
   static ResultPrecision precision(eGPUTextureFormat format);
 
-  /* Returns the type of the given format. */
+  /* Returns the type of the given GPU texture format. */
   static ResultType type(eGPUTextureFormat format);
 
+  /* Implicit conversion to the internal GPU texture. */
+  operator GPUTexture *() const;
+
   /* Returns the appropriate texture format based on the result's type and precision. */
-  eGPUTextureFormat get_texture_format() const;
+  eGPUTextureFormat get_gpu_texture_format() const;
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain, and set the domain of the result to the given domain.
@@ -167,6 +190,9 @@ class Result {
    * results that might span more than one evaluation, like cached resources. While pooling should
    * be used for most other cases where the result will be allocated then later released in the
    * same evaluation.
+   *
+   * If the context of the result uses GPU, then GPU allocation will be done, otherwise, CPU
+   * allocation will be done.
    *
    * If the result should not be computed, that is, should_compute() returns false, yet this method
    * is called, that means the result is only being allocated because the shader that computes it
@@ -181,7 +207,7 @@ class Result {
   void allocate_texture(Domain domain, bool from_pool = true);
 
   /* Declare the result to be a single value result, allocate a texture of an appropriate type with
-   * size 1x1 from the  texture pool, and set the domain to be an identity domain. See class
+   * size 1x1 from the texture pool, and set the domain to be an identity domain. See class
    * description for more information. */
   void allocate_single_value();
 
@@ -189,20 +215,20 @@ class Result {
    * value can't be computed and are considered invalid. */
   void allocate_invalid();
 
-  /* Bind the texture of the result to the texture image unit with the given name in the currently
-   * bound given shader. This also inserts a memory barrier for texture fetches to ensure any prior
-   * writes to the texture are reflected before reading from it. */
+  /* Bind the GPU texture of the result to the texture image unit with the given name in the
+   * currently bound given shader. This also inserts a memory barrier for texture fetches to ensure
+   * any prior writes to the texture are reflected before reading from it. */
   void bind_as_texture(GPUShader *shader, const char *texture_name) const;
 
-  /* Bind the texture of the result to the image unit with the given name in the currently bound
-   * given shader. If read is true, a memory barrier will be inserted for image reads to ensure any
-   * prior writes to the images are reflected before reading from it. */
+  /* Bind the GPU texture of the result to the image unit with the given name in the currently
+   * bound given shader. If read is true, a memory barrier will be inserted for image reads to
+   * ensure any prior writes to the images are reflected before reading from it. */
   void bind_as_image(GPUShader *shader, const char *image_name, bool read = false) const;
 
-  /* Unbind the texture which was previously bound using bind_as_texture. */
+  /* Unbind the GPU texture which was previously bound using bind_as_texture. */
   void unbind_as_texture() const;
 
-  /* Unbind the texture which was previously bound using bind_as_image. */
+  /* Unbind the GPU texture which was previously bound using bind_as_image. */
   void unbind_as_image() const;
 
   /* Pass this result through to a target result, in which case, the target result becomes a proxy
@@ -230,12 +256,18 @@ class Result {
    * a practical example of use. */
   void steal_data(Result &source);
 
-  /* Set up the result to wrap an external texture that is not allocated nor managed by the result.
-   * The is_external_ member will be set to true, the domain will be set to have the same size as
-   * the texture, and the texture will be set to the given texture. See the is_external_ member for
-   * more information. The given texture should have the same format as the result and is assumed
-   * to have a lifetime that covers the evaluation of the compositor. */
+  /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the
+   * result. The is_external_ member will be set to true, the domain will be set to have the same
+   * size as the texture, and the texture will be set to the given texture. See the is_external_
+   * member for more information. The given texture should have the same format as the result and
+   * is assumed to have a lifetime that covers the evaluation of the compositor. */
   void wrap_external(GPUTexture *texture);
+
+  /* Identical to GPU variant of wrap_external but wraps a float buffer instead. */
+  void wrap_external(float *texture, int2 size);
+
+  /* Identical to GPU variant of wrap_external but wraps an integer buffer instead. */
+  void wrap_external(int *texture, int2 size);
 
   /* Sets the transformation of the domain of the result to the given transformation. */
   void set_transformation(const float3x3 &transformation);
@@ -248,38 +280,31 @@ class Result {
    * for more information. */
   RealizationOptions &get_realization_options();
 
-  /* If the result is a single value result of type float, return its float value. Otherwise, an
-   * uninitialized value is returned. */
+  /* Returns the single value of the result. */
   float get_float_value() const;
-
-  /* If the result is a single value result of type vector, return its vector value. Otherwise, an
-   * uninitialized value is returned. */
   float4 get_vector_value() const;
-
-  /* If the result is a single value result of type color, return its color value. Otherwise, an
-   * uninitialized value is returned. */
   float4 get_color_value() const;
+  float2 get_float2_value() const;
+  float3 get_float3_value() const;
+  int2 get_int2_value() const;
 
-  /* Same as get_float_value but returns a default value if the result is not a single value. */
+  /* Returns the single value of the result, but returns a default value if the result is not a
+   * single value result. */
   float get_float_value_default(float default_value) const;
-
-  /* Same as get_vector_value but returns a default value if the result is not a single value. */
   float4 get_vector_value_default(const float4 &default_value) const;
-
-  /* Same as get_color_value but returns a default value if the result is not a single value. */
   float4 get_color_value_default(const float4 &default_value) const;
+  float2 get_float2_value_default(const float2 &default_value) const;
+  float3 get_float3_value_default(const float3 &default_value) const;
+  int2 get_int2_value_default(const int2 &default_value) const;
 
-  /* If the result is a single value result of type float, set its float value and upload it to the
-   * texture. Otherwise, an undefined behavior is invoked. */
+  /* Set the single value of the result to the given value, which also involves setting the single
+   * pixel in the texture to that value. See the class description for more information. */
   void set_float_value(float value);
-
-  /* If the result is a single value result of type vector, set its vector value and upload it to
-   * the texture. Otherwise, an undefined behavior is invoked. */
   void set_vector_value(const float4 &value);
-
-  /* If the result is a single value result of type color, set its color value and upload it to the
-   * texture. Otherwise, an undefined behavior is invoked. */
   void set_color_value(const float4 &value);
+  void set_float2_value(const float2 &value);
+  void set_float3_value(const float3 &value);
+  void set_int2_value(const int2 &value);
 
   /* Set the value of initial_reference_count_, see that member for more details. This should be
    * called after constructing the result to declare the number of operations that needs it. */
@@ -296,10 +321,9 @@ class Result {
    * result, the reference count of the master result is incremented instead. */
   void increment_reference_count(int count = 1);
 
-  /* Decrement the reference count of the result and release the its texture back into the texture
-   * pool if the reference count reaches zero. This should be called when an operation that used
-   * this result no longer needs it. If this result have a master result, the master result is
-   * released instead. */
+  /* Decrement the reference count of the result and free its texture if the reference count
+   * reaches zero. This should be called when an operation that used this result no longer needs
+   * it. If this result have a master result, the master result is released instead. */
   void release();
 
   /* Returns true if this result should be computed and false otherwise. The result should be
@@ -316,17 +340,11 @@ class Result {
   /* Sets the precision of the result. */
   void set_precision(ResultPrecision precision);
 
-  /* Returns true if the result is a texture and false of it is a single value. */
-  bool is_texture() const;
-
   /* Returns true if the result is a single value and false of it is a texture. */
   bool is_single_value() const;
 
   /* Returns true if the result is allocated. */
   bool is_allocated() const;
-
-  /* Returns the allocated GPU texture of the result. */
-  GPUTexture *texture() const;
 
   /* Returns the reference count of the result. If this result have a master result, then the
    * reference count of the master result is returned instead. */
@@ -334,6 +352,11 @@ class Result {
 
   /* Returns a reference to the domain of the result. See the Domain class. */
   const Domain &domain() const;
+
+ private:
+  /* Allocates the texture data for the given size, either on the GPU or CPU based on the result's
+   * context. See the allocate_texture method for information about the from_pool argument. */
+  void allocate_data(int2 size, bool from_pool);
 };
 
 }  // namespace blender::realtime_compositor

@@ -55,7 +55,7 @@ CachedShader::CachedShader(const char *info_name, ResultPrecision precision)
     if (resource.bind_type != ShaderCreateInfo::Resource::BindType::IMAGE) {
       continue;
     }
-    resource.image.format = Result::texture_format(resource.image.format, precision);
+    resource.image.format = Result::gpu_texture_format(resource.image.format, precision);
   }
 
   shader_ = GPU_shader_create_from_info(reinterpret_cast<const GPUShaderCreateInfo *>(&info));

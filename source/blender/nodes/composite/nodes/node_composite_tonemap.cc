@@ -223,7 +223,7 @@ class ToneMapOperation : public NodeOperation {
     }
 
     const Result &input = get_input("Image");
-    return sum_color(context(), input.texture()) / (input.domain().size.x * input.domain().size.y);
+    return sum_color(context(), input) / (input.domain().size.x * input.domain().size.y);
   }
 
   float compute_average_luminance()
@@ -238,7 +238,7 @@ class ToneMapOperation : public NodeOperation {
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
     const Result &input = get_input("Image");
-    float sum = sum_luminance(context(), input.texture(), luminance_coefficients);
+    float sum = sum_luminance(context(), input, luminance_coefficients);
     return sum / (input.domain().size.x * input.domain().size.y);
   }
 
@@ -278,7 +278,7 @@ class ToneMapOperation : public NodeOperation {
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
     const float sum_of_log_luminance = sum_log_luminance(
-        context(), input_image.texture(), luminance_coefficients);
+        context(), input_image, luminance_coefficients);
 
     return sum_of_log_luminance / (input_image.domain().size.x * input_image.domain().size.y);
   }
@@ -287,8 +287,7 @@ class ToneMapOperation : public NodeOperation {
   {
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-    const float maximum = maximum_luminance(
-        context(), get_input("Image").texture(), luminance_coefficients);
+    const float maximum = maximum_luminance(context(), get_input("Image"), luminance_coefficients);
     return std::log(math::max(maximum, 1e-5f));
   }
 
@@ -296,8 +295,7 @@ class ToneMapOperation : public NodeOperation {
   {
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-    const float minimum = minimum_luminance(
-        context(), get_input("Image").texture(), luminance_coefficients);
+    const float minimum = minimum_luminance(context(), get_input("Image"), luminance_coefficients);
     return std::log(math::max(minimum, 1e-5f));
   }
 

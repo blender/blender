@@ -649,7 +649,7 @@ class FileOutputOperation : public NodeOperation {
     /* The image buffer in the file output will take ownership of this buffer and freeing it will
      * be its responsibility. */
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    float *buffer = static_cast<float *>(GPU_texture_read(result.texture(), GPU_DATA_FLOAT, 0));
+    float *buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
 
     const int2 size = result.domain().size;
     switch (result.type()) {
@@ -689,7 +689,7 @@ class FileOutputOperation : public NodeOperation {
     /* The image buffer in the file output will take ownership of this buffer and freeing it will
      * be its responsibility. */
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    float *buffer = static_cast<float *>(GPU_texture_read(result.texture(), GPU_DATA_FLOAT, 0));
+    float *buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
 
     const int2 size = result.domain().size;
     switch (result.type()) {
