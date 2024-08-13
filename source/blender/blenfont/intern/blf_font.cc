@@ -571,12 +571,17 @@ void blf_draw_svg_icon(FontBLF *font,
   blf_glyph_cache_release(font);
 }
 
-blender::Array<uchar> blf_svg_icon_bitmap(
-    FontBLF *font, uint icon_id, float size, int *r_width, int *r_height, bool multicolor)
+blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
+                                          uint icon_id,
+                                          float size,
+                                          int *r_width,
+                                          int *r_height,
+                                          bool multicolor,
+                                          blender::FunctionRef<void(std::string &)> edit_source_cb)
 {
   blf_font_size(font, size);
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  GlyphBLF *g = blf_glyph_ensure_icon(gc, icon_id, multicolor);
+  GlyphBLF *g = blf_glyph_ensure_icon(gc, icon_id, multicolor, edit_source_cb);
 
   if (!g) {
     blf_glyph_cache_release(font);

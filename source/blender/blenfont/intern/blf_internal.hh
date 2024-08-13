@@ -112,7 +112,13 @@ void blf_draw_svg_icon(FontBLF *font,
                        blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
 blender::Array<uchar> blf_svg_icon_bitmap(
-    FontBLF *font, uint icon_id, float size, int *r_width, int *r_height, bool multicolor = false);
+    FontBLF *font,
+    uint icon_id,
+    float size,
+    int *r_width,
+    int *r_height,
+    bool multicolor = false,
+    blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
 blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
                                                          blender::StringRef str,

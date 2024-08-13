@@ -157,7 +157,12 @@ void BLF_draw_svg_icon(uint icon_id,
                        blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
 blender::Array<uchar> BLF_svg_icon_bitmap(
-    uint icon_id, float size, int *r_width, int *r_height, bool multicolor = false);
+    uint icon_id,
+    float size,
+    int *r_width,
+    int *r_height,
+    bool multicolor = false,
+    blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   size_t str_step_ofs,

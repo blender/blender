@@ -98,6 +98,8 @@ void UI_icon_draw_ex(float x,
                      const IconTextOverlay *text_overlay,
                      const bool inverted = false);
 
+ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
+
 void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 
