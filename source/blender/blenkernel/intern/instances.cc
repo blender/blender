@@ -247,6 +247,11 @@ int Instances::add_reference(const InstanceReference &reference)
   if (std::optional<int> handle = this->find_reference_handle(reference)) {
     return *handle;
   }
+  return this->add_new_reference(reference);
+}
+
+int Instances::add_new_reference(const InstanceReference &reference)
+{
   this->tag_reference_handles_changed();
   return references_.append_and_get_index(reference);
 }

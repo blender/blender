@@ -849,7 +849,7 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
     if (io_reference) {
       reference_geometry = load_geometry(*io_reference, blob_reader, blob_sharing);
     }
-    instances->add_reference(std::move(reference_geometry));
+    instances->add_new_reference(std::move(reference_geometry));
   }
 
   MutableAttributeAccessor attributes = instances->attributes_for_write();

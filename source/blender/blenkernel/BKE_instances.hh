@@ -149,6 +149,10 @@ class Instances {
    * Otherwise a new handle is added.
    */
   int add_reference(const InstanceReference &reference);
+  /**
+   * Same as above, but does not deduplicate with existing references.
+   */
+  int add_new_reference(const InstanceReference &reference);
   std::optional<int> find_reference_handle(const InstanceReference &query);
   /**
    * Add a reference to the instance reference with an index specified by the #instance_handle
