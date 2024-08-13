@@ -1244,7 +1244,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
                                         ReportList *reports,
                                         bNodeSocket *fromsock,
                                         bNodeSocket *tosock,
-                                        bool verify_limits)
+                                        bool verify_limits,
+                                        bool handle_dynamic_sockets)
 {
   bNodeLink *ret;
   bNode *fromnode = nullptr, *tonode = nullptr;
@@ -1262,9 +1263,36 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     return nullptr;
   }
 
-  if (&fromsock->in_out == &tosock->in_out) {
+  if (fromsock->in_out == tosock->in_out) {
     BKE_report(reports, RPT_ERROR, "Same input/output direction of sockets");
     return nullptr;
+  }
+
+  if (fromsock->in_out == SOCK_IN) {
+    std::swap(fromsock, tosock);
+    std::swap(fromnode, tonode);
+  }
+
+  if (handle_dynamic_sockets) {
+    bNodeLink new_link{};
+    new_link.fromnode = fromnode;
+    new_link.fromsock = fromsock;
+    new_link.tonode = tonode;
+    new_link.tosock = tosock;
+
+    if (fromnode->typeinfo->insert_link) {
+      if (!fromnode->typeinfo->insert_link(ntree, fromnode, &new_link)) {
+        return nullptr;
+      }
+    }
+    if (tonode->typeinfo->insert_link) {
+      if (!tonode->typeinfo->insert_link(ntree, tonode, &new_link)) {
+        return nullptr;
+      }
+    }
+
+    fromsock = new_link.fromsock;
+    tosock = new_link.tosock;
   }
 
   if (verify_limits) {
@@ -10686,6 +10714,11 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
                   true,
                   "Verify Limits",
                   "Remove existing links if connection limit is exceeded");
+  RNA_def_boolean(func,
+                  "handle_dynamic_sockets",
+                  false,
+                  "Handle Dynamic Sockets",
+                  "Handle node specific features like virtual sockets");
   /* return */
   parm = RNA_def_pointer(func, "link", "NodeLink", "", "New node link");
   RNA_def_function_return(func, parm);

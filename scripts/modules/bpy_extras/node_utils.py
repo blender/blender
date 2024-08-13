@@ -74,21 +74,7 @@ def connect_sockets(input, output):
         print("Cannot connect two virtual sockets together")
         return
 
-    if output_node.type == 'GROUP_OUTPUT' and type(input) == bpy.types.NodeSocketVirtual:
-        output_type = find_base_socket_type(output)
-        socket_interface = output_node.id_data.interface.new_socket(
-            name=output.name, socket_type=output_type, in_out='OUTPUT'
-        )
-        input = output_node.inputs[-2]
-
-    if input_node.type == 'GROUP_INPUT' and type(output) == bpy.types.NodeSocketVirtual:
-        input_type = find_base_socket_type(input)
-        socket_interface = input_node.id_data.interface.new_socket(
-            name=input.name, socket_type=input_type, in_out='INPUT'
-        )
-        output = input_node.outputs[-2]
-
-    return input_node.id_data.links.new(input, output)
+    return input_node.id_data.links.new(input, output, handle_dynamic_sockets=True)
 
 
 # XXX Names are not unique. Returns the first match.
