@@ -31,7 +31,6 @@ set(SRC
   intern/BLI_ghash_utils.cc
   intern/BLI_heap.c
   intern/BLI_heap_simple.c
-  intern/BLI_index_range.cc
   intern/BLI_kdopbvh.c
   intern/BLI_linklist.c
   intern/BLI_linklist_lockfree.c
