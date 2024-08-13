@@ -960,7 +960,6 @@ bool vert_is_boundary(Span<bool> hide_poly,
                       BitSpan boundary,
                       int vert);
 bool vert_is_boundary(const SubdivCCG &subdiv_ccg,
-                      Span<bool> hide_poly,
                       Span<int> corner_verts,
                       OffsetIndices<int> faces,
                       BitSpan boundary,
