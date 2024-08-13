@@ -219,8 +219,7 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-static void screen_draw_area_icon(
-    rctf *rect, int icon, uchar *color, float *bg_color = nullptr, float *outline = nullptr)
+static void screen_draw_area_icon(rctf *rect, int icon, uchar *color, float *bg_color = nullptr)
 {
   if (!U.experimental.use_docking) {
     return;
@@ -243,13 +242,8 @@ static void screen_draw_area_icon(
         /*ymin*/ center_y - (bg_height / 2.0f),
         /*ymax*/ center_y + bg_height - (bg_height / 2.0f),
     };
-    UI_draw_roundbox_4fv_ex(&bg_rect,
-                            bg_color,
-                            nullptr,
-                            1.0f,
-                            outline ? outline : nullptr,
-                            U.pixelsize,
-                            6 * U.pixelsize);
+    UI_draw_roundbox_4fv_ex(
+        &bg_rect, bg_color, nullptr, 1.0f, nullptr, U.pixelsize, 6 * U.pixelsize);
   }
 
   const float icon_size = 32.0f * UI_SCALE_FAC;
@@ -271,10 +265,6 @@ static void screen_draw_area_closed(int xmin, int xmax, int ymin, int ymax)
   float darken[4] = {0.0f, 0.0f, 0.0f, 0.7f};
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv_ex(&rect, darken, nullptr, 1.0f, nullptr, U.pixelsize, 6 * U.pixelsize);
-
-  /* Show "X" icon in the middle if there is space. */
-  uchar color[4] = {255, 255, 255, 128};
-  screen_draw_area_icon(&rect, ICON_CANCEL, color);
 }
 
 void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
@@ -377,8 +367,7 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
 
   uchar icon_color[4] = {255, 255, 255, 255};
   float bg_color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
-  float outline_color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
-  screen_draw_area_icon(&sa2new, ED_area_icon(sa1), icon_color, bg_color, outline_color);
+  screen_draw_area_icon(&sa2new, ED_area_icon(sa1), icon_color, bg_color);
 }
 
 void screen_draw_dock_preview(const wmWindow * /* win */,
@@ -427,15 +416,10 @@ void screen_draw_dock_preview(const wmWindow * /* win */,
     remainder.ymin = split + half_line_width;
   }
 
-  if (dock_target == AreaDockTarget::Center) {
-    UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
-    screen_draw_area_icon(&dest, ED_area_icon(source), icon_color, bg_color, outline);
-  }
-  else {
-    UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
-    screen_draw_area_icon(&dest, ED_area_icon(source), icon_color, bg_color, outline);
-    screen_draw_area_icon(&remainder, ED_area_icon(target), icon_color, bg_color, nullptr);
+  UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
+  screen_draw_area_icon(&dest, ED_area_icon(source), icon_color, bg_color);
 
+  if (dock_target != AreaDockTarget::Center) {
     /* Darken the split position itself. */
     if (ELEM(dock_target, AreaDockTarget::Right, AreaDockTarget::Left)) {
       dest.xmin = split - half_line_width;
