@@ -221,6 +221,9 @@ void VolumeGridData::unload_tree_if_possible() const
   if (!grid_) {
     return;
   }
+  if (!tree_loaded_) {
+    return;
+  }
   if (!this->is_reloadable()) {
     return;
   }
