@@ -66,7 +66,7 @@ class BokehImageOperation : public NodeOperation {
   {
     const Domain domain = compute_domain();
 
-    const BokehKernel &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
+    const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(),
         domain.size,
         node_storage(bnode()).flaps,

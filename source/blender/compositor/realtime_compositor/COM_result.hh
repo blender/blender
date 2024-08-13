@@ -49,8 +49,9 @@ enum class ResultPrecision : uint8_t {
  * represent an image or a single value. A result is typed, and can be of type color, vector, or
  * float. Single value results are stored in 1x1 textures to make them easily accessible in
  * shaders. But the same value is also stored in the value union member of the result for any
- * host-side processing. The texture of the result is allocated from the texture pool of the
- * context referenced by the result.
+ * host-side processing. The GPU texture of the result can either be allocated from the texture
+ * pool of the context referenced by the result or it can be allocated directly from the GPU
+ * module, see the allocation method for more information.
  *
  * Results are reference counted and their textures are released once their reference count reaches
  * zero. After constructing a result, the set_initial_reference_count method is called to declare
@@ -129,6 +130,10 @@ class Result {
    * result. This is set up by a call to the wrap_external method. In that case, when the reference
    * count eventually reach zero, the texture will not be freed. */
   bool is_external_ = false;
+  /* If true, the GPU texture that holds the data was allocated from the texture pool of the
+   * context and should be released back into the pool instead of being freed. For CPU storage,
+   * this is irrelevant. */
+  bool is_from_pool_ = false;
 
  public:
   /* Stores extra information about the result such as image meta data that can eventually be
@@ -155,8 +160,13 @@ class Result {
   eGPUTextureFormat get_texture_format() const;
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
-   * the size of the given domain from the texture pool, and set the domain of the result to the
-   * given domain.
+   * the size of the given domain, and set the domain of the result to the given domain.
+   *
+   * If from_pool is true, the texture will be allocated from the texture pool of the context,
+   * otherwise, a new texture will be allocated. Pooling should not be be used for persistent
+   * results that might span more than one evaluation, like cached resources. While pooling should
+   * be used for most other cases where the result will be allocated then later released in the
+   * same evaluation.
    *
    * If the result should not be computed, that is, should_compute() returns false, yet this method
    * is called, that means the result is only being allocated because the shader that computes it
@@ -168,7 +178,7 @@ class Result {
    * to images are safe. Since this result is not referenced by any other operation, it should be
    * manually released after the operation is evaluated, which is implemented by calling the
    * Operation::release_unneeded_results() method. */
-  void allocate_texture(Domain domain);
+  void allocate_texture(Domain domain, bool from_pool = true);
 
   /* Declare the result to be a single value result, allocate a texture of an appropriate type with
    * size 1x1 from the  texture pool, and set the domain to be an identity domain. See class

@@ -171,7 +171,7 @@ eGPUTextureFormat Result::get_texture_format() const
   return Result::texture_format(type_, precision_);
 }
 
-void Result::allocate_texture(Domain domain)
+void Result::allocate_texture(Domain domain, bool from_pool)
 {
   /* The result is not actually needed, so allocate a dummy single value texture instead. See the
    * method description for more information. */
@@ -183,7 +183,19 @@ void Result::allocate_texture(Domain domain)
 
   is_single_value_ = false;
   if (context_->use_gpu()) {
-    texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
+    is_from_pool_ = from_pool;
+    if (from_pool) {
+      texture_ = context_->texture_pool().acquire(domain.size, get_texture_format());
+    }
+    else {
+      texture_ = GPU_texture_create_2d("Compositor Texture",
+                                       domain.size.x,
+                                       domain.size.y,
+                                       1,
+                                       this->get_texture_format(),
+                                       GPU_TEXTURE_USAGE_GENERAL,
+                                       nullptr);
+    }
   }
   else {
     /* TODO: Host side allocation. */
@@ -197,6 +209,7 @@ void Result::allocate_single_value()
   /* Single values are stored in 1x1 textures as well as the single value members. */
   const int2 texture_size{1, 1};
   if (context_->use_gpu()) {
+    is_from_pool_ = true;
     texture_ = context_->texture_pool().acquire(texture_size, get_texture_format());
   }
   else {
@@ -277,6 +290,7 @@ void Result::steal_data(Result &source)
   BLI_assert(master_ == nullptr && source.master_ == nullptr);
 
   is_single_value_ = source.is_single_value_;
+  is_from_pool_ = source.is_from_pool_;
   texture_ = source.texture_;
   context_ = source.context_;
   domain_ = source.domain_;
@@ -419,12 +433,21 @@ void Result::release()
   /* Decrement the reference count, and if it reaches zero, release the texture back into the
    * texture pool. */
   reference_count_--;
-  if (reference_count_ == 0) {
-    if (!is_external_) {
-      context_->texture_pool().release(texture_);
-    }
-    texture_ = nullptr;
+  if (reference_count_ != 0) {
+    return;
   }
+
+  if (is_external_) {
+    return;
+  }
+
+  if (is_from_pool_) {
+    context_->texture_pool().release(texture_);
+  }
+  else {
+    GPU_texture_free(texture_);
+  }
+  texture_ = nullptr;
 }
 
 bool Result::should_compute()

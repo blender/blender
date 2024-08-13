@@ -124,7 +124,7 @@ class DefocusOperation : public NodeOperation {
     const int sides = is_circle ? 3 : node_storage(bnode()).bktype;
     const float rotation = node_storage(bnode()).rotation;
     const float roundness = is_circle ? 1.0f : 0.0f;
-    const BokehKernel &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
+    const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(), kernel_size, sides, rotation, roundness, 0.0f, 0.0f);
 
     GPUShader *shader = context().get_shader("compositor_defocus_blur");

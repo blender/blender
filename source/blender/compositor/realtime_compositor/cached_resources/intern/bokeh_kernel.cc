@@ -10,7 +10,6 @@
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
-#include "GPU_texture.hh"
 
 #include "COM_bokeh_kernel.hh"
 #include "COM_context.hh"
@@ -74,16 +73,8 @@ BokehKernel::BokehKernel(Context &context,
                          float roundness,
                          float catadioptric,
                          float lens_shift)
+    : result(context.create_result(ResultType::Color))
 {
-  texture_ = GPU_texture_create_2d(
-      "Bokeh Kernel",
-      size.x,
-      size.y,
-      1,
-      Result::texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
-      nullptr);
-
   GPUShader *shader = context.get_shader("compositor_bokeh_image");
   GPU_shader_bind(shader);
 
@@ -93,34 +84,18 @@ BokehKernel::BokehKernel(Context &context,
   GPU_shader_uniform_1f(shader, "catadioptric", catadioptric);
   GPU_shader_uniform_1f(shader, "lens_shift", lens_shift);
 
-  const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
-  GPU_texture_image_bind(texture_, image_unit);
+  this->result.allocate_texture(Domain(size), false);
+  this->result.bind_as_image(shader, "output_img");
 
   compute_dispatch_threads_at_least(shader, size);
 
-  GPU_texture_image_unbind(texture_);
+  this->result.unbind_as_image();
   GPU_shader_unbind();
 }
 
 BokehKernel::~BokehKernel()
 {
-  GPU_texture_free(texture_);
-}
-
-void BokehKernel::bind_as_texture(GPUShader *shader, const char *texture_name) const
-{
-  const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture_name);
-  GPU_texture_bind(texture_, texture_image_unit);
-}
-
-void BokehKernel::unbind_as_texture() const
-{
-  GPU_texture_unbind(texture_);
-}
-
-GPUTexture *BokehKernel::texture() const
-{
-  return texture_;
+  this->result.release();
 }
 
 /* --------------------------------------------------------------------
@@ -139,13 +114,13 @@ void BokehKernelContainer::reset()
   }
 }
 
-BokehKernel &BokehKernelContainer::get(Context &context,
-                                       int2 size,
-                                       int sides,
-                                       float rotation,
-                                       float roundness,
-                                       float catadioptric,
-                                       float lens_shift)
+Result &BokehKernelContainer::get(Context &context,
+                                  int2 size,
+                                  int sides,
+                                  float rotation,
+                                  float roundness,
+                                  float catadioptric,
+                                  float lens_shift)
 {
   const BokehKernelKey key(size, sides, rotation, roundness, catadioptric, lens_shift);
 
@@ -155,7 +130,7 @@ BokehKernel &BokehKernelContainer::get(Context &context,
   });
 
   bokeh_kernel.needed = true;
-  return bokeh_kernel;
+  return bokeh_kernel.result;
 }
 
 }  // namespace blender::realtime_compositor
