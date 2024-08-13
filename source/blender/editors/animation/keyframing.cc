@@ -38,6 +38,7 @@
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
@@ -438,6 +439,16 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   return insert_key(C, op);
 }
 
+static int insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /* event */)
+{
+  /* The depsgraph needs to be in an evaluated state to ensure the values we get from the
+   * properties are actually the values of the current frame. However we cannot do that in the exec
+   * function, as that would mean every call to the operator via python has to re-evaluate the
+   * depsgraph, causing performance regressions.*/
+  CTX_data_ensure_evaluated_depsgraph(C);
+  return insert_key_exec(C, op);
+}
+
 void ANIM_OT_keyframe_insert(wmOperatorType *ot)
 {
   /* identifiers */
@@ -448,6 +459,7 @@ void ANIM_OT_keyframe_insert(wmOperatorType *ot)
       "preferences if no keying set is active";
 
   /* callbacks */
+  ot->invoke = insert_key_invoke;
   ot->exec = insert_key_exec;
   ot->poll = modify_key_op_poll;
 
