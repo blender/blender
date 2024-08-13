@@ -427,36 +427,91 @@ static BitVector<> enabled_state_to_bitmap(const Object &object, const Cache &ex
  * enabled vertices. This is defined as vertices that are enabled and at least have one connected
  * vertex that is not enabled.
  */
-static IndexMask boundary_from_enabled(SculptSession &ss,
+static IndexMask boundary_from_enabled(Object &object,
                                        const BitSpan enabled_verts,
                                        const bool use_mesh_boundary,
                                        IndexMaskMemory &memory)
 {
+  SculptSession &ss = *object.sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
+  const IndexMask enabled_mask = IndexMask::from_bits(enabled_verts, memory);
+
   BitVector<> boundary_verts(totvert);
-  return IndexMask::from_predicate(
-      enabled_verts.index_range(), GrainSize(1024), memory, [&](const int vert) {
-        if (!enabled_verts[vert]) {
-          return false;
-        }
-
-        PBVHVertRef vert_ref = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
-
-        SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vert_ref, ni) {
-          if (!enabled_verts[ni.index]) {
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices faces = mesh.faces();
+      const Span<int> corner_verts = mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+        Vector<int> neighbors;
+        for (const int neighbor : vert_neighbors_get_mesh(
+                 vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+        {
+          if (!enabled_verts[neighbor]) {
             return true;
           }
         }
-        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-        if (use_mesh_boundary && boundary::vert_is_boundary(ss, vert_ref)) {
+        if (use_mesh_boundary &&
+            boundary::vert_is_boundary(hide_poly, vert_to_face_map, ss.vertex_info.boundary, vert))
+        {
           return true;
         }
 
         return false;
       });
+    }
+    case bke::pbvh::Type::Grids: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices faces = base_mesh.faces();
+      const Span<int> corner_verts = base_mesh.corner_verts();
+
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+        const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vert);
+        SubdivCCGNeighbors neighbors;
+        BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
+        for (const SubdivCCGCoord neighbor : neighbors.coords) {
+          if (!enabled_verts[neighbor.to_index(key)]) {
+            return true;
+          }
+        }
+
+        if (use_mesh_boundary &&
+            boundary::vert_is_boundary(
+                subdiv_ccg, corner_verts, faces, ss.vertex_info.boundary, coord))
+        {
+          return true;
+        }
+
+        return false;
+      });
+    }
+    case bke::pbvh::Type::BMesh: {
+      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+        BMVert *bm_vert = BM_vert_at_index(ss.bm, vert);
+        Vector<BMVert *, 64> neighbors;
+        for (const BMVert *neighbor : vert_neighbors_get_bmesh(*bm_vert, neighbors)) {
+          if (!enabled_verts[BM_elem_index_get(neighbor)]) {
+            return true;
+          }
+        }
+
+        if (use_mesh_boundary && BM_vert_is_boundary(bm_vert)) {
+          return true;
+        }
+
+        return false;
+      });
+    }
+  }
+  BLI_assert_unreachable();
+  return {};
 }
 
 static void check_topology_islands(Object &ob, FalloffType falloff_type)
@@ -890,11 +945,10 @@ static void geodesics_from_state_boundary(Object &ob,
                                           Cache &expand_cache,
                                           const BitSpan enabled_verts)
 {
-  SculptSession &ss = *ob.sculpt;
-  BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
+  BLI_assert(ob.sculpt->pbvh->type() == bke::pbvh::Type::Mesh);
 
   IndexMaskMemory memory;
-  const IndexMask boundary_verts = boundary_from_enabled(ss, enabled_verts, false, memory);
+  const IndexMask boundary_verts = boundary_from_enabled(ob, enabled_verts, false, memory);
   Set<int> initial_verts;
   boundary_verts.foreach_index([&](const int vert) { initial_verts.add(vert); });
 
@@ -920,7 +974,7 @@ static void topology_from_state_boundary(Object &ob,
   expand_cache.vert_falloff.fill(0);
 
   IndexMaskMemory memory;
-  const IndexMask boundary_verts = boundary_from_enabled(ss, enabled_verts, false, memory);
+  const IndexMask boundary_verts = boundary_from_enabled(ob, enabled_verts, false, memory);
 
   flood_fill::FillData flood = flood_fill::init_fill(ss);
   boundary_verts.foreach_index([&](const int vert) {
@@ -1697,7 +1751,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
 
   IndexMaskMemory memory;
   const IndexMask boundary_verts = boundary_from_enabled(
-      ss, enabled_verts, use_mesh_boundary, memory);
+      ob, enabled_verts, use_mesh_boundary, memory);
 
   /* Ignore invert state, as this is the expected behavior in most cases and mask are created in
    * inverted state by default. */
