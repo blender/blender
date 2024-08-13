@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -16,6 +17,7 @@
 
 #include "DNA_brush_types.h"
 
+#include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -721,6 +723,112 @@ void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
 
     translations[i] = translation * factors[i];
     i++;
+  }
+}
+
+void blur_geometry_data_array(const Object &object,
+                              const int iterations,
+                              const MutableSpan<float> data)
+{
+  struct LocalData {
+    Vector<int> vert_indices;
+    Vector<Vector<int>> vert_neighbors;
+    Vector<float> new_factors;
+  };
+  const SculptSession &ss = *object.sculpt;
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
+  threading::EnumerableThreadSpecific<LocalData> all_tls;
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices faces = mesh.faces();
+      const Span<int> corner_verts = mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert",
+                                                                  bke::AttrDomain::Point);
+      const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
+                                                                  bke::AttrDomain::Face);
+      for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int i : range) {
+            const Span<int> verts = hide::node_visible_verts(
+                *nodes[i], hide_vert, tls.vert_indices);
+
+            tls.vert_neighbors.resize(verts.size());
+            const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
+            calc_vert_neighbors(
+                faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
+
+            tls.new_factors.resize(verts.size());
+            const MutableSpan<float> new_factors = tls.new_factors;
+            smooth::neighbor_data_average_mesh(data.as_span(), neighbors, new_factors);
+
+            scatter_data_mesh(new_factors.as_span(), verts, data);
+          }
+        });
+      }
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+      for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int i : range) {
+            const Span<int> grids = bke::pbvh::node_grid_indices(*nodes[i]);
+            const int grid_verts_num = key.grid_area * grids.size();
+
+            tls.new_factors.resize(grid_verts_num);
+            const MutableSpan<float> new_factors = tls.new_factors;
+            smooth::average_data_grids(subdiv_ccg, data.as_span(), grids, new_factors);
+
+            if (grid_hidden.is_empty()) {
+              scatter_data_grids(subdiv_ccg, new_factors.as_span(), grids, data);
+            }
+            else {
+              for (const int i : grids.index_range()) {
+                const int node_start = i * key.grid_area;
+                BKE_subdiv_ccg_foreach_visible_grid_vert(
+                    key, grid_hidden, grids[i], [&](const int offset) {
+                      data[i] = new_factors[node_start + offset];
+                    });
+              }
+            }
+          }
+        });
+      }
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
+        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+          LocalData &tls = all_tls.local();
+          for (const int node_index : range) {
+            const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(nodes[node_index]);
+
+            tls.new_factors.resize(verts.size());
+            const MutableSpan<float> new_factors = tls.new_factors;
+            smooth::average_data_bmesh(data.as_span(), verts, new_factors);
+
+            int i = 0;
+            for (const BMVert *vert : verts) {
+              if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+                i++;
+                continue;
+              }
+              data[BM_elem_index_get(vert)] = new_factors[i];
+              i++;
+            }
+          }
+        });
+      }
+      break;
+    }
   }
 }
 

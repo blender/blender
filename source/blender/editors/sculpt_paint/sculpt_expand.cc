@@ -610,22 +610,7 @@ static Array<float> normals_falloff_create(Object &ob,
     return normal_floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
   });
 
-  for (int repeat = 0; repeat < blur_steps; repeat++) {
-    for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
-
-      float avg = 0.0f;
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        avg += dists[ni.index];
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-      if (ni.neighbors.size() > 0.0f) {
-        dists[i] = avg / ni.neighbors.size();
-      }
-    }
-  }
+  smooth::blur_geometry_data_array(ob, blur_steps, dists);
 
   for (int i = 0; i < totvert; i++) {
     dists[i] = 1.0 - dists[i];

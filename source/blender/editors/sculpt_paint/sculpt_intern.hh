@@ -1684,6 +1684,9 @@ void average_data_grids(const SubdivCCG &subdiv_ccg,
 template<typename T>
 void average_data_bmesh(Span<T> src, const Set<BMVert *, 0> &verts, MutableSpan<T> dst);
 
+/* Average the data in the argument span across vertex neighbors. */
+void blur_geometry_data_array(const Object &object, int iterations, MutableSpan<float> data);
+
 /* Surface Smooth Brush. */
 
 void surface_smooth_laplacian_step(Span<float3> positions,
