@@ -991,8 +991,6 @@ bool vert_all_faces_visible_get(Span<bool> hide_poly,
                                 SubdivCCGCoord vert);
 bool vert_all_faces_visible_get(BMVert *vert);
 
-bool vert_any_face_visible_get(const SculptSession &ss, PBVHVertRef vertex);
-
 }
 
 /** \} */

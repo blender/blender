@@ -274,28 +274,6 @@ bool vert_visible_get(const SculptSession &ss, PBVHVertRef vertex)
   return true;
 }
 
-bool vert_any_face_visible_get(const SculptSession &ss, PBVHVertRef vertex)
-{
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      if (!ss.hide_poly) {
-        return true;
-      }
-      for (const int face : ss.vert_to_face_map[vertex.i]) {
-        if (!ss.hide_poly[face]) {
-          return true;
-        }
-      }
-      return false;
-    }
-    case bke::pbvh::Type::BMesh:
-      return true;
-    case bke::pbvh::Type::Grids:
-      return true;
-  }
-  return true;
-}
-
 bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex)
 {
   switch (ss.pbvh->type()) {
