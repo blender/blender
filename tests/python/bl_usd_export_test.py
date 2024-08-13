@@ -393,6 +393,57 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp < 1]), 9)
         self.assertEqual(len([sharp for sharp in usd_crease_sharpness if sharp == 10]), 1)
 
+    def test_export_mesh_triangulate(self):
+        """Test exporting with different triangulation options for meshes."""
+
+        # Use the current scene to create simple geometry to triangulate
+        bpy.ops.mesh.primitive_plane_add(size=1)
+        bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=1, vertices=7)
+
+        # We assume that triangulation is thoroughly tested elsewhere. Here we are only interested
+        # in checking that USD passes its operator properties through correctly. We use a minimal
+        # combination of quad and ngon methods to test.
+        tri_export_path1 = self.tempdir / "usd_mesh_tri_setup1.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(tri_export_path1),
+            triangulate_meshes=True,
+            quad_method='FIXED',
+            ngon_method='BEAUTY',
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path1}")
+
+        tri_export_path2 = self.tempdir / "usd_mesh_tri_setup2.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(tri_export_path2),
+            triangulate_meshes=True,
+            quad_method='FIXED_ALTERNATE',
+            ngon_method='CLIP',
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {tri_export_path2}")
+
+        stage1 = Usd.Stage.Open(str(tri_export_path1))
+        stage2 = Usd.Stage.Open(str(tri_export_path2))
+
+        # The Plane should have different vertex ordering because of the quad methods chosen
+        plane1 = UsdGeom.Mesh(stage1.GetPrimAtPath("/root/Plane/Plane"))
+        plane2 = UsdGeom.Mesh(stage2.GetPrimAtPath("/root/Plane/Plane"))
+        indices1 = plane1.GetFaceVertexIndicesAttr().Get()
+        indices2 = plane2.GetFaceVertexIndicesAttr().Get()
+        self.assertEqual(len(indices1), 6)
+        self.assertEqual(len(indices2), 6)
+        self.assertNotEqual(indices1, indices2)
+
+        # The Circle should have different vertex ordering because of the ngon methods chosen
+        circle1 = UsdGeom.Mesh(stage1.GetPrimAtPath("/root/Circle/Circle"))
+        circle2 = UsdGeom.Mesh(stage2.GetPrimAtPath("/root/Circle/Circle"))
+        indices1 = circle1.GetFaceVertexIndicesAttr().Get()
+        indices2 = circle2.GetFaceVertexIndicesAttr().Get()
+        self.assertEqual(len(indices1), 15)
+        self.assertEqual(len(indices2), 15)
+        self.assertNotEqual(indices1, indices2)
+
     def test_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"
