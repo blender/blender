@@ -533,10 +533,6 @@ void BKE_pbvh_node_get_bm_orco_data(blender::bke::pbvh::Node *node,
                                     float (**r_orco_coords)[3],
                                     BMVert ***r_orco_verts);
 
-bool pbvh_has_mask(const blender::bke::pbvh::Tree &pbvh);
-
-bool pbvh_has_face_sets(blender::bke::pbvh::Tree &pbvh);
-
 blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh);
 blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh);
 blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh);

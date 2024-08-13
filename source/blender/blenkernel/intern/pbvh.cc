@@ -2690,33 +2690,6 @@ bool BKE_pbvh_is_deformed(const blender::bke::pbvh::Tree &pbvh)
   return pbvh.deformed_;
 }
 
-bool pbvh_has_mask(const blender::bke::pbvh::Tree &pbvh)
-{
-  switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Grids:
-      return BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_).has_mask;
-    case blender::bke::pbvh::Type::Mesh:
-      return pbvh.mesh_->attributes().contains(".sculpt_mask");
-    case blender::bke::pbvh::Type::BMesh:
-      return pbvh.bm_ &&
-             CustomData_has_layer_named(&pbvh.bm_->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-  }
-
-  return false;
-}
-
-bool pbvh_has_face_sets(blender::bke::pbvh::Tree &pbvh)
-{
-  switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Grids:
-    case blender::bke::pbvh::Type::Mesh:
-      return pbvh.mesh_->attributes().contains(".sculpt_face_set");
-    case blender::bke::pbvh::Type::BMesh:
-      return CustomData_has_layer_named(&pbvh.bm_->pdata, CD_PROP_FLOAT, ".sculpt_mask");
-  }
-  return false;
-}
-
 namespace blender::bke::pbvh {
 
 void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes)
