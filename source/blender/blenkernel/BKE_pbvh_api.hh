@@ -44,6 +44,7 @@ struct Mesh;
 struct SubdivCCG;
 struct Image;
 struct ImageUser;
+struct Object;
 namespace blender {
 namespace bke::pbvh {
 class Node;
@@ -370,7 +371,7 @@ Bounds<float3> bounds_get(const Tree &pbvh);
 
 }  // namespace blender::bke::pbvh
 
-void BKE_pbvh_sync_visibility_from_verts(blender::bke::pbvh::Tree &pbvh, Mesh *mesh);
+void BKE_pbvh_sync_visibility_from_verts(Object &object);
 
 namespace blender::bke::pbvh {
 
@@ -498,7 +499,10 @@ namespace blender::bke::pbvh {
  * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
  * affected nodes with the #PBVH_UpdateBB flag set.
  */
-void update_bounds(Tree &pbvh);
+void update_bounds(const Object &object, Tree &pbvh);
+void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);
+void update_bounds_grids(const CCGKey &key, Span<CCGElem *> elems, Tree &pbvh);
+void update_bounds_bmesh(const Object &object, Tree &pbvh);
 
 /**
  * Copy all current node bounds to the original bounds. "Original" bounds are typically from before
@@ -508,9 +512,10 @@ void update_bounds(Tree &pbvh);
  */
 void store_bounds_orig(Tree &pbvh);
 
-void update_mask(Tree &pbvh);
-void update_visibility(Tree &pbvh);
+void update_mask(const Object &object, Tree &pbvh);
+void update_visibility(const Object &object, Tree &pbvh);
 void update_normals(Tree &pbvh, SubdivCCG *subdiv_ccg);
+
 }  // namespace blender::bke::pbvh
 
 blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(blender::bke::pbvh::Tree &pbvh);

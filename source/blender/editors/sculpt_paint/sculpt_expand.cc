@@ -1286,7 +1286,6 @@ static void write_mask_data(Object &object, const Span<float> mask)
  * operation. */
 static void restore_original_state(bContext *C, Object &ob, Cache &expand_cache)
 {
-  SculptSession &ss = *ob.sculpt;
   switch (expand_cache.target) {
     case TargetType::Mask:
       write_mask_data(ob, expand_cache.original_mask);

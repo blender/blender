@@ -870,7 +870,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     sculpt_mask_by_color_full_mesh(ob, active_vertex, threshold, invert, preserve_mask);
   }
 
-  bke::pbvh::update_mask(*ss.pbvh);
+  bke::pbvh::update_mask(ob, *ss.pbvh);
   undo::push_end(ob);
 
   flush_update_done(C, ob, UpdateType::Mask);
@@ -1179,7 +1179,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
-      bke::pbvh::update_mask(*ss.pbvh);
+      bke::pbvh::update_mask(ob, *ss.pbvh);
       break;
     }
     case bke::pbvh::Type::BMesh: {
@@ -1190,7 +1190,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
-      bke::pbvh::update_mask(*ss.pbvh);
+      bke::pbvh::update_mask(ob, *ss.pbvh);
       break;
     }
   }

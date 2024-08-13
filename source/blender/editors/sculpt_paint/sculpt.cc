@@ -5234,7 +5234,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
     rcti r;
 
     if (update_type == UpdateType::Position) {
-      bke::pbvh::update_bounds(*ss.pbvh);
+      bke::pbvh::update_bounds(ob, *ss.pbvh);
     }
 
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -5343,7 +5343,7 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
   }
 
   if (update_type == UpdateType::Mask) {
-    bke::pbvh::update_mask(*ss.pbvh);
+    bke::pbvh::update_mask(ob, *ss.pbvh);
   }
 
   BKE_sculpt_attributes_destroy_temporary_stroke(&ob);

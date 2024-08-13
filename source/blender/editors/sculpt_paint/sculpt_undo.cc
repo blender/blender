@@ -974,7 +974,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         mesh.tag_positions_changed();
         BKE_sculptsession_free_deformMats(&ss);
       }
-      bke::pbvh::update_bounds(*ss.pbvh);
+      bke::pbvh::update_bounds(object, *ss.pbvh);
       bke::pbvh::store_bounds_orig(*ss.pbvh);
       break;
     }
@@ -1008,9 +1008,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
 
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      BKE_pbvh_sync_visibility_from_verts(*ss.pbvh, &mesh);
-      bke::pbvh::update_visibility(*ss.pbvh);
+      BKE_pbvh_sync_visibility_from_verts(object);
+      bke::pbvh::update_visibility(object, *ss.pbvh);
       if (BKE_sculpt_multires_active(scene, &object)) {
         multires_mark_as_modified(depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
       }
@@ -1052,7 +1051,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       hide::sync_all_from_faces(object);
-      bke::pbvh::update_visibility(*ss.pbvh);
+      bke::pbvh::update_visibility(object, *ss.pbvh);
       break;
     }
     case Type::Mask: {
@@ -1084,7 +1083,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
 
-      bke::pbvh::update_mask(*ss.pbvh);
+      bke::pbvh::update_mask(object, *ss.pbvh);
       break;
     }
     case Type::FaceSet: {

@@ -99,7 +99,7 @@ static void init_mask_grids(Main &bmain,
     }
   });
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
-  bke::pbvh::update_mask(*ss.pbvh);
+  bke::pbvh::update_mask(object, *ss.pbvh);
 }
 
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
@@ -249,7 +249,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
-      bke::pbvh::update_mask(*ss.pbvh);
+      bke::pbvh::update_mask(ob, *ss.pbvh);
       break;
     }
   }

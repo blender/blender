@@ -167,8 +167,6 @@ void mesh_show_all(Object &object, const Span<bke::pbvh::Node *> nodes)
 
 void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<bke::pbvh::Node *> nodes)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   bool any_changed = false;
@@ -194,7 +192,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<bke::pbvh::
     BKE_pbvh_node_fully_hidden_set(node, false);
   }
   BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
-  BKE_pbvh_sync_visibility_from_verts(pbvh, &mesh);
+  BKE_pbvh_sync_visibility_from_verts(object);
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
 }
 
@@ -338,8 +336,6 @@ static void grid_hide_update(Depsgraph &depsgraph,
                              const Span<bke::pbvh::Node *> nodes,
                              const FunctionRef<void(const int, MutableBoundedBitSpan)> calc_hide)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
   BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
 
@@ -377,7 +373,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
 
   if (any_changed) {
     multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
-    BKE_pbvh_sync_visibility_from_verts(pbvh, &mesh);
+    BKE_pbvh_sync_visibility_from_verts(object);
   }
 }
 
@@ -727,15 +723,13 @@ static void invert_visibility_mesh(Object &object, const Span<bke::pbvh::Node *>
 
   hide_poly.finish();
   bke::mesh_hide_face_flush(mesh);
-  bke::pbvh::update_visibility(*object.sculpt->pbvh);
+  bke::pbvh::update_visibility(object, *object.sculpt->pbvh);
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,
                                     Object &object,
                                     const Span<bke::pbvh::Node *> nodes)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
   undo::push_nodes(object, nodes, undo::Type::HideVert);
@@ -752,7 +746,7 @@ static void invert_visibility_grids(Depsgraph &depsgraph,
   });
 
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
-  BKE_pbvh_sync_visibility_from_verts(pbvh, &mesh);
+  BKE_pbvh_sync_visibility_from_verts(object);
 }
 
 static void invert_visibility_bmesh(Object &object, const Span<bke::pbvh::Node *> nodes)
@@ -994,12 +988,10 @@ struct DualBitBuffer {
 
 static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
                                         Object &object,
-                                        bke::pbvh::Tree &pbvh,
                                         const Span<bke::pbvh::Node *> nodes,
                                         const VisAction action,
                                         const int iterations)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
   BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
@@ -1075,7 +1067,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
   });
 
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
-  BKE_pbvh_sync_visibility_from_verts(pbvh, &mesh);
+  BKE_pbvh_sync_visibility_from_verts(object);
 }
 
 static Array<bool> duplicate_visibility_bmesh(const Object &object)
@@ -1139,7 +1131,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
       grow_shrink_visibility_mesh(object, nodes, mode, iterations);
       break;
     case bke::pbvh::Type::Grids:
-      grow_shrink_visibility_grid(depsgraph, object, pbvh, nodes, mode, iterations);
+      grow_shrink_visibility_grid(depsgraph, object, nodes, mode, iterations);
       break;
     case bke::pbvh::Type::BMesh:
       grow_shrink_visibility_bmesh(object, nodes, mode, iterations);

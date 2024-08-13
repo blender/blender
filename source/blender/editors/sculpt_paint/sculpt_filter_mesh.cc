@@ -2356,7 +2356,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
 
   undo::restore_position_from_undo_step(ob);
 
-  bke::pbvh::update_bounds(*ss->pbvh);
+  bke::pbvh::update_bounds(ob, *ss->pbvh);
 }
 
 static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
