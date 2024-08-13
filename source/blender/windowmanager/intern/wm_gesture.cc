@@ -454,7 +454,15 @@ static void draw_start_vertex_circle(const wmGesture &gt, const uint shdr_pos)
         1.0f * UI_SCALE_FAC, blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC, u);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+    const blender::float3 color = {1.0f, 1.0f, 1.0f};
+    immUniformColor4f(color.x, color.y, color.z, 0.8f);
     imm_draw_circle_wire_2d(shdr_pos, start_pos[0], start_pos[1], radius, 15.0f);
+
+    const blender::float3 darker_color = color * 0.4f;
+    immUniformColor4f(darker_color.x, darker_color.y, darker_color.z, 0.8f);
+    imm_draw_circle_wire_2d(shdr_pos, start_pos[0], start_pos[1], radius + 1, 15.0f);
+
     immUnbindProgram();
   }
 }
