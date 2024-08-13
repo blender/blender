@@ -769,9 +769,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
   }
-  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
-    ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
-  }
+  ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
 
   ss << "\n/* Sub-pass Inputs. */\n";
   for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
@@ -1038,9 +1036,6 @@ static const char *glsl_patch_default_get()
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";
     ss << "#define gpu_BaseInstance gl_BaseInstanceARB\n";
-  }
-  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
-    ss << "#extension GL_ARB_conservative_depth : enable\n";
   }
   if (GLContext::layered_rendering_support) {
     ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
