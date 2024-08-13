@@ -664,6 +664,8 @@ bool Result::is_allocated() const
     case ResultStorageType::IntegerCPU:
       return integer_texture_ != nullptr;
   }
+
+  return false;
 }
 
 int Result::reference_count() const
