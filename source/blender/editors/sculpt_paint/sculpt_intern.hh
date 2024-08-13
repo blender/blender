@@ -872,7 +872,7 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex);
 /** Get the normal for a given sculpt vertex; do not modify the result */
 const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex);
 
-bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original);
+bool SCULPT_vertex_is_occluded(SculptSession &ss, const blender::float3 &position, bool original);
 
 namespace blender::ed::sculpt_paint {
 

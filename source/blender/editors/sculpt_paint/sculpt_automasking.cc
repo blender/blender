@@ -256,9 +256,8 @@ static float calc_view_occlusion_factor(const Cache &automasking,
   char f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion);
 
   if (stroke_id != automasking.current_stroke_id) {
-    f = *(char *)SCULPT_vertex_attr_get(
-        vertex, ss.attrs.automasking_occlusion) = SCULPT_vertex_is_occluded(ss, vertex, true) ? 2 :
-                                                                                                1;
+    f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion) =
+        SCULPT_vertex_is_occluded(ss, SCULPT_vertex_co_get(ss, vertex), true) ? 2 : 1;
   }
 
   return f == 2;

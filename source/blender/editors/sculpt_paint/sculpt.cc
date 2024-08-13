@@ -6149,24 +6149,21 @@ void SCULPT_fake_neighbors_free(Object &ob)
   sculpt_pose_fake_neighbors_free(ss);
 }
 
-bool SCULPT_vertex_is_occluded(SculptSession &ss, PBVHVertRef vertex, bool original)
+bool SCULPT_vertex_is_occluded(SculptSession &ss, const float3 &position, bool original)
 {
   using namespace blender;
   float ray_start[3], ray_end[3], ray_normal[3], face_normal[3];
-  float co[3];
-
-  copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));
 
   ViewContext *vc = ss.cache ? ss.cache->vc : &ss.filter_cache->vc;
 
   const blender::float2 mouse = ED_view3d_project_float_v2_m4(
-      vc->region, co, ss.cache ? ss.cache->projection_mat : ss.filter_cache->viewmat);
+      vc->region, position, ss.cache ? ss.cache->projection_mat : ss.filter_cache->viewmat);
 
   int depth = SCULPT_raycast_init(vc, mouse, ray_end, ray_start, ray_normal, original);
 
   negate_v3(ray_normal);
 
-  copy_v3_v3(ray_start, SCULPT_vertex_co_get(ss, vertex));
+  copy_v3_v3(ray_start, position);
   madd_v3_v3fl(ray_start, ray_normal, 0.002);
 
   SculptRaycastData srd = {nullptr};
