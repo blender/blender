@@ -1,9 +1,9 @@
 name: Bug Report
 about: Use Help > Report a Bug from the top of Blender to automatically fill out part of this form.
 labels:
-  - "Type/Report"
+  - "Type/Bug"
   - "Status/Needs Triage"
-  - "Priority/Normal"
+  - "Severity/Normal"
 body:
   - type: markdown
     attributes:
