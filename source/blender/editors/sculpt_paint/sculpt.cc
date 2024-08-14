@@ -5153,23 +5153,6 @@ static void sculpt_restore_mesh(const Sculpt &sd, Object &ob)
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
-  /* Brushes that use original coordinates and need a "restore" step.
-   *
-   * Note: Despite the Cloth and Boundary brush using original coordinates, the brushes do not
-   * expect this restoration to happen on every stroke step. Performing this restoration causes
-   * issues with the cloth simulation mode for those brushes.
-   * TODO: Remove this with #reset_translations_to_original.
-   */
-  if (ELEM(brush->sculpt_tool,
-           SCULPT_TOOL_ELASTIC_DEFORM,
-           SCULPT_TOOL_GRAB,
-           SCULPT_TOOL_THUMB,
-           SCULPT_TOOL_ROTATE))
-  {
-    undo::restore_from_undo_step(sd, ob);
-    return;
-  }
-
   /* For the cloth brush it makes more sense to not restore the mesh state to keep running the
    * simulation from the previous state. */
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {

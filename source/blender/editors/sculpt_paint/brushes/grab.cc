@@ -30,6 +30,7 @@ namespace blender::ed::sculpt_paint {
 inline namespace grab_cc {
 
 struct LocalData {
+  Vector<float3> positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<float3> translations;
@@ -62,8 +63,9 @@ static void calc_faces(const Sculpt &sd,
   const StrokeCache &cache = *ss.cache;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+  const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -94,6 +96,7 @@ static void calc_faces(const Sculpt &sd,
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
+  reset_translations_to_original(translations, positions, orig_data.positions);
 
   write_translations(sd, object, positions_eval, verts, translations, positions_orig);
 }
@@ -108,13 +111,12 @@ static void calc_grids(const Sculpt &sd,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
   const Span<int> grids = bke::pbvh::node_grid_indices(node);
-  const int grid_verts_num = grids.size() * key.grid_area;
+  const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
+  const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
-  tls.factors.resize(grid_verts_num);
+  tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -122,7 +124,7 @@ static void calc_grids(const Sculpt &sd,
     calc_front_face(cache.view_normal, orig_data.normals, factors);
   }
 
-  tls.distances.resize(grid_verts_num);
+  tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
       ss, orig_data.positions, eBrushFalloffShape(brush.falloff_shape), distances);
@@ -140,9 +142,10 @@ static void calc_grids(const Sculpt &sd,
     calc_silhouette_factors(cache, offset, orig_data.normals, factors);
   }
 
-  tls.translations.resize(grid_verts_num);
+  tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
+  reset_translations_to_original(translations, positions, orig_data.positions);
 
   clip_and_lock_translations(sd, ss, orig_data.positions, translations);
   apply_translations(translations, grids, subdiv_ccg);
@@ -159,7 +162,7 @@ static void calc_bmesh(const Sculpt &sd,
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
-
+  const Span<float3> positions = gather_bmesh_positions(verts, tls.positions);
   Array<float3> orig_positions(verts.size());
   Array<float3> orig_normals(verts.size());
   orig_position_data_gather_bmesh(*ss.bm_log, verts, orig_positions, orig_normals);
@@ -192,6 +195,7 @@ static void calc_bmesh(const Sculpt &sd,
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
+  reset_translations_to_original(translations, positions, orig_positions);
 
   clip_and_lock_translations(sd, ss, orig_positions, translations);
   apply_translations(translations, verts);
