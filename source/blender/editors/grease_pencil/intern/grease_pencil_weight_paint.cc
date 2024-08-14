@@ -399,7 +399,7 @@ static int grease_pencil_weight_invert_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-void GREASE_PENCIL_OT_weight_invert(wmOperatorType *ot)
+static void GREASE_PENCIL_OT_weight_invert(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Invert Weight";
