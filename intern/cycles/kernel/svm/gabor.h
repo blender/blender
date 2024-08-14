@@ -121,9 +121,9 @@ ccl_device float2 compute_2d_gabor_noise_cell(
 
     /* For isotropic noise, add a random orientation amount, while for anisotropic noise, use the
      * base orientation. Linearly interpolate between the two cases using the isotropy factor. Note
-     * that the random orientation range is to pi as opposed to two pi, that's because the Gabor
+     * that the random orientation range spans pi as opposed to two pi, that's because the Gabor
      * kernel is symmetric around pi. */
-    float random_orientation = hash_float3_to_float(seed_for_orientation) * M_PI_F;
+    float random_orientation = (hash_float3_to_float(seed_for_orientation) - 0.5f) * M_PI_F;
     float orientation = base_orientation + random_orientation * isotropy;
 
     float2 kernel_center = hash_float3_to_float2(seed_for_kernel_center);

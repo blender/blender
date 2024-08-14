@@ -2175,9 +2175,9 @@ static float2 compute_2d_gabor_noise_cell(const float2 cell,
 
     /* For isotropic noise, add a random orientation amount, while for anisotropic noise, use the
      * base orientation. Linearly interpolate between the two cases using the isotropy factor. Note
-     * that the random orientation range is to pi as opposed to two pi, that's because the Gabor
+     * that the random orientation range spans pi as opposed to two pi, that's because the Gabor
      * kernel is symmetric around pi. */
-    const float random_orientation = noise::hash_float_to_float(seed_for_orientation) *
+    const float random_orientation = (noise::hash_float_to_float(seed_for_orientation) - 0.5f) *
                                      math::numbers::pi;
     const float orientation = base_orientation + random_orientation * isotropy;
 
