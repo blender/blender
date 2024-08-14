@@ -1382,8 +1382,8 @@ void restore_position_from_undo_step(Object &object)
         Vector<float3> translations;
       };
 
-      const bool need_translations = !ss.deform_imats.is_empty() ||
-                                     BKE_keyblock_from_object(&object);
+      const KeyBlock *active_key = BKE_keyblock_from_object(&object);
+      const bool need_translations = !ss.deform_imats.is_empty() || active_key;
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -1410,11 +1410,16 @@ void restore_position_from_undo_step(Object &object)
                 /* Because brush deformation is calculated for the evaluated deformed positions,
                  * the translations have to be transformed to the original space. */
                 apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
-                apply_translations(tls.translations, verts, positions_orig);
+                if (active_key == nullptr || mesh.key->refkey == active_key) {
+                  /* We only ever want to propagate changes back to the base mesh if we either have
+                   * no shape key active, or we are working on the basis shape key.
+                   * See #126199 for more information. */
+                  apply_translations(tls.translations, verts, positions_orig);
+                }
               }
             }
 
-            if (const KeyBlock *active_key = BKE_keyblock_from_object(&object)) {
+            if (active_key) {
               update_shape_keys(
                   object, mesh, *active_key, verts, tls.translations, positions_orig);
             }
