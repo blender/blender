@@ -384,11 +384,6 @@ struct SculptAttribute {
 /* Convenience pointers for standard sculpt attributes. */
 
 struct SculptAttributePointers {
-  /* Persistent base. */
-  SculptAttribute *persistent_co = nullptr;
-  SculptAttribute *persistent_no = nullptr;
-  SculptAttribute *persistent_disp = nullptr;
-
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #auto_mask::cache_init when needed. */
   SculptAttribute *automasking_factor = nullptr;
