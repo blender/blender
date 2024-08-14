@@ -126,12 +126,9 @@ static void disable(
   SculptSession &ss = *ob.sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob.data);
 
-  if (ss.attrs.dyntopo_node_id_vertex) {
-    BKE_sculpt_attribute_destroy(&ob, ss.attrs.dyntopo_node_id_vertex);
-  }
-
-  if (ss.attrs.dyntopo_node_id_face) {
-    BKE_sculpt_attribute_destroy(&ob, ss.attrs.dyntopo_node_id_face);
+  if (BMesh *bm = ss.bm) {
+    BM_data_layer_free_named(bm, &bm->vdata, ".sculpt_dyntopo_node_id_vertex");
+    BM_data_layer_free_named(bm, &bm->pdata, ".sculpt_dyntopo_node_id_face");
   }
 
   SCULPT_pbvh_clear(ob);

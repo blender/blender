@@ -390,10 +390,6 @@ struct SculptAttributePointers {
   SculptAttribute *automasking_occlusion = nullptr; /* CD_PROP_INT8. */
   SculptAttribute *automasking_stroke_id = nullptr;
   SculptAttribute *automasking_cavity = nullptr;
-
-  /* BMesh */
-  SculptAttribute *dyntopo_node_id_vertex = nullptr;
-  SculptAttribute *dyntopo_node_id_face = nullptr;
 };
 
 struct SculptTopologyIslandCache {
