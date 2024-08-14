@@ -60,13 +60,7 @@
  * normalization", to ensure a zero mean, which should help with normalization. */
 vec2 compute_2d_gabor_kernel(vec2 position, float frequency, float orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = length_squared(position);
-  if (distance_squared >= 1.0) {
-    return vec2(0.0);
-  }
-
   float hann_window = 0.5 + 0.5 * cos(M_PI * distance_squared);
   float gaussian_envelop = exp(-M_PI * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -130,6 +124,12 @@ vec2 compute_2d_gabor_noise_cell(
     vec2 kernel_center = hash_vec3_to_vec2(seed_for_kernel_center);
     vec2 position_in_kernel_space = position - kernel_center;
 
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (length_squared(position_in_kernel_space) >= 1.0) {
+      continue;
+    }
+
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */
     float weight = hash_vec3_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
@@ -153,8 +153,10 @@ vec2 compute_2d_gabor_noise(vec2 coordinates,
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 cell_offset = vec2(i, j);
+
       vec2 current_cell_position = cell_position + cell_offset;
       vec2 position_in_cell_space = local_position - cell_offset;
+
       sum += compute_2d_gabor_noise_cell(
           current_cell_position, position_in_cell_space, frequency, isotropy, base_orientation);
     }
@@ -169,13 +171,7 @@ vec2 compute_2d_gabor_noise(vec2 coordinates,
  * vector, so we just need to scale it by the frequency value. */
 vec2 compute_3d_gabor_kernel(vec3 position, float frequency, vec3 orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = length_squared(position);
-  if (distance_squared >= 1.0) {
-    return vec2(0.0);
-  }
-
   float hann_window = 0.5 + 0.5 * cos(M_PI * distance_squared);
   float gaussian_envelop = exp(-M_PI * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -239,6 +235,12 @@ vec2 compute_3d_gabor_noise_cell(
 
     vec3 kernel_center = hash_vec4_to_vec3(seed_for_kernel_center);
     vec3 position_in_kernel_space = position - kernel_center;
+
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (length_squared(position_in_kernel_space) >= 1.0) {
+      continue;
+    }
 
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */

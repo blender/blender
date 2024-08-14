@@ -57,13 +57,7 @@ CCL_NAMESPACE_BEGIN
  * normalization", to ensure a zero mean, which should help with normalization. */
 ccl_device float2 compute_2d_gabor_kernel(float2 position, float frequency, float orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = dot(position, position);
-  if (distance_squared >= 1.0f) {
-    return make_float2(0.0f, 0.0f);
-  }
-
   float hann_window = 0.5f + 0.5f * cosf(M_PI_F * distance_squared);
   float gaussian_envelop = expf(-M_PI_F * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -127,6 +121,12 @@ ccl_device float2 compute_2d_gabor_noise_cell(
     float2 kernel_center = hash_float3_to_float2(seed_for_kernel_center);
     float2 position_in_kernel_space = position - kernel_center;
 
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0f) {
+      continue;
+    }
+
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */
     float weight = hash_float3_to_float(seed_for_weight) < 0.5f ? -1.0f : 1.0f;
@@ -166,13 +166,7 @@ ccl_device float2 compute_2d_gabor_noise(float2 coordinates,
  * vector, so we just need to scale it by the frequency value. */
 ccl_device float2 compute_3d_gabor_kernel(float3 position, float frequency, float3 orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = dot(position, position);
-  if (distance_squared >= 1.0f) {
-    return make_float2(0.0f, 0.0f);
-  }
-
   float hann_window = 0.5f + 0.5f * cosf(M_PI_F * distance_squared);
   float gaussian_envelop = expf(-M_PI_F * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -238,6 +232,12 @@ ccl_device float2 compute_3d_gabor_noise_cell(
 
     float3 kernel_center = hash_float4_to_float3(seed_for_kernel_center);
     float3 position_in_kernel_space = position - kernel_center;
+
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0f) {
+      continue;
+    }
 
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */

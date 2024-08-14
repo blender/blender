@@ -60,13 +60,7 @@
  * normalization", to ensure a zero mean, which should help with normalization. */
 vector2 compute_2d_gabor_kernel(vector2 position, float frequency, float orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = dot(position, position);
-  if (distance_squared >= 1.0) {
-    return vector2(0.0, 0.0);
-  }
-
   float hann_window = 0.5 + 0.5 * cos(M_PI * distance_squared);
   float gaussian_envelop = exp(-M_PI * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -130,6 +124,12 @@ vector2 compute_2d_gabor_noise_cell(
     vector2 kernel_center = hash_vector3_to_vector2(seed_for_kernel_center);
     vector2 position_in_kernel_space = position - kernel_center;
 
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) {
+      continue;
+    }
+
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */
     float weight = hash_vector3_to_float(seed_for_weight) < 0.5 ? -1.0 : 1.0;
@@ -169,13 +169,7 @@ vector2 compute_2d_gabor_noise(vector2 coordinates,
  * vector, so we just need to scale it by the frequency value. */
 vector2 compute_3d_gabor_kernel(vector3 position, float frequency, vector3 orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
   float distance_squared = dot(position, position);
-  if (distance_squared >= 1.0) {
-    return vector2(0.0, 0.0);
-  }
-
   float hann_window = 0.5 + 0.5 * cos(M_PI * distance_squared);
   float gaussian_envelop = exp(-M_PI * distance_squared);
   float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -241,6 +235,12 @@ vector2 compute_3d_gabor_noise_cell(
 
     vector3 kernel_center = hash_vector4_to_vector3(seed_for_kernel_center);
     vector3 position_in_kernel_space = position - kernel_center;
+
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (dot(position_in_kernel_space, position_in_kernel_space) >= 1.0) {
+      continue;
+    }
 
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */

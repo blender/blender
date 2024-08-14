@@ -2108,13 +2108,7 @@ static float2 compute_2d_gabor_kernel(const float2 position,
                                       const float frequency,
                                       const float orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
-  const float distance_squared = math::dot(position, position);
-  if (distance_squared >= 1.0f) {
-    return float2(0.0f);
-  }
-
+  const float distance_squared = math::length_squared(position);
   const float hann_window = 0.5f + 0.5f * math::cos(math::numbers::pi * distance_squared);
   const float gaussian_envelop = math::exp(-math::numbers::pi * distance_squared);
   const float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -2183,6 +2177,12 @@ static float2 compute_2d_gabor_noise_cell(const float2 cell,
     const float2 kernel_center = noise::hash_float_to_float2(seed_for_kernel_center);
     const float2 position_in_kernel_space = position - kernel_center;
 
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (math::length_squared(position_in_kernel_space) >= 1.0f) {
+      continue;
+    }
+
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */
     const float weight = noise::hash_float_to_float(seed_for_weight) < 0.5f ? -1.0f : 1.0f;
@@ -2224,13 +2224,7 @@ static float2 compute_3d_gabor_kernel(const float3 position,
                                       const float frequency,
                                       const float3 orientation)
 {
-  /* The kernel is windowed beyond the unit distance, so early exist with a zero for points that
-   * are further than a unit radius. */
-  const float distance_squared = math::dot(position, position);
-  if (distance_squared >= 1.0f) {
-    return float2(0.0f);
-  }
-
+  const float distance_squared = math::length_squared(position);
   const float hann_window = 0.5f + 0.5f * math::cos(math::numbers::pi * distance_squared);
   const float gaussian_envelop = math::exp(-math::numbers::pi * distance_squared);
   const float windowed_gaussian_envelope = gaussian_envelop * hann_window;
@@ -2304,6 +2298,12 @@ static float2 compute_3d_gabor_noise_cell(const float3 cell,
 
     const float3 kernel_center = noise::hash_float_to_float3(seed_for_kernel_center);
     const float3 position_in_kernel_space = position - kernel_center;
+
+    /* The kernel is windowed beyond the unit distance, so early exit with a zero for points that
+     * are further than a unit radius. */
+    if (math::length_squared(position_in_kernel_space) >= 1.0f) {
+      continue;
+    }
 
     /* We either add or subtract the Gabor kernel based on a Bernoulli distribution of equal
      * probability. */
