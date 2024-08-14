@@ -1597,7 +1597,6 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings &ups,
 
 void BKE_sculptsession_free_deformMats(SculptSession *ss)
 {
-  ss->orig_cos = {};
   ss->deform_cos = {};
   ss->deform_imats = {};
 }
@@ -2027,13 +2026,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       }
     }
 
-    if (ss.orig_cos.is_empty() && !used_me_eval) {
+    if (!used_me_eval) {
       BKE_sculptsession_free_deformMats(&ss);
-
-      ss.orig_cos = (ss.shapekey_active) ?
-                        Span(static_cast<const float3 *>(ss.shapekey_active->data),
-                             mesh_orig->verts_num) :
-                        mesh_orig->vert_positions();
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, ss.deform_imats, ss.deform_cos);
       BKE_pbvh_vert_coords_apply(*ss.pbvh, ss.deform_cos);

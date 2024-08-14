@@ -465,8 +465,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   /* Object is deformed with some modifiers. */
   bool deform_modifiers_active = false;
-  /* Coords of un-deformed mesh. */
-  blender::Array<blender::float3> orig_cos;
   /* Coords of deformed mesh but without stroke displacement. */
   blender::Array<blender::float3, 0> deform_cos;
   /* Crazy-space deformation matrices. */
