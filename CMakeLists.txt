@@ -653,12 +653,17 @@ Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even 
 set(CYCLES_TEST_DEVICES CPU CACHE STRING "\
 Run regression tests on the specified device types (CPU CUDA OPTIX HIP)"
 )
+option(WITH_CYCLES_TEST_OSL "\
+Run additional Cycles test with OSL enabled"
+  OFF
+)
 mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
 mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
 mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 mark_as_advanced(WITH_CYCLES_PRECOMPUTE)
 mark_as_advanced(CYCLES_TEST_DEVICES)
+mark_as_advanced(WITH_CYCLES_TEST_OSL)
 
 # NVIDIA CUDA & OptiX
 if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
@@ -1216,6 +1221,7 @@ set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
 if(WITH_CYCLES)
   set_and_warn_dependency(WITH_BOOST   WITH_CYCLES_OSL   OFF)
   set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+  set_and_warn_dependency(WITH_CYCLES_OSL WITH_CYCLES_TEST_OSL   OFF)
 endif()
 
 set_and_warn_dependency(WITH_TBB WITH_CYCLES            OFF)

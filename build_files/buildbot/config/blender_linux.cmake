@@ -12,3 +12,4 @@ message(STATUS "Building in Rocky 8 Linux 64bit environment")
 # Options which are specific to Linux-only platforms
 
 set(WITH_DOC_MANPAGE         OFF CACHE BOOL "" FORCE)
+set(WITH_CYCLES_TEST_OSL     ON CACHE BOOL "" FORCE)
