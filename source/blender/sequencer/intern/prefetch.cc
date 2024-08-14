@@ -393,7 +393,8 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
   /* Iterate over rendered strips. */
   for (Sequence *seq : strips) {
     if (seq->type == SEQ_TYPE_META &&
-        seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true))
+        seq_prefetch_scene_strip_is_rendered(
+            pfjob, &seq->channels, &seq->seqbase, scene_strips, true))
     {
       return true;
     }
