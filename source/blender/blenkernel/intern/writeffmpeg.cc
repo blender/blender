@@ -417,6 +417,10 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
     rgb_frame = context->current_frame;
   }
 
+  /* Ensure frame is writable. Some video codecs might have made previous frame
+   * shared (i.e. not writable). */
+  av_frame_make_writable(rgb_frame);
+
   /* Copy the Blender pixels into the FFMPEG data-structure, taking care of endianness and flipping
    * the image vertically. */
   int linesize = rgb_frame->linesize[0];
@@ -447,6 +451,8 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
   /* Convert to the output pixel format, if it's different that Blender's internal one. */
   if (context->img_convert_frame != nullptr) {
     BLI_assert(context->img_convert_ctx != NULL);
+    /* Ensure the frame we are scaling to is writable as well. */
+    av_frame_make_writable(context->current_frame);
     BKE_ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
   }
 
