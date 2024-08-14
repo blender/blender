@@ -985,7 +985,6 @@ Span<int> node_visible_verts(const bke::pbvh::Node &node,
 bool vert_visible_get(const Object &object, PBVHVertRef vertex);
 
 /* Determines if all faces attached to a given vertex are visible. */
-bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex);
 bool vert_all_faces_visible_get(Span<bool> hide_poly, GroupedSpan<int> vert_to_face_map, int vert);
 bool vert_all_faces_visible_get(Span<bool> hide_poly,
                                 const SubdivCCG &subdiv_ccg,

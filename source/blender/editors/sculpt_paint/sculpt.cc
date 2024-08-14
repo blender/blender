@@ -275,56 +275,6 @@ bool vert_visible_get(const Object &object, PBVHVertRef vertex)
   return true;
 }
 
-bool vert_all_faces_visible_get(const SculptSession &ss, PBVHVertRef vertex)
-{
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      if (!ss.hide_poly) {
-        return true;
-      }
-      for (const int face : ss.vert_to_face_map[vertex.i]) {
-        if (ss.hide_poly[face]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    case bke::pbvh::Type::BMesh: {
-      BMVert *v = (BMVert *)vertex.i;
-      BMEdge *e = v->e;
-
-      if (!e) {
-        return true;
-      }
-
-      do {
-        BMLoop *l = e->l;
-
-        if (!l) {
-          continue;
-        }
-
-        do {
-          if (BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
-            return false;
-          }
-        } while ((l = l->radial_next) != e->l);
-      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-      return true;
-    }
-    case bke::pbvh::Type::Grids: {
-      if (!ss.hide_poly) {
-        return true;
-      }
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg, grid_index);
-      return !ss.hide_poly[face_index];
-    }
-  }
-  return true;
-}
 
 bool vert_all_faces_visible_get(const Span<bool> hide_poly,
                                 const GroupedSpan<int> vert_to_face_map,
@@ -806,7 +756,9 @@ bool vert_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
 {
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
-      if (!hide::vert_all_faces_visible_get(ss, vertex)) {
+      if (!hide::vert_all_faces_visible_get(
+              Span(ss.hide_poly, ss.faces_num), ss.vert_to_face_map, vertex.i))
+      {
         return true;
       }
       return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i);
