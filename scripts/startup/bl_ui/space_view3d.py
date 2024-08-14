@@ -5986,7 +5986,8 @@ class VIEW3D_MT_weight_grease_pencil(Menu):
     bl_label = "Weights"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+        layout.operator("grease_pencil.weight_invert", text="Invert Weight")
 
 
 class VIEW3D_MT_gpencil_animation(Menu):
