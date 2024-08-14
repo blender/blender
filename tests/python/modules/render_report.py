@@ -458,6 +458,12 @@ class Report:
 
         return not failed
 
+    def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+        # Each render test can override this method to provide extra functionality.
+        # See Cycles render tests for an example.
+        # Do not delete.
+        return arguments_cb(filepath, base_output_filepath)
+
     def _run_tests(self, filepaths, blender, arguments_cb, batch):
         # Run multiple tests in a single Blender process since startup can be
         # a significant factor. In case of crashes, re-run the remaining tests.
@@ -482,7 +488,7 @@ class Report:
                 if os.path.exists(output_filepath):
                     os.remove(output_filepath)
 
-                command.extend(arguments_cb(filepath, base_output_filepath))
+                command.extend(self._get_render_arguments(arguments_cb, filepath, base_output_filepath))
 
                 # Only chain multiple commands for batch
                 if not batch:
