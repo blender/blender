@@ -28,20 +28,6 @@ CCL_NAMESPACE_BEGIN
 
 namespace {
 
-/* Some helpers to silence warning in templated function. */
-bool isfinite(uchar /*value*/)
-{
-  return true;
-}
-bool isfinite(half /*value*/)
-{
-  return true;
-}
-bool isfinite(uint16_t /*value*/)
-{
-  return true;
-}
-
 const char *name_from_type(ImageDataType type)
 {
   switch (type) {
@@ -628,7 +614,7 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   }
 
   /* Make sure we don't have buggy values. */
-  if (FileFormat == TypeDesc::FLOAT) {
+  if constexpr (FileFormat == TypeDesc::FLOAT) {
     /* For RGBA buffers we put all channels to 0 if either of them is not
      * finite. This way we avoid possible artifacts caused by fully changed
      * hue. */
