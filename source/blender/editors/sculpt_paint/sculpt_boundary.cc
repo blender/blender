@@ -3611,10 +3611,31 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
 
 std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
                                                          const Brush *brush,
-                                                         const PBVHVertRef initial_vert,
                                                          const float radius)
 {
-  std::unique_ptr<SculptBoundary> boundary = data_init(object, brush, initial_vert, radius);
+  const SculptSession &ss = *object.sculpt;
+  ActiveVert initial_vert = ss.active_vert();
+
+  if (std::holds_alternative<std::monostate>(initial_vert)) {
+    return nullptr;
+  }
+
+  std::unique_ptr<SculptBoundary> boundary = nullptr;
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
+      boundary = data_init_mesh(object, brush, std::get<int>(initial_vert), radius);
+      break;
+    case bke::pbvh::Type::Grids:
+      boundary = data_init_grids(object, brush, std::get<SubdivCCGCoord>(initial_vert), radius);
+      break;
+    case bke::pbvh::Type::BMesh:
+      boundary = data_init_bmesh(object, brush, std::get<BMVert *>(initial_vert), radius);
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
   if (boundary == nullptr) {
     return nullptr;
   }

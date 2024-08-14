@@ -2083,7 +2083,6 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
                                                 float radius);
 std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
                                                          const Brush *brush,
-                                                         PBVHVertRef initial_vertex,
                                                          float radius);
 
 /* Main Brush Function. */
