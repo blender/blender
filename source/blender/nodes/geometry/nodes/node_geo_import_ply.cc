@@ -35,6 +35,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   PLYImportParams import_params{};
   STRNCPY(import_params.filepath, path.c_str());
+  import_params.import_attributes = true;
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
