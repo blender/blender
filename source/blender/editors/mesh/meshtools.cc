@@ -312,6 +312,7 @@ static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
     max_face_set = max_ii(max_face_set, face_sets.span[i]);
   }
   *face_set_offset = max_face_set;
+  face_sets.finish();
 }
 
 int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
