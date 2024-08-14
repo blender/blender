@@ -275,7 +275,6 @@ bool vert_visible_get(const Object &object, PBVHVertRef vertex)
   return true;
 }
 
-
 bool vert_all_faces_visible_get(const Span<bool> hide_poly,
                                 const GroupedSpan<int> vert_to_face_map,
                                 const int vert)
