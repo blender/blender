@@ -1473,16 +1473,12 @@ bool IMB_scaleImBuf(ImBuf *ibuf, uint newx, uint newy)
   return true;
 }
 
-struct imbufRGBA {
-  float r, g, b, a;
-};
-
 bool IMB_scalefastImBuf(ImBuf *ibuf, uint newx, uint newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
 
   uint *rect, *_newrect, *newrect;
-  imbufRGBA *rectf, *_newrectf, *newrectf;
+  float *rectf, *_newrectf, *newrectf;
   int x, y;
   bool do_float = false, do_rect = false;
   size_t ofsx, ofsy, stepx, stepy;
@@ -1520,8 +1516,8 @@ bool IMB_scalefastImBuf(ImBuf *ibuf, uint newx, uint newy)
   }
 
   if (do_float) {
-    _newrectf = static_cast<imbufRGBA *>(
-        MEM_mallocN(sizeof(float[4]) * newx * newy, "scalefastimbuf f"));
+    _newrectf = static_cast<float *>(
+        MEM_mallocN(sizeof(float) * ibuf->channels * newx * newy, "scalefastimbuf f"));
     if (_newrectf == nullptr) {
       if (_newrect) {
         MEM_freeN(_newrect);
@@ -1547,12 +1543,15 @@ bool IMB_scalefastImBuf(ImBuf *ibuf, uint newx, uint newy)
     }
 
     if (do_float) {
-      rectf = (imbufRGBA *)ibuf->float_buffer.data;
-      rectf += (ofsy >> 16) * ibuf->x;
+      rectf = ibuf->float_buffer.data;
+      rectf += size_t(ofsy >> 16) * ibuf->x * ibuf->channels;
       ofsx = 32768;
 
       for (x = newx; x > 0; x--, ofsx += stepx) {
-        *newrectf++ = rectf[ofsx >> 16];
+        float *pixel = &rectf[size_t(ofsx >> 16) * ibuf->channels];
+        for (int c = 0; c < ibuf->channels; ++c) {
+          *newrectf++ = pixel[c];
+        }
       }
     }
   }
