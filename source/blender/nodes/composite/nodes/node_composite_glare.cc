@@ -990,7 +990,7 @@ class GlareOperation : public NodeOperation {
 
     GPU_texture_update(fog_glow_result, GPU_DATA_FLOAT, output.data());
 #else
-    GPU_texture_copy(fog_glow_result, highlights_result.texture());
+    GPU_texture_copy(fog_glow_result, highlights_result);
 #endif
 
     return fog_glow_result;
