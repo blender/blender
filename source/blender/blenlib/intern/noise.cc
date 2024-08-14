@@ -2137,11 +2137,18 @@ static float2 compute_2d_gabor_kernel(const float2 position,
  *
  * Secondly, we note that the second moment of the weights distribution is 0.5 since it is a
  * fair Bernoulli distribution. So the final standard deviation expression is square root the
- * integral multiplied by the impulse density multiplied by the second moment. */
-static float compute_2d_gabor_standard_deviation(const float frequency)
+ * integral multiplied by the impulse density multiplied by the second moment.
+ *
+ * Note however that the integral is almost constant for all frequencies larger than one, and
+ * converges to an upper limit as the frequency approaches infinity, so we replace the expression
+ * with the following limit:
+ *
+ *  \lim_{x \to \infty} \frac{1 - e^{-2 \pi f_0^2}}{4}
+ *
+ * To get an approximation of 0.25. */
+static float compute_2d_gabor_standard_deviation()
 {
-  const float integral_of_gabor_squared =
-      (1.0f - math::exp(-2.0f * math::numbers::pi * frequency * frequency)) / 4.0f;
+  const float integral_of_gabor_squared = 0.25f;
   const float second_moment = 0.5f;
   return math::sqrt(gabor_impulses_count * second_moment * integral_of_gabor_squared);
 }
@@ -2238,12 +2245,10 @@ static float2 compute_3d_gabor_kernel(const float3 position,
 
 /* Identical to compute_2d_gabor_standard_deviation except we do triple integration in 3D. The only
  * difference is the denominator in the integral expression, which is 2^{5 / 2} for the 3D case
- * instead of 4 for the 2D case.  */
-static float compute_3d_gabor_standard_deviation(const float frequency)
+ * instead of 4 for the 2D case. Similarly, the limit evaluates to 1 / (4 * sqrt(2)). */
+static float compute_3d_gabor_standard_deviation()
 {
-  const float integral_of_gabor_squared = (1.0f - math::exp(-2.0f * math::numbers::pi * frequency *
-                                                            frequency)) /
-                                          math::pow(2.0f, 5.0f / 2.0f);
+  const float integral_of_gabor_squared = 1.0f / (4.0f * math::numbers::sqrt2);
   const float second_moment = 0.5f;
   return math::sqrt(gabor_impulses_count * second_moment * integral_of_gabor_squared);
 }
@@ -2354,7 +2359,7 @@ void gabor(const float2 coordinates,
 
   const float2 phasor = compute_2d_gabor_noise(
       scaled_coordinates, sanitized_frequency, isotropy, orientation);
-  const float standard_deviation = compute_2d_gabor_standard_deviation(sanitized_frequency);
+  const float standard_deviation = compute_2d_gabor_standard_deviation();
 
   /* Normalize the noise by dividing by six times the standard deviation, which was determined
    * empirically. */
@@ -2394,7 +2399,7 @@ void gabor(const float3 coordinates,
   const float3 normalized_orientation = math::normalize(orientation);
   const float2 phasor = compute_3d_gabor_noise(
       scaled_coordinates, sanitized_frequency, isotropy, normalized_orientation);
-  const float standard_deviation = compute_3d_gabor_standard_deviation(sanitized_frequency);
+  const float standard_deviation = compute_3d_gabor_standard_deviation();
 
   /* Normalize the noise by dividing by six times the standard deviation, which was determined
    * empirically. */

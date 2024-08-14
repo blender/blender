@@ -86,10 +86,18 @@ ccl_device float2 compute_2d_gabor_kernel(float2 position, float frequency, floa
  *
  * Secondly, we note that the second moment of the weights distribution is 0.5 since it is a
  * fair Bernoulli distribution. So the final standard deviation expression is square root the
- * integral multiplied by the impulse density multiplied by the second moment. */
-ccl_device float compute_2d_gabor_standard_deviation(float frequency)
+ * integral multiplied by the impulse density multiplied by the second moment.
+ *
+ * Note however that the integral is almost constant for all frequencies larger than one, and
+ * converges to an upper limit as the frequency approaches infinity, so we replace the expression
+ * with the following limit:
+ *
+ *  \lim_{x \to \infty} \frac{1 - e^{-2 \pi f_0^2}}{4}
+ *
+ * To get an approximation of 0.25. */
+ccl_device float compute_2d_gabor_standard_deviation()
 {
-  float integral_of_gabor_squared = (1.0f - expf(-2.0f * M_PI_F * frequency * frequency)) / 4.0f;
+  float integral_of_gabor_squared = 0.25f;
   float second_moment = 0.5f;
   return sqrtf(IMPULSES_COUNT * second_moment * integral_of_gabor_squared);
 }
@@ -180,11 +188,10 @@ ccl_device float2 compute_3d_gabor_kernel(float3 position, float frequency, floa
 
 /* Identical to compute_2d_gabor_standard_deviation except we do triple integration in 3D. The only
  * difference is the denominator in the integral expression, which is 2^{5 / 2} for the 3D case
- * instead of 4 for the 2D case.  */
-ccl_device float compute_3d_gabor_standard_deviation(float frequency)
+ * instead of 4 for the 2D case. Similarly, the limit evaluates to 1 / (4 * sqrt(2)). */
+ccl_device float compute_3d_gabor_standard_deviation()
 {
-  float integral_of_gabor_squared = (1.0f - expf(-2.0f * M_PI_F * frequency * frequency)) /
-                                    powf(2.0f, 5.0f / 2.0f);
+  float integral_of_gabor_squared = 1.0f / (4.0f * M_SQRT2_F);
   float second_moment = 0.5f;
   return sqrtf(IMPULSES_COUNT * second_moment * integral_of_gabor_squared);
 }
@@ -325,13 +332,13 @@ ccl_device_noinline int svm_node_tex_gabor(KernelGlobals kg,
                                       frequency,
                                       isotropy,
                                       orientation_2d);
-      standard_deviation = compute_2d_gabor_standard_deviation(frequency);
+      standard_deviation = compute_2d_gabor_standard_deviation();
       break;
     }
     case NODE_GABOR_TYPE_3D: {
       float3 orientation = normalize(orientation_3d);
       phasor = compute_3d_gabor_noise(scaled_coordinates, frequency, isotropy, orientation);
-      standard_deviation = compute_3d_gabor_standard_deviation(frequency);
+      standard_deviation = compute_3d_gabor_standard_deviation();
       break;
     }
   }
