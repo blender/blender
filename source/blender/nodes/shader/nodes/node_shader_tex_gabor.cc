@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_numbers.hh"
+#include "BLI_noise.hh"
 
 #include "BKE_texture.h"
 
 #include "node_shader_util.hh"
 #include "node_util.hh"
+
+#include "NOD_multi_function.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -18,6 +21,7 @@ NODE_STORAGE_FUNCS(NodeTexGabor)
 
 static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Vector>("Vector")
       .implicit_field(implicit_field_inputs::position)
       .description(
@@ -96,6 +100,103 @@ static int node_shader_gpu_tex_gabor(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_tex_gabor", in, out, GPU_constant(&type));
 }
 
+class GaborNoiseFunction : public mf::MultiFunction {
+ private:
+  NodeGaborType type_;
+
+ public:
+  GaborNoiseFunction(const NodeGaborType type) : type_(type)
+  {
+    static std::array<mf::Signature, 2> signatures{
+        create_signature(SHD_GABOR_TYPE_2D),
+        create_signature(SHD_GABOR_TYPE_3D),
+    };
+    this->set_signature(&signatures[type]);
+  }
+
+  static mf::Signature create_signature(const NodeGaborType type)
+  {
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"GaborNoise", signature};
+
+    builder.single_input<float3>("Vector");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Frequency");
+    builder.single_input<float>("Anistropy");
+
+    if (type == SHD_GABOR_TYPE_2D) {
+      builder.single_input<float>("Orientation");
+    }
+    else {
+      builder.single_input<float3>("Orientation");
+    }
+
+    builder.single_output<float>("Value", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float>("Phase", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float>("Intensity", mf::ParamFlag::SupportsUnusedOutput);
+
+    return signature;
+  }
+
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
+  {
+    const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");
+    const VArray<float> &frequency = params.readonly_single_input<float>(2, "Frequency");
+    const VArray<float> &anistropy = params.readonly_single_input<float>(3, "Anistropy");
+    /* A parameter index of 4 is reserved for Orientation input below. */
+    MutableSpan<float> r_value = params.uninitialized_single_output_if_required<float>(5, "Value");
+    MutableSpan<float> r_phase = params.uninitialized_single_output_if_required<float>(6, "Phase");
+    MutableSpan<float> r_intensity = params.uninitialized_single_output_if_required<float>(
+        7, "Intensity");
+
+    switch (type_) {
+      case SHD_GABOR_TYPE_2D: {
+        const VArray<float> &orientation = params.readonly_single_input<float>(4, "Orientation");
+        mask.foreach_index([&](const int64_t i) {
+          noise::gabor(vector[i].xy(),
+                       scale[i],
+                       frequency[i],
+                       anistropy[i],
+                       orientation[i],
+                       r_value.is_empty() ? nullptr : &r_value[i],
+                       r_phase.is_empty() ? nullptr : &r_phase[i],
+                       r_intensity.is_empty() ? nullptr : &r_intensity[i]);
+        });
+        break;
+      }
+      case SHD_GABOR_TYPE_3D: {
+        const VArray<float3> &orientation = params.readonly_single_input<float3>(4, "Orientation");
+        mask.foreach_index([&](const int64_t i) {
+          noise::gabor(vector[i],
+                       scale[i],
+                       frequency[i],
+                       anistropy[i],
+                       orientation[i],
+                       r_value.is_empty() ? nullptr : &r_value[i],
+                       r_phase.is_empty() ? nullptr : &r_phase[i],
+                       r_intensity.is_empty() ? nullptr : &r_intensity[i]);
+        });
+        break;
+      }
+    }
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.allocates_array = false;
+    hints.min_grain_size = 100;
+    return hints;
+  }
+};
+
+static void build_multi_function(NodeMultiFunctionBuilder &builder)
+{
+  const NodeTexGabor &storage = node_storage(builder.node());
+  builder.construct_and_set_matching_fn<GaborNoiseFunction>(NodeGaborType(storage.type));
+}
+
 }  // namespace blender::nodes::node_shader_tex_gabor_cc
 
 void register_node_type_sh_tex_gabor()
@@ -104,7 +205,7 @@ void register_node_type_sh_tex_gabor()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_GABOR, "Gabor Texture", NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_GABOR, "Gabor Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_gabor_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gabor;
   ntype.initfunc = file_ns::node_shader_init_tex_gabor;
@@ -112,6 +213,7 @@ void register_node_type_sh_tex_gabor()
       &ntype, "NodeTexGabor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gabor;
   ntype.updatefunc = file_ns::node_shader_update_tex_gabor;
+  ntype.build_multi_function = file_ns::build_multi_function;
 
   nodeRegisterType(&ntype);
 }
