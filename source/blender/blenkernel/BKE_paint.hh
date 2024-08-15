@@ -575,6 +575,10 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   uchar last_automask_stroke_id = 0;
   std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
 
+ private:
+  PBVHVertRef active_vert_ = PBVHVertRef{PBVH_REF_NONE};
+
+ public:
   SculptSession();
   ~SculptSession();
 
@@ -604,9 +608,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::float3 active_vert_position(const Object &object) const;
 
   void set_active_vert(PBVHVertRef vert);
-
- private:
-  PBVHVertRef active_vert_ = PBVHVertRef{PBVH_REF_NONE};
 };
 
 void BKE_sculptsession_free(Object *ob);
