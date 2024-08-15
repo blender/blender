@@ -739,55 +739,34 @@ static float sculpt_mask_by_color_final_mask_get(const float current_mask,
   return new_mask;
 }
 
-static bool sculpt_mask_by_color_contiguous_floodfill(const SculptSession &ss,
-                                                      const PBVHVertRef from_v,
-                                                      const PBVHVertRef to_v,
-                                                      bool is_duplicate,
-                                                      const Span<ColorGeometry4f> colors,
-                                                      const float4 &initial_color,
-                                                      const float threshold,
-                                                      const bool invert,
-                                                      MutableSpan<float> new_mask)
-{
-  int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
-
-  float4 current_color = float4(colors[to_v_i]);
-
-  float new_vertex_mask = sculpt_mask_by_color_delta_get(
-      current_color, initial_color, threshold, invert);
-  new_mask[to_v_i] = new_vertex_mask;
-
-  if (is_duplicate) {
-    new_mask[to_v_i] = new_mask[from_v_i];
-  }
-
-  float len = len_v3v3(current_color, initial_color);
-  len = len / M_SQRT3;
-  return len <= threshold;
-}
-
-static void sculpt_mask_by_color_contiguous(Object &object,
-                                            const PBVHVertRef vertex,
-                                            const float threshold,
-                                            const bool invert,
-                                            const bool preserve_mask)
+static void sculpt_mask_by_color_contiguous_mesh(Object &object,
+                                                 const int vert,
+                                                 const float threshold,
+                                                 const bool invert,
+                                                 const bool preserve_mask)
 {
   SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
-  const float4 active_color = float4(colors[vertex.i]);
+  const float4 active_color = float4(colors[vert]);
 
   Array<float> new_mask(mesh.verts_num, invert ? 1.0f : 0.0f);
 
-  flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_initial(flood, vertex);
+  flood_fill::FillDataMesh flood(mesh.verts_num);
+  flood.add_initial(vert);
 
-  flood_fill::execute(object, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-    return sculpt_mask_by_color_contiguous_floodfill(
-        ss, from_v, to_v, is_duplicate, colors, active_color, threshold, invert, new_mask);
+  flood.execute(object, ss.vert_to_face_map, [&](int /*from_v*/, int to_v) {
+    const float4 current_color = float4(colors[to_v]);
+
+    float new_vertex_mask = sculpt_mask_by_color_delta_get(
+        current_color, active_color, threshold, invert);
+    new_mask[to_v] = new_vertex_mask;
+
+    float len = len_v3v3(current_color, active_color);
+    len = len / M_SQRT3;
+    return len <= threshold;
   });
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
@@ -801,7 +780,7 @@ static void sculpt_mask_by_color_contiguous(Object &object,
 }
 
 static void sculpt_mask_by_color_full_mesh(Object &object,
-                                           const PBVHVertRef vertex,
+                                           const int vert,
                                            const float threshold,
                                            const bool invert,
                                            const bool preserve_mask)
@@ -811,7 +790,7 @@ static void sculpt_mask_by_color_full_mesh(Object &object,
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
-  const float4 active_color = float4(colors[vertex.i]);
+  const float4 active_color = float4(colors[vert]);
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
 
@@ -849,11 +828,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), &ob);
-  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
-
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
-  SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
    * so it needs to be updated here. */
@@ -864,16 +839,16 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   undo::push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
-  const PBVHVertRef active_vertex = ss.active_vert_ref();
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
 
+  const int active_vert = std::get<int>(ss.active_vert());
   if (RNA_boolean_get(op->ptr, "contiguous")) {
-    sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
+    sculpt_mask_by_color_contiguous_mesh(ob, active_vert, threshold, invert, preserve_mask);
   }
   else {
-    sculpt_mask_by_color_full_mesh(ob, active_vertex, threshold, invert, preserve_mask);
+    sculpt_mask_by_color_full_mesh(ob, active_vert, threshold, invert, preserve_mask);
   }
 
   bke::pbvh::update_mask(ob, *ss.pbvh);
