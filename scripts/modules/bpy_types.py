@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from _bpy import types as bpy_types
+from grease_pencil_python import GreasePencilStrokeSlice
 
 StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
@@ -1395,3 +1396,19 @@ class HydraRenderEngine(RenderEngine):
 
         import _bpy_hydra
         _bpy_hydra.engine_view_draw(self.engine_ptr, context)
+
+
+class GreasePencilDrawing(StructRNA):
+    __slots__ = ()
+
+    @property
+    def strokes(self):
+        """
+        Return a collection of all the Grease Pencil strokes in this drawing.
+
+        .. note:: This API should *not* be used for performance critical operations.
+        Use the :class:`GreasePencilDrawing.attributes` API instead.
+        """
+        num_strokes = self.attributes.domain_size('CURVE')
+        if num_strokes > 0:
+            return GreasePencilStrokeSlice(self, 0, num_strokes)
