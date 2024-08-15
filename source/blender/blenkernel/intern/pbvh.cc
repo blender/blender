@@ -1930,8 +1930,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
   return false;
 }
 
-static bool pbvh_faces_node_raycast(Tree &pbvh,
-                                    const Node &node,
+static bool pbvh_faces_node_raycast(const Node &node,
                                     const float (*origco)[3],
                                     const Span<float3> vert_positions,
                                     const Span<int> corner_verts,
@@ -2121,8 +2120,7 @@ bool raycast_node(Tree &pbvh,
 
   switch (pbvh.type()) {
     case Type::Mesh:
-      hit |= pbvh_faces_node_raycast(pbvh,
-                                     node,
+      hit |= pbvh_faces_node_raycast(node,
                                      origco,
                                      vert_positions,
                                      corner_verts,
