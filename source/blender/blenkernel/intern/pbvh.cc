@@ -1934,6 +1934,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 static bool pbvh_faces_node_raycast(Tree &pbvh,
                                     const Node &node,
                                     const float (*origco)[3],
+                                    const Span<float3> vert_positions,
                                     const Span<int> corner_verts,
                                     const Span<int3> corner_tris,
                                     const Span<int> corner_tri_faces,
@@ -1969,9 +1970,9 @@ static bool pbvh_faces_node_raycast(Tree &pbvh,
     }
     else {
       /* intersect with current coordinates */
-      co[0] = positions[corner_verts[tri[0]]];
-      co[1] = positions[corner_verts[tri[1]]];
-      co[2] = positions[corner_verts[tri[2]]];
+      co[0] = vert_positions[corner_verts[tri[0]]];
+      co[1] = vert_positions[corner_verts[tri[1]]];
+      co[2] = vert_positions[corner_verts[tri[2]]];
     }
 
     if (ray_face_intersection_tri(ray_start, isect_precalc, co[0], co[1], co[2], depth)) {
@@ -2101,6 +2102,7 @@ bool raycast_node(Tree &pbvh,
                   Node &node,
                   const float (*origco)[3],
                   bool use_origco,
+                  const Span<float3> vert_positions,
                   const Span<int> corner_verts,
                   const Span<int3> corner_tris,
                   const Span<int> corner_tri_faces,
@@ -2124,6 +2126,7 @@ bool raycast_node(Tree &pbvh,
       hit |= pbvh_faces_node_raycast(pbvh,
                                      node,
                                      origco,
+                                     vert_positions,
                                      corner_verts,
                                      corner_tris,
                                      corner_tri_faces,
@@ -2294,6 +2297,7 @@ void find_nearest_to_ray(Tree &pbvh,
 static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
                                            const Node &node,
                                            const float (*origco)[3],
+                                           const Span<float3> vert_positions,
                                            const Span<int> corner_verts,
                                            const Span<int3> corner_tris,
                                            const Span<int> corner_tri_faces,
@@ -2303,8 +2307,6 @@ static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
                                            float *depth,
                                            float *dist_sq)
 {
-  using namespace blender;
-  const Span<float3> positions = pbvh.vert_positions_;
   bool hit = false;
 
   for (const int i : node.prim_indices_.index_range()) {
@@ -2330,9 +2332,9 @@ static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
       /* intersect with current coordinates */
       hit |= ray_face_nearest_tri(ray_start,
                                   ray_normal,
-                                  positions[corner_verts[corner_tri[0]]],
-                                  positions[corner_verts[corner_tri[1]]],
-                                  positions[corner_verts[corner_tri[2]]],
+                                  vert_positions[corner_verts[corner_tri[0]]],
+                                  vert_positions[corner_verts[corner_tri[1]]],
+                                  vert_positions[corner_verts[corner_tri[2]]],
                                   depth,
                                   dist_sq);
     }
@@ -2406,6 +2408,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               Node &node,
                               const float (*origco)[3],
                               bool use_origco,
+                              const Span<float3> vert_positions,
                               const Span<int> corner_verts,
                               const Span<int3> corner_tris,
                               const Span<int> corner_tri_faces,
@@ -2426,6 +2429,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
       hit |= pbvh_faces_node_nearest_to_ray(pbvh,
                                             node,
                                             origco,
+                                            vert_positions,
                                             corner_verts,
                                             corner_tris,
                                             corner_tri_faces,
@@ -2533,7 +2537,7 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
       args.corner_data = &mesh.corner_data;
       args.face_data = &mesh.face_data;
       args.mesh = pbvh.mesh_;
-      args.vert_positions = pbvh.vert_positions_;
+      args.vert_positions = BKE_pbvh_get_vert_positions(pbvh);
       args.corner_verts = mesh.corner_verts();
       args.corner_edges = mesh.corner_edges();
       args.corner_tris = mesh.corner_tris();

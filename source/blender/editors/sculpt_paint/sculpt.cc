@@ -2915,6 +2915,7 @@ struct SculptRaycastData {
   bool hit;
   float depth;
   bool original;
+  Span<blender::float3> vert_positions;
   Span<int> corner_verts;
   Span<blender::int3> corner_tris;
   Span<int> corner_tri_faces;
@@ -2935,6 +2936,7 @@ struct SculptFindNearestToRayData {
   float depth;
   float dist_sq_to_ray;
   bool original;
+  Span<float3> vert_positions;
   Span<int> corner_verts;
   Span<blender::int3> corner_tris;
   Span<int> corner_tri_faces;
@@ -4690,6 +4692,7 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
                               node,
                               origco,
                               use_origco,
+                              srd.vert_positions,
                               srd.corner_verts,
                               srd.corner_tris,
                               srd.corner_tri_faces,
@@ -4735,6 +4738,7 @@ static void sculpt_find_nearest_to_ray_cb(blender::bke::pbvh::Node &node,
                                           node,
                                           origco,
                                           use_origco,
+                                          srd.vert_positions,
                                           srd.corner_verts,
                                           srd.corner_tris,
                                           srd.corner_tri_faces,
@@ -4831,6 +4835,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   srd.hit = false;
   if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    srd.vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
     srd.corner_verts = mesh.corner_verts();
     srd.corner_tris = mesh.corner_tris();
     srd.corner_tri_faces = mesh.corner_tri_faces();
@@ -4983,6 +4988,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     srd.hit = false;
     if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      srd.vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
       srd.corner_verts = mesh.corner_verts();
       srd.corner_tris = mesh.corner_tris();
       srd.corner_tri_faces = mesh.corner_tri_faces();
@@ -5018,6 +5024,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   srd.hit = false;
   if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+    srd.vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
     srd.corner_verts = mesh.corner_verts();
     srd.corner_tris = mesh.corner_tris();
     srd.corner_tri_faces = mesh.corner_tri_faces();
