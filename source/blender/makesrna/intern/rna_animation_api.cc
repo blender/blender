@@ -59,13 +59,13 @@ static float rna_AnimData_nla_tweak_strip_time_to_scene(AnimData *adt, float fra
 }
 
 void rna_id_animdata_fix_paths_rename_all(ID *id,
-                                          AnimData* /* adt */,
+                                          AnimData * /* adt */,
                                           Main *bmain,
                                           const char *prefix,
                                           const char *oldName,
                                           const char *newName)
 {
-  BKE_animdata_fix_paths_rename_all_ex(bmain, id, prefix, oldName, newName, 0, 0 , true);
+  BKE_animdata_fix_paths_rename_all_ex(bmain, id, prefix, oldName, newName, 0, 0, true);
 }
 
 #else
