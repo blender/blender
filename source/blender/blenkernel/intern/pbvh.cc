@@ -2796,7 +2796,7 @@ Span<float3> vert_positions_eval(const Depsgraph & /*depsgraph*/, const Object &
 
 Span<float3> vert_positions_eval_from_eval(const Object &object_eval)
 {
-  BLI_assert(!DEG_is_original_object(&object_eval));
+  BLI_assert(DEG_is_original_object(&object_eval));
   Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
   BLI_assert(object_orig.sculpt->pbvh->type() == Type::Mesh);
   return object_orig.sculpt->pbvh->vert_positions_;
@@ -2816,7 +2816,7 @@ Span<float3> vert_normals_eval(const Depsgraph & /*depsgraph*/, const Object &ob
 
 Span<float3> vert_normals_eval_from_eval(const Object &object_eval)
 {
-  BLI_assert(!DEG_is_original_object(&object_eval));
+  BLI_assert(DEG_is_original_object(&object_eval));
   Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
   BLI_assert(object_orig.sculpt->pbvh->type() == Type::Mesh);
   return object_orig.sculpt->pbvh->vert_normals_;
