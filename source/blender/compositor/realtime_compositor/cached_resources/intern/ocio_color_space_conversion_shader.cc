@@ -450,7 +450,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 /* A stub implementation in case OCIO is disabled at build time. */
 class GPUShaderCreator {
  public:
-  static std::shared_ptr<GPUShaderCreator> Create(ResultPrecision /* precision */)
+  static std::shared_ptr<GPUShaderCreator> Create(ResultPrecision /*precision*/)
   {
     return std::make_shared<GPUShaderCreator>();
   }

@@ -124,7 +124,7 @@ class StepDrawingGeometry : public StepDrawingGeometryBase {
  public:
   void encode(const GreasePencilDrawing &drawing_geometry,
               const int64_t drawing_index,
-              StepEncodeStatus & /* encode_status */)
+              StepEncodeStatus & /*encode_status*/)
   {
     BLI_assert(drawing_index >= 0 && drawing_index < INT32_MAX);
     index_ = int(drawing_index);
@@ -159,7 +159,7 @@ class StepDrawingReference : public StepDrawingGeometryBase {
  public:
   void encode(const GreasePencilDrawingReference &drawing_reference,
               const int64_t drawing_index,
-              StepEncodeStatus & /* encode_status */)
+              StepEncodeStatus & /*encode_status*/)
   {
     BLI_assert(drawing_index >= 0 && drawing_index < INT32_MAX);
     index_ = int(drawing_index);

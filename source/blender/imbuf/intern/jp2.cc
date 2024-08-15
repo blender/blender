@@ -443,7 +443,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   ibuf->ftype = IMB_FTYPE_JP2;
-  if (true /* is_jp2 */) {
+  if (true /*is_jp2*/) {
     ibuf->foptions.flag |= JP2_JP2;
   }
   else {

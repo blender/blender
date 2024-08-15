@@ -343,7 +343,7 @@ GHOST_TTabletAPI GHOST_System::getTabletAPI()
   return m_tabletAPI;
 }
 
-GHOST_TSuccess GHOST_System::getPixelAtCursor(float[3] /* r_color */) const
+GHOST_TSuccess GHOST_System::getPixelAtCursor(float[3] /*r_color*/) const
 {
   return GHOST_kFailure;
 }
@@ -432,7 +432,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          settings.yPixels,
                                          GHOST_kWindowStateNormal,
                                          gpuSettings,
-                                         true /* exclusive */);
+                                         true /*exclusive*/);
   return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
 }
 

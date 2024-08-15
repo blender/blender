@@ -445,7 +445,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   return insert_key(C, op);
 }
 
-static int insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /* event */)
+static int insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* The depsgraph needs to be in an evaluated state to ensure the values we get from the
    * properties are actually the values of the current frame. However we cannot do that in the exec

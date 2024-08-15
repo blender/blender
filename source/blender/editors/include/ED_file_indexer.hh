@@ -51,7 +51,7 @@ struct FileIndexerEntry {
  * Contains all entries of a blend file.
  */
 struct FileIndexerEntries {
-  LinkNode /* FileIndexerEntry */ *entries;
+  LinkNode /*FileIndexerEntry*/ *entries;
 };
 
 using FileIndexerInitUserDataFunc = void *(*)(const char *root_directory,

@@ -38,7 +38,7 @@ struct PoseChannelBackup {
 
 struct PoseBackup {
   bool is_bone_selection_relevant;
-  ListBase /* PoseChannelBackup* */ backups;
+  ListBase /*PoseChannelBackup*/ backups;
 };
 
 /**

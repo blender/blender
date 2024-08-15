@@ -1378,8 +1378,8 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 }
 
 static int console_modal_select_all_invoke(bContext *C,
-                                           wmOperator * /* op */,
-                                           const wmEvent * /* event */)
+                                           wmOperator * /*op*/,
+                                           const wmEvent * /*event*/)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceConsole *sc = CTX_wm_space_console(C);

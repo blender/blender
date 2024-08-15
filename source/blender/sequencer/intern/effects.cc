@@ -3130,9 +3130,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
                              Sequence *seq,
                              float /*timeline_frame*/,
                              float /*fac*/,
-                             ImBuf * /* ibuf1*/,
-                             ImBuf * /* ibuf2*/,
-                             ImBuf * /* ibuf3*/)
+                             ImBuf * /*ibuf1*/,
+                             ImBuf * /*ibuf2*/,
+                             ImBuf * /*ibuf3*/)
 {
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */

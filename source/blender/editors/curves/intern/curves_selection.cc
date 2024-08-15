@@ -944,7 +944,7 @@ bool select_box(const ViewContext &vc,
         deformation,
         [&](const IndexRange range,
             const Span<float3> positions,
-            StringRef /* selection_attribute_name */) {
+            StringRef /*selection_attribute_name*/) {
           mask.slice_content(range).foreach_index(GrainSize(512), [&](const int curve_i) {
             const IndexRange points = points_by_curve[curve_i];
             if (points.size() == 1) {
@@ -1043,7 +1043,7 @@ bool select_lasso(const ViewContext &vc,
         deformation,
         [&](const IndexRange range,
             const Span<float3> positions,
-            StringRef /* selection_attribute_name */) {
+            StringRef /*selection_attribute_name*/) {
           mask.slice_content(range).foreach_index(GrainSize(512), [&](const int curve_i) {
             const IndexRange points = points_by_curve[curve_i];
             if (points.size() == 1) {
@@ -1152,7 +1152,7 @@ bool select_circle(const ViewContext &vc,
         deformation,
         [&](const IndexRange range,
             const Span<float3> positions,
-            StringRef /* selection_attribute_name */) {
+            StringRef /*selection_attribute_name*/) {
           mask.slice_content(range).foreach_index(GrainSize(512), [&](const int curve_i) {
             const IndexRange points = points_by_curve[curve_i];
             if (points.size() == 1) {

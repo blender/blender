@@ -14,7 +14,7 @@ SplitNode::SplitNode(bNode *editor_node) : Node(editor_node)
 }
 
 void SplitNode::convert_to_operations(NodeConverter &converter,
-                                      const CompositorContext & /* context */) const
+                                      const CompositorContext & /*context*/) const
 {
   const bNode *node = this->get_bnode();
 

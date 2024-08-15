@@ -371,7 +371,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
    * BLI_ASSERT_UNIT_QUAT(), so it's likely that even after a few more
    * transformations the quaternion will still be considered unit-ish. */
   const float q_len_squared = dot_qtqt(q, q);
-  const float threshold = 0.0002f /* BLI_ASSERT_UNIT_EPSILON */ * 3;
+  const float threshold = 0.0002f /* #BLI_ASSERT_UNIT_EPSILON */ * 3;
   if (fabs(q_len_squared - 1.0f) >= threshold) {
     normalize_qt(q);
   }

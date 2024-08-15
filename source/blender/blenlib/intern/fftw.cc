@@ -72,7 +72,7 @@ int2 optimal_size_for_real_transform(int2 size)
                                                         char *job_data,
                                                         size_t element_size,
                                                         int number_of_jobs,
-                                                        void * /* data */)
+                                                        void * /*data*/)
 {
   threading::parallel_for(IndexRange(number_of_jobs), 1, [&](const IndexRange sub_range) {
     for (const int64_t i : sub_range) {

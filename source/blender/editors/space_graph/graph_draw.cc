@@ -1521,7 +1521,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 void graph_draw_channel_names(bContext *C,
                               bAnimContext *ac,
                               ARegion *region,
-                              const ListBase /* bAnimListElem */ &anim_data)
+                              const ListBase /*bAnimListElem*/ &anim_data)
 {
   bAnimListElem *ale;
 

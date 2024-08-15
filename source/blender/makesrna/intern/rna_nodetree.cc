@@ -3264,7 +3264,7 @@ static void rna_NodeCryptomatte_layer_name_set(PointerRNA *ptr, int new_value)
   }
 }
 
-static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext * /* C */,
+static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext * /*C*/,
                                                                     PointerRNA *ptr,
                                                                     PropertyRNA * /*prop*/,
                                                                     bool *r_free)

@@ -349,7 +349,7 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, const in
   return added_key;
 }
 
-void SEQ_retiming_transition_key_frame_set(const Scene * /*scene */,
+void SEQ_retiming_transition_key_frame_set(const Scene * /*scene*/,
                                            const Sequence *seq,
                                            SeqRetimingKey *key,
                                            const int timeline_frame)

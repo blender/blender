@@ -89,7 +89,7 @@ static void node_shader_update_tex_gabor(bNodeTree *ntree, bNode *node)
 
 static int node_shader_gpu_tex_gabor(GPUMaterial *material,
                                      bNode *node,
-                                     bNodeExecData * /* execdata */,
+                                     bNodeExecData * /*execdata*/,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {

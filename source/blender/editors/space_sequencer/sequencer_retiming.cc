@@ -85,7 +85,7 @@ static void sequencer_retiming_data_hide_all(ListBase *seqbase)
   }
 }
 
-static int sequencer_retiming_data_show_exec(bContext *C, wmOperator * /* op */)
+static int sequencer_retiming_data_show_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -610,7 +610,7 @@ static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *s
 }
 
 /* Return speed of existing segment or strip. Assume 1 element is selected. */
-static float strip_speed_get(bContext *C, const wmOperator * /* op */)
+static float strip_speed_get(bContext *C, const wmOperator * /*op*/)
 {
   /* Strip mode. */
   if (!sequencer_retiming_mode_is_active(C)) {

@@ -54,7 +54,7 @@ static CLG_LogRef LOG = {"bke.nla"};
  *
  * The active strip may or may not be on the active track.
  */
-static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
+static void nla_tweakmode_find_active(const ListBase /*NlaTrack*/ *nla_tracks,
                                       NlaTrack **r_track_of_active_strip,
                                       NlaStrip **r_active_strip);
 
@@ -237,8 +237,8 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
  * index from `strips_dest`.
  */
 static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
-                                                 const ListBase /* NlaStrip */ *strips_source,
-                                                 const ListBase /* NlaStrip */ *strips_dest)
+                                                 const ListBase /*NlaStrip*/ *strips_source,
+                                                 const ListBase /*NlaStrip*/ *strips_dest)
 {
   BLI_assert_msg(BLI_listbase_count(strips_source) == BLI_listbase_count(strips_dest),
                  "Expecting the same number of source and destination strips");
@@ -1332,7 +1332,7 @@ bool BKE_nlatrack_is_nonlocal_in_liboverride(const ID *id, const NlaTrack *nlt)
 
 /* NLA Strips -------------------------------------- */
 
-static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)
+static NlaStrip *nlastrip_find_active(ListBase /*NlaStrip*/ *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
@@ -1455,7 +1455,7 @@ void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)
   }
 }
 
-static NlaStrip *nlastrip_find_by_name(ListBase /* NlaStrip */ *strips, const char *name)
+static NlaStrip *nlastrip_find_by_name(ListBase /*NlaStrip*/ *strips, const char *name)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (STREQ(strip->name, name)) {
@@ -2191,7 +2191,7 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
   BKE_nlastrip_set_active(adt, strip);
 }
 
-static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
+static void nla_tweakmode_find_active(const ListBase /*NlaTrack*/ *nla_tracks,
                                       NlaTrack **r_track_of_active_strip,
                                       NlaStrip **r_active_strip)
 {

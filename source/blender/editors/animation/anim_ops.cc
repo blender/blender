@@ -761,7 +761,7 @@ static void ANIM_OT_slot_unassign_object(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int convert_action_exec(bContext *C, wmOperator * /* op */)
+static int convert_action_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
 

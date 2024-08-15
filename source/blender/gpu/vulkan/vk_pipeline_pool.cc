@@ -14,7 +14,7 @@ namespace blender::gpu {
 
 VKPipelinePool::VKPipelinePool()
 {
-  /* Initialize VkComputePipelineCreateInfo*/
+  /* Initialize VkComputePipelineCreateInfo */
   vk_compute_pipeline_create_info_.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
   vk_compute_pipeline_create_info_.pNext = nullptr;
   vk_compute_pipeline_create_info_.flags = 0;

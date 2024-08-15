@@ -26,7 +26,7 @@ struct bContext;
 void graph_draw_channel_names(bContext *C,
                               bAnimContext *ac,
                               ARegion *region,
-                              const ListBase /* bAnimListElem */ &anim_data);
+                              const ListBase /*bAnimListElem*/ &anim_data);
 
 /**
  * This is called twice from `space_graph.cc`, #graph_main_region_draw()

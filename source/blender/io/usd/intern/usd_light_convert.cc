@@ -204,7 +204,7 @@ static bNode *append_node(bNode *dst_node,
  * handles copying textures, if required.
  */
 static bool node_search(bNode *fromnode,
-                        bNode * /* tonode */,
+                        bNode * /*tonode*/,
                         void *userdata,
                         const bool /*reversed*/)
 {

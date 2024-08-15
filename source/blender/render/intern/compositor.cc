@@ -416,7 +416,7 @@ class Context : public realtime_compositor::Context {
     BKE_stamp_info_callback(
         &callback_data,
         render_result->stamp_data,
-        [](void *user_data, const char *key, char *value, int /* value_length */) {
+        [](void *user_data, const char *key, char *value, int /*value_length*/) {
           StampCallbackData *data = static_cast<StampCallbackData *>(user_data);
 
           const std::string manifest_key = bke::cryptomatte::BKE_cryptomatte_meta_data_key(

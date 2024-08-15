@@ -168,7 +168,7 @@ class GHOST_Context : public GHOST_IContext {
   };
 
   virtual GHOST_TSuccess getVulkanSwapChainFormat(
-      GHOST_VulkanSwapChainData * /*r_swap_chain_data */) override
+      GHOST_VulkanSwapChainData * /*r_swap_chain_data*/) override
   {
     return GHOST_kFailure;
   }

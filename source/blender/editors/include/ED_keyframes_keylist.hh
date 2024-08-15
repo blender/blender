@@ -143,7 +143,7 @@ const ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
 const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
                                                 const Range2f frame_range);
 bool ED_keylist_is_empty(const AnimKeylist *keylist);
-const ListBase /* ActKeyColumn */ *ED_keylist_listbase(const AnimKeylist *keylist);
+const ListBase /*ActKeyColumn*/ *ED_keylist_listbase(const AnimKeylist *keylist);
 bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range);
 /**
  * Return the selected key-frame's range. If none are selected, return False and

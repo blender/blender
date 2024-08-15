@@ -370,7 +370,7 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
   screen_draw_area_icon(&sa2new, ED_area_icon(sa1), icon_color, bg_color);
 }
 
-void screen_draw_dock_preview(const wmWindow * /* win */,
+void screen_draw_dock_preview(const wmWindow * /*win*/,
                               ScrArea *source,
                               ScrArea *target,
                               AreaDockTarget dock_target)

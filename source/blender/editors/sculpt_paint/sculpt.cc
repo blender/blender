@@ -549,7 +549,7 @@ bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
   return true;
 }
 
-bool vert_has_unique_face_set(const BMVert * /* vert */)
+bool vert_has_unique_face_set(const BMVert * /*vert*/)
 {
   /* TODO: Obviously not fully implemented yet. Needs to be implemented for Relax Face Sets brush
    * to work. */
