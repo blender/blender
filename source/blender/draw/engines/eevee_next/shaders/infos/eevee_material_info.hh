@@ -228,6 +228,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .push_constant(Type::FLOAT, "world_opacity_fade")
     .push_constant(Type::FLOAT, "world_background_blur")
     .push_constant(Type::IVEC4, "world_coord_packed")
+    .early_fragment_test(true)
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
     .additional_info("eevee_global_ubo",
@@ -238,6 +239,16 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
                      //  "eevee_render_pass_out",
                      //  "eevee_cryptomatte_out",
                      "eevee_utility_texture");
+
+GPU_SHADER_CREATE_INFO(eevee_renderpass_clear)
+    .fragment_out(0, Type::VEC4, "out_background")
+    .fragment_source("eevee_renderpass_clear_frag.glsl")
+    .additional_info("draw_fullscreen",
+                     "eevee_global_ubo",
+                     "eevee_render_pass_out",
+                     "eevee_cryptomatte_out",
+                     "eevee_shared")
+    .do_static_compilation(true);
 
 GPU_SHADER_INTERFACE_INFO(eevee_surf_shadow_atomic_iface, "shadow_iface")
     .flat(Type::INT, "shadow_view_id");

@@ -36,12 +36,14 @@ class BackgroundPipeline {
  private:
   Instance &inst_;
 
+  PassSimple clear_ps_ = {"World.Background.Clear"};
   PassSimple world_ps_ = {"World.Background"};
 
  public:
   BackgroundPipeline(Instance &inst) : inst_(inst){};
 
   void sync(GPUMaterial *gpumat, float background_opacity, float background_blur);
+  void clear(View &view);
   void render(View &view);
 };
 

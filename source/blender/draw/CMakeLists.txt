@@ -454,6 +454,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_lightprobe_sphere_remap_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_sphere_select_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_sphere_sunlight_comp.glsl
+  engines/eevee_next/shaders/eevee_renderpass_clear_frag.glsl
   engines/eevee_next/shaders/eevee_renderpass_lib.glsl
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl
