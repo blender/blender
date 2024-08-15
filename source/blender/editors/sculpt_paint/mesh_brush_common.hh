@@ -306,16 +306,49 @@ void calc_vert_factors(const Object &object,
                        const bke::pbvh::Node &node,
                        Span<int> verts,
                        MutableSpan<float> factors);
+inline void calc_vert_factors(const Object &object,
+                              const Cache *cache,
+                              const bke::pbvh::Node &node,
+                              Span<int> verts,
+                              MutableSpan<float> factors)
+{
+  if (cache == nullptr) {
+    return;
+  }
+  calc_vert_factors(object, *cache, node, verts, factors);
+}
 void calc_grids_factors(const Object &object,
                         const Cache &cache,
                         const bke::pbvh::Node &node,
                         Span<int> grids,
                         MutableSpan<float> factors);
+inline void calc_grids_factors(const Object &object,
+                               const Cache *cache,
+                               const bke::pbvh::Node &node,
+                               Span<int> grids,
+                               MutableSpan<float> factors)
+{
+  if (cache == nullptr) {
+    return;
+  }
+  calc_grids_factors(object, *cache, node, grids, factors);
+}
 void calc_vert_factors(const Object &object,
                        const Cache &cache,
                        const bke::pbvh::Node &node,
                        const Set<BMVert *, 0> &verts,
                        MutableSpan<float> factors);
+inline void calc_vert_factors(const Object &object,
+                              const Cache *cache,
+                              const bke::pbvh::Node &node,
+                              const Set<BMVert *, 0> &verts,
+                              MutableSpan<float> factors)
+{
+  if (cache == nullptr) {
+    return;
+  }
+  calc_vert_factors(object, *cache, node, verts, factors);
+}
 
 /**
  * Calculate all auto-masking influence on each face.

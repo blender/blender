@@ -357,10 +357,8 @@ static void calc_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, -1.0f, 1.0f);
 
@@ -409,10 +407,8 @@ static void calc_smooth_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, -1.0f, 1.0f);
 
@@ -450,10 +446,8 @@ static void calc_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, -1.0f, 1.0f);
 
@@ -506,10 +500,8 @@ static void calc_inflate_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(verts.size());
@@ -539,10 +531,8 @@ static void calc_inflate_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(positions.size());
@@ -575,10 +565,8 @@ static void calc_inflate_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(verts.size());
@@ -626,10 +614,8 @@ static void calc_scale_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(verts.size());
@@ -659,10 +645,8 @@ static void calc_scale_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(positions.size());
@@ -694,10 +678,8 @@ static void calc_scale_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(positions.size());
@@ -762,10 +744,8 @@ static void calc_sphere_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(verts.size());
@@ -794,10 +774,8 @@ static void calc_sphere_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(positions.size());
@@ -828,10 +806,8 @@ static void calc_sphere_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           tls.translations.resize(positions.size());
@@ -890,10 +866,8 @@ static void calc_random_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
@@ -924,10 +898,8 @@ static void calc_random_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
 
           randomize_factors(orig_data.positions, ss.filter_cache->random_seed, factors);
@@ -961,10 +933,8 @@ static void calc_random_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
 
           randomize_factors(orig_positions, ss.filter_cache->random_seed, factors);
@@ -1018,10 +988,8 @@ static void calc_relax_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1071,10 +1039,8 @@ static void calc_relax_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], grids, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1120,10 +1086,8 @@ static void calc_relax_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1183,10 +1147,8 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1239,10 +1201,8 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1297,10 +1257,8 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1358,10 +1316,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1402,10 +1358,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1448,10 +1402,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1489,10 +1441,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(orig_data.positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1534,10 +1484,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1573,10 +1521,8 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
@@ -1658,10 +1604,8 @@ static void calc_sharpen_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], verts, factors);
           scale_factors(factors, strength);
 
           /* This filter can't work at full strength as it needs multiple iterations to reach a
@@ -1730,10 +1674,8 @@ static void calc_sharpen_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], grids, factors);
           scale_factors(factors, strength);
 
           /* This filter can't work at full strength as it needs multiple iterations to reach a
@@ -1815,10 +1757,8 @@ static void calc_sharpen_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[node_index], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[node_index], verts, factors);
           scale_factors(factors, strength);
 
           /* This filter can't work at full strength as it needs multiple iterations to reach a
@@ -1905,10 +1845,8 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, final_strength);
 
           const MutableSpan translations = gather_data_mesh(
@@ -1937,10 +1875,8 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           tls.factors.resize(positions.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_grids_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-          }
+          auto_mask::calc_grids_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
           scale_factors(factors, final_strength);
 
           const MutableSpan translations = gather_data_grids(
@@ -1971,10 +1907,8 @@ static void calc_enhance_details_filter(const Sculpt &sd,
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(bm, verts, factors);
-          if (ss.filter_cache->automasking) {
-            auto_mask::calc_vert_factors(
-                object, *ss.filter_cache->automasking, *nodes[i], verts, factors);
-          }
+          auto_mask::calc_vert_factors(
+              object, ss.filter_cache->automasking.get(), *nodes[i], verts, factors);
           scale_factors(factors, final_strength);
 
           const MutableSpan translations = gather_data_vert_bmesh(
@@ -2018,10 +1952,8 @@ static void calc_erase_displacement_filter(const Sculpt &sd,
       tls.factors.resize(positions.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
-      if (ss.filter_cache->automasking) {
-        auto_mask::calc_grids_factors(
-            object, *ss.filter_cache->automasking, *nodes[i], grids, factors);
-      }
+      auto_mask::calc_grids_factors(
+          object, ss.filter_cache->automasking.get(), *nodes[i], grids, factors);
       scale_factors(factors, strength);
       clamp_factors(factors, -1.0f, 1.0f);
 

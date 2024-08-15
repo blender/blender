@@ -93,9 +93,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      if (cache.automasking) {
-        auto_mask::calc_vert_factors(object, *cache.automasking, *nodes[i], verts, factors);
-      }
+      auto_mask::calc_vert_factors(object, cache.automasking.get(), *nodes[i], verts, factors);
 
       calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
@@ -209,9 +207,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      if (cache.automasking) {
-        auto_mask::calc_grids_factors(object, *cache.automasking, *nodes[i], grids, factors);
-      }
+      auto_mask::calc_grids_factors(object, cache.automasking.get(), *nodes[i], grids, factors);
 
       calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -317,9 +313,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      if (cache.automasking) {
-        auto_mask::calc_vert_factors(object, *cache.automasking, *nodes[i], verts, factors);
-      }
+      auto_mask::calc_vert_factors(object, cache.automasking.get(), *nodes[i], verts, factors);
 
       calc_brush_texture_factors(ss, brush, positions, factors);
 

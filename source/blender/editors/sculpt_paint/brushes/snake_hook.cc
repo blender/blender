@@ -196,9 +196,7 @@ static void calc_faces(const Sculpt &sd,
     apply_hardness_to_distances(cache, distances);
     calc_brush_strength_factors(cache, brush, distances, factors);
 
-    if (cache.automasking) {
-      auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-    }
+    auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
     scale_factors(factors, cache.bstrength);
   }
 
@@ -214,9 +212,7 @@ static void calc_faces(const Sculpt &sd,
   if (do_elastic) {
     fill_factor_from_hide_and_mask(mesh, verts, factors);
     scale_factors(factors, cache.bstrength * 20.0f);
-    if (cache.automasking) {
-      auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-    }
+    auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
     calc_kelvinet_translation(cache, positions, factors, translations);
   }
@@ -260,9 +256,7 @@ static void calc_grids(const Sculpt &sd,
     apply_hardness_to_distances(cache, distances);
     calc_brush_strength_factors(cache, brush, distances, factors);
 
-    if (cache.automasking) {
-      auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-    }
+    auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
     scale_factors(factors, cache.bstrength);
   }
 
@@ -278,9 +272,7 @@ static void calc_grids(const Sculpt &sd,
   if (do_elastic) {
     fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
     scale_factors(factors, cache.bstrength * 20.0f);
-    if (cache.automasking) {
-      auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-    }
+    auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
     calc_kelvinet_translation(cache, positions, factors, translations);
   }
@@ -324,9 +316,7 @@ static void calc_bmesh(const Sculpt &sd,
     apply_hardness_to_distances(cache, distances);
     calc_brush_strength_factors(cache, brush, distances, factors);
 
-    if (cache.automasking) {
-      auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-    }
+    auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
     scale_factors(factors, cache.bstrength);
   }
 
@@ -342,9 +332,7 @@ static void calc_bmesh(const Sculpt &sd,
   if (do_elastic) {
     fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
     scale_factors(factors, cache.bstrength * 20.0f);
-    if (cache.automasking) {
-      auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-    }
+    auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
     calc_kelvinet_translation(cache, positions, factors, translations);
   }

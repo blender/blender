@@ -127,9 +127,7 @@ BLI_NOINLINE static void calc_factors_faces(const Brush &brush,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   scale_factors(factors, strength);
 
@@ -247,9 +245,7 @@ BLI_NOINLINE static void calc_factors_grids(const Brush &brush,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   scale_factors(factors, strength);
 
@@ -366,9 +362,7 @@ static void calc_factors_bmesh(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   scale_factors(factors, strength);
 
@@ -463,9 +457,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_faces(const Brush &brush,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   scale_factors(factors, strength);
 
@@ -575,9 +567,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Brush &brush,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   scale_factors(factors, strength);
 
@@ -685,9 +675,7 @@ static void calc_topology_relax_factors_bmesh(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   scale_factors(factors, strength);
 

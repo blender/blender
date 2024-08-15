@@ -1136,9 +1136,7 @@ static void calc_bend_mesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_mesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_mesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1198,9 +1196,7 @@ static void calc_bend_grids(const Sculpt &sd,
   const MutableSpan<float> factors = gather_data_grids(
       subdiv_ccg, vert_factors, grids, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const Span<int> propagation_steps = gather_data_grids(
       subdiv_ccg, vert_propagation_steps, grids, tls.propagation_steps);
@@ -1264,9 +1260,7 @@ static void calc_bend_bmesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_vert_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1426,9 +1420,7 @@ static void calc_slide_mesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_mesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_mesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1487,9 +1479,7 @@ static void calc_slide_grids(const Sculpt &sd,
   const MutableSpan<float> factors = gather_data_grids(
       subdiv_ccg, vert_factors, grids, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const Span<int> propagation_steps = gather_data_grids(
       subdiv_ccg, vert_propagation_steps, grids, tls.propagation_steps);
@@ -1551,9 +1541,7 @@ static void calc_slide_bmesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_vert_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1708,9 +1696,7 @@ static void calc_inflate_mesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_mesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_mesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1764,9 +1750,7 @@ static void calc_inflate_grids(const Sculpt &sd,
   const MutableSpan<float> factors = gather_data_grids(
       subdiv_ccg, vert_factors, grids, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const Span<int> propagation_steps = gather_data_grids(
       subdiv_ccg, vert_propagation_steps, grids, tls.propagation_steps);
@@ -1823,9 +1807,7 @@ static void calc_inflate_bmesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_vert_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -1974,9 +1956,7 @@ static void calc_grab_mesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_mesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_mesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -2031,9 +2011,7 @@ static void calc_grab_grids(const Sculpt &sd,
   const MutableSpan<float> factors = gather_data_grids(
       subdiv_ccg, vert_factors, grids, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const Span<int> propagation_steps = gather_data_grids(
       subdiv_ccg, vert_propagation_steps, grids, tls.propagation_steps);
@@ -2091,9 +2069,7 @@ static void calc_grab_bmesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_vert_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -2247,9 +2223,7 @@ static void calc_twist_mesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_mesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_mesh(
       vert_propagation_steps, verts, tls.propagation_steps);
@@ -2306,9 +2280,7 @@ static void calc_twist_grids(const Sculpt &sd,
   const MutableSpan<float> factors = gather_data_grids(
       subdiv_ccg, vert_factors, grids, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const Span<int> propagation_steps = gather_data_grids(
       subdiv_ccg, vert_propagation_steps, grids, tls.propagation_steps);
@@ -2368,9 +2340,7 @@ static void calc_twist_bmesh(const Sculpt &sd,
 
   const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
 
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const Span<int> propagation_steps = gather_data_vert_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);

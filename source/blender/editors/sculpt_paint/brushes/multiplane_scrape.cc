@@ -148,9 +148,7 @@ static void sample_node_surface_mesh(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -192,9 +190,7 @@ static void sample_node_surface_grids(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -238,9 +234,7 @@ static void sample_node_surface_bmesh(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, verts, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -352,9 +346,7 @@ static void calc_faces(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
@@ -411,9 +403,7 @@ static void calc_grids(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_grids_factors(object, *cache.automasking, node, grids, factors);
-  }
+  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
 
   tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
@@ -470,9 +460,7 @@ static void calc_bmesh(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, verts, factors);
   }
-  if (cache.automasking) {
-    auto_mask::calc_vert_factors(object, *cache.automasking, node, verts, factors);
-  }
+  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
