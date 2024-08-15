@@ -11,8 +11,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist_stack.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -534,24 +536,81 @@ static void check_topology_islands(Object &ob, FalloffType falloff_type)
 /* Functions implementing different algorithms for initializing falloff values. */
 
 /**
- * Utility function to get the closet vertex after flipping an original vertex position based on
- * an symmetry pass iteration index.
+ * Utility function to get the closest vertices after flipping an original vertex position for
+ * all symmetry passes.
  */
-static PBVHVertRef get_vert_index_for_symmetry_pass(Object &ob,
-                                                    const char symm_it,
-                                                    const PBVHVertRef original_vertex)
+static Vector<int> calc_symmetry_vert_indices(const Object &object,
+                                              const ePaintSymmetryFlags symm,
+                                              const int original_vert)
 {
-  PBVHVertRef symm_vertex = {SCULPT_EXPAND_VERTEX_NONE};
+  const SculptSession &ss = *object.sculpt;
+  const float max_distance = FLT_MAX;
+  const bool use_original = false;
+  Vector<int> symm_verts;
+  symm_verts.append(original_vert);
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
-  if (symm_it == 0) {
-    symm_vertex = original_vertex;
+      const float3 location = positions[original_vert];
+      for (char symm_it = 1; symm_it <= symm; symm_it++) {
+        if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+          continue;
+        }
+        const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
+        const std::optional<int> nearest = nearest_vert_calc_mesh(
+            *ss.pbvh, positions, hide_vert, symm_location, max_distance, use_original);
+        if (!nearest) {
+          continue;
+        }
+        symm_verts.append(*nearest);
+      }
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> elems = subdiv_ccg.grids;
+      const SubdivCCGCoord original_coord = SubdivCCGCoord::from_index(key, original_vert);
+      const float3 location = CCG_grid_elem_co(
+          key, elems[original_coord.grid_index], original_coord.x, original_coord.y);
+      for (char symm_it = 1; symm_it <= symm; symm_it++) {
+        if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+          continue;
+        }
+        const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
+        const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
+            *ss.pbvh, subdiv_ccg, symm_location, max_distance, use_original);
+        if (!nearest) {
+          continue;
+        }
+        symm_verts.append(nearest->to_index(key));
+      }
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      BMesh &bm = *ss.bm;
+      const BMVert *original_bm_vert = BM_vert_at_index(&bm, original_vert);
+      const float3 location = original_bm_vert->co;
+      for (char symm_it = 1; symm_it <= symm; symm_it++) {
+        if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+          continue;
+        }
+        const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
+        const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
+            *ss.pbvh, symm_location, max_distance, use_original);
+        if (!nearest) {
+          continue;
+        }
+        symm_verts.append(BM_elem_index_get(*nearest));
+      }
+      break;
+    }
   }
-  else {
-    const float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, original_vertex),
-                                          ePaintSymmetryFlags(symm_it));
-    symm_vertex = nearest_vert_calc(ob, location, FLT_MAX, false);
-  }
-  return symm_vertex;
+  return symm_verts;
 }
 
 /**
@@ -675,27 +734,79 @@ static Array<float> normals_falloff_create(Object &ob,
  * Spherical: Initializes the falloff based on the distance from a vertex, taking symmetry into
  * account.
  */
-static Array<float> spherical_falloff_create(Object &ob, const PBVHVertRef v)
+static Array<float> spherical_falloff_create(const Object &object, const PBVHVertRef v)
 {
-  SculptSession &ss = *ob.sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
+  SculptSession &ss = *object.sculpt;
+  Array<float> dists(SCULPT_vertex_count_get(ss));
 
-  Array<float> dists(totvert, FLT_MAX);
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      object, SCULPT_mesh_symmetry_xyz_get(object), BKE_pbvh_vertex_to_index(*ss.pbvh, v));
 
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
 
-  for (char symm_it = 0; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
-      continue;
+      Array<float3> locations(symm_verts.size());
+      array_utils::gather(positions, symm_verts.as_span(), locations.as_mutable_span());
+
+      threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
+        for (const int vert : range) {
+          float dist = std::numeric_limits<float>::max();
+          for (const float3 &location : locations) {
+            dist = std::min(dist, math::distance(positions[vert], location));
+          }
+          dists[vert] = dist;
+        }
+      });
+      break;
     }
-    const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, v);
-    if (symm_vertex.i != SCULPT_EXPAND_VERTEX_NONE) {
-      const float *co = SCULPT_vertex_co_get(ob, symm_vertex);
-      for (int i = 0; i < totvert; i++) {
-        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-        dists[i] = min_ff(dists[i], len_v3v3(co, SCULPT_vertex_co_get(ob, vertex)));
+      Array<float3> locations(symm_verts.size());
+      for (const int i : symm_verts.index_range()) {
+        const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, symm_verts[i]);
+        locations[i] = CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y);
       }
+
+      threading::parallel_for(elems.index_range(), 1024, [&](const IndexRange range) {
+        for (const int grid : range) {
+          const int start = grid * key.grid_area;
+          CCGElem *elem = elems[grid];
+          for (const int offset : IndexRange(key.grid_area)) {
+            const int vert = start + offset;
+            float dist = std::numeric_limits<float>::max();
+            for (const float3 &location : locations) {
+              dist = std::min(dist,
+                              math::distance(CCG_elem_offset_co(key, elem, offset), location));
+            }
+            dists[vert] = dist;
+          }
+        }
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      BMesh &bm = *ss.bm;
+
+      Array<float3> locations(symm_verts.size());
+      for (const int i : symm_verts.index_range()) {
+        locations[i] = BM_vert_at_index(&bm, symm_verts[i])->co;
+      }
+
+      threading::parallel_for(IndexRange(bm.totvert), 1024, [&](const IndexRange range) {
+        for (const int vert : range) {
+          float dist = std::numeric_limits<float>::max();
+          for (const float3 &location : locations) {
+            dist = std::min(dist,
+                            math::distance(float3(BM_vert_at_index(&bm, vert)->co), location));
+          }
+          dists[vert] = dist;
+        }
+      });
+      break;
     }
   }
 
@@ -715,14 +826,13 @@ static Array<float> boundary_topology_falloff_create(Object &ob, const PBVHVertR
   BitVector<> visited_verts(totvert);
   std::queue<int> queue;
 
-  /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  for (char symm_it = 0; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
-      continue;
-    }
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      ob, SCULPT_mesh_symmetry_xyz_get(ob), BKE_pbvh_vertex_to_index(*ss.pbvh, v));
 
-    const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, v);
+  /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
+  for (const int vert : symm_verts) {
+
+    const PBVHVertRef symm_vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
 
     std::unique_ptr<SculptBoundary> boundary = boundary::data_init(
         ob, nullptr, symm_vertex, FLT_MAX);
@@ -784,20 +894,15 @@ static Array<float> diagonals_falloff_create(Object &ob, const PBVHVertRef v)
     return dists;
   }
 
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      ob, SCULPT_mesh_symmetry_xyz_get(ob), BKE_pbvh_vertex_to_index(*ss.pbvh, v));
+
   /* Search and mask as visited the initial vertices using the enabled symmetry passes. */
   BitVector<> visited_verts(totvert);
-  std::queue<PBVHVertRef> queue;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  for (char symm_it = 0; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
-      continue;
-    }
-
-    const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, v);
-    int symm_vertex_i = BKE_pbvh_vertex_to_index(*ss.pbvh, symm_vertex);
-
-    queue.push(symm_vertex);
-    visited_verts[symm_vertex_i].set();
+  std::queue<int> queue;
+  for (const int vert : symm_verts) {
+    queue.push(vert);
+    visited_verts[vert].set();
   }
 
   if (queue.empty()) {
@@ -806,20 +911,17 @@ static Array<float> diagonals_falloff_create(Object &ob, const PBVHVertRef v)
 
   /* Propagate the falloff increasing the value by 1 each time a new vertex is visited. */
   while (!queue.empty()) {
-    PBVHVertRef v_next = queue.front();
+    const int next_vert = queue.front();
     queue.pop();
 
-    int v_next_i = BKE_pbvh_vertex_to_index(*ss.pbvh, v_next);
-
-    for (const int face : ss.vert_to_face_map[v_next_i]) {
+    for (const int face : ss.vert_to_face_map[next_vert]) {
       for (const int vert : corner_verts.slice(faces[face])) {
-        const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
-        if (visited_verts[neighbor_v.i]) {
+        if (visited_verts[vert]) {
           continue;
         }
-        dists[neighbor_v.i] = dists[v_next_i] + 1.0f;
-        visited_verts[neighbor_v.i].set();
-        queue.push(neighbor_v);
+        dists[vert] = dists[next_vert] + 1.0f;
+        visited_verts[vert].set();
+        queue.push(vert);
       }
     }
   }
@@ -833,21 +935,21 @@ static Array<float> diagonals_falloff_create(Object &ob, const PBVHVertRef v)
  */
 static void update_max_vert_falloff_value(SculptSession &ss, Cache &expand_cache)
 {
-    expand_cache.max_vert_falloff = threading::parallel_reduce(
+  expand_cache.max_vert_falloff = threading::parallel_reduce(
       IndexRange(SCULPT_vertex_count_get(ss)),
       4096,
       std::numeric_limits<float>::lowest(),
       [&](const IndexRange range, float max) {
-  for (const int vert : range) {
-    if (expand_cache.vert_falloff[vert] == FLT_MAX) {
-      continue;
-    }
-    if (!is_vert_in_active_component(ss, expand_cache, vert)) {
-      continue;
-    }
-    max = std::max(max, expand_cache.vert_falloff[vert]);
-  }
-return max;
+        for (const int vert : range) {
+          if (expand_cache.vert_falloff[vert] == FLT_MAX) {
+            continue;
+          }
+          if (!is_vert_in_active_component(ss, expand_cache, vert)) {
+            continue;
+          }
+          max = std::max(max, expand_cache.vert_falloff[vert]);
+        }
+        return max;
       },
       [](const float a, const float b) { return std::max(a, b); });
 }
@@ -860,21 +962,21 @@ static void update_max_face_falloff_factor(SculptSession &ss, Mesh &mesh, Cache 
 {
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-    expand_cache.max_face_falloff = threading::parallel_reduce(
+  expand_cache.max_face_falloff = threading::parallel_reduce(
       faces.index_range(),
       4096,
       std::numeric_limits<float>::lowest(),
       [&](const IndexRange range, float max) {
-  for (const int face : range) {
-    if (expand_cache.face_falloff[face] == FLT_MAX) {
-      continue;
-    }
-    if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, face)) {
-      continue;
-    }
-max = std::max(max, expand_cache.face_falloff[face]);
-  }
-return max;
+        for (const int face : range) {
+          if (expand_cache.face_falloff[face] == FLT_MAX) {
+            continue;
+          }
+          if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, face)) {
+            continue;
+          }
+          max = std::max(max, expand_cache.face_falloff[face]);
+        }
+        return max;
       },
       [](const float a, const float b) { return std::max(a, b); });
 }
@@ -890,18 +992,18 @@ static void vert_to_face_falloff_grids(SculptSession &ss, Mesh *mesh, Cache &exp
   const OffsetIndices faces = mesh->faces();
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
 
-threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
-    float accum = 0.0f;
-    for (const int corner : faces[face]) {
-      const int grid_loop_index = corner * key.grid_area;
-      for (int g = 0; g < key.grid_area; g++) {
-        accum += expand_cache.vert_falloff[grid_loop_index + g];
+      float accum = 0.0f;
+      for (const int corner : faces[face]) {
+        const int grid_loop_index = corner * key.grid_area;
+        for (int g = 0; g < key.grid_area; g++) {
+          accum += expand_cache.vert_falloff[grid_loop_index + g];
+        }
       }
+      expand_cache.face_falloff[face] = accum / (faces[face].size() * key.grid_area);
     }
-    expand_cache.face_falloff[face] = accum / (faces[face].size() * key.grid_area);
-  }
-});
+  });
 }
 
 static void vert_to_face_falloff_mesh(Mesh *mesh, Cache &expand_cache)
@@ -909,16 +1011,16 @@ static void vert_to_face_falloff_mesh(Mesh *mesh, Cache &expand_cache)
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
-threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
-const Span<int> face_verts = corner_verts.slice(faces[face]);
-    float accum = 0.0f;
-    for (const int vert : face_verts) {
-      accum += expand_cache.vert_falloff[vert];
+      const Span<int> face_verts = corner_verts.slice(faces[face]);
+      float accum = 0.0f;
+      for (const int vert : face_verts) {
+        accum += expand_cache.vert_falloff[vert];
+      }
+      expand_cache.face_falloff[face] = accum / face_verts.size();
     }
-    expand_cache.face_falloff[face] = accum / face_verts.size();
-  }
-});
+  });
 }
 
 /**
@@ -1833,16 +1935,19 @@ static void find_active_connected_components_from_vert(Object &ob,
     expand_cache.active_connected_islands[i] = EXPAND_ACTIVE_COMPONENT_NONE;
   }
 
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      ob, symm, BKE_pbvh_vertex_to_index(*ss.pbvh, initial_vertex));
+
+  int valid_index = 0;
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-
-    const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, initial_vertex);
-
-    expand_cache.active_connected_islands[int(symm_it)] = islands::vert_id_get(
-        ss, BKE_pbvh_vertex_to_index(*ss.pbvh, symm_vertex));
+    expand_cache.active_connected_islands[symm_it] = islands::vert_id_get(ss,
+                                                                          symm_verts[valid_index]);
+    valid_index++;
   }
 }
 
