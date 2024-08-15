@@ -541,14 +541,13 @@ static PBVHVertRef get_vert_index_for_symmetry_pass(Object &ob,
                                                     const char symm_it,
                                                     const PBVHVertRef original_vertex)
 {
-  SculptSession &ss = *ob.sculpt;
   PBVHVertRef symm_vertex = {SCULPT_EXPAND_VERTEX_NONE};
 
   if (symm_it == 0) {
     symm_vertex = original_vertex;
   }
   else {
-    const float3 location = symmetry_flip(SCULPT_vertex_co_get(ss, original_vertex),
+    const float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, original_vertex),
                                           ePaintSymmetryFlags(symm_it));
     symm_vertex = nearest_vert_calc(ob, location, FLT_MAX, false);
   }
@@ -601,7 +600,7 @@ static Array<float> topology_falloff_create(Object &ob, const PBVHVertRef v)
   Array<float> dists(totvert, 0.0f);
 
   flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_initial_with_symmetry(ob, ss, flood, v, FLT_MAX);
+  flood_fill::add_initial_with_symmetry(ob, flood, v, FLT_MAX);
 
   flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
     return topology_floodfill_fn(ss, from_v, to_v, is_duplicate, dists);
@@ -615,18 +614,16 @@ static Array<float> topology_falloff_create(Object &ob, const PBVHVertRef v)
  * each vertex and the previous one.
  * This creates falloff patterns that follow and snap to the hard edges of the object.
  */
-static bool normal_floodfill_fn(SculptSession &ss,
-                                PBVHVertRef from_v,
-                                PBVHVertRef to_v,
-                                bool is_duplicate,
-                                FloodFillData *data)
+static bool normal_floodfill_fn(
+    Object &object, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, FloodFillData *data)
 {
+  const SculptSession &ss = *object.sculpt;
   int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
 
   if (!is_duplicate) {
-    float3 current_normal = SCULPT_vertex_normal_get(ss, to_v);
-    float3 prev_normal = SCULPT_vertex_normal_get(ss, from_v);
+    float3 current_normal = SCULPT_vertex_normal_get(object, to_v);
+    float3 prev_normal = SCULPT_vertex_normal_get(object, from_v);
     const float from_edge_factor = data->edge_factor[from_v_i];
     data->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) * from_edge_factor;
     data->dists[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
@@ -653,16 +650,16 @@ static Array<float> normals_falloff_create(Object &ob,
   Array<float> edge_factor(totvert, 1.0f);
 
   flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_initial_with_symmetry(ob, ss, flood, v, FLT_MAX);
+  flood_fill::add_initial_with_symmetry(ob, flood, v, FLT_MAX);
 
   FloodFillData fdata;
   fdata.dists = dists;
   fdata.edge_factor = edge_factor;
   fdata.edge_sensitivity = edge_sensitivity;
-  fdata.original_normal = SCULPT_vertex_normal_get(ss, v);
+  fdata.original_normal = SCULPT_vertex_normal_get(ob, v);
 
   flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-    return normal_floodfill_fn(ss, from_v, to_v, is_duplicate, &fdata);
+    return normal_floodfill_fn(ob, from_v, to_v, is_duplicate, &fdata);
   });
 
   smooth::blur_geometry_data_array(ob, blur_steps, dists);
@@ -693,11 +690,11 @@ static Array<float> spherical_falloff_create(Object &ob, const PBVHVertRef v)
     }
     const PBVHVertRef symm_vertex = get_vert_index_for_symmetry_pass(ob, symm_it, v);
     if (symm_vertex.i != SCULPT_EXPAND_VERTEX_NONE) {
-      const float *co = SCULPT_vertex_co_get(ss, symm_vertex);
+      const float *co = SCULPT_vertex_co_get(ob, symm_vertex);
       for (int i = 0; i < totvert; i++) {
         PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 
-        dists[i] = min_ff(dists[i], len_v3v3(co, SCULPT_vertex_co_get(ss, vertex)));
+        dists[i] = min_ff(dists[i], len_v3v3(co, SCULPT_vertex_co_get(ob, vertex)));
       }
     }
   }
@@ -1760,7 +1757,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
   int total = 0;
   float avg[3] = {0.0f};
 
-  const float *expand_init_co = SCULPT_vertex_co_get(ss, expand_cache.initial_active_vertex);
+  const float *expand_init_co = SCULPT_vertex_co_get(ob, expand_cache.initial_active_vertex);
 
   boundary_verts.foreach_index([&](const int vert) {
     if (!is_vert_in_active_component(ss, expand_cache, vert)) {
@@ -1768,7 +1765,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
     }
 
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
-    const float *vertex_co = SCULPT_vertex_co_get(ss, vertex);
+    const float *vertex_co = SCULPT_vertex_co_get(ob, vertex);
 
     if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
       return;

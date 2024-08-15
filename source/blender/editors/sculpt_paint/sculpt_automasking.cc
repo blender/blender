@@ -117,7 +117,7 @@ bool needs_normal(const SculptSession & /*ss*/, const Sculpt &sd, const Brush *b
   return flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
 }
 
-static float normal_calc(const SculptSession &ss,
+static float normal_calc(const Object &object,
                          PBVHVertRef vertex,
                          float3 &normal,
                          float limit_lower,
@@ -130,7 +130,7 @@ static float normal_calc(const SculptSession &ss,
     normal_v = *orig_normal;
   }
   else {
-    normal_v = SCULPT_vertex_normal_get(ss, vertex);
+    normal_v = SCULPT_vertex_normal_get(object, vertex);
   }
 
   float angle = safe_acosf(dot_v3v3(normal, normal_v));
@@ -201,10 +201,11 @@ static bool needs_factors_cache(const Sculpt &sd, const Brush *brush)
 }
 
 static float calc_brush_normal_factor(const Cache *automasking,
-                                      const SculptSession &ss,
+                                      const Object &object,
                                       PBVHVertRef vertex,
                                       const std::optional<float3> &orig_normal)
 {
+  const SculptSession &ss = *object.sculpt;
   float falloff = automasking->settings.start_normal_falloff * M_PI;
   float3 initial_normal;
 
@@ -215,7 +216,7 @@ static float calc_brush_normal_factor(const Cache *automasking,
     initial_normal = ss.filter_cache->initial_normal;
   }
 
-  return normal_calc(ss,
+  return normal_calc(object,
                      vertex,
                      initial_normal,
                      automasking->settings.start_normal_limit - falloff * 0.5f,
@@ -224,10 +225,11 @@ static float calc_brush_normal_factor(const Cache *automasking,
 }
 
 static float calc_view_normal_factor(const Cache &automasking,
-                                     const SculptSession &ss,
+                                     const Object &object,
                                      PBVHVertRef vertex,
                                      const std::optional<float3> &orig_normal)
 {
+  const SculptSession &ss = *object.sculpt;
   float falloff = automasking.settings.view_normal_falloff * M_PI;
 
   float3 view_normal;
@@ -239,7 +241,7 @@ static float calc_view_normal_factor(const Cache &automasking,
     view_normal = ss.filter_cache->view_normal;
   }
 
-  return normal_calc(ss,
+  return normal_calc(object,
                      vertex,
                      view_normal,
                      automasking.settings.view_normal_limit,
@@ -257,7 +259,7 @@ static float calc_view_occlusion_factor(const Cache &automasking,
 
   if (stroke_id != automasking.current_stroke_id) {
     f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion) =
-        SCULPT_vertex_is_occluded(object, SCULPT_vertex_co_get(ss, vertex), true) ? 2 : 1;
+        SCULPT_vertex_is_occluded(object, SCULPT_vertex_co_get(object, vertex), true) ? 2 : 1;
   }
 
   return f == 2;
@@ -303,11 +305,12 @@ struct CavityBlurVert {
   CavityBlurVert() = default;
 };
 
-static void calc_blurred_cavity(SculptSession &ss,
+static void calc_blurred_cavity(const Object &object,
                                 const Cache *automasking,
                                 int steps,
                                 PBVHVertRef vertex)
 {
+  SculptSession &ss = *object.sculpt;
   float3 sno1(0.0f);
   float3 sno2(0.0f);
   float3 sco1(0.0f);
@@ -333,15 +336,15 @@ static void calc_blurred_cavity(SculptSession &ss,
   queue[0] = initial;
   end = 1;
 
-  const float *co1 = SCULPT_vertex_co_get(ss, vertex);
+  const float *co1 = SCULPT_vertex_co_get(object, vertex);
 
   while (start != end) {
     CavityBlurVert &blurvert = queue[start];
     PBVHVertRef v = blurvert.vertex;
     start = (start + 1) % queue.size();
 
-    const float *co = SCULPT_vertex_co_get(ss, v);
-    const float3 no = SCULPT_vertex_normal_get(ss, v);
+    const float *co = SCULPT_vertex_co_get(object, v);
+    const float3 no = SCULPT_vertex_normal_get(object, v);
 
     float centdist = len_v3v3(co, co1);
 
@@ -368,7 +371,7 @@ static void calc_blurred_cavity(SculptSession &ss,
         continue;
       }
 
-      float dist = len_v3v3(SCULPT_vertex_co_get(ss, v2), SCULPT_vertex_co_get(ss, v));
+      float dist = len_v3v3(SCULPT_vertex_co_get(object, v2), SCULPT_vertex_co_get(object, v));
 
       visit.add_new(v2.i);
       CavityBlurVert blurvert2(v2, dist, blurvert.depth + 1);
@@ -400,7 +403,7 @@ static void calc_blurred_cavity(SculptSession &ss,
   BLI_assert(sco1_len != sco2_len);
 
   if (!sco1_len) {
-    sco1 = SCULPT_vertex_co_get(ss, vertex);
+    sco1 = SCULPT_vertex_co_get(object, vertex);
   }
   else {
     sco1 /= float(sco1_len);
@@ -408,7 +411,7 @@ static void calc_blurred_cavity(SculptSession &ss,
   }
 
   if (!sco2_len) {
-    sco2 = SCULPT_vertex_co_get(ss, vertex);
+    sco2 = SCULPT_vertex_co_get(object, vertex);
   }
   else {
     sco2 /= float(sco2_len);
@@ -416,12 +419,12 @@ static void calc_blurred_cavity(SculptSession &ss,
 
   normalize_v3(sno1);
   if (dot_v3v3(sno1, sno1) == 0.0f) {
-    sno1 = SCULPT_vertex_normal_get(ss, vertex);
+    sno1 = SCULPT_vertex_normal_get(object, vertex);
   }
 
   normalize_v3(sno2);
   if (dot_v3v3(sno2, sno2) == 0.0f) {
-    sno2 = SCULPT_vertex_normal_get(ss, vertex);
+    sno2 = SCULPT_vertex_normal_get(object, vertex);
   }
 
   float3 vec = sco1 - sco2;
@@ -480,12 +483,13 @@ int settings_hash(const Object &ob, const Cache &automasking)
   return hash;
 }
 
-static float calc_cavity_factor(const Cache *automasking, SculptSession &ss, PBVHVertRef vertex)
+static float calc_cavity_factor(const Cache *automasking, const Object &object, PBVHVertRef vertex)
 {
+  SculptSession &ss = *object.sculpt;
   uchar stroke_id = *(const uchar *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_stroke_id);
 
   if (stroke_id != automasking->current_stroke_id) {
-    calc_blurred_cavity(ss, automasking, automasking->settings.cavity_blur_steps, vertex);
+    calc_blurred_cavity(object, automasking, automasking->settings.cavity_blur_steps, vertex);
   }
 
   float factor = *(const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_cavity);
@@ -515,7 +519,7 @@ static float factor_get(const Cache *automasking,
   if ((ss.cache || ss.filter_cache) &&
       (automasking->settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
   {
-    mask *= calc_brush_normal_factor(automasking, ss, vert, orig_normal);
+    mask *= calc_brush_normal_factor(automasking, object, vert, orig_normal);
   }
 
   /* If the cache is initialized with valid info, use the cache. This is used when the
@@ -525,7 +529,7 @@ static float factor_get(const Cache *automasking,
     float factor = *(const float *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_factor);
 
     if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-      factor *= calc_cavity_factor(automasking, ss, vert);
+      factor *= calc_cavity_factor(automasking, object, vert);
     }
 
     return automasking_factor_end(ss, automasking, vert, factor * mask);
@@ -575,11 +579,11 @@ static float factor_get(const Cache *automasking,
   if ((ss.cache || ss.filter_cache) &&
       (automasking->settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
   {
-    mask *= calc_view_normal_factor(*automasking, ss, vert, orig_normal);
+    mask *= calc_view_normal_factor(*automasking, object, vert, orig_normal);
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    mask *= calc_cavity_factor(automasking, ss, vert);
+    mask *= calc_cavity_factor(automasking, object, vert);
   }
 
   return automasking_factor_end(ss, automasking, vert, mask);
@@ -929,7 +933,7 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
         f *= calc_view_occlusion_factor(automasking, ob, vertex, -1);
       }
 
-      f *= calc_view_normal_factor(automasking, ss, vertex, {});
+      f *= calc_view_normal_factor(automasking, ob, vertex, {});
     }
 
     if (ss.attrs.automasking_stroke_id) {

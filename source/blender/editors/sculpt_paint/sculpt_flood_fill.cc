@@ -72,7 +72,6 @@ void FillDataBMesh::add_and_skip_initial(BMVert *vertex, const int index)
 }
 
 void add_initial_with_symmetry(const Object &ob,
-                               const SculptSession &ss,
                                FillData &flood,
                                PBVHVertRef vertex,
                                const float radius)
@@ -98,7 +97,7 @@ void add_initial_with_symmetry(const Object &ob,
     else {
       BLI_assert(radius > 0.0f);
       const float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
-      float3 location = symmetry_flip(SCULPT_vertex_co_get(ss, vertex), ePaintSymmetryFlags(i));
+      float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, vertex), ePaintSymmetryFlags(i));
       v = nearest_vert_calc(ob, location, radius_squared, false);
     }
 

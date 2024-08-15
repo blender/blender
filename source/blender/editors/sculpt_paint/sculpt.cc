@@ -154,8 +154,9 @@ int SCULPT_vertex_count_get(const SculptSession &ss)
   return 0;
 }
 
-const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
+const float *SCULPT_vertex_co_get(const Object &object, PBVHVertRef vertex)
 {
+  const SculptSession &ss = *object.sculpt;
   switch (ss.pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh:
       return BKE_pbvh_get_vert_positions(*ss.pbvh)[vertex.i];
@@ -172,8 +173,9 @@ const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex)
   return nullptr;
 }
 
-const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex)
+const blender::float3 SCULPT_vertex_normal_get(const Object &object, PBVHVertRef vertex)
 {
+  const SculptSession &ss = *object.sculpt;
   switch (ss.pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh: {
       const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
@@ -4867,7 +4869,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   const PBVHVertRef active_vertex = srd.active_vertex;
   ss.set_active_vert(active_vertex);
   SCULPT_vertex_random_access_ensure(ss);
-  copy_v3_v3(out->active_vertex_co, SCULPT_vertex_co_get(ss, active_vertex));
+  copy_v3_v3(out->active_vertex_co, SCULPT_vertex_co_get(ob, active_vertex));
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh:
@@ -5849,7 +5851,7 @@ static PBVHVertRef fake_neighbor_search(Object &ob,
                                         float max_distance_sq)
 {
   SculptSession &ss = *ob.sculpt;
-  const float3 location = SCULPT_vertex_co_get(ss, vertex);
+  const float3 location = SCULPT_vertex_co_get(ob, vertex);
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
     return node_in_sphere(node, location, max_distance_sq, false);
   });

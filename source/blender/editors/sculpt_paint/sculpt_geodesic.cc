@@ -238,7 +238,7 @@ Array<float> distances_create_from_vert_and_symm(Object &ob,
         v = vertex;
       }
       else {
-        float3 location = symmetry_flip(SCULPT_vertex_co_get(ss, vertex), ePaintSymmetryFlags(i));
+        float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, vertex), ePaintSymmetryFlags(i));
         v = nearest_vert_calc(ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {

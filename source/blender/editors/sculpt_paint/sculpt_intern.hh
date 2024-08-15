@@ -867,10 +867,10 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 void SCULPT_vertex_random_access_ensure(SculptSession &ss);
 
 int SCULPT_vertex_count_get(const SculptSession &ss);
-const float *SCULPT_vertex_co_get(const SculptSession &ss, PBVHVertRef vertex);
+const float *SCULPT_vertex_co_get(const Object &object, PBVHVertRef vertex);
 
 /** Get the normal for a given sculpt vertex; do not modify the result */
-const blender::float3 SCULPT_vertex_normal_get(const SculptSession &ss, PBVHVertRef vertex);
+const blender::float3 SCULPT_vertex_normal_get(const Object &object, PBVHVertRef vertex);
 
 bool SCULPT_vertex_is_occluded(const Object &object,
                                const blender::float3 &position,
@@ -1254,8 +1254,10 @@ FillData init_fill(SculptSession &ss);
 
 void add_initial(FillData &flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData &flood, PBVHVertRef vertex);
-void add_initial_with_symmetry(
-    const Object &ob, const SculptSession &ss, FillData &flood, PBVHVertRef vertex, float radius);
+void add_initial_with_symmetry(const Object &ob,
+                               FillData &flood,
+                               PBVHVertRef vertex,
+                               float radius);
 void execute(Object &object,
              FillData &flood,
              FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func);
