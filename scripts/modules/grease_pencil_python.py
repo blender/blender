@@ -21,7 +21,7 @@ class AttributeGetterSetter:
             elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
                 return attribute.data[self._index].color
             else:
-                raise Exception(f"Unknown type {type}")
+                raise Exception("Unknown type {!r}".format(type))
         return default
 
     def _set_attribute(self, name, type, value):
@@ -33,9 +33,9 @@ class AttributeGetterSetter:
             elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
                 attribute.data[self._index].color = value
             else:
-                raise Exception(f"Unknown type {type}")
+                raise Exception("Unknown type {!r}".format(type))
         else:
-            raise Exception(f"Could not create attribute {name} of type {type}")
+            raise Exception("Could not create attribute {:s} of type {!r}".format(name, type))
 
 
 def def_prop_for_attribute(attr_name, type, default, doc):
@@ -113,7 +113,7 @@ class GreasePencilStrokePointSlice:
     def __getitem__(self, key):
         if isinstance(key, int):
             if not self._is_valid_index(key):
-                raise IndexError(f"Key {key} is out of range")
+                raise IndexError("Key {:d} is out of range".format(key))
             # Turn the key into an index.
             point_i = self._start + (key % self._size)
             return GreasePencilStrokePoint(self._drawing, point_i)
@@ -131,7 +131,7 @@ class GreasePencilStrokePointSlice:
             stop = max(0, min(stop, self._size))
             return GreasePencilStrokePointSlice(self._drawing, self._start + start, self._start + stop)
         else:
-            raise TypeError(f"Unexpected index of type {type(key)}")
+            raise TypeError("Unexpected index of type {!r}".format(type(key)))
 
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
@@ -216,7 +216,7 @@ class GreasePencilStrokeSlice:
     def __getitem__(self, key):
         if isinstance(key, int):
             if not self._is_valid_index(key):
-                raise IndexError(f"Key {key} is out of range")
+                raise IndexError("Key {:d} is out of range".format(key))
             # Turn the key into an index.
             curve_i = self._start + (key % self._size)
             offsets = self._curve_offsets
@@ -235,4 +235,4 @@ class GreasePencilStrokeSlice:
             stop = max(0, min(stop, self._size))
             return GreasePencilStrokeSlice(self._drawing, self._start + start, self._start + stop)
         else:
-            raise TypeError(f"Unexpected index of type {type(key)}")
+            raise TypeError("Unexpected index of type {!r}".format(type(key)))

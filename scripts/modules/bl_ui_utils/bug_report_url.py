@@ -47,4 +47,4 @@ def url_prefill_from_blender(*, addon_info=None):
         query_params["addon_author"] = addon_info_lines[1].removeprefix("Author: ")
 
     query_str = urllib.parse.urlencode(query_params)
-    return f"https://redirect.blender.org/?{query_str}"
+    return "https://redirect.blender.org/?" + query_str

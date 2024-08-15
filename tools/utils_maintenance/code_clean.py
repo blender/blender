@@ -2172,7 +2172,7 @@ def main() -> int:
         try:
             regex_list.append(re.compile(expr))
         except Exception as ex:
-            print(f"Error in expression: {expr}\n  {ex}")
+            print("Error in expression: {:s}\n  {!r}".format(expr, ex))
             return 1
 
     edits_all_from_args = args.edits.split(",")
