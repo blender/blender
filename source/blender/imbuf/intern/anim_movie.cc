@@ -270,7 +270,7 @@ static int startffmpeg(ImBufAnim *anim)
     /* Sanity check on the detected duration. This is to work around corruption like reported in
      * #68091. */
     if (frame_rate.den != 0 && pFormatCtx->duration > 0) {
-      double stream_sec = anim->duration_in_frames * av_q2d(frame_rate);
+      double stream_sec = anim->duration_in_frames / av_q2d(frame_rate);
       double container_sec = pFormatCtx->duration / double(AV_TIME_BASE);
       if (stream_sec > 4.0 * container_sec) {
         /* The stream is significantly longer than the container duration, which is
