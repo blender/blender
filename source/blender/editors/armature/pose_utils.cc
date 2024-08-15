@@ -114,7 +114,7 @@ static eAction_TransformFlags get_item_transform_flags(Object &ob,
       return;
     }
 
-    /* We must add len(basePath) bytes to the match so that we are at the end of the
+    /* We must add `len(basePath)` bytes to the match so that we are at the end of the
      * base path so that we don't get false positives with these strings in the names
      */
     bPtr += strlen(basePath->c_str());

@@ -1113,7 +1113,7 @@ void update_normals(const Depsgraph &depsgraph, Object &object_orig, Tree &pbvh)
 void update_normals_from_eval(Object &object_eval, Tree &pbvh)
 {
   /* Updating the original object's mesh normals caches is necessary because we skip dependency
-   * graph updates for sculpt deformations in some cases (so the evaluated object doesn't containt
+   * graph updates for sculpt deformations in some cases (so the evaluated object doesn't contain
    * their result), and also because (currently) sculpt deformations skip tagging the mesh normals
    * caches dirty. */
   Object &object_orig = *DEG_get_original_object(&object_eval);

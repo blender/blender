@@ -21,7 +21,7 @@ class AttributeGetterSetter:
             elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
                 return attribute.data[self._index].color
             else:
-                raise Exception(f"Unkown type {type}")
+                raise Exception(f"Unknown type {type}")
         return default
 
     def _set_attribute(self, name, type, value):
@@ -33,7 +33,7 @@ class AttributeGetterSetter:
             elif type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
                 attribute.data[self._index].color = value
             else:
-                raise Exception(f"Unkown type {type}")
+                raise Exception(f"Unknown type {type}")
         else:
             raise Exception(f"Could not create attribute {name} of type {type}")
 
@@ -44,11 +44,11 @@ def def_prop_for_attribute(attr_name, type, default, doc):
     """
 
     def fget(self):
-        # Define getter callback for property.
+        # Define `getter` callback for property.
         return self._get_attribute(attr_name, type, default)
 
     def fset(self, value):
-        # Define setter callback for property.
+        # Define `setter` callback for property.
         self._set_attribute(attr_name, type, value)
     prop = property(fget=fget, fset=fset, doc=doc)
     return prop
@@ -56,7 +56,8 @@ def def_prop_for_attribute(attr_name, type, default, doc):
 
 def DefAttributeGetterSetters(attributes_list):
     """
-    A class decorator that reads a list of attribute infos and creates properties on the class with getters and setters.
+    A class decorator that reads a list of attribute information &
+    creates properties on the class with `getters` & `setters`.
     """
     def wrapper(cls):
         for prop_name, attr_name, type, default, doc in attributes_list:
@@ -68,7 +69,7 @@ def DefAttributeGetterSetters(attributes_list):
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
-    # Property Name, Attribute Name, Type, Default Value, Docstring
+    # Property Name, Attribute Name, Type, Default Value, Doc-string.
     ('position', 'position', 'FLOAT_VECTOR', (0.0, 0.0, 0.0), "The position of the point (in local space)."),
     ('radius', 'radius', 'FLOAT', 0.01, "The radius of the point."),
     ('opacity', 'opacity', 'FLOAT', 0.0, "The opacity of the point."),
@@ -135,7 +136,7 @@ class GreasePencilStrokePointSlice:
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
-    # Property Name, Attribute Name, Type, Default Value, Docstring
+    # Property Name, Attribute Name, Type, Default Value, Doc-string.
     ('cyclic', 'cyclic', 'BOOLEAN', False, "The closed state for this stroke."),
     ('material_index', 'material_index', 'INT', 0, "The index of the material for this stroke."),
     ('select', '.selection', 'BOOLEAN', True, "The selection state for this stroke."),

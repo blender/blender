@@ -187,8 +187,8 @@ ccl_device float2 compute_3d_gabor_kernel(float3 position, float frequency, floa
 }
 
 /* Identical to compute_2d_gabor_standard_deviation except we do triple integration in 3D. The only
- * difference is the denominator in the integral expression, which is 2^{5 / 2} for the 3D case
- * instead of 4 for the 2D case. Similarly, the limit evaluates to 1 / (4 * sqrt(2)). */
+ * difference is the denominator in the integral expression, which is `2^{5 / 2}` for the 3D case
+ * instead of 4 for the 2D case. Similarly, the limit evaluates to `1 / (4 * sqrt(2))`. */
 ccl_device float compute_3d_gabor_standard_deviation()
 {
   float integral_of_gabor_squared = 1.0f / (4.0f * M_SQRT2_F);
