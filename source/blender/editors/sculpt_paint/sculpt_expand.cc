@@ -1432,15 +1432,13 @@ static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 
 /* Functions to update the sculpt mesh data. */
 
-static void calc_new_mask_mesh(Object &object,
-                               const MutableSpan<float> mask,
-                               const Span<int> verts)
+static void calc_new_mask_mesh(const SculptSession &ss,
+                               const Span<float3> positions,
+                               const BitSpan enabled_verts,
+                               const Span<int> verts,
+                               const MutableSpan<float> mask)
 {
-  const SculptSession &ss = *object.sculpt;
-  const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
   const Cache &expand_cache = *ss.expand_cache;
-
-  const BitVector<> enabled_verts = enabled_state_to_bitmap(object, expand_cache);
 
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
@@ -1470,18 +1468,17 @@ static void calc_new_mask_mesh(Object &object,
   mask::clamp_mask(mask);
 }
 
-static void update_mask_grids(Object &object, bke::pbvh::Node *node)
+static void update_mask_grids(const SculptSession &ss,
+                              const BitSpan enabled_verts,
+                              bke::pbvh::Node &node,
+                              SubdivCCG &subdiv_ccg)
 {
-  const SculptSession &ss = *object.sculpt;
   const Cache &expand_cache = *ss.expand_cache;
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  const BitVector<> enabled_verts = enabled_state_to_bitmap(object, expand_cache);
-
   bool any_changed = false;
-  const Span<int> grids = bke::pbvh::node_grid_indices(*node);
+  const Span<int> grids = bke::pbvh::node_grid_indices(node);
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
     const int start = grid * key.grid_area;
@@ -1522,16 +1519,16 @@ static void update_mask_grids(Object &object, bke::pbvh::Node *node)
     }
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(node);
+    BKE_pbvh_node_mark_update_mask(&node);
   }
 }
 
-static void update_mask_bmesh(Object &object, const int mask_offset, bke::pbvh::Node *node)
+static void update_mask_bmesh(SculptSession &ss,
+                              const BitSpan enabled_verts,
+                              const int mask_offset,
+                              bke::pbvh::Node *node)
 {
-  SculptSession &ss = *object.sculpt;
   const Cache &expand_cache = *ss.expand_cache;
-
-  const BitVector<> enabled_verts = enabled_state_to_bitmap(object, expand_cache);
 
   bool any_changed = false;
   for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
@@ -1759,20 +1756,23 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
 
   const Span<bke::pbvh::Node *> nodes = expand_cache.nodes;
 
+  const BitVector<> enabled_verts = enabled_state_to_bitmap(ob, expand_cache);
+
   switch (expand_cache.target) {
     case TargetType::Mask: {
       switch (ss.pbvh->type()) {
         case bke::pbvh::Type::Mesh: {
+          const Span<float3> positions = bke::pbvh::vert_positions_eval(ob);
           mask::update_mask_mesh(
               ob, nodes, [&](const MutableSpan<float> mask, const Span<int> verts) {
-                calc_new_mask_mesh(ob, mask, verts);
+                calc_new_mask_mesh(ss, positions, enabled_verts, verts, mask);
               });
           break;
         }
         case bke::pbvh::Type::Grids: {
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             for (const int i : range) {
-              update_mask_grids(ob, nodes[i]);
+              update_mask_grids(ss, enabled_verts, *nodes[i], *ss.subdiv_ccg);
             }
           });
           break;
@@ -1782,7 +1782,7 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
               &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
             for (const int i : range) {
-              update_mask_bmesh(ob, mask_offset, nodes[i]);
+              update_mask_bmesh(ss, enabled_verts, mask_offset, nodes[i]);
             }
           });
           break;
