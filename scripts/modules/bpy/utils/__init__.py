@@ -602,6 +602,9 @@ def _is_path_parent_of(parent_path, path):
     except ValueError:
         # Happens on Windows when paths don't have the same drive.
         pass
+    except PermissionError:
+        # When either of the paths don't have permissions to access.
+        pass
 
     return False
 
