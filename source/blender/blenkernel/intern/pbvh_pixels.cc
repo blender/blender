@@ -330,7 +330,11 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
   BKE_image_partial_update_mark_full_update(&image);
 }
 
-static bool update_pixels(const Object &object, Tree &pbvh, Image &image, ImageUser &image_user)
+static bool update_pixels(const Depsgraph &depsgraph,
+                          const Object &object,
+                          Tree &pbvh,
+                          Image &image,
+                          ImageUser &image_user)
 {
   Vector<Node *> nodes_to_update;
   if (!find_nodes_to_update(pbvh, nodes_to_update)) {
@@ -347,8 +351,10 @@ static bool update_pixels(const Object &object, Tree &pbvh, Image &image, ImageU
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, AttrDomain::Corner);
 
-  uv_islands::MeshData mesh_data(
-      mesh.corner_tris(), mesh.corner_verts(), uv_map, bke::pbvh::vert_positions_eval(object));
+  uv_islands::MeshData mesh_data(mesh.corner_tris(),
+                                 mesh.corner_verts(),
+                                 uv_map,
+                                 bke::pbvh::vert_positions_eval(depsgraph, object));
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
@@ -478,11 +484,11 @@ void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
 
 namespace blender::bke::pbvh {
 
-void build_pixels(Object &object, Image &image, ImageUser &image_user)
+void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
   SculptSession &ss = *object.sculpt;
   Tree &pbvh = *ss.pbvh;
-  pixels::update_pixels(object, pbvh, image, image_user);
+  pixels::update_pixels(depsgraph, object, pbvh, image, image_user);
 }
 
 void node_pixels_free(Node *node)

@@ -46,7 +46,8 @@ BLI_NOINLINE static void calc_translations(const Set<BMVert *, 0> &verts,
   }
 }
 
-static void calc_bmesh(const Sculpt &sd,
+static void calc_bmesh(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
                        const float3 &direction,
@@ -75,7 +76,7 @@ static void calc_bmesh(const Sculpt &sd,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -92,7 +93,8 @@ static void calc_bmesh(const Sculpt &sd,
 
 }  // namespace bmesh_topology_rake_cc
 
-void do_bmesh_topology_rake_brush(const Sculpt &sd,
+void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
+                                  const Sculpt &sd,
                                   Object &object,
                                   Span<bke::pbvh::Node *> nodes,
                                   const float input_strength)
@@ -124,7 +126,8 @@ void do_bmesh_topology_rake_brush(const Sculpt &sd,
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       LocalData &tls = all_tls.local();
       for (const int i : range) {
-        calc_bmesh(sd, object, brush, direction, factor * ss.cache->pressure, *nodes[i], tls);
+        calc_bmesh(
+            depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, *nodes[i], tls);
       }
     });
   }

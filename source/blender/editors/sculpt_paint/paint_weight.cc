@@ -1089,7 +1089,8 @@ static void filter_factors_with_selection(const Span<bool> select_vert,
   }
 }
 
-static void do_wpaint_brush_blur(const Scene &scene,
+static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
+                                 const Scene &scene,
                                  Object &ob,
                                  const Brush &brush,
                                  VPaint &vp,
@@ -1113,10 +1114,10 @@ static void do_wpaint_brush_blur(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(ob);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1195,7 +1196,8 @@ static void do_wpaint_brush_blur(const Scene &scene,
   });
 }
 
-static void do_wpaint_brush_smear(const Scene &scene,
+static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
+                                  const Scene &scene,
                                   Object &ob,
                                   const Brush &brush,
                                   VPaint &vp,
@@ -1226,10 +1228,10 @@ static void do_wpaint_brush_smear(const Scene &scene,
     return;
   }
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(ob);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1319,7 +1321,8 @@ static void do_wpaint_brush_smear(const Scene &scene,
   });
 }
 
-static void do_wpaint_brush_draw(const Scene &scene,
+static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
+                                 const Scene &scene,
                                  Object &ob,
                                  const Brush &brush,
                                  VPaint &vp,
@@ -1346,8 +1349,8 @@ static void do_wpaint_brush_draw(const Scene &scene,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(ob);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1409,7 +1412,8 @@ static void do_wpaint_brush_draw(const Scene &scene,
   });
 }
 
-static float calculate_average_weight(Object &ob,
+static float calculate_average_weight(const Depsgraph &depsgraph,
+                                      Object &ob,
                                       const Mesh &mesh,
                                       const Brush &brush,
                                       const VPaint &vp,
@@ -1427,8 +1431,8 @@ static float calculate_average_weight(Object &ob,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(ob);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<bool> select_vert;
@@ -1497,29 +1501,39 @@ static void wpaint_paint_leaves(bContext *C,
 {
   const Scene &scene = *CTX_data_scene(C);
   const Brush &brush = *ob.sculpt->cache->brush;
+  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
     case WPAINT_TOOL_AVERAGE: {
-      do_wpaint_brush_draw(scene,
+      do_wpaint_brush_draw(depsgraph,
+                           scene,
                            ob,
                            brush,
                            vp,
                            wpd,
                            wpi,
                            mesh,
-                           calculate_average_weight(ob, mesh, brush, vp, wpi, nodes),
+                           calculate_average_weight(depsgraph, ob, mesh, brush, vp, wpi, nodes),
                            nodes);
       break;
     }
     case WPAINT_TOOL_SMEAR:
-      do_wpaint_brush_smear(scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      do_wpaint_brush_smear(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, nodes);
       break;
     case WPAINT_TOOL_BLUR:
-      do_wpaint_brush_blur(scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      do_wpaint_brush_blur(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, nodes);
       break;
     case WPAINT_TOOL_DRAW:
-      do_wpaint_brush_draw(
-          scene, ob, brush, vp, wpd, wpi, mesh, BKE_brush_weight_get(&scene, &brush), nodes);
+      do_wpaint_brush_draw(depsgraph,
+                           scene,
+                           ob,
+                           brush,
+                           vp,
+                           wpd,
+                           wpi,
+                           mesh,
+                           BKE_brush_weight_get(&scene, &brush),
+                           nodes);
       break;
   }
 }
@@ -1682,11 +1696,13 @@ static void wpaint_do_paint(bContext *C,
                             const int i,
                             const float angle)
 {
+  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.sculpt;
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
-  Vector<blender::bke::pbvh::Node *> nodes = vwpaint::pbvh_gather_generic(ob, wp, brush);
+  Vector<blender::bke::pbvh::Node *> nodes = vwpaint::pbvh_gather_generic(
+      depsgraph, ob, wp, brush);
 
   wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, nodes);
 }

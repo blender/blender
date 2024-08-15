@@ -491,7 +491,7 @@ enum BrushStrokeMode {
 
 namespace blender::ed::sculpt_paint::hide {
 void sync_all_from_faces(Object &object);
-void mesh_show_all(Object &object, Span<bke::pbvh::Node *> nodes);
+void mesh_show_all(const Depsgraph &depsgraph, Object &object, Span<bke::pbvh::Node *> nodes);
 void grids_show_all(Depsgraph &depsgraph, Object &object, Span<bke::pbvh::Node *> nodes);
 void tag_update_visibility(const bContext &C);
 
@@ -528,7 +528,8 @@ void average_neighbor_mask_bmesh(int mask_offset,
                                  MutableSpan<float> new_masks);
 
 /** Write to the mask attribute for each node, storing undo data. */
-void write_mask_mesh(Object &object,
+void write_mask_mesh(const Depsgraph &depsgraph,
+                     Object &object,
                      Span<bke::pbvh::Node *> nodes,
                      FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn);
 
@@ -536,7 +537,8 @@ void write_mask_mesh(Object &object,
  * Write to each node's mask data for visible vertices. Store undo data and mark for redraw only
  * if the data is actually changed.
  */
-void update_mask_mesh(Object &object,
+void update_mask_mesh(const Depsgraph &depsgraph,
+                      Object &object,
                       Span<bke::pbvh::Node *> nodes,
                       FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn);
 
@@ -621,7 +623,10 @@ void init_session_data(const ToolSettings &ts, Object &ob);
 void init_session(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode object_mode);
 
-Vector<bke::pbvh::Node *> pbvh_gather_generic(Object &ob, const VPaint &wp, const Brush &brush);
+Vector<bke::pbvh::Node *> pbvh_gather_generic(const Depsgraph &depsgraph,
+                                              Object &ob,
+                                              const VPaint &wp,
+                                              const Brush &brush);
 
 void mode_enter_generic(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, eObjectMode mode_flag);

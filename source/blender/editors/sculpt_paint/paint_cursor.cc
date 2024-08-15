@@ -1145,7 +1145,8 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   }
 }
 
-static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
+static void sculpt_geometry_preview_lines_draw(const Depsgraph &depsgraph,
+                                               const uint gpuattr,
                                                const Brush &brush,
                                                const Object &object)
 {
@@ -1172,7 +1173,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
 
   GPU_line_width(1.0f);
   if (!ss.preview_verts.is_empty()) {
-    const Span<float3> positions = vert_positions_for_grab_active_get(object);
+    const Span<float3> positions = vert_positions_for_grab_active_get(depsgraph, object);
     immBegin(GPU_PRIM_LINES, ss.preview_verts.size());
     for (const int vert : ss.preview_verts) {
       immVertex3fv(gpuattr, positions[vert]);
@@ -1732,7 +1733,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
   BKE_sculpt_update_object_for_edit(pcontext->depsgraph, pcontext->vc.obact, false);
 
   ss.boundary_preview = boundary::preview_data_init(
-      *pcontext->vc.obact, pcontext->brush, pcontext->radius);
+      *pcontext->depsgraph, *pcontext->vc.obact, pcontext->brush, pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
@@ -1773,15 +1774,16 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   if (brush.sculpt_tool == SCULPT_TOOL_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
     SculptSession &ss = *pcontext->ss;
     if (ss.pbvh->type() == bke::pbvh::Type::Mesh) {
-      const Span<float3> positions = vert_positions_for_grab_active_get(active_object);
+      const Span<float3> positions = vert_positions_for_grab_active_get(*pcontext->depsgraph,
+                                                                        active_object);
       active_vertex_co = positions[std::get<int>(ss.active_vert())];
     }
     else {
-      active_vertex_co = pcontext->ss->active_vert_position(active_object);
+      active_vertex_co = pcontext->ss->active_vert_position(*pcontext->depsgraph, active_object);
     }
   }
   else {
-    active_vertex_co = pcontext->ss->active_vert_position(active_object);
+    active_vertex_co = pcontext->ss->active_vert_position(*pcontext->depsgraph, active_object);
   }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
@@ -1814,7 +1816,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
       /* Generate a new pose brush preview from the current cursor location. */
       ss.pose_ik_chain_preview = pose::preview_ik_chain_init(
-          active_object, ss, brush, pcontext->location, pcontext->radius);
+          *pcontext->depsgraph, active_object, ss, brush, pcontext->location, pcontext->radius);
     }
 
     /* Draw the pose brush rotation origins. */
@@ -1826,7 +1828,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     cursor_draw_point_screen_space(
         pcontext->pos,
         pcontext->region,
-        SCULPT_vertex_co_get(active_object, pcontext->ss->expand_cache->initial_active_vertex),
+        SCULPT_vertex_co_get(*pcontext->depsgraph,
+                             active_object,
+                             pcontext->ss->expand_cache->initial_active_vertex),
         active_object.object_to_world().ptr(),
         2);
   }
@@ -1856,7 +1860,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
     geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
-    sculpt_geometry_preview_lines_draw(pcontext->pos, *pcontext->brush, active_object);
+    sculpt_geometry_preview_lines_draw(
+        *pcontext->depsgraph, pcontext->pos, *pcontext->brush, active_object);
   }
 
   if (is_brush_tool && brush.sculpt_tool == SCULPT_TOOL_POSE) {
@@ -1946,7 +1951,8 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
   /* Draw the special active cursors different tools may have. */
 
   if (brush.sculpt_tool == SCULPT_TOOL_GRAB) {
-    sculpt_geometry_preview_lines_draw(pcontext->pos, brush, *pcontext->vc.obact);
+    sculpt_geometry_preview_lines_draw(
+        *pcontext->depsgraph, pcontext->pos, brush, *pcontext->vc.obact);
   }
 
   if (brush.sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {

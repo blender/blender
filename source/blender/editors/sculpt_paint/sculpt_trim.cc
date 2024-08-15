@@ -217,7 +217,7 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   float depth_front = FLT_MAX;
   float depth_back = -FLT_MAX;
 
-  const Span<float3> positions = bke::pbvh::vert_positions_eval(*vc.obact);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(*vc.depsgraph, *vc.obact);
   const float4x4 &object_to_world = vc.obact->object_to_world();
 
   for (const int i : positions.index_range()) {

@@ -186,7 +186,8 @@ BLI_NOINLINE static void filter_translations_with_symmetry(const Span<float3> po
   }
 }
 
-static void transform_node_mesh(const Sculpt &sd,
+static void transform_node_mesh(const Depsgraph &depsgraph,
+                                const Sculpt &sd,
                                 const std::array<float4x4, 8> &transform_mats,
                                 const Span<float3> positions_eval,
                                 const bke::pbvh::Node &node,
@@ -211,7 +212,7 @@ static void transform_node_mesh(const Sculpt &sd,
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
   filter_translations_with_symmetry(orig_data.positions, symm, translations);
 
-  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
 }
 
 static void transform_node_grids(const Sculpt &sd,
@@ -277,9 +278,9 @@ static void transform_node_bmesh(const Sculpt &sd,
   apply_translations(translations, verts);
 }
 
-static void sculpt_transform_all_vertices(const Sculpt &sd, Object &ob)
+static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)
 {
-  undo::restore_position_from_undo_step(ob);
+  undo::restore_position_from_undo_step(depsgraph, ob);
 
   SculptSession &ss = *ob.sculpt;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -296,13 +297,13 @@ static void sculpt_transform_all_vertices(const Sculpt &sd, Object &ob)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(ob);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         for (const int i : range) {
           transform_node_mesh(
-              sd, transform_mats, positions_eval, *nodes[i], ob, tls, positions_orig);
+              depsgraph, sd, transform_mats, positions_eval, *nodes[i], ob, tls, positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
@@ -352,7 +353,8 @@ BLI_NOINLINE static void apply_kelvinet_to_translations(const KelvinletParams &p
   }
 }
 
-static void elastic_transform_node_mesh(const Sculpt &sd,
+static void elastic_transform_node_mesh(const Depsgraph &depsgraph,
+                                        const Sculpt &sd,
                                         const KelvinletParams &params,
                                         const float4x4 &elastic_transform_mat,
                                         const float3 &elastic_transform_pivot,
@@ -380,7 +382,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
 
   scale_translations(translations, factors);
 
-  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
 }
 
 static void elastic_transform_node_grids(const Sculpt &sd,
@@ -443,7 +445,10 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
   apply_translations(translations, verts);
 }
 
-static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float transform_radius)
+static void transform_radius_elastic(const Depsgraph &depsgraph,
+                                     const Sculpt &sd,
+                                     Object &ob,
+                                     const float transform_radius)
 {
   SculptSession &ss = *ob.sculpt;
   BLI_assert(ss.filter_cache->transform_displacement_mode ==
@@ -479,12 +484,13 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         Mesh &mesh = *static_cast<Mesh *>(ob.data);
-        const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(ob);
+        const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
         MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
           for (const int i : range) {
-            elastic_transform_node_mesh(sd,
+            elastic_transform_node_mesh(depsgraph,
+                                        sd,
                                         params,
                                         elastic_transform_mat,
                                         elastic_transform_pivot,
@@ -535,7 +541,7 @@ void update_modal_transform(bContext *C, Object &ob)
 
   switch (sd.transform_mode) {
     case SCULPT_TRANSFORM_MODE_ALL_VERTICES: {
-      sculpt_transform_all_vertices(sd, ob);
+      sculpt_transform_all_vertices(*depsgraph, sd, ob);
       break;
     }
     case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
@@ -553,7 +559,7 @@ void update_modal_transform(bContext *C, Object &ob)
             vc, ss.init_pivot_pos, BKE_brush_size_get(scene, &brush));
       }
 
-      transform_radius_elastic(sd, ob, transform_radius);
+      transform_radius_elastic(*depsgraph, sd, ob, transform_radius);
       break;
     }
   }
@@ -643,7 +649,8 @@ BLI_NOINLINE static void accumulate_weighted_average_position(const Span<float3>
   }
 }
 
-static float3 average_unmasked_position(const Object &object,
+static float3 average_unmasked_position(const Depsgraph &depsgraph,
+                                        const Object &object,
                                         const float3 &pivot,
                                         const ePaintSymmetryFlags symm)
 {
@@ -662,7 +669,7 @@ static float3 average_unmasked_position(const Object &object,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -755,7 +762,8 @@ BLI_NOINLINE static void mask_border_weight_calc(const Span<float> masks,
   }
 };
 
-static float3 average_mask_border_position(const Object &object,
+static float3 average_mask_border_position(const Depsgraph &depsgraph,
+                                           const Object &object,
                                            const float3 &pivot,
                                            const ePaintSymmetryFlags symm)
 {
@@ -775,7 +783,7 @@ static float3 average_mask_border_position(const Object &object,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask_attr = *attributes.lookup_or_default<float>(
           ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
@@ -891,7 +899,7 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
   }
   /* Pivot to active vertex. */
   else if (mode == PivotPositionMode::ActiveVert) {
-    copy_v3_v3(ss.pivot_pos, ss.active_vert_position(ob));
+    copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
   }
   /* Pivot to ray-cast surface. */
   else if (mode == PivotPositionMode::CursorSurface) {
@@ -905,10 +913,10 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
     }
   }
   else if (mode == PivotPositionMode::Unmasked) {
-    ss.pivot_pos = average_unmasked_position(ob, ss.pivot_pos, symm);
+    ss.pivot_pos = average_unmasked_position(*depsgraph, ob, ss.pivot_pos, symm);
   }
   else {
-    ss.pivot_pos = average_mask_border_position(ob, ss.pivot_pos, symm);
+    ss.pivot_pos = average_mask_border_position(*depsgraph, ob, ss.pivot_pos, symm);
   }
 
   /* Update the viewport navigation rotation origin. */

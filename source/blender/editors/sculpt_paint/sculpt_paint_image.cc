@@ -250,7 +250,8 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
   return brush_test;
 }
 
-static void do_paint_pixels(const Object &object,
+static void do_paint_pixels(const Depsgraph &depsgraph,
+                            const Object &object,
                             const Brush &brush,
                             ImageData image_data,
                             bke::pbvh::Node &node)
@@ -260,7 +261,7 @@ static void do_paint_pixels(const Object &object,
   bke::pbvh::Tree &pbvh = *ss.pbvh;
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
-  const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
 
   BitVector<> brush_test = init_uv_primitives_brush_test(
       ss, pbvh_data.vert_tris, node_data.uv_primitives, positions);
@@ -494,7 +495,8 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob)
   return BKE_paint_canvas_image_get(&settings, &ob, &image, &image_user);
 }
 
-void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
+void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
+                                 PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
                                  const blender::Span<blender::bke::pbvh::Node *> nodes)
@@ -514,7 +516,7 @@ void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
   });
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_paint_pixels(ob, *brush, image_data, *nodes[i]);
+      do_paint_pixels(depsgraph, ob, *brush, image_data, *nodes[i]);
     }
   });
   fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes);

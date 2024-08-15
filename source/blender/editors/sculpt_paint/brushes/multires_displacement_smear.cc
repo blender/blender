@@ -33,7 +33,8 @@ struct LocalData {
   Vector<float> distances;
 };
 
-static void calc_node(Object &object,
+static void calc_node(const Depsgraph &depsgraph,
+                      Object &object,
                       const Brush &brush,
                       const float strength,
                       const bke::pbvh::Node &node,
@@ -63,7 +64,7 @@ static void calc_node(Object &object,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
   scale_factors(factors, strength);
@@ -167,7 +168,10 @@ BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_p
 
 }  // namespace multires_displacement_smear_cc
 
-void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
+void do_displacement_smear_brush(const Depsgraph &depsgraph,
+                                 const Sculpt &sd,
+                                 Object &ob,
+                                 Span<bke::pbvh::Node *> nodes)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.sculpt;
@@ -195,7 +199,7 @@ void do_displacement_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::N
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     for (const int i : range) {
-      calc_node(ob, brush, strength, *nodes[i], tls);
+      calc_node(depsgraph, ob, brush, strength, *nodes[i], tls);
     }
   });
 }

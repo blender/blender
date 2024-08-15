@@ -1783,11 +1783,12 @@ int SculptSession::active_vert_index() const
   return -1;
 }
 
-blender::float3 SculptSession::active_vert_position(const Object &object) const
+blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
+                                                    const Object &object) const
 {
   const ActiveVert vert = this->active_vert();
   if (std::holds_alternative<int>(vert)) {
-    const Span<float3> positions = blender::bke::pbvh::vert_positions_eval(object);
+    const Span<float3> positions = blender::bke::pbvh::vert_positions_eval(depsgraph, object);
     return positions[std::get<int>(vert)];
   }
   else if (std::holds_alternative<SubdivCCGCoord>(vert)) {

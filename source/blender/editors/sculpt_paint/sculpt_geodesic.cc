@@ -77,7 +77,10 @@ static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
   return false;
 }
 
-Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const float limit_radius)
+Array<float> distances_create(const Depsgraph &depsgraph,
+                              Object &ob,
+                              const Set<int> &initial_verts,
+                              const float limit_radius)
 {
   SculptSession &ss = *ob.sculpt;
   BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
@@ -88,7 +91,7 @@ Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const f
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const Span<int2> edges = mesh->edges();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -222,7 +225,8 @@ Array<float> distances_create(Object &ob, const Set<int> &initial_verts, const f
   return dists;
 }
 
-Array<float> distances_create_from_vert_and_symm(Object &ob,
+Array<float> distances_create_from_vert_and_symm(const Depsgraph &depsgraph,
+                                                 Object &ob,
                                                  const PBVHVertRef vertex,
                                                  const float limit_radius)
 {
@@ -238,8 +242,9 @@ Array<float> distances_create_from_vert_and_symm(Object &ob,
         v = vertex;
       }
       else {
-        float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, vertex), ePaintSymmetryFlags(i));
-        v = nearest_vert_calc(ob, location, FLT_MAX, false);
+        float3 location = symmetry_flip(SCULPT_vertex_co_get(depsgraph, ob, vertex),
+                                        ePaintSymmetryFlags(i));
+        v = nearest_vert_calc(depsgraph, ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
         initial_verts.add(BKE_pbvh_vertex_to_index(*ss.pbvh, v));
@@ -247,7 +252,7 @@ Array<float> distances_create_from_vert_and_symm(Object &ob,
     }
   }
 
-  return distances_create(ob, initial_verts, limit_radius);
+  return distances_create(depsgraph, ob, initial_verts, limit_radius);
 }
 
 }  // namespace blender::ed::sculpt_paint::geodesic

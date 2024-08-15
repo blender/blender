@@ -125,7 +125,8 @@ BLI_NOINLINE static void accumulate_samples(const Span<float3> positions,
   }
 }
 
-static void sample_node_surface_mesh(const Object &object,
+static void sample_node_surface_mesh(const Depsgraph &depsgraph,
+                                     const Object &object,
                                      const Brush &brush,
                                      const float4x4 &mat,
                                      const Span<float3> vert_positions,
@@ -148,7 +149,7 @@ static void sample_node_surface_mesh(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -169,7 +170,8 @@ static void sample_node_surface_mesh(const Object &object,
   accumulate_samples(positions, local_positions, normals, factors, sample);
 }
 
-static void sample_node_surface_grids(const Object &object,
+static void sample_node_surface_grids(const Depsgraph &depsgraph,
+                                      const Object &object,
                                       const Brush &brush,
                                       const float4x4 &mat,
                                       const bke::pbvh::Node &node,
@@ -190,7 +192,7 @@ static void sample_node_surface_grids(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
-  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -213,7 +215,8 @@ static void sample_node_surface_grids(const Object &object,
   accumulate_samples(positions, local_positions, normals, factors, sample);
 }
 
-static void sample_node_surface_bmesh(const Object &object,
+static void sample_node_surface_bmesh(const Depsgraph &depsgraph,
+                                      const Object &object,
                                       const Brush &brush,
                                       const float4x4 &mat,
                                       bke::pbvh::Node &node,
@@ -234,7 +237,7 @@ static void sample_node_surface_bmesh(const Object &object,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, verts, factors);
   }
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   const float radius = cache.radius * brush.normal_radius_factor;
 
@@ -257,7 +260,8 @@ static void sample_node_surface_bmesh(const Object &object,
   accumulate_samples(positions, local_positions, normals, factors, sample);
 }
 
-static ScrapeSampleData sample_surface(const Object &object,
+static ScrapeSampleData sample_surface(const Depsgraph &depsgraph,
+                                       const Object &object,
                                        const Brush &brush,
                                        const float4x4 &mat,
                                        const Span<bke::pbvh::Node *> nodes)
@@ -267,8 +271,8 @@ static ScrapeSampleData sample_surface(const Object &object,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
-      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       return threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -276,8 +280,15 @@ static ScrapeSampleData sample_surface(const Object &object,
           [&](const IndexRange range, ScrapeSampleData sample) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
-              sample_node_surface_mesh(
-                  object, brush, mat, positions_eval, vert_normals, *nodes[i], sample, tls);
+              sample_node_surface_mesh(depsgraph,
+                                       object,
+                                       brush,
+                                       mat,
+                                       positions_eval,
+                                       vert_normals,
+                                       *nodes[i],
+                                       sample,
+                                       tls);
             }
             return sample;
           },
@@ -292,7 +303,7 @@ static ScrapeSampleData sample_surface(const Object &object,
           [&](const IndexRange range, ScrapeSampleData sample) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
-              sample_node_surface_grids(object, brush, mat, *nodes[i], sample, tls);
+              sample_node_surface_grids(depsgraph, object, brush, mat, *nodes[i], sample, tls);
             }
             return sample;
           },
@@ -307,7 +318,7 @@ static ScrapeSampleData sample_surface(const Object &object,
           [&](const IndexRange range, ScrapeSampleData sample) {
             LocalData &tls = all_tls.local();
             for (const int i : range) {
-              sample_node_surface_bmesh(object, brush, mat, *nodes[i], sample, tls);
+              sample_node_surface_bmesh(depsgraph, object, brush, mat, *nodes[i], sample, tls);
             }
             return sample;
           },
@@ -319,7 +330,8 @@ static ScrapeSampleData sample_surface(const Object &object,
   return {};
 }
 
-static void calc_faces(const Sculpt &sd,
+static void calc_faces(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        const Brush &brush,
                        const float4x4 &mat,
                        const std::array<float4, 2> &scrape_planes,
@@ -346,7 +358,7 @@ static void calc_faces(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, vert_normals, verts, factors);
   }
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
@@ -376,10 +388,11 @@ static void calc_faces(const Sculpt &sd,
   scale_factors(factors, strength);
   scale_translations(translations, factors);
 
-  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static void calc_grids(const Sculpt &sd,
+static void calc_grids(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        const Brush &brush,
                        const float4x4 &mat,
                        const std::array<float4, 2> &scrape_planes,
@@ -403,7 +416,7 @@ static void calc_grids(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
   }
-  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
   tls.distances.resize(positions.size());
   const MutableSpan<float> distances = tls.distances;
@@ -437,7 +450,8 @@ static void calc_grids(const Sculpt &sd,
   apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh(const Sculpt &sd,
+static void calc_bmesh(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        const Brush &brush,
                        const float4x4 &mat,
                        const std::array<float4, 2> &scrape_planes,
@@ -460,7 +474,7 @@ static void calc_bmesh(const Sculpt &sd,
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal, verts, factors);
   }
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
@@ -494,7 +508,8 @@ static void calc_bmesh(const Sculpt &sd,
   apply_translations(translations, verts);
 }
 
-void do_multiplane_scrape_brush(const Sculpt &sd,
+void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
+                                const Sculpt &sd,
                                 Object &object,
                                 const Span<bke::pbvh::Node *> nodes)
 {
@@ -508,11 +523,11 @@ void do_multiplane_scrape_brush(const Sculpt &sd,
 
   float3 area_no_sp;
   float3 area_co;
-  calc_brush_plane(brush, object, nodes, area_no_sp, area_co);
+  calc_brush_plane(depsgraph, brush, object, nodes, area_no_sp, area_co);
 
   float3 area_no;
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_no = calc_area_normal(brush, object, nodes).value_or(float3(0));
+    area_no = calc_area_normal(depsgraph, brush, object, nodes).value_or(float3(0));
   }
   else {
     area_no = area_no_sp;
@@ -549,7 +564,7 @@ void do_multiplane_scrape_brush(const Sculpt &sd,
 
   if (brush.flag2 & BRUSH_MULTIPLANE_SCRAPE_DYNAMIC) {
     /* Sample the individual normal and area center of the areas at both sides of the cursor. */
-    const ScrapeSampleData sample = sample_surface(object, brush, mat, nodes);
+    const ScrapeSampleData sample = sample_surface(depsgraph, object, brush, mat, nodes);
 
     /* Use the plane centers to check if we are sculpting along a concave or convex edge. */
     const std::array<float3, 2> sampled_plane_co{
@@ -623,13 +638,14 @@ void do_multiplane_scrape_brush(const Sculpt &sd,
   switch (object.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
-      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(sd,
+          calc_faces(depsgraph,
+                     sd,
                      brush,
                      mat,
                      multiplane_scrape_planes,
@@ -650,7 +666,8 @@ void do_multiplane_scrape_brush(const Sculpt &sd,
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd,
+          calc_grids(depsgraph,
+                     sd,
                      brush,
                      mat,
                      multiplane_scrape_planes,
@@ -666,7 +683,8 @@ void do_multiplane_scrape_brush(const Sculpt &sd,
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd,
+          calc_bmesh(depsgraph,
+                     sd,
                      brush,
                      mat,
                      multiplane_scrape_planes,

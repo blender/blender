@@ -85,7 +85,8 @@ BLI_NOINLINE static void calc_translations(const Brush &brush,
   }
 }
 
-static void calc_faces(const Sculpt &sd,
+static void calc_faces(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        const Brush &brush,
                        const KelvinletParams &kelvinet_params,
                        const float3 &offset,
@@ -108,7 +109,7 @@ static void calc_faces(const Sculpt &sd,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
 
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -117,10 +118,11 @@ static void calc_faces(const Sculpt &sd,
   scale_translations(translations, factors);
   reset_translations_to_original(translations, positions, orig_data.positions);
 
-  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static void calc_grids(const Sculpt &sd,
+static void calc_grids(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
                        const KelvinletParams &kelvinet_params,
@@ -141,7 +143,7 @@ static void calc_grids(const Sculpt &sd,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
 
-  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -154,7 +156,8 @@ static void calc_grids(const Sculpt &sd,
   apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh(const Sculpt &sd,
+static void calc_bmesh(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
                        const KelvinletParams &kelvinet_params,
@@ -175,7 +178,7 @@ static void calc_bmesh(const Sculpt &sd,
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
 
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -190,7 +193,10 @@ static void calc_bmesh(const Sculpt &sd,
 
 }  // namespace elastic_deform_cc
 
-void do_elastic_deform_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
+void do_elastic_deform_brush(const Depsgraph &depsgraph,
+                             const Sculpt &sd,
+                             Object &object,
+                             Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -225,12 +231,13 @@ void do_elastic_deform_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::N
   switch (object.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(sd,
+          calc_faces(depsgraph,
+                     sd,
                      brush,
                      params,
                      grab_delta,
@@ -248,7 +255,7 @@ void do_elastic_deform_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::N
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, object, brush, params, grab_delta, *nodes[i], tls);
+          calc_grids(depsgraph, sd, object, brush, params, grab_delta, *nodes[i], tls);
         }
       });
       break;
@@ -256,7 +263,7 @@ void do_elastic_deform_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::N
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, object, brush, params, grab_delta, *nodes[i], tls);
+          calc_bmesh(depsgraph, sd, object, brush, params, grab_delta, *nodes[i], tls);
         }
       });
       break;

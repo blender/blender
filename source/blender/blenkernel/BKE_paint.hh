@@ -605,7 +605,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
    *
    * \returns float3 at negative infinity if there is no currently active vertex
    */
-  blender::float3 active_vert_position(const Object &object) const;
+  blender::float3 active_vert_position(const Depsgraph &depsgraph, const Object &object) const;
 
   void set_active_vert(PBVHVertRef vert);
 };

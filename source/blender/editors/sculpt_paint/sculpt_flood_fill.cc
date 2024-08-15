@@ -71,7 +71,8 @@ void FillDataBMesh::add_and_skip_initial(BMVert *vertex, const int index)
   this->visited_verts[index].set();
 }
 
-void add_initial_with_symmetry(const Object &ob,
+void add_initial_with_symmetry(const Depsgraph &depsgraph,
+                               const Object &ob,
                                FillData &flood,
                                PBVHVertRef vertex,
                                const float radius)
@@ -97,8 +98,9 @@ void add_initial_with_symmetry(const Object &ob,
     else {
       BLI_assert(radius > 0.0f);
       const float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
-      float3 location = symmetry_flip(SCULPT_vertex_co_get(ob, vertex), ePaintSymmetryFlags(i));
-      v = nearest_vert_calc(ob, location, radius_squared, false);
+      float3 location = symmetry_flip(SCULPT_vertex_co_get(depsgraph, ob, vertex),
+                                      ePaintSymmetryFlags(i));
+      v = nearest_vert_calc(depsgraph, ob, location, radius_squared, false);
     }
 
     if (v.i != PBVH_REF_NONE) {
@@ -107,7 +109,8 @@ void add_initial_with_symmetry(const Object &ob,
   }
 }
 
-void FillDataMesh::add_initial_with_symmetry(const Object &object,
+void FillDataMesh::add_initial_with_symmetry(const Depsgraph &depsgraph,
+                                             const Object &object,
                                              const bke::pbvh::Tree &pbvh,
                                              const int vertex,
                                              const float radius)
@@ -118,7 +121,7 @@ void FillDataMesh::add_initial_with_symmetry(const Object &object,
   }
 
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
   const bke::AttributeAccessor attributes = mesh.attributes();
   VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 

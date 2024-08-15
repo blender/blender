@@ -45,7 +45,8 @@ BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors)
   }
 }
 
-BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
+BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph,
+                                                      const Sculpt &sd,
                                                       const Brush &brush,
                                                       const Span<bke::pbvh::Node *> nodes,
                                                       Object &object,
@@ -62,8 +63,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
-  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
+  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
@@ -91,7 +92,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      auto_mask::calc_vert_factors(object, cache.automasking.get(), *nodes[i], verts, factors);
+      auto_mask::calc_vert_factors(
+          depsgraph, object, cache.automasking.get(), *nodes[i], verts, factors);
 
       calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
@@ -131,7 +133,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
 
         scatter_data_mesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
 
-        write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+        write_translations(
+            depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
       }
     });
 
@@ -159,13 +162,15 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Sculpt &sd,
             laplacian_disp, average_laplacian_disps, beta, translations);
         scale_translations(translations, factors);
 
-        write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+        write_translations(
+            depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
       }
     });
   }
 }
 
 BLI_NOINLINE static void do_surface_smooth_brush_grids(
+    const Depsgraph &depsgraph,
     const Sculpt &sd,
     const Brush &brush,
     const Span<bke::pbvh::Node *> nodes,
@@ -205,7 +210,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      auto_mask::calc_grids_factors(object, cache.automasking.get(), *nodes[i], grids, factors);
+      auto_mask::calc_grids_factors(
+          depsgraph, object, cache.automasking.get(), *nodes[i], grids, factors);
 
       calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -275,6 +281,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
 }
 
 BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
+    const Depsgraph &depsgraph,
     const Sculpt &sd,
     const Brush &brush,
     const Span<bke::pbvh::Node *> nodes,
@@ -311,7 +318,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
       apply_hardness_to_distances(cache, distances);
       calc_brush_strength_factors(cache, brush, distances, factors);
 
-      auto_mask::calc_vert_factors(object, cache.automasking.get(), *nodes[i], verts, factors);
+      auto_mask::calc_vert_factors(
+          depsgraph, object, cache.automasking.get(), *nodes[i], verts, factors);
 
       calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -379,7 +387,10 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
 
 }  // namespace surface_smooth_cc
 
-void do_surface_smooth_brush(const Sculpt &sd, Object &object, const Span<bke::pbvh::Node *> nodes)
+void do_surface_smooth_brush(const Depsgraph &depsgraph,
+                             const Sculpt &sd,
+                             Object &object,
+                             const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -387,17 +398,17 @@ void do_surface_smooth_brush(const Sculpt &sd, Object &object, const Span<bke::p
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh:
       do_surface_smooth_brush_mesh(
-          sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     case bke::pbvh::Type::Grids: {
       do_surface_smooth_brush_grids(
-          sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     }
     case bke::pbvh::Type::BMesh: {
       BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
       do_surface_smooth_brush_bmesh(
-          sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, nodes, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     }
   }

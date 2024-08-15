@@ -92,7 +92,8 @@ BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors,
   }
 }
 
-static void color_filter_task(Object &ob,
+static void color_filter_task(const Depsgraph &depsgraph,
+                              Object &ob,
                               const OffsetIndices<int> faces,
                               const Span<int> corner_verts,
                               const GroupedSpan<int> vert_to_face_map,
@@ -113,7 +114,8 @@ static void color_filter_task(Object &ob,
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  auto_mask::calc_vert_factors(ob, ss.filter_cache->automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(
+      depsgraph, ob, ss.filter_cache->automasking.get(), node, verts, factors);
   scale_factors(factors, filter_strength);
 
   tls.new_colors.resize(verts.size());
@@ -359,6 +361,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
 
 static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 {
+  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.sculpt;
 
   const FilterType mode = FilterType(RNA_enum_get(op->ptr, "type"));
@@ -384,7 +387,8 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     for (const int i : range) {
-      color_filter_task(ob,
+      color_filter_task(depsgraph,
+                        ob,
                         faces,
                         corner_verts,
                         vert_to_face_map,
@@ -485,7 +489,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      RNA_float_get(op->ptr, "strength"));
   filter::Cache *filter_cache = ss.filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = auto_mask::cache_init(sd, ob);
+  filter_cache->automasking = auto_mask::cache_init(*depsgraph, sd, ob);
 
   return OPERATOR_PASS_THROUGH;
 }

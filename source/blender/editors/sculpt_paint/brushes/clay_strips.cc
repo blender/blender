@@ -38,7 +38,8 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-static void calc_faces(const Sculpt &sd,
+static void calc_faces(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        const Brush &brush,
                        const float4x4 &mat,
                        const float4 &plane,
@@ -72,7 +73,7 @@ static void calc_faces(const Sculpt &sd,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
@@ -91,10 +92,11 @@ static void calc_faces(const Sculpt &sd,
   filter_plane_trim_limit_factors(brush, cache, translations, factors);
   scale_translations(translations, factors);
 
-  write_translations(sd, object, positions_eval, verts, translations, positions_orig);
+  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
 }
 
-static void calc_grids(const Sculpt &sd,
+static void calc_grids(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
                        const float4x4 &mat,
@@ -126,7 +128,7 @@ static void calc_grids(const Sculpt &sd,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  auto_mask::calc_grids_factors(object, cache.automasking.get(), node, grids, factors);
+  auto_mask::calc_grids_factors(depsgraph, object, cache.automasking.get(), node, grids, factors);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -149,7 +151,8 @@ static void calc_grids(const Sculpt &sd,
   apply_translations(translations, grids, subdiv_ccg);
 }
 
-static void calc_bmesh(const Sculpt &sd,
+static void calc_bmesh(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
                        const float4x4 &mat,
@@ -180,7 +183,7 @@ static void calc_bmesh(const Sculpt &sd,
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
-  auto_mask::calc_vert_factors(object, cache.automasking.get(), node, verts, factors);
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
@@ -205,7 +208,10 @@ static void calc_bmesh(const Sculpt &sd,
 
 }  // namespace clay_strips_cc
 
-void do_clay_strips_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nodes)
+void do_clay_strips_brush(const Depsgraph &depsgraph,
+                          const Sculpt &sd,
+                          Object &object,
+                          Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
   if (math::is_zero(ss.cache->grab_delta_symmetry)) {
@@ -220,13 +226,13 @@ void do_clay_strips_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node
 
   float3 area_position;
   float3 plane_normal;
-  calc_brush_plane(brush, object, nodes, plane_normal, area_position);
+  calc_brush_plane(depsgraph, brush, object, nodes, plane_normal, area_position);
   SCULPT_tilt_apply_to_normal(plane_normal, ss.cache, brush.tilt_strength_factor);
   area_position += plane_normal * ss.cache->scale * displace;
 
   float3 area_normal;
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_normal = calc_area_normal(brush, object, nodes).value_or(float3(0));
+    area_normal = calc_area_normal(depsgraph, brush, object, nodes).value_or(float3(0));
   }
   else {
     area_normal = plane_normal;
@@ -271,13 +277,14 @@ void do_clay_strips_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node
   switch (object.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
-      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_faces(sd,
+          calc_faces(depsgraph,
+                     sd,
                      brush,
                      mat,
                      plane,
@@ -298,7 +305,7 @@ void do_clay_strips_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_grids(sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
+          calc_grids(depsgraph, sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
         }
       });
       break;
@@ -306,7 +313,7 @@ void do_clay_strips_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         for (const int i : range) {
-          calc_bmesh(sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
+          calc_bmesh(depsgraph, sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
         }
       });
       break;

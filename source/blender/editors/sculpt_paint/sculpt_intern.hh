@@ -867,10 +867,14 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 void SCULPT_vertex_random_access_ensure(SculptSession &ss);
 
 int SCULPT_vertex_count_get(const SculptSession &ss);
-const float *SCULPT_vertex_co_get(const Object &object, PBVHVertRef vertex);
+const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
+                                  const Object &object,
+                                  PBVHVertRef vertex);
 
 /** Get the normal for a given sculpt vertex; do not modify the result */
-const blender::float3 SCULPT_vertex_normal_get(const Object &object, PBVHVertRef vertex);
+const blender::float3 SCULPT_vertex_normal_get(const Depsgraph &depsgraph,
+                                               const Object &object,
+                                               PBVHVertRef vertex);
 
 bool SCULPT_vertex_is_occluded(const Object &object,
                                const blender::float3 &position,
@@ -881,7 +885,7 @@ namespace blender::ed::sculpt_paint {
 /**
  * Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled.
  */
-Span<float3> vert_positions_for_grab_active_get(const Object &object);
+Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object);
 
 }
 
@@ -935,7 +939,7 @@ Span<int> vert_neighbors_get_mesh(int vert,
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(Object &ob, float max_dist);
+void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, float max_dist);
 void SCULPT_fake_neighbors_enable(Object &ob);
 void SCULPT_fake_neighbors_disable(Object &ob);
 void SCULPT_fake_neighbors_free(Object &ob);
@@ -1070,13 +1074,15 @@ bool SCULPT_tool_needs_all_pbvh_nodes(const Brush &brush);
 
 namespace blender::ed::sculpt_paint {
 
-void calc_brush_plane(const Brush &brush,
+void calc_brush_plane(const Depsgraph &depsgraph,
+                      const Brush &brush,
                       Object &ob,
                       Span<bke::pbvh::Node *> nodes,
                       float3 &r_area_no,
                       float3 &r_area_co);
 
-std::optional<float3> calc_area_normal(const Brush &brush,
+std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
+                                       const Brush &brush,
                                        Object &ob,
                                        Span<bke::pbvh::Node *> nodes);
 
@@ -1084,17 +1090,20 @@ std::optional<float3> calc_area_normal(const Brush &brush,
  * This calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
  */
-void calc_area_normal_and_center(const Brush &brush,
+void calc_area_normal_and_center(const Depsgraph &depsgraph,
+                                 const Brush &brush,
                                  const Object &ob,
                                  Span<bke::pbvh::Node *> nodes,
                                  float r_area_no[3],
                                  float r_area_co[3]);
-void calc_area_center(const Brush &brush,
+void calc_area_center(const Depsgraph &depsgraph,
+                      const Brush &brush,
                       const Object &ob,
                       Span<bke::pbvh::Node *> nodes,
                       float r_area_co[3]);
 
-PBVHVertRef nearest_vert_calc(const Object &object,
+PBVHVertRef nearest_vert_calc(const Depsgraph &depsgraph,
+                              const Object &object,
                               const float3 &location,
                               float max_distance,
                               bool use_original);
@@ -1204,7 +1213,8 @@ struct FillDataMesh {
 
   void add_initial(int vertex);
   void add_and_skip_initial(int vertex, int index);
-  void add_initial_with_symmetry(const Object &object,
+  void add_initial_with_symmetry(const Depsgraph &depsgraph,
+                                 const Object &object,
                                  const bke::pbvh::Tree &pbvh,
                                  int vertex,
                                  float radius);
@@ -1254,7 +1264,8 @@ FillData init_fill(SculptSession &ss);
 
 void add_initial(FillData &flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData &flood, PBVHVertRef vertex);
-void add_initial_with_symmetry(const Object &ob,
+void add_initial_with_symmetry(const Depsgraph &depsgraph,
+                               const Object &ob,
                                FillData &flood,
                                PBVHVertRef vertex,
                                float radius);
@@ -1385,8 +1396,11 @@ const Cache *active_cache_get(const SculptSession &ss);
  * For automasking modes that cannot be calculated in real time,
  * data is also stored at the vertex level prior to the stroke starting.
  */
-std::unique_ptr<Cache> cache_init(const Sculpt &sd, Object &ob);
-std::unique_ptr<Cache> cache_init(const Sculpt &sd, const Brush *brush, Object &ob);
+std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob);
+std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
+                                  const Sculpt &sd,
+                                  const Brush *brush,
+                                  Object &ob);
 
 bool mode_enabled(const Sculpt &sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt &sd, const SculptSession *ss, const Brush *br);
@@ -1413,8 +1427,12 @@ namespace blender::ed::sculpt_paint::geodesic {
  * types of blender::bke::pbvh::Tree it will fallback to euclidean distances to one of the initial
  * vertices in the set.
  */
-Array<float> distances_create(Object &ob, const Set<int> &initial_verts, float limit_radius);
-Array<float> distances_create_from_vert_and_symm(Object &ob,
+Array<float> distances_create(const Depsgraph &depsgraph,
+                              Object &ob,
+                              const Set<int> &initial_verts,
+                              float limit_radius);
+Array<float> distances_create_from_vert_and_symm(const Depsgraph &depsgraph,
+                                                 Object &ob,
                                                  PBVHVertRef vertex,
                                                  float limit_radius);
 
@@ -1532,11 +1550,15 @@ struct SimulationData {
 };
 
 /* Main cloth brush function */
-void do_cloth_brush(const Sculpt &sd, Object &ob, Span<blender::bke::pbvh::Node *> nodes);
+void do_cloth_brush(const Depsgraph &depsgraph,
+                    const Sculpt &sd,
+                    Object &ob,
+                    Span<blender::bke::pbvh::Node *> nodes);
 
 /* Public functions. */
 
-std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
+std::unique_ptr<SimulationData> brush_simulation_create(const Depsgraph &depsgraph,
+                                                        Object &ob,
                                                         float cloth_mass,
                                                         float cloth_damping,
                                                         float cloth_softbody_strength,
@@ -1545,9 +1567,12 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
 
 void sim_activate_nodes(SimulationData &cloth_sim, Span<blender::bke::pbvh::Node *> nodes);
 
-void brush_store_simulation_state(const Object &object, SimulationData &cloth_sim);
+void brush_store_simulation_state(const Depsgraph &depsgraph,
+                                  const Object &object,
+                                  SimulationData &cloth_sim);
 
-void do_simulation_step(const Sculpt &sd,
+void do_simulation_step(const Depsgraph &depsgraph,
+                        const Sculpt &sd,
                         Object &ob,
                         SimulationData &cloth_sim,
                         Span<blender::bke::pbvh::Node *> nodes);
@@ -1590,7 +1615,7 @@ bool is_cloth_deform_brush(const Brush &brush);
 
 namespace blender::ed::sculpt_paint {
 
-void calc_smooth_translations(const Object &object,
+void calc_smooth_translations(const Depsgraph &depsgraph,const Object &object,
                               Span<bke::pbvh::Node *> nodes,
                               MutableSpan<float3> translations);
 
@@ -1717,8 +1742,14 @@ namespace blender::ed::sculpt_paint::undo {
  *
  * This is only possible when building an undo step, in between #push_begin and #push_end.
  */
-void push_node(const Object &object, const bke::pbvh::Node *node, undo::Type type);
-void push_nodes(Object &object, Span<const bke::pbvh::Node *> nodes, undo::Type type);
+void push_node(const Depsgraph &depsgraph,
+               const Object &object,
+               const bke::pbvh::Node *node,
+               undo::Type type);
+void push_nodes(const Depsgraph &depsgraph,
+                Object &object,
+                Span<const bke::pbvh::Node *> nodes,
+                undo::Type type);
 
 /**
  * Retrieve the undo data of a given type for the active undo step. For example, this is used to
@@ -1746,7 +1777,7 @@ void push_end_ex(Object &ob, bool use_nested_undo);
 void restore_from_bmesh_enter_geometry(const StepData &step_data, Mesh &mesh);
 BMLogEntry *get_bmesh_log_entry();
 
-void restore_position_from_undo_step(Object &object);
+void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object);
 
 }
 
@@ -2036,7 +2067,10 @@ namespace blender::ed::sculpt_paint::pose {
 /**
  * Main Brush Function.
  */
-void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
+void do_pose_brush(const Depsgraph &depsgraph,
+                   const Sculpt &sd,
+                   Object &ob,
+                   Span<bke::pbvh::Node *> nodes);
 /**
  * Calculate the pose origin and (Optionally the pose factor)
  * that is used when using the pose brush.
@@ -2044,15 +2078,20 @@ void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
  * \param r_pose_origin: Must be a valid pointer.
  * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
  */
-void calc_pose_data(Object &ob,
+void calc_pose_data(const Depsgraph &depsgraph,
+                    Object &ob,
                     SculptSession &ss,
                     const float3 &initial_location,
                     float radius,
                     float pose_offset,
                     float3 &r_pose_origin,
                     MutableSpan<float> r_pose_factor);
-void pose_brush_init(Object &ob, SculptSession &ss, const Brush &brush);
-std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(Object &ob,
+void pose_brush_init(const Depsgraph &depsgraph,
+                     Object &ob,
+                     SculptSession &ss,
+                     const Brush &brush);
+std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph &depsgraph,
+                                                                Object &ob,
                                                                 SculptSession &ss,
                                                                 const Brush &brush,
                                                                 const float3 &initial_location,
@@ -2066,11 +2105,13 @@ namespace blender::ed::sculpt_paint::boundary {
  * Main function to get #SculptBoundary data both for brush deformation and viewport preview.
  * Can return NULL if there is no boundary from the given vertex using the given radius.
  */
-std::unique_ptr<SculptBoundary> data_init(Object &object,
+std::unique_ptr<SculptBoundary> data_init(const Depsgraph &depsgraph,
+                                          Object &object,
                                           const Brush *brush,
                                           PBVHVertRef initial_vert,
                                           float radius);
-std::unique_ptr<SculptBoundary> data_init_mesh(Object &object,
+std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
+                                               Object &object,
                                                const Brush *brush,
                                                int initial_vert,
                                                float radius);
@@ -2082,12 +2123,16 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
                                                 const Brush *brush,
                                                 BMVert *initial_vert,
                                                 float radius);
-std::unique_ptr<SculptBoundaryPreview> preview_data_init(Object &object,
+std::unique_ptr<SculptBoundaryPreview> preview_data_init(const Depsgraph &depsgraph,
+                                                         Object &object,
                                                          const Brush *brush,
                                                          float radius);
 
 /* Main Brush Function. */
-void do_boundary_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
+void do_boundary_brush(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
+                       Object &ob,
+                       Span<bke::pbvh::Node *> nodes);
 
 void edges_preview_draw(uint gpuattr,
                         SculptSession &ss,
@@ -2141,12 +2186,16 @@ float4 color_vert_get(OffsetIndices<int> faces,
 bke::GAttributeReader active_color_attribute(const Mesh &mesh);
 bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh);
 
-void do_paint_brush(PaintModeSettings &paint_mode_settings,
+void do_paint_brush(const Depsgraph &depsgraph,
+                    PaintModeSettings &paint_mode_settings,
                     const Sculpt &sd,
                     Object &ob,
                     Span<bke::pbvh::Node *> nodes,
                     Span<bke::pbvh::Node *> texnodes);
-void do_smear_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes);
+void do_smear_brush(const Depsgraph &depsgraph,
+                    const Sculpt &sd,
+                    Object &ob,
+                    Span<bke::pbvh::Node *> nodes);
 }
 
 }
@@ -2161,7 +2210,8 @@ bool SCULPT_paint_image_canvas_get(PaintModeSettings &paint_mode_settings,
                                    Object &ob,
                                    Image **r_image,
                                    ImageUser **r_image_user) ATTR_NONNULL();
-void SCULPT_do_paint_brush_image(PaintModeSettings &paint_mode_settings,
+void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
+                                 PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
                                  blender::Span<blender::bke::pbvh::Node *> texnodes);
