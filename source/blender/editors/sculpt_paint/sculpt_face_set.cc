@@ -1236,18 +1236,27 @@ static void edit_fairing(const Sculpt &sd,
   SculptSession &ss = *ob.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
   const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  boundary::ensure_boundary_info(ob);
 
   const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const BitSpan boundary_verts = ss.vertex_info.boundary;
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  Array<bool> fair_verts(positions.size());
-
-  boundary::ensure_boundary_info(ob);
-
+  Array<bool> fair_verts(positions.size(), false);
   for (const int vert : positions.index_range()) {
-    fair_verts[vert] = !boundary::vert_is_boundary(ss, PBVHVertRef{vert}) &&
-                       vert_has_face_set(ss, PBVHVertRef{vert}, active_face_set_id) &&
-                       vert_has_unique_face_set(ss, PBVHVertRef{vert});
+    if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary_verts, vert)) {
+      continue;
+    }
+    if (!vert_has_face_set(vert_to_face_map, ss.face_sets, vert, active_face_set_id)) {
+      continue;
+    }
+    if (!vert_has_unique_face_set(vert_to_face_map, ss.face_sets, vert)) {
+      continue;
+    }
+    fair_verts[vert] = true;
   }
 
   Array<float3> new_positions = positions;
