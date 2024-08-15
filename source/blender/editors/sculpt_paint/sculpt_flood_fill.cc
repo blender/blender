@@ -118,7 +118,7 @@ void FillDataMesh::add_initial_with_symmetry(const Object &object,
   }
 
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-  const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
   const bke::AttributeAccessor attributes = mesh.attributes();
   VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 

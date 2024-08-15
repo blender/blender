@@ -348,7 +348,7 @@ static bool update_pixels(const Object &object, Tree &pbvh, Image &image, ImageU
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, AttrDomain::Corner);
 
   uv_islands::MeshData mesh_data(
-      mesh.corner_tris(), mesh.corner_verts(), uv_map, BKE_pbvh_get_vert_positions(pbvh));
+      mesh.corner_tris(), mesh.corner_verts(), uv_map, bke::pbvh::vert_positions_eval(object));
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;

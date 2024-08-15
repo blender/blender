@@ -537,9 +537,29 @@ void BKE_pbvh_node_get_bm_orco_data(blender::bke::pbvh::Node *node,
                                     float (**r_orco_coords)[3],
                                     BMVert ***r_orco_verts);
 
-blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh);
-blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh);
-blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh);
+namespace blender::bke::pbvh {
+
+/**
+ * Retrieve the positions array from the evaluated mesh after deforming modifiers and before
+ * topology-changing operations. If there are no deform modifiers, this returns the original mesh's
+ * vertex positions.
+ */
+Span<float3> vert_positions_eval(const Object &object);
+/**
+ * Retrieve write access to the evaluated deform positions, or the original object positions if
+ * there are no deformation modifiers. Writing the the evaluated positions is necessary because
+ * they are used for drawing and we don't run a full dependency graph update whenever they are
+ * changed.
+ */
+MutableSpan<float3> vert_positions_eval_for_write(Object &object);
+
+/**
+ * Return the vertex normals corresponding the the positions from #vert_positions_eval. This may be
+ * a reference to the normals cache on the original mesh.
+ */
+Span<float3> vert_normals_eval(const Object &object);
+
+}  // namespace blender::bke::pbvh
 
 void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
                                        blender::Span<blender::int3> corner_tris);

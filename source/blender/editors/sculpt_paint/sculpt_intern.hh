@@ -1545,7 +1545,7 @@ std::unique_ptr<SimulationData> brush_simulation_create(Object &ob,
 
 void sim_activate_nodes(SimulationData &cloth_sim, Span<blender::bke::pbvh::Node *> nodes);
 
-void brush_store_simulation_state(const SculptSession &ss, SimulationData &cloth_sim);
+void brush_store_simulation_state(const Object &object, SimulationData &cloth_sim);
 
 void do_simulation_step(const Sculpt &sd,
                         Object &ob,

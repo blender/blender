@@ -342,7 +342,7 @@ static void calc_smooth_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -487,7 +487,7 @@ static void calc_inflate_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -601,7 +601,7 @@ static void calc_scale_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -731,7 +731,7 @@ static void calc_sphere_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -853,7 +853,7 @@ static void calc_random_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -971,8 +971,8 @@ static void calc_relax_filter(const Sculpt &sd,
     };
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1130,8 +1130,8 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
         Vector<float3> translations;
       };
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1301,7 +1301,7 @@ static void calc_surface_smooth_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1589,7 +1589,7 @@ static void calc_sharpen_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       const OffsetIndices faces = mesh.faces();
@@ -1832,7 +1832,7 @@ static void calc_enhance_details_filter(const Sculpt &sd,
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

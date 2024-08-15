@@ -495,7 +495,7 @@ static void sculpt_pose_grow_pose_factor(Object &ob,
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-        const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(pbvh);
+        const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
         const OffsetIndices faces = mesh.faces();
         const Span<int> corner_verts = mesh.corner_verts();
         const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1450,8 +1450,7 @@ void do_pose_brush(const Sculpt &sd, Object &ob, Span<bke::pbvh::Node *> nodes)
   switch (ob.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const bke::pbvh::Tree &pbvh = *ss.pbvh;
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         BrushLocalData &tls = all_tls.local();

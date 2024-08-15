@@ -116,7 +116,7 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
                            bke::AttributeInitVArray(positions.varray));
   }
 
-  const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(*ss->pbvh);
+  const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(ob);
   attributes.add<float3>(".sculpt_persistent_no",
                          bke::AttrDomain::Point,
                          bke::AttributeInitVArray(VArray<float3>::ForSpan(vert_normals)));
@@ -587,7 +587,7 @@ void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius)
 
   const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
   /* Always grab active shape key if the sculpt happens on shapekey. */
-  const Span<float3> positions = ss.shapekey_active ? BKE_pbvh_get_vert_positions(*ss.pbvh) :
+  const Span<float3> positions = ss.shapekey_active ? bke::pbvh::vert_positions_eval(*ob) :
                                                       mesh.vert_positions();
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();

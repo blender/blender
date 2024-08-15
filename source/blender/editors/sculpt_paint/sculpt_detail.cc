@@ -185,7 +185,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   Object &ob = *vc->obact;
   SculptSession &ss = *ob.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();

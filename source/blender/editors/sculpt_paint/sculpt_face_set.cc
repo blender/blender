@@ -1238,7 +1238,7 @@ static void edit_fairing(const Sculpt &sd,
   const bke::pbvh::Tree &pbvh = *ss.pbvh;
   boundary::ensure_boundary_info(ob);
 
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(ob);
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const BitSpan boundary_verts = ss.vertex_info.boundary;
@@ -1548,7 +1548,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data,
   SculptSession &ss = *gesture_data.ss;
   const bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> tri_faces = mesh.corner_tri_faces();

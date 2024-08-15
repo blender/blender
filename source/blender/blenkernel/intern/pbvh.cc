@@ -1001,7 +1001,7 @@ static void update_normals_mesh(Object &object, Span<Node *> nodes)
    * during recalculation thread-safe. */
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   Tree &pbvh = *object.sculpt->pbvh;
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> tri_faces = mesh.corner_tri_faces();
@@ -1220,7 +1220,7 @@ void update_bounds(const Object &object, Tree &pbvh)
 {
   switch (pbvh.type()) {
     case Type::Mesh: {
-      const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
       update_bounds_mesh(positions, pbvh);
       break;
     }
@@ -2498,7 +2498,8 @@ bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
          blender::bke::pbvh::ISECT_INSIDE;
 }
 
-static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh_eval,
+static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Object &object_orig,
+                                                              const Mesh &mesh_eval,
                                                               const Mesh &mesh_orig,
                                                               blender::bke::pbvh::Tree &pbvh,
                                                               const blender::bke::pbvh::Node &node)
@@ -2519,11 +2520,11 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh_e
       args.corner_data = &mesh_eval.corner_data;
       args.face_data = &mesh_eval.face_data;
       args.mesh = &mesh_orig;
-      args.vert_positions = BKE_pbvh_get_vert_positions(pbvh);
+      args.vert_positions = blender::bke::pbvh::vert_positions_eval(object_orig);
       args.corner_verts = mesh_eval.corner_verts();
       args.corner_edges = mesh_eval.corner_edges();
       args.corner_tris = mesh_eval.corner_tris();
-      args.vert_normals = pbvh.vert_normals_;
+      args.vert_normals = blender::bke::pbvh::vert_normals_eval(object_orig);
       args.face_normals = pbvh.face_normals_;
       args.hide_poly = *mesh_orig.attributes().lookup<bool>(".hide_poly",
                                                             blender::bke::AttrDomain::Face);
@@ -2540,7 +2541,6 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh_e
       args.grid_indices = node.prim_indices_;
       args.subdiv_ccg = pbvh.subdiv_ccg_;
       args.grids = pbvh.subdiv_ccg_->grids;
-      args.vert_normals = pbvh.vert_normals_;
       break;
     case blender::bke::pbvh::Type::BMesh:
       args.bm = pbvh.bm_;
@@ -2559,7 +2559,8 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh_e
 
 namespace blender::bke::pbvh {
 
-static void node_update_draw_buffers(const Mesh &mesh_eval,
+static void node_update_draw_buffers(const Object &object_orig,
+                                     const Mesh &mesh_eval,
                                      const Mesh &mesh_orig,
                                      Tree &pbvh,
                                      Node &node)
@@ -2569,7 +2570,7 @@ static void node_update_draw_buffers(const Mesh &mesh_eval,
    * after GPU_pbvh_buffer_flush() which does the final OpenGL calls. */
   if (node.flag_ & PBVH_RebuildDrawBuffers) {
     const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-        mesh_eval, mesh_orig, pbvh, node);
+        object_orig, mesh_eval, mesh_orig, pbvh, node);
     node.draw_batches_ = blender::draw::pbvh::node_create(args);
   }
 
@@ -2578,7 +2579,7 @@ static void node_update_draw_buffers(const Mesh &mesh_eval,
 
     if (node.draw_batches_) {
       const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-          mesh_eval, mesh_orig, pbvh, node);
+          object_orig, mesh_eval, mesh_orig, pbvh, node);
       blender::draw::pbvh::node_update(node.draw_batches_, args);
     }
   }
@@ -2592,8 +2593,12 @@ void free_draw_buffers(Tree & /*pbvh*/, Node *node)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    const Mesh &mesh_eval, const Mesh &mesh_orig, Tree &pbvh, Span<Node *> nodes, int update_flag)
+static void pbvh_update_draw_buffers(const Object &object_orig,
+                                     const Mesh &mesh_eval,
+                                     const Mesh &mesh_orig,
+                                     Tree &pbvh,
+                                     Span<Node *> nodes,
+                                     int update_flag)
 {
   if (pbvh.type() == Type::BMesh && !pbvh.bm_) {
     /* BMesh hasn't been created yet */
@@ -2608,7 +2613,7 @@ static void pbvh_update_draw_buffers(
       }
       else if ((node->flag_ & PBVH_UpdateDrawBuffers) && node->draw_batches_) {
         const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-            mesh_eval, mesh_orig, pbvh, *node);
+            object_orig, mesh_eval, mesh_orig, pbvh, *node);
         draw::pbvh::update_pre(node->draw_batches_, args);
       }
     }
@@ -2617,7 +2622,7 @@ static void pbvh_update_draw_buffers(
   /* Parallel creation and update of draw buffers. */
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (Node *node : nodes.slice(range)) {
-      node_update_draw_buffers(mesh_eval, mesh_orig, pbvh, *node);
+      node_update_draw_buffers(object_orig, mesh_eval, mesh_orig, pbvh, *node);
     }
   });
 
@@ -2658,7 +2663,7 @@ void draw_cb(const Object &object_eval,
       return true;
     });
     if (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers)) {
-      pbvh_update_draw_buffers(mesh_eval, mesh_orig, pbvh, nodes, update_flag);
+      pbvh_update_draw_buffers(object_orig, mesh_eval, mesh_orig, pbvh, nodes, update_flag);
     }
   }
   else {
@@ -2666,8 +2671,12 @@ void draw_cb(const Object &object_eval,
     Vector<Node *> nodes = search_gather(pbvh, [&](Node &node) {
       return update_search(&node, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
     });
-    pbvh_update_draw_buffers(
-        mesh_eval, mesh_orig, pbvh, nodes, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
+    pbvh_update_draw_buffers(object_orig,
+                             mesh_eval,
+                             mesh_orig,
+                             pbvh,
+                             nodes,
+                             PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
   }
 
   /* Draw visible nodes. */
@@ -2681,7 +2690,8 @@ void draw_cb(const Object &object_eval,
     if (!node->draw_batches_) {
       continue;
     }
-    const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh_eval, mesh_orig, pbvh, *node);
+    const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
+        object_orig, mesh_eval, mesh_orig, pbvh, *node);
     draw_fn(node->draw_batches_, args);
   }
 }
@@ -2778,25 +2788,25 @@ void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes)
   }
 }
 
+Span<float3> vert_positions_eval(const Object &object)
+{
+  BLI_assert(object.sculpt->pbvh->type() == Type::Mesh);
+  return object.sculpt->pbvh->vert_positions_;
+}
+
+MutableSpan<float3> vert_positions_eval_for_write(Object &object)
+{
+  BLI_assert(object.sculpt->pbvh->type() == Type::Mesh);
+  return object.sculpt->pbvh->vert_positions_;
+}
+
+Span<float3> vert_normals_eval(const Object &object)
+{
+  BLI_assert(object.sculpt->pbvh->type() == Type::Mesh);
+  return object.sculpt->pbvh->vert_normals_;
+}
+
 }  // namespace blender::bke::pbvh
-
-blender::Span<blender::float3> BKE_pbvh_get_vert_positions(const blender::bke::pbvh::Tree &pbvh)
-{
-  BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
-  return pbvh.vert_positions_;
-}
-
-blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(blender::bke::pbvh::Tree &pbvh)
-{
-  BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
-  return pbvh.vert_positions_;
-}
-
-blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const blender::bke::pbvh::Tree &pbvh)
-{
-  BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Mesh);
-  return pbvh.vert_normals_;
-}
 
 void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_ccg)
 {

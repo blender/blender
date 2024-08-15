@@ -214,10 +214,8 @@ void do_mask_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> nod
   switch (ss.pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-
-      const blender::bke::pbvh::Tree &pbvh = *ss.pbvh;
-      const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
 
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
 

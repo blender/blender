@@ -149,8 +149,8 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
       switch (pbvh.type()) {
         case bke::pbvh::Type::Mesh: {
           Mesh &mesh = *static_cast<Mesh *>(object.data);
-          const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-          const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+          const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
+          const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
           MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
           undo::push_nodes(object, nodes, undo::Type::Position);
           threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

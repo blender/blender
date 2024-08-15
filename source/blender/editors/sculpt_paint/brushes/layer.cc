@@ -351,9 +351,8 @@ void do_layer_brush(const Sculpt &sd, Object &object, Span<bke::pbvh::Node *> no
   switch (object.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const bke::pbvh::Tree &pbvh = *ss.pbvh;
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
-      const Span<float3> vert_normals = BKE_pbvh_get_vert_normals(pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(object);
       const MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();

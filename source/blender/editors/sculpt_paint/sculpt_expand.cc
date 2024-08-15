@@ -341,7 +341,7 @@ static BitVector<> enabled_state_to_bitmap(const Object &object, const Cache &ex
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1325,7 +1325,7 @@ static void calc_new_mask_mesh(Object &object,
                                const Span<int> verts)
 {
   const SculptSession &ss = *object.sculpt;
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(object);
   const Cache &expand_cache = *ss.expand_cache;
 
   const BitVector<> enabled_verts = enabled_state_to_bitmap(object, expand_cache);
@@ -1685,7 +1685,7 @@ static void update_for_vert(bContext *C, Object &ob, const PBVHVertRef vertex)
       break;
     case TargetType::Colors: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(*ss.pbvh);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(ob);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;

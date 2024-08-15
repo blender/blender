@@ -1237,10 +1237,10 @@ static void store_coords(const Object &object, Node &unode)
     }
   }
   else {
-    array_utils::gather(BKE_pbvh_get_vert_positions(*ss.pbvh).as_span(),
+    array_utils::gather(bke::pbvh::vert_positions_eval(object),
                         unode.vert_indices.as_span(),
                         unode.position.as_mutable_span());
-    array_utils::gather(BKE_pbvh_get_vert_normals(*ss.pbvh),
+    array_utils::gather(bke::pbvh::vert_normals_eval(object),
                         unode.vert_indices.as_span(),
                         unode.normal.as_mutable_span());
     if (ss.deform_modifiers_active) {

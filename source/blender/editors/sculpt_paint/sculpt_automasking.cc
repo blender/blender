@@ -780,7 +780,7 @@ static void fill_topology_automasking_factors(const Sculpt &sd, Object &ob)
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh:
-      fill_topology_automasking_factors_mesh(sd, ob, BKE_pbvh_get_vert_positions(*ss.pbvh));
+      fill_topology_automasking_factors_mesh(sd, ob, bke::pbvh::vert_positions_eval(ob));
       break;
     case bke::pbvh::Type::Grids:
       fill_topology_automasking_factors_grids(sd, ob, *ss.subdiv_ccg);

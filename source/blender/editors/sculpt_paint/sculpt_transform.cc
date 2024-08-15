@@ -296,7 +296,7 @@ static void sculpt_transform_all_vertices(const Sculpt &sd, Object &ob)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
@@ -479,7 +479,7 @@ static void transform_radius_elastic(const Sculpt &sd, Object &ob, const float t
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         Mesh &mesh = *static_cast<Mesh *>(ob.data);
-        const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+        const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(ob);
         MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
         threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
@@ -662,7 +662,7 @@ static float3 average_unmasked_position(const Object &object,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
           nodes.index_range(),
           1,
@@ -775,7 +775,7 @@ static float3 average_mask_border_position(const Object &object,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> vert_positions = BKE_pbvh_get_vert_positions(pbvh);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask_attr = *attributes.lookup_or_default<float>(
           ".sculpt_mask", bke::AttrDomain::Point, 0.0f);

@@ -169,8 +169,7 @@ static void do_draw_face_sets_brush_mesh(Object &object,
                                          const Span<bke::pbvh::Node *> nodes)
 {
   const SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
-  const Span<float3> positions_eval = BKE_pbvh_get_vert_positions(pbvh);
+  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(object);
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const Span<int> corner_tris = mesh.corner_tri_faces();

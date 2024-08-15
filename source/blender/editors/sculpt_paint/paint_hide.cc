@@ -1209,7 +1209,6 @@ static void partialvis_gesture_update_mesh(gesture::GestureData &gesture_data)
   const VisAction action = operation->action;
   const Span<bke::pbvh::Node *> nodes = gesture_data.nodes;
 
-  bke::pbvh::Tree &pbvh = *object->sculpt->pbvh;
   Mesh *mesh = static_cast<Mesh *>(object->data);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   if (action == VisAction::Show && !attributes.contains(".hide_vert")) {
@@ -1218,8 +1217,8 @@ static void partialvis_gesture_update_mesh(gesture::GestureData &gesture_data)
   }
 
   const bool value = action_to_hide(action);
-  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
-  const Span<float3> normals = BKE_pbvh_get_vert_normals(pbvh);
+  const Span<float3> positions = bke::pbvh::vert_positions_eval(*object);
+  const Span<float3> normals = bke::pbvh::vert_normals_eval(*object);
   vert_hide_update(*object, nodes, [&](const Span<int> verts, MutableSpan<bool> hide) {
     for (const int i : verts.index_range()) {
       if (gesture::is_affected(gesture_data, positions[verts[i]], normals[verts[i]])) {

@@ -429,7 +429,7 @@ void update_shape_keys(Object &object,
  * \todo This should be removed one the pbvh::Tree no longer stores this copy of deformed
  * positions.
  */
-void apply_translations_to_pbvh(bke::pbvh::Tree &pbvh, Span<int> verts, Span<float3> translations);
+void apply_translations_to_pbvh(Object &object, Span<int> verts, Span<float3> translations);
 
 /**
  * Write the new translated positions to the original mesh, taking into account inverse
