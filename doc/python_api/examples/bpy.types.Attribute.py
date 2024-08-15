@@ -11,7 +11,7 @@ Using Attributes
 
 Attributes can be stored on geometries like :class:`Mesh`, :class:`Curves`, :class:`PointCloud`, etc.
 These geometries have attribute groups (usually called ``attributes``). Using the groups, attributes can then be accessed by their name:
- 
+
 .. code-block:: python
 
   radii = curves.attributes["radius"]
