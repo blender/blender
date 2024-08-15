@@ -22,6 +22,7 @@ To validate that things are registered correctly:
 '''
 
 import gdb
+import functools
 from contextlib import contextmanager
 from gdb.FrameDecorator import FrameDecorator
 
@@ -36,6 +37,24 @@ def eval_var(variable_name, value):
         yield
     finally:
         gdb.set_convenience_variable(variable_name, None)
+
+
+@contextmanager
+def ensure_unwind_on_signal():
+    '''
+    Creates a context in which gdb can attempt evaluating functions with
+    less risk of crashing the program. If there is an error (e.g. a segfault)
+    gdb will unwind the stack, raise a Python exception, but otherwise allows
+    continuing the debugging session.
+    '''
+    was_on = "is on." in gdb.execute("show unwindonsignal", to_string=True)
+    if not was_on:
+        gdb.execute("set unwindonsignal on")
+    try:
+        yield
+    finally:
+        if not was_on:
+            gdb.execute("set unwindonsignal off")
 
 
 class VectorPrinter:
@@ -402,11 +421,40 @@ class OffsetIndicesPrinter:
         return "array"
 
 
+class ErrorHandlingPrinter:
+    '''
+    This class can wrap another printer and adds additional error handling on top.
+    '''
+
+    def __init__(self, printer):
+        self.printer = printer
+
+    def to_string(self):
+        try:
+            with ensure_unwind_on_signal():
+                return self.printer.to_string()
+        except Exception as e:
+            return "Error"
+
+    def children(self):
+        try:
+            children_generator = self.printer.children()
+            while True:
+                with ensure_unwind_on_signal():
+                    next_child = next(children_generator)
+                yield next_child
+        except:
+            return
+
+    def display_hint(self):
+        return self.printer.display_hint()
+
+
 class BlenderPrettyPrinters(gdb.printing.PrettyPrinter):
     def __init__(self):
         super().__init__("blender-pretty-printers")
 
-    def __call__(self, value: gdb.Value):
+    def get_pretty_printer(self, value: gdb.Value):
         value_type = value.type
         if value_type is None:
             return None
@@ -458,6 +506,11 @@ class BlenderPrettyPrinters(gdb.printing.PrettyPrinter):
             return OffsetIndicesPrinter(value)
         return None
 
+    def __call__(self, value: gdb.Value):
+        if printer := self.get_pretty_printer(value):
+            return ErrorHandlingPrinter(printer)
+        return None
+
 
 class ForeachIndexFilter:
     filename_pattern = r".*index_mask.*"
@@ -465,7 +518,6 @@ class ForeachIndexFilter:
     @staticmethod
     def frame_to_name(frame):
         function_name = frame.function()
-        print(function_name)
         if function_name.startswith("blender::index_mask::IndexMask::foreach_index"):
             return "Foreach Index"
 

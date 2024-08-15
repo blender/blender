@@ -33,6 +33,7 @@ TEST(virtual_array, Single)
   EXPECT_EQ(varray.get(3), 10);
   EXPECT_FALSE(varray.is_span());
   EXPECT_TRUE(varray.is_single());
+  EXPECT_EQ(varray.get_internal_single(), 10);
 }
 
 TEST(virtual_array, Array)
