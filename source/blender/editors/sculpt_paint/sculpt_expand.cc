@@ -827,27 +827,29 @@ static Array<float> diagonals_falloff_create(Object &ob, const PBVHVertRef v)
   return dists;
 }
 
-/* Functions to update the max_falloff value in the #Cache. These functions are called
- * after initializing a new falloff to make sure that this value is always updated. */
-
 /**
  * Updates the max_falloff value for vertices in a #Cache based on the current values of
  * the falloff, skipping any invalid values initialized to FLT_MAX and not initialized components.
  */
 static void update_max_vert_falloff_value(SculptSession &ss, Cache &expand_cache)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
-  expand_cache.max_vert_falloff = -FLT_MAX;
-  for (int vert = 0; vert < totvert; vert++) {
+    expand_cache.max_vert_falloff = threading::parallel_reduce(
+      IndexRange(SCULPT_vertex_count_get(ss)),
+      4096,
+      std::numeric_limits<float>::lowest(),
+      [&](const IndexRange range, float max) {
+  for (const int vert : range) {
     if (expand_cache.vert_falloff[vert] == FLT_MAX) {
       continue;
     }
     if (!is_vert_in_active_component(ss, expand_cache, vert)) {
       continue;
     }
-    expand_cache.max_vert_falloff = max_ff(expand_cache.max_vert_falloff,
-                                           expand_cache.vert_falloff[vert]);
+    max = std::max(max, expand_cache.vert_falloff[vert]);
   }
+return max;
+      },
+      [](const float a, const float b) { return std::max(a, b); });
 }
 
 /**
@@ -858,20 +860,23 @@ static void update_max_face_falloff_factor(SculptSession &ss, Mesh &mesh, Cache 
 {
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const int totface = ss.totfaces;
-  expand_cache.max_face_falloff = -FLT_MAX;
-  for (int i = 0; i < totface; i++) {
-    if (expand_cache.face_falloff[i] == FLT_MAX) {
+    expand_cache.max_face_falloff = threading::parallel_reduce(
+      faces.index_range(),
+      4096,
+      std::numeric_limits<float>::lowest(),
+      [&](const IndexRange range, float max) {
+  for (const int face : range) {
+    if (expand_cache.face_falloff[face] == FLT_MAX) {
       continue;
     }
-
-    if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, i)) {
+    if (!is_face_in_active_component(ss, faces, corner_verts, expand_cache, face)) {
       continue;
     }
-
-    expand_cache.max_face_falloff = max_ff(expand_cache.max_face_falloff,
-                                           expand_cache.face_falloff[i]);
+max = std::max(max, expand_cache.face_falloff[face]);
   }
+return max;
+      },
+      [](const float a, const float b) { return std::max(a, b); });
 }
 
 /**
@@ -885,16 +890,18 @@ static void vert_to_face_falloff_grids(SculptSession &ss, Mesh *mesh, Cache &exp
   const OffsetIndices faces = mesh->faces();
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
 
-  for (const int i : faces.index_range()) {
+threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face : range) {
     float accum = 0.0f;
-    for (const int corner : faces[i]) {
+    for (const int corner : faces[face]) {
       const int grid_loop_index = corner * key.grid_area;
       for (int g = 0; g < key.grid_area; g++) {
         accum += expand_cache.vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache.face_falloff[i] = accum / (faces[i].size() * key.grid_area);
+    expand_cache.face_falloff[face] = accum / (faces[face].size() * key.grid_area);
   }
+});
 }
 
 static void vert_to_face_falloff_mesh(Mesh *mesh, Cache &expand_cache)
@@ -902,13 +909,16 @@ static void vert_to_face_falloff_mesh(Mesh *mesh, Cache &expand_cache)
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
-  for (const int i : faces.index_range()) {
+threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face : range) {
+const Span<int> face_verts = corner_verts.slice(faces[face]);
     float accum = 0.0f;
-    for (const int vert : corner_verts.slice(faces[i])) {
+    for (const int vert : face_verts) {
       accum += expand_cache.vert_falloff[vert];
     }
-    expand_cache.face_falloff[i] = accum / faces[i].size();
+    expand_cache.face_falloff[face] = accum / face_verts.size();
   }
+});
 }
 
 /**
