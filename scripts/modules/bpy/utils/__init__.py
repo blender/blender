@@ -637,6 +637,25 @@ def is_path_builtin(path):
     return False
 
 
+def is_path_extension(path):
+    """
+    Returns True if the path is from an extensions repository.
+
+    :arg path: Path to check if it is within an extension repository.
+    :type path: str
+    :rtype: bool
+    """
+    for repo in _preferences.extensions.repos:
+        if not repo.enabled:
+            continue
+        # NOTE: since these paths are user defined, they can be anything.
+        # Empty or malformed paths will be skipped.
+        if _is_path_parent_of(repo.directory, path):
+            return True
+
+    return False
+
+
 def smpte_from_seconds(time, *, fps=None, fps_base=None):
     """
     Returns an SMPTE formatted string from the *time*:

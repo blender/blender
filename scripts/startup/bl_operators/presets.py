@@ -30,6 +30,9 @@ WindowManager.preset_name = StringProperty(
 )
 
 
+# -----------------------------------------------------------------------------
+# Private Implementation
+
 def _call_preset_cb(fn, context, filepath):
     # Allow "None" so the caller doesn't have to assign a variable and check it.
     if fn is None:
@@ -48,6 +51,19 @@ def _call_preset_cb(fn, context, filepath):
     except BaseException as ex:
         print("Internal error running", fn, str(ex))
 
+
+def _is_path_readonly(path):
+    from bpy.utils import (
+        is_path_builtin,
+        is_path_extension,
+    )
+    # Consider extension repository paths read-only because they should not be manipulated
+    # since the only way to restore the preset is to re-install the extension.
+    return is_path_builtin(path) or is_path_extension(path)
+
+
+# -----------------------------------------------------------------------------
+# Main Preset Implementation
 
 class AddPresetBase:
     """Base preset class, only for subclassing
@@ -97,7 +113,6 @@ class AddPresetBase:
 
     def execute(self, context):
         import os
-        from bpy.utils import is_path_builtin
 
         if hasattr(self, "pre_cb"):
             self.pre_cb(context)
@@ -201,7 +216,7 @@ class AddPresetBase:
                 return {'CANCELLED'}
 
             # Do not remove bundled presets
-            if is_path_builtin(filepath):
+            if _is_path_readonly(filepath):
                 self.report({'WARNING'}, "Unable to remove default presets")
                 return {'CANCELLED'}
 
@@ -627,12 +642,11 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
 
     @classmethod
     def poll(cls, context):
-        from bpy.utils import is_path_builtin
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
         name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
-        if not bool(filepath) or is_path_builtin(filepath):
+        if not bool(filepath) or _is_path_readonly(filepath):
             cls.poll_message_set("Built-in themes cannot be removed")
             return False
         return True
@@ -660,25 +674,22 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
 
     @classmethod
     def poll(cls, context):
-        from bpy.utils import is_path_builtin
-
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
         name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
-        if (not filepath) or is_path_builtin(filepath):
+        if (not filepath) or _is_path_readonly(filepath):
             cls.poll_message_set("Built-in themes cannot be overwritten")
             return False
         return True
 
     def execute(self, context):
-        from bpy.utils import is_path_builtin
         import rna_xml
         preset_menu_class = getattr(bpy.types, self.preset_menu)
         name = preset_menu_class.bl_label
         name = bpy.path.clean_name(name)
         filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=".xml")
-        if not bool(filepath) or is_path_builtin(filepath):
+        if not bool(filepath) or _is_path_readonly(filepath):
             self.report({'ERROR'}, "Built-in themes cannot be overwritten")
             return {'CANCELLED'}
 
@@ -724,12 +735,11 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
 
     @classmethod
     def poll(cls, context):
-        from bpy.utils import is_path_builtin
         keyconfigs = bpy.context.window_manager.keyconfigs
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = keyconfigs.active.name
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".py")
-        if not bool(filepath) or is_path_builtin(filepath):
+        if not bool(filepath) or _is_path_readonly(filepath):
             cls.poll_message_set("Built-in keymap configurations cannot be removed")
             return False
         return True
