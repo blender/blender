@@ -116,6 +116,72 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
   }
 }
 
+DrawingPlacement::DrawingPlacement(const Scene &scene,
+                                   const ARegion &region,
+                                   const View3D &view3d,
+                                   const Object &eval_object,
+                                   const bke::greasepencil::Layer *layer,
+                                   const ReprojectMode reproject_mode)
+    : region_(&region), view3d_(&view3d)
+{
+  layer_space_to_world_space_ = (layer != nullptr) ? layer->to_world_space(eval_object) :
+                                                     eval_object.object_to_world();
+  world_space_to_layer_space_ = math::invert(layer_space_to_world_space_);
+  /* Initialize DrawingPlacementPlane from mode. */
+  switch (reproject_mode) {
+    case ReprojectMode::View:
+      plane_ = DrawingPlacementPlane::View;
+      break;
+    case ReprojectMode::Front:
+      plane_ = DrawingPlacementPlane::Front;
+      placement_normal_ = float3(0, 1, 0);
+      break;
+    case ReprojectMode::Side:
+      plane_ = DrawingPlacementPlane::Side;
+      placement_normal_ = float3(1, 0, 0);
+      break;
+    case ReprojectMode::Top:
+      plane_ = DrawingPlacementPlane::Top;
+      placement_normal_ = float3(0, 0, 1);
+      break;
+    case ReprojectMode::Cursor: {
+      plane_ = DrawingPlacementPlane::Cursor;
+      placement_normal_ = scene.cursor.matrix<float3x3>() * float3(0, 0, 1);
+      break;
+    }
+    default:
+      break;
+  }
+
+  /* Account for layer transform. */
+  if (reproject_mode != ReprojectMode::View && reproject_mode != ReprojectMode::Cursor) {
+    /* Use the transpose inverse for normal. */
+    placement_normal_ = math::transform_direction(math::transpose(world_space_to_layer_space_),
+                                                  placement_normal_);
+  }
+
+  /* Initialize DrawingPlacementDepth from mode. */
+  switch (reproject_mode) {
+    case ReprojectMode::Cursor:
+      depth_ = DrawingPlacementDepth::Cursor;
+      surface_offset_ = 0.0f;
+      placement_loc_ = float3(scene.cursor.location);
+      break;
+    case ReprojectMode::View:
+      depth_ = DrawingPlacementDepth::ObjectOrigin;
+      surface_offset_ = 0.0f;
+      placement_loc_ = layer_space_to_world_space_.location();
+      break;
+    /* TODO: Implement ReprojectMode::Surface for reproject operator */
+    default:
+      break;
+  }
+
+  if (plane_ != DrawingPlacementPlane::View) {
+    plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
+  }
+}
+
 DrawingPlacement::DrawingPlacement(const DrawingPlacement &other)
 {
   region_ = other.region_;
