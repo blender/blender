@@ -4156,26 +4156,26 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
   return BKE_object_get_evaluated_mesh_no_subsurf_unchecked(object);
 }
 
-Mesh *BKE_object_get_evaluated_mesh_unchecked(const Object *object)
+Mesh *BKE_object_get_evaluated_mesh_unchecked(const Object *object_eval)
 {
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(object);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(object_eval);
   if (!mesh) {
     return nullptr;
   }
 
-  if (object->data && GS(((const ID *)object->data)->name) == ID_ME) {
+  if (object_eval->data && GS(((const ID *)object_eval->data)->name) == ID_ME) {
     mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
   }
 
   return mesh;
 }
 
-Mesh *BKE_object_get_evaluated_mesh(const Object *object)
+Mesh *BKE_object_get_evaluated_mesh(const Object *object_eval)
 {
-  if (!DEG_object_geometry_is_evaluated(*object)) {
+  if (!DEG_object_geometry_is_evaluated(*object_eval)) {
     return nullptr;
   }
-  return BKE_object_get_evaluated_mesh_unchecked(object);
+  return BKE_object_get_evaluated_mesh_unchecked(object_eval);
 }
 
 Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
