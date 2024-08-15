@@ -29,7 +29,8 @@ using slot_handle_t = decltype(::ActionSlot::handle);
 
 /**
  * Iterates over all FCurves of the given slot handle in the Action and executes the callback on
- * it. Only works on layered Actions.
+ * it. Works on layered and legacy actions. When the action is legacy, the slot handle will be
+ * ignored.
  *
  * \note Use lambdas to have access to specific data in the callback.
  */

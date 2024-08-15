@@ -16,20 +16,26 @@ void action_foreach_fcurve(Action &action,
                            slot_handle_t handle,
                            FunctionRef<void(FCurve &fcurve)> callback)
 {
-  BLI_assert(action.is_action_layered());
-  for (Layer *layer : action.layers()) {
-    for (Strip *strip : layer->strips()) {
-      if (!strip->is<KeyframeStrip>()) {
-        continue;
-      }
-      KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
-      for (ChannelBag *bag : key_strip.channelbags()) {
-        if (bag->slot_handle != handle) {
+  if (action.is_action_legacy()) {
+    LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {
+      callback(*fcurve);
+    }
+  }
+  else if (action.is_action_layered()) {
+    for (Layer *layer : action.layers()) {
+      for (Strip *strip : layer->strips()) {
+        if (!strip->is<KeyframeStrip>()) {
           continue;
         }
-        for (FCurve *fcu : bag->fcurves()) {
-          BLI_assert(fcu != nullptr);
-          callback(*fcu);
+        KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
+        for (ChannelBag *bag : key_strip.channelbags()) {
+          if (bag->slot_handle != handle) {
+            continue;
+          }
+          for (FCurve *fcu : bag->fcurves()) {
+            BLI_assert(fcu != nullptr);
+            callback(*fcu);
+          }
         }
       }
     }
