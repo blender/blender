@@ -79,8 +79,7 @@ MEM_INLINE void MEM_trigger_error_on_memory_block(const void *address, const siz
   ASAN_UNPOISON_MEMORY_REGION(address, size);
 }
 #else
-MEM_INLINE void MEM_trigger_error_on_memory_block(const void * /*address*/,
-                                                  const size_t /*size*/)
+MEM_INLINE void MEM_trigger_error_on_memory_block(const void * /*address*/, const size_t /*size*/)
 {
 #  ifdef WITH_ASSERT_ABORT
   abort();
