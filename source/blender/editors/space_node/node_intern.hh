@@ -302,6 +302,8 @@ void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
 
+void NODE_OT_default_group_width_set(wmOperatorType *ot);
+
 /* `node_relationships.cc` */
 
 void update_multi_input_indices_for_removed_links(bNode &node);

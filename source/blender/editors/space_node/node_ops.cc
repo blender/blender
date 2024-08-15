@@ -63,6 +63,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_group_separate);
   WM_operatortype_append(NODE_OT_group_edit);
 
+  WM_operatortype_append(NODE_OT_default_group_width_set);
+
   WM_operatortype_append(NODE_OT_link_viewer);
 
   WM_operatortype_append(NODE_OT_insert_offset);
