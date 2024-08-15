@@ -67,7 +67,7 @@ struct PBVH_GPU_Args {
 
   BMesh *bm;
   const Mesh *mesh;
-  MutableSpan<float3> vert_positions;
+  Span<float3> vert_positions;
   Span<int> corner_verts;
   Span<int> corner_edges;
   const CustomData *vert_data;
