@@ -649,15 +649,15 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
         options={'HIDDEN', 'SKIP_SAVE'},
     )
 
-    @classmethod
-    def poll(cls, context):
-        filepath = context.preferences.themes[0].filepath
-        if not bool(filepath) or _is_path_readonly(filepath):
-            cls.poll_message_set("Built-in themes cannot be removed")
-            return False
-        return True
+    # NOTE: leave poll unset as file-system scanning should be avoided
+    # while redrawing as it may involve remote file-system access.
 
     def invoke(self, context, event):
+        filepath = context.preferences.themes[0].filepath
+        if (not filepath) or _is_path_readonly(filepath):
+            self.report({'ERROR'}, "Built-in themes cannot be removed")
+            return {'CANCELLED'}
+
         return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
     def post_cb(self, context, _filepath):
@@ -678,13 +678,8 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         options={'HIDDEN', 'SKIP_SAVE'},
     )
 
-    @classmethod
-    def poll(cls, context):
-        filepath = context.preferences.themes[0].filepath
-        if (not filepath) or _is_path_readonly(filepath):
-            cls.poll_message_set("Built-in themes cannot be overwritten")
-            return False
-        return True
+    # NOTE: leave poll unset as file-system scanning should be avoided
+    # while redrawing as it may involve remote file-system access.
 
     def execute(self, context):
         import rna_xml
@@ -707,6 +702,11 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        filepath = context.preferences.themes[0].filepath
+        if (not filepath) or _is_path_readonly(filepath):
+            self.report({'ERROR'}, "Built-in themes cannot be overwritten")
+            return {'CANCELLED'}
+
         return context.window_manager.invoke_confirm(self, event, title="Overwrite Custom Theme?", confirm_text="Save")
 
 
@@ -734,16 +734,8 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
         options={'HIDDEN', 'SKIP_SAVE'},
     )
 
-    @classmethod
-    def poll(cls, context):
-        keyconfigs = bpy.context.window_manager.keyconfigs
-        preset_menu_class = getattr(bpy.types, cls.preset_menu)
-        name = keyconfigs.active.name
-        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".py")
-        if not bool(filepath) or _is_path_readonly(filepath):
-            cls.poll_message_set("Built-in keymap configurations cannot be removed")
-            return False
-        return True
+    # NOTE: leave poll unset as file-system scanning should be avoided
+    # while redrawing as it may involve remote file-system access.
 
     def pre_cb(self, context):
         keyconfigs = bpy.context.window_manager.keyconfigs
@@ -755,6 +747,13 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
         keyconfigs.remove(keyconfigs.active)
 
     def invoke(self, context, event):
+        keyconfigs = bpy.context.window_manager.keyconfigs
+        name = keyconfigs.active.name
+        filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=".py")
+        if (not filepath) or _is_path_readonly(filepath):
+            self.report({'ERROR'}, "Built-in keymap configurations cannot be removed")
+            return {'CANCELLED'}
+
         return context.window_manager.invoke_confirm(
             self, event, title="Remove Keymap Configuration", confirm_text="Delete")
 
