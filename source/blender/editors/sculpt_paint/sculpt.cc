@@ -757,8 +757,10 @@ bool vert_is_boundary(const SculptSession &ss, const PBVHVertRef vertex)
 {
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
-      if (!hide::vert_all_faces_visible_get(
-              Span(ss.hide_poly, ss.faces_num), ss.vert_to_face_map, vertex.i))
+      if (!hide::vert_all_faces_visible_get(ss.hide_poly ? Span(ss.hide_poly, ss.faces_num) :
+                                                           Span<bool>(),
+                                            ss.vert_to_face_map,
+                                            vertex.i))
       {
         return true;
       }
