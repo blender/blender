@@ -69,3 +69,17 @@ endif()
 
 # GTest
 add_subdirectory(gtests)
+
+if(WITH_COMPILER_CODE_COVERAGE)
+  set(COVERAGE_SCRIPT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/coverage/coverage.py)
+
+  add_custom_target(coverage-report
+    ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} report --build-directory ${CMAKE_BINARY_DIR}
+    USES_TERMINAL
+  )
+
+  add_custom_target(coverage-reset
+    ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} reset --build-directory ${CMAKE_BINARY_DIR}
+    USES_TERMINAL
+  )
+endif()

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blender Code Coverage</title>
+
+    <!-- Libraries for tooltips. -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"
+      integrity="sha512-TPh2Oxlg1zp+kz3nFA0C5vVC6leG/6mm1z9+mA81MI5eaUVqasPLO8Cuk4gMF4gUfP5etR73rgU/8PNMsSesoQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css"
+      integrity="sha512-HbPh+j4V7pXprvQMt2dtmK/zCEsUeZWYXRln4sOwmoyHPQAPqy/k9lIquKUyKNpNbDGAY06UdiDHcEkBc72yCQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.umd.min.js"
+      integrity="sha512-2TtfktSlvvPzopzBA49C+MX6sdc7ykHGbBQUTH8Vk78YpkXVD5r6vrNU+nOmhhl1MyTWdVfxXdZfyFsvBvOllw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        font-family: monospace;
+        overflow: visible;
+      }
+
+      body {
+        background: #2b2b2b;
+      }
+
+      #summary {
+        color: #e1dfcc;
+        border-bottom: #535353 1px solid;
+        padding: 0.5em;
+        font-size: large;
+        font-family: monospace;
+      }
+
+      a {
+        color: #e1dfcc;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #89dbdb;
+      }
+
+      .row {
+        padding-bottom: 0.25em;
+        padding-top: 0.25em;
+        min-width: 1000px;
+        width: 100%;
+      }
+
+      .row-label {
+        margin-left: 1em;
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      .open-dir-label::before {
+        content: "";
+        display: inline-block;
+        width: 0.5em;
+        height: 0.5em;
+        background-color: #e1dfcc;
+        clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        margin-right: 0.5em;
+      }
+
+      .closed-dir-label::before {
+        content: "";
+        display: inline-block;
+        width: 0.5em;
+        height: 0.5em;
+        background-color: #e1dfcc;
+        clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+        margin-right: 0.5em;
+      }
+
+      #files-tree-view {
+        color: #d4d0ab;
+        width: 100%;
+      }
+
+      .row-stats {
+        display: inline-block;
+        margin-left: 1em;
+      }
+
+      .lines-percent-row {
+        display: inline-block;
+        text-align: right;
+        width: 3em;
+      }
+
+      .lines-total-row {
+        display: inline-block;
+        text-align: right;
+        font-size: smaller;
+        color: #7d7d7d;
+        margin-left: 1em;
+        width: 7em;
+      }
+
+      .odd {
+        background-color: rgba(0, 0, 0, 0.15);
+      }
+
+      .tippy-box {
+        background-color: #18110d;
+        border-radius: 3px;
+      }
+
+      .tippy-arrow {
+        color: #18110d;
+      }
+
+      .tippy-content {
+        padding: 0.3em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="summary">
+      <p>Code Coverage Report</p>
+      <br />
+      <p>Files: <span id="coverage-files"></span></p>
+      <p>Functions: <span id="coverage-functions"></span></p>
+      <p>Lines: <span id="coverage-lines"></span></p>
+    </div>
+    <div id="files-tree-view"></div>
+    <div id="file-row-tooltip-template" style="display: none">
+      <p>Functions: FUNCTIONS</p>
+      <p>Lines: LINES</p>
+    </div>
+    <div id="directory-row-tooltip-template" style="display: none">
+      <p>Functions: FUNCTIONS</p>
+      <p>Lines: LINES</p>
+      <br />
+      <p><a href="FILTER_LINK">FILTER_TEXT</a></p>
+    </div>
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        analysis_data = JSON.parse(await str_from_gzip_base64(analysis_data_compressed_base64));
+        filter_analysis_data();
+
+        const consolidated_tree = build_consolidated_tree();
+        root_row = build_row_data(consolidated_tree);
+        initialize_coverage_counts();
+        initialize_global_overview();
+
+        if (root_row.children_map.size == 0) {
+          return;
+        }
+
+        let paths_to_open = get_startup_paths_to_open();
+        for (const path of paths_to_open) {
+          const row = row_by_path.get(path);
+          if (row) {
+            ensure_dom_for_row(row);
+            open_directory(row);
+          }
+        }
+        update_odd_even_rows();
+
+        const scroll_position = localStorage.getItem("scroll_position");
+        if (scroll_position) {
+          window.scrollTo(0, scroll_position);
+        }
+      });
+
+      function build_consolidated_tree() {
+        // Build a tree where each directory is still separate.
+        const root_children = new Map();
+        for (const file_path of Object.keys(analysis_data.files)) {
+          let current = root_children;
+          for (const part of file_path.split("/").slice(1)) {
+            if (!current.has(part)) {
+              current.set(part, new Map());
+            }
+            current = current.get(part);
+          }
+        }
+
+        // Based on the tree above, build a new tree that has multiple directory levels
+        // joined together if there are directories with only one child.
+        function consolidate_recursive(name, children) {
+          if (children.size === 0) {
+            return { name: name };
+          }
+          const new_children = new Map();
+          for (const [child_name, child_children] of children.entries()) {
+            const new_child = consolidate_recursive(child_name, child_children);
+            new_children.set(new_child.name, new_child);
+          }
+          if (new_children.size >= 2) {
+            return { name: name, children: new_children };
+          }
+          const single_child = new_children.entries().next().value[1];
+          const joined_name = (name ? name + "/" : "") + single_child.name;
+          if (!single_child.children) {
+            return { name: joined_name };
+          }
+          return {
+            name: joined_name,
+            children: single_child.children,
+          };
+        }
+
+        const consolidated_root = consolidate_recursive("", root_children);
+        if (!consolidated_root.name.startsWith("/")) {
+          consolidated_root.name = "/" + consolidated_root.name;
+        }
+        return consolidated_root;
+      }
+
+      // Builds a tree whereby each node corresponds to a row.
+      function build_row_data(consolidated_tree) {
+        function create_row_data(parent, data) {
+          const name = data.name;
+          let path;
+          if (parent) {
+            if (parent.path == "/") {
+              path = `/${name}`;
+            } else {
+              path = `${parent.path}/${name}`;
+            }
+          } else {
+            path = `${name}`;
+          }
+          const row = {
+            num_lines_run: 0,
+            num_lines: 0,
+            num_functions_run: 0,
+            num_functions: 0,
+            path: path,
+            parent: parent,
+            name: name,
+            depth: parent ? parent.depth + 1 : 0,
+            children_map: new Map(),
+            sorted_children: [],
+            is_file: !data.children,
+            has_directory_separator: name.includes("/"),
+            dom_elem: null,
+            dom_children_elem: null,
+            dom_label_elem: null,
+          };
+          row_by_path.set(row.path, row);
+          if (parent) {
+            parent.children_map.set(name, row);
+          }
+          return row;
+        }
+
+        function build_rows_recursive(data, parent_row) {
+          const row = create_row_data(parent_row, data);
+          if (data.children) {
+            for (const child of data.children.values()) {
+              build_rows_recursive(child, row);
+            }
+            // Sort children so that directories come first.
+            const directory_children = [];
+            const file_children = [];
+            for (const child_row of row.children_map.values()) {
+              if (child_row.has_directory_separator || !child_row.is_file) {
+                directory_children.push(child_row);
+              } else {
+                file_children.push(child_row);
+              }
+            }
+            directory_children.sort((a, b) => a.name.localeCompare(b.name));
+            file_children.sort((a, b) => a.name.localeCompare(b.name));
+            row.sorted_children = [...directory_children, ...file_children];
+          }
+          return row;
+        }
+
+        return build_rows_recursive(consolidated_tree, null);
+      }
+
+      function initialize_coverage_counts() {
+        // Initialize the counts at the leaf rows, i.e. the source files.
+        for (const [file_path, file_data] of Object.entries(analysis_data.files)) {
+          const row = row_by_path.get(file_path);
+          row.num_lines = file_data.num_lines;
+          row.num_lines_run = file_data.num_lines_run;
+          row.num_functions = file_data.num_functions;
+          row.num_functions_run = file_data.num_functions_run;
+        }
+
+        // Recursively propagate the counts up until the root directory.
+        function count_directory_file_lines_recursive(row) {
+          if (row.is_file) {
+            return;
+          }
+          for (const child_row of row.children_map.values()) {
+            count_directory_file_lines_recursive(child_row);
+            row.num_lines += child_row.num_lines;
+            row.num_lines_run += child_row.num_lines_run;
+            row.num_functions += child_row.num_functions;
+            row.num_functions_run += child_row.num_functions_run;
+          }
+        }
+
+        count_directory_file_lines_recursive(root_row);
+      }
+
+      function get_startup_paths_to_open() {
+        let paths_to_open = [];
+        if (custom_root_paths) {
+          paths_to_open = paths_to_open.concat(Array.from(custom_root_paths.values()));
+        }
+        if (previous_open_paths) {
+          paths_to_open = paths_to_open.concat(Array.from(previous_open_paths));
+        }
+        if (paths_to_open.length == 0) {
+          paths_to_open.push(get_fallback_open_path());
+        }
+        return paths_to_open;
+      }
+
+      function get_fallback_open_path() {
+        for (const [file_path, file_data] of Object.entries(analysis_data.files)) {
+          // Used to find which path should be opened by default if there is no other information available.
+          const default_path_index = file_path.indexOf(fallback_default_path_segment);
+          if (default_path_index != -1) {
+            // Used to find which path should be opened by default if there is no other information available.
+            return file_path.substr(0, default_path_index + fallback_default_path_segment.length);
+          }
+        }
+        return root_row.name;
+      }
+
+      function initialize_global_overview() {
+        document.getElementById("coverage-files").innerText = Object.keys(
+          analysis_data.files
+        ).length.toLocaleString();
+        document.getElementById(
+          "coverage-lines"
+        ).innerText = `${root_row.num_lines_run.toLocaleString()} / ${root_row.num_lines.toLocaleString()}`;
+        document.getElementById(
+          "coverage-functions"
+        ).innerText = `${root_row.num_functions_run.toLocaleString()} / ${root_row.num_functions.toLocaleString()}`;
+      }
+
+      // Makes sure that the html elements for a specific row (and all its parents) have been created.
+      // This data is gnerated lazily to improve start-up time.
+      function ensure_dom_for_row(row) {
+        if (row.dom_elem) {
+          return;
+        }
+        const parent = row.parent;
+        if (parent) {
+          ensure_dom_for_row(parent);
+
+          for (const child_row of parent.sorted_children) {
+            create_row_dom_elements(child_row);
+            parent.dom_children_elem.appendChild(child_row.dom_elem);
+            if (child_row.dom_children_elem) {
+              parent.dom_children_elem.appendChild(child_row.dom_children_elem);
+            }
+          }
+        } else {
+          create_row_dom_elements(row);
+          const tree_view = document.getElementById("files-tree-view");
+          tree_view.appendChild(row.dom_elem);
+          tree_view.appendChild(row.dom_children_elem);
+        }
+      }
+
+      function create_row_dom_elements(row) {
+        const name = row.name;
+
+        const row_elem = document.createElement("div");
+        row_elem.classList.add("row");
+
+        row.dom_elem = row_elem;
+        row_elem.row_data = row;
+
+        const stats_elem = document.createElement("span");
+        const label_elem = document.createElement("span");
+        row_elem.appendChild(stats_elem);
+        row_elem.appendChild(label_elem);
+        row.dom_stats_elem = stats_elem;
+        row.dom_label_elem = label_elem;
+
+        label_elem.className = "row-label";
+        let left_padding = row.depth;
+        if (row.is_file && row.has_directory_separator) {
+          // Add padding because this element does not have the open-directory icon.
+          left_padding += 1;
+        }
+        label_elem.style.paddingLeft = `${left_padding}em`;
+        add_row_tooltip(row);
+
+        stats_elem.className = "row-stats";
+
+        {
+          const lines_percent_elem = document.createElement("span");
+          stats_elem.appendChild(lines_percent_elem);
+          lines_percent_elem.className = "lines-percent-row";
+
+          if (row.num_lines == 0) {
+            lines_percent_elem.style.color = "rgb(137 137 137)";
+            lines_percent_elem.innerText = "-";
+          } else {
+            const lines_percent = ratio_to_percent(row.num_lines_run, row.num_lines);
+            lines_percent_elem.style.color = `color-mix(in hsl, rgb(240, 50, 50), rgb(50, 240, 50) ${lines_percent}%)`;
+            lines_percent_elem.innerText = `${lines_percent}%`;
+          }
+
+          const total_lines_elem = document.createElement("span");
+          total_lines_elem.className = "lines-total-row";
+          total_lines_elem.innerText = `${row.num_lines.toLocaleString()}`;
+          stats_elem.appendChild(total_lines_elem);
+        }
+
+        if (row.is_file) {
+          const link_elem = document.createElement("a");
+          link_elem.href = "./files" + row.path + ".html";
+          link_elem.innerText = name;
+          label_elem.appendChild(link_elem);
+        } else {
+          label_elem.innerText = name;
+
+          const children_container = document.createElement("div");
+          children_container.className = "children-container";
+          row.dom_children_elem = children_container;
+
+          label_elem.classList.add("closed-dir-label");
+          children_container.style.display = "none";
+
+          label_elem.addEventListener("click", () => {
+            if (row.dom_children_elem.style.display === "none") {
+              open_directory(row);
+            } else {
+              close_directory(row);
+            }
+            localStorage.setItem(
+              open_paths_storage_key,
+              JSON.stringify(Array.from(current_open_paths))
+            );
+            update_odd_even_rows();
+          });
+        }
+      }
+
+      function open_directory(directory_row) {
+        if (directory_row.parent) {
+          open_directory(directory_row.parent);
+        }
+        if (directory_row.sorted_children.length > 0) {
+          ensure_dom_for_row(directory_row.sorted_children[0]);
+        }
+        directory_row.dom_children_elem.style.display = "block";
+        current_open_paths.add(directory_row.path);
+        directory_row.dom_label_elem.classList.remove("closed-dir-label");
+        directory_row.dom_label_elem.classList.add("open-dir-label");
+      }
+
+      function close_directory(directory_row) {
+        directory_row.dom_children_elem.style.display = "none";
+        current_open_paths.delete(directory_row.path);
+        directory_row.dom_label_elem.classList.remove("open-dir-label");
+        directory_row.dom_label_elem.classList.add("closed-dir-label");
+      }
+
+      function update_odd_even_rows() {
+        let index = 0;
+
+        function update_odd_even_rows_recursive(row) {
+          if (index % 2) {
+            row.dom_elem.classList.add("odd");
+          } else {
+            row.dom_elem.classList.remove("odd");
+          }
+          index++;
+
+          if (!row.is_file) {
+            if (row.dom_children_elem.style.display !== "none") {
+              for (const child_row of row.sorted_children) {
+                update_odd_even_rows_recursive(child_row);
+              }
+            }
+          }
+        }
+
+        update_odd_even_rows_recursive(root_row);
+      }
+
+      function add_row_tooltip(row) {
+        const elems = [row.dom_stats_elem];
+        // It's annoying if the tooltip shows up on mobiles devices when toggling a directory.
+        if (!mobileAndTabletCheck()) {
+          elems.push(row.dom_label_elem);
+        }
+
+        tippy(elems, {
+          content: "Loading...",
+          onShow(instance) {
+            if (!instance.tooltip_generated) {
+              instance.setContent(generate_row_label_tooltip(row));
+              instance.tooltip_generated = true;
+              instance.show();
+            }
+          },
+          placement: "top",
+          arrow: false,
+          interactive: true,
+          followCursor: "initial",
+          maxWidth: "none",
+          delay: [400, 0],
+        });
+      }
+
+      function generate_row_label_tooltip(row) {
+        const template_id = row.is_file
+          ? "file-row-tooltip-template"
+          : "directory-row-tooltip-template";
+        let template = document.getElementById(template_id).innerHTML;
+
+        template = template.replace(
+          "FUNCTIONS",
+          `${row.num_functions_run.toLocaleString()} / ${row.num_functions.toLocaleString()}`
+        );
+        template = template.replace(
+          "LINES",
+          `${row.num_lines_run.toLocaleString()} / ${row.num_lines.toLocaleString()}`
+        );
+
+        if (!row.is_file) {
+          let filter_text;
+          let filter_link;
+          if (custom_root_paths.includes(row.path)) {
+            filter_text = "Remove Filter";
+            filter_link = `./index.html`;
+          } else {
+            filter_text = "Filter Directory";
+            filter_link = `./index.html?filter=${encodeURIComponent(row.path)}`;
+          }
+          template = template.replace("FILTER_LINK", filter_link);
+          template = template.replace("FILTER_TEXT", filter_text);
+        }
+
+        const container_elem = document.createElement("div");
+        container_elem.innerHTML = template;
+        return container_elem;
+      }
+
+      function ratio_to_percent(numerator, denominator) {
+        return fraction_to_percent(ratio_to_fraction(numerator, denominator));
+      }
+
+      function ratio_to_fraction(numerator, denominator) {
+        if (denominator == 0) {
+          return 1;
+        }
+        return numerator / denominator;
+      }
+
+      function fraction_to_percent(f) {
+        if (f >= 1) {
+          return 100;
+        }
+        if (f >= 0.99) {
+          // Avoid showing 100% if there is still something missing.
+          return 99;
+        }
+        if (f <= 0) {
+          return 0;
+        }
+        if (f <= 0.01) {
+          // Avoid showing 0% if there is some coverage already.
+          return 1;
+        }
+        return Math.round(f * 100);
+      }
+
+      function filter_analysis_data() {
+        const new_analysis_files = {};
+        const new_analysis_data = { files: new_analysis_files };
+
+        if (custom_root_paths.length > 0) {
+          for (const [path, fdata] of Object.entries(analysis_data.files)) {
+            for (const filter_path of custom_root_paths) {
+              if (path.startsWith(filter_path)) {
+                new_analysis_files[path] = fdata;
+              }
+            }
+          }
+        } else {
+          Object.assign(new_analysis_files, analysis_data.files);
+        }
+
+        analysis_data = new_analysis_data;
+      }
+
+      async function str_from_gzip_base64(data_compressed_base64) {
+        const compressed = atob(data_compressed_base64);
+        const compressed_bytes = new Uint8Array(compressed.length);
+        for (let i = 0; i < compressed.length; i++) {
+          compressed_bytes[i] = compressed.charCodeAt(i);
+        }
+        const compressed_blob = new Blob([compressed_bytes]);
+        const stream = new Response(compressed_blob).body.pipeThrough(
+          new DecompressionStream("gzip")
+        );
+        const result = await new Response(stream).text();
+        return result;
+      }
+
+      // prettier-ignore
+      window.mobileAndTabletCheck = function() {
+        let check = false;
+        (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+        return check;
+      };
+
+      window.addEventListener("beforeunload", () => {
+        localStorage.setItem("scroll_position", window.scrollY);
+      });
+
+      // Maps from a path to the corresponding row data which contains information
+      // like the children, corresponding DOM elements, etc.
+      const row_by_path = new Map();
+      let root_row = null;
+
+      // Used to find which path should be opened by default if there is no other information available.
+      const fallback_default_path_segment = "/blender/source/blender";
+
+      // Get filters from URL.
+      let custom_root_paths = [];
+      const search_params = new URLSearchParams(location.search);
+      for (const [key, value] of search_params.entries()) {
+        if (key == "filter") {
+          custom_root_paths.push(value);
+        }
+      }
+
+      // Retrieve directories that have been open before to improve persistency
+      // when e.g. reloading the page.
+      const open_paths_storage_key = "open_paths";
+      let previous_open_paths = localStorage.getItem(open_paths_storage_key);
+      if (previous_open_paths && previous_open_paths.length > 0) {
+        previous_open_paths = new Set(JSON.parse(previous_open_paths));
+      } else {
+        previous_open_paths = undefined;
+      }
+      const current_open_paths = new Set();
+
+      // This data will be replaced by the script that builds the report. It still has to
+      // be uncompressed.
+      const analysis_data_compressed_base64 = "ANALYSIS_DATA";
+      // Uncompressed analysis data. Uncompressing is done a bit later in an async context.
+      let analysis_data = undefined;
+    </script>
+  </body>
+</html>

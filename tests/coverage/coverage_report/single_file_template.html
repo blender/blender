@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TITLE Coverage</title>
+
+    <!-- Libraries for code highlighting. -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/default.min.css"
+      integrity="sha512-hasIneQUHlh06VNBe7f6ZcHmeRTLIaQWFd43YriJ0UND19bvYRauxthDg8E4eVNPm9bRUhr5JGeqH7FRFXQu5g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/a11y-dark.min.css"
+      integrity="sha512-Vj6gPCk8EZlqnoveEyuGyYaWZ1+jyjMPg8g4shwyyNlRQl6d3L9At02ZHQr5K6s5duZl/+YKMnM3/8pDhoUphg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"
+      integrity="sha512-6yoqbrcLAHDWAdQmiRlHG4+m0g/CT/V9AGyxabG8j7Jk8j3r3K6due7oqpiRMZqcYe9WM2gPcaNNxnl2ux+3tA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/cpp.min.js"
+      integrity="sha512-GvXk866wSSbg5H/SHQ41QgYaKtp98r/+3vEa6vz3vB1q6Jpt53hGeWUDHjFyflWk/vv1EcrdNY2ZNz/gWxFIsg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.6.0/highlightjs-line-numbers.min.js"
+      integrity="sha512-nkjLcPbHjdAof51b8uUd+6q4YH7YrMwh+kfTwSBrg5T/yMKrz8GUxM4uJJ1xAL7Q1lfAMIEowDsTzfWskZ5RcQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/gh/TRSasasusu/highlightjs-highlight-lines.js@1.2.0/highlightjs-highlight-lines.min.js"
+      integrity="sha512-6wevP4KzPut+rTlItH5T2H7vOiy/E/GJIK7SDCiGoxO2gdqpYjRv0MhFbk72HuRbbexVZ6vqV++w82DwRdiGPw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <!-- Libraries for tooltips. -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"
+      integrity="sha512-TPh2Oxlg1zp+kz3nFA0C5vVC6leG/6mm1z9+mA81MI5eaUVqasPLO8Cuk4gMF4gUfP5etR73rgU/8PNMsSesoQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css"
+      integrity="sha512-HbPh+j4V7pXprvQMt2dtmK/zCEsUeZWYXRln4sOwmoyHPQAPqy/k9lIquKUyKNpNbDGAY06UdiDHcEkBc72yCQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.umd.min.js"
+      integrity="sha512-2TtfktSlvvPzopzBA49C+MX6sdc7ykHGbBQUTH8Vk78YpkXVD5r6vrNU+nOmhhl1MyTWdVfxXdZfyFsvBvOllw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      body {
+        background: #2b2b2b;
+        color: #e1dfcc;
+      }
+
+      #summary {
+        padding: 0.5em;
+        font-size: large;
+        font-family: monospace;
+      }
+
+      a {
+        color: #e1dfcc;
+      }
+
+      a:hover {
+        color: #89dbdb;
+      }
+
+      /* For block of numbers. */
+      .hljs-ln-numbers {
+        user-select: none;
+        text-align: right;
+        color: #ccc;
+        border-right: 1px solid #ccc;
+        vertical-align: top;
+        padding-right: 0.5em !important;
+      }
+
+      /* For block of code. */
+      .hljs-ln-code {
+        padding-left: 0.5em !important;
+      }
+
+      .line-call-count {
+        color: #f7f2f2;
+        font-size: 80%;
+        user-select: none;
+      }
+
+      .tippy-box {
+        background-color: #18110d;
+        border-radius: 3px;
+      }
+
+      .tippy-arrow {
+        color: #18110d;
+      }
+
+      .tippy-content {
+        max-width: calc(100vw - 20px);
+        overflow: auto;
+        padding: 0.3em;
+      }
+
+      table {
+        color: #e1dfcc;
+        font-family: monospace;
+      }
+
+      td {
+        padding: 0.2em;
+        padding-left: 1em;
+      }
+
+      hr {
+        border-top: #535353 1px solid;
+      }
+
+      .function-name-in-table {
+        cursor: pointer;
+      }
+
+      .function-name-in-table:hover {
+        color: #89dbdb;
+      }
+
+      .lines-in-function {
+        font-size: smaller;
+        color: #7d7d7d;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="summary">
+      <p>File: SOURCE_FILE_PATH</p>
+      <p><a href="INDEX_PAGE_LINK">Back to Overview</a></p>
+      <br />
+      <p>Lines: <span id="coverage-lines"></span></p>
+      <p>Functions: <span id="coverage-functions"></span></p>
+    </div>
+    <hr />
+    <table id="functions-overview"></table>
+    <hr />
+    <pre><code class="language-cpp" id="source-code"></code></pre>
+
+    <!-- Support scrolling past the end. -->
+    <div style="height: 90vh"></div>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        source_code = await str_from_gzip_base64(source_code_compressed_base64);
+        analysis_data = JSON.parse(await str_from_gzip_base64(analysis_data_compressed_base64));
+
+        document.getElementById("source-code").innerHTML = escapeHtml(source_code);
+
+        prepare_analysis_data();
+
+        generate_functions_table();
+
+        hljs.highlightAll();
+        hljs.initLineNumbersOnLoad();
+        set_line_background_colors();
+
+        // Need to delay here in case the line background colors are not set immediately.
+        const interval = window.setInterval(() => {
+          if (document.querySelector(".hljs-ln-code .hljs-ln-line")) {
+            clearInterval(interval);
+            create_overview();
+            augment_lines();
+            scroll_to_line_from_url();
+          }
+        }, 10);
+      });
+
+      function escapeHtml(unsafe) {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function prepare_analysis_data() {
+        for (const [function_key, fdata] of Object.entries(analysis_data.functions)) {
+          num_functions++;
+          if (fdata.execution_count > 0) {
+            num_run_functions++;
+          }
+          for (const [line_index_str, count] of Object.entries(fdata.lines)) {
+            const line_index = parseInt(line_index_str);
+            count_by_line.set(line_index, count);
+            num_executable_lines++;
+            if (count > 0) {
+              num_run_lines++;
+            }
+          }
+        }
+        for (const [line_index_str, count] of Object.entries(analysis_data.loose_lines)) {
+          const line_index = parseInt(line_index_str);
+          count_by_line.set(line_index, count);
+          num_executable_lines++;
+          if (count > 0) {
+            num_run_lines++;
+          }
+        }
+      }
+
+      function set_line_background_colors() {
+        const line_colors = [];
+        for (let [line_index, hit_count] of count_by_line.entries()) {
+          line_colors.push({
+            start: line_index + 1,
+            end: line_index + 1,
+            color: hit_count_to_color(hit_count),
+          });
+        }
+
+        hljs.highlightLinesAll([line_colors]);
+      }
+
+      function hit_count_to_color(hit_count) {
+        if (hit_count == 0) {
+          return "rgb(65 48 48)";
+        }
+        return "rgb(42 53 42)";
+      }
+
+      function augment_lines() {
+        code_line_elements = Array.from(document.querySelectorAll(".hljs-ln-code .hljs-ln-line"));
+        for (let i = 0; i < code_line_elements.length; i++) {
+          const line_element = code_line_elements[i];
+          line_element.parentElement.parentElement.id = `source-line-${i + 1}`;
+        }
+        for (let i = 0; i < code_line_elements.length; i++) {
+          const line_element = code_line_elements[i];
+          const hit_count = count_by_line.get(i);
+          if (!hit_count) {
+            continue;
+          }
+          const call_count_element = document.createElement("span");
+          call_count_element.className = "line-call-count";
+          call_count_element.innerText = `  ${hit_count.toLocaleString()}x`;
+          line_element.appendChild(call_count_element);
+          add_executed_line_tooltip(call_count_element, i);
+        }
+      }
+
+      function add_executed_line_tooltip(elem, line_index) {
+        tippy(elem, {
+          content: "Loading...",
+          onShow(instance) {
+            if (!instance.tooltip_generated) {
+              instance.setContent(generate_executed_line_tooltip(line_index));
+              instance.tooltip_generated = true;
+              instance.show();
+            }
+          },
+          placement: "bottom",
+          arrow: true,
+          interactive: true,
+          maxWidth: "none",
+          delay: [400, 0],
+        });
+      }
+
+      function generate_executed_line_tooltip(query_line_index) {
+        const instantiations = [];
+        for (const [function_key, fdata] of Object.entries(analysis_data.functions)) {
+          if (query_line_index < fdata.start_line || fdata.end_line < query_line_index) {
+            continue;
+          }
+          for (const [instantiation_name, idata] of Object.entries(fdata.instantiations)) {
+            for (const [line_index_str, count] of Object.entries(idata.lines)) {
+              if (count > 0) {
+                if (parseInt(line_index_str) == query_line_index) {
+                  instantiations.push({ name: idata.demangled, count: count });
+                }
+              }
+            }
+          }
+        }
+        if (instantiations.length === 0) {
+          return "No used instantiations";
+        }
+
+        const container = document.createElement("div");
+
+        const header = document.createElement("h4");
+        header.innerText = "Used Instantiations";
+        container.appendChild(header);
+
+        instantiations.sort((a, b) => b.count - a.count);
+        const max_count = instantiations[0].count;
+        const num_count_chars = max_count.toLocaleString().length;
+
+        for (const { name, count } of instantiations) {
+          if (count == 0) {
+            continue;
+          }
+          const elem = document.createElement("pre");
+          const count_label = count.toLocaleString().padStart(num_count_chars, " ");
+          const escaped_name = escapeHtml(name);
+          elem.innerHTML = `${count_label}x ${escaped_name}`;
+          container.appendChild(elem);
+        }
+        return container;
+      }
+
+      function create_overview() {
+        document.getElementById(
+          "coverage-lines"
+        ).innerText = `${num_run_lines} / ${num_executable_lines} (${ratio_to_percent(
+          num_run_lines,
+          num_executable_lines
+        )}%)`;
+        document.getElementById(
+          "coverage-functions"
+        ).innerText = `${num_run_functions} / ${num_functions} (${ratio_to_percent(
+          num_run_functions,
+          num_functions
+        )}%)`;
+      }
+
+      function generate_functions_table() {
+        const table = document.getElementById("functions-overview");
+
+        const fdata_array = Array.from(Object.values(analysis_data.functions));
+        fdata_array.sort((a, b) => b.execution_count - a.execution_count);
+
+        for (const fdata of fdata_array) {
+          const row_elem = document.createElement("tr");
+          table.appendChild(row_elem);
+
+          const percentage_elem = document.createElement("td");
+          percentage_elem.style.textAlign = "right";
+          const lines_elem = document.createElement("td");
+          lines_elem.style.textAlign = "right";
+          const count_elem = document.createElement("td");
+          count_elem.style.textAlign = "right";
+          const name_elem = document.createElement("td");
+          row_elem.appendChild(percentage_elem);
+          row_elem.appendChild(lines_elem);
+          row_elem.appendChild(count_elem);
+          row_elem.appendChild(name_elem);
+
+          const execution_counts_array = Array.from(Object.values(fdata.lines));
+          const num_lines = execution_counts_array.length;
+          const num_lines_run = execution_counts_array.filter((x) => x > 0).length;
+          const lines_percent = ratio_to_percent(num_lines_run, num_lines);
+          count_elem.innerText = `${fdata.execution_count.toLocaleString()}x`;
+
+          percentage_elem.innerText = `${lines_percent}%`;
+          percentage_elem.style.color = `color-mix(in hsl, rgb(240, 50, 50), rgb(50, 240, 50) ${lines_percent}%)`;
+
+          lines_elem.innerText = `${num_lines}`;
+          lines_elem.className = "lines-in-function";
+
+          name_elem.classList.add("function-name-in-table");
+          const first_instantiation_name = Array.from(Object.values(fdata.instantiations))[0]
+            .demangled;
+          const base_name = extract_base_function_name(first_instantiation_name);
+          name_elem.innerText = base_name;
+
+          add_executed_line_tooltip(count_elem, fdata.start_line);
+          add_simple_tooltip(percentage_elem, "Line Coverage");
+          add_simple_tooltip(lines_elem, "Number of Lines");
+
+          name_elem.addEventListener("click", () => {
+            const line_number = fdata.start_line + 1;
+            const id = `source-line-${line_number}`;
+            history.pushState({ scroll_from: window.scrollY }, "");
+            document.getElementById(id).scrollIntoView({
+              behavior: "smooth",
+            });
+          });
+        }
+      }
+
+      function add_simple_tooltip(element, message) {
+        const content = document.createElement("pre");
+        content.innerText = message;
+        tippy(element, { content: content, delay: 400 });
+      }
+
+      function extract_base_function_name(instantiation_name) {
+        // Remove parts in parenthesis and templates.
+        let name = "";
+        let template_depth = 0;
+        let braces_depth = 0;
+        let arguments_start = -1;
+        for (const c of instantiation_name) {
+          if (c == "{") {
+            braces_depth++;
+          } else if (c == "}") {
+            braces_depth--;
+          }
+          if (c == "(" && template_depth === 0 && braces_depth === 0 && arguments_start === -1) {
+            arguments_start = name.length;
+          }
+
+          if (c == "<" && !(name.endsWith("::operator") || name.endsWith("::operator<"))) {
+            template_depth++;
+          } else if (c == ">" && !(name.endsWith("::operator") || name.endsWith("::operator>"))) {
+            template_depth--;
+            if (template_depth === 0) {
+              name += "<>";
+            }
+          } else if (template_depth == 0) {
+            name += c;
+          }
+        }
+        // Remove argument list.
+        if (arguments_start >= 0) {
+          const arguments_end = name.lastIndexOf(")");
+          name = name.substring(0, arguments_start) + name.substring(arguments_end + 1);
+        }
+        // Fix case for operator().
+        if (name.endsWith("::operator")) {
+          name += "()";
+        }
+        return name;
+      }
+
+      function scroll_to_line_from_url() {
+        if (window.location.hash.startsWith("#source-line-")) {
+          const id = window.location.hash.slice(1);
+          const elem = document.getElementById(id);
+          elem.scrollIntoView();
+        }
+      }
+
+      function ratio_to_percent(numerator, denominator) {
+        return fraction_to_percent(ratio_to_fraction(numerator, denominator));
+      }
+
+      function ratio_to_fraction(numerator, denominator) {
+        if (denominator == 0) {
+          return 1;
+        }
+        return numerator / denominator;
+      }
+
+      function fraction_to_percent(f) {
+        if (f >= 1) {
+          return 100;
+        }
+        if (f >= 0.99) {
+          // Avoid showing 100% if there is still something missing.
+          return 99;
+        }
+        if (f <= 0) {
+          return 0;
+        }
+        if (f <= 0.01) {
+          // Avoid showing 0% if there is some coverage already.
+          return 1;
+        }
+        return Math.round(f * 100);
+      }
+
+      async function str_from_gzip_base64(data_compressed_base64) {
+        const compressed = atob(data_compressed_base64);
+        const compressed_bytes = new Uint8Array(compressed.length);
+        for (let i = 0; i < compressed.length; i++) {
+          compressed_bytes[i] = compressed.charCodeAt(i);
+        }
+        const compressed_blob = new Blob([compressed_bytes]);
+        const stream = new Response(compressed_blob).body.pipeThrough(
+          new DecompressionStream("gzip")
+        );
+        const result = await new Response(stream).text();
+        return result;
+      }
+
+      const count_by_line = new Map();
+      let num_executable_lines = 0;
+      let num_run_lines = 0;
+      let num_functions = 0;
+      let num_run_functions = 0;
+
+      const source_code_compressed_base64 = "SOURCE_CODE";
+      const analysis_data_compressed_base64 = "ANALYSIS_DATA";
+      // Will be decompressed a bit later.
+      let source_code = undefined;
+      let analysis_data = undefined;
+
+      // Initialized when line counts have been added.
+      let code_line_elements = undefined;
+    </script>
+  </body>
+</html>
