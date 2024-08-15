@@ -20,6 +20,7 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_animsys.h"
 #  include "BKE_context.hh"
 #  include "BKE_nla.h"
 #  include "BKE_report.hh"
@@ -57,6 +58,16 @@ static float rna_AnimData_nla_tweak_strip_time_to_scene(AnimData *adt, float fra
   return BKE_nla_tweakedit_remap(adt, frame, invert ? NLATIME_CONVERT_UNMAP : NLATIME_CONVERT_MAP);
 }
 
+void rna_id_animdata_fix_paths_rename_all(ID *id,
+                                          AnimData* /* adt */,
+                                          Main *bmain,
+                                          const char *prefix,
+                                          const char *oldName,
+                                          const char *newName)
+{
+  BKE_animdata_fix_paths_rename_all_ex(bmain, id, prefix, oldName, newName, 0, 0 , true);
+}
+
 #else
 
 void RNA_api_keyingset(StructRNA *srna)
@@ -92,6 +103,16 @@ void RNA_api_animdata(StructRNA *srna)
   parm = RNA_def_float(
       func, "result", 0.0, MINAFRAME, MAXFRAME, "", "Converted time", MINAFRAME, MAXFRAME);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "fix_paths_rename_all", "rna_id_animdata_fix_paths_rename_all");
+  RNA_def_string(func, "prefix", nullptr, MAX_IDPROP_NAME, "Prefix", "Name prefix");
+  RNA_def_string(func, "old_name", nullptr, MAX_IDPROP_NAME, "Old Name", "Old name");
+  RNA_def_string(func, "new_name", nullptr, MAX_IDPROP_NAME, "New Name", "New name");
+  RNA_def_function_ui_description(
+      func,
+      "Rename the property paths in the animation system, since properties are animated via "
+      "string paths, it's needed to keep them valid after properties has been renamed");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID);
 }
 
 #endif
