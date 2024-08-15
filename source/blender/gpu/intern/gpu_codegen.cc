@@ -614,8 +614,8 @@ void GPUCodegen::generate_cryptomatte()
   float material_hash = 0.0f;
   Material *material = GPU_material_get_material(&mat);
   if (material) {
-    blender::bke::cryptomatte::CryptomatteHash hash(material->id.name + 2,
-                                                    BLI_strnlen(material->id.name, MAX_NAME - 2));
+    blender::bke::cryptomatte::CryptomatteHash hash(
+        material->id.name + 2, BLI_strnlen(material->id.name + 2, MAX_NAME - 2));
     material_hash = hash.float_encoded();
   }
   cryptomatte_input_->vec[0] = material_hash;
