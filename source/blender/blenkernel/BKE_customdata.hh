@@ -11,6 +11,7 @@
 
 #include "BLI_cpp_type.hh"
 #include "BLI_implicit_sharing.h"
+#include "BLI_memory_counter_fwd.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
@@ -802,6 +803,8 @@ void CustomData_blend_write(BlendWriter *writer,
 void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count);
 
 size_t CustomData_get_elem_size(const CustomDataLayer *layer);
+
+void CustomData_count_memory(const CustomData &data, int totelem, blender::MemoryCounter &memory);
 
 #ifndef NDEBUG
 struct DynStr;

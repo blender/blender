@@ -208,6 +208,8 @@ class VolumeGridData : public ImplicitSharingMixin {
    */
   bool is_loaded() const;
 
+  void count_memory(MemoryCounter &memory) const;
+
   /**
    * Non-empty string if there was some error when trying to load the volume.
    */

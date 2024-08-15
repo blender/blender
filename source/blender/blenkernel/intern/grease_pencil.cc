@@ -2706,6 +2706,19 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max_eva
   return this->bounds_min_max(this->runtime->eval_frame);
 }
 
+void GreasePencil::count_memory(blender::MemoryCounter &memory) const
+{
+  using namespace blender::bke;
+  for (const GreasePencilDrawingBase *base : this->drawings()) {
+    if (base->type != GP_DRAWING) {
+      continue;
+    }
+    const greasepencil::Drawing &drawing =
+        reinterpret_cast<const GreasePencilDrawing *>(base)->wrap();
+    drawing.strokes().count_memory(memory);
+  }
+}
+
 blender::Span<const blender::bke::greasepencil::Layer *> GreasePencil::layers() const
 {
   BLI_assert(this->runtime != nullptr);

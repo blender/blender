@@ -13,6 +13,7 @@
 #include "BKE_volume_enums.hh"
 
 #include "BLI_math_matrix_types.hh"
+#include "BLI_memory_counter_fwd.hh"
 
 /**
  * This header gives contains declarations for dealing with volume grids without requiring
@@ -104,6 +105,8 @@ std::string error_message_from_load(const VolumeGridData &grid);
  * does not have to be loaded lazily anymore.
  */
 bool is_loaded(const VolumeGridData &grid);
+
+void count_memory(const VolumeGridData &grid, MemoryCounter &memory);
 
 }  // namespace blender::bke::volume_grid
 

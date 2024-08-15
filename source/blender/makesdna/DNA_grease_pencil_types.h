@@ -19,6 +19,7 @@
 #  include "BLI_generic_virtual_array.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_memory_counter_fwd.hh"
 #  include "BLI_span.hh"
 namespace blender::bke {
 class AttributeAccessor;
@@ -693,6 +694,8 @@ typedef struct GreasePencil {
 
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();
+
+  void count_memory(blender::MemoryCounter &memory) const;
 
   /* For debugging purposes. */
   void print_layer_tree();

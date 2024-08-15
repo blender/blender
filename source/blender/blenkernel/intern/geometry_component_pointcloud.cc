@@ -106,6 +106,13 @@ void PointCloudComponent::ensure_owns_direct_data()
   }
 }
 
+void PointCloudComponent::count_memory(MemoryCounter &memory) const
+{
+  if (pointcloud_) {
+    pointcloud_->count_memory(memory);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -50,6 +50,18 @@ bool InstanceReference::owns_direct_data() const
   return geometry_set_->owns_direct_data();
 }
 
+void InstanceReference::count_memory(MemoryCounter &memory) const
+{
+  switch (type_) {
+    case Type::GeometrySet: {
+      geometry_set_->count_memory(memory);
+    }
+    default: {
+      break;
+    }
+  }
+}
+
 static void convert_collection_to_instances(const Collection &collection,
                                             bke::Instances &instances)
 {
@@ -397,6 +409,14 @@ void Instances::ensure_owns_direct_data()
      * reference. */
     InstanceReference &reference = const_cast<InstanceReference &>(const_reference);
     reference.ensure_owns_direct_data();
+  }
+}
+
+void Instances::count_memory(MemoryCounter &memory) const
+{
+  CustomData_count_memory(attributes_, instances_num_, memory);
+  for (const InstanceReference &reference : references_) {
+    reference.count_memory(memory);
   }
 }
 

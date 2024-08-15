@@ -5,6 +5,7 @@
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 
+#include "BLI_memory_counter.hh"
 #include "BLI_task.hh"
 
 #ifdef WITH_OPENVDB
@@ -207,6 +208,17 @@ bool VolumeGridData::is_loaded() const
 {
   std::lock_guard lock{mutex_};
   return tree_loaded_ && transform_loaded_ && meta_data_loaded_;
+}
+
+void VolumeGridData::count_memory(MemoryCounter &memory) const
+{
+  std::lock_guard lock{mutex_};
+  if (!tree_loaded_) {
+    return;
+  }
+  const openvdb::TreeBase &tree = grid_->baseTree();
+  memory.add_shared(tree_sharing_info_,
+                    [&](MemoryCounter &shared_memory) { shared_memory.add(tree.memUsage()); });
 }
 
 std::string VolumeGridData::error_message() const
@@ -479,6 +491,15 @@ bool is_loaded(const VolumeGridData &grid)
 #else
   UNUSED_VARS(grid);
   return false;
+#endif
+}
+
+void count_memory(const VolumeGridData &grid, MemoryCounter &memory)
+{
+#ifdef WITH_OPENVDB
+  grid.count_memory(memory);
+#else
+  UNUSED_VARS(grid, memory);
 #endif
 }
 

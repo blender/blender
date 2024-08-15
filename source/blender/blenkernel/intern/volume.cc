@@ -600,6 +600,19 @@ bool BKE_volume_save(const Volume *volume,
 #endif
 }
 
+void BKE_volume_count_memory(const Volume &volume, blender::MemoryCounter &memory)
+{
+#ifdef WITH_OPENVDB
+  if (const VolumeGridVector *grids = volume.runtime->grids) {
+    for (const GVolumeGrid &grid : *grids) {
+      grid->count_memory(memory);
+    }
+  }
+#else
+  UNUSED_VARS(volume, memory);
+#endif
+}
+
 std::optional<blender::Bounds<blender::float3>> BKE_volume_min_max(const Volume *volume)
 {
 #ifdef WITH_OPENVDB

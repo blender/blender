@@ -14,6 +14,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_counter_fwd.hh"
 
 #include "BKE_volume_grid_fwd.hh"
 
@@ -122,6 +123,8 @@ bool BKE_volume_save(const Volume *volume,
                      const Main *bmain,
                      ReportList *reports,
                      const char *filepath);
+
+void BKE_volume_count_memory(const Volume &volume, blender::MemoryCounter &memory);
 
 std::optional<blender::Bounds<blender::float3>> BKE_volume_min_max(const Volume *volume);
 

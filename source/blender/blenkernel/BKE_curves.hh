@@ -15,6 +15,7 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_counter_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
@@ -291,6 +292,8 @@ class CurvesGeometry : public ::CurvesGeometry {
    * The largest and smallest position values of evaluated points.
    */
   std::optional<Bounds<float3>> bounds_min_max() const;
+
+  void count_memory(MemoryCounter &memory) const;
 
  private:
   /* --------------------------------------------------------------------

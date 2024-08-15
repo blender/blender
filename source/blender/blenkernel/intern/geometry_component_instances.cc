@@ -102,6 +102,13 @@ void InstancesComponent::replace(Instances *instances, GeometryOwnershipType own
   ownership_ = ownership;
 }
 
+void InstancesComponent::count_memory(MemoryCounter &memory) const
+{
+  if (instances_) {
+    instances_->count_memory(memory);
+  }
+}
+
 static void tag_component_reference_index_changed(void *owner)
 {
   Instances &instances = *static_cast<Instances *>(owner);

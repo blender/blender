@@ -92,6 +92,13 @@ void VolumeComponent::ensure_owns_direct_data()
   }
 }
 
+void VolumeComponent::count_memory(MemoryCounter &memory) const
+{
+  if (volume_) {
+    BKE_volume_count_memory(*volume_, memory);
+  }
+}
+
 /** \} */
 
 }  // namespace blender::bke

@@ -121,6 +121,13 @@ void CurveComponent::ensure_owns_direct_data()
   }
 }
 
+void CurveComponent::count_memory(MemoryCounter &memory) const
+{
+  if (curves_) {
+    curves_->geometry.wrap().count_memory(memory);
+  }
+}
+
 const Curve *CurveComponent::get_curve_for_render() const
 {
   if (curves_ == nullptr) {

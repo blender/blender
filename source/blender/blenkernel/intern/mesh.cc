@@ -31,6 +31,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
+#include "BLI_memory_counter.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
@@ -685,6 +686,16 @@ MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
   return {static_cast<MDeformVert *>(CustomData_add_layer(
               &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->verts_num)),
           this->verts_num};
+}
+
+void Mesh::count_memory(blender::MemoryCounter &memory) const
+{
+  memory.add_shared(this->runtime->face_offsets_sharing_info,
+                    this->face_offsets().size_in_bytes());
+  CustomData_count_memory(this->vert_data, this->verts_num, memory);
+  CustomData_count_memory(this->edge_data, this->edges_num, memory);
+  CustomData_count_memory(this->face_data, this->faces_num, memory);
+  CustomData_count_memory(this->corner_data, this->corners_num, memory);
 }
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,

@@ -279,6 +279,11 @@ std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() con
   return this->runtime->bounds_cache.data();
 }
 
+void PointCloud::count_memory(blender::MemoryCounter &memory) const
+{
+  CustomData_count_memory(this->pdata, this->totpoint, memory);
+}
+
 bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const char *name)
 {
   return STREQ(name, POINTCLOUD_ATTR_POSITION);

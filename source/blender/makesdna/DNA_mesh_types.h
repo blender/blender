@@ -19,6 +19,7 @@
 #  include <optional>
 
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_memory_counter_fwd.hh"
 
 namespace blender {
 template<typename T> struct Bounds;
@@ -394,6 +395,8 @@ typedef struct Mesh {
    * using #face_normals() or #vert_normals() when possible (see #normals_domain()).
    */
   blender::Span<blender::float3> corner_normals() const;
+
+  void count_memory(blender::MemoryCounter &memory) const;
 
   /** Call after changing vertex positions to tag lazily calculated caches for recomputation. */
   void tag_positions_changed();

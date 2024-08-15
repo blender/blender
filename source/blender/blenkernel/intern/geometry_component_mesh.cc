@@ -116,6 +116,13 @@ void MeshComponent::ensure_owns_direct_data()
   }
 }
 
+void MeshComponent::count_memory(MemoryCounter &memory) const
+{
+  if (mesh_) {
+    mesh_->count_memory(memory);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
