@@ -96,11 +96,10 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
     update_only_visible = true;
   }
 
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   bke::pbvh::update_normals_from_eval(*const_cast<Object *>(ob), *pbvh);
 
   Vector<SculptBatch> result_batches;
-  bke::pbvh::draw_cb(*mesh,
+  bke::pbvh::draw_cb(*ob,
                      *pbvh,
                      update_only_visible,
                      update_frustum,

@@ -378,8 +378,6 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int3> corner_tris = mesh->corner_tris();
 
-  pbvh->mesh_ = mesh;
-
   update_mesh_pointers(*pbvh, mesh);
   const Span<int> tri_faces = mesh->corner_tri_faces();
 
@@ -570,9 +568,6 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
    * Fixes #102209.
    */
   const int leaf_limit = max_ii(LEAF_LIMIT / (key.grid_area), max_grids);
-
-  /* We also need the base mesh for Tree draw. */
-  pbvh->mesh_ = mesh;
 
   /* For each grid, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(elems.size());
@@ -2503,54 +2498,45 @@ bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
          blender::bke::pbvh::ISECT_INSIDE;
 }
 
-static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
+static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh_eval,
+                                                              const Mesh &mesh_orig,
                                                               blender::bke::pbvh::Tree &pbvh,
                                                               const blender::bke::pbvh::Node &node)
 {
-  /* TODO: Use an explicit argument for the original mesh to avoid relying on
-   * #Tree::mesh. */
   blender::draw::pbvh::PBVH_GPU_Args args{};
 
   args.pbvh_type = pbvh.type();
 
-  /* Occasionally, the evaluated and original meshes are out of sync. Prefer using the pbvh mesh in
-   * these cases. See #115856 and #121008 */
-  args.face_sets_color_default = pbvh.mesh_ ? pbvh.mesh_->face_sets_color_default :
-                                              mesh.face_sets_color_default;
-  args.face_sets_color_seed = pbvh.mesh_ ? pbvh.mesh_->face_sets_color_seed :
-                                           mesh.face_sets_color_seed;
+  args.face_sets_color_default = mesh_orig.face_sets_color_default;
+  args.face_sets_color_seed = mesh_orig.face_sets_color_seed;
 
-  args.active_color = pbvh.mesh_ ? pbvh.mesh_->active_color_attribute :
-                                   mesh.active_color_attribute;
-  args.render_color = pbvh.mesh_ ? pbvh.mesh_->default_color_attribute :
-                                   mesh.default_color_attribute;
+  args.active_color = mesh_orig.active_color_attribute;
+  args.render_color = mesh_orig.default_color_attribute;
 
   switch (pbvh.type()) {
     case blender::bke::pbvh::Type::Mesh:
-      args.vert_data = &mesh.vert_data;
-      args.corner_data = &mesh.corner_data;
-      args.face_data = &mesh.face_data;
-      args.mesh = pbvh.mesh_;
+      args.vert_data = &mesh_eval.vert_data;
+      args.corner_data = &mesh_eval.corner_data;
+      args.face_data = &mesh_eval.face_data;
+      args.mesh = &mesh_orig;
       args.vert_positions = BKE_pbvh_get_vert_positions(pbvh);
-      args.corner_verts = mesh.corner_verts();
-      args.corner_edges = mesh.corner_edges();
-      args.corner_tris = mesh.corner_tris();
+      args.corner_verts = mesh_eval.corner_verts();
+      args.corner_edges = mesh_eval.corner_edges();
+      args.corner_tris = mesh_eval.corner_tris();
       args.vert_normals = pbvh.vert_normals_;
       args.face_normals = pbvh.face_normals_;
-      /* Retrieve data from the original mesh. Ideally that would be passed to this function to
-       * make it clearer when each is used. */
-      args.hide_poly = *pbvh.mesh_->attributes().lookup<bool>(".hide_poly",
-                                                              blender::bke::AttrDomain::Face);
+      args.hide_poly = *mesh_orig.attributes().lookup<bool>(".hide_poly",
+                                                            blender::bke::AttrDomain::Face);
 
       args.prim_indices = node.prim_indices_;
-      args.tri_faces = mesh.corner_tri_faces();
+      args.tri_faces = mesh_eval.corner_tri_faces();
       break;
     case blender::bke::pbvh::Type::Grids:
-      args.vert_data = &pbvh.mesh_->vert_data;
-      args.corner_data = &pbvh.mesh_->corner_data;
-      args.face_data = &pbvh.mesh_->face_data;
+      args.vert_data = &mesh_orig.vert_data;
+      args.corner_data = &mesh_orig.corner_data;
+      args.face_data = &mesh_orig.face_data;
       args.ccg_key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
-      args.mesh = pbvh.mesh_;
+      args.mesh = &mesh_orig;
       args.grid_indices = node.prim_indices_;
       args.subdiv_ccg = pbvh.subdiv_ccg_;
       args.grids = pbvh.subdiv_ccg_->grids;
@@ -2573,13 +2559,17 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Mesh &mesh,
 
 namespace blender::bke::pbvh {
 
-static void node_update_draw_buffers(const Mesh &mesh, Tree &pbvh, Node &node)
+static void node_update_draw_buffers(const Mesh &mesh_eval,
+                                     const Mesh &mesh_orig,
+                                     Tree &pbvh,
+                                     Node &node)
 {
   /* Create and update draw buffers. The functions called here must not
    * do any OpenGL calls. Flags are not cleared immediately, that happens
    * after GPU_pbvh_buffer_flush() which does the final OpenGL calls. */
   if (node.flag_ & PBVH_RebuildDrawBuffers) {
-    const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
+    const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
+        mesh_eval, mesh_orig, pbvh, node);
     node.draw_batches_ = blender::draw::pbvh::node_create(args);
   }
 
@@ -2587,7 +2577,8 @@ static void node_update_draw_buffers(const Mesh &mesh, Tree &pbvh, Node &node)
     node.debug_draw_gen_++;
 
     if (node.draw_batches_) {
-      const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, node);
+      const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
+          mesh_eval, mesh_orig, pbvh, node);
       blender::draw::pbvh::node_update(node.draw_batches_, args);
     }
   }
@@ -2601,10 +2592,8 @@ void free_draw_buffers(Tree & /*pbvh*/, Node *node)
   }
 }
 
-static void pbvh_update_draw_buffers(const Mesh &mesh,
-                                     Tree &pbvh,
-                                     Span<Node *> nodes,
-                                     int update_flag)
+static void pbvh_update_draw_buffers(
+    const Mesh &mesh_eval, const Mesh &mesh_orig, Tree &pbvh, Span<Node *> nodes, int update_flag)
 {
   if (pbvh.type() == Type::BMesh && !pbvh.bm_) {
     /* BMesh hasn't been created yet */
@@ -2618,7 +2607,8 @@ static void pbvh_update_draw_buffers(const Mesh &mesh,
         free_draw_buffers(pbvh, node);
       }
       else if ((node->flag_ & PBVH_UpdateDrawBuffers) && node->draw_batches_) {
-        const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, *node);
+        const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
+            mesh_eval, mesh_orig, pbvh, *node);
         draw::pbvh::update_pre(node->draw_batches_, args);
       }
     }
@@ -2627,7 +2617,7 @@ static void pbvh_update_draw_buffers(const Mesh &mesh,
   /* Parallel creation and update of draw buffers. */
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (Node *node : nodes.slice(range)) {
-      node_update_draw_buffers(mesh, pbvh, *node);
+      node_update_draw_buffers(mesh_eval, mesh_orig, pbvh, *node);
     }
   });
 
@@ -2644,7 +2634,7 @@ static void pbvh_update_draw_buffers(const Mesh &mesh,
   }
 }
 
-void draw_cb(const Mesh &mesh,
+void draw_cb(const Object &object_eval,
              Tree &pbvh,
              bool update_only_visible,
              const PBVHFrustumPlanes &update_frustum,
@@ -2652,6 +2642,12 @@ void draw_cb(const Mesh &mesh,
              const FunctionRef<void(draw::pbvh::PBVHBatches *batches,
                                     const draw::pbvh::PBVH_GPU_Args &args)> draw_fn)
 {
+  /* Using the original object/geometry is necessary because we skip depsgraph updates in sculpt
+   * mode to improve performance. This means the evaluated mesh doesn't have the latest position,
+   * face set, visibility, and mask data. */
+  const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
+  const Mesh &mesh_eval = *static_cast<const Mesh *>(object_eval.data);
+  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
   if (update_only_visible) {
     int update_flag = 0;
     Vector<Node *> nodes = search_gather(pbvh, [&](Node &node) {
@@ -2662,7 +2658,7 @@ void draw_cb(const Mesh &mesh,
       return true;
     });
     if (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers)) {
-      pbvh_update_draw_buffers(mesh, pbvh, nodes, update_flag);
+      pbvh_update_draw_buffers(mesh_eval, mesh_orig, pbvh, nodes, update_flag);
     }
   }
   else {
@@ -2670,7 +2666,8 @@ void draw_cb(const Mesh &mesh,
     Vector<Node *> nodes = search_gather(pbvh, [&](Node &node) {
       return update_search(&node, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
     });
-    pbvh_update_draw_buffers(mesh, pbvh, nodes, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
+    pbvh_update_draw_buffers(
+        mesh_eval, mesh_orig, pbvh, nodes, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
   }
 
   /* Draw visible nodes. */
@@ -2684,7 +2681,7 @@ void draw_cb(const Mesh &mesh,
     if (!node->draw_batches_) {
       continue;
     }
-    const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh, pbvh, *node);
+    const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(mesh_eval, mesh_orig, pbvh, *node);
     draw_fn(node->draw_batches_, args);
   }
 }

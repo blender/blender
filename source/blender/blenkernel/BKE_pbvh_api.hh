@@ -181,9 +181,6 @@ class Tree {
   /* Memory backing for Node.prim_indices. */
   Array<int> prim_indices_;
 
-  /* Mesh data. The evaluated deform mesh for mesh sculpting, and the base mesh for grids. */
-  Mesh *mesh_ = nullptr;
-
   /** Local array used when not sculpting base mesh positions directly. */
   Array<float3> vert_positions_deformed_;
   /** Local array used when not sculpting base mesh positions directly. */
@@ -359,7 +356,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
 void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes);
 void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes);
 
-void draw_cb(const Mesh &mesh,
+void draw_cb(const Object &object_eval,
              Tree &pbvh,
              bool update_only_visible,
              const PBVHFrustumPlanes &update_frustum,
