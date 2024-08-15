@@ -165,10 +165,13 @@ struct tPChanFCurveLink {
 
 /** Returns a valid pose armature for this object, else returns NULL. */
 Object *poseAnim_object_get(Object *ob_);
-/** Get sets of F-Curves providing transforms for the bones in the Pose. */
-void poseAnim_mapping_get(bContext *C, ListBase *pfLinks);
+/**
+ * Build up a list of tPChanFCurveLink. First only selected, and if that yields no result, all
+ * visible.
+ */
+void poseAnim_mapping_get(bContext *C, ListBase /* tPChanFCurveLink */ *pfLinks);
 /** Free F-Curve <-> PoseChannel links. */
-void poseAnim_mapping_free(ListBase *pfLinks);
+void poseAnim_mapping_free(ListBase /* tPChanFCurveLink */ *pfLinks);
 
 /**
  * Helper for apply() / reset() - refresh the data.
