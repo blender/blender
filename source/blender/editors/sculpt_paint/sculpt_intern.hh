@@ -1615,7 +1615,8 @@ bool is_cloth_deform_brush(const Brush &brush);
 
 namespace blender::ed::sculpt_paint {
 
-void calc_smooth_translations(const Depsgraph &depsgraph,const Object &object,
+void calc_smooth_translations(const Depsgraph &depsgraph,
+                              const Object &object,
                               Span<bke::pbvh::Node *> nodes,
                               MutableSpan<float3> translations);
 
