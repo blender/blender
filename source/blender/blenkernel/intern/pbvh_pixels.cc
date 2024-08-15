@@ -9,6 +9,7 @@
 #include "BKE_pbvh_pixels.hh"
 
 #include "DNA_image_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -17,6 +18,7 @@
 
 #include "BKE_global.hh"
 #include "BKE_image_wrappers.hh"
+#include "BKE_paint.hh"
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
@@ -328,13 +330,14 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
   BKE_image_partial_update_mark_full_update(&image);
 }
 
-static bool update_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser &image_user)
+static bool update_pixels(const Object &object, Tree &pbvh, Image &image, ImageUser &image_user)
 {
   Vector<Node *> nodes_to_update;
   if (!find_nodes_to_update(pbvh, nodes_to_update)) {
     return false;
   }
 
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const StringRef active_uv_name = CustomData_get_active_layer_name(&mesh.corner_data,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
@@ -345,7 +348,7 @@ static bool update_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser 
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, AttrDomain::Corner);
 
   uv_islands::MeshData mesh_data(
-      mesh.corner_tris(), mesh.corner_verts(), uv_map, pbvh.vert_positions_);
+      mesh.corner_tris(), mesh.corner_verts(), uv_map, BKE_pbvh_get_vert_positions(pbvh));
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
@@ -475,9 +478,11 @@ void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
 
 namespace blender::bke::pbvh {
 
-void build_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser &image_user)
+void build_pixels(Object &object, Image &image, ImageUser &image_user)
 {
-  pixels::update_pixels(pbvh, mesh, image, image_user);
+  SculptSession &ss = *object.sculpt;
+  Tree &pbvh = *ss.pbvh;
+  pixels::update_pixels(object, pbvh, image, image_user);
 }
 
 void node_pixels_free(Node *node)

@@ -276,7 +276,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
  */
 std::unique_ptr<Tree> build_bmesh(BMesh *bm);
 
-void build_pixels(Tree &pbvh, const Mesh &mesh, Image &image, ImageUser &image_user);
+void build_pixels(Object &object, Image &image, ImageUser &image_user);
 void free(std::unique_ptr<Tree> &pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
