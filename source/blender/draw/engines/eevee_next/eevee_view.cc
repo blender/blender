@@ -117,11 +117,10 @@ void ShadingView::render()
   float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
+  inst_.pipelines.background.clear(render_view_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_, extent_);
-
-  inst_.pipelines.background.render(render_view_);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
 
@@ -136,6 +135,8 @@ void ShadingView::render()
                                   extent_,
                                   rt_buffer_opaque_,
                                   rt_buffer_refract_);
+
+  inst_.pipelines.background.render(render_view_);
 
   inst_.gbuffer.release();
 
