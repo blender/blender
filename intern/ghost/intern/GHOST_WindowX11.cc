@@ -348,6 +348,16 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     m_valid_setup = true;
     GHOST_PRINT("Created window\n");
   }
+  else {
+    const char *text =
+        "A graphics card and driver with support for OpenGL 4.3 or higher is "
+        "required.\n\nInstalling the latest driver for your graphics card might resolve the "
+        "issue.";
+    const char *help = "https://www.blender.org/download/requirements/";
+    system->showMessageBox(
+        "Unsupported hardware", text, "Learn More", "Close", help, GHOST_DialogError);
+    exit(0);
+  }
 
   setTitle(title);
 
