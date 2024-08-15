@@ -1087,7 +1087,6 @@ void update_normals(Object &object, Tree &pbvh)
 
   switch (pbvh.type()) {
     case Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
       update_normals_mesh(object, nodes);
       break;
     }
@@ -1948,7 +1947,6 @@ static bool pbvh_faces_node_raycast(Tree &pbvh,
                                     float *r_face_normal)
 {
   using namespace blender;
-  const Span<float3> positions = pbvh.vert_positions_;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
 
@@ -2294,8 +2292,7 @@ void find_nearest_to_ray(Tree &pbvh,
       fn);
 }
 
-static bool pbvh_faces_node_nearest_to_ray(Tree &pbvh,
-                                           const Node &node,
+static bool pbvh_faces_node_nearest_to_ray(const Node &node,
                                            const float (*origco)[3],
                                            const Span<float3> vert_positions,
                                            const Span<int> corner_verts,
@@ -2426,8 +2423,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
 
   switch (pbvh.type()) {
     case Type::Mesh:
-      hit |= pbvh_faces_node_nearest_to_ray(pbvh,
-                                            node,
+      hit |= pbvh_faces_node_nearest_to_ray(node,
                                             origco,
                                             vert_positions,
                                             corner_verts,
