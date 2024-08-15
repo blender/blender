@@ -1185,13 +1185,17 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       device_vector<int> index_data(this, "optix temp index data", MEM_READ_ONLY);
       device_vector<float4> vertex_data(this, "optix temp vertex data", MEM_READ_ONLY);
       /* Four control points for each curve segment. */
-      const size_t num_vertices = num_segments * 4;
+      size_t num_vertices = num_segments * 4;
       if (hair->curve_shape == CURVE_THICK) {
+#  if OPTIX_ABI_VERSION >= 55
+        num_vertices = hair->num_keys() + 2 * hair->num_curves();
+#  endif
         index_data.alloc(num_segments);
         vertex_data.alloc(num_vertices * num_motion_steps);
       }
-      else
+      else {
         aabb_data.alloc(num_segments * num_motion_steps);
+      }
 
       /* Get AABBs for each motion step. */
       for (size_t step = 0; step < num_motion_steps; ++step) {
@@ -1204,59 +1208,100 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
           keys = motion_keys->data_float3() + attr_offset * hair->get_curve_keys().size();
         }
 
-        for (size_t j = 0, i = 0; j < hair->num_curves(); ++j) {
-          const Hair::Curve curve = hair->get_curve(j);
-          const array<float> &curve_radius = hair->get_curve_radius();
-
-          for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
-            if (hair->curve_shape == CURVE_THICK) {
-              int k0 = curve.first_key + segment;
-              int k1 = k0 + 1;
-              int ka = max(k0 - 1, curve.first_key);
-              int kb = min(k1 + 1, curve.first_key + curve.num_keys - 1);
-
-              index_data[i] = i * 4;
-              float4 *const v = vertex_data.data() + step * num_vertices + index_data[i];
-
 #  if OPTIX_ABI_VERSION >= 55
-              v[0] = make_float4(keys[ka].x, keys[ka].y, keys[ka].z, curve_radius[ka]);
-              v[1] = make_float4(keys[k0].x, keys[k0].y, keys[k0].z, curve_radius[k0]);
-              v[2] = make_float4(keys[k1].x, keys[k1].y, keys[k1].z, curve_radius[k1]);
-              v[3] = make_float4(keys[kb].x, keys[kb].y, keys[kb].z, curve_radius[kb]);
-#  else
-              const float4 px = make_float4(keys[ka].x, keys[k0].x, keys[k1].x, keys[kb].x);
-              const float4 py = make_float4(keys[ka].y, keys[k0].y, keys[k1].y, keys[kb].y);
-              const float4 pz = make_float4(keys[ka].z, keys[k0].z, keys[k1].z, keys[kb].z);
-              const float4 pw = make_float4(
-                  curve_radius[ka], curve_radius[k0], curve_radius[k1], curve_radius[kb]);
+        if (hair->curve_shape == CURVE_THICK) {
+          for (size_t curve_index = 0, segment_index = 0, vertex_index = step * num_vertices;
+               curve_index < hair->num_curves();
+               ++curve_index)
+          {
+            const Hair::Curve curve = hair->get_curve(curve_index);
+            const array<float> &curve_radius = hair->get_curve_radius();
 
-              /* Convert Catmull-Rom data to B-spline. */
-              static const float4 cr2bsp0 = make_float4(+7, -4, +5, -2) / 6.f;
-              static const float4 cr2bsp1 = make_float4(-2, 11, -4, +1) / 6.f;
-              static const float4 cr2bsp2 = make_float4(+1, -4, 11, -2) / 6.f;
-              static const float4 cr2bsp3 = make_float4(-2, +5, -4, +7) / 6.f;
-
-              v[0] = make_float4(
-                  dot(cr2bsp0, px), dot(cr2bsp0, py), dot(cr2bsp0, pz), dot(cr2bsp0, pw));
-              v[1] = make_float4(
-                  dot(cr2bsp1, px), dot(cr2bsp1, py), dot(cr2bsp1, pz), dot(cr2bsp1, pw));
-              v[2] = make_float4(
-                  dot(cr2bsp2, px), dot(cr2bsp2, py), dot(cr2bsp2, pz), dot(cr2bsp2, pw));
-              v[3] = make_float4(
-                  dot(cr2bsp3, px), dot(cr2bsp3, py), dot(cr2bsp3, pz), dot(cr2bsp3, pw));
-#  endif
+            const int first_key_index = curve.first_key;
+            {
+              vertex_data[vertex_index++] = make_float4(keys[first_key_index].x,
+                                                        keys[first_key_index].y,
+                                                        keys[first_key_index].z,
+                                                        curve_radius[first_key_index]);
             }
-            else {
-              BoundBox bounds = BoundBox::empty;
-              curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
 
-              const size_t index = step * num_segments + i;
-              aabb_data[index].minX = bounds.min.x;
-              aabb_data[index].minY = bounds.min.y;
-              aabb_data[index].minZ = bounds.min.z;
-              aabb_data[index].maxX = bounds.max.x;
-              aabb_data[index].maxY = bounds.max.y;
-              aabb_data[index].maxZ = bounds.max.z;
+            for (int k = 0; k < curve.num_segments(); ++k) {
+              if (step == 0) {
+                index_data[segment_index++] = vertex_index - 1;
+              }
+              vertex_data[vertex_index++] = make_float4(keys[first_key_index + k].x,
+                                                        keys[first_key_index + k].y,
+                                                        keys[first_key_index + k].z,
+                                                        curve_radius[first_key_index + k]);
+            }
+
+            const int last_key_index = first_key_index + curve.num_keys - 1;
+            {
+              vertex_data[vertex_index++] = make_float4(keys[last_key_index].x,
+                                                        keys[last_key_index].y,
+                                                        keys[last_key_index].z,
+                                                        curve_radius[last_key_index]);
+              vertex_data[vertex_index++] = make_float4(keys[last_key_index].x,
+                                                        keys[last_key_index].y,
+                                                        keys[last_key_index].z,
+                                                        curve_radius[last_key_index]);
+            }
+          }
+        }
+        else
+#  endif
+        {
+          for (size_t curve_index = 0, i = 0; curve_index < hair->num_curves(); ++curve_index) {
+            const Hair::Curve curve = hair->get_curve(curve_index);
+
+            for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
+#  if OPTIX_ABI_VERSION < 55
+              if (hair->curve_shape == CURVE_THICK) {
+                const array<float> &curve_radius = hair->get_curve_radius();
+
+                int k0 = curve.first_key + segment;
+                int k1 = k0 + 1;
+                int ka = max(k0 - 1, curve.first_key);
+                int kb = min(k1 + 1, curve.first_key + curve.num_keys - 1);
+
+                index_data[i] = i * 4;
+                float4 *const v = vertex_data.data() + step * num_vertices + index_data[i];
+
+                const float4 px = make_float4(keys[ka].x, keys[k0].x, keys[k1].x, keys[kb].x);
+                const float4 py = make_float4(keys[ka].y, keys[k0].y, keys[k1].y, keys[kb].y);
+                const float4 pz = make_float4(keys[ka].z, keys[k0].z, keys[k1].z, keys[kb].z);
+                const float4 pw = make_float4(
+                    curve_radius[ka], curve_radius[k0], curve_radius[k1], curve_radius[kb]);
+
+                /* Convert Catmull-Rom data to B-spline. */
+                static const float4 cr2bsp0 = make_float4(+7, -4, +5, -2) / 6.f;
+                static const float4 cr2bsp1 = make_float4(-2, 11, -4, +1) / 6.f;
+                static const float4 cr2bsp2 = make_float4(+1, -4, 11, -2) / 6.f;
+                static const float4 cr2bsp3 = make_float4(-2, +5, -4, +7) / 6.f;
+
+                v[0] = make_float4(
+                    dot(cr2bsp0, px), dot(cr2bsp0, py), dot(cr2bsp0, pz), dot(cr2bsp0, pw));
+                v[1] = make_float4(
+                    dot(cr2bsp1, px), dot(cr2bsp1, py), dot(cr2bsp1, pz), dot(cr2bsp1, pw));
+                v[2] = make_float4(
+                    dot(cr2bsp2, px), dot(cr2bsp2, py), dot(cr2bsp2, pz), dot(cr2bsp2, pw));
+                v[3] = make_float4(
+                    dot(cr2bsp3, px), dot(cr2bsp3, py), dot(cr2bsp3, pz), dot(cr2bsp3, pw));
+              }
+              else
+#  endif
+              {
+                BoundBox bounds = BoundBox::empty;
+                curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
+
+                const size_t index = step * num_segments + i;
+                aabb_data[index].minX = bounds.min.x;
+                aabb_data[index].minY = bounds.min.y;
+                aabb_data[index].minZ = bounds.min.z;
+                aabb_data[index].maxX = bounds.max.x;
+                aabb_data[index].maxY = bounds.max.y;
+                aabb_data[index].maxZ = bounds.max.z;
+              }
             }
           }
         }
