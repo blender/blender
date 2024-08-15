@@ -2106,7 +2106,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
         /* pbvh::Tree nodes may contain dirty normal tags. To avoid losing that information when
          * the pbvh::Tree is deleted, make sure all tagged geometry normals are up to date.
          * See #122947 for more information. */
-        blender::bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
+        blender::bke::pbvh::update_normals_from_eval(*ob_eval, *ss->pbvh);
       }
       /* We free pbvh on changes, except in the middle of drawing a stroke
        * since it can't deal with changing PVBH node organization, we hope

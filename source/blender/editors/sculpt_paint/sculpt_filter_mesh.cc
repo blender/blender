@@ -962,7 +962,7 @@ static void calc_relax_filter(const Sculpt &sd,
                               const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+  bke::pbvh::update_normals(object, *ss.pbvh);
   switch (ss.pbvh->type()) {
     struct LocalData {
       Vector<float> factors;
@@ -1114,7 +1114,7 @@ static void calc_relax_face_sets_filter(const Sculpt &sd,
                                         const Span<bke::pbvh::Node *> nodes)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+  bke::pbvh::update_normals(object, *ss.pbvh);
 
   /* When using the relax face sets meshes filter, each 3 iterations, do a whole mesh relax to
    * smooth the contents of the Face Set. This produces better results as the relax operation is no

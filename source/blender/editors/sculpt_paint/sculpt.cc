@@ -1426,7 +1426,7 @@ void restore_position_from_undo_step(Object &object)
   /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
    * the tool restoring to the initial state doesn't use the normals, but we have no easy way to
    * know that from here. */
-  bke::pbvh::update_normals(*ss.pbvh, ss.subdiv_ccg);
+  bke::pbvh::update_normals(object, *ss.pbvh);
 }
 
 static void restore_from_undo_step(const Sculpt &sd, Object &object)

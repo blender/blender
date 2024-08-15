@@ -1497,8 +1497,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
    * per redraw when smooth shading is enabled. */
   const bool do_update_sculpt_normals = ob.sculpt && ob.sculpt->pbvh;
   if (do_update_sculpt_normals) {
-    Mesh *mesh = static_cast<Mesh *>(ob.data);
-    bke::pbvh::update_normals(*ob.sculpt->pbvh, mesh->runtime->subdiv_ccg.get());
+    bke::pbvh::update_normals_from_eval(ob, *ob.sculpt->pbvh);
   }
 
   cache.batch_ready |= batch_requested;

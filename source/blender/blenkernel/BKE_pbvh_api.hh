@@ -514,7 +514,9 @@ void store_bounds_orig(Tree &pbvh);
 
 void update_mask(const Object &object, Tree &pbvh);
 void update_visibility(const Object &object, Tree &pbvh);
-void update_normals(Tree &pbvh, SubdivCCG *subdiv_ccg);
+void update_normals(Object &object, Tree &pbvh);
+/** Update geometry normals (potentially on the original object geometry). */
+void update_normals_from_eval(Object &object_eval, Tree &pbvh);
 
 }  // namespace blender::bke::pbvh
 

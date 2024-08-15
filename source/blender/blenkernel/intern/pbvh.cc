@@ -38,6 +38,8 @@
 #include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "DRW_pbvh.hh"
 
 #include "bmesh.hh"
@@ -988,7 +990,7 @@ static void calc_node_vert_normals(const GroupedSpan<int> vert_to_face_map,
   });
 }
 
-static void update_normals_faces(Tree &pbvh, Span<Node *> nodes, Mesh &mesh)
+static void update_normals_mesh(Object &object, Span<Node *> nodes)
 {
   /* Position changes are tracked on a per-node level, so all the vertex and face normals for every
    * affected node are recalculated. However, the additional complexity comes from the fact that
@@ -1002,7 +1004,9 @@ static void update_normals_faces(Tree &pbvh, Span<Node *> nodes, Mesh &mesh)
    * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
    * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
    * during recalculation thread-safe. */
-  const Span<float3> positions = pbvh.vert_positions_;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Tree &pbvh = *object.sculpt->pbvh;
+  const Span<float3> positions = BKE_pbvh_get_vert_positions(pbvh);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> tri_faces = mesh.corner_tri_faces();
@@ -1073,7 +1077,7 @@ static void update_normals_faces(Tree &pbvh, Span<Node *> nodes, Mesh &mesh)
   }
 }
 
-void update_normals(Tree &pbvh, SubdivCCG *subdiv_ccg)
+void update_normals(Object &object, Tree &pbvh)
 {
   Vector<Node *> nodes = search_gather(
       pbvh, [&](Node &node) { return update_search(&node, PBVH_UpdateNormals); });
@@ -1081,20 +1085,38 @@ void update_normals(Tree &pbvh, SubdivCCG *subdiv_ccg)
     return;
   }
 
-  if (pbvh.type() == Type::BMesh) {
-    bmesh_normals_update(nodes);
-  }
-  else if (pbvh.type() == Type::Mesh) {
-    update_normals_faces(pbvh, nodes, *pbvh.mesh_);
-  }
-  else if (pbvh.type() == Type::Grids) {
-    IndexMaskMemory memory;
-    const IndexMask faces_to_update = nodes_to_face_selection_grids(*subdiv_ccg, nodes, memory);
-    BKE_subdiv_ccg_update_normals(*subdiv_ccg, faces_to_update);
-    for (Node *node : nodes) {
-      node->flag_ &= ~PBVH_UpdateNormals;
+  switch (pbvh.type()) {
+    case Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      update_normals_mesh(object, nodes);
+      break;
+    }
+    case Type::Grids: {
+      SculptSession &ss = *object.sculpt;
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      IndexMaskMemory memory;
+      const IndexMask faces_to_update = nodes_to_face_selection_grids(subdiv_ccg, nodes, memory);
+      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces_to_update);
+      for (Node *node : nodes) {
+        node->flag_ &= ~PBVH_UpdateNormals;
+      }
+      break;
+    }
+    case Type::BMesh: {
+      bmesh_normals_update(nodes);
+      break;
     }
   }
+}
+
+void update_normals_from_eval(Object &object, Tree &pbvh)
+{
+  /* Updating the original object's mesh normals caches is necessary because we skip dependency
+   * graph updates for sculpt deformations in some cases (so the evaluated object doesn't containt
+   * their result), and also because (currently) sculpt deformations skip tagging the mesh normals
+   * caches dirty. */
+  Object &object_orig = *DEG_get_original_object(&object);
+  update_normals(object_orig, pbvh);
 }
 
 void update_node_bounds_mesh(const Span<float3> positions, Node &node)
