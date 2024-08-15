@@ -812,6 +812,10 @@ if(WITH_GHOST_WAYLAND)
       endif()
     else()
       pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+      # Check the variable is set, otherwise an empty command will attempt to be executed.
+      if(NOT WAYLAND_SCANNER)
+        message(FATAL_ERROR "\"wayland-scanner\" could not be found!")
+      endif()
     endif()
     mark_as_advanced(WAYLAND_SCANNER)
 
