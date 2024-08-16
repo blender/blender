@@ -196,6 +196,12 @@ struct GeometrySet {
     return this->has(Component::static_type);
   }
 
+  template<typename Component> bool has_component() const
+  {
+    BLI_STATIC_ASSERT(is_geometry_component_v<Component>, "");
+    return components_[int(Component::static_type)];
+  }
+
   void remove(const GeometryComponent::Type component_type);
   template<typename Component> void remove()
   {
