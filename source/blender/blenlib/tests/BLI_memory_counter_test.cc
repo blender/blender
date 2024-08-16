@@ -13,12 +13,13 @@ namespace blender::tests {
 
 TEST(memory_counter, Simple)
 {
-  MemoryCounter memory;
-  EXPECT_EQ(memory.counted_bytes(), 0);
+  MemoryCount memory_count;
+  MemoryCounter memory{memory_count};
+  EXPECT_EQ(memory_count.total_bytes, 0);
   memory.add(10);
-  EXPECT_EQ(memory.counted_bytes(), 10);
+  EXPECT_EQ(memory_count.total_bytes, 10);
   memory.add(10);
-  EXPECT_EQ(memory.counted_bytes(), 20);
+  EXPECT_EQ(memory_count.total_bytes, 20);
 
   const int alloc_size = 100;
   void *data1 = MEM_mallocN(alloc_size, __func__);
@@ -27,20 +28,20 @@ TEST(memory_counter, Simple)
   const ImplicitSharingPtr sharing_info2{implicit_sharing::info_for_mem_free(data2)};
 
   memory.add_shared(sharing_info1.get(), alloc_size);
-  EXPECT_EQ(memory.counted_bytes(), 120);
+  EXPECT_EQ(memory_count.total_bytes, 120);
 
   memory.add_shared(sharing_info1.get(), [&](MemoryCounter & /*shared_memory*/) { FAIL(); });
-  EXPECT_EQ(memory.counted_bytes(), 120);
+  EXPECT_EQ(memory_count.total_bytes, 120);
 
   memory.add_shared(sharing_info2.get(),
                     [&](MemoryCounter &shared_memory) { shared_memory.add(alloc_size); });
-  EXPECT_EQ(memory.counted_bytes(), 220);
+  EXPECT_EQ(memory_count.total_bytes, 220);
 
   memory.add_shared(nullptr, 1000);
-  EXPECT_EQ(memory.counted_bytes(), 1220);
+  EXPECT_EQ(memory_count.total_bytes, 1220);
 
   memory.add_shared(nullptr, 1000);
-  EXPECT_EQ(memory.counted_bytes(), 2220);
+  EXPECT_EQ(memory_count.total_bytes, 2220);
 }
 
 }  // namespace blender::tests

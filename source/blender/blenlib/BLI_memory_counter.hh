@@ -9,11 +9,29 @@
  */
 
 #include "BLI_function_ref.hh"
-#include "BLI_implicit_sharing.hh"
+#include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_map.hh"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_set.hh"
+#include "BLI_vector_set.hh"
 
-namespace blender {
+namespace blender::memory_counter {
+
+class MemoryCount {
+ public:
+  /**
+   * Get the total number of counted bytes.
+   *
+   * \note This is only a rough estimate of the actual used memory. Often, not every little bit of
+   * memory is counted, so this is generally a lower bound. The actual memory usage should not be
+   * significantly higher though.
+   */
+  int64_t total_bytes = 0;
+
+  Set<WeakImplicitSharingPtr> handled_shared_data;
+
+  void reset();
+};
 
 /**
  * #MemoryCounter helps counting the amount of memory used in cases where data is shared and should
@@ -22,20 +40,15 @@ namespace blender {
  */
 class MemoryCounter : NonCopyable, NonMovable {
  private:
-  int64_t owned_bytes_ = 0;
-  Set<const ImplicitSharingInfo *> counted_shared_data_;
+  MemoryCount &count_;
 
  public:
-  MemoryCounter() = default;
-  ~MemoryCounter();
+  MemoryCounter(MemoryCount &count);
 
   /**
    * Add bytes that are uniquely owned, i.e. not shared.
    */
-  void add(const int64_t bytes)
-  {
-    owned_bytes_ += bytes;
-  }
+  void add(const int64_t bytes);
 
   /**
    * Add (potentially) shared data which should not be counted twice.
@@ -54,18 +67,6 @@ class MemoryCounter : NonCopyable, NonMovable {
    * to use in cases where computing the number of bytes is very cheap.
    */
   void add_shared(const ImplicitSharingInfo *sharing_info, const int64_t bytes);
-
-  /**
-   * Get the total number of counted bytes.
-   *
-   * \note This is only a rough estimate of the actual used memory. Often, not every little bit of
-   * memory is counted, so this is generally a lower bound. The actual memory usage should not be
-   * significantly higher though.
-   */
-  int64_t counted_bytes() const
-  {
-    return owned_bytes_;
-  }
 };
 
-}  // namespace blender
+}  // namespace blender::memory_counter

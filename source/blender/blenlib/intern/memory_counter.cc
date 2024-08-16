@@ -4,13 +4,13 @@
 
 #include "BLI_memory_counter.hh"
 
-namespace blender {
+namespace blender::memory_counter {
 
-MemoryCounter::~MemoryCounter()
+MemoryCounter::MemoryCounter(MemoryCount &count) : count_(count) {}
+
+void MemoryCounter::add(const int64_t bytes)
 {
-  for (const ImplicitSharingInfo *sharing_info : counted_shared_data_) {
-    sharing_info->remove_weak_user_and_delete_if_last();
-  }
+  count_.total_bytes += bytes;
 }
 
 void MemoryCounter::add_shared(const ImplicitSharingInfo *sharing_info,
@@ -21,7 +21,7 @@ void MemoryCounter::add_shared(const ImplicitSharingInfo *sharing_info,
     count_fn(*this);
     return;
   }
-  if (!counted_shared_data_.add(sharing_info)) {
+  if (!count_.handled_shared_data.add_as(sharing_info)) {
     /* Data was counted before, avoid counting it again. */
     return;
   }
@@ -36,4 +36,10 @@ void MemoryCounter::add_shared(const ImplicitSharingInfo *sharing_info, const in
   this->add_shared(sharing_info, [&](MemoryCounter &shared_memory) { shared_memory.add(bytes); });
 }
 
-}  // namespace blender
+void MemoryCount::reset()
+{
+  std::destroy_at(this);
+  new (this) MemoryCount();
+}
+
+}  // namespace blender::memory_counter
