@@ -1013,6 +1013,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ICON_FOLDER:
           cp = btheme->tui.icon_folder;
           break;
+        case TH_ICON_AUTOKEY:
+          cp = btheme->tui.icon_autokey;
+          break;
         case TH_ICON_FUND: {
           /* Development fund icon color is not part of theme. */
           static const uchar red[4] = {204, 48, 72, 255};

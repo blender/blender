@@ -244,6 +244,7 @@ const bTheme U_theme_default = {
     .icon_modifier = RGBA(0x74a2ffff),
     .icon_shading = RGBA(0xcc6670ff),
     .icon_folder = RGBA(0xccad63ff),
+    .icon_autokey = RGBA(0xab3c48ff),
     .panel_roundness = 0.4f,
   },
   .space_properties = {
