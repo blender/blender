@@ -269,14 +269,8 @@ static void rna_Area_ui_type_set(PointerRNA *ptr, int value)
 static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
 {
   ScrArea *area = static_cast<ScrArea *>(ptr->data);
-  SpaceType *st = BKE_spacetype_from_id(area->butspacetype);
 
   rna_Area_type_update(C, ptr);
-
-  if ((area->type == st) && (st->space_subtype_item_extend != nullptr)) {
-    st->space_subtype_set(area, area->butspacetype_subtype);
-  }
-  area->butspacetype_subtype = 0;
 
   ED_area_tag_refresh(area);
 }

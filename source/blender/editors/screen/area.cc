@@ -2733,6 +2733,7 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_region_exit)
 {
   wmWindow *win = CTX_wm_window(C);
+  SpaceType *st = BKE_spacetype_from_id(type);
 
   if (area->spacetype != type) {
     SpaceLink *slold = static_cast<SpaceLink *>(area->spacedata.first);
@@ -2768,8 +2769,6 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     if (skip_region_exit && area->type) {
       area->type->exit = area_exit;
     }
-
-    SpaceType *st = BKE_spacetype_from_id(type);
 
     area->spacetype = type;
     area->type = st;
@@ -2843,6 +2842,12 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
 
     ED_area_tag_refresh(area);
   }
+
+  /* Set area space subtype if applicable. */
+  if (st->space_subtype_item_extend != nullptr) {
+    st->space_subtype_set(area, area->butspacetype_subtype);
+  }
+  area->butspacetype_subtype = 0;
 
   if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
     /* If there is only one area update the window title. */
