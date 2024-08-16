@@ -80,4 +80,8 @@ DOutputSocket find_preview_output_socket(const DNode &node);
  * node after applying the appropriate color management specified in the given context. */
 void compute_preview_from_result(Context &context, const DNode &node, Result &input_result);
 
+/* Executes the given function in parallel over the given 2D range. The given function gets the
+ * texel coordinates of the element of the range as an argument. */
+void parallel_for(const int2 range, FunctionRef<void(int2)> function);
+
 }  // namespace blender::realtime_compositor

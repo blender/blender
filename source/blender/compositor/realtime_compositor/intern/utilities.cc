@@ -254,4 +254,15 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
   MEM_freeN(preview_pixels);
 }
 
+void parallel_for(const int2 range, FunctionRef<void(int2)> function)
+{
+  threading::parallel_for(IndexRange(range.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(range.x)) {
+        function(int2(x, y));
+      }
+    }
+  });
+}
+
 }  // namespace blender::realtime_compositor
