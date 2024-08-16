@@ -552,6 +552,8 @@ class ThreadingFilter:
             return "TBB Worker Thread"
         if function_name.startswith("blender::threading::parallel_for"):
             return "Parallel For"
+        if function_name.startswith("blender::threading::isolate_task"):
+            return "Isolate Task"
 
 
 class StdFilter:
