@@ -416,6 +416,8 @@ void parent_clear(Object *ob, const int type)
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  /* Dependency graph must be evaluated for access to object's evaluated transform matrices. */
+  CTX_data_ensure_evaluated_depsgraph(C);
   const int type = RNA_enum_get(op->ptr, "type");
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
