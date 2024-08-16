@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_memory_counter_fwd.hh"
+
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_volume_grid_fwd.hh"
@@ -25,6 +27,8 @@ class BakeItem {
   std::string name;
 
   virtual ~BakeItem() = default;
+
+  virtual void count_memory(MemoryCounter &memory) const;
 };
 
 struct BakeState {
@@ -33,6 +37,8 @@ struct BakeState {
    * order changes.
    */
   Map<int, std::unique_ptr<BakeItem>> items_by_id;
+
+  void count_memory(MemoryCounter &memory) const;
 };
 
 /** Same as #BakeState, but does not own the bake items. */
@@ -48,6 +54,8 @@ class GeometryBakeItem : public BakeItem {
   GeometrySet geometry;
 
   GeometryBakeItem(GeometrySet geometry);
+
+  void count_memory(MemoryCounter &memory) const override;
 
   /**
    * Removes parts of the geometry that can't be baked/cached (anonymous attributes) and replaces
@@ -90,6 +98,8 @@ class VolumeGridBakeItem : public BakeItem {
 
   VolumeGridBakeItem(std::unique_ptr<GVolumeGrid> grid);
   ~VolumeGridBakeItem();
+
+  void count_memory(MemoryCounter &memory) const override;
 };
 #endif
 
@@ -125,6 +135,8 @@ class StringBakeItem : public BakeItem {
   {
     return value_;
   }
+
+  void count_memory(MemoryCounter &memory) const override;
 };
 
 }  // namespace blender::bke::bake
