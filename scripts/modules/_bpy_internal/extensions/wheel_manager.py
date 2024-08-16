@@ -93,6 +93,10 @@ def _wheels_from_dir(dirpath: str) -> Tuple[
 
             toplevel_paths_set.add(path_split[0])
 
+        # Some wheels contain `{name}.libs` which are *not* listed in `RECORD`.
+        # Always add the path, the value will be skipped if it's missing.
+        toplevel_paths_set.add(os.path.join(dirpath, name.partition("-")[0] + ".libs"))
+
         result[name] = list(sorted(toplevel_paths_set))
         del toplevel_paths_set
 
