@@ -263,7 +263,7 @@ static void volume_blend_read_data(BlendDataReader *reader, ID *id)
   Volume *volume = (Volume *)id;
   volume->runtime = MEM_new<blender::bke::VolumeRuntime>(__func__);
 
-  BKE_packedfile_blend_read(reader, &volume->packedfile);
+  BKE_packedfile_blend_read(reader, &volume->packedfile, volume->filepath);
   volume->runtime->frame = 0;
 
   /* materials */

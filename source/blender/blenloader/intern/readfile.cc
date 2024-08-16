@@ -2317,7 +2317,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   //  printf("direct_link_library: filepath_abs %s\n", lib->runtime.filepath_abs);
 
   BlendDataReader reader = {fd};
-  BKE_packedfile_blend_read(&reader, &lib->packedfile);
+  BKE_packedfile_blend_read(&reader, &lib->packedfile, lib->filepath);
 
   /* new main */
   newmain = BKE_main_new();

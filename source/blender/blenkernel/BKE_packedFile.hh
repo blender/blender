@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+#include "BLI_string_ref.hh"
+
 #define RET_OK 0
 #define RET_ERROR 1
 
@@ -135,4 +137,6 @@ bool BKE_packedfile_id_check(const ID *id);
 void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF_FileStatus how);
 
 void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf);
-void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p);
+void BKE_packedfile_blend_read(BlendDataReader *reader,
+                               PackedFile **pf_p,
+                               blender::StringRefNull filepath);

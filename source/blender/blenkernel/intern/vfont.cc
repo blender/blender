@@ -162,7 +162,7 @@ static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
   VFont *vf = (VFont *)id;
   vf->data = nullptr;
   vf->temp_pf = nullptr;
-  BKE_packedfile_blend_read(reader, &vf->packedfile);
+  BKE_packedfile_blend_read(reader, &vf->packedfile, vf->filepath);
 }
 
 IDTypeInfo IDType_ID_VF = {

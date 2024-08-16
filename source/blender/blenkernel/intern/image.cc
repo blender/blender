@@ -411,7 +411,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (ima->packedfiles.first) {
     LISTBASE_FOREACH_MUTABLE (ImagePackedFile *, imapf, &ima->packedfiles) {
-      BKE_packedfile_blend_read(reader, &imapf->packedfile);
+      BKE_packedfile_blend_read(reader, &imapf->packedfile, imapf->filepath);
       if (!imapf->packedfile) {
         BLI_remlink(&ima->packedfiles, imapf);
         MEM_freeN(imapf);
@@ -420,7 +420,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
     ima->packedfile = nullptr;
   }
   else {
-    BKE_packedfile_blend_read(reader, &ima->packedfile);
+    BKE_packedfile_blend_read(reader, &ima->packedfile, ima->filepath);
   }
 
   BLI_listbase_clear(&ima->anims);
