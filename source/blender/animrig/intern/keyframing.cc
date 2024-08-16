@@ -386,48 +386,6 @@ static BitVector<> nla_map_keyframe_values_and_generate_reports(
   return successful_remaps;
 }
 
-/**
- * Move the point where a key is about to be inserted to be inside the main cycle range.
- * Returns the type of the cycle if it is enabled and valid.
- */
-static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, float *py)
-{
-  if (fcu->totvert < 2 || !fcu->bezt) {
-    return FCU_CYCLE_NONE;
-  }
-
-  eFCU_Cycle_Type type = BKE_fcurve_get_cycle_type(fcu);
-
-  if (type == FCU_CYCLE_NONE) {
-    return FCU_CYCLE_NONE;
-  }
-
-  BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert - 1];
-  const float start = first->vec[1][0], end = last->vec[1][0];
-
-  if (start >= end) {
-    return FCU_CYCLE_NONE;
-  }
-
-  if (*px < start || *px > end) {
-    float period = end - start;
-    float step = floorf((*px - start) / period);
-    *px -= step * period;
-
-    if (type == FCU_CYCLE_OFFSET) {
-      /* Nasty check to handle the case when the modes are different better. */
-      FMod_Cycles *data = static_cast<FMod_Cycles *>(((FModifier *)fcu->modifiers.first)->data);
-      short mode = (step >= 0) ? data->after_mode : data->before_mode;
-
-      if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
-        *py -= step * (last->vec[1][1] - first->vec[1][1]);
-      }
-    }
-  }
-
-  return type;
-}
-
 static float nla_time_remap(float time,
                             const AnimationEvalContext *anim_eval_context,
                             PointerRNA *id_ptr,
@@ -454,14 +412,6 @@ static SingleKeyingResult insert_keyframe_value(
 {
   if (!BKE_fcurve_is_keyframable(fcu)) {
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
-  }
-
-  /* Adjust coordinates for cycle aware insertion. */
-  if (flag & INSERTKEY_CYCLE_AWARE) {
-    if (remap_cyclic_keyframe_location(fcu, &cfra, &curval) != FCU_CYCLE_PERFECT) {
-      /* Inhibit action from insert_vert_fcurve unless it's a perfect cycle. */
-      flag &= ~INSERTKEY_CYCLE_AWARE;
-    }
   }
 
   KeyframeSettings settings = get_keyframe_settings((flag & INSERTKEY_NO_USERPREF) == 0);

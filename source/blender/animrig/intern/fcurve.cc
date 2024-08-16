@@ -365,6 +365,48 @@ static bool new_key_needed(const FCurve &fcu, const float frame, const float val
   return true;
 }
 
+/**
+ * Move the point where a key is about to be inserted to be inside the main cycle range.
+ * Returns the type of the cycle if it is enabled and valid.
+ */
+static float2 remap_cyclic_keyframe_location(const FCurve &fcu,
+                                             const eFCU_Cycle_Type type,
+                                             float2 position)
+{
+  if (fcu.totvert < 2 || !fcu.bezt) {
+    return position;
+  }
+
+  if (type == FCU_CYCLE_NONE) {
+    return position;
+  }
+
+  BezTriple *first = &fcu.bezt[0], *last = &fcu.bezt[fcu.totvert - 1];
+  const float start = first->vec[1][0], end = last->vec[1][0];
+
+  if (start >= end) {
+    return position;
+  }
+
+  if (position.x < start || position.x > end) {
+    const float period = end - start;
+    const float step = floorf((position.x - start) / period);
+    position.x -= step * period;
+
+    if (type == FCU_CYCLE_OFFSET) {
+      /* Nasty check to handle the case when the modes are different better. */
+      FMod_Cycles *data = static_cast<FMod_Cycles *>(((FModifier *)fcu.modifiers.first)->data);
+      short mode = (step >= 0) ? data->after_mode : data->before_mode;
+
+      if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
+        position.y -= step * (last->vec[1][1] - first->vec[1][1]);
+      }
+    }
+  }
+
+  return position;
+}
+
 SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
                                       const float2 position,
                                       const KeyframeSettings &settings,
@@ -372,12 +414,24 @@ SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
 {
   BLI_assert(fcu != nullptr);
 
-  if ((flag & INSERTKEY_NEEDED) && !new_key_needed(*fcu, position[0], position[1])) {
+  float2 remapped_position = position;
+  /* Adjust coordinates for cycle aware insertion. */
+  if (flag & INSERTKEY_CYCLE_AWARE) {
+    eFCU_Cycle_Type type = BKE_fcurve_get_cycle_type(fcu);
+    remapped_position = remap_cyclic_keyframe_location(*fcu, type, position);
+    if (type != FCU_CYCLE_PERFECT) {
+      /* Inhibit action from insert_bezt_fcurve unless it's a perfect cycle. */
+      flag &= ~INSERTKEY_CYCLE_AWARE;
+    }
+  }
+
+  if ((flag & INSERTKEY_NEEDED) && !new_key_needed(*fcu, remapped_position.x, remapped_position.y))
+  {
     return SingleKeyingResult::NO_KEY_NEEDED;
   }
 
   BezTriple beztr = {{{0}}};
-  initialize_bezt(&beztr, position, settings, eFCurve_Flags(fcu->flag));
+  initialize_bezt(&beztr, remapped_position, settings, eFCurve_Flags(fcu->flag));
 
   uint oldTot = fcu->totvert;
   int a;
