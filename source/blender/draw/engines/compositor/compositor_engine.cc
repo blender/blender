@@ -138,10 +138,13 @@ class Context : public realtime_compositor::Context {
     return DRW_viewport_texture_list_get()->color;
   }
 
-  GPUTexture *get_viewer_output_texture(realtime_compositor::Domain /*domain*/,
-                                        bool /*is_data*/) override
+  realtime_compositor::Result get_viewer_output_result(realtime_compositor::Domain /*domain*/,
+                                                       bool /*is_data*/) override
   {
-    return DRW_viewport_texture_list_get()->color;
+    realtime_compositor::Result result = this->create_result(
+        realtime_compositor::ResultType::Color, realtime_compositor::ResultPrecision::Half);
+    result.wrap_external(DRW_viewport_texture_list_get()->color);
+    return result;
   }
 
   GPUTexture *get_input_texture(const Scene *scene, int view_layer, const char *pass_name) override

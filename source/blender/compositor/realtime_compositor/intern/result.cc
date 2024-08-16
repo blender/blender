@@ -606,6 +606,10 @@ void Result::release()
     return;
   }
 
+  if (!this->is_allocated()) {
+    return;
+  }
+
   switch (storage_type_) {
     case ResultStorageType::GPU:
       if (is_from_pool_) {
