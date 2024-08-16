@@ -32,6 +32,9 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
+  ToolSettings *ts = scene->toolsettings;
+  const bool is_scale_thickness = ((t->mode == TFM_CURVE_SHRINKFATTEN) ||
+                                   (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SCALE_THICKNESS));
 
   Vector<int> handle_selection;
 
@@ -181,7 +184,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
       std::optional<MutableSpan<float>> value_attribute;
-      if (t->mode == TFM_CURVE_SHRINKFATTEN) {
+      if (is_scale_thickness) {
         MutableSpan<float> radii = info.drawing.radii_for_write();
         value_attribute = radii;
       }

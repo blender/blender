@@ -1065,6 +1065,19 @@ void ElementResize(const TransInfo *t,
     }
     else if (t->obedit_type == OB_GREASE_PENCIL) {
       mul_v3_fl(vec, td->factor);
+
+      /* Scale stroke thickness. */
+      if (td->val) {
+        NumInput num_evil = t->num;
+        float values_final_evil[4];
+        copy_v4_v4(values_final_evil, t->values_final);
+        transform_snap_increment(t, values_final_evil);
+        applyNumInput(&num_evil, values_final_evil);
+
+        float ratio = values_final_evil[0];
+        float transformed_value = td->ival * fabs(ratio);
+        *td->val = transformed_value;
+      }
     }
   }
   else {
