@@ -734,7 +734,6 @@ static void volume_evaluate_modifiers(Depsgraph *depsgraph,
 void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
 {
   Main *bmain = DEG_get_bmain(depsgraph);
-  volume_update_simplify_level(bmain, volume, depsgraph);
 
   /* TODO: can we avoid modifier re-evaluation when frame did not change? */
   int frame = volume_sequence_frame(depsgraph, volume);
@@ -742,6 +741,8 @@ void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
     BKE_volume_unload(volume);
     volume->runtime->frame = frame;
   }
+
+  volume_update_simplify_level(bmain, volume, depsgraph);
 
   /* Flush back to original. */
   if (DEG_is_active(depsgraph)) {
