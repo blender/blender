@@ -63,6 +63,16 @@ BLOCKLIST_OSL = [
     'render_passes_.*.blend',
     # Noise differences in Principled BSDF mixing/layering
     'principled_.*.blend',
+    # 4.2 specific Blocklist
+    # Test file is wrong, and it's a hassle to backport the updated test
+    'image_log_osl.blend',
+    # These two require e7ce8d33e30203c61c4cf296f6278af17158f052 to be backported to pass
+    'mesh_light.blend',
+    'T50634_1.blend',
+    # Fixed in 90bcc3b5dc4c576752adb587c4424e4948927b6b, there doesn't appear to be a plan to backport it
+    'T49936.*.blend',
+    # NaN causes an assert on build bot. Fixed in main but changes the render result. No plans to backport
+    'vector_math.blend',
 ]
 
 BLOCKLIST_OPTIX = [
