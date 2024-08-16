@@ -824,7 +824,12 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
                                        const bool preserve_all_data_layers,
                                        const bool preserve_origindex)
 {
-  if (preserve_all_data_layers || preserve_origindex) {
+  /* This function tries to reevaluate the object from the original data. If the original object
+   * was not a mesh object, this won't work because it uses mesh object evaluation which assumes
+   * the type of the original object data. */
+  if (!(object->runtime->data_orig && GS(object->runtime->data_orig->name) != ID_ME) &&
+      (preserve_all_data_layers || preserve_origindex))
+  {
     return mesh_new_from_mesh_object_with_layers(depsgraph, object, preserve_origindex);
   }
   const Mesh *mesh_input = (const Mesh *)object->data;
