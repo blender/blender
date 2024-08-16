@@ -931,7 +931,7 @@ blender::gpu::Batch *DRW_cache_object_surface_get(Object *ob)
 blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
   using namespace blender::draw;
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
   short type = (mesh != nullptr) ? short(OB_MESH) : ob->type;
 
   switch (type) {
@@ -948,7 +948,7 @@ int DRW_cache_object_material_count_get(const Object *ob)
   using namespace blender::draw;
   short type = ob->type;
 
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
   if (mesh != nullptr && type != OB_POINTCLOUD) {
     /* Some object types can have one data type in ob->data, but will be rendered as mesh.
      * For point clouds this never happens. Ideally this check would happen at another level
@@ -3438,7 +3438,7 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob)
                            DRW_object_use_hide_faces(ob)) ||
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
   /* Try getting the mesh first and if that fails, try getting the curve data.
    * If the curves are surfaces or have certain modifiers applied to them, the will have mesh data
    * of the final result.
