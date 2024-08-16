@@ -589,6 +589,13 @@ CombinedKeyingResult insert_keyframe(Main *bmain,
     return combined_result;
   }
 
+  AnimData *adt = BKE_animdata_from_id(&id);
+  /* If only inserting to available keys and there isn't already an action, we can exit early. */
+  if ((flag & INSERTKEY_AVAILABLE) && (adt == nullptr || adt->action == nullptr)) {
+    combined_result.add(SingleKeyingResult::CANNOT_CREATE_FCURVE);
+    return combined_result;
+  }
+
   PointerRNA ptr;
   PropertyRNA *prop = nullptr;
   PointerRNA id_ptr = RNA_id_pointer_create(&id);
@@ -606,7 +613,7 @@ CombinedKeyingResult insert_keyframe(Main *bmain,
   /* Apply NLA-mapping to frame to use (if applicable). */
   NlaKeyframingContext *nla_context = nullptr;
   ListBase nla_cache = {nullptr, nullptr};
-  AnimData *adt = BKE_animdata_from_id(&id);
+  adt = BKE_animdata_from_id(&id);
   const float nla_mapped_frame = nla_time_remap(
       anim_eval_context, &id_ptr, adt, act, &nla_cache, &nla_context);
 
@@ -984,14 +991,22 @@ CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
                                     const AnimationEvalContext &anim_eval_context)
 {
   ID *id = rna_pointer->owner_id;
-  bAction *action = id_action_ensure(bmain, id);
   CombinedKeyingResult combined_result;
+
+  AnimData *adt = BKE_animdata_from_id(id);
+  /* If only inserting to available keys and there isn't already an action, we can exit early. */
+  if ((insert_key_flags & INSERTKEY_AVAILABLE) && (adt == nullptr || adt->action == nullptr)) {
+    combined_result.add(SingleKeyingResult::CANNOT_CREATE_FCURVE);
+    return combined_result;
+  }
+
+  bAction *action = id_action_ensure(bmain, id);
 
   if (action == nullptr) {
     return combined_result;
   }
 
-  AnimData *adt = BKE_animdata_from_id(id);
+  adt = BKE_animdata_from_id(id);
 
   /* Keyframing functions can deal with the nla_context being a nullptr. */
   ListBase nla_cache = {nullptr, nullptr};

@@ -306,14 +306,7 @@ TEST_F(KeyframingTest, insert_key_rna__only_available)
                                                        anim_eval_context);
 
   EXPECT_EQ(0, result_1.get_count(SingleKeyingResult::SUCCESS));
-
-  /* It's unclear why AnimData and an Action should be created if keying fails
-   * here. It may even be undesirable. These checks are just here to ensure no
-   * *unintentional* changes in behavior. */
-  ASSERT_NE(nullptr, object->adt);
-  ASSERT_NE(nullptr, object->adt->action);
-  EXPECT_EQ(0, BLI_listbase_count(&object->adt->action->curves));
-  EXPECT_EQ(nullptr, BKE_fcurve_find(&object->adt->action->curves, "rotation_euler", 0));
+  ASSERT_EQ(nullptr, object->adt);
 
   /* Insert a key on two of the elements without using the flag so that there
    * will be two fcurves. */
@@ -641,10 +634,7 @@ TEST_F(KeyframingTest, insert_keyframe__only_available)
                                                         INSERTKEY_AVAILABLE);
 
   EXPECT_EQ(0, result_1.get_count(SingleKeyingResult::SUCCESS));
-  ASSERT_NE(nullptr, object->adt);
-  ASSERT_NE(nullptr, object->adt->action);
-  EXPECT_EQ(0, BLI_listbase_count(&object->adt->action->curves));
-  EXPECT_EQ(nullptr, BKE_fcurve_find(&object->adt->action->curves, "rotation_euler", 0));
+  ASSERT_EQ(nullptr, object->adt);
 
   /* Insert a key on two of the elements without using the flag so that there
    * will be two fcurves. */
