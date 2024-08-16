@@ -54,7 +54,7 @@ static ImplicitSharingPtrAndData save_shared_attribute(const GAttributeReader &a
   }
   auto *data = new ImplicitSharedValue<GArray<>>(attribute.varray.type(), attribute.varray.size());
   attribute.varray.materialize(data->data.data());
-  return {ImplicitSharingPtr<ImplicitSharingInfo>(data), data->data.data()};
+  return {ImplicitSharingPtr<>(data), data->data.data()};
 }
 
 static void remember_deformed_curve_positions_if_necessary(

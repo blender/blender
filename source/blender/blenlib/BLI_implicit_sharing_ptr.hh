@@ -21,7 +21,7 @@ namespace blender {
  * types that derive from #ImplicitSharingMixin. It is fairly similar to #std::shared_ptr but
  * requires the reference count to be embedded in the data.
  */
-template<typename T, bool IsStrong = true> class ImplicitSharingPtr {
+template<typename T = ImplicitSharingInfo, bool IsStrong = true> class ImplicitSharingPtr {
  private:
   const T *data_ = nullptr;
 
@@ -172,11 +172,11 @@ using WeakImplicitSharingPtr = ImplicitSharingPtr<ImplicitSharingInfo, false>;
  */
 class ImplicitSharingPtrAndData {
  public:
-  ImplicitSharingPtr<ImplicitSharingInfo> sharing_info;
+  ImplicitSharingPtr<> sharing_info;
   const void *data = nullptr;
 
   ImplicitSharingPtrAndData() = default;
-  ImplicitSharingPtrAndData(ImplicitSharingPtr<ImplicitSharingInfo> sharing_info, const void *data)
+  ImplicitSharingPtrAndData(ImplicitSharingPtr<> sharing_info, const void *data)
       : sharing_info(std::move(sharing_info)), data(data)
   {
   }
