@@ -373,6 +373,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
   sd->object = OBJECT_NONE;
   sd->lamp = LAMP_NONE;
   sd->prim = PRIM_NONE;
+  sd->type = PRIMITIVE_NONE;
   sd->u = 0.0f;
   sd->v = 0.0f;
 
