@@ -568,7 +568,12 @@ def reset_all(*, reload_scripts=False):
 
     # Update extensions compatibility (after reloading preferences).
     # Potentially refreshing wheels too.
-    _initialize_extensions_compat_data(_bpy.utils.user_resource('EXTENSIONS'), True, None)
+    _initialize_extensions_compat_data(
+        _bpy.utils.user_resource('EXTENSIONS'),
+        ensure_wheels=True,
+        addon_modules_pending=None,
+        use_startup_fastpath=False,
+    )
 
     for path, pkg_id in _paths_with_extension_repos():
         if not pkg_id:
@@ -1104,7 +1109,13 @@ def _initialize_extensions_compat_ensure_up_to_date_wheels(extensions_directory,
     )
 
 
-def _initialize_extensions_compat_data(extensions_directory, ensure_wheels, addon_modules_pending):
+def _initialize_extensions_compat_data(
+        extensions_directory,  # `str`
+        *,
+        ensure_wheels,  # `bool`
+        addon_modules_pending,  # `Optional[Sequence[str]]`
+        use_startup_fastpath,  # `bool`
+):
     # WARNING: this function must *never* raise an exception because it would interfere with low level initialization.
     # As the function deals with file IO, use what are typically over zealous exception checks so as to rule out
     # interfering with Blender loading properly in unexpected cases such as disk-full, read-only file-system
@@ -1130,7 +1141,13 @@ def _initialize_extensions_compat_data(extensions_directory, ensure_wheels, addo
 
     # Early exit, use for automated tests.
     # Avoid (relatively) expensive file-system scanning if at all possible.
-    if not extensions_enabled:
+    #
+    # - On startup when there are no extensions enabled, scanning and synchronizing wheels
+    #   adds unnecessary overhead. Especially considering this will run for automated tasks.
+    # - When disabling an add-on from the UI, there may be no extensions enabled afterwards,
+    #   however the extension that was disabled may have had wheels installed which must be removed,
+    #   so in this case it's important not to skip synchronizing wheels, see: #125958.
+    if use_startup_fastpath and (not extensions_enabled):
         if print_debug is not None:
             print_debug("no extensions, skipping cache data.")
         return
@@ -1728,7 +1745,12 @@ def _initialize_extensions_repos_once():
     _initialize_extensions_site_packages(extensions_directory=extensions_directory)
 
     # Ensure extension compatibility data has been loaded and matches the manifests.
-    _initialize_extensions_compat_data(extensions_directory, True, None)
+    _initialize_extensions_compat_data(
+        extensions_directory,
+        ensure_wheels=True,
+        addon_modules_pending=None,
+        use_startup_fastpath=True,
+    )
 
     # Setup repositories for the first time.
     # Intentionally don't call `_initialize_extension_repos_pre` as this is the first time,
@@ -1750,6 +1772,7 @@ def extensions_refresh(ensure_wheels=True, addon_modules_pending=None):
         _bpy.utils.user_resource('EXTENSIONS'),
         ensure_wheels=ensure_wheels,
         addon_modules_pending=addon_modules_pending,
+        use_startup_fastpath=False,
     )
 
 
