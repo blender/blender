@@ -80,9 +80,9 @@ class VolumeGridData : public ImplicitSharingMixin {
    */
   mutable std::shared_ptr<openvdb::GridBase> grid_;
   /**
-   * Keeps track of whether the tree in `grid_` is current mutable or shared.
+   * Keeps track of whether the tree in `grid_` is currently mutable or shared.
    */
-  mutable const ImplicitSharingInfo *tree_sharing_info_ = nullptr;
+  mutable ImplicitSharingPtr<> tree_sharing_info_;
 
   /** The tree stored in the grid is valid. */
   mutable bool tree_loaded_ = false;
