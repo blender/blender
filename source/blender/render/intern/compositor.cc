@@ -567,7 +567,7 @@ class Context : public realtime_compositor::Context {
      * once, and we can't cancel work that was already submitted to the GPU. This does have a
      * performance penalty, but in practice, the improved interactivity is worth it according to
      * user feedback. */
-    if (!this->render_context()) {
+    if (this->use_gpu() && !this->render_context()) {
       GPU_finish();
     }
   }
