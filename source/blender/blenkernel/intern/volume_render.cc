@@ -12,6 +12,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_volume_types.h"
@@ -35,8 +36,10 @@ static void extract_dense_voxels(const openvdb::GridBase &grid,
                                  VoxelType *r_voxels)
 {
   BLI_assert(grid.isType<GridType>());
-  openvdb::tools::Dense<VoxelType, openvdb::tools::LayoutXYZ> dense(bbox, r_voxels);
-  openvdb::tools::copyToDense(static_cast<const GridType &>(grid), dense);
+  blender::threading::memory_bandwidth_bound_task(bbox.volume() * sizeof(VoxelType), [&]() {
+    openvdb::tools::Dense<VoxelType, openvdb::tools::LayoutXYZ> dense(bbox, r_voxels);
+    openvdb::tools::copyToDense(static_cast<const GridType &>(grid), dense);
+  });
 }
 
 static void extract_dense_float_voxels(const VolumeGridType grid_type,
