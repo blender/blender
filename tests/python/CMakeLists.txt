@@ -868,6 +868,7 @@ set(geo_node_tests
   curves
   curves/interpolate_curves
   geometry
+  grease_pencil
   instance
   repeat_zone
   mesh_primitives
