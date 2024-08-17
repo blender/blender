@@ -328,6 +328,8 @@
         if (paths_to_open.length == 0) {
           paths_to_open.push(get_fallback_open_path());
         }
+        /* At least open the top row in case nothing else exists. */
+        paths_to_open.push(root_row.name);
         return paths_to_open;
       }
 
