@@ -83,12 +83,7 @@ VolumeGridData::VolumeGridData(std::function<std::shared_ptr<openvdb::GridBase>(
   tree_access_token_ = std::make_shared<AccessToken>();
 }
 
-VolumeGridData::~VolumeGridData()
-{
-  if (tree_sharing_info_) {
-    tree_sharing_info_->remove_user_and_delete_if_last();
-  }
-}
+VolumeGridData::~VolumeGridData() = default;
 
 void VolumeGridData::delete_self()
 {
