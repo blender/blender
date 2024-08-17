@@ -105,6 +105,13 @@
         width: 3em;
       }
 
+      .new-lines-row {
+        display: inline-block;
+        text-align: right;
+        width: 7em;
+        font-size: smaller;
+      }
+
       .lines-total-row {
         display: inline-block;
         text-align: right;
@@ -154,11 +161,21 @@
     <script>
       window.addEventListener("DOMContentLoaded", async () => {
         analysis_data = JSON.parse(await str_from_gzip_base64(analysis_data_compressed_base64));
-        filter_analysis_data();
+        analysis_data = filter_analysis_data(analysis_data);
+        if (reference_data_compressed_base64 !== "") {
+          reference_data = JSON.parse(
+            await str_from_gzip_base64(reference_data_compressed_base64)
+          );
+          reference_data = filter_analysis_data(reference_data);
+        }
 
         const consolidated_tree = build_consolidated_tree();
         root_row = build_row_data(consolidated_tree);
-        initialize_coverage_counts();
+
+        initialize_coverage_counts(analysis_data, "counts");
+        if (reference_data) {
+          initialize_coverage_counts(reference_data, "reference_counts");
+        }
         initialize_global_overview();
 
         if (root_row.children_map.size == 0) {
@@ -241,10 +258,8 @@
             path = `${name}`;
           }
           const row = {
-            num_lines_run: 0,
-            num_lines: 0,
-            num_functions_run: 0,
-            num_functions: 0,
+            counts: new_file_counts(),
+            reference_counts: new_file_counts(),
             path: path,
             parent: parent,
             name: name,
@@ -262,6 +277,15 @@
             parent.children_map.set(name, row);
           }
           return row;
+        }
+
+        function new_file_counts() {
+          return {
+            num_lines_run: 0,
+            num_lines: 0,
+            num_functions_run: 0,
+            num_functions: 0,
+          };
         }
 
         function build_rows_recursive(data, parent_row) {
@@ -290,14 +314,18 @@
         return build_rows_recursive(consolidated_tree, null);
       }
 
-      function initialize_coverage_counts() {
+      function initialize_coverage_counts(src_data, counts_name) {
         // Initialize the counts at the leaf rows, i.e. the source files.
-        for (const [file_path, file_data] of Object.entries(analysis_data.files)) {
+        for (const [file_path, file_data] of Object.entries(src_data.files)) {
           const row = row_by_path.get(file_path);
-          row.num_lines = file_data.num_lines;
-          row.num_lines_run = file_data.num_lines_run;
-          row.num_functions = file_data.num_functions;
-          row.num_functions_run = file_data.num_functions_run;
+          if (!row) {
+            continue;
+          }
+          const counts = row[counts_name];
+          counts.num_lines = file_data.num_lines;
+          counts.num_lines_run = file_data.num_lines_run;
+          counts.num_functions = file_data.num_functions;
+          counts.num_functions_run = file_data.num_functions_run;
         }
 
         // Recursively propagate the counts up until the root directory.
@@ -305,12 +333,14 @@
           if (row.is_file) {
             return;
           }
+          const counts = row[counts_name];
           for (const child_row of row.children_map.values()) {
             count_directory_file_lines_recursive(child_row);
-            row.num_lines += child_row.num_lines;
-            row.num_lines_run += child_row.num_lines_run;
-            row.num_functions += child_row.num_functions;
-            row.num_functions_run += child_row.num_functions_run;
+            const child_counts = child_row[counts_name];
+            counts.num_lines += child_counts.num_lines;
+            counts.num_lines_run += child_counts.num_lines_run;
+            counts.num_functions += child_counts.num_functions;
+            counts.num_functions_run += child_counts.num_functions_run;
           }
         }
 
@@ -351,10 +381,10 @@
         ).length.toLocaleString();
         document.getElementById(
           "coverage-lines"
-        ).innerText = `${root_row.num_lines_run.toLocaleString()} / ${root_row.num_lines.toLocaleString()}`;
+        ).innerText = `${root_row.counts.num_lines_run.toLocaleString()} / ${root_row.counts.num_lines.toLocaleString()}`;
         document.getElementById(
           "coverage-functions"
-        ).innerText = `${root_row.num_functions_run.toLocaleString()} / ${root_row.num_functions.toLocaleString()}`;
+        ).innerText = `${root_row.counts.num_functions_run.toLocaleString()} / ${root_row.counts.num_functions.toLocaleString()}`;
       }
 
       // Makes sure that the html elements for a specific row (and all its parents) have been created.
@@ -414,18 +444,37 @@
           stats_elem.appendChild(lines_percent_elem);
           lines_percent_elem.className = "lines-percent-row";
 
-          if (row.num_lines == 0) {
+          if (row.counts.num_lines == 0) {
             lines_percent_elem.style.color = "rgb(137 137 137)";
             lines_percent_elem.innerText = "-";
           } else {
-            const lines_percent = ratio_to_percent(row.num_lines_run, row.num_lines);
+            const lines_percent = ratio_to_percent(row.counts.num_lines_run, row.counts.num_lines);
             lines_percent_elem.style.color = `color-mix(in hsl, rgb(240, 50, 50), rgb(50, 240, 50) ${lines_percent}%)`;
             lines_percent_elem.innerText = `${lines_percent}%`;
           }
 
+          if (reference_data) {
+            const new_lines_elem = document.createElement("span");
+            stats_elem.appendChild(new_lines_elem);
+            new_lines_elem.className = "new-lines-row";
+
+            const newly_covered_lines =
+              row.counts.num_lines_run - row.reference_counts.num_lines_run;
+
+            if (newly_covered_lines == 0) {
+              new_lines_elem.style.color = "rgb(137 137 137)";
+            } else if (newly_covered_lines > 0) {
+              new_lines_elem.style.color = "rgb(100, 240, 100)";
+            } else {
+              new_lines_elem.style.color = "rgb(240, 60, 60)";
+            }
+            new_lines_elem.innerText =
+              (newly_covered_lines > 0 ? "+" : "") + `${newly_covered_lines.toLocaleString()}`;
+          }
+
           const total_lines_elem = document.createElement("span");
           total_lines_elem.className = "lines-total-row";
-          total_lines_elem.innerText = `${row.num_lines.toLocaleString()}`;
+          total_lines_elem.innerText = `${row.counts.num_lines.toLocaleString()}`;
           stats_elem.appendChild(total_lines_elem);
         }
 
@@ -535,11 +584,11 @@
 
         template = template.replace(
           "FUNCTIONS",
-          `${row.num_functions_run.toLocaleString()} / ${row.num_functions.toLocaleString()}`
+          `${row.counts.num_functions_run.toLocaleString()} / ${row.counts.num_functions.toLocaleString()}`
         );
         template = template.replace(
           "LINES",
-          `${row.num_lines_run.toLocaleString()} / ${row.num_lines.toLocaleString()}`
+          `${row.counts.num_lines_run.toLocaleString()} / ${row.counts.num_lines.toLocaleString()}`
         );
 
         if (!row.is_file) {
@@ -590,12 +639,12 @@
         return Math.round(f * 100);
       }
 
-      function filter_analysis_data() {
+      function filter_analysis_data(src_data) {
         const new_analysis_files = {};
-        const new_analysis_data = { files: new_analysis_files };
+        const new_data = { files: new_analysis_files };
 
         if (custom_root_paths.length > 0) {
-          for (const [path, fdata] of Object.entries(analysis_data.files)) {
+          for (const [path, fdata] of Object.entries(src_data.files)) {
             for (const filter_path of custom_root_paths) {
               if (path.startsWith(filter_path)) {
                 new_analysis_files[path] = fdata;
@@ -603,10 +652,10 @@
             }
           }
         } else {
-          Object.assign(new_analysis_files, analysis_data.files);
+          Object.assign(new_analysis_files, src_data.files);
         }
 
-        analysis_data = new_analysis_data;
+        return new_data;
       }
 
       async function str_from_gzip_base64(data_compressed_base64) {
@@ -665,8 +714,10 @@
       // This data will be replaced by the script that builds the report. It still has to
       // be uncompressed.
       const analysis_data_compressed_base64 = "ANALYSIS_DATA";
+      const reference_data_compressed_base64 = "REFERENCE_DATA";
       // Uncompressed analysis data. Uncompressing is done a bit later in an async context.
       let analysis_data = undefined;
+      let reference_data = undefined;
     </script>
   </body>
 </html>

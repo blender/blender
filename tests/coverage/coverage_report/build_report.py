@@ -19,9 +19,11 @@ index_template_path = Path(__file__).parent / "index_template.html"
 single_file_template_path = Path(__file__).parent / "single_file_template.html"
 
 
-def report_as_html(analysis_dir, report_dir):
+def report_as_html(analysis_dir, report_dir, *, reference_dir=None):
     analysis_dir = Path(analysis_dir).absolute()
     report_dir = Path(report_dir).absolute()
+    if reference_dir is not None:
+        reference_dir = Path(reference_dir).absolute()
 
     if not analysis_dir.exists():
         raise RuntimeError("Missing analysis at: {}".format(analysis_dir))
@@ -31,12 +33,12 @@ def report_as_html(analysis_dir, report_dir):
     except:
         pass
 
-    build_summary(analysis_dir, report_dir)
+    build_summary(analysis_dir, report_dir, reference_dir)
     build_file_pages(analysis_dir, report_dir)
     print("Report written to {}.".format(report_dir / "index.html"))
 
 
-def build_summary(analysis_dir, report_dir):
+def build_summary(analysis_dir, report_dir, reference_dir):
     print("Write index...")
     with open(index_template_path) as f:
         template = f.read()
@@ -46,6 +48,13 @@ def build_summary(analysis_dir, report_dir):
         "ANALYSIS_DATA",
         zip_file_to_compressed_base64(analysis_dir / "summary.json.zip"),
     )
+
+    reference_data_str = ""
+    if reference_dir is not None:
+        reference_summary_path = reference_dir / "summary.json.zip"
+        if reference_summary_path.exists():
+            reference_data_str = zip_file_to_compressed_base64(reference_summary_path)
+    result = result.replace("REFERENCE_DATA", reference_data_str)
 
     report_summary_path = report_dir / "index.html"
     report_summary_path.parent.mkdir(parents=True, exist_ok=True)
