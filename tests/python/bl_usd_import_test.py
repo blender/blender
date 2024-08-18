@@ -727,7 +727,9 @@ class USDImportTest(AbstractUSDTest):
         self.assertFalse(attribute_name in blender_data.attributes)
 
     def test_import_attributes(self):
-        # Use the existing attributes file to create the USD test file
+        """Test importing objects with all attribute data types."""
+
+        # Use the existing attributes test file to create the USD file
         # for import. It is validated as part of the bl_usd_export test.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_test.blend"))
 
@@ -833,7 +835,9 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute_missing(curves, "sp_mat4x4")
 
     def test_import_attributes_varying(self):
-        # Use the existing attributes file to create the USD test file
+        """Test importing objects with time-varying positions, velocities, and attributes."""
+
+        # Use the existing attributes test file to create the USD file
         # for import. It is validated as part of the bl_usd_export test.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_varying_test.blend"))
         for frame in range(1, 16):
@@ -896,6 +900,25 @@ class USDImportTest(AbstractUSDTest):
                     blender_test_data,
                     usd_test_data,
                     f"Frame {frame}: {blender_mesh[i].name} test attributes do not match")
+
+    def test_import_shapes(self):
+        """Test importing USD Shape prims with time-varying attributes."""
+
+        infile = str(self.testdir / "usd_shapes_test.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        # Ensure we find the expected number of mesh objects
+        blender_objects = [ob for ob in bpy.data.objects if ob.type == 'MESH']
+        self.assertEqual(
+            6,
+            len(blender_objects),
+            f"Test scene {infile} should have 6 mesh objects; found {len(blender_objects)}")
+
+        # A MeshSequenceCache modifier should be present on every imported object
+        for ob in blender_objects:
+            self.assertTrue(len(ob.modifiers) == 1 and ob.modifiers[0].type ==
+                            'MESH_SEQUENCE_CACHE', f"{ob.name} has incorrect modifiers")
 
 
 def main():
