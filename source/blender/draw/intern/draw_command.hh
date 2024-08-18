@@ -547,7 +547,7 @@ class DrawCommandBuf {
                    uint vertex_len,
                    uint vertex_first,
                    ResourceHandle handle,
-                   uint /*custom_id*/,
+                   uint custom_id,
 #ifdef WITH_METAL_BACKEND
                    GPUShader *shader,
 #endif
@@ -556,6 +556,9 @@ class DrawCommandBuf {
   {
     vertex_first = vertex_first != -1 ? vertex_first : 0;
     instance_len = instance_len != -1 ? instance_len : 1;
+
+    BLI_assert_msg(custom_id == 0, "Custom ID is not supported in PassSimple");
+    UNUSED_VARS_NDEBUG(custom_id);
 
     int64_t index = commands.append_and_get_index({});
     headers.append({Type::Draw, uint(index)});
@@ -715,6 +718,7 @@ class DrawMultiBuf {
       group.desc.gpu_batch = batch;
       group.desc.expand_prim_type = expanded_prim_type;
       group.desc.expand_prim_len = expanded_prim_len;
+      BLI_assert_msg(expanded_prim_len < (1 << 3), "Not enough bits to store primitive expansion");
 #ifdef WITH_METAL_BACKEND
       group.desc.gpu_shader = shader;
 #endif
