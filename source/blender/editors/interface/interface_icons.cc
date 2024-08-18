@@ -1539,7 +1539,7 @@ static void icon_draw_size(float x,
   else if (ELEM(di->type, ICON_TYPE_SVG_MONO, ICON_TYPE_SVG_COLOR)) {
     float outline_intensity = mono_border ? (btheme->tui.icon_border_intensity > 0.0f ?
                                                  btheme->tui.icon_border_intensity :
-                                                 0.5f) :
+                                                 0.3f) :
                                             0.0f;
     float color[4];
     if (mono_rgba) {

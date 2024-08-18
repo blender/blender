@@ -308,6 +308,7 @@ if(WITH_BLENDER)
       file_large
       filebrowser
       file_3d
+      file_alias
       file_archive
       file_backup
       file_blank
