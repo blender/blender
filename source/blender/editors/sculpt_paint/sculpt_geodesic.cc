@@ -29,6 +29,7 @@
 #include "BKE_pbvh_api.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_geodesic.hh"
 #include "sculpt_intern.hh"
 
 #include "bmesh.hh"

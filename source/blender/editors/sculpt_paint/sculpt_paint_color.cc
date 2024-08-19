@@ -30,6 +30,7 @@
 #include "IMB_colormanagement.hh"
 
 #include "mesh_brush_common.hh"
+#include "sculpt_color.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_smooth.hh"
 

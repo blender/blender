@@ -33,6 +33,7 @@
 #include "sculpt_flood_fill.hh"
 #include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_pose.hh"
 #include "sculpt_smooth.hh"
 
 #include "bmesh.hh"

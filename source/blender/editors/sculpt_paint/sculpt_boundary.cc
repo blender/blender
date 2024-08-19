@@ -23,6 +23,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
+#include "brushes/types.hh"
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
 #include "sculpt_cloth.hh"
