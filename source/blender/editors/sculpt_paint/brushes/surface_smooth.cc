@@ -17,12 +17,12 @@
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
+#include "editors/sculpt_paint/sculpt_smooth.hh"
 
 namespace blender::ed::sculpt_paint {
 

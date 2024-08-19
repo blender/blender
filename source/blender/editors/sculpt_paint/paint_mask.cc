@@ -17,14 +17,12 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
 #include "BKE_context.hh"
-#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
@@ -38,13 +36,15 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_sculpt.hh"
 #include "ED_select_utils.hh"
 
 #include "bmesh.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_gesture.hh"
+#include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 namespace blender::ed::sculpt_paint::mask {
 

@@ -35,6 +35,7 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_filter.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -71,17 +72,16 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   filter::cache_init(C, ob, sd, undo::Type::Position, mval_fl, 5.0, 1.0f);
 
   if (sd.transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
-    ss.filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;
+    ss.filter_cache->transform_displacement_mode = TransformDisplacementMode::Incremental;
   }
   else {
-    ss.filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL;
+    ss.filter_cache->transform_displacement_mode = TransformDisplacementMode::Original;
   }
 }
 
-static std::array<float4x4, 8> transform_matrices_init(
-    const SculptSession &ss,
-    const ePaintSymmetryFlags symm,
-    const SculptTransformDisplacementMode t_mode)
+static std::array<float4x4, 8> transform_matrices_init(const SculptSession &ss,
+                                                       const ePaintSymmetryFlags symm,
+                                                       const TransformDisplacementMode t_mode)
 {
   std::array<float4x4, 8> mats;
 
@@ -92,12 +92,12 @@ static std::array<float4x4, 8> transform_matrices_init(
 
   float start_pivot_pos[3], start_pivot_rot[4], start_pivot_scale[3];
   switch (t_mode) {
-    case SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL:
+    case TransformDisplacementMode::Original:
       copy_v3_v3(start_pivot_pos, ss.init_pivot_pos);
       copy_v4_v4(start_pivot_rot, ss.init_pivot_rot);
       copy_v3_v3(start_pivot_scale, ss.init_pivot_scale);
       break;
-    case SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL:
+    case TransformDisplacementMode::Incremental:
       copy_v3_v3(start_pivot_pos, ss.prev_pivot_pos);
       copy_v4_v4(start_pivot_rot, ss.prev_pivot_rot);
       copy_v3_v3(start_pivot_scale, ss.prev_pivot_scale);
@@ -452,7 +452,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.sculpt;
   BLI_assert(ss.filter_cache->transform_displacement_mode ==
-             SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL);
+             TransformDisplacementMode::Incremental);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 

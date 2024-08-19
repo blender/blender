@@ -14,8 +14,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_color_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -47,8 +45,6 @@
 #include "ED_image.hh"
 #include "ED_view3d.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
@@ -58,9 +54,13 @@
 #include "UI_resources.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_cloth.hh"
+#include "sculpt_expand.hh"
 /* still needed for sculpt_stroke_get_location, should be
  * removed eventually (TODO) */
 #include "sculpt_intern.hh"
+#include "sculpt_pose.hh"
 
 /* TODOs:
  *

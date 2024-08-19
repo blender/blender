@@ -163,4 +163,18 @@ void do_topology_relax_brush(const Depsgraph &depsgraph,
                              Object &object,
                              Span<bke::pbvh::Node *> nodes);
 
+namespace boundary {
+void do_boundary_brush(const Depsgraph &depsgraph,
+                       const Sculpt &sd,
+                       Object &object,
+                       Span<bke::pbvh::Node *> nodes);
+}
+
+namespace cloth {
+void do_cloth_brush(const Depsgraph &depsgraph,
+                    const Sculpt &sd,
+                    Object &object,
+                    Span<bke::pbvh::Node *> nodes);
+}
+
 }  // namespace blender::ed::sculpt_paint

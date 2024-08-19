@@ -6,11 +6,12 @@
  * \ingroup edsculpt
  * Common helper methods and structures for gesture operations.
  */
+#include "sculpt_gesture.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
 
-#include "BLI_bit_vector.hh"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_lasso_2d.hh"
 #include "BLI_math_geom.h"

@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "sculpt_filter.hh"  // TODO- Move this function's initialization to a separate file
 
 #include <fmt/format.h>
 
@@ -42,7 +43,12 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_automask.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_cloth.hh"
+#include "sculpt_face_set.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_smooth.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -116,6 +122,8 @@ void zero_disabled_axis_components(const filter::Cache &filter_cache,
     vectors[i] = orientation_to_object * vector;
   }
 }
+
+Cache::~Cache() {}
 
 void cache_init(bContext *C,
                 Object &ob,

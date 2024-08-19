@@ -42,6 +42,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_cloth.hh"
 #include "sculpt_intern.hh"
 
 // #define DEBUG_TIME

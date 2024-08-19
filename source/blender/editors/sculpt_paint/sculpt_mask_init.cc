@@ -31,12 +31,12 @@
 #include "RNA_define.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_face_set.hh"
+#include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_islands.hh"
 
 #include "bmesh.hh"
-
-#include <cmath>
-#include <cstdlib>
 
 namespace blender::ed::sculpt_paint::mask {
 

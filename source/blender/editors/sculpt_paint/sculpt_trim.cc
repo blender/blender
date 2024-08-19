@@ -38,7 +38,10 @@
 #include "tools/bmesh_intersect.hh"
 
 #include "paint_intern.hh"
+#include "sculpt_face_set.hh"
+#include "sculpt_gesture.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_islands.hh"
 
 namespace blender::ed::sculpt_paint::trim {
 

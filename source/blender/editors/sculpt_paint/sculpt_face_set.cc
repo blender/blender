@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "sculpt_face_set.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -27,14 +28,12 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.hh"
-#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_layer.hh"
@@ -55,7 +54,10 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_gesture.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_islands.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

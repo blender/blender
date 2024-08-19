@@ -1,12 +1,14 @@
 /* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+#include "sculpt_flood_fill.hh"
 
 #include "BKE_mesh.hh"
 
 #include "DNA_mesh_types.h"
 
 #include "paint_intern.hh"
+#include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
 
 /* -------------------------------------------------------------------- */
@@ -15,9 +17,7 @@
  * Iterate over connected vertices, starting from one or more initial vertices.
  * \{ */
 
-namespace blender::ed::sculpt_paint {
-
-namespace flood_fill {
+namespace blender::ed::sculpt_paint::flood_fill {
 
 FillData init_fill(SculptSession &ss)
 {
@@ -354,8 +354,6 @@ void FillDataBMesh::execute(Object & /*object*/,
   }
 }
 
-}  // namespace flood_fill
-
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::flood_fill
 
 /** \} */

@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "sculpt_dyntopo.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -26,15 +27,15 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.hh"
 
-#include "BLI_index_range.hh"
-
 #include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_undo.hh"
+
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

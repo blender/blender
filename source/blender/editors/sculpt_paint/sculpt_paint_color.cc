@@ -31,6 +31,7 @@
 
 #include "mesh_brush_common.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_smooth.hh"
 
 #include "IMB_imbuf.hh"
 

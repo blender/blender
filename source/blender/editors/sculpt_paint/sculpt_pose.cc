@@ -28,7 +28,12 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_cloth.hh"
+#include "sculpt_face_set.hh"
+#include "sculpt_flood_fill.hh"
+#include "sculpt_hide.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_smooth.hh"
 
 #include "bmesh.hh"
 

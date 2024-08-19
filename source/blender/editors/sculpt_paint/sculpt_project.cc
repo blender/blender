@@ -8,9 +8,6 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
@@ -21,6 +18,7 @@
 #include "WM_types.hh"
 
 #include "mesh_brush_common.hh"
+#include "sculpt_gesture.hh"
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::project {

@@ -6,9 +6,11 @@
  * \ingroup edsculpt
  */
 
-#include "sculpt_intern.hh"
+#include "sculpt_dyntopo.hh"
 
 #include "BKE_object_types.hh"
+
+#include "DNA_object_types.h"
 
 #include "testing/testing.h"
 

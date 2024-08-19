@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "sculpt_expand.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -41,8 +42,16 @@
 
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
+
 #include "paint_intern.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_color.hh"
+#include "sculpt_face_set.hh"
+#include "sculpt_flood_fill.hh"
+#include "sculpt_geodesic.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_islands.hh"
+#include "sculpt_smooth.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -852,7 +861,7 @@ static Array<float> boundary_topology_falloff_create(const Depsgraph &depsgraph,
 
     const PBVHVertRef symm_vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
 
-    std::unique_ptr<SculptBoundary> boundary = boundary::data_init(
+    std::unique_ptr<boundary::SculptBoundary> boundary = boundary::data_init(
         depsgraph, ob, nullptr, symm_vertex, FLT_MAX);
     if (!boundary) {
       continue;

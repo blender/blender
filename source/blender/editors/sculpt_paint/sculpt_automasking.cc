@@ -6,6 +6,8 @@
  * \ingroup edsculpt
  */
 
+#include "sculpt_automask.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
@@ -27,7 +29,14 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_dyntopo.hh"
+#include "sculpt_face_set.hh"
+#include "sculpt_filter.hh"
+#include "sculpt_flood_fill.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_islands.hh"
+#include "sculpt_undo.hh"
 
 #include "bmesh.hh"
 

@@ -32,7 +32,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
@@ -46,7 +45,6 @@
 #include "BKE_editmesh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_object_types.hh"
@@ -77,6 +75,9 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh" /* own include */
+#include "sculpt_automask.hh"
+#include "sculpt_boundary.hh"
+#include "sculpt_cloth.hh"
 #include "sculpt_intern.hh"
 
 using blender::IndexRange;

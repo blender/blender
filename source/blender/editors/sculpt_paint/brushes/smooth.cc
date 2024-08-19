@@ -9,7 +9,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_colortools.hh"
 #include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_paint.hh"
@@ -18,14 +17,13 @@
 
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_matrix.hh"
-#include "BLI_math_vector.hh"
-#include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/sculpt_boundary.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
+#include "editors/sculpt_paint/sculpt_smooth.hh"
 
 namespace blender::ed::sculpt_paint {
 

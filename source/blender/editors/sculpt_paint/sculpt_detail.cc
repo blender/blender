@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "sculpt_dyntopo.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -26,8 +27,6 @@
 #include "BKE_pbvh_api.hh"
 #include "BKE_screen.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
@@ -39,6 +38,7 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
+
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
