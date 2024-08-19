@@ -115,5 +115,5 @@ void register_node_type_cmp_transform()
   ntype.draw_buttons = file_ns::node_composit_buts_transform;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

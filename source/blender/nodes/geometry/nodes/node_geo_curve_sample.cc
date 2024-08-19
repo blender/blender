@@ -82,9 +82,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *length = factor->next;
   bNodeSocket *curve_index = length->next;
 
-  bke::nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::nodeSetSocketAvailability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  bke::nodeSetSocketAvailability(ntree, curve_index, !storage.use_all_curves);
+  bke::node_set_socket_availability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  bke::node_set_socket_availability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  bke::node_set_socket_availability(ntree, curve_index, !storage.use_all_curves);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -507,7 +507,7 @@ static void node_register()
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

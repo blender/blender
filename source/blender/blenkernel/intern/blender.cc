@@ -80,7 +80,7 @@ void BKE_blender_free()
   BKE_ffmpeg_exit();
 #endif
 
-  blender::bke::BKE_node_system_exit();
+  blender::bke::node_system_exit();
 }
 
 /** \} */

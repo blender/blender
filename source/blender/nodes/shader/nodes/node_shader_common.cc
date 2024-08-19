@@ -103,7 +103,7 @@ void register_node_type_sh_group()
   ntype.declare = blender::nodes::node_group_declare;
   ntype.gpu_fn = gpu_group_execute;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 
 void register_node_type_sh_custom_group(blender::bke::bNodeType *ntype)

@@ -865,7 +865,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   }
 
   /* Localize tree to create links for reroute and mute. */
-  bNodeTree *localtree = blender::bke::ntreeLocalize(ntree, nullptr);
+  bNodeTree *localtree = blender::bke::node_tree_localize(ntree, nullptr);
   ntreeGPUMaterialNodes(localtree, mat);
 
   gpu_material_ramp_texture_build(mat);
@@ -935,7 +935,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   }
 
   /* Only free after GPU_pass_shader_get where GPUUniformBuf read data from the local tree. */
-  blender::bke::ntreeFreeLocalTree(localtree);
+  blender::bke::node_tree_free_local_tree(localtree);
   BLI_assert(!localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(localtree);
 

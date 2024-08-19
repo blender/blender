@@ -82,5 +82,5 @@ void register_node_type_sh_bsdf_sheen()
   ntype.draw_buttons = file_ns::node_shader_buts_sheen;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

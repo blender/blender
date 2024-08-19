@@ -163,5 +163,5 @@ void register_node_type_tex_group()
   ntype.free_exec_fn = group_freeexec;
   ntype.exec_fn = group_execute;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

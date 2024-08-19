@@ -145,7 +145,7 @@ void register_node_type_cmp_separate_color()
   ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 
 /* **************** COMBINE COLOR ******************** */
@@ -251,5 +251,5 @@ void register_node_type_cmp_combine_color()
   ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

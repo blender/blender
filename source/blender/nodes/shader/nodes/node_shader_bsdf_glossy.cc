@@ -104,9 +104,9 @@ void register_node_type_sh_bsdf_glossy()
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glossy;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   /* Needed to preserve API compatibility with older versions which had separate
    * Glossy and Anisotropic nodes. */
-  blender::bke::nodeRegisterAlias(&ntype, "ShaderNodeBsdfGlossy");
+  blender::bke::node_register_alias(&ntype, "ShaderNodeBsdfGlossy");
 }

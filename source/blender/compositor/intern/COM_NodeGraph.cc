@@ -87,7 +87,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
 
   /* add all nodes of the tree to the node list */
   for (bNode *node = (bNode *)tree->nodes.first; node; node = node->next) {
-    bNodeInstanceKey key = bke::BKE_node_instance_key(parent_key, tree, node);
+    bNodeInstanceKey key = bke::node_instance_key(parent_key, tree, node);
     add_bNode(context, tree, node, key, is_active_group);
   }
 

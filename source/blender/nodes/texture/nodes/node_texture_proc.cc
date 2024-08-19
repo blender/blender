@@ -265,7 +265,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
     ntype.exec_fn = name##_exec; \
     ntype.flag |= NODE_PREVIEW; \
 \
-    blender::bke::nodeRegisterType(&ntype); \
+    blender::bke::node_register_type(&ntype); \
   }
 
 #define C outputs_color_only

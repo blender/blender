@@ -184,5 +184,5 @@ void register_node_type_cmp_cornerpin()
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

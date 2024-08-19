@@ -88,15 +88,15 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *center_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
 
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, middle_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, end_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, center_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, radius_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS);
 }
 
@@ -253,7 +253,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

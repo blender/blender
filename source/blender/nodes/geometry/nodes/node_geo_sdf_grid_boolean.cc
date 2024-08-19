@@ -46,11 +46,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   switch (Operation(node->custom1)) {
     case Operation::Intersect:
     case Operation::Union:
-      bke::nodeSetSocketAvailability(ntree, grid_1_socket, false);
+      bke::node_set_socket_availability(ntree, grid_1_socket, false);
       node_sock_label(grid_2_socket, "Grid");
       break;
     case Operation::Difference:
-      bke::nodeSetSocketAvailability(ntree, grid_1_socket, true);
+      bke::node_set_socket_availability(ntree, grid_1_socket, true);
       node_sock_label(grid_2_socket, "Grid 2");
       break;
   }
@@ -170,7 +170,7 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)

@@ -143,7 +143,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
                                               const ImageFormatData *im_format)
 {
   NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-  bNodeSocket *sock = blender::bke::nodeAddStaticSocket(
+  bNodeSocket *sock = blender::bke::node_add_static_socket(
       ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, name);
 
   /* create format data for the input socket */
@@ -193,7 +193,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
   /* free format data */
   MEM_freeN(sock->storage);
 
-  blender::bke::nodeRemoveSocket(ntree, node, sock);
+  blender::bke::node_remove_socket(ntree, node, sock);
   return 1;
 }
 
@@ -291,11 +291,11 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
    */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (sock->storage == nullptr) {
-      blender::bke::nodeRemoveSocket(ntree, node, sock);
+      blender::bke::node_remove_socket(ntree, node, sock);
     }
   }
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    blender::bke::nodeRemoveSocket(ntree, node, sock);
+    blender::bke::node_remove_socket(ntree, node, sock);
   }
 
   cmp_node_update_default(ntree, node);
@@ -306,7 +306,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
     if (sock->is_logically_linked()) {
       const bNodeSocket *from_socket = sock->logically_linked_sockets()[0];
       if (sock->type != from_socket->type) {
-        blender::bke::nodeModifySocketTypeStatic(ntree, node, sock, from_socket->type, 0);
+        blender::bke::node_modify_socket_type_static(ntree, node, sock, from_socket->type, 0);
         BKE_ntree_update_tag_socket_property(ntree, sock);
       }
     }
@@ -862,5 +862,5 @@ void register_node_type_cmp_output_file()
   ntype.updatefunc = file_ns::update_output_file;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

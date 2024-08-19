@@ -60,7 +60,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  bke::nodeRegisterType(&ntype);
+  bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

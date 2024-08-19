@@ -50,7 +50,8 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
   if (!node) {
     return;
   }
-  const bNodeSocket *socket = bke::nodeFindSocket(const_cast<bNode *>(node), SOCK_IN, identifier);
+  const bNodeSocket *socket = bke::node_find_socket(
+      const_cast<bNode *>(node), SOCK_IN, identifier);
   BLI_assert(socket && socket->type == property_type);
   if (!socket) {
     return;

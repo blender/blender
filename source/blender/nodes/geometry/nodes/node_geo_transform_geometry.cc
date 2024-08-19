@@ -36,10 +36,10 @@ static void node_update(bNodeTree *tree, bNode *node)
 
   const bool use_matrix = node->custom1 == GEO_NODE_TRANSFORM_MODE_MATRIX;
 
-  bke::nodeSetSocketAvailability(tree, translation_socket, !use_matrix);
-  bke::nodeSetSocketAvailability(tree, rotation_socket, !use_matrix);
-  bke::nodeSetSocketAvailability(tree, scale_socket, !use_matrix);
-  bke::nodeSetSocketAvailability(tree, transform_socket, use_matrix);
+  bke::node_set_socket_availability(tree, translation_socket, !use_matrix);
+  bke::node_set_socket_availability(tree, rotation_socket, !use_matrix);
+  bke::node_set_socket_availability(tree, scale_socket, !use_matrix);
+  bke::node_set_socket_availability(tree, transform_socket, use_matrix);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -133,7 +133,7 @@ static void register_node()
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

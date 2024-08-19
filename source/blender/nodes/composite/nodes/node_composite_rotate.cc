@@ -101,5 +101,5 @@ void register_node_type_cmp_rotate()
   ntype.initfunc = file_ns::node_composit_init_rotate;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

@@ -63,5 +63,5 @@ void register_node_type_tex_mix_rgb()
   ntype.labelfunc = node_blend_label;
   ntype.exec_fn = exec;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

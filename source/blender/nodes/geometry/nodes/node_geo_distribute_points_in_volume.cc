@@ -78,13 +78,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_spacing = sock_seed->next;
   bNodeSocket *sock_threshold = sock_spacing->next;
 
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, sock_density, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, sock_seed, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, sock_spacing, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, sock_threshold, mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
 }
 
@@ -304,7 +304,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -145,7 +145,7 @@ static void node_register()
   ntype.declare = node_declare;
   bke::node_type_size(&ntype, 160, 100, 320);
 
-  bke::nodeRegisterType(&ntype);
+  bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

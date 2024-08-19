@@ -90,7 +90,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

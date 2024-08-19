@@ -75,5 +75,5 @@ void register_node_type_cmp_premulkey()
   ntype.draw_buttons = file_ns::node_composit_buts_premulkey;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

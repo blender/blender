@@ -50,5 +50,5 @@ void register_node_type_sh_fresnel()
   ntype.gpu_fn = file_ns::node_shader_gpu_fresnel;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

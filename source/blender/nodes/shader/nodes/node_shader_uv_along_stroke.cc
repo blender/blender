@@ -33,5 +33,5 @@ void register_node_type_sh_uvalongstroke()
   ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_uvalongstroke;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

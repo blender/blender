@@ -158,16 +158,16 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
   bool use_vector_factor = data_type == SOCK_VECTOR &&
                            storage.factor_mode != NODE_MIX_MODE_UNIFORM;
 
-  bke::nodeSetSocketAvailability(ntree, sock_factor, !use_vector_factor);
+  bke::node_set_socket_availability(ntree, sock_factor, !use_vector_factor);
 
-  bke::nodeSetSocketAvailability(ntree, sock_factor_vec, use_vector_factor);
+  bke::node_set_socket_availability(ntree, sock_factor_vec, use_vector_factor);
 
   for (bNodeSocket *socket = sock_factor_vec->next; socket != nullptr; socket = socket->next) {
-    bke::nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
+    bke::node_set_socket_availability(ntree, socket, socket->type == data_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    bke::nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
+    bke::node_set_socket_availability(ntree, socket, socket->type == data_type);
   }
 }
 
@@ -624,5 +624,5 @@ void register_node_type_sh_mix()
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

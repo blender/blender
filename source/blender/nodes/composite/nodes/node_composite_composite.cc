@@ -210,5 +210,5 @@ void register_node_type_cmp_composite()
   ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

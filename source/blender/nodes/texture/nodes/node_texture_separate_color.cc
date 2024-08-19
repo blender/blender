@@ -102,5 +102,5 @@ void register_node_type_tex_separate_color()
   ntype.exec_fn = exec;
   ntype.updatefunc = update;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

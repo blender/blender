@@ -76,10 +76,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_spacing = sock_seed->next;
   bNodeSocket *sock_threshold = sock_spacing->next;
 
-  bke::nodeSetSocketAvailability(ntree, sock_density, mode == DistributeMode::Random);
-  bke::nodeSetSocketAvailability(ntree, sock_seed, mode == DistributeMode::Random);
-  bke::nodeSetSocketAvailability(ntree, sock_spacing, mode == DistributeMode::Grid);
-  bke::nodeSetSocketAvailability(ntree, sock_threshold, mode == DistributeMode::Grid);
+  bke::node_set_socket_availability(ntree, sock_density, mode == DistributeMode::Random);
+  bke::node_set_socket_availability(ntree, sock_seed, mode == DistributeMode::Random);
+  bke::node_set_socket_availability(ntree, sock_spacing, mode == DistributeMode::Grid);
+  bke::node_set_socket_availability(ntree, sock_threshold, mode == DistributeMode::Grid);
 }
 
 #ifdef WITH_OPENVDB
@@ -269,7 +269,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

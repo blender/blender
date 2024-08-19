@@ -85,5 +85,5 @@ void register_node_type_cmp_brightcontrast()
   ntype.initfunc = file_ns::node_composit_init_brightcontrast;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

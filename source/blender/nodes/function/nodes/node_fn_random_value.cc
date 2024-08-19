@@ -74,18 +74,18 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_out_int = sock_out_float->next;
   bNodeSocket *sock_out_bool = sock_out_int->next;
 
-  bke::nodeSetSocketAvailability(ntree, sock_min_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, sock_max_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, sock_min_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, sock_max_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, sock_min_int, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, sock_max_int, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, sock_probability, data_type == CD_PROP_BOOL);
+  bke::node_set_socket_availability(ntree, sock_min_vector, data_type == CD_PROP_FLOAT3);
+  bke::node_set_socket_availability(ntree, sock_max_vector, data_type == CD_PROP_FLOAT3);
+  bke::node_set_socket_availability(ntree, sock_min_float, data_type == CD_PROP_FLOAT);
+  bke::node_set_socket_availability(ntree, sock_max_float, data_type == CD_PROP_FLOAT);
+  bke::node_set_socket_availability(ntree, sock_min_int, data_type == CD_PROP_INT32);
+  bke::node_set_socket_availability(ntree, sock_max_int, data_type == CD_PROP_INT32);
+  bke::node_set_socket_availability(ntree, sock_probability, data_type == CD_PROP_BOOL);
 
-  bke::nodeSetSocketAvailability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
-  bke::nodeSetSocketAvailability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
-  bke::nodeSetSocketAvailability(ntree, sock_out_int, data_type == CD_PROP_INT32);
-  bke::nodeSetSocketAvailability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
+  bke::node_set_socket_availability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
+  bke::node_set_socket_availability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
+  bke::node_set_socket_availability(ntree, sock_out_int, data_type == CD_PROP_INT32);
+  bke::node_set_socket_availability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
 }
 
 static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
@@ -210,7 +210,7 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_search_ops;
   blender::bke::node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

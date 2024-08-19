@@ -235,7 +235,7 @@ static void node_register()
                                   "NodeGeometrySubdivisionSurface",
                                   node_free_standard_storage,
                                   node_copy_standard_storage);
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

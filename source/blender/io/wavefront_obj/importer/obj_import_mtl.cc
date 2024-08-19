@@ -36,7 +36,7 @@ static void set_property_of_socket(eNodeSocketDatatype property_type,
                                    bNode *r_node)
 {
   BLI_assert(r_node);
-  bNodeSocket *socket{bke::nodeFindSocket(r_node, SOCK_IN, socket_id)};
+  bNodeSocket *socket{bke::node_find_socket(r_node, SOCK_IN, socket_id)};
   BLI_assert(socket && socket->type == property_type);
   switch (property_type) {
     case SOCK_FLOAT: {
@@ -155,7 +155,7 @@ const float node_locy_step = 300.0f;
 /* Add a node of the given type at the given location. */
 static bNode *add_node(bNodeTree *ntree, int type, float x, float y)
 {
-  bNode *node = bke::nodeAddStaticNode(nullptr, ntree, type);
+  bNode *node = bke::node_add_static_node(nullptr, ntree, type);
   node->locx = x;
   node->locy = y;
   return node;
@@ -167,10 +167,10 @@ static void link_sockets(bNodeTree *ntree,
                          bNode *to_node,
                          const char *to_node_id)
 {
-  bNodeSocket *from_sock{bke::nodeFindSocket(from_node, SOCK_OUT, from_node_id)};
-  bNodeSocket *to_sock{bke::nodeFindSocket(to_node, SOCK_IN, to_node_id)};
+  bNodeSocket *from_sock{bke::node_find_socket(from_node, SOCK_OUT, from_node_id)};
+  bNodeSocket *to_sock{bke::node_find_socket(to_node, SOCK_IN, to_node_id)};
   BLI_assert(from_sock && to_sock);
-  bke::nodeAddLink(ntree, from_node, from_sock, to_node, to_sock);
+  bke::node_add_link(ntree, from_node, from_sock, to_node, to_sock);
 }
 
 static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial &mtl_mat)
@@ -415,7 +415,7 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
                                 Material *mat,
                                 bool relative_paths)
 {
-  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
+  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &mat->id, "Shader Nodetree", ntreeType_Shader->idname);
 
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
@@ -424,7 +424,7 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
   set_bsdf_socket_values(bsdf, mat, mtl_mat);
   add_image_textures(bmain, ntree, bsdf, mat, mtl_mat, relative_paths);
   link_sockets(ntree, bsdf, "BSDF", output, "Surface");
-  bke::nodeSetActive(ntree, output);
+  bke::node_set_active(ntree, output);
 
   return ntree;
 }

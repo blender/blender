@@ -300,7 +300,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
         new_node->parent = node_map.lookup(new_node->parent);
       }
       else {
-        bke::nodeDetachNode(&tree, new_node);
+        bke::node_detach_node(&tree, new_node);
       }
     }
   }
@@ -408,7 +408,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   for (bNode *new_node : node_map.values()) {
-    bke::nodeSetSelected(new_node, true);
+    bke::node_set_selected(new_node, true);
 
     new_node->flag &= ~NODE_ACTIVE;
 
@@ -446,7 +446,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   remap_node_pairing(tree, node_map);
 
   for (bNode *new_node : node_map.values()) {
-    bke::nodeDeclarationEnsure(&tree, new_node);
+    bke::node_declaration_ensure(&tree, new_node);
   }
 
   /* Add links between existing nodes. */
@@ -456,12 +456,12 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     if (!from_node || !to_node) {
       continue;
     }
-    bNodeSocket *from = bke::nodeFindSocket(from_node, SOCK_OUT, link.from_socket.c_str());
-    bNodeSocket *to = bke::nodeFindSocket(to_node, SOCK_IN, link.to_socket.c_str());
+    bNodeSocket *from = bke::node_find_socket(from_node, SOCK_OUT, link.from_socket.c_str());
+    bNodeSocket *to = bke::node_find_socket(to_node, SOCK_IN, link.to_socket.c_str());
     if (!from || !to) {
       continue;
     }
-    bNodeLink *new_link = bke::nodeAddLink(&tree, from_node, from, to_node, to);
+    bNodeLink *new_link = bke::node_add_link(&tree, from_node, from, to_node, to);
     new_link->multi_input_sort_id = link.multi_input_sort_id;
   }
 

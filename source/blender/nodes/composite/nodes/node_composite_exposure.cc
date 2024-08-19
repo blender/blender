@@ -57,5 +57,5 @@ void register_node_type_cmp_exposure()
   ntype.declare = file_ns::cmp_node_exposure_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

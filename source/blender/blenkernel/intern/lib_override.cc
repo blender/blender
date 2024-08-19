@@ -2251,7 +2251,7 @@ static bool lib_override_library_resync(Main *bmain,
                 reinterpret_cast<Scene *>(reference_id)->master_collection);
             break;
           case ID_NT:
-            reference_id = reinterpret_cast<ID *>(blender::bke::ntreeFromID(id));
+            reference_id = reinterpret_cast<ID *>(blender::bke::node_tree_from_id(id));
             break;
           default:
             break;
@@ -3839,7 +3839,7 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id)
     }
   }
 
-  bNodeTree *node_tree = blender::bke::ntreeFromID(id);
+  bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
   if (node_tree != nullptr) {
     node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
   }
@@ -4627,7 +4627,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
       }
     }
-    if (bNodeTree *ntree = blender::bke::ntreeFromID(id)) {
+    if (bNodeTree *ntree = blender::bke::node_tree_from_id(id)) {
       if (ntree->id.tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH) {
         ntree->id.tag &= ~ID_TAG_LIBOVERRIDE_AUTOREFRESH;
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;

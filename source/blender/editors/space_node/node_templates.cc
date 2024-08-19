@@ -160,7 +160,7 @@ static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
     next = node->next;
 
     if (node->flag & NODE_TEST) {
-      bke::nodeRemoveNode(bmain, ntree, node, true);
+      bke::node_remove_node(bmain, ntree, node, true);
     }
   }
 }
@@ -175,7 +175,7 @@ static void node_socket_disconnect(Main *bmain,
     return;
   }
 
-  bke::nodeRemLink(ntree, sock_to->link);
+  bke::node_remove_link(ntree, sock_to->link);
   sock_to->flag |= SOCK_COLLAPSED;
 
   BKE_ntree_update_tag_node_property(ntree, node_to);
@@ -212,7 +212,7 @@ static void node_socket_add_replace(const bContext *C,
   /* unlink existing node */
   if (sock_to->link) {
     node_prev = sock_to->link->fromnode;
-    bke::nodeRemLink(ntree, sock_to->link);
+    bke::node_remove_link(ntree, sock_to->link);
   }
 
   /* find existing node that we can use */
@@ -235,7 +235,7 @@ static void node_socket_add_replace(const bContext *C,
     node_from = node_prev;
   }
   else if (!node_from) {
-    node_from = bke::nodeAddStaticNode(C, ntree, type);
+    node_from = bke::node_add_static_node(C, ntree, type);
     if (node_prev != nullptr) {
       /* If we're replacing existing node, use its location. */
       node_from->locx = node_prev->locx;
@@ -245,25 +245,27 @@ static void node_socket_add_replace(const bContext *C,
     }
     else {
       sock_from_tmp = (bNodeSocket *)BLI_findlink(&node_from->outputs, item->socket_index);
-      bke::nodePositionRelative(node_from, node_to, sock_from_tmp, sock_to);
+      bke::node_position_relative(node_from, node_to, sock_from_tmp, sock_to);
     }
 
     node_link_item_apply(ntree, node_from, item);
     ED_node_tree_propagate_change(C, bmain, ntree);
   }
 
-  bke::nodeSetActive(ntree, node_from);
+  bke::node_set_active(ntree, node_from);
 
   /* add link */
   sock_from_tmp = (bNodeSocket *)BLI_findlink(&node_from->outputs, item->socket_index);
-  bke::nodeAddLink(ntree, node_from, sock_from_tmp, node_to, sock_to);
+  bke::node_add_link(ntree, node_from, sock_from_tmp, node_to, sock_to);
   sock_to->flag &= ~SOCK_COLLAPSED;
 
   /* copy input sockets from previous node */
   if (node_prev && node_from != node_prev) {
     LISTBASE_FOREACH (bNodeSocket *, sock_prev, &node_prev->inputs) {
       LISTBASE_FOREACH (bNodeSocket *, sock_from, &node_from->inputs) {
-        if (bke::nodeCountSocketLinks(ntree, sock_from) >= bke::nodeSocketLinkLimit(sock_from)) {
+        if (bke::node_count_socket_links(ntree, sock_from) >=
+            bke::node_socket_link_limit(sock_from))
+        {
           continue;
         }
 
@@ -273,8 +275,8 @@ static void node_socket_add_replace(const bContext *C,
           bNodeLink *link = sock_prev->link;
 
           if (link && link->fromnode) {
-            bke::nodeAddLink(ntree, link->fromnode, link->fromsock, node_from, sock_from);
-            bke::nodeRemLink(ntree, link);
+            bke::node_add_link(ntree, link->fromnode, link->fromsock, node_from, sock_from);
+            bke::node_remove_link(ntree, link);
           }
 
           node_socket_copy_default_value(sock_from, sock_prev);
@@ -334,7 +336,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     {
       const char *disabled_hint;
       if ((ngroup->type != arg->ntree->type) ||
-          !bke::nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+          !bke::node_group_poll(arg->ntree, ngroup, &disabled_hint))
       {
         continue;
       }
@@ -345,7 +347,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     {
       const char *disabled_hint;
       if ((ngroup->type != arg->ntree->type) ||
-          !bke::nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+          !bke::node_group_poll(arg->ntree, ngroup, &disabled_hint))
       {
         continue;
       }

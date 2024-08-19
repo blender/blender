@@ -165,44 +165,44 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
-  bNodeSocket *sockScale = bke::nodeFindSocket(node, SOCK_IN, "Scale");
+  bNodeSocket *sockScale = bke::node_find_socket(node, SOCK_IN, "Scale");
 
-  bNodeSocket *sockVector = bke::nodeFindSocket(node, SOCK_OUT, "Vector");
-  bNodeSocket *sockValue = bke::nodeFindSocket(node, SOCK_OUT, "Value");
+  bNodeSocket *sockVector = bke::node_find_socket(node, SOCK_OUT, "Vector");
+  bNodeSocket *sockValue = bke::node_find_socket(node, SOCK_OUT, "Value");
 
-  bke::nodeSetSocketAvailability(ntree,
-                                 sockB,
-                                 !ELEM(node->custom1,
-                                       NODE_VECTOR_MATH_SINE,
-                                       NODE_VECTOR_MATH_COSINE,
-                                       NODE_VECTOR_MATH_TANGENT,
-                                       NODE_VECTOR_MATH_CEIL,
-                                       NODE_VECTOR_MATH_SCALE,
-                                       NODE_VECTOR_MATH_FLOOR,
-                                       NODE_VECTOR_MATH_LENGTH,
-                                       NODE_VECTOR_MATH_ABSOLUTE,
-                                       NODE_VECTOR_MATH_FRACTION,
-                                       NODE_VECTOR_MATH_NORMALIZE));
-  bke::nodeSetSocketAvailability(ntree,
-                                 sockC,
-                                 ELEM(node->custom1,
-                                      NODE_VECTOR_MATH_WRAP,
-                                      NODE_VECTOR_MATH_FACEFORWARD,
-                                      NODE_VECTOR_MATH_MULTIPLY_ADD));
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(ntree,
+                                    sockB,
+                                    !ELEM(node->custom1,
+                                          NODE_VECTOR_MATH_SINE,
+                                          NODE_VECTOR_MATH_COSINE,
+                                          NODE_VECTOR_MATH_TANGENT,
+                                          NODE_VECTOR_MATH_CEIL,
+                                          NODE_VECTOR_MATH_SCALE,
+                                          NODE_VECTOR_MATH_FLOOR,
+                                          NODE_VECTOR_MATH_LENGTH,
+                                          NODE_VECTOR_MATH_ABSOLUTE,
+                                          NODE_VECTOR_MATH_FRACTION,
+                                          NODE_VECTOR_MATH_NORMALIZE));
+  bke::node_set_socket_availability(ntree,
+                                    sockC,
+                                    ELEM(node->custom1,
+                                         NODE_VECTOR_MATH_WRAP,
+                                         NODE_VECTOR_MATH_FACEFORWARD,
+                                         NODE_VECTOR_MATH_MULTIPLY_ADD));
+  bke::node_set_socket_availability(
       ntree, sockScale, ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
-  bke::nodeSetSocketAvailability(ntree,
-                                 sockVector,
-                                 !ELEM(node->custom1,
-                                       NODE_VECTOR_MATH_LENGTH,
-                                       NODE_VECTOR_MATH_DISTANCE,
-                                       NODE_VECTOR_MATH_DOT_PRODUCT));
-  bke::nodeSetSocketAvailability(ntree,
-                                 sockValue,
-                                 ELEM(node->custom1,
-                                      NODE_VECTOR_MATH_LENGTH,
-                                      NODE_VECTOR_MATH_DISTANCE,
-                                      NODE_VECTOR_MATH_DOT_PRODUCT));
+  bke::node_set_socket_availability(ntree,
+                                    sockVector,
+                                    !ELEM(node->custom1,
+                                          NODE_VECTOR_MATH_LENGTH,
+                                          NODE_VECTOR_MATH_DISTANCE,
+                                          NODE_VECTOR_MATH_DOT_PRODUCT));
+  bke::node_set_socket_availability(ntree,
+                                    sockValue,
+                                    ELEM(node->custom1,
+                                         NODE_VECTOR_MATH_LENGTH,
+                                         NODE_VECTOR_MATH_DISTANCE,
+                                         NODE_VECTOR_MATH_DOT_PRODUCT));
 
   /* Labels */
   node_sock_label_clear(sockB);
@@ -569,5 +569,5 @@ void register_node_type_sh_vect_math()
   ntype.eval_inverse_elem = file_ns::node_eval_inverse_elem;
   ntype.eval_inverse = file_ns::node_eval_inverse;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

@@ -53,7 +53,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveFillet &storage = node_storage(*node);
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
   bNodeSocket *poly_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  bke::nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  bke::node_set_socket_availability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 static bke::CurvesGeometry fillet_curve(const bke::CurvesGeometry &src_curves,
@@ -202,7 +202,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

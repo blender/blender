@@ -40,7 +40,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   bke::node_type_size(&ntype, 160, 100, 700);
-  nodeRegisterType(&ntype);
+  node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

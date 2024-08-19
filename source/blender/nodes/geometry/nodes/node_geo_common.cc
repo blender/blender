@@ -35,7 +35,7 @@ static void register_node_type_geo_group()
   ntype.labelfunc = node_group_label;
   ntype.declare = node_group_declare;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(register_node_type_geo_group)
 

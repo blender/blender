@@ -122,5 +122,5 @@ void register_node_type_sh_bump()
   ntype.gpu_fn = file_ns::gpu_shader_bump;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

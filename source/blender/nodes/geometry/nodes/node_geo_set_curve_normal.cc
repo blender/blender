@@ -42,7 +42,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NormalMode mode = NormalMode(node->custom1);
   bNodeSocket *normal_socket = static_cast<bNodeSocket *>(node->inputs.last);
-  bke::nodeSetSocketAvailability(ntree, normal_socket, mode == NORMAL_MODE_FREE);
+  bke::node_set_socket_availability(ntree, normal_socket, mode == NORMAL_MODE_FREE);
 }
 
 static void set_curve_normal(bke::CurvesGeometry &curves,
@@ -142,7 +142,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

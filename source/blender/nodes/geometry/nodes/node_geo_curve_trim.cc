@@ -76,10 +76,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *start_len = end_fac->next;
   bNodeSocket *end_len = start_len->next;
 
-  bke::nodeSetSocketAvailability(ntree, start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::nodeSetSocketAvailability(ntree, end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  bke::nodeSetSocketAvailability(ntree, start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  bke::nodeSetSocketAvailability(ntree, end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  bke::node_set_socket_availability(ntree, start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  bke::node_set_socket_availability(ntree, end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  bke::node_set_socket_availability(ntree, start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  bke::node_set_socket_availability(ntree, end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 class SocketSearchOp {
@@ -267,7 +267,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

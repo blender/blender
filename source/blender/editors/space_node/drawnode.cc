@@ -1678,7 +1678,7 @@ void ED_node_type_draw_color(const char *idname, float *r_color)
 {
   using namespace blender::ed::space_node;
 
-  const blender::bke::bNodeSocketType *typeinfo = blender::bke::nodeSocketTypeFind(idname);
+  const blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(idname);
   if (!typeinfo || typeinfo->type == SOCK_CUSTOM) {
     r_color[0] = 0.0f;
     r_color[1] = 0.0f;

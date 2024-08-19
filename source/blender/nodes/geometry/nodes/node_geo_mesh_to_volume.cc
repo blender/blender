@@ -55,13 +55,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryMeshToVolume &data = node_storage(*node);
 
-  bNodeSocket *voxel_size_socket = bke::nodeFindSocket(node, SOCK_IN, "Voxel Size");
-  bNodeSocket *voxel_amount_socket = bke::nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  bke::nodeSetSocketAvailability(ntree,
-                                 voxel_amount_socket,
-                                 data.resolution_mode ==
-                                     MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
-  bke::nodeSetSocketAvailability(
+  bNodeSocket *voxel_size_socket = bke::node_find_socket(node, SOCK_IN, "Voxel Size");
+  bNodeSocket *voxel_amount_socket = bke::node_find_socket(node, SOCK_IN, "Voxel Amount");
+  bke::node_set_socket_availability(ntree,
+                                    voxel_amount_socket,
+                                    data.resolution_mode ==
+                                        MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
+  bke::node_set_socket_availability(
       ntree, voxel_size_socket, data.resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE);
 }
 
@@ -177,7 +177,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshToVolume", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

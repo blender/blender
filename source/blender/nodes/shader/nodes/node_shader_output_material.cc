@@ -77,5 +77,5 @@ void register_node_type_sh_output_material()
 
   ntype.no_muting = true;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

@@ -1046,7 +1046,7 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
   using namespace blender;
   /* NOTE: DO NOT translate this ID name, it is used to find a potentially already existing
    * node-tree. */
-  bNodeTree *group = bke::BKE_node_tree_add_in_lib(
+  bNodeTree *group = bke::node_tree_add_in_lib(
       &conversion_data.bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
   if (!group->geometry_node_asset_traits) {
@@ -1069,80 +1069,80 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
   group->tree_interface.add_socket(
       DATA_("Layer"), "", "NodeSocketString", NODE_INTERFACE_SOCKET_INPUT, nullptr);
 
-  bNode *group_output = bke::nodeAddNode(nullptr, group, "NodeGroupOutput");
+  bNode *group_output = bke::node_add_node(nullptr, group, "NodeGroupOutput");
   group_output->locx = 800;
   group_output->locy = 160;
-  bNode *group_input = bke::nodeAddNode(nullptr, group, "NodeGroupInput");
+  bNode *group_input = bke::node_add_node(nullptr, group, "NodeGroupInput");
   group_input->locx = 0;
   group_input->locy = 160;
 
-  bNode *set_curve_radius = bke::nodeAddNode(nullptr, group, "GeometryNodeSetCurveRadius");
+  bNode *set_curve_radius = bke::node_add_node(nullptr, group, "GeometryNodeSetCurveRadius");
   set_curve_radius->locx = 600;
   set_curve_radius->locy = 160;
-  bNode *named_layer_selection = bke::nodeAddNode(
+  bNode *named_layer_selection = bke::node_add_node(
       nullptr, group, "GeometryNodeInputNamedLayerSelection");
   named_layer_selection->locx = 200;
   named_layer_selection->locy = 100;
-  bNode *input_radius = bke::nodeAddNode(nullptr, group, "GeometryNodeInputRadius");
+  bNode *input_radius = bke::node_add_node(nullptr, group, "GeometryNodeInputRadius");
   input_radius->locx = 0;
   input_radius->locy = 0;
 
-  bNode *add = bke::nodeAddNode(nullptr, group, "ShaderNodeMath");
+  bNode *add = bke::node_add_node(nullptr, group, "ShaderNodeMath");
   add->custom1 = NODE_MATH_ADD;
   add->locx = 200;
   add->locy = 0;
 
-  bNode *clamp_radius = bke::nodeAddNode(nullptr, group, "ShaderNodeClamp");
+  bNode *clamp_radius = bke::node_add_node(nullptr, group, "ShaderNodeClamp");
   clamp_radius->locx = 400;
   clamp_radius->locy = 0;
-  bNodeSocket *sock_max = bke::nodeFindSocket(clamp_radius, SOCK_IN, "Max");
+  bNodeSocket *sock_max = bke::node_find_socket(clamp_radius, SOCK_IN, "Max");
   static_cast<bNodeSocketValueFloat *>(sock_max->default_value)->value = FLT_MAX;
 
-  bke::nodeAddLink(group,
-                   group_input,
-                   bke::nodeFindSocket(group_input, SOCK_OUT, "Socket_0"),
-                   set_curve_radius,
-                   bke::nodeFindSocket(set_curve_radius, SOCK_IN, "Curve"));
-  bke::nodeAddLink(group,
-                   set_curve_radius,
-                   bke::nodeFindSocket(set_curve_radius, SOCK_OUT, "Curve"),
-                   group_output,
-                   bke::nodeFindSocket(group_output, SOCK_IN, "Socket_1"));
+  bke::node_add_link(group,
+                     group_input,
+                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_0"),
+                     set_curve_radius,
+                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Curve"));
+  bke::node_add_link(group,
+                     set_curve_radius,
+                     bke::node_find_socket(set_curve_radius, SOCK_OUT, "Curve"),
+                     group_output,
+                     bke::node_find_socket(group_output, SOCK_IN, "Socket_1"));
 
-  bke::nodeAddLink(group,
-                   group_input,
-                   bke::nodeFindSocket(group_input, SOCK_OUT, "Socket_3"),
-                   named_layer_selection,
-                   bke::nodeFindSocket(named_layer_selection, SOCK_IN, "Name"));
-  bke::nodeAddLink(group,
-                   named_layer_selection,
-                   bke::nodeFindSocket(named_layer_selection, SOCK_OUT, "Selection"),
-                   set_curve_radius,
-                   bke::nodeFindSocket(set_curve_radius, SOCK_IN, "Selection"));
+  bke::node_add_link(group,
+                     group_input,
+                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_3"),
+                     named_layer_selection,
+                     bke::node_find_socket(named_layer_selection, SOCK_IN, "Name"));
+  bke::node_add_link(group,
+                     named_layer_selection,
+                     bke::node_find_socket(named_layer_selection, SOCK_OUT, "Selection"),
+                     set_curve_radius,
+                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Selection"));
 
-  bke::nodeAddLink(group,
-                   group_input,
-                   bke::nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
-                   add,
-                   bke::nodeFindSocket(add, SOCK_IN, "Value"));
-  bke::nodeAddLink(group,
-                   input_radius,
-                   bke::nodeFindSocket(input_radius, SOCK_OUT, "Radius"),
-                   add,
-                   bke::nodeFindSocket(add, SOCK_IN, "Value_001"));
-  bke::nodeAddLink(group,
-                   add,
-                   bke::nodeFindSocket(add, SOCK_OUT, "Value"),
-                   clamp_radius,
-                   bke::nodeFindSocket(clamp_radius, SOCK_IN, "Value"));
-  bke::nodeAddLink(group,
-                   clamp_radius,
-                   bke::nodeFindSocket(clamp_radius, SOCK_OUT, "Result"),
-                   set_curve_radius,
-                   bke::nodeFindSocket(set_curve_radius, SOCK_IN, "Radius"));
+  bke::node_add_link(group,
+                     group_input,
+                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_2"),
+                     add,
+                     bke::node_find_socket(add, SOCK_IN, "Value"));
+  bke::node_add_link(group,
+                     input_radius,
+                     bke::node_find_socket(input_radius, SOCK_OUT, "Radius"),
+                     add,
+                     bke::node_find_socket(add, SOCK_IN, "Value_001"));
+  bke::node_add_link(group,
+                     add,
+                     bke::node_find_socket(add, SOCK_OUT, "Value"),
+                     clamp_radius,
+                     bke::node_find_socket(clamp_radius, SOCK_IN, "Value"));
+  bke::node_add_link(group,
+                     clamp_radius,
+                     bke::node_find_socket(clamp_radius, SOCK_OUT, "Result"),
+                     set_curve_radius,
+                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Radius"));
 
   LISTBASE_FOREACH (bNode *, node, &group->nodes) {
-    bke::nodeSetSelected(node, false);
+    bke::node_set_selected(node, false);
   }
 
   return group;
@@ -2827,7 +2827,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
 
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
-    if (bNodeTree *node_tree = bke::ntreeFromID(id_iter)) {
+    if (bNodeTree *node_tree = bke::node_tree_from_id(id_iter)) {
       sanitize_gpv2_annotation(&node_tree->gpd);
     }
   }

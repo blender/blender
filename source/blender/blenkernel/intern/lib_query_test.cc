@@ -128,7 +128,7 @@ template<typename TestData> class Context {
     CLG_init();
     BKE_idtype_init();
     RNA_init();
-    bke::BKE_node_system_init();
+    bke::node_system_init();
     BKE_appdir_init();
     IMB_init();
 
@@ -139,7 +139,7 @@ template<typename TestData> class Context {
   {
     test_data.teardown();
 
-    bke::BKE_node_system_exit();
+    bke::node_system_exit();
     RNA_exit();
     IMB_exit();
     GHOST_DisposeSystemPaths();

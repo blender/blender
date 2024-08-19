@@ -75,7 +75,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.initfunc = node_init;
-  bke::nodeRegisterType(&ntype);
+  bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

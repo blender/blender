@@ -48,7 +48,7 @@ static void create_transform_data_for_node(TransData &td,
 {
   /* Account for parents (nested nodes). */
   const float2 node_offset = {node.offsetx, node.offsety};
-  float2 loc = bke::nodeToView(&node, math::round(node_offset));
+  float2 loc = bke::node_to_view(&node, math::round(node_offset));
   loc *= dpi_fac;
 
   /* Use top-left corner as the transform origin for nodes. */
@@ -231,7 +231,7 @@ static void flushTransNodes(TransInfo *t)
       /* Account for parents (nested nodes). */
       const float2 node_offset = {node->offsetx, node->offsety};
       const float2 new_node_location = loc - math::round(node_offset);
-      const float2 location = bke::nodeFromView(node->parent, new_node_location);
+      const float2 location = bke::node_from_view(node->parent, new_node_location);
       node->locx = location.x;
       node->locy = location.y;
     }
@@ -263,7 +263,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
-          bke::nodeRemoveNode(bmain, ntree, node, true);
+          bke::node_remove_node(bmain, ntree, node, true);
         }
       }
       ED_node_tree_propagate_change(C, bmain, ntree);

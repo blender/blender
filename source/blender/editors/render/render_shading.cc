@@ -2769,7 +2769,7 @@ static int paste_material_exec(bContext *C, wmOperator *op)
     BKE_library_foreach_ID_link(
         bmain, &nodetree->id, paste_material_nodetree_ids_decref, nullptr, IDWALK_NOP);
 
-    blender::bke::ntreeFreeEmbeddedTree(nodetree);
+    blender::bke::node_tree_free_embedded_tree(nodetree);
     MEM_freeN(nodetree);
     ma->nodetree = nullptr;
   }

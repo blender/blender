@@ -78,12 +78,12 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
 
   const std::string idname_str = idname;
 
-  bNode *node = bke::nodeAddNode(&C, &node_tree, idname_str.c_str());
+  bNode *node = bke::node_add_node(&C, &node_tree, idname_str.c_str());
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
-  bke::nodeSetSelected(node, true);
+  bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
   ED_node_tree_propagate_change(&C, &bmain, &node_tree);
@@ -98,12 +98,12 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 
   node_deselect_all(node_tree);
 
-  bNode *node = bke::nodeAddStaticNode(&C, &node_tree, type);
+  bNode *node = bke::node_add_static_node(&C, &node_tree, type);
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
-  bke::nodeSetSelected(node, true);
+  bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
   ED_node_tree_propagate_change(&C, &bmain, &node_tree);
@@ -191,13 +191,13 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   for (const auto item : cuts_per_socket.items()) {
     const Map<bNodeLink *, float2> &cuts = item.value.links;
 
-    bNode *reroute = bke::nodeAddStaticNode(C, &ntree, NODE_REROUTE);
+    bNode *reroute = bke::node_add_static_node(C, &ntree, NODE_REROUTE);
 
-    bke::nodeAddLink(&ntree,
-                     item.value.from_node,
-                     item.key,
-                     reroute,
-                     static_cast<bNodeSocket *>(reroute->inputs.first));
+    bke::node_add_link(&ntree,
+                       item.value.from_node,
+                       item.key,
+                       reroute,
+                       static_cast<bNodeSocket *>(reroute->inputs.first));
 
     /* Reconnect links from the original output socket to the new reroute. */
     for (bNodeLink *link : cuts.keys()) {
@@ -217,7 +217,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
       if (BLI_rctf_isect_pt_v(&frame_node->runtime->totr, insert_point)) {
-        bke::nodeAttachNode(&ntree, reroute, frame_node);
+        bke::node_attach_node(&ntree, reroute, frame_node);
         break;
       }
     }
@@ -266,7 +266,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
   }
 
   const char *disabled_hint = nullptr;
-  if (!bke::nodeGroupPoll(&node_tree, &node_group, &disabled_hint)) {
+  if (!bke::node_group_poll(&node_tree, &node_group, &disabled_hint)) {
     if (disabled_hint) {
       BKE_reportf(&reports,
                   RPT_ERROR,
@@ -328,7 +328,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   id_us_plus(group_node->id);
   BKE_ntree_update_tag_node_property(snode->edittree, group_node);
 
-  bke::nodeSetActive(ntree, group_node);
+  bke::node_set_active(ntree, group_node);
   ED_node_tree_propagate_change(C, bmain, nullptr);
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(bmain);
@@ -418,7 +418,7 @@ static bool add_node_group_asset(const bContext &C,
   ED_preview_kill_jobs(CTX_wm_manager(&C), CTX_data_main(&C));
 
   bNode *group_node = add_node(
-      C, bke::ntreeTypeFind(node_group->idname)->group_idname, snode.runtime->cursor);
+      C, bke::node_tree_type_find(node_group->idname)->group_idname, snode.runtime->cursor);
   if (!group_node) {
     BKE_report(&reports, RPT_WARNING, "Could not add node group");
     return false;
@@ -431,7 +431,7 @@ static bool add_node_group_asset(const bContext &C,
   id_us_plus(group_node->id);
   BKE_ntree_update_tag_node_property(&edit_tree, group_node);
 
-  bke::nodeSetActive(&edit_tree, group_node);
+  bke::node_set_active(&edit_tree, group_node);
   ED_node_tree_propagate_change(&C, &bmain, nullptr);
   WM_event_add_notifier(&C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(&bmain);
@@ -531,7 +531,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocket *sock = bke::nodeFindSocket(object_node, SOCK_IN, "Object");
+  bNodeSocket *sock = bke::node_find_socket(object_node, SOCK_IN, "Object");
   if (!sock) {
     BLI_assert_unreachable();
     return OPERATOR_CANCELLED;
@@ -541,7 +541,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   socket_data->value = object;
   id_us_plus(&object->id);
 
-  bke::nodeSetActive(ntree, object_node);
+  bke::node_set_active(ntree, object_node);
   ED_node_tree_propagate_change(C, bmain, ntree);
   DEG_relations_tag_update(bmain);
 
@@ -617,7 +617,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocket *sock = bke::nodeFindSocket(collection_node, SOCK_IN, "Collection");
+  bNodeSocket *sock = bke::node_find_socket(collection_node, SOCK_IN, "Collection");
   if (!sock) {
     BKE_report(op->reports, RPT_WARNING, "Could not find node collection socket");
     return OPERATOR_CANCELLED;
@@ -627,7 +627,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   socket_data->value = collection;
   id_us_plus(&collection->id);
 
-  bke::nodeSetActive(&ntree, collection_node);
+  bke::node_set_active(&ntree, collection_node);
   ED_node_tree_propagate_change(C, bmain, &ntree);
   DEG_relations_tag_update(bmain);
 
@@ -799,7 +799,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     }
     else {
       node->id = (ID *)image;
-      blender::bke::nodeTagUpdateID(node);
+      blender::bke::node_tag_update_id(node);
     }
     BKE_ntree_update_tag_node_property(&node_tree, node);
     nodes.append(node);
@@ -814,7 +814,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
   /* Set new nodes as selected. */
   node_deselect_all(node_tree);
   for (bNode *node : nodes) {
-    bke::nodeSetSelected(node, true);
+    bke::node_set_selected(node, true);
   }
   ED_node_set_active(bmain, &snode, &node_tree, nodes[0], nullptr);
 
@@ -1051,7 +1051,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!bke::ntreeTypeFind(idname)) {
+  if (!bke::node_tree_type_find(idname)) {
     BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);
     return OPERATOR_CANCELLED;
   }
@@ -1061,11 +1061,11 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     treename = treename_buf;
   }
   else {
-    const bke::bNodeTreeType *type = bke::ntreeTypeFind(idname);
+    const bke::bNodeTreeType *type = bke::node_tree_type_find(idname);
     treename = type->ui_name;
   }
 
-  ntree = bke::ntreeAddTree(bmain, treename, idname);
+  ntree = bke::node_tree_add_tree(bmain, treename, idname);
 
   /* Hook into UI. */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);

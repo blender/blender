@@ -105,7 +105,7 @@ void register_node_type_cmp_curve_time()
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 
 /* **************** CURVE VEC  ******************** */
@@ -200,7 +200,7 @@ void register_node_type_cmp_curve_vec()
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 
 /* **************** CURVE RGB  ******************** */
@@ -344,5 +344,5 @@ void register_node_type_cmp_curve_rgb()
   blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

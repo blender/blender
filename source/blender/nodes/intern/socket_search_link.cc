@@ -67,7 +67,7 @@ void LinkSearchOpParams::connect_available_socket(bNode &new_node, StringRef soc
     BLI_assert_unreachable();
     return;
   }
-  bke::nodeAddLink(&node_tree, &new_node, new_node_socket, &node, &socket);
+  bke::node_add_link(&node_tree, &new_node, new_node_socket, &node, &socket);
   if (in_out == SOCK_OUT) {
     /* If the old socket already contained a value, then transfer it to a new one, from
      * which this value will get there. */
@@ -78,7 +78,7 @@ void LinkSearchOpParams::connect_available_socket(bNode &new_node, StringRef soc
 bNode &LinkSearchOpParams::add_node(StringRef idname)
 {
   std::string idname_str = idname;
-  bNode *node = bke::nodeAddNode(&C, &node_tree, idname_str.c_str());
+  bNode *node = bke::node_add_node(&C, &node_tree, idname_str.c_str());
   BLI_assert(node != nullptr);
   added_nodes_.append(node);
   return *node;

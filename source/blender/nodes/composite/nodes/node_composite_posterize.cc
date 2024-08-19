@@ -61,5 +61,5 @@ void register_node_type_cmp_posterize()
   ntype.declare = file_ns::cmp_node_posterize_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

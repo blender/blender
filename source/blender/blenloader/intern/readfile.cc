@@ -1916,7 +1916,7 @@ static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
 {
 
   /* Handle 'private IDs'. */
-  bNodeTree *nodetree = blender::bke::ntreeFromID(id);
+  bNodeTree *nodetree = blender::bke::node_tree_from_id(id);
   if (nodetree != nullptr) {
     after_liblink_id_process(reader, &nodetree->id);
 
@@ -1995,15 +1995,16 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        ID *id_old)
 {
   /* Handle 'private IDs'. */
-  bNodeTree **nodetree = blender::bke::BKE_ntree_ptr_from_id(id);
+  bNodeTree **nodetree = blender::bke::node_tree_ptr_from_id(id);
   if (nodetree != nullptr && *nodetree != nullptr) {
     BLO_read_struct(reader, bNodeTree, nodetree);
     direct_link_id_common(reader,
                           current_library,
                           (ID *)*nodetree,
-                          id_old != nullptr ? (ID *)blender::bke::ntreeFromID(id_old) : nullptr,
+                          id_old != nullptr ? (ID *)blender::bke::node_tree_from_id(id_old) :
+                                              nullptr,
                           0);
-    blender::bke::ntreeBlendReadData(reader, id, *nodetree);
+    blender::bke::node_tree_blend_read_data(reader, id, *nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -3738,7 +3739,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     /* After all data has been read and versioned, uses ID_TAG_NEW. Theoretically this should
      * not be calculated in the undo case, but it is currently needed even on undo to recalculate
      * a cache. */
-    blender::bke::ntreeUpdateAllNew(bfd->main);
+    blender::bke::node_tree_update_all_new(bfd->main);
 
     placeholders_ensure_valid(bfd->main);
 
@@ -4398,7 +4399,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   BKE_main_id_refcount_recompute(mainvar, false);
 
   /* After all data has been read and versioned, uses ID_TAG_NEW. */
-  blender::bke::ntreeUpdateAllNew(mainvar);
+  blender::bke::node_tree_update_all_new(mainvar);
 
   placeholders_ensure_valid(mainvar);
 

@@ -70,7 +70,7 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   ModifierData *md = object::modifier_add(
       nullptr, bmain, scene, &curves_ob, DATA_("Surface Deform"), eModifierType_Nodes);
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
-  nmd.node_group = bke::ntreeAddTree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
+  nmd.node_group = bke::node_tree_add_tree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
   if (!nmd.node_group->geometry_node_asset_traits) {
     nmd.node_group->geometry_node_asset_traits = MEM_cnew<GeometryNodeAssetTraits>(__func__);
@@ -83,22 +83,22 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
       "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
   ntree->tree_interface.add_socket(
       "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
-  bNode *group_input = bke::nodeAddStaticNode(&C, ntree, NODE_GROUP_INPUT);
-  bNode *group_output = bke::nodeAddStaticNode(&C, ntree, NODE_GROUP_OUTPUT);
-  bNode *deform_node = bke::nodeAddStaticNode(&C, ntree, GEO_NODE_DEFORM_CURVES_ON_SURFACE);
+  bNode *group_input = bke::node_add_static_node(&C, ntree, NODE_GROUP_INPUT);
+  bNode *group_output = bke::node_add_static_node(&C, ntree, NODE_GROUP_OUTPUT);
+  bNode *deform_node = bke::node_add_static_node(&C, ntree, GEO_NODE_DEFORM_CURVES_ON_SURFACE);
 
   ED_node_tree_propagate_change(&C, bmain, nmd.node_group);
 
-  bke::nodeAddLink(ntree,
-                   group_input,
-                   static_cast<bNodeSocket *>(group_input->outputs.first),
-                   deform_node,
-                   bke::nodeFindSocket(deform_node, SOCK_IN, "Curves"));
-  bke::nodeAddLink(ntree,
-                   deform_node,
-                   bke::nodeFindSocket(deform_node, SOCK_OUT, "Curves"),
-                   group_output,
-                   static_cast<bNodeSocket *>(group_output->inputs.first));
+  bke::node_add_link(ntree,
+                     group_input,
+                     static_cast<bNodeSocket *>(group_input->outputs.first),
+                     deform_node,
+                     bke::node_find_socket(deform_node, SOCK_IN, "Curves"));
+  bke::node_add_link(ntree,
+                     deform_node,
+                     bke::node_find_socket(deform_node, SOCK_OUT, "Curves"),
+                     group_output,
+                     static_cast<bNodeSocket *>(group_output->inputs.first));
 
   group_input->locx = -200;
   group_output->locx = 200;

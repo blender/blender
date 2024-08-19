@@ -93,5 +93,5 @@ void register_node_type_sh_script()
   blender::bke::node_type_storage(
       &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

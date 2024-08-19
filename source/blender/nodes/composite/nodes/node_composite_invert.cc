@@ -100,5 +100,5 @@ void register_node_type_cmp_invert()
   ntype.initfunc = file_ns::node_composit_init_invert;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

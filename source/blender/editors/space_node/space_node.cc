@@ -109,7 +109,7 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
   path->nodetree = ntree;
   if (gnode) {
     if (prev_path) {
-      path->parent_key = blender::bke::BKE_node_instance_key(
+      path->parent_key = blender::bke::node_instance_key(
           prev_path->parent_key, prev_path->nodetree, gnode);
     }
     else {
@@ -350,7 +350,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
   for (const int i : tree_path.index_range().drop_back(1)) {
     bNodeTree *tree = tree_path[i]->nodetree;
     const char *group_node_name = tree_path[i + 1]->node_name;
-    const bNode *group_node = blender::bke::nodeFindNodebyName(tree, group_node_name);
+    const bNode *group_node = blender::bke::node_find_node_by_name(tree, group_node_name);
     if (group_node == nullptr) {
       return false;
     }
@@ -1064,7 +1064,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
   }
   if (CTX_data_equals(member, "active_node")) {
     if (snode->edittree) {
-      bNode *node = bke::nodeGetActive(snode->edittree);
+      bNode *node = bke::node_get_active(snode->edittree);
       CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
     }
 
@@ -1213,7 +1213,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
   const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
   bool is_embedded_nodetree = snode->id != nullptr && allow_pointer_access &&
-                              bke::ntreeFromID(snode->id) == snode->nodetree;
+                              bke::node_tree_from_id(snode->id) == snode->nodetree;
 
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_DIRECT_WEAK_LINK);
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_DIRECT_WEAK_LINK);
@@ -1231,7 +1231,7 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
      * actual data. Note that `snode->id` was already processed (and therefore potentially
      * remapped) above. */
     if (!is_readonly) {
-      snode->nodetree = (snode->id == nullptr) ? nullptr : bke::ntreeFromID(snode->id);
+      snode->nodetree = (snode->id == nullptr) ? nullptr : bke::node_tree_from_id(snode->id);
       if (path != nullptr) {
         path->nodetree = snode->nodetree;
       }
@@ -1253,14 +1253,14 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
    * accessed. */
   BLI_assert(snode->id == nullptr || snode->nodetree == nullptr ||
              (snode->nodetree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0 ||
-             snode->nodetree == bke::ntreeFromID(snode->id));
+             snode->nodetree == bke::node_tree_from_id(snode->id));
 
   /* This is mainly here for readfile case ('lib_link' process), as in such case there is no access
    * to original data allowed, so no way to know whether the SpaceNode nodetree pointer is an
    * embedded one or not. */
   if (!is_readonly && snode->id && !snode->nodetree) {
     is_embedded_nodetree = true;
-    snode->nodetree = bke::ntreeFromID(snode->id);
+    snode->nodetree = bke::node_tree_from_id(snode->id);
     if (path != nullptr) {
       path->nodetree = snode->nodetree;
     }
@@ -1338,14 +1338,14 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
 static blender::StringRefNull node_space_name_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
-  bke::bNodeTreeType *tree_type = bke::ntreeTypeFind(snode->tree_idname);
+  bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   return tree_type->ui_name;
 }
 
 static int node_space_icon_get(const ScrArea *area)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
-  bke::bNodeTreeType *tree_type = bke::ntreeTypeFind(snode->tree_idname);
+  bke::bNodeTreeType *tree_type = bke::node_tree_type_find(snode->tree_idname);
   return tree_type->ui_icon;
 }
 

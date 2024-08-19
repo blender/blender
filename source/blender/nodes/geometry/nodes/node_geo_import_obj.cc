@@ -88,7 +88,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_import_node;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

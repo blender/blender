@@ -169,16 +169,16 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryPointsToVolume &storage = node_storage(*node);
-  bNodeSocket *voxel_size_socket = bke::nodeFindSocket(node, SOCK_IN, "Voxel Size");
-  bNodeSocket *voxel_amount_socket = bke::nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  bke::nodeSetSocketAvailability(ntree,
-                                 voxel_amount_socket,
-                                 storage.resolution_mode ==
-                                     GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
-  bke::nodeSetSocketAvailability(ntree,
-                                 voxel_size_socket,
-                                 storage.resolution_mode ==
-                                     GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
+  bNodeSocket *voxel_size_socket = bke::node_find_socket(node, SOCK_IN, "Voxel Size");
+  bNodeSocket *voxel_amount_socket = bke::node_find_socket(node, SOCK_IN, "Voxel Amount");
+  bke::node_set_socket_availability(ntree,
+                                    voxel_amount_socket,
+                                    storage.resolution_mode ==
+                                        GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
+  bke::node_set_socket_availability(ntree,
+                                    voxel_size_socket,
+                                    storage.resolution_mode ==
+                                        GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -235,7 +235,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

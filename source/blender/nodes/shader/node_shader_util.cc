@@ -221,7 +221,7 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
   }
 }
 
-bool blender::bke::nodeSupportsActiveFlag(const bNode *node, int sub_activity)
+bool blender::bke::node_supports_active_flag(const bNode *node, int sub_activity)
 {
   BLI_assert(ELEM(sub_activity, NODE_ACTIVE_TEXTURE, NODE_ACTIVE_PAINT_CANVAS));
   switch (sub_activity) {
@@ -252,7 +252,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
         return node;
       }
     }
-    else if (!inactivenode && blender::bke::nodeSupportsActiveFlag(node, sub_activity)) {
+    else if (!inactivenode && blender::bke::node_supports_active_flag(node, sub_activity)) {
       inactivenode = node;
     }
     else if (node->type == NODE_GROUP) {
@@ -295,12 +295,12 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
 
 namespace blender::bke {
 
-bNode *nodeGetActiveTexture(bNodeTree *ntree)
+bNode *node_get_active_texture(bNodeTree *ntree)
 {
   return node_get_active(ntree, NODE_ACTIVE_TEXTURE);
 }
 
-bNode *nodeGetActivePaintCanvas(bNodeTree *ntree)
+bNode *node_get_active_paint_canvas(bNodeTree *ntree)
 {
   return node_get_active(ntree, NODE_ACTIVE_PAINT_CANVAS);
 }

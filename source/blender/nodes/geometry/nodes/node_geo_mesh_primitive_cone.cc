@@ -77,7 +77,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryMeshCone &storage = node_storage(*node);
   const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
   const bool has_fill = fill != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  bke::nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
+  bke::node_set_socket_availability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -165,7 +165,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

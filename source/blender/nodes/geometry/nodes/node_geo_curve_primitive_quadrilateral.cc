@@ -120,7 +120,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    bke::nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
+    bke::node_set_socket_availability(ntree, sock, available_sockets.contains(sock));
   }
 }
 
@@ -318,7 +318,7 @@ static void node_register()
                                   node_free_standard_storage,
                                   node_copy_standard_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

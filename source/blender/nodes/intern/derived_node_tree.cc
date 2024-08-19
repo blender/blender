@@ -35,7 +35,7 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
     if (bnode->is_group()) {
       bNodeTree *child_btree = reinterpret_cast<bNodeTree *>(bnode->id);
       if (child_btree != nullptr) {
-        const bNodeInstanceKey child_key = bke::BKE_node_instance_key(instance_key, &btree, bnode);
+        const bNodeInstanceKey child_key = bke::node_instance_key(instance_key, &btree, bnode);
         DTreeContext &child = this->construct_context_recursively(
             &context, bnode, *child_btree, child_key);
         context.children_.add_new(bnode, &child);
@@ -98,7 +98,7 @@ void DerivedNodeTree::foreach_node_in_context_recursive(const DTreeContext &cont
 
 const bNodeInstanceKey DNode::instance_key() const
 {
-  return bke::BKE_node_instance_key(context()->instance_key(), &context()->btree(), bnode());
+  return bke::node_instance_key(context()->instance_key(), &context()->btree(), bnode());
 }
 
 DOutputSocket DInputSocket::get_corresponding_group_node_output() const
@@ -309,7 +309,7 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
 
 /* Find the active context from the given context and its descendants contexts. The active context
  * is the one whose node instance key matches the active_viewer_key stored in the root node tree.
- * The instance key of each context is computed by calling BKE_node_instance_key given the key of
+ * The instance key of each context is computed by calling node_instance_key given the key of
  * the parent as well as the group node making the context. */
 static const DTreeContext *find_active_context_recursive(const DTreeContext *context)
 {

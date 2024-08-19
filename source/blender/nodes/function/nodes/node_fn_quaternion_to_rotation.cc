@@ -35,7 +35,7 @@ static void node_register()
       &ntype, FN_NODE_QUATERNION_TO_ROTATION, "Quaternion to Rotation", NODE_CLASS_CONVERTER);
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

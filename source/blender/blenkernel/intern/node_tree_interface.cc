@@ -43,13 +43,13 @@ static const char *try_get_supported_socket_type(const StringRef socket_type)
 {
   /* Make a copy of the string for `.c_str()` until the socket type map uses C++ types. */
   const std::string idname(socket_type);
-  const blender::bke::bNodeSocketType *typeinfo = bke::nodeSocketTypeFind(idname.c_str());
+  const blender::bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(idname.c_str());
   if (typeinfo == nullptr) {
     return nullptr;
   }
   /* For builtin socket types only the base type is supported. */
-  if (nodeIsStaticSocketType(typeinfo)) {
-    return bke::nodeStaticSocketType(typeinfo->type, PROP_NONE);
+  if (node_is_static_socket_type(typeinfo)) {
+    return bke::node_static_socket_type(typeinfo->type, PROP_NONE);
   }
   return typeinfo->idname;
 }
@@ -652,7 +652,7 @@ using namespace blender::bke::node_interface;
 
 blender::bke::bNodeSocketType *bNodeTreeInterfaceSocket::socket_typeinfo() const
 {
-  return blender::bke::nodeSocketTypeFind(socket_type);
+  return blender::bke::node_socket_type_find(socket_type);
 }
 
 blender::ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const

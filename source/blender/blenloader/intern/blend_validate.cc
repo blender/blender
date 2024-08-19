@@ -218,7 +218,7 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    bNodeTree *node_tree = blender::bke::ntreeFromID(id_iter);
+    bNodeTree *node_tree = blender::bke::node_tree_from_id(id_iter);
     if (node_tree) {
       if (node_tree->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) {
         if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
@@ -249,7 +249,7 @@ void BLO_main_validate_embedded_flag(Main *bmain, ReportList * /*reports*/)
       id_iter->flag &= ~ID_FLAG_EMBEDDED_DATA;
     }
 
-    bNodeTree *node_tree = blender::bke::ntreeFromID(id_iter);
+    bNodeTree *node_tree = blender::bke::node_tree_from_id(id_iter);
     if (node_tree) {
       if ((node_tree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
         CLOG_ERROR(&LOG,

@@ -32,7 +32,7 @@ timeit::Nanoseconds Profiler::accumulate_node_group_times(const bNodeTree &node_
   timeit::Nanoseconds tree_evaluation_time = timeit::Nanoseconds::zero();
 
   for (const bNode *node : node_tree.all_nodes()) {
-    const bNodeInstanceKey node_instance_key = bke::BKE_node_instance_key(
+    const bNodeInstanceKey node_instance_key = bke::node_instance_key(
         instance_key, &node_tree, node);
     if (!node->is_group()) {
       /* Non-group node, no need to recurse into. Simply accumulate the node's evaluation time to

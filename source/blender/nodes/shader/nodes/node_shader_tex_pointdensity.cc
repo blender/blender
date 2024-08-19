@@ -113,5 +113,5 @@ void register_node_type_sh_tex_pointdensity()
                                   file_ns::node_shader_free_tex_pointdensity,
                                   file_ns::node_shader_copy_tex_pointdensity);
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

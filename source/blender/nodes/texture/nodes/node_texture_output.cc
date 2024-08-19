@@ -148,5 +148,5 @@ void register_node_type_tex_output()
   ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

@@ -38,7 +38,7 @@ void register_node_type_cmp_group()
   ntype.labelfunc = node_group_label;
   ntype.declare = blender::nodes::node_group_declare;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 
 void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype)

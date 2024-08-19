@@ -68,7 +68,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *individual_socket = static_cast<bNodeSocket *>(node->inputs.last);
 
-  bke::nodeSetSocketAvailability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
+  bke::node_set_socket_availability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
 }
 
 struct AttributeOutputs {
@@ -1555,7 +1555,7 @@ static void node_register()
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryExtrudeMesh", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

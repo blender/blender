@@ -50,5 +50,5 @@ void register_node_type_sh_output_linestyle()
   ntype.draw_buttons = file_ns::node_buts_output_linestyle;
   ntype.no_muting = true;
 
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }

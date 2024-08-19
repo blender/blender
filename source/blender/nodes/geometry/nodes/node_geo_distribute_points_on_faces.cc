@@ -76,18 +76,18 @@ static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode
   bNodeSocket *sock_density_max = static_cast<bNodeSocket *>(sock_distance_min->next);
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
-  bke::nodeSetSocketAvailability(ntree,
-                                 sock_distance_min,
-                                 node->custom1 ==
-                                     GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(ntree,
+                                    sock_distance_min,
+                                    node->custom1 ==
+                                        GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
+  bke::node_set_socket_availability(
       ntree, sock_density_max, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  bke::nodeSetSocketAvailability(
+  bke::node_set_socket_availability(
       ntree, sock_density, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
-  bke::nodeSetSocketAvailability(ntree,
-                                 sock_density_factor,
-                                 node->custom1 ==
-                                     GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
+  bke::node_set_socket_availability(ntree,
+                                    sock_density_factor,
+                                    node->custom1 ==
+                                        GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
 }
 
 /**
@@ -615,7 +615,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
-  blender::bke::nodeRegisterType(&ntype);
+  blender::bke::node_register_type(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
