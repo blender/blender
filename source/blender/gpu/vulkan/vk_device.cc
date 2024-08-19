@@ -40,17 +40,17 @@ void VKDevice::deinit()
     return;
   }
 
-  {
-    std::scoped_lock mutex(resources.mutex);
-    for (render_graph::VKRenderGraph *render_graph : render_graphs_) {
-      delete render_graph;
-    }
-    render_graphs_.clear();
-  }
-
   dummy_buffer_.free();
   samplers_.free();
-  destroy_discarded_resources();
+
+  {
+    while (!thread_data_.is_empty()) {
+      VKThreadData *thread_data = thread_data_.pop_last();
+      thread_data->deinit(*this);
+      delete thread_data;
+    }
+    thread_data_.clear();
+  }
   pipelines.free_data();
   vkDestroyPipelineCache(vk_device_, vk_pipeline_cache_, vk_allocation_callbacks);
   descriptor_set_layouts_.deinit();
@@ -347,25 +347,64 @@ std::string VKDevice::driver_version() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name VKThreadData
+ * \{ */
+
+VKThreadData::VKThreadData(VKDevice &device,
+                           pthread_t thread_id,
+                           std::unique_ptr<render_graph::VKCommandBufferInterface> command_buffer,
+                           render_graph::VKResourceStateTracker &resources)
+    : thread_id(thread_id), render_graph(std::move(command_buffer), resources)
+{
+  for (VKResourcePool &resource_pool : swap_chain_resources) {
+    resource_pool.init(device);
+  }
+}
+
+void VKThreadData::deinit(VKDevice &device)
+{
+  for (VKResourcePool &resource_pool : swap_chain_resources) {
+    resource_pool.deinit(device);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Resource management
  * \{ */
 
-render_graph::VKRenderGraph &VKDevice::render_graph()
+VKThreadData &VKDevice::current_thread_data()
 {
   std::scoped_lock mutex(resources.mutex);
   pthread_t current_thread_id = pthread_self();
 
-  for (render_graph::VKRenderGraph *render_graph : render_graphs_) {
-    if (pthread_equal(render_graph->thread_id, current_thread_id)) {
-      return *render_graph;
+  for (VKThreadData *thread_data : thread_data_) {
+    if (pthread_equal(thread_data->thread_id, current_thread_id)) {
+      return *thread_data;
     }
   }
 
-  render_graph::VKRenderGraph *render_graph = new render_graph::VKRenderGraph(
-      std::make_unique<render_graph::VKCommandBufferWrapper>(), resources);
-  render_graph->thread_id = current_thread_id;
-  render_graphs_.append(render_graph);
-  return *render_graph;
+  VKThreadData *thread_data = new VKThreadData(
+      *this,
+      current_thread_id,
+      std::make_unique<render_graph::VKCommandBufferWrapper>(),
+      resources);
+  thread_data_.append(thread_data);
+  return *thread_data;
+}
+
+VKDiscardPool &VKDevice::discard_pool_for_current_thread()
+{
+  std::scoped_lock mutex(resources.mutex);
+  pthread_t current_thread_id = pthread_self();
+  for (VKThreadData *thread_data : thread_data_) {
+    if (pthread_equal(thread_data->thread_id, current_thread_id)) {
+      return thread_data->resource_pool_get().discard_pool;
+    }
+  }
+
+  return orphaned_data;
 }
 
 void VKDevice::context_register(VKContext &context)
@@ -381,43 +420,6 @@ Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
 {
   return contexts_;
 };
-
-void VKDevice::discard_image(VkImage vk_image, VmaAllocation vma_allocation)
-{
-  discarded_images_.append(std::pair(vk_image, vma_allocation));
-}
-
-void VKDevice::discard_image_view(VkImageView vk_image_view)
-{
-  discarded_image_views_.append(vk_image_view);
-}
-
-void VKDevice::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation)
-{
-  discarded_buffers_.append(std::pair(vk_buffer, vma_allocation));
-}
-
-void VKDevice::destroy_discarded_resources()
-{
-  VK_ALLOCATION_CALLBACKS
-
-  while (!discarded_image_views_.is_empty()) {
-    VkImageView vk_image_view = discarded_image_views_.pop_last();
-    vkDestroyImageView(vk_device_, vk_image_view, vk_allocation_callbacks);
-  }
-
-  while (!discarded_images_.is_empty()) {
-    std::pair<VkImage, VmaAllocation> image_allocation = discarded_images_.pop_last();
-    resources.remove_image(image_allocation.first);
-    vmaDestroyImage(mem_allocator_get(), image_allocation.first, image_allocation.second);
-  }
-
-  while (!discarded_buffers_.is_empty()) {
-    std::pair<VkBuffer, VmaAllocation> buffer_allocation = discarded_buffers_.pop_last();
-    resources.remove_buffer(buffer_allocation.first);
-    vmaDestroyBuffer(mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
-  }
-}
 
 void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const
 {
@@ -459,10 +461,6 @@ void VKDevice::debug_print()
   os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";
   os << "Descriptor sets\n";
   os << " VkDescriptorSetLayouts: " << descriptor_set_layouts_.size() << "\n";
-  os << "Discarded resources\n";
-  os << " VkImageView: " << discarded_image_views_.size() << "\n";
-  os << " VkImage: " << discarded_images_.size() << "\n";
-  os << " VkBuffer: " << discarded_buffers_.size() << "\n";
   os << "\n";
 }
 

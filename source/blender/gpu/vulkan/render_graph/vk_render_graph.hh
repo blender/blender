@@ -120,12 +120,6 @@ class VKRenderGraph : public NonCopyable {
 
  public:
   VKSubmissionID submission_id;
-  /**
-   * Thread this render graph belongs to.
-   *
-   * Contexts of the same thread will share the same render graph. See `VKDevice::render_graph()`.
-   */
-  pthread_t thread_id;
 
   /**
    * Construct a new render graph instance.

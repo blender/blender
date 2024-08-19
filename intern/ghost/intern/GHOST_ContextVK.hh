@@ -190,8 +190,6 @@ class GHOST_ContextVK : public GHOST_Context {
   VkSurfaceFormatKHR m_surface_format;
   VkFence m_fence;
 
-  /** frame modulo swapchain_len. Used as index for sync objects. */
-  int m_currentFrame = 0;
   /** Image index in the swapchain. Used as index for render objects. */
   uint32_t m_currentImage = 0;
 

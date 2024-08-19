@@ -39,6 +39,13 @@ class VKBuffer {
   void update(const void *data) const;
   void flush() const;
   void read(VKContext &context, void *data) const;
+
+  /**
+   * Free the buffer.
+   *
+   * Discards the buffer so it can be destroyed safely later. Buffers can still be used when
+   * rendering so we can only destroy them after the rendering is completed.
+   */
   bool free();
 
   int64_t size_in_bytes() const

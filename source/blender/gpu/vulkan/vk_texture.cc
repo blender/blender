@@ -41,8 +41,7 @@ VKTexture::~VKTexture()
 {
   if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
     VKDevice &device = VKBackend::get().device;
-    device.discard_image(vk_image_, allocation_);
-
+    device.discard_pool_for_current_thread().discard_image(vk_image_, allocation_);
     vk_image_ = VK_NULL_HANDLE;
     allocation_ = VK_NULL_HANDLE;
   }

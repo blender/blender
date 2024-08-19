@@ -90,6 +90,13 @@ void VKCommandBuilder::build_node_group(VKRenderGraph &render_graph,
   bool is_rendering = false;
   for (NodeHandle node_handle : node_group) {
     VKRenderGraphNode &node = render_graph.nodes_[node_handle];
+#if 0
+    std::cout << "node_group: " << node_group.first() << "-" << node_group.last()
+              << ", node_handle: " << node_handle << ", node_type: " << node.type << "\n";
+#endif
+#if 0
+    render_graph.debug_print(node_handle);
+#endif
     build_pipeline_barriers(render_graph, command_buffer, node_handle, node.pipeline_stage_get());
     if (node.type == VKNodeType::BEGIN_RENDERING) {
       layer_tracking_begin(render_graph, node_handle);

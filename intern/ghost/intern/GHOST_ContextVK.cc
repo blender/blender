@@ -520,6 +520,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   VK_CHECK(vkResetFences(device, 1, &m_fence));
 
   GHOST_VulkanSwapChainData swap_chain_data;
+  swap_chain_data.swap_chain_index = m_currentImage;
   swap_chain_data.image = m_swapchain_images[m_currentImage];
   swap_chain_data.format = m_surface_format.format;
   swap_chain_data.extent = m_render_extent;
@@ -557,7 +558,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     return GHOST_kFailure;
   }
 
-  m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+  m_currentImage = (m_currentImage + 1) % m_swapchain_images.size();
 
   if (swap_buffers_post_callback_) {
     swap_buffers_post_callback_();
@@ -569,6 +570,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
 GHOST_TSuccess GHOST_ContextVK::getVulkanSwapChainFormat(
     GHOST_VulkanSwapChainData *r_swap_chain_data)
 {
+  r_swap_chain_data->swap_chain_index = m_currentImage;
   r_swap_chain_data->image = VK_NULL_HANDLE;
   r_swap_chain_data->format = m_surface_format.format;
   r_swap_chain_data->extent = m_render_extent;
@@ -810,6 +812,9 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   /* NOTE: maxImageCount == 0 means no limit. */
   if (image_count > capabilities.maxImageCount && capabilities.maxImageCount > 0) {
     image_count = capabilities.maxImageCount;
+  }
+  if (capabilities.minImageCount <= 3 && image_count > 3) {
+    image_count = 3;
   }
 
   VkSwapchainCreateInfoKHR create_info = {};

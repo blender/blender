@@ -166,9 +166,11 @@ bool VKBuffer::free()
   }
 
   VKDevice &device = VKBackend::get().device;
-  device.discard_buffer(vk_buffer_, allocation_);
+  device.discard_pool_for_current_thread().discard_buffer(vk_buffer_, allocation_);
+
   allocation_ = VK_NULL_HANDLE;
   vk_buffer_ = VK_NULL_HANDLE;
+
   return true;
 }
 

@@ -227,6 +227,7 @@ set(VULKAN_SRC
   vulkan/render_graph/vk_resource_access_info.cc
   vulkan/render_graph/vk_resource_state_tracker.cc
   vulkan/render_graph/vk_scheduler.cc
+  vulkan/vk_resource_pool.cc
   vulkan/vk_resource_tracker.cc
   vulkan/vk_sampler.cc
   vulkan/vk_samplers.cc
@@ -295,6 +296,7 @@ set(VULKAN_SRC
   vulkan/render_graph/vk_resource_access_info.hh
   vulkan/render_graph/vk_resource_state_tracker.hh
   vulkan/render_graph/vk_scheduler.hh
+  vulkan/vk_resource_pool.hh
   vulkan/vk_resource_tracker.hh
   vulkan/vk_sampler.hh
   vulkan/vk_samplers.hh

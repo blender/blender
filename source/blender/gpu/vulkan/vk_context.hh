@@ -16,6 +16,7 @@
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
+#include "vk_resource_pool.hh"
 
 namespace blender::gpu {
 class VKFrameBuffer;
@@ -23,12 +24,10 @@ class VKVertexAttributeObject;
 class VKBatch;
 class VKStateManager;
 class VKShader;
+class VKThreadData;
 
 class VKContext : public Context, NonCopyable {
  private:
-  VKDescriptorPools descriptor_pools_;
-  VKDescriptorSetTracker descriptor_set_;
-
   VkExtent2D vk_extent_ = {};
   VkFormat swap_chain_format_ = {};
   GPUTexture *surface_texture_ = nullptr;
@@ -39,10 +38,12 @@ class VKContext : public Context, NonCopyable {
 
   bool is_init_ = false;
 
+  VKThreadData &thread_data_;
+
  public:
   render_graph::VKRenderGraph &render_graph;
 
-  VKContext(void *ghost_window, void *ghost_context, render_graph::VKRenderGraph &render_graph);
+  VKContext(void *ghost_window, void *ghost_context, VKThreadData &thread_data);
   virtual ~VKContext();
 
   void activate() override;
@@ -98,16 +99,8 @@ class VKContext : public Context, NonCopyable {
     return static_cast<VKContext *>(Context::get());
   }
 
-  VKDescriptorPools &descriptor_pools_get()
-  {
-    return descriptor_pools_;
-  }
-
-  VKDescriptorSetTracker &descriptor_set_get()
-  {
-    return descriptor_set_;
-  }
-
+  VKDescriptorPools &descriptor_pools_get();
+  VKDescriptorSetTracker &descriptor_set_get();
   VKStateManager &state_manager_get() const;
 
   static void swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *data);
