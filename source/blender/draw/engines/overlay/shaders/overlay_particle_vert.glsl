@@ -4,6 +4,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 /* TODO(fclem): Share with C code. */
 #define VCLASS_SCREENALIGNED (1 << 9)
@@ -18,6 +19,8 @@ vec3 rotate(vec3 vec, vec4 quat)
 
 void main()
 {
+  select_id_set(drw_CustomID);
+
   /* Draw-size packed in alpha. */
   float draw_size = ucolor.a;
 

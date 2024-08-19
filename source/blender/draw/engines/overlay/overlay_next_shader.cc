@@ -279,6 +279,22 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.vertex_inputs_.pop_last();
       });
 
+  particle_dot = selectable_shader("overlay_particle_dot",
+                                   [](gpu::shader::ShaderCreateInfo &info) {
+                                     info.additional_infos_.clear();
+                                     info.additional_info("overlay_particle",
+                                                          "draw_view",
+                                                          "draw_modelmat_new",
+                                                          "draw_resource_handle_new",
+                                                          "draw_globals");
+                                   });
+
+  particle_shape = selectable_shader("overlay_particle_shape_next",
+                                     [](gpu::shader::ShaderCreateInfo & /*info*/) {});
+
+  particle_hair = selectable_shader("overlay_particle_hair_next",
+                                    [](gpu::shader::ShaderCreateInfo & /*info*/) {});
+
   wireframe_mesh = selectable_shader("overlay_wireframe", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
     info.define("CUSTOM_DEPTH_BIAS_CONST");

@@ -239,6 +239,23 @@ struct VertexData {
 };
 BLI_STATIC_ASSERT_ALIGN(VertexData, 16)
 
+/* Limited by expand_prim_len bit count. */
+#define PARTICLE_SHAPE_CIRCLE_RESOLUTION 7
+
+/* TODO(fclem): This should be a enum, but it breaks compilation on Metal for some reason. */
+#define PART_SHAPE_AXIS 1
+#define PART_SHAPE_CIRCLE 2
+#define PART_SHAPE_CROSS 3
+
+struct ParticlePointData {
+  packed_float3 position;
+  /* Can either be velocity or acceleration. */
+  float value;
+  /* Rotation encoded as quaternion. */
+  float4 rotation;
+};
+BLI_STATIC_ASSERT_ALIGN(ParticlePointData, 16)
+
 #ifndef GPU_SHADER
 #  ifdef __cplusplus
 }

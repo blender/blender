@@ -200,6 +200,9 @@ class ShaderModule {
   ShaderPtr facing;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
+  ShaderPtr particle_dot;
+  ShaderPtr particle_shape;
+  ShaderPtr particle_hair;
   ShaderPtr wireframe_mesh;
   ShaderPtr wireframe_curve;
   ShaderPtr wireframe_points; /* Draw objects without edges for the wireframe overlay. */
