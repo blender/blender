@@ -145,10 +145,10 @@ static bool rna_VolumeGrid_load(ID * /*id*/, DummyVolumeGridData *dummy_grid)
   return blender::bke::volume_grid::error_message_from_load(*grid).empty();
 }
 
-static void rna_VolumeGrid_unload(ID * /*id*/, DummyVolumeGridData *dummy_grid)
+static void rna_VolumeGrid_unload(ID * /*id*/, DummyVolumeGridData * /*dummy_grid*/)
 {
-  auto *grid = reinterpret_cast<const blender::bke::VolumeGridData *>(dummy_grid);
-  blender::bke::volume_grid::unload_tree_if_possible(*grid);
+  /* This is handled transparently. The grid is unloaded automatically if it's not used and the
+   * memory cache is full. */
 }
 
 /* Grids Iterator */

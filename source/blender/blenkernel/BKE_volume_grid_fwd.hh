@@ -69,11 +69,6 @@ VolumeGridType get_type(const VolumeGridData &grid);
 int get_channels_num(VolumeGridType type);
 
 /**
- * Unloads the tree data if no one is using it right now and it could be reloaded later on.
- */
-void unload_tree_if_possible(const VolumeGridData &grid);
-
-/**
  * Get the transform of the grid as an affine matrix.
  */
 float4x4 get_transform_matrix(const VolumeGridData &grid);

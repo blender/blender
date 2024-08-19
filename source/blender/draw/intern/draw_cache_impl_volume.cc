@@ -301,8 +301,6 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
     return cache_grid;
   }
 
-  const bool was_loaded = bke::volume_grid::is_loaded(*grid);
-
   DenseFloatVolumeGrid dense_grid;
   if (BKE_volume_grid_dense_floats(volume, grid, &dense_grid)) {
     cache_grid->texture_to_object = float4x4(dense_grid.texture_to_object);
@@ -327,11 +325,6 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
       MEM_freeN(dense_grid.voxels);
       printf("Error: Could not allocate 3D texture for volume.\n");
     }
-  }
-
-  /* Free grid from memory if it wasn't previously loaded. */
-  if (!was_loaded) {
-    bke::volume_grid::unload_tree_if_possible(*grid);
   }
 
   return cache_grid;

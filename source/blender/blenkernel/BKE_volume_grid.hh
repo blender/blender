@@ -27,6 +27,20 @@
 namespace blender::bke::volume_grid {
 
 /**
+ * A grid or tree may be loaded lazily when it's accessed. This is especially useful for grids that
+ * are loaded from disk. Those may even be unloaded temporarily to avoid using too much memory.
+ */
+struct LazyLoadedGrid {
+  /**
+   * The newly loaded grid. In some cases, only the tree if this is used. The referenced tree is
+   * expected to be either uniquely owned or implicitly-shared. In the latter case, the
+   * implicit-sharing info for the tree has to be available too.
+   */
+  std::shared_ptr<openvdb::GridBase> grid;
+  ImplicitSharingPtr<> tree_sharing_info;
+};
+
+/**
  * Main volume grid data structure. It wraps an OpenVDB grid and adds some features on top of it.
  *
  * A grid contains the following:
@@ -55,9 +69,13 @@ namespace blender::bke::volume_grid {
 class VolumeGridData : public ImplicitSharingMixin {
  private:
   /**
-   * Empty struct that exists so that it can be used as token in #VolumeTreeAccessToken.
+   * Exists so that it can be used as token in #VolumeTreeAccessToken.
    */
-  struct AccessToken {};
+  struct AccessToken {
+    const VolumeGridData &grid;
+
+    AccessToken(const VolumeGridData &grid) : grid(grid) {}
+  };
 
   /**
    * A mutex that needs to be locked whenever working with the data members below.
@@ -94,7 +112,7 @@ class VolumeGridData : public ImplicitSharingMixin {
   /**
    * A function that can load the full grid or also just the tree lazily.
    */
-  std::function<std::shared_ptr<openvdb::GridBase>()> lazy_load_grid_;
+  std::function<LazyLoadedGrid()> lazy_load_grid_;
   /**
    * An error produced while trying to lazily load the grid.
    */
@@ -134,7 +152,7 @@ class VolumeGridData : public ImplicitSharingMixin {
    *   might come from e.g. #readAllGridMetadata. This allows working with the transform and
    *   meta-data without actually loading the tree.
    */
-  explicit VolumeGridData(std::function<std::shared_ptr<openvdb::GridBase>()> lazy_load_grid,
+  explicit VolumeGridData(std::function<LazyLoadedGrid()> lazy_load_grid,
                           std::shared_ptr<openvdb::GridBase> meta_data_and_transform_grid = {});
 
   ~VolumeGridData();
@@ -220,14 +238,32 @@ class VolumeGridData : public ImplicitSharingMixin {
    */
   bool is_reloadable() const;
 
+ private:
   /**
    * Unloads the tree data if it's reloadable and no one is using it right now.
    */
   void unload_tree_if_possible() const;
 
- private:
   void ensure_grid_loaded() const;
   void delete_self();
+};
+
+/**
+ * Multiple #VolumeDataGrid can implicitly share the same underlying tree with different
+ * meta-data/transforms. Note that this is different from using a `shared_ptr`, because that is
+ * only used to please different APIs and does not enforce that shared data is immutable.
+ */
+class OpenvdbTreeSharingInfo : public ImplicitSharingInfo {
+ private:
+  std::shared_ptr<openvdb::tree::TreeBase> tree_;
+
+ public:
+  OpenvdbTreeSharingInfo(std::shared_ptr<openvdb::tree::TreeBase> tree);
+
+  static ImplicitSharingPtr<> make(std::shared_ptr<openvdb::tree::TreeBase> tree);
+
+  void delete_self_with_data() override;
+  void delete_data_only() override;
 };
 
 class VolumeTreeAccessToken {
@@ -237,6 +273,18 @@ class VolumeTreeAccessToken {
   friend VolumeGridData;
 
  public:
+  /**
+   * Defaulting everything but the destructor is fine because the default behavior works
+   * correctly on the single data member. The destructor has a special implementation because it
+   * may automatically unload the volume tree if it's not used anymore to conserve memory.
+   */
+  VolumeTreeAccessToken() = default;
+  VolumeTreeAccessToken(const VolumeTreeAccessToken &) = default;
+  VolumeTreeAccessToken(VolumeTreeAccessToken &&) = default;
+  VolumeTreeAccessToken &operator=(const VolumeTreeAccessToken &) = default;
+  VolumeTreeAccessToken &operator=(VolumeTreeAccessToken &&) = default;
+  ~VolumeTreeAccessToken();
+
   /** True if the access token can be used with the given grid. */
   bool valid_for(const VolumeGridData &grid) const;
 

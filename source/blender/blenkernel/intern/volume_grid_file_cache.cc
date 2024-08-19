@@ -8,6 +8,8 @@
 #  include "BKE_volume_openvdb.hh"
 
 #  include "BLI_map.hh"
+#  include "BLI_memory_cache.hh"
+#  include "BLI_memory_counter.hh"
 
 #  include <openvdb/openvdb.h>
 
@@ -124,6 +126,54 @@ static FileCache &get_file_cache(const StringRef file_path)
 }
 
 /**
+ * Identifies a grid in the global memory cache.
+ */
+class GridReadKey : public GenericKey {
+ public:
+  std::string file_path;
+  std::string grid_name;
+  int simplify_level;
+
+  uint64_t hash() const override
+  {
+    return get_default_hash(this->file_path, this->grid_name, this->simplify_level);
+  }
+
+  BLI_STRUCT_EQUALITY_OPERATORS_3(GridReadKey, file_path, grid_name, simplify_level)
+
+  bool equal_to(const GenericKey &other) const override
+  {
+    if (const auto *other_typed = dynamic_cast<const GridReadKey *>(&other)) {
+      return *this == *other_typed;
+    }
+    return false;
+  }
+
+  std::unique_ptr<GenericKey> to_storable() const override
+  {
+    return std::make_unique<GridReadKey>(*this);
+  }
+};
+
+class GridReadValue : public memory_cache::CachedValue {
+ private:
+  mutable std::atomic<int64_t> bytes_ = 0;
+
+ public:
+  ImplicitSharingPtr<> tree_sharing_info;
+  openvdb::GridBase::Ptr grid;
+
+  void count_memory(MemoryCounter &memory) const override
+  {
+    /* Avoid computing the amount of memory from scratch every time. */
+    if (bytes_ == 0) {
+      this->bytes_ = grid->baseTree().memUsage();
+    }
+    memory.add(bytes_);
+  }
+};
+
+/**
  * Load a single grid by name from a file. This loads the full grid including meta-data, transforms
  * and the tree.
  */
@@ -141,6 +191,49 @@ static openvdb::GridBase::Ptr load_single_grid_from_disk(const StringRef file_pa
 }
 
 /**
+ * Load a single grid by name from a file. This loads the full grid including meta-data, transforms
+ * and the tree.
+ */
+static LazyLoadedGrid load_single_grid_from_disk_cached(const StringRef file_path,
+                                                        const StringRef grid_name,
+                                                        const int simplify_level)
+{
+  GridReadKey key;
+  key.file_path = file_path;
+  key.grid_name = grid_name;
+  key.simplify_level = simplify_level;
+
+  std::shared_ptr<const GridReadValue> value = memory_cache::get<GridReadValue>(
+      std::move(key), [&key]() {
+        openvdb::GridBase::Ptr grid;
+        if (key.simplify_level == 0) {
+          grid = load_single_grid_from_disk(key.file_path, key.grid_name);
+        }
+        else {
+          /* Build the simplified grid from the main grid. */
+          const GVolumeGrid main_grid = get_grid_from_file(key.file_path, key.grid_name, 0);
+          const VolumeGridType grid_type = main_grid->grid_type();
+          const float resolution_factor = 1.0f / (1 << key.simplify_level);
+          VolumeTreeAccessToken tree_token;
+          grid = BKE_volume_grid_create_with_changed_resolution(
+              grid_type, main_grid->grid(tree_token), resolution_factor);
+        }
+        auto value = std::make_unique<GridReadValue>();
+        value->grid = std::move(grid);
+        value->tree_sharing_info = OpenvdbTreeSharingInfo::make(value->grid->baseTreePtr());
+        return value;
+      });
+  if (!value) {
+    return {};
+  }
+
+  /* Copy the grid so that it has a single owner. Note that the tree is still shared. */
+  openvdb::GridBase::Ptr grid = value->grid->copyGrid();
+  grid->setTransform(grid->transform().copy());
+  return {grid, value->tree_sharing_info};
+}
+
+/**
  * Checks if there is already a cached grid for the parameters and creates it otherwise. This does
  * not load the tree, because that is done on-demand.
  */
@@ -154,17 +247,8 @@ static GVolumeGrid get_cached_grid(const StringRef file_path,
   /* A callback that actually loads the full grid including the tree when it's accessed. */
   auto load_grid_fn = [file_path = std::string(file_path),
                        grid_name = std::string(grid_cache.meta_data_grid->getName()),
-                       simplify_level]() {
-    if (simplify_level == 0) {
-      return load_single_grid_from_disk(file_path, grid_name);
-    }
-    /* Build the simplified grid from the main grid. */
-    const GVolumeGrid main_grid = get_grid_from_file(file_path, grid_name, 0);
-    const VolumeGridType grid_type = main_grid->grid_type();
-    const float resolution_factor = 1.0f / (1 << simplify_level);
-    VolumeTreeAccessToken tree_token;
-    return BKE_volume_grid_create_with_changed_resolution(
-        grid_type, main_grid->grid(tree_token), resolution_factor);
+                       simplify_level]() -> LazyLoadedGrid {
+    return load_single_grid_from_disk_cached(file_path, grid_name, simplify_level);
   };
   /* This allows the returned grid to already contain meta-data and transforms, even if the tree is
    * not loaded yet. */
