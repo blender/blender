@@ -640,32 +640,6 @@ static Array<float> geodesic_falloff_create(const Depsgraph &depsgraph,
  * Topology: Initializes the falloff using a flood-fill operation,
  * increasing the falloff value by 1 when visiting a new vertex.
  */
-struct FloodFillData {
-  float3 original_normal;
-  float edge_sensitivity;
-  MutableSpan<float> dists;
-  MutableSpan<float> edge_factor;
-};
-
-static bool topology_floodfill_fn(SculptSession &ss,
-                                  PBVHVertRef from_v,
-                                  PBVHVertRef to_v,
-                                  bool is_duplicate,
-                                  MutableSpan<float> dists)
-{
-  int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
-
-  if (!is_duplicate) {
-    const float to_it = dists[from_v_i] + 1.0f;
-    dists[to_v_i] = to_it;
-  }
-  else {
-    dists[to_v_i] = dists[from_v_i];
-  }
-  return true;
-}
-
 static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
                                             Object &ob,
                                             const PBVHVertRef v)
@@ -674,12 +648,52 @@ static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
   const int totvert = SCULPT_vertex_count_get(ss);
   Array<float> dists(totvert, 0.0f);
 
-  flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, v, FLT_MAX);
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      flood_fill::FillDataMesh flood(totvert);
+      flood.add_initial_with_symmetry(depsgraph, ob, *ss.pbvh, v.i, FLT_MAX);
+      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
+        dists[to_vert] = dists[from_vert] + 1.0f;
+        return true;
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-    return topology_floodfill_fn(ss, from_v, to_v, is_duplicate, dists);
-  });
+      const SubdivCCGCoord orig_coord = SubdivCCGCoord::from_index(key, v.i);
+      flood_fill::FillDataGrids flood(totvert);
+      flood.add_initial_with_symmetry(ob, *ss.pbvh, subdiv_ccg, orig_coord, FLT_MAX);
+      flood.execute(
+          ob,
+          subdiv_ccg,
+          [&](const SubdivCCGCoord from, const SubdivCCGCoord to, const bool is_duplicate) {
+            const int from_vert = from.to_index(key);
+            const int to_vert = to.to_index(key);
+            if (is_duplicate) {
+              dists[to_vert] = dists[from_vert];
+            }
+            else {
+              dists[to_vert] = dists[from_vert] + 1.0f;
+            }
+            return true;
+          });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      flood_fill::FillDataBMesh flood(totvert);
+      BMVert *orig_vert = reinterpret_cast<BMVert *>(intptr_t(v.i));
+      flood.add_initial_with_symmetry(ob, *ss.pbvh, orig_vert, FLT_MAX);
+      flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
+        const int from_vert = BM_elem_index_get(from_bm_vert);
+        const int to_vert = BM_elem_index_get(to_bm_vert);
+        dists[to_vert] = dists[from_vert] + 1.0f;
+        return true;
+      });
+      break;
+    }
+  }
 
   return dists;
 }
@@ -689,35 +703,6 @@ static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
  * each vertex and the previous one.
  * This creates falloff patterns that follow and snap to the hard edges of the object.
  */
-static bool normal_floodfill_fn(const Depsgraph &depsgraph,
-                                Object &object,
-                                PBVHVertRef from_v,
-                                PBVHVertRef to_v,
-                                bool is_duplicate,
-                                FloodFillData *data)
-{
-  const SculptSession &ss = *object.sculpt;
-  int from_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
-
-  if (!is_duplicate) {
-    float3 current_normal = SCULPT_vertex_normal_get(depsgraph, object, to_v);
-    float3 prev_normal = SCULPT_vertex_normal_get(depsgraph, object, from_v);
-    const float from_edge_factor = data->edge_factor[from_v_i];
-    data->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) * from_edge_factor;
-    data->dists[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
-                          powf(from_edge_factor, data->edge_sensitivity);
-    CLAMP(data->dists[to_v_i], 0.0f, 1.0f);
-  }
-  else {
-    /* bke::pbvh::Type::Grids duplicate handling. */
-    data->edge_factor[to_v_i] = data->edge_factor[from_v_i];
-    data->dists[to_v_i] = data->dists[from_v_i];
-  }
-
-  return true;
-}
-
 static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
                                            Object &ob,
                                            const PBVHVertRef v,
@@ -727,20 +712,81 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
   SculptSession &ss = *ob.sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
   Array<float> dists(totvert, 0.0f);
-  Array<float> edge_factor(totvert, 1.0f);
+  Array<float> edge_factors(totvert, 1.0f);
 
-  flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, v, FLT_MAX);
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
 
-  FloodFillData fdata;
-  fdata.dists = dists;
-  fdata.edge_factor = edge_factor;
-  fdata.edge_sensitivity = edge_sensitivity;
-  fdata.original_normal = SCULPT_vertex_normal_get(depsgraph, ob, v);
+      const float3 orig_normal = vert_normals[v.i];
+      flood_fill::FillDataMesh flood(totvert);
+      flood.add_initial_with_symmetry(depsgraph, ob, *ss.pbvh, v.i, FLT_MAX);
+      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
+        const float3 &from_normal = vert_normals[from_vert];
+        const float3 &to_normal = vert_normals[to_vert];
+        const float from_edge_factor = edge_factors[from_vert];
+        const float dist = math::dot(orig_normal, to_normal) *
+                           powf(from_edge_factor, edge_sensitivity);
+        edge_factors[to_vert] = math::dot(to_normal, from_normal) * from_edge_factor;
+        dists[to_vert] = std::clamp(dist, 0.0f, 1.0f);
+        return true;
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-    return normal_floodfill_fn(depsgraph, ob, from_v, to_v, is_duplicate, &fdata);
-  });
+      const SubdivCCGCoord orig_coord = SubdivCCGCoord::from_index(key, v.i);
+      const float3 orig_normal = CCG_grid_elem_no(
+          key, elems[orig_coord.grid_index], orig_coord.x, orig_coord.y);
+      flood_fill::FillDataGrids flood(totvert);
+      flood.add_initial_with_symmetry(ob, *ss.pbvh, subdiv_ccg, orig_coord, FLT_MAX);
+      flood.execute(
+          ob,
+          subdiv_ccg,
+          [&](const SubdivCCGCoord from, const SubdivCCGCoord to, const bool is_duplicate) {
+            const int from_vert = from.to_index(key);
+            const int to_vert = to.to_index(key);
+            if (is_duplicate) {
+              edge_factors[to_vert] = edge_factors[from_vert];
+              dists[to_vert] = dists[from_vert];
+            }
+            else {
+              const float3 &from_normal = CCG_grid_elem_no(
+                  key, elems[from.grid_index], from.x, from.y);
+              const float3 &to_normal = CCG_grid_elem_no(key, elems[to.grid_index], to.x, to.y);
+              const float from_edge_factor = edge_factors[from_vert];
+              const float dist = math::dot(orig_normal, to_normal) *
+                                 powf(from_edge_factor, edge_sensitivity);
+              edge_factors[to_vert] = math::dot(to_normal, from_normal) * from_edge_factor;
+              dists[to_vert] = std::clamp(dist, 0.0f, 1.0f);
+            }
+            return true;
+          });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      flood_fill::FillDataBMesh flood(totvert);
+      BMVert *orig_vert = reinterpret_cast<BMVert *>(intptr_t(v.i));
+      const float3 orig_normal = orig_vert->no;
+      flood.add_initial_with_symmetry(ob, *ss.pbvh, orig_vert, FLT_MAX);
+      flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
+        const float3 &from_normal = from_bm_vert->no;
+        const float3 &to_normal = to_bm_vert->no;
+        const int from_vert = BM_elem_index_get(from_bm_vert);
+        const int to_vert = BM_elem_index_get(to_bm_vert);
+        const float from_edge_factor = edge_factors[from_vert];
+        const float dist = math::dot(orig_normal, to_normal) *
+                           powf(from_edge_factor, edge_sensitivity);
+        edge_factors[to_vert] = math::dot(to_normal, from_normal) * from_edge_factor;
+        dists[to_vert] = std::clamp(dist, 0.0f, 1.0f);
+        return true;
+      });
+      break;
+    }
+  }
 
   smooth::blur_geometry_data_array(ob, blur_steps, dists);
 
@@ -1115,16 +1161,54 @@ static void topology_from_state_boundary(Object &ob,
   IndexMaskMemory memory;
   const IndexMask boundary_verts = boundary_from_enabled(ob, enabled_verts, false, memory);
 
-  flood_fill::FillData flood = flood_fill::init_fill(ss);
-  boundary_verts.foreach_index([&](const int vert) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
-    flood_fill::add_and_skip_initial(flood, vertex);
-  });
-
   MutableSpan<float> dists = expand_cache.vert_falloff;
-  flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-    return topology_floodfill_fn(ss, from_v, to_v, is_duplicate, dists);
-  });
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh: {
+      flood_fill::FillDataMesh flood(totvert);
+      boundary_verts.foreach_index([&](const int vert) { flood.add_and_skip_initial(vert); });
+      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
+        dists[to_vert] = dists[from_vert] + 1.0f;
+        return true;
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      flood_fill::FillDataGrids flood(totvert);
+      boundary_verts.foreach_index([&](const int vert) {
+        flood.add_and_skip_initial(SubdivCCGCoord::from_index(key, vert), vert);
+      });
+      flood.execute(
+          ob,
+          subdiv_ccg,
+          [&](const SubdivCCGCoord from, const SubdivCCGCoord to, const bool is_duplicate) {
+            const int from_vert = from.to_index(key);
+            const int to_vert = to.to_index(key);
+            if (is_duplicate) {
+              dists[to_vert] = dists[from_vert];
+            }
+            else {
+              dists[to_vert] = dists[from_vert] + 1.0f;
+            }
+            return true;
+          });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      flood_fill::FillDataBMesh flood(totvert);
+      boundary_verts.foreach_index([&](const int vert) {
+        flood.add_and_skip_initial(BM_vert_at_index(ss.bm, vert), vert);
+      });
+      flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
+        const int from_vert = BM_elem_index_get(from_bm_vert);
+        const int to_vert = BM_elem_index_get(to_bm_vert);
+        dists[to_vert] = dists[from_vert] + 1.0f;
+        return true;
+      });
+      break;
+    }
+  }
 }
 
 /**

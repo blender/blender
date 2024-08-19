@@ -53,10 +53,10 @@ void add_and_skip_initial(FillData &flood, PBVHVertRef vertex)
   flood.visited_verts[vertex.i].set(vertex.i);
 }
 
-void FillDataMesh::add_and_skip_initial(const int vertex, const int index)
+void FillDataMesh::add_and_skip_initial(const int vertex)
 {
   this->queue.push(vertex);
-  this->visited_verts[index].set();
+  this->visited_verts[vertex].set();
 }
 
 void FillDataGrids::add_and_skip_initial(const SubdivCCGCoord vertex, const int index)

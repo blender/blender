@@ -35,7 +35,7 @@ struct FillDataMesh {
   FillDataMesh(int size) : visited_verts(size) {}
 
   void add_initial(int vertex);
-  void add_and_skip_initial(int vertex, int index);
+  void add_and_skip_initial(int vertex);
   void add_initial_with_symmetry(const Depsgraph &depsgraph,
                                  const Object &object,
                                  const bke::pbvh::Tree &pbvh,
