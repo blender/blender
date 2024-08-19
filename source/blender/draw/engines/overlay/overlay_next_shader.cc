@@ -307,10 +307,10 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
   });
 
   wireframe_points = selectable_shader("overlay_wireframe_points",
-                                       [](gpu::shader::ShaderCreateInfo &info) {});
+                                       [](gpu::shader::ShaderCreateInfo & /*info*/) {});
 
   wireframe_curve = selectable_shader("overlay_wireframe_curve",
-                                      [](gpu::shader::ShaderCreateInfo &info) {});
+                                      [](gpu::shader::ShaderCreateInfo & /*info*/) {});
 }
 
 ShaderModule &ShaderModule::module_get(SelectionType selection_type, bool clipping_enabled)
