@@ -8621,6 +8621,23 @@ def km_3d_view_tool_paint_gpencil_eyedropper(params):
     )
 
 
+def km_3d_view_tool_paint_grease_pencil_eyedropper(params):
+    return (
+        "3D View Tool: Paint Grease Pencil, Eyedropper",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("ui.eyedropper_grease_pencil_color",
+             {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("ui.eyedropper_grease_pencil_color",
+             {"type": params.tool_mouse, "value": 'PRESS', "shift": True}, None),
+            ("ui.eyedropper_grease_pencil_color",
+             {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True}, None),
+            ("ui.eyedropper_grease_pencil_color",
+             {"type": params.tool_mouse, "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_paint_gpencil_interpolate(params):
     return (
         "3D View Tool: Paint Gpencil, Interpolate",
@@ -9322,6 +9339,7 @@ def generate_keymaps(params=None):
         km_sequencer_editor_tool_scale(params),
         km_3d_view_tool_edit_grease_pencil_interpolate(params),
         km_3d_view_tool_paint_grease_pencil_interpolate(params),
+        km_3d_view_tool_paint_grease_pencil_eyedropper(params),
     ]
 
 # ------------------------------------------------------------------------------
