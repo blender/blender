@@ -1048,9 +1048,10 @@ class I18nMessages:
                     msgstr_lines.append(line)
                 else:
                     self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
-                    # self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope:\n\t\t{}"
-                    #                             "\n\tComments:{}\n\tContext:{}\n\tKey:{}\n\tMessage:{}".format(
-                    #                                 line, comment_lines, msgctxt_lines, msgid_lines, msgstr_lines)))
+                    # self.parsing_errors.append((
+                    #     line_nr, "regular string outside msgctxt, msgid or msgstr scope:\n\t\t{}"
+                    #     "\n\tComments:{}\n\tContext:{}\n\tKey:{}\n\tMessage:{}".format(
+                    #         line, comment_lines, msgctxt_lines, msgid_lines, msgstr_lines)))
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:

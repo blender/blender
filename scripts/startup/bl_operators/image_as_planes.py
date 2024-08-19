@@ -294,10 +294,12 @@ class MaterialProperties_MixIn:
         items=(
             ('DITHERED',
              "Dithered",
-             "Allows for grayscale hashed transparency, and compatible with render passes and raytracing. Also known as deferred rendering."),
+             "Allows for grayscale hashed transparency, and compatible with render passes and ray-tracing. "
+             "Also known as deferred rendering."),
             ('BLENDED',
              "Blended",
-             "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering.")))
+             "Allows for colored transparency, but incompatible with render passes and ray-tracing. "
+             "Also known as forward rendering.")))
 
     use_backface_culling: BoolProperty(
         name="Backface Culling",

@@ -1057,7 +1057,8 @@ def km_mask_editing(params):
         ("mask.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ADD')]}),
-        ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
+        ("mask.select_lasso",
+         {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
         ("mask.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("mask.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
@@ -3325,7 +3326,8 @@ def km_clip_editor(params):
         op_menu("CLIP_MT_select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}),
         ("clip.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ADD')]}),
-        ("clip.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
+        ("clip.select_lasso",
+         {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
         ("clip.add_marker_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("clip.delete_marker", {"type": 'X', "value": 'PRESS', "shift": True}, None),
@@ -8859,8 +8861,9 @@ def km_sequencer_editor_tool_generic_select_timeline(params, *, fallback):
         _fallback_id("Sequencer Timeline Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *(km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback) if (params.select_mouse == 'RIGHTMOUSE')
-              else km_sequencer_editor_tool_generic_select_timeline_lcs(params, fallback)),
+            *(km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback)
+              if (params.select_mouse == 'RIGHTMOUSE') else
+              km_sequencer_editor_tool_generic_select_timeline_lcs(params, fallback)),
         ]},
     )
 
@@ -9302,10 +9305,14 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_gpencil_select_box(params),
         km_3d_view_tool_sculpt_gpencil_select_circle(params),
         km_3d_view_tool_sculpt_gpencil_select_lasso(params),
-        *(km_sequencer_editor_tool_generic_select_timeline(params, fallback=fallback) for fallback in (False, True)),
-        *(km_sequencer_editor_tool_generic_select_box_timeline(params, fallback=fallback) for fallback in (False, True)),
-        *(km_sequencer_editor_tool_generic_select_preview(params, fallback=fallback) for fallback in (False, True)),
-        *(km_sequencer_editor_tool_generic_select_box_preview(params, fallback=fallback) for fallback in (False, True)),
+        *(km_sequencer_editor_tool_generic_select_timeline(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_editor_tool_generic_select_box_timeline(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_editor_tool_generic_select_preview(params, fallback=fallback)
+          for fallback in (False, True)),
+        *(km_sequencer_editor_tool_generic_select_box_preview(params, fallback=fallback)
+          for fallback in (False, True)),
         km_3d_view_tool_paint_grease_pencil_cutter(params),
         km_sequencer_editor_tool_generic_cursor(params),
         km_sequencer_editor_tool_blade(params),

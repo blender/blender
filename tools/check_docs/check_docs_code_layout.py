@@ -30,7 +30,9 @@ from typing import (
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))
 
-MARKDOWN_URL = "https://projects.blender.org/blender/blender-developer-docs/raw/branch/main/docs/features/code_layout.md"
+MARKDOWN_URL = (
+    "https://projects.blender.org/blender/blender-developer-docs/raw/branch/main/docs/features/code_layout.md"
+)
 
 
 # -----------------------------------------------------------------------------

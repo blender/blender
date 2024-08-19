@@ -101,7 +101,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
     use_alt_click_leader: BoolProperty(
         name="Alt Click Tool Prompt",
         description=(
-            "Tapping Alt (without pressing any other keys) shows a prompt in the status-bar, prompting a second keystroke to activate the tool"
+            "Tapping Alt (without pressing any other keys) shows a prompt in the status-bar, "
+            "prompting a second keystroke to activate the tool"
         ),
         default=False,
         update=update_fn,
@@ -244,7 +245,9 @@ class Prefs(bpy.types.KeyConfigPreferences):
         name="Transform Navigation with Alt",
         description=(
             "During transformations, use Alt to navigate in the 3D View. "
-            "Note that if disabled, hotkeys for Proportional Editing, Automatic Constraints, and Auto IK Chain Length will require holding Alt"),
+            "Note that if disabled, hotkeys for Proportional Editing, "
+            "Automatic Constraints, and Auto IK Chain Length will require holding Alt"
+        ),
         default=True,
         update=update_fn,
     )

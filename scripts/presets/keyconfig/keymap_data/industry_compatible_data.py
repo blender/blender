@@ -809,7 +809,8 @@ def km_mask_editing(params):
         ("mask.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ADD')]}),
-        ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
+        ("mask.select_lasso",
+         {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
         ("mask.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("mask.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
@@ -2160,8 +2161,10 @@ def km_clip_graph_editor(params):
          {"properties": [("extend", True)]}),
         ("clip.graph_select_box", {"type": 'Q', "value": 'PRESS'}, None),
         ("clip.graph_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
-        # ("clip.graph_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'DESELECT')]}),
-        # ("clip.graph_select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+        # ("clip.graph_select_all",
+        #  {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'DESELECT')]}),
+        # ("clip.graph_select_all",
+        #  {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         ("clip.graph_delete_curve", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         ("clip.graph_delete_curve", {"type": 'DEL', "value": 'PRESS'}, None),
         ("clip.graph_delete_knot", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
@@ -2578,10 +2581,21 @@ def km_gpencil_legacy_stroke_paint_fill(params):
          {"properties": [("on_back", False)]}),
         # If press alternate key, the brush now it's for drawing areas
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_stabilizer", True)]}),
+         {"properties": [
+             ("mode", 'DRAW'),
+             ("wait_for_input", False),
+             ("disable_straight", True),
+             ("disable_stabilizer", True),
+         ]}),
         # If press alternative key, the brush now it's for drawing lines
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_stabilizer", True), ("disable_fill", True)]}),
+         {"properties": [
+             ("mode", 'DRAW'),
+             ("wait_for_input", False),
+             ("disable_straight", True),
+             ("disable_stabilizer", True),
+             ("disable_fill", True),
+         ]}),
     ])
 
     return keymap
@@ -2982,7 +2996,9 @@ def km_gpencil_legacy_stroke_vertex_mode(params):
         *_gpencil_legacy_selection(params),
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+         ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
@@ -3032,7 +3048,9 @@ def km_gpencil_legacy_stroke_vertex_draw(params):
          {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+         ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
@@ -3055,10 +3073,14 @@ def km_gpencil_legacy_stroke_vertex_blur(params):
          {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+         ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size'),
+         ]}),
     ])
 
     return keymap
@@ -3080,7 +3102,9 @@ def km_gpencil_legacy_stroke_vertex_average(params):
          {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+         ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
@@ -3103,7 +3127,9 @@ def km_gpencil_legacy_stroke_vertex_smear(params):
          {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'U', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
+         {"properties": [
+             ("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength'),
+         ]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
