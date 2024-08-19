@@ -181,7 +181,10 @@ TEST(imbuf_scaling, bilinear_fractional_larger)
   EXPECT_EQ(uint4(got[7 + 0 * res->x]), uint4(52, 100, 16, 255));
   EXPECT_EQ(uint4(got[2 + 2 * res->x]), uint4(235, 55, 51, 215));
   EXPECT_EQ(uint4(got[3 + 2 * res->x]), uint4(153, 55, 35, 54));
-  EXPECT_EQ(uint4(got[8 + 6 * res->x]), uint4(37, 0, 62, 162));
+  EXPECT_EQ(uint4(got[8 + 5 * res->x]), uint4(57, 0, 91, 252));
+  EXPECT_EQ(uint4(got[0 + 6 * res->x]), uint4(164, 164, 0, 255));
+  EXPECT_EQ(uint4(got[7 + 6 * res->x]), uint4(55, 36, 57, 254));
+  EXPECT_EQ(uint4(got[8 + 6 * res->x]), uint4(56, 0, 73, 253));
   IMB_freeImBuf(res);
 }
 
