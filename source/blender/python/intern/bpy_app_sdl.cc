@@ -45,10 +45,10 @@ static PyStructSequence_Field app_sdl_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_sdl_info_desc = {
-    "bpy.app.sdl",                                                          /* name */
-    "This module contains information about SDL blender is linked against", /* doc */
-    app_sdl_info_fields,                                                    /* fields */
-    ARRAY_SIZE(app_sdl_info_fields) - 1,
+    /*name*/ "bpy.app.sdl",
+    /*doc*/ "This module contains information about SDL blender is linked against",
+    /*fields*/ app_sdl_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_sdl_info_fields) - 1,
 };
 
 static PyObject *make_sdl_info()

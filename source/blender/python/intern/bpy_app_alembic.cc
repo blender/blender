@@ -27,10 +27,10 @@ static PyStructSequence_Field app_alembic_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_alembic_info_desc = {
-    "bpy.app.alembic",                                                          /* name */
-    "This module contains information about Alembic blender is linked against", /* doc */
-    app_alembic_info_fields,                                                    /* fields */
-    ARRAY_SIZE(app_alembic_info_fields) - 1,
+    /*name*/ "bpy.app.alembic",
+    /*doc*/ "This module contains information about Alembic blender is linked against",
+    /*fields*/ app_alembic_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_alembic_info_fields) - 1,
 };
 
 static PyObject *make_alembic_info()

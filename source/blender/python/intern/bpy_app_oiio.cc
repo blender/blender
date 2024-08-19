@@ -25,10 +25,10 @@ static PyStructSequence_Field app_oiio_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_oiio_info_desc = {
-    "bpy.app.oiio",                                                                /* name */
-    "This module contains information about OpeImageIO blender is linked against", /* doc */
-    app_oiio_info_fields,                                                          /* fields */
-    ARRAY_SIZE(app_oiio_info_fields) - 1,
+    /*name*/ "bpy.app.oiio",
+    /*doc*/ "This module contains information about OpeImageIO blender is linked against",
+    /*fields*/ app_oiio_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_oiio_info_fields) - 1,
 };
 
 static PyObject *make_oiio_info()

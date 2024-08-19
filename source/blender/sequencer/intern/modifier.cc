@@ -1374,13 +1374,13 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
 };
 
 static SequenceModifierTypeInfo seqModifier_SoundEqualizer = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"), /* name */
-    "SoundEqualizerModifierData",                     /* struct_name */
-    sizeof(SoundEqualizerModifierData),               /* struct_size */
-    SEQ_sound_equalizermodifier_init_data,            /* init_data */
-    SEQ_sound_equalizermodifier_free,                 /* free_data */
-    SEQ_sound_equalizermodifier_copy_data,            /* copy_data */
-    nullptr,                                          /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"),
+    /*struct_name*/ "SoundEqualizerModifierData",
+    /*struct_size*/ sizeof(SoundEqualizerModifierData),
+    /*init_data*/ SEQ_sound_equalizermodifier_init_data,
+    /*free_data*/ SEQ_sound_equalizermodifier_free,
+    /*copy_data*/ SEQ_sound_equalizermodifier_copy_data,
+    /*apply*/ nullptr,
 };
 /** \} */
 

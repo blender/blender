@@ -27,11 +27,12 @@ static PyStructSequence_Field app_usd_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_usd_info_desc = {
-    "bpy.app.usd", /* name */
+    /*name*/ "bpy.app.usd",
+    /*doc*/
     "This module contains information about the Universal Scene Description library Bender is "
-    "linked against",    /* doc */
-    app_usd_info_fields, /* fields */
-    ARRAY_SIZE(app_usd_info_fields) - 1,
+    "linked against",
+    /*fields*/ app_usd_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_usd_info_fields) - 1,
 };
 
 static PyObject *make_usd_info()

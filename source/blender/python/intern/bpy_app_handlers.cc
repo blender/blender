@@ -109,10 +109,10 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_cb_info_desc = {
-    "bpy.app.handlers",                    /* name */
-    "This module contains callback lists", /* doc */
-    app_cb_info_fields,                    /* fields */
-    ARRAY_SIZE(app_cb_info_fields) - 1,
+    /*name*/ "bpy.app.handlers",
+    /*doc*/ "This module contains callback lists",
+    /*fields*/ app_cb_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_cb_info_fields) - 1,
 };
 
 #if 0

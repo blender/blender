@@ -129,10 +129,10 @@ PyDoc_STRVAR(
     "This module contains application values that remain unchanged during runtime.");
 
 static PyStructSequence_Desc app_info_desc = {
-    "bpy.app",       /* name */
-    bpy_app_doc,     /* doc */
-    app_info_fields, /* fields */
-    ARRAY_SIZE(app_info_fields) - 1,
+    /*name*/ "bpy.app",
+    /*doc*/ bpy_app_doc,
+    /*fields*/ app_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_info_fields) - 1,
 };
 
 static PyObject *make_app_info()

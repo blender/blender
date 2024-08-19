@@ -27,10 +27,10 @@ static PyStructSequence_Field app_opensubdiv_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_opensubdiv_info_desc = {
-    "bpy.app.opensubdiv",                                                          /* name */
-    "This module contains information about OpenSubdiv blender is linked against", /* doc */
-    app_opensubdiv_info_fields,                                                    /* fields */
-    ARRAY_SIZE(app_opensubdiv_info_fields) - 1,
+    /*name*/ "bpy.app.opensubdiv",
+    /*doc*/ "This module contains information about OpenSubdiv blender is linked against",
+    /*fields*/ app_opensubdiv_info_fields,
+    /*n_in_sequence*/ ARRAY_SIZE(app_opensubdiv_info_fields) - 1,
 };
 
 static PyObject *make_opensubdiv_info()
