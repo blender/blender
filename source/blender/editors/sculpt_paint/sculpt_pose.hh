@@ -23,6 +23,30 @@ class Node;
 
 namespace blender::ed::sculpt_paint::pose {
 
+/** Pose Brush IK Chain. */
+struct IKChainSegment {
+  float3 orig;
+  float3 head;
+
+  float3 initial_orig;
+  float3 initial_head;
+  float len;
+  float3 scale;
+  float rot[4];
+  Array<float> weights;
+
+  /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
+   * axis. */
+  std::array<float4x4, PAINT_SYMM_AREAS> trans_mat;
+  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat;
+  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat_inv;
+};
+
+struct IKChain {
+  Array<IKChainSegment> segments;
+  float3 grab_delta_offset;
+};
+
 /**
  * Main Brush Function.
  */

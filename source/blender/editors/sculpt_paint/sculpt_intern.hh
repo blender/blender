@@ -40,6 +40,9 @@ struct SculptBoundary;
 namespace cloth {
 struct SimulationData;
 }
+namespace pose {
+struct IKChain;
+}
 namespace undo {
 struct Node;
 struct StepData;
@@ -126,30 +129,6 @@ enum class TransformDisplacementMode {
 #define SCULPT_CLAY_STABILIZER_LEN 10
 
 namespace blender::ed::sculpt_paint {
-
-/** Pose Brush IK Chain. */
-struct SculptPoseIKChainSegment {
-  float3 orig;
-  float3 head;
-
-  float3 initial_orig;
-  float3 initial_head;
-  float len;
-  float3 scale;
-  float rot[4];
-  Array<float> weights;
-
-  /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
-   * axis. */
-  std::array<float4x4, PAINT_SYMM_AREAS> trans_mat;
-  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat;
-  std::array<float4x4, PAINT_SYMM_AREAS> pivot_mat_inv;
-};
-
-struct SculptPoseIKChain {
-  Array<SculptPoseIKChainSegment> segments;
-  float3 grab_delta_offset;
-};
 
 /**
  * This structure contains all the temporary data
@@ -294,7 +273,7 @@ struct StrokeCache {
   } paint_brush;
 
   /* Pose brush */
-  std::unique_ptr<SculptPoseIKChain> pose_ik_chain;
+  std::unique_ptr<pose::IKChain> pose_ik_chain;
 
   /* Enhance Details. */
   Array<float3> detail_directions;
