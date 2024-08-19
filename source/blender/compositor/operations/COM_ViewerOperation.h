@@ -41,7 +41,7 @@ class ViewerOperation : public MultiThreadedOperation {
   ImBuf *ibuf_;
   bool use_alpha_input_;
   const RenderData *rd_;
-  const char *view_name_;
+  const char *view_name_; 
 
   const ColorManagedViewSettings *view_settings_;
   const ColorManagedDisplaySettings *display_settings_;
@@ -61,9 +61,10 @@ class ViewerOperation : public MultiThreadedOperation {
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   bool is_output_operation(bool /*rendering*/) const override
   {
-    if (G.background) {
-      return false;
-    }
+    // ETH ASL: Allow background rendering
+    // if (G.background) {
+    //   return false;
+    // }
     return is_active_viewer_output();
   }
   void set_image(Image *image)
