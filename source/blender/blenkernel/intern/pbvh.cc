@@ -51,24 +51,7 @@
 namespace blender::bke::pbvh {
 
 #define LEAF_LIMIT 10000
-
 #define STACK_FIXED_DEPTH 100
-
-struct PBVHStack {
-  blender::bke::pbvh::Node *node;
-  bool revisiting;
-};
-
-struct PBVHIter {
-  blender::bke::pbvh::Tree *pbvh;
-  blender::FunctionRef<bool(blender::bke::pbvh::Node &)> scb;
-
-  PBVHStack *stack;
-  int stacksize;
-
-  PBVHStack stackfixed[STACK_FIXED_DEPTH];
-  int stackspace;
-};
 
 /** Create invalid bounds for use with #math::min_max. */
 static Bounds<float3> negative_bounds()
@@ -657,6 +640,22 @@ void free(std::unique_ptr<Tree> &pbvh)
 {
   pbvh.reset();
 }
+
+struct PBVHStack {
+  Node *node;
+  bool revisiting;
+};
+
+struct PBVHIter {
+  Tree *pbvh;
+  blender::FunctionRef<bool(Node &)> scb;
+
+  PBVHStack *stack;
+  int stacksize;
+
+  PBVHStack stackfixed[STACK_FIXED_DEPTH];
+  int stackspace;
+};
 
 static void pbvh_iter_begin(PBVHIter *iter, Tree &pbvh, FunctionRef<bool(Node &)> scb)
 {
