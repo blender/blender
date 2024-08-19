@@ -203,26 +203,25 @@ static LazyLoadedGrid load_single_grid_from_disk_cached(const StringRef file_pat
   key.grid_name = grid_name;
   key.simplify_level = simplify_level;
 
-  std::shared_ptr<const GridReadValue> value = memory_cache::get<GridReadValue>(
-      std::move(key), [&key]() {
-        openvdb::GridBase::Ptr grid;
-        if (key.simplify_level == 0) {
-          grid = load_single_grid_from_disk(key.file_path, key.grid_name);
-        }
-        else {
-          /* Build the simplified grid from the main grid. */
-          const GVolumeGrid main_grid = get_grid_from_file(key.file_path, key.grid_name, 0);
-          const VolumeGridType grid_type = main_grid->grid_type();
-          const float resolution_factor = 1.0f / (1 << key.simplify_level);
-          VolumeTreeAccessToken tree_token;
-          grid = BKE_volume_grid_create_with_changed_resolution(
-              grid_type, main_grid->grid(tree_token), resolution_factor);
-        }
-        auto value = std::make_unique<GridReadValue>();
-        value->grid = std::move(grid);
-        value->tree_sharing_info = OpenvdbTreeSharingInfo::make(value->grid->baseTreePtr());
-        return value;
-      });
+  std::shared_ptr<const GridReadValue> value = memory_cache::get<GridReadValue>(key, [&key]() {
+    openvdb::GridBase::Ptr grid;
+    if (key.simplify_level == 0) {
+      grid = load_single_grid_from_disk(key.file_path, key.grid_name);
+    }
+    else {
+      /* Build the simplified grid from the main grid. */
+      const GVolumeGrid main_grid = get_grid_from_file(key.file_path, key.grid_name, 0);
+      const VolumeGridType grid_type = main_grid->grid_type();
+      const float resolution_factor = 1.0f / (1 << key.simplify_level);
+      VolumeTreeAccessToken tree_token;
+      grid = BKE_volume_grid_create_with_changed_resolution(
+          grid_type, main_grid->grid(tree_token), resolution_factor);
+    }
+    auto value = std::make_unique<GridReadValue>();
+    value->grid = std::move(grid);
+    value->tree_sharing_info = OpenvdbTreeSharingInfo::make(value->grid->baseTreePtr());
+    return value;
+  });
   if (!value) {
     return {};
   }
