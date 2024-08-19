@@ -705,7 +705,7 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
   /* add other friendlies and calculate enemy strength and find closest enemy */
   LISTBASE_FOREACH (ParticleTarget *, pt, &bbd->sim->psys->targets) {
     ParticleSystem *epsys = psys_get_target_system(bbd->sim->ob, pt);
-    if (epsys) {
+    if (epsys && epsys->part->boids) {
       epars = epsys->particles;
 
       neighbors = BLI_kdtree_3d_range_search(epsys->tree, pa->prev_state.co, &ptn, fbr->distance);
