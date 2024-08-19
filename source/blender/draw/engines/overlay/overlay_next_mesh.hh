@@ -338,6 +338,18 @@ class Meshes {
     GPU_debug_group_end();
   }
 
+  static bool mesh_has_edit_cage(const Object *ob)
+  {
+    const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+    if (mesh.runtime->edit_mesh.get() != nullptr) {
+      const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
+      const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
+
+      return (editmesh_eval_cage != nullptr) && (editmesh_eval_cage != editmesh_eval_final);
+    }
+    return false;
+  }
+
  private:
   uint4 data_mask_get(const int flag)
   {
@@ -357,18 +369,6 @@ class Meshes {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
       return CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN) != -1;
-    }
-    return false;
-  }
-
-  static bool mesh_has_edit_cage(const Object *ob)
-  {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
-    if (mesh.runtime->edit_mesh.get() != nullptr) {
-      const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
-      const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
-
-      return (editmesh_eval_cage != nullptr) && (editmesh_eval_cage != editmesh_eval_final);
     }
     return false;
   }

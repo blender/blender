@@ -5,8 +5,8 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(overlay_wireframe_iface, "")
-    .flat(Type::VEC2, "edgeStart")
     .smooth(Type::VEC4, "finalColor")
+    .flat(Type::VEC2, "edgeStart")
     .no_perspective(Type::VEC2, "edgePos");
 
 GPU_SHADER_CREATE_INFO(overlay_wireframe)
@@ -30,6 +30,47 @@ GPU_SHADER_CREATE_INFO(overlay_wireframe)
     .fragment_out(1, Type::VEC4, "lineOutput")
     .depth_write(DepthWrite::ANY)
     .additional_info("draw_mesh", "draw_object_infos", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_wireframe_curve)
+    .do_static_compilation(true)
+    .define("CURVES")
+    .push_constant(Type::FLOAT, "wireOpacity")
+    .push_constant(Type::BOOL, "useColoring")
+    .push_constant(Type::BOOL, "isTransform")
+    .push_constant(Type::INT, "colorType")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(overlay_wireframe_iface)
+    .vertex_source("overlay_wireframe_vert.glsl")
+    .fragment_source("overlay_wireframe_frag.glsl")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "lineOutput")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "draw_object_infos_new",
+                     "draw_globals");
+
+GPU_SHADER_INTERFACE_INFO(overlay_wireframe_points_iface, "")
+    .flat(Type::VEC4, "finalColor")
+    .flat(Type::VEC4, "finalColorInner");
+
+GPU_SHADER_CREATE_INFO(overlay_wireframe_points)
+    .do_static_compilation(true)
+    .define("POINTS")
+    .push_constant(Type::BOOL, "useColoring")
+    .push_constant(Type::BOOL, "isTransform")
+    .push_constant(Type::INT, "colorType")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(overlay_wireframe_points_iface)
+    .vertex_source("overlay_wireframe_vert.glsl")
+    .fragment_source("overlay_wireframe_frag.glsl")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "lineOutput")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "draw_object_infos_new",
+                     "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_wireframe_clipped)
     .do_static_compilation(true)

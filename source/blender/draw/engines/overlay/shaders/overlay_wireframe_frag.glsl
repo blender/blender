@@ -2,47 +2,81 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
+#if !defined(POINTS) && !defined(CURVES)
   /* Needed only because of wireframe slider.
    * If we could get rid of it would be nice because of performance drain of discard. */
   if (edgeStart.r == -1.0) {
     discard;
     return;
   }
+#endif
 
-#ifndef SELECT_EDGES
+  lineOutput = vec4(0.0);
+
+#if defined(POINTS)
+  vec2 centered = abs(gl_PointCoord - vec2(0.5));
+  float dist = max(centered.x, centered.y);
+
+  float fac = dist * dist * 4.0;
+  /* Create a small gradient so that dense objects have a small fresnel effect. */
+  /* Non linear blend. */
+  vec3 rim_col = sqrt(finalColorInner.rgb);
+  vec3 wire_col = sqrt(finalColor.rgb);
+  vec3 final_front_col = mix(rim_col, wire_col, 0.35);
+  fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0);
+  fragColor *= fragColor;
+
+#elif !defined(SELECT_EDGES)
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
   fragColor = finalColor;
 
-#  ifdef CUSTOM_DEPTH_BIAS
-  vec2 dir = lineOutput.xy * 2.0 - 1.0;
-  bool dir_horiz = abs(dir.x) > abs(dir.y);
+#  ifndef CUSTOM_DEPTH_BIAS_CONST
+/* TODO(fclem): Cleanup after overlay next. */
+#    ifdef CUSTOM_DEPTH_BIAS
+  const bool use_custom_depth_bias = true;
+#    else
+  const bool use_custom_depth_bias = false;
+#    endif
+#  endif
 
-  vec2 uv = gl_FragCoord.xy * sizeViewportInv;
-  float depth_occluder = texture(depthTex, uv).r;
-  float depth_min = depth_occluder;
-  vec2 texel_uv_size = sizeViewportInv;
+#  if !defined(CURVES)
+  if (use_custom_depth_bias) {
+    vec2 dir = lineOutput.xy * 2.0 - 1.0;
+    bool dir_horiz = abs(dir.x) > abs(dir.y);
 
-  if (dir_horiz) {
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(-texel_uv_size.x, 0.0)).r);
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(texel_uv_size.x, 0.0)).r);
-  }
-  else {
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, -texel_uv_size.y)).r);
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, texel_uv_size.y)).r);
-  }
+    vec2 uv = gl_FragCoord.xy * sizeViewportInv;
+    float depth_occluder = texture(depthTex, uv).r;
+    float depth_min = depth_occluder;
+    vec2 texel_uv_size = sizeViewportInv;
 
-  float delta = abs(depth_occluder - depth_min);
+    if (dir_horiz) {
+      depth_min = min(depth_min, texture(depthTex, uv + vec2(-texel_uv_size.x, 0.0)).r);
+      depth_min = min(depth_min, texture(depthTex, uv + vec2(texel_uv_size.x, 0.0)).r);
+    }
+    else {
+      depth_min = min(depth_min, texture(depthTex, uv + vec2(0, -texel_uv_size.y)).r);
+      depth_min = min(depth_min, texture(depthTex, uv + vec2(0, texel_uv_size.y)).r);
+    }
 
-  if (gl_FragCoord.z < (depth_occluder + delta) && gl_FragCoord.z > depth_occluder) {
-    gl_FragDepth = depth_occluder;
-  }
-  else {
-    gl_FragDepth = gl_FragCoord.z;
+    float delta = abs(depth_occluder - depth_min);
+
+#    ifndef SELECT_ENABLE
+    if (gl_FragCoord.z < (depth_occluder + delta) && gl_FragCoord.z > depth_occluder) {
+      gl_FragDepth = depth_occluder;
+    }
+    else {
+      gl_FragDepth = gl_FragCoord.z;
+    }
+#    endif
   }
 #  endif
 #endif
+
+  select_id_output(select_id);
 }

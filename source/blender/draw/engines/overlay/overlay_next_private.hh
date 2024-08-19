@@ -200,6 +200,9 @@ class ShaderModule {
   ShaderPtr facing;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
+  ShaderPtr wireframe_mesh;
+  ShaderPtr wireframe_curve;
+  ShaderPtr wireframe_points; /* Draw objects without edges for the wireframe overlay. */
 
   ShaderModule(const SelectionType selection_type, const bool clipping_enabled);
 
@@ -243,6 +246,8 @@ struct Resources : public select::SelectMap {
   TextureFromPool line_tx = {"line_tx"};
   /* Target containing overlay color before anti-aliasing. */
   TextureFromPool overlay_tx = {"overlay_tx"};
+  /* Target containing depth of overlays when xray is enabled. */
+  TextureFromPool xray_depth_tx = {"xray_depth_tx"};
 
   /* Texture that are usually allocated inside. These are fallback when they aren't.
    * They are then wrapped inside the #TextureRefs below. */
@@ -259,10 +264,23 @@ struct Resources : public select::SelectMap {
   GPUUniformBuf *globals_buf;
   TextureRef weight_ramp_tx;
   /* Wrappers around #DefaultTextureList members. */
-  TextureRef depth_tx;
   TextureRef depth_in_front_tx;
   TextureRef color_overlay_tx;
   TextureRef color_render_tx;
+  /**
+   * Scene depth buffer that can also be used as render target for overlays.
+   *
+   * Can only be bound as a texture if either:
+   * - the current frame-buffer has no depth buffer attached.
+   * - `state.xray_enabled` is true.
+   */
+  TextureRef depth_tx;
+  /**
+   * Depth target.
+   * Can either be default depth buffer texture from #DefaultTextureList
+   * or `xray_depth_tx` if Xray is enabled.
+   */
+  TextureRef depth_target_tx;
 
   Resources(const SelectionType selection_type_, ShaderModule &shader_module)
       : select::SelectMap(selection_type_), shaders(shader_module){};
