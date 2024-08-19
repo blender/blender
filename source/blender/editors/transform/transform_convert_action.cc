@@ -49,7 +49,42 @@ static bool is_td2d_int(TransData2D *td2d)
 /** \name Grease Pencil Transform helpers
  * \{ */
 
-static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil::Layer &layer,
+/* Add a user to ensure drawings are not deleted during transform when a frame is overwritten
+ * temporarily. The drawing_index of any existing frame will also remain valid. */
+static void grease_pencil_transdata_add_drawing_users(const GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+
+  for (const GreasePencilDrawingBase *drawing_base : grease_pencil.drawings()) {
+    /* Only actual drawings have a user count, ignore drawing references. */
+    if (drawing_base->type != GP_DRAWING) {
+      continue;
+    }
+
+    const Drawing &drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base)->wrap();
+    drawing.add_user();
+  }
+}
+
+/* Remove users from drawings after frame data has been restored. After this drawing data can be
+ * freed and drawing indices may become invalid. */
+static void grease_pencil_transdata_remove_drawing_users(const GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+
+  for (const GreasePencilDrawingBase *drawing_base : grease_pencil.drawings()) {
+    /* Only actual drawings have a user count, ignore drawing references. */
+    if (drawing_base->type != GP_DRAWING) {
+      continue;
+    }
+
+    const Drawing &drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base)->wrap();
+    drawing.remove_user();
+  }
+}
+
+static bool grease_pencil_layer_initialize_trans_data(const GreasePencil &grease_pencil,
+                                                      blender::bke::greasepencil::Layer &layer,
                                                       const blender::Span<int> frames_affected,
                                                       const bool use_duplicates)
 {
@@ -60,8 +95,14 @@ static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil
     return false;
   }
 
+  /* "Freeze" drawing indices by adding a user to each drawing. This ensures the draw_index in
+   * frame data remains valid and no data is lost if the drawing is temporarily unused during
+   * transform. */
+  grease_pencil_transdata_add_drawing_users(grease_pencil);
+
   /* Initialize the transformation data structure, by storing in separate maps frames that will
-   * remain static during the transformation, and frames that are affected by the transformation.
+   * remain static during the transformation, and frames that are affected by the
+   * transformation.
    */
   trans_data.frames_static = layer.frames();
   trans_data.frames_transformed.clear();
@@ -198,8 +239,11 @@ static bool grease_pencil_layer_apply_trans_data(GreasePencil &grease_pencil,
         reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap().remove_user();
       }
     }
-    grease_pencil.remove_drawings_with_no_users();
   }
+
+  /* All frame data is updated, safe to remove the fake user and remove unused drawings. */
+  grease_pencil_transdata_remove_drawing_users(grease_pencil);
+  grease_pencil.remove_drawings_with_no_users();
 
   /* Clear the frames copy. */
   trans_data.frames_static.clear();
@@ -481,6 +525,7 @@ static int GPLayerToTransData(TransData *td,
  */
 static int GreasePencilLayerToTransData(TransData *td,
                                         TransData2D *td2d,
+                                        GreasePencil *grease_pencil,
                                         blender::bke::greasepencil::Layer *layer,
                                         const char side,
                                         const float cfra,
@@ -546,7 +591,8 @@ static int GreasePencilLayerToTransData(TransData *td,
   /* If it was not previously done, initialize the transform data in the layer, and if some frames
    * are actually concerned by the transform. */
   if (any_frame_affected) {
-    grease_pencil_layer_initialize_trans_data(*layer, frames_affected.as_span(), duplicate);
+    grease_pencil_layer_initialize_trans_data(
+        *grease_pencil, *layer, frames_affected.as_span(), duplicate);
   }
 
   return total_trans_frames;
@@ -772,11 +818,12 @@ static void createTransActionData(bContext *C, TransInfo *t)
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       using namespace blender::bke::greasepencil;
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
       Layer *layer = static_cast<Layer *>(ale->data);
       int i;
 
       i = GreasePencilLayerToTransData(
-          td, td2d, layer, t->frame_side, cfra, is_prop_edit, ypos, use_duplicated);
+          td, td2d, grease_pencil, layer, t->frame_side, cfra, is_prop_edit, ypos, use_duplicated);
       td += i;
       td2d += i;
     }
