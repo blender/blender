@@ -29,10 +29,10 @@ struct FillData {
 };
 
 struct FillDataMesh {
-  FillDataMesh(int size) : visited_verts(size) {}
-
   std::queue<int> queue;
   BitVector<> visited_verts;
+
+  FillDataMesh(int size) : visited_verts(size) {}
 
   void add_initial(int vertex);
   void add_and_skip_initial(int vertex, int index);
@@ -47,10 +47,10 @@ struct FillDataMesh {
 };
 
 struct FillDataGrids {
-  FillDataGrids(int size) : visited_verts(size) {}
-
   std::queue<SubdivCCGCoord> queue;
   BitVector<> visited_verts;
+
+  FillDataGrids(int size) : visited_verts(size) {}
 
   void add_initial(SubdivCCGCoord vertex);
   void add_and_skip_initial(SubdivCCGCoord vertex, int index);
@@ -66,10 +66,10 @@ struct FillDataGrids {
 };
 
 struct FillDataBMesh {
-  FillDataBMesh(int size) : visited_verts(size) {}
-
   std::queue<BMVert *> queue;
   BitVector<> visited_verts;
+
+  FillDataBMesh(int size) : visited_verts(size) {}
 
   void add_initial(BMVert *vertex);
   void add_and_skip_initial(BMVert *vertex, int index);
