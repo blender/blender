@@ -277,15 +277,6 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm);
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
 void free(std::unique_ptr<Tree> &pbvh);
 
-/* Hierarchical Search in the BVH, two methods:
- * - For each hit calling a callback.
- * - Gather nodes in an array (easy to multi-thread) see search_gather.
- */
-
-void search_callback(Tree &pbvh,
-                     FunctionRef<bool(Node &)> filter_fn,
-                     FunctionRef<void(Node &)> hit_fn);
-
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is

@@ -796,25 +796,6 @@ float BKE_pbvh_node_get_tmin(const blender::bke::pbvh::Node *node)
 
 namespace blender::bke::pbvh {
 
-void search_callback(Tree &pbvh,
-                     FunctionRef<bool(Node &)> filter_fn,
-                     FunctionRef<void(Node &)> hit_fn)
-{
-  if (pbvh.nodes_.is_empty()) {
-    return;
-  }
-  PBVHIter iter;
-  Node *node;
-
-  pbvh_iter_begin(&iter, pbvh, filter_fn);
-
-  while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
-    if (node->flag_ & PBVH_Leaf) {
-      hit_fn(*node);
-    }
-  }
-}
-
 static void search_callback_occluded(Tree &pbvh,
                                      const FunctionRef<bool(Node &)> scb,
                                      const FunctionRef<void(Node &node, float *tmin)> hit_fn)
