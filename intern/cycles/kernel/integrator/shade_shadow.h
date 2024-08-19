@@ -104,6 +104,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
   /* Accumulate shadow for transparent surfaces. */
   const uint num_recorded_hits = min(num_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
 
+  /* Plus one to account for world volume, which has no boundary to hit but casts shadows. */
   for (uint hit = 0; hit < num_recorded_hits + 1; hit++) {
     /* Volume shaders. */
     if (hit < num_recorded_hits || !shadow_intersections_has_remaining(num_hits)) {
