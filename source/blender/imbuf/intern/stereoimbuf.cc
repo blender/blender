@@ -573,7 +573,7 @@ static void imb_stereo3d_squeeze_ImBuf(ImBuf *ibuf,
     return;
   }
 
-  IMB_scaleImBuf_threaded(ibuf, x, y);
+  IMB_scale(ibuf, x, y, IMBScaleFilter::Bilinear);
 }
 
 static void imb_stereo3d_unsqueeze_ImBuf(ImBuf *ibuf,
@@ -589,7 +589,7 @@ static void imb_stereo3d_unsqueeze_ImBuf(ImBuf *ibuf,
     return;
   }
 
-  IMB_scaleImBuf_threaded(ibuf, x, y);
+  IMB_scale(ibuf, x, y, IMBScaleFilter::Bilinear);
 }
 
 static void imb_stereo3d_squeeze_rectf(
@@ -621,7 +621,7 @@ static void imb_stereo3d_squeeze_rectf(
                               width,
                               width);
 
-  IMB_scaleImBuf_threaded(ibuf, x, y);
+  IMB_scale(ibuf, x, y, IMBScaleFilter::Bilinear);
   memcpy(rectf, ibuf->float_buffer.data, x * y * sizeof(float[4]));
   IMB_freeImBuf(ibuf);
 }
@@ -654,7 +654,7 @@ static void imb_stereo3d_squeeze_rect(
                             width,
                             width);
 
-  IMB_scaleImBuf_threaded(ibuf, x, y);
+  IMB_scale(ibuf, x, y, IMBScaleFilter::Bilinear);
   memcpy(rect, ibuf->byte_buffer.data, x * y * sizeof(uint));
   IMB_freeImBuf(ibuf);
 }

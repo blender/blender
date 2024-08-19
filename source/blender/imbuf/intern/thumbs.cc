@@ -424,7 +424,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
           }
           imb_freerectfloatImBuf(img);
         }
-        IMB_scaleImBuf(img, ex, ey);
+        IMB_scale(img, ex, ey, IMBScaleFilter::Box, false);
       }
     }
     SNPRINTF(desc, "Thumbnail for %s", uri);

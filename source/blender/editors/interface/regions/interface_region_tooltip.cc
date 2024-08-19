@@ -1664,7 +1664,7 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
     if (ibuf) {
       /* Resize. */
       float scale = float(200.0f * UI_SCALE_FAC) / float(std::max(ibuf->x, ibuf->y));
-      IMB_scaleImBuf(ibuf, scale * ibuf->x, scale * ibuf->y);
+      IMB_scale(ibuf, scale * ibuf->x, scale * ibuf->y, IMBScaleFilter::Box, false);
       IMB_rect_from_float(ibuf);
 
       uiTooltipImage image_data;

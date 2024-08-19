@@ -799,7 +799,7 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser)
   ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
 
   if (ibuf) {
-    IMB_scaleImBuf(ibuf, width, height);
+    IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
     BKE_image_mark_dirty(image, ibuf);
   }
 
@@ -4923,7 +4923,7 @@ ImBuf *BKE_image_preview(Image *ima, const short max_size, short *r_width, short
   BKE_image_release_ibuf(ima, image_ibuf, lock);
 
   /* Resize. */
-  IMB_scaleImBuf(preview, scale * image_ibuf->x, scale * image_ibuf->y);
+  IMB_scale(preview, scale * image_ibuf->x, scale * image_ibuf->y, IMBScaleFilter::Box, false);
   IMB_rect_from_float(preview);
 
   return preview;

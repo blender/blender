@@ -287,7 +287,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
     ibuf = IMB_dupImBuf(ibuf_tmp);
     IMB_metadata_copy(ibuf, ibuf_tmp);
     IMB_freeImBuf(ibuf_tmp);
-    IMB_scalefastImBuf(ibuf, short(rectx), short(recty));
+    IMB_scale(ibuf, rectx, recty, IMBScaleFilter::Nearest, false);
   }
   else {
     ibuf = ibuf_tmp;

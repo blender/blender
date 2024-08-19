@@ -799,7 +799,7 @@ static void icon_verify_datatoc(IconImage *iimg)
         iimg->datatoc_rect, iimg->datatoc_size, IB_rect, nullptr, "<matcap icon>");
     /* w and h were set on initialize */
     if (bbuf->x != iimg->h && bbuf->y != iimg->w) {
-      IMB_scaleImBuf(bbuf, iimg->w, iimg->h);
+      IMB_scale(bbuf, iimg->w, iimg->h, IMBScaleFilter::Box, false);
     }
 
     iimg->rect = IMB_steal_byte_buffer(bbuf);

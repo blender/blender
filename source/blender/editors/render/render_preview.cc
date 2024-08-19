@@ -1370,7 +1370,7 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   dx = (w - ex) / 2;
   dy = (h - ey) / 2;
 
-  IMB_scalefastImBuf(ima, ex, ey);
+  IMB_scale(ima, ex, ey, IMBScaleFilter::Nearest, false);
 
   /* if needed, convert to 32 bits */
   if (ima->byte_buffer.data == nullptr) {

@@ -407,7 +407,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
       icon_w = icon_h = ICON_RENDER_DEFAULT_HEIGHT;
     }
 
-    IMB_scaleImBuf(thumb, icon_w, icon_h);
+    IMB_scale(thumb, icon_w, icon_h, IMBScaleFilter::Box, false);
     prv->w[ICON_SIZE_ICON] = icon_w;
     prv->h[ICON_SIZE_ICON] = icon_h;
     prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);

@@ -741,7 +741,11 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     if (final_ibuf == orig_ibuf) {
       final_ibuf = IMB_dupImBuf(orig_ibuf);
     }
-    IMB_scaleImBuf(final_ibuf, orig_ibuf->x / (1 << downscale), orig_ibuf->y / (1 << downscale));
+    IMB_scale(final_ibuf,
+              orig_ibuf->x / (1 << downscale),
+              orig_ibuf->y / (1 << downscale),
+              IMBScaleFilter::Box,
+              false);
   }
   /* Apply possible transformation. */
   if (transform != nullptr) {

@@ -350,7 +350,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
 
   if (w != ibuf->x || h != ibuf->y) {
     /* We scale the bitmap, rather than have OGL do a worse job. */
-    IMB_scaleImBuf(ibuf, w, h);
+    IMB_scale(ibuf, w, h, IMBScaleFilter::Box, false);
   }
 
   float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};

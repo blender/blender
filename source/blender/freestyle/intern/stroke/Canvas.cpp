@@ -355,7 +355,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
   ImBuf *scaledImg;
   if ((qimg->x != width()) || (qimg->y != height())) {
     scaledImg = IMB_dupImBuf(qimg);
-    IMB_scaleImBuf(scaledImg, width(), height());
+    IMB_scale(scaledImg, width(), height(), IMBScaleFilter::Box, false);
   }
 
   // deal with color image

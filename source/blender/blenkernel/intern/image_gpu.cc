@@ -656,7 +656,7 @@ static ImBuf *update_do_scale(const uchar *rect,
 
   /* Scale pixels. */
   ImBuf *ibuf = IMB_allocFromBuffer(rect, rect_float, part_w, part_h, 4);
-  IMB_scaleImBuf(ibuf, *w, *h);
+  IMB_scale(ibuf, *w, *h, IMBScaleFilter::Box, false);
 
   return ibuf;
 }

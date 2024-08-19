@@ -117,10 +117,10 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   }
 
   if (method.value_found == FAST) {
-    IMB_scalefastImBuf(self->ibuf, UNPACK2(size));
+    IMB_scale(self->ibuf, UNPACK2(size), IMBScaleFilter::Nearest, false);
   }
   else if (method.value_found == BILINEAR) {
-    IMB_scaleImBuf(self->ibuf, UNPACK2(size));
+    IMB_scale(self->ibuf, UNPACK2(size), IMBScaleFilter::Box, false);
   }
   else {
     BLI_assert_unreachable();

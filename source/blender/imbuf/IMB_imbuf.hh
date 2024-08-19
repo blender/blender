@@ -368,7 +368,6 @@ void IMB_free_anim(ImBufAnim *anim);
 #define FILTER_MASK_MARGIN 1
 #define FILTER_MASK_USED 2
 
-void IMB_filter(ImBuf *ibuf);
 void IMB_mask_filter_extend(char *mask, int width, int height);
 void IMB_mask_clear(ImBuf *ibuf, const char *mask, int val);
 /**
@@ -392,17 +391,27 @@ void IMB_filtery(ImBuf *ibuf);
 
 ImBuf *IMB_onehalf(ImBuf *ibuf1);
 
-/**
- * Return true if \a ibuf is modified.
- */
-bool IMB_scaleImBuf(ImBuf *ibuf, unsigned int newx, unsigned int newy);
+/** Interpolation filter used by `IMB_scale`. */
+enum class IMBScaleFilter {
+  /** No filtering (point sampling). This is fastest but lowest quality. */
+  Nearest,
+  /** Bilinear filter: each pixel in result image interpolates between 2x2 pixels of source image.
+   */
+  Bilinear,
+  /** Box filter. Behaves exactly like Bilinear when scaling up, better results when scaling down
+     by more than 2x. */
+  Box,
+};
 
 /**
+ * Scale/resize image to new dimensions.
  * Return true if \a ibuf is modified.
  */
-bool IMB_scalefastImBuf(ImBuf *ibuf, unsigned int newx, unsigned int newy);
-
-void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy);
+bool IMB_scale(ImBuf *ibuf,
+               unsigned int newx,
+               unsigned int newy,
+               IMBScaleFilter filter,
+               bool threaded = true);
 
 bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags);
 

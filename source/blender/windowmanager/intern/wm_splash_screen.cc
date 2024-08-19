@@ -158,7 +158,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     ibuf->planes = 32; /* The image might not have an alpha channel. */
     height = (width * ibuf->y) / ibuf->x;
     if (width != ibuf->x || height != ibuf->y) {
-      IMB_scaleImBuf(ibuf, width, height);
+      IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
     }
 
     wm_block_splash_image_roundcorners_add(ibuf);
