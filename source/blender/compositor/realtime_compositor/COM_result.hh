@@ -179,6 +179,9 @@ class Result {
   /* Returns the type of the given GPU texture format. */
   static ResultType type(eGPUTextureFormat format);
 
+  /* Returns the float type of the result given the channels count. */
+  static ResultType float_type(const int channels_count);
+
   /* Implicit conversion to the internal GPU texture. */
   operator GPUTexture *() const;
 

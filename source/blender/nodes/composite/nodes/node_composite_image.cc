@@ -38,6 +38,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "COM_algorithm_extract_alpha.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -456,41 +457,22 @@ class ImageOperation : public NodeOperation {
       return;
     }
 
-    GPUTexture *image_texture = context().cache_manager().cached_images.get(
+    Result *cached_image = context().cache_manager().cached_images.get(
         context(), get_image(), get_image_user(), get_pass_name(identifier));
 
     Result &result = get_result(identifier);
-    if (!image_texture) {
+    if (!cached_image) {
       result.allocate_invalid();
       return;
     }
 
-    const ResultPrecision precision = Result::precision(GPU_texture_format(image_texture));
-
-    /* Alpha is mot an actual pass, but one that is extracted from the combined pass. So we need to
-     * extract it using a shader. */
-    if (identifier != "Alpha") {
-      result.set_precision(precision);
-      result.wrap_external(image_texture);
-      return;
+    /* Alpha is not an actual pass, but one that is extracted from the combined pass. */
+    if (identifier == "Alpha") {
+      extract_alpha(context(), *cached_image, result);
     }
-
-    GPUShader *shader = context().get_shader("compositor_convert_color_to_alpha", precision);
-    GPU_shader_bind(shader);
-
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(image_texture, input_unit);
-
-    const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));
-    result.allocate_texture(Domain(size));
-
-    result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, size);
-
-    GPU_shader_unbind();
-    GPU_texture_unbind(image_texture);
-    result.unbind_as_image();
+    else {
+      cached_image->pass_through(result);
+    }
   }
 
   /* Get the name of the pass corresponding to the output with the given identifier. */

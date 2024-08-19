@@ -171,6 +171,25 @@ ResultType Result::type(eGPUTextureFormat format)
   return ResultType::Color;
 }
 
+ResultType Result::float_type(const int channels_count)
+{
+  switch (channels_count) {
+    case 1:
+      return ResultType::Float;
+    case 2:
+      return ResultType::Float2;
+    case 3:
+      return ResultType::Float3;
+    case 4:
+      return ResultType::Color;
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return ResultType::Color;
+}
+
 Result::operator GPUTexture *() const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);

@@ -619,9 +619,9 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
           continue;
         }
 
-        GPUTexture *pass_texture = context().cache_manager().cached_images.get(
+        Result *pass_result = context().cache_manager().cached_images.get(
             context(), image, &image_user_for_layer, render_pass->name);
-        layers.append(pass_texture);
+        layers.append(*pass_result);
       }
 
       /* If we already found Cryptomatte layers, no need to check other render layers. */

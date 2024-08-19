@@ -192,6 +192,7 @@ CachedImage::CachedImage(Context &context,
                          Image *image,
                          ImageUser *image_user,
                          const char *pass_name)
+    : result(context)
 {
   /* We can't retrieve the needed image buffer yet, because we still need to assign the pass index
    * to the image user in order to acquire the image buffer corresponding to the given pass name.
@@ -212,8 +213,32 @@ CachedImage::CachedImage(Context &context,
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
   ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
 
-  texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, true, true);
-  GPU_texture_update_mipmap_chain(texture_);
+  const bool use_half_float = linear_image_buffer->flags & IB_halffloat;
+  this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
+
+  /* At the user level, vector images are always treated as color, so there are only two possible
+   * options, float images and color images. 3-channel images should then be converted to 4-channel
+   * images below. */
+  const bool is_single_channel = linear_image_buffer->channels == 1;
+  this->result.set_type(is_single_channel ? ResultType::Float : ResultType::Color);
+
+  /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
+   * CPU, we allocate the result and copy to it from the image buffer. */
+  if (context.use_gpu()) {
+    texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, true, true);
+    GPU_texture_update_mipmap_chain(texture_);
+    this->result.wrap_external(texture_);
+  }
+  else {
+    const int2 size = int2(image_buffer->x, image_buffer->y);
+    const int channels_count = linear_image_buffer->channels;
+    Result buffer_result(context, Result::float_type(channels_count), ResultPrecision::Full);
+    buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
+    this->result.allocate_texture(size, false);
+    parallel_for(size, [&](const int2 texel) {
+      this->result.store_pixel(texel, buffer_result.load_pixel(texel));
+    });
+  }
 
   IMB_freeImBuf(linear_image_buffer);
   BKE_image_release_ibuf(image, image_buffer, nullptr);
@@ -221,12 +246,8 @@ CachedImage::CachedImage(Context &context,
 
 CachedImage::~CachedImage()
 {
+  this->result.release();
   GPU_TEXTURE_FREE_SAFE(texture_);
-}
-
-GPUTexture *CachedImage::texture()
-{
-  return texture_;
 }
 
 /* --------------------------------------------------------------------
@@ -250,10 +271,10 @@ void CachedImageContainer::reset()
   }
 }
 
-GPUTexture *CachedImageContainer::get(Context &context,
-                                      Image *image,
-                                      const ImageUser *image_user,
-                                      const char *pass_name)
+Result *CachedImageContainer::get(Context &context,
+                                  Image *image,
+                                  const ImageUser *image_user,
+                                  const char *pass_name)
 {
   if (!image || !image_user) {
     return nullptr;
@@ -279,7 +300,7 @@ GPUTexture *CachedImageContainer::get(Context &context,
   });
 
   cached_image.needed = true;
-  return cached_image.texture();
+  return &cached_image.result;
 }
 
 }  // namespace blender::realtime_compositor
