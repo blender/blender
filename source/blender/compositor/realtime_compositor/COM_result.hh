@@ -160,6 +160,9 @@ class Result {
   MetaData meta_data;
 
  public:
+  /* Construct a result within the given context. */
+  Result(Context &context);
+
   /* Construct a result of the given type and precision within the given context. */
   Result(Context &context, ResultType type, ResultPrecision precision);
 
@@ -336,6 +339,9 @@ class Result {
 
   /* Returns the precision of the result. */
   ResultPrecision precision() const;
+
+  /* Sets the type of the result. */
+  void set_type(ResultType type);
 
   /* Sets the precision of the result. */
   void set_precision(ResultPrecision precision);

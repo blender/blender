@@ -19,6 +19,8 @@
 
 namespace blender::realtime_compositor {
 
+Result::Result(Context &context) : context_(&context) {}
+
 Result::Result(Context &context, ResultType type, ResultPrecision precision)
     : context_(&context), type_(type), precision_(precision)
 {
@@ -644,6 +646,13 @@ ResultType Result::type() const
 ResultPrecision Result::precision() const
 {
   return precision_;
+}
+
+void Result::set_type(ResultType type)
+{
+  /* Changing the type can only be done if it wasn't allocated yet. */
+  BLI_assert(!this->is_allocated());
+  type_ = type;
 }
 
 void Result::set_precision(ResultPrecision precision)
