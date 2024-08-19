@@ -20,6 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.h"
+#include "BLI_stack.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_time.h"
@@ -641,7 +642,7 @@ void free(std::unique_ptr<Tree> &pbvh)
   pbvh.reset();
 }
 
-struct PBVHStack {
+struct StackItem {
   Node *node;
   bool revisiting;
 };
@@ -650,51 +651,14 @@ struct PBVHIter {
   Tree *pbvh;
   blender::FunctionRef<bool(Node &)> scb;
 
-  PBVHStack *stack;
-  int stacksize;
-
-  PBVHStack stackfixed[STACK_FIXED_DEPTH];
-  int stackspace;
+  Stack<StackItem, 100> stack;
 };
 
 static void pbvh_iter_begin(PBVHIter *iter, Tree &pbvh, FunctionRef<bool(Node &)> scb)
 {
   iter->pbvh = &pbvh;
   iter->scb = scb;
-
-  iter->stack = iter->stackfixed;
-  iter->stackspace = STACK_FIXED_DEPTH;
-
-  iter->stack[0].node = &pbvh.nodes_.first();
-  iter->stack[0].revisiting = false;
-  iter->stacksize = 1;
-}
-
-static void pbvh_iter_end(PBVHIter *iter)
-{
-  if (iter->stackspace > STACK_FIXED_DEPTH) {
-    MEM_freeN(iter->stack);
-  }
-}
-
-static void pbvh_stack_push(PBVHIter *iter, Node *node, bool revisiting)
-{
-  if (UNLIKELY(iter->stacksize == iter->stackspace)) {
-    iter->stackspace *= 2;
-    if (iter->stackspace != (STACK_FIXED_DEPTH * 2)) {
-      iter->stack = static_cast<PBVHStack *>(
-          MEM_reallocN(iter->stack, sizeof(PBVHStack) * iter->stackspace));
-    }
-    else {
-      iter->stack = static_cast<PBVHStack *>(
-          MEM_mallocN(sizeof(PBVHStack) * iter->stackspace, "PBVHStack"));
-      memcpy(iter->stack, iter->stackfixed, sizeof(PBVHStack) * iter->stacksize);
-    }
-  }
-
-  iter->stack[iter->stacksize].node = node;
-  iter->stack[iter->stacksize].revisiting = revisiting;
-  iter->stacksize++;
+  iter->stack.push({&pbvh.nodes_.first(), false});
 }
 
 static Node *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag)
@@ -702,18 +666,16 @@ static Node *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag)
   /* purpose here is to traverse tree, visiting child nodes before their
    * parents, this order is necessary for e.g. computing bounding boxes */
 
-  while (iter->stacksize) {
-    /* pop node */
-    iter->stacksize--;
-    Node *node = iter->stack[iter->stacksize].node;
+  while (!iter->stack.is_empty()) {
+    StackItem item = iter->stack.pop();
+    Node *node = item.node;
+    bool revisiting = item.revisiting;
 
     /* on a mesh with no faces this can happen
      * can remove this check if we know meshes have at least 1 face */
     if (node == nullptr) {
       return nullptr;
     }
-
-    bool revisiting = iter->stack[iter->stacksize].revisiting;
 
     /* revisiting node already checked */
     if (revisiting) {
@@ -730,11 +692,11 @@ static Node *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag)
     }
 
     /* come back later when children are done */
-    pbvh_stack_push(iter, node, true);
+    iter->stack.push({node, true});
 
     /* push two child nodes on the stack */
-    pbvh_stack_push(iter, &iter->pbvh->nodes_[node->children_offset_ + 1], false);
-    pbvh_stack_push(iter, &iter->pbvh->nodes_[node->children_offset_], false);
+    iter->stack.push({&iter->pbvh->nodes_[node->children_offset_ + 1], false});
+    iter->stack.push({&iter->pbvh->nodes_[node->children_offset_], false});
   }
 
   return nullptr;
@@ -742,10 +704,9 @@ static Node *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag)
 
 static Node *pbvh_iter_next_occluded(PBVHIter *iter)
 {
-  while (iter->stacksize) {
-    /* pop node */
-    iter->stacksize--;
-    Node *node = iter->stack[iter->stacksize].node;
+  while (!iter->stack.is_empty()) {
+    StackItem item = iter->stack.pop();
+    Node *node = item.node;
 
     /* on a mesh with no faces this can happen
      * can remove this check if we know meshes have at least 1 face */
@@ -762,8 +723,8 @@ static Node *pbvh_iter_next_occluded(PBVHIter *iter)
       return node;
     }
 
-    pbvh_stack_push(iter, &iter->pbvh->nodes_[node->children_offset_ + 1], false);
-    pbvh_stack_push(iter, &iter->pbvh->nodes_[node->children_offset_], false);
+    iter->stack.push({&iter->pbvh->nodes_[node->children_offset_ + 1], false});
+    iter->stack.push({&iter->pbvh->nodes_[node->children_offset_], false});
   }
 
   return nullptr;
@@ -852,8 +813,6 @@ void search_callback(Tree &pbvh,
       hit_fn(*node);
     }
   }
-
-  pbvh_iter_end(&iter);
 }
 
 static void search_callback_occluded(Tree &pbvh,
@@ -886,8 +845,6 @@ static void search_callback_occluded(Tree &pbvh,
       }
     }
   }
-
-  pbvh_iter_end(&iter);
 
   if (tree) {
     float tmin = FLT_MAX;
@@ -1544,7 +1501,6 @@ blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(blender::bke::pbvh::Tree &pb
       bounds = bounds::merge(bounds, node->bounds_);
     }
   }
-  pbvh_iter_end(&iter);
 
   return bounds;
 }
@@ -2983,7 +2939,6 @@ Vector<Node *> search_gather(Tree &pbvh,
     }
   }
 
-  pbvh_iter_end(&iter);
   return nodes;
 }
 
