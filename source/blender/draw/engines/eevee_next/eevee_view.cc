@@ -228,7 +228,7 @@ void ShadingView::update_view()
     if (overscan > 0.0f) {
       /* Size of overscan on the screen. */
       const float max_size_with_overscan = math::reduce_max(render_size);
-      const float max_size_original = max_size_with_overscan / (1.0f - 2.0f * overscan);
+      const float max_size_original = max_size_with_overscan / (1.0f + 2.0f * overscan);
       const float overscan_size = (max_size_with_overscan - max_size_original) / 2.0f;
       /* Undo overscan to get the initial dimension of the screen. */
       bottom_left = bottom_left_with_overscan + overscan_size;
