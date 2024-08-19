@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
-"PO-Revision-Date: 2024-08-11 22:56+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"PO-Revision-Date: 2024-08-19 02:18+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -7508,7 +7508,7 @@ msgstr "[Clamp To]: Restringeix els moviments perquè s'ajustin a tota una corba
 
 
 msgid "Damped Track"
-msgstr "Rastreig minimitzat"
+msgstr "Rastreig amortit"
 
 
 msgid "Point towards a target by performing the smallest rotation necessary"
@@ -16245,6 +16245,14 @@ msgstr "Se selecciona el fotograma per a editar-lo en el guió tècnic"
 
 msgid "Freehand curves defining the sketch on this frame"
 msgstr "Corbes a mà alçada que defineixen l'esbós en aquest fotograma"
+
+
+msgid "Annotation Frames"
+msgstr "Fotograma d'anotacions"
+
+
+msgid "Collection of annotation frames"
+msgstr "Col·lecció de fotogrames d'anotacions"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -47665,6 +47673,14 @@ msgid "Import geometry from an OBJ file"
 msgstr "Importa la geometria d'un document OBJ"
 
 
+msgid "Import PLY"
+msgstr "Importar PLY"
+
+
+msgid "Import a point cloud from a PLY file"
+msgstr "Importa un núvol de punts d'un document PLY"
+
+
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -47755,10 +47771,6 @@ msgstr "[Output a single material]: Extreu l'índex del material utilitzat per a
 
 msgid "Edge Angle"
 msgstr "Angle de cantell"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "Calcular l'àrea de superfície de cada cara en una malla"
 
 
 msgid "Edge Neighbors"
@@ -56557,7 +56569,7 @@ msgstr "Retira la correcció inversa per a la restricció Fill-de"
 
 msgctxt "Operator"
 msgid "Set Inverse"
-msgstr "Determinar inversió"
+msgstr "Activar inversió"
 
 
 msgid "Set inverse correction for Child Of constraint"
@@ -84676,6 +84688,10 @@ msgid "Shared Vertex"
 msgstr "Vèrtex compartit"
 
 
+msgid "Weld UVs based on shared vertices"
+msgstr "Solda UVs en base a vèrtexs compartits"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Restablir"
@@ -93570,6 +93586,14 @@ msgid "Experimental features"
 msgstr "Funcionalitats experimentals"
 
 
+msgid "CPU Compositor"
+msgstr "Compositador de CPU"
+
+
+msgid "Enable the new CPU compositor"
+msgstr "Habilita el nou compositador de CPU"
+
+
 msgid "Overlay Next"
 msgstr "Superposició següent"
 
@@ -99742,6 +99766,14 @@ msgid "Use multiple views in the scene"
 msgstr "Usar vistes múltiples en l'escena"
 
 
+msgid "Use New CPU Compositor"
+msgstr "Usar nou compositador de CPU"
+
+
+msgid "Use the new CPU compositor implementation"
+msgstr "Empra la nova implementació del compositador de CPU"
+
+
 msgid "Overwrite existing files while rendering"
 msgstr "Sobreescriure documents existents mentre es revela"
 
@@ -101320,6 +101352,10 @@ msgstr "Càmera de trontoll"
 
 msgid "Jitter camera position to create accurate blurring using render samples (only for final render)"
 msgstr "[Jitter Camera]: Posició de la càmera de trontoll per a crear un difuminat precís usant mostres de revelat (sols per al revelat final)"
+
+
+msgid "Use faster global illumination technique for high roughness surfaces"
+msgstr "Empra una tècnica més ràpida d'il·luminació global per a superfícies d'alta rugositat"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -119407,6 +119443,10 @@ msgid "Control Rotation"
 msgstr "Controlar rotació"
 
 
+msgid "Custom wire width not available on MacOS"
+msgstr "Gruix personalitzat de fils no disponible en MacOS"
+
+
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "Afegir imatge"
@@ -122434,6 +122474,10 @@ msgstr "Projecció X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Encabir"
+
+
+msgid "Experimental CPU Implementation"
+msgstr "Implementació experimental de CPU"
 
 
 msgid "Node Editor Overlays"
@@ -130419,10 +130463,6 @@ msgid "Add to linking collection after {}"
 msgstr "Afegir a col·lecció d'endoil·luminació després {}"
 
 
-msgid "Double click to rename"
-msgstr "Doble clic per canviar el nom"
-
-
 msgid "Hide filtering options"
 msgstr "Amagar opcions de filtratge"
 
@@ -132270,6 +132310,22 @@ msgid "Unable to execute '%s', error changing modes"
 msgstr "No s'ha pogut executar '%s', error en canviar els modes"
 
 
+msgid "No target object to transfer the mode to"
+msgstr "No hi ha cap objecte referent a què transferir el mode"
+
+
+msgid "Unable to transfer mode, the source and/or target objects are not editable"
+msgstr "No s'ha pogut transferir el mode, els objectes origen i/o referent no són editables"
+
+
+msgid "Current mode of source object '%s' is not compatible with target liboverride object '%s'"
+msgstr "El present mode de l'objecte origen '%s' no és compatible amb objectes referent bibsobreseïment '%s'"
+
+
+msgid "Current mode of source object '%s' is not compatible with target object '%s'"
+msgstr "El present mode de l'objecte origen '%s' no és compatible amb l'objecte referent '%s'"
+
+
 msgid "Apply Modifier"
 msgstr "Aplicar modificador"
 
@@ -132463,7 +132519,7 @@ msgstr "L'objecte actiu no té modificadors"
 
 
 msgid "Set Parent To"
-msgstr "Especificar paternitat a"
+msgstr "Assignar pare a"
 
 
 msgid "Object (Keep Transform)"
@@ -138211,6 +138267,18 @@ msgid "Incomplete built-in keying set, appears to be missing type info"
 msgstr "Joc de fitoatributs predefinit incomplet, sembla que falta la informació del tipus"
 
 
+msgid "Frame not found in annotation layer"
+msgstr "El fotograma no està localitzable dins la capsa d'anotacions"
+
+
+msgid "Layer not found in annotation data"
+msgstr "No s'ha trobat la capa en les dades d'anotacions"
+
+
+msgid "Frame already exists on this frame number %d"
+msgstr "El fotograma ja existeix en aquest número de fotograma %d"
+
+
 msgid "Cannot make a bone collection a descendant of itself"
 msgstr "No es pot fer que una col·lecció d'ossos sigui descendent de si mateixa"
 
@@ -141751,6 +141819,14 @@ msgstr "Desactivat, Blender s'ha compilat sense OBJ I/O"
 
 msgid "Path to a OBJ file"
 msgstr "Ruta al document OBJ"
+
+
+msgid "Disabled, Blender was compiled without PLY I/O"
+msgstr "Desactivat, Blender ha estat compilat sense PLY I/O"
+
+
+msgid "Path to a PLY file"
+msgstr "Ruta a un document PLY"
 
 
 msgid "Disabled, Blender was compiled without STL I/O"

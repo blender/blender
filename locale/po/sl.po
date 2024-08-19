@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
-"PO-Revision-Date: 2024-08-11 22:56+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"PO-Revision-Date: 2024-08-19 08:39+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -405,6 +405,10 @@ msgstr "Uporablja se pri povezovanju akcije s podatkovnim blokom za iskanje ustr
 
 msgid "Slot Display Name"
 msgstr "Prikazano ime polja"
+
+
+msgid "Name of the slot for showing in the interface. It is the name, without the first two characters that identify what kind of data-block it animates."
+msgstr "Ime polja, ki je vidno v uporabniškem vmesniku. Enako je celemu imenu, a brez prvih dveh znakov, ki povesta, kakšne sorte podatkovni blok animira."
 
 
 msgid "Selection state of the slot"
@@ -1232,7 +1236,7 @@ msgstr "Urejevalnik besedila"
 
 
 msgid "Edit scripts and in-file documentation"
-msgstr "Namenjen urejanju skriptov in dokumentacije v datoteki .blend"
+msgstr "Namenjen urejanju programov in dokumentacije v datoteki .blend"
 
 
 msgid "Python Console"
@@ -1240,7 +1244,7 @@ msgstr "Python konzola"
 
 
 msgid "Interactive programmatic console for advanced editing and script development"
-msgstr "Interaktivna programska konzola, namenjena naprednemu urejanju in razvijanju skriptov"
+msgstr "Interaktivna programska konzola, namenjena naprednemu urejanju in razvijanju programov"
 
 
 msgid "Info"
@@ -1280,7 +1284,7 @@ msgstr "Lastnosti"
 
 
 msgid "Edit properties of active object and related data-blocks"
-msgstr "Za urejanje lastnosti aktivnega objekta in povezanih podatkovnih blokov"
+msgstr "Za urejanje lastnosti aktivnega objekta in sorodnih podatkovnih blokov"
 
 
 msgid "File Browser"
@@ -1788,7 +1792,7 @@ msgstr "Ime ID"
 
 
 msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
-msgstr "Če je to nastavljeno, sredstvo prejme prilagojen identifikator, sicer pa je identifikator ime razreda, s katerim je sredstvo definirano (primer: če je ime razreda \"OBJECT_AST_zivjo\" in skript ne nastavi bl_idname, bo na koncu bl_idname = \"OBJECT_AST_zivjo\")"
+msgstr "Če je to nastavljeno, sredstvo prejme prilagojen identifikator, sicer pa je identifikator ime razreda, s katerim je sredstvo definirano (primer: če je ime razreda \"OBJECT_AST_zivjo\" in program ne nastavi bl_idname, bo na koncu bl_idname = \"OBJECT_AST_zivjo\")"
 
 
 msgid "Options"
@@ -2243,6 +2247,10 @@ msgid "Cage Extrusion"
 msgstr "Izvlek ovojnice"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes."
+msgstr "Napihne aktivni objekt za podano dolžino v ovojnico, namenjeno peki podatkov. Tako je lažje povezati točke, ki so bližje zunanjosti mrež izbranih objektov."
+
+
 msgid "Cage Object"
 msgstr "Objekt ovojnice"
 
@@ -2301,6 +2309,10 @@ msgstr "Razširi robne piksle navzven"
 
 msgid "Max Ray Distance"
 msgstr "Skrajna razdalja žarka"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit."
+msgstr "Najdaljša možna razdalja žarka za iskanje ujemanj med točkami aktivnega in izbranega objekta. Če je nič, ni omejitev."
 
 
 msgid "Normal Space"
@@ -2728,11 +2740,11 @@ msgstr "Podatkovni bloki vektorskih pisav"
 
 
 msgid "Annotation"
-msgstr "Zaznamek"
+msgstr "Skica"
 
 
 msgid "Annotation data-blocks (legacy Grease Pencil)"
-msgstr "Podatkovni bloki zaznamkov (predhodnik Grease Pencila)"
+msgstr "Podatkovni bloki skic (predhodnik Grease Pencila)"
 
 
 msgid "Grease Pencil"
@@ -3072,11 +3084,11 @@ msgstr "Zbirka pisav"
 
 
 msgid "Main Annotations"
-msgstr "Glavni zaznamki"
+msgstr "Glavne skice"
 
 
 msgid "Collection of annotations"
-msgstr "Zbirka zaznamkov"
+msgstr "Zbirka skic"
 
 
 msgid "Main Grease Pencils"
@@ -3688,7 +3700,7 @@ msgstr "Doseg"
 
 
 msgid "Maximum distance from which a boid can attack"
-msgstr "Največja možna razdalja, na kateri lahko boid še napade"
+msgstr "Najdaljša možna razdalja, na kateri lahko boid še napade"
 
 
 msgid "Boid States"
@@ -3909,16 +3921,32 @@ msgid "End Handle Ease"
 msgstr "Blaženje končne ročice"
 
 
+msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Zmnoži kanal blaženja nazaj, ki pripada U-kosti, z vrednostjo lokalnega skaliranja po osi Y na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+
+
 msgid "Start Handle Ease"
 msgstr "Blaženje začetne ročice"
+
+
+msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Zmnoži kanal blaženja naprej, ki pripada U-kosti, z vrednostjo lokalnega skaliranja po osi Y na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "End Handle Scale"
 msgstr "Skaliranje končne ročice"
 
 
+msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Zmnoži kanale Skaliranja konca, ki pripadajo U-kosti, z vrednostmi lokalnega skaliranja na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+
+
 msgid "Start Handle Scale"
 msgstr "Skaliranje začetne ročice"
+
+
+msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Zmnoži kanale Skaliranja začetka, ki pripadajo U-kosti, z vrednostmi lokalnega skaliranja na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "B-Bone Vertex Mapping Mode"
@@ -4101,6 +4129,10 @@ msgid "None (Legacy)"
 msgstr "Brez (zastarelo)"
 
 
+msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox."
+msgstr "Prezre skaliranje starša, vendar ne vračuna striženja starša. Poustvarja učinek ob izklopu starega potrditvenega polja Inherit Scale."
+
+
 msgid "Length"
 msgstr "Dolžina"
 
@@ -4253,12 +4285,24 @@ msgid "Bones"
 msgstr "Kosti"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode."
+msgstr "Kosti v tej zbirki. V urejevalnem načinu skeleta bo to vedno vrnilo prazen seznam kosti, saj se članstvo v zbirki kosti uskladi šele ob izhodu iz urejevalnega načina."
+
+
 msgid "Child Number"
 msgstr "Številka otroka"
 
 
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "Indeks te zbirke v staršev seznam otrok. Velja si zapomniti, da iskanje tega indeks zahteva pregled vseh zbirk kosti, zato do njega dostopajte previdno."
+
+
 msgid "Index"
 msgstr "Indeks"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "Indeks te zbirke kosti v polju armature.collections_all. Velja si zapomniti, da iskanje tega indeks zahteva pregled vseh zbirk kosti, zato do njega dostopajte previdno."
 
 
 msgid "Is Editable"
@@ -4309,8 +4353,16 @@ msgid "Effective Visibility"
 msgstr "Dejanska vidnost"
 
 
+msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'."
+msgstr "Ali je ta zbirka kosti dejansko vidna v 3D pogledu. Vrednost je resnična, ko so zbirka kosti in vsi njeni predniki vidni ali ko je zbirka označena s 'solo'."
+
+
 msgid "Unique within the Armature"
 msgstr "Edinstveno znotraj skeleta"
+
+
+msgid "Parent bone collection. Note that accessing this requires a scan of all the bone collections to find the parent."
+msgstr "Zbirka starševske kosti. Dobro je vedeti, da dostop do nje zahteva iskanje starša po vseh zbirkah kosti."
 
 
 msgid "Color Set ID"
@@ -4379,6 +4431,10 @@ msgstr "Aktivna zbirka kosti skeleta"
 
 msgid "Active Collection Index"
 msgstr "Indeks aktivne zbirke"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`."
+msgstr "Indeks aktivne zbirke kosti za skelet. Je -1, ko ni aktivne zbirke. Velja si zapomniti, da je to indeks iz temeljnega polja zbirk kosti, torej vrstni red zbirk ni vedno predvidljiv. Korenske zbirke so vedno prve v polju in sorojenci so vedno uvrščeni zaporedno. Razen tega so lahko zbirke kosti v kakršnemkoli vrstnem redu, zato lahko inkrementiranje oz. dekrementiranje tega indeksa povzroči, da aktivna zbirka nepredvidljivo skače naokrog. Bolj predvidljivo obnašanje ponujata `active` ali `active_name`."
 
 
 msgid "Active Collection Name"
@@ -4498,7 +4554,7 @@ msgstr "Ima tresenje"
 
 
 msgid "Has Crease/Pinch Factor"
-msgstr "Ima faktor gubanja/ščipanja"
+msgstr "Ima faktor pregibanja/ščipanja"
 
 
 msgid "Has Persistence"
@@ -5028,6 +5084,10 @@ msgid "Input Samples"
 msgstr "Vhodni vzorci"
 
 
+msgid "Generated intermediate points for very fast mouse movements (Set to 0 to disable)"
+msgstr "Tvori vmesne točke ob zelo hitrih gibih z miško (z 0 to onemogočite)"
+
+
 msgid "Material used for strokes drawn using this brush"
 msgstr "Material potez, ki so bile narisane s tem čopičem"
 
@@ -5162,6 +5222,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Faktor poenostavitve s prilagoditvenim algoritmom"
 
 
+msgid "Threashold in screen space used for the simplify algorithm. Points within this threashold are treated as if they were in a straight line."
+msgstr "Prag v prostoru zaslona za algoritem poenostavitve. Točke pod pragom obravnavamo, kot da ležijo na premici."
+
+
 msgid "Active Layer"
 msgstr "Aktivna plast"
 
@@ -5288,6 +5352,10 @@ msgstr "Naključne nastavitve čopiča"
 
 msgid "Use Stabilizer"
 msgstr "Uporabi stabilizator"
+
+
+msgid "Draw lines with a delay to allow smooth strokes (press Shift key to override while drawing)"
+msgstr "Črte izriše z zamikom, da so poteze bolj gladke (med risanjem to izklopite s tipko dvigalko)"
 
 
 msgid "Use Pressure Strength"
@@ -5819,7 +5887,7 @@ msgstr "Koliko hitrosti se izgubi ob trku"
 
 
 msgid "Minimum distance between collision objects before collision response takes effect"
-msgstr "Najmanjša razdalja med objekti, preden se sproži odziv ob trku"
+msgstr "Najkrajša razdalja med objekti, preden se sproži odziv ob trku"
 
 
 msgid "Friction"
@@ -5839,11 +5907,11 @@ msgstr "Obreže sunke sil na podan interval, da ne pride do nestabilnosti (0.0 o
 
 
 msgid "Self Minimum Distance"
-msgstr "Najmanjša razdalja na sebi"
+msgstr "Najkrajša razdalja na sebi"
 
 
 msgid "Minimum distance between cloth faces before collision response takes effect"
-msgstr "Najmanjša razdalja med lici blaga, preden se sproži odziv ob trku"
+msgstr "Najkrajša razdalja med lici blaga, preden se sproži odziv ob trku"
 
 
 msgid "Self Friction"
@@ -5999,11 +6067,11 @@ msgstr "Uteži izvršitelja"
 
 
 msgid "Fluid Density"
-msgstr "Gostota tekočine"
+msgstr "Gostota kapljevine"
 
 
 msgid "Density (kg/l) of the fluid contained inside the object, used to create a hydrostatic pressure gradient simulating the weight of the internal fluid, or buoyancy from the surrounding fluid if negative"
-msgstr "Gostota tekočine (kg/l) v objektu. Uporablja se za tvorjenje hidrostatičnega tlačnega gradienta, s katerim simuliramo težo notranje tekočine, ali plovnost na okoliški tekočini, če je negativna"
+msgstr "Gostota kapljevine (kg/l) v objektu. Uporablja se za tvorjenje hidrostatičnega tlačnega gradienta, s katerim simuliramo težo notranje kapljevine, ali plovnost na okoliški kapljevini, če je negativna"
 
 
 msgid "Goal Default"
@@ -6023,7 +6091,7 @@ msgstr "Trenje cilja (tarčnega položaja oglišč)"
 
 
 msgid "Goal Maximum"
-msgstr "Zgornja meja cilja"
+msgstr "Višek cilja"
 
 
 msgid "Goal maximum, vertex group weights are scaled to match this range"
@@ -6031,7 +6099,7 @@ msgstr "Največja vrednost cilja. Uteži skupine oglišč se preslikajo na ta in
 
 
 msgid "Goal Minimum"
-msgstr "Spodnja meja cilja"
+msgstr "Nižek cilja"
 
 
 msgid "Goal minimum, vertex group weights are scaled to match this range"
@@ -6068,6 +6136,10 @@ msgstr "Za največ koliko se lahko žarki, ki povezujejo notranje točke, odmakn
 
 msgid "Internal Spring Max Length"
 msgstr "Največja dolžina notranje vzmeti"
+
+
+msgid "The maximum length an internal spring can have during creation. If the distance between internal points is greater than this, no internal spring will be created between these points. A length of zero means that there is no length limit."
+msgstr "Najdaljša možna dolžina, ki jo ima notranja vzmet pri nastanku. Med notranjima točkama, ki sta oddaljeni dlje kot to, se notranja vzmet ne bo ustvarila. Dolžina 0 pomeni, da omejitve dolžine ni."
 
 
 msgid "Check Internal Spring Normals"
@@ -6186,6 +6258,10 @@ msgid "Target Volume"
 msgstr "Ciljna prostornina"
 
 
+msgid "The mesh volume where the inner/outer pressure will be the same. If set to zero the change in volume will not affect pressure."
+msgstr "Mrežna prostornina, pri kateri bosta zunanji in notranji pritisk enaka. Če je nič, sprememba prostornine ne bo vplivala na pritisk."
+
+
 msgid "Tension Spring Damping"
 msgstr "Blaženje natezne vzmeti"
 
@@ -6200,6 +6276,10 @@ msgstr "Hitrost blaga se pomnoži s to vrednostjo"
 
 msgid "Pressure"
 msgstr "Pritisk"
+
+
+msgid "The uniform pressure that is constantly applied to the mesh, in units of Pressure Scale. Can be negative."
+msgstr "Enolični pritisk, ki ves čas deluje na mrežo, merjen v deležih iz Skaliranja pritiska. Lahko je negativen."
 
 
 msgid "Dynamic Base Mesh"
@@ -6264,6 +6344,10 @@ msgstr "Skupina oglišč za zapenjanje oglišč"
 
 msgid "Pressure Vertex Group"
 msgstr "Skupina oglišč pritiska"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation."
+msgstr "Skupina oglišč, na katero naj vpliva pritisk. Če ima oglišče utež 0, nanj ne vpliva pritisk, medtem ko 1 pomeni polni pritisk. Lica z ogliščem, ki ima utež 0, ne bodo vključena v računanje prostornine."
 
 
 msgid "Shear Stiffness Vertex Group"
@@ -6339,11 +6423,11 @@ msgstr "Največja količina iteracij med podkoraki"
 
 
 msgid "Minimum Error"
-msgstr "Najmanjša napaka"
+msgstr "Najnižja napaka"
 
 
 msgid "Minimum error during substeps"
-msgstr "Najmanjša napaka med podkoraki"
+msgstr "Najnižja napaka med podkoraki"
 
 
 msgid "Minimum Iterations"
@@ -6862,6 +6946,10 @@ msgid "High Dynamic Range"
 msgstr "Veliki dinamični razpon"
 
 
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors."
+msgstr "V upodobljenem 3D pogledu uporabi prikaz velikega dinamičnega razpona tako, da ne omeji svetlosti prikaza. Zaslon mora podpirati HDR in transformacijo pogleda, prilagojeno za HDR. 'Filmic' in 'AgX' ne tvorita barv HDR."
+
+
 msgid "Use White Balance"
 msgstr "Uporabi izravnavanje beline"
 
@@ -7303,6 +7391,10 @@ msgid "Local Space (Owner Orientation)"
 msgstr "Lokalni prostor (usmerjenost imetnika)"
 
 
+msgid "The transformation of the target bone is evaluated relative to its local coordinate system, followed by a correction for the difference in target and owner rest pose orientations. When applied as local transform to the owner produces the same global motion as the target if the parents are still in rest pose."
+msgstr "Transformacija tarčne kosti se izračuna glede na svoj lokalni koordinatni sistem, nato sledi popravek zaradi razlike med usmerjenostjo mirovalne drže tarče in imetnika. Kadar je v uporabi kot lokalna transformacija nad imetnikom, proizvede enak globalni premik kot tarča, če sta starša še vedno v mirovalni drži."
+
+
 msgid "Camera Solver"
 msgstr "Reševalnik kamere"
 
@@ -7536,7 +7628,7 @@ msgstr "Prvi okvir akcije, ki se že upošteva"
 
 
 msgid "Maximum"
-msgstr "Zgornja meja"
+msgstr "Višek"
 
 
 msgid "Maximum value for target channel range"
@@ -7544,7 +7636,7 @@ msgstr "Največja možna vrednost na intervalu tarčnega kanala"
 
 
 msgid "Minimum"
-msgstr "Spodnja meja"
+msgstr "Nižek"
 
 
 msgid "Minimum value for target channel range"
@@ -7559,8 +7651,16 @@ msgid "Before Original (Full)"
 msgstr "Pred prvotno (polno)"
 
 
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Da prednost akcijskim kanalom pred prvotno transformacijo, kot če bi jih nanesli na namišljen starševski objekt s polnim dedovanjem skaliranja. V kombinaciji z rotacijo in neenakomernim skaliranjem povzroči striženje."
+
+
 msgid "Before Original (Aligned)"
 msgstr "Pred prvotno (poravnano)"
+
+
+msgid "Apply the action channels before the original transformation, as if applied to an imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Da prednost akcijskim kanalom pred prvotno transformacijo, kot če bi jih nanesli na namišljen starševski objekt s poravnanim dedovanjem skaliranja. V bistvu ta opcija uporabi polno dedovanje za lego in ločene kanale za rotacijo in skaliranje."
 
 
 msgid "Before Original (Split Channels)"
@@ -7575,8 +7675,16 @@ msgid "After Original (Full)"
 msgstr "Po prvotni (polno)"
 
 
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Da prednost prvotni transformaciji pred akcijskimi kanali, kot če bi jih nanesli na namišljenega otroka s polnim dedovanjem skaliranja. V kombinaciji z rotacijo in neenakomernim skaliranjem povzroči striženje."
+
+
 msgid "After Original (Aligned)"
 msgstr "Po prvotni (poravnano)"
+
+
+msgid "Apply the action channels after the original transformation, as if applied to an imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Da prednost prvotni transformaciji pred akcijskimi kanali, kot če bi jih nanesli na namišljenega otroka s poravnanim dedovanjem skaliranja. V bistvu ta opcija uporabi polno dedovanje za lego in ločene kanale za rotacijo in skaliranje."
 
 
 msgid "After Original (Split Channels)"
@@ -8145,7 +8253,7 @@ msgstr "Omejevalnik Python"
 
 
 msgid "Script Error"
-msgstr "Napaka skripta"
+msgstr "Napaka programa"
 
 
 msgid "Number of Targets"
@@ -8157,7 +8265,7 @@ msgstr "Tarčni objekti"
 
 
 msgid "Script"
-msgstr "Skript"
+msgstr "Program"
 
 
 msgid "Use Targets"
@@ -8229,7 +8337,7 @@ msgstr "Poravnaj os z normalo"
 
 
 msgid "Snap Mode"
-msgstr "Način pritrjevanja"
+msgstr "Način poravnave"
 
 
 msgid "Outside Surface"
@@ -8249,7 +8357,7 @@ msgstr "Največja spremenljivost prostornine"
 
 
 msgid "Volume Variation Minimum"
-msgstr "Najmanjša spremenljivost prostornine"
+msgstr "Nižek spremenljivosti prostornine"
 
 
 msgid "Volume Variation Smoothness"
@@ -8265,7 +8373,7 @@ msgstr "Uporabi največjo spremenljivost prostornine"
 
 
 msgid "Use Volume Variation Minimum"
-msgstr "Uporabi najmanjšo spremenljivost prostornine"
+msgstr "Uporabi nižek spremenljivosti prostornine"
 
 
 msgid "Chain Offset"
@@ -9010,7 +9118,7 @@ msgstr "Seštevek"
 
 
 msgid "Scripted Expression"
-msgstr "Skriptiran izraz"
+msgstr "Programiran izraz"
 
 
 msgid "Minimum Value"
@@ -9577,7 +9685,7 @@ msgstr "Magnet"
 
 
 msgid "Fluid Flow"
-msgstr "Tekočinski tok"
+msgstr "Kapljevinski tok"
 
 
 msgid "Turbulence"
@@ -10055,7 +10163,7 @@ msgstr "Privzeta zgornja meja"
 
 
 msgid "Default Minimum"
-msgstr "Privzeta spodnja meja"
+msgstr "Privzeti nižek"
 
 
 msgid "Reference Value"
@@ -10275,7 +10383,7 @@ msgstr "Največja radialna razdalja"
 
 
 msgid "Minimum Radial Distance"
-msgstr "Najmanjša radialna razdalja"
+msgstr "Najkrajša radialna razdalja"
 
 
 msgid "Rest Length"
@@ -10595,7 +10703,7 @@ msgstr "Filter videoposnetkov"
 
 
 msgid "Filter Script"
-msgstr "Filter skriptov"
+msgstr "Filter programov"
 
 
 msgid "Filter Sound"
@@ -10775,7 +10883,7 @@ msgstr "Tekočina"
 
 
 msgid "Export Mantaflow Script"
-msgstr "Izvoz skripta Metaflow"
+msgstr "Izvoz programa Metaflow"
 
 
 msgid "Flame Grid"
@@ -10799,7 +10907,7 @@ msgstr "Razmerje FLIP"
 
 
 msgid "Fluid Collection"
-msgstr "Zbirka tekoče"
+msgstr "Zbirka kapljevine"
 
 
 msgid "Force Collection"
@@ -10819,11 +10927,1065 @@ msgstr "Vrsta celice"
 
 
 msgid "Fluid"
-msgstr "Tekočina"
+msgstr "Kapljevina"
 
 
 msgid "Obstacle"
 msgstr "Ovira"
+
+
+msgid "Outflow"
+msgstr "Odtok"
+
+
+msgid "Color Gridlines"
+msgstr "Barvne mrežne črte"
+
+
+msgid "Flags"
+msgstr "Zastavice"
+
+
+msgid "Highlight Range"
+msgstr "Interval poudarkov"
+
+
+msgid "Lower Bound"
+msgstr "Spodnja meja"
+
+
+msgid "Upper Bound"
+msgstr "Zgornja meja"
+
+
+msgid "Effector"
+msgstr "Izvršitelj"
+
+
+msgid "Velocity Factor"
+msgstr "Vpliv hitrosti"
+
+
+msgid "Heat Grid"
+msgstr "Toplotna mreža"
+
+
+msgid "Emitter"
+msgstr "Oddajnik"
+
+
+msgid "Full Sample"
+msgstr "Polno vzorčenje"
+
+
+msgid "Nearest"
+msgstr "Najbližje"
+
+
+msgid "Lower Concavity"
+msgstr "Najnižja konkavnost"
+
+
+msgid "Upper Concavity"
+msgstr "Najvišja konkavnost"
+
+
+msgid "Final"
+msgstr "Končno"
+
+
+msgid "Preview"
+msgstr "Predogled"
+
+
+msgid "Smoothen Neg"
+msgstr "Negativno glajenje"
+
+
+msgid "Smoothen Pos"
+msgstr "Pozitivno glajenje"
+
+
+msgid "Noise Scale"
+msgstr "Skaliranje šuma"
+
+
+msgid "Time"
+msgstr "Čas"
+
+
+msgid "Compression"
+msgstr "Stiskanje"
+
+
+msgid "Zip"
+msgstr "Zip"
+
+
+msgid "Blosc"
+msgstr "Blosc"
+
+
+msgid "Data Depth"
+msgstr "Podatkovna globina"
+
+
+msgctxt "Amount"
+msgid "Number"
+msgstr "Količina"
+
+
+msgid "Randomness"
+msgstr "Naključnost"
+
+
+msgid "Maximum Resolution"
+msgstr "Največja ločljivost"
+
+
+msgid "Gridlines"
+msgstr "Mrežne črte"
+
+
+msgid "Vector Display"
+msgstr "Prikaz vektorjev"
+
+
+msgid "Simulation Method"
+msgstr "Simulacijska metoda"
+
+
+msgid "FLIP"
+msgstr "FLIP"
+
+
+msgid "APIC"
+msgstr "APIC"
+
+
+msgid "Slice Per Voxel"
+msgstr "Rezin na voksel"
+
+
+msgid "Particles in Boundary"
+msgstr "Delci na ločnicah"
+
+
+msgid "Delete"
+msgstr "Izbriši"
+
+
+msgid "Push Out"
+msgstr "Odbij nazaj"
+
+
+msgid "Bubble Buoyancy"
+msgstr "Plovnost mehurčkov"
+
+
+msgid "Bubble Drag"
+msgstr "Upor mehurčkov"
+
+
+msgid "Combined Export"
+msgstr "Sestavljen izvoz"
+
+
+msgid "Spray + Foam"
+msgstr "Pršenje in pena"
+
+
+msgid "Spray + Bubbles"
+msgstr "Pršenje in mehurčki"
+
+
+msgid "Foam + Bubbles"
+msgstr "Pena in mehurčki"
+
+
+msgid "Spray + Foam + Bubbles"
+msgstr "Pršenje, pena in mehurčki"
+
+
+msgid "Maximum Lifetime"
+msgstr "Najdaljša življenjska doba"
+
+
+msgid "Minimum Lifetime"
+msgstr "Najkrajša življenjska doba"
+
+
+msgid "Maximum Kinetic Energy Potential"
+msgstr "Največji potencial kinetične energije"
+
+
+msgid "Maximum Trapped Air Potential"
+msgstr "Največji potencial ujetega zraka"
+
+
+msgid "Maximum Wave Crest Potential"
+msgstr "Največji potencial grebenov valov"
+
+
+msgid "Minimum Kinetic Energy Potential"
+msgstr "Najmanjši potencial kinetične energije"
+
+
+msgid "Minimum Trapped Air Potential"
+msgstr "Najmanjši potencial ujetega zraka"
+
+
+msgid "Minimum Wave Crest Potential"
+msgstr "Najmanjši potencial greben valov"
+
+
+msgid "Potential Radius"
+msgstr "Potencialni polmer"
+
+
+msgid "Trapped Air Sampling"
+msgstr "Vzorčenje ujetega zraka"
+
+
+msgid "Wave Crest Sampling"
+msgstr "Vzorčenje grebenov valov"
+
+
+msgid "Update Radius"
+msgstr "Polmer posodabljanja"
+
+
+msgid "p0"
+msgstr "p0"
+
+
+msgid "Start point"
+msgstr "Začetna točka"
+
+
+msgid "Tension"
+msgstr "Napetost"
+
+
+msgid "System Maximum"
+msgstr "Sistemski višek"
+
+
+msgid "Temperature Grid"
+msgstr "Temperaturna mreža"
+
+
+msgid "Time Scale"
+msgstr "Časovno skaliranje"
+
+
+msgid "Adaptive Domain"
+msgstr "Prilagodljiva domena"
+
+
+msgid "Use Adaptive Time Steps"
+msgstr "Uporabi prilagodljive časovne korake"
+
+
+msgid "Bubble"
+msgstr "Mehurček"
+
+
+msgid "Top"
+msgstr "Vrh"
+
+
+msgid "Grid Display"
+msgstr "Prikaz mreže"
+
+
+msgid "Use Diffusion"
+msgstr "Uporabi razpršitev"
+
+
+msgid "Dissolve Smoke"
+msgstr "Puhtenje dima"
+
+
+msgid "Logarithmic Dissolve"
+msgstr "Logaritemsko puhtenje"
+
+
+msgid "Foam"
+msgstr "Pena"
+
+
+msgid "Fractional Obstacles"
+msgstr "Déležne ovire"
+
+
+msgid "Use Guiding"
+msgstr "Uporabi vodenje"
+
+
+msgid "Use Mesh"
+msgstr "Uporabi mrežno geometrijo"
+
+
+msgid "Use Noise"
+msgstr "Uporabi šum"
+
+
+msgid "Slice"
+msgstr "Prerez"
+
+
+msgid "Speed Vectors"
+msgstr "Vektorji hitrosti"
+
+
+msgid "Spray"
+msgstr "Pršenje"
+
+
+msgid "Tracer"
+msgstr "Sledilnik"
+
+
+msgid "Use Viscosity"
+msgstr "Uporabi židkost"
+
+
+msgid "Display Type"
+msgstr "Vrsta prikaza"
+
+
+msgid "Needle"
+msgstr "Igla"
+
+
+msgid "Streamlines"
+msgstr "Tokovnice"
+
+
+msgid "MAC Grid"
+msgstr "Mreža MAC"
+
+
+msgid "Fluid Velocity"
+msgstr "Hitrost kapljevine"
+
+
+msgid "Guide Velocity"
+msgstr "Vodilna hitrost"
+
+
+msgid "Magnitude"
+msgstr "Velikost"
+
+
+msgid "Velocity Grid"
+msgstr "Mreža hitrosti"
+
+
+msgid "Velocity Scale"
+msgstr "Jakost hitrosti"
+
+
+msgid "Viscosity Base"
+msgstr "Osnova židkosti"
+
+
+msgid "Viscosity Exponent"
+msgstr "Eksponent židkosti"
+
+
+msgid "Effector Settings"
+msgstr "Nastavitve izvršitelja"
+
+
+msgid "Effector Type"
+msgstr "Vrsta izvršitelja"
+
+
+msgid "Collision"
+msgstr "Trki"
+
+
+msgid "Guide"
+msgstr "Vodnik"
+
+
+msgid "Maximize"
+msgstr "Maksimiraj"
+
+
+msgid "Minimize"
+msgstr "Minimiziraj"
+
+
+msgid "Override"
+msgstr "Razveljavi"
+
+
+msgid "Averaged"
+msgstr "Povprečje"
+
+
+msgid "Subframes"
+msgstr "Podokvirji"
+
+
+msgid "Is Planar"
+msgstr "Je ploščat"
+
+
+msgid "Flow Settings"
+msgstr "Nastavitve pretoka"
+
+
+msgid "Density"
+msgstr "Gostota"
+
+
+msgid "Vertex Group"
+msgstr "Skupina oglišč"
+
+
+msgid "Flow Behavior"
+msgstr "Obnašanje pretoka"
+
+
+msgid "Flow Type"
+msgstr "Vrsta pretoka"
+
+
+msgid "Fire + Smoke"
+msgstr "Ogenj in dim"
+
+
+msgid "Fire"
+msgstr "Ogenj"
+
+
+msgid "Flame Rate"
+msgstr "Pogostost plamenov"
+
+
+msgid "Color of smoke"
+msgstr "Barva dima"
+
+
+msgid "Surface Emission"
+msgstr "Oddajanje površine"
+
+
+msgid "Temperature Difference"
+msgstr "Temperaturna razlika"
+
+
+msgctxt "Texture"
+msgid "Mapping"
+msgstr "Teksturiranje"
+
+
+msgctxt "Texture"
+msgid "Generated"
+msgstr "Tvorjeno"
+
+
+msgctxt "Texture"
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Absolute Density"
+msgstr "Absolutna gostota"
+
+
+msgid "Use Flow"
+msgstr "Uporabi pretok"
+
+
+msgid "Initial Velocity"
+msgstr "Začetna hitrost"
+
+
+msgid "Set Size"
+msgstr "Nastavi velikost"
+
+
+msgid "Use Texture"
+msgstr "Uporabi teksturo"
+
+
+msgid "Initial"
+msgstr "Začetna"
+
+
+msgid "Volume Emission"
+msgstr "Oddajanje prostornine"
+
+
+msgid "Freestyle Line Set"
+msgstr "Nabor potez Freestyle"
+
+
+msgid "Collection"
+msgstr "Zbirka"
+
+
+msgid "Collection Negation"
+msgstr "Negacija zbirke"
+
+
+msgid "Inclusive"
+msgstr "Vključujoče"
+
+
+msgid "Exclusive"
+msgstr "Izključujoče"
+
+
+msgid "Edge Type Combination"
+msgstr "Kombinacija vrst robov"
+
+
+msgid "Logical OR"
+msgstr "Logični ALI"
+
+
+msgid "Logical AND"
+msgstr "Logični IN"
+
+
+msgid "Edge Type Negation"
+msgstr "Negacija vrst robov"
+
+
+msgid "Border"
+msgstr "Ločnica"
+
+
+msgid "Contour"
+msgstr "Kontura"
+
+
+msgid "Crease"
+msgstr "pregibanje"
+
+
+msgid "Edge Mark"
+msgstr "Označeni rob"
+
+
+msgid "External Contour"
+msgstr "Zunanja kontura"
+
+
+msgid "Material Boundary"
+msgstr "Meja materiala"
+
+
+msgid "Ridge & Valley"
+msgstr "Vrhovi in doline"
+
+
+msgid "Silhouette"
+msgstr "Silhueta"
+
+
+msgid "Suggestive Contour"
+msgstr "Namigujoča kontura"
+
+
+msgid "Face Mark Condition"
+msgstr "Pogoj označenih lic"
+
+
+msgid "One Face"
+msgstr "Eno lice"
+
+
+msgid "Both Faces"
+msgstr "Obe lici"
+
+
+msgid "Face Mark Negation"
+msgstr "Negacija označenih lic"
+
+
+msgid "Line Style"
+msgstr "Slog poteze"
+
+
+msgid "Line Set Name"
+msgstr "Ime nabora potez"
+
+
+msgid "Selection by Collection"
+msgstr "Izbor po zbirki"
+
+
+msgid "Selection by Edge Types"
+msgstr "Izbor po vrstah robov"
+
+
+msgid "Selection by Face Marks"
+msgstr "Izbor po označenih licih"
+
+
+msgid "Selection by Image Border"
+msgstr "Izbor po robu slike"
+
+
+msgid "Selection by Visibility"
+msgstr "Izbor po vidnosti"
+
+
+msgid "Visibility"
+msgstr "Vidnost"
+
+
+msgid "Hidden"
+msgstr "Skrito"
+
+
+msgid "Quantitative Invisibility"
+msgstr "Količinska nevidnost"
+
+
+msgid "Freestyle Module"
+msgstr "Modul Freestyle"
+
+
+msgid "Style Module"
+msgstr "Slogovni modul"
+
+
+msgid "Use"
+msgstr "Uporabi"
+
+
+msgid "Style Modules"
+msgstr "Slogovni moduli"
+
+
+msgid "Freestyle Settings"
+msgstr "Nastavitve Freestyle"
+
+
+msgid "As Render Pass"
+msgstr "Kot obhod upodabljanja"
+
+
+msgid "Crease Angle"
+msgstr "Kot pregiba"
+
+
+msgid "Kr Derivative Epsilon"
+msgstr "Odvodni epsilon Kr"
+
+
+msgid "Line Sets"
+msgstr "Nabori potez"
+
+
+msgid "Control Mode"
+msgstr "Krmilni način"
+
+
+msgid "Python Scripting"
+msgstr "Programiranje Python"
+
+
+msgid "Parameter Editor"
+msgstr "Urejevalnik parametrov"
+
+
+msgid "Sphere Radius"
+msgstr "Polmer sfere"
+
+
+msgid "Culling"
+msgstr "Izločanje"
+
+
+msgid "Material Boundaries"
+msgstr "Meje materiala"
+
+
+msgid "Ridges and Valleys"
+msgstr "Vrhovi in doline"
+
+
+msgid "Face Smoothness"
+msgstr "Glajenje lic"
+
+
+msgid "Suggestive Contours"
+msgstr "Namigujoče konture"
+
+
+msgid "View Map Cache"
+msgstr "Predpomnilnik teksture pogleda"
+
+
+msgid "Annotation Frame"
+msgstr "Okvir skice"
+
+
+msgid "Frame Number"
+msgstr "Številka okvirja"
+
+
+msgid "Annotation Frames"
+msgstr "Okvirji skic"
+
+
+msgid "Collection of annotation frames"
+msgstr "Zbirka okvirjev skic"
+
+
+msgid "Grease Pencil Interpolate Settings"
+msgstr "Interpolacijske nastavitve Grease Pencil"
+
+
+msgid "Interpolation Curve"
+msgstr "Interpolacijska krivulja"
+
+
+msgid "Annotation Layer"
+msgstr "Plast skice"
+
+
+msgid "Active Frame"
+msgstr "Aktivni okvir"
+
+
+msgid "After Color"
+msgstr "Bodoča barva"
+
+
+msgid "Frames After"
+msgstr "Okvirjev po tem"
+
+
+msgid "Before Color"
+msgstr "Pretekla barva"
+
+
+msgid "Frames Before"
+msgstr "Okvirjev pred tem"
+
+
+msgid "Custom Onion Skin Colors"
+msgstr "Prekrivne barve po meri"
+
+
+msgid "Annotation Layer Opacity"
+msgstr "Neprozornost plasti skice"
+
+
+msgid "Frames"
+msgstr "Okvirji"
+
+
+msgid "Layer name"
+msgstr "Ime plasti"
+
+
+msgid "Ruler"
+msgstr "Ravnilo"
+
+
+msgid "Locked"
+msgstr "Zaklenjeno"
+
+
+msgid "Frame Locked"
+msgstr "Okvir zaklenjen"
+
+
+msgid "In Front"
+msgstr "V ospredje"
+
+
+msgid "Onion Skinning"
+msgstr "Časovno prekrivanje"
+
+
+msgid "Grease Pencil Sculpt Guide"
+msgstr "Kiparsko vodilo Grease Pencil"
+
+
+msgid "Angle Snap"
+msgstr "Poravnava s koti"
+
+
+msgid "Spacing"
+msgstr "Razmiki"
+
+
+msgid "Circular"
+msgstr "Krožno"
+
+
+msgid "Radial"
+msgstr "Radialno"
+
+
+msgid "Grid"
+msgstr "Mreža"
+
+
+msgid "Isometric"
+msgstr "Istomerno"
+
+
+msgid "Use Guides"
+msgstr "Uporabi vodila"
+
+
+msgid "Use Snapping"
+msgstr "Uporabi poravnavo"
+
+
+msgid "GPencil Sculpt Settings"
+msgstr "Kiparske nastavitve Grease Pencil"
+
+
+msgid "Lock Axis"
+msgstr "Zakleni os"
+
+
+msgid "Front (X-Z)"
+msgstr "Spredaj (X-Z)"
+
+
+msgid "Side (Y-Z)"
+msgstr "Od strani (Y-Z)"
+
+
+msgid "Top (X-Y)"
+msgstr "Od zgoraj (X-Y)"
+
+
+msgid "Auto-Masking Layer"
+msgstr "Plast samodejnega maskiranja"
+
+
+msgid "Auto-Masking Material"
+msgstr "Material samodejnega maskiranja"
+
+
+msgid "Auto-Masking Strokes"
+msgstr "Poteze samodejnega maskiranja"
+
+
+msgid "Use Falloff"
+msgstr "Uporabi slabljenje"
+
+
+msgid "Scale Stroke Thickness"
+msgstr "Skaliranje debeline poteze"
+
+
+msgid "Use Curve"
+msgstr "Uporabi krivuljo"
+
+
+msgid "Annotation Stroke"
+msgstr "Poteza skice"
+
+
+msgid "Stroke Points"
+msgstr "Točke poteze"
+
+
+msgid "Annotation Stroke Point"
+msgstr "Točka poteze skice"
+
+
+msgid "Coordinates"
+msgstr "Koordinate"
+
+
+msgctxt "Operator"
+msgid "Gizmo"
+msgstr "Manipulator"
+
+
+msgid "Hide Keymap"
+msgstr "Skrij bližnjico"
+
+
+msgid "Hide Select"
+msgstr "Skrij izbiro"
+
+
+msgid "Highlight"
+msgstr "Poudarek"
+
+
+msgid "Line Width"
+msgstr "Širina črte"
+
+
+msgid "Basis Matrix"
+msgstr "Izhodiščna matrika"
+
+
+msgid "Offset Matrix"
+msgstr "Odmična matrika"
+
+
+msgid "Space Matrix"
+msgstr "Prostorska matrika"
+
+
+msgid "Final World Matrix"
+msgstr "Končna matrika sveta"
+
+
+msgid "Scale Basis"
+msgstr "Izhodiščno skaliranje"
+
+
+msgid "Select Bias"
+msgstr "Izberi popravek"
+
+
+msgid "Show Hover"
+msgstr "Pokaži lebdenje"
+
+
+msgid "Show Active"
+msgstr "Pokaži aktivno"
+
+
+msgid "Scale Offset"
+msgstr "Skaliranje odmika"
+
+
+msgid "Show Value"
+msgstr "Pokaži vrednost"
+
+
+msgid "Handle All Events"
+msgstr "Obdela vse dogodke"
+
+
+msgid "Grab Cursor"
+msgstr "Prime kazalec"
+
+
+msgid "Select Background"
+msgstr "Izbor ozadja"
+
+
+msgid "Use Tooltip"
+msgstr "Uporabi zaslonski namig"
+
+
+msgctxt "Operator"
+msgid "GizmoGroup"
+msgstr "Manipulatorska skupina"
+
+
+msgid "Depth 3D"
+msgstr "3D globina"
+
+
+msgid "Persistent"
+msgstr "Trajno"
+
+
+msgid "Show Modal All"
+msgstr "Pokaži vse modalne"
+
+
+msgid "Exclude Modal"
+msgstr "Izloči modalne"
+
+
+msgid "VR Redraws"
+msgstr "Ponovni izrisi za VR"
+
+
+msgid "Region Type"
+msgstr "Vrsta področja"
+
+
+msgid "Window"
+msgstr "Okno"
+
+
+msgid "Header"
+msgstr "Glava"
+
+
+msgid "Temporary"
+msgstr "Začasno"
+
+
+msgid "Sidebar"
+msgstr "Stranska vrstica"
+
+
+msgid "Tools"
+msgstr "Orodja"
+
+
+msgid "Tool Properties"
+msgstr "Lastnosti orodij"
+
+
+msgid "Asset Shelf Header"
+msgstr "Glava police s sredstvi"
+
+
+msgid "Floating Region"
+msgstr "Plavajoče področje"
+
+
+msgid "Navigation Bar"
+msgstr "Navigacijska vrstica"
+
+
+msgid "Execute Buttons"
+msgstr "Izvršni gumbi"
+
+
+msgid "Footer"
+msgstr "Noga"
+
+
+msgid "Tool Header"
+msgstr "Glava orodja"
+
+
+msgid "XR"
+msgstr "Razširjena resničnost"
+
+
+msgid "Gizmos"
+msgstr "Manipulatorji"
+
+
+msgid "VR Controller Poses Indicator"
+msgstr "Indikator postavitev krmilnika VR"
+
+
+msgid "VR Landmark Indicators"
+msgstr "Indikatorji orientacijskih točk VR"
+
+
+msgid "VR Viewer Pose Indicator"
+msgstr "Indikator postavitve pogleda VR"
+
+
+msgid "Gizmo Group Properties"
+msgstr "Lastnosti manipulatorske skupine"
+
+
+msgid "Gizmo Properties"
+msgstr "Lastnosti manipulatorjev"
 
 
 msgid "Dash Modifier Segment"
@@ -10840,6 +12002,678 @@ msgstr "Razmik"
 
 msgid "Material Index"
 msgstr "Indeks materiala"
+
+
+msgid "Grease Pencil Drawing"
+msgstr "Risba Grease Pencil"
+
+
+msgid "Attributes"
+msgstr "Atributi"
+
+
+msgid "Geometry attributes"
+msgstr "Geometrijski atributi"
+
+
+msgid "Color Attributes"
+msgstr "Barvni atributi"
+
+
+msgid "Curve Offsets"
+msgstr "Krivuljni odmiki"
+
+
+msgid "Drawing"
+msgstr "Risba"
+
+
+msgid "Reference"
+msgstr "Zgled"
+
+
+msgid "User Count"
+msgstr "Število uporabnikov"
+
+
+msgid "Grease Pencil Frame"
+msgstr "Okvir Grease Pencil"
+
+
+msgid "Keyframe Type"
+msgstr "Vrsta ključnega okvirja"
+
+
+msgid "Breakdown"
+msgstr "Razčlenitev"
+
+
+msgid "Moving Hold"
+msgstr "Mirovanje v gibanju"
+
+
+msgid "Extreme"
+msgstr "Ekstrem"
+
+
+msgid "Jitter"
+msgstr "Trepet"
+
+
+msgid "Generated"
+msgstr "Tvorjeni"
+
+
+msgid "Grease Pencil Frames"
+msgstr "Okvirji Grease Pencil"
+
+
+msgid "Collection of Grease Pencil frames"
+msgstr "Zbirka okvirjev Grease Pencil"
+
+
+msgid "Grease Pencil Layer"
+msgstr "Plast Grease Pencil"
+
+
+msgid "Collection of related drawings"
+msgstr "Zbirka sorodnih risb"
+
+
+msgid "Blend Mode"
+msgstr "Način preliva"
+
+
+msgid "Regular"
+msgstr "Običajno"
+
+
+msgid "Hard Light"
+msgstr "Ostra svetloba"
+
+
+msgid "Grease Pencil frames"
+msgstr "Okvirji Grease Pencil"
+
+
+msgid "Local Matrix"
+msgstr "Lokalna matrika"
+
+
+msgid "Inverse Parent Matrix"
+msgstr "Obratna starševska matrika"
+
+
+msgid "Layer Opacity"
+msgstr "Neprozornost plasti"
+
+
+msgid "Parent Bone"
+msgstr "Starševska kost"
+
+
+msgid "Parent Layer Group"
+msgstr "Starševska skupina plasti"
+
+
+msgid "Pass Index"
+msgstr "Indeks obhoda"
+
+
+msgid "Translation"
+msgstr "Translacija"
+
+
+msgid "Use Lights"
+msgstr "Uporabi luči"
+
+
+msgid "Use Locked Materials Editing"
+msgstr "Omogoči urejanje zaklenjenih materialov"
+
+
+msgid "Use Masks"
+msgstr "Uporabi maske"
+
+
+msgid "Use Masks in Render"
+msgstr "Uporabi maske pri upodabljanju"
+
+
+msgid "ViewLayer"
+msgstr "Plast pogleda"
+
+
+msgid "Grease Pencil Layer Group"
+msgstr "Skupina plasti Grease Pencil"
+
+
+msgid "Group of Grease Pencil layers"
+msgstr "Skupina plasti Grease Pencil"
+
+
+msgid "Group name"
+msgstr "Ime skupine"
+
+
+msgid "Grease Pencil Masking Layers"
+msgstr "Plasti maskiranja Grease Pencil"
+
+
+msgid "List of Mask Layers"
+msgstr "Seznam plasti maskiranja"
+
+
+msgid "Grease Pencil Mask Layers"
+msgstr "Plasti maskiranja Grease Pencil"
+
+
+msgid "Active Layer Mask Index"
+msgstr "Aktivni indeks plastne maske"
+
+
+msgid "Annotation Layers"
+msgstr "Plasti skic"
+
+
+msgid "Collection of annotation layers"
+msgstr "Zbirka plasti skic"
+
+
+msgid "Active Layer Index"
+msgstr "Indeks aktivne plasti"
+
+
+msgid "Active Note"
+msgstr "Aktivni zapisek"
+
+
+msgid "Time Modifier Segment"
+msgstr "Segment časovnega modifikatorja"
+
+
+msgid "Reverse"
+msgstr "Vzvratno"
+
+
+msgid "Ping Pong"
+msgstr "Pingpong"
+
+
+msgid "Repeat"
+msgstr "Ponavljanje"
+
+
+msgid "Frame Start"
+msgstr "Začetni okvir"
+
+
+msgid "Grease Pencil Group"
+msgstr "Skupina Grease Pencil"
+
+
+msgid "Collection of Grease Pencil layers"
+msgstr "Zbirka plasti Grease Pencil"
+
+
+msgid "Active Layer Group"
+msgstr "Aktivna skupina plasti"
+
+
+msgid "Active Grease Pencil layer group"
+msgstr "Aktivna skupina plasti Grease Pencil"
+
+
+msgid "Grease Pencil Layers"
+msgstr "Plasti Grease Pencil"
+
+
+msgctxt "Color"
+msgid "Mode"
+msgstr "Način"
+
+
+msgctxt "Color"
+msgid "Luma"
+msgstr "Luma"
+
+
+msgid "Luma"
+msgstr "Luma"
+
+
+msgctxt "Color"
+msgid "RGB"
+msgstr "RGB"
+
+
+msgid "Red Green Blue"
+msgstr "Rdeča, zelena, modra"
+
+
+msgctxt "Color"
+msgid "R"
+msgstr "R"
+
+
+msgid "Red"
+msgstr "Rdeča"
+
+
+msgctxt "Color"
+msgid "G"
+msgstr "G"
+
+
+msgid "Green"
+msgstr "Zelena"
+
+
+msgctxt "Color"
+msgid "B"
+msgstr "B"
+
+
+msgid "Blue"
+msgstr "Modra"
+
+
+msgctxt "Color"
+msgid "A"
+msgstr "A"
+
+
+msgid "Show Line"
+msgstr "Pokaži črto"
+
+
+msgid "Brush"
+msgstr "Čopič"
+
+
+msgid "Font"
+msgstr "Pisava"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgid "Key"
+msgstr "Ključ"
+
+
+msgid "Lattice"
+msgstr "Mrežna ovojnica"
+
+
+msgid "Library"
+msgstr "Knjižnica"
+
+
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Light Probe"
+msgstr "Svetlobna sonda"
+
+
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Mesh"
+msgstr "Mreža"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Node Tree"
+msgstr "Vozliščno drevo"
+
+
+msgid "Paint Curve"
+msgstr "Slikarska krivulja"
+
+
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgid "Particle"
+msgstr "Delec"
+
+
+msgid "Point Cloud"
+msgstr "Točkovni oblak"
+
+
+msgid "Sound"
+msgstr "Zvok"
+
+
+msgid "Speaker"
+msgstr "Zvočnik"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Window Manager"
+msgstr "Upravitelj oken"
+
+
+msgid "Workspace"
+msgstr "Delovni prostor"
+
+
+msgid "World"
+msgstr "Svet"
+
+
+msgid "Editable"
+msgstr "Možno urejanje"
+
+
+msgid "Embedded Data"
+msgstr "Vloženi podatki"
+
+
+msgid "Is Evaluated"
+msgstr "Je izračunano"
+
+
+msgid "Is Indirect"
+msgstr "Je posredno"
+
+
+msgid "Missing Data"
+msgstr "Manjkajoči podatki"
+
+
+msgid "Runtime Data"
+msgstr "Podatki med izvajanjem"
+
+
+msgid "Library Weak Reference"
+msgstr "Knjižnični šibki sklic"
+
+
+msgid "Full Name"
+msgstr "Celo ime"
+
+
+msgid "Original ID"
+msgstr "Izvirni ID"
+
+
+msgid "Library Override"
+msgstr "Prepis knjižnice"
+
+
+msgid "Session UID"
+msgstr "UID seje"
+
+
+msgid "Tag"
+msgstr "Etiketa"
+
+
+msgid "Extra User"
+msgstr "Dodatni uporabnik"
+
+
+msgid "Fake User"
+msgstr "Lažni uporabnik"
+
+
+msgid "Users"
+msgstr "Uporabniki"
+
+
+msgid "Curve Frame Range"
+msgstr "Krivuljni interval okvirjev"
+
+
+msgid "Frame Range"
+msgstr "Interval okvirjev"
+
+
+msgid "Groups"
+msgstr "Skupine"
+
+
+msgctxt "ID"
+msgid "ID Root Type"
+msgstr "Vrsta temeljnega ID-ja"
+
+
+msgid "Is Layered Action"
+msgstr "Je večplastna akcija"
+
+
+msgid "Is Legacy Action"
+msgstr "Je stara akcija"
+
+
+msgid "Is Empty"
+msgstr "Je prazna"
+
+
+msgid "Layers"
+msgstr "Plasti"
+
+
+msgid "Pose Markers"
+msgstr "Oznake drž"
+
+
+msgid "Cyclic Animation"
+msgstr "Krožna animacija"
+
+
+msgid "Manual Frame Range"
+msgstr "Ročni interval okvirjev"
+
+
+msgid "Feature Set"
+msgstr "Množica zmožnosti"
+
+
+msgid "Axes Position"
+msgstr "Položaj osi"
+
+
+msgid "Bone Collections (Roots)"
+msgstr "Zbirke kosti (koreni)"
+
+
+msgid "Bone Collections (All)"
+msgstr "Zbirke kosti (vse)"
+
+
+msgid "Octahedral"
+msgstr "Oktaeder"
+
+
+msgid "Stick"
+msgstr "Paličica"
+
+
+msgid "B-Bone"
+msgstr "U-kost"
+
+
+msgid "Envelope"
+msgstr "Ovoj"
+
+
+msgid "Wire"
+msgstr "Žica"
+
+
+msgid "Edit Bones"
+msgstr "Urejevalne kosti"
+
+
+msgid "Is Editmode"
+msgstr "Je v načinu urejanja"
+
+
+msgid "Pose Position"
+msgstr "Položaj drže"
+
+
+msgid "Rest Position"
+msgstr "Mirovalni položaj"
+
+
+msgid "Relation Line Position"
+msgstr "Položaj odvisnostnih črt"
+
+
+msgid "Finalize Script"
+msgstr "Zaključni program"
+
+
+msgid "Overwrite Widget Meshes"
+msgstr "Prepiši oblike gradnikov"
+
+
+msgid "Mirror Widgets"
+msgstr "Zrcali gradnike"
+
+
+msgid "Theme"
+msgstr "Tema"
+
+
+msgid "THEME01"
+msgstr "TEMA01"
+
+
+msgid "THEME02"
+msgstr "TEMA02"
+
+
+msgid "THEME03"
+msgstr "TEMA03"
+
+
+msgid "THEME04"
+msgstr "TEMA04"
+
+
+msgid "THEME05"
+msgstr "TEMA05"
+
+
+msgid "THEME06"
+msgstr "TEMA06"
+
+
+msgid "THEME07"
+msgstr "TEMA07"
+
+
+msgid "THEME08"
+msgstr "TEMA08"
+
+
+msgid "THEME09"
+msgstr "TEMA09"
+
+
+msgid "THEME10"
+msgstr "TEMA10"
+
+
+msgid "THEME11"
+msgstr "TEMA11"
+
+
+msgid "THEME12"
+msgstr "TEMA12"
+
+
+msgid "THEME13"
+msgstr "TEMA13"
+
+
+msgid "THEME14"
+msgstr "TEMA14"
+
+
+msgid "THEME15"
+msgstr "TEMA15"
+
+
+msgid "THEME16"
+msgstr "TEMA16"
+
+
+msgid "THEME17"
+msgstr "TEMA17"
+
+
+msgid "THEME18"
+msgstr "TEMA18"
+
+
+msgid "THEME19"
+msgstr "TEMA19"
+
+
+msgid "THEME20"
+msgstr "TEMA20"
+
+
+msgid "Widgets Collection"
+msgstr "Zbirka gradnikov"
+
+
+msgid "Display Axes"
+msgstr "Prikaži osi"
+
+
+msgid "Display Bone Colors"
+msgstr "Prikaži barve kosti"
+
+
+msgid "Display Custom Bone Shapes"
+msgstr "Prikaži prilagojene oblike kosti"
+
+
+msgid "Display Names"
+msgstr "Prikaži imena"
+
+
+msgid "X-Axis Mirror"
+msgstr "Zrcaljenje po osi X"
+
+
+msgid "Area Radius"
+msgstr "Polmer območja"
+
+
+msgid "Auto-Smooth"
+msgstr "Samodejno glajenje"
+
+
+msgid "Propagation Steps"
+msgstr "Koraki razširjanja"
+
+
+msgid "Blur Steps"
+msgstr "Koraki zabrisa"
+
+
+msgid "Blending Mode"
+msgstr "Način prelivanja"
 
 
 msgctxt "GPencil"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
 "PO-Revision-Date: 2024-08-12 05:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -47398,10 +47398,6 @@ msgstr "Obter o índice do material usado para cada elemento na lista de materia
 
 msgid "Edge Angle"
 msgstr "Ângulos das arestas"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "Calcular a área da superfície de cada face numa malha"
 
 
 msgid "Edge Neighbors"

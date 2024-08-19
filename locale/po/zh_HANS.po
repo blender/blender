@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
-"PO-Revision-Date: 2024-08-12 05:56+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"PO-Revision-Date: 2024-08-18 03:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -16065,6 +16065,10 @@ msgid "Keep the computed view map and avoid recalculating it if mesh geometry is
 msgstr "如果网格几何不变，保留计算出的视图映射，避免重新计算"
 
 
+msgid "Annotation Frame"
+msgstr "标注帧"
+
+
 msgid "Collection of related sketches on a particular frame"
 msgstr "在一部分帧上的相邻示意收集"
 
@@ -16083,6 +16087,14 @@ msgstr "选择用于动画摄影表编辑的帧"
 
 msgid "Freehand curves defining the sketch on this frame"
 msgstr "自由控制柄在当前帧上定义了示意"
+
+
+msgid "Annotation Frames"
+msgstr "标注帧"
+
+
+msgid "Collection of annotation frames"
+msgstr "标注帧的集合"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -23612,7 +23624,7 @@ msgstr "混合的"
 
 
 msgid "Allows for colored transparency, but incompatible with render passes and raytracing. Also known as forward rendering."
-msgstr "允许彩色的透明，但与渲染通道和光线追踪不兼容。也称为前向渲染."
+msgstr "允许彩色的透明，但与渲染通道和光线追踪不兼容。也称为前向渲染。"
 
 
 msgid "Texture Slot Images"
@@ -40589,6 +40601,18 @@ msgid "Triangulate Mesh"
 msgstr "将网格三角化"
 
 
+msgid "Keep Normals"
+msgstr "保持法向"
+
+
+msgid ""
+"Try to preserve custom normals.\n"
+"Warning: Depending on chosen triangulation method, shading may not be fully preserved, \"Fixed\" method usually gives the best result here"
+msgstr ""
+"尽量保留自定义法向。\n"
+"警告： 根据所选的三角化方法，可能无法完全保持着色，“固定”方法通常能提供最佳效果"
+
+
 msgid "Minimum Vertices"
 msgstr "最少顶点"
 
@@ -47175,6 +47199,14 @@ msgid "Import geometry from an OBJ file"
 msgstr "从一个OBJ文件导入几何体"
 
 
+msgid "Import PLY"
+msgstr "导入 PLY"
+
+
+msgid "Import a point cloud from a PLY file"
+msgstr "从一个PLY文件导入点云"
+
+
 msgid "Import STL"
 msgstr "导入 STL"
 
@@ -47265,10 +47297,6 @@ msgstr "检索几何体材质列表中每个元素使用的材质的编号"
 
 msgid "Edge Angle"
 msgstr "边的夹角"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "计算网格中每个面的表面积"
 
 
 msgid "Edge Neighbors"
@@ -83881,6 +83909,10 @@ msgid "Shared Vertex"
 msgstr "共用顶点"
 
 
+msgid "Weld UVs based on shared vertices"
+msgstr "根据共用顶点来焊接UV"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "重置"
@@ -90001,6 +90033,10 @@ msgid "White Balance"
 msgstr "白平衡"
 
 
+msgid "White Balance Presets"
+msgstr "白平衡预设"
+
+
 msgid "Indirect Lighting"
 msgstr "间接光照明"
 
@@ -92708,6 +92744,14 @@ msgstr "为约束物体使用自动可视插帧"
 
 msgid "Experimental features"
 msgstr "实验特性"
+
+
+msgid "CPU Compositor"
+msgstr "CPU 合成器"
+
+
+msgid "Enable the new CPU compositor"
+msgstr "启用新的CPU合成器"
 
 
 msgid "Overlay Next"
@@ -98856,6 +98900,10 @@ msgstr "使用 3D 多重采样运动模糊"
 
 msgid "Use multiple views in the scene"
 msgstr "在场景中使用多视角"
+
+
+msgid "Use New CPU Compositor"
+msgstr "使用新的CPU合成器"
 
 
 msgid "Overwrite existing files while rendering"
@@ -118479,6 +118527,10 @@ msgid "Control Rotation"
 msgstr "控制旋转"
 
 
+msgid "Custom wire width not available on MacOS"
+msgstr "自定义线宽不适用于 MacOS"
+
+
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "添加图像"
@@ -129383,10 +129435,6 @@ msgstr "在 {} 之前添加链接的集合"
 
 msgid "Add to linking collection after {}"
 msgstr "在 {}之后添加链接的集合"
-
-
-msgid "Double click to rename"
-msgstr "双击以重命名"
 
 
 msgid "Hide filtering options"
@@ -140555,6 +140603,14 @@ msgid "Path to a OBJ file"
 msgstr "指向OBJ文件的路径"
 
 
+msgid "Disabled, Blender was compiled without PLY I/O"
+msgstr "已禁用, 未使用PLY I/O编译Blender"
+
+
+msgid "Path to a PLY file"
+msgstr "指向PLY文件的路径"
+
+
 msgid "Disabled, Blender was compiled without STL I/O"
 msgstr "已禁用, 未使用STL I/O编译Blender"
 
@@ -142234,7 +142290,7 @@ msgid ""
 "Smooth intensity of light near light sources.\n"
 "This can avoid harsh highlights, and reduce global illumination noise. 0.0 corresponds to no smoothing; higher values smooth more"
 msgstr ""
-"光源附近光的平滑强度.\n"
+"光源附近光的平滑强度。\n"
 "这样可以避免刺眼的高光，并减少全局照明噪点。0.0为没有平滑；越高的值越平滑"
 
 
@@ -142408,8 +142464,48 @@ msgid "Row Height"
 msgstr "行高度"
 
 
+msgid "Color of the first reference brick"
+msgstr "第一个参考砖块的颜色"
+
+
+msgid "Color of the second reference brick"
+msgstr "第二个参考砖块的颜色"
+
+
+msgid "Color of the area between bricks"
+msgstr "砖块间区域的颜色"
+
+
 msgid "Scale of the texture"
 msgstr "纹理的缩放比例"
+
+
+msgid "Size of the filling between the bricks (known as “mortar”). 0 means no mortar"
+msgstr "砖块之间填充物 (称为 “灰泥”) 的大小。0 表示没有灰泥"
+
+
+msgid "Blurs/softens the edge between the mortar and the bricks. This can be useful with a texture and displacement textures"
+msgstr "模糊/柔化灰泥和砖块之间的边缘。这对纹理和置换纹理非常有用"
+
+
+msgid "The color variation between Color1 and Color2. Values of -1 and 1 only use one of the two colors. Values in between mix the colors"
+msgstr "颜色 1 和颜色 2 之间的变化。取值 -1 和 1 表示只使用两种颜色中的一种。介于两者之间的值会混合两种颜色"
+
+
+msgid "Ratio of brick’s width relative to the texture scale"
+msgstr "砖块的宽度相对于纹理缩放值的比率"
+
+
+msgid "Ratio of brick’s row height relative to the texture scale"
+msgstr "砖块的行高相对于纹理缩放值的比率"
+
+
+msgid "Color of the first checker"
+msgstr "第一个棋盘格的颜色"
+
+
+msgid "Color of the second checker"
+msgstr "第二个棋盘格的颜色"
 
 
 msgid "Scale of the base noise octave"
@@ -142458,6 +142554,10 @@ msgstr "细节缩放"
 
 msgid "Detail Roughness"
 msgstr "细节糙度"
+
+
+msgid "Overall texture scale"
+msgstr "整体纹理缩放"
 
 
 msgid "Amount of distortion of the wave"
@@ -142863,7 +142963,7 @@ msgstr ""
 
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\"."
-msgstr "还原默认偏好设置。使用\"保存偏好设置\"来永久保存修改."
+msgstr "还原默认偏好设置。使用\"保存偏好设置\"来永久保存修改。"
 
 
 msgid "Trusted Source [Untrusted Path]"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
-"PO-Revision-Date: 2024-08-12 05:56+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"PO-Revision-Date: 2024-08-16 03:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -16245,6 +16245,14 @@ msgstr "El fotograma está seleccionado para su edición en la Planilla de tiemp
 
 msgid "Freehand curves defining the sketch on this frame"
 msgstr "Curvas a mano alzada que definen el dibujo en este fotograma"
+
+
+msgid "Annotation Frames"
+msgstr "Fotogramas de anotación"
+
+
+msgid "Collection of annotation frames"
+msgstr "Colección de fotogramas de anotación"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -47665,12 +47673,20 @@ msgid "Import geometry from an OBJ file"
 msgstr "Importar geometría desde un archivo OBJ"
 
 
+msgid "Import PLY"
+msgstr "Importar PLY"
+
+
+msgid "Import a point cloud from a PLY file"
+msgstr "Importar nube de puntos desde un archivo PLY"
+
+
 msgid "Import STL"
 msgstr "Importar STL"
 
 
 msgid "Import a mesh from an STL file"
-msgstr "Importar una malla desde un archivo STL"
+msgstr "Importar malla desde un archivo STL"
 
 
 msgid "Index of Nearest"
@@ -47755,10 +47771,6 @@ msgstr "Proporciona el identificador del material usado para cada elemento, seg�
 
 msgid "Edge Angle"
 msgstr "Ángulo de bordes"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "Calcula el área de la superficie de cada cara en una malla"
 
 
 msgid "Edge Neighbors"
@@ -84676,6 +84688,10 @@ msgid "Shared Vertex"
 msgstr "Vértice compartido"
 
 
+msgid "Weld UVs based on shared vertices"
+msgstr "Fusionar UV basándose en vértices compartidos"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Restablecer"
@@ -93570,6 +93586,14 @@ msgid "Experimental features"
 msgstr "Características experimentales"
 
 
+msgid "CPU Compositor"
+msgstr "Compositor por CPU"
+
+
+msgid "Enable the new CPU compositor"
+msgstr "Habilitar el nuevo compositor por CPU"
+
+
 msgid "Overlay Next"
 msgstr "Sobreimpresos (Next)"
 
@@ -99742,6 +99766,14 @@ msgid "Use multiple views in the scene"
 msgstr "Permite usar múltiples vistas en la escena"
 
 
+msgid "Use New CPU Compositor"
+msgstr "Usar nuevo compositor por CPU"
+
+
+msgid "Use the new CPU compositor implementation"
+msgstr "Permite usar la nueva implementación del compositor por CPU"
+
+
 msgid "Overwrite existing files while rendering"
 msgstr "Sobrescribir archivos existentes durante el procesamiento"
 
@@ -101320,6 +101352,10 @@ msgstr "Alterar cámara"
 
 msgid "Jitter camera position to create accurate blurring using render samples (only for final render)"
 msgstr "Altera la posición de la cámara para crear un desenfoque preciso, usando las muestras de procesamiento (sólo para el procesamiento final)"
+
+
+msgid "Use faster global illumination technique for high roughness surfaces"
+msgstr "Usar una técnica de iluminación global más rápida para superficies con una alta rugosidad"
 
 
 msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
@@ -119407,6 +119443,10 @@ msgid "Control Rotation"
 msgstr "Control de rotación"
 
 
+msgid "Custom wire width not available on MacOS"
+msgstr "Ancho personalizado de estructura no disponible en macOS"
+
+
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "Agregar imagen"
@@ -122434,6 +122474,10 @@ msgstr "Proyección en X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Ajustar"
+
+
+msgid "Experimental CPU Implementation"
+msgstr "Implementación experimental por CPU"
 
 
 msgid "Node Editor Overlays"
@@ -130068,7 +130112,7 @@ msgstr "Copiar ruta de datos completa"
 
 msgctxt "Operator"
 msgid "Open File Location"
-msgstr "Abrir ubicación de archivo"
+msgstr "Abrir ubicación del archivo"
 
 
 msgctxt "Operator"
@@ -130417,10 +130461,6 @@ msgstr "Agregar a colección de vinculación antes de {}"
 
 msgid "Add to linking collection after {}"
 msgstr "Agregar a colección de vinculación después de {}"
-
-
-msgid "Double click to rename"
-msgstr "Doble clic para renombrar"
 
 
 msgid "Hide filtering options"
@@ -132268,6 +132308,22 @@ msgstr "No fue posible encontrar un modificador Gancho"
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "No es posible ejecutar '%s', error al cambiar de modo"
+
+
+msgid "No target object to transfer the mode to"
+msgstr "Ningún objetivo al cual transferir el modo"
+
+
+msgid "Unable to transfer mode, the source and/or target objects are not editable"
+msgstr "No es posible transferir el modo, alguno de los objetos (origen o destino) no son editables"
+
+
+msgid "Current mode of source object '%s' is not compatible with target liboverride object '%s'"
+msgstr "El modo actual del objeto de origen '%s' no es compatible con el objeto redefinido de biblioteca '%s' de destino"
+
+
+msgid "Current mode of source object '%s' is not compatible with target object '%s'"
+msgstr "El modo actual del objeto de origen '%s' no es compatible con el objeto '%s' de destino"
 
 
 msgid "Apply Modifier"
@@ -138211,6 +138267,18 @@ msgid "Incomplete built-in keying set, appears to be missing type info"
 msgstr "Conjunto de claves integrado incompleto, parece faltar información de tipo"
 
 
+msgid "Frame not found in annotation layer"
+msgstr "Fotograma no encontrado en la capa de anotación"
+
+
+msgid "Layer not found in annotation data"
+msgstr "Fotograma no encontrado en los datos de anotación"
+
+
+msgid "Frame already exists on this frame number %d"
+msgstr "El fotograma ya existe en este número de fotograma %d"
+
+
 msgid "Cannot make a bone collection a descendant of itself"
 msgstr "No es posible hacer que una colección de huesos se encuentre subordinada a sí misma"
 
@@ -141751,6 +141819,14 @@ msgstr "Deshabilitado, Blender fue compilado sin soporte para entrada/salida de 
 
 msgid "Path to a OBJ file"
 msgstr "Ruta hacia un archivo OBJ"
+
+
+msgid "Disabled, Blender was compiled without PLY I/O"
+msgstr "Deshabilitado, Blender fue compilado sin soporte para entrada/salida de PLY"
+
+
+msgid "Path to a PLY file"
+msgstr "Ruta hacia un archivo PLY"
 
 
 msgid "Disabled, Blender was compiled without STL I/O"

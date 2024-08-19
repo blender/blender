@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -41006,10 +41006,6 @@ msgstr "Rejesha faharasa ya nyenzo inayotumika kwa kila kipengele kwenye orodha 
 
 msgid "Edge Angle"
 msgstr "Pembe ya Ukali"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "Hesabu eneo la uso wa kila uso katika matundu"
 
 
 msgid "Edge Neighbors"

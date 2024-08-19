@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
 "PO-Revision-Date: 2024-07-15 07:55+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -46929,10 +46929,6 @@ msgstr "ジオメトリのマテリアルリスト内の，各要素で使用さ
 
 msgid "Edge Angle"
 msgstr "辺の角度"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "メッシュの各辺の角度を計算します"
 
 
 msgid "Edge Neighbors"
@@ -129103,10 +129099,6 @@ msgstr "{} の前のリンキングコレクションへ追加します"
 
 msgid "Add to linking collection after {}"
 msgstr "{} の後のリンキングコレクションへ追加します"
-
-
-msgid "Double click to rename"
-msgstr "ダブルクリックでリネーム"
 
 
 msgid "Hide filtering options"

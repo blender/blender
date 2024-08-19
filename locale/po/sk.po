@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
-"PO-Revision-Date: 2024-08-07 06:55+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"PO-Revision-Date: 2024-08-13 06:17+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -16245,6 +16245,14 @@ msgstr "Snímka je vybraná na úpravu v expozičnom hárku"
 
 msgid "Freehand curves defining the sketch on this frame"
 msgstr "Krivky voľnou rukou definujúce náčrtok tejto snímky"
+
+
+msgid "Annotation Frames"
+msgstr "Snímky poznámky"
+
+
+msgid "Collection of annotation frames"
+msgstr "Kolekcia snímok poznámok"
 
 
 msgid "Grease Pencil Interpolate Settings"
@@ -47665,6 +47673,14 @@ msgid "Import geometry from an OBJ file"
 msgstr "Importuje geometriu zo súboru OBJ"
 
 
+msgid "Import PLY"
+msgstr "Importovať PLY"
+
+
+msgid "Import a point cloud from a PLY file"
+msgstr "Import mračna bodov zo súboru PLY"
+
+
 msgid "Import STL"
 msgstr "Importovať STL"
 
@@ -47755,10 +47771,6 @@ msgstr "Získava indexu materiálu použitého pre každý prvok v zozname mater
 
 msgid "Edge Angle"
 msgstr "Uhol hrany"
-
-
-msgid "Calculate the surface area of each face in a mesh"
-msgstr "Vypočíta plochu každej strany v povrchovej sieti"
 
 
 msgid "Edge Neighbors"

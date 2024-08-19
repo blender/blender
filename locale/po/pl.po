@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'1c98cdbc5267')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-10 16:31+0000\n"
+"POT-Creation-Date: 2024-08-19 11:18+0000\n"
 "PO-Revision-Date: 2024-07-27 01:56+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -22639,10 +22639,6 @@ msgstr "Kliknięcie"
 msgctxt "Operator"
 msgid "Drag"
 msgstr "Przeciąganie"
-
-
-msgid "Double click to rename"
-msgstr "Kliknij dwukrotnie, aby zmienić nazwę"
 
 
 msgid "ID-Block:"
