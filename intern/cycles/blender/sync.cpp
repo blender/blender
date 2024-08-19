@@ -133,7 +133,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
   /* Iterate over all IDs in this depsgraph. */
   for (BL::DepsgraphUpdate &b_update : b_depsgraph.updates) {
     /* TODO(sergey): Can do more selective filter here. For example, ignore changes made to
-     * screen datablock. Note that sync_data() needs to be called after object deletion, and
+     * screen data-block. Note that sync_data() needs to be called after object deletion, and
      * currently this is ensured by the scene ID tagged for update, which sets the `has_updates_`
      * flag. */
     has_updates_ = true;
