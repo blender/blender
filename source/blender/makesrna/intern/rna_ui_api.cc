@@ -1332,8 +1332,9 @@ void RNA_api_ui_layout(StructRNA *srna)
                                   "Item. Exposes an RNA item and places it into the layout.");
   api_ui_item_rna_common(func);
   api_ui_item_common(func);
-  RNA_def_string(
+  PropertyRNA *prop = RNA_def_string(
       func, "placeholder", nullptr, 0, "", "Hint describing the expected value when empty");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
   RNA_def_boolean(func, "expand", false, "", "Expand button to show more detail");
   RNA_def_boolean(func, "slider", false, "", "Use slider widget for numeric values");
   RNA_def_int(func,
