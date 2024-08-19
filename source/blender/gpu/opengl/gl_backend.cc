@@ -377,6 +377,11 @@ static void detect_workarounds()
    * polaris platform. Keeping legacy platforms around just in case.
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    /* Check for AMD legacy driver. Assuming that when these drivers are used this bug is present.
+     */
+    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ")) {
+      GCaps.use_hq_normals_workaround = true;
+    }
     const Vector<std::string> matches = {
         "RX550/550", "(TM) 520", "(TM) 530", "(TM) 535", "R5", "R7", "R9", "HD"};
 
