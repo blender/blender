@@ -428,8 +428,6 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
 
 }
 
-void SCULPT_pbvh_clear(Object &ob);
-
 /**
  * Should be used after modifying the mask or Face Sets IDs.
  */

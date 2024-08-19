@@ -43,19 +43,6 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
-void SCULPT_pbvh_clear(Object &ob)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-  /* Clear out any existing DM and bke::pbvh::Tree. */
-  bke::pbvh::free(ss.pbvh);
-
-  BKE_object_free_derived_caches(&ob);
-
-  /* Tag to rebuild bke::pbvh::Tree in depsgraph. */
-  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
-}
-
 namespace blender::ed::sculpt_paint::dyntopo {
 
 void triangulate(BMesh *bm)
@@ -78,7 +65,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
-  SCULPT_pbvh_clear(ob);
+  BKE_sculptsession_free_pbvh(&ss);
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(mesh);
@@ -132,7 +119,7 @@ static void disable(
     BM_data_layer_free_named(bm, &bm->pdata, ".sculpt_dyntopo_node_id_face");
   }
 
-  SCULPT_pbvh_clear(ob);
+  BKE_sculptsession_free_pbvh(&ss);
 
   if (undo_step) {
     undo::restore_from_bmesh_enter_geometry(*undo_step, *mesh);

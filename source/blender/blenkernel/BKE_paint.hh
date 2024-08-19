@@ -405,9 +405,9 @@ using ActiveVert = std::variant<std::monostate, int, SubdivCCGCoord, BMVert *>;
 struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
-    bool active;
-    MultiresModifierData *modifier;
-    int level;
+    bool active = false;
+    MultiresModifierData *modifier = nullptr;
+    int level = 0;
   } multires = {};
 
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
@@ -576,6 +576,10 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
 
  private:
+  /* In general, this value is expected to be valid (non-empty) as long as the cursor is over the
+   * mesh. Changing the underlying mesh type (e.g. enabling dyntopo, changing multires levels)
+   * should invalidate this value.
+   */
   PBVHVertRef active_vert_ = PBVHVertRef{PBVH_REF_NONE};
 
  public:
@@ -608,11 +612,13 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::float3 active_vert_position(const Depsgraph &depsgraph, const Object &object) const;
 
   void set_active_vert(PBVHVertRef vert);
+  void clear_active_vert();
 };
 
 void BKE_sculptsession_free(Object *ob);
 void BKE_sculptsession_free_deformMats(SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(SculptSession *ss);
+void BKE_sculptsession_free_pbvh(SculptSession *ss);
 void BKE_sculptsession_bm_to_me(Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(Object *object);
 int BKE_sculptsession_vertex_count(const SculptSession *ss);

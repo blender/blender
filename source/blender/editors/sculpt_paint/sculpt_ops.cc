@@ -146,10 +146,13 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 
 static int sculpt_optimize_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(C);
 
-  SCULPT_pbvh_clear(*ob);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  SculptSession &ss = *ob.sculpt;
+  BKE_sculptsession_free_pbvh(&ss);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
   return OPERATOR_FINISHED;
 }
@@ -253,7 +256,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
   islands::invalidate(ss);
 
-  SCULPT_pbvh_clear(ob);
+  BKE_sculptsession_free_pbvh(&ss);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
   return OPERATOR_FINISHED;

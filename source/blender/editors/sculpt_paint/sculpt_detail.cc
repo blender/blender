@@ -23,6 +23,7 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_screen.hh"
@@ -142,7 +143,9 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   undo::push_end(ob);
 
   /* Force rebuild of bke::pbvh::Tree for better BB placement. */
-  SCULPT_pbvh_clear(ob);
+  BKE_sculptsession_free_pbvh(&ss);
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
 
