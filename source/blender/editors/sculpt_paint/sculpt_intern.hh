@@ -103,23 +103,6 @@ struct SculptVertexNeighborIter {
   bool is_duplicate;
 };
 
-/* Sculpt Original Data */
-struct SculptOrigVertData {
-  BMLog *bm_log;
-
-  blender::ed::sculpt_paint::undo::Type undo_type;
-  const blender::float3 *coords;
-  const blender::float3 *normals;
-  const float *vmasks;
-  const blender::float4 *colors;
-
-  /* Original coordinate, normal, and mask. */
-  const float *co;
-  const float *no;
-  float mask;
-  const float *col;
-};
-
 /* Factor of brush to have rake point following behind
  * (could be configurable but this is reasonable default). */
 #define SCULPT_RAKE_BRUSH_FACTOR 0.25f
