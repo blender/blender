@@ -75,6 +75,10 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
                 return {'CANCELLED'}
 
         # Now we should have a valid POT file, we have to merge it in all languages po's...
+        pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
+        for progress, lng in enumerate(i18n_sett.langs):
+            utils_i18n.I18nMessages.update_from_pot_callback(pot, dict(lng.items()), self.settings)
+            context.window_manager.progress_update(progress + 2)
         # NOTE: While on linux sub-processes are `os.fork`ed by default,
         #       on Windows and OSX they are `spawn`ed.
         #       See https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
@@ -83,16 +87,17 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
         #       So care must be taken that the callback passed to the executor does not rely on any
         #       Blender-specific modules etc. This is why it is using a class method from `bl_i18n_utils`
         #       module, rather than a local function of this current Blender-only module.
-        with concurrent.futures.ProcessPoolExecutor() as exctr:
-            pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
-            for progress, _ in enumerate(
-                    exctr.map(utils_i18n.I18nMessages.update_from_pot_callback,
-                              (pot,) * num_langs,
-                              [dict(lng.items()) for lng in i18n_sett.langs],
-                              (self.settings,) * num_langs,
-                              chunksize=4,
-                              timeout=60)):
-                context.window_manager.progress_update(progress + 2)
+        # FIXME: This can easily deadlock on powerful machine with lots of RAM (128GB) and cores (32)...
+        # ~ with concurrent.futures.ProcessPoolExecutor() as exctr:
+            # ~ pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
+            # ~ for progress, _ in enumerate(
+                    # ~ exctr.map(utils_i18n.I18nMessages.update_from_pot_callback,
+                              # ~ (pot,) * num_langs,
+                              # ~ [dict(lng.items()) for lng in i18n_sett.langs],
+                              # ~ (self.settings,) * num_langs,
+                              # ~ chunksize=4,
+                              # ~ timeout=60)):
+                # ~ context.window_manager.progress_update(progress + 2)
 
         context.window_manager.progress_end()
         print("", flush=True)
@@ -118,16 +123,20 @@ class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
         num_langs = len(i18n_sett.langs)
         context.window_manager.progress_begin(0, num_langs + 1)
         context.window_manager.progress_update(0)
+        for progress, lng in enumerate(i18n_sett.langs):
+            utils_i18n.I18nMessages.cleanup_callback(dict(lng.items()), self.settings)
+            context.window_manager.progress_update(progress + 1)
         # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
         #       of the `ProcessPoolExecutor`.
-        with concurrent.futures.ProcessPoolExecutor() as exctr:
-            for progress, _ in enumerate(
-                    exctr.map(utils_i18n.I18nMessages.cleanup_callback,
-                              [dict(lng.items()) for lng in i18n_sett.langs],
-                              (self.settings,) * num_langs,
-                              chunksize=4,
-                              timeout=60)):
-                context.window_manager.progress_update(progress + 1)
+        # FIXME: This can easily deadlock on powerful machine with lots of RAM (128GB) and cores (32)...
+        # ~ with concurrent.futures.ProcessPoolExecutor() as exctr:
+            # ~ for progress, _ in enumerate(
+                    # ~ exctr.map(utils_i18n.I18nMessages.cleanup_callback,
+                              # ~ [dict(lng.items()) for lng in i18n_sett.langs],
+                              # ~ (self.settings,) * num_langs,
+                              # ~ chunksize=4,
+                              # ~ timeout=60)):
+                # ~ context.window_manager.progress_update(progress + 1)
 
         context.window_manager.progress_end()
         print("", flush=True)
@@ -149,18 +158,24 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
         num_langs = len(i18n_sett.langs)
         context.window_manager.progress_begin(0, num_langs + 1)
         context.window_manager.progress_update(0)
+        for progress, lng in enumerate(i18n_sett.langs):
+            lng_uid, stats_val, reports = utils_i18n.I18nMessages.update_to_blender_repo_callback(dict(lng.items()), self.settings)
+            context.window_manager.progress_update(progress + 1)
+            stats[lng_uid] = stats_val
+            print("".join(reports) + "\n")
         # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
         #       of the `ProcessPoolExecutor`.
-        with concurrent.futures.ProcessPoolExecutor() as exctr:
-            for progress, (lng_uid, stats_val, reports) in enumerate(
-                    exctr.map(utils_i18n.I18nMessages.update_to_blender_repo_callback,
-                              [dict(lng.items()) for lng in i18n_sett.langs],
-                              (self.settings,) * num_langs,
-                              chunksize=4,
-                              timeout=60)):
-                context.window_manager.progress_update(progress + 1)
-                stats[lng_uid] = stats_val
-                print("".join(reports) + "\n")
+        # FIXME: This can easily deadlock on powerful machine with lots of RAM (128GB) and cores (32)...
+        # ~ with concurrent.futures.ProcessPoolExecutor() as exctr:
+            # ~ for progress, (lng_uid, stats_val, reports) in enumerate(
+                    # ~ exctr.map(utils_i18n.I18nMessages.update_to_blender_repo_callback,
+                              # ~ [dict(lng.items()) for lng in i18n_sett.langs],
+                              # ~ (self.settings,) * num_langs,
+                              # ~ chunksize=4,
+                              # ~ timeout=60)):
+                # ~ context.window_manager.progress_update(progress + 1)
+                # ~ stats[lng_uid] = stats_val
+                # ~ print("".join(reports) + "\n")
 
         print("Generating languages' menu...", flush=True)
         context.window_manager.progress_update(progress + 2)
