@@ -40,6 +40,8 @@
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
 
+#include "DEG_depsgraph.hh"
+
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
