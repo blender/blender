@@ -209,9 +209,6 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
       }
     }
   }
-
-  BKE_pbvh_node_mark_positions_update(&node);
-  BKE_pbvh_node_mark_rebuild_draw(&node);
 }
 
 /* Return zero if all primitives in the node can be drawn with the
@@ -267,7 +264,6 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
       node.flag_ |= PBVH_Leaf;
       node.prim_indices_ = prim_indices.as_span().slice(prim_offset, prims_num);
       build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, node);
-
       return;
     }
   }
@@ -464,10 +460,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
     {
       Node &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
-
       node.prim_indices_ = prim_indices.as_span().slice(prim_offset, prims_num);
-      BKE_pbvh_node_mark_positions_update(&node);
-      BKE_pbvh_node_mark_rebuild_draw(&node);
       return;
     }
   }
