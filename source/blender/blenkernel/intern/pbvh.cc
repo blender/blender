@@ -360,12 +360,15 @@ void update_mesh_pointers(Tree &pbvh, Mesh *mesh)
 std::unique_ptr<Tree> build_mesh(Mesh *mesh)
 {
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
+  update_mesh_pointers(*pbvh, mesh);
 
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int3> corner_tris = mesh->corner_tris();
+  if (corner_tris.is_empty()) {
+    return pbvh;
+  }
 
-  update_mesh_pointers(*pbvh, mesh);
   const Span<int> tri_faces = mesh->corner_tri_faces();
 
   Array<bool> vert_bitmap(mesh->verts_num, false);
@@ -393,47 +396,45 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  if (!corner_tris.is_empty()) {
-    const AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
-    const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
-    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
+  const AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
+  const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
+  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
-    pbvh->prim_indices_.reinitialize(corner_tris.size());
-    array_utils::fill_index_range<int>(pbvh->prim_indices_);
+  pbvh->prim_indices_.reinitialize(corner_tris.size());
+  array_utils::fill_index_range<int>(pbvh->prim_indices_);
 
-    pbvh->nodes_.resize(1);
-    build_nodes_recursive_mesh(corner_verts,
-                               corner_tris,
-                               tri_faces,
-                               material_index,
-                               sharp_face,
-                               leaf_limit,
-                               vert_bitmap,
-                               0,
-                               &cb,
-                               prim_bounds,
-                               0,
-                               corner_tris.size(),
-                               Array<int>(pbvh->prim_indices_.size()),
-                               0,
-                               pbvh->prim_indices_,
-                               pbvh->nodes_);
+  pbvh->nodes_.resize(1);
+  build_nodes_recursive_mesh(corner_verts,
+                             corner_tris,
+                             tri_faces,
+                             material_index,
+                             sharp_face,
+                             leaf_limit,
+                             vert_bitmap,
+                             0,
+                             &cb,
+                             prim_bounds,
+                             0,
+                             corner_tris.size(),
+                             Array<int>(pbvh->prim_indices_.size()),
+                             0,
+                             pbvh->prim_indices_,
+                             pbvh->nodes_);
 
-    update_bounds_mesh(vert_positions, *pbvh);
-    store_bounds_orig(*pbvh);
+  update_bounds_mesh(vert_positions, *pbvh);
+  store_bounds_orig(*pbvh);
 
-    if (!hide_vert.is_empty()) {
-      MutableSpan<Node> nodes = pbvh->nodes_;
-      threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
-        for (const int i : range) {
-          const Span<int> verts = node_verts(nodes[i]);
-          if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
-            nodes[i].flag_ |= PBVH_FullyHidden;
-          }
+  if (!hide_vert.is_empty()) {
+    MutableSpan<Node> nodes = pbvh->nodes_;
+    threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+      for (const int i : range) {
+        const Span<int> verts = node_verts(nodes[i]);
+        if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
+          nodes[i].flag_ |= PBVH_FullyHidden;
         }
-      });
-    }
+      }
+    });
   }
 
   return pbvh;
@@ -553,6 +554,9 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg->grids;
+  if (elems.is_empty()) {
+    return pbvh;
+  }
 
   /* Ensure leaf limit is at least 4 so there's room
    * to split at original face boundaries.
@@ -582,47 +586,45 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  if (!elems.is_empty()) {
-    const AttributeAccessor attributes = mesh->attributes();
-    const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
-    const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
+  const AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
+  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
-    pbvh->prim_indices_.reinitialize(elems.size());
-    array_utils::fill_index_range<int>(pbvh->prim_indices_);
+  pbvh->prim_indices_.reinitialize(elems.size());
+  array_utils::fill_index_range<int>(pbvh->prim_indices_);
 
-    pbvh->nodes_.resize(1);
-    build_nodes_recursive_grids(subdiv_ccg->grid_to_face_map,
-                                material_index,
-                                sharp_face,
-                                leaf_limit,
-                                0,
-                                &cb,
-                                prim_bounds,
-                                0,
-                                elems.size(),
-                                Array<int>(pbvh->prim_indices_.size()),
-                                0,
-                                pbvh->prim_indices_,
-                                pbvh->nodes_);
+  pbvh->nodes_.resize(1);
+  build_nodes_recursive_grids(subdiv_ccg->grid_to_face_map,
+                              material_index,
+                              sharp_face,
+                              leaf_limit,
+                              0,
+                              &cb,
+                              prim_bounds,
+                              0,
+                              elems.size(),
+                              Array<int>(pbvh->prim_indices_.size()),
+                              0,
+                              pbvh->prim_indices_,
+                              pbvh->nodes_);
 
-    update_bounds_grids(key, elems, *pbvh);
-    store_bounds_orig(*pbvh);
+  update_bounds_grids(key, elems, *pbvh);
+  store_bounds_orig(*pbvh);
 
-    const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
-    if (!grid_hidden.is_empty()) {
-      MutableSpan<Node> nodes = pbvh->nodes_;
-      threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
-        for (const int i : range) {
-          const Span<int> grids = node_grid_indices(nodes[i]);
-          if (std::all_of(grids.begin(), grids.end(), [&](const int i) {
-                return !bits::any_bit_unset(grid_hidden[i]);
-              }))
-          {
-            nodes[i].flag_ |= PBVH_FullyHidden;
-          }
+  const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
+  if (!grid_hidden.is_empty()) {
+    MutableSpan<Node> nodes = pbvh->nodes_;
+    threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+      for (const int i : range) {
+        const Span<int> grids = node_grid_indices(nodes[i]);
+        if (std::all_of(grids.begin(), grids.end(), [&](const int i) {
+              return !bits::any_bit_unset(grid_hidden[i]);
+            }))
+        {
+          nodes[i].flag_ |= PBVH_FullyHidden;
         }
-      });
-    }
+      }
+    });
   }
 
   return pbvh;
