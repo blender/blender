@@ -21,8 +21,6 @@ struct GreasePencilLineartModifierData;
 
 namespace blender::bke::greasepencil::convert {
 
-void legacy_gpencil_object(Main &bmain, Object &object);
-
 /** Main entry point to convert all legacy GPData into GreasePencil data and objects. */
 void legacy_main(Main &bmain, BlendFileReadReport &reports);
 

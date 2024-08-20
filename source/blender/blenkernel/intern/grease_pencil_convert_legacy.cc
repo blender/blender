@@ -2897,7 +2897,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
   }
 }
 
-static void legacy_gpencil_object_ex(ConversionData &conversion_data, Object &object)
+static void legacy_gpencil_object(ConversionData &conversion_data, Object &object)
 {
   BLI_assert((GS(static_cast<ID *>(object.data)->name) == ID_GD_LEGACY));
 
@@ -2937,13 +2937,6 @@ static void legacy_gpencil_object_ex(ConversionData &conversion_data, Object &ob
   BKE_object_free_derived_caches(&object);
 }
 
-void legacy_gpencil_object(Main &bmain, Object &object)
-{
-  ConversionData conversion_data(bmain);
-
-  legacy_gpencil_object_ex(conversion_data, object);
-}
-
 void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
 {
   ConversionData conversion_data(bmain);
@@ -2955,7 +2948,7 @@ void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
     if (object->type != OB_GPENCIL_LEGACY) {
       continue;
     }
-    legacy_gpencil_object_ex(conversion_data, *object);
+    legacy_gpencil_object(conversion_data, *object);
   }
 
   /* Potential other usages of legacy bGPdata IDs also need to be remapped to their matching new
