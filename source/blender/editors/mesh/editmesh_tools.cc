@@ -4358,7 +4358,6 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     for (const int base_index : bases.index_range()) {
       Base *base = bases[base_index];
       BMEditMesh *em = BKE_editmesh_from_object(base->object);
-      bool changed = false;
 
       if (type == 0) {
         if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
@@ -4371,6 +4370,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
       }
 
       /* editmode separate */
+      bool changed = false;
       switch (type) {
         case MESH_SEPARATE_SELECTED:
           changed = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
@@ -4405,45 +4405,46 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     /* object mode separate */
     CTX_DATA_BEGIN (C, Base *, base_iter, selected_editable_bases) {
       Object *ob = base_iter->object;
-      if (ob->type == OB_MESH) {
-        Mesh *mesh = static_cast<Mesh *>(ob->data);
-        if (BKE_id_is_editable(bmain, &mesh->id)) {
-          BMesh *bm_old = nullptr;
-          bool changed = false;
-
-          BMeshCreateParams create_params{};
-          create_params.use_toolflags = true;
-          bm_old = BM_mesh_create(&bm_mesh_allocsize_default, &create_params);
-
-          BMeshFromMeshParams from_mesh_params{};
-          BM_mesh_bm_from_me(bm_old, mesh, &from_mesh_params);
-
-          switch (type) {
-            case MESH_SEPARATE_MATERIAL:
-              changed = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
-              break;
-            case MESH_SEPARATE_LOOSE:
-              changed = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
-              break;
-            default:
-              BLI_assert(0);
-              break;
-          }
-
-          if (changed) {
-            BMeshToMeshParams to_mesh_params{};
-            to_mesh_params.calc_object_remap = true;
-            BM_mesh_bm_to_me(bmain, bm_old, mesh, &to_mesh_params);
-
-            DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
-            WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
-          }
-
-          BM_mesh_free(bm_old);
-
-          changed_multi |= changed;
-        }
+      if (ob->type != OB_MESH) {
+        continue;
       }
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      if (!BKE_id_is_editable(bmain, &mesh->id)) {
+        continue;
+      }
+
+      BMeshCreateParams create_params{};
+      create_params.use_toolflags = true;
+      BMesh *bm_old = BM_mesh_create(&bm_mesh_allocsize_default, &create_params);
+
+      BMeshFromMeshParams from_mesh_params{};
+      BM_mesh_bm_from_me(bm_old, mesh, &from_mesh_params);
+
+      bool changed = false;
+      switch (type) {
+        case MESH_SEPARATE_MATERIAL:
+          changed = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
+          break;
+        case MESH_SEPARATE_LOOSE:
+          changed = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
+          break;
+        default:
+          BLI_assert(0);
+          break;
+      }
+
+      if (changed) {
+        BMeshToMeshParams to_mesh_params{};
+        to_mesh_params.calc_object_remap = true;
+        BM_mesh_bm_to_me(bmain, bm_old, mesh, &to_mesh_params);
+
+        DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
+        WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+      }
+
+      BM_mesh_free(bm_old);
+
+      changed_multi |= changed;
     }
     CTX_DATA_END;
   }
