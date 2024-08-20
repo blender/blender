@@ -434,6 +434,11 @@ struct PointTransferData {
   float factor;
   bool is_src_point;
   bool is_cut;
+  /* Additional attributes changes that can be stored to be used after a call to
+   * compute_topology_change.
+   * Note that they won't be automatically updated in the destination's attributes.
+   */
+  float opacity;
 
   /**
    * Source point is the last of the curve.
