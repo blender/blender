@@ -1025,11 +1025,6 @@ void ED_spacetype_file()
 void ED_file_init()
 {
   ED_file_read_bookmarks();
-
-  if (G.background == false) {
-    filelist_init_icons();
-  }
-
   IMB_thumb_makedirs();
 }
 
