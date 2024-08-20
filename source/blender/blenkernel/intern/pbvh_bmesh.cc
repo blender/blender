@@ -2189,6 +2189,9 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Tree *pbvh,
 
     n->bounds_orig_ = n->bounds_;
 
+    /* Build GPU buffers for new node and update vertex normals. */
+    BKE_pbvh_node_mark_rebuild_draw(n);
+
     BKE_pbvh_node_fully_hidden_set(n, !has_visible);
     n->flag_ |= PBVH_UpdateNormals;
   }
