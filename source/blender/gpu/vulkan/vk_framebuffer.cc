@@ -549,6 +549,14 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
     }
 
     VKTexture &color_texture = *unwrap(unwrap(attachment.tex));
+    /* To support `gpu_Layer` we need to set the layerCount to the number of layers it can access.
+     */
+    int layer_count = color_texture.layer_count();
+    if (attachment.layer == -1 && layer_count != 1) {
+      begin_rendering.node_data.vk_rendering_info.layerCount = max_ii(
+          begin_rendering.node_data.vk_rendering_info.layerCount, layer_count);
+    }
+
     VkRenderingAttachmentInfo &attachment_info =
         begin_rendering.node_data
             .color_attachments[begin_rendering.node_data.vk_rendering_info.colorAttachmentCount++];
@@ -559,7 +567,7 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
     GPUAttachmentState attachment_state = attachment_states_[color_attachment_index];
     if (attachment_state == GPU_ATTACHMENT_WRITE) {
       VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
-                                         IndexRange(layer_base, 1),
+                                         IndexRange(layer_base, layer_count),
                                          IndexRange(attachment.mip, 1),
                                          {{'r', 'g', 'b', 'a'}},
                                          false,
