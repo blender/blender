@@ -352,6 +352,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                     (draw_ctx->object_mode & OB_MODE_SCULPT_CURVES);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != nullptr) &&
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);
+  const bool in_grease_pencil_sculpt_mode = (ob->type == OB_GREASE_PENCIL) &&
+                                            (draw_ctx->object_mode &
+                                             OB_MODE_SCULPT_GPENCIL_LEGACY);
   const bool has_surface = ELEM(ob->type,
                                 OB_MESH,
                                 OB_CURVES_LEGACY,
@@ -488,6 +491,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   }
   else if (in_sculpt_curve_mode) {
     OVERLAY_sculpt_curves_cache_populate(data, ob);
+  }
+  else if (in_grease_pencil_sculpt_mode) {
+    OVERLAY_sculpt_grease_pencil_cache_populate(data, ob);
   }
 
   if (draw_motion_paths) {
@@ -772,6 +778,7 @@ static void OVERLAY_draw_scene(void *vedata)
       OVERLAY_edit_curves_draw(data);
       break;
     case CTX_MODE_EDIT_GREASE_PENCIL:
+    case CTX_MODE_SCULPT_GREASE_PENCIL:
     case CTX_MODE_WEIGHT_GREASE_PENCIL:
       OVERLAY_edit_grease_pencil_draw(data);
       break;
