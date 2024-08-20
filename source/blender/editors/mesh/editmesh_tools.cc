@@ -7266,8 +7266,18 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
   int totface_del = 0;
   BMFace **totface_del_arr = nullptr;
   const bool use_faces = (em->bm->totfacesel != 0);
+  bool changed = false;
 
   if (use_faces) {
+    /* NOTE: When all faces are selected, all faces will be deleted with no edge-loops remaining.
+     * In this case bridge will fail with a waning and delete all faces.
+     * Ideally it's possible to detect cases when deleting faces leaves remaining edge-loops.
+     * While this can be done in trivial cases - by checking the number of selected faces matches
+     * the number of faces, that won't work for more involved cases involving hidden faces
+     * and wire edges. One option could be to copy & restore the edit-mesh however
+     * this is quite an expensive operation - to properly handle clearly invalid input.
+     * Accept this limitation, the user must undo to restore the previous state, see: #123405. */
+
     BMIter iter;
     BMFace *f;
     int i;
@@ -7311,6 +7321,7 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
                  "delete geom=%hf context=%i",
                  BM_ELEM_TAG,
                  DEL_FACES_KEEP_BOUNDARY);
+    changed = true;
   }
 
   BMO_op_exec(em->bm, &bmop);
@@ -7321,6 +7332,8 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
       BMO_slot_buffer_hflag_enable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+      changed = true;
     }
 
     if (use_merge == false) {
@@ -7348,6 +7361,8 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
         BMO_slot_buffer_hflag_enable(
             em->bm, bmop_subd.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
         BMO_op_finish(em->bm, &bmop_subd);
+
+        changed = true;
       }
     }
   }
@@ -7357,6 +7372,10 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
   }
 
   if (EDBM_op_finish(em, &bmop, op, true)) {
+    changed = true;
+  }
+
+  if (changed) {
     EDBMUpdate_Params params{};
     params.calc_looptris = true;
     params.calc_normals = false;
