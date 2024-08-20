@@ -20,8 +20,8 @@ namespace blender::ed::sculpt_paint::geodesic {
 /**
  * Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
  * in the initial vertex set. The caller is responsible for freeing the array.
- * Geodesic distances will only work when used with blender::bke::pbvh::Type::Mesh, for other
- * types of blender::bke::pbvh::Tree it will fallback to euclidean distances to one of the initial
+ * Geodesic distances will only work when used with #blender::bke::pbvh::Type::Mesh, for other
+ * types of #blender::bke::pbvh::Tree it will fallback to euclidean distances to one of the initial
  * vertices in the set.
  */
 Array<float> distances_create(const Depsgraph &depsgraph,

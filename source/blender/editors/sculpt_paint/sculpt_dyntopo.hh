@@ -59,17 +59,17 @@ namespace detail_size {
 constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
 
 /**
- * Converts from Sculpt#constant_detail to the pbvh::Tree max edge length.
+ * Converts from Sculpt#constant_detail to the #pbvh::Tree max edge length.
  */
 float constant_to_detail_size(float constant_detail, const Object &ob);
 
 /**
- * Converts from Sculpt#detail_percent to the pbvh::Tree max edge length.
+ * Converts from Sculpt#detail_percent to the #pbvh::Tree max edge length.
  */
 float brush_to_detail_size(float brush_percent, float brush_radius);
 
 /**
- * Converts from Sculpt#detail_size to the pbvh::Tree max edge length.
+ * Converts from Sculpt#detail_size to the #pbvh::Tree max edge length.
  */
 float relative_to_detail_size(float relative_detail,
                               float brush_radius,

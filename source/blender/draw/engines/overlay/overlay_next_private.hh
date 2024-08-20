@@ -281,7 +281,7 @@ struct Resources : public select::SelectMap {
   /**
    * Depth target.
    * Can either be default depth buffer texture from #DefaultTextureList
-   * or `xray_depth_tx` if Xray is enabled.
+   * or `xray_depth_tx` if X-ray is enabled.
    */
   TextureRef depth_target_tx;
 

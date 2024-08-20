@@ -97,7 +97,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   ss.bm_log = BM_log_create(ss.bm);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
-   * are re-evaluated and the bke::pbvh::Tree is re-created. */
+   * are re-evaluated and the #bke::pbvh::Tree is re-created. */
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }
@@ -152,7 +152,7 @@ static void disable(
   BKE_ptcache_object_reset(&scene, &ob, PTCACHE_RESET_OUTDATED);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
-   * are re-evaluated and the bke::pbvh::Tree is re-created. */
+   * are re-evaluated and the #bke::pbvh::Tree is re-created. */
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   BKE_scene_graph_update_tagged(&depsgraph, &bmain);
 }

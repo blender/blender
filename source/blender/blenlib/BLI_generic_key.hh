@@ -36,7 +36,7 @@ class GenericKey {
   virtual bool equal_to(const GenericKey &other) const = 0;
 
   /**
-   * For efficieny, it can be good to not always allocate the key if it's just used for lookup.
+   * For efficiency, it can be good to not always allocate the key if it's just used for lookup.
    * This method allows the key to be converted into a heap-allocated version that can be stored
    * safely if necessary.
    */

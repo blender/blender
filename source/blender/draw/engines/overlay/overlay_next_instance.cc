@@ -257,7 +257,7 @@ void Instance::draw(Manager &manager)
   View view("OverlayView", view_legacy);
 
   if (state.xray_enabled) {
-    /* For Xray we render the scene to a separate depth buffer. */
+    /* For X-ray we render the scene to a separate depth buffer. */
     resources.xray_depth_tx.acquire(render_size, GPU_DEPTH_COMPONENT24);
     resources.depth_target_tx.wrap(resources.xray_depth_tx);
   }
