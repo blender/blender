@@ -494,7 +494,7 @@ namespace blender::bke::pbvh {
 void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh);
 void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);
 void update_bounds_grids(const CCGKey &key, Span<CCGElem *> elems, Tree &pbvh);
-void update_bounds_bmesh(const Object &object, Tree &pbvh);
+void update_bounds_bmesh(const BMesh &bm, Tree &pbvh);
 
 /**
  * Copy all current node bounds to the original bounds. "Original" bounds are typically from before

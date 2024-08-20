@@ -1149,7 +1149,7 @@ void update_bounds_grids(const CCGKey &key, const Span<CCGElem *> elems, Tree &p
   }
 }
 
-void update_bounds_bmesh(const Object & /*object*/, Tree &pbvh)
+void update_bounds_bmesh(const BMesh & /*bm*/, Tree &pbvh)
 {
   Vector<Node *> nodes = search_gather(
       pbvh, [&](Node &node) { return update_search(&node, PBVH_UpdateBB); });
@@ -1180,7 +1180,8 @@ void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh)
       break;
     }
     case Type::BMesh: {
-      update_bounds_bmesh(object, pbvh);
+      const SculptSession &ss = *object.sculpt;
+      update_bounds_bmesh(*ss.bm, pbvh);
       break;
     }
   }

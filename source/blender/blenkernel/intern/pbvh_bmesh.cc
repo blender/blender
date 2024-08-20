@@ -2132,24 +2132,13 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Tree *pbvh,
                                            face_bounds,
                                            node->child2,
                                            children_offset_ + 1);
-
-    n = &pbvh->nodes_[node_index];
-
-    /* Update bounding box. */
-    n->bounds_ = bounds::merge(pbvh->nodes_[n->children_offset_].bounds_,
-                               pbvh->nodes_[n->children_offset_ + 1].bounds_);
-    n->bounds_orig_ = n->bounds_;
   }
   else {
     /* Node does not have children so it's a leaf node, populate with faces and tag accordingly
      * this is an expensive part but it's not so easily thread-able due to vertex node indices. */
 
-    bool has_visible = false;
-
-    n->flag_ = PBVH_Leaf;
+    n->flag_ |= PBVH_Leaf;
     n->bm_faces_.reserve(node->totface);
-
-    n->bounds_ = face_bounds[node->start];
 
     const int end = node->start + node->totface;
 
@@ -2174,26 +2163,8 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Tree *pbvh,
             BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
           }
         }
-        /* Update node bounding box. */
       } while ((l_iter = l_iter->next) != l_first);
-
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        has_visible = true;
-      }
-
-      n->bounds_ = bounds::merge(n->bounds_, face_bounds[BM_elem_index_get(f)]);
     }
-
-    BLI_assert(n->bounds_.min[0] <= n->bounds_.max[0] && n->bounds_.min[1] <= n->bounds_.max[1] &&
-               n->bounds_.min[2] <= n->bounds_.max[2]);
-
-    n->bounds_orig_ = n->bounds_;
-
-    /* Build GPU buffers for new node and update vertex normals. */
-    BKE_pbvh_node_mark_rebuild_draw(n);
-
-    BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-    n->flag_ |= PBVH_UpdateNormals;
   }
 }
 
@@ -2256,11 +2227,26 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
    * next we need to assign those to the gsets of the nodes. */
 
   /* Start with all faces in the root node. */
-  pbvh->nodes_.append({});
-
   /* Take root node and visit and populate children recursively. */
+  pbvh->nodes_.resize(1);
   pbvh_bmesh_create_nodes_fast_recursive(
       pbvh.get(), cd_vert_node_offset, cd_face_node_offset, nodeinfo, face_bounds, &rootnode, 0);
+
+  update_bounds_bmesh(*bm, *pbvh);
+  store_bounds_orig(*pbvh);
+
+  MutableSpan<Node> nodes = pbvh->nodes_;
+  threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+    for (const int i : range) {
+      const Set<BMFace *, 0> &faces = BKE_pbvh_bmesh_node_faces(&nodes[i]);
+      if (std::all_of(faces.begin(), faces.end(), [&](const BMFace *face) {
+            return BM_elem_flag_test(face, BM_ELEM_HIDDEN);
+          }))
+      {
+        nodes[i].flag_ |= PBVH_FullyHidden;
+      }
+    }
+  });
 
   BLI_memarena_free(arena);
   return pbvh;
