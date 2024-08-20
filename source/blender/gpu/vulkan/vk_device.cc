@@ -218,7 +218,6 @@ void VKDevice::init_glsl_patch()
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
   ss << "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n";
 
-  /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
   ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
   if (GPU_stencil_export_support()) {
     ss << "#extension GL_ARB_shader_stencil_export: enable\n";
