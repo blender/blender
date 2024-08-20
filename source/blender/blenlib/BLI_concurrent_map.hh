@@ -56,6 +56,9 @@ class ConcurrentMap {
  public:
   using size_type = int64_t;
 
+  /* Sometimes TBB requires the value to be constructible. */
+  static_assert(std::is_copy_constructible_v<Value>);
+
 #ifdef WITH_TBB
  private:
   struct Hasher {

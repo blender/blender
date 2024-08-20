@@ -20,8 +20,10 @@ struct StoredValue {
   /**
    * The corresponding key. It's stored here, because only a reference to it is used as key in the
    * hash table.
+   *
+   * This is a shared_ptr instead of unique_ptr so that the entire struct is copy constructible.
    */
-  std::unique_ptr<const GenericKey> key;
+  std::shared_ptr<const GenericKey> key;
   /** The user-provided value. */
   std::shared_ptr<CachedValue> value;
   /** A logical time that indicates when the value was last used. Lower values are older. */
