@@ -212,8 +212,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
         ratio,
         memory);
 
-    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
-                                                                         selectable_elements);
+    const bool was_anything_selected = ed::curves::has_anything_selected(
+        curves, selection_domain, selectable_elements);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
         curves, selection_domain, CD_PROP_BOOL);
     if (!was_anything_selected) {
@@ -307,8 +307,8 @@ static int select_ends_exec(bContext *C, wmOperator *op)
 
     const IndexMask selectable_points = ed::greasepencil::retrieve_editable_points(
         *object, info.drawing, info.layer_index, memory);
-    const bool was_anything_selected = ed::curves::has_anything_selected(curves,
-                                                                         selectable_points);
+    const bool was_anything_selected = ed::curves::has_anything_selected(
+        curves, bke::AttrDomain::Point, selectable_points);
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
         curves, bke::AttrDomain::Point, CD_PROP_BOOL);
     if (!was_anything_selected) {

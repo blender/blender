@@ -3320,7 +3320,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           continue;
         }
         bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-        if (!ed::curves::has_anything_selected(curves, elements)) {
+        if (!ed::curves::has_anything_selected(curves, selection_domain, elements)) {
           continue;
         }
         ed::curves::foreach_selection_attribute_writer(

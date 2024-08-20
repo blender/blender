@@ -193,7 +193,9 @@ void fill_selection_true(GMutableSpan selection, const IndexMask &mask);
  */
 bool has_anything_selected(const bke::CurvesGeometry &curves);
 bool has_anything_selected(const bke::CurvesGeometry &curves, bke::AttrDomain selection_domain);
-bool has_anything_selected(const bke::CurvesGeometry &curves, const IndexMask &mask);
+bool has_anything_selected(const bke::CurvesGeometry &curves,
+                           bke::AttrDomain selection_domain,
+                           const IndexMask &mask);
 
 /**
  * Return true if any element in the span is selected, on either domain with either type.

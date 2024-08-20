@@ -405,20 +405,17 @@ bool has_anything_selected(const bke::CurvesGeometry &curves)
 
 bool has_anything_selected(const bke::CurvesGeometry &curves, bke::AttrDomain selection_domain)
 {
+  return has_anything_selected(
+      curves, selection_domain, IndexRange(curves.attributes().domain_size(selection_domain)));
+}
+
+bool has_anything_selected(const bke::CurvesGeometry &curves,
+                           bke::AttrDomain selection_domain,
+                           const IndexMask &mask)
+{
   for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
     const VArray<bool> selection = *curves.attributes().lookup<bool>(selection_name,
                                                                      selection_domain);
-    if (!selection || contains(selection, selection.index_range(), true)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool has_anything_selected(const bke::CurvesGeometry &curves, const IndexMask &mask)
-{
-  for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
-    const VArray<bool> selection = *curves.attributes().lookup<bool>(selection_name);
     if (!selection || contains(selection, mask, true)) {
       return true;
     }
