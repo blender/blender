@@ -2215,7 +2215,7 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   if (snode.edittree->type != NTREE_GEOMETRY) {
     return false;
   }
-  if (link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+  if (link.fromsock && link.fromsock->runtime->field_state == bke::FieldSocketState::IsField) {
     return true;
   }
   return false;

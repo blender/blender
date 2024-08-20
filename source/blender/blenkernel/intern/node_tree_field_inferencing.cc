@@ -671,33 +671,25 @@ static void determine_group_output_states(
   }
 }
 
-static void update_socket_shapes(const bNodeTree &tree,
+static void update_socket_states(const bNodeTree &tree,
                                  const Span<SocketFieldState> field_state_by_socket_id)
 {
-  const eNodeSocketDisplayShape requires_data_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-  const eNodeSocketDisplayShape data_but_can_be_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
-  const eNodeSocketDisplayShape is_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
-
-  auto get_shape_for_state = [&](const SocketFieldState &state) {
+  auto get_state_to_store = [&](const SocketFieldState &state) {
     if (state.is_always_single) {
-      return requires_data_shape;
+      return FieldSocketState::RequiresSingle;
     }
     if (!state.is_single) {
-      return is_field_shape;
+      return FieldSocketState::IsField;
     }
     if (state.requires_single) {
-      return requires_data_shape;
+      return FieldSocketState::RequiresSingle;
     }
-    return data_but_can_be_field_shape;
+    return FieldSocketState::CanBeField;
   };
 
-  for (const bNodeSocket *socket : tree.all_input_sockets()) {
-    const SocketFieldState &state = field_state_by_socket_id[socket->index_in_tree()];
-    const_cast<bNodeSocket *>(socket)->display_shape = get_shape_for_state(state);
-  }
   for (const bNodeSocket *socket : tree.all_sockets()) {
     const SocketFieldState &state = field_state_by_socket_id[socket->index_in_tree()];
-    const_cast<bNodeSocket *>(socket)->display_shape = get_shape_for_state(state);
+    const_cast<bNodeSocket *>(socket)->runtime->field_state = get_state_to_store(state);
   }
 }
 
@@ -739,7 +731,7 @@ bool update_field_inferencing(const bNodeTree &tree)
   propagate_field_status_from_left_to_right(tree, interface_by_node, field_state_by_socket_id);
   determine_group_output_states(
       tree, *new_inferencing_interface, interface_by_node, field_state_by_socket_id);
-  update_socket_shapes(tree, field_state_by_socket_id);
+  update_socket_states(tree, field_state_by_socket_id);
 
   /* Update the previous group interface. */
   const bool group_interface_changed = !tree.runtime->field_inferencing_interface ||

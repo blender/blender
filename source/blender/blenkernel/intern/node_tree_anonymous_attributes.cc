@@ -24,7 +24,7 @@ using nodes::NodeDeclaration;
 
 static bool socket_is_field(const bNodeSocket &socket)
 {
-  return socket.display_shape == SOCK_DISPLAY_SHAPE_DIAMOND;
+  return socket.runtime->field_state == FieldSocketState::IsField;
 }
 
 static const aal::RelationsInNode &get_relations_in_node(const bNode &node, ResourceScope &scope)

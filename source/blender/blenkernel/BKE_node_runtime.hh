@@ -196,6 +196,12 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   Vector<bNode *> root_frames;
 };
 
+enum class FieldSocketState {
+  RequiresSingle,
+  CanBeField,
+  IsField,
+};
+
 /**
  * Run-time data for every socket. This should only contain data that is somewhat persistent (i.e.
  * data that lives longer than a single depsgraph evaluation + redraw). Data that's only used in
@@ -225,6 +231,11 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
    * #bNode::runtime::totr).
    */
   float2 location;
+
+  /**
+   * This is computed during field inferencing and influences the socket shape in geometry nodes.
+   */
+  std::optional<FieldSocketState> field_state;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> directly_linked_links;
