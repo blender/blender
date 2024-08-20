@@ -6,7 +6,7 @@
  * \ingroup editor/io
  */
 
-#ifdef WITH_IO_GPENCIL
+#ifdef WITH_IO_GREASE_PENCIL
 
 #  include "DNA_space_types.h"
 
@@ -15,7 +15,7 @@
 
 #  include "WM_api.hh"
 
-#  include "io_gpencil.hh"
+#  include "io_gpencil_legacy.hh"
 
 ARegion *get_invoke_region(bContext *C)
 {
@@ -50,4 +50,4 @@ View3D *get_invoke_view3d(bContext *C)
   return nullptr;
 }
 
-#endif /* WITH_IO_GPENCIL */
+#endif /* WITH_IO_GREASE_PENCIL */

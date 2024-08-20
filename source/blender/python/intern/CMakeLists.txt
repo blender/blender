@@ -328,8 +328,8 @@ if(WITH_IO_STL)
   add_definitions(-DWITH_IO_STL)
 endif()
 
-if(WITH_IO_GPENCIL)
-  add_definitions(-DWITH_IO_GPENCIL)
+if(WITH_IO_GREASE_PENCIL)
+  add_definitions(-DWITH_IO_GREASE_PENCIL)
 endif()
 
 if(WITH_ALEMBIC)

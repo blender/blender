@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Authors
+# SPDX-FileCopyrightText: 2024 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,27 +9,25 @@ set(INC
   ../../blenloader
   ../../bmesh
   ../../editors/include
+  ../../functions
+  ../../geometry
   ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
+  ../../../../extern/fmtlib/include
 )
 
 set(INC_SYS
 )
 
 set(SRC
-  intern/gpencil_io_base.cc
-  intern/gpencil_io_capi.cc
-  intern/gpencil_io_import_base.cc
-  intern/gpencil_io_import_svg.cc
+  intern/grease_pencil_io_import_svg.cc
+  intern/grease_pencil_io.cc
 
-  gpencil_io.h
-  intern/gpencil_io_base.hh
-  intern/gpencil_io_export_base.hh
-  intern/gpencil_io_import_base.hh
-  intern/gpencil_io_import_svg.hh
+  grease_pencil_io.hh
+  intern/grease_pencil_io_intern.hh
 )
 
 set(LIB
@@ -40,14 +38,13 @@ set(LIB
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE extern_fmtlib
   bf_io_common
 )
 
 if(WITH_PUGIXML)
   list(APPEND SRC
-    intern/gpencil_io_export_svg.cc
-
-    intern/gpencil_io_export_svg.hh
+    intern/grease_pencil_io_export_svg.cc
   )
   list(APPEND INC_SYS
     ${PUGIXML_INCLUDE_DIR}
@@ -60,9 +57,7 @@ endif()
 
 if(WITH_HARU)
   list(APPEND SRC
-    intern/gpencil_io_export_pdf.cc
-
-    intern/gpencil_io_export_pdf.hh
+    intern/grease_pencil_io_export_pdf.cc
   )
   list(APPEND INC_SYS
     ${HARU_INCLUDE_DIRS}
@@ -84,4 +79,4 @@ if(WITH_BOOST)
   )
 endif()
 
-blender_add_lib(bf_gpencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_io_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

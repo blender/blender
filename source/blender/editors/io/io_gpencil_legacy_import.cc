@@ -6,7 +6,7 @@
  * \ingroup editor/io
  */
 
-#ifdef WITH_IO_GPENCIL
+#ifdef WITH_IO_GREASE_PENCIL
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
@@ -28,7 +28,7 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-#  include "io_gpencil.hh"
+#  include "io_gpencil_legacy.hh"
 #  include "io_utils.hh"
 
 #  include "gpencil_io.h"
@@ -172,17 +172,4 @@ void WM_OT_gpencil_import_svg(wmOperatorType *ot)
                 100.0f);
 }
 
-namespace blender::ed::io {
-void gpencil_file_handler_add()
-{
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
-  STRNCPY(fh->idname, "IO_FH_gpencil_svg");
-  STRNCPY(fh->import_operator, "WM_OT_gpencil_import_svg");
-  STRNCPY(fh->label, "SVG as Grease Pencil");
-  STRNCPY(fh->file_extensions_str, ".svg");
-  fh->poll_drop = poll_file_object_drop;
-  bke::file_handler_add(std::move(fh));
-}
-}  // namespace blender::ed::io
-
-#endif /* WITH_IO_GPENCIL */
+#endif /* WITH_IO_GREASE_PENCIL */

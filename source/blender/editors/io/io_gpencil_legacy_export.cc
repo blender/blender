@@ -6,7 +6,7 @@
  * \ingroup editor/io
  */
 
-#ifdef WITH_IO_GPENCIL
+#ifdef WITH_IO_GREASE_PENCIL
 
 #  include "BLI_path_util.h"
 
@@ -28,7 +28,7 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-#  include "io_gpencil.hh"
+#  include "io_gpencil_legacy.hh"
 
 #  include "gpencil_io.h"
 
@@ -391,4 +391,4 @@ void WM_OT_gpencil_export_pdf(wmOperatorType *ot)
 }
 #  endif /* WITH_HARU */
 
-#endif /* WITH_IO_GPENCIL */
+#endif /* WITH_IO_GREASE_PENCIL */

@@ -263,7 +263,7 @@ static PyObject *make_builtopts_info()
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_IO_GPENCIL
+#ifdef WITH_IO_GREASE_PENCIL
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);
