@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+#include "BLI_function_ref.hh"
+
 struct BlendHandle;
 struct ID;
 struct Library;
@@ -129,18 +131,7 @@ enum eBlendfileLinkAppendForeachItemFlag {
    * See comments in #foreach_libblock_link_append_callback. */
   BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 1,
 };
-/**
- * Callback called by #BKE_blendfile_link_append_context_item_foreach over each (or a subset of
- * each) of the items in given #BlendfileLinkAppendContext.
- *
- * \param userdata: An opaque void pointer passed to the `callback_function`.
- *
- * \return `true` if iteration should continue, `false` otherwise.
- */
-using BKE_BlendfileLinkAppendContexteItemFunction =
-    bool (*)(BlendfileLinkAppendContext *lapp_context,
-             BlendfileLinkAppendContextItem *item,
-             void *userdata);
+
 /**
  * Iterate over all (or a subset) of the items listed in given #BlendfileLinkAppendContext,
  * and call the `callback_function` on them.
@@ -151,9 +142,14 @@ using BKE_BlendfileLinkAppendContexteItemFunction =
  */
 void BKE_blendfile_link_append_context_item_foreach(
     BlendfileLinkAppendContext *lapp_context,
-    BKE_BlendfileLinkAppendContexteItemFunction callback_function,
-    eBlendfileLinkAppendForeachItemFlag flag,
-    void *userdata);
+    /**
+     * Called over each (or a subset of each) of the items in given #BlendfileLinkAppendContext.
+     *
+     * \return `true` if iteration should continue, `false` otherwise.
+     */
+    blender::FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
+                              BlendfileLinkAppendContextItem *item)> callback_function,
+    eBlendfileLinkAppendForeachItemFlag flag);
 
 /**
  * Perform append operation, using modern ID usage looper to detect which ID should be kept

@@ -415,9 +415,9 @@ short BKE_blendfile_link_append_context_item_idcode_get(
 
 void BKE_blendfile_link_append_context_item_foreach(
     BlendfileLinkAppendContext *lapp_context,
-    BKE_BlendfileLinkAppendContexteItemFunction callback_function,
-    const eBlendfileLinkAppendForeachItemFlag flag,
-    void *userdata)
+    blender::FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
+                              BlendfileLinkAppendContextItem *item)> callback_function,
+    const eBlendfileLinkAppendForeachItemFlag flag)
 {
   for (BlendfileLinkAppendContextItem *item : lapp_context->items) {
     if ((flag & BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT) == 0 &&
@@ -431,7 +431,7 @@ void BKE_blendfile_link_append_context_item_foreach(
       continue;
     }
 
-    if (!callback_function(lapp_context, item, userdata)) {
+    if (!callback_function(lapp_context, item)) {
       break;
     }
   }

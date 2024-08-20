@@ -407,31 +407,29 @@ struct LibExitLappContextItemsIterData {
 
 static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_context,
                                                BlendfileLinkAppendContextItem *item,
-                                               void *userdata)
+                                               LibExitLappContextItemsIterData &data)
 {
-  LibExitLappContextItemsIterData *data = static_cast<LibExitLappContextItemsIterData *>(userdata);
-
   /* Since `bpy_lib_exit` loops over all ID types, all items in `lapp_context` end up being looped
    * over for each ID type, so when it does not match the item can simply be skipped: it either has
    * already been processed, or will be processed in a later loop. */
-  if (BKE_blendfile_link_append_context_item_idcode_get(lapp_context, item) != data->idcode) {
+  if (BKE_blendfile_link_append_context_item_idcode_get(lapp_context, item) != data.idcode) {
     return true;
   }
 
   const int py_list_index = POINTER_AS_INT(
       BKE_blendfile_link_append_context_item_userdata_get(lapp_context, item));
   ID *new_id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);
-  ID *liboverride_id = data->py_library->create_liboverrides ?
+  ID *liboverride_id = data.py_library->create_liboverrides ?
                            BKE_blendfile_link_append_context_item_liboverrideid_get(lapp_context,
                                                                                     item) :
                            nullptr;
 
-  BLI_assert(py_list_index < data->py_list_size);
+  BLI_assert(py_list_index < data.py_list_size);
 
   /* Fully invalid items (which got set to `Py_None` already in first loop of `bpy_lib_exit`)
    * should never be accessed here, since their index should never be set to any item in
    * `lapp_context`. */
-  PyObject *item_src = PyList_GET_ITEM(data->py_list, py_list_index);
+  PyObject *item_src = PyList_GET_ITEM(data.py_list, py_list_index);
   BLI_assert(item_src != Py_None);
 
   PyObject *py_item;
@@ -445,14 +443,14 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
   }
   else {
     const char *item_idname = PyUnicode_AsUTF8(item_src);
-    const char *idcode_name_plural = BKE_idtype_idcode_to_name_plural(data->idcode);
+    const char *idcode_name_plural = BKE_idtype_idcode_to_name_plural(data.idcode);
 
-    bpy_lib_exit_warn_idname(data->py_library, idcode_name_plural, item_idname);
+    bpy_lib_exit_warn_idname(data.py_library, idcode_name_plural, item_idname);
 
     py_item = Py_INCREF_RET(Py_None);
   }
 
-  PyList_SET_ITEM(data->py_list, py_list_index, py_item);
+  PyList_SET_ITEM(data.py_list, py_list_index, py_item);
 
   Py_DECREF(item_src);
 
@@ -565,9 +563,11 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject * /*args*/)
     iter_data.py_list_size = size;
     BKE_blendfile_link_append_context_item_foreach(
         lapp_context,
-        bpy_lib_exit_lapp_context_items_cb,
-        BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT,
-        &iter_data);
+        [&iter_data](BlendfileLinkAppendContext *lapp_context,
+                     BlendfileLinkAppendContextItem *item) -> bool {
+          return bpy_lib_exit_lapp_context_items_cb(lapp_context, item, iter_data);
+        },
+        BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT);
   }
 #endif  // USE_RNA_DATABLOCKS
 
