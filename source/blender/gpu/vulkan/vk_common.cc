@@ -669,6 +669,16 @@ VkFormat to_vk_format(const shader::Type type)
   return VK_FORMAT_R32G32B32A32_SFLOAT;
 }
 
+VkQueryType to_vk_query_type(const GPUQueryType query_type)
+{
+  switch (query_type) {
+    case GPU_QUERY_OCCLUSION:
+      return VK_QUERY_TYPE_OCCLUSION;
+  }
+  BLI_assert_unreachable();
+  return VK_QUERY_TYPE_OCCLUSION;
+}
+
 VkImageType to_vk_image_type(const eGPUTextureType type)
 {
   /* See

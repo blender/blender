@@ -19,6 +19,7 @@
 #include "vk_mem_alloc.h"
 
 #include "GPU_index_buffer.hh"
+#include "gpu_query.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 
@@ -52,6 +53,7 @@ VkFormat to_vk_format(const GPUVertCompType type,
                       const uint32_t size,
                       const GPUVertFetchMode fetch_mode);
 VkFormat to_vk_format(const shader::Type type);
+VkQueryType to_vk_query_type(const GPUQueryType query_type);
 
 VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type,

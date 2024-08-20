@@ -177,7 +177,9 @@ class VKRenderGraph : public NonCopyable {
   { \
     add_node<NODE_CLASS>(create_info); \
   }
+  ADD_NODE(VKBeginQueryNode)
   ADD_NODE(VKBeginRenderingNode)
+  ADD_NODE(VKEndQueryNode)
   ADD_NODE(VKEndRenderingNode)
   ADD_NODE(VKClearAttachmentsNode)
   ADD_NODE(VKClearColorImageNode)
@@ -194,6 +196,7 @@ class VKRenderGraph : public NonCopyable {
   ADD_NODE(VKDrawIndexedNode)
   ADD_NODE(VKDrawIndexedIndirectNode)
   ADD_NODE(VKDrawIndirectNode)
+  ADD_NODE(VKResetQueryPoolNode)
   ADD_NODE(VKUpdateMipmapsNode)
 #undef ADD_NODE
 

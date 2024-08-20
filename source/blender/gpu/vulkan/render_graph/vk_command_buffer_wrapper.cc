@@ -332,6 +332,25 @@ void VKCommandBufferWrapper::end_rendering()
   device.functions.vkCmdEndRendering(vk_command_buffer_);
 }
 
+void VKCommandBufferWrapper::begin_query(VkQueryPool vk_query_pool,
+                                         uint32_t query_index,
+                                         VkQueryControlFlags vk_query_control_flags)
+{
+  vkCmdBeginQuery(vk_command_buffer_, vk_query_pool, query_index, vk_query_control_flags);
+}
+
+void VKCommandBufferWrapper::end_query(VkQueryPool vk_query_pool, uint32_t query_index)
+{
+  vkCmdEndQuery(vk_command_buffer_, vk_query_pool, query_index);
+}
+
+void VKCommandBufferWrapper::reset_query_pool(VkQueryPool vk_query_pool,
+                                              uint32_t first_query,
+                                              uint32_t query_count)
+{
+  vkCmdResetQueryPool(vk_command_buffer_, vk_query_pool, first_query, query_count);
+}
+
 void VKCommandBufferWrapper::begin_debug_utils_label(
     const VkDebugUtilsLabelEXT *vk_debug_utils_label)
 {
