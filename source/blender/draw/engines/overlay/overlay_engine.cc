@@ -229,6 +229,7 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_mode_transfer_cache_init(data);
   OVERLAY_extra_cache_init(data);
   OVERLAY_facing_cache_init(data);
+  OVERLAY_grease_pencil_cache_init(data);
   OVERLAY_gpencil_legacy_cache_init(data);
   OVERLAY_grid_cache_init(data);
   OVERLAY_image_cache_init(data);
@@ -697,6 +698,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_particle_draw(data);
   OVERLAY_metaball_draw(data);
   OVERLAY_gpencil_legacy_draw(data);
+  OVERLAY_grease_pencil_draw(data);
   OVERLAY_extra_draw(data);
   if (pd->overlay.flag & V3D_OVERLAY_VIEWER_ATTRIBUTE) {
     OVERLAY_viewer_attribute_draw(data);
