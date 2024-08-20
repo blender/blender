@@ -6,13 +6,13 @@
  * \ingroup editor/io
  */
 
-#include "DNA_view3d_types.h"
 #ifdef WITH_IO_GREASE_PENCIL
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
 #  include "DNA_space_types.h"
+#  include "DNA_view3d_types.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
@@ -37,9 +37,9 @@
 
 #  include "grease_pencil_io.hh"
 
-#  if defined(WITH_PUGIXML) || defined(WITH_HARU)
-
 namespace blender::ed::io {
+
+#  if defined(WITH_PUGIXML) || defined(WITH_HARU)
 
 /* Definition of enum elements to export. */
 /* Common props for exporting. */
@@ -76,6 +76,8 @@ static void grease_pencil_export_common_props_definition(wmOperatorType *ot)
       ot->srna, "use_uniform_width", false, "Uniform Width", "Export strokes with uniform width");
 }
 
+#  endif
+
 /* Note: Region data is found using "big area" functions, rather than context. This is necessary
  * since export operators are not always invoked from a View3D. This enables the operator to find
  * the most relevant 3D view for projection of strokes. */
@@ -101,8 +103,6 @@ static bool get_invoke_region(bContext *C,
 }
 
 }  // namespace blender::ed::io
-
-#  endif
 
 /* -------------------------------------------------------------------- */
 /** \name SVG single frame import
@@ -395,7 +395,7 @@ void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
                   "Clip drawings to camera size when exporting in camera view");
 }
 
-#  endif
+#  endif /* WITH_PUGIXML */
 
 /** \} */
 
