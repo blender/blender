@@ -216,7 +216,7 @@ class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer_eevee, "use_pass_transparent")
 
 
-class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
+class ViewLayerAOVPanel(ViewLayerButtonsPanel):
     bl_label = "Shader AOV"
 
     def draw(self, context):
@@ -241,12 +241,12 @@ class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
             layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
 
 
-class VIEWLAYER_PT_layer_passes_aov(ViewLayerAOVPanel):
+class VIEWLAYER_PT_layer_passes_aov(ViewLayerAOVPanel, Panel):
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
 
 
-class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
+class ViewLayerCryptomattePanel(ViewLayerButtonsPanel):
     bl_label = "Cryptomatte"
 
     def draw(self, context):
@@ -288,7 +288,7 @@ class VIEWLAYER_MT_lightgroup_sync(Menu):
         layout.operator("scene.view_layer_remove_unused_lightgroups", icon='REMOVE')
 
 
-class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel, Panel):
+class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel):
     bl_label = "Light Groups"
 
     def draw(self, context):
@@ -314,7 +314,7 @@ class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel, Panel):
         sub.menu("VIEWLAYER_MT_lightgroup_sync", icon='DOWNARROW_HLT', text="")
 
 
-class VIEWLAYER_PT_layer_passes_lightgroups(ViewLayerLightgroupsPanel):
+class VIEWLAYER_PT_layer_passes_lightgroups(ViewLayerLightgroupsPanel, Panel):
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'CYCLES'}
 

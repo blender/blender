@@ -1050,13 +1050,13 @@ class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePan
     bl_parent_id = "CYCLES_RENDER_PT_passes"
 
 
-class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, ViewLayerAOVPanel):
+class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, ViewLayerAOVPanel, Panel):
     bl_label = "Shader AOV"
     bl_context = "view_layer"
     bl_parent_id = "CYCLES_RENDER_PT_passes"
 
 
-class CYCLES_RENDER_PT_passes_lightgroups(CyclesButtonsPanel, ViewLayerLightgroupsPanel):
+class CYCLES_RENDER_PT_passes_lightgroups(CyclesButtonsPanel, ViewLayerLightgroupsPanel, Panel):
     bl_label = "Light Groups"
     bl_context = "view_layer"
     bl_parent_id = "CYCLES_RENDER_PT_passes"
