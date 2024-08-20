@@ -364,6 +364,9 @@ def bake_action_iter(
             atd.use_tweak_mode = False
 
         atd.action = action
+        if action.is_action_layered:
+            slot = action.slots.new(for_id=obj)
+            atd.action_slot = slot
 
     # Baking the action only makes sense in Replace mode, so force it (#69105)
     if not atd.use_tweak_mode:
