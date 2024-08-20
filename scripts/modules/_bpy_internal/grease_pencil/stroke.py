@@ -38,6 +38,50 @@ class AttributeGetterSetter:
             raise Exception("Could not create attribute {:s} of type {!r}".format(name, type))
 
 
+class SliceHelper:
+    """
+    Helper class to handle custom slicing.
+    """
+
+    def __init__(self, start: int, stop: int):
+        self._start = start
+        self._stop = stop
+        self._size = stop - start
+
+    def __len__(self):
+        return self._size
+
+    def _is_valid_index(self, key: int):
+        if self._size <= 0:
+            return False
+        if key < 0:
+            # Support indexing from the end.
+            return abs(key) <= self._size
+        return abs(key) < self._size
+
+    def _getitem_helper(self, key):
+        if isinstance(key, int):
+            if not self._is_valid_index(key):
+                raise IndexError("Key {:d} is out of range".format(key))
+            # Turn the key into an index.
+            return self._start + (key % self._size)
+        elif isinstance(key, slice):
+            if key.step is not None and key.step != 1:
+                raise ValueError("Step values != 1 not supported")
+            # Default to 0 and size for the start and stop values.
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else self._size
+            # Wrap negative indices.
+            start = self._size + start if start < 0 else start
+            stop = self._size + stop if stop < 0 else stop
+            # Clamp start and stop.
+            start = max(0, min(start, self._size))
+            stop = max(0, min(stop, self._size))
+            return (self._start + start, self._start + stop)
+        else:
+            raise TypeError("Unexpected index of type {!r}".format(type(key)))
+
+
 def def_prop_for_attribute(attr_name, type, default, doc):
     """
     Creates a property that can read and write an attribute.
@@ -50,6 +94,7 @@ def def_prop_for_attribute(attr_name, type, default, doc):
     def fset(self, value):
         # Define `setter` callback for property.
         self._set_attribute(attr_name, type, value)
+
     prop = property(fget=fget, fset=fset, doc=doc)
     return prop
 
@@ -88,50 +133,25 @@ class GreasePencilStrokePoint(AttributeGetterSetter):
         super().__init__(drawing.attributes, point_index, 'POINT')
 
 
-class GreasePencilStrokePointSlice:
+class GreasePencilStrokePointSlice(SliceHelper):
     """
     A helper class that represents a slice of GreasePencilStrokePoint's.
     """
 
-    def __init__(self, drawing, start, stop):
+    def __init__(self, drawing, start: int, stop: int):
+        super().__init__(start, stop)
         self._drawing = drawing
-        self._start = start
-        self._stop = stop
-        self._size = stop - start
 
     def __len__(self):
-        return self._size
-
-    def _is_valid_index(self, key):
-        if self._size <= 0:
-            return False
-        if key < 0:
-            # Support indexing from the end.
-            return abs(key) <= self._size
-        return abs(key) < self._size
+        return super().__len__()
 
     def __getitem__(self, key):
+        key = super()._getitem_helper(key)
         if isinstance(key, int):
-            if not self._is_valid_index(key):
-                raise IndexError("Key {:d} is out of range".format(key))
-            # Turn the key into an index.
-            point_i = self._start + (key % self._size)
-            return GreasePencilStrokePoint(self._drawing, point_i)
-        elif isinstance(key, slice):
-            if key.step is not None and key.step != 1:
-                raise ValueError("Step values != 1 not supported")
-            # Default to 0 and size for the start and stop values.
-            start = key.start if key.start is not None else 0
-            stop = key.stop if key.stop is not None else self._size
-            # Wrap negative indices.
-            start = self._size + start if start < 0 else start
-            stop = self._size + stop if stop < 0 else stop
-            # Clamp start and stop.
-            start = max(0, min(start, self._size))
-            stop = max(0, min(stop, self._size))
-            return GreasePencilStrokePointSlice(self._drawing, self._start + start, self._start + stop)
-        else:
-            raise TypeError("Unexpected index of type {!r}".format(type(key)))
+            return GreasePencilStrokePoint(self._drawing, key)
+        elif isinstance(key, tuple):
+            start, stop = key
+            return GreasePencilStrokePointSlice(self._drawing, start, stop)
 
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
@@ -154,7 +174,7 @@ class GreasePencilStroke(AttributeGetterSetter):
     A helper class to get access to stroke data.
     """
 
-    def __init__(self, drawing, curve_index, points_start_index, points_end_index):
+    def __init__(self, drawing, curve_index: int, points_start_index: int, points_end_index: int):
         super().__init__(drawing.attributes, curve_index, 'CURVE')
         self._drawing = drawing
         self._curve_index = curve_index
@@ -168,7 +188,7 @@ class GreasePencilStroke(AttributeGetterSetter):
         """
         return GreasePencilStrokePointSlice(self._drawing, self._points_start_index, self._points_end_index)
 
-    def add_points(self, count):
+    def add_points(self, count: int):
         """
         Add new points at the end of the stroke and returns the new points as a list.
         """
@@ -178,7 +198,7 @@ class GreasePencilStroke(AttributeGetterSetter):
         self._points_end_index = self._points_start_index + new_size
         return GreasePencilStrokePointSlice(self._drawing, previous_end, self._points_end_index)
 
-    def remove_points(self, count):
+    def remove_points(self, count: int):
         """
         Remove points at the end of the stroke.
         """
@@ -190,49 +210,24 @@ class GreasePencilStroke(AttributeGetterSetter):
         self._points_end_index = self._points_start_index + new_size
 
 
-class GreasePencilStrokeSlice:
+class GreasePencilStrokeSlice(SliceHelper):
     """
     A helper class that represents a slice of GreasePencilStroke's.
     """
 
-    def __init__(self, drawing, start, stop):
+    def __init__(self, drawing, start: int, stop: int):
+        super().__init__(start, stop)
         self._drawing = drawing
         self._curve_offsets = drawing.curve_offsets
-        self._start = start
-        self._stop = stop
-        self._size = stop - start
 
     def __len__(self):
-        return self._size
-
-    def _is_valid_index(self, key):
-        if self._size <= 0:
-            return False
-        if key < 0:
-            # Support indexing from the end.
-            return abs(key) <= self._size
-        return abs(key) < self._size
+        return super().__len__()
 
     def __getitem__(self, key):
+        key = super()._getitem_helper(key)
         if isinstance(key, int):
-            if not self._is_valid_index(key):
-                raise IndexError("Key {:d} is out of range".format(key))
-            # Turn the key into an index.
-            curve_i = self._start + (key % self._size)
             offsets = self._curve_offsets
-            return GreasePencilStroke(self._drawing, curve_i, offsets[curve_i].value, offsets[curve_i + 1].value)
-        elif isinstance(key, slice):
-            if key.step is not None and key.step != 1:
-                raise ValueError("Step values != 1 not supported")
-            # Default to 0 and size for the start and stop values.
-            start = key.start if key.start is not None else 0
-            stop = key.stop if key.stop is not None else self._size
-            # Wrap negative indices.
-            start = self._size + start if start < 0 else start
-            stop = self._size + stop if stop < 0 else stop
-            # Clamp start and stop.
-            start = max(0, min(start, self._size))
-            stop = max(0, min(stop, self._size))
-            return GreasePencilStrokeSlice(self._drawing, self._start + start, self._start + stop)
-        else:
-            raise TypeError("Unexpected index of type {!r}".format(type(key)))
+            return GreasePencilStroke(self._drawing, key, offsets[key].value, offsets[key + 1].value)
+        elif isinstance(key, tuple):
+            start, stop = key
+            return GreasePencilStrokeSlice(self._drawing, start, stop)
