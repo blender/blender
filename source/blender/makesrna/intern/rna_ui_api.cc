@@ -2233,7 +2233,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                         0,
                         "",
                         "Identifier of this asset view. Necessary to tell apart different asset "
-                        "views and to idenify an asset view read from a .blend");
+                        "views and to identify an asset view read from a .blend");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func,
                          "asset_library_dataptr",
