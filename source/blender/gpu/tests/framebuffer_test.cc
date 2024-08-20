@@ -255,6 +255,13 @@ GPU_TEST(framebuffer_cube)
 static void test_framebuffer_multi_viewport()
 {
   using namespace gpu::shader;
+  if (GPU_type_matches_ex(
+          GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_OPENGL) &&
+      G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS)
+  {
+    GTEST_SKIP() << "NVIDIA fails to compile workaround due to reserved names. Gladly it doesn't "
+                    "need the workaround.";
+  }
 
   GPU_render_begin();
 
