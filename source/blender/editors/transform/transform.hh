@@ -811,7 +811,7 @@ void calculateCenter(TransInfo *t);
  * Called every time the view changes due to navigation.
  * Adjusts the mouse position relative to the object.
  */
-void tranformViewUpdate(TransInfo *t);
+void transformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points. */
 void calculateCenterBound(TransInfo *t, float r_center[3]);

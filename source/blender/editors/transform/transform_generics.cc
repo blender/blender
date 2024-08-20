@@ -1233,7 +1233,7 @@ void calculateCenter(TransInfo *t)
   calculateZfac(t);
 }
 
-void tranformViewUpdate(TransInfo *t)
+void transformViewUpdate(TransInfo *t)
 {
   float zoom_prev = t->zfac;
   float zoom_new;

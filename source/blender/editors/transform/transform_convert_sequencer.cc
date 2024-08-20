@@ -524,13 +524,11 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
 /** \name UVs Transform Flush
  * \{ */
 
-static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float r_loc[2])
+static void view2d_edge_pan_loc_compensate(TransInfo *t, float offset[2])
 {
   TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
 
-  /* Initial and current view2D rects for additional transform due to view panning and zooming. */
-  const rctf *rect_src = &ts->initial_v2d_cur;
-  const rctf *rect_dst = &t->region->v2d.cur;
+  const rctf rect_prev = t->region->v2d.cur;
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
@@ -546,9 +544,13 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
     }
   }
 
-  copy_v2_v2(r_loc, loc_in);
-  /* Additional offset due to change in view2D rect. */
-  BLI_rctf_transform_pt_v(rect_dst, rect_src, r_loc, r_loc);
+  if (t->state != TRANS_CANCEL) {
+    if (!BLI_rctf_compare(&rect_prev, &t->region->v2d.cur, FLT_EPSILON)) {
+      /* Additional offset due to change in view2D rect. */
+      BLI_rctf_transform_pt_v(&t->region->v2d.cur, &rect_prev, offset, offset);
+      transformViewUpdate(t);
+    }
+  }
 }
 
 static void flushTransSeq(TransInfo *t)
@@ -577,7 +579,7 @@ static void flushTransSeq(TransInfo *t)
   int max_offset = 0;
 
   float edge_pan_offset[2] = {0.0f, 0.0f};
-  view2d_edge_pan_loc_compensate(t, edge_pan_offset, edge_pan_offset);
+  view2d_edge_pan_loc_compensate(t, edge_pan_offset);
 
   /* Flush to 2D vector from internally used 3D vector. */
   for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {

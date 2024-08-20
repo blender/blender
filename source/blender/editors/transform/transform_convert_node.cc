@@ -208,7 +208,7 @@ static void flushTransNodes(TransInfo *t)
     if (!BLI_rctf_compare(&customdata->viewrect_prev, &t->region->v2d.cur, FLT_EPSILON)) {
       /* Additional offset due to change in view2D rect. */
       BLI_rctf_transform_pt_v(&t->region->v2d.cur, &customdata->viewrect_prev, offset, offset);
-      tranformViewUpdate(t);
+      transformViewUpdate(t);
       customdata->viewrect_prev = t->region->v2d.cur;
     }
   }

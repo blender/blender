@@ -449,7 +449,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Navigation has ended. */
 
         /* Call before #applyMouseInput. */
-        tranformViewUpdate(t);
+        transformViewUpdate(t);
 
         /* Mouse input is outdated. */
         t->mval = float2(event->mval);
