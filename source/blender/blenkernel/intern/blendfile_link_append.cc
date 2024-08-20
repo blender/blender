@@ -978,6 +978,13 @@ static bool foreach_libblock_link_append_common_processing(
   if (id == nullptr) {
     return false;
   }
+  if (!ID_IS_LINKED(id)) {
+    CLOG_ERROR(
+        &LOG,
+        "Local ID '%s' found as part of the linked data hierarchy, this should never happen",
+        id->name);
+    return false;
+  }
 
   if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
     /* While we do not want to add non-linkable ID (shape keys...) to the list of linked items,
