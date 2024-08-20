@@ -379,7 +379,9 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /* Check for AMD legacy driver. Assuming that when these drivers are used this bug is present.
      */
-    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ")) {
+    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ") ||
+        strstr(version, " 21.Q2.1 "))
+    {
       GCaps.use_hq_normals_workaround = true;
     }
     const Vector<std::string> matches = {
