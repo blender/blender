@@ -49,6 +49,7 @@
 #include "sculpt_face_set.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_smooth.hh"
+#include "sculpt_undo.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

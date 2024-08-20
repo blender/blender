@@ -90,6 +90,7 @@
 #include "sculpt_intern.hh"
 #include "sculpt_islands.hh"
 #include "sculpt_pose.hh"
+#include "sculpt_undo.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

@@ -37,6 +37,7 @@
 #include "paint_intern.hh"
 #include "sculpt_filter.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

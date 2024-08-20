@@ -52,6 +52,7 @@
 #include "sculpt_intern.hh"
 #include "sculpt_islands.hh"
 #include "sculpt_smooth.hh"
+#include "sculpt_undo.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

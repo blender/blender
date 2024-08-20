@@ -43,6 +43,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

@@ -20,6 +20,7 @@
 #include "mesh_brush_common.hh"
 #include "sculpt_gesture.hh"
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 namespace blender::ed::sculpt_paint::project {
 

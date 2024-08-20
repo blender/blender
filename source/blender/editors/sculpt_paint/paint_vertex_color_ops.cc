@@ -36,6 +36,7 @@
 
 #include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
+#include "sculpt_undo.hh"
 
 using blender::Array;
 using blender::ColorGeometry4f;
