@@ -116,6 +116,13 @@ void *BKE_blendfile_link_append_context_item_userdata_get(BlendfileLinkAppendCon
                                                           BlendfileLinkAppendContextItem *item);
 ID *BKE_blendfile_link_append_context_item_newid_get(BlendfileLinkAppendContext *lapp_context,
                                                      BlendfileLinkAppendContextItem *item);
+/**
+ * Replace the newly linked ID by another from the same library. Rarely used, necessary e.g. in
+ * some complex 'do version after setup' code when an ID is replaced by another one.
+ */
+void BKE_blendfile_link_append_context_item_newid_set(BlendfileLinkAppendContext *lapp_context,
+                                                      BlendfileLinkAppendContextItem *item,
+                                                      ID *new_id);
 ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
     BlendfileLinkAppendContext *lapp_context, BlendfileLinkAppendContextItem *item);
 short BKE_blendfile_link_append_context_item_idcode_get(BlendfileLinkAppendContext *lapp_context,

@@ -600,7 +600,9 @@ static bool blendfile_or_libraries_versions_atleast(Main *bmain,
   return true;
 }
 
-void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
+void do_versions_after_setup(Main *new_bmain,
+                             BlendfileLinkAppendContext *lapp_context,
+                             BlendFileReadReport *reports)
 {
   /* WARNING: The code below may add IDs. These IDs _will_ be (by definition) conforming to current
    * code's version already, and _must not_ be 'versionned' again.
@@ -663,6 +665,6 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
-    blender::bke::greasepencil::convert::legacy_main(*new_bmain, *reports);
+    blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
   }
 }

@@ -1122,7 +1122,7 @@ static void setup_app_data(bContext *C,
     /* Perform complex versioning that involves adding or removing IDs,
      * and/or needs to operate over the whole Main data-base
      * (versioning done in file reading code only operates on a per-library basis). */
-    BLO_read_do_version_after_setup(bmain, reports);
+    BLO_read_do_version_after_setup(bmain, nullptr, reports);
   }
 
   bmain->recovered = false;

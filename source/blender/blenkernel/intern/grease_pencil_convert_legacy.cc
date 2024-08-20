@@ -13,6 +13,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_attribute.hh"
+#include "BKE_blendfile_link_append.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
@@ -65,12 +66,16 @@ namespace blender::bke::greasepencil::convert {
  */
 struct ConversionData {
   Main &bmain;
+  BlendfileLinkAppendContext *lapp_context;
   /** A mapping between a library and a generated 'offset radius' node group. */
   Map<Library *, bNodeTree *> offset_radius_ntree_by_library = {};
   /** A mapping between a legacy GPv2 ID and its converted GPv3 ID. */
   Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data = {};
 
-  ConversionData(Main &bmain) : bmain(bmain) {}
+  ConversionData(Main &bmain, BlendfileLinkAppendContext *lapp_context)
+      : bmain(bmain), lapp_context(lapp_context)
+  {
+  }
 };
 
 /* -------------------------------------------------------------------- */
@@ -2937,9 +2942,11 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
   BKE_object_free_derived_caches(&object);
 }
 
-void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
+void legacy_main(Main &bmain,
+                 BlendfileLinkAppendContext *lapp_context,
+                 BlendFileReadReport & /*reports*/)
 {
-  ConversionData conversion_data(bmain);
+  ConversionData conversion_data(bmain, lapp_context);
 
   /* Ensure that annotations are fully separated from object usages of legacy GPv2 data. */
   legacy_gpencil_sanitize_annotations(bmain);
@@ -2977,6 +2984,29 @@ void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
   }
 
   BKE_libblock_remap_multiple(&bmain, gpd_remapper, ID_REMAP_ALLOW_IDTYPE_MISMATCH);
+
+  if (conversion_data.lapp_context) {
+    BKE_blendfile_link_append_context_item_foreach(
+        conversion_data.lapp_context,
+        [&conversion_data](BlendfileLinkAppendContext *lapp_context,
+                           BlendfileLinkAppendContextItem *item) -> bool {
+          ID *item_new_id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);
+          if (!item_new_id || GS(item_new_id->name) != ID_GD_LEGACY) {
+            return true;
+          }
+          GreasePencil **item_grease_pencil =
+              conversion_data.legacy_to_greasepencil_data.lookup_ptr(
+                  reinterpret_cast<bGPdata *>(item_new_id));
+          if (item_grease_pencil && *item_grease_pencil) {
+            BKE_blendfile_link_append_context_item_newid_set(
+                lapp_context, item, &(*item_grease_pencil)->id);
+          }
+          return true;
+        },
+        eBlendfileLinkAppendForeachItemFlag(
+            BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT |
+            BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT));
+  }
 }
 
 void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,

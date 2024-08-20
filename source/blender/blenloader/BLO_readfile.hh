@@ -13,6 +13,7 @@
 
 struct AssetMetaData;
 struct BHead;
+struct BlendfileLinkAppendContext;
 struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
@@ -210,7 +211,9 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
  *
  * \param new_bmain: the newly read Main data-base.
  */
-void BLO_read_do_version_after_setup(Main *new_bmain, BlendFileReadReport *reports);
+void BLO_read_do_version_after_setup(Main *new_bmain,
+                                     BlendfileLinkAppendContext *lapp_context,
+                                     BlendFileReadReport *reports);
 
 /** \} */
 

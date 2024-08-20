@@ -23,6 +23,7 @@
 #include "BLO_readfile.hh"
 
 struct BlendFileData;
+struct BlendfileLinkAppendContext;
 struct BlendFileReadParams;
 struct BlendFileReadReport;
 struct BLOCacheStorage;
@@ -247,7 +248,9 @@ void do_versions_after_linking_300(FileData *fd, Main *bmain);
 void do_versions_after_linking_400(FileData *fd, Main *bmain);
 void do_versions_after_linking_cycles(Main *bmain);
 
-void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports);
+void do_versions_after_setup(Main *new_bmain,
+                             BlendfileLinkAppendContext *lapp_context,
+                             BlendFileReadReport *reports);
 
 /**
  * Direct data-blocks with global linking.
