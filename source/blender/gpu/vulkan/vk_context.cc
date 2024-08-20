@@ -215,7 +215,9 @@ void VKContext::deactivate_framebuffer()
 {
   VKFrameBuffer *framebuffer = active_framebuffer_get();
   BLI_assert(framebuffer != nullptr);
-  framebuffer->rendering_end(*this);
+  if (framebuffer->is_rendering()) {
+    framebuffer->rendering_end(*this);
+  }
   active_fb = nullptr;
 }
 

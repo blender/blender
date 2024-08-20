@@ -44,6 +44,7 @@ class VKFrameBuffer : public FrameBuffer {
    * Create a conventional frame-buffer to attach texture to.
    */
   VKFrameBuffer(const char *name);
+  virtual ~VKFrameBuffer();
 
   void bind(bool enabled_srgb) override;
   bool check(char err_out[256]) override;

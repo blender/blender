@@ -37,6 +37,14 @@ VKFrameBuffer::VKFrameBuffer(const char *name)
   enabled_srgb_ = false;
 }
 
+VKFrameBuffer::~VKFrameBuffer()
+{
+  VKContext &context = *VKContext::get();
+  if (context.active_framebuffer_get() == this) {
+    context.deactivate_framebuffer();
+  }
+}
+
 /** \} */
 
 void VKFrameBuffer::bind(bool enabled_srgb)
