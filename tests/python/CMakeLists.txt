@@ -675,9 +675,9 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
     endif()
 
     # Disabled until new OpenPGL version with deterministic results.
-    #if(WITH_CYCLES_PATH_GUIDING)
-    #  list(APPEND render_tests guiding)
-    #endif()
+    # if(WITH_CYCLES_PATH_GUIDING)
+    #   list(APPEND render_tests guiding)
+    # endif()
 
     if(WITH_GPU_RENDER_TESTS)
       list(APPEND render_tests grease_pencil)
@@ -700,7 +700,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
 
         foreach(render_test ${_cycles_render_tests})
           set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
-          if (NOT(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL AND ("${render_test}" STREQUAL "osl")))
+          if(NOT(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL AND ("${render_test}" STREQUAL "osl")))
             # Only run OSL basic tests during this phase if WITH_CYCLES_TEST_OSL isn't enabled
             add_render_test(
               ${_cycles_test_name}
@@ -715,7 +715,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
             endif()
           endif()
 
-          if (WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL)
+          if(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL)
             # OSL is only supported with CPU and OptiX
             # TODO: Enable OptiX support once it's more stable
             if("${_cycles_device_lower}" STREQUAL "cpu")

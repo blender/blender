@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(MSVC)
- set(OPUS_CMAKE_ARGS
+  set(OPUS_CMAKE_ARGS
     -DPACKAGE_VERSION=${OPUS_VERSION}
     -DOPUS_BUILD_PROGRAMS=OFF
     -DOPUS_BUILD_TESTING=OFF
- )
+  )
 endif()
 
 if(NOT WIN32)

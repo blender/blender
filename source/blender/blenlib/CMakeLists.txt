@@ -454,7 +454,7 @@ if(WITH_FFTW3)
     ${FFTW3_LIBRARIES}
   )
   add_definitions(-DWITH_FFTW3)
-  if (WITH_FFTW3_THREADS_F_SUPPORT)
+  if(WITH_FFTW3_THREADS_F_SUPPORT)
     add_definitions(-DWITH_FFTW3_THREADS_F_SUPPORT)
   endif()
 endif()

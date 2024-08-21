@@ -54,12 +54,13 @@ if(WIN32)
   set(COMMON_DEFINES /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS)
 
   if(MSVC_VERSION GREATER 1909)
-    set(COMMON_MSVC_FLAGS "/Wv:18") #some deps with warnings as error aren't quite ready for dealing with the new 2017 warnings.
+    # Some deps with warnings as error aren't quite ready for dealing with the new 2017 warnings.
+    set(COMMON_MSVC_FLAGS "/Wv:18")
   endif()
   string(APPEND COMMON_MSVC_FLAGS " /bigobj")
   # To keep MSVC from oversubscribing the CPU, force it to single threaded mode
   # msbuild/ninja will queue as many compile units as there are cores, no need for
-  # msvc to be internally threading as well.
+  # MSVC to be internally threading as well.
   string(APPEND COMMON_MSVC_FLAGS " /cgthreads1 ")
 
   if(WITH_OPTIMIZED_DEBUG)

@@ -352,7 +352,7 @@ else()
         ${CMAKE_BINARY_DIR}/blender.exe.manifest
       )
     endif()
-    target_compile_definitions (blender-launcher PRIVATE -D_UNICODE -DUNICODE)
+    target_compile_definitions(blender-launcher PRIVATE -D_UNICODE -DUNICODE)
     target_link_libraries(blender-launcher Pathcch.lib)
   endif()
 endif()
@@ -986,7 +986,7 @@ elseif(WIN32)
     ALL
   )
 
- if(WITH_VULKAN_BACKEND)
+  if(WITH_VULKAN_BACKEND)
     windows_install_shared_manifest(
       FILES ${LIBDIR}/vulkan/bin/vulkan-1.dll
       ALL

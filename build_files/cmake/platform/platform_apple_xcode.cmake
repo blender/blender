@@ -91,7 +91,7 @@ else()
     message(FATAL_ERROR "No Xcode or Command Line Tools detected")
   endif()
 
-  unset( _cltools_pkg_info)
+  unset(_cltools_pkg_info)
   unset(__cltools_pkg_info_result)
 endif()
 
