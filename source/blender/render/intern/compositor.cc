@@ -282,6 +282,10 @@ class Context : public realtime_compositor::Context {
                                 int view_layer_id,
                                 const char *pass_name) override
   {
+    if (!scene) {
+      return nullptr;
+    }
+
     Render *re = RE_GetSceneRender(scene);
     RenderResult *rr = nullptr;
     GPUTexture *input_texture = nullptr;
