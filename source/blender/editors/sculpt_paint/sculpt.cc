@@ -3294,9 +3294,24 @@ static void sculpt_topology_update(const Depsgraph &depsgraph,
     BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, node, false);
   }
 
+  float max_edge_len;
+  if (sd.flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
+    max_edge_len = dyntopo::detail_size::constant_to_detail_size(sd.constant_detail, ob);
+  }
+  else if (sd.flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+    max_edge_len = dyntopo::detail_size::brush_to_detail_size(sd.detail_percent, ss.cache->radius);
+  }
+  else {
+    max_edge_len = dyntopo::detail_size::relative_to_detail_size(
+        sd.detail_size, ss.cache->radius, ss.cache->dyntopo_pixel_radius, U.pixelsize);
+  }
+  const float min_edge_len = max_edge_len * dyntopo::detail_size::EDGE_LENGTH_MIN_FACTOR;
+
   bke::pbvh::bmesh_update_topology(*ss.pbvh,
                                    *ss.bm_log,
                                    mode,
+                                   min_edge_len,
+                                   max_edge_len,
                                    ss.cache->location,
                                    ss.cache->view_normal,
                                    ss.cache->radius,
@@ -5500,21 +5515,6 @@ static void sculpt_stroke_update_step(bContext *C,
   sculpt_restore_mesh(depsgraph, sd, ob);
 
   if (dyntopo::stroke_is_dyntopo(ss, brush)) {
-    if (sd.flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-      BKE_pbvh_bmesh_detail_size_set(
-          *ss.pbvh, dyntopo::detail_size::constant_to_detail_size(sd.constant_detail, ob));
-    }
-    else if (sd.flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
-      BKE_pbvh_bmesh_detail_size_set(
-          *ss.pbvh,
-          dyntopo::detail_size::brush_to_detail_size(sd.detail_percent, ss.cache->radius));
-    }
-    else {
-      BKE_pbvh_bmesh_detail_size_set(
-          *ss.pbvh,
-          dyntopo::detail_size::relative_to_detail_size(
-              sd.detail_size, ss.cache->radius, ss.cache->dyntopo_pixel_radius, U.pixelsize));
-    }
     do_symmetrical_brush_actions(
         depsgraph, scene, sd, ob, sculpt_topology_update, ups, tool_settings.paint_mode);
   }

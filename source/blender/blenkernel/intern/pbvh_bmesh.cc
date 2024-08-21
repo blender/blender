@@ -1012,6 +1012,7 @@ static void short_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f)
  * The highest priority (lowest number) is given to the longest edge.
  */
 static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
+                                   const float max_edge_len,
                                    Tree &pbvh,
                                    const float center[3],
                                    const float view_normal[3],
@@ -1022,9 +1023,9 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
   eq_ctx->q->heap = BLI_heapsimple_new();
   eq_ctx->q->center = center;
   eq_ctx->q->radius_squared = radius * radius;
-  eq_ctx->q->limit_len_squared = pbvh.bm_max_edge_len_ * pbvh.bm_max_edge_len_;
+  eq_ctx->q->limit_len_squared = max_edge_len * max_edge_len;
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-  eq_ctx->q->limit_len = pbvh.bm_max_edge_len_;
+  eq_ctx->q->limit_len = max_edge_len;
 #endif
 
   eq_ctx->q->view_normal = view_normal;
@@ -1070,6 +1071,7 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
  * The highest priority (lowest number) is given to the shortest edge.
  */
 static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
+                                    const float min_edge_len,
                                     Tree &pbvh,
                                     const float center[3],
                                     const float view_normal[3],
@@ -1080,9 +1082,9 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
   eq_ctx->q->heap = BLI_heapsimple_new();
   eq_ctx->q->center = center;
   eq_ctx->q->radius_squared = radius * radius;
-  eq_ctx->q->limit_len_squared = pbvh.bm_min_edge_len_ * pbvh.bm_min_edge_len_;
+  eq_ctx->q->limit_len_squared = min_edge_len * min_edge_len;
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-  eq_ctx->q->limit_len = pbvh.bm_min_edge_len_;
+  eq_ctx->q->limit_len = min_edge_len;
 #endif
 
   eq_ctx->q->view_normal = view_normal;
@@ -1748,6 +1750,7 @@ static void pbvh_bmesh_collapse_edge(Tree &pbvh,
 }
 
 static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
+                                            const float min_edge_len,
                                             Tree &pbvh,
                                             const int cd_vert_node_offset,
                                             const int cd_face_node_offset,
@@ -1755,7 +1758,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 {
   const double start_time = BLI_time_now_seconds();
 
-  const float min_len_squared = pbvh.bm_min_edge_len_ * pbvh.bm_min_edge_len_;
+  const float min_len_squared = min_edge_len * min_edge_len;
   bool any_collapsed = false;
   /* Deleted verts point to vertices they were merged into, or nullptr when removed. */
   GHash *deleted_verts = BLI_ghash_ptr_new("deleted_verts");
@@ -2176,7 +2179,6 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
 
   pbvh->bm_ = bm;
 
-  BKE_pbvh_bmesh_detail_size_set(*pbvh, 0.75);
   const int cd_vert_node_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
   const int cd_face_node_offset = CustomData_get_offset_named(
@@ -2255,6 +2257,8 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
 bool bmesh_update_topology(Tree &pbvh,
                            BMLog &bm_log,
                            PBVHTopologyUpdateMode mode,
+                           const float min_edge_len,
+                           const float max_edge_len,
                            const float center[3],
                            const float view_normal[3],
                            float radius,
@@ -2287,9 +2291,9 @@ bool bmesh_update_topology(Tree &pbvh,
     };
 
     short_edge_queue_create(
-        &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
+        &eq_ctx, min_edge_len, pbvh, center, view_normal, radius, use_frontface, use_projected);
     modified |= pbvh_bmesh_collapse_short_edges(
-        &eq_ctx, pbvh, cd_vert_node_offset, cd_face_node_offset, bm_log);
+        &eq_ctx, min_edge_len, pbvh, cd_vert_node_offset, cd_face_node_offset, bm_log);
     BLI_heapsimple_free(q.heap, nullptr);
     BLI_mempool_destroy(queue_pool);
   }
@@ -2307,7 +2311,7 @@ bool bmesh_update_topology(Tree &pbvh,
     };
 
     long_edge_queue_create(
-        &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
+        &eq_ctx, max_edge_len, pbvh, center, view_normal, radius, use_frontface, use_projected);
     modified |= pbvh_bmesh_subdivide_long_edges(
         &eq_ctx, pbvh, cd_vert_node_offset, cd_face_node_offset, bm_log);
     BLI_heapsimple_free(q.heap, nullptr);
@@ -2429,12 +2433,6 @@ void BKE_pbvh_bmesh_after_stroke(blender::bke::pbvh::Tree &pbvh)
       pbvh_bmesh_node_limit_ensure(pbvh, cd_vert_node_offset, cd_face_node_offset, i);
     }
   }
-}
-
-void BKE_pbvh_bmesh_detail_size_set(blender::bke::pbvh::Tree &pbvh, float detail_size)
-{
-  pbvh.bm_max_edge_len_ = detail_size;
-  pbvh.bm_min_edge_len_ = pbvh.bm_max_edge_len_ * 0.4f;
 }
 
 void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node)

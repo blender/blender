@@ -200,10 +200,6 @@ class Tree {
   /* flag are verts/faces deformed */
   bool deformed_ = false;
 
-  /* Dynamic topology */
-  float bm_max_edge_len_;
-  float bm_min_edge_len_;
-
   float planes_[6][4];
   int num_planes_;
 
@@ -380,11 +376,6 @@ int count_grid_quads(const BitGroupVector<> &grid_visibility,
 int BKE_pbvh_get_grid_num_verts(const blender::bke::pbvh::Tree &pbvh);
 int BKE_pbvh_get_grid_num_faces(const blender::bke::pbvh::Tree &pbvh);
 
-/**
- * Only valid for type == #blender::bke::pbvh::Type::BMesh.
- */
-void BKE_pbvh_bmesh_detail_size_set(blender::bke::pbvh::Tree &pbvh, float detail_size);
-
 enum PBVHTopologyUpdateMode {
   PBVH_Subdivide = 1,
   PBVH_Collapse = 2,
@@ -399,6 +390,8 @@ namespace blender::bke::pbvh {
 bool bmesh_update_topology(Tree &pbvh,
                            BMLog &bm_log,
                            PBVHTopologyUpdateMode mode,
+                           float min_edge_len,
+                           float max_edge_len,
                            const float center[3],
                            const float view_normal[3],
                            float radius,
