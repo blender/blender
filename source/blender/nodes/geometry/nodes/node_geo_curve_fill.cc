@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Int>("Group ID")
-      .supports_field()
+      .field_on_all()
       .hide_value()
       .description(
           "An index used to group curves together. Filling is done separately for each group");
