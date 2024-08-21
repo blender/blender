@@ -66,6 +66,9 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_n
                                                       ID *value,
                                                       const eIDPropertyFlag flags)
 {
+  /* Do not assign embedded IDs to IDProperties. */
+  BLI_assert(!value || (value->flag & ID_FLAG_EMBEDDED_DATA) == 0);
+
   IDPropertyTemplate prop_template{0};
   prop_template.id = value;
   IDProperty *property = IDP_New(IDP_ID, &prop_template, prop_name.c_str(), flags);

@@ -536,6 +536,8 @@ static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
 void IDP_AssignID(IDProperty *prop, ID *id, const int flag)
 {
   BLI_assert(prop->type == IDP_ID);
+  /* Do not assign embedded IDs to IDProperties. */
+  BLI_assert(!id || (id->flag & ID_FLAG_EMBEDDED_DATA) == 0);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && IDP_Id(prop) != nullptr) {
     id_us_min(IDP_Id(prop));
