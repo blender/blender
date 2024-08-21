@@ -314,6 +314,12 @@ enum {
   G_TRANSFORM_EDIT = (1 << 1),
   G_TRANSFORM_SEQ = (1 << 2),
   G_TRANSFORM_FCURVES = (1 << 3),
+  /**
+   * Set while interactively transforming screen data (e.g. resizing areas & regions).
+   *
+   * \note Ideally this flag would also be used for resizing the window however that's handled
+   * outside by the windowing environment, so this is only used for internal windowing operations.
+   */
   G_TRANSFORM_WM = (1 << 4),
   /**
    * Set when transforming the cursor itself.

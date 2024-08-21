@@ -136,8 +136,10 @@ void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,
  * Used when undoing since the active mode may have changed.
  */
 void WM_toolsystem_refresh_active(bContext *C);
-
-void WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
+/**
+ * \return true if the tool changed.
+ */
+bool WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
                                        const Scene *scene,
                                        ViewLayer *view_layer,
                                        ScrArea *area);

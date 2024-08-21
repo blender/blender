@@ -512,11 +512,14 @@ void WM_toolsystem_refresh_active(bContext *C)
   }
 }
 
-void WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
+bool WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
                                        const Scene *scene,
                                        ViewLayer *view_layer,
                                        ScrArea *area)
 {
+  const bool is_tool_set_prev = area->runtime.is_tool_set;
+  const bToolRef *tref_prev = area->runtime.tool;
+
   area->runtime.tool = nullptr;
   area->runtime.is_tool_set = true;
   const int mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, area, area->spacetype);
@@ -528,6 +531,7 @@ void WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
       }
     }
   }
+  return !(is_tool_set_prev && (tref_prev == area->runtime.tool));
 }
 
 void WM_toolsystem_refresh_screen_window(wmWindow *win)
