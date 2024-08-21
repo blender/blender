@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -25,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_function_ref.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -42,8 +44,6 @@
 #endif
 
 /* vertex box select */
-#include "BKE_global.hh"
-#include "BKE_main.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -53,9 +53,12 @@
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curve.hh"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
+#include "BKE_main.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -1185,51 +1188,40 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
   using namespace blender;
   const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
                                                    const_cast<Object *>(vc->obedit));
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
-
-  /* Get selection domain from tool settings. */
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings);
 
-  bool changed = false;
-  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
-      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
-  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
-    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
-    bke::crazyspace::GeometryDeformation deformation =
-        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+  return ed::greasepencil::selection_update(
+      vc,
+      sel_op,
+      [&](const ed::greasepencil::MutableDrawingInfo &info,
+          const IndexMask &mask,
+          const StringRef attribute_name,
+          IndexMaskMemory &memory) {
+        bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+        const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+        const bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+        const IndexMask visible_handle_elements =
+            ed::greasepencil::retrieve_visible_bezier_handle_elements(
+                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+        const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+        const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
+                                                                            layer_to_world);
 
-    IndexMaskMemory memory;
-    const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-        *vc->obedit, info, selection_domain, memory);
-    if (elements.is_empty()) {
-      continue;
-    }
-    const IndexMask visible_handle_elements =
-        ed::greasepencil::retrieve_visible_bezier_handle_elements(
-            *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
-    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
-    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
-    changed = ed::curves::select_lasso(*vc,
-                                       info.drawing.strokes_for_write(),
-                                       deformation,
-                                       projection,
-                                       elements,
-                                       visible_handle_elements,
-                                       selection_domain,
-                                       mcoords,
-                                       sel_op);
-  }
-
-  if (changed) {
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-     * generic attribute for now. */
-    DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, vc->obedit->data);
-  }
-
-  return changed;
+        return ed::curves::select_lasso_mask(*vc,
+                                             curves,
+                                             deformation,
+                                             projection,
+                                             mask,
+                                             visible_handle_elements,
+                                             selection_domain,
+                                             attribute_name,
+                                             mcoords,
+                                             memory);
+      });
 }
 
 struct LassoSelectUserData_ForMeshVert {
@@ -3215,6 +3207,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
 
 struct ClosestGreasePencilDrawing {
   blender::StringRef selection_attribute_name;
+  int info_index = -1;
   blender::bke::greasepencil::Drawing *drawing = nullptr;
   blender::ed::curves::FindClosestData elem = {};
 };
@@ -3291,6 +3284,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
             if (new_closest_elem) {
               new_closest.selection_attribute_name = selection_attribute_name;
               new_closest.elem = *new_closest_elem;
+              new_closest.info_index = i;
               new_closest.drawing = &info.drawing;
             }
           };
@@ -3323,6 +3317,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
         if (!ed::curves::has_anything_selected(curves, selection_domain, elements)) {
           continue;
         }
+
         ed::curves::foreach_selection_attribute_writer(
             curves, selection_domain, [](bke::GSpanAttributeWriter &selection) {
               ed::curves::fill_selection_false(selection.span);
@@ -3343,25 +3338,22 @@ static bool ed_grease_pencil_select_pick(bContext *C,
     return deselected;
   }
 
-  if (selection_domain == bke::AttrDomain::Point) {
-    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        closest.drawing->strokes_for_write(),
-        bke::AttrDomain::Point,
-        CD_PROP_BOOL,
-        closest.selection_attribute_name);
-    ed::curves::apply_selection_operation_at_index(
-        selection.span, closest.elem.index, params.sel_op);
-    selection.finish();
-  }
-  else if (selection_domain == bke::AttrDomain::Curve) {
-    ed::curves::foreach_selection_attribute_writer(
-        closest.drawing->strokes_for_write(),
-        bke::AttrDomain::Curve,
-        [&](bke::GSpanAttributeWriter &selection) {
-          ed::curves::apply_selection_operation_at_index(
-              selection.span, closest.elem.index, params.sel_op);
-        });
-  }
+  const IndexMask selection_mask = IndexRange::from_single(closest.elem.index);
+
+  ed::greasepencil::selection_update(&vc,
+                                     params.sel_op,
+                                     [&](const ed::greasepencil::MutableDrawingInfo &info,
+                                         const IndexMask & /*universe*/,
+                                         StringRef attribute_name,
+                                         IndexMaskMemory & /*memory*/) -> IndexMask {
+                                       /* Selection update mask is already known, but only applies
+                                        * to a specific drawing. */
+                                       if (&info.drawing == closest.drawing &&
+                                           attribute_name == closest.selection_attribute_name) {
+                                         return selection_mask;
+                                       }
+                                       return {};
+                                     });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
    * generic attribute for now. */
@@ -4290,51 +4282,42 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
                                         const eSelectOp sel_op)
 {
   using namespace blender;
-  Scene *scene = vc->scene;
   const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
                                                    const_cast<Object *>(vc->obedit));
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
-
-  /* Get selection domain from tool settings. */
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
-      scene->toolsettings);
+      vc->scene->toolsettings);
 
-  bool changed = false;
-  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
-      ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
-  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
-    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
-    bke::crazyspace::GeometryDeformation deformation =
-        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
-    IndexMaskMemory memory;
-    const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-        *vc->obedit, info, selection_domain, memory);
-    if (elements.is_empty()) {
-      continue;
-    }
-    const IndexMask visible_handle_elements =
-        ed::greasepencil::retrieve_visible_bezier_handle_elements(
-            *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
-    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
-    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
-    changed |= ed::curves::select_box(*vc,
-                                      info.drawing.strokes_for_write(),
-                                      deformation,
-                                      projection,
-                                      elements,
-                                      visible_handle_elements,
-                                      selection_domain,
-                                      *rect,
-                                      sel_op);
-  }
+  return ed::greasepencil::selection_update(
+      vc,
+      sel_op,
+      [&](const ed::greasepencil::MutableDrawingInfo &info,
+          const IndexMask &mask,
+          const StringRef attribute_name,
+          IndexMaskMemory &memory) {
+        bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+        const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+        const bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+        const IndexMask visible_handle_elements =
+            ed::greasepencil::retrieve_visible_bezier_handle_elements(
+                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+        const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+        const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
+                                                                            layer_to_world);
 
-  if (changed) {
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, &grease_pencil);
-  }
-
-  return changed;
+        return ed::curves::select_box_mask(*vc,
+                                           curves,
+                                           deformation,
+                                           projection,
+                                           mask,
+                                           visible_handle_elements,
+                                           selection_domain,
+                                           attribute_name,
+                                           *rect,
+                                           memory);
+      });
 }
 
 static int view3d_box_select_exec(bContext *C, wmOperator *op)
@@ -5165,51 +5148,41 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
   using namespace blender;
   const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
                                                    const_cast<Object *>(vc->obedit));
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
-
-  /* Get selection domain from tool settings. */
+  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       vc->scene->toolsettings);
 
-  bool changed = false;
-  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
-      ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
-  for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
-    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
-    bke::crazyspace::GeometryDeformation deformation =
-        bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-            ob_eval, *vc->obedit, info.layer_index, info.frame_number);
-    IndexMaskMemory memory;
-    const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
-        *vc->obedit, info, selection_domain, memory);
-    if (elements.is_empty()) {
-      continue;
-    }
-    const IndexMask visible_handle_elements =
-        ed::greasepencil::retrieve_visible_bezier_handle_elements(
-            *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
-    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
-    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
-    changed = ed::curves::select_circle(*vc,
-                                        info.drawing.strokes_for_write(),
-                                        deformation,
-                                        projection,
-                                        elements,
-                                        visible_handle_elements,
-                                        selection_domain,
-                                        int2(mval),
-                                        rad,
-                                        sel_op);
-  }
+  return ed::greasepencil::selection_update(
+      vc,
+      sel_op,
+      [&](const ed::greasepencil::MutableDrawingInfo &info,
+          const IndexMask &mask,
+          const StringRef attribute_name,
+          IndexMaskMemory &memory) {
+        bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+        const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+        const bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                ob_eval, *vc->obedit, info.layer_index, info.frame_number);
+        const IndexMask visible_handle_elements =
+            ed::greasepencil::retrieve_visible_bezier_handle_elements(
+                *vc->obedit, info.drawing, info.layer_index, selection_domain, memory);
+        const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+        const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
+                                                                            layer_to_world);
 
-  if (changed) {
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-     * generic attribute for now. */
-    DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, vc->obedit->data);
-  }
-
-  return changed;
+        return ed::curves::select_circle_mask(*vc,
+                                              curves,
+                                              deformation,
+                                              projection,
+                                              mask,
+                                              visible_handle_elements,
+                                              selection_domain,
+                                              attribute_name,
+                                              int2(mval),
+                                              rad,
+                                              memory);
+      });
 }
 
 /**

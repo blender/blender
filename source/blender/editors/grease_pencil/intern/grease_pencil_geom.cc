@@ -11,6 +11,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
@@ -25,6 +26,7 @@
 
 #include "DNA_curves_types.h"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
@@ -1315,5 +1317,297 @@ bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
 }
 
 }  // namespace cutter
+
+Curves2DBVHTree build_curves_2d_bvh_from_visible(const ViewContext &vc,
+                                                 const Object &object,
+                                                 const GreasePencil &grease_pencil,
+                                                 Span<MutableDrawingInfo> drawings,
+                                                 const int frame_number)
+{
+  Curves2DBVHTree data;
+
+  /* Upper bound for line count. Arrays are sized for easy index mapping, exact count isn't
+   * necessary. Not all points are added to the BVH tree. */
+  int max_bvh_lines = 0;
+  for (const int i_drawing : drawings.index_range()) {
+    if (drawings[i_drawing].frame_number == frame_number) {
+      max_bvh_lines += drawings[i_drawing].drawing.strokes().evaluated_points_num();
+    }
+  }
+
+  data.tree = BLI_bvhtree_new(max_bvh_lines, 0.0f, 4, 6);
+  data.start_positions.reinitialize(max_bvh_lines);
+  data.end_positions.reinitialize(max_bvh_lines);
+  /* Compute offsets array in advance. */
+  data.drawing_offsets.reinitialize(drawings.size() + 1);
+  for (const int i_drawing : drawings.index_range()) {
+    const MutableDrawingInfo &info = drawings[i_drawing];
+    data.drawing_offsets[i_drawing] = (drawings[i_drawing].frame_number == frame_number ?
+                                           info.drawing.strokes().evaluated_points_num() :
+                                           0);
+  }
+  OffsetIndices bvh_elements_by_drawing = offset_indices::accumulate_counts_to_offsets(
+      data.drawing_offsets);
+
+  /* Insert a line for each point except end points. */
+  for (const int i_drawing : drawings.index_range()) {
+    const MutableDrawingInfo &info = drawings[i_drawing];
+    if (drawings[i_drawing].frame_number != frame_number) {
+      continue;
+    }
+
+    const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+    const float4x4 layer_to_world = layer.to_world_space(object);
+    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d, layer_to_world);
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
+    const VArray<bool> cyclic = curves.cyclic();
+    const Span<float3> evaluated_positions = curves.evaluated_positions();
+    const IndexMask curves_mask = curves.curves_range();
+
+    /* Range of indices in the BVH tree for this drawing. */
+    const IndexRange bvh_index_range = bvh_elements_by_drawing[i_drawing];
+    const MutableSpan<float2> start_positions = data.start_positions.as_mutable_span().slice(
+        bvh_index_range);
+    const MutableSpan<float2> end_positions = data.end_positions.as_mutable_span().slice(
+        bvh_index_range);
+
+    curves_mask.foreach_index([&](const int i_curve) {
+      const bool is_cyclic = cyclic[i_curve];
+      const IndexRange evaluated_points = evaluated_points_by_curve[i_curve];
+
+      /* Compute screen space positions. */
+      for (const int i_point : evaluated_points) {
+        const float2 co = ED_view3d_project_float_v2_m4(
+            vc.region, evaluated_positions[i_point], projection);
+        start_positions[i_point] = co;
+
+        /* Last point is only valid for cyclic curves, gets ignored for non-cyclic curves. */
+        const int i_prev_point = (i_point > 0 ? i_point - 1 : evaluated_points.last());
+        end_positions[i_prev_point] = co;
+      }
+
+      for (const int i_point : evaluated_points.drop_back(1)) {
+        const float2 &start = start_positions[i_point];
+        const float2 &end = end_positions[i_point];
+
+        const float bb[6] = {start.x, start.y, 0.0f, end.x, end.y, 0.0f};
+        BLI_bvhtree_insert(data.tree, bvh_index_range[i_point], bb, 2);
+      }
+      /* Last->first point segment only used for cyclic curves. */
+      if (is_cyclic) {
+        const float2 &start = start_positions.last();
+        const float2 &end = end_positions.first();
+
+        const float bb[6] = {start.x, start.y, 0.0f, end.x, end.y, 0.0f};
+        BLI_bvhtree_insert(data.tree, bvh_index_range[evaluated_points.last()], bb, 2);
+      }
+    });
+  }
+
+  BLI_bvhtree_balance(data.tree);
+
+  return data;
+}
+
+void free_curves_2d_bvh_data(Curves2DBVHTree &data)
+{
+  if (data.tree) {
+    BLI_bvhtree_free(data.tree);
+    data.tree = nullptr;
+  }
+  data.drawing_offsets.reinitialize(0);
+  data.start_positions.reinitialize(0);
+  data.end_positions.reinitialize(0);
+}
+
+void find_curve_intersections(const bke::CurvesGeometry &curves,
+                              const IndexMask &curve_mask,
+                              const Span<float2> screen_space_positions,
+                              const Curves2DBVHTree &tree_data,
+                              const IndexRange tree_data_range,
+                              MutableSpan<bool> r_hits,
+                              std::optional<MutableSpan<float>> r_first_intersect_factors,
+                              std::optional<MutableSpan<float>> r_last_intersect_factors)
+{
+  /* Insert segments for cutting extensions on stroke intersection. */
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+
+  struct RaycastArgs {
+    const Curves2DBVHTree &tree_data;
+    /* Indices that need to be ignored to avoid intersecting a line with itself or its immediate
+     * neighbors. */
+    int ignore_index1;
+    int ignore_index2;
+    int ignore_index3;
+  };
+  BVHTree_RayCastCallback callback =
+      [](void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit) {
+        using Result = math::isect_result<float2>;
+
+        const RaycastArgs &args = *static_cast<const RaycastArgs *>(userdata);
+        if (ELEM(index, args.ignore_index1, args.ignore_index2, args.ignore_index3)) {
+          return;
+        }
+
+        const float2 ray_start = float2(ray->origin);
+        const float2 ray_end = ray_start + float2(ray->direction) * ray->radius;
+        const float2 &line_start = args.tree_data.start_positions[index];
+        const float2 &line_end = args.tree_data.end_positions[index];
+        Result result = math::isect_seg_seg(ray_start, ray_end, line_start, line_end);
+        if (result.kind <= 0) {
+          return;
+        }
+        const float dist = result.lambda * math::distance(ray_start, ray_end);
+        if (dist >= hit->dist) {
+          return;
+        }
+        /* These always need to be calculated for the BVH traversal function. */
+        hit->index = index;
+        hit->dist = result.lambda * math::distance(ray_start, ray_end);
+        /* Don't need the hit point, only the lambda. */
+        hit->no[0] = result.lambda;
+      };
+
+  /* Raycast in the forward direction. Ignores intersections with neighboring lines. */
+  auto do_raycast = [&](const int index_back,
+                        const int index,
+                        const int index_forward,
+                        float &r_lambda) -> bool {
+    if (index_forward < 0) {
+      return false;
+    }
+
+    const float2 start = screen_space_positions[index];
+    const float2 end = screen_space_positions[index_forward];
+    float length;
+    const float2 dir = math::normalize_and_get_length(end - start, length);
+
+    RaycastArgs args = {tree_data,
+                        index_back >= 0 ? int(tree_data_range[index_back]) : -1,
+                        int(tree_data_range[index]),
+                        index_forward >= 0 ? int(tree_data_range[index_forward]) : -1};
+    BVHTreeRayHit hit;
+    hit.index = -1;
+    hit.dist = FLT_MAX;
+    BLI_bvhtree_ray_cast(
+        tree_data.tree, float3(start, 0.0f), float3(dir, 0.0f), length, &hit, callback, &args);
+
+    if (hit.index >= 0) {
+      r_lambda = hit.no[0];
+      return true;
+    }
+    return false;
+  };
+
+  r_hits.fill(false);
+  if (r_first_intersect_factors) {
+    r_first_intersect_factors->fill(-1.0f);
+  }
+  if (r_last_intersect_factors) {
+    r_last_intersect_factors->fill(-1.0f);
+  }
+
+  curve_mask.foreach_index(GrainSize(1024), [&](const int i_curve) {
+    const bool is_cyclic = cyclic[i_curve];
+    const IndexRange points = points_by_curve[i_curve];
+
+    for (const int i_point : points) {
+      const int i_prev_point = (i_point == points.first() ? (is_cyclic ? points.last() : -1) :
+                                                            i_point - 1);
+      const int i_next_point = (i_point == points.last() ? (is_cyclic ? points.first() : -1) :
+                                                           i_point + 1);
+      float lambda;
+      /* Find first intersections by raycast from each point to the next. */
+      if (do_raycast(i_prev_point, i_point, i_next_point, lambda)) {
+        r_hits[i_point] = true;
+        if (r_first_intersect_factors) {
+          (*r_first_intersect_factors)[i_point] = lambda;
+        }
+      }
+      /* Find last intersections by raycast from each point to the previous. */
+      if (do_raycast(i_next_point, i_point, i_prev_point, lambda)) {
+        /* Note: factor = (1 - lambda) because of reverse raycast. */
+        if (r_last_intersect_factors) {
+          (*r_last_intersect_factors)[i_point] = 1.0f - lambda;
+        }
+      }
+    }
+  });
+}
+
+CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
+                                      const IndexMask &curve_mask,
+                                      const Span<float2> screen_space_positions,
+                                      const Curves2DBVHTree &tree_data,
+                                      const IndexRange tree_data_range)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+
+  Array<bool> hits(curves.points_num());
+  Array<float> first_hit_factors(curves.points_num());
+  Array<float> last_hit_factors(curves.points_num());
+  find_curve_intersections(curves,
+                           curve_mask,
+                           screen_space_positions,
+                           tree_data,
+                           tree_data_range,
+                           hits,
+                           first_hit_factors,
+                           last_hit_factors);
+
+  IndexMaskMemory memory;
+  const IndexMask hit_mask = IndexMask::from_bools(hits, memory);
+
+  /* Count number of segments in each curve.
+   * This is needed to write to the correct segments range for each curve. */
+  CurveSegmentsData result;
+  result.segment_offsets.reinitialize(curves.curves_num() + 1);
+  /* Only segments with hits are written to, initialize all to zero. */
+  result.segment_offsets.fill(0);
+  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    const IndexMask curve_hit_mask = hit_mask.slice_content(points);
+    const bool is_cyclic = cyclic[curve_i];
+
+    /* Each hit splits a segment in two. Non-cyclic curves add the curve start point as a segment
+     * start point. */
+    result.segment_offsets[curve_i] = (is_cyclic ? 0 : 1) + curve_hit_mask.size();
+  });
+  const OffsetIndices segments_by_curve = offset_indices::accumulate_counts_to_offsets(
+      result.segment_offsets);
+
+  const int num_segments = segments_by_curve.total_size();
+  result.segment_start_points.reinitialize(num_segments);
+  result.segment_start_fractions.reinitialize(num_segments);
+
+  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    const IndexMask curve_hit_mask = hit_mask.slice_content(points);
+    const bool is_cyclic = cyclic[curve_i];
+    const IndexRange segments = segments_by_curve[curve_i];
+    const int hit_segments_start = (is_cyclic ? 0 : 1);
+
+    if (segments.is_empty()) {
+      return;
+    }
+
+    /* Add curve start a segment. */
+    if (!is_cyclic) {
+      result.segment_start_points[segments[0]] = points.first();
+      result.segment_start_fractions[segments[0]] = 0.0f;
+    }
+
+    curve_hit_mask.foreach_index([&](const int point_i, const int hit_i) {
+      result.segment_start_points[segments[hit_segments_start + hit_i]] = point_i;
+      result.segment_start_fractions[segments[hit_segments_start + hit_i]] =
+          first_hit_factors[point_i];
+    });
+  });
+
+  return result;
+}
 
 }  // namespace blender::ed::greasepencil

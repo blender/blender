@@ -17,6 +17,7 @@
 #include "BLI_set.hh"
 
 #include "ED_keyframes_edit.hh"
+#include "ED_select_utils.hh"
 
 #include "WM_api.hh"
 
@@ -33,11 +34,15 @@ struct UndoType;
 struct ViewDepths;
 struct View3D;
 struct ViewContext;
+struct BVHTree;
 struct GreasePencilLineartModifierData;
 namespace blender {
 namespace bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
+namespace crazyspace {
+struct GeometryDeformation;
+}
 }  // namespace bke
 }  // namespace blender
 
@@ -76,6 +81,10 @@ void ED_undosys_type_grease_pencil(UndoType *undo_type);
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
 blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings);
+/**
+ * True if segment selection is enabled.
+ */
+bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_settings);
 
 /** \} */
 
@@ -678,6 +687,128 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
                                           float outline_radius,
                                           float outline_offset,
                                           int material_index);
+
+/* Function that generates an update mask for a selection operation. */
+using SelectionUpdateFunc = FunctionRef<IndexMask(const ed::greasepencil::MutableDrawingInfo &info,
+                                                  const IndexMask &universe,
+                                                  StringRef attribute_name,
+                                                  IndexMaskMemory &memory)>;
+
+bool selection_update(const ViewContext *vc,
+                      const eSelectOp sel_op,
+                      SelectionUpdateFunc select_operation);
+
+/* BVHTree and associated data for 2D curve projection. */
+struct Curves2DBVHTree {
+  BVHTree *tree = nullptr;
+  /* Projected coordinates for each tree element. */
+  Array<float2> start_positions;
+  Array<float2> end_positions;
+  /* BVH element index range for each drawing. */
+  Array<int> drawing_offsets;
+};
+
+/**
+ * Construct a 2D BVH tree from the screen space line segments of visible curves.
+ */
+Curves2DBVHTree build_curves_2d_bvh_from_visible(const ViewContext &vc,
+                                                 const Object &object,
+                                                 const GreasePencil &grease_pencil,
+                                                 Span<MutableDrawingInfo> drawings,
+                                                 int frame_number);
+void free_curves_2d_bvh_data(Curves2DBVHTree &data);
+
+/**
+ * Find intersections between curves and accurate cut positions.
+ *
+ * Note: Index masks for target and intersecting curves can have any amount of overlap,
+ * including equal or fully separate masks. A curve can be self-intersecting by being in both
+ * masks.
+ *
+ * \param curves: Curves geometry for both target and cutter curves.
+ * \param screen_space_positions: Screen space positions computed in advance.
+ * \param target_curves: Set of curves that will be intersected.
+ * \param intersecting_curves: Set of curves that create cuts on target curves.
+ * \param r_hits: True for points with at least one intersection.
+ * \param r_first_intersect_factors: Smallest cut factor in the interval (optional).
+ * \param r_last_intersect_factors: Largest cut factor in the interval (optional).
+ */
+void find_curve_intersections(const bke::CurvesGeometry &curves,
+                              const IndexMask &curve_mask,
+                              const Span<float2> screen_space_positions,
+                              const Curves2DBVHTree &tree_data,
+                              IndexRange tree_data_range,
+                              MutableSpan<bool> r_hits,
+                              std::optional<MutableSpan<float>> r_first_intersect_factors,
+                              std::optional<MutableSpan<float>> r_last_intersect_factors);
+
+/**
+ * Segmentation of curves into fractional ranges.
+ *
+ * Segments are defined by a point index and a fraction of the following line segment. The actual
+ * start point is found by interpolating between the start point and the next point on the curve. A
+ * curve can have no segments at all, in which case the full curve is cyclic and has a single
+ * segment. Segments can start and end on the same point, making them shorter than a line segment.
+ * A curve is fully partitioned into segments, each segment ends at the start of the next segment
+ * with no gaps. The last segment is wrapped around to connect to the first segment.
+ *
+ * curves:   0---------------1-----------------------2-------
+ * points:   0       1       2       3       4       5
+ * segments: ┌>0────>1──────┐┌──>2────────────>3──>4┐┌─────>┐
+ *           └──────────────┘└──────────────────────┘└──────┘
+ *
+ * segment_offsets = [0, 2, 5]
+ * segment_start_points = [0, 1, 2, 4, 4]
+ * segment_start_fractions = [.25, .0, .5, .25, .75]
+ */
+struct CurveSegmentsData {
+  /* Segment start index for each curve, can be used as \a OffsetIndices. */
+  Array<int> segment_offsets;
+  /* Point indices where new segments start. */
+  Array<int> segment_start_points;
+  /* Fraction of the start point on the line segment to the next point. */
+  Array<float> segment_start_fractions;
+};
+
+/**
+ * Find segments between intersections.
+ *
+ * Note: Index masks for target and intersecting curves can have any amount of overlap,
+ * including equal or fully separate masks. A curve can be self-intersecting by being in both
+ * masks.
+ *
+ * \param curves: Curves geometry for both target and cutter curves.
+ * \param curve_mask: Set of curves that will be intersected.
+ * \param screen_space_positions: Screen space positions computed in advance.
+ * \param tree_data: Screen-space BVH tree of the intersecting curves.
+ * \param r_curve_starts: Start index for segments of each curve.
+ *        Shift the curve points index range to ensure contiguous segments with cyclic curves.
+ * \param r_segments_by_curve: Offsets for segments in each curve.
+ * \param r_points_by_segment: Offsets for point range of each segment. Index ranges can exceed
+ *        original curve range and must be wrapped around.
+ * \param r_start_factors: Factor (-1..0) previous segment to prepend.
+ * \param r_end_factors: Factor (0..1) of last segment to append.
+ */
+CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
+                                      const IndexMask &curve_mask,
+                                      const Span<float2> screen_space_positions,
+                                      const Curves2DBVHTree &tree_data,
+                                      IndexRange tree_data_range);
+
+bool apply_mask_as_selection(bke::CurvesGeometry &curves,
+                             const IndexMask &selection,
+                             bke::AttrDomain selection_domain,
+                             StringRef attribute_name,
+                             GrainSize grain_size,
+                             eSelectOp sel_op);
+
+bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
+                                     const IndexMask &point_selection,
+                                     StringRef attribute_name,
+                                     const Curves2DBVHTree &tree_data,
+                                     IndexRange tree_data_range,
+                                     GrainSize grain_size,
+                                     eSelectOp sel_op);
 
 namespace cutter {
 bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,

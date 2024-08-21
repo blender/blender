@@ -921,8 +921,12 @@ class VIEW3D_HT_header(Header):
                     icon='GP_SELECT_STROKES',
                     depress=(tool_settings.gpencil_selectmode_edit == 'STROKE'),
                 ).mode = 'STROKE'
-
-                # TODO: Segment selection
+                row.operator(
+                    "grease_pencil.set_selection_mode",
+                    text="",
+                    icon='GP_SELECT_BETWEEN_STROKES',
+                    depress=(tool_settings.gpencil_selectmode_edit == 'SEGMENT'),
+                ).mode = 'SEGMENT'
 
             if object_mode == 'PAINT_GPENCIL':
                 row = layout.row(align=True)

@@ -4727,6 +4727,8 @@ def km_grease_pencil_edit_mode(params):
         # Select mode
         ("grease_pencil.set_selection_mode", {"type": 'ONE', "value": 'PRESS'}, {"properties": [("mode", 'POINT')]}),
         ("grease_pencil.set_selection_mode", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("mode", 'STROKE')]}),
+        ("grease_pencil.set_selection_mode", {"type": 'THREE',
+         "value": 'PRESS'}, {"properties": [("mode", 'SEGMENT')]}),
 
         # Set Handle Type
         ("grease_pencil.set_handle_type", {"type": 'V', "value": 'PRESS'}, None),
