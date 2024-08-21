@@ -1047,6 +1047,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         else {
           Main *bmain = CTX_data_main(C);
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
+          WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
           DEG_relations_tag_update(bmain);
         }
         undo_push_label = "Make Single User";
