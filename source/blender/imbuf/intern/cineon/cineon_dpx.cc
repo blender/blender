@@ -125,7 +125,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
 
     for (y = 0; y < ibuf->y; y++) {
       float *dst_ptr = fbuf + 4 * ((ibuf->y - y - 1) * ibuf->x);
-      float *src_ptr = ibuf->float_buffer.data + 4 * (y * ibuf->x);
+      const float *src_ptr = ibuf->float_buffer.data + 4 * (y * ibuf->x);
 
       memcpy(dst_ptr, src_ptr, 4 * ibuf->x * sizeof(float));
     }

@@ -45,7 +45,7 @@ static void fillDpxMainHeader(LogImageFile *dpx,
                               const char *creator)
 {
   time_t fileClock;
-  tm *fileTime;
+  const tm *fileTime;
 
   memset(header, 0, sizeof(DpxMainHeader));
 

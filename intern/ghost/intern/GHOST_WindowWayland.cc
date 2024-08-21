@@ -316,7 +316,7 @@ static void gwl_window_cursor_custom_store(GWL_WindowCursorCustomShape &ccs,
   ccs.can_invert_color = can_invert_color;
 }
 
-static GHOST_TSuccess gwl_window_cursor_custom_load(GWL_WindowCursorCustomShape &ccs,
+static GHOST_TSuccess gwl_window_cursor_custom_load(const GWL_WindowCursorCustomShape &ccs,
                                                     GHOST_SystemWayland *system)
 {
   return system->cursor_shape_custom_set(ccs.bitmap,
@@ -2892,7 +2892,7 @@ bool GHOST_WindowWayland::outputs_leave(GWL_Output *output)
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 
-void GHOST_WindowWayland::pending_actions_handle()
+const void GHOST_WindowWayland::pending_actions_handle()
 {
   /* Caller must lock `server_mutex`, while individual actions could lock,
    * it's simpler to lock once when handling all window actions. */

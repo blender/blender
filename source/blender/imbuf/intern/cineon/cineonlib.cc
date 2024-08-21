@@ -41,7 +41,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
                                  const char *creator)
 {
   time_t fileClock;
-  tm *fileTime;
+  const tm *fileTime;
   int i;
 
   memset(header, 0, sizeof(CineonMainHeader));
