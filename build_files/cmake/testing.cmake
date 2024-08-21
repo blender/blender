@@ -69,7 +69,7 @@ macro(blender_src_gtest_ex)
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
     )
     unset(_current_include_directories)
-    if(WIN32)
+    if(WIN32 AND NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
       set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
     else()
       set(MANIFEST "")
@@ -124,6 +124,14 @@ macro(blender_src_gtest_ex)
                           RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}")
     if(WIN32)
       set_target_properties(${TARGET_NAME} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+
+      if(WITH_WINDOWS_EXTERNAL_MANIFEST)
+        install(
+          FILES ${CMAKE_BINARY_DIR}/tests.exe.manifest
+          DESTINATION ${TESTS_OUTPUT_DIR}
+          RENAME ${TARGET_NAME}.exe.manifest
+        )
+      endif()
     endif()
     unset(MANIFEST)
     unset(TEST_INC)
