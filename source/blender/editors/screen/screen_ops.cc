@@ -3706,6 +3706,8 @@ static int area_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ED_area_tag_redraw(jd->sa1);
+
   area_join_apply(C, op);
   area_join_exit(C, op);
   WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
