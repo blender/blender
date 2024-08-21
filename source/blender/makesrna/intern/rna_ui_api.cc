@@ -2010,8 +2010,9 @@ void RNA_api_ui_layout(StructRNA *srna)
       nullptr,
       0,
       "",
-      "Identifier of this list widget (mandatory when using default \"" UI_UL_DEFAULT_CLASS_NAME
-      "\" class). "
+      "Identifier of this list widget. Necessary to tell apart different list widgets. Mandatory "
+      "when using default \"" UI_UL_DEFAULT_CLASS_NAME
+      "\" class. "
       "If this not an empty string, the uilist gets a custom ID, otherwise it takes the "
       "name of the class used to define the uilist (for example, if the "
       "class name is \"OBJECT_UL_vgroups\", and list_id is not set by the "
