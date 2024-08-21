@@ -1044,7 +1044,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
 
     uchar rgb_hex_uchar[4];
     rgba_float_to_uchar(rgb_hex_uchar, color);
-    const std::string hex_st = fmt::format("Hex: {:X}{:X}{:X}{:X}",
+    const std::string hex_st = fmt::format("Hex: {:02X}{:02X}{:02X}{:02X}",
                                            int(rgb_hex_uchar[0]),
                                            int(rgb_hex_uchar[1]),
                                            int(rgb_hex_uchar[2]),
