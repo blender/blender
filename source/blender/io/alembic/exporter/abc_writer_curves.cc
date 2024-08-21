@@ -132,18 +132,18 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
 
   const bool is_cyclic = curves.cyclic().first();
   Alembic::AbcGeom::BasisType curve_basis = Alembic::AbcGeom::kNoBasis;
-  Alembic::AbcGeom::CurveType curve_type = Alembic::AbcGeom::kVariableOrder;
+  Alembic::AbcGeom::CurveType curve_type = Alembic::AbcGeom::kLinear;
   Alembic::AbcGeom::CurvePeriodicity periodicity = is_cyclic ? Alembic::AbcGeom::kPeriodic :
                                                                Alembic::AbcGeom::kNonPeriodic;
   const CurveType blender_curve_type = CurveType(curves.curve_types().first());
   switch (blender_curve_type) {
     case CURVE_TYPE_POLY:
       curve_basis = Alembic::AbcGeom::kNoBasis;
-      curve_type = Alembic::AbcGeom::kVariableOrder;
+      curve_type = Alembic::AbcGeom::kLinear;
       break;
     case CURVE_TYPE_CATMULL_ROM:
       curve_basis = Alembic::AbcGeom::kCatmullromBasis;
-      curve_type = Alembic::AbcGeom::kVariableOrder;
+      curve_type = Alembic::AbcGeom::kLinear;
       break;
     case CURVE_TYPE_BEZIER:
       curve_basis = Alembic::AbcGeom::kBezierBasis;
