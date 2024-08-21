@@ -992,12 +992,15 @@ void OBJECT_OT_collection_remove(wmOperatorType *ot)
 static int collection_unlink_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+  Collection *collection = CTX_data_collection(C);
 
   if (!collection) {
     return OPERATOR_CANCELLED;
   }
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return OPERATOR_CANCELLED;
+  }
+  BLI_assert((collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0);
   if (ID_IS_OVERRIDE_LIBRARY(collection) &&
       collection->id.override_library->hierarchy_root != &collection->id)
   {
@@ -1017,6 +1020,26 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool collection_unlink_poll(bContext *C)
+{
+  Collection *collection = CTX_data_collection(C);
+
+  if (!collection) {
+    return false;
+  }
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return false;
+  }
+  BLI_assert((collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0);
+  if (ID_IS_OVERRIDE_LIBRARY(collection) &&
+      collection->id.override_library->hierarchy_root != &collection->id)
+  {
+    return false;
+  }
+
+  return ED_operator_objectmode(C);
+}
+
 void OBJECT_OT_collection_unlink(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1026,7 +1049,7 @@ void OBJECT_OT_collection_unlink(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_unlink_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = collection_unlink_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
