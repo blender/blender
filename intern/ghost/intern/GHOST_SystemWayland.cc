@@ -3761,8 +3761,7 @@ static void pointer_handle_enter(void *data,
   seat->pointer.wl.surface_window = wl_surface;
 
   seat->system->seat_active_set(seat);
-
-  seat->system->cursor_shape_set(win->getCursorShape());
+  win->cursor_shape_refresh();
 
   const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
   seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
@@ -4512,6 +4511,9 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   seat->system->seat_active_set(seat);
 
+  GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
+  win->cursor_shape_refresh();
+
   /* Update #GHOST_TabletData. */
   GHOST_TabletData &td = tablet_tool->data;
   /* Reset, to avoid using stale tilt/pressure. */
@@ -4519,10 +4521,6 @@ static void tablet_tool_handle_proximity_in(void *data,
   td.Ytilt = 0.0f;
   /* In case pressure isn't supported. */
   td.Pressure = 1.0f;
-
-  const GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
-
-  seat->system->cursor_shape_set(win->getCursorShape());
 }
 static void tablet_tool_handle_proximity_out(void *data,
                                              zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
@@ -4762,7 +4760,7 @@ static void tablet_tool_handle_frame(void *data,
     }
 
     if (tablet_tool->proximity == false) {
-      seat->system->cursor_shape_set(win->getCursorShape());
+      win->cursor_shape_refresh();
     }
   }
 
