@@ -115,7 +115,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   }
 
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_topology_update(node);
+    BKE_pbvh_node_mark_topology_update(*node);
   }
   /* Get the bounding box, its center and size. */
   const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob.sculpt->pbvh);
@@ -137,7 +137,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
       *ss.pbvh, *ss.bm_log, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_topology_update(node);
+      BKE_pbvh_node_mark_topology_update(*node);
     }
   }
 

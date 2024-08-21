@@ -317,7 +317,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
 
       undo::push_node(depsgraph, object, node, undo::Type::FaceSet);
       array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
-      BKE_pbvh_node_mark_update_face_sets(node);
+      BKE_pbvh_node_mark_update_face_sets(*node);
     }
   });
 
@@ -357,7 +357,7 @@ static void clear_face_sets(const Depsgraph &depsgraph,
           }))
       {
         undo::push_node(depsgraph, object, node, undo::Type::FaceSet);
-        BKE_pbvh_node_mark_update_face_sets(node);
+        BKE_pbvh_node_mark_update_face_sets(*node);
       }
     }
   });
@@ -739,7 +739,7 @@ static int init_op_exec(bContext *C, wmOperator *op)
   undo::push_end(ob);
 
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_redraw(*node);
   }
 
   SCULPT_tag_update_overlays(C);
@@ -858,7 +858,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
       any_changed = true;
       undo::push_node(depsgraph, object, node, undo::Type::HideFace);
       array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
     }
   });
 
@@ -1071,7 +1071,7 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_redraw(*node);
   }
 
   SCULPT_tag_update_overlays(C);
@@ -1383,7 +1383,7 @@ static void edit_modify_coordinates(
   undo::push_begin(ob, op);
   undo::push_nodes(depsgraph, ob, nodes, undo::Type::Position);
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_positions_update(node);
+    BKE_pbvh_node_mark_positions_update(*node);
   }
   switch (mode) {
     case EditMode::FairPositions:
@@ -1600,7 +1600,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data,
         any_updated = true;
       }
       if (any_updated) {
-        BKE_pbvh_node_mark_update_face_sets(node);
+        BKE_pbvh_node_mark_update_face_sets(*node);
       }
     }
   });
@@ -1637,7 +1637,7 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data,
       }
 
       if (any_updated) {
-        BKE_pbvh_node_mark_update_visibility(node);
+        BKE_pbvh_node_mark_update_visibility(*node);
       }
     }
   });

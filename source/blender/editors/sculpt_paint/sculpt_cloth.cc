@@ -2255,7 +2255,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
                                    *nodes[i],
                                    object,
                                    tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;
@@ -2266,7 +2266,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
         for (const int i : range) {
           apply_filter_forces_grids(
               *depsgraph, filter_type, filter_strength, gravity, *nodes[i], object, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;
@@ -2276,7 +2276,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
         for (const int i : range) {
           apply_filter_forces_bmesh(
               *depsgraph, filter_type, filter_strength, gravity, *nodes[i], object, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;

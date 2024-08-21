@@ -220,7 +220,7 @@ void do_rotate_brush(const Depsgraph &depsgraph,
         for (const int i : range) {
           calc_faces(
               depsgraph, sd, brush, angle, positions_eval, *nodes[i], object, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;

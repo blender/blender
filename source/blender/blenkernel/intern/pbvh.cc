@@ -1537,25 +1537,25 @@ int BKE_pbvh_get_grid_num_faces(const blender::bke::pbvh::Tree &pbvh)
 
 /***************************** Node Access ***********************************/
 
-void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
-                 PBVH_RebuildPixels;
+  node.flag_ |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
+                PBVH_RebuildPixels;
 }
 
-void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateMask | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateMask | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_update_color(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_update_color(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_update_face_sets(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_update_face_sets(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
@@ -1567,76 +1567,76 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
   }
 }
 
-void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                 PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
+                PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_positions_update(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_positions_update(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateBB;
+  node.flag_ |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateBB;
 }
 
-void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node *node, int fully_hidden)
+void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden)
 {
-  BLI_assert(node->flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & PBVH_Leaf);
 
   if (fully_hidden) {
-    node->flag_ |= PBVH_FullyHidden;
+    node.flag_ |= PBVH_FullyHidden;
   }
   else {
-    node->flag_ &= ~PBVH_FullyHidden;
+    node.flag_ &= ~PBVH_FullyHidden;
   }
 }
 
-bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node *node)
+bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node &node)
 {
-  return (node->flag_ & PBVH_Leaf) && (node->flag_ & PBVH_FullyHidden);
+  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyHidden);
 }
 
-void BKE_pbvh_node_fully_masked_set(blender::bke::pbvh::Node *node, int fully_masked)
+void BKE_pbvh_node_fully_masked_set(blender::bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node->flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & PBVH_Leaf);
 
   if (fully_masked) {
-    node->flag_ |= PBVH_FullyMasked;
+    node.flag_ |= PBVH_FullyMasked;
   }
   else {
-    node->flag_ &= ~PBVH_FullyMasked;
+    node.flag_ &= ~PBVH_FullyMasked;
   }
 }
 
-bool BKE_pbvh_node_fully_masked_get(const blender::bke::pbvh::Node *node)
+bool BKE_pbvh_node_fully_masked_get(const blender::bke::pbvh::Node &node)
 {
-  return (node->flag_ & PBVH_Leaf) && (node->flag_ & PBVH_FullyMasked);
+  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyMasked);
 }
 
-void BKE_pbvh_node_fully_unmasked_set(blender::bke::pbvh::Node *node, int fully_masked)
+void BKE_pbvh_node_fully_unmasked_set(blender::bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node->flag_ & PBVH_Leaf);
+  BLI_assert(node.flag_ & PBVH_Leaf);
 
   if (fully_masked) {
-    node->flag_ |= PBVH_FullyUnmasked;
+    node.flag_ |= PBVH_FullyUnmasked;
   }
   else {
-    node->flag_ &= ~PBVH_FullyUnmasked;
+    node.flag_ &= ~PBVH_FullyUnmasked;
   }
 }
 
-bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node *node)
+bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node)
 {
-  return (node->flag_ & PBVH_Leaf) && (node->flag_ & PBVH_FullyUnmasked);
+  return (node.flag_ & PBVH_Leaf) && (node.flag_ & PBVH_FullyUnmasked);
 }
 
 namespace blender::bke::pbvh {
@@ -2697,7 +2697,7 @@ void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
     positions.copy_from(vert_positions);
 
     for (Node &node : pbvh.nodes_) {
-      BKE_pbvh_node_mark_positions_update(&node);
+      BKE_pbvh_node_mark_positions_update(node);
     }
 
     update_bounds_mesh(vert_positions, pbvh);

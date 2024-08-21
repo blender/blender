@@ -166,7 +166,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
                                     object,
                                     tls,
                                     positions_orig);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
+              BKE_pbvh_node_mark_positions_update(*nodes[i]);
             }
           });
           break;
@@ -177,7 +177,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
             LocalData &tls = all_tls.local();
             for (const int i : range) {
               apply_projection_grids(sd, gesture_data, *nodes[i], object, tls);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
+              BKE_pbvh_node_mark_positions_update(*nodes[i]);
             }
           });
           break;
@@ -188,7 +188,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
             LocalData &tls = all_tls.local();
             for (const int i : range) {
               apply_projection_bmesh(sd, gesture_data, *nodes[i], object, tls);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
+              BKE_pbvh_node_mark_positions_update(*nodes[i]);
             }
           });
           break;

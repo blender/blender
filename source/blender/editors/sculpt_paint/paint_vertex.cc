@@ -2307,7 +2307,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   fill_active_color(obact, paintcol, true, affect_alpha);
 
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_update_color(node);
+    BKE_pbvh_node_mark_update_color(*node);
   }
   undo::push_end(obact);
 

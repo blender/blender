@@ -1166,7 +1166,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         threading::isolate_task([&]() {
           for (const int i : range) {
             bake_mask_mesh(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls, mask.span);
-            BKE_pbvh_node_mark_update_mask(nodes[i]);
+            BKE_pbvh_node_mark_update_mask(*nodes[i]);
             bke::pbvh::node_update_mask_mesh(mask.span, *nodes[i]);
           }
         });
@@ -1178,7 +1178,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         LocalData &tls = all_tls.local();
         for (const int i : range) {
           bake_mask_grids(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          BKE_pbvh_node_mark_update_mask(*nodes[i]);
         }
       });
       bke::pbvh::update_mask(ob, *ss.pbvh);
@@ -1189,7 +1189,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         LocalData &tls = all_tls.local();
         for (const int i : range) {
           bake_mask_bmesh(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          BKE_pbvh_node_mark_update_mask(*nodes[i]);
         }
       });
       bke::pbvh::update_mask(ob, *ss.pbvh);

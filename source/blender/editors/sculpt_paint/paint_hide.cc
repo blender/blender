@@ -59,7 +59,7 @@ Span<int> node_visible_verts(const bke::pbvh::Node &node,
                              const Span<bool> hide_vert,
                              Vector<int> &indices)
 {
-  if (BKE_pbvh_node_fully_hidden_get(&node)) {
+  if (BKE_pbvh_node_fully_hidden_get(node)) {
     return {};
   }
   const Span<int> verts = bke::pbvh::node_unique_verts(node);
@@ -154,13 +154,13 @@ void mesh_show_all(const Depsgraph &depsgraph, Object &object, const Span<bke::p
         const Span<int> verts = bke::pbvh::node_unique_verts(*node);
         if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
           undo::push_node(depsgraph, object, node, undo::Type::HideVert);
-          BKE_pbvh_node_mark_rebuild_draw(node);
+          BKE_pbvh_node_mark_rebuild_draw(*node);
         }
       }
     });
   }
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_fully_hidden_set(node, false);
+    BKE_pbvh_node_fully_hidden_set(*node, false);
   }
   attributes.remove(".hide_vert");
   bke::mesh_hide_vert_flush(mesh);
@@ -181,7 +181,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<bke::pbvh::
         {
           any_changed = true;
           undo::push_node(depsgraph, object, node, undo::Type::HideVert);
-          BKE_pbvh_node_mark_rebuild_draw(node);
+          BKE_pbvh_node_mark_rebuild_draw(*node);
         }
       }
     });
@@ -190,7 +190,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<bke::pbvh::
     return;
   }
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_fully_hidden_set(node, false);
+    BKE_pbvh_node_fully_hidden_set(*node, false);
   }
   BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
   BKE_pbvh_sync_visibility_from_verts(object);
@@ -263,7 +263,7 @@ static void flush_face_changes_node(Mesh &mesh,
       }
 
       scatter_data_mesh(tls.new_hide.as_span(), node_faces, hide_poly.span);
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
       bke::pbvh::node_update_visibility_mesh(hide_vert, *node);
     }
   });
@@ -368,7 +368,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
         grid_hidden[grids[i]].copy_from(new_hide[i].as_span());
       }
 
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
       bke::pbvh::node_update_visibility_grids(grid_hidden, *node);
     }
   });
@@ -436,8 +436,8 @@ static void partialvis_update_bmesh_nodes(const Depsgraph &depsgraph,
     partialvis_update_bmesh_faces(BKE_pbvh_bmesh_node_faces(node));
 
     if (any_changed) {
-      BKE_pbvh_node_mark_rebuild_draw(node);
-      BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+      BKE_pbvh_node_mark_rebuild_draw(*node);
+      BKE_pbvh_node_fully_hidden_set(*node, !any_visible);
     }
   }
 }
@@ -728,7 +728,7 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
       for (const int face : faces) {
         hide_poly.span[face] = !hide_poly.span[face];
       }
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
     }
   });
 
@@ -751,7 +751,7 @@ static void invert_visibility_grids(Depsgraph &depsgraph,
       for (const int i : bke::pbvh::node_grid_indices(*node)) {
         bits::invert(grid_hidden[i]);
       }
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
       bke::pbvh::node_update_visibility_grids(grid_hidden, *node);
     }
   });
@@ -773,8 +773,8 @@ static void invert_visibility_bmesh(const Depsgraph &depsgraph,
         BM_elem_flag_toggle(vert, BM_ELEM_HIDDEN);
         fully_hidden &= BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN);
       }
-      BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
-      BKE_pbvh_node_mark_rebuild_draw(node);
+      BKE_pbvh_node_fully_hidden_set(*node, fully_hidden);
+      BKE_pbvh_node_mark_rebuild_draw(*node);
     }
   });
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -938,7 +938,7 @@ static void update_node_visibility_from_face_changes(const Span<bke::pbvh::Node 
       }
 
       if (any_changed) {
-        BKE_pbvh_node_mark_update_visibility(node);
+        BKE_pbvh_node_mark_update_visibility(*node);
         bke::pbvh::node_update_visibility_mesh(hide_vert, *node);
       }
     }
@@ -1076,7 +1076,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
       }
       bke::pbvh::Node *node = nodes[node_index];
 
-      BKE_pbvh_node_mark_update_visibility(node);
+      BKE_pbvh_node_mark_update_visibility(*node);
       bke::pbvh::node_update_visibility_grids(grid_hidden, *node);
     }
   });

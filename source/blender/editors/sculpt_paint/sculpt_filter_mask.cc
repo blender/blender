@@ -124,7 +124,7 @@ static void apply_new_mask_mesh(const Depsgraph &depsgraph,
       }
       undo::push_node(depsgraph, object, nodes[i], undo::Type::Mask);
       scatter_data_mesh(new_node_mask, verts, mask);
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
+      BKE_pbvh_node_mark_update_mask(*nodes[i]);
     }
   });
 }
@@ -238,7 +238,7 @@ static void increase_contrast_mask_mesh(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_mesh(new_mask.as_span(), verts, mask);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static void decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
@@ -262,7 +262,7 @@ static void decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_mesh(new_mask.as_span(), verts, mask);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 BLI_NOINLINE static void copy_old_hidden_mask_grids(const SubdivCCG &subdiv_ccg,
@@ -303,7 +303,7 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
       }
       undo::push_node(depsgraph, object, nodes[i], undo::Type::Mask);
       scatter_mask_grids(new_node_mask, subdiv_ccg, grids);
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
+      BKE_pbvh_node_mark_update_mask(*nodes[i]);
     }
   });
 
@@ -439,7 +439,7 @@ static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_grids(new_mask.as_span(), subdiv_ccg, grids);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
@@ -470,7 +470,7 @@ static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_grids(new_mask.as_span(), subdiv_ccg, grids);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 BLI_NOINLINE static void copy_old_hidden_mask_bmesh(const int mask_offset,
@@ -505,7 +505,7 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
       }
       undo::push_node(depsgraph, object, nodes[i], undo::Type::Mask);
       scatter_mask_bmesh(new_node_mask, bm, verts);
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
+      BKE_pbvh_node_mark_update_mask(*nodes[i]);
     }
   });
 }
@@ -605,7 +605,7 @@ static void increase_contrast_mask_bmesh(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_bmesh(new_mask.as_span(), bm, verts);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static void decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
@@ -635,7 +635,7 @@ static void decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_bmesh(new_mask.as_span(), bm, verts);
-  BKE_pbvh_node_mark_update_mask(&node);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)

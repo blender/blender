@@ -1481,7 +1481,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
         BrushLocalData &tls = all_tls.local();
         for (const int i : range) {
           calc_mesh(depsgraph, sd, brush, positions_eval, *nodes[i], ob, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;

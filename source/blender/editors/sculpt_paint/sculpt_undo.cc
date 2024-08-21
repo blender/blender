@@ -606,7 +606,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
   if (step_data.type == Type::Mask) {
     Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_redraw(node);
+      BKE_pbvh_node_mark_redraw(*node);
     }
   }
   else {
@@ -875,7 +875,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (bke::pbvh::Node *node : nodes) {
           const Span<int> grids = bke::pbvh::node_grid_indices(*node);
           if (indices_contain_true(modified_grids, grids)) {
-            BKE_pbvh_node_mark_positions_update(node);
+            BKE_pbvh_node_mark_positions_update(*node);
           }
         }
         multires_mark_as_modified(depsgraph, &object, MULTIRES_COORDS_MODIFIED);
@@ -888,7 +888,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         restore_position_mesh(object, step_data.nodes, modified_verts);
         for (bke::pbvh::Node *node : nodes) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(*node))) {
-            BKE_pbvh_node_mark_positions_update(node);
+            BKE_pbvh_node_mark_positions_update(*node);
           }
         }
       }
@@ -918,7 +918,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         }
         for (bke::pbvh::Node *node : nodes) {
           if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(*node))) {
-            BKE_pbvh_node_mark_update_visibility(node);
+            BKE_pbvh_node_mark_update_visibility(*node);
           }
         }
       }
@@ -929,7 +929,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         }
         for (bke::pbvh::Node *node : nodes) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(*node))) {
-            BKE_pbvh_node_mark_update_visibility(node);
+            BKE_pbvh_node_mark_update_visibility(*node);
           }
         }
       }
@@ -961,7 +961,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               *ss.pbvh, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
-            BKE_pbvh_node_mark_update_visibility(node);
+            BKE_pbvh_node_mark_update_visibility(*node);
           }
         }
       }
@@ -973,7 +973,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
               tri_faces, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
-            BKE_pbvh_node_mark_update_visibility(node);
+            BKE_pbvh_node_mark_update_visibility(*node);
           }
         }
       }
@@ -997,7 +997,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         }
         for (bke::pbvh::Node *node : nodes) {
           if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(*node))) {
-            BKE_pbvh_node_mark_update_mask(node);
+            BKE_pbvh_node_mark_update_mask(*node);
           }
         }
       }
@@ -1008,7 +1008,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         }
         for (bke::pbvh::Node *node : nodes) {
           if (indices_contain_true(modified_verts, bke::pbvh::node_verts(*node))) {
-            BKE_pbvh_node_mark_update_mask(node);
+            BKE_pbvh_node_mark_update_mask(*node);
           }
         }
       }
@@ -1035,7 +1035,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               *ss.pbvh, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
-            BKE_pbvh_node_mark_update_face_sets(node);
+            BKE_pbvh_node_mark_update_face_sets(*node);
           }
         }
       }
@@ -1047,7 +1047,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
               tri_faces, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
-            BKE_pbvh_node_mark_update_face_sets(node);
+            BKE_pbvh_node_mark_update_face_sets(*node);
           }
         }
       }
@@ -1065,7 +1065,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       restore_color(object, step_data, modified_verts);
       for (bke::pbvh::Node *node : nodes) {
         if (indices_contain_true(modified_verts, bke::pbvh::node_verts(*node))) {
-          BKE_pbvh_node_mark_update_color(node);
+          BKE_pbvh_node_mark_update_color(*node);
         }
       }
       break;

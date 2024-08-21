@@ -228,7 +228,7 @@ void do_fill_brush(const Depsgraph &depsgraph,
                      object,
                      tls,
                      positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;

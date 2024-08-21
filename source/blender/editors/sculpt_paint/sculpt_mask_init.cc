@@ -68,7 +68,7 @@ void write_mask_mesh(const Depsgraph &depsgraph,
     Vector<int> &index_data = all_index_data.local();
     for (const int i : range) {
       write_fn(mask.span, hide::node_visible_verts(*nodes[i], hide_vert, index_data));
-      BKE_pbvh_node_mark_redraw(nodes[i]);
+      BKE_pbvh_node_mark_redraw(*nodes[i]);
       bke::pbvh::node_update_mask_mesh(mask.span, *nodes[i]);
     }
   });
@@ -97,7 +97,7 @@ static void init_mask_grids(Main &bmain,
       for (const int grid : bke::pbvh::node_grid_indices(*nodes[i])) {
         write_fn(grid_hidden, grid, grids[grid]);
       }
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
+      BKE_pbvh_node_mark_update_mask(*nodes[i]);
     }
   });
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
@@ -248,7 +248,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
                 break;
             }
           }
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          BKE_pbvh_node_mark_update_mask(*nodes[i]);
         }
       });
       bke::pbvh::update_mask(ob, *ss.pbvh);

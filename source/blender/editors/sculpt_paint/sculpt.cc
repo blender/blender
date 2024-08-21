@@ -1228,7 +1228,7 @@ static void restore_mask_from_undo_step(Object &object)
           if (const undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
             const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             array_utils::scatter(unode->mask.as_span(), verts, mask.span);
-            BKE_pbvh_node_mark_update_mask(node);
+            BKE_pbvh_node_mark_update_mask(*node);
           }
         }
       });
@@ -1244,7 +1244,7 @@ static void restore_mask_from_undo_step(Object &object)
               const float orig_mask = BM_log_original_mask(ss.bm_log, vert);
               BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
             }
-            BKE_pbvh_node_mark_update_mask(node);
+            BKE_pbvh_node_mark_update_mask(*node);
           }
         }
       }
@@ -1268,7 +1268,7 @@ static void restore_mask_from_undo_step(Object &object)
                 index++;
               }
             }
-            BKE_pbvh_node_mark_update_mask(node);
+            BKE_pbvh_node_mark_update_mask(*node);
           }
         }
       });
@@ -1322,7 +1322,7 @@ static void restore_face_set_from_undo_step(Object &object)
             const Span<int> faces = unode->face_indices;
             const Span<int> face_sets = unode->face_sets;
             blender::array_utils::scatter(face_sets, faces, attribute.span);
-            BKE_pbvh_node_mark_update_face_sets(node);
+            BKE_pbvh_node_mark_update_face_sets(*node);
           }
         }
       });
@@ -1391,7 +1391,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                   object, mesh, *active_key, verts, tls.translations, positions_orig);
             }
 
-            BKE_pbvh_node_mark_positions_update(node);
+            BKE_pbvh_node_mark_positions_update(*node);
           }
         }
       });
@@ -1408,7 +1408,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
               copy_v3_v3(vert->co, orig_co);
             }
           }
-          BKE_pbvh_node_mark_positions_update(node);
+          BKE_pbvh_node_mark_positions_update(*node);
         }
       });
       break;
@@ -1431,7 +1431,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                 index++;
               }
             }
-            BKE_pbvh_node_mark_positions_update(node);
+            BKE_pbvh_node_mark_positions_update(*node);
           }
         }
       });
@@ -2611,10 +2611,10 @@ namespace blender::ed::sculpt_paint {
 
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node)
 {
-  if (BKE_pbvh_node_fully_hidden_get(&node)) {
+  if (BKE_pbvh_node_fully_hidden_get(node)) {
     return true;
   }
-  if (BKE_pbvh_node_fully_masked_get(&node)) {
+  if (BKE_pbvh_node_fully_masked_get(node)) {
     return true;
   }
   return false;
@@ -3288,9 +3288,9 @@ static void sculpt_topology_update(const Depsgraph &depsgraph,
                     node,
                     brush.sculpt_tool == SCULPT_TOOL_MASK ? undo::Type::Mask :
                                                             undo::Type::Position);
-    BKE_pbvh_node_mark_update(node);
+    BKE_pbvh_node_mark_update(*node);
 
-    BKE_pbvh_node_mark_topology_update(node);
+    BKE_pbvh_node_mark_topology_update(*node);
     BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, node, false);
   }
 
@@ -3319,7 +3319,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
 
   if (brush.sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_face_sets(node);
+      BKE_pbvh_node_mark_update_face_sets(*node);
     }
 
     /* Draw face sets in smooth mode moves the vertices. */
@@ -3333,7 +3333,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   else if (brush.sculpt_tool == SCULPT_TOOL_MASK) {
     undo::push_nodes(depsgraph, ob, nodes, undo::Type::Mask);
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_mask(node);
+      BKE_pbvh_node_mark_update_mask(*node);
     }
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
@@ -3345,7 +3345,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
     }
     undo::push_nodes(depsgraph, ob, nodes, undo::Type::Color);
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_color(node);
+      BKE_pbvh_node_mark_update_color(*node);
     }
   }
   else {
@@ -3355,7 +3355,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   if (need_coords) {
     undo::push_nodes(depsgraph, ob, nodes, undo::Type::Position);
     for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_positions_update(node);
+      BKE_pbvh_node_mark_positions_update(*node);
     }
   }
 }

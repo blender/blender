@@ -395,7 +395,7 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
                      *nodes[i],
                      tls,
                      positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          BKE_pbvh_node_mark_positions_update(*nodes[i]);
         }
       });
       break;

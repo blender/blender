@@ -401,7 +401,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
                         *nodes[i],
                         tls,
                         color_attribute);
-      BKE_pbvh_node_mark_update_color(nodes[i]);
+      BKE_pbvh_node_mark_update_color(*nodes[i]);
     }
   });
   color_attribute.finish();

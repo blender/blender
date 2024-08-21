@@ -1443,7 +1443,7 @@ static void restore_face_set_data(Object &object, Cache &expand_cache)
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_update_face_sets(node);
+    BKE_pbvh_node_mark_update_face_sets(*node);
   }
 }
 
@@ -1467,7 +1467,7 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
                             expand_cache.original_colors[vert],
                             color_attribute.span);
     }
-    BKE_pbvh_node_mark_redraw(node);
+    BKE_pbvh_node_mark_redraw(*node);
   }
   color_attribute.finish();
 }
@@ -1513,7 +1513,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
   }
 
   for (bke::pbvh::Node *node : bke::pbvh::search_gather(*ss.pbvh, {})) {
-    BKE_pbvh_node_mark_update_mask(node);
+    BKE_pbvh_node_mark_update_mask(*node);
   }
 }
 
@@ -1645,7 +1645,7 @@ static void update_mask_grids(const SculptSession &ss,
     }
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(&node);
+    BKE_pbvh_node_mark_update_mask(node);
   }
 }
 
@@ -1691,7 +1691,7 @@ static void update_mask_bmesh(SculptSession &ss,
     any_changed = true;
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(node);
+    BKE_pbvh_node_mark_update_mask(*node);
   }
 }
 
@@ -1723,7 +1723,7 @@ static void face_sets_update(Object &object, Cache &expand_cache)
   face_sets.finish();
 
   for (bke::pbvh::Node *node : expand_cache.nodes) {
-    BKE_pbvh_node_mark_update_face_sets(node);
+    BKE_pbvh_node_mark_update_face_sets(*node);
   }
 }
 
@@ -1794,7 +1794,7 @@ static void colors_update_task(const Depsgraph &depsgraph,
     any_changed = true;
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_color(node);
+    BKE_pbvh_node_mark_update_color(*node);
   }
 }
 
@@ -2034,7 +2034,7 @@ static void finish(bContext *C)
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
   for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_update_mask(node);
+    BKE_pbvh_node_mark_update_mask(*node);
   }
 
   switch (ss.expand_cache->target) {

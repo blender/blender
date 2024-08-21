@@ -2126,7 +2126,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       Vector<blender::bke::pbvh::Node *> nodes = blender::bke::pbvh::search_gather(*ss->pbvh, {});
 
       for (blender::bke::pbvh::Node *node : nodes) {
-        BKE_pbvh_node_mark_update(node);
+        BKE_pbvh_node_mark_update(*node);
       }
     }
   }

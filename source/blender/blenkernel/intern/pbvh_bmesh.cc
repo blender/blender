@@ -249,9 +249,9 @@ static void pbvh_bmesh_node_finalize(Tree &pbvh,
   n->bounds_orig_ = n->bounds_;
 
   /* Build GPU buffers for new node and update vertex normals. */
-  BKE_pbvh_node_mark_rebuild_draw(n);
+  BKE_pbvh_node_mark_rebuild_draw(*n);
 
-  BKE_pbvh_node_fully_hidden_set(n, !has_visible);
+  BKE_pbvh_node_fully_hidden_set(*n, !has_visible);
   n->flag_ |= PBVH_UpdateNormals;
 }
 
@@ -2437,9 +2437,9 @@ void BKE_pbvh_bmesh_detail_size_set(blender::bke::pbvh::Tree &pbvh, float detail
   pbvh.bm_min_edge_len_ = pbvh.bm_max_edge_len_ * 0.4f;
 }
 
-void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node *node)
+void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node)
 {
-  node->flag_ |= PBVH_UpdateTopology;
+  node.flag_ |= PBVH_UpdateTopology;
 }
 
 const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(blender::bke::pbvh::Node *node)
