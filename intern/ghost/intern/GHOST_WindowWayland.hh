@@ -180,6 +180,15 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND utility functions. */
 
+  /**
+   * Refresh the cursor using the cursor assigned to this window.
+   *
+   * \note This is needed because in GHOST the cursor is per window,
+   * where as in WAYLAND the cursor is set per-seat (and per input device).
+   * When an input device enters a window, this function must run.
+   */
+  GHOST_TSuccess cursor_shape_refresh();
+
   bool outputs_enter(GWL_Output *output);
   bool outputs_leave(GWL_Output *output);
 
