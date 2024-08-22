@@ -120,61 +120,47 @@ static eAction_TransformFlags get_item_transform_flags(Object &ob,
     bPtr += strlen(basePath->c_str());
 
     /* Step 2: check for some property with transforms
-     * - to speed things up, only check for the ones not yet found
-     *   unless we're getting the curves too
-     * - if we're getting the curves, the BLI_genericNodeN() creates a LinkData
-     *   node wrapping the F-Curve, which then gets added to the list
      * - once a match has been found, the curve cannot possibly be any other one
      */
-    if ((flags & ACT_TRANS_LOC) == 0) {
-      pPtr = strstr(bPtr, "location");
-      if (pPtr) {
-        flags |= ACT_TRANS_LOC;
+    pPtr = strstr(bPtr, "location");
+    if (pPtr) {
+      flags |= ACT_TRANS_LOC;
 
-        BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
-        return;
-      }
+      BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
+      return;
     }
 
-    if ((flags & ACT_TRANS_SCALE) == 0) {
-      pPtr = strstr(bPtr, "scale");
-      if (pPtr) {
-        flags |= ACT_TRANS_SCALE;
+    pPtr = strstr(bPtr, "scale");
+    if (pPtr) {
+      flags |= ACT_TRANS_SCALE;
 
-        BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
-        return;
-      }
+      BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
+      return;
     }
 
-    if ((flags & ACT_TRANS_ROT) == 0) {
-      pPtr = strstr(bPtr, "rotation");
-      if (pPtr) {
-        flags |= ACT_TRANS_ROT;
+    pPtr = strstr(bPtr, "rotation");
+    if (pPtr) {
+      flags |= ACT_TRANS_ROT;
 
-        BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
-        return;
-      }
+      BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
+      return;
     }
 
-    if ((flags & ACT_TRANS_BBONE) == 0) {
-      pPtr = strstr(bPtr, "bbone_");
-      if (pPtr) {
-        flags |= ACT_TRANS_BBONE;
+    pPtr = strstr(bPtr, "bbone_");
+    if (pPtr) {
+      flags |= ACT_TRANS_BBONE;
 
-        BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
-        return;
-      }
+      BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
+      return;
     }
 
-    if ((flags & ACT_TRANS_PROP) == 0) {
-      /* Custom properties only. */
-      pPtr = strstr(bPtr, "[\"");
-      if (pPtr) {
-        flags |= ACT_TRANS_PROP;
+    /* Custom properties only. */
+    pPtr = strstr(bPtr, "[\"");
+    if (pPtr) {
+      flags |= ACT_TRANS_PROP;
 
-        BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
-        return;
-      }
+      BLI_addtail(&curves, BLI_genericNodeN(&fcurve));
+      return;
     }
   });
 
