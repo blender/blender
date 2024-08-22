@@ -69,7 +69,12 @@ static void extract_edge_factor_mesh(const MeshRenderData &mr, MutableSpan<T> vb
     for (const int corner : faces[face]) {
       const int edge = corner_edges[corner];
       if (!optimal_display_edges.is_empty() && !optimal_display_edges[edge]) {
-        vbo_data[corner] = FORCE_HIDE;
+        if constexpr (std::is_same_v<T, float>) {
+          vbo_data[corner] = 1.0f;
+        }
+        else {
+          vbo_data[corner] = FORCE_HIDE;
+        }
         continue;
       }
 
