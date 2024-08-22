@@ -1200,11 +1200,26 @@ void action_group_to_keylist(AnimData *adt,
     return;
   }
 
-  LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
-    if (fcu->grp != agrp) {
-      break;
+  /* Legacy actions. */
+  if (agrp->channels.first && agrp->channels.last) {
+    LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
+      if (fcu->grp != agrp) {
+        break;
+      }
+      fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
     }
-    fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
+    return;
+  }
+
+  /* Layered actions. */
+  if (agrp->channel_bag == nullptr) {
+    return;
+  }
+  animrig::ChannelBag channel_bag = agrp->channel_bag->wrap();
+  Span<FCurve *> fcurves = channel_bag.fcurves().slice(agrp->fcurve_range_start,
+                                                       agrp->fcurve_range_length);
+  for (FCurve *fcurve : fcurves) {
+    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
   }
 }
 

@@ -335,6 +335,68 @@ class ChannelBagsTest(unittest.TestCase):
         channelbag.fcurves.clear()
         self.assertEquals([], channelbag.fcurves[:])
 
+    def test_channel_groups(self):
+        channelbag = self.strip.channelbags.new(self.slot)
+
+        # Create some fcurves to play with.
+        fcurve0 = channelbag.fcurves.new('location', index=0)
+        fcurve1 = channelbag.fcurves.new('location', index=1)
+        fcurve2 = channelbag.fcurves.new('location', index=2)
+        fcurve3 = channelbag.fcurves.new('scale', index=0)
+        fcurve4 = channelbag.fcurves.new('scale', index=1)
+        fcurve5 = channelbag.fcurves.new('scale', index=2)
+
+        self.assertEquals([], channelbag.groups[:])
+
+        # Create some channel groups.
+        group0 = channelbag.groups.new('group0')
+        group1 = channelbag.groups.new('group1')
+        self.assertEquals([group0, group1], channelbag.groups[:])
+        self.assertEquals([], group0.channels[:])
+        self.assertEquals([], group1.channels[:])
+
+        # Assign some fcurves to the channel groups. Intentionally not in order
+        # so we can test that the fcurves get moved around properly.
+        fcurve5.group = group1
+        fcurve3.group = group1
+        fcurve2.group = group0
+        fcurve4.group = group0
+        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
+        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
+        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+
+        # Weird case to be consistent with the legacy API: assigning None to an
+        # fcurve's group does *not* unassign it from its group. This is stupid,
+        # and we should change it at some point.  But it's how the legacy API
+        # already works (presumably an oversight), so sticking to that for now.
+        fcurve3.group = None
+        self.assertEquals(group1, fcurve3.group)
+        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
+        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
+        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+
+        # Removing a group.
+        channelbag.groups.remove(group0)
+        self.assertEquals([group1], channelbag.groups[:])
+        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
+        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+
+        # Attempting to remove a channel group that belongs to a different
+        # channel bag should fail.
+        other_slot = self.action.slots.new()
+        other_cbag = self.strip.channelbags.new(other_slot)
+        other_group = other_cbag.groups.new('group1')
+        with self.assertRaises(RuntimeError):
+            channelbag.groups.remove(other_group)
+
+        # Another weird case that we reproduce from the legacy API: attempting
+        # to assign a group to an fcurve that doesn't belong to the same channel
+        # bag should silently fail (just does a printf to stdout).
+        fcurve0.group = other_group
+        self.assertEquals([group1], channelbag.groups[:])
+        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
+        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+
 
 class DataPathTest(unittest.TestCase):
     def setUp(self):

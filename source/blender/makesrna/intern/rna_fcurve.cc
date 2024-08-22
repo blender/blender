@@ -31,6 +31,7 @@
 #include "ED_keyframing.hh"
 
 #ifdef RNA_RUNTIME
+#  include "ANIM_action.hh"
 #  include "ANIM_fcurve.hh"
 #endif
 
@@ -642,25 +643,49 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
     printf("ERROR: cannot assign F-Curve to group, since F-Curve is not attached to any ID\n");
     return;
   }
-  /* make sure F-Curve exists in this action first, otherwise we could still have been tricked */
-  else if (BLI_findindex(&act->curves, fcu) == -1) {
-    printf("ERROR: F-Curve (%p) doesn't exist in action '%s'\n", fcu, act->id.name);
-    return;
-  }
 
-  /* try to remove F-Curve from action (including from any existing groups) */
-  action_groups_remove_channel(act, fcu);
+  blender::animrig::Action &action = act->wrap();
+  if (!action.is_action_layered()) {
+    /* Legacy action. */
 
-  /* add the F-Curve back to the action now in the right place */
-  /* TODO: make the api function handle the case where there isn't any group to assign to. */
-  if (value.data) {
-    /* add to its group using API function, which makes sure everything goes ok */
-    action_groups_add_channel(act, static_cast<bActionGroup *>(value.data), fcu);
+    /* make sure F-Curve exists in this action first, otherwise we could still have been tricked */
+    if (BLI_findindex(&act->curves, fcu) == -1) {
+      printf("ERROR: F-Curve (%p) doesn't exist in action '%s'\n", fcu, act->id.name);
+      return;
+    }
+
+    /* try to remove F-Curve from action (including from any existing groups) */
+    action_groups_remove_channel(act, fcu);
+
+    /* add the F-Curve back to the action now in the right place */
+    /* TODO: make the api function handle the case where there isn't any group to assign to. */
+    if (value.data) {
+      /* add to its group using API function, which makes sure everything goes ok */
+      action_groups_add_channel(act, static_cast<bActionGroup *>(value.data), fcu);
+    }
+    else {
+      /* Need to add this back, but it can only go at the end of the list
+       * (or else will corrupt groups). */
+      BLI_addtail(&act->curves, fcu);
+    }
   }
   else {
-    /* Need to add this back, but it can only go at the end of the list
-     * (or else will corrupt groups). */
-    BLI_addtail(&act->curves, fcu);
+    /* Layered action. */
+
+    bActionGroup *group = static_cast<bActionGroup *>(value.data);
+    blender::animrig::ChannelBag *channel_bag;
+    {
+      ActionChannelBag *tmp = group->channel_bag;
+      BLI_assert(tmp != nullptr);
+      channel_bag = &tmp->wrap();
+    }
+
+    if (!channel_bag->fcurve_assign_to_channel_group(*fcu, *group)) {
+      printf("ERROR: F-Curve (%p) doesn't belong to the same channel bag as channel group '%s'\n",
+             fcu,
+             group->name);
+      return;
+    }
   }
 }
 

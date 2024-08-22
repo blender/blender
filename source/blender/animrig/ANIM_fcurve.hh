@@ -28,6 +28,7 @@ struct FCurveDescriptor {
   StringRefNull rna_path;
   int array_index;
   std::optional<PropertySubType> prop_subtype;
+  std::optional<blender::StringRefNull> channel_group;
 };
 
 /* This is used to pass in the settings for a keyframe into a function. */

@@ -152,5 +152,7 @@ void ED_add_mask_layer_channel(ChannelDrawList *draw_list,
                                int saction_flag);
 
 ChannelDrawList *ED_channel_draw_list_create();
+
 void ED_channel_list_flush(ChannelDrawList *draw_list, View2D *v2d);
+
 void ED_channel_list_free(ChannelDrawList *draw_list);

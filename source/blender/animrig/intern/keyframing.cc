@@ -835,25 +835,28 @@ struct KeyInsertData {
   int array_index;
 };
 
-static SingleKeyingResult insert_key_layer(Main *bmain,
-                                           Layer &layer,
-                                           const Slot &slot,
-                                           const std::string &rna_path,
-                                           const std::optional<PropertySubType> prop_subtype,
-                                           const KeyInsertData &key_data,
-                                           const KeyframeSettings &key_settings,
-                                           const eInsertKeyFlags insert_key_flags)
+static SingleKeyingResult insert_key_layer(
+    Main *bmain,
+    Layer &layer,
+    const Slot &slot,
+    const std::string &rna_path,
+    const std::optional<PropertySubType> prop_subtype,
+    const std::optional<blender::StringRefNull> channel_group,
+    const KeyInsertData &key_data,
+    const KeyframeSettings &key_settings,
+    const eInsertKeyFlags insert_key_flags)
 {
   assert_baklava_phase_1_invariants(layer);
   BLI_assert(layer.strips().size() == 1);
 
   Strip *strip = layer.strip(0);
-  return strip->as<KeyframeStrip>().keyframe_insert(bmain,
-                                                    slot,
-                                                    {rna_path, key_data.array_index, prop_subtype},
-                                                    key_data.position,
-                                                    key_settings,
-                                                    insert_key_flags);
+  return strip->as<KeyframeStrip>().keyframe_insert(
+      bmain,
+      slot,
+      {rna_path, key_data.array_index, prop_subtype, channel_group},
+      key_data.position,
+      key_settings,
+      insert_key_flags);
 }
 
 static CombinedKeyingResult insert_key_layered_action(Main *bmain,
@@ -903,6 +906,10 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
     const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
                                                                                         prop);
     BLI_assert(rna_path_id_to_prop.has_value());
+
+    const std::optional<blender::StringRefNull> channel_group = default_channel_group_for_path(
+        &ptr, *rna_path_id_to_prop);
+
     const PropertySubType prop_subtype = RNA_property_subtype(prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, use_visual_keyframing);
 
@@ -919,6 +926,7 @@ static CombinedKeyingResult insert_key_layered_action(Main *bmain,
                                                          slot,
                                                          *rna_path_id_to_prop,
                                                          prop_subtype,
+                                                         channel_group,
                                                          key_data,
                                                          key_settings,
                                                          insert_key_flags);
