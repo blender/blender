@@ -4192,15 +4192,13 @@ static ImBuf *load_image_single(Image *ima,
 {
   char filepath[FILE_MAX];
   ImBuf *ibuf = nullptr;
-  int flag = IB_rect | IB_multilayer;
+  int flag = IB_rect | IB_multilayer | IB_metadata | imbuf_alpha_flags_for_image(ima);
 
   *r_cache_ibuf = true;
   const int tile_number = image_get_tile_number_from_iuser(ima, iuser);
 
   /* is there a PackedFile with this image ? */
   if (has_packed && !is_sequence) {
-    flag |= imbuf_alpha_flags_for_image(ima);
-
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
       if (imapf->view == view_id && imapf->tile_number == tile_number) {
         if (imapf->packedfile) {
@@ -4238,8 +4236,6 @@ static ImBuf *load_image_single(Image *ima,
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* read ibuf */
-    flag |= IB_metadata;
-    flag |= imbuf_alpha_flags_for_image(ima);
     ibuf = IMB_loadiffname(filepath, flag, ima->colorspace_settings.name);
   }
 
