@@ -77,7 +77,6 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph &depsgraph,
                                            Object &ob,
                                            VertProjHandle &vp_handle)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
   const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob);
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
@@ -135,7 +134,6 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   VertProjUpdate vp_update = {vp_handle, region, mval_fl};
 
   Object &ob = *vp_handle->ob;
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
 
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, &ob);
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
