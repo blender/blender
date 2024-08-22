@@ -99,7 +99,7 @@ static eAction_TransformFlags get_item_transform_flags(Object &ob,
 
     /* If enough flags have been found,
      * we can stop checking unless we're also getting the curves. */
-    if ((flags == ACT_TRANS_ALL)) {
+    if (flags == ACT_TRANS_ALL) {
       return;
     }
 
