@@ -13,7 +13,7 @@ class BrushAssetShelf:
 
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.mode == cls.mode
+        return hasattr(context, "object") and context.object and context.object.mode == cls.mode
 
     @classmethod
     def asset_poll(cls, asset):
