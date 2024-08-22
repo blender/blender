@@ -488,7 +488,7 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
   const Span<int> fake_neighbors = ss.fake_neighbors.fake_neighbor_index;
 
   bool grow_next_iteration = true;

@@ -604,8 +604,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
   }
 
   if (step_data.type == Type::Mask) {
-    Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
-    for (bke::pbvh::Node *node : nodes) {
+    for (bke::pbvh::Node *node : bke::pbvh::all_leaf_nodes(*ss.pbvh)) {
       BKE_pbvh_node_mark_redraw(*node);
     }
   }
@@ -856,7 +855,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::Position: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -903,7 +902,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::HideVert: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -942,7 +941,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::HideFace: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -984,7 +983,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::Mask: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1018,7 +1017,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::FaceSet: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1056,7 +1055,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       break;
     }
     case Type::Color: {
-      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+      const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -2030,7 +2029,7 @@ static void push_all_grids(const Depsgraph &depsgraph, Object *object)
     return;
   }
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
   push_nodes(depsgraph, *object, nodes, Type::Position);
 }
 

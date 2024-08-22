@@ -394,7 +394,7 @@ static int create_op_exec(bContext *C, wmOperator *op)
 
   const int next_face_set = find_next_available_id(object);
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
   switch (mode) {
     case CreateMode::Masked: {
       const OffsetIndices faces = mesh.faces();
@@ -644,7 +644,7 @@ static int init_op_exec(bContext *C, wmOperator *op)
   }
 
   bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -906,7 +906,7 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
   undo::push_begin(object, op);
 
   bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
 
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
@@ -1072,7 +1072,7 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 
   mesh->face_sets_color_seed += 1;
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
   for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_redraw(*node);
   }
@@ -1123,7 +1123,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
 
   undo::push_begin(object, op);
 
-  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
   face_sets_update(
       depsgraph, object, nodes, [&](const Span<int> indices, MutableSpan<int> face_sets) {
         for (const int i : indices.index_range()) {
@@ -1379,7 +1379,7 @@ static void edit_modify_coordinates(
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
   bke::pbvh::Tree &pbvh = *ss.pbvh;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
 
   const float strength = RNA_float_get(op->ptr, "strength");
 

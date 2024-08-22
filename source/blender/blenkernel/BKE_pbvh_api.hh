@@ -539,6 +539,10 @@ void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
 int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
 
 namespace blender::bke::pbvh {
+
+/** Return pointers to all the leaf nodes in the BVH tree. */
+Vector<Node *> all_leaf_nodes(Tree &pbvh);
+
 Vector<Node *> search_gather(Tree &pbvh,
                              FunctionRef<bool(Node &)> scb,
                              PBVHNodeFlags leaf_flag = PBVH_Leaf);

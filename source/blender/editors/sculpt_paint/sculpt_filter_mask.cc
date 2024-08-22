@@ -659,7 +659,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   SculptSession &ss = *ob.sculpt;
   bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
   undo::push_begin(ob, op);
 
   int iterations = RNA_int_get(op->ptr, "iterations");

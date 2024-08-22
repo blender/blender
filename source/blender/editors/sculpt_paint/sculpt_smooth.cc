@@ -737,7 +737,7 @@ void blur_geometry_data_array(const Object &object,
     Vector<float> new_factors;
   };
   const SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (ss.pbvh->type()) {

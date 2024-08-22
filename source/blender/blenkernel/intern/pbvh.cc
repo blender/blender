@@ -2973,6 +2973,19 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
 }
 
 namespace blender::bke::pbvh {
+
+Vector<Node *> all_leaf_nodes(Tree &pbvh)
+{
+  Vector<Node *> leaf_nodes;
+  leaf_nodes.reserve(pbvh.nodes_.size());
+  for (Node &node : pbvh.nodes_) {
+    if (node.flag_ & PBVH_Leaf) {
+      leaf_nodes.append(&node);
+    }
+  }
+  return leaf_nodes;
+}
+
 Vector<Node *> search_gather(Tree &pbvh,
                              const FunctionRef<bool(Node &)> scb,
                              PBVHNodeFlags leaf_flag)

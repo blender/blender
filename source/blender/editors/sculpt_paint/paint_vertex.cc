@@ -2303,7 +2303,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
   undo::push_begin(obact, op);
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*obact.sculpt->pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*obact.sculpt->pbvh);
 
   const Mesh &mesh = *static_cast<const Mesh *>(obact.data);
   /* The sculpt undo system needs bke::pbvh::Tree node corner indices for corner domain

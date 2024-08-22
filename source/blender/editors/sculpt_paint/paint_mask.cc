@@ -572,7 +572,7 @@ static void fill_mask(
     Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object, const float value)
 {
   bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       fill_mask_mesh(depsgraph, object, value, nodes);

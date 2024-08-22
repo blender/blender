@@ -521,7 +521,7 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*pbvh);
 
   switch (pbvh->type()) {
     case bke::pbvh::Type::Mesh:
@@ -639,7 +639,7 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*pbvh);
 
   switch (pbvh->type()) {
     case bke::pbvh::Type::Mesh:
@@ -792,7 +792,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
   bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
   BLI_assert(BKE_object_sculpt_pbvh_get(&object) == pbvh);
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*pbvh);
   undo::push_begin(object, op);
   switch (pbvh->type()) {
     case bke::pbvh::Type::Mesh:
@@ -1128,7 +1128,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
 
   const VisAction mode = VisAction(RNA_enum_get(op->ptr, "action"));
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
 
   int num_verts = SCULPT_vertex_count_get(object);
 

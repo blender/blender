@@ -1214,7 +1214,7 @@ namespace undo {
 static void restore_mask_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1279,7 +1279,7 @@ static void restore_mask_from_undo_step(Object &object)
 static void restore_color_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1309,7 +1309,7 @@ static void restore_color_from_undo_step(Object &object)
 static void restore_face_set_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh:
@@ -1336,7 +1336,7 @@ static void restore_face_set_from_undo_step(Object &object)
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
@@ -3404,7 +3404,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+    nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
   }
   else if (brush.sculpt_tool == SCULPT_TOOL_CLOTH) {
     nodes = cloth::brush_affected_nodes_gather(ss, brush);
@@ -6282,7 +6282,7 @@ static SculptTopologyIslandCache calc_topology_islands_bmesh(const Object &objec
   BM_mesh_elem_index_ensure(&bm, BM_VERT);
 
   bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
-  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
+  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
   AtomicDisjointSet disjoint_set(bm.totvert);
   threading::parallel_for(nodes.index_range(), 1024, [&](const IndexRange range) {
     for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {

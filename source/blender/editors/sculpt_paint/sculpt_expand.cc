@@ -1427,8 +1427,7 @@ static void restore_face_set_data(Object &object, Cache &expand_cache)
   face_sets.span.copy_from(expand_cache.original_face_sets);
   face_sets.finish();
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
-  for (bke::pbvh::Node *node : nodes) {
+  for (bke::pbvh::Node *node : bke::pbvh::all_leaf_nodes(*object.sculpt->pbvh)) {
     BKE_pbvh_node_mark_update_face_sets(*node);
   }
 }
@@ -1437,7 +1436,7 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
 {
   SculptSession &ss = *ob.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1498,7 +1497,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
     }
   }
 
-  for (bke::pbvh::Node *node : bke::pbvh::search_gather(*ss.pbvh, {})) {
+  for (bke::pbvh::Node *node : bke::pbvh::all_leaf_nodes(*ss.pbvh)) {
     BKE_pbvh_node_mark_update_mask(*node);
   }
 }
@@ -2018,7 +2017,7 @@ static void finish(bContext *C)
   undo::push_end(ob);
 
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
   for (bke::pbvh::Node *node : nodes) {
     BKE_pbvh_node_mark_update_mask(*node);
   }
@@ -2485,7 +2484,7 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
 static void undo_push(const Depsgraph &depsgraph, Object &ob, Cache &expand_cache)
 {
   SculptSession &ss = *ob.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   switch (expand_cache.target) {
     case TargetType::Mask:
@@ -2619,7 +2618,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   set_initial_components_for_mouse(C, ob, *ss.expand_cache, mouse);
 
   /* Cache bke::pbvh::Tree nodes. */
-  ss.expand_cache->nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  ss.expand_cache->nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   /* Store initial state. */
   original_state_store(ob, *ss.expand_cache);

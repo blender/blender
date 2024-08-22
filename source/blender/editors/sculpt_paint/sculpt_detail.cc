@@ -108,7 +108,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
