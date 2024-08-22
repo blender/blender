@@ -15,7 +15,8 @@ void Cryptomatte::begin_sync()
 {
   const eViewLayerEEVEEPassType enabled_passes = static_cast<eViewLayerEEVEEPassType>(
       inst_.film.enabled_passes_get() &
-      (EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET));
+      (EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+       EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL));
 
   session_.reset();
   object_layer_ = nullptr;
