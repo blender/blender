@@ -348,31 +348,38 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (!path[0]) {
+    /* Assign a new value (don't use this one). */
+    MEM_freeN(path);
+    path = nullptr;
+
+    /* When no path was found, calculate a reasonable fallback. */
+    char path_fallback[FILE_MAX];
+    bool path_fallback_set = false;
+
     /* Defaults if the path is empty. */
     const char *prop_id = RNA_property_identifier(prop);
     /* NOTE: relying on built-in names isn't useful for add-on authors.
      * The property itself should support this kind of meta-data. */
     if (STR_ELEM(prop_id, "font_path_ui", "font_path_ui_mono", "font_directory")) {
-      if (!U.fontdir[0]) {
-        char fonts_dir[FILE_MAXDIR];
-        BKE_appdir_font_folder_default(fonts_dir, ARRAY_SIZE(fonts_dir));
-        BLI_path_slash_ensure(fonts_dir, ARRAY_SIZE(fonts_dir));
-        path = BLI_strdup(fonts_dir);
+      if (U.fontdir[0]) {
+        STRNCPY(path_fallback, U.fontdir);
+        path_fallback_set = true;
       }
-      else {
-        MEM_freeN(path);
-        path = BLI_strdup(U.fontdir);
+      else if (BKE_appdir_font_folder_default(path_fallback, ARRAY_SIZE(path_fallback))) {
+        path_fallback_set = true;
       }
       RNA_boolean_set(op->ptr, "filter_font", true);
       RNA_boolean_set(op->ptr, "filter_folder", true);
       RNA_enum_set(op->ptr, "display_type", FILE_IMGDISPLAY);
       RNA_enum_set(op->ptr, "sort_method", FILE_SORT_ALPHA);
     }
-    else {
-      MEM_freeN(path);
-      path = BLI_strdup(BKE_appdir_folder_default_or_root());
-      BLI_path_slash_ensure(path, FILE_MAXDIR);
+
+    if (path_fallback_set == false) {
+      STRNCPY(path_fallback, BKE_appdir_folder_default_or_root());
     }
+
+    BLI_path_slash_ensure(path_fallback, ARRAY_SIZE(path_fallback));
+    path = BLI_strdup(path_fallback);
   }
 
   RNA_string_set(op->ptr, path_prop, path);
