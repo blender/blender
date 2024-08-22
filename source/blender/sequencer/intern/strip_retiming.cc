@@ -1087,6 +1087,12 @@ void SEQ_retiming_selection_remove(SeqRetimingKey *key)
   key->flag &= ~SEQ_KEY_SELECTED;
 }
 
+void SEQ_retiming_selection_copy(SeqRetimingKey *dst, const SeqRetimingKey *src)
+{
+  SEQ_retiming_selection_remove(dst);
+  dst->flag |= (src->flag & SEQ_KEY_SELECTED);
+}
+
 blender::Map<SeqRetimingKey *, Sequence *> SEQ_retiming_selection_get(const Editing *ed)
 {
   blender::Map<SeqRetimingKey *, Sequence *> selection;

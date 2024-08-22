@@ -37,6 +37,7 @@
 #include "RNA_prototypes.hh"
 
 #include "SEQ_add.hh"
+#include "SEQ_connect.hh"
 #include "SEQ_effects.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_select.hh"
@@ -887,6 +888,11 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
         seq_load_apply_generic_options(C, op, seq_sound);
         seq_load_apply_generic_options(C, op, seq_movie);
       }
+
+      if ((U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT)) {
+        SEQ_connect(seq_movie, seq_sound);
+      }
+
       r_movie_strips.add(seq_movie);
     }
   }
@@ -953,6 +959,11 @@ static bool sequencer_add_movie_single_strip(bContext *C,
     seq_load_apply_generic_options(C, op, seq_sound);
     seq_load_apply_generic_options(C, op, seq_movie);
   }
+
+  if ((U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT)) {
+    SEQ_connect(seq_movie, seq_sound);
+  }
+
   r_movie_strips.add(seq_movie);
 
   return true;

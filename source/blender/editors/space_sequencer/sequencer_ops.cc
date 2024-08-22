@@ -29,6 +29,8 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_unmute);
   WM_operatortype_append(SEQUENCER_OT_lock);
   WM_operatortype_append(SEQUENCER_OT_unlock);
+  WM_operatortype_append(SEQUENCER_OT_connect);
+  WM_operatortype_append(SEQUENCER_OT_disconnect);
   WM_operatortype_append(SEQUENCER_OT_reload);
   WM_operatortype_append(SEQUENCER_OT_refresh_all);
   WM_operatortype_append(SEQUENCER_OT_reassign_inputs);

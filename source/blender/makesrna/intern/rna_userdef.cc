@@ -5753,6 +5753,14 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Tweak Handles", "Allows dragging handles without selecting them first");
 
+  prop = RNA_def_property(srna, "connect_strips_by_default", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "sequencer_editor_flag", USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT);
+  RNA_def_property_ui_text(
+      prop,
+      "Connect Movie Strips by Default",
+      "Connect newly added movie strips by default if they have multiple channels");
+
   /* duplication linking */
   prop = RNA_def_property(srna, "use_duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_MESH);

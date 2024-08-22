@@ -30,6 +30,7 @@
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_connect.hh"
 #include "SEQ_edit.hh"
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
@@ -1016,6 +1017,85 @@ void SEQUENCER_OT_unlock(wmOperatorType *ot)
   ot->poll = sequencer_edit_poll;
 
   /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Connect Strips Operator
+ * \{ */
+
+static int sequencer_connect_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *active_seqbase = SEQ_active_seqbase_get(ed);
+
+  blender::VectorSet<Sequence *> selected = SEQ_query_selected_strips(active_seqbase);
+
+  if (selected.is_empty()) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  if (toggle && SEQ_are_strips_connected_together(selected)) {
+    SEQ_disconnect(selected);
+  }
+  else {
+    SEQ_connect(selected);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_connect(wmOperatorType *ot)
+{
+  ot->name = "Connect Strips";
+  ot->idname = "SEQUENCER_OT_connect";
+  ot->description = "Link selected strips together for simplified group selection";
+
+  ot->exec = sequencer_connect_exec;
+  ot->poll = sequencer_edit_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "toggle", true, "Toggle", "Toggle strip connections");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Disconnect Strips Operator
+ * \{ */
+
+static int sequencer_disconnect_exec(bContext *C, wmOperator * /*op*/)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *active_seqbase = SEQ_active_seqbase_get(ed);
+
+  blender::VectorSet<Sequence *> selected = SEQ_query_selected_strips(active_seqbase);
+
+  if (SEQ_disconnect(selected)) {
+    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    return OPERATOR_FINISHED;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+}
+
+void SEQUENCER_OT_disconnect(wmOperatorType *ot)
+{
+  ot->name = "Disconnect Strips";
+  ot->idname = "SEQUENCER_OT_disconnect";
+  ot->description = "Unlink selected strips so that they can be selected individually";
+
+  ot->exec = sequencer_disconnect_exec;
+  ot->poll = sequencer_edit_poll;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
@@ -2009,13 +2089,17 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
    * Sequence is moved within the same edit, no need to re-generate the UID. */
   LISTBASE_FOREACH_MUTABLE (Sequence *, seq, active_seqbase) {
     if (seq != seqm && seq->flag & SELECT) {
-      BLI_remlink(active_seqbase, seq);
-      BLI_addtail(&seqm->seqbase, seq);
-      SEQ_relations_invalidate_cache_preprocessed(scene, seq);
-      channel_max = max_ii(seq->machine, channel_max);
-      channel_min = min_ii(seq->machine, channel_min);
-      meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, seq), meta_start_frame);
-      meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, seq), meta_end_frame);
+      blender::VectorSet<Sequence *> related = SEQ_get_connected_strips(seq);
+      related.add(seq);
+      for (Sequence *rel : related) {
+        BLI_remlink(active_seqbase, rel);
+        BLI_addtail(&seqm->seqbase, rel);
+        SEQ_relations_invalidate_cache_preprocessed(scene, rel);
+        channel_max = max_ii(rel->machine, channel_max);
+        channel_min = min_ii(rel->machine, channel_min);
+        meta_start_frame = min_ii(SEQ_time_left_handle_frame_get(scene, rel), meta_start_frame);
+        meta_end_frame = max_ii(SEQ_time_right_handle_frame_get(scene, rel), meta_end_frame);
+      }
     }
   }
 

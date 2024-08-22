@@ -25,6 +25,8 @@
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_connect.hh"
+
 #include "SEQ_edit.hh"
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
@@ -305,9 +307,9 @@ static void seq_split_set_left_hold_offset(Main *bmain,
   SEQ_time_left_handle_frame_set(scene, seq, timeline_frame);
 }
 
-static bool seq_edit_split_effect_intersect_check(const Scene *scene,
-                                                  const Sequence *seq,
-                                                  const int timeline_frame)
+static bool seq_edit_split_intersect_check(const Scene *scene,
+                                           const Sequence *seq,
+                                           const int timeline_frame)
 {
   return timeline_frame > SEQ_time_left_handle_frame_get(scene, seq) &&
          timeline_frame < SEQ_time_right_handle_frame_get(scene, seq);
@@ -320,7 +322,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 const int timeline_frame,
                                                 const eSeqSplitMethod method)
 {
-  if (seq_edit_split_effect_intersect_check(scene, right_seq, timeline_frame)) {
+  if (seq_edit_split_intersect_check(scene, right_seq, timeline_frame)) {
     switch (method) {
       case SEQ_SPLIT_SOFT:
         SEQ_time_left_handle_frame_set(scene, right_seq, timeline_frame);
@@ -331,7 +333,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
     }
   }
 
-  if (seq_edit_split_effect_intersect_check(scene, left_seq, timeline_frame)) {
+  if (seq_edit_split_intersect_check(scene, left_seq, timeline_frame)) {
     switch (method) {
       case SEQ_SPLIT_SOFT:
         SEQ_time_right_handle_frame_set(scene, left_seq, timeline_frame);
@@ -349,24 +351,21 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 {
   bool input_does_intersect = false;
   if (seq->seq1) {
-    input_does_intersect |= seq_edit_split_effect_intersect_check(
-        scene, seq->seq1, timeline_frame);
+    input_does_intersect |= seq_edit_split_intersect_check(scene, seq->seq1, timeline_frame);
     if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
       input_does_intersect |= seq_edit_split_effect_inputs_intersect(
           scene, seq->seq1, timeline_frame);
     }
   }
   if (seq->seq2) {
-    input_does_intersect |= seq_edit_split_effect_intersect_check(
-        scene, seq->seq2, timeline_frame);
+    input_does_intersect |= seq_edit_split_intersect_check(scene, seq->seq2, timeline_frame);
     if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
       input_does_intersect |= seq_edit_split_effect_inputs_intersect(
           scene, seq->seq2, timeline_frame);
     }
   }
   if (seq->seq3) {
-    input_does_intersect |= seq_edit_split_effect_intersect_check(
-        scene, seq->seq3, timeline_frame);
+    input_does_intersect |= seq_edit_split_intersect_check(scene, seq->seq3, timeline_frame);
     if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
       input_does_intersect |= seq_edit_split_effect_inputs_intersect(
           scene, seq->seq3, timeline_frame);
@@ -389,7 +388,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
     if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
       continue;
     }
-    if (!seq_edit_split_effect_intersect_check(scene, seq, timeline_frame)) {
+    if (!seq_edit_split_intersect_check(scene, seq, timeline_frame)) {
       continue;
     }
     if (SEQ_effect_get_num_inputs(seq->type) <= 1) {
@@ -415,11 +414,11 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
                                const eSeqSplitMethod method,
                                const char **r_error)
 {
-  if (!seq_edit_split_effect_intersect_check(scene, seq, timeline_frame)) {
+  if (!seq_edit_split_intersect_check(scene, seq, timeline_frame)) {
     return nullptr;
   }
 
-  /* Whole strip chain must be duplicated in order to preserve relationships. */
+  /* Whole strip effect chain must be duplicated in order to preserve relationships. */
   blender::VectorSet<Sequence *> strips;
   strips.add(seq);
   SEQ_iterator_set_expand(scene, seqbase, strips, SEQ_query_strip_effect_chain);
@@ -427,6 +426,13 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   if (!seq_edit_split_operation_permitted_check(scene, strips, timeline_frame, r_error)) {
     return nullptr;
   }
+
+  /* All connected strips (that are selected and at the cut frame) must also be duplicated. */
+  blender::VectorSet<Sequence *> connections = SEQ_get_connected_strips(seq);
+  connections.remove_if([&](Sequence *seq) {
+    return !(seq->flag & SELECT) || !seq_edit_split_intersect_check(scene, seq, timeline_frame);
+  });
+  strips.add_multiple(connections.as_span());
 
   /* Store `F-Curves`, so original ones aren't renamed. */
   SeqAnimationBackup animation_backup{};

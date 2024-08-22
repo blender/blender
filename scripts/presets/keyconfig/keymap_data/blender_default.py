@@ -2945,6 +2945,8 @@ def km_sequencer(params):
          {"properties": [("unselected", True)]}),
         ("sequencer.lock", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.unlock", {"type": 'H', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("sequencer.connect", {"type": 'C', "value": 'PRESS', "ctrl": True, "alt": True},
+         {"properties": [("toggle", True)]}),
         ("sequencer.reassign_inputs", {"type": 'R', "value": 'PRESS'}, None),
         ("sequencer.reload", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("sequencer.reload", {"type": 'R', "value": 'PRESS', "shift": True, "alt": True},
@@ -2998,6 +3000,10 @@ def km_sequencer(params):
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
         ),
+        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
+         {"properties": [("deselect_all", True), ("ignore_connections", True)]}),
+        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("toggle", True), ("ignore_connections", True)]}),
         ("sequencer.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_linked_pick", {"type": 'L', "value": 'PRESS'}, None),
@@ -3010,6 +3016,8 @@ def km_sequencer(params):
          {"properties": [("tweak", True), ("mode", 'ADD')]}),
         ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG', "ctrl": True},
          {"properties": [("tweak", True), ("mode", 'SUB')]}),
+        ("sequencer.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG', "alt": True},
+         {"properties": [("tweak", True), ("ignore_connections", True), ("mode", 'SET')]}),
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
          {"properties": [("include_handles", True)]}),
@@ -3023,6 +3031,8 @@ def km_sequencer(params):
         ("transform.seq_slide", {"type": 'G', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
+         {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
+        ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG', "alt": True},
          {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
@@ -5353,10 +5363,12 @@ def _template_sequencer_preview_select(*, type, value, legacy):
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
         (("center",), ("ctrl",)),
+        (("ignore_connections",), ("alt",)),
         # TODO:
         # (("enumerate",), ("alt",)),
         (("toggle", "center"), ("shift", "ctrl")),
         # (("center", "enumerate"), ("ctrl", "alt")),
+        (("toggle", "ignore_connections"), ("shift", "alt")),
         # (("toggle", "enumerate"), ("shift", "alt")),
         # (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
     )]
@@ -5370,9 +5382,6 @@ def _template_sequencer_timeline_select(*, type, value, legacy):
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
-        (("linked_handle",), ("alt",)),
-        (("linked_handle", "extend"), ("shift", "alt",)),
-
         (("side_of_frame", "linked_time"), ("ctrl",)),
         (("side_of_frame", "linked_time", "extend"), ("ctrl", "shift")),
     )]
@@ -8860,8 +8869,12 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
     return [
         ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "alt": True}, {"properties": [("ignore_connections", True)]}),
         *_template_items_change_frame(params),
-        # Frame change can be canceled if click happens on strip handle. In such case move the handle.
+        # Change frame takes precedence over the sequence slide operator. If a
+        # mouse press happens on a strip handle, it is cancelled, and the sequence
+        # slide below activates instead.
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),
     ]
