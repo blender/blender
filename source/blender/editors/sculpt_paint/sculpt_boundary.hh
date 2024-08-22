@@ -123,7 +123,7 @@ bool vert_is_boundary(BMVert *vert);
 std::unique_ptr<SculptBoundary> data_init(const Depsgraph &depsgraph,
                                           Object &object,
                                           const Brush *brush,
-                                          PBVHVertRef initial_vert,
+                                          int initial_vert,
                                           float radius);
 std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
                                                Object &object,

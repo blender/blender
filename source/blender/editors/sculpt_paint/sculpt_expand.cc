@@ -641,20 +641,19 @@ static Array<float> geodesic_falloff_create(const Depsgraph &depsgraph,
  * Topology: Initializes the falloff using a flood-fill operation,
  * increasing the falloff value by 1 when visiting a new vertex.
  */
-static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
-                                            Object &ob,
-                                            const PBVHVertRef v)
+static void calc_topology_falloff_from_verts(Object &ob,
+                                             const IndexMask &initial_verts,
+                                             MutableSpan<float> distances)
 {
   SculptSession &ss = *ob.sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  Array<float> dists(totvert, 0.0f);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
       flood_fill::FillDataMesh flood(totvert);
-      flood.add_initial_with_symmetry(depsgraph, ob, *ss.pbvh, v.i, FLT_MAX);
+      initial_verts.foreach_index([&](const int vert) { flood.add_and_skip_initial(vert); });
       flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
-        dists[to_vert] = dists[from_vert] + 1.0f;
+        distances[to_vert] = distances[from_vert] + 1.0f;
         return true;
       });
       break;
@@ -663,9 +662,11 @@ static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-      const SubdivCCGCoord orig_coord = SubdivCCGCoord::from_index(key, v.i);
       flood_fill::FillDataGrids flood(totvert);
-      flood.add_initial_with_symmetry(ob, *ss.pbvh, subdiv_ccg, orig_coord, FLT_MAX);
+      initial_verts.foreach_index([&](const int vert) {
+        const SubdivCCGCoord orig_coord = SubdivCCGCoord::from_index(key, vert);
+        flood.add_and_skip_initial(orig_coord, vert);
+      });
       flood.execute(
           ob,
           subdiv_ccg,
@@ -673,29 +674,47 @@ static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
             const int from_vert = from.to_index(key);
             const int to_vert = to.to_index(key);
             if (is_duplicate) {
-              dists[to_vert] = dists[from_vert];
+              distances[to_vert] = distances[from_vert];
             }
             else {
-              dists[to_vert] = dists[from_vert] + 1.0f;
+              distances[to_vert] = distances[from_vert] + 1.0f;
             }
             return true;
           });
       break;
     }
     case bke::pbvh::Type::BMesh: {
+      BMesh &bm = *ss.bm;
       flood_fill::FillDataBMesh flood(totvert);
-      BMVert *orig_vert = reinterpret_cast<BMVert *>(intptr_t(v.i));
-      flood.add_initial_with_symmetry(ob, *ss.pbvh, orig_vert, FLT_MAX);
+      initial_verts.foreach_index(
+          [&](const int vert) { flood.add_and_skip_initial(BM_vert_at_index(&bm, vert), vert); });
       flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
         const int from_vert = BM_elem_index_get(from_bm_vert);
         const int to_vert = BM_elem_index_get(to_bm_vert);
-        dists[to_vert] = dists[from_vert] + 1.0f;
+        distances[to_vert] = distances[from_vert] + 1.0f;
         return true;
       });
       break;
     }
   }
+}
 
+static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
+                                            Object &ob,
+                                            const PBVHVertRef initial_vert)
+{
+  SculptSession &ss = *ob.sculpt;
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      depsgraph,
+      ob,
+      SCULPT_mesh_symmetry_xyz_get(ob),
+      BKE_pbvh_vertex_to_index(*ss.pbvh, initial_vert));
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices(symm_verts.as_span(), memory);
+
+  Array<float> dists(SCULPT_vertex_count_get(ss), 0.0f);
+  calc_topology_falloff_from_verts(ob, mask, dists);
   return dists;
 }
 
@@ -892,58 +911,29 @@ static Array<float> spherical_falloff_create(const Depsgraph &depsgraph,
  */
 static Array<float> boundary_topology_falloff_create(const Depsgraph &depsgraph,
                                                      Object &ob,
-                                                     const PBVHVertRef v)
+                                                     const int inititial_vert)
 {
   SculptSession &ss = *ob.sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
-  Array<float> dists(totvert, 0.0f);
-  BitVector<> visited_verts(totvert);
-  std::queue<int> queue;
 
   const Vector<int> symm_verts = calc_symmetry_vert_indices(
-      depsgraph, ob, SCULPT_mesh_symmetry_xyz_get(ob), BKE_pbvh_vertex_to_index(*ss.pbvh, v));
+      depsgraph, ob, SCULPT_mesh_symmetry_xyz_get(ob), inititial_vert);
 
-  /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
+  BitVector<> boundary_verts(SCULPT_vertex_count_get(ss));
   for (const int vert : symm_verts) {
-
-    const PBVHVertRef symm_vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
-
-    std::unique_ptr<boundary::SculptBoundary> boundary = boundary::data_init(
-        depsgraph, ob, nullptr, symm_vertex, FLT_MAX);
-    if (!boundary) {
-      continue;
-    }
-
-    for (int i = 0; i < boundary->verts.size(); i++) {
-      queue.push(boundary->verts[i]);
-      visited_verts[boundary->verts[i]].set();
-    }
-  }
-
-  /* If there are no boundaries, return a falloff with all values set to 0. */
-  if (queue.empty()) {
-    return dists;
-  }
-
-  /* Propagate the values from the boundaries to the rest of the mesh. */
-  while (!queue.empty()) {
-    int v_next_i = queue.front();
-    queue.pop();
-
-    PBVHVertRef v_next = BKE_pbvh_index_to_vertex(*ss.pbvh, v_next_i);
-
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_next, ni) {
-      if (visited_verts[ni.index]) {
-        continue;
+    if (std::unique_ptr<boundary::SculptBoundary> boundary = boundary::data_init(
+            depsgraph, ob, nullptr, vert, FLT_MAX))
+    {
+      for (const int vert : boundary->verts) {
+        boundary_verts[vert].set();
       }
-      dists[ni.index] = dists[v_next_i] + 1.0f;
-      visited_verts[ni.index].set();
-      queue.push(ni.index);
     }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
+  IndexMaskMemory memory;
+  const IndexMask boundary_mask = IndexMask::from_bits(boundary_verts, memory);
+
+  Array<float> dists(SCULPT_vertex_count_get(ss), 0.0f);
+  calc_topology_falloff_from_verts(ob, boundary_mask, dists);
   return dists;
 }
 
@@ -1162,54 +1152,7 @@ static void topology_from_state_boundary(Object &ob,
   IndexMaskMemory memory;
   const IndexMask boundary_verts = boundary_from_enabled(ob, enabled_verts, false, memory);
 
-  MutableSpan<float> dists = expand_cache.vert_falloff;
-  switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh: {
-      flood_fill::FillDataMesh flood(totvert);
-      boundary_verts.foreach_index([&](const int vert) { flood.add_and_skip_initial(vert); });
-      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
-        dists[to_vert] = dists[from_vert] + 1.0f;
-        return true;
-      });
-      break;
-    }
-    case bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      flood_fill::FillDataGrids flood(totvert);
-      boundary_verts.foreach_index([&](const int vert) {
-        flood.add_and_skip_initial(SubdivCCGCoord::from_index(key, vert), vert);
-      });
-      flood.execute(
-          ob,
-          subdiv_ccg,
-          [&](const SubdivCCGCoord from, const SubdivCCGCoord to, const bool is_duplicate) {
-            const int from_vert = from.to_index(key);
-            const int to_vert = to.to_index(key);
-            if (is_duplicate) {
-              dists[to_vert] = dists[from_vert];
-            }
-            else {
-              dists[to_vert] = dists[from_vert] + 1.0f;
-            }
-            return true;
-          });
-      break;
-    }
-    case bke::pbvh::Type::BMesh: {
-      flood_fill::FillDataBMesh flood(totvert);
-      boundary_verts.foreach_index([&](const int vert) {
-        flood.add_and_skip_initial(BM_vert_at_index(ss.bm, vert), vert);
-      });
-      flood.execute(ob, [&](BMVert *from_bm_vert, BMVert *to_bm_vert) {
-        const int from_vert = BM_elem_index_get(from_bm_vert);
-        const int to_vert = BM_elem_index_get(to_bm_vert);
-        dists[to_vert] = dists[from_vert] + 1.0f;
-        return true;
-      });
-      break;
-    }
-  }
+  calc_topology_falloff_from_verts(ob, boundary_verts, expand_cache.vert_falloff);
 }
 
 /**
@@ -1357,7 +1300,8 @@ static void calc_falloff_from_vert_and_symmetry(const Depsgraph &depsgraph,
       expand_cache.vert_falloff = spherical_falloff_create(depsgraph, ob, v);
       break;
     case FalloffType::BoundaryTopology:
-      expand_cache.vert_falloff = boundary_topology_falloff_create(depsgraph, ob, v);
+      expand_cache.vert_falloff = boundary_topology_falloff_create(
+          depsgraph, ob, BKE_pbvh_vertex_to_index(*ss.pbvh, v));
       break;
     case FalloffType::BoundaryFaceSet:
       init_from_face_set_boundary(
