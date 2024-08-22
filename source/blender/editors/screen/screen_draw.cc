@@ -359,11 +359,8 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
   screen_draw_area_icon(win->eventstate->xy[0], win->eventstate->xy[1], ED_area_icon(sa1));
 }
 
-void screen_draw_dock_preview(const wmWindow *win,
-                              ScrArea *source,
-                              ScrArea *target,
-                              AreaDockTarget dock_target,
-                              float factor)
+void screen_draw_dock_preview(
+    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y)
 {
   if (dock_target == AreaDockTarget::None) {
     return;
@@ -410,7 +407,7 @@ void screen_draw_dock_preview(const wmWindow *win,
 
   UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
 
-  screen_draw_area_icon(win->eventstate->xy[0], win->eventstate->xy[1], ED_area_icon(source));
+  screen_draw_area_icon(x, y, ED_area_icon(source));
 
   if (dock_target != AreaDockTarget::Center) {
     /* Darken the split position itself. */

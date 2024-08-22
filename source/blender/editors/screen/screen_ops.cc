@@ -3558,7 +3558,8 @@ struct sAreaJoinData {
   eScreenAxis split_dir;      /* Direction of split within the source area. */
   AreaDockTarget dock_target; /* Position within target we are pointing to. */
   float factor;               /* dock target size can vary. */
-  int x, y;                   /* Starting mouse position. */
+  int start_x, start_y;       /* Starting mouse position. */
+  int current_x, current_y;   /* Current mouse position. */
   float split_fac;            /* Split factor in split_dir direction. */
   wmWindow *win1;             /* Window of source area. */
   wmWindow *win2;             /* Window of the target area. */
@@ -3584,14 +3585,15 @@ static void area_join_draw_cb(const wmWindow *win, void *userdata)
   }
 }
 
-static void area_join_dock_cb(const wmWindow *win, void *userdata)
+static void area_join_dock_cb(const wmWindow * /*win*/, void *userdata)
 {
   const wmOperator *op = static_cast<wmOperator *>(userdata);
   sAreaJoinData *jd = static_cast<sAreaJoinData *>(op->customdata);
   if (!jd || !jd->sa2 || jd->dir != SCREEN_DIR_NONE || jd->sa1 == jd->sa2) {
     return;
   }
-  screen_draw_dock_preview(win, jd->sa1, jd->sa2, jd->dock_target, jd->factor);
+  screen_draw_dock_preview(
+      jd->sa1, jd->sa2, jd->dock_target, jd->factor, jd->current_x, jd->current_y);
 }
 
 static void area_join_dock_cb_window(sAreaJoinData *jd, wmOperator *op)
@@ -3731,8 +3733,8 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
-    jd->x = sad->x;
-    jd->y = sad->y;
+    jd->start_x = sad->x;
+    jd->start_y = sad->y;
     jd->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), area_join_draw_cb, op);
 
     WM_event_add_modal_handler(C, op);
@@ -3866,6 +3868,9 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   const int x = event->xy[0] + win1_posx - win2_posx - jd->sa2->totrct.xmin;
   const int y = event->xy[1] + win1_posy - win2_posy - jd->sa2->totrct.ymin;
 
+  jd->current_x = x + jd->sa2->totrct.xmin;
+  jd->current_y = y + jd->sa2->totrct.ymin;
+
   const float fac_x = float(x) / float(jd->sa2->winx);
   const float fac_y = float(y) / float(jd->sa2->winy);
   const int min_x = 2 * AREAMINX * UI_SCALE_FAC;
@@ -3994,8 +3999,8 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
 
   if (jd->sa1 == area) {
     jd->sa2 = area;
-    if (!(abs(jd->x - event->xy[0]) > (10 * U.pixelsize) ||
-          abs(jd->y - event->xy[1]) > (10 * U.pixelsize)))
+    if (!(abs(jd->start_x - event->xy[0]) > (10 * U.pixelsize) ||
+          abs(jd->start_y - event->xy[1]) > (10 * U.pixelsize)))
     {
       /* We haven't moved enough to start a split. */
       jd->dir = SCREEN_DIR_NONE;
@@ -4003,8 +4008,9 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
       return;
     }
 
-    jd->split_dir = (abs(event->xy[0] - jd->x) > abs(event->xy[1] - jd->y)) ? SCREEN_AXIS_V :
-                                                                              SCREEN_AXIS_H;
+    jd->split_dir = (abs(event->xy[0] - jd->start_x) > abs(event->xy[1] - jd->start_y)) ?
+                        SCREEN_AXIS_V :
+                        SCREEN_AXIS_H;
     jd->split_fac = area_split_factor(C, jd, event);
     return;
   }
@@ -4104,12 +4110,12 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
                                  true);
 
             const bool large_v = jd->split_dir == SCREEN_AXIS_V &&
-                                 ((jd->x < event->xy[0] && jd->split_fac > 0.5f) ||
-                                  (jd->x > event->xy[0] && jd->split_fac < 0.5f));
+                                 ((jd->start_x < event->xy[0] && jd->split_fac > 0.5f) ||
+                                  (jd->start_x > event->xy[0] && jd->split_fac < 0.5f));
 
             const bool large_h = jd->split_dir == SCREEN_AXIS_H &&
-                                 ((jd->y < event->xy[1] && jd->split_fac > 0.5f) ||
-                                  (jd->y > event->xy[1] && jd->split_fac < 0.5f));
+                                 ((jd->start_y < event->xy[1] && jd->split_fac > 0.5f) ||
+                                  (jd->start_y > event->xy[1] && jd->split_fac < 0.5f));
 
             if (large_v || large_h) {
               /* Swap areas to follow old behavior of new area added based on starting location. If
