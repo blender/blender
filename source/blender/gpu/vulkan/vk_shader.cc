@@ -883,7 +883,11 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
 
   /* Retarget depth from -1..1 to 0..1. This will be done by geometry stage, when geometry shaders
    * are used. */
-  const bool has_geometry_stage = bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD) ||
+  const bool has_geometry_stage = bool(info.builtins_ & (BuiltinBits::BARYCENTRIC_COORD)) ||
+                                  (bool(info.builtins_ & (BuiltinBits::LAYER)) &&
+                                   workarounds.shader_output_layer) ||
+                                  (bool(info.builtins_ & (BuiltinBits::VIEWPORT_INDEX)) &&
+                                   workarounds.shader_output_viewport_index) ||
                                   !info.geometry_source_.is_empty();
   const bool retarget_depth = !has_geometry_stage;
   if (retarget_depth) {
