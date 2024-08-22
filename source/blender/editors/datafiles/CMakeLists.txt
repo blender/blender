@@ -177,7 +177,11 @@ if(WITH_BLENDER)
       anim_data
       antialiased
       append_blend
+      area_dock
       area_join
+      area_join_down
+      area_join_left
+      area_join_up
       area_swap
       armature_data
       arrow_leftright

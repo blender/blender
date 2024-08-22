@@ -3741,7 +3741,26 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_RUNNING_MODAL;
   }
 
-  return OPERATOR_CANCELLED;
+  if (ISMOUSE(event->type)) {
+    if (!area_join_init(C, op, nullptr, nullptr)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+  else if (U.experimental.use_docking) {
+    /* Keyboard shortcut to docking. We just need the active area. */
+    ScrArea *sa1 = CTX_wm_area(C);
+    if (!sa1 || ED_area_is_global(sa1) || !area_join_init(C, op, sa1, nullptr)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+
+  sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+  jd->start_x = event->xy[0];
+  jd->start_y = event->xy[1];
+  jd->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), area_join_draw_cb, op);
+
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 /* Apply the docking of the area. */
@@ -4262,12 +4281,26 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
   /* Join needs two very similar areas. */
   if (sa1 && sa2) {
     eScreenDir dir = area_getorientation(sa1, sa2);
-    if (dir != SCREEN_DIR_NONE) {
+    if (!U.experimental.use_docking && dir != SCREEN_DIR_NONE) {
+      uiItemFullO(layout,
+                  "SCREEN_OT_area_join",
+                  IFACE_("Join Areas"),
+                  ICON_AREA_JOIN,
+                  nullptr,
+                  WM_OP_INVOKE_DEFAULT,
+                  UI_ITEM_NONE,
+                  &ptr);
+      RNA_int_set_array(&ptr, "source_xy", blender::int2{sa2->totrct.xmin, sa2->totrct.ymin});
+      RNA_int_set_array(&ptr, "target_xy", blender::int2{sa1->totrct.xmin, sa1->totrct.ymin});
+
+      uiItemS(layout);
+    }
+    else if (U.experimental.use_docking && dir != SCREEN_DIR_NONE) {
       uiItemFullO(layout,
                   "SCREEN_OT_area_join",
                   (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S)) ? IFACE_("Join Up") :
                                                             IFACE_("Join Right"),
-                  ICON_AREA_JOIN,
+                  ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_UP : ICON_AREA_JOIN,
                   nullptr,
                   WM_OP_EXEC_DEFAULT,
                   UI_ITEM_NONE,
@@ -4275,15 +4308,15 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
       RNA_int_set_array(&ptr, "source_xy", blender::int2{sa2->totrct.xmin, sa2->totrct.ymin});
       RNA_int_set_array(&ptr, "target_xy", blender::int2{sa1->totrct.xmin, sa1->totrct.ymin});
 
-      uiItemFullO(layout,
-                  "SCREEN_OT_area_join",
-                  (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S)) ? IFACE_("Join Down") :
-                                                            IFACE_("Join Left"),
-                  ICON_AREA_JOIN,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
+      uiItemFullO(
+          layout,
+          "SCREEN_OT_area_join",
+          (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S)) ? IFACE_("Join Down") : IFACE_("Join Left"),
+          ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_DOWN : ICON_AREA_JOIN_LEFT,
+          nullptr,
+          WM_OP_EXEC_DEFAULT,
+          UI_ITEM_NONE,
+          &ptr);
       RNA_int_set_array(&ptr, "source_xy", blender::int2{sa1->totrct.xmin, sa1->totrct.ymin});
       RNA_int_set_array(&ptr, "target_xy", blender::int2{sa2->totrct.xmin, sa2->totrct.ymin});
 
@@ -4849,31 +4882,43 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
   /* Mouse position as if in middle of area. */
   const int loc[2] = {BLI_rcti_cent_x(&area->totrct), BLI_rcti_cent_y(&area->totrct)};
 
-  /* Vertical Split */
-  uiItemFullO(layout,
-              "SCREEN_OT_area_split",
-              IFACE_("Vertical Split"),
-              ICON_SPLIT_VERTICAL,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &ptr);
+  if (U.experimental.use_docking) {
+    uiItemFullO(layout,
+                "SCREEN_OT_area_join",
+                IFACE_("Move/Split Area"),
+                ICON_AREA_DOCK,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
+    RNA_int_set_array(&ptr, "source_xy", loc);
+  }
+  else {
+    /* Vertical Split */
+    uiItemFullO(layout,
+                "SCREEN_OT_area_split",
+                IFACE_("Vertical Split"),
+                ICON_SPLIT_VERTICAL,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
 
-  RNA_int_set_array(&ptr, "cursor", loc);
-  RNA_enum_set(&ptr, "direction", SCREEN_AXIS_V);
+    RNA_int_set_array(&ptr, "cursor", loc);
+    RNA_enum_set(&ptr, "direction", SCREEN_AXIS_V);
 
-  /* Horizontal Split */
-  uiItemFullO(layout,
-              "SCREEN_OT_area_split",
-              IFACE_("Horizontal Split"),
-              ICON_SPLIT_HORIZONTAL,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &ptr);
-
-  RNA_int_set_array(&ptr, "cursor", &loc[0]);
-  RNA_enum_set(&ptr, "direction", SCREEN_AXIS_H);
+    /* Horizontal Split */
+    uiItemFullO(layout,
+                "SCREEN_OT_area_split",
+                IFACE_("Horizontal Split"),
+                ICON_SPLIT_HORIZONTAL,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
+    RNA_int_set_array(&ptr, "cursor", &loc[0]);
+    RNA_enum_set(&ptr, "direction", SCREEN_AXIS_H);
+  }
 
   uiItemS(layout);
 
@@ -4896,7 +4941,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
 
   uiItemO(layout, nullptr, ICON_NONE, "SCREEN_OT_area_dupli");
   uiItemS(layout);
-  uiItemO(layout, nullptr, ICON_NONE, "SCREEN_OT_area_close");
+  uiItemO(layout, nullptr, ICON_X, "SCREEN_OT_area_close");
 }
 
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /*arg*/)
