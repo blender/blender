@@ -78,7 +78,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
     output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(0);
+    output[i] = OUTPUT_DATA_TYPE(i == 3 ? 1 : 0);
   }
   update_tex.write(output, uint(params.offset[0]) + uint(xx));
 
@@ -95,7 +95,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
     output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(0);
+    output[i] = OUTPUT_DATA_TYPE(i == 3 ? 1 : 0);
   }
   update_tex.write(output, uint2(params.offset[0], params.offset[1]) + uint2(xx, yy));
 
@@ -115,7 +115,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
     output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(0);
+    output[i] = OUTPUT_DATA_TYPE(i == 3 ? 1 : 0);
   }
   update_tex.write(
       output, uint3(params.offset[0], params.offset[1], params.offset[2]) + uint3(xx, yy, zz));
@@ -133,7 +133,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
     output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(0);
+    output[i] = OUTPUT_DATA_TYPE(i == 3 ? 1 : 0);
   }
   update_tex.write(
       output, uint(params.offset[0]) + uint(xx), uint(params.offset[1]) + uint(layer));
@@ -154,7 +154,7 @@ kernel void compute_texture_update(constant TextureUpdateParams &params [[buffer
     output[i] = OUTPUT_DATA_TYPE(READ_INPUT_DATA(index, i));
   }
   for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
-    output[i] = OUTPUT_DATA_TYPE(0);
+    output[i] = OUTPUT_DATA_TYPE(i == 3 ? 1 : 0);
   }
   update_tex.write(
       output, uint2(params.offset[0], params.offset[1]) + uint2(xx, yy), params.offset[2] + layer);
