@@ -7209,21 +7209,6 @@ void update_shape_keys(Object &object,
   }
 }
 
-void apply_translations_to_pbvh(const Depsgraph &depsgraph,
-                                Object &object,
-                                const Span<int> verts,
-                                const Span<float3> translations)
-{
-  if (!BKE_pbvh_is_deformed(*object.sculpt->pbvh)) {
-    return;
-  }
-  MutableSpan<float3> pbvh_positions = bke::pbvh::vert_positions_eval_for_write(depsgraph, object);
-  for (const int i : verts.index_range()) {
-    const int vert = verts[i];
-    pbvh_positions[vert] += translations[i];
-  }
-}
-
 void write_translations(const Depsgraph &depsgraph,
                         const Sculpt &sd,
                         Object &object,
@@ -7236,7 +7221,11 @@ void write_translations(const Depsgraph &depsgraph,
 
   clip_and_lock_translations(sd, ss, positions_eval, verts, translations);
 
-  apply_translations_to_pbvh(depsgraph, object, verts, translations);
+  MutableSpan<float3> positions_eval_mut = bke::pbvh::vert_positions_eval_for_write(depsgraph,
+                                                                                    object);
+  if (positions_eval_mut.data() != positions_orig.data()) {
+    apply_translations(translations, verts, positions_eval_mut);
+  }
 
   if (!ss.deform_imats.is_empty()) {
     apply_crazyspace_to_translations(ss.deform_imats, verts, translations);

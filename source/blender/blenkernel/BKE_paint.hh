@@ -18,6 +18,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
+#include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_brush_enums.h"
@@ -469,6 +470,13 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::Array<blender::float3, 0> deform_cos;
   /* Crazy-space deformation matrices. */
   blender::Array<blender::float3x3, 0> deform_imats;
+
+  /**
+   * Normals corresponding to the #deform_cos evaluated/deform positions. Stored as a #SharedCache
+   * for consistency with mesh caches in #MeshRuntime::vert_normals_cache.
+   */
+  blender::SharedCache<blender::Vector<blender::float3>> vert_normals_deform;
+  blender::SharedCache<blender::Vector<blender::float3>> face_normals_deform;
 
   /* Pool for texture evaluations. */
   ImagePool *tex_pool = nullptr;

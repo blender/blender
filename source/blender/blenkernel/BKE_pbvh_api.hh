@@ -183,22 +183,8 @@ class Tree {
   /* Memory backing for Node.prim_indices. */
   Array<int> prim_indices_;
 
-  /** Local array used when not sculpting base mesh positions directly. */
-  Array<float3> vert_positions_deformed_;
-  /** Local array used when not sculpting base mesh positions directly. */
-  Array<float3> vert_normals_deformed_;
-  /** Local array used when not sculpting base mesh positions directly. */
-  Array<float3> face_normals_deformed_;
-
-  MutableSpan<float3> vert_positions_;
-  Span<float3> vert_normals_;
-  Span<float3> face_normals_;
-
   /* Grid Data */
   SubdivCCG *subdiv_ccg_ = nullptr;
-
-  /* flag are verts/faces deformed */
-  bool deformed_ = false;
 
   float planes_[6][4];
   int num_planes_;
@@ -261,7 +247,6 @@ namespace blender::bke::pbvh {
  * Do a full rebuild with on Mesh data structure.
  */
 std::unique_ptr<Tree> build_mesh(Mesh *mesh);
-void update_mesh_pointers(Tree &pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -515,7 +500,6 @@ void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_c
 
 void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
                                 blender::Span<blender::float3> vert_positions);
-bool BKE_pbvh_is_deformed(const blender::bke::pbvh::Tree &pbvh);
 
 void BKE_pbvh_node_get_bm_orco_data(blender::bke::pbvh::Node *node,
                                     int (**r_orco_tris)[3],
@@ -530,7 +514,7 @@ namespace blender::bke::pbvh {
  * topology-changing operations. If there are no deform modifiers, this returns the original mesh's
  * vertex positions.
  */
-Span<float3> vert_positions_eval(const Depsgraph &depsgraph, const Object &object);
+Span<float3> vert_positions_eval(const Depsgraph &depsgraph, const Object &object_orig);
 Span<float3> vert_positions_eval_from_eval(const Object &object_eval);
 
 /**
@@ -539,13 +523,13 @@ Span<float3> vert_positions_eval_from_eval(const Object &object_eval);
  * they are used for drawing and we don't run a full dependency graph update whenever they are
  * changed.
  */
-MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Object &object);
+MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Object &object_orig);
 
 /**
  * Return the vertex normals corresponding the the positions from #vert_positions_eval. This may be
  * a reference to the normals cache on the original mesh.
  */
-Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object);
+Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_orig);
 Span<float3> vert_normals_eval_from_eval(const Object &object_eval);
 
 }  // namespace blender::bke::pbvh
