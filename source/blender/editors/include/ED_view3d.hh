@@ -614,9 +614,9 @@ void ED_view3d_win_to_ray(const ARegion *region,
  * In orthographic view the resulting vector will match the view vector.
  * \param rv3d: The region (used for the window width and height).
  * \param coord: The world-space location.
- * \param vec: The resulting normalized vector.
+ * \param r_out: The resulting normalized vector.
  */
-void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], float vec[3]);
+void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], float r_out[3]);
 /**
  * Calculate a 3d location from 2d window coordinates.
  * \param region: The region (used for the window width and height).
