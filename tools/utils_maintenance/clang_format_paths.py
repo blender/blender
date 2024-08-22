@@ -234,8 +234,12 @@ def main() -> int:
     args = argparse_create().parse_args()
 
     use_default_paths = not (bool(args.paths) or bool(args.changed_only))
-
     paths = compute_paths(args.paths, use_default_paths)
+    # Check if user-defined paths exclude all clang-format sources.
+    if args.paths and not paths:
+        print("Skip clang-format: no target to format")
+        return 0
+
     print("Operating on:" + (" ({:d} changed paths)".format(len(paths)) if args.changed_only else ""))
     for p in paths:
         print(" ", p)

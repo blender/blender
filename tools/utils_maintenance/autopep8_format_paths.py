@@ -276,8 +276,12 @@ def main() -> int:
         print("Using \"{:s}\", ({:s})...".format(autopep8_source, version_str_from_tuple(version)))
 
     use_default_paths = not (bool(args.paths) or bool(args.changed_only))
-
     paths = compute_paths(args.paths, use_default_paths)
+    # Check if user-defined paths exclude all Python sources.
+    if args.paths and not paths:
+        print("Skip autopep8: no target to format")
+        return 0
+
     print("Operating on:" + (" ({:d} changed paths)".format(len(paths)) if args.changed_only else ""))
     for p in paths:
         print(" ", p)
