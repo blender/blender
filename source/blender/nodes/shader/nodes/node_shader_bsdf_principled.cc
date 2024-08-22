@@ -166,8 +166,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Amount of anisotropy for specular reflection. "
-          "Higher values give elongated highlights along the tangent direction; "
-          "negative values give highlights shaped perpendicular to the tangent direction");
+          "Higher values give elongated highlights along the tangent direction");
 #define SOCK_ANISOTROPIC_ID 15
   spec.add_input<decl::Float>("Anisotropic Rotation")
       .default_value(0.0f)
