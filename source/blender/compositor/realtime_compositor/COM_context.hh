@@ -81,9 +81,8 @@ class Context {
    * since the region can be zero sized. */
   virtual rcti get_compositing_region() const = 0;
 
-  /* Get the texture where the result of the compositor should be written. This should be called by
-   * the composite output node to get its target texture. */
-  virtual GPUTexture *get_output_texture() = 0;
+  /* Get the result where the result of the compositor should be written. */
+  virtual Result get_output_result() = 0;
 
   /* Get the result where the result of the compositor viewer should be written, given the domain
    * of the result to be viewed and whether the output is a non-color data image. */

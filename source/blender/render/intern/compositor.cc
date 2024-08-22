@@ -154,10 +154,10 @@ class Context : public realtime_compositor::Context {
   /* Input data. */
   ContextInputData input_data_;
 
-  /* Output combined texture. */
-  GPUTexture *output_texture_ = nullptr;
+  /* Output combined result. */
+  realtime_compositor::Result output_result_;
 
-  /* Viewer output texture. */
+  /* Viewer output result. */
   realtime_compositor::Result viewer_output_result_;
 
   /* Cached textures that the compositor took ownership of. */
@@ -167,13 +167,14 @@ class Context : public realtime_compositor::Context {
   Context(const ContextInputData &input_data, TexturePool &texture_pool)
       : realtime_compositor::Context(texture_pool),
         input_data_(input_data),
+        output_result_(this->create_result(realtime_compositor::ResultType::Color)),
         viewer_output_result_(this->create_result(realtime_compositor::ResultType::Color))
   {
   }
 
   virtual ~Context()
   {
-    GPU_TEXTURE_FREE_SAFE(output_texture_);
+    output_result_.release();
     viewer_output_result_.release();
     for (GPUTexture *texture : textures_) {
       GPU_texture_free(texture);
@@ -235,24 +236,24 @@ class Context : public realtime_compositor::Context {
     return render_region;
   }
 
-  GPUTexture *get_output_texture() override
+  realtime_compositor::Result get_output_result() override
   {
-    /* TODO: just a temporary hack, needs to get stored in RenderResult,
-     * once that supports GPU buffers. */
-    if (output_texture_ == nullptr) {
-      const int2 size = get_render_size();
-      output_texture_ = GPU_texture_create_2d(
-          "compositor_output_texture",
-          size.x,
-          size.y,
-          1,
-          get_precision() == realtime_compositor::ResultPrecision::Half ? GPU_RGBA16F :
-                                                                          GPU_RGBA32F,
-          GPU_TEXTURE_USAGE_GENERAL,
-          nullptr);
+    const int2 render_size = get_render_size();
+    if (output_result_.is_allocated()) {
+      /* If the allocated result have the same size as the render size, return it as is. */
+      if (render_size == output_result_.domain().size) {
+        return output_result_;
+      }
+      else {
+        /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
+         * the new render size below. */
+        output_result_.release();
+        output_result_.reset();
+      }
     }
 
-    return output_texture_;
+    output_result_.allocate_texture(render_size, false);
+    return output_result_;
   }
 
   realtime_compositor::Result get_viewer_output_result(realtime_compositor::Domain domain,
@@ -446,7 +447,7 @@ class Context : public realtime_compositor::Context {
 
   void output_to_render_result()
   {
-    if (!output_texture_) {
+    if (!output_result_.is_allocated()) {
       return;
     }
 
@@ -455,18 +456,22 @@ class Context : public realtime_compositor::Context {
 
     if (rr) {
       RenderView *rv = RE_RenderViewGetByName(rr, input_data_.view_name.c_str());
+      ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+      rr->have_combined = true;
 
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      float *output_buffer = (float *)GPU_texture_read(output_texture_, GPU_DATA_FLOAT, 0);
-
-      if (output_buffer) {
-        ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+      if (this->use_gpu()) {
+        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+        float *output_buffer = static_cast<float *>(
+            GPU_texture_read(output_result_, GPU_DATA_FLOAT, 0));
         IMB_assign_float_buffer(ibuf, output_buffer, IB_TAKE_OWNERSHIP);
       }
-
-      /* TODO: z-buffer output. */
-
-      rr->have_combined = true;
+      else {
+        float *data = static_cast<float *>(
+            MEM_malloc_arrayN(rr->rectx * rr->recty, 4 * sizeof(float), __func__));
+        IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
+        std::memcpy(
+            data, output_result_.float_texture(), rr->rectx * rr->recty * 4 * sizeof(float));
+      }
     }
 
     if (re) {
