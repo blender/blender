@@ -1227,7 +1227,12 @@ static int delete_soft(const char *filepath, const char **error_message)
     process_failed = "gio reported failure";
   }
 
+  errno = 0;
   int pid = fork();
+  if (UNLIKELY(pid == -1)) {
+    *error_message = errno ? strerror(errno) : "unable to fork process";
+    return -1;
+  }
 
   if (pid != 0) {
     /* Parent process. */
