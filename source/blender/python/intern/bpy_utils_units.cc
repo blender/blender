@@ -54,6 +54,7 @@ static const char *bpyunits_ucategories_items[] = {
     "TEMPERATURE",
     "WAVELENGTH",
     "COLOR_TEMPERATURE",
+    "FREQUENCY",
     nullptr,
 };
 

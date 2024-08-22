@@ -720,6 +720,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketFloat_subtype_itemf(
                                    PROP_DISTANCE,
                                    PROP_WAVELENGTH,
                                    PROP_COLOR_TEMPERATURE,
+                                   PROP_FREQUENCY,
                                    PROP_NONE},
                                   r_free);
 }
