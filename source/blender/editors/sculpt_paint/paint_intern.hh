@@ -68,11 +68,6 @@ struct StrokeCache;
 }  // namespace ed::sculpt_paint
 }  // namespace blender
 
-struct CoNo {
-  float co[3];
-  float no[3];
-};
-
 /* paint_stroke.cc */
 
 namespace blender::ed::sculpt_paint {
@@ -253,7 +248,8 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot);
 VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph &depsgraph,
                                              Scene &scene,
                                              Object &ob,
-                                             CoNo **r_vcosnos);
+                                             blender::Span<blender::float3> &r_vert_positions,
+                                             blender::Span<blender::float3> &r_vert_normals);
 void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
                                   VertProjHandle *vp_handle,
                                   /* runtime vars */

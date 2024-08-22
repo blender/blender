@@ -30,12 +30,13 @@
 
 /* stored while painting */
 struct VertProjHandle {
-  CoNo *vcosnos;
+  blender::Array<blender::float3> vert_positions;
+  blender::Array<blender::float3> vert_normals;
 
   bool use_update;
 
   /* use for update */
-  float *dists_sq;
+  blender::Array<float> dists_sq;
 
   Object *ob;
   Scene *scene;
@@ -59,17 +60,16 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(void *user_data,
                                                    const float no[3])
 {
   VertProjHandle *vp_handle = static_cast<VertProjHandle *>(user_data);
-  CoNo *co_no = &vp_handle->vcosnos[index];
 
   /* check if we've been here before (normal should not be 0) */
-  if (!is_zero_v3(co_no->no)) {
+  if (!blender::math::is_zero(vp_handle->vert_normals[index])) {
     /* remember that multiple dm verts share the same source vert */
     vp_handle->use_update = true;
     return;
   }
 
-  copy_v3_v3(co_no->co, co);
-  copy_v3_v3(co_no->no, no);
+  vp_handle->vert_positions[index] = co;
+  vp_handle->vert_normals[index] = no;
 }
 
 static void vpaint_proj_dm_map_cosnos_init(Depsgraph &depsgraph,
@@ -81,7 +81,7 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph &depsgraph,
   const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob);
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
-  memset(vp_handle.vcosnos, 0, sizeof(*vp_handle.vcosnos) * mesh->verts_num);
+  vp_handle.vert_normals.fill(blender::float3(0));
   BKE_mesh_foreach_mapped_vert(
       mesh_eval, vpaint_proj_dm_map_cosnos_init__map_cb, &vp_handle, MESH_FOREACH_USE_NORMAL);
 }
@@ -98,8 +98,6 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *user_data,
 {
   VertProjUpdate *vp_update = static_cast<VertProjUpdate *>(user_data);
   VertProjHandle *vp_handle = vp_update->vp_handle;
-
-  CoNo *co_no = &vp_handle->vcosnos[index];
 
   /* find closest vertex */
   {
@@ -125,8 +123,8 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *user_data,
   }
   /* continue with regular functionality */
 
-  copy_v3_v3(co_no->co, co);
-  copy_v3_v3(co_no->no, no);
+  vp_handle->vert_positions[index] = co;
+  vp_handle->vert_normals[index] = no;
 }
 
 static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
@@ -145,7 +143,7 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   /* quick sanity check - we shouldn't have to run this if there are no modifiers */
   BLI_assert(BLI_listbase_is_empty(&ob.modifiers) == false);
 
-  copy_vn_fl(vp_handle->dists_sq, mesh.verts_num, FLT_MAX);
+  vp_handle->dists_sq.fill(FLT_MAX);
   BKE_mesh_foreach_mapped_vert(
       mesh_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
@@ -156,35 +154,32 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
 VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph &depsgraph,
                                              Scene &scene,
                                              Object &ob,
-                                             CoNo **r_vcosnos)
+                                             blender::Span<blender::float3> &r_vert_positions,
+                                             blender::Span<blender::float3> &r_vert_normals)
 {
-  VertProjHandle *vp_handle = static_cast<VertProjHandle *>(
-      MEM_mallocN(sizeof(VertProjHandle), __func__));
+  VertProjHandle *vp_handle = MEM_new<VertProjHandle>(__func__);
   Mesh *mesh = static_cast<Mesh *>(ob.data);
 
   /* setup the handle */
-  vp_handle->vcosnos = static_cast<CoNo *>(
-      MEM_mallocN(sizeof(CoNo) * mesh->verts_num, "vertexcosnos map"));
+  vp_handle->vert_positions.reinitialize(mesh->verts_num);
+  vp_handle->vert_normals.reinitialize(mesh->verts_num);
   vp_handle->use_update = false;
 
   /* sets 'use_update' if needed */
   vpaint_proj_dm_map_cosnos_init(depsgraph, scene, ob, *vp_handle);
 
   if (vp_handle->use_update) {
-    vp_handle->dists_sq = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * mesh->verts_num, __func__));
-
+    vp_handle->dists_sq.reinitialize(mesh->verts_num);
     vp_handle->ob = &ob;
     vp_handle->scene = &scene;
   }
   else {
-    vp_handle->dists_sq = nullptr;
-
     vp_handle->ob = nullptr;
     vp_handle->scene = nullptr;
   }
 
-  *r_vcosnos = vp_handle->vcosnos;
+  r_vert_positions = vp_handle->vert_positions;
+  r_vert_normals = vp_handle->vert_normals;
   return vp_handle;
 }
 
@@ -200,10 +195,5 @@ void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
 
 void ED_vpaint_proj_handle_free(VertProjHandle *vp_handle)
 {
-  if (vp_handle->use_update) {
-    MEM_freeN(vp_handle->dists_sq);
-  }
-
-  MEM_freeN(vp_handle->vcosnos);
-  MEM_freeN(vp_handle);
+  MEM_delete(vp_handle);
 }

@@ -21,6 +21,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -919,7 +920,12 @@ struct VPaintData : public PaintModeData {
   ColorPaint4f paintcol;
 
   VertProjHandle *vp_handle;
-  CoNo *vertexcosnos;
+  /**
+   * Owned by #vp_handle.
+   * \todo Look into replacing this with just using the evaluated/deform positions.
+   */
+  Span<float3> vert_positions;
+  Span<float3> vert_normals;
 
   bool is_texbrush;
 
@@ -975,7 +981,8 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
   /* Create projection handle */
   if (vpd->is_texbrush) {
     ob.sculpt->building_vp_handle = true;
-    vpd->vp_handle = ED_vpaint_proj_handle_create(depsgraph, scene, ob, &vpd->vertexcosnos);
+    vpd->vp_handle = ED_vpaint_proj_handle_create(
+        depsgraph, scene, ob, vpd->vert_positions, vpd->vert_normals);
     ob.sculpt->building_vp_handle = false;
   }
 
@@ -1767,14 +1774,15 @@ static void vpaint_do_draw(const bContext *C,
 
             /* If the active area is being applied for symmetry, flip it
              * across the symmetry axis and rotate it back to the original
-             * position in order to project it. This insures that the
+             * position in order to project it. This ensures that the
              * brush texture will be oriented correctly.
              * This is the method also used in #sculpt_apply_texture(). */
+            float3 position = vpd.vert_positions[vert];
             if (cache.radial_symmetry_pass) {
-              mul_m4_v3(cache.symm_rot_mat_inv.ptr(), vpd.vertexcosnos[vert].co);
+              position = blender::math::transform_point(cache.symm_rot_mat_inv, position);
             }
             const float3 symm_point = blender::ed::sculpt_paint::symmetry_flip(
-                vpd.vertexcosnos[vert].co, cache.mirror_symmetry_pass);
+                position, cache.mirror_symmetry_pass);
 
             tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
           }
