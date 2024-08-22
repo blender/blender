@@ -955,11 +955,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
+        const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         Vector<int> faces_vector;
         for (bke::pbvh::Node *node : nodes) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
-              *ss.pbvh, *node, faces_vector);
+              subdiv_ccg, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_visibility(*node);
           }
@@ -1029,11 +1030,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         restore_face_sets(object, *unode, modified_faces);
       }
       if (use_multires_undo(step_data, ss)) {
+        const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         Vector<int> faces_vector;
         for (bke::pbvh::Node *node : nodes) {
           faces_vector.clear();
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
-              *ss.pbvh, *node, faces_vector);
+              subdiv_ccg, *node, faces_vector);
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_face_sets(*node);
           }
@@ -1346,7 +1348,8 @@ static void fill_node_data(const Depsgraph &depsgraph,
       bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), *node, unode.face_indices);
     }
     else {
-      bke::pbvh::node_face_indices_calc_grids(*ss.pbvh, *node, unode.face_indices);
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      bke::pbvh::node_face_indices_calc_grids(subdiv_ccg, *node, unode.face_indices);
     }
   }
 

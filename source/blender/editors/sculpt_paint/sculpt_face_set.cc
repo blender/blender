@@ -287,7 +287,8 @@ static void face_sets_update(const Depsgraph &depsgraph,
                              const Span<bke::pbvh::Node *> nodes,
                              const FunctionRef<void(Span<int>, MutableSpan<int>)> calc_face_sets)
 {
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
+  SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const Span<int> tri_faces = mesh.corner_tri_faces();
 
@@ -305,7 +306,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
 
       tls.new_face_sets.resize(faces.size());
       MutableSpan<int> new_face_sets = tls.new_face_sets;
@@ -340,7 +341,8 @@ static void clear_face_sets(const Depsgraph &depsgraph,
   if (!attributes.contains(".sculpt_face_set")) {
     return;
   }
-  const bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
+  SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
   const Span<int> tri_faces = mesh.corner_tri_faces();
   const int default_face_set = mesh.face_sets_color_default;
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
@@ -351,7 +353,7 @@ static void clear_face_sets(const Depsgraph &depsgraph,
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, face_indices);
+              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
             return face_sets[face] != default_face_set;
           }))
@@ -825,7 +827,8 @@ static void face_hide_update(const Depsgraph &depsgraph,
                              const Span<bke::pbvh::Node *> nodes,
                              const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
 {
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
+  SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *ss.pbvh;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const Span<int> tri_faces = mesh.corner_tri_faces();
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -845,7 +848,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
 
       tls.new_hide.resize(faces.size());
       MutableSpan<bool> new_hide = tls.new_hide;
@@ -1583,7 +1586,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data,
       const Span<int> node_faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
               bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
 
       bool any_updated = false;
       for (const int face : node_faces) {

@@ -384,7 +384,8 @@ void do_layer_brush(const Depsgraph &depsgraph,
 
       if (displacement.is_empty()) {
         if (ss.cache->layer_displacement_factor.is_empty()) {
-          ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+          ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(object),
+                                                             0.0f);
         }
         displacement = ss.cache->layer_displacement_factor;
       }
@@ -413,7 +414,7 @@ void do_layer_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::Grids: {
       if (ss.cache->layer_displacement_factor.is_empty()) {
-        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(object), 0.0f);
       }
       const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -426,7 +427,7 @@ void do_layer_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       if (ss.cache->layer_displacement_factor.is_empty()) {
-        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(ss), 0.0f);
+        ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(object), 0.0f);
       }
       const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

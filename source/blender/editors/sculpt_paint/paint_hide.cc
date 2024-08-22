@@ -1130,8 +1130,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
 
   Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(pbvh, {});
 
-  const SculptSession &ss = *object.sculpt;
-  int num_verts = SCULPT_vertex_count_get(ss);
+  int num_verts = SCULPT_vertex_count_get(object);
 
   int iterations = RNA_int_get(op->ptr, "iterations");
 

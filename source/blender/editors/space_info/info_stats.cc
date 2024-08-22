@@ -377,8 +377,8 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       stats->tottri = ob->sculpt->bm->totface;
       break;
     case blender::bke::pbvh::Type::Grids:
-      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(*ss->pbvh);
-      stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(*ss->pbvh);
+      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(*ob);
+      stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(*ob);
       break;
   }
 }

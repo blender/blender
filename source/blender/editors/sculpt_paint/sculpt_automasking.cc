@@ -456,10 +456,8 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
 
 int settings_hash(const Object &ob, const Cache &automasking)
 {
-  const SculptSession &ss = *ob.sculpt;
-
   int hash;
-  int totvert = SCULPT_vertex_count_get(ss);
+  int totvert = SCULPT_vertex_count_get(ob);
 
   hash = BLI_hash_int(automasking.settings.flags);
   hash = BLI_hash_int_2d(hash, totvert);
@@ -838,7 +836,7 @@ static void init_face_sets_masking(const Sculpt &sd, Object &ob)
     return;
   }
 
-  int tot_vert = SCULPT_vertex_count_get(ss);
+  int tot_vert = SCULPT_vertex_count_get(ob);
   int active_face_set = face_set::active_face_set_get(ss);
   for (int i : IndexRange(tot_vert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
@@ -860,7 +858,7 @@ static void init_boundary_masking(Object &ob, BoundaryAutomaskMode mode, int pro
 {
   SculptSession &ss = *ob.sculpt;
 
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(ob);
   Array<int> edge_distance(totvert, 0);
 
   for (int i : IndexRange(totvert)) {
@@ -957,7 +955,7 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
                                               eAutomasking_flag mode)
 {
   SculptSession &ss = *ob.sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(ob);
 
   /* No need to build original data since this is only called at the beginning of strokes. */
   for (int i = 0; i < totvert; i++) {
@@ -1100,7 +1098,7 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
    * If it isn't enabled, initialize to 1. */
   const float initial_value = !(mode & BRUSH_AUTOMASKING_TOPOLOGY) ? 1.0f : 0.0f;
 
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(ob);
   for (int i : IndexRange(totvert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
 

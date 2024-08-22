@@ -183,9 +183,6 @@ class Tree {
   /* Memory backing for Node.prim_indices. */
   Array<int> prim_indices_;
 
-  /* Grid Data */
-  SubdivCCG *subdiv_ccg_ = nullptr;
-
   float planes_[6][4];
   int num_planes_;
 
@@ -279,6 +276,7 @@ bool raycast_node(Tree &pbvh,
                   Span<int3> corner_tris,
                   Span<int> corner_tri_faces,
                   Span<bool> hide_poly,
+                  const SubdivCCG *subdiv_ccg,
                   const float ray_start[3],
                   const float ray_normal[3],
                   IsectRayPrecalc *isect_precalc,
@@ -321,6 +319,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               Span<int3> corner_tris,
                               Span<int> corner_tri_faces,
                               Span<bool> hide_poly,
+                              const SubdivCCG *subdiv_ccg,
                               const float ray_start[3],
                               const float ray_normal[3],
                               float *depth,
@@ -358,8 +357,8 @@ int count_grid_quads(const BitGroupVector<> &grid_visibility,
 
 }  // namespace blender::bke::pbvh
 
-int BKE_pbvh_get_grid_num_verts(const blender::bke::pbvh::Tree &pbvh);
-int BKE_pbvh_get_grid_num_faces(const blender::bke::pbvh::Tree &pbvh);
+int BKE_pbvh_get_grid_num_verts(const Object &object);
+int BKE_pbvh_get_grid_num_faces(const Object &object);
 
 enum PBVHTopologyUpdateMode {
   PBVH_Subdivide = 1,
@@ -425,7 +424,9 @@ Span<int> node_face_indices_calc_mesh(Span<int> corner_tri_faces,
  * Gather the indices of all base mesh faces in the node.
  * For convenience, pass a reference to the data in the result.
  */
-Span<int> node_face_indices_calc_grids(const Tree &pbvh, const Node &node, Vector<int> &faces);
+Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
+                                       const Node &node,
+                                       Vector<int> &faces);
 
 Bounds<float3> node_bounds(const Node &node);
 
@@ -496,7 +497,6 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
                                         Span<const Node *> nodes,
                                         IndexMaskMemory &memory);
 }
-void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_ccg);
 
 void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
                                 blender::Span<blender::float3> vert_positions);

@@ -1997,8 +1997,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   BLI_assert(pbvh == ss.pbvh.get());
   UNUSED_VARS_NDEBUG(pbvh);
 
-  BKE_pbvh_subdiv_cgg_set(*ss.pbvh, ss.subdiv_ccg);
-
   sculpt_attribute_update_refs(ob, ss.pbvh->type());
 
   if (ob->type == OB_MESH) {

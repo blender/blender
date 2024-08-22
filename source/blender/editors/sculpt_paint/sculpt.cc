@@ -147,15 +147,17 @@ void SCULPT_vertex_random_access_ensure(SculptSession &ss)
   }
 }
 
-int SCULPT_vertex_count_get(const SculptSession &ss)
+int SCULPT_vertex_count_get(const Object &object)
 {
+  const SculptSession &ss = *object.sculpt;
   switch (ss.pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh:
-      return ss.totvert;
+      BLI_assert(object.type == OB_MESH);
+      return static_cast<const Mesh *>(object.data)->verts_num;
     case blender::bke::pbvh::Type::BMesh:
       return BM_mesh_elem_count(ss.bm, BM_VERT);
     case blender::bke::pbvh::Type::Grids:
-      return BKE_pbvh_get_grid_num_verts(*ss.pbvh);
+      return BKE_pbvh_get_grid_num_verts(object);
   }
 
   return 0;
@@ -2948,6 +2950,8 @@ struct SculptRaycastData {
   Span<int> corner_tri_faces;
   blender::VArraySpan<bool> hide_poly;
 
+  const SubdivCCG *subdiv_ccg;
+
   PBVHVertRef active_vertex;
   float *face_normal;
 
@@ -2968,6 +2972,8 @@ struct SculptFindNearestToRayData {
   Span<blender::int3> corner_tris;
   Span<int> corner_tri_faces;
   blender::VArraySpan<bool> hide_poly;
+
+  const SubdivCCG *subdiv_ccg;
 };
 
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
@@ -3458,7 +3464,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
           (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE))
       {
         BLI_assert(ss.cache->surface_smooth_laplacian_disp.is_empty());
-        ss.cache->surface_smooth_laplacian_disp = Array<float3>(SCULPT_vertex_count_get(ss),
+        ss.cache->surface_smooth_laplacian_disp = Array<float3>(SCULPT_vertex_count_get(ob),
                                                                 float3(0));
       }
     }
@@ -4759,6 +4765,7 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
                               srd.corner_tris,
                               srd.corner_tri_faces,
                               srd.hide_poly,
+                              srd.subdiv_ccg,
                               srd.ray_start,
                               srd.ray_normal,
                               &srd.isect_precalc,
@@ -4805,6 +4812,7 @@ static void sculpt_find_nearest_to_ray_cb(blender::bke::pbvh::Node &node,
                                           srd.corner_tris,
                                           srd.corner_tri_faces,
                                           srd.hide_poly,
+                                          srd.subdiv_ccg,
                                           srd.ray_start,
                                           srd.ray_normal,
                                           &srd.depth,
@@ -4904,6 +4912,10 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     const bke::AttributeAccessor attributes = mesh.attributes();
     srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   }
+  else if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
+    srd.subdiv_ccg = ss.subdiv_ccg;
+  }
+  SCULPT_vertex_random_access_ensure(ss);
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
   srd.depth = depth;
@@ -4929,7 +4941,6 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession. */
   const PBVHVertRef active_vertex = srd.active_vertex;
   ss.set_active_vert(active_vertex);
-  SCULPT_vertex_random_access_ensure(ss);
   copy_v3_v3(out->active_vertex_co, SCULPT_vertex_co_get(*depsgraph, ob, active_vertex));
 
   switch (ss.pbvh->type()) {
@@ -5059,6 +5070,10 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
       const bke::AttributeAccessor attributes = mesh.attributes();
       srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
     }
+    else if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
+      srd.subdiv_ccg = ss.subdiv_ccg;
+    }
+    SCULPT_vertex_random_access_ensure(ss);
     srd.depth = depth;
     srd.original = original;
     srd.face_normal = face_normal;
@@ -5094,6 +5109,9 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     srd.corner_tri_faces = mesh.corner_tri_faces();
     const bke::AttributeAccessor attributes = mesh.attributes();
     srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  }
+  else if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
+    srd.subdiv_ccg = ss.subdiv_ccg;
   }
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
@@ -5788,9 +5806,10 @@ enum {
   SCULPT_TOPOLOGY_ID_DEFAULT,
 };
 
-static void fake_neighbor_init(SculptSession &ss, const float max_dist)
+static void fake_neighbor_init(Object &object, const float max_dist)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
+  SculptSession &ss = *object.sculpt;
+  const int totvert = SCULPT_vertex_count_get(object);
   ss.fake_neighbors.fake_neighbor_index = Array<int>(totvert, FAKE_NEIGHBOR_NONE);
   ss.fake_neighbors.current_max_distance = max_dist;
 }
@@ -6043,7 +6062,7 @@ void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const 
 {
   using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(ob);
 
   /* Fake neighbors were already initialized with the same distance, so no need to be
    * recalculated.
@@ -6055,7 +6074,7 @@ void SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const 
   }
 
   islands::ensure_cache(ob);
-  fake_neighbor_init(ss, max_dist);
+  fake_neighbor_init(ob, max_dist);
   const float max_distance_sq = max_dist * max_dist;
 
   /* NOTE: This algorithm is extremely slow, it has O(n^2) runtime for the entire mesh. This looks
@@ -6127,6 +6146,10 @@ bool SCULPT_vertex_is_occluded(const Object &object, const float3 &position, boo
     srd.corner_tris = mesh.corner_tris();
     srd.corner_tri_faces = mesh.corner_tri_faces();
   }
+  else if (ss.pbvh->type() == bke::pbvh::Type::Grids) {
+    srd.subdiv_ccg = ss.subdiv_ccg;
+  }
+  SCULPT_vertex_random_access_ensure(ss);
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(

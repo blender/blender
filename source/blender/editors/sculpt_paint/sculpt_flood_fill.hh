@@ -83,7 +83,7 @@ struct FillDataBMesh {
 /**
  * \deprecated See the individual FillData constructors instead of this method.
  */
-FillData init_fill(SculptSession &ss);
+FillData init_fill(Object &object);
 
 void add_initial(FillData &flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData &flood, PBVHVertRef vertex);

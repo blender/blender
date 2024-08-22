@@ -2029,11 +2029,12 @@ static void calc_erase_displacement_filter(const Depsgraph &depsgraph,
   });
 }
 
-static void mesh_filter_surface_smooth_init(SculptSession &ss,
+static void mesh_filter_surface_smooth_init(Object &object,
                                             const float shape_preservation,
                                             const float current_vertex_displacement)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
+  SculptSession &ss = *object.sculpt;
+  const int totvert = SCULPT_vertex_count_get(object);
   filter::Cache *filter_cache = ss.filter_cache;
 
   filter_cache->surface_smooth_laplacian_disp.reinitialize(totvert);
@@ -2067,7 +2068,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *ss.pbvh;
   const Span<bke::pbvh::Node *> nodes = filter_cache.nodes;
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(object);
 
   filter_cache.sharpen_smooth_ratio = smooth_ratio;
   filter_cache.sharpen_intensify_detail_strength = intensify_detail_strength;
@@ -2427,7 +2428,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   switch (filter_type) {
     case MeshFilterType::SurfaceSmooth: {
-      mesh_filter_surface_smooth_init(ss,
+      mesh_filter_surface_smooth_init(object,
                                       RNA_float_get(op->ptr, "surface_smooth_shape_preservation"),
                                       RNA_float_get(op->ptr, "surface_smooth_current_vertex"));
       break;
@@ -2442,13 +2443,13 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
       break;
     }
     case MeshFilterType::EnhanceDetails: {
-      ss.filter_cache->detail_directions.reinitialize(SCULPT_vertex_count_get(ss));
+      ss.filter_cache->detail_directions.reinitialize(SCULPT_vertex_count_get(object));
       calc_smooth_translations(
           depsgraph, object, ss.filter_cache->nodes, ss.filter_cache->detail_directions);
       break;
     }
     case MeshFilterType::EraseDispacement: {
-      ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(ss));
+      ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(object));
       calc_limit_surface_positions(object, ss.filter_cache->limit_surface_co);
       break;
     }

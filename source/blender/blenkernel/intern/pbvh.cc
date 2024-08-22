@@ -523,8 +523,6 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
 
-  pbvh->subdiv_ccg_ = subdiv_ccg;
-
   /* Find maximum number of grids per face. */
   int max_grids = 1;
   const OffsetIndices faces = mesh->faces();
@@ -1572,18 +1570,20 @@ Bounds<float3> bounds_get(const Tree &pbvh)
 
 }  // namespace blender::bke::pbvh
 
-int BKE_pbvh_get_grid_num_verts(const blender::bke::pbvh::Tree &pbvh)
+int BKE_pbvh_get_grid_num_verts(const Object &object)
 {
-  BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Grids);
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
-  return pbvh.subdiv_ccg_->grids.size() * key.grid_area;
+  const SculptSession &ss = *object.sculpt;
+  BLI_assert(ss.pbvh->type() == blender::bke::pbvh::Type::Grids);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  return ss.subdiv_ccg->grids.size() * key.grid_area;
 }
 
-int BKE_pbvh_get_grid_num_faces(const blender::bke::pbvh::Tree &pbvh)
+int BKE_pbvh_get_grid_num_faces(const Object &object)
 {
-  BLI_assert(pbvh.type() == blender::bke::pbvh::Type::Grids);
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
-  return pbvh.subdiv_ccg_->grids.size() * square_i(key.grid_size - 1);
+  const SculptSession &ss = *object.sculpt;
+  BLI_assert(ss.pbvh->type() == blender::bke::pbvh::Type::Grids);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  return ss.subdiv_ccg->grids.size() * square_i(key.grid_size - 1);
 }
 
 /***************************** Node Access ***********************************/
@@ -1723,10 +1723,12 @@ Span<int> node_face_indices_calc_mesh(const Span<int> corner_tri_faces,
   return faces.as_span();
 }
 
-Span<int> node_face_indices_calc_grids(const Tree &pbvh, const Node &node, Vector<int> &faces)
+Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
+                                       const Node &node,
+                                       Vector<int> &faces)
 {
   faces.clear();
-  const Span<int> grid_to_face_map = pbvh.subdiv_ccg_->grid_to_face_map;
+  const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
   int prev_face = -1;
   for (const int prim : node.prim_indices_) {
     const int face = grid_to_face_map[prim];
@@ -1994,7 +1996,7 @@ static bool pbvh_faces_node_raycast(const Node &node,
   return hit;
 }
 
-static bool pbvh_grids_node_raycast(Tree &pbvh,
+static bool pbvh_grids_node_raycast(const SubdivCCG &subdiv_ccg,
                                     Node &node,
                                     const float (*origco)[3],
                                     const float ray_start[3],
@@ -2005,13 +2007,13 @@ static bool pbvh_grids_node_raycast(Tree &pbvh,
                                     int *r_active_grid_index,
                                     float *r_face_normal)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const int totgrid = node.prim_indices_.size();
   const int gridsize = key.grid_size;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0};
-  const BitGroupVector<> &grid_hidden = pbvh.subdiv_ccg_->grid_hidden;
-  const Span<CCGElem *> grids = pbvh.subdiv_ccg_->grids;
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
 
   for (int i = 0; i < totgrid; i++) {
     const int grid_index = node.prim_indices_[i];
@@ -2097,6 +2099,7 @@ bool raycast_node(Tree &pbvh,
                   const Span<int3> corner_tris,
                   const Span<int> corner_tri_faces,
                   const Span<bool> hide_poly,
+                  const SubdivCCG *subdiv_ccg,
                   const float ray_start[3],
                   const float ray_normal[3],
                   IsectRayPrecalc *isect_precalc,
@@ -2129,7 +2132,7 @@ bool raycast_node(Tree &pbvh,
                                      face_normal);
       break;
     case Type::Grids:
-      hit |= pbvh_grids_node_raycast(pbvh,
+      hit |= pbvh_grids_node_raycast(*subdiv_ccg,
                                      node,
                                      origco,
                                      ray_start,
@@ -2141,7 +2144,6 @@ bool raycast_node(Tree &pbvh,
                                      face_normal);
       break;
     case Type::BMesh:
-      BM_mesh_elem_index_ensure(pbvh.bm_, BM_VERT);
       hit = bmesh_node_raycast(node,
                                ray_start,
                                ray_normal,
@@ -2331,7 +2333,7 @@ static bool pbvh_faces_node_nearest_to_ray(const Node &node,
   return hit;
 }
 
-static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
+static bool pbvh_grids_node_nearest_to_ray(const SubdivCCG &subdiv_ccg,
                                            Node &node,
                                            const float (*origco)[3],
                                            const float ray_start[3],
@@ -2339,12 +2341,12 @@ static bool pbvh_grids_node_nearest_to_ray(Tree &pbvh,
                                            float *depth,
                                            float *dist_sq)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const int totgrid = node.prim_indices_.size();
   const int gridsize = key.grid_size;
   bool hit = false;
-  const BitGroupVector<> &grid_hidden = pbvh.subdiv_ccg_->grid_hidden;
-  const Span<CCGElem *> grids = pbvh.subdiv_ccg_->grids;
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
 
   for (int i = 0; i < totgrid; i++) {
     CCGElem *grid = grids[node.prim_indices_[i]];
@@ -2401,6 +2403,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
                               const Span<int3> corner_tris,
                               const Span<int> corner_tri_faces,
                               const Span<bool> hide_poly,
+                              const SubdivCCG *subdiv_ccg,
                               const float ray_start[3],
                               const float ray_normal[3],
                               float *depth,
@@ -2428,7 +2431,7 @@ bool find_nearest_to_ray_node(Tree &pbvh,
       break;
     case Type::Grids:
       hit |= pbvh_grids_node_nearest_to_ray(
-          pbvh, node, origco, ray_start, ray_normal, depth, dist_sq);
+          *subdiv_ccg, node, origco, ray_start, ray_normal, depth, dist_sq);
       break;
     case Type::BMesh:
       hit = bmesh_node_nearest_to_ray(node, ray_start, ray_normal, depth, dist_sq, use_origco);
@@ -2532,16 +2535,18 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Object &obje
       args.prim_indices = node.prim_indices_;
       args.tri_faces = mesh_eval.corner_tri_faces();
       break;
-    case blender::bke::pbvh::Type::Grids:
+    case blender::bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *mesh_eval.runtime->subdiv_ccg;
       args.vert_data = &mesh_orig.vert_data;
       args.corner_data = &mesh_orig.corner_data;
       args.face_data = &mesh_orig.face_data;
-      args.ccg_key = BKE_subdiv_ccg_key_top_level(*pbvh.subdiv_ccg_);
+      args.ccg_key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       args.mesh = &mesh_orig;
       args.grid_indices = node.prim_indices_;
-      args.subdiv_ccg = pbvh.subdiv_ccg_;
-      args.grids = pbvh.subdiv_ccg_->grids;
+      args.subdiv_ccg = &const_cast<SubdivCCG &>(subdiv_ccg);
+      args.grids = subdiv_ccg.grids;
       break;
+    }
     case blender::bke::pbvh::Type::BMesh:
       args.bm = pbvh.bm_;
       args.vert_data = &args.bm->vdata;
@@ -2829,11 +2834,6 @@ Span<float3> vert_normals_eval_from_eval(const Object &object_eval)
 }
 
 }  // namespace blender::bke::pbvh
-
-void BKE_pbvh_subdiv_cgg_set(blender::bke::pbvh::Tree &pbvh, SubdivCCG *subdiv_ccg)
-{
-  pbvh.subdiv_ccg_ = subdiv_ccg;
-}
 
 void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
                                        const blender::Span<blender::int3> corner_tris)

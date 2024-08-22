@@ -19,11 +19,12 @@
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-FillData init_fill(SculptSession &ss)
+FillData init_fill(Object &object)
 {
+  SculptSession &ss = *object.sculpt;
   SCULPT_vertex_random_access_ensure(ss);
   FillData data;
-  data.visited_verts.resize(SCULPT_vertex_count_get(ss));
+  data.visited_verts.resize(SCULPT_vertex_count_get(object));
   return data;
 }
 

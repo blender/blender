@@ -482,7 +482,7 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 /** Ensure random access; required for blender::bke::pbvh::Type::BMesh */
 void SCULPT_vertex_random_access_ensure(SculptSession &ss);
 
-int SCULPT_vertex_count_get(const SculptSession &ss);
+int SCULPT_vertex_count_get(const Object &object);
 const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
                                   const Object &object,
                                   PBVHVertRef vertex);

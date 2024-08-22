@@ -495,7 +495,7 @@ static void sculpt_pose_grow_pose_factor(const Depsgraph &depsgraph,
 
   bool grow_next_iteration = true;
   float prev_len = FLT_MAX;
-  Array<float> prev_mask(SCULPT_vertex_count_get(ss));
+  Array<float> prev_mask(SCULPT_vertex_count_get(ob));
   while (grow_next_iteration) {
     prev_mask.as_mutable_span().copy_from(pose_factor);
 
@@ -809,7 +809,7 @@ void calc_pose_data(const Depsgraph &depsgraph,
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
-  flood_fill::FillData flood = flood_fill::init_fill(ss);
+  flood_fill::FillData flood = flood_fill::init_fill(ob);
   flood_fill::add_initial_with_symmetry(
       depsgraph, ob, flood, ss.active_vert_ref(), !r_pose_factor.is_empty() ? radius : 0.0f);
 
@@ -911,7 +911,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &dep
   const float chain_segment_len = radius * (1.0f + brush.pose_offset);
   float3 next_chain_segment_target;
 
-  int totvert = SCULPT_vertex_count_get(ss);
+  int totvert = SCULPT_vertex_count_get(ob);
   PBVHVertRef nearest_vertex = nearest_vert_calc(depsgraph, ob, initial_location, FLT_MAX, true);
   int nearest_vertex_index = BKE_pbvh_vertex_to_index(*ss.pbvh, nearest_vertex);
 
@@ -984,7 +984,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_face_sets(const Depsgraph &de
                                                              const float radius)
 {
 
-  int totvert = SCULPT_vertex_count_get(ss);
+  int totvert = SCULPT_vertex_count_get(ob);
 
   const int tot_segments = pose_brush_num_effective_segments(brush);
   const int symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1003,7 +1003,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_face_sets(const Depsgraph &de
   for (const int i : ik_chain->segments.index_range()) {
     const bool is_first_iteration = i == 0;
 
-    flood_fill::FillData flood = flood_fill::init_fill(ss);
+    flood_fill::FillData flood = flood_fill::init_fill(ob);
     flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, current_vertex, FLT_MAX);
 
     visited_face_sets.add(current_face_set);
@@ -1122,7 +1122,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_face_sets_fk(const Depsgraph 
                                                                 const float radius,
                                                                 const float3 &initial_location)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
+  const int totvert = SCULPT_vertex_count_get(ob);
 
   std::unique_ptr<IKChain> ik_chain = pose_ik_chain_new(1, totvert);
 
@@ -1139,7 +1139,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_face_sets_fk(const Depsgraph 
   int target_face_set = SCULPT_FACE_SET_NONE;
   {
     int masked_face_set_it = 0;
-    flood_fill::FillData flood = flood_fill::init_fill(ss);
+    flood_fill::FillData flood = flood_fill::init_fill(ob);
     flood_fill::add_initial(flood, active_vertex);
     flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
       return pose_face_sets_fk_find_masked_floodfill(ss,
@@ -1199,7 +1199,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_face_sets_fk(const Depsgraph 
   }
 
   {
-    flood_fill::FillData flood = flood_fill::init_fill(ss);
+    flood_fill::FillData flood = flood_fill::init_fill(ob);
     flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, ss.active_vert_ref(), radius);
     MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
     flood_fill::execute(
