@@ -222,14 +222,14 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
+def main() -> int:
     version = clang_format_ensure_version()
     if version is None:
         print("Unable to detect 'clang-format -version'")
-        sys.exit(1)
+        return 1
     if version < VERSION_MIN:
         print("Version of clang-format is too old:", version, "<", VERSION_MIN)
-        sys.exit(1)
+        return 1
 
     args = argparse_create().parse_args()
 
@@ -271,6 +271,8 @@ def main() -> None:
         )
         print()
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

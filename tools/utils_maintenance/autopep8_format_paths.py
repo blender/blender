@@ -235,7 +235,7 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
+def main() -> int:
     args = argparse_create().parse_args()
 
     if args.no_subprocess:
@@ -252,7 +252,7 @@ def main() -> None:
         sys.stderr.write("You may want to install autopep8-{:s}, or use the pre-compiled libs repository.\n".format(
             version_str_from_tuple(VERSION_MAX_RECOMMENDED[0:2]),
         ))
-        sys.exit(1)
+        return 1
 
     autopep8_source, version = source_and_version
 
@@ -262,7 +262,7 @@ def main() -> None:
             version_str_from_tuple(version),
             version_str_from_tuple(VERSION_MIN),
         ))
-        sys.exit(1)
+        return 1
     if version > VERSION_MAX_RECOMMENDED:
         sys.stderr.write("Using \"{:s}\"\nWARNING: the autopep8 version is too recent: {:s} > {:s}.\n".format(
             autopep8_source,
@@ -291,14 +291,15 @@ def main() -> None:
     # Happens when users run "make format" passing in individual C/C++ files
     # (and no Python files).
     if not files:
-        return
+        return 0
 
     if args.no_subprocess:
         autopep8_format_no_subprocess(files)
-        return
+    else:
+        autopep8_format(files)
 
-    autopep8_format(files)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
