@@ -1049,7 +1049,7 @@ static void draw_fcurve_curve_keys(
 
   BezTriple *first_key = &fcu->bezt[index_range.first()];
   rctf key_bounds = {
-      first_key->vec[1][0], first_key->vec[1][1], first_key->vec[1][0], first_key->vec[1][1]};
+      first_key->vec[1][0], first_key->vec[1][0], first_key->vec[1][1], first_key->vec[1][1]};
   /* Used when skipping keys. */
   bool has_skipped_keys = false;
   const float min_pixel_distance = 3.0f;
@@ -1069,7 +1069,7 @@ static void draw_fcurve_curve_keys(
       curve_vertices.append({BLI_rctf_cent_x(&key_bounds), BLI_rctf_cent_y(&key_bounds)});
       has_skipped_keys = false;
       key_bounds = {
-          prevbezt->vec[1][0], prevbezt->vec[1][1], prevbezt->vec[1][0], prevbezt->vec[1][1]};
+          prevbezt->vec[1][0], prevbezt->vec[1][0], prevbezt->vec[1][1], prevbezt->vec[1][1]};
       expand_key_bounds(prevbezt, bezt, key_bounds);
       /* Calculate again based on the new prevbezt. */
       pixel_distance = calculate_pixel_distance(key_bounds, pixels_per_unit);
