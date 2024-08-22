@@ -1,7 +1,7 @@
 name: Python API Documentation
 about: File a bug report for the python API documentation
 labels:
-  - "Type/Report"
+  - "Type/Bug"
   - "Status/Needs Triage"
   - "Priority/Normal"
 body:
