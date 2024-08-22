@@ -78,39 +78,20 @@ static bool sculpt_geodesic_mesh_test_dist_add(Span<float3> vert_positions,
   return false;
 }
 
-Array<float> distances_create(const Depsgraph &depsgraph,
-                              Object &ob,
+Array<float> distances_create(const Span<float3> vert_positions,
+                              const Span<int2> edges,
+                              const OffsetIndices<int> faces,
+                              const Span<int> corner_verts,
+                              const GroupedSpan<int> vert_to_edge_map,
+                              const GroupedSpan<int> edge_to_face_map,
+                              const Span<bool> hide_poly,
                               const Set<int> &initial_verts,
                               const float limit_radius)
 {
-  SculptSession &ss = *ob.sculpt;
-  BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
-  Mesh *mesh = BKE_object_get_original_mesh(&ob);
-
-  const int totvert = mesh->verts_num;
-  const int totedge = mesh->edges_num;
-
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
-  const Span<int2> edges = mesh->edges();
-  const OffsetIndices faces = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
-  const Span<int> corner_edges = mesh->corner_edges();
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-
-  Array<float> dists(totvert);
-  BitVector<> edge_tag(totedge);
-
-  if (ss.edge_to_face_map.is_empty()) {
-    ss.edge_to_face_map = bke::mesh::build_edge_to_face_map(
-        faces, corner_edges, edges.size(), ss.edge_to_face_offsets, ss.edge_to_face_indices);
-  }
-  if (ss.vert_to_edge_map.is_empty()) {
-    ss.vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
-        edges, mesh->verts_num, ss.vert_to_edge_offsets, ss.vert_to_edge_indices);
-  }
+  Array<float> dists(vert_positions.size());
+  BitVector<> edge_tag(edges.size());
 
   /* Both contain edge indices encoded as *void. */
   BLI_LINKSTACK_DECLARE(queue, void *);
@@ -119,7 +100,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
-  for (int i = 0; i < totvert; i++) {
+  for (const int i : edges.index_range()) {
     if (initial_verts.contains(i)) {
       dists[i] = 0.0f;
     }
@@ -130,7 +111,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
 
   /* Masks vertices that are further than limit radius from an initial vertex. As there is no need
    * to define a distance to them the algorithm can stop earlier by skipping them. */
-  BitVector<> affected_vert(totvert);
+  BitVector<> affected_vert(vert_positions.size());
 
   if (limit_radius == FLT_MAX) {
     /* In this case, no need to loop through all initial vertices to check distances as they are
@@ -143,7 +124,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
      * number of vertices (usually just 1 or 2). */
     for (const int v : initial_verts) {
       const float *v_co = vert_positions[v];
-      for (int i = 0; i < totvert; i++) {
+      for (const int i : vert_positions.index_range()) {
         if (len_squared_v3v3(v_co, vert_positions[i]) <= limit_radius_sq) {
           affected_vert[i].set();
         }
@@ -152,7 +133,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
   }
 
   /* Add edges adjacent to an initial vertex to the queue. */
-  for (int i = 0; i < totedge; i++) {
+  for (const int i : edges.index_range()) {
     const int v1 = edges[i][0];
     const int v2 = edges[i][1];
     if (!affected_vert[v1] && !affected_vert[v2]) {
@@ -177,7 +158,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
             vert_positions, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts);
       }
 
-      for (const int face : ss.edge_to_face_map[e]) {
+      for (const int face : edge_to_face_map[e]) {
         if (!hide_poly.is_empty() && hide_poly[face]) {
           continue;
         }
@@ -188,7 +169,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
           if (sculpt_geodesic_mesh_test_dist_add(
                   vert_positions, v_other, v1, v2, dists, initial_verts))
           {
-            for (const int e_other : ss.vert_to_edge_map[v_other]) {
+            for (const int e_other : vert_to_edge_map[v_other]) {
               int ev_other;
               if (edges[e_other][0] == v_other) {
                 ev_other = edges[e_other][1];
@@ -198,7 +179,7 @@ Array<float> distances_create(const Depsgraph &depsgraph,
               }
 
               if (e_other != e && !edge_tag[e_other] &&
-                  (ss.edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
+                  (edge_to_face_map[e_other].is_empty() || dists[ev_other] != FLT_MAX))
               {
                 if (affected_vert[v_other] || affected_vert[ev_other]) {
                   edge_tag[e_other].set();
@@ -224,36 +205,6 @@ Array<float> distances_create(const Depsgraph &depsgraph,
   BLI_LINKSTACK_FREE(queue_next);
 
   return dists;
-}
-
-Array<float> distances_create_from_vert_and_symm(const Depsgraph &depsgraph,
-                                                 Object &ob,
-                                                 const PBVHVertRef vertex,
-                                                 const float limit_radius)
-{
-  SculptSession &ss = *ob.sculpt;
-  Set<int> initial_verts;
-
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  for (char i = 0; i <= symm; ++i) {
-    if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      PBVHVertRef v = {PBVH_REF_NONE};
-
-      if (i == 0) {
-        v = vertex;
-      }
-      else {
-        float3 location = symmetry_flip(SCULPT_vertex_co_get(depsgraph, ob, vertex),
-                                        ePaintSymmetryFlags(i));
-        v = nearest_vert_calc(depsgraph, ob, location, FLT_MAX, false);
-      }
-      if (v.i != PBVH_REF_NONE) {
-        initial_verts.add(BKE_pbvh_vertex_to_index(*ss.pbvh, v));
-      }
-    }
-  }
-
-  return distances_create(depsgraph, ob, initial_verts, limit_radius);
 }
 
 }  // namespace blender::ed::sculpt_paint::geodesic

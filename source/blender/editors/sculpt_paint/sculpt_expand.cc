@@ -29,6 +29,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.hh"
@@ -623,6 +624,7 @@ static Vector<int> calc_symmetry_vert_indices(const Depsgraph &depsgraph,
       break;
     }
   }
+  std::sort(symm_verts.begin(), symm_verts.end());
   return symm_verts;
 }
 
@@ -632,9 +634,55 @@ static Vector<int> calc_symmetry_vert_indices(const Depsgraph &depsgraph,
  */
 static Array<float> geodesic_falloff_create(const Depsgraph &depsgraph,
                                             Object &ob,
-                                            const PBVHVertRef v)
+                                            const IndexMask &initial_verts)
 {
-  return geodesic::distances_create_from_vert_and_symm(depsgraph, ob, v, FLT_MAX);
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
+  const Span<int2> edges = mesh.edges();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> corner_edges = mesh.corner_edges();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+
+  SculptSession &ss = *ob.sculpt;
+  if (ss.edge_to_face_map.is_empty()) {
+    ss.edge_to_face_map = bke::mesh::build_edge_to_face_map(
+        faces, corner_edges, edges.size(), ss.edge_to_face_offsets, ss.edge_to_face_indices);
+  }
+  if (ss.vert_to_edge_map.is_empty()) {
+    ss.vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.verts_num, ss.vert_to_edge_offsets, ss.vert_to_edge_indices);
+  }
+
+  Set<int> verts;
+  initial_verts.foreach_index([&](const int vert) { verts.add(vert); });
+
+  return geodesic::distances_create(vert_positions,
+                                    edges,
+                                    faces,
+                                    corner_verts,
+                                    ss.vert_to_edge_map,
+                                    ss.edge_to_face_map,
+                                    hide_poly,
+                                    verts,
+                                    FLT_MAX);
+}
+static Array<float> geodesic_falloff_create(const Depsgraph &depsgraph,
+                                            Object &ob,
+                                            const PBVHVertRef initial_vert)
+{
+  const SculptSession &ss = *ob.sculpt;
+  const Vector<int> symm_verts = calc_symmetry_vert_indices(
+      depsgraph,
+      ob,
+      SCULPT_mesh_symmetry_xyz_get(ob),
+      BKE_pbvh_vertex_to_index(*ss.pbvh, initial_vert));
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices(symm_verts.as_span(), memory);
+
+  return geodesic_falloff_create(depsgraph, ob, mask);
 }
 
 /**
@@ -1124,12 +1172,10 @@ static void geodesics_from_state_boundary(const Depsgraph &depsgraph,
 
   IndexMaskMemory memory;
   const IndexMask boundary_verts = boundary_from_enabled(ob, enabled_verts, false, memory);
-  Set<int> initial_verts;
-  boundary_verts.foreach_index([&](const int vert) { initial_verts.add(vert); });
 
   expand_cache.face_falloff = {};
 
-  expand_cache.vert_falloff = geodesic::distances_create(depsgraph, ob, initial_verts, FLT_MAX);
+  expand_cache.vert_falloff = geodesic_falloff_create(depsgraph, ob, boundary_verts);
 }
 
 /**
