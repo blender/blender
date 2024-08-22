@@ -745,6 +745,7 @@ static void test_eevee_shadow_finalize()
   ShadowPageCacheBuf pages_cached_data = {"PagesCachedBuf"};
   ShadowPagesInfoDataBuf pages_infos_data = {"PagesInfosBuf"};
   ShadowStatisticsBuf statistics_buf = {"statistics_buf"};
+  ShadowRenderViewBuf render_views_buf = {"render_views_buf"};
   StorageArrayBuffer<ShadowTileMapClip, SHADOW_MAX_TILEMAP, false> tilemaps_clip = {
       "tilemaps_clip"};
 
@@ -859,23 +860,30 @@ static void test_eevee_shadow_finalize()
   render_map_buf.clear_to_zero();
 
   GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_finalize");
-
   PassSimple pass("Test");
   pass.shader_set(sh);
   pass.bind_ssbo("tilemaps_buf", tilemaps_data);
-  pass.bind_ssbo("tilemaps_clip_buf", tilemaps_clip);
   pass.bind_ssbo("tiles_buf", tiles_data);
-  pass.bind_ssbo("view_infos_buf", shadow_multi_view_buf);
-  pass.bind_ssbo("statistics_buf", statistics_buf);
-  pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
-  pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
-  pass.bind_ssbo("dst_coord_buf", dst_coord_buf);
-  pass.bind_ssbo("src_coord_buf", src_coord_buf);
-  pass.bind_ssbo("render_map_buf", render_map_buf);
-  pass.bind_ssbo("viewport_index_buf", viewport_index_buf);
   pass.bind_ssbo("pages_infos_buf", pages_infos_data);
+  pass.bind_ssbo("statistics_buf", statistics_buf);
+  pass.bind_ssbo("view_infos_buf", shadow_multi_view_buf);
+  pass.bind_ssbo("render_view_buf", render_views_buf);
+  pass.bind_ssbo("tilemaps_clip_buf", tilemaps_clip);
   pass.bind_image("tilemaps_img", tilemap_tx);
   pass.dispatch(int3(1, 1, tilemaps_data.size()));
+  pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  GPUShader *sh2 = GPU_shader_create_from_info_name("eevee_shadow_tilemap_rendermap");
+  pass.shader_set(sh2);
+  pass.bind_ssbo("statistics_buf", statistics_buf);
+  pass.bind_ssbo("render_view_buf", render_views_buf);
+  pass.bind_ssbo("tiles_buf", tiles_data);
+  pass.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf);
+  pass.bind_ssbo("tile_draw_buf", tile_draw_buf);
+  pass.bind_ssbo("dst_coord_buf", &dst_coord_buf);
+  pass.bind_ssbo("src_coord_buf", &src_coord_buf);
+  pass.bind_ssbo("render_map_buf", &render_map_buf);
+  pass.dispatch(int3(1, 1, SHADOW_VIEW_MAX));
   pass.barrier(GPU_BARRIER_BUFFER_UPDATE | GPU_BARRIER_TEXTURE_UPDATE);
 
   Manager manager;
@@ -1159,6 +1167,7 @@ static void test_eevee_shadow_finalize()
   EXPECT_EQ(statistics_buf.view_needed_count, 5);
 
   GPU_shader_free(sh);
+  GPU_shader_free(sh2);
   DRW_shaders_free();
   GPU_render_end();
 }
