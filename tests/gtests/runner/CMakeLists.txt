@@ -48,7 +48,7 @@ elseif(APPLE)
   foreach(_lib ${_test_libs})
     # We need -force_load for every test library and target_link_libraries will
     # deduplicate it. So explicitly set as linker option for every test lib.
-    target_link_libraries(blender_test PRIVATE ${_lib} "-Wl,-force_load,$<TARGET_PROPERTY:${_lib},IMPORTED_LOCATION>")
+    target_link_libraries(blender_test PRIVATE "-Wl,-force_load" ${_lib})
   endforeach()
 endif()
 

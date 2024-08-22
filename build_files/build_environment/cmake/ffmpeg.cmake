@@ -118,7 +118,7 @@ if(WIN32)
   else()
     set(FFMPEG_EXTRA_FLAGS
       ${FFMPEG_EXTRA_FLAGS}
-      --arch=x64
+      --arch=x86_64
       --target-os=win32
     )
   endif()
