@@ -60,6 +60,10 @@ static bool lib_id_preview_editing_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "Data-block does not support previews");
     return false;
   }
+  if (!ED_preview_id_is_supported(id)) {
+    CTX_wm_operator_poll_msg_set(C, "Object type does not support previews");
+    return false;
+  }
 
   return true;
 }
