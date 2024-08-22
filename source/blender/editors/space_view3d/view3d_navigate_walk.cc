@@ -35,6 +35,7 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_transform_snap_object_context.hh"
+#include "ED_undo.hh"
 
 #include "UI_resources.hh"
 
@@ -1523,7 +1524,12 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
     do_draw = true;
   }
   if (exit_code == OPERATOR_FINISHED) {
-    ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);
+    const bool is_undo_pushed = ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);
+    /* If generic 'locked camera' code did not push an undo, but there is a valid 'walking
+     * object', an undo push is still needed, since that object transform was modified. */
+    if (!is_undo_pushed && walk_object && ED_undo_is_memfile_compatible(C)) {
+      ED_undo_push(C, op->type->name);
+    }
   }
 
   if (do_draw) {
