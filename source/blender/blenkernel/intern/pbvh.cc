@@ -1065,9 +1065,6 @@ static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
 {
   Vector<Node *> nodes = search_gather(
       pbvh, [&](Node &node) { return update_search(&node, PBVH_UpdateNormals); });
-  if (nodes.is_empty()) {
-    return;
-  }
 
   switch (pbvh.type()) {
     case Type::Mesh: {
@@ -1075,6 +1072,9 @@ static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
       break;
     }
     case Type::Grids: {
+      if (nodes.is_empty()) {
+        return;
+      }
       SculptSession &ss = *object_orig.sculpt;
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       IndexMaskMemory memory;
@@ -1086,6 +1086,9 @@ static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
       break;
     }
     case Type::BMesh: {
+      if (nodes.is_empty()) {
+        return;
+      }
       bmesh_normals_update(nodes);
       break;
     }
