@@ -15,6 +15,7 @@
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
 #include "editors/sculpt_paint/paint_intern.hh"
+#include "editors/sculpt_paint/paint_mask.hh"
 #include "editors/sculpt_paint/sculpt_boundary.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 #include "editors/sculpt_paint/sculpt_smooth.hh"

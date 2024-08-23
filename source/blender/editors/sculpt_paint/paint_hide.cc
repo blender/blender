@@ -6,7 +6,7 @@
  * \ingroup edsculpt
  * Implements the bke::pbvh::Tree node hiding operator.
  */
-#include "sculpt_hide.hh"
+#include "paint_hide.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -54,25 +54,6 @@ namespace blender::ed::sculpt_paint::hide {
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
-
-Span<int> node_visible_verts(const bke::pbvh::Node &node,
-                             const Span<bool> hide_vert,
-                             Vector<int> &indices)
-{
-  if (BKE_pbvh_node_fully_hidden_get(node)) {
-    return {};
-  }
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
-  if (hide_vert.is_empty()) {
-    return verts;
-  }
-  indices.resize(verts.size());
-  const int *end = std::copy_if(verts.begin(), verts.end(), indices.begin(), [&](const int vert) {
-    return !hide_vert[vert];
-  });
-  indices.resize(end - indices.begin());
-  return indices;
-}
 
 void sync_all_from_faces(Object &object)
 {

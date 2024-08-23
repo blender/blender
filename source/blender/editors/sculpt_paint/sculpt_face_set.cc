@@ -53,7 +53,7 @@
 #include "ED_sculpt.hh"
 
 #include "mesh_brush_common.hh"
-#include "paint_intern.hh"
+#include "paint_hide.hh"
 #include "sculpt_boundary.hh"
 #include "sculpt_gesture.hh"
 #include "sculpt_intern.hh"

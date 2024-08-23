@@ -44,7 +44,9 @@
 #include "RNA_define.hh"
 
 #include "curves_sculpt_intern.hh"
+#include "paint_hide.hh"
 #include "paint_intern.hh"
+#include "paint_mask.hh"
 #include "sculpt_intern.hh"
 
 static int brush_scale_size_exec(bContext *C, wmOperator *op)

@@ -31,6 +31,7 @@
 #include "RNA_define.hh"
 
 #include "paint_intern.hh"
+#include "paint_mask.hh"
 #include "sculpt_face_set.hh"
 #include "sculpt_hide.hh"
 #include "sculpt_intern.hh"

@@ -45,6 +45,7 @@
 #include "ED_sculpt.hh"
 
 #include "paint_intern.hh"
+#include "paint_mask.hh"
 #include "sculpt_boundary.hh"
 #include "sculpt_color.hh"
 #include "sculpt_face_set.hh"

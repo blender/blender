@@ -5,6 +5,7 @@
 /** \file
  * \ingroup edsculpt
  */
+#include "paint_mask.hh"
 
 #include <cstdlib>
 

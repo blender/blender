@@ -104,6 +104,7 @@ set(SRC
   sculpt_flood_fill.cc
   sculpt_geodesic.cc
   sculpt_gesture.cc
+  sculpt_hide.cc
   sculpt_mask_init.cc
   sculpt_ops.cc
   sculpt_paint_color.cc

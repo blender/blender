@@ -76,6 +76,7 @@
 #include "ED_undo.hh"
 
 #include "bmesh.hh"
+#include "paint_hide.hh"
 #include "paint_intern.hh"
 #include "sculpt_color.hh"
 #include "sculpt_dyntopo.hh"

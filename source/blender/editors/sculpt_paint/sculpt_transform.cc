@@ -35,6 +35,7 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "paint_mask.hh"
 #include "sculpt_filter.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_undo.hh"
