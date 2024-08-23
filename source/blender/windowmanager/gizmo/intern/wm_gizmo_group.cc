@@ -469,7 +469,7 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
   }
   if (cancel == false) {
     if (mtweak->gz_modal->flag & WM_GIZMO_NEEDS_UNDO) {
-      ED_undo_push(C, "Gizmo");
+      ED_undo_push(C, mtweak->gz_modal->parent_gzgroup->type->name);
     }
   }
   MEM_freeN(mtweak);
