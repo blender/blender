@@ -181,11 +181,24 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
 void VKScheduler::debug_print(const VKRenderGraph &render_graph) const
 {
   std::stringstream ss;
+  int indent = 0;
 
   for (int index : result_.index_range()) {
     const NodeHandle node_handle = result_[index];
     const VKRenderGraphNode &node = render_graph.nodes_[node_handle];
-    ss << node.type << ", ";
+    if (node.type == VKNodeType::END_RENDERING) {
+      indent--;
+    }
+    for (int i = 0; i < indent; i++) {
+      ss << "  ";
+    }
+    ss << node.type << "\n";
+#if 0
+    render_graph.debug_print(node_handle);
+#endif
+    if (node.type == VKNodeType::BEGIN_RENDERING) {
+      indent++;
+    }
   }
   ss << "\n";
 
