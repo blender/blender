@@ -10,6 +10,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_path_util.h"
@@ -74,13 +75,31 @@ static ColorGeometry4f unpack_nano_color(const uint pack)
   return color;
 }
 
+/* Simple approximation of a gradient by a single color. */
+static ColorGeometry4f average_gradient_color(const NSVGgradient &svg_gradient)
+{
+  const Span<NSVGgradientStop> stops = {svg_gradient.stops, svg_gradient.nstops};
+
+  float4 avg_color = float4(0, 0, 0, 0);
+  if (stops.is_empty()) {
+    return ColorGeometry4f(avg_color);
+  }
+
+  for (const int i : stops.index_range()) {
+    avg_color += float4(unpack_nano_color(stops[i].color));
+  }
+  avg_color /= stops.size();
+
+  return ColorGeometry4f(avg_color);
+}
+
 /* TODO Gradients are not yet supported (will output magenta placeholder color).
  * This is because gradients for fill materials in particular can only be defined by materials.
- * Since each path can have a unique gradient it potentially requires a material per curve. Stroke
- * gradients could be baked into vertex colors. */
+ * Since each path can have a unique gradient it potentially requires a material per curve.
+ * Stroke gradients could be baked into vertex colors. */
 static ColorGeometry4f convert_svg_color(const NSVGpaint &svg_paint)
 {
-  switch (svg_paint.type) {
+  switch (NSVGpaintType(svg_paint.type)) {
     case NSVG_PAINT_UNDEF:
       return ColorGeometry4f(1, 0, 1, 1);
     case NSVG_PAINT_NONE:
@@ -88,9 +107,9 @@ static ColorGeometry4f convert_svg_color(const NSVGpaint &svg_paint)
     case NSVG_PAINT_COLOR:
       return unpack_nano_color(svg_paint.color);
     case NSVG_PAINT_LINEAR_GRADIENT:
-      return ColorGeometry4f(0, 0, 0, 1);
+      return average_gradient_color(*svg_paint.gradient);
     case NSVG_PAINT_RADIAL_GRADIENT:
-      return ColorGeometry4f(0, 0, 0, 1);
+      return average_gradient_color(*svg_paint.gradient);
 
     default:
       BLI_assert_unreachable();
@@ -113,8 +132,8 @@ static IndexRange extend_curves_geometry(bke::CurvesGeometry &curves, const NSVG
       continue;
     }
     BLI_assert(path->npts >= 1 && path->npts == int(path->npts / 3) * 3 + 1);
-    /* nanosvg converts everything to bezier curves, points come in triplets. Round up to the next
-     * full integer, since there is one point without handles (3*n+1 points in total). */
+    /* nanosvg converts everything to bezier curves, points come in triplets. Round up to the
+     * next full integer, since there is one point without handles (3*n+1 points in total). */
     const int point_num = (path->npts + 2) / 3;
     new_curve_offsets.append(point_num);
   }
@@ -295,8 +314,11 @@ bool SVGImporter::read(StringRefNull filepath)
   /* Overall scale for SVG coordinates in millimeters. */
   const float svg_scale = 0.001f * scene_unit_scale * params_.scale;
   /* Grease pencil is rotated 90 degrees in X axis by default. */
-  const float4x4 transform = math::scale(math::from_rotation<float4x4>(math::EulerXYZ(-90, 0, 0)),
-                                         float3(svg_scale));
+  const float4x4 transform = math::scale(
+      math::from_rotation<float4x4>(math::EulerXYZ(DEG2RAD(-90), 0, 0)), float3(svg_scale));
+
+  /* True if any shape has a color gradient, which are not fully supported. */
+  bool has_color_gradient = false;
 
   /* Loop all shapes. */
   std::string prv_id = "*";
@@ -336,6 +358,10 @@ bool SVGImporter::read(StringRefNull filepath)
     const StringRefNull mat_name = (is_stroke ? (is_fill ? "Both" : "Stroke") : "Fill");
     const int material_index = create_material(mat_name, is_stroke, is_fill);
 
+    if (ELEM(shape->fill.type, NSVG_PAINT_LINEAR_GRADIENT, NSVG_PAINT_RADIAL_GRADIENT)) {
+      has_color_gradient = true;
+    }
+
     bke::CurvesGeometry &curves = drawing->strokes_for_write();
     const IndexRange new_curves_range = extend_curves_geometry(curves, *shape);
     if (new_curves_range.is_empty()) {
@@ -352,6 +378,12 @@ bool SVGImporter::read(StringRefNull filepath)
   /* Calculate bounding box and move all points to new origin center. */
   if (params_.recenter_bounds) {
     shift_to_bounds_center(grease_pencil);
+  }
+
+  if (has_color_gradient) {
+    BKE_report(context_.reports,
+               RPT_WARNING,
+               "SVG has gradients, Grease Pencil color will be approximated");
   }
 
   return true;
