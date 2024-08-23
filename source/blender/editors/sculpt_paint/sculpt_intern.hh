@@ -260,8 +260,6 @@ struct StrokeCache {
    */
   bool accum;
 
-  float3 anchored_location;
-
   /* Paint Brush. */
   struct {
     float hardness;
@@ -332,8 +330,6 @@ struct StrokeCache {
 
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
-
-  int stroke_id;
 
   ~StrokeCache();
 };

@@ -4412,21 +4412,6 @@ static void brush_delta_update(const Depsgraph &depsgraph,
 
   copy_v3_v3(cache->old_grab_location, grab_location);
 
-  if (tool == SCULPT_TOOL_GRAB) {
-    if (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
-      copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
-    }
-    else {
-      copy_v3_v3(cache->anchored_location, cache->true_location);
-    }
-  }
-  else if (tool == SCULPT_TOOL_ELASTIC_DEFORM || cloth::is_cloth_deform_brush(brush)) {
-    copy_v3_v3(cache->anchored_location, cache->true_location);
-  }
-  else if (tool == SCULPT_TOOL_THUMB) {
-    copy_v3_v3(cache->anchored_location, cache->orig_grab_location);
-  }
-
   if (need_delta_from_anchored_origin(brush)) {
     /* Location stays the same for finding vertices in brush radius. */
     copy_v3_v3(cache->true_location, cache->orig_grab_location);
@@ -4611,8 +4596,6 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
     cache.radius = paint_calc_object_space_radius(
         *cache.vc, cache.true_location, ups.pixel_radius);
     cache.radius_squared = cache.radius * cache.radius;
-
-    copy_v3_v3(cache.anchored_location, cache.true_location);
   }
 
   brush_delta_update(depsgraph, ups, ob, brush);
@@ -4622,7 +4605,6 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
 
     ups.draw_anchored = true;
     copy_v2_v2(ups.anchored_initial_mouse, cache.initial_mouse);
-    copy_v3_v3(cache.anchored_location, cache.true_location);
     ups.anchored_size = ups.pixel_radius;
   }
 
@@ -5445,7 +5427,6 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
     stroke_undo_begin(C, op);
 
     SCULPT_stroke_id_next(ob);
-    ss.cache->stroke_id = ss.stroke_id;
 
     return true;
   }
