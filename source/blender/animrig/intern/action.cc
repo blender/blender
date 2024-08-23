@@ -171,6 +171,7 @@ static void array_shift_range(
   BLI_assert(range_start <= range_end);
   BLI_assert(range_end <= num);
   BLI_assert(to <= num + range_start - range_end);
+  UNUSED_VARS_NDEBUG(num);
 
   if (range_start == range_end || range_start == to) {
     return;
