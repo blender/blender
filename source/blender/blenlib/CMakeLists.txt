@@ -208,6 +208,7 @@ set(SRC
   BLI_compiler_compat.h
   BLI_compiler_typecheck.h
   BLI_compute_context.hh
+  BLI_concurrent_map.hh
   BLI_console.h
   BLI_convexhull_2d.h
   BLI_cpp_type.hh
@@ -322,6 +323,7 @@ set(SRC
   BLI_memiter.h
   BLI_memory_cache.hh
   BLI_memory_counter.hh
+  BLI_memory_counter_fwd.hh
   BLI_memory_utils.h
   BLI_memory_utils.hh
   BLI_mempool.h

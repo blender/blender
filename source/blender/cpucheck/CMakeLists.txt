@@ -5,10 +5,14 @@
 # The cpu check module cannot build with sse42 since it will be executed
 # by cpus that may not support these instructions
 
+set(SRC
+  cpu_check.cc
+)
+
 if(COMPILER_SSE42_FLAG)
   remove_cc_flag("${COMPILER_SSE42_FLAG}")
 endif()
-add_library(blender_cpu_check SHARED cpu_check.cc)
+add_library(blender_cpu_check SHARED ${SRC})
 
 target_link_libraries(blender_cpu_check PRIVATE ${PLATFORM_LINKLIBS})
 target_compile_definitions(blender_cpu_check PUBLIC WITH_CPU_CHECK)

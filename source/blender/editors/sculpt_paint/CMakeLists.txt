@@ -122,7 +122,23 @@ set(SRC
   grease_pencil_weight_paint.hh
   mesh_brush_common.hh
   paint_intern.hh
+  sculpt_automask.hh
+  sculpt_boundary.hh
+  sculpt_cloth.hh
+  sculpt_color.hh
+  sculpt_dyntopo.hh
+  sculpt_expand.hh
+  sculpt_face_set.hh
+  sculpt_filter.hh
+  sculpt_flood_fill.hh
+  sculpt_geodesic.hh
+  sculpt_gesture.hh
+  sculpt_hide.hh
   sculpt_intern.hh
+  sculpt_islands.hh
+  sculpt_pose.hh
+  sculpt_smooth.hh
+  sculpt_undo.hh
 
   brushes/bmesh_topology_rake.cc
   brushes/clay.cc
