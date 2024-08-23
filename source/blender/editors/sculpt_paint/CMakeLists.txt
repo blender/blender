@@ -92,7 +92,6 @@ set(SRC
   sculpt.cc
   sculpt_automasking.cc
   sculpt_boundary.cc
-  sculpt_brush_types.cc
   sculpt_cloth.cc
   sculpt_detail.cc
   sculpt_dyntopo.cc

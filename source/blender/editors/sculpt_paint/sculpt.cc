@@ -808,6 +808,29 @@ bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], 
   return is_in_symmetry_area;
 }
 
+void sculpt_project_v3_normal_align(const SculptSession &ss,
+                                    const float normal_weight,
+                                    float grab_delta[3])
+{
+  /* Signed to support grabbing in (to make a hole) as well as out. */
+  const float len_signed = dot_v3v3(ss.cache->sculpt_normal_symm, grab_delta);
+
+  /* This scale effectively projects the offset so dragging follows the cursor,
+   * as the normal points towards the view, the scale increases. */
+  float len_view_scale;
+  {
+    float view_aligned_normal[3];
+    project_plane_v3_v3v3(
+        view_aligned_normal, ss.cache->sculpt_normal_symm, ss.cache->view_normal);
+    len_view_scale = fabsf(dot_v3v3(view_aligned_normal, ss.cache->sculpt_normal_symm));
+    len_view_scale = (len_view_scale > FLT_EPSILON) ? 1.0f / len_view_scale : 1.0f;
+  }
+
+  mul_v3_fl(grab_delta, 1.0f - normal_weight);
+  madd_v3_v3fl(
+      grab_delta, ss.cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
+}
+
 namespace blender::ed::sculpt_paint {
 
 std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
