@@ -382,6 +382,9 @@ float3 DrawingPlacement::reproject(const float3 pos) const
     if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, false)) {
       proj_point = ray_co + ray_no * lambda;
     }
+    else {
+      return pos;
+    }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
 }
