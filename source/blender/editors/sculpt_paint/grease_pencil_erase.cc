@@ -947,44 +947,20 @@ struct EraseOperationExecutor {
   }
 };
 
-void EraseOperation::on_stroke_begin(const bContext &C, const InputSample &start_sample)
+void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*start_sample*/)
 {
-  Scene *scene = CTX_data_scene(&C);
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
 
   /* If we're using the draw tool to erase (e.g. while holding ctrl), then we should use the
    * eraser brush instead. */
   if (temp_eraser_) {
-    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-    ARegion *region = CTX_wm_region(&C);
-    View3D *view3d = CTX_wm_view3d(&C);
-    RegionView3D *rv3d = CTX_wm_region_view3d(&C);
     Object *object = CTX_data_active_object(&C);
-    Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
 
-    grease_pencil->runtime->temp_use_eraser = true;
-
-    /* When erasing from the draw tool, we need to convert the scene radius to a pixel size if the
-     * brush uses the "scene" radius unit. */
-    if ((brush->flag & BRUSH_LOCK_SIZE) != 0) {
-      const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
-      ed::greasepencil::DrawingPlacement placement = ed::greasepencil::DrawingPlacement(
-          *scene, *region, *view3d, *eval_object, &layer);
-      if (placement.use_project_to_surface()) {
-        placement.cache_viewport_depths(depsgraph, region, view3d);
-      }
-      else if (placement.use_project_to_nearest_stroke()) {
-        placement.cache_viewport_depths(depsgraph, region, view3d);
-        placement.set_origin_to_nearest_stroke(start_sample.mouse_position);
-      }
-
-      const float pixel_size = ED_view3d_pixel_size(
-          rv3d, placement.project(start_sample.mouse_position));
-      radius_ = brush->unprojected_radius / pixel_size;
-    }
+    radius_ = paint->eraser_brush->size;
     grease_pencil->runtime->temp_eraser_size = radius_;
+    grease_pencil->runtime->temp_use_eraser = true;
 
     brush = BKE_paint_eraser_brush(paint);
   }
