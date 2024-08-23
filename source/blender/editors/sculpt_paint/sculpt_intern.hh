@@ -178,8 +178,7 @@ struct StrokeCache {
    */
   float bstrength;
   float normal_weight; /* from brush (with optional override) */
-  float x_tilt;
-  float y_tilt;
+  float2 tilt;
 
   /* Position of the mouse corresponding to the stroke location, modified by the paint_stroke
    * operator according to the stroke type. */
