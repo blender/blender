@@ -750,6 +750,12 @@ PassMain::Sub *DeferredLayer::prepass_add(::Material *blender_mat,
 PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  if (closure_bits == eClosureBits(0)) {
+    /* Fix the case where there is no active closure in the shader.
+     * In this case we force the evaluation of emission to avoid disabling the entire layer by
+     * accident, see #126459. */
+    closure_bits |= CLOSURE_EMISSION;
+  }
   closure_bits_ |= closure_bits;
   closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
 
@@ -1269,6 +1275,12 @@ PassMain::Sub *DeferredProbePipeline::prepass_add(::Material *blender_mat, GPUMa
 PassMain::Sub *DeferredProbePipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  if (closure_bits == eClosureBits(0)) {
+    /* Fix the case where there is no active closure in the shader.
+     * In this case we force the evaluation of emission to avoid disabling the entire layer by
+     * accident, see #126459. */
+    closure_bits |= CLOSURE_EMISSION;
+  }
   opaque_layer_.closure_bits_ |= closure_bits;
   opaque_layer_.closure_count_ = max_ii(opaque_layer_.closure_count_, count_bits_i(closure_bits));
 
@@ -1380,6 +1392,12 @@ PassMain::Sub *PlanarProbePipeline::prepass_add(::Material *blender_mat, GPUMate
 PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  if (closure_bits == eClosureBits(0)) {
+    /* Fix the case where there is no active closure in the shader.
+     * In this case we force the evaluation of emission to avoid disabling the entire layer by
+     * accident, see #126459. */
+    closure_bits |= CLOSURE_EMISSION;
+  }
   closure_bits_ |= closure_bits;
   closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
 
