@@ -58,6 +58,88 @@
 
 namespace blender::draw::pbvh {
 
+static const GPUVertFormat &position_format()
+{
+  static GPUVertFormat format{};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  }
+  return format;
+}
+
+static const GPUVertFormat &normal_format()
+{
+  static GPUVertFormat format{};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  }
+  return format;
+}
+
+static const GPUVertFormat &mask_format()
+{
+  static GPUVertFormat format{};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  }
+  return format;
+}
+
+static const GPUVertFormat &face_set_format()
+{
+  static GPUVertFormat format{};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  }
+  return format;
+}
+
+static GPUVertFormat attribute_format(const PBVH_GPU_Args &args,
+                                      const StringRefNull name,
+                                      const eCustomDataType data_type)
+{
+  GPUVertFormat format = draw::init_format_for_attribute(data_type, "data");
+
+  bool is_render, is_active;
+  const char *prefix = "a";
+
+  if (CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) {
+    prefix = "c";
+    is_active = args.active_color == name;
+    is_render = args.render_color == name;
+  }
+  if (data_type == CD_PROP_FLOAT2) {
+    prefix = "u";
+    is_active = StringRef(CustomData_get_active_layer_name(args.corner_data, data_type)) == name;
+    is_render = StringRef(CustomData_get_render_layer_name(args.corner_data, data_type)) == name;
+  }
+
+  DRW_cdlayer_attr_aliases_add(&format, prefix, data_type, name.c_str(), is_render, is_active);
+  return format;
+}
+
+static GPUVertFormat format_for_request(const PBVH_GPU_Args &args, const AttributeRequest &request)
+{
+  if (const CustomRequest *request_type = std::get_if<CustomRequest>(&request)) {
+    switch (*request_type) {
+      case CustomRequest::Position:
+        return position_format();
+      case CustomRequest::Normal:
+        return normal_format();
+      case CustomRequest::Mask:
+        return mask_format();
+      case CustomRequest::FaceSet:
+        return face_set_format();
+    }
+  }
+  else {
+    const GenericRequest &attr = std::get<GenericRequest>(request);
+    return attribute_format(args, attr.name, attr.type);
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
 static bool pbvh_attr_supported(const AttributeRequest &request)
 {
   if (std::holds_alternative<CustomRequest>(request)) {
@@ -1088,51 +1170,7 @@ void PBVHBatches::update(const PBVH_GPU_Args &args)
 
 int PBVHBatches::create_vbo(const AttributeRequest &request, const PBVH_GPU_Args &args)
 {
-  GPUVertFormat format;
-  GPU_vertformat_clear(&format);
-  if (const CustomRequest *request_type = std::get_if<CustomRequest>(&request)) {
-    switch (*request_type) {
-      case CustomRequest::Position:
-        GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-        break;
-      case CustomRequest::Normal:
-        GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-        break;
-      case CustomRequest::Mask:
-        GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-        break;
-      case CustomRequest::FaceSet:
-        GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-        break;
-    }
-  }
-  else {
-    const GenericRequest &attr = std::get<GenericRequest>(request);
-    const StringRefNull name = attr.name;
-    const bke::AttrDomain domain = attr.domain;
-    const eCustomDataType data_type = attr.type;
-
-    format = draw::init_format_for_attribute(data_type, "data");
-
-    const CustomData *cdata = get_cdata(domain, args);
-
-    bool is_render, is_active;
-    const char *prefix = "a";
-
-    if (CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) {
-      prefix = "c";
-      is_active = StringRef(args.active_color) == name;
-      is_render = StringRef(args.render_color) == name;
-    }
-    if (data_type == CD_PROP_FLOAT2) {
-      prefix = "u";
-      is_active = StringRef(CustomData_get_active_layer_name(cdata, data_type)) == name;
-      is_render = StringRef(CustomData_get_render_layer_name(cdata, data_type)) == name;
-    }
-
-    DRW_cdlayer_attr_aliases_add(&format, prefix, data_type, name.c_str(), is_render, is_active);
-  }
-
+  const GPUVertFormat format = format_for_request(args, request);
   vbos.append_as(request);
   vbos.last().vert_buf = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC);
   switch (args.pbvh_type) {
