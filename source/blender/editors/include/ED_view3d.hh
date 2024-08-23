@@ -184,9 +184,9 @@ void ED_view3d_lastview_store(RegionView3D *rv3d);
 enum eV3DDepthOverrideMode {
   /** Redraw viewport without overlays. */
   V3D_DEPTH_NO_OVERLAYS = 0,
-  /** Redraw viewport without Grease Pencil and Annotations. */
+  /** Redraw viewport without Grease Pencil. */
   V3D_DEPTH_NO_GPENCIL,
-  /** Redraw viewport with Grease Pencil and Annotations only. */
+  /** Redraw viewport with Grease Pencil only. */
   V3D_DEPTH_GPENCIL_ONLY,
   /** Redraw viewport with active object only. */
   V3D_DEPTH_OBJECT_ONLY,
