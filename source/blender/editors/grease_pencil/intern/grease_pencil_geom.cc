@@ -494,7 +494,7 @@ static void generate_cap(const float3 &point,
                          Vector<float3> &r_perimeter,
                          Vector<int> &r_src_indices)
 {
-  const float3 normal = {tangent.y, -tangent.x, 0.0f};
+  const float3 normal = math::normalize(float3{tangent.y, -tangent.x, 0.0f});
   switch (cap_type) {
     case GP_STROKE_CAP_ROUND:
       generate_arc_from_point_to_point(point - normal * radius,
@@ -564,7 +564,7 @@ static void generate_corner(const float3 &pt_a,
 }
 
 static void generate_stroke_perimeter(const Span<float3> all_positions,
-                                      const VArray<float> all_radii,
+                                      const Span<float> all_radii,
                                       const IndexRange points,
                                       const int corner_subdivisions,
                                       const bool is_cyclic,
@@ -701,11 +701,18 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
   const VArray<int> src_material_index = *src_attributes.lookup_or_default(
       "material_index", bke::AttrDomain::Curve, 0);
 
-  /* Transform positions. */
+  /* Transform positions and radii. */
+  const float scale = math::average(math::to_scale(transform));
   Array<float3> transformed_positions(src_positions.size());
+  Array<float> transformed_radii(src_radii.size());
   threading::parallel_for(transformed_positions.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       transformed_positions[i] = math::transform_point(transform, src_positions[i]);
+    }
+  });
+  threading::parallel_for(transformed_radii.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      transformed_radii[i] = src_radii[i] * scale;
     }
   });
 
@@ -725,7 +732,7 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
     const IndexRange points = src_curves.points_by_curve()[curve_i];
 
     generate_stroke_perimeter(transformed_positions,
-                              src_radii,
+                              transformed_radii,
                               points,
                               corner_subdivisions,
                               is_cyclic_curve,
