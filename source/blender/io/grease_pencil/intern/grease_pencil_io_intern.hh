@@ -2,13 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_bounds.hh"
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
-
-#include "DNA_vec_types.h"
 
 #include "grease_pencil_io.hh"
 
@@ -58,20 +57,14 @@ class GreasePencilExporter {
   const IOContext context_;
   const ExportParams params_;
 
-  /* Camera parameters. */
-  float4x4 persmat_;
-  int2 win_size_;
-  int2 render_size_;
-  bool is_camera_;
-  float camera_ratio_;
-  rctf camera_rect_;
-
-  float2 offset_;
+  /* Camera projection matrix, only available with an active camera. */
+  std::optional<float4x4> camera_persmat_;
+  blender::Bounds<float2> render_rect_;
 
  public:
   GreasePencilExporter(const IOContext &context, const ExportParams &params);
 
-  void prepare_camera_params(Scene &scene, int frame_number, bool force_camera_view);
+  void prepare_render_params(Scene &scene, int frame_number);
 
   static ColorGeometry4f compute_average_stroke_color(const Material &material,
                                                       const Span<ColorGeometry4f> vertex_colors);

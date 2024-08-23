@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_bounds.hh"
 #include "BLI_color.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
@@ -32,6 +31,8 @@
 #include "ED_grease_pencil.hh"
 #include "ED_object.hh"
 #include "ED_view3d.hh"
+
+#include "UI_view2d.hh"
 
 #include "grease_pencil_io_intern.hh"
 #include <optional>
@@ -230,13 +231,13 @@ static std::optional<Bounds<float2>> compute_drawing_bounds(
     for (const int point_i : points) {
       const float3 pos_world = math::transform_point(layer_to_world,
                                                      deformation.positions[point_i]);
-      float2 pos_view;
+      float2 screen_co;
       eV3DProjStatus result = ED_view3d_project_float_global(
-          &region, pos_world, pos_view, V3D_PROJ_TEST_NOP);
+          &region, pos_world, screen_co, V3D_PROJ_TEST_NOP);
       if (result == V3D_PROJ_RET_OK) {
         const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, pos_world);
 
-        std::optional<Bounds<float2>> point_bounds = Bounds<float2>(pos_view);
+        std::optional<Bounds<float2>> point_bounds = Bounds<float2>(screen_co);
         point_bounds->pad(pixels);
         drawing_bounds = bounds::merge(drawing_bounds, point_bounds);
       }
@@ -285,67 +286,57 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
   return full_bounds;
 }
 
-void GreasePencilExporter::prepare_camera_params(Scene &scene,
-                                                 const int frame_number,
-                                                 const bool force_camera_view)
+static float4x4 persmat_from_camera_object(Scene &scene)
 {
-  const bool use_camera_view = force_camera_view && (context_.v3d->camera != nullptr);
-
   /* Ensure camera switch is applied. */
   BKE_scene_camera_switch_update(&scene);
 
   /* Calculate camera matrix. */
   Object *cam_ob = scene.camera;
-  if (cam_ob != nullptr) {
-    /* Set up parameters. */
-    CameraParams params;
-    BKE_camera_params_init(&params);
-    BKE_camera_params_from_object(&params, cam_ob);
-
-    /* Compute matrix, view-plane, etc. */
-    BKE_camera_params_compute_viewplane(
-        &params, scene.r.xsch, scene.r.ysch, scene.r.xasp, scene.r.yasp);
-    BKE_camera_params_compute_matrix(&params);
-
-    float4x4 viewmat = math::invert(cam_ob->object_to_world());
-    persmat_ = float4x4(params.winmat) * viewmat;
-  }
-  else {
-    persmat_ = float4x4::identity();
+  if (cam_ob == nullptr) {
+    /* XXX not sure when this could ever happen if v3d camera is not null,
+     * conditions are from GPv2 and not explained anywhere. */
+    return float4x4::identity();
   }
 
-  win_size_ = {context_.region->winx, context_.region->winy};
+  /* Set up parameters. */
+  CameraParams params;
+  BKE_camera_params_init(&params);
+  BKE_camera_params_from_object(&params, cam_ob);
+
+  /* Compute matrix, view-plane, etc. */
+  BKE_camera_params_compute_viewplane(
+      &params, scene.r.xsch, scene.r.ysch, scene.r.xasp, scene.r.yasp);
+  BKE_camera_params_compute_matrix(&params);
+
+  float4x4 viewmat = math::invert(cam_ob->object_to_world());
+  return float4x4(params.winmat) * viewmat;
+}
+
+void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_number)
+{
+  const bool use_camera_view = (context_.rv3d->persp == RV3D_CAMOB) &&
+                               (context_.v3d->camera != nullptr);
 
   /* Camera rectangle. */
-  if ((context_.rv3d->persp == RV3D_CAMOB) || (use_camera_view)) {
-    BKE_render_resolution(&scene.r, false, &render_size_.x, &render_size_.y);
-
+  if (use_camera_view) {
+    rctf camera_rect;
     ED_view3d_calc_camera_border(&scene,
                                  context_.depsgraph,
                                  context_.region,
                                  context_.v3d,
                                  context_.rv3d,
-                                 &camera_rect_,
+                                 &camera_rect,
                                  true);
-    is_camera_ = true;
-    camera_ratio_ = render_size_.x / (camera_rect_.xmax - camera_rect_.xmin);
-    offset_.x = camera_rect_.xmin;
-    offset_.y = camera_rect_.ymin;
+    render_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
+    camera_persmat_ = persmat_from_camera_object(scene);
   }
   else {
-    is_camera_ = false;
-
     Vector<ObjectInfo> objects = this->retrieve_objects();
     std::optional<Bounds<float2>> full_bounds = compute_objects_bounds(
         *context_.region, *context_.rv3d, *context_.depsgraph, objects, frame_number);
-    if (full_bounds) {
-      render_size_ = int2(full_bounds->size());
-      offset_ = full_bounds->min;
-    }
-    else {
-      camera_ratio_ = 1.0f;
-      offset_ = float2(0);
-    }
+    render_rect_ = full_bounds ? *full_bounds : Bounds<float2>{float2(0.0f), float2(0.0f)};
+    camera_persmat_ = std::nullopt;
   }
 }
 
@@ -394,7 +385,7 @@ Vector<GreasePencilExporter::ObjectInfo> GreasePencilExporter::retrieve_objects(
     const float3 position = object->object_to_world().location();
 
     /* Save z-depth from view to sort from back to front. */
-    const bool use_ortho_depth = is_camera_ || !context_.rv3d->is_persp;
+    const bool use_ortho_depth = camera_persmat_ || !context_.rv3d->is_persp;
     const float depth = use_ortho_depth ? math::dot(camera_z_axis, position) :
                                           -ED_view3d_calc_zfac(context_.rv3d, position);
     objects.append({object, depth});
@@ -562,17 +553,26 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
                                                const float3 &position) const
 {
-  float2 screen_co = float2(0.0f);
-  if (ED_view3d_project_float_ex(context_.region,
-                                 const_cast<float(*)[4]>(context_.rv3d->winmat),
-                                 false,
-                                 math::transform_point(transform, position),
-                                 screen_co,
-                                 V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)
-  {
-    return screen_co;
+  const float3 world_pos = math::transform_point(transform, position);
+
+  if (camera_persmat_) {
+    /* Use camera render space. */
+    return (float2(math::project_point(*camera_persmat_, world_pos)) + 1.0f) / 2.0f *
+           float2(render_rect_.size());
   }
-  return float2(0.0f);
+
+  /* Use 3D view screen space. */
+  float2 screen_co;
+  if (ED_view3d_project_float_global(context_.region, world_pos, screen_co, V3D_PROJ_TEST_NOP) ==
+      V3D_PROJ_RET_OK)
+  {
+    if (!ELEM(V2D_IS_CLIPPED, screen_co.x, screen_co.y)) {
+      /* Apply offset and scale. */
+      return screen_co - render_rect_.min;
+    }
+  }
+
+  return float2(V2D_IS_CLIPPED);
 }
 
 }  // namespace blender::io::grease_pencil
