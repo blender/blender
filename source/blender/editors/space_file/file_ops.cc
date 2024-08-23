@@ -3173,14 +3173,13 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   }
 
   if (report_error) {
+    const char *error_prefix = "Could not delete file or directory: ";
+    const char *errno_message = errno ? strerror(errno) : "unknown error";
     if (error_message != nullptr) {
-      BKE_reportf(op->reports, RPT_ERROR, "Could not delete file or directory: %s", error_message);
+      BKE_reportf(op->reports, RPT_ERROR, "%s%s, %s", error_prefix, error_message, errno_message);
     }
     else {
-      BKE_reportf(op->reports,
-                  RPT_ERROR,
-                  "Could not delete file or directory: %s",
-                  errno ? strerror(errno) : "unknown error");
+      BKE_reportf(op->reports, RPT_ERROR, "%s%s", error_prefix, errno_message);
     }
   }
 

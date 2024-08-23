@@ -1227,7 +1227,10 @@ static int delete_soft(const char *filepath, const char **error_message)
     process_failed = "gio reported failure";
   }
 
+  /* Restore when there are no errors. */
+  const int errno_prev = errno;
   errno = 0;
+
   int pid = fork();
   if (UNLIKELY(pid == -1)) {
     *error_message = errno ? strerror(errno) : "unable to fork process";
@@ -1236,11 +1239,11 @@ static int delete_soft(const char *filepath, const char **error_message)
 
   if (pid == 0) {
     /* Child process. */
-    const int status = execvp(args[0], (char **)args);
+    execvp(args[0], (char **)args);
     /* This should only be reached if `execvp` fails and stack isn't replaced. */
 
     /* Use `_exit` instead of `exit` so Blender's `atexit` cleanup functions don't run. */
-    _exit(status);
+    _exit(errno);
     BLI_assert_unreachable();
     return -1;
   }
@@ -1249,19 +1252,29 @@ static int delete_soft(const char *filepath, const char **error_message)
   int wstatus = 0;
   waitpid(pid, &wstatus, 0);
 
+  int result = 0; /* Success. */
   if (WIFEXITED(wstatus)) {
-    if (WEXITSTATUS(wstatus)) {
+    const int errno_child = WEXITSTATUS(wstatus);
+    if (errno_child) {
       *error_message = process_failed;
-      return -1;
+      result = -1;
+
+      /* Forward to the error so the caller may set the message. */
+      errno = errno_child;
     }
   }
   else {
     *error_message =
         "Blender may not support moving files or directories to trash on your system.";
-    return -1;
+    result = -1;
   }
 
-  return 0;
+  if (result == 0) {
+    /* Only overwrite the value if there was an error. */
+    errno = errno_prev;
+  }
+
+  return result;
 }
 #  endif
 
