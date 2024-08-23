@@ -21,9 +21,9 @@ set(INC
   ../../render
   ../../windowmanager
   ../../io/common
+  ../../io/ply
   ../../io/stl
   ../../io/wavefront_obj
-  ../../io/ply
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )

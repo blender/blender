@@ -23,8 +23,8 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/grease_pencil_io_import_svg.cc
   intern/grease_pencil_io.cc
+  intern/grease_pencil_io_import_svg.cc
 
   grease_pencil_io.hh
   intern/grease_pencil_io_intern.hh
