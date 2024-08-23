@@ -636,7 +636,7 @@ void heat_bone_weighting(Object *ob,
                          float (*root)[3],
                          float (*tip)[3],
                          const int *selected,
-                         const char **error_str)
+                         const char **r_error_str)
 {
   using namespace blender;
   LaplacianSystem *sys;
@@ -653,7 +653,7 @@ void heat_bone_weighting(Object *ob,
   bool use_vert_sel = (mesh->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  *error_str = nullptr;
+  *r_error_str = nullptr;
 
   /* bone heat needs triangulated faces */
   tris_num = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
@@ -799,8 +799,8 @@ void heat_bone_weighting(Object *ob,
         }
       }
     }
-    else if (*error_str == nullptr) {
-      *error_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
+    else if (*r_error_str == nullptr) {
+      *r_error_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
       break;
     }
 

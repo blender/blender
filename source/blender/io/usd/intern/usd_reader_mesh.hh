@@ -52,7 +52,7 @@ class USDMeshReader : public USDGeomReader {
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
-                     const char **err_str) override;
+                     const char **r_err_str) override;
 
   bool topology_changed(const Mesh *existing_mesh, double motionSampleTime) override;
 
@@ -87,7 +87,7 @@ class USDMeshReader : public USDGeomReader {
 
   Mesh *read_mesh(struct Mesh *existing_mesh,
                   const USDMeshReadParams params,
-                  const char **err_str);
+                  const char **r_err_str);
 
   void read_custom_data(const ImportSettings *settings,
                         Mesh *mesh,

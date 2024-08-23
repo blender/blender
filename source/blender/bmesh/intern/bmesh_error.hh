@@ -63,7 +63,7 @@ void BMO_error_clear(BMesh *bm);
 
 /* Catches an error raised by the op pointed to by catchop. */
 /* Not yet implemented. */
-// int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, char **msg);
+// int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, char **r_msg);
 
 #define BM_ELEM_INDEX_VALIDATE(_bm, _msg_a, _msg_b) \
   BM_mesh_elem_index_validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)

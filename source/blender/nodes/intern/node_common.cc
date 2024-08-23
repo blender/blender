@@ -121,16 +121,16 @@ int node_group_ui_class(const bNode *node)
 
 bool node_group_poll_instance(const bNode *node,
                               const bNodeTree *nodetree,
-                              const char **disabled_hint)
+                              const char **r_disabled_hint)
 {
-  if (!node->typeinfo->poll(node->typeinfo, nodetree, disabled_hint)) {
+  if (!node->typeinfo->poll(node->typeinfo, nodetree, r_disabled_hint)) {
     return false;
   }
   const bNodeTree *grouptree = reinterpret_cast<const bNodeTree *>(node->id);
   if (!grouptree) {
     return true;
   }
-  return blender::bke::node_group_poll(nodetree, grouptree, disabled_hint);
+  return blender::bke::node_group_poll(nodetree, grouptree, r_disabled_hint);
 }
 
 std::string node_group_ui_description(const bNode &node)

@@ -551,13 +551,13 @@ bool USD_import(const bContext *C,
  * Alembic importer code. */
 static USDPrimReader *get_usd_reader(CacheReader *reader,
                                      const Object * /*ob*/,
-                                     const char **err_str)
+                                     const char **r_err_str)
 {
   USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = RPT_("Invalid object: verify object path");
+    *r_err_str = RPT_("Invalid object: verify object path");
     return nullptr;
   }
 
@@ -576,24 +576,24 @@ void USD_read_geometry(CacheReader *reader,
                        const Object *ob,
                        blender::bke::GeometrySet &geometry_set,
                        const USDMeshReadParams params,
-                       const char **err_str)
+                       const char **r_err_str)
 {
-  USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
+  USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, r_err_str));
 
   if (usd_reader == nullptr) {
     return;
   }
 
-  return usd_reader->read_geometry(geometry_set, params, err_str);
+  return usd_reader->read_geometry(geometry_set, params, r_err_str);
 }
 
 bool USD_mesh_topology_changed(CacheReader *reader,
                                const Object *ob,
                                const Mesh *existing_mesh,
                                const double time,
-                               const char **err_str)
+                               const char **r_err_str)
 {
-  USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
+  USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, r_err_str));
 
   if (usd_reader == nullptr) {
     return false;

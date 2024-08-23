@@ -6404,7 +6404,7 @@ void RNA_parameter_list_end(ParameterIterator * /*iter*/)
   /* nothing to do */
 }
 
-void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value)
+void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **r_value)
 {
   ParameterIterator iter;
 
@@ -6420,20 +6420,20 @@ void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value)
     if (parm->flag & PROP_DYNAMIC) {
       /* for dynamic arrays and strings, data is a pointer to an array */
       ParameterDynAlloc *data_alloc = static_cast<ParameterDynAlloc *>(iter.data);
-      *value = data_alloc->array;
+      *r_value = data_alloc->array;
     }
     else {
-      *value = iter.data;
+      *r_value = iter.data;
     }
   }
   else {
-    *value = nullptr;
+    *r_value = nullptr;
   }
 
   RNA_parameter_list_end(&iter);
 }
 
-void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value)
+void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **r_value)
 {
   PropertyRNA *parm;
 
@@ -6445,7 +6445,7 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
   }
 
   if (parm) {
-    RNA_parameter_get(parms, parm, value);
+    RNA_parameter_get(parms, parm, r_value);
   }
 }
 

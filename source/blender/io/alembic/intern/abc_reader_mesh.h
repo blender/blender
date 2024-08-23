@@ -27,7 +27,7 @@ class AbcMeshReader final : public AbcObjectReader {
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const override;
+                           const char **r_err_str) const override;
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
@@ -35,14 +35,14 @@ class AbcMeshReader final : public AbcObjectReader {
                          int read_flag,
                          const char *velocity_name,
                          float velocity_scale,
-                         const char **err_str);
+                         const char **r_err_str);
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      const Alembic::Abc::ISampleSelector &sample_sel,
                      int read_flag,
                      const char *velocity_name,
                      float velocity_scale,
-                     const char **err_str) override;
+                     const char **r_err_str) override;
 
   bool topology_changed(const Mesh *existing_mesh,
                         const Alembic::Abc::ISampleSelector &sample_sel) override;
@@ -66,7 +66,7 @@ class AbcSubDReader final : public AbcObjectReader {
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const override;
+                           const char **r_err_str) const override;
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 
   void read_geometry(bke::GeometrySet &geometry_set,
@@ -74,7 +74,7 @@ class AbcSubDReader final : public AbcObjectReader {
                      int read_flag,
                      const char *velocity_name,
                      const float velocity_scale,
-                     const char **err_str) override;
+                     const char **r_err_str) override;
 
  private:
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
@@ -82,7 +82,7 @@ class AbcSubDReader final : public AbcObjectReader {
                          int read_flag,
                          const char *velocity_name,
                          const float velocity_scale,
-                         const char **err_str);
+                         const char **r_err_str);
 };
 
 void read_mverts(Mesh &mesh,

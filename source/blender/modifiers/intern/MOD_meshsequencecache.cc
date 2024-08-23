@@ -112,7 +112,7 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
                                              const ModifierEvalContext *ctx,
                                              const Mesh *mesh,
                                              const float time,
-                                             const char **err_str)
+                                             const char **r_err_str)
 {
   if ((ctx->flag & MOD_APPLY_ORCO) == 0) {
     return false;
@@ -123,7 +123,7 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
   switch (cache_file->type) {
     case CACHEFILE_TYPE_ALEMBIC:
 #  ifdef WITH_ALEMBIC
-      if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
+      if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, r_err_str)) {
         return true;
       }
 #  endif
@@ -131,7 +131,7 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
       if (!blender::io::usd::USD_mesh_topology_changed(
-              mcmd->reader, ctx->object, mesh, time, err_str))
+              mcmd->reader, ctx->object, mesh, time, r_err_str))
       {
         return true;
       }

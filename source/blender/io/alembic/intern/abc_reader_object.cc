@@ -145,7 +145,7 @@ void AbcObjectReader::read_geometry(bke::GeometrySet & /*geometry_set*/,
                                     int /*read_flag*/,
                                     const char * /*velocity_name*/,
                                     const float /*velocity_scale*/,
-                                    const char ** /*err_str*/)
+                                    const char ** /*r_err_str*/)
 {
 }
 

@@ -320,17 +320,17 @@ bool AbcCurveReader::valid() const
 bool AbcCurveReader::accepts_object_type(
     const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
     const Object *const ob,
-    const char **err_str) const
+    const char **r_err_str) const
 {
   if (!Alembic::AbcGeom::ICurves::matches(alembic_header)) {
-    *err_str = RPT_(
+    *r_err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to Curves when importing, but not "
         "anymore.");
     return false;
   }
 
   if (ob->type != OB_CURVES) {
-    *err_str = RPT_("Object type mismatch, Alembic object path points to Curves.");
+    *r_err_str = RPT_("Object type mismatch, Alembic object path points to Curves.");
     return false;
   }
 
@@ -484,7 +484,7 @@ void AbcCurveReader::read_geometry(bke::GeometrySet &geometry_set,
                                    int /*read_flag*/,
                                    const char * /*velocity_name*/,
                                    const float /*velocity_scale*/,
-                                   const char ** /*err_str*/)
+                                   const char ** /*r_err_str*/)
 {
   Curves *curves = geometry_set.get_curves_for_write();
 

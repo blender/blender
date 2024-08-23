@@ -115,7 +115,7 @@ int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
  *
  * \return zero on success (matching 'remove' behavior).
  */
-int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
+int BLI_delete_soft(const char *filepath, const char **r_error_message) ATTR_NONNULL();
 #if 0 /* Unused */
 int BLI_create_symlink(const char *path, const char *path_dst) ATTR_NONNULL();
 #endif

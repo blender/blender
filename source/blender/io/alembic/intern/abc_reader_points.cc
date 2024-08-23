@@ -41,17 +41,17 @@ bool AbcPointsReader::valid() const
 bool AbcPointsReader::accepts_object_type(
     const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
     const Object *const ob,
-    const char **err_str) const
+    const char **r_err_str) const
 {
   if (!Alembic::AbcGeom::IPoints::matches(alembic_header)) {
-    *err_str = RPT_(
+    *r_err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to Points when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_POINTCLOUD) {
-    *err_str = RPT_("Object type mismatch, Alembic object path points to Points.");
+    *r_err_str = RPT_("Object type mismatch, Alembic object path points to Points.");
     return false;
   }
 
@@ -119,7 +119,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
                                     int /*read_flag*/,
                                     const char *velocity_name,
                                     const float velocity_scale,
-                                    const char **err_str)
+                                    const char **r_err_str)
 {
   BLI_assert(geometry_set.has_pointcloud());
 
@@ -128,7 +128,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = RPT_("Error reading points sample; more detail on the console");
+    *r_err_str = RPT_("Error reading points sample; more detail on the console");
     printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_schema.getName().c_str(),

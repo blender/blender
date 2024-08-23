@@ -137,14 +137,14 @@ void ABC_read_geometry(CacheReader *reader,
                        Object *ob,
                        blender::bke::GeometrySet &geometry_set,
                        const ABCReadParams *params,
-                       const char **err_str);
+                       const char **r_err_str);
 #endif
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
                                const struct Mesh *existing_mesh,
                                double time,
-                               const char **err_str);
+                               const char **r_err_str);
 
 void ABC_CacheReader_incref(struct CacheReader *reader);
 void ABC_CacheReader_free(struct CacheReader *reader);

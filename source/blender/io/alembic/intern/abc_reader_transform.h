@@ -27,7 +27,7 @@ class AbcEmptyReader final : public AbcObjectReader {
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const override;
+                           const char **r_err_str) const override;
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 };

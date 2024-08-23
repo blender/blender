@@ -1275,19 +1275,19 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
  *
  * **************************** */
 
-size_t BKE_libblock_get_alloc_info(short type, const char **name)
+size_t BKE_libblock_get_alloc_info(short type, const char **r_name)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(type);
 
   if (id_type == nullptr) {
-    if (name != nullptr) {
-      *name = nullptr;
+    if (r_name != nullptr) {
+      *r_name = nullptr;
     }
     return 0;
   }
 
-  if (name != nullptr) {
-    *name = id_type->name;
+  if (r_name != nullptr) {
+    *r_name = id_type->name;
   }
   return id_type->struct_size;
 }

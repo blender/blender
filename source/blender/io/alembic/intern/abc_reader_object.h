@@ -143,7 +143,7 @@ class AbcObjectReader {
   virtual bool valid() const = 0;
   virtual bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                                    const Object *const ob,
-                                   const char **err_str) const = 0;
+                                   const char **r_err_str) const = 0;
 
   virtual void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) = 0;
 
@@ -152,7 +152,7 @@ class AbcObjectReader {
                              int read_flag,
                              const char *velocity_name,
                              float velocity_scale,
-                             const char **err_str);
+                             const char **r_err_str);
 
   virtual bool topology_changed(const Mesh *existing_mesh,
                                 const Alembic::Abc::ISampleSelector &sample_sel);

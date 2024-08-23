@@ -39,31 +39,34 @@
 
 #include <cstring>
 
-bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const char **error_str)
+bool SEQ_edit_sequence_swap(Scene *scene,
+                            Sequence *seq_a,
+                            Sequence *seq_b,
+                            const char **r_error_str)
 {
   char name[sizeof(seq_a->name)];
 
   if (SEQ_time_strip_length_get(scene, seq_a) != SEQ_time_strip_length_get(scene, seq_b)) {
-    *error_str = N_("Strips must be the same length");
+    *r_error_str = N_("Strips must be the same length");
     return false;
   }
 
   /* type checking, could be more advanced but disallow sound vs non-sound copy */
   if (seq_a->type != seq_b->type) {
     if (seq_a->type == SEQ_TYPE_SOUND_RAM || seq_b->type == SEQ_TYPE_SOUND_RAM) {
-      *error_str = N_("Strips were not compatible");
+      *r_error_str = N_("Strips were not compatible");
       return false;
     }
 
     /* disallow effects to swap with non-effects strips */
     if ((seq_a->type & SEQ_TYPE_EFFECT) != (seq_b->type & SEQ_TYPE_EFFECT)) {
-      *error_str = N_("Strips were not compatible");
+      *r_error_str = N_("Strips were not compatible");
       return false;
     }
 
     if ((seq_a->type & SEQ_TYPE_EFFECT) && (seq_b->type & SEQ_TYPE_EFFECT)) {
       if (SEQ_effect_get_num_inputs(seq_a->type) != SEQ_effect_get_num_inputs(seq_b->type)) {
-        *error_str = N_("Strips must have the same number of inputs");
+        *r_error_str = N_("Strips must have the same number of inputs");
         return false;
       }
     }
@@ -211,34 +214,34 @@ bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
 bool SEQ_edit_move_strip_to_meta(Scene *scene,
                                  Sequence *src_seq,
                                  Sequence *dst_seqm,
-                                 const char **error_str)
+                                 const char **r_error_str)
 {
   /* Find the appropriate seqbase */
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, src_seq);
 
   if (dst_seqm->type != SEQ_TYPE_META) {
-    *error_str = N_("Cannot move strip to non-meta strip");
+    *r_error_str = N_("Cannot move strip to non-meta strip");
     return false;
   }
 
   if (src_seq == dst_seqm) {
-    *error_str = N_("Strip cannot be moved into itself");
+    *r_error_str = N_("Strip cannot be moved into itself");
     return false;
   }
 
   if (seqbase == &dst_seqm->seqbase) {
-    *error_str = N_("Moved strip is already inside provided meta strip");
+    *r_error_str = N_("Moved strip is already inside provided meta strip");
     return false;
   }
 
   if (src_seq->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(dst_seqm, &src_seq->seqbase)) {
-    *error_str = N_("Moved strip is parent of provided meta strip");
+    *r_error_str = N_("Moved strip is parent of provided meta strip");
     return false;
   }
 
   if (!SEQ_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
-    *error_str = N_("Cannot move strip to different scene");
+    *r_error_str = N_("Cannot move strip to different scene");
     return false;
   }
 

@@ -322,7 +322,7 @@ void USDCurvesReader::read_custom_data(bke::CurvesGeometry &curves,
 
 void USDCurvesReader::read_geometry(bke::GeometrySet &geometry_set,
                                     const USDMeshReadParams params,
-                                    const char ** /*err_str*/)
+                                    const char ** /*r_err_str*/)
 {
   if (!curve_prim_) {
     return;

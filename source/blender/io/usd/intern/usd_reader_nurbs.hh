@@ -41,10 +41,10 @@ class USDNurbsReader : public USDGeomReader {
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
-                     const char **err_str) override;
+                     const char **r_err_str) override;
 
  private:
-  Mesh *read_mesh(struct Mesh *existing_mesh, USDMeshReadParams params, const char **err_str);
+  Mesh *read_mesh(struct Mesh *existing_mesh, USDMeshReadParams params, const char **r_err_str);
 };
 
 }  // namespace blender::io::usd

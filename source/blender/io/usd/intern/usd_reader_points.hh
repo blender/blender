@@ -37,7 +37,7 @@ class USDPointsReader : public USDGeomReader {
    * to update animated geometry. */
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
-                     const char **err_str) override;
+                     const char **r_err_str) override;
 
   void read_velocities(PointCloud *point_cloud, const double motionSampleTime) const;
   void read_custom_data(PointCloud *point_cloud, const double motionSampleTime) const;

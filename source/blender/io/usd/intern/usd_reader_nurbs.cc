@@ -168,16 +168,16 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
 void USDNurbsReader::read_geometry(bke::GeometrySet &geometry_set,
                                    const USDMeshReadParams params,
-                                   const char **err_str)
+                                   const char **r_err_str)
 {
   BLI_assert(geometry_set.has_mesh());
-  Mesh *new_mesh = read_mesh(nullptr, params, err_str);
+  Mesh *new_mesh = read_mesh(nullptr, params, r_err_str);
   geometry_set.replace_mesh(new_mesh);
 }
 
 Mesh *USDNurbsReader::read_mesh(Mesh * /*existing_mesh*/,
                                 const USDMeshReadParams params,
-                                const char ** /*err_str*/)
+                                const char ** /*r_err_str*/)
 {
   pxr::UsdGeomCurves curve_prim(prim_);
 

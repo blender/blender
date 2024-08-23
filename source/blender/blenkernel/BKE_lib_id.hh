@@ -50,9 +50,9 @@ struct PropertyRNA;
 struct bContext;
 
 /**
- * Get allocation size of a given data-block type and optionally allocation name.
+ * Get allocation size of a given data-block type and optionally allocation `r_name`.
  */
-size_t BKE_libblock_get_alloc_info(short type, const char **name);
+size_t BKE_libblock_get_alloc_info(short type, const char **r_name);
 /**
  * Allocates and returns memory of the right size for the specified block type,
  * initialized to zero.

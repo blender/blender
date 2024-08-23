@@ -74,7 +74,7 @@ void USDPointsReader::read_object_data(Main *bmain, double motionSampleTime)
 
 void USDPointsReader::read_geometry(bke::GeometrySet &geometry_set,
                                     USDMeshReadParams params,
-                                    const char ** /*err_str*/)
+                                    const char ** /*r_err_str*/)
 {
   if (!points_prim_) {
     /* Invalid prim, so we pass. */

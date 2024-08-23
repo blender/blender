@@ -4298,16 +4298,16 @@ static void node_type_base_defaults(bNodeType *ntype)
 /* allow this node for any tree type */
 static bool node_poll_default(const bNodeType * /*ntype*/,
                               const bNodeTree * /*ntree*/,
-                              const char ** /*disabled_hint*/)
+                              const char ** /*r_disabled_hint*/)
 {
   return true;
 }
 
 static bool node_poll_instance_default(const bNode *node,
                                        const bNodeTree *ntree,
-                                       const char **disabled_hint)
+                                       const char **r_disabled_hint)
 {
-  return node->typeinfo->poll(node->typeinfo, ntree, disabled_hint);
+  return node->typeinfo->poll(node->typeinfo, ntree, r_disabled_hint);
 }
 
 void node_type_base(bNodeType *ntype, const int type, const char *name, const short nclass)
