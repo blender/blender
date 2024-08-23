@@ -17,15 +17,18 @@
  * Usage: msgfmt input.po output.po
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <utility>
 
-#include "BLI_dynstr.h"
 #include "BLI_fileops.h"
-#include "BLI_ghash.h"
 #include "BLI_linklist.h"
-#include "BLI_memarena.h"
+#include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -38,11 +41,6 @@ struct Global {
 Global G;
 #endif
 
-/* We cannot use null char until ultimate step, would give nightmare to our C string
- * processing... Using one of the UTF-8 invalid bytes (as per our BLI string_utf8.c) */
-#define NULLSEP_STR "\xff"
-#define NULLSEP_CHR '\xff'
-
 enum eSectionType {
   SECTION_NONE = 0,
   SECTION_CTX = 1,
@@ -51,97 +49,53 @@ enum eSectionType {
 };
 
 struct Message {
-  DynStr *ctxt;
-  DynStr *id;
-  DynStr *str;
+  std::string ctxt = "";
+  std::string id = "";
+  std::string str = "";
 
-  bool is_fuzzy;
+  bool is_fuzzy = false;
 };
 
-static char *trim(char *str)
+static blender::StringRef unescape(std::string &str)
 {
-  const size_t len = strlen(str);
-  size_t i;
-
-  if (len == 0) {
-    return str;
-  }
-
-  for (i = 0; i < len && ELEM(str[0], ' ', '\t', '\r', '\n'); str++, i++) {
-    /* pass */
-  }
-
-  char *end = &str[len - 1 - i];
-  for (i = len; i > 0 && ELEM(end[0], ' ', '\t', '\r', '\n'); end--, i--) {
-    /* pass */
-  }
-
-  end[1] = '\0';
-
-  return str;
-}
-
-static char *unescape(char *str)
-{
-  char *curr, *next;
-  for (curr = next = str; next[0] != '\0'; curr++, next++) {
-    if (next[0] == '\\') {
-      switch (next[1]) {
-        case '\0':
-          /* Get rid of trailing escape char... */
-          curr--;
-          break;
+  int curr, next;
+  for (curr = next = 0; next < str.size(); curr++, next++) {
+    if (str[next] == '\\') {
+      /* Get rid of trailing escape char. */
+      if (next == str.size() - 1) {
+        curr--;
+        continue;
+      }
+      switch (str[next + 1]) {
         case '\\':
-          *curr = '\\';
+          str[curr] = '\\';
           next++;
           break;
         case 'n':
-          *curr = '\n';
+          str[curr] = '\n';
           next++;
           break;
         case 't':
-          *curr = '\t';
+          str[curr] = '\t';
           next++;
           break;
         default:
           /* Get rid of useless escape char. */
           next++;
-          *curr = *next;
+          str[curr] = str[next];
       }
     }
     else if (curr != next) {
-      *curr = *next;
+      str[curr] = str[next];
     }
   }
-  *curr = '\0';
+  blender::StringRef ret_str = str;
+  BLI_assert(curr <= str.size());
 
-  if (str[0] == '"' && *(curr - 1) == '"') {
-    *(curr - 1) = '\0';
-    return str + 1;
+  if (ret_str[0] == '"' && ret_str[curr - 1] == '"') {
+    return ret_str.substr(1, curr - 2);
   }
-  return str;
-}
-
-static int qsort_str_cmp(const void *a, const void *b)
-{
-  return strcmp(*(const char **)a, *(const char **)b);
-}
-
-static char **get_keys_sorted(GHash *messages, const uint32_t num_keys)
-{
-  GHashIterator iter;
-
-  char **keys = static_cast<char **>(MEM_mallocN(sizeof(*keys) * num_keys, __func__));
-  char **k = keys;
-
-  GHASH_ITER (iter, messages) {
-    *k = static_cast<char *>(BLI_ghashIterator_getKey(&iter));
-    k++;
-  }
-
-  qsort(keys, num_keys, sizeof(*keys), qsort_str_cmp);
-
-  return keys;
+  return ret_str.substr(0, curr);
 }
 
 BLI_INLINE size_t uint32_to_bytes(const int value, char *bytes)
@@ -153,14 +107,11 @@ BLI_INLINE size_t uint32_to_bytes(const int value, char *bytes)
   return i;
 }
 
-BLI_INLINE size_t msg_to_bytes(char *msg, char *bytes, uint32_t size)
+BLI_INLINE size_t msg_to_bytes(const std::string &msg, char *bytes, uint32_t size)
 {
-  /* Note that we also perform replacing of our NULLSEP placeholder by real nullptr char... */
-  size_t i;
-  for (i = 0; i < size; i++, msg++, bytes++) {
-    *bytes = (*msg == NULLSEP_CHR) ? '\0' : *msg;
-  }
-  return i;
+  BLI_assert(msg.size() == size - 1);
+  memcpy(bytes, msg.c_str(), size);
+  return size;
 }
 
 struct Offset {
@@ -168,32 +119,47 @@ struct Offset {
 };
 
 /* Return the generated binary output. */
-static char *generate(GHash *messages, size_t *r_output_size)
+static char *generate(blender::Map<std::string, std::string> &messages, size_t *r_output_size)
 {
-  const uint32_t num_keys = BLI_ghash_len(messages);
+  using MapItem = blender::Map<std::string, std::string>::MutableItem;
+  struct Item {
+    blender::StringRef key;
+    blender::StringRef value;
 
-  /* Get list of sorted keys. */
-  char **keys = get_keys_sorted(messages, num_keys);
-  char **vals = static_cast<char **>(MEM_mallocN(sizeof(*vals) * num_keys, __func__));
+    Item(const MapItem &other) : key(other.key), value(other.value) {}
+    Item(const Item &other) : key(other.key), value(other.value) {}
+    Item &operator=(const Item &other)
+    {
+      this->key = other.key;
+      this->value = other.value;
+      return *this;
+    }
+  };
+  const uint32_t num_keys = messages.size();
+
+  /* Get a vector of (key, value) pairs sorted by their keys. */
+  blender::Vector<Item> items = {};
+  for (const auto message_items_iter : messages.items()) {
+    items.append(Item(message_items_iter));
+  }
+  std::sort(items.begin(), items.end(), [](Item &a, Item &b) -> bool { return a.key < b.key; });
+
+  Offset *offsets = MEM_cnew_array<Offset>(num_keys, __func__);
   uint32_t tot_keys_len = 0;
   uint32_t tot_vals_len = 0;
 
-  Offset *offsets = static_cast<Offset *>(MEM_mallocN(sizeof(*offsets) * num_keys, __func__));
-
   for (int i = 0; i < num_keys; i++) {
-    Offset *off = &offsets[i];
-
-    vals[i] = static_cast<char *>(BLI_ghash_lookup(messages, keys[i]));
+    Offset &off = offsets[i];
 
     /* For each string, we need size and file offset.
      * Each string is nullptr terminated; the nullptr does not count into the size. */
-    off->key_offset = tot_keys_len;
-    off->key_len = uint32_t(strlen(keys[i]));
-    tot_keys_len += off->key_len + 1;
+    off.key_offset = tot_keys_len;
+    off.key_len = uint32_t(items[i].key.size());
+    tot_keys_len += off.key_len + 1;
 
-    off->val_offset = tot_vals_len;
-    off->val_len = uint32_t(strlen(vals[i]));
-    tot_vals_len += off->val_len + 1;
+    off.val_offset = tot_vals_len;
+    off.val_len = uint32_t(items[i].value.size());
+    tot_vals_len += off.val_len + 1;
   }
 
   /* The header is 7 32-bit unsigned integers.
@@ -207,7 +173,7 @@ static char *generate(GHash *messages, size_t *r_output_size)
 
   /* Final buffer representing the binary MO file. */
   *r_output_size = valstart + tot_vals_len;
-  char *output = static_cast<char *>(MEM_mallocN(*r_output_size, __func__));
+  char *output = MEM_cnew_array<char>(*r_output_size, __func__);
   char *h = output;
   char *ik = output + idx_keystart;
   char *iv = output + idx_valstart;
@@ -225,71 +191,57 @@ static char *generate(GHash *messages, size_t *r_output_size)
   BLI_assert(h == ik);
 
   for (int i = 0; i < num_keys; i++) {
-    const Offset *off = &offsets[i];
+    const Offset &off = offsets[i];
 
     /* The index table first has the list of keys, then the list of values.
      * Each entry has first the size of the string, then the file offset. */
-    ik += uint32_to_bytes(off->key_len, ik);
-    ik += uint32_to_bytes(off->key_offset + keystart, ik);
-    iv += uint32_to_bytes(off->val_len, iv);
-    iv += uint32_to_bytes(off->val_offset + valstart, iv);
+    ik += uint32_to_bytes(off.key_len, ik);
+    ik += uint32_to_bytes(off.key_offset + keystart, ik);
+    iv += uint32_to_bytes(off.val_len, iv);
+    iv += uint32_to_bytes(off.val_offset + valstart, iv);
 
-    k += msg_to_bytes(keys[i], k, off->key_len + 1);
-    v += msg_to_bytes(vals[i], v, off->val_len + 1);
+    k += msg_to_bytes(items[i].key, k, off.key_len + 1);
+    v += msg_to_bytes(items[i].value, v, off.val_len + 1);
   }
 
   BLI_assert(ik == output + idx_valstart);
   BLI_assert(iv == output + keystart);
   BLI_assert(k == output + valstart);
 
-  MEM_freeN(keys);
-  MEM_freeN(vals);
   MEM_freeN(offsets);
 
   return output;
 }
 
-/* Add a non-fuzzy translation to the dictionary. */
-static void add(GHash *messages, MemArena *memarena, const Message *msg)
+static void clear(Message &msg)
 {
-  const size_t msgctxt_len = size_t(BLI_dynstr_get_len(msg->ctxt));
-  const size_t msgid_len = size_t(BLI_dynstr_get_len(msg->id));
-  const size_t msgstr_len = size_t(BLI_dynstr_get_len(msg->str));
-  const size_t msgkey_len = msgid_len + ((msgctxt_len == 0) ? 0 : msgctxt_len + 1);
-
-  if (!msg->is_fuzzy && msgstr_len != 0) {
-    char *msgkey = static_cast<char *>(
-        BLI_memarena_alloc(memarena, sizeof(*msgkey) * (msgkey_len + 1)));
-    char *msgstr = static_cast<char *>(
-        BLI_memarena_alloc(memarena, sizeof(*msgstr) * (msgstr_len + 1)));
-
-    if (msgctxt_len != 0) {
-      BLI_dynstr_get_cstring_ex(msg->ctxt, msgkey);
-      msgkey[msgctxt_len] = '\x04'; /* Context/msgid separator */
-      BLI_dynstr_get_cstring_ex(msg->id, &msgkey[msgctxt_len + 1]);
-    }
-    else {
-      BLI_dynstr_get_cstring_ex(msg->id, msgkey);
-    }
-
-    BLI_dynstr_get_cstring_ex(msg->str, msgstr);
-
-    BLI_ghash_insert(messages, msgkey, msgstr);
-  }
+  msg.ctxt.clear();
+  msg.id.clear();
+  msg.str.clear();
+  msg.is_fuzzy = false;
 }
 
-static void clear(Message *msg)
+/* Add a non-fuzzy translation to the dictionary. */
+static void add(blender::Map<std::string, std::string> &messages, Message &msg)
 {
-  BLI_dynstr_clear(msg->ctxt);
-  BLI_dynstr_clear(msg->id);
-  BLI_dynstr_clear(msg->str);
-  msg->is_fuzzy = false;
+  if (!msg.is_fuzzy && !msg.str.empty()) {
+    std::string msgkey;
+    if (msg.ctxt.empty()) {
+      msgkey = std::move(msg.id);
+    }
+    else {
+      /* '\x04' is the context/msgid separator. */
+      msgkey = msg.ctxt + "\x04" + msg.id;
+    }
+
+    messages.add(std::move(msgkey), std::move(msg.str));
+  }
+  clear(msg);
 }
 
 static int make(const char *input_file_name, const char *output_file_name)
 {
-  GHash *messages = BLI_ghash_new(BLI_ghashutil_strhash_p_murmur, BLI_ghashutil_strcmp, __func__);
-  MemArena *msgs_memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  blender::Map<std::string, std::string> messages;
 
   const char *msgctxt_kw = "msgctxt";
   const char *msgid_kw = "msgid";
@@ -306,68 +258,67 @@ static int make(const char *input_file_name, const char *output_file_name)
   bool is_plural = false;
 
   Message msg{};
-  msg.ctxt = BLI_dynstr_new_memarena();
-  msg.id = BLI_dynstr_new_memarena();
-  msg.str = BLI_dynstr_new_memarena();
-  msg.is_fuzzy = false;
 
   LinkNode *input_file_lines = BLI_file_read_as_lines(input_file_name);
   LinkNode *ifl = input_file_lines;
 
   /* Parse the catalog. */
   for (int lno = 1; ifl; ifl = ifl->next, lno++) {
-    char *l = static_cast<char *>(ifl->link);
+    std::string line = static_cast<char *>(ifl->link);
+    blender::StringRef l = line;
+    if (l.is_empty()) {
+      continue;
+    }
     const bool is_comment = (l[0] == '#');
     /* If we get a comment line after a msgstr, this is a new entry. */
     if (is_comment) {
       if (section == SECTION_STR) {
-        add(messages, msgs_memarena, &msg);
-        clear(&msg);
+        add(messages, msg);
         section = SECTION_NONE;
       }
       /* Record a fuzzy mark. */
-      if (l[1] == ',' && strstr(l, "fuzzy") != nullptr) {
+      if (l[1] == ',' && l.find("fuzzy") != blender::StringRef::not_found) {
         msg.is_fuzzy = true;
       }
       /* Skip comments */
       continue;
     }
-    if (strstr(l, msgctxt_kw) == l) {
+    if (l.startswith(msgctxt_kw)) {
       if (section == SECTION_STR) {
         /* New message, output previous section. */
-        add(messages, msgs_memarena, &msg);
+        add(messages, msg);
       }
       if (!ELEM(section, SECTION_NONE, SECTION_STR)) {
         printf("msgctxt not at start of new message on %s:%d\n", input_file_name, lno);
         return EXIT_FAILURE;
       }
       section = SECTION_CTX;
-      l = l + msgctxt_len;
-      clear(&msg);
+      l = l.substr(msgctxt_len);
+      clear(msg);
     }
-    else if (strstr(l, msgid_plural_kw) == l) {
+    else if (l.startswith(msgid_plural_kw)) {
       /* This is a message with plural forms. */
       if (section != SECTION_ID) {
         printf("msgid_plural not preceded by msgid on %s:%d\n", input_file_name, lno);
         return EXIT_FAILURE;
       }
-      l = l + msgid_plural_len;
-      BLI_dynstr_append(msg.id, NULLSEP_STR); /* separator of singular and plural */
+      l = l.substr(msgid_plural_len);
+      msg.id += "\0"; /* separator of singular and plural */
       is_plural = true;
     }
-    else if (strstr(l, msgid_kw) == l) {
+    else if (l.startswith(msgid_kw)) {
       if (section == SECTION_STR) {
-        add(messages, msgs_memarena, &msg);
+        add(messages, msg);
       }
       if (section != SECTION_CTX) {
-        clear(&msg);
+        clear(msg);
       }
       section = SECTION_ID;
-      l = l + msgid_len;
+      l = l.substr(msgid_len);
       is_plural = false;
     }
-    else if (strstr(l, msgstr_kw) == l) {
-      l = l + msgstr_len;
+    else if (l.startswith(msgstr_kw)) {
+      l = l.substr(msgstr_len);
       /* Now we are in a `msgstr` section. */
       section = SECTION_STR;
       if (l[0] == '[') {
@@ -375,12 +326,14 @@ static int make(const char *input_file_name, const char *output_file_name)
           printf("plural without msgid_plural on %s:%d\n", input_file_name, lno);
           return EXIT_FAILURE;
         }
-        if ((l = strchr(l, ']')) == nullptr) {
+        int64_t close_bracket_idx = l.find(']');
+        if (close_bracket_idx == blender::StringRef::not_found) {
           printf("Syntax error on %s:%d\n", input_file_name, lno);
           return EXIT_FAILURE;
         }
-        if (BLI_dynstr_get_len(msg.str) != 0) {
-          BLI_dynstr_append(msg.str, NULLSEP_STR); /* Separator of the various plural forms. */
+        l = l.substr(close_bracket_idx + 1);
+        if (!msg.str.empty()) {
+          msg.str += "\0"; /* Separator of the various plural forms. */
         }
       }
       else {
@@ -391,24 +344,24 @@ static int make(const char *input_file_name, const char *output_file_name)
       }
     }
     /* Skip empty lines. */
-    l = trim(l);
-    if (l[0] == '\0') {
+    l = l.trim();
+    if (l.is_empty()) {
       if (section == SECTION_STR) {
-        add(messages, msgs_memarena, &msg);
-        clear(&msg);
+        add(messages, msg);
       }
       section = SECTION_NONE;
       continue;
     }
-    l = unescape(l);
+    line = l;
+    l = unescape(line);
     if (section == SECTION_CTX) {
-      BLI_dynstr_append(msg.ctxt, l);
+      msg.ctxt += l;
     }
     else if (section == SECTION_ID) {
-      BLI_dynstr_append(msg.id, l);
+      msg.id += l;
     }
     else if (section == SECTION_STR) {
-      BLI_dynstr_append(msg.str, l);
+      msg.str += l;
     }
     else {
       printf("Syntax error on %s:%d\n", input_file_name, lno);
@@ -417,12 +370,9 @@ static int make(const char *input_file_name, const char *output_file_name)
   }
   /* Add last entry */
   if (section == SECTION_STR) {
-    add(messages, msgs_memarena, &msg);
+    add(messages, msg);
   }
 
-  BLI_dynstr_free(msg.ctxt);
-  BLI_dynstr_free(msg.id);
-  BLI_dynstr_free(msg.str);
   BLI_file_free_lines(input_file_lines);
 
   /* Compute output */
@@ -434,8 +384,6 @@ static int make(const char *input_file_name, const char *output_file_name)
   fclose(fp);
 
   MEM_freeN(output);
-  BLI_ghash_free(messages, nullptr, nullptr);
-  BLI_memarena_free(msgs_memarena);
 
   return EXIT_SUCCESS;
 }
