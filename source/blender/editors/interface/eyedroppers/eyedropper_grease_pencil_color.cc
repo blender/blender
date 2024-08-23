@@ -291,7 +291,7 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
     return;
   }
 
-  Brush *brush = paint->brush;
+  Brush *brush = BKE_paint_brush(paint);
   if (brush == nullptr) {
     return;
   }
