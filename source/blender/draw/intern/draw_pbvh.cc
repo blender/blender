@@ -479,24 +479,24 @@ static int count_faces(const PBVH_GPU_Args &args)
 
 PBVHBatches::PBVHBatches(const PBVH_GPU_Args &args)
 {
-  faces_count = count_faces(args);
+  this->faces_count = count_faces(args);
 }
 
 PBVHBatches::~PBVHBatches()
 {
-  for (PBVHBatch &batch : batches.values()) {
+  for (PBVHBatch &batch : this->batches.values()) {
     GPU_BATCH_DISCARD_SAFE(batch.tris);
     GPU_BATCH_DISCARD_SAFE(batch.lines);
   }
 
-  for (PBVHVbo &vbo : vbos) {
+  for (PBVHVbo &vbo : this->vbos) {
     GPU_vertbuf_discard(vbo.vert_buf);
   }
 
-  GPU_INDEXBUF_DISCARD_SAFE(tri_index);
-  GPU_INDEXBUF_DISCARD_SAFE(lines_index);
-  GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
-  GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
+  GPU_INDEXBUF_DISCARD_SAFE(this->tri_index);
+  GPU_INDEXBUF_DISCARD_SAFE(this->lines_index);
+  GPU_INDEXBUF_DISCARD_SAFE(this->tri_index_coarse);
+  GPU_INDEXBUF_DISCARD_SAFE(this->lines_index_coarse);
 }
 
 static std::string build_key(const Span<AttributeRequest> requests, bool do_coarse_grids)
@@ -519,7 +519,7 @@ static std::string build_key(const Span<AttributeRequest> requests, bool do_coar
 
 int PBVHBatches::ensure_vbo(const AttributeRequest &request, const PBVH_GPU_Args &args)
 {
-  for (const int i : vbos.index_range()) {
+  for (const int i : this->vbos.index_range()) {
     if (this->vbos[i].request == request) {
       return i;
     }
@@ -853,6 +853,8 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
       }
       case CustomRequest::FaceSet: {
         const Mesh &mesh = *args.mesh;
+        const int face_set_default = args.face_sets_color_default;
+        const int face_set_seed = args.face_sets_color_seed;
         const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
         const bke::AttributeAccessor attributes = mesh.attributes();
         if (const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
@@ -862,8 +864,8 @@ static void fill_vbo_grids(PBVHVbo &vbo, const PBVH_GPU_Args &args, const bool u
           fill_vbo_face_set_grids(key,
                                   grid_to_face_map,
                                   face_sets_span,
-                                  args.face_sets_color_default,
-                                  args.face_sets_color_seed,
+                                  face_set_default,
+                                  face_set_seed,
                                   use_flat_layout,
                                   grid_indices,
                                   *vbo.vert_buf);
@@ -911,16 +913,19 @@ static void fill_vbo_faces(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   if (const CustomRequest *request_type = std::get_if<CustomRequest>(&vbo.request)) {
     switch (*request_type) {
       case CustomRequest::Position: {
+        const Span<float3> vert_positions = args.vert_positions;
         extract_data_vert_mesh<float3>(corner_verts,
                                        corner_tris,
-                                       args.tri_faces,
-                                       args.hide_poly,
-                                       args.vert_positions,
+                                       tri_faces,
+                                       hide_poly,
+                                       vert_positions,
                                        args.prim_indices,
                                        vert_buf);
         break;
       }
       case CustomRequest::Normal: {
+        const Span<float3> vert_normals = args.vert_normals;
+        const Span<float3> face_normals = args.face_normals;
         const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face",
                                                                 bke::AttrDomain::Face);
         fill_vbo_normal_mesh(corner_verts,
@@ -928,8 +933,8 @@ static void fill_vbo_faces(PBVHVbo &vbo, const PBVH_GPU_Args &args)
                              tri_faces,
                              sharp_faces,
                              hide_poly,
-                             args.vert_normals,
-                             args.face_normals,
+                             vert_normals,
+                             face_normals,
                              args.prim_indices,
                              vert_buf);
         break;
@@ -946,14 +951,16 @@ static void fill_vbo_faces(PBVHVbo &vbo, const PBVH_GPU_Args &args)
         break;
       }
       case CustomRequest::FaceSet: {
+        const int face_set_default = args.face_sets_color_default;
+        const int face_set_seed = args.face_sets_color_seed;
         const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                              bke::AttrDomain::Face);
         if (!face_sets.is_empty()) {
           fill_vbo_face_set_mesh(tri_faces,
                                  hide_poly,
                                  face_sets,
-                                 args.face_sets_color_default,
-                                 args.face_sets_color_seed,
+                                 face_set_default,
+                                 face_set_seed,
                                  args.prim_indices,
                                  vert_buf);
         }
@@ -1121,15 +1128,13 @@ static void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
         break;
       }
       case CustomRequest::FaceSet: {
+        const int face_set_default = args.face_sets_color_default;
+        const int face_set_seed = args.face_sets_color_seed;
         const int cd_offset = CustomData_get_offset_named(
             &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
-
         if (cd_offset != -1) {
-          fill_vbo_face_set_bmesh(*args.bm_faces,
-                                  args.face_sets_color_default,
-                                  args.face_sets_color_seed,
-                                  cd_offset,
-                                  *vbo.vert_buf);
+          fill_vbo_face_set_bmesh(
+              *args.bm_faces, face_set_default, face_set_seed, cd_offset, *vbo.vert_buf);
         }
         else {
           vbo.vert_buf->data<uchar4>().fill(uchar4(255));
@@ -1151,7 +1156,7 @@ static void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
 void PBVHBatches::update(const PBVH_GPU_Args &args)
 {
   if (!this->lines_index) {
-    create_index(args);
+    this->create_index(args);
   }
   for (PBVHVbo &vbo : this->vbos) {
     switch (args.pbvh_type) {
@@ -1171,14 +1176,14 @@ void PBVHBatches::update(const PBVH_GPU_Args &args)
 int PBVHBatches::create_vbo(const AttributeRequest &request, const PBVH_GPU_Args &args)
 {
   const GPUVertFormat format = format_for_request(args, request);
-  vbos.append_as(request);
-  vbos.last().vert_buf = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC);
+  this->vbos.append_as(request);
+  this->vbos.last().vert_buf = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC);
   switch (args.pbvh_type) {
     case bke::pbvh::Type::Mesh:
       fill_vbo_faces(vbos.last(), args);
       break;
     case bke::pbvh::Type::Grids:
-      fill_vbo_grids(vbos.last(), args, use_flat_layout);
+      fill_vbo_grids(vbos.last(), args, this->use_flat_layout);
       break;
     case bke::pbvh::Type::BMesh:
       fill_vbo_bmesh(vbos.last(), args);
@@ -1193,17 +1198,17 @@ void PBVHBatches::update_pre(const PBVH_GPU_Args &args)
   if (args.pbvh_type == bke::pbvh::Type::BMesh) {
     int count = count_faces(args);
 
-    if (faces_count != count) {
-      for (PBVHVbo &vbo : vbos) {
+    if (this->faces_count != count) {
+      for (PBVHVbo &vbo : this->vbos) {
         vbo.clear_data();
       }
 
-      GPU_INDEXBUF_DISCARD_SAFE(tri_index);
-      GPU_INDEXBUF_DISCARD_SAFE(lines_index);
-      GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
-      GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
+      GPU_INDEXBUF_DISCARD_SAFE(this->tri_index);
+      GPU_INDEXBUF_DISCARD_SAFE(this->lines_index);
+      GPU_INDEXBUF_DISCARD_SAFE(this->tri_index_coarse);
+      GPU_INDEXBUF_DISCARD_SAFE(this->lines_index_coarse);
 
-      faces_count = count;
+      this->faces_count = count;
     }
   }
 }
@@ -1445,7 +1450,7 @@ static bool calc_use_flat_layout(const PBVH_GPU_Args &args)
 {
   const Mesh &mesh = *args.mesh;
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan sharp_faces = *attributes.lookup<bool>(".sharp_face", bke::AttrDomain::Face);
+  const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   if (sharp_faces.is_empty()) {
     return false;
   }
@@ -1513,19 +1518,21 @@ static void create_index_grids(const CCGKey &key,
 void PBVHBatches::create_index(const PBVH_GPU_Args &args)
 {
   switch (args.pbvh_type) {
-    case bke::pbvh::Type::Mesh:
-      lines_index = create_index_faces(args.mesh->edges(),
-                                       args.corner_verts,
-                                       args.corner_edges,
-                                       args.corner_tris,
-                                       args.tri_faces,
-                                       args.hide_poly,
-                                       args.prim_indices);
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *args.mesh;
+      const Span<int2> edges = mesh.edges();
+      const Span<int> corner_verts = args.corner_verts;
+      const Span<int> corner_edges = args.corner_edges;
+      const Span<int3> corner_tris = args.corner_tris;
+      const Span<int> tri_faces = args.tri_faces;
+      const Span<bool> hide_poly = args.hide_poly;
+      const Span<int> tris = args.prim_indices;
+      this->lines_index = create_index_faces(
+          edges, corner_verts, corner_edges, corner_tris, tri_faces, hide_poly, tris);
       break;
-    case bke::pbvh::Type::BMesh:
-      lines_index = create_index_bmesh(*args.bm_faces, faces_count);
-      break;
-    case bke::pbvh::Type::Grids:
+    }
+
+    case bke::pbvh::Type::Grids: {
       this->use_flat_layout = calc_use_flat_layout(args);
       create_index_grids(
           args.ccg_key, *args.subdiv_ccg, false, args.grid_indices, this->use_flat_layout, *this);
@@ -1534,6 +1541,11 @@ void PBVHBatches::create_index(const PBVH_GPU_Args &args)
             args.ccg_key, *args.subdiv_ccg, true, args.grid_indices, this->use_flat_layout, *this);
       }
       break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      this->lines_index = create_index_bmesh(*args.bm_faces, faces_count);
+      break;
+    }
   }
 
   for (PBVHBatch &batch : batches.values()) {
@@ -1545,8 +1557,8 @@ void PBVHBatches::create_index(const PBVH_GPU_Args &args)
       batch.tris->flag |= GPU_BATCH_DIRTY;
     }
 
-    if (lines_index) {
-      GPU_batch_elembuf_set(batch.lines, lines_index, false);
+    if (this->lines_index) {
+      GPU_batch_elembuf_set(batch.lines, this->lines_index, false);
     }
   }
 }
