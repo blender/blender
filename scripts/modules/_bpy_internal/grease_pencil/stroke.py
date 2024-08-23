@@ -163,7 +163,6 @@ class GreasePencilStrokePointSlice(SliceHelper):
     ('softness', 'softness', 'FLOAT', 0.0, "Used by the renderer to generate a soft gradient from the stroke center line to the edges."),
     ('start_cap', 'start_cap', 'INT8', 0, "The type of start cap of this stroke."),
     ('end_cap', 'end_cap', 'INT8', 0, "The type of end cap of this stroke."),
-    ('curve_type', 'curve_type', 'INT8', 0, "The type of curve."),
     ('aspect_ratio', 'aspect_ratio', 'FLOAT', 1.0, "The aspect ratio (x/y) used for textures. "),
     ('fill_opacity', 'fill_opacity', 'FLOAT', 0.0, "The opacity of the fill."),
     ('fill_color', 'fill_color', 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0), "The color of the fill."),
@@ -208,6 +207,14 @@ class GreasePencilStroke(AttributeGetterSetter):
             new_size = 1
         self._drawing.resize_curves(sizes=[new_size], indices=[self._curve_index])
         self._points_end_index = self._points_start_index + new_size
+
+    @property
+    def curve_type(self):
+        """
+        The curve type of this stroke.
+        """
+        # Note: This is read-only which is why it is not part of the AttributeGetterSetters.
+        return super()._get_attribute('curve_type', 'INT8', 0)
 
 
 class GreasePencilStrokeSlice(SliceHelper):
