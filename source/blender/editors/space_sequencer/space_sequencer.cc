@@ -136,7 +136,6 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   BLI_addtail(&sseq->regionbase, static_cast<void *>(region));
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* Channels. */
   region = MEM_cnew<ARegion>("channels for sequencer");
