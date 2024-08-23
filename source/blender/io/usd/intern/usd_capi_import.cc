@@ -40,6 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_undo.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
@@ -156,6 +158,7 @@ enum {
 };
 
 struct ImportJobData {
+  bContext *C;
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
@@ -174,6 +177,7 @@ struct ImportJobData {
   char error_code;
   bool was_canceled;
   bool import_ok;
+  bool is_background_job;
   timeit::TimePoint start_time;
 
   CacheFile *cache_file;
@@ -455,6 +459,12 @@ static void import_endjob(void *customdata)
     register_hook_converters();
 
     call_import_hooks(data->archive->stage(), data->params.worker_status->reports);
+
+    if (data->is_background_job) {
+      /* Blender already returned from the import operator, so we need to store our own extra undo
+       * step. */
+      ED_undo_push(data->C, "USD Import Finished");
+    }
   }
 
   WM_set_locked_interface(data->wm, false);
@@ -493,11 +503,13 @@ bool USD_import(const bContext *C,
 {
   /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
+  job->C = const_cast<bContext *>(C);
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);
   job->view_layer = CTX_data_view_layer(C);
   job->wm = CTX_wm_manager(C);
   job->import_ok = false;
+  job->is_background_job = as_background_job;
   STRNCPY(job->filepath, filepath);
 
   job->settings.scale = params->scale;
