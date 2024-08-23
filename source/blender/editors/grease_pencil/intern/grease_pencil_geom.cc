@@ -1470,7 +1470,7 @@ void find_curve_intersections(const bke::CurvesGeometry &curves,
         hit->no[0] = result.lambda;
       };
 
-  /* Raycast in the forward direction. Ignores intersections with neighboring lines. */
+  /* Ray-cast in the forward direction. Ignores intersections with neighboring lines. */
   auto do_raycast = [&](const int index_back,
                         const int index,
                         const int index_forward,

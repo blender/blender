@@ -239,9 +239,9 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
   data.knot_mode = get_knot_mode(smp.getType());
   data.do_cyclic = periodicity == Alembic::AbcGeom::kPeriodic;
 
-  /* If kVariableOrder is set then we must have order data. If not, this sample is suspsect.
+  /* If #kVariableOrder is set then we must have order data. If not, this sample is suspect.
    * Interpret the data as linear as a fallback. See #126324 for one such example.
-   * See also: Alembic source code in ICurves.h, ICurvesSchema::Sample::valid() */
+   * See also: Alembic source code in `ICurves.h`, #ICurvesSchema::Sample::valid() */
   if (smp.getType() == Alembic::AbcGeom::kVariableOrder && !orders) {
     data.curve_type = CURVE_TYPE_POLY;
     data.knot_mode = NURBS_KNOT_MODE_NORMAL;

@@ -919,7 +919,7 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, Strin
                       nullptr;
   });
   if (pf->data == nullptr) {
-    /* We cannot allow a PackedFile with a nullptr data field,
+    /* We cannot allow a #PackedFile with a nullptr data field,
      * the whole code assumes this is not possible. See #70315. */
     CLOG_WARN(&LOG,
               "%s: nullptr packedfile data (source: '%s'), cleaning up...",

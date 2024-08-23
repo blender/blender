@@ -8873,7 +8873,7 @@ def km_sequencer_editor_tool_generic_select_timeline_rcs(params, fallback):
          "alt": True}, {"properties": [("ignore_connections", True)]}),
         *_template_items_change_frame(params),
         # Change frame takes precedence over the sequence slide operator. If a
-        # mouse press happens on a strip handle, it is cancelled, and the sequence
+        # mouse press happens on a strip handle, it is canceled, and the sequence
         # slide below activates instead.
         ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("view2d_edge_pan", True), ("use_restore_handle_selection", True)]}),

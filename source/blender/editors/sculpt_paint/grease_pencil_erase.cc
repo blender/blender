@@ -673,7 +673,7 @@ struct EraseOperationExecutor {
      * For each point in the source, we create a vector of destination points. Destination points
      * can either be directly a point of the source, or a point inside a segment of the source. A
      * destination point can also carry the role of a "cut", meaning it is going to be the first
-     * point of a new splitted curve in the destination. */
+     * point of a new curve split into the destination. */
     Array<Vector<ed::greasepencil::PointTransferData>> src_to_dst_points(src_points_num);
     const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
     for (const int src_curve : src.curves_range()) {
