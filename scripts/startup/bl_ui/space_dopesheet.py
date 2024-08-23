@@ -243,7 +243,7 @@ class DOPESHEET_HT_editor_buttons:
 
             layout.separator_spacer()
 
-            layout.template_ID(st, "action", new="action.new", unlink="action.unlink")
+            layout.template_action(context.object, new="action.new", unlink="action.unlink")
 
             # Show slot selector.
             if context.preferences.experimental.use_animation_baklava:

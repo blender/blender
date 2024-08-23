@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
@@ -44,6 +45,7 @@
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 
+#include "BKE_anim_data.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
 #include "BKE_colorband.hh"
@@ -545,7 +547,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event);
 
-void UI_context_active_but_prop_get_templateID(bContext *C,
+void UI_context_active_but_prop_get_templateID(const bContext *C,
                                                PointerRNA *r_ptr,
                                                PropertyRNA **r_prop)
 {
@@ -1816,6 +1818,54 @@ void uiTemplateID(uiLayout *layout,
                  1.0f,
                  live_icon,
                  false);
+}
+
+void uiTemplateAction(uiLayout *layout,
+                      const bContext *C,
+                      ID *id,
+                      const char *newop,
+                      const char *unlinkop,
+                      const char *text)
+{
+  if (!id_can_have_animdata(id)) {
+    RNA_warning("Cannot show Action selector for non-animatable ID: %s", id->name + 2);
+    return;
+  }
+
+  PropertyRNA *adt_action_prop = RNA_struct_type_find_property(&RNA_AnimData, "action");
+  BLI_assert(adt_action_prop);
+  BLI_assert(RNA_property_type(adt_action_prop) == PROP_POINTER);
+
+  /* Construct a pointer with the animated ID as owner, even when `adt` may be `nullptr`.
+   * This way it is possible to use this RNA pointer to get/set `adt->action`, as that RNA property
+   * has a getter and setter that only need the owner ID and are null-safe regarding the `adt`
+   * itself. */
+  AnimData *adt = BKE_animdata_from_id(id);
+  PointerRNA adt_ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
+
+  /* This must be heap-allocated because template_ID() will call MEM_dupallocN()
+   * on the pointer we pass, and that doesn't like stack-allocated stuff. */
+  TemplateID *template_ui = MEM_cnew<TemplateID>(__func__);
+  BLI_SCOPED_DEFER([&]() { MEM_freeN(template_ui); });
+  template_ui->ptr = adt_ptr;
+  template_ui->prop = adt_action_prop;
+  template_ui->prv_rows = 0;
+  template_ui->prv_cols = 0;
+  template_ui->scale = 1.0f;
+  template_ui->filter = UI_TEMPLATE_ID_FILTER_ALL;
+
+  int flag = UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE;
+  if (newop) {
+    flag |= UI_ID_ADD_NEW;
+  }
+
+  template_ui->idcode = ID_AC;
+  template_ui->idlb = which_libbase(CTX_data_main(C), ID_AC);
+  BLI_assert(template_ui->idlb);
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  template_ID(
+      C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
 
 void uiTemplateIDBrowse(uiLayout *layout,

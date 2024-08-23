@@ -43,6 +43,7 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 
 #include "action_intern.hh"
 
@@ -52,7 +53,29 @@
 
 AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owner)
 {
+  { /* Support use from the layout.template_action() UI template. */
+    PointerRNA ptr = {nullptr};
+    PropertyRNA *prop = nullptr;
+    UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+    /* template_action() sets a RNA_AnimData pointer, whereas other code may set
+     * other pointer types. This code here only deals with the former. */
+    if (prop && ptr.type == &RNA_AnimData) {
+      if (!RNA_property_editable(&ptr, prop)) {
+        return nullptr;
+      }
+      if (r_adt_id_owner) {
+        *r_adt_id_owner = ptr.owner_id;
+      }
+      AnimData *adt = static_cast<AnimData *>(ptr.data);
+      return adt;
+    }
+  }
+
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+  if (!saction) {
+    return nullptr;
+  }
+
   Object *ob = CTX_data_active_object(C);
   AnimData *adt = nullptr;
 
@@ -159,6 +182,15 @@ static void actedit_change_action(bContext *C, bAction *act)
 
 static bool action_new_poll(bContext *C)
 {
+  { /* Support use from the layout.template_action() UI template. */
+    PointerRNA ptr = {nullptr};
+    PropertyRNA *prop = nullptr;
+    UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+    if (prop) {
+      return RNA_property_editable(&ptr, prop);
+    }
+  }
+
   Scene *scene = CTX_data_scene(C);
 
   /* Check tweak-mode is off (as you don't want to be tampering with the action in that case) */
@@ -569,6 +601,7 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
 void ED_animedit_unlink_action(
     bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports, bool force_delete)
 {
+  BLI_assert(id);
   ScrArea *area = CTX_wm_area(C);
 
   /* If the old action only has a single user (that it's about to lose),
@@ -654,6 +687,20 @@ void ED_animedit_unlink_action(
 
 static bool action_unlink_poll(bContext *C)
 {
+  {
+    ID *animated_id = nullptr;
+    AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
+    if (animated_id) {
+      if (!BKE_id_is_editable(CTX_data_main(C), animated_id)) {
+        return false;
+      }
+      if (!adt) {
+        return false;
+      }
+      return adt->action != nullptr;
+    }
+  }
+
   if (ED_operator_action_active(C)) {
     SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
     AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
@@ -670,11 +717,12 @@ static bool action_unlink_poll(bContext *C)
 
 static int action_unlink_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
+  ID *animated_id = nullptr;
+  AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
   bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
 
   if (adt && adt->action) {
-    ED_animedit_unlink_action(C, nullptr, adt, adt->action, op->reports, force_delete);
+    ED_animedit_unlink_action(C, animated_id, adt, adt->action, op->reports, force_delete);
   }
 
   /* Unlink is also abused to exit NLA tweak mode. */

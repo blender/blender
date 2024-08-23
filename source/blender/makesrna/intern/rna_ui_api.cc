@@ -576,6 +576,19 @@ static void rna_uiTemplateAnyID(uiLayout *layout,
   uiTemplateAnyID(layout, ptr, propname, proptypename, name);
 }
 
+static void rna_uiTemplateAction(uiLayout *layout,
+                                 bContext *C,
+                                 ID *id,
+                                 const char *newop,
+                                 const char *unlinkop,
+                                 const char *name,
+                                 const char *text_ctxt,
+                                 const bool translate)
+{
+  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
+  uiTemplateAction(layout, C, id, newop, unlinkop, name);
+}
+
 void rna_uiTemplateList(uiLayout *layout,
                         bContext *C,
                         const char *listtype_name,
@@ -1715,6 +1728,14 @@ void RNA_api_ui_layout(StructRNA *srna)
                UI_TEMPLATE_ID_FILTER_ALL,
                "",
                "Optionally limit the items which can be selected");
+
+  func = RNA_def_function(srna, "template_action", "rna_uiTemplateAction");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_pointer(func, "id", "ID", "", "The data-block for which to select an Action");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_string(func, "new", nullptr, 0, "", "Operator identifier to create a new ID block");
+  RNA_def_string(func, "unlink", nullptr, 0, "", "Operator identifier to unlink the ID block");
+  api_ui_item_common_text(func);
 
   func = RNA_def_function(srna, "template_search", "uiTemplateSearch");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
