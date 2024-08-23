@@ -197,7 +197,7 @@ static void envelope_bone_weighting(Object *ob,
                                     bDeformGroup **dgroupflip,
                                     float (*root)[3],
                                     float (*tip)[3],
-                                    const int *selected,
+                                    const bool *selected,
                                     float scale)
 {
   using namespace blender;
@@ -226,7 +226,7 @@ static void envelope_bone_weighting(Object *ob,
 
     /* for each skinnable bone */
     for (int j = 0; j < numbones; j++) {
-      if (!selected[j]) {
+      if (selected[j] == false) {
         continue;
       }
 
@@ -290,7 +290,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   Mesh *mesh;
   Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
   float(*root)[3], (*tip)[3], (*verts)[3];
-  int *selected;
+  bool *selected;
   int numbones, vertsfilled = 0, segments = 0;
   const bool wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
   struct {
@@ -338,7 +338,7 @@ static void add_verts_to_dgroups(ReportList *reports,
    * global coords */
   root = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "root"));
   tip = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "tip"));
-  selected = static_cast<int *>(MEM_callocN(sizeof(int) * numbones, "selected"));
+  selected = static_cast<bool *>(MEM_callocN(sizeof(bool) * numbones, "selected"));
 
   for (int j = 0; j < numbones; j++) {
     bone = bonelist[j];
@@ -383,11 +383,11 @@ static void add_verts_to_dgroups(ReportList *reports,
     /* set selected */
     if (wpmode) {
       if (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)) {
-        selected[j] = 1;
+        selected[j] = true;
       }
     }
     else {
-      selected[j] = 1;
+      selected[j] = true;
     }
 
     /* find flipped group */

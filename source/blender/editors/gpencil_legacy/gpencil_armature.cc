@@ -259,7 +259,7 @@ static void gpencil_add_verts_to_dgroups(
   Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
   float(*root)[3], (*tip)[3], (*verts)[3];
   float *radsqr;
-  int *selected;
+  bool *selected;
   float weight;
   int numbones, i, j, segments = 0;
   struct {
@@ -301,7 +301,7 @@ static void gpencil_add_verts_to_dgroups(
    * global coords */
   root = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "root"));
   tip = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "tip"));
-  selected = static_cast<int *>(MEM_callocN(sizeof(int) * numbones, "selected"));
+  selected = static_cast<bool *>(MEM_callocN(sizeof(bool) * numbones, "selected"));
   radsqr = static_cast<float *>(MEM_callocN(sizeof(float) * numbones, "radsqr"));
 
   for (j = 0; j < numbones; j++) {
@@ -341,7 +341,7 @@ static void gpencil_add_verts_to_dgroups(
     mul_m4_v3(ob_arm->object_to_world().ptr(), root[j]);
     mul_m4_v3(ob_arm->object_to_world().ptr(), tip[j]);
 
-    selected[j] = 1;
+    selected[j] = true;
 
     /* calculate radius squared */
     radsqr[j] = len_squared_v3v3(root[j], tip[j]) * ratio;

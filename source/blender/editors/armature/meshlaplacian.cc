@@ -635,7 +635,7 @@ void heat_bone_weighting(Object *ob,
                          bDeformGroup **dgroupflip,
                          float (*root)[3],
                          float (*tip)[3],
-                         const int *selected,
+                         const bool *selected,
                          const char **r_error_str)
 {
   using namespace blender;
@@ -722,7 +722,7 @@ void heat_bone_weighting(Object *ob,
 
   /* compute weights per bone */
   for (j = 0; j < numbones; j++) {
-    if (!selected[j]) {
+    if (selected[j] == false) {
       continue;
     }
 
