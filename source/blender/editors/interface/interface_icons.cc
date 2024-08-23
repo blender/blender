@@ -1323,34 +1323,34 @@ static void svg_replace_color_attributes(std::string &svg,
     int colorid = TH_UNDEFINED;
     int spacetype = SPACE_TYPE_ANY;
   } items[] = {
-      {"blender.white", white},
-      {"blender.black", black},
-      {"blender.logo_orange", logo_orange},
-      {"blender.logo_blue", logo_blue},
-      {"blender.selected", btheme->tui.wcol_regular.inner},
-      {"blender.mesh_selected", btheme->space_view3d.vertex_select},
-      {"blender.back", nullptr, TH_BACK},
-      {"blender.text", nullptr, TH_TEXT},
-      {"blender.text_hi", nullptr, TH_TEXT_HI},
-      {"blender.red_alert", nullptr, TH_REDALERT},
-      {"blender.error", nullptr, TH_INFO_ERROR, SPACE_INFO},
-      {"blender.warning", nullptr, TH_INFO_WARNING, SPACE_INFO},
-      {"blender.info", nullptr, TH_INFO_INFO, SPACE_INFO},
-      {"blender.scene", nullptr, TH_ICON_SCENE},
-      {"blender.collection", nullptr, TH_ICON_COLLECTION},
-      {"blender.object", nullptr, TH_ICON_OBJECT},
-      {"blender.object_data", nullptr, TH_ICON_OBJECT_DATA},
-      {"blender.modifier", nullptr, TH_ICON_MODIFIER},
-      {"blender.shading", nullptr, TH_ICON_SHADING},
-      {"blender.folder", nullptr, TH_ICON_FOLDER},
-      {"blender.fund", nullptr, TH_ICON_FUND},
-      {"blender.autokey", nullptr, TH_ICON_AUTOKEY},
-      {"blender.tool_add", tool_add},
-      {"blender.tool_remove", tool_remove},
-      {"blender.tool_select", tool_select},
-      {"blender.tool_transform", tool_transform},
-      {"blender.tool_white", tool_white},
-      {"blender.tool_red", tool_red},
+      {"blender_white", white},
+      {"blender_black", black},
+      {"blender_logo_orange", logo_orange},
+      {"blender_logo_blue", logo_blue},
+      {"blender_selected", btheme->tui.wcol_regular.inner},
+      {"blender_mesh_selected", btheme->space_view3d.vertex_select},
+      {"blender_back", nullptr, TH_BACK},
+      {"blender_text", nullptr, TH_TEXT},
+      {"blender_text_hi", nullptr, TH_TEXT_HI},
+      {"blender_red_alert", nullptr, TH_REDALERT},
+      {"blender_error", nullptr, TH_INFO_ERROR, SPACE_INFO},
+      {"blender_warning", nullptr, TH_INFO_WARNING, SPACE_INFO},
+      {"blender_info", nullptr, TH_INFO_INFO, SPACE_INFO},
+      {"blender_scene", nullptr, TH_ICON_SCENE},
+      {"blender_collection", nullptr, TH_ICON_COLLECTION},
+      {"blender_object", nullptr, TH_ICON_OBJECT},
+      {"blender_object_data", nullptr, TH_ICON_OBJECT_DATA},
+      {"blender_modifier", nullptr, TH_ICON_MODIFIER},
+      {"blender_shading", nullptr, TH_ICON_SHADING},
+      {"blender_folder", nullptr, TH_ICON_FOLDER},
+      {"blender_fund", nullptr, TH_ICON_FUND},
+      {"blender_autokey", nullptr, TH_ICON_AUTOKEY},
+      {"blender_tool_add", tool_add},
+      {"blender_tool_remove", tool_remove},
+      {"blender_tool_select", tool_select},
+      {"blender_tool_transform", tool_transform},
+      {"blender_tool_white", tool_white},
+      {"blender_tool_red", tool_red},
   };
 
   for (const ColorItem &item : items) {
@@ -1416,7 +1416,7 @@ static void icon_source_edit_cb(std::string &svg)
   while (1) {
     /* Look for a blender id, quick exit if not found. */
     constexpr static blender::StringRef key = "id=\"";
-    const size_t id_start = svg.find(key + "blender.", g_start);
+    const size_t id_start = svg.find(key + "blender_", g_start);
     if (id_start == std::string::npos) {
       return;
     }
