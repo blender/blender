@@ -34,8 +34,14 @@ class Prepass {
       ps_.init();
       return;
     }
+
+    const View3DShading &shading = state.v3d->shading;
+    bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
+    DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
+
     ps_.init();
-    ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | state.clipping_state);
+    ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | state.clipping_state |
+                  backface_cull_state);
     ps_.shader_set(res.shaders.depth_mesh.get());
     res.select_bind(ps_);
   }

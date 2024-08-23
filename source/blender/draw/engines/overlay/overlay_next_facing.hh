@@ -28,16 +28,21 @@ class Facing {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION && !state.xray_enabled &&
-              selection_type_ == SelectionType::DISABLED;
+    enabled = state.v3d && (state.overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
+              !state.xray_enabled && (selection_type_ == SelectionType::DISABLED);
     if (!enabled) {
       /* Not used. But release the data. */
       ps_.init();
       return;
     }
+
+    const View3DShading &shading = state.v3d->shading;
+    bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
+    DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
+
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH |
-                  state.clipping_state);
+                  state.clipping_state | backface_cull_state);
     ps_.shader_set(res.shaders.facing.get());
     ps_.bind_ubo("globalsBlock", &res.globals_buf);
   }
