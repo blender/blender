@@ -3866,6 +3866,47 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
   return U.experimental.use_docking ? WM_CURSOR_PICK_AREA : WM_CURSOR_STOP;
 }
 
+static float area_docking_snap(const float pos, const wmEvent *event)
+{
+  const bool alt = event->modifier & KM_ALT;
+  const bool ctrl = event->modifier & KM_CTRL;
+  const float accel = (alt || ctrl) ? 2.5f : 2.0;
+
+  float factor = pos * accel;
+
+  if (!alt) {
+    if (factor >= 0.4375f && factor < 0.5f) {
+      factor = 0.499999f;
+    }
+    else if (factor >= 0.5f && factor < 0.5625f) {
+      factor = 0.500001f;
+    }
+  }
+
+  if (ctrl) {
+    if (factor < 0.1875f) {
+      factor = 0.125f;
+    }
+    else if (factor >= 0.1875f && factor < 0.3125f) {
+      factor = 0.25f;
+    }
+    else if (factor >= 0.3125f && factor < 0.4375f) {
+      factor = 0.375f;
+    }
+    else if (factor >= 0.5625f && factor < 0.6875f) {
+      factor = 0.625f;
+    }
+    else if (factor >= 0.6875f && factor < 0.8125f) {
+      factor = 0.75f;
+    }
+    else if (factor > 0.8125f) {
+      factor = 0.875f;
+    }
+  }
+
+  return factor;
+}
+
 static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *event)
 {
   if (!U.experimental.use_docking || !jd->sa2 || !jd->win2) {
@@ -3922,15 +3963,14 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   /* If we've made it here, then there can be no joining possible. */
   jd->dir = SCREEN_DIR_NONE;
   jd->factor = 0.5f;
-  float accel = (jd->sa1 == jd->sa2) ? 1.7f : 2.0f;
 
   /* if the area is narrow then there are only two docking targets. */
   if (jd->sa2->winx < min_x) {
-    jd->factor = float(y) / float(jd->sa2->winy) * accel;
+    jd->factor = area_docking_snap(float(y) / float(jd->sa2->winy), event);
     return (y < jd->sa2->winy / 2) ? AreaDockTarget::Bottom : AreaDockTarget::Top;
   }
   if (jd->sa2->winy < min_y) {
-    jd->factor = float(x) / float(jd->sa2->winx) * accel;
+    jd->factor = area_docking_snap(float(x) / float(jd->sa2->winx), event);
     return (x < jd->sa2->winx / 2) ? AreaDockTarget::Left : AreaDockTarget::Right;
   }
 
@@ -3945,20 +3985,21 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
   const bool upper_left = float(x) / float(y + 1) < area_ratio;
   /* Split the area diagonally from top-left to bottom-right. */
   const bool lower_left = float(x) / float(jd->sa2->winy - y + 1) < area_ratio;
+
   if (upper_left && !lower_left) {
-    jd->factor = (1.0f - float(y) / float(jd->sa2->winy)) * accel;
+    jd->factor = area_docking_snap(1.0f - float(y) / float(jd->sa2->winy), event);
     return AreaDockTarget::Top;
   }
   if (!upper_left && lower_left) {
-    jd->factor = float(y) / float(jd->sa2->winy) * accel;
+    jd->factor = area_docking_snap(float(y) / float(jd->sa2->winy), event);
     return AreaDockTarget::Bottom;
   }
   if (upper_left && lower_left) {
-    jd->factor = float(x) / float(jd->sa2->winx) * accel;
+    jd->factor = area_docking_snap(float(x) / float(jd->sa2->winx), event);
     return AreaDockTarget::Left;
   }
   if (!upper_left && !lower_left) {
-    jd->factor = (1.0f - float(x) / float(jd->sa2->winx)) * accel;
+    jd->factor = area_docking_snap(1.0f - float(x) / float(jd->sa2->winx), event);
     return AreaDockTarget::Right;
   }
   return AreaDockTarget::None;
