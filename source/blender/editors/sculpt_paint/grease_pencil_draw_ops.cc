@@ -1224,6 +1224,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
       (brush.gpencil_settings->flag & GP_BRUSH_FILL_HIDE) ?
           std::nullopt :
           std::make_optional(brush.gpencil_settings->fill_threshold);
+  const bool on_back = (ts.gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK);
 
   if (!grease_pencil.has_active_layer()) {
     return false;
@@ -1263,8 +1264,9 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
 
     Curves *dst_curves_id = curves_new_nomain(std::move(info.target.drawing.strokes_for_write()));
     Curves *fill_curves_id = curves_new_nomain(fill_curves);
-    Array<bke::GeometrySet> geometry_sets = {bke::GeometrySet::from_curves(dst_curves_id),
-                                             bke::GeometrySet::from_curves(fill_curves_id)};
+    Array<bke::GeometrySet> geometry_sets = {
+        bke::GeometrySet::from_curves(on_back ? fill_curves_id : dst_curves_id),
+        bke::GeometrySet::from_curves(on_back ? dst_curves_id : fill_curves_id)};
     bke::GeometrySet joined_geometry_set = geometry::join_geometries(geometry_sets, {});
     bke::CurvesGeometry joined_curves =
         (joined_geometry_set.has_curves() ?
