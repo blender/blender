@@ -2,17 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import math
 import pathlib
 import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Usd
-from pxr import UsdUtils
-from pxr import UsdGeom
-from pxr import UsdShade
-from pxr import UsdSkel
-from pxr import Gf
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils
 
 import bpy
 
@@ -79,6 +75,13 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertFalse(failed_checks, pprint.pformat(failed_checks))
 
+    # Utility function to round each component of a vector to a few digits. The "+ 0" is to
+    # ensure that any negative zeros (-0.0) are converted to positive zeros (0.0).
+    @staticmethod
+    def round_vector(vector):
+        return [round(c, 4) + 0 for c in vector]
+
+    # Utility function to compare two Gf.Vec3d's
     def compareVec3d(self, first, second):
         places = 5
         self.assertAlmostEqual(first[0], second[0], places)
@@ -444,7 +447,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(indices2), 15)
         self.assertNotEqual(indices1, indices2)
 
-    def test_animation(self):
+    def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"
         res = bpy.ops.wm.usd_export(
@@ -493,6 +496,93 @@ class USDExportTest(AbstractUSDTest):
         anim = UsdSkel.Animation(prim_skel.GetAnimationSource())
         weight_samples = anim.GetBlendShapeWeightsAttr().GetTimeSamples()
         self.assertEqual(weight_samples, [1.0, 2.0, 3.0, 4.0, 5.0])
+
+    def test_export_xform_ops(self):
+        """Test exporting different xform operation modes."""
+
+        # Create a simple scene and export using each of our xform op modes
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        loc = [1, 2, 3]
+        rot = [math.pi / 4, 0, math.pi / 8]
+        scale = [1, 2, 3]
+
+        bpy.ops.mesh.primitive_plane_add(location=loc, rotation=rot)
+        bpy.data.objects[0].scale = scale
+
+        test_path1 = self.tempdir / "temp_xform_trs_test.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(test_path1), xform_op_mode='TRS')
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
+
+        test_path2 = self.tempdir / "temp_xform_tos_test.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(test_path2), xform_op_mode='TOS')
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
+
+        test_path3 = self.tempdir / "temp_xform_mat_test.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(test_path3), xform_op_mode='MAT')
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path3}")
+
+        # Validate relevant details for each case
+        stage = Usd.Stage.Open(str(test_path1))
+        xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root/Plane"))
+        rot_degs = [math.degrees(rot[0]), math.degrees(rot[1]), math.degrees(rot[2])]
+        self.assertEqual(xf.GetXformOpOrderAttr().Get(), ['xformOp:translate', 'xformOp:rotateXYZ', 'xformOp:scale'])
+        self.assertEqual(self.round_vector(xf.GetTranslateOp().Get()), loc)
+        self.assertEqual(self.round_vector(xf.GetRotateXYZOp().Get()), rot_degs)
+        self.assertEqual(self.round_vector(xf.GetScaleOp().Get()), scale)
+
+        stage = Usd.Stage.Open(str(test_path2))
+        xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root/Plane"))
+        orient_quat = xf.GetOrientOp().Get()
+        self.assertEqual(xf.GetXformOpOrderAttr().Get(), ['xformOp:translate', 'xformOp:orient', 'xformOp:scale'])
+        self.assertEqual(self.round_vector(xf.GetTranslateOp().Get()), loc)
+        self.assertEqual(round(orient_quat.GetReal(), 4), 0.9061)
+        self.assertEqual(self.round_vector(orient_quat.GetImaginary()), [0.3753, 0.0747, 0.1802])
+        self.assertEqual(self.round_vector(xf.GetScaleOp().Get()), scale)
+
+        stage = Usd.Stage.Open(str(test_path3))
+        xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root/Plane"))
+        mat = xf.GetTransformOp().Get()
+        mat = [
+            self.round_vector(mat[0]), self.round_vector(mat[1]), self.round_vector(mat[2]), self.round_vector(mat[3])
+        ]
+        expected = [
+            [0.9239, 0.3827, 0.0, 0.0],
+            [-0.5412, 1.3066, 1.4142, 0.0],
+            [0.8118, -1.9598, 2.1213, 0.0],
+            [1.0, 2.0, 3.0, 1.0]
+        ]
+        self.assertEqual(xf.GetXformOpOrderAttr().Get(), ['xformOp:transform'])
+        self.assertEqual(mat, expected)
+
+    def test_export_orientation(self):
+        """Test exporting different orientation configurations."""
+
+        # Using the empty scene is fine for this
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
+        test_path1 = self.tempdir / "temp_orientation_yup.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(test_path1),
+            convert_orientation=True,
+            export_global_forward_selection='NEGATIVE_Z',
+            export_global_up_selection='Y')
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path1}")
+
+        test_path2 = self.tempdir / "temp_orientation_zup_rev.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(test_path2),
+            convert_orientation=True,
+            export_global_forward_selection='NEGATIVE_Y',
+            export_global_up_selection='Z')
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path2}")
+
+        stage = Usd.Stage.Open(str(test_path1))
+        xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root"))
+        self.assertEqual(self.round_vector(xf.GetRotateXYZOp().Get()), [-90, 0, 0])
+
+        stage = Usd.Stage.Open(str(test_path2))
+        xf = UsdGeom.Xformable(stage.GetPrimAtPath("/root"))
+        self.assertEqual(self.round_vector(xf.GetRotateXYZOp().Get()), [0, 0, 180])
 
     def test_materialx_network(self):
         """Test exporting that a MaterialX export makes it out alright"""
