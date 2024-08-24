@@ -2014,10 +2014,12 @@ static int area_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_PASS_THROUGH;
   }
 
+  sAreaMoveData *md = static_cast<sAreaMoveData *>(op->customdata);
+
   WorkspaceStatus status(C);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
   status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
-  status.item(IFACE_("Snap"), ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Snap"), md->snap_type == SNAP_FRACTION_AND_ADJACENT, ICON_EVENT_CTRL);
 
   /* add temp handler */
   G.moving |= G_TRANSFORM_WM;
@@ -4138,11 +4140,14 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
       else {
         if (jd->dock_target == AreaDockTarget::None) {
           status.item(IFACE_("Select Area"), ICON_MOUSE_LMB);
+          status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
         }
         else {
           status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
+          status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+          status.item_bool(IFACE_("Precision"), event->modifier & KM_ALT, ICON_EVENT_ALT);
+          status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
         }
-        status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
       }
       break;
     }
