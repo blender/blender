@@ -44,6 +44,8 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
+#include <algorithm>
+
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
 
@@ -745,26 +747,46 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   int current_mat = 0;
   if (!subsets.empty()) {
     for (const pxr::UsdGeomSubset &subset : subsets) {
-
-      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset.GetPrim());
+      pxr::UsdPrim subset_prim = subset.GetPrim();
+      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset_prim);
       if (!subset_mtl) {
         continue;
       }
 
       pxr::SdfPath subset_mtl_path = subset_mtl.GetPath();
-
       if (subset_mtl_path.IsEmpty()) {
         continue;
       }
 
+      pxr::TfToken element_type;
+      subset.GetElementTypeAttr().Get(&element_type, motionSampleTime);
+      if (element_type != pxr::UsdGeomTokens->face) {
+        CLOG_WARN(&LOG,
+                  "UsdGeomSubset '%s' uses unsupported elementType: %s",
+                  subset_prim.GetName().GetText(),
+                  element_type.GetText());
+        continue;
+      }
+
       const int mat_idx = r_mat_map->lookup_or_add(subset_mtl_path, 1 + current_mat++);
+      const int max_element_idx = std::max(0, int(material_indices.size() - 1));
 
-      pxr::UsdAttribute indicesAttribute = subset.GetIndicesAttr();
       pxr::VtIntArray indices;
-      indicesAttribute.Get(&indices, motionSampleTime);
+      subset.GetIndicesAttr().Get(&indices, motionSampleTime);
 
-      for (const int i : indices) {
-        material_indices[i] = mat_idx - 1;
+      int bad_element_count = 0;
+      for (const int element_idx : indices) {
+        const int safe_element_idx = std::clamp(element_idx, 0, max_element_idx);
+        bad_element_count += (safe_element_idx != element_idx) ? 1 : 0;
+        material_indices[safe_element_idx] = mat_idx - 1;
+      }
+
+      if (bad_element_count > 0) {
+        CLOG_WARN(&LOG,
+                  "UsdGeomSubset '%s' contains invalid indices; material assignment may be "
+                  "incorrect (%d were out of range)",
+                  subset_prim.GetName().GetText(),
+                  bad_element_count);
       }
     }
   }
