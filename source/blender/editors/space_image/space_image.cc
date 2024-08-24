@@ -1084,7 +1084,7 @@ static blender::StringRefNull image_space_name_get(const ScrArea *area)
   if (index < 0) {
     index = SI_MODE_VIEW;
   }
-  const EnumPropertyItem item = rna_enum_space_image_mode_all_items[index];
+  const EnumPropertyItem item = rna_enum_space_image_mode_items[index];
   return item.name;
 }
 
