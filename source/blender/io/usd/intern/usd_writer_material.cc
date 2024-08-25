@@ -437,7 +437,7 @@ static const InputSpecMap &preview_surface_input_map()
     map.add_new("IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true});
 
     /* Note that for the Normal input set_default_value is false. */
-    map.add_new("Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, false});
+    map.add_new("Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Normal3f, false});
     map.add_new("Coat Weight", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true});
     map.add_new("Coat Roughness",
                 {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true});
