@@ -106,11 +106,6 @@ bool is_pixel_node(DNode node)
   return node->typeinfo->get_compositor_shader_node;
 }
 
-bool is_node_supported(DNode node)
-{
-  return node->typeinfo->get_compositor_operation || node->typeinfo->get_compositor_shader_node;
-}
-
 InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
 {
   using namespace nodes;
