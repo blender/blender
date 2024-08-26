@@ -15,7 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.001f)
       .max(10.0f)
-      .subtype(PROP_UNSIGNED)
+      .subtype(PROP_NONE)
       .description(
           "Gamma correction value\n"
           "Gamma controls the relative intensity of the mid-tones compared to the full black and "
