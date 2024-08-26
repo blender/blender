@@ -39,8 +39,9 @@ def _zipfile_root_namelist(file_to_extract):
 
 
 def _module_filesystem_remove(path_base, filenames):
-    # Remove all Python modules with `module_name` in `base_path`.
-    # The `filenames` is expected to be a result from `_zipfile_root_namelist`.
+    # Remove all Python modules defined by `filenames` in `base_path`.
+    # The `filenames` argument is expected to be a result from `_zipfile_root_namelist`
+    # but could be any iterable of file-names.
     import os
     import shutil
     module_names = {
