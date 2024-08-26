@@ -1838,7 +1838,7 @@ void uiTemplateAction(uiLayout *layout,
 
   /* Construct a pointer with the animated ID as owner, even when `adt` may be `nullptr`.
    * This way it is possible to use this RNA pointer to get/set `adt->action`, as that RNA property
-   * has a getter and setter that only need the owner ID and are null-safe regarding the `adt`
+   * has a `getter` & `setter` that only need the owner ID and are null-safe regarding the `adt`
    * itself. */
   AnimData *adt = BKE_animdata_from_id(id);
   PointerRNA adt_ptr = RNA_pointer_create(id, &RNA_AnimData, adt);

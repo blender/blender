@@ -43,7 +43,7 @@ uint DNA_member_id_offset_end(const char *member_full_trimmed);
 /**
  * Copy the member id part (the bare name) of the full source member into \a member_id_dst.
  *
- * \param member_id_dst destination char buffer, must be at least the size of \a member_src_full.
+ * \param member_id_dst: destination char buffer, must be at least the size of \a member_src_full.
  */
 uint DNA_member_id_strip_copy(char *member_id_dst, const char *member_full_src);
 /**

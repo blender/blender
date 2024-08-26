@@ -765,7 +765,7 @@ def _stale_pending_check_and_remove_once():
         return
 
     # Some stale data needs to be removed, this is an exceptional case.
-    # Allow for slower logic that is typically accepted on startup.
+    # Allow for slower logic than is typically accepted on startup.
     from _bpy_internal.extensions.stale_file_manager import StaleFiles
     debug = _bpy.app.debug_python
 

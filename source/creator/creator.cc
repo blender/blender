@@ -146,7 +146,7 @@ static void main_callback_setup()
   MEM_set_error_callback(callback_mem_error);
 }
 
-/* free data on early exit (if Python calls 'sys.exit()' while parsing args for eg). */
+/** Free data on early exit (if Python calls `sys.exit()` while parsing args for eg). */
 struct CreatorAtExitData {
 #ifndef WITH_PYTHON_MODULE
   bArgs *ba;
@@ -208,7 +208,7 @@ static void callback_clg_fatal(void *fp)
 int main_python_enter(int argc, const char **argv);
 void main_python_exit();
 
-/* Rename the 'main' function, allowing Python initialization to call it. */
+/* Rename the `main(..)` function, allowing Python initialization to call it. */
 #  define main main_python_enter
 static void *evil_C = nullptr;
 
@@ -457,7 +457,7 @@ int main(int argc,
   main_args_setup(C, ba, false);
 
   /* Begin argument parsing, ignore leaks so arguments that call #exit
-   * (such as '--version' & '--help') don't report leaks. */
+   * (such as `--version` & `--help`) don't report leaks. */
   MEM_use_memleak_detection(false);
 
   /* Parse environment handling arguments. */
@@ -553,8 +553,8 @@ int main(int argc,
 #endif
 
   /* Explicitly free data allocated for argument parsing:
-   * - 'ba'
-   * - 'argv' on WIN32.
+   * - `ba`
+   * - `argv` on WIN32.
    */
   callback_main_atexit(&app_init_data);
   BKE_blender_atexit_unregister(callback_main_atexit, &app_init_data);

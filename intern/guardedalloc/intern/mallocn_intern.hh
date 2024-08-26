@@ -54,11 +54,11 @@ size_t malloc_usable_size(void *ptr);
 #endif
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__)
-/* Needed for `memalign` on Linux and _aligned_alloc on Windows. */
+/* Needed for `memalign` on Linux and `_aligned_alloc` on Windows. */
 
 #  include <malloc.h>
 #else
-/* Apple's malloc is 16-byte aligned, and does not have malloc.h, so include stdilb instead. */
+/* Apple's malloc is 16-byte aligned, and does not have `malloc.h`, so include `stdilb` instead. */
 #  include <stdlib.h>
 #endif
 
@@ -75,7 +75,7 @@ size_t malloc_usable_size(void *ptr);
 #define MEMHEAD_ALIGN_PADDING(alignment) \
   ((size_t)alignment - (sizeof(MemHeadAligned) % (size_t)alignment))
 
-/* Real pointer returned by the malloc or aligned_alloc. */
+/* Real pointer returned by the `malloc` or `aligned_alloc`. */
 #define MEMHEAD_REAL_PTR(memh) ((char *)memh - MEMHEAD_ALIGN_PADDING(memh->alignment))
 
 #include "mallocn_inline.hh"

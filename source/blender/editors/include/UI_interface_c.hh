@@ -2499,8 +2499,8 @@ void uiTemplateAnyID(uiLayout *layout,
 /**
  * Action selector.
  *
- * This is a specialisation of #uiTemplateID, hard-coded to assign Actions to the given ID.
- * Such a specialisation is necessary, as the RNA property (`id.animation_data.action`) does not
+ * This is a specialization of #uiTemplateID, hard-coded to assign Actions to the given ID.
+ * Such a specialization is necessary, as the RNA property (`id.animation_data.action`) does not
  * exist when the ID's `adt` pointer is `nullptr`. In that case uiTemplateID will not be able
  * to find the RNA type of that property, which in turn it needs to determine the type of IDs to
  * show.
