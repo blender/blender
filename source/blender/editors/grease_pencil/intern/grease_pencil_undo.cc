@@ -288,6 +288,7 @@ class StepObject {
       }
     }
 
+    CustomData_free(&grease_pencil.layers_data, layers_num_);
     CustomData_copy(
         &layers_data_, &grease_pencil.layers_data, eCustomDataMask(CD_MASK_ALL), layers_num_);
   }

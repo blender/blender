@@ -158,6 +158,9 @@ void CustomData_data_add(eCustomDataType type, void *data1, const void *data2);
  * Initializes a CustomData object with the same layer setup as source. `mask` is a bit-field where
  * `(mask & (1 << (layer type)))` indicates if a layer should be copied or not. Data layers using
  * implicit-sharing will not actually be copied but will be shared between source and destination.
+ *
+ * \warning Does not free or release any internal resources in `dest` CustomData, code must call
+ * #CustomData_free first if needed.
  */
 void CustomData_copy(const CustomData *source,
                      CustomData *dest,
@@ -166,6 +169,9 @@ void CustomData_copy(const CustomData *source,
 /**
  * Initializes a CustomData object with the same layers as source. The data is not copied from the
  * source. Instead, the new layers are initialized using the given `alloctype`.
+ *
+ * \warning Does not free or release any internal resources in `dest` CustomData, code must call
+ * #CustomData_free first if needed.
  */
 void CustomData_copy_layout(const CustomData *source,
                             CustomData *dest,
@@ -225,6 +231,8 @@ CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData 
 
 /**
  * NULL's all members and resets the #CustomData.typemap.
+ *
+ * \warning Does not free or release any internal resources.
  */
 void CustomData_reset(CustomData *data);
 
