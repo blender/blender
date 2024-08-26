@@ -261,7 +261,7 @@ class StepObject {
   {
     layers_num_ = int(grease_pencil.layers().size());
 
-    CustomData_copy(
+    CustomData_init_from(
         &grease_pencil.layers_data, &layers_data_, eCustomDataMask(CD_MASK_ALL), layers_num_);
 
     if (grease_pencil.active_node != nullptr) {
@@ -289,7 +289,7 @@ class StepObject {
     }
 
     CustomData_free(&grease_pencil.layers_data, layers_num_);
-    CustomData_copy(
+    CustomData_init_from(
         &layers_data_, &grease_pencil.layers_data, eCustomDataMask(CD_MASK_ALL), layers_num_);
   }
 

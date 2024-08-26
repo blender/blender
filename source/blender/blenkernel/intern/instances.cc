@@ -152,7 +152,7 @@ Instances::Instances(const Instances &other)
       reference_user_counts_(other.reference_user_counts_),
       almost_unique_ids_cache_(other.almost_unique_ids_cache_)
 {
-  CustomData_copy(&other.attributes_, &attributes_, CD_MASK_ALL, other.instances_num_);
+  CustomData_init_from(&other.attributes_, &attributes_, CD_MASK_ALL, other.instances_num_);
 }
 
 Instances::~Instances()

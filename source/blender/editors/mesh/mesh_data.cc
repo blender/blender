@@ -799,7 +799,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   int totvert = mesh->verts_num + len;
   CustomData vert_data;
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &mesh->vert_data, &vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
   CustomData_copy_data(&mesh->vert_data, &vert_data, 0, 0, mesh->verts_num);
 
@@ -834,7 +834,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
   totedge = mesh->edges_num + len;
 
   /* Update custom-data. */
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &mesh->edge_data, &edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->edges_num);
 
@@ -869,7 +869,8 @@ static void mesh_add_loops(Mesh *mesh, int len)
   totloop = mesh->corners_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(&mesh->corner_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+  CustomData_init_layout_from(
+      &mesh->corner_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
   CustomData_copy_data(&mesh->corner_data, &ldata, 0, 0, mesh->corners_num);
 
   if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
@@ -906,7 +907,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
   faces_num = mesh->faces_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &mesh->face_data, &face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
   CustomData_copy_data(&mesh->face_data, &face_data, 0, 0, mesh->faces_num);
 

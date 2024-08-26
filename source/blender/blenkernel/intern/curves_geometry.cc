@@ -97,8 +97,8 @@ CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
     other.runtime->curve_offsets_sharing_info->add_user();
   }
 
-  CustomData_copy(&other.point_data, &this->point_data, CD_MASK_ALL, other.point_num);
-  CustomData_copy(&other.curve_data, &this->curve_data, CD_MASK_ALL, other.curve_num);
+  CustomData_init_from(&other.point_data, &this->point_data, CD_MASK_ALL, other.point_num);
+  CustomData_init_from(&other.curve_data, &this->curve_data, CD_MASK_ALL, other.curve_num);
 
   this->point_num = other.point_num;
   this->curve_num = other.curve_num;

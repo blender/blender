@@ -162,10 +162,10 @@ void CustomData_data_add(eCustomDataType type, void *data1, const void *data2);
  * \warning Does not free or release any internal resources in `dest` CustomData, code must call
  * #CustomData_free first if needed.
  */
-void CustomData_copy(const CustomData *source,
-                     CustomData *dest,
-                     eCustomDataMask mask,
-                     int totelem);
+void CustomData_init_from(const CustomData *source,
+                          CustomData *dest,
+                          eCustomDataMask mask,
+                          int totelem);
 /**
  * Initializes a CustomData object with the same layers as source. The data is not copied from the
  * source. Instead, the new layers are initialized using the given `alloctype`.
@@ -173,11 +173,11 @@ void CustomData_copy(const CustomData *source,
  * \warning Does not free or release any internal resources in `dest` CustomData, code must call
  * #CustomData_free first if needed.
  */
-void CustomData_copy_layout(const CustomData *source,
-                            CustomData *dest,
-                            eCustomDataMask mask,
-                            eCDAllocType alloctype,
-                            int totelem);
+void CustomData_init_layout_from(const CustomData *source,
+                                 CustomData *dest,
+                                 eCustomDataMask mask,
+                                 eCDAllocType alloctype,
+                                 int totelem);
 
 /* BMESH_TODO, not really a public function but `readfile.cc` needs it. */
 void CustomData_update_typemap(CustomData *data);

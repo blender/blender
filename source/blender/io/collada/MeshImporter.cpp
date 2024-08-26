@@ -557,7 +557,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   totedge = mesh->edges_num + len;
 
   /* Update custom-data. */
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &mesh->edge_data, &edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->edges_num);
 

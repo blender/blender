@@ -131,12 +131,16 @@ void DM_from_template(DerivedMesh *dm,
                       int numPolys)
 {
   const CustomData_MeshMasks *mask = &CD_MASK_DERIVEDMESH;
-  CustomData_copy_layout(&source->vertData, &dm->vertData, mask->vmask, CD_SET_DEFAULT, numVerts);
-  CustomData_copy_layout(&source->edgeData, &dm->edgeData, mask->emask, CD_SET_DEFAULT, numEdges);
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
+      &source->vertData, &dm->vertData, mask->vmask, CD_SET_DEFAULT, numVerts);
+  CustomData_init_layout_from(
+      &source->edgeData, &dm->edgeData, mask->emask, CD_SET_DEFAULT, numEdges);
+  CustomData_init_layout_from(
       &source->faceData, &dm->faceData, mask->fmask, CD_SET_DEFAULT, numTessFaces);
-  CustomData_copy_layout(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
-  CustomData_copy_layout(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
+  CustomData_init_layout_from(
+      &source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
+  CustomData_init_layout_from(
+      &source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
   dm->face_offsets = static_cast<int *>(MEM_dupallocN(source->face_offsets));
 
   dm->type = type;

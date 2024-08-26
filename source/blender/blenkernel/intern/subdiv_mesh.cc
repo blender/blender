@@ -227,11 +227,11 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
   else {
     vertex_interpolation->vertex_data = &vertex_interpolation->vertex_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy_layout(&ctx->coarse_mesh->vert_data,
-                           &vertex_interpolation->vertex_data_storage,
-                           CD_MASK_EVERYTHING.vmask,
-                           CD_SET_DEFAULT,
-                           4);
+    CustomData_init_layout_from(&ctx->coarse_mesh->vert_data,
+                                &vertex_interpolation->vertex_data_storage,
+                                CD_MASK_EVERYTHING.vmask,
+                                CD_SET_DEFAULT,
+                                4);
     /* Initialize indices. */
     vertex_interpolation->vertex_indices[0] = 0;
     vertex_interpolation->vertex_indices[1] = 1;
@@ -356,11 +356,11 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
   else {
     loop_interpolation->corner_data = &loop_interpolation->corner_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy_layout(&ctx->coarse_corner_data_interp,
-                           &loop_interpolation->corner_data_storage,
-                           CD_MASK_EVERYTHING.lmask,
-                           CD_SET_DEFAULT,
-                           4);
+    CustomData_init_layout_from(&ctx->coarse_corner_data_interp,
+                                &loop_interpolation->corner_data_storage,
+                                CD_MASK_EVERYTHING.lmask,
+                                CD_SET_DEFAULT,
+                                4);
     /* Initialize indices. */
     loop_interpolation->loop_indices[0] = 0;
     loop_interpolation->loop_indices[1] = 1;
@@ -549,33 +549,33 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   BKE_mesh_copy_parameters_for_eval(subdiv_context->subdiv_mesh, &coarse_mesh);
 
   CustomData_free(&subdiv_mesh.vert_data, 0);
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &coarse_mesh.vert_data, &subdiv_mesh.vert_data, mask.vmask, CD_SET_DEFAULT, num_vertices);
   CustomData_free(&subdiv_mesh.edge_data, 0);
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &coarse_mesh.edge_data, &subdiv_mesh.edge_data, mask.emask, CD_SET_DEFAULT, num_edges);
   CustomData_free(&subdiv_mesh.face_data, 0);
-  CustomData_copy_layout(
+  CustomData_init_layout_from(
       &coarse_mesh.face_data, &subdiv_mesh.face_data, mask.pmask, CD_SET_DEFAULT, num_faces);
   if (num_faces != 0) {
     subdiv_mesh.face_offsets_for_write().last() = num_loops;
   }
 
   /* Create corner data for interpolation without topology attributes. */
-  CustomData_copy(&coarse_mesh.corner_data,
-                  &subdiv_context->coarse_corner_data_interp,
-                  mask.lmask,
-                  coarse_mesh.corners_num);
+  CustomData_init_from(&coarse_mesh.corner_data,
+                       &subdiv_context->coarse_corner_data_interp,
+                       mask.lmask,
+                       coarse_mesh.corners_num);
   CustomData_free_layer_named(
       &subdiv_context->coarse_corner_data_interp, ".corner_vert", coarse_mesh.corners_num);
   CustomData_free_layer_named(
       &subdiv_context->coarse_corner_data_interp, ".corner_edge", coarse_mesh.corners_num);
   CustomData_free(&subdiv_mesh.corner_data, 0);
-  CustomData_copy_layout(&subdiv_context->coarse_corner_data_interp,
-                         &subdiv_mesh.corner_data,
-                         mask.lmask,
-                         CD_SET_DEFAULT,
-                         num_loops);
+  CustomData_init_layout_from(&subdiv_context->coarse_corner_data_interp,
+                              &subdiv_mesh.corner_data,
+                              mask.lmask,
+                              CD_SET_DEFAULT,
+                              num_loops);
 
   /* Allocate corner topology arrays which are added to the result at the end. */
   subdiv_context->subdiv_corner_verts = static_cast<int *>(

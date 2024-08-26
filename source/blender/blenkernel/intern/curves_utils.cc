@@ -27,7 +27,7 @@ void fill_points(const OffsetIndices<int> points_by_curve,
 CurvesGeometry copy_only_curve_domain(const CurvesGeometry &src_curves)
 {
   CurvesGeometry dst_curves(0, src_curves.curves_num());
-  CustomData_copy(
+  CustomData_init_from(
       &src_curves.curve_data, &dst_curves.curve_data, CD_MASK_ALL, src_curves.curves_num());
   dst_curves.runtime->type_counts = src_curves.runtime->type_counts;
   return dst_curves;

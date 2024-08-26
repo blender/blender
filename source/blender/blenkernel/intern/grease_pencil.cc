@@ -127,10 +127,10 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
     grease_pencil_dst->set_active_node(active_node);
   }
 
-  CustomData_copy(&grease_pencil_src->layers_data,
-                  &grease_pencil_dst->layers_data,
-                  CD_MASK_ALL,
-                  grease_pencil_dst->layers().size());
+  CustomData_init_from(&grease_pencil_src->layers_data,
+                       &grease_pencil_dst->layers_data,
+                       CD_MASK_ALL,
+                       grease_pencil_dst->layers().size());
 
   BKE_defgroup_copy_list(&grease_pencil_dst->vertex_group_names,
                          &grease_pencil_src->vertex_group_names);
@@ -1837,10 +1837,10 @@ void BKE_grease_pencil_nomain_to_grease_pencil(GreasePencil *grease_pencil_src,
       __func__, grease_pencil_src->root_group_ptr->wrap());
   BLI_assert(grease_pencil_src->layers().size() == grease_pencil_dst->layers().size());
 
-  CustomData_copy(&grease_pencil_src->layers_data,
-                  &grease_pencil_dst->layers_data,
-                  eCustomDataMask(CD_MASK_ALL),
-                  grease_pencil_src->layers().size());
+  CustomData_init_from(&grease_pencil_src->layers_data,
+                       &grease_pencil_dst->layers_data,
+                       eCustomDataMask(CD_MASK_ALL),
+                       grease_pencil_src->layers().size());
 
   DEG_id_tag_update(&grease_pencil_dst->id, ID_RECALC_GEOMETRY);
 
@@ -2979,7 +2979,7 @@ blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
 static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
 {
   CustomData new_data;
-  CustomData_copy_layout(&data, &new_data, CD_MASK_ALL, CD_CONSTRUCT, new_by_old_map.size());
+  CustomData_init_layout_from(&data, &new_data, CD_MASK_ALL, CD_CONSTRUCT, new_by_old_map.size());
 
   for (const int old_i : new_by_old_map.index_range()) {
     const int new_i = new_by_old_map[old_i];
@@ -3306,7 +3306,7 @@ static void shrink_customdata(CustomData &data, const int index_to_remove, const
 {
   using namespace blender;
   CustomData new_data;
-  CustomData_copy_layout(&data, &new_data, CD_MASK_ALL, CD_CONSTRUCT, size);
+  CustomData_init_layout_from(&data, &new_data, CD_MASK_ALL, CD_CONSTRUCT, size);
   CustomData_realloc(&new_data, size, size - 1);
 
   const IndexRange range_before(index_to_remove);

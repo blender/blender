@@ -2092,7 +2092,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
     });
     CustomData old_poly_data = mesh->face_data;
     CustomData_reset(&mesh->face_data);
-    CustomData_copy_layout(
+    CustomData_init_layout_from(
         &old_poly_data, &mesh->face_data, CD_MASK_MESH.pmask, CD_CONSTRUCT, mesh->faces_num);
 
     int offset = 0;
