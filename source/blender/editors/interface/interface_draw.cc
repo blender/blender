@@ -1981,8 +1981,8 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     GPU_polygon_smooth(false);
     immBegin(GPU_PRIM_TRIS, 3 * tot_triangles);
     for (uint i = 0; i < tot_triangles; i++) {
+      const uint *tri = tri_indices[i];
       for (uint j = 0; j < 3; j++) {
-        uint *tri = tri_indices[i];
         fx = rect->xmin + zoomx * (table_coords[tri[j]][0] - offsx);
         fy = rect->ymin + zoomy * (table_coords[tri[j]][1] - offsy);
         immVertex2f(pos, fx, fy);
