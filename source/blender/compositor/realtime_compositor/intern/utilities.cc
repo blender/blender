@@ -101,7 +101,7 @@ int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
   return count;
 }
 
-bool is_shader_node(DNode node)
+bool is_pixel_node(DNode node)
 {
   return node->typeinfo->get_compositor_shader_node;
 }

@@ -95,12 +95,12 @@ void Evaluator::compile_and_evaluate()
       return;
     }
 
-    if (compile_state.should_compile_shader_compile_unit(node)) {
-      compile_and_evaluate_shader_compile_unit(compile_state);
+    if (compile_state.should_compile_pixel_compile_unit(node)) {
+      compile_and_evaluate_pixel_compile_unit(compile_state);
     }
 
-    if (is_shader_node(node)) {
-      compile_state.add_node_to_shader_compile_unit(node);
+    if (is_pixel_node(node)) {
+      compile_state.add_node_to_pixel_compile_unit(node);
     }
     else {
       compile_and_evaluate_node(node, compile_state);
@@ -159,9 +159,9 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
   }
 }
 
-void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_state)
+void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_state)
 {
-  ShaderCompileUnit &compile_unit = compile_state.get_shader_compile_unit();
+  PixelCompileUnit &compile_unit = compile_state.get_pixel_compile_unit();
 
   /* GPUs have hardware limitations on the number of output images shaders can have, so we might
    * have to split the compile unit into smaller units to workaround this limitation. In practice,
@@ -170,7 +170,7 @@ void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_s
   int number_of_outputs = 0;
   for (int i : compile_unit.index_range()) {
     const DNode node = compile_unit[i];
-    number_of_outputs += compile_state.compute_shader_node_operation_outputs_count(node);
+    number_of_outputs += compile_state.compute_pixel_node_operation_outputs_count(node);
 
     /* The GPU module currently only supports up to 8 output images in shaders, but once this
      * limitation is lifted, we can replace that with GPU_max_images(). */
@@ -187,14 +187,14 @@ void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_s
      * splitting helps balancing the shaders, where we don't want to have one gigantic shader and
      * a tiny one. */
     const int split_index = compile_unit.size() / 2;
-    const ShaderCompileUnit start_compile_unit(compile_unit.as_span().take_front(split_index));
-    const ShaderCompileUnit end_compile_unit(compile_unit.as_span().drop_front(split_index));
+    const PixelCompileUnit start_compile_unit(compile_unit.as_span().take_front(split_index));
+    const PixelCompileUnit end_compile_unit(compile_unit.as_span().drop_front(split_index));
 
-    compile_state.get_shader_compile_unit() = start_compile_unit;
-    this->compile_and_evaluate_shader_compile_unit(compile_state);
+    compile_state.get_pixel_compile_unit() = start_compile_unit;
+    this->compile_and_evaluate_pixel_compile_unit(compile_state);
 
-    compile_state.get_shader_compile_unit() = end_compile_unit;
-    this->compile_and_evaluate_shader_compile_unit(compile_state);
+    compile_state.get_pixel_compile_unit() = end_compile_unit;
+    this->compile_and_evaluate_pixel_compile_unit(compile_state);
 
     /* No need to continue, the above recursive calls will eventually exist the loop and do the
      * actual compilation. */
@@ -205,10 +205,10 @@ void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_s
   ShaderOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
 
   for (DNode node : compile_unit) {
-    compile_state.map_node_to_shader_operation(node, operation);
+    compile_state.map_node_to_pixel_operation(node, operation);
   }
 
-  map_shader_operation_inputs_to_their_results(operation, compile_state);
+  map_pixel_operation_inputs_to_their_results(operation, compile_state);
 
   operations_stream_.append(std::unique_ptr<Operation>(operation));
 
@@ -216,11 +216,11 @@ void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_s
 
   operation->evaluate();
 
-  compile_state.reset_shader_compile_unit();
+  compile_state.reset_pixel_compile_unit();
 }
 
-void Evaluator::map_shader_operation_inputs_to_their_results(ShaderOperation *operation,
-                                                             CompileState &compile_state)
+void Evaluator::map_pixel_operation_inputs_to_their_results(ShaderOperation *operation,
+                                                            CompileState &compile_state)
 {
   for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {
     Result &result = compile_state.get_result_from_output_socket(item.value);

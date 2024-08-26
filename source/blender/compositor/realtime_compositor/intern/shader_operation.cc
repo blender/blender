@@ -39,7 +39,7 @@ namespace blender::realtime_compositor {
 using namespace nodes::derived_node_tree_types;
 
 ShaderOperation::ShaderOperation(Context &context,
-                                 ShaderCompileUnit &compile_unit,
+                                 PixelCompileUnit &compile_unit,
                                  const Schedule &schedule)
     : Operation(context), schedule_(schedule), compile_unit_(compile_unit)
 {

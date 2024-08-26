@@ -49,14 +49,14 @@ using namespace nodes::derived_node_tree_types;
  * compute_schedule function, see the discussion in COM_scheduler.hh for more details. For the node
  * tree shown below, the execution schedule is denoted by the node numbers. The compiler then goes
  * over the execution schedule in order and compiles each node into either a Node Operation or a
- * Shader Operation, depending on the node type, see the is_shader_node function. A Shader
- * operation is constructed from a group of nodes forming a contiguous subset of the node execution
- * schedule. For instance, in the node tree shown below, nodes 3 and 4 are compiled together into a
- * shader operation and node 5 is compiled into its own shader operation, both of which are
- * contiguous subsets of the node execution schedule. This process is described in details in the
- * following section.
+ * Pixel Operation, depending on the node type, see the is_pixel_node function. A pixel operation
+ * is constructed from a group of nodes forming a contiguous subset of the node execution schedule.
+ * For instance, in the node tree shown below, nodes 3 and 4 are compiled together into a pixel
+ * operation and node 5 is compiled into its own pixel operation, both of which are contiguous
+ * subsets of the node execution schedule. This process is described in details in the following
+ * section.
  *
- *                             Shader Operation 1               Shader Operation 2
+ *                             Pixel Operation 1                Pixel Operation 2
  *                   +-----------------------------------+     +------------------+
  * .------------.    |  .------------.  .------------.   |     |  .------------.  |  .------------.
  * |   Node 1   |    |  |   Node 3   |  |   Node 4   |   |     |  |   Node 5   |  |  |   Node 6   |
@@ -70,35 +70,35 @@ using namespace nodes::derived_node_tree_types;
  * |            |
  * '------------'
  *
- * For non shader nodes, the compilation process is straight forward, the compiler instantiates a
+ * For non pixel nodes, the compilation process is straight forward, the compiler instantiates a
  * node operation from the node, map its inputs to the results of the outputs they are linked to,
- * and evaluates the operations. However, for shader nodes, since a group of nodes can be compiled
- * together into a shader operation, the compilation process is a bit involved. The compiler uses
+ * and evaluates the operations. However, for pixel nodes, since a group of nodes can be compiled
+ * together into a pixel operation, the compilation process is a bit involved. The compiler uses
  * an instance of the Compile State class to keep track of the compilation process. The compiler
- * state stores the so called "shader compile unit", which is the current group of nodes that will
- * eventually be compiled together into a shader operation. While going over the schedule, the
- * compiler adds the shader nodes to the compile unit until it decides that the compile unit is
+ * state stores the so called "pixel compile unit", which is the current group of nodes that will
+ * eventually be compiled together into a pixel operation. While going over the schedule, the
+ * compiler adds the pixel nodes to the compile unit until it decides that the compile unit is
  * complete and should be compiled. This is typically decided when the current node is not
  * compatible with the compile unit and can't be added to it, only then it compiles the compile
- * unit into a shader operation and resets it to ready it to track the next potential group of
- * nodes that will form a shader operation. This decision is made based on various criteria in the
- * should_compile_shader_compile_unit function. See the discussion in COM_compile_state.hh for more
+ * unit into a pixel operation and resets it to ready it to track the next potential group of
+ * nodes that will form a pixel operation. This decision is made based on various criteria in the
+ * should_compile_pixel_compile_unit function. See the discussion in COM_compile_state.hh for more
  * details of those criteria, but perhaps the most evident of which is whether the node is actually
- * a shader node, if it isn't, then it evidently can't be added to the compile unit and the compile
+ * a pixel node, if it isn't, then it evidently can't be added to the compile unit and the compile
  * unit is should be compiled.
  *
  * For the node tree above, the compilation process is as follows. The compiler goes over the node
- * execution schedule in order considering each node. Nodes 1 and 2 are not shader node so they are
+ * execution schedule in order considering each node. Nodes 1 and 2 are not pixel node so they are
  * compiled into node operations and added to the operations stream. The current compile unit is
- * empty, so it is not compiled. Node 3 is a shader node, and since the compile unit is currently
- * empty, it is unconditionally added to it. Node 4 is a shader node, it was decided---for the sake
+ * empty, so it is not compiled. Node 3 is a pixel node, and since the compile unit is currently
+ * empty, it is unconditionally added to it. Node 4 is a pixel node, it was decided---for the sake
  * of the demonstration---that it is compatible with the compile unit and can be added to it. Node
- * 5 is a shader node, but it was decided---for the sake of the demonstration---that it is not
+ * 5 is a pixel node, but it was decided---for the sake of the demonstration---that it is not
  * compatible with the compile unit, so the compile unit is considered complete and is compiled
- * first, adding the first shader operation to the operations stream and resetting the compile
+ * first, adding the first pixel operation to the operations stream and resetting the compile
  * unit. Node 5 is then added to the now empty compile unit similar to node 3. Node 6 is not a
- * shader node, so the compile unit is considered complete and is compiled first, adding the first
- * shader operation to the operations stream and resetting the compile unit. Finally, node 6 is
+ * pixel node, so the compile unit is considered complete and is compiled first, adding the first
+ * pixel operation to the operations stream and resetting the compile unit. Finally, node 6 is
  * compiled into a node operation similar to nodes 1 and 2 and added to the operations stream. */
 class Evaluator {
  private:
@@ -159,15 +159,15 @@ class Evaluator {
                                                   NodeOperation *operation,
                                                   CompileState &compile_state);
 
-  /* Compile the shader compile unit into a shader operation, map each input of the operation to
+  /* Compile the pixel compile unit into a pixel operation, map each input of the operation to
    * the result of the output linked to it, update the compile state, add the newly created
-   * operation to the operations stream, evaluate the operation, and finally reset the shader
+   * operation to the operations stream, evaluate the operation, and finally reset the pixel
    * compile unit. */
-  void compile_and_evaluate_shader_compile_unit(CompileState &compile_state);
+  void compile_and_evaluate_pixel_compile_unit(CompileState &compile_state);
 
-  /* Map each input of the shader operation to the result of the output linked to it. */
-  void map_shader_operation_inputs_to_their_results(ShaderOperation *operation,
-                                                    CompileState &compile_state);
+  /* Map each input of the pixel operation to the result of the output linked to it. */
+  void map_pixel_operation_inputs_to_their_results(ShaderOperation *operation,
+                                                   CompileState &compile_state);
 };
 
 }  // namespace blender::realtime_compositor

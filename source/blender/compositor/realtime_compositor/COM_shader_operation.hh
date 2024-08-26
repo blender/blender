@@ -26,21 +26,21 @@ namespace blender::realtime_compositor {
 using namespace nodes::derived_node_tree_types;
 
 /* A type representing a contiguous subset of the node execution schedule that will be compiled
- * into a Shader Operation. */
-using ShaderCompileUnit = VectorSet<DNode>;
+ * into a Pixel Operation. */
+using PixelCompileUnit = VectorSet<DNode>;
 
 /* ------------------------------------------------------------------------------------------------
  * Shader Operation
  *
  * An operation that evaluates a shader compiled from a contiguous subset of the node execution
  * schedule using the GPU material compiler, see GPU_material.hh for more information. The subset
- * of the node execution schedule is called a shader compile unit, see the discussion in
+ * of the node execution schedule is called a pixel compile unit, see the discussion in
  * COM_compile_state.hh for more information.
  *
  * Consider the following node graph with a node execution schedule denoted by the number on each
- * node. The compiler may decide to compile a subset of the execution schedule into a shader
- * operation, in this case, the nodes from 3 to 5 were compiled together into a shader operation.
- * This subset is called the shader compile unit. See the discussion in COM_evaluator.hh for more
+ * node. The compiler may decide to compile a subset of the execution schedule into a pixel
+ * operation, in this case, the nodes from 3 to 5 were compiled together into a pixel operation.
+ * This subset is called the pixel compile unit. See the discussion in COM_evaluator.hh for more
  * information on the compilation process. Each of the nodes inside the compile unit implements a
  * Shader Node which is instantiated, stored in shader_nodes_, and used during compilation. See the
  * discussion in COM_shader_node.hh for more information. Links that are internal to the shader
@@ -97,7 +97,7 @@ class ShaderOperation : public Operation {
   /* A reference to the node execution schedule that is being compiled. */
   const Schedule &schedule_;
   /* The compile unit that will be compiled into this shader operation. */
-  ShaderCompileUnit compile_unit_;
+  PixelCompileUnit compile_unit_;
   /* The GPU material backing the operation. This is created and compiled during construction and
    * freed during destruction. */
   GPUMaterial *material_;
@@ -121,7 +121,7 @@ class ShaderOperation : public Operation {
  public:
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule
    * by calling GPU_material_from_callbacks with the appropriate callbacks. */
-  ShaderOperation(Context &context, ShaderCompileUnit &compile_unit, const Schedule &schedule);
+  ShaderOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
 
   /* Free the GPU material. */
   ~ShaderOperation();

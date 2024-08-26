@@ -35,9 +35,9 @@ void CompileState::map_node_to_node_operation(DNode node, NodeOperation *operati
   return node_operations_.add_new(node, operations);
 }
 
-void CompileState::map_node_to_shader_operation(DNode node, ShaderOperation *operations)
+void CompileState::map_node_to_pixel_operation(DNode node, ShaderOperation *operations)
 {
-  return shader_operations_.add_new(node, operations);
+  return pixel_operations_.add_new(node, operations);
 }
 
 Result &CompileState::get_result_from_output_socket(DOutputSocket output)
@@ -49,54 +49,54 @@ Result &CompileState::get_result_from_output_socket(DOutputSocket output)
     return operation->get_result(output->identifier);
   }
 
-  /* Otherwise, the output belongs to a node that was compiled into a shader operation, so
-   * retrieve the internal identifier of that output and return a reference to the result from
-   * that operation using the retrieved identifier. */
-  ShaderOperation *operation = shader_operations_.lookup(output.node());
+  /* Otherwise, the output belongs to a node that was compiled into a pixel operation, so retrieve
+   * the internal identifier of that output and return a reference to the result from that
+   * operation using the retrieved identifier. */
+  ShaderOperation *operation = pixel_operations_.lookup(output.node());
   return operation->get_result(operation->get_output_identifier_from_output_socket(output));
 }
 
-void CompileState::add_node_to_shader_compile_unit(DNode node)
+void CompileState::add_node_to_pixel_compile_unit(DNode node)
 {
-  shader_compile_unit_.add_new(node);
+  pixel_compile_unit_.add_new(node);
 
-  /* If the domain of the shader compile unit is not yet determined or was determined to be
+  /* If the domain of the pixel compile unit is not yet determined or was determined to be
    * an identity domain, update it to be the computed domain of the node. */
-  if (shader_compile_unit_domain_ == Domain::identity()) {
-    shader_compile_unit_domain_ = compute_shader_node_domain(node);
+  if (pixel_compile_unit_domain_ == Domain::identity()) {
+    pixel_compile_unit_domain_ = compute_pixel_node_domain(node);
   }
 }
 
-ShaderCompileUnit &CompileState::get_shader_compile_unit()
+PixelCompileUnit &CompileState::get_pixel_compile_unit()
 {
-  return shader_compile_unit_;
+  return pixel_compile_unit_;
 }
 
-void CompileState::reset_shader_compile_unit()
+void CompileState::reset_pixel_compile_unit()
 {
-  shader_compile_unit_.clear();
-  shader_compile_unit_domain_ = Domain::identity();
+  pixel_compile_unit_.clear();
+  pixel_compile_unit_domain_ = Domain::identity();
 }
 
-bool CompileState::should_compile_shader_compile_unit(DNode node)
+bool CompileState::should_compile_pixel_compile_unit(DNode node)
 {
-  /* If the shader compile unit is empty, then it can't be compiled yet. */
-  if (shader_compile_unit_.is_empty()) {
+  /* If the pixel compile unit is empty, then it can't be compiled yet. */
+  if (pixel_compile_unit_.is_empty()) {
     return false;
   }
 
-  /* If the node is not a shader node, then it can't be added to the shader compile unit and the
-   * shader compile unit is considered complete and should be compiled. */
-  if (!is_shader_node(node)) {
+  /* If the node is not a pixel node, then it can't be added to the pixel compile unit and the
+   * pixel compile unit is considered complete and should be compiled. */
+  if (!is_pixel_node(node)) {
     return true;
   }
 
-  /* If the computed domain of the node doesn't matches the domain of the shader compile unit, then
-   * it can't be added to the shader compile unit and the shader compile unit is considered
+  /* If the computed domain of the node doesn't matches the domain of the pixel compile unit, then
+   * it can't be added to the pixel compile unit and the pixel compile unit is considered
    * complete and should be compiled. Identity domains are an exception as they are always
    * compatible because they represents single values. */
-  if (shader_compile_unit_domain_ != Domain::identity() &&
-      shader_compile_unit_domain_ != compute_shader_node_domain(node))
+  if (pixel_compile_unit_domain_ != Domain::identity() &&
+      pixel_compile_unit_domain_ != compute_pixel_node_domain(node))
   {
     return true;
   }
@@ -106,7 +106,7 @@ bool CompileState::should_compile_shader_compile_unit(DNode node)
   return false;
 }
 
-int CompileState::compute_shader_node_operation_outputs_count(DNode node)
+int CompileState::compute_pixel_node_operation_outputs_count(DNode node)
 {
   const DOutputSocket preview_output = find_preview_output_socket(node);
 
@@ -117,11 +117,11 @@ int CompileState::compute_shader_node_operation_outputs_count(DNode node)
     /* If the output is used as the node preview, then an operation output will exist for it. */
     const bool is_preview_output = doutput == preview_output;
 
-    /* If any of the nodes linked to the output are not part of the shader compile unit but are
+    /* If any of the nodes linked to the output are not part of the pixel compile unit but are
      * part of the execution schedule, then an operation output will exist for it. */
     const bool is_operation_output = is_output_linked_to_node_conditioned(
         doutput, [&](DNode node) {
-          return schedule_.contains(node) && !shader_compile_unit_.contains(node);
+          return schedule_.contains(node) && !pixel_compile_unit_.contains(node);
         });
 
     if (is_operation_output || is_preview_output) {
@@ -132,7 +132,7 @@ int CompileState::compute_shader_node_operation_outputs_count(DNode node)
   return outputs_count;
 }
 
-Domain CompileState::compute_shader_node_domain(DNode node)
+Domain CompileState::compute_pixel_node_domain(DNode node)
 {
   /* Default to an identity domain in case no domain input was found, most likely because all
    * inputs are single values. */
@@ -153,18 +153,18 @@ Domain CompileState::compute_shader_node_domain(DNode node)
 
     const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
 
-    /* If the output belongs to a node that is part of the shader compile unit, then the domain of
+    /* If the output belongs to a node that is part of the pixel compile unit, then the domain of
      * the input is the domain of the compile unit itself. */
-    if (shader_compile_unit_.contains(output.node())) {
+    if (pixel_compile_unit_.contains(output.node())) {
       /* Single value inputs can't be domain inputs. */
-      if (shader_compile_unit_domain_.size == int2(1)) {
+      if (pixel_compile_unit_domain_.size == int2(1)) {
         continue;
       }
 
       /* Notice that the lower the domain priority value is, the higher the priority is, hence the
        * less than comparison. */
       if (input_descriptor.domain_priority < current_domain_priority) {
-        node_domain = shader_compile_unit_domain_;
+        node_domain = pixel_compile_unit_domain_;
         current_domain_priority = input_descriptor.domain_priority;
       }
       continue;

@@ -46,8 +46,8 @@ bool is_output_linked_to_node_conditioned(DOutputSocket output,
 int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
                                                   FunctionRef<bool(DInputSocket)> condition);
 
-/** A node is a shader node if it defines a method to get a shader node operation. */
-bool is_shader_node(DNode node);
+/** A node is a pixel node if it defines a method to get a shader node operation. */
+bool is_pixel_node(DNode node);
 
 /**
  * Returns true if the given node is supported, that is, have an implementation.
