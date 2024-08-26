@@ -1874,7 +1874,7 @@ void BLO_write_struct_array_at_address_by_id(
   writestruct_at_address_nr(writer->wd, BLO_CODE_DATA, struct_id, array_size, address, data_ptr);
 }
 
-void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list)
+void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, const ListBase *list)
 {
   writelist_nr(writer->wd, BLO_CODE_DATA, struct_id, list);
 }
@@ -1894,7 +1894,7 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
   writestruct_at_address_nr(writer->wd, GS(id->name), struct_id, 1, id_address, id);
 }
 
-int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
+int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name)
 {
   int struct_id = DNA_struct_find_with_alias(writer->wd->sdna, struct_name);
   return struct_id;

@@ -86,7 +86,7 @@ struct Main;
 /**
  * Mapping between names and ids.
  */
-int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name);
+int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name);
 #define BLO_get_struct_id(writer, struct_name) SDNA_TYPE_FROM_STRUCT(struct_name)
 
 /**
@@ -146,7 +146,7 @@ void BLO_write_struct_array_at_address_by_id(
  * Write struct list.
  */
 void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list);
-void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list);
+void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, const ListBase *list);
 #define BLO_write_struct_list(writer, struct_name, list_ptr) \
   BLO_write_struct_list_by_id(writer, BLO_get_struct_id(writer, struct_name), list_ptr)
 

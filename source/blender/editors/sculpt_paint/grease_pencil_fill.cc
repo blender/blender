@@ -884,7 +884,7 @@ static rctf get_boundary_bounds(const ARegion &region,
       /* Check if the color is visible. */
       const int material_index = materials[curve_i];
       Material *mat = BKE_object_material_get(const_cast<Object *>(&object), material_index + 1);
-      if (mat == 0 || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
+      if (mat == nullptr || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
         return;
       }
 

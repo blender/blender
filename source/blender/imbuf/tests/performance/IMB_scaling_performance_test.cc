@@ -15,11 +15,11 @@ using namespace blender;
 static constexpr int SRC_X = 5123;
 static constexpr int SRC_Y = 4091;
 
-static constexpr int DST_SMALLER_X = (int)(SRC_X * 0.21f);
-static constexpr int DST_SMALLER_Y = (int)(SRC_Y * 0.67f);
+static constexpr int DST_SMALLER_X = int(SRC_X * 0.21f);
+static constexpr int DST_SMALLER_Y = int(SRC_Y * 0.67f);
 
-static constexpr int DST_LARGER_X = (int)(SRC_X * 1.19f);
-static constexpr int DST_LARGER_Y = (int)(SRC_Y * 2.13f);
+static constexpr int DST_LARGER_X = int(SRC_X * 1.19f);
+static constexpr int DST_LARGER_Y = int(SRC_Y * 2.13f);
 
 static ImBuf *create_src_image(bool use_float)
 {

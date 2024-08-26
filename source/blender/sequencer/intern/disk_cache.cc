@@ -478,7 +478,9 @@ static size_t seq_disk_cache_write_header(FILE *file, const DiskCacheHeader *hea
   return fwrite(header, sizeof(*header), 1, file);
 }
 
-static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCacheHeader *header)
+static int seq_disk_cache_add_header_entry(const SeqCacheKey *key,
+                                           ImBuf *ibuf,
+                                           DiskCacheHeader *header)
 {
   int i;
   uint64_t offset = sizeof(*header);
@@ -528,7 +530,7 @@ static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCa
   return i;
 }
 
-static int seq_disk_cache_get_header_entry(SeqCacheKey *key, const DiskCacheHeader *header)
+static int seq_disk_cache_get_header_entry(const SeqCacheKey *key, const DiskCacheHeader *header)
 {
   for (int i = 0; i < DCACHE_IMAGES_PER_FILE; i++) {
     if (header->entry[i].frameno == key->frame_index) {

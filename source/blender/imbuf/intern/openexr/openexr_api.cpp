@@ -1567,7 +1567,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan,
   return 1;
 }
 
-static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
+static ExrLayer *imb_exr_get_layer(ListBase *lb, const char *layname)
 {
   ExrLayer *lay = (ExrLayer *)BLI_findstring(lb, layname, offsetof(ExrLayer, name));
 
@@ -1580,7 +1580,7 @@ static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
   return lay;
 }
 
-static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
+static ExrPass *imb_exr_get_pass(ListBase *lb, const char *passname)
 {
   ExrPass *pass = (ExrPass *)BLI_findstring(lb, passname, offsetof(ExrPass, name));
 

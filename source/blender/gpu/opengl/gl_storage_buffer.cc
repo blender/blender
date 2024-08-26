@@ -232,7 +232,7 @@ void GLStorageBuf::read(void *data)
     /* Repeat until the data is ready. */
   }
   glDeleteSync(read_fence_);
-  read_fence_ = 0;
+  read_fence_ = nullptr;
 
   memcpy(data, persistent_ptr_, size_in_bytes_);
 }

@@ -52,7 +52,7 @@ static float get_average(const Span<float> values)
 static ColorGeometry4f get_average(const Span<ColorGeometry4f> values)
 {
   if (values.is_empty()) {
-    return ColorGeometry4f(0);
+    return ColorGeometry4f(nullptr);
   }
   /* ColorGeometry4f does not support arithmetic directly. */
   Span<float4> rgba_values = values.cast<float4>();

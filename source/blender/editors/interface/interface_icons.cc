@@ -1378,7 +1378,7 @@ static void svg_replace_color_attributes(std::string &svg,
         "{:02x}{:02x}{:02x}{:02x}", color[0], color[1], color[2], color[3]);
 
     size_t att_start = start;
-    while (1) {
+    while (true) {
       constexpr static blender::StringRef key = "fill=\"";
       att_start = svg.find(key, att_start);
       if (att_start == std::string::npos || att_start > end) {
@@ -1392,7 +1392,7 @@ static void svg_replace_color_attributes(std::string &svg,
     }
 
     att_start = start;
-    while (1) {
+    while (true) {
       constexpr static blender::StringRef key = "fill:";
       att_start = svg.find(key, att_start);
       if (att_start == std::string::npos || att_start > end) {
@@ -1413,7 +1413,7 @@ static void icon_source_edit_cb(std::string &svg)
 
   /* Scan string, processing only groups with our keyword ids. */
 
-  while (1) {
+  while (true) {
     /* Look for a blender id, quick exit if not found. */
     constexpr static blender::StringRef key = "id=\"";
     const size_t id_start = svg.find(key + "blender_", g_start);

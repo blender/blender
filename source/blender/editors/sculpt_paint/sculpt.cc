@@ -1321,7 +1321,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                 /* Because brush deformation is calculated for the evaluated deformed positions,
                  * the translations have to be transformed to the original space. */
                 apply_crazyspace_to_translations(ss.deform_imats, verts, tls.translations);
-                if (active_key == nullptr || mesh.key->refkey == active_key) {
+                if (ELEM(active_key, nullptr, mesh.key->refkey)) {
                   /* We only ever want to propagate changes back to the base mesh if we either have
                    * no shape key active, or we are working on the basis shape key.
                    * See #126199 for more information. */

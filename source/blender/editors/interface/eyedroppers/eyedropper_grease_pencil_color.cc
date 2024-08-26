@@ -323,7 +323,7 @@ static void eyedropper_gpencil_color_set(bContext *C,
   /* Convert from linear rgb space to display space because palette and brush colors are in display
    *  space, and this conversion is needed to undo the conversion to linear performed by
    *  eyedropper_color_sample_fl. */
-  if ((eye->display) && (eye->mode == EyeMode::Palette || eye->mode == EyeMode::Brush)) {
+  if (eye->display && ELEM(eye->mode, EyeMode::Palette, EyeMode::Brush)) {
     IMB_colormanagement_scene_linear_to_display_v3(col_conv, eye->display);
   }
 

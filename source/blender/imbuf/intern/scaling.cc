@@ -776,8 +776,7 @@ static void scale_bilinear_func(
   });
 }
 
-bool IMB_scale(
-    ImBuf *ibuf, unsigned int newx, unsigned int newy, IMBScaleFilter filter, bool threaded)
+bool IMB_scale(ImBuf *ibuf, uint newx, uint newy, IMBScaleFilter filter, bool threaded)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
   if (ibuf == nullptr) {

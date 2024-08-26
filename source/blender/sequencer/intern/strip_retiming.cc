@@ -415,7 +415,7 @@ void SEQ_retiming_remove_multiple_keys(Sequence *seq,
   }
 
   /* Sanitize keys to be removed. */
-  keys_to_remove.remove_if([&](SeqRetimingKey *key) {
+  keys_to_remove.remove_if([&](const SeqRetimingKey *key) {
     return key->strip_frame_index == 0 || SEQ_retiming_is_last_key(seq, key) ||
            SEQ_retiming_key_is_transition_type(key);
   });

@@ -960,7 +960,7 @@ static void do_blend_effect_float(
 }
 
 static void do_blend_effect_byte(
-    float fac, int x, int y, uchar *rect1, uchar *rect2, int btype, uchar *out)
+    float fac, int x, int y, const uchar *rect1, uchar *rect2, int btype, uchar *out)
 {
   switch (btype) {
     case SEQ_TYPE_ADD:

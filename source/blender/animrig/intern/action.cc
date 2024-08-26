@@ -172,7 +172,7 @@ static void array_shift_range(
   BLI_assert(to <= num + range_start - range_end);
   UNUSED_VARS_NDEBUG(num);
 
-  if (range_start == range_end || range_start == to) {
+  if (ELEM(range_start, range_end, to)) {
     return;
   }
 
@@ -1928,7 +1928,7 @@ ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id)
 {
   blender::Span<ID *> users = slot.users(bmain);
   if (users.is_empty()) {
-    return 0;
+    return nullptr;
   }
   if (users.contains(primary_id)) {
     return primary_id;

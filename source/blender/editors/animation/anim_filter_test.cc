@@ -95,12 +95,12 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   ASSERT_NE(nullptr, fcu_cube_loc_y);
 
   /* Mock an bAnimContext for the Animation editor, with the above Animation showing. */
-  SpaceAction saction = {0};
+  SpaceAction saction = {nullptr};
   saction.action = action;
   saction.action_slot_handle = slot_cube.handle;
   saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
 
-  bAnimContext ac = {0};
+  bAnimContext ac = {nullptr};
   ac.bmain = bmain;
   ac.datatype = ANIMCONT_ACTION;
   ac.data = action;
@@ -249,12 +249,12 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   fcurve_other->flag &= ~FCURVE_ACTIVE;
 
   /* Mock an bAnimContext for the Action editor. */
-  SpaceAction saction = {0};
+  SpaceAction saction = {nullptr};
   saction.action = action;
   saction.action_slot_handle = slot_cube.handle;
   saction.ads.filterflag = ADS_FILTER_ALL_SLOTS;
 
-  bAnimContext ac = {0};
+  bAnimContext ac = {nullptr};
   ac.bmain = bmain;
   ac.datatype = ANIMCONT_ACTION;
   ac.data = action;

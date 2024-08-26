@@ -343,7 +343,7 @@ void GPU_batch_draw_parameter_get(Batch *gpu_batch,
   *r_instance_count = i_count;
 }
 
-blender::IndexRange GPU_batch_draw_expanded_parameter_get(blender::gpu::Batch *batch,
+blender::IndexRange GPU_batch_draw_expanded_parameter_get(const blender::gpu::Batch *batch,
                                                           GPUPrimType expanded_prim_type,
                                                           int vertex_count,
                                                           int vertex_first)

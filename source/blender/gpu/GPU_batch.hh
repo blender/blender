@@ -425,7 +425,7 @@ void GPU_batch_draw_parameter_get(blender::gpu::Batch *batch,
 /**
  * Return vertex range for this #blender::gpu::Batch when using primitive expansions.
  */
-blender::IndexRange GPU_batch_draw_expanded_parameter_get(blender::gpu::Batch *batch,
+blender::IndexRange GPU_batch_draw_expanded_parameter_get(const blender::gpu::Batch *batch,
                                                           GPUPrimType expanded_prim_type,
                                                           int vertex_count,
                                                           int vertex_first);

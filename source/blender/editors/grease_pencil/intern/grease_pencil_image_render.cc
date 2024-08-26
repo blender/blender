@@ -551,7 +551,7 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                                            mat->gp_style->mode) :
                                                        GP_MATERIAL_MODE_LINE;
 
-    if (mat == 0 || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
+    if (mat == nullptr || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
       return;
     }
 
