@@ -2366,12 +2366,7 @@ static void bevel_extend_edge_data(BevVert *bv)
            * we find common edge and set its edge data. */
           e = v1->e;
           while (e->v1 != v2 && e->v2 != v2) {
-            if (e->v1 == v1) {
-              e = e->v1_disk_link.next;
-            }
-            else {
-              e = e->v2_disk_link.next;
-            }
+            e = BM_DISK_EDGE_NEXT(e, v1);
           }
           BM_elem_flag_set(e, BM_ELEM_SEAM, true);
           v1 = v2;
@@ -2379,12 +2374,7 @@ static void bevel_extend_edge_data(BevVert *bv)
         BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
         e = v1->e; /* Do same as above for first and last vert. */
         while (e->v1 != v3 && e->v2 != v3) {
-          if (e->v1 == v1) {
-            e = e->v1_disk_link.next;
-          }
-          else {
-            e = e->v2_disk_link.next;
-          }
+          e = BM_DISK_EDGE_NEXT(e, v1);
         }
         BM_elem_flag_set(e, BM_ELEM_SEAM, true);
         bcur = bcur->next;
@@ -2412,12 +2402,7 @@ static void bevel_extend_edge_data(BevVert *bv)
 
           e = v1->e;
           while (e->v1 != v2 && e->v2 != v2) {
-            if (e->v1 == v1) {
-              e = e->v1_disk_link.next;
-            }
-            else {
-              e = e->v2_disk_link.next;
-            }
+            e = BM_DISK_EDGE_NEXT(e, v1);
           }
           BM_elem_flag_set(e, BM_ELEM_SMOOTH, false);
           v1 = v2;
@@ -2425,12 +2410,7 @@ static void bevel_extend_edge_data(BevVert *bv)
         BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
         e = v1->e;
         while (e->v1 != v3 && e->v2 != v3) {
-          if (e->v1 == v1) {
-            e = e->v1_disk_link.next;
-          }
-          else {
-            e = e->v2_disk_link.next;
-          }
+          e = BM_DISK_EDGE_NEXT(e, v1);
         }
         BM_elem_flag_set(e, BM_ELEM_SMOOTH, false);
         bcur = bcur->next;
