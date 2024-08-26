@@ -149,13 +149,6 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: "git",
                                   },
             ),
-    Package(name="Subversion (aka svn)",
-            distro_package_names={DISTRO_ID_DEBIAN: "subversion",
-                                  DISTRO_ID_FEDORA: "subversion",
-                                  DISTRO_ID_SUSE: "subversion",
-                                  DISTRO_ID_ARCH: "subversion",
-                                  },
-            ),
     Package(name="CMake",
             distro_package_names={DISTRO_ID_DEBIAN: "cmake",
                                   DISTRO_ID_FEDORA: "cmake",
@@ -1710,7 +1703,7 @@ def argparse_create():
         "Attempt to install dependencies to build Blender from current linux distribution's packages only.\n"
         "\n"
         "By default, only installs critical tools and dependencies to build Blender, excluding any library provided\n"
-        "by the precompiled SVN repository.\n"
+        "by the precompiled git-lfs repository.\n"
         "`make update` should then be ran after this script to download all precompiled libraries.\n"
         "\n"
         "When ran with the `--all` option, this tool will try to install all mandatory and optional dependencies\n"
