@@ -33,7 +33,6 @@ class AbstractUSDTest(unittest.TestCase):
 
 
 class USDImportTest(AbstractUSDTest):
-
     def test_import_operator(self):
         """Test running the import operator on valid and invalid files."""
 
@@ -202,6 +201,65 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(1.400, test_cam.sensor_height, 3)
         self.assertAlmostEqual(2.281, test_cam.shift_x, 3)
         self.assertAlmostEqual(0.496, test_cam.shift_y, 3)
+
+    def test_import_materials(self):
+        """Validate UsdPreviewSurface shader graphs."""
+
+        # Use the existing materials test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+        testfile = str(self.tempdir / "temp_materials.usda")
+        res = bpy.ops.wm.usd_export(filepath=str(testfile), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Most shader graph validation should occur through the Hydra render test suite. Here we
+        # will only check some high-level criteria for each expected node graph.
+
+        def assert_all_nodes_present(mat, node_list):
+            nodes = mat.node_tree.nodes
+            self.assertEqual(len(nodes), len(node_list))
+            for node in node_list:
+                self.assertTrue(nodes.find(node) >= 0, f"Could not find node '{node}' in material '{mat.name}'")
+
+        def round_vector(vector):
+            return [round(c, 5) + 0 for c in vector]
+
+        mat = bpy.data.materials["Material"]
+        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
+
+        mat = bpy.data.materials["Clip_With_LessThanInvert"]
+        assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.2, 3)
+
+        mat = bpy.data.materials["Clip_With_Round"]
+        assert_all_nodes_present(
+            mat, ["Principled BSDF", "Image Texture", "UV Map", "Math", "Math.001", "Material Output"])
+        node = [n for n in mat.node_tree.nodes if n.type == 'MATH' and n.operation == "LESS_THAN"][0]
+        self.assertAlmostEqual(node.inputs[1].default_value, 0.5, 3)
+
+        mat = bpy.data.materials["Transforms"]
+        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Mapping", "Material Output"])
+        node = mat.node_tree.nodes["Mapping"]
+        self.assertEqual(round_vector(node.inputs[1].default_value), [0.75, 0.75, 0])
+        self.assertEqual(round_vector(node.inputs[2].default_value), [0, 0, 3.14159])
+        self.assertEqual(round_vector(node.inputs[3].default_value), [0.5, 0.5, 1])
+
+        mat = bpy.data.materials["NormalMap"]
+        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Normal Map", "Material Output"])
+
+        mat = bpy.data.materials["NormalMap_Scale_Bias"]
+        assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map",
+                                       "Normal Map", "Vector Math", "Vector Math.001", "Material Output"])
+        node = mat.node_tree.nodes["Vector Math"]
+        self.assertEqual(round_vector(node.inputs[1].default_value), [2, -2, 2])
+        self.assertEqual(round_vector(node.inputs[2].default_value), [-1, 1, -1])
 
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""

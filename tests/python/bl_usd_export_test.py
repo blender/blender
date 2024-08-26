@@ -132,18 +132,68 @@ class USDExportTest(AbstractUSDTest):
             Gf.Vec3d(extent[1]), Gf.Vec3d(0.7515701, 0.5500924, 0.9027928)
         )
 
-    def test_opacity_threshold(self):
-        # Note that the scene file used here is shared with a different test.
-        # Here we assume that it has a Principled BSDF material with
-        # a texture connected to its Base Color input.
-        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+    def test_material_transforms(self):
+        """Validate correct export of image mapping parameters to the UsdTransform2d shader def"""
 
-        export_path = self.tempdir / "opaque_material.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
+        # Use the common materials .blend file
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+        export_path = self.tempdir / "material_transforms.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        # Inspect the UsdTransform2d prim on the "Transforms" material
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/root/_materials/Transforms/Mapping")
+        shader = UsdShade.Shader(shader_prim)
+        self.assertEqual(shader.GetIdAttr().Get(), "UsdTransform2d")
+        input_trans = shader.GetInput('translation')
+        input_rot = shader.GetInput('rotation')
+        input_scale = shader.GetInput('scale')
+        self.assertEqual(input_trans.Get(), [0.75, 0.75])
+        self.assertEqual(input_rot.Get(), 180)
+        self.assertEqual(input_scale.Get(), [0.5, 0.5])
+
+    def test_material_normal_maps(self):
+        """Validate correct export of typical normal map setups to the UsdUVTexture shader def.
+        Namely validate that scale, bias, and ColorSpace settings are correct"""
+
+        # Use the common materials .blend file
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+        export_path = self.tempdir / "material_normalmaps.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        # Inspect the UsdUVTexture prim on the "typical" "NormalMap" material
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/root/_materials/NormalMap/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        self.assertEqual(shader.GetIdAttr().Get(), "UsdUVTexture")
+        input_scale = shader.GetInput('scale')
+        input_bias = shader.GetInput('bias')
+        input_colorspace = shader.GetInput('sourceColorSpace')
+        self.assertEqual(input_scale.Get(), [2, 2, 2, 2])
+        self.assertEqual(input_bias.Get(), [-1, -1, -1, -1])
+        self.assertEqual(input_colorspace.Get(), 'raw')
+
+        # Inspect the UsdUVTexture prim on the "inverted" "NormalMap_Scale_Bias" material
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/root/_materials/NormalMap_Scale_Bias/Image_Texture")
+        shader = UsdShade.Shader(shader_prim)
+        self.assertEqual(shader.GetIdAttr().Get(), "UsdUVTexture")
+        input_scale = shader.GetInput('scale')
+        input_bias = shader.GetInput('bias')
+        input_colorspace = shader.GetInput('sourceColorSpace')
+        self.assertEqual(input_scale.Get(), [2, -2, 2, 1])
+        self.assertEqual(input_bias.Get(), [-1, 1, -1, 0])
+        self.assertEqual(input_colorspace.Get(), 'raw')
+
+    def test_material_opacity_threshold(self):
+        """Validate correct export of opacity and opacity_threshold parameters to the UsdPreviewSurface shader def"""
+
+        # Use the common materials .blend file
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+        export_path = self.tempdir / "material_opacities.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(export_path), export_materials=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         # Inspect and validate the exported USD for the opaque blend case.

@@ -96,6 +96,7 @@ TEST_F(UsdUsdzExportTest, usdz_export)
 
   USDExportParams params;
   params.export_materials = false;
+  params.convert_world_material = false;
   params.visible_objects_only = false;
 
   bool result = USD_export(context, output_filepath, &params, false, nullptr);
