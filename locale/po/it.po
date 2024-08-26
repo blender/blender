@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-08-18 03:56+0000\n"
 "Last-Translator: Francesco Bellini <doc.open.dev@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -45791,6 +45791,10 @@ msgid "Include all scene frames"
 msgstr "Includi tutti i fotogrammi della scena"
 
 
+msgid "Scene Unit"
+msgstr "Unità Scena"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Ricarica Libreria"
@@ -45897,10 +45901,6 @@ msgstr "Esporta PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Importa PLY"
-
-
-msgid "Scene Unit"
-msgstr "Unità Scena"
 
 
 msgctxt "Operator"
@@ -62165,10 +62165,6 @@ msgstr "il percorso dato '%s' non è valido per il sistema operativo, è stato c
 
 msgid "Could not create new folder: %s"
 msgstr "Impossibile creare la nuova cartella: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "Impossibile eliminare il file o la directory: %s"
 
 
 msgid "File name, overwrite existing"

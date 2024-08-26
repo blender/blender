@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
-"PO-Revision-Date: 2024-08-19 02:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"PO-Revision-Date: 2024-08-23 16:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -7508,7 +7508,7 @@ msgstr "[Clamp To]: Restringeix els moviments perquè s'ajustin a tota una corba
 
 
 msgid "Damped Track"
-msgstr "Rastreig amortit"
+msgstr "Trajectòria amortida"
 
 
 msgid "Point towards a target by performing the smallest rotation necessary"
@@ -7524,7 +7524,7 @@ msgstr "[Inverse Kinematics]: Controla una cadena d'ossos especificant el refere
 
 
 msgid "Locked Track"
-msgstr "Trajecte bloquejat"
+msgstr "Trajectòria bloquejada"
 
 
 msgid "Rotate around the specified ('locked') axis to point towards a target"
@@ -7540,7 +7540,7 @@ msgstr "Alinea la cadena d'ossos al llarg d'una corba (només per a ossos)"
 
 
 msgid "Stretch To"
-msgstr "Estirar envers"
+msgstr "Estirar direccionat"
 
 
 msgid "Stretch along Y-Axis to point towards a target"
@@ -7548,11 +7548,11 @@ msgstr "[Stretch]: Estira seguint l'eix Y per apuntar envers un referent"
 
 
 msgid "Track To"
-msgstr "Rastrejar envers"
+msgstr "Trajectòria direccionada"
 
 
 msgid "Legacy tracking constraint prone to twisting artifacts"
-msgstr "[Track to]: Antiga restricció de seguiment de rastres propensa a tares de vinclatge"
+msgstr "[Track to]: Antiga restricció de seguiment de trajectòria propensa a tares de vinclatge"
 
 
 msgid "Use transform property of target to look up pose for owner from an Action"
@@ -8268,7 +8268,7 @@ msgstr "[Remove Target Shear]: Suprimeix l'estrebament de la transformació del 
 
 
 msgid "Damped Track Constraint"
-msgstr "Restricció de rastreig minimitzat"
+msgstr "Restricció de trajectòria amorrida"
 
 
 msgid "Point toward target by taking the shortest rotation path"
@@ -8276,7 +8276,7 @@ msgstr "[Damped Track Constraint]: Apunta envers el referent tot agafant la traj
 
 
 msgid "Track Axis"
-msgstr "Eix de rastreig"
+msgstr "Eix de trajectòria"
 
 
 msgid "Axis that points to the target object"
@@ -8372,11 +8372,11 @@ msgstr "[Fixed Position]: L'objecte romandrà fixat en algun dels punts al llarg
 
 
 msgid "Follow Track Constraint"
-msgstr "Restricció seguiment de rastre"
+msgstr "Restricció Seguiment de rastre"
 
 
 msgid "Lock motion to the target motion track"
-msgstr "[Follow Track Constraint]: Bloqueja el moviment dins el rastreig de moviment de referència"
+msgstr "[Follow Track Constraint]: Bloqueja el moviment al rastre de moviment del referent"
 
 
 msgid "Camera"
@@ -8400,12 +8400,12 @@ msgstr "Com l'escena filmada s'encaixa amb l'enquadrament de càmera"
 
 
 msgid "Movie tracking object to follow (if empty, camera object is used)"
-msgstr "Objecte rastreig que se seguirà (si no està definit, s'utilitza l'objecte càmera)"
+msgstr "Objecte de rastreig que se seguirà (si no està definit, s'utilitza l'objecte càmera)"
 
 
 msgctxt "MovieClip"
 msgid "Track"
-msgstr "Pista"
+msgstr "Rastre"
 
 
 msgid "Movie tracking track to follow"
@@ -8417,7 +8417,7 @@ msgstr "Ubicació 3D"
 
 
 msgid "Use 3D position of track to parent to"
-msgstr "[3D Position]: Usa la ubicació 3D del rastre que ha de fer de pare"
+msgstr "[3D Position]: Usa la ubicació 3D del rastre a què s'ha de fer pare"
 
 
 msgid "Undistort"
@@ -8765,7 +8765,7 @@ msgstr "Restricció trajecte bloquejat"
 
 
 msgid "Point toward the target along the track axis, while locking the other axis"
-msgstr "[Locked Track Constraint]: Apunta envers el referent al llarg de l'eix de la trajectòria, alhora que bloqueja l'altre eix"
+msgstr "[Locked Track Constraint]: Apunta envers el referent al llarg de l'eix de trajectòria, alhora que bloqueja l'altre eix"
 
 
 msgid "Locked Axis"
@@ -8829,7 +8829,7 @@ msgstr "Bloqueja el moviment dins el moviment de l'objecte reconstruït"
 
 
 msgid "Movie tracking object to follow"
-msgstr "Objecte a seguir en el rastreig"
+msgstr "Objecte a seguir en el rastreig de vídeo"
 
 
 msgid "Pivot Constraint"
@@ -9281,7 +9281,7 @@ msgstr "Usar escalat original d'Y de l'os"
 
 
 msgid "Stretch To Constraint"
-msgstr "Restricció d'estirament dirigit"
+msgstr "Restricció Estirament direccionat"
 
 
 msgid "Stretch to meet the target object"
@@ -9313,11 +9313,11 @@ msgstr "Fa la rotació al voltant de la Z local, i després l'X"
 
 
 msgid "Swing"
-msgstr "Bascular"
+msgstr "Gronxat"
 
 
 msgid "Use the smallest single axis rotation, similar to Damped Track"
-msgstr "[Swing]: Utilitza la rotació més petita d'eix únic, similar al Rastreig minimitzat"
+msgstr "[Swing]: Utilitza la rotació mínima d'eix únic, similar a Trajectòria amortida"
 
 
 msgid "Original Length"
@@ -9333,7 +9333,7 @@ msgstr "Mantenir el volum de l'objecte a mesura que s'estira"
 
 
 msgid "Track To Constraint"
-msgstr "Restricció rastreig dirigit"
+msgstr "Restricció Trajectòria direccionada"
 
 
 msgid "Aim the constrained object toward the target"
@@ -9441,27 +9441,27 @@ msgstr "Rotació de quaternió"
 
 
 msgid "Swing and X Twist"
-msgstr "Bascular i roscar en X"
+msgstr "Gronxar i roscar en X"
 
 
 msgid "Decompose into a swing rotation to aim the X axis, followed by twist around it"
-msgstr "[Swing and X Twist]: Descompon en una rotació basculant per apuntar cap a l'eix X, seguida d'un gir de rosca al seu voltant"
+msgstr "[Swing and X Twist]: Descompon en una rotació gronxadora per apuntar cap a l'eix X, seguida d'un roscament al seu voltant"
 
 
 msgid "Swing and Y Twist"
-msgstr "Circular i roscar en Y"
+msgstr "Gronxar i roscar en Y"
 
 
 msgid "Decompose into a swing rotation to aim the Y axis, followed by twist around it"
-msgstr "Descompon en una rotació basculant per apuntar a l'eix Y, seguida d'un gir de rosca al seu voltant"
+msgstr "Descompon en una rotació gronxadora per apuntar a l'eix Y, seguida d'un roscament al seu voltant"
 
 
 msgid "Swing and Z Twist"
-msgstr "Bascular i roscar en z"
+msgstr "Gronxar i roscar en z"
 
 
 msgid "Decompose into a swing rotation to aim the Z axis, followed by twist around it"
-msgstr "Descompon en una rotació basculant per apuntar a l'eix z, seguida d'un gir de rosca al seu voltant"
+msgstr "Descompon en una rotació gronxador per apuntar a l'eix z, seguida d'un roscament al seu voltant"
 
 
 msgid "Map From"
@@ -24625,6 +24625,14 @@ msgid "Shader"
 msgstr "Aspector"
 
 
+msgid "Default Group Node Width"
+msgstr "Amplada per defecte de grup de nodes"
+
+
+msgid "The width for newly created group nodes"
+msgstr "L'amplada dels grups de nodes que es creïn de nou"
+
+
 msgid "Description of the node tree"
 msgstr "Descripció de l'arbre de nodes"
 
@@ -25047,7 +25055,7 @@ msgstr "Costat d'imatge fastasma"
 
 
 msgid "Show front/back side"
-msgstr "Mostra la part frontal/reversa"
+msgstr "Mostrra part frontal/reversa"
 
 
 msgctxt "Image"
@@ -33879,7 +33887,7 @@ msgstr "Especials de rastreig de rotació"
 
 
 msgid "Track"
-msgstr "Rastre"
+msgstr "Rastrejar"
 
 
 msgid "Clean Up"
@@ -34567,7 +34575,7 @@ msgstr "Cos rígid"
 
 msgctxt "Constraint"
 msgid "Track"
-msgstr "Rastre"
+msgstr "Rastrejar"
 
 
 msgid "Vertex Group Locks"
@@ -39990,7 +39998,7 @@ msgstr "Direccional"
 
 
 msgid "Normals 'track' (point to) the target object"
-msgstr "[Directional]: Les normals «busquen» (apunten a) l'objecte referent"
+msgstr "[Directional]: Les normals «segueixen» (apunten a) l'objecte referent"
 
 
 msgid "Lock Polygon Normals"
@@ -42335,7 +42343,7 @@ msgstr "Usa mil·límetres com a unitats de distància focal"
 
 
 msgid "Movie Tracking Dopesheet"
-msgstr "Guió tècnic de rastreig"
+msgstr "Guió tècnic de rastreig de vídeo"
 
 
 msgid "Match-moving dopesheet data"
@@ -42459,7 +42467,7 @@ msgstr "[Movie Tracking Markers]: Col·lecció de marcadors per al rastreig de l
 
 
 msgid "Movie tracking object data"
-msgstr "Dades d'objecte de rastreig"
+msgstr "Dades d'objecte de rastreig de vídeo"
 
 
 msgid "Match-moving object tracking and reconstruction data"
@@ -42536,7 +42544,7 @@ msgstr "Objecte actiu d'aquest objecte de dades de rastreig"
 
 
 msgid "Movie Tracking Plane Marker Data"
-msgstr "Dades de marcador de rastreig sobre pla"
+msgstr "Dades de marcador de rastreig de pla"
 
 
 msgid "Match-moving plane marker data for tracking"
@@ -42552,7 +42560,7 @@ msgstr "[Corners]: Sèrie de coordenades que representa les cantonades del recta
 
 
 msgid "Movie Tracking Plane Markers"
-msgstr "Marcadors per a rastreig sobre pla"
+msgstr "Marcadors per a rastreig de pla"
 
 
 msgid "Collection of markers for movie tracking plane track"
@@ -42560,11 +42568,11 @@ msgstr "[Movie Tracking Plane Markers]: Col·lecció de marcadors per a rastres 
 
 
 msgid "Movie tracking plane track data"
-msgstr "Dades de rastres de pla de rastreig fílmic"
+msgstr "Dades de rastres de pla de rastreig de vídeo"
 
 
 msgid "Match-moving plane track data for tracking"
-msgstr "Dades de rastreig de pla"
+msgstr "Dades per al rastreig d'un rastreig de pla en moviment"
 
 
 msgid "Image displayed in the track during editing in clip editor"
@@ -42604,7 +42612,7 @@ msgstr "[Auto Keyframe]: Inserció automàtica de fotofites quan es mouen les ca
 
 
 msgid "Movie Plane Tracks"
-msgstr "Rastres de pla"
+msgstr "Rastres de pla de vídeo"
 
 
 msgid "Collection of movie tracking plane tracks"
@@ -42628,11 +42636,11 @@ msgstr "[Reconstructed Cameras]: Col·lecció de càmeres resoltes"
 
 
 msgid "Movie tracking reconstruction data"
-msgstr "Dades de reconstrucció del rastreig"
+msgstr "Dades de reconstrucció del rastreig de vídeo"
 
 
 msgid "Match-moving reconstruction data from tracker"
-msgstr "[Movie tracking reconstruction data]: Dades de reconstrucció de rastreig"
+msgstr "[Movie tracking reconstruction data]: Dades de reconstrucció de moviment des del rastrejador"
 
 
 msgid "Reconstructed"
@@ -42644,7 +42652,7 @@ msgstr "És dades de rastreig contenen informació de reconstrucció vàlida"
 
 
 msgid "Movie tracking settings"
-msgstr "Paràmetres de rastreig"
+msgstr "Paràmetres de rastreig vídeo"
 
 
 msgid "Match moving settings"
@@ -42656,7 +42664,7 @@ msgstr "Acció de neteja a executar"
 
 
 msgid "Select unclean tracks"
-msgstr "Selecciona rastres no polits"
+msgstr "Seleccionar rastres no polits"
 
 
 msgid "Delete Track"
@@ -42664,7 +42672,7 @@ msgstr "Eliminar rastre"
 
 
 msgid "Delete unclean tracks"
-msgstr "Elimina rastres no polits"
+msgstr "Eliminar rastres no polits"
 
 
 msgid "Delete Segments"
@@ -42684,7 +42692,7 @@ msgstr "[Reprojection Error]: Efecte en els rastres que presenten un error de re
 
 
 msgid "Tracked Frames"
-msgstr "Fotogrames amb rastres"
+msgstr "Fotogrames rastrejats"
 
 
 msgid "Effect on tracks which are tracked less than the specified amount of frames"
@@ -42752,7 +42760,7 @@ msgstr "Coindiència de patró"
 
 
 msgid "Track pattern from given frame when tracking marker to next frame"
-msgstr "[Pattern Match]: Rastreja un patró des d'un fotograma quan busca el marcador al fotograma següent"
+msgstr "[Pattern Match]: Rastreja un patró des d'un fotograma concret quan rastreja el marcador al fotograma següent"
 
 
 msgid "Track pattern from keyframe to next frame"
@@ -42836,7 +42844,7 @@ msgstr "Màxim de ràpid"
 
 
 msgid "Track as fast as possible"
-msgstr "[Fastest]: Rastreig tant ràpid com és possible"
+msgstr "[Fastest]: Rastreja tant ràpid com és possible"
 
 
 msgid "Double"
@@ -42848,11 +42856,11 @@ msgstr "[Double]: Rastreja a doble rapidesa"
 
 
 msgid "Track with realtime speed"
-msgstr "Rastreig a rapidesa real"
+msgstr "Rastrejar a rapidesa real"
 
 
 msgid "Track with half of realtime speed"
-msgstr "Rastreig a la meitat de la rapidesa real"
+msgstr "Rastrejar a la meitat de la rapidesa real"
 
 
 msgid "Quarter"
@@ -42860,7 +42868,7 @@ msgstr "Quart"
 
 
 msgid "Track with quarter of realtime speed"
-msgstr "Rastreig de la quarta part rapidesa real"
+msgstr "Rastrejar de la quarta part de la rapidesa real"
 
 
 msgid "Use Blue Channel"
@@ -42876,7 +42884,7 @@ msgstr "Prepassada"
 
 
 msgid "Use a brute-force translation-only initialization when tracking"
-msgstr "[Prepass]: Força una inicialització de translació exclusiva en rastrejar"
+msgstr "[Prepass]: Usa una inicialització de sols-translació per força bruta en rastrejar"
 
 
 msgid "Use Green Channel"
@@ -42884,7 +42892,7 @@ msgstr "Usar canal verd"
 
 
 msgid "Use green channel from footage for tracking"
-msgstr "Usa el canal verd de la filmació per al rastreig"
+msgstr "Usar el canal verd de la filmació per al rastreig"
 
 
 msgid "Use Mask"
@@ -42908,7 +42916,7 @@ msgstr "Usar canal vermell"
 
 
 msgid "Use red channel from footage for tracking"
-msgstr "Usa el canal vermell de la filmació per al rastreig"
+msgstr "Usar el canal vermell de la filmació per al rastreig"
 
 
 msgid "Keyframe Selection"
@@ -42936,7 +42944,7 @@ msgstr "[Movie tracking stabilization data]: Estabilització 2D basada en marcad
 
 
 msgid "Active Rotation Track Index"
-msgstr "Índex de rastres de rotació actius"
+msgstr "Índex de rastres de rotació actiu"
 
 
 msgid "Index of active track in rotation stabilization tracks list"
@@ -42948,7 +42956,7 @@ msgstr "Índex de rastre actiu"
 
 
 msgid "Index of active track in translation stabilization tracks list"
-msgstr "[Active Track Index]: Índex del rastre actiu a la llista de rastres de translació d'estabilització"
+msgstr "[Active Track Index]: Índex del rastre actiu a la llista de rastres d'estabilització de translació"
 
 
 msgid "Anchor Frame"
@@ -43096,7 +43104,7 @@ msgstr "Compensa qualsevol canvi d'escala relatiu al centre de rotació"
 
 
 msgid "Movie tracking track data"
-msgstr "Dades de rastres per al rastreig"
+msgstr "Dades de rastres per al rastreig de vídeo"
 
 
 msgid "Match-moving track data for tracking"
@@ -43112,11 +43120,11 @@ msgstr "Agregat"
 
 
 msgid "Position of bundle reconstructed from this track"
-msgstr "[Bundle]: Posició de l'agregat reconstruït a partir d'aquesta pista"
+msgstr "[Bundle]: Posició de l'agregat reconstruït a partir d'aquest rastre"
 
 
 msgid "Color of the track in the Movie Clip Editor and the 3D viewport after a solve"
-msgstr "Color de la pista a l'editor de clips de vídeo i al mirador després d'una resolutiva"
+msgstr "Color del rastre a l'editor de clips de vídeo i al mirador després d'una resolutiva"
 
 
 msgid "Minimal value of correlation between matched pattern and reference that is still treated as successful tracking"
@@ -43124,7 +43132,7 @@ msgstr "Valor mínim de la correlació entre el patrons coincidents i la referè
 
 
 msgid "Grease pencil data for this track"
-msgstr "Llapis de greix - Dades de la pista"
+msgstr "Llapis de greix - Dades del rastreig"
 
 
 msgid "Has Bundle"
@@ -43132,15 +43140,15 @@ msgstr "Té agregat"
 
 
 msgid "True if track has a valid bundle"
-msgstr "[Has Bundle]: Ver si la pista té un agregat vàlid"
+msgstr "[Has Bundle]: Ver si el rastre té un agregat vàlid"
 
 
 msgid "Track is hidden"
-msgstr "La pista està oculta"
+msgstr "El rastre està ocult"
 
 
 msgid "Track is locked and all changes to it are disabled"
-msgstr "[Track is hidden]: La pista està bloquejada i tots els canvis desactivats"
+msgstr "[Track is hidden]: El rastre està bloquejat i tots els seus canvis desactivats"
 
 
 msgid "Distance from image boundary at which marker stops tracking"
@@ -43148,7 +43156,7 @@ msgstr "Distància des del contorn de la imatge en què un marcador abandona el 
 
 
 msgid "Offset of track from the parenting point"
-msgstr "Desplaçament del rastre des del punt de parentiu"
+msgstr "Distància del rastre des del punt pare"
 
 
 msgid "Track is selected"
@@ -43168,7 +43176,7 @@ msgstr "Selecciona patró"
 
 
 msgid "Track's pattern area is selected"
-msgstr "[Select Pattern]: L'àrea del patró del rastre la està seleccionada"
+msgstr "[Select Pattern]: L'àrea de patró del rastre està seleccionada"
 
 
 msgid "Select Search"
@@ -43184,7 +43192,7 @@ msgstr "Aplica la màscara del rastre al previsionat"
 
 
 msgid "Use a brute-force translation only pre-track before refinement"
-msgstr "Força un pre-rastreig de només translació abans del refinament"
+msgstr "Força un pre-rastreig de sols-translació amb força bruta abans del refinament"
 
 
 msgid "Custom Color"
@@ -43216,7 +43224,7 @@ msgstr "[Stab Weight]: Influència d'aquest rastre en l'estabilització 2D"
 
 
 msgid "Active track in this tracking data object. Deprecated, use objects[name].tracks.active"
-msgstr "Pista activa en aquest objecte de dades de rastreig. Obsolet, usar objects[name].tracks.active"
+msgstr "Rastre actiu d'aquest objecte de dades de rastreig. Obsolet, usar objects[name].tracks.active"
 
 
 msgid "NLA Strip"
@@ -43456,15 +43464,15 @@ msgstr "[Solo]: El pista d'ANL s'avalua en si mateix (és a dir, l'Acció activa
 
 
 msgid "NLA Track is locked"
-msgstr "El pista d'ANL està bloquejat"
+msgstr "La pista d'ANL està bloquejada"
 
 
 msgid "Disable NLA Track evaluation"
-msgstr "Desactiva l'avaluació del pista d'ANL"
+msgstr "Desactiva l'avaluació de la pista d'ANL"
 
 
 msgid "NLA Track is selected"
-msgstr "El pista d'ANL està seleccionat"
+msgstr "La pista d'ANL està seleccionada"
 
 
 msgid "NLA Strips on this NLA-track"
@@ -45238,7 +45246,7 @@ msgstr "Crear plaques per fer de color de referència per als nodes croma"
 
 
 msgid "Tracking Object"
-msgstr "Objecte a seguir"
+msgstr "Objecte a rastrejar"
 
 
 msgid "Kuwahara"
@@ -45855,7 +45863,7 @@ msgstr "Inclou l'alfa de la segona ingressió en aquesta operació"
 
 
 msgid "Input image or movie from a movie clip datablock, typically used for motion tracking"
-msgstr "Ingressar imatge o vídeo des d'un bloc de dades de clip de vídeo, habitualment emprat per al traçat de moviment"
+msgstr "Ingressar imatge o vídeo des d'un bloc de dades de clip de vídeo, habitualment emprat per al rastreig de moviment"
 
 
 msgid "Movie Distortion"
@@ -45863,7 +45871,7 @@ msgstr "Distorsió de filmació"
 
 
 msgid "Remove lens distortion from footage, using motion tracking camera lens settings"
-msgstr "Eliminar la distorsió de lent del metratge mitjançant la configuració de la lent de càmera de traçat de moviment"
+msgstr "Eliminar la distorsió de lent del metratge mitjançant la configuració de la lent de càmera de seguiment de moviment"
 
 
 msgid "Distortion to use to filter image"
@@ -45939,7 +45947,7 @@ msgstr "Deformació rastreig de pla"
 
 
 msgid "Replace flat planes in footage by another image, dectected by plane tracks from motion tracking"
-msgstr "Substituir els plans llisos del metratge per una altra imatge, detectada pels rastreigs de plans del rastreig o traçat de moviment"
+msgstr "Substitueix els plans llisos del metratge per una altra imatge, detectada pels rastreigs de plans amb el rastreig de moviment"
 
 
 msgid "Posterize"
@@ -46231,11 +46239,11 @@ msgstr "Algorisme fotogràfic més simple de Reinhard"
 
 
 msgid "Track Position"
-msgstr "Posició de rastre"
+msgstr "Rastrejar posició"
 
 
 msgid "Provide information about motion tracking points, such as x and y values"
-msgstr "Proporcionar informació sobre els punts de rastreig del moviment, com ara els valors x i y"
+msgstr "Proporciona informació sobre els punts de rastreig de moviment, com ara els valors x i y"
 
 
 msgid "Frame to be used for relative position"
@@ -47771,6 +47779,10 @@ msgstr "[Output a single material]: Extreu l'índex del material utilitzat per a
 
 msgid "Edge Angle"
 msgstr "Angle de cantell"
+
+
+msgid "The angle between the normals of connected manifold faces"
+msgstr "L'angle entre les normals de les cares polivalents connectades"
 
 
 msgid "Edge Neighbors"
@@ -55068,7 +55080,7 @@ msgstr "Mitjana de rastres"
 
 
 msgid "Average selected tracks into active"
-msgstr "[Average Tracks]: Crea un marcador actiu amb la mitjana dels rastres seleccionats"
+msgstr "[Average Tracks]: Defineix el rastre actiu en base a la mitjana dels rastres seleccionats"
 
 
 msgctxt "MovieClip"
@@ -55210,7 +55222,7 @@ msgstr "Eliminar marcador"
 
 
 msgid "Delete marker for current frame from selected tracks"
-msgstr "[Delete Marker]: Elimina el marcador per al fotograma actual a partir de les pistes seleccionades"
+msgstr "[Delete Marker]: Elimina el marcador per al fotograma actual a partir dels rastres seleccionats"
 
 
 msgctxt "Operator"
@@ -55237,7 +55249,7 @@ msgstr "Detectar elements destacats"
 
 
 msgid "Automatically detect features and place markers to track"
-msgstr "[Detect Features]: Detecta automàticament elements destacats i els assigna marcadors de rastreig"
+msgstr "[Detect Features]: Detecta automàticament elements destacats i els assigna marcadors per rastrejar"
 
 
 msgid "Only features further than margin pixels from the image edges are considered"
@@ -55281,7 +55293,7 @@ msgstr "Col·loca els marcadors només fora de les àrees consignades amb l'eina
 
 
 msgid "Threshold level to consider feature good enough for tracking"
-msgstr "Nivell llindar per considerar un element prou de bon rastrejar"
+msgstr "Nivell llindar per considerar que un element és prou de bon rastrejar"
 
 
 msgctxt "Operator"
@@ -55332,7 +55344,7 @@ msgstr "Filtrar rastres"
 
 
 msgid "Filter tracks which has weirdly looking spikes in motion curves"
-msgstr "[Filter Tracks]: Filtra els rastres que sortints estranys a les corbes de moviment"
+msgstr "[Filter Tracks]: Filtra els rastres amb sortints estranys a les corbes de moviment"
 
 
 msgid "Track Threshold"
@@ -55395,7 +55407,7 @@ msgstr "Eliminar corba"
 
 
 msgid "Delete track corresponding to the selected curve"
-msgstr "Elimina el rastreig corresponent a la corba seleccionada"
+msgstr "Eliminar el rastreig corresponent a la corba seleccionada"
 
 
 msgctxt "Operator"
@@ -55439,7 +55451,7 @@ msgstr "Visionar totes les corbes a l'editor"
 
 msgctxt "Operator"
 msgid "Hide Tracks"
-msgstr "Amagar rastres"
+msgstr "Ocultar rastres"
 
 
 msgid "Hide selected tracks"
@@ -55447,7 +55459,7 @@ msgstr "[Hide Tracks]: Amaga els rastres seleccionats"
 
 
 msgid "Hide unselected tracks"
-msgstr "Amaga els rastres no seleccionats"
+msgstr "Ocultar rastres no seleccionats"
 
 
 msgctxt "Operator"
@@ -55469,11 +55481,11 @@ msgstr "[Join Tracks]: Uneix els rastres seleccionats"
 
 
 msgid "Delete a keyframe from selected tracks at current frame"
-msgstr "Eliminar una fotofita dels rastres seleccionades dins el fotograma actual"
+msgstr "Eliminar una fotofita dels rastres seleccionats dins el fotograma actual"
 
 
 msgid "Insert a keyframe to selected tracks at current frame"
-msgstr "Inserir una fotofita als rastres seleccionates dins el fotograma actual"
+msgstr "Inserir una fotofita als rastres seleccionats dins el fotograma actual"
 
 
 msgctxt "Operator"
@@ -55507,11 +55519,11 @@ msgstr "Desbloquejar"
 
 
 msgid "Unlock selected tracks"
-msgstr "[Unlock]: Desbloquejar els rastres seleccionats"
+msgstr "[Unlock]: Desbloqueja els rastres seleccionats"
 
 
 msgid "Toggle locked flag for selected tracks"
-msgstr "Permutar bloqueig d'indicador per als rastres seleccionats"
+msgstr "Permutar indicador de bloqueig per als rastres seleccionats"
 
 
 msgctxt "Operator"
@@ -55617,7 +55629,7 @@ msgstr "Recarrega el vídeo"
 
 
 msgid "Select tracking markers"
-msgstr "Selecciona els marcadors de rastreig"
+msgstr "Seleccionar marcadors de rastreig"
 
 
 msgid "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds"
@@ -55654,7 +55666,7 @@ msgstr "[Keyframed Tracks]: Selecciona totes els rastres associats a una fotofit
 
 
 msgid "Estimated Tracks"
-msgstr "Estimació de rastres"
+msgstr "Rastres estimats"
 
 
 msgid "Select all estimated tracks"
@@ -55670,7 +55682,7 @@ msgstr "[Tracked Tracks]: Selecciona tots els rastres de rastretjos"
 
 
 msgid "Locked Tracks"
-msgstr "Rastres amb blocatges"
+msgstr "Rastres bloquejats"
 
 
 msgid "Select all locked tracks"
@@ -55797,7 +55809,7 @@ msgstr "Especificar escala resolutiva"
 
 
 msgid "Set object solution scale using distance between two selected tracks"
-msgstr "[Set Solution Scale]: Especifica l'escala resolutiva de l'objecte usant la distància entre dos rastres seleccionades"
+msgstr "[Set Solution Scale]: Especifica l'escala resolutiva de l'objecte usant la distància entre dos rastres seleccionats"
 
 
 msgctxt "Operator"
@@ -55868,7 +55880,7 @@ msgstr "Afegir rastres estabilitzadors"
 
 
 msgid "Add selected tracks to 2D translation stabilization"
-msgstr "[Add Stabilization Tracks]: Afegir els rastres seleccionats a l'estabilització de la translació 2D"
+msgstr "[Add Stabilization Tracks]: Afegeix els rastres seleccionats a l'estabilització de la translació 2D"
 
 
 msgctxt "Operator"
@@ -55886,7 +55898,7 @@ msgstr "Afegir rastres d'estabilització rotacional"
 
 
 msgid "Add selected tracks to 2D rotation stabilization"
-msgstr "[Add Stabilization Rotation Tracks]: Afegir els rastres seleccionats a l'estabilització de la rotació en 2D"
+msgstr "[Add Stabilization Rotation Tracks]: Afegeix els rastres seleccionats a l'estabilització de la rotació en 2D"
 
 
 msgctxt "Operator"
@@ -55913,7 +55925,7 @@ msgstr "Seleccionar rastres estabilitzadors"
 
 
 msgid "Select tracks which are used for translation stabilization"
-msgstr "[Select Stabilization Tracks]: Seleccionar els rastres usats per a l'estabilització de la translació"
+msgstr "[Select Stabilization Tracks]: Selecciona els rastres usats per a l'estabilització de la translació"
 
 
 msgctxt "Operator"
@@ -55944,7 +55956,7 @@ msgstr "[Track Markers]: Rastreja els marcadors seleccionats"
 
 
 msgid "Track Sequence"
-msgstr "Rastreig seqüencial"
+msgstr "Rastrejar seqüència"
 
 
 msgid "Track marker during image sequence rather than single image"
@@ -55971,7 +55983,7 @@ msgstr "[Copy Track Settings]: Copia els paràmetres de rastreig des del rastre 
 
 msgctxt "Operator"
 msgid "Link Empty to Track"
-msgstr "Vincular jaló a fantasma"
+msgstr "Vincular jaló a rastre"
 
 
 msgid "Create an Empty object which will be copying movement of active track"
@@ -55984,7 +55996,7 @@ msgstr "Afegir objecte rastrejador"
 
 
 msgid "Add new object for tracking"
-msgstr "[Add Tracking Object]: Afegir un objecte nou per al rastreig"
+msgstr "[Add Tracking Object]: Afegeix un objecte nou per al rastreig"
 
 
 msgctxt "Operator"
@@ -56701,7 +56713,7 @@ msgstr "Restablir longitud original"
 
 
 msgid "Reset original length of bone for Stretch To Constraint"
-msgstr "Restableix la longitud original de l'os per a la Restricció d'estirament dirigit"
+msgstr "Restableix la longitud original de l'os per a la Restricció d'estirament direccionat"
 
 
 msgctxt "Operator"
@@ -64470,6 +64482,15 @@ msgid "Draw weight on stroke points in the active Grease Pencil object"
 msgstr "[Grease Pencil Paint Weight]: Dibuixa el pes sobre els punts de traçat en l'objecte actiu del Llapis de greix"
 
 
+msgctxt "Operator"
+msgid "Invert Weight"
+msgstr "Invertir pes"
+
+
+msgid "Invert the weight of active vertex group"
+msgstr "[Invert Weight]: Inverteix els pesos del grup de vèrtexs actiu"
+
+
 msgid "Set the weight of the Draw tool to the weight of the vertex under the mouse cursor"
 msgstr "Determina el pes de l'eina de dibuixar segons el pes del vèrtex de sota el cursor del ratolí"
 
@@ -64582,6 +64603,14 @@ msgstr "Emprar rutes de document relatives"
 
 msgid "Render Method"
 msgstr "Mètode de revelat"
+
+
+msgid "Allows for grayscale hashed transparency, and compatible with render passes and ray-tracing. Also known as deferred rendering."
+msgstr "Permet la transparència aleatòria en escala de grisos i és compatible amb passades de revelat i radiotraçat. També és conegut com a revelat diferit."
+
+
+msgid "Allows for colored transparency, but incompatible with render passes and ray-tracing. Also known as forward rendering."
+msgstr "Permet la transparència de colors, però és incompatible amb les passades de revelat i radiotraçat. També és conegut com a revelat cap endavant."
 
 
 msgid "Node shader to use"
@@ -64735,11 +64764,11 @@ msgstr "Encarat envers l'eix dominant de la càmera"
 
 
 msgid "Track Camera"
-msgstr "Acompanyar a la càmera"
+msgstr "Seguir la càmera"
 
 
 msgid "Add a constraint to make the planes track the camera"
-msgstr "Afegir una restruccions perquè els plans segueixin la càmera"
+msgstr "Afegir una restricció perquè els plans segueixin la càmera"
 
 
 msgid "Definition"
@@ -69153,7 +69182,7 @@ msgstr "Acció de fer davallar sobre el capdamunt de l'estiba d'ANL com a nou se
 
 
 msgid "Track Index"
-msgstr "Índex de traçat"
+msgstr "Índex de pista"
 
 
 msgid "Index of NLA action track to perform pushdown operation on"
@@ -69183,7 +69212,7 @@ msgstr "Afegir segment d'acció"
 
 
 msgid "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track"
-msgstr "[Add Action Strip]: Afegir un segment de vídeoacció (és a dir, un segment d' ANL que referencia una Acció) a la pista activa"
+msgstr "[Add Action Strip]: Afegeix un segment de vídeoacció (és a dir, un segment d' ANL que referencia una Acció) a la pista activa"
 
 
 msgctxt "Operator"
@@ -69317,7 +69346,7 @@ msgstr "[Visual Keying]: Fotofita a partir de les transformacions finals (amb le
 
 msgctxt "Operator"
 msgid "Mouse Click on NLA Tracks"
-msgstr "Clicar amb ratolí els canals ANL"
+msgstr "Clicar amb ratolí les pistes d'ANL"
 
 
 msgid "Handle clicks to select NLA tracks"
@@ -69352,7 +69381,7 @@ msgstr "Duplicar segments"
 
 
 msgid "Duplicate selected NLA-Strips, adding the new strips to new track(s)"
-msgstr "Duplica els segments ANL seleccionats, tot afegint els nous segments a pista/es nova/es"
+msgstr "Duplica els segments ANL seleccionats, tot afegint els nous segments a la/es pista/es nova/es"
 
 
 msgid "When duplicating strips, assign new copies of the actions they use"
@@ -69365,7 +69394,7 @@ msgstr "Duplicar vinculats"
 
 
 msgid "Duplicate Linked selected NLA-Strips, adding the new strips to new track(s)"
-msgstr "Duplica els segments ANL connectats, tot afegint els nous segments a pista/es nova/es"
+msgstr "Duplica els segments ANL connectats, tot afegint els nous segments a la/es pista/es nova/es"
 
 
 msgid "Duplicate Strips"
@@ -69896,6 +69925,15 @@ msgstr "Desactivar node de visor"
 
 msgid "Deactivate selected viewer node in geometry nodes"
 msgstr "[Deactivate Viewer Node]: Desactiva el node del visor seleccionat en nodes de geometria"
+
+
+msgctxt "Operator"
+msgid "Set Default Group Node Width"
+msgstr "Consignar amplada per defecte de grup de nodes"
+
+
+msgid "Set the width based on the parent group node in the current context"
+msgstr "Defineix l'amplada en base al grup de nodes pare en el present context"
 
 
 msgid "Remove selected nodes"
@@ -72354,6 +72392,10 @@ msgid "Reveal temporarily hidden objects"
 msgstr "Evidenciar els objectes ocults temporalment"
 
 
+msgid "Select revealed objects"
+msgstr "Seleccionar objectes descoberts"
+
+
 msgctxt "Operator"
 msgid "Hide Objects"
 msgstr "Ocultar objectes"
@@ -72444,7 +72486,7 @@ msgstr "Selecciona els vèrtexs afectats de la malla"
 
 msgctxt "Operator"
 msgid "Set Offset from Cursor"
-msgstr "Definir desplaçament amb el cursor"
+msgstr "Consignar desplaçament amb el cursor"
 
 
 msgid "Set offset used for collection instances based on cursor position"
@@ -72453,7 +72495,7 @@ msgstr "[Set Offset from Cursor]: Defineix el desplaçament usat per a instànci
 
 msgctxt "Operator"
 msgid "Set Offset from Object"
-msgstr "Determinar desplaçament des d'objecte"
+msgstr "Consignar desplaçament des d'objecte"
 
 
 msgid "Set offset used for collection instances based on the active object position"
@@ -74465,24 +74507,24 @@ msgstr "Afegir un objecte text a l'escena"
 
 msgctxt "Operator"
 msgid "Clear Track"
-msgstr "Retirar rastreig"
+msgstr "Retirar trajectòria"
 
 
 msgid "Clear tracking constraint or flag from object"
-msgstr "Retira la restricció de seguiment dirigit o indicador de l'objecte"
+msgstr "Retira la restricció de trajectòria o l'indicador de l'objecte"
 
 
 msgid "Clear Track"
-msgstr "Retirar rastreig"
+msgstr "Retirar trajectòria"
 
 
 msgid "Clear and Keep Transformation (Clear Track)"
-msgstr "Retira i manté la transformació (Retirar rastreig)"
+msgstr "Retira i manté la transformació (Retirar trajectòria)"
 
 
 msgctxt "Operator"
 msgid "Make Track"
-msgstr "Fer rastreig"
+msgstr "Fer trajectòria"
 
 
 msgid "Make the object track another object, using various methods/constraints"
@@ -74490,11 +74532,11 @@ msgstr "[Make Track]: Fa que l'objecte segueixi un altre objecte, usant diversos
 
 
 msgid "Track to Constraint"
-msgstr "Restricció rastreig dirigit"
+msgstr "Restricció de Trajectòria direccionada"
 
 
 msgid "Lock Track Constraint"
-msgstr "Restricció bloqueig de rastreig"
+msgstr "Restricció Bloquejar trajectòria"
 
 
 msgctxt "Operator"
@@ -87166,6 +87208,14 @@ msgid "Scale of the final strokes"
 msgstr "Escala dels traços finals"
 
 
+msgid "Scene Unit"
+msgstr "Unitat escena"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Aplica la unitat de l'escena actual (definida per la unitat d'escala) a les dades importades"
+
+
 msgctxt "Operator"
 msgid "Add Theme"
 msgstr "Afegir tema"
@@ -87648,14 +87698,6 @@ msgstr "Importar els atributs de vèrtex personalitzats"
 
 msgid "Merges vertices by distance"
 msgstr "Fusionar vèrtexs per distància"
-
-
-msgid "Scene Unit"
-msgstr "Unitat escena"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Aplica la unitat de l'escena actual (definida per la unitat d'escala) a les dades importades"
 
 
 msgctxt "Operator"
@@ -104080,7 +104122,7 @@ msgstr "Mostra el bloc de dades d'anotacions que pertany al videoclip"
 
 
 msgid "Show annotation data-block which belongs to active track"
-msgstr "Mostra el bloc de dades d'anotacions que pertany a la pista activa"
+msgstr "Mostra el bloc de dades d'anotacions que pertany al rastre actiu"
 
 
 msgid "Blending Factor"
@@ -104212,7 +104254,7 @@ msgstr "Mostrar desactivats"
 
 
 msgid "Show disabled tracks from the footage"
-msgstr "[Show Disabled]: Mostrar rastres desactivats del metratge"
+msgstr "[Show Disabled]: Mostra els rastres desactivats del metratge"
 
 
 msgid "Show Filters"
@@ -104260,7 +104302,7 @@ msgstr "Mostrar moviment de rastres"
 
 
 msgid "Display the speed curves (in \"x\" direction red, in \"y\" direction green) for the selected tracks"
-msgstr "Mostrar les corbes de rapidesa (vermell en la direcció «x», verd en la direcció «y») per als rastres seleccionats"
+msgstr "Mostra les corbes de rapidesa (vermell en la direcció «x», verd en la direcció «y») per als rastres seleccionats"
 
 
 msgid "Show Green Channel"
@@ -104352,7 +104394,7 @@ msgstr "Mostrar trajecte de rastre"
 
 
 msgid "Show path of how track moves"
-msgstr "[Show Track Path]: Mostrar com es mou el rastre"
+msgstr "[Show Track Path]: Mostra el trajecte en què es mou el rastre"
 
 
 msgid "Display frame in grayscale mode"
@@ -106132,7 +106174,7 @@ msgstr "Mostrar noms de rastres 3D"
 
 
 msgid "Show names for reconstructed tracks objects"
-msgstr "[Show 3D Marker Names]: Mostrar noms dels objectes reconstruïts sobre rastres"
+msgstr "[Show 3D Marker Names]: Mostra els noms dels objectes rastre reconstruïts"
 
 
 msgid "Show Camera Path"
@@ -108842,6 +108884,14 @@ msgstr "Alfa d'icona"
 
 msgid "Transparency of icons in the interface, to reduce contrast"
 msgstr "Transparència de les icones en la interfície, per reduir contrastos"
+
+
+msgid "Auto Keying Indicator"
+msgstr "Indicador d'autofitat"
+
+
+msgid "Color of Auto Keying indicator when enabled"
+msgstr "Color de l'indicador d'autofitat quan està activat"
 
 
 msgid "Icon Border"
@@ -121450,7 +121500,7 @@ msgstr "Definir eix Y"
 
 
 msgid "No active track"
-msgstr "No hi ha cap pista activa"
+msgstr "No hi ha cap rastre actiu"
 
 
 msgid "Custom Color Presets"
@@ -121458,7 +121508,7 @@ msgstr "Predefinits de color personalitzats"
 
 
 msgid "No active plane track"
-msgstr "No hi ha cap trajecte sobre pla actiu"
+msgstr "No hi ha cap rastreig sobre pla actiu"
 
 
 msgid "Tracks for Stabilization"
@@ -122369,7 +122419,7 @@ msgstr "Reanomenar..."
 
 msgctxt "Operator"
 msgid "Track Ordering..."
-msgstr "Ordre de restres..."
+msgstr "Ordre de rastres..."
 
 
 msgctxt "Operator"
@@ -122494,6 +122544,10 @@ msgstr "Redireccionar autoetiquetes"
 
 msgid "Context Path"
 msgstr "Camí de context"
+
+
+msgid "Node Width"
+msgstr "Amplada de node"
 
 
 msgctxt "Operator"
@@ -123050,7 +123104,7 @@ msgstr "Escalar per omplir"
 
 msgctxt "Operator"
 msgid "Stretch To Fill"
-msgstr "Estirar per omplir"
+msgstr "Estirar per Emplenar"
 
 
 msgctxt "Operator"
@@ -129885,6 +129939,10 @@ msgid "Curve: "
 msgstr "Corba: "
 
 
+msgid "Active Vertex Group is locked"
+msgstr "El Grup de vèrtexs actiu està bloquejat"
+
+
 msgid "Could not resolve path '%s'"
 msgstr "No s'ha pogut resoldre el camí '%s'"
 
@@ -130461,6 +130519,14 @@ msgstr "Afegir a col·lecció d'endoil·luminació abans de {}"
 
 msgid "Add to linking collection after {}"
 msgstr "Afegir a col·lecció d'endoil·luminació després {}"
+
+
+msgid "Select List Item (Double click to rename)"
+msgstr "Seleccionar element de la llista (doble clicar per reanomenar)"
+
+
+msgid "Select List Item"
+msgstr "Selecciona element de la llista"
 
 
 msgid "Hide filtering options"
@@ -132382,6 +132448,10 @@ msgid "Cannot apply modifier for this object type"
 msgstr "No es pot aplicar el modificador per a aquest tipus d'objecte"
 
 
+msgid "Evaluated geometry from modifier does not contain grease pencil geometry"
+msgstr "La geometria avaluada des del modificador no conté cap geometria de Llapis de greix"
+
+
 msgid "Modifier cannot be applied to a mesh with shape keys"
 msgstr "El modificador no es pot aplicar a una malla amb morfofites"
 
@@ -132408,6 +132478,10 @@ msgstr "La geometria avaluada des del modificador no conté corbes"
 
 msgid "Evaluated geometry from modifier does not contain a point cloud"
 msgstr "La geometria avaluada des del modificador no conté un núvol de punts"
+
+
+msgid "Cannot apply this modifier to grease pencil geometry"
+msgstr "No es pot aplicar el modificador a la geometria de Llapis de greix"
 
 
 msgid "Modifiers cannot be applied in edit mode"
@@ -134012,7 +134086,7 @@ msgstr "Ruta al document:"
 
 
 msgid "Track is locked"
-msgstr "Pista bloquejada"
+msgstr "Rastre bloquejat"
 
 
 msgid "Position:"
@@ -134164,15 +134238,15 @@ msgstr "Eliminar els rastres seleccionats?"
 
 
 msgid "Delete marker for current frame from selected tracks?"
-msgstr "Eliminar el marcador per al fotograma actual a partir de les pistes seleccionades?"
+msgstr "Eliminar el marcador per al fotograma actual a partir de les rastres seleccionats?"
 
 
 msgid "No active track to join to"
-msgstr "No hi ha cap trajecte actiu a què unir-se"
+msgstr "No hi ha cap rastre actiu a què unir-se"
 
 
 msgid "Object used for camera tracking cannot be deleted"
-msgstr "No es pot eliminar l'objecte utilitzat per al rastreig"
+msgstr "No es pot eliminar l'objecte utilitzat per al seguiment de càmera"
 
 
 msgid "Feature detection requires valid clip frame"
@@ -134200,7 +134274,7 @@ msgstr "S'han de seleccionar dos rastres amb agregats per especificar l'escala"
 
 
 msgid "Need at least 4 selected point tracks to create a plane"
-msgstr "Es necessiten com a mínim 4 punts de rastre seleccionades per crear un pla"
+msgstr "Es necessiten com a mínim 4 punts de rastre seleccionats per crear un pla"
 
 
 msgid "Some data failed to reconstruct (see console for details)"
@@ -134216,7 +134290,7 @@ msgstr "Segueix el rastre dels marcadors seleccionats cap enrere per a tot el vi
 
 
 msgid "Track the selected markers backward by one frame"
-msgstr "Segueix el rastred els marcadors seleccionats cap enrere un fotograma"
+msgstr "Segueix el rastre dels marcadors seleccionats cap enrere un fotograma"
 
 
 msgid "Track the selected markers forward for the entire clip"
@@ -134377,10 +134451,6 @@ msgstr "La ruta indicada '%s' no és vàlida per al sistema operatiu, en lloc se
 
 msgid "Could not create new folder: %s"
 msgstr "No s'ha pogut crear la carpeta nova: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "No s'ha pogut eliminar el document o directori: %s"
 
 
 msgid "More than one item is selected"
@@ -135153,11 +135223,11 @@ msgstr "Seleccionar primer una ANL existent o una línia d'acció buida"
 
 
 msgid "No animation track found at index %d"
-msgstr "No s'ha trobat cap rastre d'animació a l'índex %d"
+msgstr "No s'ha trobat cap pista d'animació a l'índex %d"
 
 
 msgid "Animation track at index %d is not a NLA 'Active Action' track"
-msgstr "El rastre d'animació a l'índex %d no és un rastre de 'Acció activa' d'ANL"
+msgstr "La pista d'animació a l'índex %d no és una pista de 'Acció activa' d'ANL"
 
 
 msgid ""
@@ -135542,6 +135612,10 @@ msgstr "No es pot afegir la sortida de node '%s' a un grup sense la seva entrada
 
 msgid "Cannot insert group '%s' in '%s'"
 msgstr "No es pot inserir el grup '%s' a '%s'"
+
+
+msgid "There is no parent group node in this context"
+msgstr "No hi ha cap grup de nodes pare en aquest context"
 
 
 msgid "Disconnect"
@@ -143293,10 +143367,6 @@ msgstr "[Specular IOR Level]: Ajustament de l'Índex de Refracció (IDR) per aug
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
 msgstr "Reflexió dielèctrica de tint a incidència normal per a control artístic, i reflex metàl·lic a incidència propera per simular un índex de refracció complex"
-
-
-msgid "Amount of anisotropy for specular reflection. Higher values give elongated highlights along the tangent direction; negative values give highlights shaped perpendicular to the tangent direction"
-msgstr "Quantitat d'anisotropia per al reflex especular. Els valors més alts donen reflexos allargats en la direcció de la tangent; els valors negatius donen ressaltats perpendiculars a la direcció de la tangent"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"

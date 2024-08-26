@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-08-15 20:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -87168,6 +87168,14 @@ msgid "Scale of the final strokes"
 msgstr "Échelle des traits définitifs"
 
 
+msgid "Scene Unit"
+msgstr "Unité de scène"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Appliquer l’unité (telle que définie par l’échelle d’unité) de la scène actuelle aux données importées"
+
+
 msgctxt "Operator"
 msgid "Add Theme"
 msgstr "Ajouter un thème"
@@ -87650,14 +87658,6 @@ msgstr "Importer les attributs de sommets personnalisés"
 
 msgid "Merges vertices by distance"
 msgstr "Fusionner les sommets selon la distance"
-
-
-msgid "Scene Unit"
-msgstr "Unité de scène"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Appliquer l’unité (telle que définie par l’échelle d’unité) de la scène actuelle aux données importées"
 
 
 msgctxt "Operator"
@@ -134373,10 +134373,6 @@ msgid "Could not create new folder: %s"
 msgstr "Impossible de créer un nouveau dossier : %s"
 
 
-msgid "Could not delete file or directory: %s"
-msgstr "Impossible de supprimer le fichier ou le dossier : %s"
-
-
 msgid "More than one item is selected"
 msgstr "Plus d’un élément est sélectionné"
 
@@ -143275,10 +143271,6 @@ msgstr "Ajustement de l’indice de réfraction (IDR) pour augmenter ou diminuer
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
 msgstr "Teinter la réflexion diélectrique à incidence normale pour plus de contrôle artistique, et la réflexion métallique à incidence quasi-rasante pour simuler un indice de réfraction complexe"
-
-
-msgid "Amount of anisotropy for specular reflection. Higher values give elongated highlights along the tangent direction; negative values give highlights shaped perpendicular to the tangent direction"
-msgstr "Quantité d’anisotropie pour la réflexion spéculaire. De plus hautes valeurs donnent des reflets allongés le long de la tangente ; des valeurs négatives donnent des reflets étirés perpendiculairement à la direction tangente"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"

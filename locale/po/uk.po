@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -63539,6 +63539,14 @@ msgid "Handle dropped .blend file"
 msgstr "Обробити відкинутий файл .blend"
 
 
+msgid "Scene Unit"
+msgstr "Одиниці сцени"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Застосувати до імпортованих даних поточні одиниці сцени (як вказує масштаб одиниць)"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Перезавантажити бібліотеку"
@@ -63689,14 +63697,6 @@ msgstr "Експорт PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Імпорт PLY"
-
-
-msgid "Scene Unit"
-msgstr "Одиниці сцени"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Застосувати до імпортованих даних поточні одиниці сцени (як вказує масштаб одиниць)"
 
 
 msgctxt "Operator"
@@ -92289,10 +92289,6 @@ msgstr "заданий шлях '%s'  є хибним, створиться шл
 
 msgid "Could not create new folder: %s"
 msgstr "Неможливо створити нову теку: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "Неможливо видалити файл чи каталог: %s"
 
 
 msgid "File name, overwrite existing"

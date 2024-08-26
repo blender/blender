@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
-"PO-Revision-Date: 2024-08-16 03:56+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"PO-Revision-Date: 2024-08-21 03:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -24625,6 +24625,14 @@ msgid "Shader"
 msgstr "Sombreador"
 
 
+msgid "Default Group Node Width"
+msgstr "Ancho predefinido para grupos de nodos"
+
+
+msgid "The width for newly created group nodes"
+msgstr "El ancho predefinido para nuevos grupos de nodos"
+
+
 msgid "Description of the node tree"
 msgstr "Descripción del árbol de nodos"
 
@@ -47770,7 +47778,11 @@ msgstr "Proporciona el identificador del material usado para cada elemento, seg�
 
 
 msgid "Edge Angle"
-msgstr "Ángulo de bordes"
+msgstr "Ángulo entre bordes"
+
+
+msgid "The angle between the normals of connected manifold faces"
+msgstr "El ángulo entre las normales de caras desplegables conectadas"
 
 
 msgid "Edge Neighbors"
@@ -64470,6 +64482,15 @@ msgid "Draw weight on stroke points in the active Grease Pencil object"
 msgstr "Dibuja influencias en puntos de trazos del objeto activo de Grease Pencil"
 
 
+msgctxt "Operator"
+msgid "Invert Weight"
+msgstr "Invertir influencias"
+
+
+msgid "Invert the weight of active vertex group"
+msgstr "Invierte las influencias del grupo de vértices activo"
+
+
 msgid "Set the weight of the Draw tool to the weight of the vertex under the mouse cursor"
 msgstr "Establece la influencia de la herramienta Dibujar a la influencia del vértice bajo el puntero del ratón"
 
@@ -64582,6 +64603,14 @@ msgstr "Usar rutas de archivo relativas"
 
 msgid "Render Method"
 msgstr "Método de procesamiento"
+
+
+msgid "Allows for grayscale hashed transparency, and compatible with render passes and ray-tracing. Also known as deferred rendering."
+msgstr "Permite transparencias en escala de gris mediante un patrón tramado, compatible con pasadas de procesamiento y trazado de rayos. También conocido como procesamiento diferido."
+
+
+msgid "Allows for colored transparency, but incompatible with render passes and ray-tracing. Also known as forward rendering."
+msgstr "Permite transparencias coloreadas, incompatible con pasadas de procesamiento y trazado de rayos. También conocido como procesamiento directo."
 
 
 msgid "Node shader to use"
@@ -69898,6 +69927,15 @@ msgid "Deactivate selected viewer node in geometry nodes"
 msgstr "Desactiva el nodo Visor seleccionado"
 
 
+msgctxt "Operator"
+msgid "Set Default Group Node Width"
+msgstr "Definir ancho predefinido para grupos de nodos"
+
+
+msgid "Set the width based on the parent group node in the current context"
+msgstr "Permite definir el ancho basándose en el nodo de grupo superior en el contexto actual"
+
+
 msgid "Remove selected nodes"
 msgstr "Elimina los nodos seleccionados"
 
@@ -72352,6 +72390,10 @@ msgstr "Mostrar objetos ocultos"
 
 msgid "Reveal temporarily hidden objects"
 msgstr "Vuelve a mostrar temporalmente los objetos ocultos"
+
+
+msgid "Select revealed objects"
+msgstr "Seleccionar objetos mostrados"
 
 
 msgctxt "Operator"
@@ -86771,7 +86813,7 @@ msgstr "Carga un archivo Collada"
 
 
 msgid "Auto Connect"
-msgstr "Conectar autom."
+msgstr "Conectar automáticamente"
 
 
 msgid "Set use_connect for parent bones which have exactly one child bone"
@@ -87164,6 +87206,14 @@ msgstr "Resolución de los trazos generados"
 
 msgid "Scale of the final strokes"
 msgstr "Escala de los trazos finales"
+
+
+msgid "Scene Unit"
+msgstr "Unidades de la escena"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Aplicar las unidades actuales de la escena a los datos importados"
 
 
 msgctxt "Operator"
@@ -87648,14 +87698,6 @@ msgstr "Importar atributos de vértices personalizados"
 
 msgid "Merges vertices by distance"
 msgstr "Fusionar vértices por distancia"
-
-
-msgid "Scene Unit"
-msgstr "Unidades de la escena"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Aplicar las unidades actuales de la escena a los datos importados"
 
 
 msgctxt "Operator"
@@ -108844,6 +108886,14 @@ msgid "Transparency of icons in the interface, to reduce contrast"
 msgstr "Transparencia de los íconos en la interfaz, para reducir el contraste"
 
 
+msgid "Auto Keying Indicator"
+msgstr "Indicador de claves automáticos"
+
+
+msgid "Color of Auto Keying indicator when enabled"
+msgstr "Color del indicador de claves automáticos activados"
+
+
 msgid "Icon Border"
 msgstr "Ícono - Contorno"
 
@@ -122496,6 +122546,10 @@ msgid "Context Path"
 msgstr "Ruta del contexto"
 
 
+msgid "Node Width"
+msgstr "Ancho del nodo"
+
+
 msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Mover imagen de fondo"
@@ -129885,6 +129939,10 @@ msgid "Curve: "
 msgstr "Curva: "
 
 
+msgid "Active Vertex Group is locked"
+msgstr "El grupo de vértices activo se encuentra bloqueado"
+
+
 msgid "Could not resolve path '%s'"
 msgstr "No fue posible resolver la ruta '%s'"
 
@@ -130461,6 +130519,14 @@ msgstr "Agregar a colección de vinculación antes de {}"
 
 msgid "Add to linking collection after {}"
 msgstr "Agregar a colección de vinculación después de {}"
+
+
+msgid "Select List Item (Double click to rename)"
+msgstr "Seleccionar elemento de lista (doble clic para renombrar)"
+
+
+msgid "Select List Item"
+msgstr "Seleccionar elemento de lista"
 
 
 msgid "Hide filtering options"
@@ -131117,7 +131183,7 @@ msgstr "Orientación global"
 
 
 msgid "Texture Options"
-msgstr "Opciones de textura"
+msgstr "Opciones de texturas"
 
 
 msgid "Only Selected Map"
@@ -131129,7 +131195,7 @@ msgstr "Opciones de exportación de datos"
 
 
 msgid "Armature Options"
-msgstr "Opciones de esqueleto"
+msgstr "Opciones de esqueletos"
 
 
 msgid "Collada Options"
@@ -132382,6 +132448,10 @@ msgid "Cannot apply modifier for this object type"
 msgstr "No es posible aplicar el modificador a este tipo de objeto"
 
 
+msgid "Evaluated geometry from modifier does not contain grease pencil geometry"
+msgstr "La geometría evaluada por el modificador no contiene geometría de grease pencil"
+
+
 msgid "Modifier cannot be applied to a mesh with shape keys"
 msgstr "El modificador no puede ser aplicado a una malla con Formas clave"
 
@@ -132408,6 +132478,10 @@ msgstr "La geometría evaluada por el modificador no contiene curvas"
 
 msgid "Evaluated geometry from modifier does not contain a point cloud"
 msgstr "La geometría evaluada por el modificador no contiene nubes de puntos"
+
+
+msgid "Cannot apply this modifier to grease pencil geometry"
+msgstr "No es posible aplicar este modificador a geometría de grease pencil"
 
 
 msgid "Modifiers cannot be applied in edit mode"
@@ -134379,10 +134453,6 @@ msgid "Could not create new folder: %s"
 msgstr "No fue posible crear la nueva carpeta: %s"
 
 
-msgid "Could not delete file or directory: %s"
-msgstr "No fue posible borrar el archivo o directorio: %s"
-
-
 msgid "More than one item is selected"
 msgstr "Hay más de un elemento seleccionado"
 
@@ -135542,6 +135612,10 @@ msgstr "No es posible agregar el nodo de salida de zona '%s' a un grupo sin su e
 
 msgid "Cannot insert group '%s' in '%s'"
 msgstr "No es posible insertar el grupo '%s' en '%s'"
+
+
+msgid "There is no parent group node in this context"
+msgstr "No existe ningún grupo de nodos superior en este contexto"
 
 
 msgid "Disconnect"
@@ -143293,10 +143367,6 @@ msgstr "Ajuste al índice de refracción (IR) para aumentar o disminuir la inten
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
 msgstr "Tinte artístico de la reflexión dieléctrica en su punto de incidencia normal, así como de la reflexión metálica en su punto de incidencia tangencial, para simular índices de refracción complejos"
-
-
-msgid "Amount of anisotropy for specular reflection. Higher values give elongated highlights along the tangent direction; negative values give highlights shaped perpendicular to the tangent direction"
-msgstr "Magnitud de anisotropía para la reflexión especular. Valores mayores producirán brillos elongados a lo largo de la dirección tangente; valores negativos producirán brillos en forma perpendicular a la dirección tangente"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -55322,6 +55322,14 @@ msgid "Handle dropped .blend file"
 msgstr "삭제된 .blend 파일을 처리"
 
 
+msgid "Scene Unit"
+msgstr "씬 단위"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "가져오기된 데이터로 현재 씬의 단위(단위 축적으로 한정된)를 적용"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "라이브러리를 다시 불러오기"
@@ -55459,14 +55467,6 @@ msgstr "PLY를 내보내기"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "PLY를 가져오기"
-
-
-msgid "Scene Unit"
-msgstr "씬 단위"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "가져오기된 데이터로 현재 씬의 단위(단위 축적으로 한정된)를 적용"
 
 
 msgctxt "Operator"
@@ -79782,10 +79782,6 @@ msgstr "'%s' 주어진 경로는 OS 무효, 대신 '%s' 경로 생성 중"
 
 msgid "Could not create new folder: %s"
 msgstr "새 폴더를 만들 수 없음: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "파일 또는 디렉토리를 삭제할 수 없습니다: %s"
 
 
 msgid "File name, overwrite existing"

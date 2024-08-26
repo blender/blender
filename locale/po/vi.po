@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -79555,6 +79555,14 @@ msgid "Scale of the final strokes"
 msgstr "Tỷ lệ của các nét vẽ kết thúc"
 
 
+msgid "Scene Unit"
+msgstr "Đơn Vị của Cảnh"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Áp dụng đơn vị của cảnh hiện tại (như được định nghĩa trong đơn vị đo lường) vào dữ liệu nhập khẩu"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Tái Nạp Thư Viện"
@@ -79983,14 +79991,6 @@ msgstr "Nhập khẩu các thuộc tính điểm đỉnh tùy chỉnh"
 
 msgid "Merges vertices by distance"
 msgstr "Hợp nhất các điểm đỉnh theo khoảng cách"
-
-
-msgid "Scene Unit"
-msgstr "Đơn Vị của Cảnh"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Áp dụng đơn vị của cảnh hiện tại (như được định nghĩa trong đơn vị đo lường) vào dữ liệu nhập khẩu"
 
 
 msgctxt "Operator"
@@ -120324,10 +120324,6 @@ msgstr "Đường dẫn đã cho '%s' không hợp lệ với Hệ Điều Hành
 
 msgid "Could not create new folder: %s"
 msgstr "Không kiến tạo được thư mục mới: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "Không xóa được tập tin hoặc thư mục: %s"
 
 
 msgid "More than one item is selected"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
-"PO-Revision-Date: 2024-08-19 08:39+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"PO-Revision-Date: 2024-08-23 23:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -288,7 +288,7 @@ msgstr "Način mešanja"
 
 
 msgid "How animation of this layer is blended into the lower layers"
-msgstr "Kako se animacija te plasti preliva v spodnje plasti"
+msgstr "Kako se animacija te plasti meša s spodnjimi plastmi"
 
 
 msgid "Replace"
@@ -764,7 +764,7 @@ msgstr "Aktivna akcija za ta podatkovni blok"
 
 
 msgid "Action Blending"
-msgstr "Prelivanje akcij"
+msgstr "Mešanje akcij"
 
 
 msgid "Method used for combining Active Action's result with result of NLA stack"
@@ -8854,7 +8854,7 @@ msgstr "Posodobitve"
 
 
 msgid "View Layer"
-msgstr "Plast pogleda"
+msgstr "Glediščna plast"
 
 
 msgid "Dependency Graph Object Instance"
@@ -9154,7 +9154,7 @@ msgstr "Aktivno prizorišče"
 
 
 msgid "Active View Layer"
-msgstr "Aktivna plast pogleda"
+msgstr "Aktivna glediščna plast"
 
 
 msgid "Data Path"
@@ -10375,7 +10375,7 @@ msgstr "Kvadratni upor"
 
 
 msgid "Radial Falloff Power"
-msgstr "Moč radialnega upadanja"
+msgstr "Moč radialnega slabenja"
 
 
 msgid "Maximum Radial Distance"
@@ -10415,7 +10415,7 @@ msgstr "Kodranje"
 
 
 msgid "Gradient"
-msgstr "Preliv"
+msgstr "preliv"
 
 
 msgid "Nabla"
@@ -11623,7 +11623,7 @@ msgstr "Namigujoče konture"
 
 
 msgid "View Map Cache"
-msgstr "Predpomnilnik teksture pogleda"
+msgstr "Predpomnilnik glediščne teksture"
 
 
 msgid "Annotation Frame"
@@ -12081,7 +12081,7 @@ msgstr "Zbirka sorodnih risb"
 
 
 msgid "Blend Mode"
-msgstr "Način preliva"
+msgstr "Način mešanja"
 
 
 msgid "Regular"
@@ -12121,7 +12121,7 @@ msgstr "Indeks obhoda"
 
 
 msgid "Translation"
-msgstr "Translacija"
+msgstr "Premestitev"
 
 
 msgid "Use Lights"
@@ -12141,7 +12141,7 @@ msgstr "Uporabi maske pri upodabljanju"
 
 
 msgid "ViewLayer"
-msgstr "Plast pogleda"
+msgstr "Glediščna plast"
 
 
 msgid "Grease Pencil Layer Group"
@@ -12673,7 +12673,371 @@ msgstr "Koraki zabrisa"
 
 
 msgid "Blending Mode"
-msgstr "Način prelivanja"
+msgstr "Način mešanja"
+
+
+msgid "Color Burn"
+msgstr "Barvni zažig"
+
+
+msgid "Linear Burn"
+msgstr "Linearni zažig"
+
+
+msgid "Color Dodge"
+msgstr "Barvni izmik"
+
+
+msgid "Vivid Light"
+msgstr "Živa svetloba"
+
+
+msgid "Pin Light"
+msgstr "Pripeta svetloba"
+
+
+msgid "Exclusion"
+msgstr "Izključitev"
+
+
+msgid "Erase Alpha"
+msgstr "Izbris alfe"
+
+
+msgid "Add Alpha"
+msgstr "Dodajanje alfe"
+
+
+msgid "Kernel Radius"
+msgstr "Polmer jedra"
+
+
+msgid "Blur Mode"
+msgstr "Način zabrisa"
+
+
+msgid "Box"
+msgstr "Škatlasto"
+
+
+msgid "Gaussian"
+msgstr "Gaussov"
+
+
+msgctxt "Brush"
+msgid "Deformation"
+msgstr "Deformacija"
+
+
+msgctxt "Brush"
+msgid "Bend"
+msgstr "Upogib"
+
+
+msgctxt "Brush"
+msgid "Expand"
+msgstr "Širitev"
+
+
+msgctxt "Brush"
+msgid "Inflate"
+msgstr "Napihovanje"
+
+
+msgctxt "Brush"
+msgid "Grab"
+msgstr "Prijem"
+
+
+msgctxt "Brush"
+msgid "Twist"
+msgstr "Zvijanje"
+
+
+msgid "Boundary Falloff"
+msgstr "Mejno slabenje"
+
+
+msgid "Brush Radius"
+msgstr "Polmer čopiča"
+
+
+msgid "Loop"
+msgstr "Zanka"
+
+
+msgid "Loop and Invert"
+msgstr "Obrnjena zanka"
+
+
+msgid "Boundary Origin Offset"
+msgstr "Odmik mejnega izhodišča"
+
+
+msgid "Clone Alpha"
+msgstr "Alfa klona"
+
+
+msgid "Clone Image"
+msgstr "Slika klona"
+
+
+msgid "Clone Offset"
+msgstr "Odmik klona"
+
+
+msgid "Soft Body Plasticity"
+msgstr "Gnetljivost mehkega telesa"
+
+
+msgid "Cloth Damping"
+msgstr "Dušenje blaga"
+
+
+msgid "Deformation"
+msgstr "Deformacija"
+
+
+msgid "Push"
+msgstr "Potisk"
+
+
+msgid "Pinch Point"
+msgstr "Ščipanje v točki"
+
+
+msgid "Pinch Perpendicular"
+msgstr "Pravokotno ščipanje"
+
+
+msgid "Inflate"
+msgstr "Napihovanje"
+
+
+msgid "Grab"
+msgstr "Prijem"
+
+
+msgid "Expand"
+msgstr "Širitev"
+
+
+msgid "Snake Hook"
+msgstr "Kačji kavelj"
+
+
+msgid "Force Falloff"
+msgstr "Pojemek sile"
+
+
+msgid "Cloth Mass"
+msgstr "Masa blaga"
+
+
+msgid "Simulation Falloff"
+msgstr "Slabenje simulacije"
+
+
+msgid "Simulation Limit"
+msgstr "Omejitev simulacije"
+
+
+msgid "Simulation Area"
+msgstr "Območje simulacije"
+
+
+msgid "Local"
+msgstr "Lokalno"
+
+
+msgid "Global"
+msgstr "Globalno"
+
+
+msgid "Dynamic"
+msgstr "Dinamično"
+
+
+msgid "Color Type"
+msgstr "Vrsta barve"
+
+
+msgid "Add Color"
+msgstr "Barva ob prištevanju"
+
+
+msgid "Subtract Color"
+msgstr "Barva ob odštevanju"
+
+
+msgctxt "Curves"
+msgid "Curve Preset"
+msgstr "Krivuljna predloga"
+
+
+msgctxt "Curves"
+msgid "Custom"
+msgstr "Po meri"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "Gladko"
+
+
+msgctxt "Curves"
+msgid "Smoother"
+msgstr "Gladkejše"
+
+
+msgctxt "Curves"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgctxt "Curves"
+msgid "Root"
+msgstr "Koren"
+
+
+msgctxt "Curves"
+msgid "Sharp"
+msgstr "Priostreno"
+
+
+msgctxt "Curves"
+msgid "Linear"
+msgstr "Linearno"
+
+
+msgctxt "Curves"
+msgid "Sharper"
+msgstr "Ostrejše"
+
+
+msgctxt "Curves"
+msgid "Inverse Square"
+msgstr "Inverzni kvadrat"
+
+
+msgctxt "Curves"
+msgid "Constant"
+msgstr "Konstantno"
+
+
+msgid "Curves Sculpt Settings"
+msgstr "Nastavitve krivuljnega kiparjenja"
+
+
+msgctxt "Curves"
+msgid "Brush Type"
+msgstr "Vrsta čopiča"
+
+
+msgctxt "Curves"
+msgid "Paint Selection"
+msgstr "Risanje izbora"
+
+
+msgctxt "Curves"
+msgid "Add"
+msgstr "Dodajanje"
+
+
+msgctxt "Curves"
+msgid "Delete"
+msgstr "Brisanje"
+
+
+msgctxt "Curves"
+msgid "Density"
+msgstr "Gostota"
+
+
+msgctxt "Curves"
+msgid "Comb"
+msgstr "Glavnik"
+
+
+msgctxt "Curves"
+msgid "Snake Hook"
+msgstr "Kačji kavelj"
+
+
+msgctxt "Curves"
+msgid "Grow / Shrink"
+msgstr "Rast / krčenje"
+
+
+msgctxt "Curves"
+msgid "Pinch"
+msgstr "Ščipanje"
+
+
+msgctxt "Curves"
+msgid "Puff"
+msgstr "Ščetinjenje"
+
+
+msgctxt "Curves"
+msgid "Slide"
+msgstr "Drsenje"
+
+
+msgid "Dash Ratio"
+msgstr "Črtkanost"
+
+
+msgid "Dash Length"
+msgstr "Dolžina črtic"
+
+
+msgid "Deformation Target"
+msgstr "Deformacijska tarča"
+
+
+msgid "Cloth Simulation"
+msgstr "Simulacija blaga"
+
+
+msgid "Max Element Distance"
+msgstr "Največja oddaljenost elementa"
+
+
+msgctxt "Brush"
+msgid "Bi-Scale Grab"
+msgstr "Bi-skalirani prijem"
+
+
+msgctxt "Brush"
+msgid "Tri-Scale Grab"
+msgstr "Tri-skalirani prijem"
+
+
+msgctxt "Brush"
+msgid "Scale"
+msgstr "Skaliranje"
+
+
+msgid "Falloff Angle"
+msgstr "Kot slabenja"
+
+
+msgid "Falloff Shape"
+msgstr "Oblika slabenja"
+
+
+msgid "Projected"
+msgstr "Projicirano"
+
+
+msgid "Fill Threshold"
+msgstr "Prag polnila"
+
+
+msgctxt "GPencil"
+msgid "Brush Type"
+msgstr "Vrsta čopiča"
 
 
 msgctxt "GPencil"
@@ -12721,6 +13085,39 @@ msgid "Clone"
 msgstr "Kloniranje"
 
 
+msgid "Gpencil Settings"
+msgstr "Nastavitve Grease Pencil"
+
+
+msgctxt "Brush"
+msgid "Brush Type"
+msgstr "Vrsta čopiča"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "Risanje"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "Polnilo"
+
+
+msgctxt "Brush"
+msgid "Erase"
+msgstr "Radirka"
+
+
+msgctxt "Brush"
+msgid "Tint"
+msgstr "Niansiranje"
+
+
+msgid "Brush Type"
+msgstr "Vrsta čopiča"
+
+
 msgid "Draw"
 msgstr "Risanje"
 
@@ -12733,8 +13130,1279 @@ msgid "Smear"
 msgstr "Razmaz"
 
 
+msgid "Gradient Spacing"
+msgstr "Razmik preliva"
+
+
+msgid "Gradient Fill Mode"
+msgstr "Način gradientnega polnjenja"
+
+
+msgid "Gradient Stroke Mode"
+msgstr "Način gradientne poteze"
+
+
+msgid "Clamp"
+msgstr "Obrez"
+
+
+msgid "Brush Height"
+msgstr "Višina čopiča"
+
+
+msgid "Brush Icon Filepath"
+msgstr "Pot ikone čopiča"
+
+
+msgctxt "Brush"
+msgid "Soften"
+msgstr "Mehčanje"
+
+
+msgctxt "Brush"
+msgid "Smear"
+msgstr "Razmaz"
+
+
+msgctxt "Brush"
+msgid "Clone"
+msgstr "Kloniranje"
+
+
+msgctxt "Brush"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Invert Pressure for Density"
+msgstr "Obrnjen pritisk za gostoto"
+
+
+msgid "Invert Pressure for Flow"
+msgstr "Obrnjen pritisk za potek"
+
+
+msgid "Invert Pressure for Hardness"
+msgstr "Obrnjen pritisk za trdost"
+
+
+msgid "Jitter Unit"
+msgstr "Enota tresenja"
+
+
+msgid "Mask Stencil Dimensions"
+msgstr "Dimenzije maskirne šablone"
+
+
+msgid "Mask Stencil Position"
+msgstr "Položaj maskirne šablone"
+
+
+msgid "Mask Texture"
+msgstr "Tekstura maske"
+
+
+msgid "Mask Texture Slot"
+msgstr "Polje teksture maske"
+
+
+msgctxt "Mask"
+msgid "Mask Tool"
+msgstr "Orodje maske"
+
+
+msgctxt "Mask"
+msgid "Draw"
+msgstr "Risanje"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "Glajenje"
+
+
+msgid "Plane Angle"
+msgstr "Ravninski kot"
+
+
+msgid "Normal Radius"
+msgstr "Polmer normale"
+
+
+msgid "Normal Weight"
+msgstr "Utež normale"
+
+
+msgid "Plane Offset"
+msgstr "Odmik ravnine"
+
+
+msgid "Plane Trim"
+msgstr "Ravninsko prilagajanje"
+
+
+msgid "Rotate/Twist"
+msgstr "Rotiranje/zvijanje"
+
+
+msgid "Scale/Translate"
+msgstr "Skaliranje/premestitev"
+
+
+msgid "Squash & Stretch"
+msgstr "Stiskanje in raztezanje"
+
+
+msgid "Pose IK Segments"
+msgstr "Segmenti OK"
+
+
+msgid "Pose Origin Offset"
+msgstr "Odmik izhodišča drže"
+
+
+msgid "Rotation Origins"
+msgstr "Rotacijska izhodišča"
+
+
+msgid "Topology"
+msgstr "Topologija"
+
+
+msgid "Face Sets"
+msgstr "Množice lic"
+
+
+msgid "Face Sets FK"
+msgstr "PK množic lic"
+
+
+msgid "Smooth Iterations"
+msgstr "Iteracije glajenja"
+
+
+msgid "Rake"
+msgstr "Grablje"
+
+
+msgid "Rate"
+msgstr "Zveznost"
+
+
+msgid "Sculpt Plane"
+msgstr "Kiparska ravnina"
+
+
+msgid "Area Plane"
+msgstr "Območna ravnina"
+
+
+msgid "View Plane"
+msgstr "Glediščna ravnina"
+
+
+msgid "X Plane"
+msgstr "Ravnina X"
+
+
+msgid "Y Plane"
+msgstr "Ravnina Y"
+
+
+msgid "Z Plane"
+msgstr "Ravnina Z"
+
+
+msgctxt "Brush"
+msgid "Draw Sharp"
+msgstr "Ostro risanje"
+
+
+msgctxt "Brush"
+msgid "Clay"
+msgstr "Glina"
+
+
+msgctxt "Brush"
+msgid "Clay Strips"
+msgstr "Glinasti trakovi"
+
+
+msgctxt "Brush"
+msgid "Clay Thumb"
+msgstr "Oblikovanje s prsti"
+
+
+msgctxt "Brush"
+msgid "Layer"
+msgstr "Sloj"
+
+
+msgctxt "Brush"
+msgid "Blob"
+msgstr "Mehurčkanje"
+
+
+msgctxt "Brush"
+msgid "Crease"
+msgstr "Pregibanje"
+
+
+msgctxt "Brush"
+msgid "Flatten"
+msgstr "Ravnanje"
+
+
+msgctxt "Brush"
+msgid "Scrape"
+msgstr "Strganje"
+
+
+msgctxt "Brush"
+msgid "Multi-plane Scrape"
+msgstr "Večravninsko strganje"
+
+
+msgctxt "Brush"
+msgid "Pinch"
+msgstr "Ščipanje"
+
+
+msgctxt "Brush"
+msgid "Elastic Deform"
+msgstr "Elastična deformacija"
+
+
+msgctxt "Brush"
+msgid "Snake Hook"
+msgstr "Kačji kavelj"
+
+
+msgctxt "Brush"
+msgid "Thumb"
+msgstr "Mazanje s prstom"
+
+
+msgctxt "Brush"
+msgid "Pose"
+msgstr "Poziranje"
+
+
+msgctxt "Brush"
+msgid "Nudge"
+msgstr "Dreganje"
+
+
+msgctxt "Brush"
+msgid "Rotate"
+msgstr "Rotiranje"
+
+
+msgctxt "Brush"
+msgid "Slide Relax"
+msgstr "Sproščeno drsenje"
+
+
+msgctxt "Brush"
+msgid "Boundary"
+msgstr "Mejni robovi"
+
+
+msgctxt "Brush"
+msgid "Cloth"
+msgstr "Blago"
+
+
+msgctxt "Brush"
+msgid "Simplify"
+msgstr "Poenostavljanje"
+
+
+msgctxt "Brush"
+msgid "Draw Face Sets"
+msgstr "Risanje množic lic"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Eraser"
+msgstr "Radirka večločljivostnega odstopanja"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Smear"
+msgstr "Razmaz večločljivostnega odstopanja"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "Slikanje"
+
+
+msgid "Secondary Color"
+msgstr "Sekundarna barva"
+
+
+msgid "Sharp Threshold"
+msgstr "Prag ostrenja"
+
+
+msgid "Show Cursor Preview"
+msgstr "Pokaži predogled kazalca"
+
+
+msgid "Pinch"
+msgstr "Ščipanje"
+
+
+msgid "Laplacian"
+msgstr "Laplaceovo"
+
+
+msgid "Smooth Stroke Factor"
+msgstr "Faktor glajenja poteze"
+
+
+msgid "Smooth Stroke Radius"
+msgstr "Polmer glajenja poteze"
+
+
+msgid "Radius Falloff"
+msgstr "Upadanje s polmerom"
+
+
+msgid "Elastic"
+msgstr "Elastično"
+
+
+msgid "Stencil Dimensions"
+msgstr "Dimenzije šablone"
+
+
+msgid "Stencil Position"
+msgstr "Položaj šablone"
+
+
+msgid "Stroke Method"
+msgstr "Metoda poteze"
+
+
+msgid "Dots"
+msgstr "Pike"
+
+
+msgid "Drag Dot"
+msgstr "Vlečena pika"
+
+
+msgid "Space"
+msgstr "Z razmikom"
+
+
 msgid "Airbrush"
 msgstr "Airbrush"
+
+
+msgid "Anchored"
+msgstr "Zasidrano"
+
+
+msgid "Per Vertex Displacement"
+msgstr "Na odstopanje posameznega oglišča"
+
+
+msgid "Shape Preservation"
+msgstr "Ohranjanje oblike"
+
+
+msgid "Texture Overlay Alpha"
+msgstr "Alfa prekrivne teksture"
+
+
+msgid "Texture Sample Bias"
+msgstr "Popravek vzorčenja teksture"
+
+
+msgid "Texture Slot"
+msgstr "Teksturno polje"
+
+
+msgid "Tilt Strength"
+msgstr "Vpliv nagiba"
+
+
+msgid "Tip Roundness"
+msgstr "Okroglost konice"
+
+
+msgid "Tip Scale X"
+msgstr "Skaliranje konice po X"
+
+
+msgid "Topology Rake"
+msgstr "Topološke grablje"
+
+
+msgid "Unprojected Radius"
+msgstr "Neprojiciran polmer"
+
+
+msgid "Accumulate"
+msgstr "Kopičenje"
+
+
+msgid "Adaptive Spacing"
+msgstr "Prilagodljivi razmiki"
+
+
+msgid "Affect Alpha"
+msgstr "Spreminja alfo"
+
+
+msgid "Mesh Boundary Auto-Masking"
+msgstr "Samodejno maskiranje na mejah mreže"
+
+
+msgid "Cavity Mask"
+msgstr "Vdolbinska maska"
+
+
+msgid "Inverted Cavity Mask"
+msgstr "Obrnjena vdolbinska maska"
+
+
+msgid "Custom Cavity Curve"
+msgstr "Vdolbinska krivulja po meri"
+
+
+msgid "Area Normal"
+msgstr "Območna normala"
+
+
+msgid "View Normal"
+msgstr "Glediščna normala"
+
+
+msgid "Occlusion"
+msgstr "Zastiranje"
+
+
+msgid "Pin Simulation Boundary"
+msgstr "Pripni simulacijsko mejo"
+
+
+msgid "Vector Displacement"
+msgstr "Vektorsko odstopanje"
+
+
+msgid "Connected Only"
+msgstr "Samo povezani"
+
+
+msgid "Use Cursor Overlay"
+msgstr "Prekrij s kazalcem"
+
+
+msgid "Override Overlay"
+msgstr "Razveljavi prekrivanje"
+
+
+msgid "Custom Icon"
+msgstr "Ikona po meri"
+
+
+msgid "Use Pressure for Density"
+msgstr "Uporabi pritisk za gostoto"
+
+
+msgid "Edge-to-Edge"
+msgstr "Od roba do roba"
+
+
+msgid "Use Pressure for Flow"
+msgstr "Uporabi pritisk za potek"
+
+
+msgid "Use Front-Face"
+msgstr "Uporabi prednje lice"
+
+
+msgid "Use Front-Face Falloff"
+msgstr "Uporabi usmeritveno upadanje"
+
+
+msgid "Grab Active Vertex"
+msgstr "Primi aktivno oglišče"
+
+
+msgid "Grab Silhouette"
+msgstr "Primi silhueto"
+
+
+msgid "Use Pressure for Hardness"
+msgstr "Uporabi pritisk za trdost"
+
+
+msgid "Inverse Smooth Pressure"
+msgstr "Obrnjeno glajenje na pritisk"
+
+
+msgid "Radius Unit"
+msgstr "Enota polmera"
+
+
+msgid "Dynamic Mode"
+msgstr "Dinamični način"
+
+
+msgid "Plane Offset Pressure"
+msgstr "Ravninski odmični pritisk"
+
+
+msgid "Original Normal"
+msgstr "Izvirna normala"
+
+
+msgid "Original Plane"
+msgstr "Izvirna ravnina"
+
+
+msgid "Use Paint"
+msgstr "Uporabi barvanje"
+
+
+msgid "Use Sculpt"
+msgstr "Uporabi kiparjenje"
+
+
+msgid "Use UV Sculpt"
+msgstr "Uporabi kiparjenje UV"
+
+
+msgid "Use Vertex"
+msgstr "Uporabi ogliščno barvanje"
+
+
+msgid "Use Weight"
+msgstr "Uporabi težno barvanje"
+
+
+msgid "Use Plane Trim"
+msgstr "Uporabi ravninsko prilagajanje"
+
+
+msgid "Keep Anchor Point"
+msgstr "Zadrži sidrišče"
+
+
+msgid "Lock Rotation When Scaling"
+msgstr "Zakleni rotacijo pri skaliranju"
+
+
+msgid "Area Radius Pressure"
+msgstr "Pritisk območnega polmera"
+
+
+msgid "Jitter Pressure"
+msgstr "Pritisk tresenja"
+
+
+msgid "Mask Pressure Mode"
+msgstr "Način maskirnega pritiska"
+
+
+msgid "Ramp"
+msgstr "Trak"
+
+
+msgid "Cutoff"
+msgstr "Odrez"
+
+
+msgid "Size Pressure"
+msgstr "Velikostni pritisk"
+
+
+msgid "Spacing Pressure"
+msgstr "Pritisk razmika"
+
+
+msgid "Strength Pressure"
+msgstr "Pritisk moči"
+
+
+msgid "Use Texture Overlay"
+msgstr "Uporabi prekrivno teksturo"
+
+
+msgid "Restore Mesh"
+msgstr "Obnovi mrežo"
+
+
+msgid "Spacing Distance"
+msgstr "Razdalja razmika"
+
+
+msgid "Smooth Stroke"
+msgstr "Gladka poteza"
+
+
+msgid "Adjust Strength for Spacing"
+msgstr "Prilagodi moč na razmik"
+
+
+msgid "Use Pressure for Wet Mix"
+msgstr "Uporabi pritisk za mokro mešanje"
+
+
+msgid "Use Pressure for Wet Persistence"
+msgstr "Uporabi pritisk za obstojnost mokrega"
+
+
+msgid "Wet Mix"
+msgstr "Mokro mešanje"
+
+
+msgid "Wet Paint Radius"
+msgstr "Polmer mokre barve"
+
+
+msgid "Wet Persistence"
+msgstr "Obstojnost mokrega"
+
+
+msgid "Forward"
+msgstr "Naprej"
+
+
+msgid "Frame Offset"
+msgstr "Odmik okvirja"
+
+
+msgid "Sequence"
+msgstr "Sekvenca"
+
+
+msgid "Override Frame"
+msgstr "Razveljavi okvir"
+
+
+msgid "Prefetch Cache Size"
+msgstr "Velikost vnaprej naloženega predpomnilnika"
+
+
+msgid "Up"
+msgstr "Gor"
+
+
+msgid "Use Prefetch"
+msgstr "Uporabi nalaganje vnaprej"
+
+
+msgid "Velocity Attribute"
+msgstr "Atribut hitrosti"
+
+
+msgctxt "Unit"
+msgid "Velocity Unit"
+msgstr "Enota hitrosti"
+
+
+msgctxt "Unit"
+msgid "Second"
+msgstr "Sekunda"
+
+
+msgctxt "Unit"
+msgid "Frame"
+msgstr "Okvir"
+
+
+msgid "Field of View"
+msgstr "Vidno polje"
+
+
+msgid "Horizontal FOV"
+msgstr "Vodoravno vidno polje"
+
+
+msgid "Vertical FOV"
+msgstr "Navpično vidno polje"
+
+
+msgid "Cylinder Radius"
+msgstr "Polmer valja"
+
+
+msgid "Max Longitude"
+msgstr "Največji vodoravni kot"
+
+
+msgid "Min Longitude"
+msgstr "Najmanjši vodoravni kot"
+
+
+msgid "Max Height"
+msgstr "Največja višina"
+
+
+msgid "Min Height"
+msgstr "Najmanjša višina"
+
+
+msgid "Clip End"
+msgstr "Konec rezanja"
+
+
+msgid "Clip Start"
+msgstr "Začetek rezanja"
+
+
+msgid "Depth Of Field"
+msgstr "Globinska ostrina"
+
+
+msgid "Fisheye Lens"
+msgstr "Objektiv ribje oko"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "K0 polinoma ribjega očesa"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "K1 polinoma ribjega očesa"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "K2 polinoma ribjega očesa"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "K3 polinoma ribjega očesa"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "K4 polinoma ribjega očesa"
+
+
+msgid "Max Latitude"
+msgstr "Največji navpični kot"
+
+
+msgid "Min Latitude"
+msgstr "Najmanjši navpični kot"
+
+
+msgid "Focal Length"
+msgstr "Goriščna razdalja"
+
+
+msgid "Lens Unit"
+msgstr "Enota leče"
+
+
+msgid "Millimeters"
+msgstr "Milimetri"
+
+
+msgid "Orthographic Scale"
+msgstr "Ortografsko skaliranje"
+
+
+msgid "Panorama Type"
+msgstr "Vrsta panorame"
+
+
+msgid "Equirectangular"
+msgstr "Kartografska"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "Lice enakokotne kockaste teksture"
+
+
+msgid "Mirror Ball"
+msgstr "Zrcalna krogla"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Enakorazdaljnje ribje oko"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Enakoprostorsko ribje oko"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "Polinom ribjega očesa"
+
+
+msgid "Central Cylindrical"
+msgstr "Središčno valjasto"
+
+
+msgid "Passepartout Alpha"
+msgstr "Alfa paspartuja"
+
+
+msgid "Sensor Fit"
+msgstr "Prileganje senzorja"
+
+
+msgid "Vertical"
+msgstr "Navpično"
+
+
+msgid "Sensor Height"
+msgstr "Višina senzorja"
+
+
+msgid "Sensor Width"
+msgstr "Širina senzorja"
+
+
+msgid "Shift X"
+msgstr "Zamik po X"
+
+
+msgid "Shift Y"
+msgstr "Zamik po Y"
+
+
+msgid "Display Background Images"
+msgstr "Prikaži slike ozadja"
+
+
+msgid "Center Diagonal"
+msgstr "Središčni diagonali"
+
+
+msgid "Golden Ratio"
+msgstr "Zlati rez"
+
+
+msgid "Golden Triangle A"
+msgstr "Zlati trikotnik A"
+
+
+msgid "Golden Triangle B"
+msgstr "Zlati trikotnik B"
+
+
+msgid "Harmonious Triangle A"
+msgstr "Skladni trikotnik A"
+
+
+msgid "Harmonious Triangle B"
+msgstr "Skladni trikotnik B"
+
+
+msgid "Thirds"
+msgstr "Tretjine"
+
+
+msgid "Show Limits"
+msgstr "Pokaži meje"
+
+
+msgid "Show Mist"
+msgstr "Pokaži meglico"
+
+
+msgid "Show Name"
+msgstr "Pokaži ime"
+
+
+msgid "Show Passepartout"
+msgstr "Pokaži paspartu"
+
+
+msgid "Show Safe Areas"
+msgstr "Pokaži varna območja"
+
+
+msgid "Show Center-Cut Safe Areas"
+msgstr "Pokaži varna območja prilagojenega razmerja"
+
+
+msgid "Show Sensor Size"
+msgstr "Pokaži velikost senzorja"
+
+
+msgid "Camera types"
+msgstr "Vrste kamere"
+
+
+msgid "Perspective"
+msgstr "Perspektivna"
+
+
+msgid "Orthographic"
+msgstr "Ortografska"
+
+
+msgid "Panoramic"
+msgstr "Panoramska"
+
+
+msgid "Active Collection Exporter Index"
+msgstr "Indeks izvoznika aktivne zbirke"
+
+
+msgid "All Objects"
+msgstr "Vsi objekti"
+
+
+msgid "Collection Color"
+msgstr "Barva zbirke"
+
+
+msgid "Color 01"
+msgstr "Barva 01"
+
+
+msgid "Color 02"
+msgstr "Barva 02"
+
+
+msgid "Color 03"
+msgstr "Barva 03"
+
+
+msgid "Color 04"
+msgstr "Barva 04"
+
+
+msgid "Color 05"
+msgstr "Barva 05"
+
+
+msgid "Color 06"
+msgstr "Barva 06"
+
+
+msgid "Color 07"
+msgstr "Barva 07"
+
+
+msgid "Color 08"
+msgstr "Barva 08"
+
+
+msgid "Collection Export Handlers"
+msgstr "Izvozni krmilniki zbirke"
+
+
+msgid "Disable in Renders"
+msgstr "Onemogoči pri upodabljanju"
+
+
+msgid "Disable Selection"
+msgstr "Onemogoči izbiro"
+
+
+msgid "Disable in Viewports"
+msgstr "Onemogoči v pogledih"
+
+
+msgid "Instance Offset"
+msgstr "Odmik primerka"
+
+
+msgid "Intersection Priority"
+msgstr "Presečiščna prioriteta"
+
+
+msgid "Usage"
+msgstr "Uporaba"
+
+
+msgid "Occlusion Only"
+msgstr "Samo zastiranje"
+
+
+msgid "Intersection Only"
+msgstr "Samo presečišče"
+
+
+msgid "No Intersection"
+msgstr "Brez presečišča"
+
+
+msgid "Force Intersection"
+msgstr "Vsili presečišče"
+
+
+msgid "Use Intersection Masks"
+msgstr "Uporabi presečiščne maske"
+
+
+msgid "Use Intersection Priority"
+msgstr "Uporabi presečiščno prioriteto"
+
+
+msgid "Bevel Depth"
+msgstr "Globina poševnine"
+
+
+msgid "Geometry End Factor"
+msgstr "Faktor zaključka geometrije"
+
+
+msgid "End Mapping Type"
+msgstr "Vrsta preslikave zaključka"
+
+
+msgid "Start Mapping Type"
+msgstr "Vrsta preslikave začetka"
+
+
+msgid "Geometry Start Factor"
+msgstr "Faktor začetka geometrije"
+
+
+msgid "Bevel Mode"
+msgstr "Način poševnine"
+
+
+msgid "Round"
+msgstr "Zaobljeno"
+
+
+msgid "Profile"
+msgstr "Profil"
+
+
+msgid "Bevel Object"
+msgstr "Objekt poševnine"
+
+
+msgid "Custom Profile Path"
+msgstr "Pot do profila po meri"
+
+
+msgid "Bevel Resolution"
+msgstr "Ločljivost poševnine"
+
+
+msgid "Cycles Mesh Settings"
+msgstr "Nastavitve mreže Cycles"
+
+
+msgid "Dimensions"
+msgstr "Dimenzije"
+
+
+msgid "Extrude"
+msgstr "Izvlek"
+
+
+msgid "Fill Mode"
+msgstr "Način polnjenja"
+
+
+msgid "Half"
+msgstr "Polovično"
+
+
+msgid "Path Duration"
+msgstr "Trajanje poti"
+
+
+msgid "Render Resolution U"
+msgstr "Upodabljalna ločljivost U"
+
+
+msgid "Render Resolution V"
+msgstr "Upodabljalna ločljivost V"
+
+
+msgid "Resolution U"
+msgstr "Ločljivost U"
+
+
+msgid "Resolution V"
+msgstr "Ločljivost V"
+
+
+msgid "Splines"
+msgstr "Zlepki"
+
+
+msgid "Taper Object"
+msgstr "Zožen objekt"
+
+
+msgid "Taper Radius"
+msgstr "Polmer zoženja"
+
+
+msgid "Texture Space Location"
+msgstr "Lega v teksturnem prostoru"
+
+
+msgid "Texture Space Size"
+msgstr "Velikost v teksturnem prostoru"
+
+
+msgid "Twist Method"
+msgstr "Metoda zvijanja"
+
+
+msgid "Z-Up"
+msgstr "Z gor"
+
+
+msgid "Twist Smooth"
+msgstr "Glajenje zvijanja"
+
+
+msgid "Auto Texture Space"
+msgstr "Samodejni teksturni prostor"
+
+
+msgid "Bounds Clamp"
+msgstr "Obrez na mejah"
+
+
+msgid "Fill Caps"
+msgstr "Zapolnjeni konci"
+
+
+msgid "Map Taper"
+msgstr "Preslikaj zožitev"
+
+
+msgid "Path"
+msgstr "Pot"
+
+
+msgid "Follow"
+msgstr "Sledi"
+
+
+msgid "Surface Curve"
+msgstr "Površinska krivulja"
+
+
+msgid "Text Curve"
+msgstr "Besedilna krivulja"
+
+
+msgid "Active Text Box"
+msgstr "Aktivno besedilno polje"
+
+
+msgid "Horizontal Alignment"
+msgstr "Vodoravna poravnava"
+
+
+msgid "Justify"
+msgstr "Poravnava"
+
+
+msgid "Flush"
+msgstr "Zapolnitev"
+
+
+msgid "Vertical Alignment"
+msgstr "Navpična poravnava"
+
+
+msgid "Top Baseline"
+msgstr "Zgornje izhodišče"
+
+
+msgid "Middle"
+msgstr "Sredina"
+
+
+msgid "Bottom Baseline"
+msgstr "Spodnje izhodišče"
+
+
+msgid "Body Text"
+msgstr "Telo besedila"
+
+
+msgid "Character Info"
+msgstr "Znakovne informacije"
+
+
+msgid "Object Font"
+msgstr "Objektna pisava"
+
+
+msgid "Text on Curve"
+msgstr "Besedilo na krivulji"
+
+
+msgid "Font Bold"
+msgstr "Krepka pisava"
+
+
+msgid "Font Bold Italic"
+msgstr "Krepko-poševna pisava"
+
+
+msgid "Font Italic"
+msgstr "Poševna pisava"
+
+
+msgid "Text Selected"
+msgstr "Izbrano besedilo"
+
+
+msgid "Selected Bold"
+msgstr "Izbrano krepko"
+
+
+msgid "Selected Italic"
+msgstr "Izbrano poševno"
+
+
+msgid "Selected Small Caps"
+msgstr "Izbrane male črke"
+
+
+msgid "Selected Underline"
+msgstr "Izbrano podčrtano"
+
+
+msgid "X Offset"
+msgstr "Odmik po X"
+
+
+msgid "Y Offset"
+msgstr "Odmik po Y"
+
+
+msgid "Textbox Overflow"
+msgstr "Prekoračitev besedilnega polja"
+
+
+msgid "Overflow"
+msgstr "Prekorači"
+
+
+msgid "Scale to Fit"
+msgstr "Velikost na prileganje"
+
+
+msgid "Truncate"
+msgstr "Odrezano"
+
+
+msgid "Shear"
+msgstr "Strig"
+
+
+msgid "Font Size"
+msgstr "Velikost pisave"
+
+
+msgid "Small Caps"
+msgstr "Male črke"
 
 
 msgid "Attribute"
@@ -12755,6 +14423,10 @@ msgstr "Cycles"
 
 msgid "Handles"
 msgstr "ročice"
+
+
+msgid "Erase"
+msgstr "Radiranje"
 
 
 msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"

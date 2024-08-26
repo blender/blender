@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-08-12 05:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -69010,6 +69010,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Permite visualizar um manual contextual disponível online em um navegador de internet."
 
 
+msgid "Scene Unit"
+msgstr "Unidades da cena"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados importados."
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Recarregar biblioteca"
@@ -69125,14 +69133,6 @@ msgstr "Exportar PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Importar PLY"
-
-
-msgid "Scene Unit"
-msgstr "Unidades da cena"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados importados."
 
 
 msgctxt "Operator"

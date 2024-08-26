@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -39964,6 +39964,10 @@ msgid "Resolution of the generated strokes"
 msgstr "Auflösung der erzeugten Striche"
 
 
+msgid "Scene Unit"
+msgstr "Szeneneinheit"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Bibliothek neu laden"
@@ -40124,10 +40128,6 @@ msgstr "PLY exportieren"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "PLY importieren"
-
-
-msgid "Scene Unit"
-msgstr "Szeneneinheit"
 
 
 msgctxt "Operator"
@@ -58975,10 +58975,6 @@ msgstr "'%s' gegebener Pfad ist invalid zum OS, erstelle anstatt dessen '%s' Pfa
 
 msgid "Could not create new folder: %s"
 msgstr "Neuer Ordner konnte nicht erstellt werden: %s"
-
-
-msgid "Could not delete file or directory: %s"
-msgstr "Datei oder Verzeichnis konnte nicht gelöscht werden: %s"
 
 
 msgid "File name, overwrite existing"

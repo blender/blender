@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -49772,6 +49772,14 @@ msgid "Export to SVG"
 msgstr "Exportar para SVG"
 
 
+msgid "Scene Unit"
+msgstr "Unidades da cena"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados importados."
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Recarregar biblioteca"
@@ -49903,14 +49911,6 @@ msgstr "Exportar PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Importar PLY"
-
-
-msgid "Scene Unit"
-msgstr "Unidades da cena"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados importados."
 
 
 msgctxt "Operator"

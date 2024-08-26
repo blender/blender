@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -9743,6 +9743,10 @@ msgid "View Online Manual"
 msgstr "Çevrimiçi Kılavuzu Görüntüle"
 
 
+msgid "Scene Unit"
+msgstr "Sahne Birimi"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "Kitaplığı Yeniden Yükle"
@@ -9790,10 +9794,6 @@ msgstr "Bir dosya tarayıcısında bir yol aç"
 
 msgid "Export Vertex Colors"
 msgstr "Tepecik Renklerini Dışa Aktar"
-
-
-msgid "Scene Unit"
-msgstr "Sahne Birimi"
 
 
 msgctxt "Operator"

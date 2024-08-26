@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
-"PO-Revision-Date: 2024-08-18 03:56+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"PO-Revision-Date: 2024-08-22 06:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -4986,6 +4986,10 @@ msgid "Input Samples"
 msgstr "输入采样"
 
 
+msgid "Generated intermediate points for very fast mouse movements (Set to 0 to disable)"
+msgstr "生成的中间点, 用于非常快速的鼠标移动 (设置0为关闭)"
+
+
 msgid "Material used for strokes drawn using this brush"
 msgstr "用于此笔刷的笔画材质"
 
@@ -5762,6 +5766,10 @@ msgstr "限制此集合碰撞"
 
 msgid "Collision Quality"
 msgstr "碰撞质量"
+
+
+msgid "How many collision iterations should be done (higher is better quality but slower)"
+msgstr "碰撞迭代次数 (值越高则质量越好，但速度越慢)"
 
 
 msgid "Restitution"
@@ -14093,12 +14101,20 @@ msgid "End"
 msgstr "结束"
 
 
+msgid "Frame on which the simulation stops (last frame baked)"
+msgstr "模拟停止的帧 (这将是烘焙的最后一帧)"
+
+
 msgid "Frame offset that is used when loading the simulation from the cache. It is not considered when baking the simulation, only when loading it."
 msgstr "从缓存加载模拟时使用的帧偏移量。烘焙模拟时不考虑该值，仅在加载模拟时考虑。"
 
 
 msgid "Start"
 msgstr "起始"
+
+
+msgid "Frame on which the simulation starts (first frame baked)"
+msgstr "模拟开始的帧 (这将是烘焙的第一帧)"
 
 
 msgid "Select the file format to be used for caching surface data"
@@ -16995,6 +17011,10 @@ msgid "Only include Layer in this View Layer render output (leave blank to inclu
 msgstr "仅在此视图层渲染输出中包含此图层(留空以始终包括)"
 
 
+msgid "Protect group from further editing and/or frame changes"
+msgstr "保护图层不受后续编辑与/或帧变动的影响"
+
+
 msgid "Grease Pencil Masking Layers"
 msgstr "蜡笔遮罩层"
 
@@ -18714,7 +18734,7 @@ msgstr "从笔刷边缘开始的笔刷衰减的接近程度"
 
 
 msgid "Brush Height"
-msgstr "笔刷权重"
+msgstr "笔刷高度"
 
 
 msgid "Affectable height of brush (i.e. the layer height for the layer tool)"
@@ -19457,6 +19477,10 @@ msgid "Occlusion"
 msgstr "遮挡"
 
 
+msgid "Only affect vertices that are not occluded by other faces (Slower performance)"
+msgstr "仅影响未被其他面遮挡的顶点 (降低性能)"
+
+
 msgid "Collide with objects during the simulation"
 msgstr "模拟过程中与物体碰撞"
 
@@ -19471,6 +19495,10 @@ msgstr "锁定模拟衰减区域中顶点的位置，以避免缺陷，并创建
 
 msgid "Vector Displacement"
 msgstr "矢量置换"
+
+
+msgid "Handle each pixel color as individual vector for displacement (area plane mapping only)"
+msgstr "将每个像素颜色作为置换的单个矢量进行处理 (仅适用于区域平面映射)"
 
 
 msgid "Connected Only"
@@ -20185,7 +20213,7 @@ msgstr "等立体角型鱼眼"
 
 
 msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "与现代多数的鱼眼镜头相仿, 将触发器的规格考虑在内"
+msgstr "与现代多数的鱼眼镜头相仿, 将传感器的规格考虑在内"
 
 
 msgid "Fisheye Lens Polynomial"
@@ -31555,7 +31583,7 @@ msgstr "回叫函数, 用于定义内建的插帧集"
 
 
 msgid "Insert Keyframes - Only Needed"
-msgstr "只在必要时插入"
+msgstr "插入关键帧 - 仅必要时"
 
 
 msgid "Only insert keyframes where they're needed in the relevant F-Curves"
@@ -39844,7 +39872,7 @@ msgstr "波浪齐整度"
 
 
 msgid "How much the waves are aligned to each other"
-msgstr "最小目标值, 放大顶点权重以匹配此范围"
+msgstr "波浪相互间的排列程度"
 
 
 msgid "Wave Direction"
@@ -47297,6 +47325,10 @@ msgstr "检索几何体材质列表中每个元素使用的材质的编号"
 
 msgid "Edge Angle"
 msgstr "边的夹角"
+
+
+msgid "The angle between the normals of connected manifold faces"
+msgstr "相连流形面法线之间的夹角"
 
 
 msgid "Edge Neighbors"
@@ -63772,6 +63804,15 @@ msgid "Draw weight on stroke points in the active Grease Pencil object"
 msgstr "在活动蜡笔物体的笔画点上绘制权重"
 
 
+msgctxt "Operator"
+msgid "Invert Weight"
+msgstr "反转权重"
+
+
+msgid "Invert the weight of active vertex group"
+msgstr "反转活动顶点组的权重"
+
+
 msgid "Set the weight of the Draw tool to the weight of the vertex under the mouse cursor"
 msgstr "设置绘制工具的权重为鼠标光标下顶点的权重"
 
@@ -63884,6 +63925,14 @@ msgstr "使用相对文件路径"
 
 msgid "Render Method"
 msgstr "渲染方法"
+
+
+msgid "Allows for grayscale hashed transparency, and compatible with render passes and ray-tracing. Also known as deferred rendering."
+msgstr "允许灰度Hashed透明，并与渲染通道和光线追踪兼容，也可称为延迟渲染。"
+
+
+msgid "Allows for colored transparency, but incompatible with render passes and ray-tracing. Also known as forward rendering."
+msgstr "允许彩色的透明，但与渲染通道和光线追踪不兼容。也称为前向渲染。"
 
 
 msgid "Node shader to use"
@@ -86370,6 +86419,14 @@ msgid "Scale of the final strokes"
 msgstr "最终笔画的缩放"
 
 
+msgid "Scene Unit"
+msgstr "场景单位"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to imported data"
+msgstr "应用当前场景单位(由单位比例定义)导入数据"
+
+
 msgctxt "Operator"
 msgid "Add Theme"
 msgstr "添加主题"
@@ -86852,14 +86909,6 @@ msgstr "导入自定义顶点属性"
 
 msgid "Merges vertices by distance"
 msgstr "按距离合并顶点"
-
-
-msgid "Scene Unit"
-msgstr "场景单位"
-
-
-msgid "Apply current scene's unit (as defined by unit scale) to imported data"
-msgstr "应用当前场景单位(由单位比例定义)导入数据"
 
 
 msgctxt "Operator"
@@ -112157,7 +112206,7 @@ msgid ""
 "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag.\n"
 "Incompatible with the input preference \"Emulate 3 Button Mouse\" when the \"Alt\" key is used"
 msgstr ""
-"按住 Alt-LMB (而不是 LMB) 以放置游标，允许工具在按下而非拖动时激活。\n"
+"按住 Alt-鼠标左键 (而不是只按左键) 以放置游标，允许工具在按下而非拖动时激活。\n"
 "使用“Alt”键时，与输入首选项“模拟三键鼠标”不兼容"
 
 
@@ -121562,6 +121611,10 @@ msgstr "转接点自动标签"
 
 msgid "Context Path"
 msgstr "上下文路径"
+
+
+msgid "Node Width"
+msgstr "节点宽度"
 
 
 msgctxt "Operator"
@@ -133309,10 +133362,6 @@ msgid "Could not create new folder: %s"
 msgstr "无法创建新文件夹: %s"
 
 
-msgid "Could not delete file or directory: %s"
-msgstr "无法删除文件或目录: %s"
-
-
 msgid "More than one item is selected"
 msgstr "选择了多个项目"
 
@@ -142075,10 +142124,6 @@ msgstr "调整折射率（IOR）以增加或减少高光强度（0.5表示无调
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
 msgstr "使用正入射时的染色介电反射，以实现艺术控制，而在接近斜入射时使用金属反射，以模拟复杂的折射率"
-
-
-msgid "Amount of anisotropy for specular reflection. Higher values give elongated highlights along the tangent direction; negative values give highlights shaped perpendicular to the tangent direction"
-msgstr "高光反射的各向异性。值越大，将沿切线方向提供细长的高光；负值表示形状垂直于切线方向的高光"
 
 
 msgid "Rotates the direction of anisotropy, with 1.0 going full circle"

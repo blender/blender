@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'976062c771b5')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-19 11:18+0000\n"
+"POT-Creation-Date: 2024-08-26 09:41+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -44093,6 +44093,10 @@ msgid "Load online manual"
 msgstr "載入線上手冊"
 
 
+msgid "Scene Unit"
+msgstr "場景單位"
+
+
 msgctxt "Operator"
 msgid "Memory Statistics"
 msgstr "記憶體統計資料"
@@ -44179,10 +44183,6 @@ msgstr "匯出 PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "匯入 PLY"
-
-
-msgid "Scene Unit"
-msgstr "場景單位"
 
 
 msgctxt "Operator"
