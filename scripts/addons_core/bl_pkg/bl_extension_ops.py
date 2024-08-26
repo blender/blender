@@ -377,7 +377,7 @@ def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     unlock_hint_text = (
         "\n"
         "If the lock was held by a Blender instance that exited unexpectedly,\n"
-        "use: \"Fore Unlock Repository\" to clear the lock.\n"
+        "use: \"Force Unlock Repository\" to clear the lock.\n"
         "Access from the \"Repositories\" popover in the extensions preferences."
     )
 
