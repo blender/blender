@@ -577,13 +577,27 @@ static void rna_KeyConfig_update(wmWindowManager *wm, bool keep_properties)
   WM_keyconfig_update_ex(wm, keep_properties);
 }
 
-/* popup menu wrapper */
-static PointerRNA rna_PopMenuBegin(bContext *C, const char *title, int icon)
+/** Check the context that popup is can be used. */
+static bool rna_popup_context_ok_or_report(bContext *C, ReportList *reports)
 {
-  void *data;
+  if (CTX_wm_window(C) == nullptr) {
+    BKE_report(reports, RPT_ERROR, "context \"window\" is None");
+    return false;
+  }
+  return true;
+}
 
-  data = (void *)UI_popup_menu_begin(C, title, icon);
+/* popup menu wrapper */
+static PointerRNA rna_PopMenuBegin(bContext *C,
+                                   ReportList *reports,
+                                   const char *title,
+                                   const int icon)
+{
+  if (!rna_popup_context_ok_or_report(C, reports)) {
+    return PointerRNA_NULL;
+  }
 
+  void *data = (void *)UI_popup_menu_begin(C, title, icon);
   PointerRNA r_ptr = RNA_pointer_create(nullptr, &RNA_UIPopupMenu, data);
   return r_ptr;
 }
@@ -594,12 +608,16 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 }
 
 /* popover wrapper */
-static PointerRNA rna_PopoverBegin(bContext *C, int ui_units_x, bool from_active_button)
+static PointerRNA rna_PopoverBegin(bContext *C,
+                                   ReportList *reports,
+                                   const int ui_units_x,
+                                   const bool from_active_button)
 {
-  void *data;
+  if (!rna_popup_context_ok_or_report(C, reports)) {
+    return PointerRNA_NULL;
+  }
 
-  data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x, from_active_button);
-
+  void *data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x, from_active_button);
   PointerRNA r_ptr = RNA_pointer_create(nullptr, &RNA_UIPopover, data);
   return r_ptr;
 }
@@ -610,11 +628,15 @@ static void rna_PopoverEnd(bContext *C, PointerRNA *handle, wmKeyMap *keymap)
 }
 
 /* pie menu wrapper */
-static PointerRNA rna_PieMenuBegin(bContext *C, const char *title, int icon, PointerRNA *event)
+static PointerRNA rna_PieMenuBegin(
+    bContext *C, ReportList *reports, const char *title, const int icon, PointerRNA *event)
 {
-  void *data;
+  if (!rna_popup_context_ok_or_report(C, reports)) {
+    return PointerRNA_NULL;
+  }
 
-  data = (void *)UI_pie_menu_begin(C, title, icon, static_cast<const wmEvent *>(event->data));
+  void *data = (void *)UI_pie_menu_begin(
+      C, title, icon, static_cast<const wmEvent *>(event->data));
 
   PointerRNA r_ptr = RNA_pointer_create(nullptr, &RNA_UIPieMenu, data);
   return r_ptr;
@@ -962,7 +984,7 @@ void RNA_api_wm(StructRNA *srna)
 
   /* wrap UI_popup_menu_begin */
   func = RNA_def_function(srna, "popmenu_begin__internal", "rna_PopMenuBegin");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "title", nullptr, 0, "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
@@ -980,7 +1002,7 @@ void RNA_api_wm(StructRNA *srna)
 
   /* wrap UI_popover_begin */
   func = RNA_def_function(srna, "popover_begin__internal", "rna_PopoverBegin");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_property(func, "ui_units_x", PROP_INT, PROP_UNSIGNED);
   /* return */
   parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
@@ -998,7 +1020,7 @@ void RNA_api_wm(StructRNA *srna)
 
   /* wrap uiPieMenuBegin */
   func = RNA_def_function(srna, "piemenu_begin__internal", "rna_PieMenuBegin");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "title", nullptr, 0, "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
