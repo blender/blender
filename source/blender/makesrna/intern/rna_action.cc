@@ -1721,6 +1721,8 @@ static void rna_def_action_slot(BlenderRNA *brna)
       "Identifier for a set of channels in this Action, that can be used by a data-block "
       "to specify what it gets animated by");
 
+  RNA_define_lib_overridable(false);
+
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_ActionSlot_name_set");

@@ -328,6 +328,7 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
     BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
     return;
   }
+  BLI_assert(BKE_animdata_from_id(animated_id) == &adt);
 
   Action &action = adt.action->wrap();
   Slot &slot = dna_slot->wrap();
@@ -990,6 +991,10 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
     adt_dst->action = adt_src->action;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->action));
     id_us_min(reinterpret_cast<ID *>(adt_dst->tmpact));
+#  ifdef WITH_ANIM_BAKLAVA
+    adt_dst->slot_handle = adt_src->slot_handle;
+    STRNCPY(adt_dst->slot_name, adt_src->slot_name);
+#  endif
     adt_dst->tmpact = adt_src->tmpact;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->tmpact));
     adt_dst->act_blendmode = adt_src->act_blendmode;
@@ -1582,6 +1587,7 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Action");
   /* this flag as well as the dynamic test must be defined for this to be editable... */
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_pointer_funcs(
       prop,
       /* Define a getter that is NULL-safe, so that an RNA_AnimData prop with `ptr->data = nullptr`
@@ -1678,6 +1684,7 @@ static void rna_def_animdata(BlenderRNA *brna)
                            "Action Slot Handle",
                            "A number that identifies which sub-set of the Action is considered "
                            "to be for this data-block");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
   prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
@@ -1693,7 +1700,6 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
       prop,
       "Action Slot",
@@ -1702,6 +1708,16 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_AnimData_action_slot_get", "rna_AnimData_action_slot_set", nullptr, nullptr);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
+  /* `adt.action_slot` is exposed to RNA as a pointer for things like the action slot selector in
+   * the GUI. The ground truth of the assigned slot, however, is `action_slot_handle` declared
+   * above. That property is used for library override operations, and this pointer property should
+   * just be ignored.
+   *
+   * This needs PROPOVERRIDE_IGNORE; PROPOVERRIDE_NO_COMPARISON is not suitable here. This property
+   * should act as if it is an overridable property (as from the user's perspective, it is), but an
+   * override operation should not be created for it. It will be created for `action_slot_handle`,
+   * and that's enough. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
   prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
