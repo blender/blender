@@ -322,7 +322,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
 
 static void WIDGETGROUP_node_crop_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeCropWidgetGroup *crop_group = MEM_cnew<NodeCropWidgetGroup>(__func__);
+  NodeCropWidgetGroup *crop_group = MEM_new<NodeCropWidgetGroup>(__func__);
   crop_group->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 
   RNA_enum_set(crop_group->border->ptr,
@@ -330,6 +330,9 @@ static void WIDGETGROUP_node_crop_setup(const bContext * /*C*/, wmGizmoGroup *gz
                ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE);
 
   gzgroup->customdata = crop_group;
+  gzgroup->customdata_free = [](void *customdata) {
+    MEM_delete(static_cast<NodeCropWidgetGroup *>(customdata));
+  };
 }
 
 static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)

@@ -15,6 +15,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
 
@@ -199,12 +200,12 @@ enum eWM_GizmoFlagTweak {
 #include "wm_gizmo_fn.hh"
 
 struct wmGizmoOpElem {
-  wmOperatorType *type;
+  wmOperatorType *type = nullptr;
   /** Operator properties if gizmo spawns and controls an operator,
    * or owner pointer if gizmo spawns and controls a property. */
-  PointerRNA ptr;
+  PointerRNA ptr = {};
 
-  bool is_redo;
+  bool is_redo = false;
 };
 
 /** Gizmos are set per region by registering them on gizmo-maps. */
@@ -276,8 +277,7 @@ struct wmGizmo {
 
   /** Operator to spawn when activating the gizmo (overrides property editing),
    * an array of items (aligned with #wmGizmo.highlight_part). */
-  wmGizmoOpElem *op_data;
-  int op_data_len;
+  blender::Vector<wmGizmoOpElem, 4> op_data;
 
   IDProperty *properties;
 

@@ -64,7 +64,7 @@ void WM_gizmo_target_property_def_rna_ptr(wmGizmo *gz,
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
   /* If gizmo evokes an operator we cannot use it for property manipulation. */
-  BLI_assert(gz->op_data == nullptr);
+  BLI_assert(gz->op_data.is_empty());
   BLI_assert(prop != nullptr);
 
   gz_prop->type = gz_prop_type;
@@ -96,7 +96,7 @@ void WM_gizmo_target_property_def_func_ptr(wmGizmo *gz,
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
   /* If gizmo evokes an operator we cannot use it for property manipulation. */
-  BLI_assert(gz->op_data == nullptr);
+  BLI_assert(gz->op_data.is_empty());
 
   gz_prop->type = gz_prop_type;
 
@@ -124,7 +124,7 @@ void WM_gizmo_target_property_clear_rna_ptr(wmGizmo *gz, const wmGizmoPropertyTy
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
   /* If gizmo evokes an operator we cannot use it for property manipulation. */
-  BLI_assert(gz->op_data == nullptr);
+  BLI_assert(gz->op_data.is_empty());
 
   gz_prop->type = nullptr;
 

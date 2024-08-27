@@ -1718,9 +1718,8 @@ static int gizmo_modal(bContext *C,
   else {
     wmWindow *win = CTX_wm_window(C);
     wmOperator *op = nullptr;
-    for (int i = 0; i < widget->op_data_len; i++) {
-      wmGizmoOpElem *gzop = WM_gizmo_operator_get(widget, i);
-      op = WM_operator_find_modal_by_type(win, gzop->type);
+    for (const wmGizmoOpElem &gzop : widget->op_data) {
+      op = WM_operator_find_modal_by_type(win, gzop.type);
       if (op != nullptr) {
         break;
       }

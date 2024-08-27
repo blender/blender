@@ -6,6 +6,8 @@
  * \ingroup wm
  */
 
+#include <new>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -48,12 +50,15 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   BLI_assert(gzt != nullptr);
   BLI_assert(gzt->struct_size >= sizeof(wmGizmo));
 
+  /* FIXME: Old C-style over-allocation is not trivial to port to C++, so for now keep it that way
+   * and use a placement new for C++ construction. */
   wmGizmo *gz = static_cast<wmGizmo *>(MEM_callocN(
       gzt->struct_size + (sizeof(wmGizmoProperty) * gzt->target_property_defs_len), __func__));
+  new (gz) wmGizmo();
   gz->type = gzt;
 
   /* Initialize properties, either copy or create. */
-  gz->ptr = static_cast<PointerRNA *>(MEM_callocN(sizeof(PointerRNA), "wmGizmoPtrRNA"));
+  gz->ptr = MEM_new<PointerRNA>("wmGizmoPtrRNA");
   if (properties && properties->data) {
     gz->properties = IDP_CopyProperty(static_cast<const IDProperty *>(properties->data));
   }
@@ -132,16 +137,13 @@ void WM_gizmo_free(wmGizmo *gz)
   }
 #endif
 
-  if (gz->op_data) {
-    for (int i = 0; i < gz->op_data_len; i++) {
-      WM_operator_properties_free(&gz->op_data[i].ptr);
-    }
-    MEM_freeN(gz->op_data);
+  for (wmGizmoOpElem &gzop : gz->op_data) {
+    WM_operator_properties_free(&gzop.ptr);
   }
 
   if (gz->ptr != nullptr) {
     WM_gizmo_properties_free(gz->ptr);
-    MEM_freeN(gz->ptr);
+    MEM_delete(gz->ptr);
   }
 
   if (gz->type->target_property_defs_len != 0) {
@@ -154,6 +156,9 @@ void WM_gizmo_free(wmGizmo *gz)
     }
   }
 
+  /* Explicit calling of the destructor is needed here because allocation still happens 'the C
+   * way', see FIXME note in #wm_gizmo_create. */
+  gz->~wmGizmo();
   MEM_freeN(gz);
 }
 
@@ -189,7 +194,7 @@ void WM_gizmo_unlink(ListBase *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bConte
 
 wmGizmoOpElem *WM_gizmo_operator_get(wmGizmo *gz, int part_index)
 {
-  if (gz->op_data && ((part_index >= 0) && (part_index < gz->op_data_len))) {
+  if (((part_index >= 0) && (part_index < gz->op_data.size()))) {
     return &gz->op_data[part_index];
   }
   return nullptr;
@@ -201,25 +206,22 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
                                   IDProperty *properties)
 {
   BLI_assert(part_index < 255);
-  /* We could pre-allocate these but using multiple is such a rare thing. */
-  if (part_index >= gz->op_data_len) {
-    gz->op_data_len = part_index + 1;
-    gz->op_data = static_cast<wmGizmoOpElem *>(
-        MEM_recallocN(gz->op_data, sizeof(*gz->op_data) * gz->op_data_len));
+  if (part_index >= gz->op_data.size()) {
+    gz->op_data.resize(part_index + 1);
   }
-  wmGizmoOpElem *gzop = &gz->op_data[part_index];
-  gzop->type = ot;
+  wmGizmoOpElem &gzop = gz->op_data[part_index];
+  gzop.type = ot;
 
-  if (gzop->ptr.data) {
-    WM_operator_properties_free(&gzop->ptr);
+  if (gzop.ptr.data) {
+    WM_operator_properties_free(&gzop.ptr);
   }
-  WM_operator_properties_create_ptr(&gzop->ptr, ot);
+  WM_operator_properties_create_ptr(&gzop.ptr, ot);
 
   if (properties) {
-    gzop->ptr.data = properties;
+    gzop.ptr.data = properties;
   }
 
-  return &gzop->ptr;
+  return &gzop.ptr;
 }
 
 int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
@@ -605,7 +607,7 @@ void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const 
   }
 
   if (*ptr == nullptr) {
-    *ptr = static_cast<PointerRNA *>(MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr"));
+    *ptr = MEM_new<PointerRNA>("wmOpItemPtr");
     WM_gizmo_properties_create(*ptr, gtstring);
   }
 
