@@ -14,6 +14,7 @@
 /** \name Material Struct
  * \{ */
 
+/* Keep RGBA diffuse defaults in sync with #rna_def_material_display in rna_material.cc */
 #define _DNA_DEFAULT_Material \
   { \
     .r = 0.8, \

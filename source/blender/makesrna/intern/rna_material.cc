@@ -453,6 +453,10 @@ static void rna_def_material_display(StructRNA *srna)
   RNA_def_property_array(prop, 4);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the material");
+  /* See #82514 for details, for now re-define defaults here. Keep in sync with
+   * #DNA_material_defaults.h */
+  static float diffuse_color_default[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+  RNA_def_property_float_array_default(prop, diffuse_color_default);
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
