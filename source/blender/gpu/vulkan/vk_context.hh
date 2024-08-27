@@ -36,8 +36,6 @@ class VKContext : public Context, NonCopyable {
   /* Reusable data. Stored inside context to limit reallocations. */
   render_graph::VKResourceAccessInfo access_info_ = {};
 
-  bool is_init_ = false;
-
   VKThreadData &thread_data_;
 
  public:

@@ -62,7 +62,7 @@ void VKVertexAttributeObject::bind(
   Array<bool> visited_bindings(bindings.size());
   visited_bindings.fill(false);
 
-  const VKBuffer &dummy = VKBackend::get().device.dummy_buffer_get();
+  const VKBuffer &dummy = VKBackend::get().device.dummy_buffer;
   for (VkVertexInputAttributeDescription attribute : attributes) {
     if (visited_bindings[attribute.binding]) {
       continue;

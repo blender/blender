@@ -153,9 +153,6 @@ class VKDevice : public NonCopyable {
   /* Workarounds */
   VKWorkarounds workarounds_;
 
-  /** Buffer to bind to unbound resource locations. */
-  VKBuffer dummy_buffer_;
-
   std::string glsl_patch_;
   Vector<VKThreadData *> thread_data_;
 
@@ -163,6 +160,8 @@ class VKDevice : public NonCopyable {
   render_graph::VKResourceStateTracker resources;
   VKDiscardPool orphaned_data;
   VKPipelinePool pipelines;
+  /** Buffer to bind to unbound resource locations. */
+  VKBuffer dummy_buffer;
 
   /**
    * This struct contains the functions pointer to extension provided functions.
@@ -257,12 +256,6 @@ class VKDevice : public NonCopyable {
 
   bool is_initialized() const;
   void init(void *ghost_context);
-  /**
-   * Initialize a dummy buffer that can be bound for missing attributes.
-   *
-   * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
-   */
-  void init_dummy_buffer(VKContext &context);
   void reinit();
   void deinit();
 
@@ -314,11 +307,6 @@ class VKDevice : public NonCopyable {
   void context_unregister(VKContext &context);
   Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
-  const VKBuffer &dummy_buffer_get() const
-  {
-    return dummy_buffer_;
-  }
-
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
   void debug_print();
 
@@ -336,6 +324,11 @@ class VKDevice : public NonCopyable {
    * Initialize the functions struct with extension specific function pointer.
    */
   void init_functions();
+
+  /**
+   * Initialize a dummy buffer that can be bound for missing attributes.
+   */
+  void init_dummy_buffer();
 
   /* During initialization the backend requires access to update the workarounds. */
   friend VKBackend;

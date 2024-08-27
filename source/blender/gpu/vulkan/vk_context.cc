@@ -55,13 +55,6 @@ VKContext::~VKContext()
 void VKContext::sync_backbuffer()
 {
   VKDevice &device = VKBackend::get().device;
-  if (ghost_context_) {
-    if (!is_init_) {
-      is_init_ = true;
-      device.init_dummy_buffer(*this);
-    }
-  }
-
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);

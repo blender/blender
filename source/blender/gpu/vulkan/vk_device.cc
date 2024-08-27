@@ -40,7 +40,7 @@ void VKDevice::deinit()
     return;
   }
 
-  dummy_buffer_.free();
+  dummy_buffer.free();
   samplers_.free();
 
   {
@@ -95,6 +95,7 @@ void VKDevice::init(void *ghost_context)
   init_pipeline_cache();
 
   samplers_.init();
+  init_dummy_buffer();
 
   debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
@@ -191,16 +192,16 @@ void VKDevice::init_pipeline_cache()
   vkCreatePipelineCache(vk_device_, &create_info, vk_allocation_callbacks, &vk_pipeline_cache_);
 }
 
-void VKDevice::init_dummy_buffer(VKContext &context)
+void VKDevice::init_dummy_buffer()
 {
-  if (dummy_buffer_.is_allocated()) {
-    return;
-  }
-
-  dummy_buffer_.create(sizeof(float4x4),
-                       GPU_USAGE_DEVICE_ONLY,
-                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-  dummy_buffer_.clear(context, 0);
+  dummy_buffer.create(sizeof(float4x4),
+                      GPU_USAGE_DEVICE_ONLY,
+                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+  debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
+  /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
+  float data[16] = {
+      0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  dummy_buffer.update(static_cast<void *>(data));
 }
 
 void VKDevice::init_glsl_patch()
