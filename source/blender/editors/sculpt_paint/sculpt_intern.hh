@@ -190,9 +190,10 @@ struct StrokeCache {
 
   GArray<> prev_colors_vpaint;
 
-  /* Multires Displacement Smear. */
-  Array<float3> prev_displacement;
-  Array<float3> limit_surface_co;
+  struct {
+    Array<float3> prev_displacement;
+    Array<float3> limit_surface_co;
+  } displacement_smear;
 
   /* The rest is temporary storage that isn't saved as a property */
 

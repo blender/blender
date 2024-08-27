@@ -80,7 +80,8 @@ static void calc_node(const Depsgraph &depsgraph,
         const int node_vert_index = node_start + offset;
         const int grid_vert_index = start + offset;
 
-        float3 interp_limit_surface_disp = cache.prev_displacement[grid_vert_index];
+        float3 interp_limit_surface_disp =
+            cache.displacement_smear.prev_displacement[grid_vert_index];
 
         float3 current_disp;
         switch (brush.smear_deform_type) {
@@ -112,10 +113,11 @@ static void calc_node(const Depsgraph &depsgraph,
           const int neighbor_grid_vert_index = neighbor.grid_index * key.grid_area +
                                                CCG_grid_xy_to_index(
                                                    key.grid_size, neighbor.x, neighbor.y);
-          const float3 vert_disp = cache.limit_surface_co[neighbor_grid_vert_index] -
-                                   cache.limit_surface_co[grid_vert_index];
+          const float3 vert_disp =
+              cache.displacement_smear.limit_surface_co[neighbor_grid_vert_index] -
+              cache.displacement_smear.limit_surface_co[grid_vert_index];
           const float3 &neighbor_limit_surface_disp =
-              cache.prev_displacement[neighbor_grid_vert_index];
+              cache.displacement_smear.prev_displacement[neighbor_grid_vert_index];
           const float3 vert_disp_norm = math::normalize(vert_disp);
 
           if (math::dot(current_disp_norm, vert_disp_norm) >= 0.0f) {
@@ -130,7 +132,8 @@ static void calc_node(const Depsgraph &depsgraph,
 
         interp_limit_surface_disp *= math::rcp(weights_accum);
 
-        float3 new_co = cache.limit_surface_co[grid_vert_index] + interp_limit_surface_disp;
+        float3 new_co = cache.displacement_smear.limit_surface_co[grid_vert_index] +
+                        interp_limit_surface_disp;
         CCG_elem_offset_co(key, elem, offset) = math::interpolate(
             positions[node_vert_index], new_co, factors[node_vert_index]);
       }
@@ -179,17 +182,20 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
   const Span<CCGElem *> elems = subdiv_ccg.grids;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  if (ss.cache->limit_surface_co.is_empty()) {
-    ss.cache->prev_displacement = Array<float3>(elems.size() * key.grid_area);
-    ss.cache->limit_surface_co = Array<float3>(elems.size() * key.grid_area);
+  if (ss.cache->displacement_smear.limit_surface_co.is_empty()) {
+    ss.cache->displacement_smear.prev_displacement = Array<float3>(elems.size() * key.grid_area);
+    ss.cache->displacement_smear.limit_surface_co = Array<float3>(elems.size() * key.grid_area);
 
-    eval_all_limit_positions(subdiv_ccg, ss.cache->limit_surface_co);
+    eval_all_limit_positions(subdiv_ccg, ss.cache->displacement_smear.limit_surface_co);
   }
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      store_node_prev_displacement(
-          ss.cache->limit_surface_co, elems, key, *nodes[i], ss.cache->prev_displacement);
+      store_node_prev_displacement(ss.cache->displacement_smear.limit_surface_co,
+                                   elems,
+                                   key,
+                                   *nodes[i],
+                                   ss.cache->displacement_smear.prev_displacement);
     }
   });
 
