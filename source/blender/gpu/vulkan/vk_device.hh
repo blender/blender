@@ -63,8 +63,24 @@ class VKThreadData : public NonCopyable, NonMovable {
   /** Thread ID this instance belongs to. */
   pthread_t thread_id;
   render_graph::VKRenderGraph render_graph;
-  uint32_t current_swap_chain_index = UINT32_MAX;
-  std::array<VKResourcePool, 5> swap_chain_resources;
+  /**
+   * Index of the active resource pool. Is in sync with the active swap chain image or cycled when
+   * rendering.
+   *
+   * NOTE: Initialized to `UINT32_MAX` to detect first change.
+   */
+  uint32_t resource_pool_index = UINT32_MAX;
+  std::array<VKResourcePool, 5> resource_pools;
+
+  /**
+   * The current rendering depth.
+   *
+   * GPU_rendering_begin can be called multiple times forming a hierarchy. The same resource pool
+   * should be used for the whole hierarchy. rendering_depth is increased for every
+   * GPU_rendering_begin and decreased when GPU_rendering_end is called. Resources pools are cycled
+   * when the rendering_depth set to 0.
+   */
+  int32_t rendering_depth = 0;
 
   VKThreadData(VKDevice &device,
                pthread_t thread_id,
@@ -77,10 +93,21 @@ class VKThreadData : public NonCopyable, NonMovable {
    */
   VKResourcePool &resource_pool_get()
   {
-    if (current_swap_chain_index >= swap_chain_resources.size()) {
-      return swap_chain_resources[0];
+    if (resource_pool_index >= resource_pools.size()) {
+      return resource_pools[0];
     }
-    return swap_chain_resources[current_swap_chain_index];
+    return resource_pools[resource_pool_index];
+  }
+
+  /** Activate the next resource pool. */
+  void resource_pool_next()
+  {
+    if (resource_pool_index == UINT32_MAX) {
+      resource_pool_index = 1;
+    }
+    else {
+      resource_pool_index = (resource_pool_index + 1) % 5;
+    }
   }
 };
 

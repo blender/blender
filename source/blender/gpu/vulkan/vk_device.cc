@@ -355,14 +355,14 @@ VKThreadData::VKThreadData(VKDevice &device,
                            render_graph::VKResourceStateTracker &resources)
     : thread_id(thread_id), render_graph(std::move(command_buffer), resources)
 {
-  for (VKResourcePool &resource_pool : swap_chain_resources) {
+  for (VKResourcePool &resource_pool : resource_pools) {
     resource_pool.init(device);
   }
 }
 
 void VKThreadData::deinit(VKDevice &device)
 {
-  for (VKResourcePool &resource_pool : swap_chain_resources) {
+  for (VKResourcePool &resource_pool : resource_pools) {
     resource_pool.deinit(device);
   }
 }

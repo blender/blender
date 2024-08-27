@@ -65,10 +65,8 @@ void VKContext::sync_backbuffer()
   if (ghost_window_) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     GHOST_GetVulkanSwapChainFormat((GHOST_WindowHandle)ghost_window_, &swap_chain_data);
-    if (assign_if_different(thread_data_.current_swap_chain_index,
-                            swap_chain_data.swap_chain_index))
-    {
-      thread_data_.current_swap_chain_index = swap_chain_data.swap_chain_index;
+    if (assign_if_different(thread_data_.resource_pool_index, swap_chain_data.swap_chain_index)) {
+      thread_data_.resource_pool_index = swap_chain_data.swap_chain_index;
       VKResourcePool &resource_pool = thread_data_.resource_pool_get();
       resource_pool.discard_pool.destroy_discarded_resources(device);
       resource_pool.reset();
