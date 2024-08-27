@@ -133,7 +133,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
   const double start_time = BLI_time_now_seconds();
 
-  while (bke::pbvh::bmesh_update_topology(*ss.pbvh,
+  while (bke::pbvh::bmesh_update_topology(*ss.bm,
+                                          *ss.pbvh,
                                           *ss.bm_log,
                                           PBVH_Collapse | PBVH_Subdivide,
                                           min_edge_len,

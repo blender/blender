@@ -3253,7 +3253,8 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   }
   const float min_edge_len = max_edge_len * dyntopo::detail_size::EDGE_LENGTH_MIN_FACTOR;
 
-  bke::pbvh::bmesh_update_topology(*ss.pbvh,
+  bke::pbvh::bmesh_update_topology(*ss.bm,
+                                   *ss.pbvh,
                                    *ss.bm_log,
                                    mode,
                                    min_edge_len,
@@ -5316,7 +5317,7 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
 
   if (update_type == UpdateType::Position) {
     if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
-      BKE_pbvh_bmesh_after_stroke(*ss.pbvh);
+      BKE_pbvh_bmesh_after_stroke(*ss.bm, *ss.pbvh);
     }
   }
 

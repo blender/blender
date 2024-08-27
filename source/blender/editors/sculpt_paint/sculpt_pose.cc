@@ -1154,7 +1154,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk(const Depsgraph &deps
   int origin_count = 0;
   float3 origin_acc(0.0f);
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
     if (floodfill_it[i] != 0 && face_set::vert_has_face_set(ss, vertex, active_face_set) &&
         face_set::vert_has_face_set(ss, vertex, masked_face_set))
@@ -1168,7 +1168,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk(const Depsgraph &deps
   float3 target_acc(0.0f);
   if (target_face_set != masked_face_set) {
     for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
       if (floodfill_it[i] != 0 && face_set::vert_has_face_set(ss, vertex, active_face_set) &&
           face_set::vert_has_face_set(ss, vertex, target_face_set))

@@ -176,8 +176,6 @@ class Tree {
   Type type_;
 
  public:
-  BMesh *bm_ = nullptr;
-
   Vector<Node> nodes_;
 
   /* Memory backing for Node.prim_indices. */
@@ -205,11 +203,6 @@ struct PBVHFrustumPlanes {
   int num_planes;
 };
 
-BLI_INLINE BMesh *BKE_pbvh_get_bmesh(blender::bke::pbvh::Tree &pbvh)
-{
-  return pbvh.bm_;
-}
-
 BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
 {
   PBVHVertRef ret = {i};
@@ -223,18 +216,7 @@ BLI_INLINE int BKE_pbvh_vertex_to_index(blender::bke::pbvh::Tree &pbvh, PBVHVert
               (v.i));
 }
 
-BLI_INLINE PBVHVertRef BKE_pbvh_index_to_vertex(blender::bke::pbvh::Tree &pbvh, int index)
-{
-  switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Mesh:
-    case blender::bke::pbvh::Type::Grids:
-      return BKE_pbvh_make_vref(index);
-    case blender::bke::pbvh::Type::BMesh:
-      return BKE_pbvh_make_vref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->vtable[index]);
-  }
-
-  return BKE_pbvh_make_vref(PBVH_REF_NONE);
-}
+PBVHVertRef BKE_pbvh_index_to_vertex(const Object &object, int index);
 
 /* Callbacks */
 
@@ -371,7 +353,8 @@ namespace blender::bke::pbvh {
 /**
  * Collapse short edges, subdivide long edges.
  */
-bool bmesh_update_topology(Tree &pbvh,
+bool bmesh_update_topology(BMesh &bm,
+                           Tree &pbvh,
                            BMLog &bm_log,
                            PBVHTopologyUpdateMode mode,
                            float min_edge_len,
@@ -462,7 +445,7 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
                                    BMLog *log,
                                    blender::bke::pbvh::Node *node,
                                    bool use_original);
-void BKE_pbvh_bmesh_after_stroke(blender::bke::pbvh::Tree &pbvh);
+void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh);
 
 namespace blender::bke::pbvh {
 

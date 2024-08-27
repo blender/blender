@@ -1252,7 +1252,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
 
   BitVector<> enabled_verts(totvert);
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
     if (!face_set::vert_has_unique_face_set(ss, vertex)) {
       continue;
@@ -1272,7 +1272,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
 
   if (internal_falloff) {
     for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
       if (!(face_set::vert_has_face_set(ss, vertex, active_face_set) &&
             face_set::vert_has_unique_face_set(ss, vertex)))
@@ -1294,7 +1294,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
   }
   else {
     for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
       if (!face_set::vert_has_face_set(ss, vertex, active_face_set)) {
         continue;
@@ -1993,7 +1993,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
       return;
     }
 
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss.pbvh, vert);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, vert);
     const float *vertex_co = SCULPT_vertex_co_get(depsgraph, ob, vertex);
 
     if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {

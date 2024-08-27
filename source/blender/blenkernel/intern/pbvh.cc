@@ -2550,16 +2550,17 @@ static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Object &obje
       args.grids = subdiv_ccg.grids;
       break;
     }
-    case blender::bke::pbvh::Type::BMesh:
-      args.bm = pbvh.bm_;
+    case blender::bke::pbvh::Type::BMesh: {
+      BMesh &bm = *object_orig.sculpt->bm;
+      args.bm = &bm;
       args.vert_data = &args.bm->vdata;
       args.corner_data = &args.bm->ldata;
       args.face_data = &args.bm->pdata;
       args.bm_faces = &node.bm_faces_;
-      args.cd_mask_layer = CustomData_get_offset_named(
-          &pbvh.bm_->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      args.cd_mask_layer = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
       break;
+    }
   }
 
   return args;
@@ -2606,7 +2607,7 @@ static void pbvh_update_draw_buffers(const Object &object_orig,
                                      Span<Node *> nodes,
                                      int update_flag)
 {
-  if (pbvh.type() == Type::BMesh && !pbvh.bm_) {
+  if (pbvh.type() == Type::BMesh && !object_orig.sculpt->bm) {
     /* BMesh hasn't been created yet */
     return;
   }
@@ -3010,3 +3011,18 @@ Vector<Node *> search_gather(Tree &pbvh,
 }
 
 }  // namespace blender::bke::pbvh
+
+PBVHVertRef BKE_pbvh_index_to_vertex(const Object &object, int index)
+{
+  const SculptSession &ss = *object.sculpt;
+  const blender::bke::pbvh::Tree &pbvh = *ss.pbvh;
+  switch (pbvh.type()) {
+    case blender::bke::pbvh::Type::Mesh:
+    case blender::bke::pbvh::Type::Grids:
+      return BKE_pbvh_make_vref(index);
+    case blender::bke::pbvh::Type::BMesh:
+      return BKE_pbvh_make_vref(intptr_t(BM_vert_at_index(ss.bm, index)));
+  }
+
+  return BKE_pbvh_make_vref(PBVH_REF_NONE);
+}
