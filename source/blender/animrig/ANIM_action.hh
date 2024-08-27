@@ -240,7 +240,12 @@ class Action : public ::bAction {
    */
   Slot *slot_active_get();
 
-  /** Assign this Action to the ID.
+  /**
+   * Assign this Action + Slot to the ID.
+   *
+   * If another Action is already assigned to this ID, the caller should unassign the ID from its
+   * existing Action first, or use the top-level function `assign_action(action, ID)` to do things
+   * all in one go.
    *
    * \param slot: The slot this ID should be animated by, may be nullptr if it is to be
    * assigned later. In that case, the ID will not actually receive any animation.
