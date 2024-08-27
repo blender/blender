@@ -1018,22 +1018,24 @@ Vector<const FCurve *> fcurves_all(const Action &action);
 Vector<FCurve *> fcurves_all(Action &action);
 
 /**
- * Get (or add relevant data to be able to do so) an F-Curve from the given
- * Action. This assumes that all the destinations are valid.
+ * Find or create an F-Curve on the given action that matches the given fcurve
+ * descriptor.
  *
- * NOTE: this function is primarily intended for use with legacy actions, but
- * for reasons of expedience it now also works with layered actions under the
+ * This function is primarily intended for use with legacy actions, but for
+ * reasons of expedience it now also works with layered actions under the
  * following limited circumstances: `ptr` must be non-null and must have an
- * `owner_id` that already uses `act`. Otherwise this function will return
- * nullptr for layered actions. See the comments in the implementation for more
- * details.
+ * `owner_id` that already uses `act`. See the comments in the implementation
+ * for more details.
  *
  * \note This function also ensures that dependency graph relationships are
  * rebuilt. This is necessary when adding a new F-Curve, as a
  * previously-unanimated depsgraph component may become animated now.
  *
  * \param ptr: RNA pointer for the struct the fcurve is being looked up/created
- * for. For legacy actions this is optional and may be null.
+ * for. For legacy actions this is optional and may be null, but if provided is
+ * used to do things like set the fcurve color properly. For layered actions
+ * this parameter is required, and is used to create and assign an appropriate
+ * slot if needed when creating the fcurve.
  *
  * \param fcurve_descriptor: description of the fcurve to lookup/create. Note
  * that this is *not* relative to `ptr` (e.g. if `ptr` is not an ID). It should

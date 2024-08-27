@@ -126,6 +126,13 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
  * animation data (AnimData, Action, ...) is created if it doesn't already
  * exist.
  *
+ * Note that this function was created as part of an ongoing refactor by merging
+ * two other functions that were *almost* identical to each other. There are
+ * still things left over from that which can and should be improved (such as
+ * the partially redundant `scene_frame` and `anim_eval_context`parameters).
+ * Additionally, it's a bit of a mega-function now, and can probably be stripped
+ * down to a clearer core functionality.
+ *
  * \param struct_pointer: RNA pointer to the struct to be keyed. This is often
  * an ID, but not necessarily. For example, pose bones are also common. Note
  * that if you have an `ID` and want to pass it here for keying, you can create
@@ -142,8 +149,6 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
  * \param scene_frame: the frame to insert the keys at. This is in scene time,
  * not NLA mapped (NLA mapping is already handled internally by this function).
  * If not given, the evaluation time from `anim_eval_context` is used instead.
- * TODO: this redundancy between `scene_frame` and `anim_eval_context` should
- * be eliminated. We shouldn't need both!
  *
  * \returns A summary of the successful and failed keyframe insertions, with
  * reasons for the failures.
