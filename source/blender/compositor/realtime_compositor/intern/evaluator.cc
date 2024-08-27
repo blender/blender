@@ -202,7 +202,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
   }
 
   const Schedule &schedule = compile_state.get_schedule();
-  ShaderOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
+  PixelOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
 
   for (DNode node : compile_unit) {
     compile_state.map_node_to_pixel_operation(node, operation);
@@ -219,7 +219,7 @@ void Evaluator::compile_and_evaluate_pixel_compile_unit(CompileState &compile_st
   compile_state.reset_pixel_compile_unit();
 }
 
-void Evaluator::map_pixel_operation_inputs_to_their_results(ShaderOperation *operation,
+void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *operation,
                                                             CompileState &compile_state)
 {
   for (const auto item : operation->get_inputs_to_linked_outputs_map().items()) {

@@ -14,9 +14,9 @@
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_node_operation.hh"
+#include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
-#include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::realtime_compositor {
@@ -35,7 +35,7 @@ void CompileState::map_node_to_node_operation(DNode node, NodeOperation *operati
   return node_operations_.add_new(node, operations);
 }
 
-void CompileState::map_node_to_pixel_operation(DNode node, ShaderOperation *operations)
+void CompileState::map_node_to_pixel_operation(DNode node, PixelOperation *operations)
 {
   return pixel_operations_.add_new(node, operations);
 }
@@ -52,7 +52,7 @@ Result &CompileState::get_result_from_output_socket(DOutputSocket output)
   /* Otherwise, the output belongs to a node that was compiled into a pixel operation, so retrieve
    * the internal identifier of that output and return a reference to the result from that
    * operation using the retrieved identifier. */
-  ShaderOperation *operation = pixel_operations_.lookup(output.node());
+  PixelOperation *operation = pixel_operations_.lookup(output.node());
   return operation->get_result(operation->get_output_identifier_from_output_socket(output));
 }
 

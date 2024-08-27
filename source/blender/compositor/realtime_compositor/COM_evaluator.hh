@@ -166,7 +166,7 @@ class Evaluator {
   void compile_and_evaluate_pixel_compile_unit(CompileState &compile_state);
 
   /* Map each input of the pixel operation to the result of the output linked to it. */
-  void map_pixel_operation_inputs_to_their_results(ShaderOperation *operation,
+  void map_pixel_operation_inputs_to_their_results(PixelOperation *operation,
                                                    CompileState &compile_state);
 };
 

@@ -31,6 +31,7 @@ set(SRC
   intern/meta_data.cc
   intern/node_operation.cc
   intern/operation.cc
+  intern/pixel_operation.cc
   intern/profiler.cc
   intern/realize_on_domain_operation.cc
   intern/reduce_to_single_value_operation.cc
@@ -54,6 +55,7 @@ set(SRC
   COM_meta_data.hh
   COM_node_operation.hh
   COM_operation.hh
+  COM_pixel_operation.hh
   COM_profiler.hh
   COM_realize_on_domain_operation.hh
   COM_reduce_to_single_value_operation.hh

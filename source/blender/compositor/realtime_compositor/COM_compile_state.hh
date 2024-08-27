@@ -10,8 +10,8 @@
 
 #include "COM_domain.hh"
 #include "COM_node_operation.hh"
+#include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
-#include "COM_shader_operation.hh"
 
 namespace blender::realtime_compositor {
 
@@ -113,7 +113,7 @@ class CompileState {
    * outputs linked to the inputs of operations. See the get_result_from_output_socket method for
    * more information. */
   Map<DNode, NodeOperation *> node_operations_;
-  Map<DNode, ShaderOperation *> pixel_operations_;
+  Map<DNode, PixelOperation *> pixel_operations_;
   /* A contiguous subset of the node execution schedule that contains the group of nodes that will
    * be compiled together into a pixel operation. See the discussion in COM_evaluator.hh for more
    * information. */
@@ -134,7 +134,7 @@ class CompileState {
 
   /* Add an association between the given node and the give pixel operation that the node was
    * compiled into in the pixel_operations_ map. */
-  void map_node_to_pixel_operation(DNode node, ShaderOperation *operation);
+  void map_node_to_pixel_operation(DNode node, PixelOperation *operation);
 
   /* Returns a reference to the result of the operation corresponding to the given output that the
    * given output's node was compiled to. */
@@ -164,7 +164,7 @@ class CompileState {
 
   /* Computes the number of pixel operation outputs that will be added for this node in the current
    * pixel compile unit. This is essentially the number of outputs that will be added for the node
-   * in ShaderOperation::populate_results_for_node. */
+   * in PixelOperation::populate_results_for_node. */
   int compute_pixel_node_operation_outputs_count(DNode node);
 
  private:

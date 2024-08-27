@@ -26,6 +26,7 @@
 
 #include "COM_context.hh"
 #include "COM_operation.hh"
+#include "COM_pixel_operation.hh"
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_shader_node.hh"
@@ -41,7 +42,7 @@ using namespace nodes::derived_node_tree_types;
 ShaderOperation::ShaderOperation(Context &context,
                                  PixelCompileUnit &compile_unit,
                                  const Schedule &schedule)
-    : Operation(context), schedule_(schedule), compile_unit_(compile_unit)
+    : PixelOperation(context, compile_unit, schedule)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
@@ -75,44 +76,6 @@ void ShaderOperation::execute()
   GPU_texture_image_unbind_all();
   GPU_uniformbuf_debug_unbind_all();
   GPU_shader_unbind();
-}
-
-void ShaderOperation::compute_preview()
-{
-  for (const DOutputSocket &output : preview_outputs_) {
-    Result &result = get_result(get_output_identifier_from_output_socket(output));
-    compute_preview_from_result(context(), output.node(), result);
-    result.release();
-  }
-}
-
-StringRef ShaderOperation::get_output_identifier_from_output_socket(DOutputSocket output_socket)
-{
-  return output_sockets_to_output_identifiers_map_.lookup(output_socket);
-}
-
-Map<std::string, DOutputSocket> &ShaderOperation::get_inputs_to_linked_outputs_map()
-{
-  return inputs_to_linked_outputs_map_;
-}
-
-void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
-{
-  for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
-    int reference_count = number_of_inputs_linked_to_output_conditioned(
-        item.key, [&](DInputSocket input) {
-          /* We only consider inputs that are not part of the shader operations, because inputs
-           * that are part of the shader operations are internal and do not deal with the result
-           * directly. */
-          return schedule.contains(input.node()) && !compile_unit_.contains(input.node());
-        });
-
-    if (preview_outputs_.contains(item.key)) {
-      reference_count++;
-    }
-
-    get_result(item.value).set_initial_reference_count(reference_count);
-  }
 }
 
 void ShaderOperation::bind_material_resources(GPUShader *shader)
@@ -154,19 +117,20 @@ void ShaderOperation::bind_outputs(GPUShader *shader)
 void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 {
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
+  operation->material_ = material;
   for (DNode node : operation->compile_unit_) {
     ShaderNode *shader_node = node->typeinfo->get_compositor_shader_node(node);
     operation->shader_nodes_.add_new(node, std::unique_ptr<ShaderNode>(shader_node));
 
-    operation->link_node_inputs(node, material);
+    operation->link_node_inputs(node);
 
     shader_node->compile(material);
 
-    operation->populate_results_for_node(node, material);
+    operation->populate_results_for_node(node);
   }
 }
 
-void ShaderOperation::link_node_inputs(DNode node, GPUMaterial *material)
+void ShaderOperation::link_node_inputs(DNode node)
 {
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
@@ -188,7 +152,7 @@ void ShaderOperation::link_node_inputs(DNode node, GPUMaterial *material)
     /* Otherwise, the origin node is not part of the shader operation, then the link is external to
      * the GPU material graph and an input to the shader operation must be declared and linked to
      * the node input. */
-    link_node_input_external(dinput, doutput, material);
+    link_node_input_external(dinput, doutput);
   }
 }
 
@@ -205,8 +169,7 @@ void ShaderOperation::link_node_input_internal(DInputSocket input_socket,
 }
 
 void ShaderOperation::link_node_input_external(DInputSocket input_socket,
-                                               DOutputSocket output_socket,
-                                               GPUMaterial *material)
+                                               DOutputSocket output_socket)
 {
 
   ShaderNode &node = *shader_nodes_.lookup(input_socket.node());
@@ -214,7 +177,7 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
 
   /* An input was already declared for that same output socket, so no need to declare it again. */
   if (!output_to_material_attribute_map_.contains(output_socket)) {
-    declare_operation_input(input_socket, output_socket, material);
+    declare_operation_input(input_socket, output_socket);
   }
 
   /* Link the attribute representing the shader operation input corresponding to the given output
@@ -241,8 +204,7 @@ static const char *get_set_function_name(ResultType type)
 }
 
 void ShaderOperation::declare_operation_input(DInputSocket input_socket,
-                                              DOutputSocket output_socket,
-                                              GPUMaterial *material)
+                                              DOutputSocket output_socket)
 {
   const int input_index = output_to_material_attribute_map_.size();
   std::string input_identifier = "input" + std::to_string(input_index);
@@ -258,9 +220,9 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
    * This is needed because the `gputype` member of the attribute is only initialized if it is
    * linked to a GPU node. */
   GPUNodeLink *attribute_link;
-  GPU_link(material,
+  GPU_link(material_,
            get_set_function_name(input_descriptor.type),
-           GPU_attribute(material, CD_AUTO_FROM_NAME, input_identifier.c_str()),
+           GPU_attribute(material_, CD_AUTO_FROM_NAME, input_identifier.c_str()),
            &attribute_link);
 
   /* Map the output socket to the attribute that was created for it. */
@@ -270,7 +232,7 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
   inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
 }
 
-void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
+void ShaderOperation::populate_results_for_node(DNode node)
 {
   const DOutputSocket preview_output = find_preview_output_socket(node);
 
@@ -291,7 +253,7 @@ void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *materia
     }
 
     if (is_operation_output || is_preview_output) {
-      populate_operation_result(doutput, material);
+      populate_operation_result(doutput);
     }
   }
 }
@@ -314,7 +276,7 @@ static const char *get_store_function_name(ResultType type)
   return nullptr;
 }
 
-void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPUMaterial *material)
+void ShaderOperation::populate_operation_result(DOutputSocket output_socket)
 {
   const uint output_id = output_sockets_to_output_identifiers_map_.size();
   std::string output_identifier = "output" + std::to_string(output_id);
@@ -338,11 +300,11 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPU
   GPUNodeLink *storer_output_link;
   GPUNodeLink *id_link = GPU_constant((float *)&output_id);
   const char *store_function_name = get_store_function_name(result_type);
-  GPU_link(material, store_function_name, id_link, output_link, &storer_output_link);
+  GPU_link(material_, store_function_name, id_link, output_link, &storer_output_link);
 
   /* Declare the output link of the storer node as an output of the GPU material to help the GPU
    * code generator to track the nodes that contribute to the output of the shader. */
-  GPU_material_add_output_link_composite(material, storer_output_link);
+  GPU_material_add_output_link_composite(material_, storer_output_link);
 }
 
 using namespace gpu::shader;
@@ -357,8 +319,8 @@ void ShaderOperation::generate_code(void *thunk,
 
   shader_create_info.local_group_size(16, 16);
 
-  /* The resources are added without explicit locations, so make sure it is done by the
-   * shader creator. */
+  /* The resources are added without explicit locations, so make sure it is done by the shader
+   * creator. */
   shader_create_info.auto_resource_location(true);
 
   /* Add implementation for implicit conversion operations inserted by the code generator. This
