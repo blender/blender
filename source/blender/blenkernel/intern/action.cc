@@ -413,6 +413,7 @@ static void action_blend_write_clear_legacy_channel_groups_listbase(ListBase &li
   LISTBASE_FOREACH (bActionGroup *, group, &listbase) {
     group->prev = nullptr;
     group->next = nullptr;
+    group->channels = {nullptr, nullptr};
   }
 
   BLI_listbase_clear(&listbase);
@@ -563,6 +564,11 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
   for (int i = 0; i < channelbag.group_array_num; i++) {
     BLO_read_struct(reader, bActionGroup, &channelbag.group_array[i]);
     read_channel_group(reader, *channelbag.group_array[i]);
+
+    /* Clear the legacy channels listbase, since it will have been set for some
+     * groups for forward comptability. See
+     * `action_blend_write_make_legacy_channel_groups_listbase()`. */
+    channelbag.group_array[i]->channels = {nullptr, nullptr};
   }
 
   BLO_read_pointer_array(
