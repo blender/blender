@@ -137,9 +137,12 @@ struct StrokeCache {
   /* Invariants */
   float initial_radius;
   float3 scale;
-  int flag;
-  float3 clip_tolerance;
-  float4x4 clip_mirror_mtx;
+  struct {
+    int flag = 0;
+    float3 tolerance;
+    float4x4 mat;
+    float4x4 mat_inv;
+  } mirror_modifier_clip;
   float2 initial_mouse;
 
   /* Variants */
