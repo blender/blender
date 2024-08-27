@@ -333,17 +333,19 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
     ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
   }
 
-  /* scrollers */
-  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
-  /* FIXME: args for scrollers depend on the type of data being shown. */
-  UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  if (region->winy > HEADERY * UI_SCALE_FAC) {
+    /* scrollers */
+    const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+    /* FIXME: args for scrollers depend on the type of data being shown. */
+    UI_view2d_scrollers_draw(v2d, &scroller_mask);
 
-  /* scale numbers */
-  {
-    rcti rect;
-    BLI_rcti_init(
-        &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
+    /* scale numbers */
+    {
+      rcti rect;
+      BLI_rcti_init(
+          &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+      UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
+    }
   }
 }
 

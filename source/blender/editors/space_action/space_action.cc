@@ -248,7 +248,9 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  if (region->winy > HEADERY * UI_SCALE_FAC) {
+    UI_view2d_scrollers_draw(v2d, nullptr);
+  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

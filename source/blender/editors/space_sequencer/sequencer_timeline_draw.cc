@@ -1964,8 +1964,10 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
 
   ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES));
 
-  const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-  SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
-  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
-  UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  if (region->winy > HEADERY * UI_SCALE_FAC) {
+    const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+    SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
+    const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+    UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  }
 }
