@@ -668,6 +668,149 @@ class USDExportTest(AbstractUSDTest):
         shader_id = shader.GetIdAttr().Get()
         self.assertEqual(shader_id, "ND_standard_surface_surfaceshader", "Shader is not a Standard Surface")
 
+    def test_hooks(self):
+        """Validate USD Hook integration for both import and export"""
+
+        # Create a simple scene with 1 object and 1 material
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        material = bpy.data.materials.new(name="test_material")
+        material.use_nodes = True
+        bpy.ops.mesh.primitive_plane_add()
+        bpy.data.objects[0].data.materials.append(material)
+
+        # Register both USD hooks
+        bpy.utils.register_class(USDHook1)
+        bpy.utils.register_class(USDHook2)
+
+        # Instruct them to do various actions inside their implementation
+        USDHookBase.instructions = {
+            "on_material_export": ["return False", "return True"],
+            "on_export": ["throw", "return True"],
+            "on_import": ["throw", "return True"],
+        }
+
+        USDHookBase.responses = {
+            "on_material_export": [],
+            "on_export": [],
+            "on_import": [],
+        }
+
+        test_path = self.tempdir / "hook.usda"
+
+        try:
+            bpy.ops.wm.usd_export(filepath=str(test_path))
+        except:
+            pass
+
+        try:
+            bpy.ops.wm.usd_import(filepath=str(test_path))
+        except:
+            pass
+
+        # Unregister the hooks. We do this here in case the following asserts fail.
+        bpy.utils.unregister_class(USDHook1)
+        bpy.utils.unregister_class(USDHook2)
+
+        # Validate that the Hooks executed and responded accordingly...
+        self.assertEqual(USDHookBase.responses["on_material_export"], ["returned False", "returned True"])
+        self.assertEqual(USDHookBase.responses["on_export"], ["threw exception", "returned True"])
+        self.assertEqual(USDHookBase.responses["on_import"], ["threw exception", "returned True"])
+
+        # Now that the hooks are unregistered they should not be executed for import and export.
+        USDHookBase.responses = {
+            "on_material_export": [],
+            "on_export": [],
+            "on_import": [],
+        }
+        bpy.ops.wm.usd_export(filepath=str(test_path))
+        bpy.ops.wm.usd_import(filepath=str(test_path))
+        self.assertEqual(USDHookBase.responses["on_material_export"], [])
+        self.assertEqual(USDHookBase.responses["on_export"], [])
+        self.assertEqual(USDHookBase.responses["on_import"], [])
+
+
+class USDHookBase():
+    instructions = {}
+    responses = {}
+
+    @staticmethod
+    def follow_instructions(name, operation):
+        instruction = USDHookBase.instructions[operation].pop(0)
+        if instruction == "throw":
+            USDHookBase.responses[operation].append("threw exception")
+            raise RuntimeError(f"** {name} failing {operation} **")
+        elif instruction == "return False":
+            USDHookBase.responses[operation].append("returned False")
+            return False
+
+        USDHookBase.responses[operation].append("returned True")
+        return True
+
+    @staticmethod
+    def do_on_export(name, export_context):
+        stage = export_context.get_stage()
+        depsgraph = export_context.get_depsgraph()
+        if not stage.GetDefaultPrim().IsValid():
+            raise RuntimeError("Unexpected failure: bad stage")
+        if len(depsgraph.ids) == 0:
+            raise RuntimeError("Unexpected failure: bad depsgraph")
+
+        return USDHookBase.follow_instructions(name, "on_export")
+
+    @staticmethod
+    def do_on_material_export(name, export_context, bl_material, usd_material):
+        stage = export_context.get_stage()
+        if stage.expired:
+            raise RuntimeError("Unexpected failure: bad stage")
+        if not usd_material.GetPrim().IsValid():
+            raise RuntimeError("Unexpected failure: bad usd_material")
+        if bl_material is None:
+            raise RuntimeError("Unexpected failure: bad bl_material")
+
+        return USDHookBase.follow_instructions(name, "on_material_export")
+
+    @staticmethod
+    def do_on_import(name, import_context):
+        stage = import_context.get_stage()
+        if not stage.GetDefaultPrim().IsValid():
+            raise RuntimeError("Unexpected failure: bad stage")
+
+        return USDHookBase.follow_instructions(name, "on_import")
+
+
+class USDHook1(USDHookBase, bpy.types.USDHook):
+    bl_idname = "usd_hook_1"
+    bl_label = "Hook 1"
+
+    @staticmethod
+    def on_export(export_context):
+        return USDHookBase.do_on_export(USDHook1.bl_label, export_context)
+
+    @staticmethod
+    def on_material_export(export_context, bl_material, usd_material):
+        return USDHookBase.do_on_material_export(USDHook1.bl_label, export_context, bl_material, usd_material)
+
+    @staticmethod
+    def on_import(import_context):
+        return USDHookBase.do_on_import(USDHook1.bl_label, import_context)
+
+
+class USDHook2(USDHookBase, bpy.types.USDHook):
+    bl_idname = "usd_hook_2"
+    bl_label = "Hook 2"
+
+    @staticmethod
+    def on_export(export_context):
+        return USDHookBase.do_on_export(USDHook2.bl_label, export_context)
+
+    @staticmethod
+    def on_material_export(export_context, bl_material, usd_material):
+        return USDHookBase.do_on_material_export(USDHook2.bl_label, export_context, bl_material, usd_material)
+
+    @staticmethod
+    def on_import(import_context):
+        return USDHookBase.do_on_import(USDHook2.bl_label, import_context)
+
 
 def main():
     global args
