@@ -212,15 +212,16 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
 
   /* Delay the first daub because grab delta is not setup. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    ss.cache->clay_thumb_front_angle = 0.0f;
+    ss.cache->clay_thumb_brush.front_angle = 0.0f;
     return;
   }
 
   /* Simulate the clay accumulation by increasing the plane angle as more samples are added to the
    * stroke. */
   if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache)) {
-    ss.cache->clay_thumb_front_angle += 0.8f;
-    ss.cache->clay_thumb_front_angle = clamp_f(ss.cache->clay_thumb_front_angle, 0.0f, 60.0f);
+    ss.cache->clay_thumb_brush.front_angle += 0.8f;
+    ss.cache->clay_thumb_brush.front_angle = std::clamp(
+        ss.cache->clay_thumb_brush.front_angle, 0.0f, 60.0f);
   }
 
   if (math::is_zero(ss.cache->grab_delta_symmetry)) {
@@ -247,7 +248,8 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   float4x4 imat;
 
   invert_m4_m4(imat.ptr(), mat.ptr());
-  rotate_v3_v3v3fl(normal_tilt, area_no_sp, imat[0], DEG2RADF(-ss.cache->clay_thumb_front_angle));
+  rotate_v3_v3v3fl(
+      normal_tilt, area_no_sp, imat[0], DEG2RADF(-ss.cache->clay_thumb_brush.front_angle));
 
   /* Tilted plane (front part of the brush). */
   plane_from_point_normal_v3(plane_tilt, location, normal_tilt);
@@ -297,13 +299,12 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   }
 }
 
-float clay_thumb_get_stabilized_pressure(const blender::ed::sculpt_paint::StrokeCache &cache)
+float clay_thumb_get_stabilized_pressure(const StrokeCache &cache)
 {
-  float final_pressure = 0.0f;
-  for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
-    final_pressure += cache.clay_pressure_stabilizer[i];
-  }
-  return final_pressure / SCULPT_CLAY_STABILIZER_LEN;
+  const float pressure_sum = std::accumulate(cache.clay_thumb_brush.pressure_stabilizer.begin(),
+                                             cache.clay_thumb_brush.pressure_stabilizer.end(),
+                                             0.0f);
+  return pressure_sum / cache.clay_thumb_brush.pressure_stabilizer.size();
 }
 
 }  // namespace blender::ed::sculpt_paint

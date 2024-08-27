@@ -4559,16 +4559,17 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
   /* Clay stabilized pressure. */
   if (brush.sculpt_tool == SCULPT_TOOL_CLAY_THUMB) {
     if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-      for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
-        ss.cache->clay_pressure_stabilizer[i] = 0.0f;
-      }
-      ss.cache->clay_pressure_stabilizer_index = 0;
+      ss.cache->clay_thumb_brush.pressure_stabilizer.fill(0.0f);
+      ss.cache->clay_thumb_brush.stabilizer_index = 0;
     }
     else {
-      cache.clay_pressure_stabilizer[cache.clay_pressure_stabilizer_index] = cache.pressure;
-      cache.clay_pressure_stabilizer_index += 1;
-      if (cache.clay_pressure_stabilizer_index >= SCULPT_CLAY_STABILIZER_LEN) {
-        cache.clay_pressure_stabilizer_index = 0;
+      cache.clay_thumb_brush.pressure_stabilizer[cache.clay_thumb_brush.stabilizer_index] =
+          cache.pressure;
+      cache.clay_thumb_brush.stabilizer_index += 1;
+      if (cache.clay_thumb_brush.stabilizer_index >=
+          ss.cache->clay_thumb_brush.pressure_stabilizer.size())
+      {
+        cache.clay_thumb_brush.stabilizer_index = 0;
       }
     }
   }

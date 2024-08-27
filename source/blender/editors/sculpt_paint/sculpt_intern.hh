@@ -125,8 +125,6 @@ enum class TransformDisplacementMode {
 }
 /* Defines how transform tools are going to apply its displacement. */
 
-#define SCULPT_CLAY_STABILIZER_LEN 10
-
 namespace blender::ed::sculpt_paint {
 
 /**
@@ -282,11 +280,14 @@ struct StrokeCache {
   Array<float3> detail_directions;
 
   /* Clay Thumb brush */
-  /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
-  float clay_thumb_front_angle;
-  /* Stores pressure samples to get an stabilized strength and radius variation. */
-  float clay_pressure_stabilizer[SCULPT_CLAY_STABILIZER_LEN];
-  int clay_pressure_stabilizer_index;
+  struct {
+    /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
+    float front_angle;
+    /* Stores the last 10 pressure samples to get an stabilized strength and radius variation. */
+    std::array<float, 10> pressure_stabilizer;
+    int stabilizer_index;
+
+  } clay_thumb_brush;
 
   /* Cloth brush */
   std::unique_ptr<cloth::SimulationData> cloth_sim;
