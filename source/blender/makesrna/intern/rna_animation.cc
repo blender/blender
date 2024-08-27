@@ -312,18 +312,20 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
   using animrig::Action;
   using animrig::Slot;
 
-  AnimData &adt = rna_animdata(ptr);
-  if (!adt.action) {
-    BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
-    return;
-  }
-
   ID *animated_id = ptr->owner_id;
   BLI_assert(animated_id); /* Otherwise there is nothing to own this AnimData. */
 
+  /* A 'None' value for the slot is always valid, regardless of whether an
+   * Action was assigned or not. */
   ActionSlot *dna_slot = static_cast<ActionSlot *>(value.data);
   if (!dna_slot) {
     animrig::unassign_slot(*animated_id);
+    return;
+  }
+
+  AnimData &adt = rna_animdata(ptr);
+  if (!adt.action) {
+    BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
     return;
   }
 
