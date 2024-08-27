@@ -1139,6 +1139,12 @@ static void rna_def_node_interface_panel(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "NodeTreeInterfaceItem");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Items", "Items in the node panel");
+
+  prop = RNA_def_property(srna, "persistent_uid", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "identifier");
+  RNA_def_property_ui_text(
+      prop, "Persistent Identifier", "Unique identifier for this panel within this node tree");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_node_tree_interface_items_api(StructRNA *srna)
