@@ -883,7 +883,12 @@ static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
   ARegion *region;
 
   area = rna_area_from_space(ptr); /* can be nullptr */
-  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (area->spacetype == SPACE_CLIP) {
+    region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
+  }
+  else {
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
   if (region) {
     View2D *v2d = &region->v2d;
     return (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME) != 0;
@@ -906,7 +911,12 @@ static void rna_Space_view2d_sync_set(PointerRNA *ptr, bool value)
     return;
   }
 
-  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (area->spacetype == SPACE_CLIP) {
+    region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
+  }
+  else {
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
   if (region) {
     View2D *v2d = &region->v2d;
     if (value) {
@@ -924,7 +934,12 @@ static void rna_Space_view2d_sync_update(Main * /*bmain*/, Scene * /*scene*/, Po
   ARegion *region;
 
   area = rna_area_from_space(ptr); /* can be nullptr */
-  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (area->spacetype == SPACE_CLIP) {
+    region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
+  }
+  else {
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
 
   if (region) {
     bScreen *screen = (bScreen *)ptr->owner_id;
