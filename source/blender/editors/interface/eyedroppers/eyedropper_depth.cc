@@ -148,7 +148,7 @@ static bool depthdropper_test(bContext *C, wmOperator *op)
 
 static int depthdropper_init(bContext *C, wmOperator *op)
 {
-  DepthDropper *ddr = MEM_cnew<DepthDropper>(__func__);
+  DepthDropper *ddr = MEM_new<DepthDropper>(__func__);
   PropertyRNA *prop;
   if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
       RNA_property_is_set(op->ptr, prop))
@@ -161,7 +161,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     }
     PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
     if (!depthdropper_get_path(&ctx_ptr, op, prop_data_path, &ddr->ptr, &ddr->prop)) {
-      MEM_freeN(ddr);
+      MEM_delete(ddr);
       return false;
     }
   }
@@ -192,7 +192,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_type(ddr->prop) != PROP_FLOAT))
   {
-    MEM_freeN(ddr);
+    MEM_delete(ddr);
     return false;
   }
   op->customdata = ddr;
@@ -218,10 +218,8 @@ static void depthdropper_exit(bContext *C, wmOperator *op)
     if (ddr->art) {
       ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
     }
-
-    MEM_freeN(op->customdata);
-
     op->customdata = nullptr;
+    MEM_delete(ddr);
   }
 }
 

@@ -78,7 +78,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
   st = BKE_spacetype_from_id(SPACE_VIEW3D);
   art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
 
-  DataDropper *ddr = MEM_cnew<DataDropper>(__func__);
+  DataDropper *ddr = MEM_new<DataDropper>(__func__);
 
   uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
@@ -86,7 +86,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
       (RNA_property_type(ddr->prop) != PROP_POINTER))
   {
-    MEM_freeN(ddr);
+    MEM_delete(ddr);
     return false;
   }
   op->customdata = ddr;
@@ -118,15 +118,13 @@ static void datadropper_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(win);
 
   if (op->customdata) {
-    DataDropper *ddr = (DataDropper *)op->customdata;
+    DataDropper *ddr = static_cast<DataDropper *>(op->customdata);
 
     if (ddr->art) {
       ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
     }
-
-    MEM_freeN(op->customdata);
-
     op->customdata = nullptr;
+    MEM_delete(ddr);
   }
 
   WM_event_add_mousemove(win);
