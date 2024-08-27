@@ -241,21 +241,21 @@ class DOPESHEET_HT_editor_buttons:
             row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')
             row.operator("action.stash", text="Stash", icon='FREEZE')
 
-            layout.separator_spacer()
+            if context.object:
+                layout.separator_spacer()
+                layout.template_action(context.object, new="action.new", unlink="action.unlink")
 
-            layout.template_action(context.object, new="action.new", unlink="action.unlink")
-
-            # Show slot selector.
-            if context.preferences.experimental.use_animation_baklava:
-                # context.space_data.action comes from the active object.
-                adt = context.object and context.object.animation_data
-                if adt and st.action and st.action.is_action_layered:
-                    layout.template_search(
-                        adt, "action_slot",
-                        adt, "action_slots",
-                        new="",
-                        unlink="anim.slot_unassign_object",
-                    )
+                # Show slot selector.
+                if context.preferences.experimental.use_animation_baklava:
+                    # context.space_data.action comes from the active object.
+                    adt = context.object and context.object.animation_data
+                    if adt and st.action and st.action.is_action_layered:
+                        layout.template_search(
+                            adt, "action_slot",
+                            adt, "action_slots",
+                            new="",
+                            unlink="anim.slot_unassign_object",
+                        )
 
         # Layer management
         if st.mode == 'GPENCIL':
