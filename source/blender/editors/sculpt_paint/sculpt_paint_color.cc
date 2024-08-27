@@ -398,7 +398,8 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   const float density = ss.cache->paint_brush.density;
   if (density < 1.0f) {
     for (const int i : verts.index_range()) {
-      const float hash_noise = float(BLI_hash_int_01(ss.cache->density_seed * 1000 * verts[i]));
+      const float hash_noise = float(
+          BLI_hash_int_01(ss.cache->paint_brush.density_seed * 1000 * verts[i]));
       if (hash_noise > density) {
         const float noise = density * hash_noise;
         factors[i] *= noise;
@@ -536,7 +537,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      ss.cache->density_seed = float(BLI_hash_int_01(ss.cache->location[0] * 1000));
+      ss.cache->paint_brush.density_seed = float(BLI_hash_int_01(ss.cache->location[0] * 1000));
     }
     return;
   }
@@ -631,18 +632,18 @@ void do_paint_brush(const Depsgraph &depsgraph,
       wet_color = math::clamp(swptd.color / float(swptd.tot_samples), 0.0f, 1.0f);
 
       if (ss.cache->first_time) {
-        ss.cache->wet_mix_prev_color = wet_color;
+        ss.cache->paint_brush.wet_mix_prev_color = wet_color;
       }
       blend_color_interpolate_float(wet_color,
                                     wet_color,
-                                    ss.cache->wet_mix_prev_color,
+                                    ss.cache->paint_brush.wet_mix_prev_color,
                                     ss.cache->paint_brush.wet_persistence);
-      ss.cache->wet_mix_prev_color = math::clamp(wet_color, 0.0f, 1.0f);
+      ss.cache->paint_brush.wet_mix_prev_color = math::clamp(wet_color, 0.0f, 1.0f);
     }
   }
 
-  if (ss.cache->mix_colors.is_empty()) {
-    ss.cache->mix_colors = Array<float4>(mesh.verts_num, float4(0));
+  if (ss.cache->paint_brush.mix_colors.is_empty()) {
+    ss.cache->paint_brush.mix_colors = Array<float4>(mesh.verts_num, float4(0));
   }
 
   threading::EnumerableThreadSpecific<ColorPaintLocalData> all_tls;
@@ -661,7 +662,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
                           wet_color,
                           *nodes[i],
                           tls,
-                          ss.cache->mix_colors,
+                          ss.cache->paint_brush.mix_colors,
                           color_attribute);
     }
   });
@@ -796,7 +797,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
           continue;
         }
 
-        const float4 &neighbor_color = ss.cache->prev_colors[neighbor_neighbor];
+        const float4 &neighbor_color = ss.cache->paint_brush.prev_colors[neighbor_neighbor];
         float color_interp = -math::dot(current_disp_norm, vertex_disp_norm);
 
         /* Square directional weight to get a somewhat sharper result. */
@@ -813,7 +814,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
 
     float4 col = color_vert_get(
         faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
-    blend_color_interpolate_float(col, ss.cache->prev_colors[vert], accum, factors[i]);
+    blend_color_interpolate_float(col, ss.cache->paint_brush.prev_colors[vert], accum, factors[i]);
     color_vert_set(faces,
                    corner_verts,
                    vert_to_face_map,
@@ -850,16 +851,16 @@ void do_smear_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  if (ss.cache->prev_colors.is_empty()) {
-    ss.cache->prev_colors = Array<float4>(mesh.verts_num);
+  if (ss.cache->paint_brush.prev_colors.is_empty()) {
+    ss.cache->paint_brush.prev_colors = Array<float4>(mesh.verts_num);
     threading::parallel_for(IndexRange(mesh.verts_num), 1024, [&](const IndexRange range) {
       for (const int vert : range) {
-        ss.cache->prev_colors[vert] = color_vert_get(faces,
-                                                     corner_verts,
-                                                     vert_to_face_map,
-                                                     color_attribute.span,
-                                                     color_attribute.domain,
-                                                     vert);
+        ss.cache->paint_brush.prev_colors[vert] = color_vert_get(faces,
+                                                                 corner_verts,
+                                                                 vert_to_face_map,
+                                                                 color_attribute.span,
+                                                                 color_attribute.domain,
+                                                                 vert);
       }
     });
   }
@@ -892,12 +893,12 @@ void do_smear_brush(const Depsgraph &depsgraph,
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
         for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
-          ss.cache->prev_colors[vert] = color_vert_get(faces,
-                                                       corner_verts,
-                                                       vert_to_face_map,
-                                                       color_attribute.span,
-                                                       color_attribute.domain,
-                                                       vert);
+          ss.cache->paint_brush.prev_colors[vert] = color_vert_get(faces,
+                                                                   corner_verts,
+                                                                   vert_to_face_map,
+                                                                   color_attribute.span,
+                                                                   color_attribute.domain,
+                                                                   vert);
         }
       }
     });

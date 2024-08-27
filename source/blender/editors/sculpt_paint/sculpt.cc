@@ -4474,11 +4474,11 @@ static void brush_delta_update(const Depsgraph &depsgraph,
 
 static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush)
 {
-  cache.paint_brush.hardness = brush.hardness;
+  cache.hardness = brush.hardness;
   if (brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE) {
-    cache.paint_brush.hardness *= brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
-                                      1.0f - cache.pressure :
-                                      cache.pressure;
+    cache.hardness *= brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
+                          1.0f - cache.pressure :
+                          cache.pressure;
   }
 
   cache.paint_brush.flow = brush.flow;

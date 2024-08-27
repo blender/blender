@@ -272,7 +272,7 @@ void apply_hardness_to_distances(float radius, float hardness, MutableSpan<float
 inline void apply_hardness_to_distances(const StrokeCache &cache,
                                         const MutableSpan<float> distances)
 {
-  apply_hardness_to_distances(cache.radius, cache.paint_brush.hardness, distances);
+  apply_hardness_to_distances(cache.radius, cache.hardness, distances);
 }
 
 /**

@@ -157,7 +157,7 @@ static void sample_node_surface_mesh(const Depsgraph &depsgraph,
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(radius, distances, factors);
-  apply_hardness_to_distances(radius, cache.paint_brush.hardness, distances);
+  apply_hardness_to_distances(radius, cache.hardness, distances);
   BKE_brush_calc_curve_factors(
       eBrushCurvePreset(brush.curve_preset), brush.curve, distances, radius, factors);
 
@@ -200,7 +200,7 @@ static void sample_node_surface_grids(const Depsgraph &depsgraph,
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(radius, distances, factors);
-  apply_hardness_to_distances(radius, cache.paint_brush.hardness, distances);
+  apply_hardness_to_distances(radius, cache.hardness, distances);
   BKE_brush_calc_curve_factors(
       eBrushCurvePreset(brush.curve_preset), brush.curve, distances, radius, factors);
 
@@ -245,7 +245,7 @@ static void sample_node_surface_bmesh(const Depsgraph &depsgraph,
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(ss, positions, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(radius, distances, factors);
-  apply_hardness_to_distances(radius, cache.paint_brush.hardness, distances);
+  apply_hardness_to_distances(radius, cache.hardness, distances);
   BKE_brush_calc_curve_factors(
       eBrushCurvePreset(brush.curve_preset), brush.curve, distances, radius, factors);
 

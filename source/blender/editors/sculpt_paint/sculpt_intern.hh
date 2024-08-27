@@ -173,6 +173,7 @@ struct StrokeCache {
    */
   bool invert;
   float pressure;
+  float hardness;
   /**
    * Depending on the mode, can either be the raw brush strength, or a scaled (possibly negative)
    * value.
@@ -189,13 +190,6 @@ struct StrokeCache {
   /* Position of the mouse event in screen space, not modified by the stroke type. */
   float2 mouse_event;
 
-  /**
-   * Used by the color attribute paint brush tool to store the brush color during a stroke and
-   * composite it over the original color.
-   */
-  Array<float4> mix_colors;
-
-  Array<float4> prev_colors;
   GArray<> prev_colors_vpaint;
 
   /* Multires Displacement Smear. */
@@ -264,11 +258,21 @@ struct StrokeCache {
 
   /* Paint Brush. */
   struct {
-    float hardness;
     float flow;
+
+    float4 wet_mix_prev_color;
     float wet_mix;
     float wet_persistence;
+
+    float density_seed;
     float density;
+
+    /**
+     * Used by the color attribute paint brush tool to store the brush color during a stroke and
+     * composite it over the original color.
+     */
+    Array<float4> mix_colors;
+    Array<float4> prev_colors;
   } paint_brush;
 
   /* Pose brush */
@@ -326,9 +330,6 @@ struct StrokeCache {
 
   float4x4 stroke_local_mat;
   float multiplane_scrape_angle;
-
-  float4 wet_mix_prev_color;
-  float density_seed;
 
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
