@@ -348,7 +348,7 @@ else()
       ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc
     )
     if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
-      list(APPEND SRC
+      target_sources(blender-launcher PRIVATE
         ${CMAKE_BINARY_DIR}/blender.exe.manifest
       )
     endif()
