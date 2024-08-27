@@ -256,6 +256,7 @@ class device_memory {
   friend class CUDADevice;
   friend class OptiXDevice;
   friend class HIPDevice;
+  friend class HIPRTDevice;
   friend class MetalDevice;
   friend class OneapiDevice;
 
