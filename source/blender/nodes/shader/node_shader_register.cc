@@ -24,6 +24,7 @@ void register_shader_nodes()
   register_node_type_sh_bsdf_glossy();
   register_node_type_sh_bsdf_hair_principled();
   register_node_type_sh_bsdf_hair();
+  register_node_type_sh_bsdf_metallic();
   register_node_type_sh_bsdf_principled();
   register_node_type_sh_bsdf_ray_portal();
   register_node_type_sh_bsdf_refraction();

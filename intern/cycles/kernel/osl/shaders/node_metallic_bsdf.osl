@@ -1,0 +1,44 @@
+/* SPDX-FileCopyrightText: 2024 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "node_fresnel.h"
+#include "stdcycles.h"
+
+shader node_metallic_bsdf(color BaseColor = color(0.617, 0.577, 0.540),
+                          color EdgeTint = color(0.695, 0.726, 0.770),
+                          vector IOR = vector(2.757, 2.513, 2.231),
+                          vector Extinction = vector(3.867, 3.404, 3.009),
+                          string distribution = "multi_ggx",
+                          string fresnel_type = "f82",
+                          float Roughness = 0.5,
+                          float Anisotropy = 0.0,
+                          float Rotation = 0.0,
+                          normal Normal = N,
+                          normal Tangent = 0.0,
+                          output closure color BSDF = 0)
+{
+  float r2 = clamp(Roughness, 0.0, 1.0);
+  r2 *= r2;
+  float alpha_x = r2, alpha_y = r2;
+
+  /* Handle anisotropy. */
+  vector T = Tangent;
+  if (Anisotropy > 0.0) {
+    float aspect = sqrt(1.0 - clamp(Anisotropy, 0.0, 1.0) * 0.9);
+    alpha_x /= aspect;
+    alpha_y *= aspect;
+    if (Rotation != 0.0)
+      T = rotate(T, Rotation * M_2PI, point(0.0, 0.0, 0.0), Normal);
+  }
+
+  if (fresnel_type == "f82") {
+    color F0 = clamp(BaseColor, color(0.0), color(1.0));
+    color F82 = clamp(EdgeTint, color(0.0), color(1.0));
+    BSDF = microfacet_f82_tint(distribution, Normal, T, alpha_x, alpha_y, F0, F82);
+  }
+  else {
+    BSDF = conductor_bsdf(
+        Normal, T, alpha_x, alpha_y, max(IOR, 0.0), max(Extinction, 0.0), distribution);
+  }
+}

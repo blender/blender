@@ -479,6 +479,77 @@ ccl_device
       bsdf_transparent_setup(sd, weight, path_flag);
       break;
     }
+    case CLOSURE_BSDF_PHYSICAL_CONDUCTOR:
+    case CLOSURE_BSDF_F82_CONDUCTOR: {
+#ifdef __CAUSTICS_TRICKS__
+      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
+        break;
+#endif
+      ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+          sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(make_float3(mix_weight)));
+
+      if (bsdf != NULL) {
+        uint base_ior_offset, edge_tint_k_offset, rotation_offset, tangent_offset;
+        svm_unpack_node_uchar4(
+            node.z, &base_ior_offset, &edge_tint_k_offset, &rotation_offset, &tangent_offset);
+
+        float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
+        float3 T = stack_load_float3(stack, tangent_offset);
+        const float anisotropy = saturatef(param2);
+        const float roughness = saturatef(param1);
+        float alpha_x = sqr(roughness), alpha_y = sqr(roughness);
+        if (anisotropy > 0.0f) {
+          float aspect = sqrtf(1.0f - anisotropy * 0.9f);
+          alpha_x /= aspect;
+          alpha_y *= aspect;
+          float anisotropic_rotation = stack_load_float(stack, rotation_offset);
+          if (anisotropic_rotation != 0.0f) {
+            T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
+          }
+        }
+
+        bsdf->N = valid_reflection_N;
+        bsdf->ior = 1.0f;
+        bsdf->T = T;
+        bsdf->alpha_x = alpha_x;
+        bsdf->alpha_y = alpha_y;
+
+        ClosureType distribution = (ClosureType)node.w;
+        /* Setup BSDF */
+        if (distribution == CLOSURE_BSDF_MICROFACET_BECKMANN_ID) {
+          sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+        }
+        else {
+          sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+        }
+
+        const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
+
+        if (type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR) {
+          ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)
+              closure_alloc_extra(sd, sizeof(FresnelConductor));
+
+          const float3 n = max(stack_load_float3(stack, base_ior_offset), zero_float3());
+          const float3 k = max(stack_load_float3(stack, edge_tint_k_offset), zero_float3());
+
+          fresnel->n = rgb_to_spectrum(n);
+          fresnel->k = rgb_to_spectrum(k);
+          bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd, fresnel, is_multiggx);
+        }
+        else {
+          ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)closure_alloc_extra(
+              sd, sizeof(FresnelF82Tint));
+
+          const float3 color = saturate(stack_load_float3(stack, base_ior_offset));
+          const float3 tint = saturate(stack_load_float3(stack, edge_tint_k_offset));
+
+          fresnel->f0 = rgb_to_spectrum(color);
+          const Spectrum f82 = rgb_to_spectrum(tint);
+          bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd, fresnel, f82, is_multiggx);
+        }
+      }
+      break;
+    }
     case CLOSURE_BSDF_RAY_PORTAL_ID: {
       Spectrum weight = closure_weight * mix_weight;
       float3 position = stack_load_float3(stack, data_node.y);

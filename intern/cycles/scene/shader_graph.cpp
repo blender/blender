@@ -1198,7 +1198,9 @@ int ShaderGraph::get_num_closures()
        * for the volume steps. */
       num_closures += MAX_VOLUME_STACK_SIZE;
     }
-    else if (closure_type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID ||
+    else if (closure_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ||
+             closure_type == CLOSURE_BSDF_F82_CONDUCTOR ||
+             closure_type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID ||
              closure_type == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID ||
              closure_type == CLOSURE_BSDF_HAIR_CHIANG_ID ||
              closure_type == CLOSURE_BSDF_HAIR_HUANG_ID)

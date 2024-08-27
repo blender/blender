@@ -604,6 +604,35 @@ class SheenBsdfNode : public BsdfNode {
   }
 };
 
+class MetallicBsdfNode : public BsdfNode {
+ public:
+  SHADER_NODE_CLASS(MetallicBsdfNode)
+
+  void simplify_settings(Scene *scene);
+  ClosureType get_closure_type()
+  {
+    return closure;
+  }
+
+  NODE_SOCKET_API(float3, edge_tint)
+  NODE_SOCKET_API(float3, ior)
+  NODE_SOCKET_API(float3, k)
+  NODE_SOCKET_API(float3, tangent)
+  NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(float, anisotropy)
+  NODE_SOCKET_API(float, rotation)
+  NODE_SOCKET_API(ClosureType, distribution)
+  NODE_SOCKET_API(ClosureType, fresnel_type)
+
+  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  bool has_attribute_dependency()
+  {
+    return true;
+  }
+
+  bool is_isotropic();
+};
+
 class GlossyBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(GlossyBsdfNode)
