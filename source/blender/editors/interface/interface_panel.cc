@@ -315,7 +315,7 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
 
       /* Free panel's custom data. */
       if (panel->runtime->custom_data_ptr != nullptr) {
-        MEM_freeN(panel->runtime->custom_data_ptr);
+        MEM_delete(panel->runtime->custom_data_ptr);
       }
 
       /* Free the panel and its sub-panels. */
@@ -2611,7 +2611,7 @@ void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
 
   /* Free the old custom data, which should be shared among all of the panel's sub-panels. */
   if (panel->runtime->custom_data_ptr != nullptr) {
-    MEM_freeN(panel->runtime->custom_data_ptr);
+    MEM_delete(panel->runtime->custom_data_ptr);
   }
 
   ui_panel_custom_data_set_recursive(panel, custom_data);

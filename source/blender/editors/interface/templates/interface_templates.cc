@@ -168,7 +168,9 @@ static void template_add_button_search_menu(const bContext *C,
                                             const char *const tip,
                                             const bool use_previews,
                                             const bool editable,
-                                            const bool live_icon)
+                                            const bool live_icon,
+                                            uiButArgNFree func_argN_free_fn = MEM_freeN,
+                                            uiButArgNCopy func_argN_copy_fn = MEM_dupallocN)
 {
   const PointerRNA active_ptr = RNA_property_pointer_get(ptr, prop);
   ID *id = (active_ptr.data && RNA_struct_is_ID(active_ptr.type)) ?
@@ -195,7 +197,17 @@ static void template_add_button_search_menu(const bContext *C,
       col = uiLayoutColumn(layout, true);
     }
 
-    but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, width, height, tip);
+    but = uiDefBlockButN(block,
+                         block_func,
+                         block_argN,
+                         "",
+                         0,
+                         0,
+                         width,
+                         height,
+                         tip,
+                         func_argN_free_fn,
+                         func_argN_copy_fn);
     if (use_preview_icon) {
       const int icon = id ? ui_id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
       ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
@@ -213,7 +225,17 @@ static void template_add_button_search_menu(const bContext *C,
     }
   }
   else {
-    but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y, tip);
+    but = uiDefBlockButN(block,
+                         block_func,
+                         block_argN,
+                         "",
+                         0,
+                         0,
+                         UI_UNIT_X * 1.6,
+                         UI_UNIT_Y,
+                         tip,
+                         func_argN_free_fn,
+                         func_argN_copy_fn);
 
     if (live_icon) {
       const int icon = id ? ui_id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
@@ -1157,13 +1179,13 @@ static const char *template_id_browse_tip(const StructRNA *type)
  * Rather ugly special handling, but this is really a special case at this point, nothing worth
  * generalizing.
  */
-static void template_id_workspace_pin_extra_icon(const TemplateID *template_ui, uiBut *but)
+static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, uiBut *but)
 {
-  if ((template_ui->idcode != ID_SCE) || (template_ui->ptr.type != &RNA_Window)) {
+  if ((template_ui.idcode != ID_SCE) || (template_ui.ptr.type != &RNA_Window)) {
     return;
   }
 
-  const wmWindow *win = static_cast<const wmWindow *>(template_ui->ptr.data);
+  const wmWindow *win = static_cast<const wmWindow *>(template_ui.ptr.data);
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   UI_but_extra_operator_icon_add(but,
                                  "WORKSPACE_OT_scene_pin_toggle",
@@ -1190,7 +1212,7 @@ static const char *template_id_context(StructRNA *type)
 
 static uiBut *template_id_def_new_but(uiBlock *block,
                                       const ID *id,
-                                      const TemplateID *template_ui,
+                                      const TemplateID &template_ui,
                                       StructRNA *type,
                                       const char *const newop,
                                       const bool editable,
@@ -1198,7 +1220,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                                       const bool use_tab_but,
                                       int but_height)
 {
-  ID *idfrom = template_ui->ptr.owner_id;
+  ID *idfrom = template_ui.ptr.owner_id;
   uiBut *but;
   const int but_type = use_tab_but ? UI_BTYPE_TAB : UI_BTYPE_BUT;
 
@@ -1262,14 +1284,22 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             w,
                             but_height,
                             nullptr);
-    UI_but_funcN_set(
-        but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
+    UI_but_funcN_set(but,
+                     template_id_cb,
+                     MEM_new<TemplateID>(__func__, template_ui),
+                     POINTER_FROM_INT(UI_ID_ADD_NEW),
+                     but_func_argN_free<TemplateID>,
+                     but_func_argN_copy<TemplateID>);
   }
   else {
     but = uiDefIconTextBut(
         block, but_type, 0, icon, button_text, 0, 0, w, but_height, nullptr, 0, 0, nullptr);
-    UI_but_funcN_set(
-        but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
+    UI_but_funcN_set(but,
+                     template_id_cb,
+                     MEM_new<TemplateID>(__func__, template_ui),
+                     POINTER_FROM_INT(UI_ID_ADD_NEW),
+                     but_func_argN_free<TemplateID>,
+                     but_func_argN_copy<TemplateID>);
   }
 
   if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
@@ -1285,7 +1315,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
 
 static void template_ID(const bContext *C,
                         uiLayout *layout,
-                        TemplateID *template_ui,
+                        TemplateID &template_ui,
                         StructRNA *type,
                         int flag,
                         const char *newop,
@@ -1296,12 +1326,12 @@ static void template_ID(const bContext *C,
                         const bool hide_buttons)
 {
   uiBut *but;
-  const bool editable = RNA_property_editable(&template_ui->ptr, template_ui->prop);
-  const bool use_previews = template_ui->preview = (flag & UI_ID_PREVIEWS) != 0;
+  const bool editable = RNA_property_editable(&template_ui.ptr, template_ui.prop);
+  const bool use_previews = template_ui.preview = (flag & UI_ID_PREVIEWS) != 0;
 
-  PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+  PointerRNA idptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
   ID *id = static_cast<ID *>(idptr.data);
-  ID *idfrom = template_ui->ptr.owner_id;
+  ID *idfrom = template_ui.ptr.owner_id;
   // lb = template_ui->idlb;
 
   /* Allow operators to take the ID from context. */
@@ -1323,14 +1353,16 @@ static void template_ID(const bContext *C,
     template_add_button_search_menu(C,
                                     layout,
                                     block,
-                                    &template_ui->ptr,
-                                    template_ui->prop,
+                                    &template_ui.ptr,
+                                    template_ui.prop,
                                     id_search_menu,
-                                    MEM_dupallocN(template_ui),
+                                    MEM_new<TemplateID>(__func__, template_ui),
                                     TIP_(template_id_browse_tip(type)),
                                     use_previews,
                                     editable,
-                                    live_icon);
+                                    live_icon,
+                                    but_func_argN_free<TemplateID>,
+                                    but_func_argN_copy<TemplateID>);
   }
 
   /* text button with name */
@@ -1340,7 +1372,7 @@ static void template_ID(const bContext *C,
 
     int width = template_search_textbut_width(&idptr, RNA_struct_find_property(&idptr, "name"));
 
-    if ((template_ui->idcode == ID_SCE) && (template_ui->ptr.type == &RNA_Window)) {
+    if ((template_ui.idcode == ID_SCE) && (template_ui.ptr.type == &RNA_Window)) {
       /* More room needed for "pin" icon. */
       width += UI_UNIT_X;
     }
@@ -1363,8 +1395,12 @@ static void template_ID(const bContext *C,
                     0,
                     0,
                     RNA_struct_ui_description(type));
-    UI_but_funcN_set(
-        but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_RENAME));
+    UI_but_funcN_set(but,
+                     template_id_cb,
+                     MEM_new<TemplateID>(__func__, template_ui),
+                     POINTER_FROM_INT(UI_ID_RENAME),
+                     but_func_argN_free<TemplateID>,
+                     but_func_argN_copy<TemplateID>);
     if (user_alert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
@@ -1408,8 +1444,12 @@ static void template_ID(const bContext *C,
           UI_but_flag_enable(but, UI_BUT_DISABLED);
         }
         else {
-          UI_but_funcN_set(
-              but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_LOCAL));
+          UI_but_funcN_set(but,
+                           template_id_cb,
+                           MEM_new<TemplateID>(__func__, template_ui),
+                           POINTER_FROM_INT(UI_ID_LOCAL),
+                           but_func_argN_free<TemplateID>,
+                           but_func_argN_copy<TemplateID>);
         }
       }
       else if (ID_IS_OVERRIDE_LIBRARY(id)) {
@@ -1427,8 +1467,12 @@ static void template_ID(const bContext *C,
             0,
             TIP_("Library override of linked data-block, click to make fully local, "
                  "Shift + Click to clear the library override and toggle if it can be edited"));
-        UI_but_funcN_set(
-            but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OVERRIDE));
+        UI_but_funcN_set(but,
+                         template_id_cb,
+                         MEM_new<TemplateID>(__func__, template_ui),
+                         POINTER_FROM_INT(UI_ID_OVERRIDE),
+                         but_func_argN_free<TemplateID>,
+                         but_func_argN_copy<TemplateID>);
       }
     }
 
@@ -1453,8 +1497,12 @@ static void template_ID(const bContext *C,
           TIP_("Display number of users of this data (click to make a single-user copy)"));
       but->flag |= UI_BUT_UNDO;
 
-      UI_but_funcN_set(
-          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ALONE));
+      UI_but_funcN_set(but,
+                       template_id_cb,
+                       MEM_new<TemplateID>(__func__, template_ui),
+                       POINTER_FROM_INT(UI_ID_ALONE),
+                       but_func_argN_free<TemplateID>,
+                       but_func_argN_copy<TemplateID>);
       if (!BKE_id_copy_is_allowed(id) || (idfrom && !ID_IS_EDITABLE(idfrom)) || (!editable) ||
           /* object in editmode - don't change data */
           (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
@@ -1551,8 +1599,12 @@ static void template_ID(const bContext *C,
                               w,
                               UI_UNIT_Y,
                               nullptr);
-      UI_but_funcN_set(
-          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OPEN));
+      UI_but_funcN_set(but,
+                       template_id_cb,
+                       MEM_new<TemplateID>(__func__, template_ui),
+                       POINTER_FROM_INT(UI_ID_OPEN),
+                       but_func_argN_free<TemplateID>,
+                       but_func_argN_copy<TemplateID>);
     }
     else {
       but = uiDefIconTextBut(block,
@@ -1568,8 +1620,12 @@ static void template_ID(const bContext *C,
                              0,
                              0,
                              nullptr);
-      UI_but_funcN_set(
-          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OPEN));
+      UI_but_funcN_set(but,
+                       template_id_cb,
+                       MEM_new<TemplateID>(__func__, template_ui),
+                       POINTER_FROM_INT(UI_ID_OPEN),
+                       but_func_argN_free<TemplateID>,
+                       but_func_argN_copy<TemplateID>);
     }
 
     if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
@@ -1595,11 +1651,15 @@ static void template_ID(const bContext *C,
                           UI_UNIT_Y,
                           nullptr);
       /* so we can access the template from operators, font unlinking needs this */
-      UI_but_funcN_set(
-          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_NOP));
+      UI_but_funcN_set(but,
+                       template_id_cb,
+                       MEM_new<TemplateID>(__func__, template_ui),
+                       POINTER_FROM_INT(UI_ID_NOP),
+                       but_func_argN_free<TemplateID>,
+                       but_func_argN_copy<TemplateID>);
     }
     else {
-      if ((RNA_property_flag(template_ui->prop) & PROP_NEVER_UNLINK) == 0) {
+      if ((RNA_property_flag(template_ui.prop) & PROP_NEVER_UNLINK) == 0) {
         but = uiDefIconBut(
             block,
             UI_BTYPE_BUT,
@@ -1614,10 +1674,14 @@ static void template_ID(const bContext *C,
             0,
             TIP_("Unlink data-block "
                  "(Shift + Click to set users to zero, data will then not be saved)"));
-        UI_but_funcN_set(
-            but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_DELETE));
+        UI_but_funcN_set(but,
+                         template_id_cb,
+                         MEM_new<TemplateID>(__func__, template_ui),
+                         POINTER_FROM_INT(UI_ID_DELETE),
+                         but_func_argN_free<TemplateID>,
+                         but_func_argN_copy<TemplateID>);
 
-        if (RNA_property_flag(template_ui->prop) & PROP_NEVER_NULL) {
+        if (RNA_property_flag(template_ui.prop) & PROP_NEVER_NULL) {
           UI_but_flag_enable(but, UI_BUT_DISABLED);
         }
       }
@@ -1630,8 +1694,8 @@ static void template_ID(const bContext *C,
     }
   }
 
-  if (template_ui->idcode == ID_TE) {
-    uiTemplateTextureShow(layout, C, &template_ui->ptr, template_ui->prop);
+  if (template_ui.idcode == ID_TE) {
+    uiTemplateTextureShow(layout, C, &template_ui.ptr, template_ui.prop);
   }
   UI_block_align_end(block);
 }
@@ -1648,14 +1712,14 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
 
 static void template_ID_tabs(const bContext *C,
                              uiLayout *layout,
-                             TemplateID *template_id,
+                             TemplateID &template_id,
                              StructRNA *type,
                              int flag,
                              const char *newop,
                              const char *menu)
 {
   const ARegion *region = CTX_wm_region(C);
-  const PointerRNA active_ptr = RNA_property_pointer_get(&template_id->ptr, template_id->prop);
+  const PointerRNA active_ptr = RNA_property_pointer_get(&template_id.ptr, template_id.prop);
   MenuType *mt = menu ? WM_menutype_find(menu, false) : nullptr;
 
   const int but_align = ui_but_align_opposite_to_area_align_get(region);
@@ -1664,7 +1728,7 @@ static void template_ID_tabs(const bContext *C,
   uiBlock *block = uiLayoutGetBlock(layout);
   const uiStyle *style = UI_style_get_dpi();
 
-  for (ID *id : BKE_id_ordered_list(template_id->idlb)) {
+  for (ID *id : BKE_id_ordered_list(template_id.idlb)) {
     const int name_width = UI_fontstyle_string_width(&style->widget, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
 
@@ -1676,13 +1740,18 @@ static void template_ID_tabs(const bContext *C,
                                                0,
                                                but_width,
                                                but_height,
-                                               &template_id->ptr,
-                                               template_id->prop,
+                                               &template_id.ptr,
+                                               template_id.prop,
                                                0,
                                                0.0f,
                                                sizeof(id->name) - 2,
                                                "");
-    UI_but_funcN_set(tab, template_ID_set_property_exec_fn, MEM_dupallocN(template_id), id);
+    UI_but_funcN_set(tab,
+                     template_ID_set_property_exec_fn,
+                     MEM_new<TemplateID>(__func__, template_id),
+                     id,
+                     but_func_argN_free<TemplateID>,
+                     but_func_argN_copy<TemplateID>);
     UI_but_drag_set_id(tab, id);
     tab->custom_data = (void *)id;
     tab->menu = mt;
@@ -1691,7 +1760,7 @@ static void template_ID_tabs(const bContext *C,
   }
 
   if (flag & UI_ID_ADD_NEW) {
-    const bool editable = RNA_property_editable(&template_id->ptr, template_id->prop);
+    const bool editable = RNA_property_editable(&template_id.ptr, template_id.prop);
     uiBut *but;
 
     if (active_ptr.type) {
@@ -1737,18 +1806,18 @@ static void ui_template_id(uiLayout *layout,
     return;
   }
 
-  TemplateID *template_ui = MEM_cnew<TemplateID>(__func__);
-  template_ui->ptr = *ptr;
-  template_ui->prop = prop;
-  template_ui->prv_rows = prv_rows;
-  template_ui->prv_cols = prv_cols;
-  template_ui->scale = scale;
+  TemplateID template_ui;
+  template_ui.ptr = *ptr;
+  template_ui.prop = prop;
+  template_ui.prv_rows = prv_rows;
+  template_ui.prv_cols = prv_cols;
+  template_ui.scale = scale;
 
   if ((flag & UI_ID_PIN) == 0) {
-    template_ui->filter = filter;
+    template_ui.filter = filter;
   }
   else {
-    template_ui->filter = 0;
+    template_ui.filter = 0;
   }
 
   if (newop) {
@@ -1760,13 +1829,13 @@ static void ui_template_id(uiLayout *layout,
 
   StructRNA *type = RNA_property_pointer_type(ptr, prop);
   short idcode = RNA_type_to_ID_code(type);
-  template_ui->idcode = idcode;
-  template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
+  template_ui.idcode = idcode;
+  template_ui.idlb = which_libbase(CTX_data_main(C), idcode);
 
   /* create UI elements for this template
    * - template_ID makes a copy of the template data and assigns it to the relevant buttons
    */
-  if (template_ui->idlb) {
+  if (template_ui.idlb) {
     if (use_tabs) {
       layout = uiLayoutRow(layout, true);
       template_ID_tabs(C, layout, template_ui, type, flag, newop, menu);
@@ -1786,8 +1855,6 @@ static void ui_template_id(uiLayout *layout,
                   hide_buttons);
     }
   }
-
-  MEM_freeN(template_ui);
 }
 
 void uiTemplateID(uiLayout *layout,
@@ -1843,25 +1910,22 @@ void uiTemplateAction(uiLayout *layout,
   AnimData *adt = BKE_animdata_from_id(id);
   PointerRNA adt_ptr = RNA_pointer_create(id, &RNA_AnimData, adt);
 
-  /* This must be heap-allocated because template_ID() will call MEM_dupallocN()
-   * on the pointer we pass, and that doesn't like stack-allocated stuff. */
-  TemplateID *template_ui = MEM_cnew<TemplateID>(__func__);
-  BLI_SCOPED_DEFER([&]() { MEM_freeN(template_ui); });
-  template_ui->ptr = adt_ptr;
-  template_ui->prop = adt_action_prop;
-  template_ui->prv_rows = 0;
-  template_ui->prv_cols = 0;
-  template_ui->scale = 1.0f;
-  template_ui->filter = UI_TEMPLATE_ID_FILTER_ALL;
+  TemplateID template_ui;
+  template_ui.ptr = adt_ptr;
+  template_ui.prop = adt_action_prop;
+  template_ui.prv_rows = 0;
+  template_ui.prv_cols = 0;
+  template_ui.scale = 1.0f;
+  template_ui.filter = UI_TEMPLATE_ID_FILTER_ALL;
 
   int flag = UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE;
   if (newop) {
     flag |= UI_ID_ADD_NEW;
   }
 
-  template_ui->idcode = ID_AC;
-  template_ui->idlb = which_libbase(CTX_data_main(C), ID_AC);
-  BLI_assert(template_ui->idlb);
+  template_ui.idcode = ID_AC;
+  template_ui.idlb = which_libbase(CTX_data_main(C), ID_AC);
+  BLI_assert(template_ui.idlb);
 
   uiLayout *row = uiLayoutRow(layout, true);
   template_ID(
@@ -2097,24 +2161,26 @@ static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_tem
 static void template_search_add_button_searchmenu(const bContext *C,
                                                   uiLayout *layout,
                                                   uiBlock *block,
-                                                  TemplateSearch *template_search,
+                                                  TemplateSearch &template_search,
                                                   const bool editable,
                                                   const bool live_icon)
 {
   const char *ui_description = RNA_property_ui_description(
-      template_search->search_data.target_prop);
+      template_search.search_data.target_prop);
 
   template_add_button_search_menu(C,
                                   layout,
                                   block,
-                                  &template_search->search_data.target_ptr,
-                                  template_search->search_data.target_prop,
+                                  &template_search.search_data.target_ptr,
+                                  template_search.search_data.target_prop,
                                   template_search_menu,
-                                  MEM_dupallocN(template_search),
+                                  MEM_new<TemplateSearch>(__func__, template_search),
                                   ui_description,
-                                  template_search->use_previews,
+                                  template_search.use_previews,
                                   editable,
-                                  live_icon);
+                                  live_icon,
+                                  but_func_argN_free<TemplateSearch>,
+                                  but_func_argN_copy<TemplateSearch>);
 }
 
 static void template_search_add_button_name(uiBlock *block,
@@ -2163,12 +2229,12 @@ static void template_search_add_button_operator(uiBlock *block,
 
 static void template_search_buttons(const bContext *C,
                                     uiLayout *layout,
-                                    TemplateSearch *template_search,
+                                    TemplateSearch &template_search,
                                     const char *newop,
                                     const char *unlinkop)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
-  uiRNACollectionSearch *search_data = &template_search->search_data;
+  uiRNACollectionSearch *search_data = &template_search.search_data;
   StructRNA *type = RNA_property_pointer_type(&search_data->target_ptr, search_data->target_prop);
   const bool editable = RNA_property_editable(&search_data->target_ptr, search_data->target_prop);
   PointerRNA active_ptr = RNA_property_pointer_get(&search_data->target_ptr,
@@ -2238,26 +2304,27 @@ static PropertyRNA *template_search_get_searchprop(PointerRNA *targetptr,
   return nullptr;
 }
 
-static TemplateSearch *template_search_setup(PointerRNA *ptr,
-                                             const char *const propname,
-                                             PointerRNA *searchptr,
-                                             const char *const searchpropname)
+static bool template_search_setup(TemplateSearch &template_search,
+                                  PointerRNA *ptr,
+                                  const char *const propname,
+                                  PointerRNA *searchptr,
+                                  const char *const searchpropname)
 {
+  template_search = {};
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
   if (!prop || RNA_property_type(prop) != PROP_POINTER) {
     RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
-    return nullptr;
+    return false;
   }
   PropertyRNA *searchprop = template_search_get_searchprop(ptr, prop, searchptr, searchpropname);
 
-  TemplateSearch *template_search = MEM_cnew<TemplateSearch>(__func__);
-  template_search->search_data.target_ptr = *ptr;
-  template_search->search_data.target_prop = prop;
-  template_search->search_data.search_ptr = *searchptr;
-  template_search->search_data.search_prop = searchprop;
+  template_search.search_data.target_ptr = *ptr;
+  template_search.search_data.target_prop = prop;
+  template_search.search_data.search_ptr = *searchptr;
+  template_search.search_data.search_prop = searchprop;
 
-  return template_search;
+  return true;
 }
 
 void uiTemplateSearch(uiLayout *layout,
@@ -2269,11 +2336,9 @@ void uiTemplateSearch(uiLayout *layout,
                       const char *newop,
                       const char *unlinkop)
 {
-  TemplateSearch *template_search = template_search_setup(
-      ptr, propname, searchptr, searchpropname);
-  if (template_search != nullptr) {
+  TemplateSearch template_search;
+  if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
     template_search_buttons(C, layout, template_search, newop, unlinkop);
-    MEM_freeN(template_search);
   }
 }
 
@@ -2288,17 +2353,13 @@ void uiTemplateSearchPreview(uiLayout *layout,
                              const int rows,
                              const int cols)
 {
-  TemplateSearch *template_search = template_search_setup(
-      ptr, propname, searchptr, searchpropname);
-
-  if (template_search != nullptr) {
-    template_search->use_previews = true;
-    template_search->preview_rows = rows;
-    template_search->preview_cols = cols;
+  TemplateSearch template_search;
+  if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
+    template_search.use_previews = true;
+    template_search.preview_rows = rows;
+    template_search.preview_cols = cols;
 
     template_search_buttons(C, layout, template_search, newop, unlinkop);
-
-    MEM_freeN(template_search);
   }
 }
 
@@ -2368,7 +2429,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
       modifier_panel_id(md, panel_idname);
 
       /* Create custom data RNA pointer. */
-      PointerRNA *md_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
       *md_ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
@@ -2390,7 +2451,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
                    nullptr); /* There shouldn't be fewer panels than modifiers with UIs. */
       }
 
-      PointerRNA *md_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
       *md_ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
       UI_panel_custom_data_set(panel, md_ptr);
 
@@ -2534,7 +2595,7 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
       panel_id_func(con, panel_idname);
 
       /* Create custom data RNA pointer. */
-      PointerRNA *con_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
       *con_ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
 
       Panel *new_panel = UI_panel_add_instanced(C, region, &region->panels, panel_idname, con_ptr);
@@ -2569,7 +2630,7 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
         BLI_assert(panel != nullptr); /* There shouldn't be fewer panels than constraint panels. */
       }
 
-      PointerRNA *con_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
       *con_ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
       UI_panel_custom_data_set(panel, con_ptr);
 
@@ -2616,7 +2677,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
       shaderfx_panel_id(fx, panel_idname);
 
       /* Create custom data RNA pointer. */
-      PointerRNA *fx_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
       *fx_ptr = RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, fx_ptr);
@@ -2638,7 +2699,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
                    nullptr); /* There shouldn't be fewer panels than modifiers with UIs. */
       }
 
-      PointerRNA *fx_ptr = static_cast<PointerRNA *>(MEM_mallocN(sizeof(PointerRNA), __func__));
+      PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
       *fx_ptr = RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx);
       UI_panel_custom_data_set(panel, fx_ptr);
 
@@ -3742,7 +3803,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     }
   });
 
-  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefIconBlockBut(block,
                          colorband_tools_fn,
                          tools_cb,
@@ -3755,7 +3816,12 @@ static void colorband_buttons_layout(uiLayout *layout,
                          TIP_("Tools"));
   /* Pass ownership of `tools_cb` to the button. */
   UI_but_funcN_set(
-      bt, [](bContext *, void *, void *) {}, tools_cb, nullptr);
+      bt,
+      [](bContext *, void *, void *) {},
+      tools_cb,
+      nullptr,
+      but_func_argN_free<RNAUpdateCb>,
+      but_func_argN_copy<RNAUpdateCb>);
 
   UI_block_align_end(block);
   UI_block_emboss_set(block, UI_EMBOSS);
@@ -4012,7 +4078,7 @@ void uiTemplateIconView(uiLayout *layout,
 
   uiBut *but;
   if (RNA_property_editable(ptr, prop)) {
-    IconViewMenuArgs *cb_args = MEM_cnew<IconViewMenuArgs>(__func__);
+    IconViewMenuArgs *cb_args = MEM_new<IconViewMenuArgs>(__func__);
     cb_args->ptr = *ptr;
     cb_args->prop = prop;
     cb_args->show_labels = show_labels;
@@ -4026,7 +4092,9 @@ void uiTemplateIconView(uiLayout *layout,
                          0,
                          UI_UNIT_X * icon_scale,
                          UI_UNIT_Y * icon_scale,
-                         "");
+                         "",
+                         but_func_argN_free<IconViewMenuArgs>,
+                         but_func_argN_copy<IconViewMenuArgs>);
   }
   else {
     but = uiDefIconBut(block,
@@ -4720,7 +4788,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
     UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
   }
 
-  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   if (brush && neg_slope) {
     bt = uiDefIconBlockBut(block,
                            curvemap_brush_tools_negslope_func,
@@ -4747,9 +4815,19 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
   /* Pass ownership of `tools_cb` to the button. */
   UI_but_funcN_set(
-      bt, [](bContext *, void *, void *) {}, tools_cb, nullptr);
+      bt,
+      [](bContext *, void *, void *) {},
+      tools_cb,
+      nullptr,
+      but_func_argN_free<RNAUpdateCb>,
+      but_func_argN_copy<RNAUpdateCb>);
 
-  UI_block_funcN_set(block, rna_update_cb, MEM_cnew<RNAUpdateCb>(__func__, cb), nullptr);
+  UI_block_funcN_set(block,
+                     rna_update_cb,
+                     MEM_new<RNAUpdateCb>(__func__, cb),
+                     nullptr,
+                     but_func_argN_free<RNAUpdateCb>,
+                     but_func_argN_copy<RNAUpdateCb>);
 
   /* Curve itself. */
   const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
@@ -5173,7 +5251,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   /* There is probably potential to use simpler "uiItemR" functions here, but automatic updating
    * after a preset is selected would be more complicated. */
   uiLayout *row = uiLayoutRow(layout, true);
-  RNAUpdateCb *presets_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *presets_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefBlockBut(block,
                      curve_profile_presets_fn,
                      presets_cb,
@@ -5185,7 +5263,12 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                      "");
   /* Pass ownership of `presets_cb` to the button. */
   UI_but_funcN_set(
-      bt, [](bContext *, void *, void *) {}, presets_cb, nullptr);
+      bt,
+      [](bContext *, void *, void *) {},
+      presets_cb,
+      nullptr,
+      but_func_argN_free<RNAUpdateCb>,
+      but_func_argN_copy<RNAUpdateCb>);
 
   /* Show a "re-apply" preset button when it has been changed from the preset. */
   if (profile->flag & PROF_DIRTY_PRESET) {
@@ -5298,7 +5381,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   });
 
   /* Reset view, reset curve */
-  RNAUpdateCb *tools_cb = MEM_cnew<RNAUpdateCb>(__func__, cb);
+  RNAUpdateCb *tools_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefIconBlockBut(block,
                          curve_profile_tools_fn,
                          tools_cb,
@@ -5311,9 +5394,19 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                          TIP_("Tools"));
   /* Pass ownership of `presets_cb` to the button. */
   UI_but_funcN_set(
-      bt, [](bContext *, void *, void *) {}, tools_cb, nullptr);
+      bt,
+      [](bContext *, void *, void *) {},
+      tools_cb,
+      nullptr,
+      but_func_argN_free<RNAUpdateCb>,
+      but_func_argN_copy<RNAUpdateCb>);
 
-  UI_block_funcN_set(block, rna_update_cb, MEM_cnew<RNAUpdateCb>(__func__, cb), nullptr);
+  UI_block_funcN_set(block,
+                     rna_update_cb,
+                     MEM_new<RNAUpdateCb>(__func__, cb),
+                     nullptr,
+                     but_func_argN_free<RNAUpdateCb>,
+                     but_func_argN_copy<RNAUpdateCb>);
 
   /* The path itself */
   int path_width = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
@@ -7039,7 +7132,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
                              const char *propname,
                              const char *name)
 {
-  ComponentMenuArgs *args = MEM_cnew<ComponentMenuArgs>(__func__);
+  ComponentMenuArgs *args = MEM_new<ComponentMenuArgs>(__func__);
 
   args->ptr = *ptr;
   STRNCPY(args->propname, propname);
@@ -7047,8 +7140,17 @@ void uiTemplateComponentMenu(uiLayout *layout,
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_align_begin(block);
 
-  uiBut *but = uiDefBlockButN(
-      block, component_menu, args, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
+  uiBut *but = uiDefBlockButN(block,
+                              component_menu,
+                              args,
+                              name,
+                              0,
+                              0,
+                              UI_UNIT_X * 6,
+                              UI_UNIT_Y,
+                              "",
+                              but_func_argN_free<ComponentMenuArgs>,
+                              but_func_argN_copy<ComponentMenuArgs>);
   /* set rna directly, uiDefBlockButN doesn't do this */
   but->rnapoin = *ptr;
   but->rnaprop = RNA_struct_find_property(ptr, propname);

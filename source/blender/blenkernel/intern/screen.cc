@@ -543,8 +543,10 @@ static void area_region_panels_free_recursive(Panel *panel)
 void BKE_area_region_panels_free(ListBase *panels)
 {
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, panels) {
-    /* Free custom data just for parent panels to avoid a double free. */
-    MEM_SAFE_FREE(panel->runtime->custom_data_ptr);
+    /* Delete custom data just for parent panels to avoid a double deletion. */
+    if (panel->runtime->custom_data_ptr) {
+      MEM_delete(panel->runtime->custom_data_ptr);
+    }
     area_region_panels_free_recursive(panel);
   }
   BLI_listbase_clear(panels);

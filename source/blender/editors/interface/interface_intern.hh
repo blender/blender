@@ -385,8 +385,8 @@ struct uiButSearch : public uiBut {
  * Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects.
  */
 struct uiButDecorator : public uiBut {
-  struct PointerRNA decorated_rnapoin = {};
-  struct PropertyRNA *decorated_rnaprop = nullptr;
+  PointerRNA decorated_rnapoin = {};
+  PropertyRNA *decorated_rnaprop = nullptr;
   int decorated_rnaindex = -1;
 };
 

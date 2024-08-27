@@ -282,7 +282,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
       char panel_idname[MAX_NAME];
       filter_panel_id_fn(row_filter, panel_idname);
 
-      PointerRNA *filter_ptr = (PointerRNA *)MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create(&screen->id, &RNA_SpreadsheetRowFilter, row_filter);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
@@ -299,7 +299,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
         BLI_assert(panel_iter != nullptr); /* There shouldn't be fewer panels than filters. */
       }
 
-      PointerRNA *filter_ptr = (PointerRNA *)MEM_mallocN(sizeof(PointerRNA), "panel customdata");
+      PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create(&screen->id, &RNA_SpreadsheetRowFilter, row_filter);
       UI_panel_custom_data_set(panel_iter, filter_ptr);
 

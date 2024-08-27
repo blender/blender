@@ -2971,7 +2971,9 @@ static uiBut *ui_item_menu(uiLayout *layout,
                            void *arg,
                            void *argN,
                            const char *tip,
-                           bool force_menu)
+                           bool force_menu,
+                           uiButArgNFree func_argN_free_fn = MEM_freeN,
+                           uiButArgNCopy func_argN_copy_fn = MEM_dupallocN)
 {
   uiBlock *block = layout->root->block;
   uiLayout *heading_layout = ui_layout_heading_find(layout);
@@ -3027,8 +3029,8 @@ static uiBut *ui_item_menu(uiLayout *layout,
       but->poin = (char *)but;
     }
     but->func_argN = argN;
-    but->func_argN_free_fn = MEM_freeN;
-    but->func_argN_copy_fn = MEM_dupallocN;
+    but->func_argN_free_fn = func_argN_free_fn;
+    but->func_argN_copy_fn = func_argN_copy_fn;
   }
 
   if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||
@@ -3594,13 +3596,21 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
     icon = ICON_BLANK1;
   }
 
-  MenuItemLevel *lvl = MEM_cnew<MenuItemLevel>("MenuItemLevel");
+  MenuItemLevel *lvl = MEM_new<MenuItemLevel>("MenuItemLevel");
   STRNCPY(lvl->opname, ot->idname);
   STRNCPY(lvl->propname, propname);
   lvl->opcontext = layout->root->opcontext;
 
-  uiBut *but = ui_item_menu(
-      layout, name, icon, menu_item_enum_opname_menu, nullptr, lvl, nullptr, true);
+  uiBut *but = ui_item_menu(layout,
+                            name,
+                            icon,
+                            menu_item_enum_opname_menu,
+                            nullptr,
+                            lvl,
+                            nullptr,
+                            true,
+                            but_func_argN_free<MenuItemLevel>,
+                            but_func_argN_copy<MenuItemLevel>);
   /* Use the menu button as owner for the operator properties, which will then be passed to the
    * individual menu items. */
   if (r_opptr) {
@@ -3670,7 +3680,7 @@ void uiItemMenuEnumR_prop(
     icon = ICON_BLANK1;
   }
 
-  MenuItemLevel *lvl = MEM_cnew<MenuItemLevel>("MenuItemLevel");
+  MenuItemLevel *lvl = MEM_new<MenuItemLevel>("MenuItemLevel");
   lvl->rnapoin = *ptr;
   STRNCPY(lvl->propname, RNA_property_identifier(prop));
   lvl->opcontext = layout->root->opcontext;
@@ -3682,7 +3692,9 @@ void uiItemMenuEnumR_prop(
                nullptr,
                lvl,
                RNA_property_description(prop),
-               false);
+               false,
+               but_func_argN_free<MenuItemLevel>,
+               but_func_argN_copy<MenuItemLevel>);
 }
 
 void uiItemMenuEnumR(
