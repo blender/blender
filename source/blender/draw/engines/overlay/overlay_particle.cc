@@ -41,12 +41,14 @@ void OVERLAY_edit_particle_cache_init(OVERLAY_Data *vedata)
   pd->edit_particle_strand_grp = grp = DRW_shgroup_create(sh, psl->edit_particle_ps);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_bool_copy(grp, "useWeight", pd->edit_particle.use_weight);
+  DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
   DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
 
   sh = OVERLAY_shader_edit_particle_point();
   pd->edit_particle_point_grp = grp = DRW_shgroup_create(sh, psl->edit_particle_ps);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
+  DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
 }
 
 void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)

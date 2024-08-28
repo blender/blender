@@ -54,6 +54,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
     grp = pd->edit_grease_pencil_wires_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "useWeight", use_weight);
+    DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", true);
     DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
   }
   else {
@@ -65,6 +66,7 @@ void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata)
     grp = pd->edit_grease_pencil_points_grp = DRW_shgroup_create(sh, psl->edit_grease_pencil_ps);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "useWeight", use_weight);
+    DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", true);
     DRW_shgroup_uniform_texture(grp, "weightTex", G_draw.weight_ramp);
   }
   else {

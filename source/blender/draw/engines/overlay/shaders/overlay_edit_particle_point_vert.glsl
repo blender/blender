@@ -31,10 +31,12 @@ void main()
     finalColor = vec4(weight_to_rgb(selection), 1.0);
   }
   else {
-    finalColor = mix(colorWire, colorVertexSelect, selection);
+    vec4 use_color = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
+    finalColor = mix(colorWire, use_color, selection);
   }
 
-  gl_PointSize = sizeVertex * 2.0;
+  float vsize = useGreasePencil ? sizeVertexGpencil : sizeVertex;
+  gl_PointSize = vsize * 2.0;
 
   view_clipping_distances(world_pos);
 }

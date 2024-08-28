@@ -56,12 +56,14 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata)
       grp = pd->edit_curves_points_grp[i] = DRW_shgroup_create(sh, psl->edit_curves_points_ps[i]);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
+      DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
     }
     DRW_PASS_CREATE(psl->edit_curves_lines_ps[i], (state | pd->clipping_state));
     sh = OVERLAY_shader_edit_particle_strand();
     grp = pd->edit_curves_lines_grp[i] = DRW_shgroup_create(sh, psl->edit_curves_lines_ps[i]);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
+    DRW_shgroup_uniform_bool_copy(grp, "useGreasePencil", false);
   }
   {
     state = DRW_STATE_WRITE_COLOR;

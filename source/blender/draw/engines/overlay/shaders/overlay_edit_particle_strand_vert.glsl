@@ -31,7 +31,8 @@ void main()
     finalColor = vec4(weight_to_rgb(selection), 1.0);
   }
   else {
-    finalColor = mix(colorWire, colorVertexSelect, selection);
+    vec4 use_color = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
+    finalColor = mix(colorWire, use_color, selection);
   }
 
   view_clipping_distances(world_pos);
