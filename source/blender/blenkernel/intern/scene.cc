@@ -268,10 +268,10 @@ static void scene_copy_data(Main *bmain,
 {
   Scene *scene_dst = (Scene *)id_dst;
   const Scene *scene_src = (const Scene *)id_src;
-  /* We never handle user-count here for own data. */
+  /* Never handle user-count here for own sub-data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+  /* Always need allocation of the embedded ID data. */
+  const int flag_embedded_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   scene_dst->ed = nullptr;
   scene_dst->depsgraph_hash = nullptr;
@@ -284,7 +284,7 @@ static void scene_copy_data(Main *bmain,
                        &scene_src->master_collection->id,
                        &scene_dst->id,
                        reinterpret_cast<ID **>(&scene_dst->master_collection),
-                       flag_private_id_data);
+                       flag_embedded_id_data);
   }
 
   /* View Layers */
@@ -312,7 +312,7 @@ static void scene_copy_data(Main *bmain,
                        &scene_src->nodetree->id,
                        &scene_dst->id,
                        reinterpret_cast<ID **>(&scene_dst->nodetree),
-                       flag_private_id_data);
+                       flag_embedded_id_data);
     /* TODO this should not be needed anymore? Should be handled by generic remapping code in
      * #BKE_id_copy_in_lib. */
     BKE_libblock_relink_ex(bmain,

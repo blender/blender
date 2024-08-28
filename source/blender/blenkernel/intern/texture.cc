@@ -76,8 +76,10 @@ static void texture_copy_data(Main *bmain,
   const Tex *texture_src = (const Tex *)id_src;
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+  /* Never handle user-count here for own sub-data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* Always need allocation of the embedded ID data. */
+  const int flag_embedded_id_data = flag_subdata & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   if (!BKE_texture_is_image_user(texture_src)) {
     texture_dst->ima = nullptr;
@@ -101,7 +103,7 @@ static void texture_copy_data(Main *bmain,
                          &texture_src->nodetree->id,
                          &texture_dst->id,
                          reinterpret_cast<ID **>(&texture_dst->nodetree),
-                         flag_private_id_data);
+                         flag_embedded_id_data);
     }
   }
 
