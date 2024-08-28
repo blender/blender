@@ -216,6 +216,16 @@ int reduce_add(ivec3 a);
 int reduce_add(ivec4 a);
 
 /**
+ * Return the product of the components of a vector.
+ */
+float reduce_mul(vec2 a);
+float reduce_mul(vec3 a);
+float reduce_mul(vec4 a);
+int reduce_mul(ivec2 a);
+int reduce_mul(ivec3 a);
+int reduce_mul(ivec4 a);
+
+/**
  * Return the average of the components of a vector.
  */
 float average(vec2 a);
@@ -705,6 +715,31 @@ int reduce_add(ivec3 a)
 int reduce_add(ivec4 a)
 {
   return a.x + a.y + a.z + a.w;
+}
+
+float reduce_mul(vec2 a)
+{
+  return a.x * a.y;
+}
+float reduce_mul(vec3 a)
+{
+  return a.x * a.y * a.z;
+}
+float reduce_mul(vec4 a)
+{
+  return a.x * a.y * a.z * a.w;
+}
+int reduce_mul(ivec2 a)
+{
+  return a.x * a.y;
+}
+int reduce_mul(ivec3 a)
+{
+  return a.x * a.y * a.z;
+}
+int reduce_mul(ivec4 a)
+{
+  return a.x * a.y * a.z * a.w;
 }
 
 float average(vec2 a)

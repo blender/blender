@@ -668,6 +668,18 @@ template<typename T, int Size> [[nodiscard]] inline T reduce_add(const VecBase<T
 }
 
 /**
+ * \return the product of the components of a vector.
+ */
+template<typename T, int Size> [[nodiscard]] inline T reduce_mul(const VecBase<T, Size> &a)
+{
+  T result = a[0];
+  for (int i = 1; i < Size; i++) {
+    result *= a[i];
+  }
+  return result;
+}
+
+/**
  * \return the average of the components of a vector.
  */
 template<typename T, int Size> [[nodiscard]] inline T average(const VecBase<T, Size> &a)
