@@ -198,14 +198,23 @@ static void node_buts_normal(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr
   uiItemR(layout, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_texture(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_texture(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
   short multi = (node->id && ((Tex *)node->id)->use_nodes && (node->type != CMP_NODE_TEXTURE) &&
                  (node->type != TEX_NODE_TEXTURE));
 
-  uiItemR(layout, ptr, "texture", DEFAULT_FLAGS, "", ICON_NONE);
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "texture",
+               "texture.new",
+               nullptr,
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
 
   if (multi) {
     /* Number Drawing not optimal here, better have a list. */
