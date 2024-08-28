@@ -3494,7 +3494,7 @@ def save_single(operator, scene, depsgraph, filepath="",
     import bpy_extras.io_utils
 
     print('\nFBX export starting... %r' % filepath)
-    start_time = time.process_time()
+    start_time = time.time()
 
     # Generate some data about exported scene...
     scene_data = fbx_data_from_scene(scene, depsgraph, settings)
@@ -3537,7 +3537,7 @@ def save_single(operator, scene, depsgraph, filepath="",
     if not media_settings.embed_textures:
         bpy_extras.io_utils.path_reference_copy(media_settings.copy_set)
 
-    print('export finished in %.4f sec.' % (time.process_time() - start_time))
+    print('export finished in %.4f sec.' % (time.time() - start_time))
     return {'FINISHED'}
 
 
