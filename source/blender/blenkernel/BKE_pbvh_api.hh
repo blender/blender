@@ -184,7 +184,7 @@ class Tree {
   pixels::PBVHData *pixels_ = nullptr;
 
  public:
-  Tree(Type type);
+  explicit Tree(Type type);
   ~Tree();
 
   template<typename NodeT> Span<NodeT> nodes() const;
