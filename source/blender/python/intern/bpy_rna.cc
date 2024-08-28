@@ -7635,41 +7635,37 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 #endif
   }
 
-  {
-    PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr);
-
-    if (tp) {
-      pyrna = (BPy_StructRNA *)tp->tp_alloc(tp, 0);
+  if (PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr)) {
+    pyrna = (BPy_StructRNA *)tp->tp_alloc(tp, 0);
 #ifdef USE_PYRNA_STRUCT_REFERENCE
-      /* #PyType_GenericAlloc will have set tracking.
-       * We only want tracking when `StructRNA.reference` has been set. */
-      if (pyrna != nullptr) {
-        PyObject_GC_UnTrack(pyrna);
-      }
-#endif
-      Py_DECREF(tp); /* srna owns, can't hold a reference. */
-    }
-    else {
-      CLOG_WARN(BPY_LOG_RNA, "could not make type '%s'", RNA_struct_identifier(ptr->type));
-
-#ifdef USE_PYRNA_STRUCT_REFERENCE
-      pyrna = (BPy_StructRNA *)PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
-#else
-      pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
-#endif
-
-#ifdef USE_PYRNA_STRUCT_REFERENCE
-      /* #PyType_GenericAlloc will have set tracking.
-       * We only want tracking when `StructRNA.reference` has been set. */
+    /* #PyType_GenericAlloc will have set tracking.
+     * We only want tracking when `StructRNA.reference` has been set. */
+    if (pyrna != nullptr) {
       PyObject_GC_UnTrack(pyrna);
+    }
+#endif
+    Py_DECREF(tp); /* srna owns, can't hold a reference. */
+  }
+  else {
+    CLOG_WARN(BPY_LOG_RNA, "could not make type '%s'", RNA_struct_identifier(ptr->type));
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+    pyrna = (BPy_StructRNA *)PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
+#else
+    pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
+#endif
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+    /* #PyType_GenericAlloc will have set tracking.
+     * We only want tracking when `StructRNA.reference` has been set. */
+    PyObject_GC_UnTrack(pyrna);
 #endif
 
 #ifdef USE_WEAKREFS
-      if (pyrna != nullptr) {
-        pyrna->in_weakreflist = nullptr;
-      }
-#endif
+    if (pyrna != nullptr) {
+      pyrna->in_weakreflist = nullptr;
     }
+#endif
   }
 
   if (pyrna == nullptr) {
