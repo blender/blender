@@ -173,13 +173,17 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   {
     reserve(count_nodes(pbvh, image_tile));
 
-    for (blender::bke::pbvh::Node &node : pbvh.nodes_) {
-      if (should_add_node(node, image_tile)) {
-        NodeData &node_data = *static_cast<NodeData *>(node.pixels_);
-        UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
-        append(tile_pixels);
-      }
-    }
+    std::visit(
+        [&](auto &nodes) {
+          for (blender::bke::pbvh::Node &node : nodes) {
+            if (should_add_node(node, image_tile)) {
+              NodeData &node_data = *static_cast<NodeData *>(node.pixels_);
+              UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
+              append(tile_pixels);
+            }
+          }
+        },
+        pbvh.nodes_);
   }
 
  private:
@@ -203,11 +207,15 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
                              const image::ImageTileWrapper &image_tile)
   {
     int64_t result = 0;
-    for (blender::bke::pbvh::Node &node : pbvh.nodes_) {
-      if (should_add_node(node, image_tile)) {
-        result++;
-      }
-    }
+    std::visit(
+        [&](auto &nodes) {
+          for (blender::bke::pbvh::Node &node : nodes) {
+            if (should_add_node(node, image_tile)) {
+              result++;
+            }
+          }
+        },
+        pbvh.nodes_);
     return result;
   }
 };

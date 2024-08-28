@@ -1168,7 +1168,8 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
           for (const int i : range) {
             bake_mask_mesh(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls, mask.span);
             BKE_pbvh_node_mark_update_mask(*nodes[i]);
-            bke::pbvh::node_update_mask_mesh(mask.span, *nodes[i]);
+            bke::pbvh::node_update_mask_mesh(mask.span,
+                                             static_cast<bke::pbvh::MeshNode &>(*nodes[i]));
           }
         });
       });

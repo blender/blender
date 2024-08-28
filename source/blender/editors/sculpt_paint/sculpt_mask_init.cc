@@ -70,7 +70,7 @@ void write_mask_mesh(const Depsgraph &depsgraph,
     for (const int i : range) {
       write_fn(mask.span, hide::node_visible_verts(*nodes[i], hide_vert, index_data));
       BKE_pbvh_node_mark_redraw(*nodes[i]);
-      bke::pbvh::node_update_mask_mesh(mask.span, *nodes[i]);
+      bke::pbvh::node_update_mask_mesh(mask.span, static_cast<bke::pbvh::MeshNode &>(*nodes[i]));
     }
   });
   mask.finish();

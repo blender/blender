@@ -305,8 +305,10 @@ static void face_sets_update(const Depsgraph &depsgraph,
     for (bke::pbvh::Node *node : nodes.slice(range)) {
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
-              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_mesh(
+                  tri_faces, static_cast<bke::pbvh::MeshNode &>(*node), tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(
+                  *ss.subdiv_ccg, static_cast<bke::pbvh::GridsNode &>(*node), tls.face_indices);
 
       tls.new_face_sets.resize(faces.size());
       MutableSpan<int> new_face_sets = tls.new_face_sets;
@@ -352,8 +354,10 @@ static void clear_face_sets(const Depsgraph &depsgraph,
     for (bke::pbvh::Node *node : nodes.slice(range)) {
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
-              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, face_indices);
+              bke::pbvh::node_face_indices_calc_mesh(
+                  tri_faces, static_cast<bke::pbvh::MeshNode &>(*node), face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(
+                  *ss.subdiv_ccg, static_cast<bke::pbvh::GridsNode &>(*node), face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
             return face_sets[face] != default_face_set;
           }))
@@ -847,8 +851,10 @@ static void face_hide_update(const Depsgraph &depsgraph,
     for (bke::pbvh::Node *node : nodes.slice(range)) {
       const Span<int> faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
-              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_mesh(
+                  tri_faces, static_cast<bke::pbvh::MeshNode &>(*node), tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(
+                  *ss.subdiv_ccg, static_cast<bke::pbvh::GridsNode &>(*node), tls.face_indices);
 
       tls.new_hide.resize(faces.size());
       MutableSpan<bool> new_hide = tls.new_hide;
@@ -1585,8 +1591,10 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data,
       undo::push_node(depsgraph, *gesture_data.vc.obact, node, undo::Type::FaceSet);
       const Span<int> node_faces =
           pbvh.type() == bke::pbvh::Type::Mesh ?
-              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(*ss.subdiv_ccg, *node, tls.face_indices);
+              bke::pbvh::node_face_indices_calc_mesh(
+                  tri_faces, static_cast<bke::pbvh::MeshNode &>(*node), tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(
+                  *ss.subdiv_ccg, static_cast<bke::pbvh::GridsNode &>(*node), tls.face_indices);
 
       bool any_updated = false;
       for (const int face : node_faces) {

@@ -1840,7 +1840,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
                                                    const bool has_bm_orco,
-                                                   const bke::pbvh::Node &node,
+                                                   const bke::pbvh::BMeshNode &node,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
@@ -1869,8 +1869,11 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
     float(*orco_coords)[3];
     int(*orco_tris)[3];
     int orco_tris_num;
-    BKE_pbvh_node_get_bm_orco_data(
-        &const_cast<bke::pbvh::Node &>(node), &orco_tris, &orco_tris_num, &orco_coords, nullptr);
+    BKE_pbvh_node_get_bm_orco_data(&const_cast<bke::pbvh::BMeshNode &>(node),
+                                   &orco_tris,
+                                   &orco_tris_num,
+                                   &orco_coords,
+                                   nullptr);
 
     tls.positions.resize(orco_tris_num);
     const MutableSpan<float3> positions = tls.positions;
@@ -1912,7 +1915,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
   }
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
-      &const_cast<bke::pbvh::Node &>(node));
+      &const_cast<bke::pbvh::BMeshNode &>(node));
   if (use_original) {
     tls.positions.resize(verts.size());
     const MutableSpan<float3> positions = tls.positions;
@@ -2055,7 +2058,14 @@ void calc_area_center(const Depsgraph &depsgraph,
             SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ob, brush, false, true, has_bm_orco, *nodes[i], tls, anctd);
+                  ob,
+                  brush,
+                  false,
+                  true,
+                  has_bm_orco,
+                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
+                  tls,
+                  anctd);
             }
             return anctd;
           },
@@ -2152,7 +2162,14 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
             SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ob, brush, true, false, has_bm_orco, *nodes[i], tls, anctd);
+                  ob,
+                  brush,
+                  true,
+                  false,
+                  has_bm_orco,
+                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
+                  tls,
+                  anctd);
             }
             return anctd;
           },
@@ -2241,7 +2258,14 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
             SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
               calc_area_normal_and_center_node_bmesh(
-                  ob, brush, true, true, has_bm_orco, *nodes[i], tls, anctd);
+                  ob,
+                  brush,
+                  true,
+                  true,
+                  has_bm_orco,
+                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
+                  tls,
+                  anctd);
             }
             return anctd;
           },
@@ -3237,7 +3261,8 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
     BKE_pbvh_node_mark_update(*node);
 
     BKE_pbvh_node_mark_topology_update(*node);
-    BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, node, false);
+    BKE_pbvh_bmesh_node_save_orig(
+        ss.bm, ss.bm_log, static_cast<blender::bke::pbvh::BMeshNode *>(node), false);
   }
 
   float max_edge_len;

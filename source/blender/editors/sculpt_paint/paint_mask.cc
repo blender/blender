@@ -282,7 +282,7 @@ void update_mask_mesh(const Depsgraph &depsgraph,
         }
         undo::push_node(depsgraph, object, node, undo::Type::Mask);
         array_utils::scatter<float>(tls.mask, verts, mask.span);
-        bke::pbvh::node_update_mask_mesh(mask.span, *node);
+        bke::pbvh::node_update_mask_mesh(mask.span, static_cast<bke::pbvh::MeshNode &>(*node));
         BKE_pbvh_node_mark_redraw(*node);
       }
     });
@@ -630,7 +630,7 @@ static void invert_mask_grids(Main &bmain,
         }
       }
       BKE_pbvh_node_mark_update_mask(*node);
-      bke::pbvh::node_update_mask_grids(key, grids, *node);
+      bke::pbvh::node_update_mask_grids(key, grids, static_cast<bke::pbvh::GridsNode &>(*node));
     }
   });
 
@@ -657,7 +657,7 @@ static void invert_mask_bmesh(const Depsgraph &depsgraph,
         }
       }
       BKE_pbvh_node_mark_update_mask(*node);
-      bke::pbvh::node_update_mask_bmesh(offset, *node);
+      bke::pbvh::node_update_mask_bmesh(offset, static_cast<bke::pbvh::BMeshNode &>(*node));
     }
   });
 }

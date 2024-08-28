@@ -227,7 +227,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   mesh.remesh_voxel_size = edge_length / float(neighbors.size());
 }
 
-static void sculpt_raycast_detail_cb(bke::pbvh::Node &node,
+static void sculpt_raycast_detail_cb(bke::pbvh::BMeshNode &node,
                                      SculptDetailRaycastData &srd,
                                      float *tmin)
 {
@@ -262,7 +262,9 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   bke::pbvh::raycast(
       *ob.sculpt->pbvh,
-      [&](bke::pbvh::Node &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
+      [&](bke::pbvh::Node &node, float *tmin) {
+        sculpt_raycast_detail_cb(static_cast<bke::pbvh::BMeshNode &>(node), srd, tmin);
+      },
       ray_start,
       ray_normal,
       false);

@@ -147,7 +147,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              const UVPrimitiveLookup &uv_prim_lookup,
                              Image &image,
                              ImageUser &image_user,
-                             Node &node)
+                             MeshNode &node)
 {
   NodeData *node_data = static_cast<NodeData *>(node.pixels_);
 
@@ -234,7 +234,7 @@ static bool should_pixels_be_updated(const Node &node)
 static int count_nodes_to_update(Tree &pbvh)
 {
   int result = 0;
-  for (Node &node : pbvh.nodes_) {
+  for (Node &node : pbvh.nodes<MeshNode>()) {
     if (should_pixels_be_updated(node)) {
       result++;
     }
@@ -251,7 +251,7 @@ static int count_nodes_to_update(Tree &pbvh)
  *
  * returns if there were any nodes found (true).
  */
-static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
+static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_update)
 {
   int nodes_to_update_len = count_nodes_to_update(pbvh);
   if (nodes_to_update_len == 0) {
@@ -270,7 +270,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<Node *> &r_nodes_to_update)
 
   r_nodes_to_update.reserve(nodes_to_update_len);
 
-  for (Node &node : pbvh.nodes_) {
+  for (MeshNode &node : pbvh.nodes<MeshNode>()) {
     if (!should_pixels_be_updated(node)) {
       continue;
     }
@@ -300,7 +300,7 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
     if (image_buffer == nullptr) {
       continue;
     }
-    for (Node &node : pbvh.nodes_) {
+    for (Node &node : pbvh.nodes<MeshNode>()) {
       if ((node.flag_ & PBVH_Leaf) == 0) {
         continue;
       }
@@ -336,7 +336,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
                           Image &image,
                           ImageUser &image_user)
 {
-  Vector<Node *> nodes_to_update;
+  Vector<MeshNode *> nodes_to_update;
   if (!find_nodes_to_update(pbvh, nodes_to_update)) {
     return false;
   }
@@ -404,7 +404,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
   }
 
   /* Add PBVH_TexLeaf flag */
-  for (Node &node : pbvh.nodes_) {
+  for (Node &node : pbvh.nodes<MeshNode>()) {
     if (node.flag_ & PBVH_Leaf) {
       node.flag_ = (PBVHNodeFlags)(int(node.flag_) | int(PBVH_TexLeaf));
     }

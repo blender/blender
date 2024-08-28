@@ -46,7 +46,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 
 /* pbvh_bmesh.cc */
 
-bool bmesh_node_raycast(blender::bke::pbvh::Node &node,
+bool bmesh_node_raycast(blender::bke::pbvh::BMeshNode &node,
                         const float ray_start[3],
                         const float ray_normal[3],
                         IsectRayPrecalc *isect_precalc,
@@ -54,14 +54,14 @@ bool bmesh_node_raycast(blender::bke::pbvh::Node &node,
                         bool use_original,
                         PBVHVertRef *r_active_vertex,
                         float *r_face_normal);
-bool bmesh_node_nearest_to_ray(blender::bke::pbvh::Node &node,
+bool bmesh_node_nearest_to_ray(blender::bke::pbvh::BMeshNode &node,
                                const float ray_start[3],
                                const float ray_normal[3],
                                float *depth,
                                float *dist_sq,
                                bool use_original);
 
-void bmesh_normals_update(Span<blender::bke::pbvh::Node *> nodes);
+void bmesh_normals_update(Tree &pbvh, const IndexMask &nodes_to_update);
 
 /* pbvh_pixels.hh */
 

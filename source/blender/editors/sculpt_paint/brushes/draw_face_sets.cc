@@ -185,7 +185,7 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
     MeshLocalData &tls = all_tls.local();
     for (const int i : range) {
       const Span<int> face_indices = bke::pbvh::node_face_indices_calc_mesh(
-          corner_tris, *nodes[i], tls.face_indices);
+          corner_tris, static_cast<bke::pbvh::MeshNode &>(*nodes[i]), tls.face_indices);
 
       undo::push_node(depsgraph, object, nodes[i], undo::Type::FaceSet);
 
