@@ -27,6 +27,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
+#include "BLI_math_rotation.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -3714,8 +3715,14 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &ca
     mul_m4_v3(cache.symm_rot_mat.ptr(), cache.gravity_direction);
   }
 
-  if (cache.is_rake_rotation_valid) {
-    flip_qt_qt(cache.rake_rotation_symmetry, cache.rake_rotation, symm);
+  if (cache.rake_rotation) {
+    float4 new_quat;
+    float4 existing(cache.rake_rotation->w,
+                    cache.rake_rotation->x,
+                    cache.rake_rotation->y,
+                    cache.rake_rotation->z);
+    flip_qt_qt(new_quat, existing, symm);
+    cache.rake_rotation_symmetry = math::Quaternion(existing);
   }
 }
 
@@ -4449,8 +4456,6 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   }
 
   /* Handle 'rake' */
-  cache->is_rake_rotation_valid = false;
-
   invert_m4_m4(imat, ob.object_to_world().ptr());
   mul_mat3_m4_v3(imat, grab_location);
 
@@ -4481,18 +4486,10 @@ static void brush_delta_update(const Depsgraph &depsgraph,
                                   1.0f :
                                   sqrtf(rake_dist_sq) / cache->rake_data.follow_dist;
 
-      float axis[3], angle;
-      float tquat[4];
-
-      rotation_between_vecs_to_quat(tquat, v1, v2);
-
-      /* Use axis-angle to scale rotation since the factor may be above 1. */
-      quat_to_axis_angle(axis, &angle, tquat);
-      normalize_v3(axis);
-
-      angle *= brush.rake_factor * rake_fade;
-      axis_angle_normalized_to_quat(cache->rake_rotation, axis, angle);
-      cache->is_rake_rotation_valid = true;
+      const math::AxisAngle between_vecs(v1, v2);
+      const math::AxisAngle rotated(between_vecs.axis(),
+                                    between_vecs.angle() * brush.rake_factor * rake_fade);
+      cache->rake_rotation = math::to_quaternion(rotated);
     }
   }
   rake_data_update(&cache->rake_data, grab_location);

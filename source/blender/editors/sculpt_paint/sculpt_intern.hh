@@ -19,6 +19,7 @@
 #include "BLI_array.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -211,8 +212,8 @@ struct StrokeCache {
   float3 old_grab_location, orig_grab_location;
 
   /* screen-space rotation defined by mouse motion */
-  float rake_rotation[4], rake_rotation_symmetry[4];
-  bool is_rake_rotation_valid;
+  std::optional<math::Quaternion> rake_rotation;
+  std::optional<math::Quaternion> rake_rotation_symmetry;
   SculptRakeData rake_data;
 
   /* Face Sets */

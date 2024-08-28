@@ -19,6 +19,7 @@
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -75,12 +76,9 @@ static float3 sculpt_rake_rotate(const StrokeCache &cache,
                                  const float3 &v_co,
                                  float factor)
 {
-  float q_interp[4];
   float3 vec_rot = v_co - sculpt_co;
-
-  copy_qt_qt(q_interp, cache.rake_rotation_symmetry);
-  pow_qt_fl_normalized(q_interp, factor);
-  mul_qt_v3(q_interp, vec_rot);
+  const math::Quaternion rotation = math::pow(*cache.rake_rotation_symmetry, factor);
+  vec_rot = math::transform_point(rotation, vec_rot);
 
   vec_rot += sculpt_co;
   return vec_rot - v_co;
@@ -135,7 +133,7 @@ BLI_NOINLINE static void calc_rake_rotation_influence(const StrokeCache &cache,
                                                       const Span<float> factors,
                                                       const MutableSpan<float3> translations)
 {
-  if (!cache.is_rake_rotation_valid) {
+  if (!cache.rake_rotation_symmetry) {
     return;
   }
   for (const int i : positions.index_range()) {
