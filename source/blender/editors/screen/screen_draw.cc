@@ -442,8 +442,8 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
 
   float x = (1 - fac) * rect.xmin + fac * rect.xmax;
   float y = (1 - fac) * rect.ymin + fac * rect.ymax;
-  x = std::clamp(x, rect.xmin + (AREAMINX * UI_SCALE_FAC), rect.xmax - (AREAMINX * UI_SCALE_FAC));
-  y = std::clamp(y, rect.ymin + (HEADERY * UI_SCALE_FAC), rect.ymax - (HEADERY * UI_SCALE_FAC));
+  x = std::clamp(x, rect.xmin, rect.xmax);
+  y = std::clamp(y, rect.ymin, rect.ymax);
   float half_line_width = 2.0f * U.pixelsize;
 
   /* Outlined rectangle to left/above split position. */
