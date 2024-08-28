@@ -410,8 +410,7 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
   store_bounds_orig(*pbvh);
 
   if (!hide_vert.is_empty()) {
-    MutableSpan<MeshNode> nodes = nodes;
-    threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+        threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
       for (const int i : range) {
         const Span<int> verts = node_verts(nodes[i]);
         if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
@@ -593,8 +592,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
   if (!grid_hidden.is_empty()) {
-    MutableSpan<GridsNode> nodes = nodes;
-    threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
+        threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
       for (const int i : range) {
         const Span<int> grids = node_grid_indices(nodes[i]);
         if (std::all_of(grids.begin(), grids.end(), [&](const int i) {
