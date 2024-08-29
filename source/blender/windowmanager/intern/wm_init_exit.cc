@@ -714,4 +714,11 @@ void WM_exit(bContext *C, const int exit_code)
 void WM_script_tag_reload()
 {
   UI_interface_tag_script_reload();
+
+  /* Any operators referenced by gizmos may now be a dangling pointer.
+   *
+   * While it is possible to inspect the gizmos it's simpler to re-create them,
+   * especially for script reloading - where we can accept slower logic
+   * for the sake of simplicity, see #126852. */
+  WM_gizmoconfig_update_tag_reinit_all();
 }

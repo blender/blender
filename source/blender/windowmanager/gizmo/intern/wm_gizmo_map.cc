@@ -64,8 +64,18 @@ enum eWM_GizmoFlagGroupTypeGlobalFlag {
 
   /** Remove by #wmGroup.tag_remove. */
   WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE = (1 << 2),
+
+  /**
+   * Re-create all gizmos.
+   *
+   * This is a heavy operation as it clears and re-initializes all gizmos.
+   * It should only be performed when internals have been manipulated
+   * (such as reloading Python scripts).
+   */
+  WM_GIZMOTYPE_GLOBAL_REINIT_ALL = (1 << 3),
+
 };
-ENUM_OPERATORS(eWM_GizmoFlagGroupTypeGlobalFlag, WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE)
+ENUM_OPERATORS(eWM_GizmoFlagGroupTypeGlobalFlag, WM_GIZMOTYPE_GLOBAL_REINIT_ALL)
 
 static eWM_GizmoFlagGroupTypeGlobalFlag wm_gzmap_type_update_flag =
     eWM_GizmoFlagGroupTypeGlobalFlag(0);
@@ -1320,6 +1330,11 @@ void WM_gizmoconfig_update_tag_group_remove(wmGizmoMap *gzmap)
   wm_gzmap_type_update_flag |= WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
 }
 
+void WM_gizmoconfig_update_tag_reinit_all()
+{
+  wm_gzmap_type_update_flag |= WM_GIZMOTYPE_GLOBAL_REINIT_ALL;
+}
+
 void WM_gizmoconfig_update(Main *bmain)
 {
   if (G.background) {
@@ -1405,6 +1420,11 @@ void WM_gizmoconfig_update(Main *bmain)
     }
     wm_gzmap_type_update_flag &= ~WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
   }
+
+  if (wm_gzmap_type_update_flag & WM_GIZMOTYPE_GLOBAL_REINIT_ALL) {
+    WM_reinit_gizmomap_all(bmain);
+    wm_gzmap_type_update_flag &= ~WM_GIZMOTYPE_GLOBAL_REINIT_ALL;
+  }
 }
 
 /** \} */
@@ -1428,6 +1448,10 @@ void WM_reinit_gizmomap_all(Main *bmain)
           wmGizmoMap *gzmap = region->gizmo_map;
           if ((gzmap != nullptr) && (gzmap->is_init == false)) {
             WM_gizmomap_reinit(gzmap);
+
+            /* Without a redraw elements can fail to activate
+             * (such as the 2D viewport buttons). */
+            ED_region_tag_redraw(region);
           }
         }
       }
