@@ -1081,6 +1081,11 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
   return ret;
 }
 
+static bool ffmpeg_must_decode(ImBufAnim *anim, int position)
+{
+  return !anim->pFrame_complete || anim->cur_position != position;
+}
+
 static bool ffmpeg_must_seek(ImBufAnim *anim, int position)
 {
   bool must_seek = position != anim->cur_position + 1 || ffmpeg_is_first_frame_decode(anim);
@@ -1112,11 +1117,13 @@ static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type 
          frame_rate,
          start_pts);
 
-  if (ffmpeg_must_seek(anim, position)) {
-    ffmpeg_seek_to_key_frame(anim, position, tc_index, pts_to_search);
-  }
+  if (ffmpeg_must_decode(anim, position)) {
+    if (ffmpeg_must_seek(anim, position)) {
+      ffmpeg_seek_to_key_frame(anim, position, tc_index, pts_to_search);
+    }
 
-  ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+    ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+  }
 
   /* Update resolution as it can change per-frame with WebM. See #100741 & #100081. */
   anim->x = anim->pCodecCtx->width;
