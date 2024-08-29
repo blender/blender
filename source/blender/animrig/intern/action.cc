@@ -1263,15 +1263,14 @@ FCurve &ChannelBag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descripto
   bActionGroup *group = fcurve_descriptor.channel_group.has_value() ?
                             &this->channel_group_ensure(*fcurve_descriptor.channel_group) :
                             nullptr;
-  int insert_index = group ? group->fcurve_range_start + group->fcurve_range_length :
-                             this->fcurve_array_num;
+  const int insert_index = group ? group->fcurve_range_start + group->fcurve_range_length :
+                                   this->fcurve_array_num;
   BLI_assert(insert_index <= this->fcurve_array_num);
 
   grow_array_and_insert(&this->fcurve_array, &this->fcurve_array_num, insert_index, new_fcurve);
   if (group) {
     group->fcurve_range_length += 1;
-    this->collapse_channel_group_gaps();
-    this->update_fcurve_channel_group_pointers();
+    this->restore_channel_group_invariants();
   }
 
   if (bmain) {
@@ -1295,15 +1294,14 @@ bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
 
   const int group_index = this->channel_group_containing_index(fcurve_index);
   if (group_index != -1) {
-    bActionGroup *group = this->channel_groups()[group_index];
+    bActionGroup *group = this->channel_group(group_index);
 
     group->fcurve_range_length -= 1;
     if (group->fcurve_range_length <= 0) {
       const int group_index = this->channel_groups().as_span().first_index_try(group);
       this->channel_group_remove_raw(group_index);
     }
-    this->collapse_channel_group_gaps();
-    this->update_fcurve_channel_group_pointers();
+    this->restore_channel_group_invariants();
   }
 
   dna::array::remove_index(
@@ -1508,7 +1506,12 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
   /* Make it selected. */
   new_group->flag = AGRP_SELECTED;
 
-  /* Ensure it has a unique name. */
+  /* Ensure it has a unique name.
+   *
+   * Note that this only happens here (upon creation). The user can later rename
+   * groups to have duplicate names. This is stupid, but it's how the legacy
+   * system worked, and at the time of writing this code we're just trying to
+   * match that system's behavior, even when it's goofy.*/
   std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
         for (bActionGroup *group : this->channel_groups()) {
@@ -1558,8 +1561,7 @@ bool ChannelBag::channel_group_remove(bActionGroup &group)
                     to_index);
 
   this->channel_group_remove_raw(group_index);
-  this->collapse_channel_group_gaps();
-  this->update_fcurve_channel_group_pointers();
+  this->restore_channel_group_invariants();
 
   return true;
 }
@@ -1572,38 +1574,66 @@ void ChannelBag::channel_group_remove_raw(const int group_index)
   shrink_array_and_remove(&this->group_array, &this->group_array_num, group_index);
 }
 
-void ChannelBag::collapse_channel_group_gaps()
+void ChannelBag::restore_channel_group_invariants()
 {
-  int index = 0;
+  /* Shift channel groups. */
+  {
+    int start_index = 0;
+    for (bActionGroup *group : this->channel_groups()) {
+      group->fcurve_range_start = start_index;
+      start_index += group->fcurve_range_length;
+    }
 
-  for (bActionGroup *group : this->channel_groups()) {
-    group->fcurve_range_start = index;
-    index += group->fcurve_range_length;
+    /* Double-check that this didn't push any of the groups off the end of the
+     * fcurve array. */
+    BLI_assert(start_index <= this->fcurve_array_num);
   }
 
-  BLI_assert(index <= this->fcurve_array_num);
-}
-
-void ChannelBag::update_fcurve_channel_group_pointers()
-{
-  Span<bActionGroup *> groups = this->channel_groups();
-  for (bActionGroup *group : groups) {
-    for (FCurve *fcurve :
-         this->fcurves().slice(group->fcurve_range_start, group->fcurve_range_length))
-    {
-      fcurve->grp = group;
+  /* Recompute fcurves' group pointers. */
+  {
+    for (FCurve *fcurve : this->fcurves()) {
+      fcurve->grp = nullptr;
+    }
+    for (bActionGroup *group : this->channel_groups()) {
+      for (FCurve *fcurve : group->wrap().fcurves()) {
+        fcurve->grp = group;
+      }
     }
   }
+}
 
-  int first_ungrouped_fcurve_index = 0;
-  if (!groups.is_empty()) {
-    first_ungrouped_fcurve_index = groups.last()->fcurve_range_start +
-                                   groups.last()->fcurve_range_length;
+bool ChannelGroup::is_legacy() const
+{
+  const bool group_is_legacy = this->channel_bag == nullptr;
+
+  BLI_assert_msg(group_is_legacy || this->channels.first == nullptr,
+                 "Layered-action channel group has legacy-action data.");
+
+  return group_is_legacy;
+}
+
+Span<FCurve *> ChannelGroup::fcurves()
+{
+  BLI_assert(!this->is_legacy());
+
+  if (this->fcurve_range_length == 0) {
+    return {};
   }
 
-  for (FCurve *fcurve : this->fcurves().drop_front(first_ungrouped_fcurve_index)) {
-    fcurve->grp = nullptr;
+  return this->channel_bag->wrap().fcurves().slice(this->fcurve_range_start,
+                                                   this->fcurve_range_length);
+}
+
+Span<const FCurve *> ChannelGroup::fcurves() const
+{
+  BLI_assert(!this->is_legacy());
+
+  if (this->fcurve_range_length == 0) {
+    return {};
   }
+
+  return this->channel_bag->wrap().fcurves().slice(this->fcurve_range_start,
+                                                   this->fcurve_range_length);
 }
 
 /* Utility function implementations. */
@@ -1639,28 +1669,6 @@ animrig::ChannelBag *channelbag_for_action_slot(Action &action, const slot_handl
   const animrig::ChannelBag *const_bag = channelbag_for_action_slot(
       const_cast<const Action &>(action), slot_handle);
   return const_cast<animrig::ChannelBag *>(const_bag);
-}
-
-Span<bActionGroup *> channel_groups_for_action_slot(Action &action,
-                                                    const slot_handle_t slot_handle)
-{
-  assert_baklava_phase_1_invariants(action);
-  animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
-  if (!bag) {
-    return {};
-  }
-  return bag->channel_groups();
-}
-
-Span<const bActionGroup *> channel_groups_for_action_slot(const Action &action,
-                                                          const slot_handle_t slot_handle)
-{
-  assert_baklava_phase_1_invariants(action);
-  const animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
-  if (!bag) {
-    return {};
-  }
-  return bag->channel_groups();
 }
 
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
@@ -1889,7 +1897,6 @@ bool action_fcurve_remove(Action &action, FCurve &fcu)
 
 bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group)
 {
-
   if (this->channel_groups().as_span().first_index_try(&to_group) == -1) {
     return false;
   }
@@ -1899,16 +1906,18 @@ bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to
     return false;
   }
 
-  const int from_group_index = this->channel_group_containing_index(fcurve_index);
-  if (from_group_index != -1) {
-    bActionGroup *from_group = this->channel_groups()[from_group_index];
-    if (from_group == &to_group) {
-      return true;
-    }
+  if (fcurve.grp == &to_group) {
+    return true;
+  }
 
-    from_group->fcurve_range_length--;
-    if (from_group->fcurve_range_length == 0) {
-      this->channel_group_remove_raw(from_group_index);
+  /* Remove fcurve from old group, if it belongs to one. */
+  if (fcurve.grp != nullptr) {
+    bActionGroup *old_group = fcurve.grp;
+
+    old_group->fcurve_range_length--;
+    if (old_group->fcurve_range_length == 0) {
+      const int old_group_index = this->channel_groups().as_span().first_index_try(old_group);
+      this->channel_group_remove_raw(old_group_index);
     }
   }
 
@@ -1919,8 +1928,7 @@ bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to
                     to_group.fcurve_range_start + to_group.fcurve_range_length);
   to_group.fcurve_range_length++;
 
-  this->collapse_channel_group_gaps();
-  this->update_fcurve_channel_group_pointers();
+  this->restore_channel_group_invariants();
 
   return true;
 }

@@ -155,7 +155,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
   }
 
   /* Legacy actions. */
-  if (agrp->channels.first && agrp->channels.last) {
+  if (agrp->wrap().is_legacy()) {
     LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
       if (fcu->grp == agrp) {
         if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb)) {
@@ -167,9 +167,6 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
   }
 
   /* Layered actions. */
-  if (agrp->channel_bag == nullptr) {
-    return 0;
-  }
   animrig::ChannelBag channel_bag = agrp->channel_bag->wrap();
   Span<FCurve *> fcurves = channel_bag.fcurves().slice(agrp->fcurve_range_start,
                                                        agrp->fcurve_range_length);

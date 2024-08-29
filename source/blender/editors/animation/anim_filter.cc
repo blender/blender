@@ -1515,8 +1515,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
           }
           else {
             BLI_assert(agrp->channel_bag != nullptr);
-            Span<FCurve *> fcurves = agrp->channel_bag->wrap().fcurves().slice(
-                agrp->fcurve_range_start, agrp->fcurve_range_length);
+            Span<FCurve *> fcurves = agrp->wrap().fcurves();
             tmp_items += animfilter_fcurves_span(
                 ac, &tmp_data, fcurves, slot_handle, filter_mode, owner_id, &act->id);
           }
@@ -1584,6 +1583,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   const bool is_action_mode = (ac->spacetype == SPACE_ACTION &&
                                ac->dopesheet_mode == SACTCONT_ACTION);
   const bool show_fcurves_only = (filter_mode & ANIMFILTER_FCURVESONLY);
+  const bool show_active_group_only = filter_mode & ANIMFILTER_ACTGROUPED;
   const bool include_summary_channels = (filter_mode & ANIMFILTER_LIST_CHANNELS);
   const bool show_slot_channel = (is_action_mode && selection_ok_for_slot && !show_fcurves_only &&
                                   include_summary_channels);
@@ -1620,7 +1620,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   }
 
   /* Add ungrouped channels. */
-  if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
+  if (!show_active_group_only) {
     int first_ungrouped_fcurve_index = 0;
     if (!channel_bag->channel_groups().is_empty()) {
       const bActionGroup *last_group = channel_bag->channel_groups().last();
