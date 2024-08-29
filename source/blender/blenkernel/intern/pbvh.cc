@@ -1185,7 +1185,7 @@ void update_node_bounds_mesh(const Span<float3> positions, MeshNode &node)
 void update_node_bounds_grids(const CCGKey &key, const Span<CCGElem *> grids, GridsNode &node)
 {
   Bounds<float3> bounds = negative_bounds();
-  for (const int grid : node.prim_indices_) {
+  for (const int grid : node_grid_indices(node)) {
     for (const int i : IndexRange(key.grid_area)) {
       math::min_max(CCG_elem_offset_co(key, grids[grid], i), bounds.min, bounds.max);
     }
@@ -1353,7 +1353,7 @@ void node_update_mask_grids(const CCGKey &key, const Span<CCGElem *> grids, Grid
   BLI_assert(key.has_mask);
   bool fully_masked = true;
   bool fully_unmasked = true;
-  for (const int grid : node.prim_indices_) {
+  for (const int grid : node_grid_indices(node)) {
     CCGElem *elem = grids[grid];
     for (const int i : IndexRange(key.grid_area)) {
       const float mask = CCG_elem_offset_mask(key, elem, i);
@@ -1803,8 +1803,8 @@ Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
   faces.clear();
   const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
   int prev_face = -1;
-  for (const int prim : node.prim_indices_) {
-    const int face = grid_to_face_map[prim];
+  for (const int grid : node_grid_indices(node)) {
+    const int face = grid_to_face_map[grid];
     if (face != prev_face) {
       faces.append(face);
       prev_face = face;
@@ -2087,25 +2087,21 @@ static bool pbvh_grids_node_raycast(const SubdivCCG &subdiv_ccg,
                                     float *r_face_normal)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const int totgrid = node.prim_indices_.size();
+  const Span<int> grids = node_grid_indices(node);
   const int gridsize = key.grid_size;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0};
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  for (int i = 0; i < totgrid; i++) {
-    const int grid_index = node.prim_indices_[i];
-    CCGElem *grid = grids[grid_index];
-    if (!grid) {
-      continue;
-    }
+  for (const int grid : grids) {
+    CCGElem *elem = elems[grid];
 
     for (int y = 0; y < gridsize - 1; y++) {
       for (int x = 0; x < gridsize - 1; x++) {
         /* check if grid face is hidden */
         if (!grid_hidden.is_empty()) {
-          if (paint_is_grid_face_hidden(grid_hidden[grid_index], gridsize, x, y)) {
+          if (paint_is_grid_face_hidden(grid_hidden[grid], gridsize, x, y)) {
             continue;
           }
         }
@@ -2118,10 +2114,10 @@ static bool pbvh_grids_node_raycast(const SubdivCCG &subdiv_ccg,
           co[3] = origco[y * gridsize + x];
         }
         else {
-          co[0] = CCG_grid_elem_co(key, grid, x, y + 1);
-          co[1] = CCG_grid_elem_co(key, grid, x + 1, y + 1);
-          co[2] = CCG_grid_elem_co(key, grid, x + 1, y);
-          co[3] = CCG_grid_elem_co(key, grid, x, y);
+          co[0] = CCG_grid_elem_co(key, elem, x, y + 1);
+          co[1] = CCG_grid_elem_co(key, elem, x + 1, y + 1);
+          co[2] = CCG_grid_elem_co(key, elem, x + 1, y);
+          co[3] = CCG_grid_elem_co(key, elem, x, y);
         }
 
         if (ray_face_intersection_quad(
@@ -2149,13 +2145,13 @@ static bool pbvh_grids_node_raycast(const SubdivCCG &subdiv_ccg,
               {
                 copy_v3_v3(nearest_vertex_co, co[j]);
 
-                r_active_vertex->i = key.grid_area * grid_index + (y + y_it[j]) * key.grid_size +
+                r_active_vertex->i = key.grid_area * grid + (y + y_it[j]) * key.grid_size +
                                      (x + x_it[j]);
               }
             }
           }
           if (r_active_grid_index) {
-            *r_active_grid_index = grid_index;
+            *r_active_grid_index = grid;
           }
         }
       }
@@ -2377,7 +2373,7 @@ static bool pbvh_faces_node_nearest_to_ray(const MeshNode &node,
                                            float *dist_sq)
 {
   bool hit = false;
-const Span<int> tris = node_tri_indices(node);
+  const Span<int> tris = node_tri_indices(node);
 
   for (const int i : tris.index_range()) {
     const int tri_i = tris[i];
@@ -2422,23 +2418,20 @@ static bool pbvh_grids_node_nearest_to_ray(const SubdivCCG &subdiv_ccg,
                                            float *dist_sq)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const int totgrid = node.prim_indices_.size();
+  const Span<int> grids = node_grid_indices(node);
   const int gridsize = key.grid_size;
   bool hit = false;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  for (int i = 0; i < totgrid; i++) {
-    CCGElem *grid = grids[node.prim_indices_[i]];
-    if (!grid) {
-      continue;
-    }
+  for (const int grid : grids) {
+    CCGElem *elem = elems[grid];
 
     for (int y = 0; y < gridsize - 1; y++) {
       for (int x = 0; x < gridsize - 1; x++) {
         /* check if grid face is hidden */
         if (!grid_hidden.is_empty()) {
-          if (paint_is_grid_face_hidden(grid_hidden[node.prim_indices_[i]], gridsize, x, y)) {
+          if (paint_is_grid_face_hidden(grid_hidden[grid], gridsize, x, y)) {
             continue;
           }
         }
@@ -2456,10 +2449,10 @@ static bool pbvh_grids_node_nearest_to_ray(const SubdivCCG &subdiv_ccg,
         else {
           hit |= ray_face_nearest_quad(ray_start,
                                        ray_normal,
-                                       CCG_grid_elem_co(key, grid, x, y),
-                                       CCG_grid_elem_co(key, grid, x + 1, y),
-                                       CCG_grid_elem_co(key, grid, x + 1, y + 1),
-                                       CCG_grid_elem_co(key, grid, x, y + 1),
+                                       CCG_grid_elem_co(key, elem, x, y),
+                                       CCG_grid_elem_co(key, elem, x + 1, y),
+                                       CCG_grid_elem_co(key, elem, x + 1, y + 1),
+                                       CCG_grid_elem_co(key, elem, x, y + 1),
                                        depth,
                                        dist_sq);
         }
