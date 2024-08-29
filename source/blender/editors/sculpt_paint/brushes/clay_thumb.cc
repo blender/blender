@@ -65,7 +65,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   filter_region_clip_factors(ss, positions, factors);
 
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -111,7 +111,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -157,7 +157,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, verts, factors);
+    calc_front_face(cache.view_normal_symm, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -192,7 +192,7 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const float3 &location = ss.cache->location;
+  const float3 &location = ss.cache->location_symm;
 
   /* Sampled geometry normal and area center. */
   float3 area_no_sp;
@@ -224,16 +224,16 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
         ss.cache->clay_thumb_brush.front_angle, 0.0f, 60.0f);
   }
 
-  if (math::is_zero(ss.cache->grab_delta_symmetry)) {
+  if (math::is_zero(ss.cache->grab_delta_symm)) {
     return;
   }
 
   /* Initialize brush local-space matrix. */
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symmetry);
+  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symm);
   mat.y_axis() = math::cross(area_no, mat.x_axis());
   mat.z_axis() = area_no;
-  mat.location() = ss.cache->location;
+  mat.location() = ss.cache->location_symm;
   normalize_m4(mat.ptr());
 
   /* Scale brush local space matrix. */

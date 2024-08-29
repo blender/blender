@@ -221,7 +221,7 @@ static float calc_brush_normal_factor(const Depsgraph &depsgraph,
   float3 initial_normal;
 
   if (ss.cache) {
-    initial_normal = ss.cache->initial_normal;
+    initial_normal = ss.cache->initial_normal_symm;
   }
   else {
     initial_normal = ss.filter_cache->initial_normal;
@@ -248,7 +248,7 @@ static float calc_view_normal_factor(const Depsgraph &depsgraph,
   float3 view_normal;
 
   if (ss.cache) {
-    view_normal = ss.cache->view_normal;
+    view_normal = ss.cache->view_normal_symm;
   }
   else {
     view_normal = ss.filter_cache->view_normal;

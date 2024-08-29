@@ -281,7 +281,7 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -366,7 +366,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -538,7 +538,8 @@ void do_paint_brush(const Depsgraph &depsgraph,
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      ss.cache->paint_brush.density_seed = float(BLI_hash_int_01(ss.cache->location[0] * 1000));
+      ss.cache->paint_brush.density_seed = float(
+          BLI_hash_int_01(ss.cache->location_symm[0] * 1000));
     }
     return;
   }
@@ -695,7 +696,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -713,10 +714,10 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
 
   float3 brush_delta;
   if (brush.flag & BRUSH_ANCHORED) {
-    brush_delta = ss.cache->grab_delta_symmetry;
+    brush_delta = ss.cache->grab_delta_symm;
   }
   else {
-    brush_delta = ss.cache->location - ss.cache->last_location;
+    brush_delta = ss.cache->location_symm - ss.cache->last_location_symm;
   }
 
   Vector<int> neighbors;
@@ -733,10 +734,10 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
         current_disp = brush_delta;
         break;
       case BRUSH_SMEAR_DEFORM_PINCH:
-        current_disp = ss.cache->location - vert_positions[vert];
+        current_disp = ss.cache->location_symm - vert_positions[vert];
         break;
       case BRUSH_SMEAR_DEFORM_EXPAND:
-        current_disp = vert_positions[vert] - ss.cache->location;
+        current_disp = vert_positions[vert] - ss.cache->location_symm;
         break;
     }
 

@@ -77,7 +77,7 @@ static float3 sculpt_rake_rotate(const StrokeCache &cache,
                                  float factor)
 {
   float3 vec_rot = v_co - sculpt_co;
-  const math::Quaternion rotation = math::pow(*cache.rake_rotation_symmetry, factor);
+  const math::Quaternion rotation = math::pow(*cache.rake_rotation_symm, factor);
   vec_rot = math::transform_point(rotation, vec_rot);
 
   vec_rot += sculpt_co;
@@ -101,10 +101,10 @@ BLI_NOINLINE static void calc_pinch_influence(const Brush &brush,
 
   for (const int i : positions.index_range()) {
     /* Negative pinch will inflate, helps maintain volume. */
-    float3 delta_pinch = positions[i] - cache.location;
+    float3 delta_pinch = positions[i] - cache.location_symm;
 
     if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      project_plane_v3_v3v3(delta_pinch, delta_pinch, cache.true_view_normal);
+      project_plane_v3_v3v3(delta_pinch, delta_pinch, cache.view_normal);
     }
 
     /* Important to calculate based on the grabbed location
@@ -133,11 +133,11 @@ BLI_NOINLINE static void calc_rake_rotation_influence(const StrokeCache &cache,
                                                       const Span<float> factors,
                                                       const MutableSpan<float3> translations)
 {
-  if (!cache.rake_rotation_symmetry) {
+  if (!cache.rake_rotation_symm) {
     return;
   }
   for (const int i : positions.index_range()) {
-    translations[i] += sculpt_rake_rotate(cache, cache.location, positions[i], factors[i]);
+    translations[i] += sculpt_rake_rotate(cache, cache.location_symm, positions[i], factors[i]);
   }
 }
 
@@ -150,7 +150,7 @@ BLI_NOINLINE static void calc_kelvinet_translation(const StrokeCache &cache,
   BKE_kelvinlet_init_params(&params, cache.radius, cache.bstrength, 1.0f, 0.4f);
   for (const int i : positions.index_range()) {
     float3 disp;
-    BKE_kelvinlet_grab_triscale(disp, &params, positions[i], cache.location, translations[i]);
+    BKE_kelvinlet_grab_triscale(disp, &params, positions[i], cache.location_symm, translations[i]);
     translations[i] = disp * factors[i];
   }
 }
@@ -185,7 +185,7 @@ static void calc_faces(const Depsgraph &depsgraph,
     fill_factor_from_hide_and_mask(mesh, verts, factors);
     filter_region_clip_factors(ss, positions, factors);
     if (brush.flag & BRUSH_FRONTFACE) {
-      calc_front_face(cache.view_normal, vert_normals, verts, factors);
+      calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
     }
 
     tls.distances.resize(verts.size());
@@ -246,7 +246,7 @@ static void calc_grids(const Depsgraph &depsgraph,
     fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
     filter_region_clip_factors(ss, positions, factors);
     if (brush.flag & BRUSH_FRONTFACE) {
-      calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+      calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
     }
 
     tls.distances.resize(positions.size());
@@ -309,7 +309,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
     fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
     filter_region_clip_factors(ss, positions, factors);
     if (brush.flag & BRUSH_FRONTFACE) {
-      calc_front_face(cache.view_normal, verts, factors);
+      calc_front_face(cache.view_normal_symm, verts, factors);
     }
 
     tls.distances.resize(verts.size());
@@ -357,7 +357,7 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
 
   SculptProjectVector spvc;
 
-  float3 grab_delta = ss.cache->grab_delta_symmetry;
+  float3 grab_delta = ss.cache->grab_delta_symm;
 
   if (bstrength < 0.0f) {
     grab_delta *= -1.0f;

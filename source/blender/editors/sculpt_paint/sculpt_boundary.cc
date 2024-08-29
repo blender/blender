@@ -2167,7 +2167,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                          boundary.edit_info.strength_factor,
                          nodes[i],
                          tls,
-                         ss.cache->grab_delta_symmetry,
+                         ss.cache->grab_delta_symm,
                          boundary.initial_vert_position,
                          strength,
                          deform_target,
@@ -2192,7 +2192,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.edit_info.strength_factor,
                           nodes[i],
                           tls,
-                          ss.cache->grab_delta_symmetry,
+                          ss.cache->grab_delta_symm,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
@@ -2213,7 +2213,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.edit_info.strength_factor,
                           nodes[i],
                           tls,
-                          ss.cache->grab_delta_symmetry,
+                          ss.cache->grab_delta_symm,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
@@ -2916,10 +2916,10 @@ static float displacement_from_grab_delta_get(const SculptSession &ss,
                                               const SculptBoundary &boundary)
 {
   float4 plane;
-  const float3 normal = math::normalize(ss.cache->initial_location - boundary.pivot_position);
-  plane_from_point_normal_v3(plane, ss.cache->initial_location, normal);
+  const float3 normal = math::normalize(ss.cache->initial_location_symm - boundary.pivot_position);
+  plane_from_point_normal_v3(plane, ss.cache->initial_location_symm, normal);
 
-  const float3 pos = ss.cache->initial_location + ss.cache->grab_delta_symmetry;
+  const float3 pos = ss.cache->initial_location_symm + ss.cache->grab_delta_symm;
   return dist_signed_to_plane_v3(pos, plane);
 }
 

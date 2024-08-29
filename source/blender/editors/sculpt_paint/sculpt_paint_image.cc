@@ -231,7 +231,7 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
                                                  const Span<UVPrimitivePaintInput> uv_primitives,
                                                  const Span<float3> positions)
 {
-  const float3 location = ss.cache ? ss.cache->location : ss.cursor_location;
+  const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
   const Bounds<float3> brush_bounds(location - radius, location + radius);
 

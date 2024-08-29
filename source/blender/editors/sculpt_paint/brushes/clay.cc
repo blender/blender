@@ -76,7 +76,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -120,7 +120,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -163,7 +163,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, verts, factors);
+    calc_front_face(cache.view_normal_symm, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -213,7 +213,7 @@ void do_clay_brush(const Depsgraph &depsgraph,
     displace = -displace;
   }
 
-  const float3 modified_area_co = ss.cache->location + (area_no * ss.cache->scale * displace);
+  const float3 modified_area_co = ss.cache->location_symm + (area_no * ss.cache->scale * displace);
 
   float4 test_plane;
   plane_from_point_normal_v3(test_plane, modified_area_co, area_no);

@@ -1971,14 +1971,14 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
       /* Display the simulation limits if sculpting outside them. */
       /* This does not makes much sense of plane falloff as the falloff is infinite or global. */
 
-      if (len_v3v3(ss.cache->true_location, ss.cache->true_initial_location) >
+      if (len_v3v3(ss.cache->location, ss.cache->initial_location) >
           ss.cache->radius * (1.0f + brush.cloth_sim_limit))
       {
         const float red[3] = {1.0f, 0.2f, 0.2f};
         cloth::simulation_limits_draw(pcontext->pos,
                                       brush,
-                                      ss.cache->true_initial_location,
-                                      ss.cache->true_initial_normal,
+                                      ss.cache->initial_location,
+                                      ss.cache->initial_normal,
                                       ss.cache->radius,
                                       2.0f,
                                       red,

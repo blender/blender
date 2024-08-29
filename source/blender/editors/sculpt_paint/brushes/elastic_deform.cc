@@ -111,8 +111,13 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(
-      brush, cache, kelvinet_params, cache.location, offset, orig_data.positions, translations);
+  calc_translations(brush,
+                    cache,
+                    kelvinet_params,
+                    cache.location_symm,
+                    offset,
+                    orig_data.positions,
+                    translations);
 
   scale_translations(translations, factors);
 
@@ -146,8 +151,13 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.translations.resize(grid_verts_num);
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(
-      brush, cache, kelvinet_params, cache.location, offset, orig_data.positions, translations);
+  calc_translations(brush,
+                    cache,
+                    kelvinet_params,
+                    cache.location_symm,
+                    offset,
+                    orig_data.positions,
+                    translations);
 
   scale_translations(translations, factors);
 
@@ -183,7 +193,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   calc_translations(
-      brush, cache, kelvinet_params, cache.location, offset, orig_positions, translations);
+      brush, cache, kelvinet_params, cache.location_symm, offset, orig_positions, translations);
 
   scale_translations(translations, factors);
 
@@ -202,7 +212,7 @@ void do_elastic_deform_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = ss.cache->bstrength;
 
-  float3 grab_delta = ss.cache->grab_delta_symmetry;
+  float3 grab_delta = ss.cache->grab_delta_symm;
   if (ss.cache->normal_weight > 0.0f) {
     sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
   }

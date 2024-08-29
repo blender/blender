@@ -84,7 +84,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -102,9 +102,9 @@ static void calc_faces(const Depsgraph &depsgraph,
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, cache.location, stroke_xz, translations);
+  calc_translations(positions, cache.location_symm, stroke_xz, translations);
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-    project_translations(translations, cache.view_normal);
+    project_translations(translations, cache.view_normal_symm);
   }
 
   scale_translations(translations, factors);
@@ -133,7 +133,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -151,9 +151,9 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, cache.location, stroke_xz, translations);
+  calc_translations(positions, cache.location_symm, stroke_xz, translations);
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-    project_translations(translations, cache.view_normal);
+    project_translations(translations, cache.view_normal_symm);
   }
 
   scale_translations(translations, factors);
@@ -183,7 +183,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, verts, factors);
+    calc_front_face(cache.view_normal_symm, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -201,9 +201,9 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations(positions, cache.location, stroke_xz, translations);
+  calc_translations(positions, cache.location_symm, stroke_xz, translations);
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-    project_translations(translations, cache.view_normal);
+    project_translations(translations, cache.view_normal_symm);
   }
 
   scale_translations(translations, factors);
@@ -231,16 +231,16 @@ void do_pinch_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  if (math::is_zero(ss.cache->grab_delta_symmetry)) {
+  if (math::is_zero(ss.cache->grab_delta_symm)) {
     return;
   }
 
   /* Initialize `mat`. */
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symmetry);
+  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symm);
   mat.y_axis() = math::cross(area_no, mat.x_axis());
   mat.z_axis() = area_no;
-  mat.location() = ss.cache->location;
+  mat.location() = ss.cache->location_symm;
   normalize_m4(mat.ptr());
 
   const std::array<float3, 2> stroke_xz{math::normalize(mat.x_axis()),

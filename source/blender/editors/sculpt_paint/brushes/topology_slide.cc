@@ -45,16 +45,16 @@ BLI_NOINLINE static void calc_translation_directions(const Brush &brush,
 
   switch (brush.slide_deform_type) {
     case BRUSH_SLIDE_DEFORM_DRAG:
-      r_translations.fill(math::normalize(cache.location - cache.last_location));
+      r_translations.fill(math::normalize(cache.location_symm - cache.last_location_symm));
       break;
     case BRUSH_SLIDE_DEFORM_PINCH:
       for (const int i : positions.index_range()) {
-        r_translations[i] = math::normalize(cache.location - positions[i]);
+        r_translations[i] = math::normalize(cache.location_symm - positions[i]);
       }
       break;
     case BRUSH_SLIDE_DEFORM_EXPAND:
       for (const int i : positions.index_range()) {
-        r_translations[i] = math::normalize(positions[i] - cache.location);
+        r_translations[i] = math::normalize(positions[i] - cache.location_symm);
       }
       break;
   }
@@ -178,7 +178,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_data.normals, factors);
+    calc_front_face(cache.view_normal_symm, orig_data.normals, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -228,7 +228,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_data.normals, grids, factors);
+    calc_front_face(cache.view_normal_symm, orig_data.normals, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -277,7 +277,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, orig_positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_normals, factors);
+    calc_front_face(cache.view_normal_symm, orig_normals, factors);
   }
 
   tls.distances.resize(verts.size());

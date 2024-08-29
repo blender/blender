@@ -58,7 +58,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   filter_region_clip_factors(ss, orig_data.positions, factors);
 
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_data.normals, factors);
+    calc_front_face(cache.view_normal_symm, orig_data.normals, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -103,7 +103,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   filter_region_clip_factors(ss, orig_data.positions, factors);
 
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_data.normals, factors);
+    calc_front_face(cache.view_normal_symm, orig_data.normals, factors);
   }
 
   tls.distances.resize(grid_verts_num);
@@ -149,7 +149,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   filter_region_clip_factors(ss, orig_positions, factors);
 
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, orig_normals, factors);
+    calc_front_face(cache.view_normal_symm, orig_normals, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -181,7 +181,7 @@ void do_thumb_brush(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  const float3 &grab_delta = ss.cache->grab_delta_symmetry;
+  const float3 &grab_delta = ss.cache->grab_delta_symm;
   const float3 &normal = ss.cache->sculpt_normal_symm;
   const float3 offset = math::cross(math::cross(normal, grab_delta), normal) * ss.cache->bstrength;
 

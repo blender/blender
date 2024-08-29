@@ -63,7 +63,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, positions_eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, vert_normals, verts, factors);
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -118,7 +118,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -173,7 +173,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(*ss.bm, verts, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, verts, factors);
+    calc_front_face(cache.view_normal_symm, verts, factors);
   }
 
   tls.distances.resize(verts.size());
@@ -214,7 +214,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
-  if (math::is_zero(ss.cache->grab_delta_symmetry)) {
+  if (math::is_zero(ss.cache->grab_delta_symm)) {
     return;
   }
 
@@ -249,7 +249,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   const float3 area_position_displaced = area_position + area_normal * -radius * 0.7f;
 
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_normal, ss.cache->grab_delta_symmetry);
+  mat.x_axis() = math::cross(area_normal, ss.cache->grab_delta_symm);
   mat.y_axis() = math::cross(area_normal, float3(mat[0]));
   mat.z_axis() = area_normal;
   mat.location() = area_position_displaced;

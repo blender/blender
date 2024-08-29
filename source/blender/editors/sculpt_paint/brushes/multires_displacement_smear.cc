@@ -54,7 +54,7 @@ static void calc_node(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal, subdiv_ccg, grids, factors);
+    calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
   }
 
   tls.distances.resize(positions.size());
@@ -86,13 +86,13 @@ static void calc_node(const Depsgraph &depsgraph,
         float3 current_disp;
         switch (brush.smear_deform_type) {
           case BRUSH_SMEAR_DEFORM_DRAG:
-            current_disp = cache.location - cache.last_location;
+            current_disp = cache.location_symm - cache.last_location_symm;
             break;
           case BRUSH_SMEAR_DEFORM_PINCH:
-            current_disp = cache.location - positions[node_vert_index];
+            current_disp = cache.location_symm - positions[node_vert_index];
             break;
           case BRUSH_SMEAR_DEFORM_EXPAND:
-            current_disp = positions[node_vert_index] - cache.location;
+            current_disp = positions[node_vert_index] - cache.location_symm;
             break;
         }
 

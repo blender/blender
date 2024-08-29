@@ -1251,7 +1251,7 @@ void pose_brush_init(const Depsgraph &depsgraph, Object &ob, SculptSession &ss, 
 {
   /* Init the IK chain that is going to be used to deform the vertices. */
   ss.cache->pose_ik_chain = ik_chain_init(
-      depsgraph, ob, ss, brush, ss.cache->true_location, ss.cache->radius);
+      depsgraph, ob, ss, brush, ss.cache->location, ss.cache->radius);
 
   /* Smooth the weights of each segment for cleaner deformation. */
   for (IKChainSegment &segment : ss.cache->pose_ik_chain->segments) {
@@ -1302,7 +1302,7 @@ static void calc_scale_deform(SculptSession &ss, const Brush &brush)
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->true_location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
 
   /* Solve the IK for the first segment to include rotation as part of scale if enabled. */
   if (!(brush.flag2 & BRUSH_POSE_USE_LOCK_ROTATION)) {
@@ -1330,7 +1330,7 @@ static void calc_rotate_deform(SculptSession &ss, const Brush &brush)
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
   /* Calculate the IK target. */
-  float3 ik_target = ss.cache->true_location + ss.cache->grab_delta + ik_chain.grab_delta_offset;
+  float3 ik_target = ss.cache->location + ss.cache->grab_delta + ik_chain.grab_delta_offset;
 
   /* Solve the IK positions. */
   solve_ik_chain(ik_chain, ik_target, brush.flag2 & BRUSH_POSE_IK_ANCHORED);
@@ -1360,7 +1360,7 @@ static void calc_squash_stretch_deform(SculptSession &ss, const Brush & /*brush*
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->true_location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
 
   float3 scale;
   scale[2] = calc_scale_from_grab_delta(ss, ik_target);
