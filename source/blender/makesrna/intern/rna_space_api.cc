@@ -71,7 +71,9 @@ static void rna_SpaceTextEditor_region_location_from_cursor(
   if (area) {
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     const int cursor_co[2] = {line, column};
-    ED_space_text_region_location_from_cursor(st, region, cursor_co, r_pixel_pos);
+    if (!ED_space_text_region_location_from_cursor(st, region, cursor_co, r_pixel_pos)) {
+      r_pixel_pos[0] = r_pixel_pos[1] = -1;
+    }
   }
 }
 
