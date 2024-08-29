@@ -18,6 +18,7 @@
 #  include <io.h>
 #endif
 
+#include "BLI_math_base.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -272,8 +273,8 @@ static int startffmpeg(ImBufAnim *anim)
     if (frame_rate.den != 0 && pFormatCtx->duration > 0) {
       double stream_sec = anim->duration_in_frames / av_q2d(frame_rate);
       double container_sec = pFormatCtx->duration / double(AV_TIME_BASE);
-      if (stream_sec > 4.0 * container_sec) {
-        /* The stream is significantly longer than the container duration, which is
+      if (blender::math::abs(stream_sec - container_sec) > container_sec / 3.0) {
+        /* The stream duration is significantly different than the container duration, which is
          * suspicious. */
         anim->duration_in_frames = 0;
       }
