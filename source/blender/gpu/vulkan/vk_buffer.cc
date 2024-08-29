@@ -71,7 +71,7 @@ bool VKBuffer::create(size_t size_in_bytes,
    * Vulkan doesn't allow empty buffers but some areas (DrawManager Instance data, PyGPU) create
    * them.
    */
-  create_info.size = max_ii(size_in_bytes, 1);
+  create_info.size = max_ulul(size_in_bytes, 1);
   create_info.usage = buffer_usage;
   /* We use the same command queue for the compute and graphics pipeline, so it is safe to use
    * exclusive resource handling. */
@@ -111,7 +111,7 @@ void VKBuffer::flush() const
 {
   const VKDevice &device = VKBackend::get().device;
   VmaAllocator allocator = device.mem_allocator_get();
-  vmaFlushAllocation(allocator, allocation_, 0, max_ii(size_in_bytes(), 1));
+  vmaFlushAllocation(allocator, allocation_, 0, max_ulul(size_in_bytes(), 1));
 }
 
 void VKBuffer::clear(VKContext &context, uint32_t clear_value)

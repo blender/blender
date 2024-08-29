@@ -87,7 +87,7 @@ VkDeviceSize VKImmediate::buffer_bytes_free()
 
 static VkDeviceSize new_buffer_size(size_t sub_buffer_size)
 {
-  return max_ii(sub_buffer_size, DEFAULT_INTERNAL_BUFFER_SIZE);
+  return max_ulul(sub_buffer_size, DEFAULT_INTERNAL_BUFFER_SIZE);
 }
 
 std::unique_ptr<VKBuffer> VKImmediate::create_resource(VKContext & /*context*/)
