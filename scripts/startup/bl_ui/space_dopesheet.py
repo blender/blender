@@ -253,7 +253,7 @@ class DOPESHEET_HT_editor_buttons:
                         layout.template_search(
                             adt, "action_slot",
                             adt, "action_slots",
-                            new="",
+                            new="anim.slot_new_for_object",
                             unlink="anim.slot_unassign_object",
                         )
 
