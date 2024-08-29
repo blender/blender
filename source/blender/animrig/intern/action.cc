@@ -482,15 +482,6 @@ Slot &Action::slot_add_for_id(const ID &animated_id)
   return slot;
 }
 
-Slot &Action::slot_ensure_for_id(const ID &animated_id)
-{
-  if (Slot *slot = this->find_suitable_slot_for(animated_id)) {
-    return *slot;
-  }
-
-  return this->slot_add_for_id(animated_id);
-}
-
 void Action::slot_active_set(const slot_handle_t slot_handle)
 {
   for (Slot *slot : slots()) {
@@ -912,6 +903,46 @@ bool assign_action(Action &action, ID &animated_id)
 
   Slot *slot = action.find_suitable_slot_for(animated_id);
   return action.assign_id(slot, animated_id);
+}
+
+Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
+{
+  Slot *slot;
+
+  /* Find a suitable slot, but be stricter when to allow searching by name than
+   * action.find_suitable_slot_for(animated_id). */
+  {
+    AnimData *adt = BKE_animdata_from_id(&animated_id);
+
+    if (adt && adt->action == &action) {
+      /* The slot handle is only valid when this action is already assigned.
+       * Otherwise it's meaningless. */
+      slot = action.slot_for_handle(adt->slot_handle);
+
+      /* If this Action is already assigned, a search by name is inappropriate, as it might
+       * re-assign an intentionally-unassigned slot. */
+    }
+    else {
+      /* Try the slot name from the AnimData, if it is set. */
+      if (adt && adt->slot_name[0]) {
+        slot = action.slot_find_by_name(adt->slot_name);
+      }
+      else {
+        /* As a last resort, search for the ID name. */
+        slot = action.slot_find_by_name(animated_id.name);
+      }
+    }
+  }
+
+  if (!slot || !slot->is_suitable_for(animated_id)) {
+    slot = &action.slot_add_for_id(animated_id);
+  }
+
+  if (!action.assign_id(slot, animated_id)) {
+    return nullptr;
+  }
+
+  return slot;
 }
 
 bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
@@ -1751,25 +1782,28 @@ FCurve *action_fcurve_ensure(Main *bmain,
      * cases at all, was leading to discussion of larger changes than made sense
      * to tackle at that point. */
     BLI_assert(ptr != nullptr);
-    if (ptr == nullptr) {
+    if (ptr == nullptr || ptr->owner_id == nullptr) {
       return nullptr;
     }
-    AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
-    BLI_assert(adt != nullptr && adt->action == act);
-    if (adt == nullptr || adt->action != act) {
+    ID &animated_id = *ptr->owner_id;
+    BLI_assert(get_action(animated_id) == &action);
+    if (get_action(animated_id) != &action) {
       return nullptr;
     }
 
     /* Ensure the id has an assigned slot. */
-    Slot &slot = action.slot_ensure_for_id(*ptr->owner_id);
-    action.assign_id(&slot, *ptr->owner_id);
+    Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
+    if (!slot) {
+      /* This means the ID type is not animatable. */
+      return nullptr;
+    }
 
     action.layer_keystrip_ensure();
 
     assert_baklava_phase_1_invariants(action);
     KeyframeStrip &strip = action.layer(0)->strip(0)->as<KeyframeStrip>();
 
-    return &strip.channelbag_for_slot_ensure(slot).fcurve_ensure(bmain, fcurve_descriptor);
+    return &strip.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
   }
 
   /* Try to find f-curve matching for this setting.

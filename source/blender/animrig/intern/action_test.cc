@@ -463,7 +463,7 @@ TEST_F(ActionLayersTest, active_slot)
   }
 
   { /* Single slot case. */
-    Slot &slot_cube = action->slot_ensure_for_id(cube->id);
+    Slot &slot_cube = *assign_action_ensure_slot_for_keying(*action, cube->id);
     EXPECT_EQ(nullptr, action->slot_active_get())
         << "Adding the first slot should not change what is the active slot.";
 
@@ -483,8 +483,8 @@ TEST_F(ActionLayersTest, active_slot)
     Slot &slot_cube = *action->slot(0);
     action->slot_active_set(slot_cube.handle);
 
-    Slot &slot_suz = action->slot_ensure_for_id(suzanne->id);
-    Slot &slot_bob = action->slot_ensure_for_id(bob->id);
+    Slot &slot_suz = *assign_action_ensure_slot_for_keying(*action, suzanne->id);
+    Slot &slot_bob = *assign_action_ensure_slot_for_keying(*action, bob->id);
     EXPECT_EQ(&slot_cube, action->slot_active_get())
         << "Adding a subsequent slot should not change what is the active slot.";
     EXPECT_TRUE(slot_cube.is_active());

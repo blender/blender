@@ -200,26 +200,6 @@ class Action : public ::bAction {
   Slot &slot_add_for_id(const ID &animated_id);
 
   /**
-   * Ensure that an appropriate Slot exists for the given ID.
-   *
-   * If a suitable Slot can be found, that Slot is returned.  Otherwise,
-   * one is created.
-   *
-   * This is essentially a wrapper for `find_suitable_slot_for()` and
-   * `slot_add_for_id()`, and follows their semantics. Notably, like both of
-   * those methods, this Action does not need to already be assigned to the ID.
-   * And like `find_suitable_slot_for()`, if this Action *is* already
-   * assigned to the ID with a valid Slot, that Slot is returned.
-   *
-   * Note that this assigns neither this Action nor the Slot to the ID. This
-   * merely ensures that an appropriate Slot exists.
-   *
-   * \see `Action::find_suitable_slot_for()`
-   * \see `Action::slot_add_for_id()`
-   */
-  Slot &slot_ensure_for_id(const ID &animated_id);
-
-  /**
    * Set the active Slot, ensuring only one Slot is flagged as the Active one.
    *
    * \param slot_handle if Slot::unassigned, there will not be any active slot.
@@ -934,6 +914,24 @@ static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
  * will still return `true` as the Action was successfully assigned.
  */
 bool assign_action(Action &action, ID &animated_id);
+
+/**
+ * Assign the Action, ensuring that a Slot is also assigned.
+ *
+ * If this Action happens to already be assigned, and a Slot is assigned too, that Slot is
+ * returned. Otherwise a new Slot is created + assigned.
+ *
+ * \returns the assigned slot if the assignment was succesful, or `nullptr` otherwise. The only
+ * reason the assignment can fail is when the given ID is of an animatable type.
+ *
+ * \note Contrary to `assign_action()` this skips the search by slot name when the Action is
+ * already assigned. It should be possible for an animator to un-assign a slot, then create a new
+ * slot by inserting a new key. This shouldn't auto-assign the old slot (by name) and _then_ insert
+ * the key.
+ *
+ * \see assign_action()
+ */
+Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id);
 
 /**
  * Return whether the given Action can be assigned to the ID.
