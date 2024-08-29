@@ -22,8 +22,7 @@ static const char *GetApplicationSupportDir(const char *versionstr,
                                             const std::size_t len_tempPath)
 {
   @autoreleasepool {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(
-        NSApplicationSupportDirectory, mask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, mask, YES);
 
     if ([paths count] == 0) {
       return nullptr;
@@ -86,8 +85,7 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
         return nullptr;
     }
 
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(
-        ns_directory, NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(ns_directory, NSUserDomainMask, YES);
     if ([paths count] == 0) {
       return nullptr;
     }
