@@ -652,7 +652,7 @@ void ED_spacetype_nla(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
-  art->keymapflag = ED_KEYMAP_UI;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = nla_region_listener;
   art->init = nla_buttons_region_init;
   art->draw = nla_buttons_region_draw;
