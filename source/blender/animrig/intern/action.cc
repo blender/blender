@@ -1394,6 +1394,7 @@ ChannelBag::ChannelBag(const ChannelBag &other)
   for (int i = 0; i < other.group_array_num; i++) {
     const bActionGroup *group_src = other.group_array[i];
     this->group_array[i] = static_cast<bActionGroup *>(MEM_dupallocN(group_src));
+    this->group_array[i]->channel_bag = this;
   }
 }
 
