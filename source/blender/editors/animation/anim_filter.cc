@@ -1597,31 +1597,40 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   const bool visible_only = (filter_mode & ANIMFILTER_LIST_VISIBLE);
   const bool expansion_is_ok = !visible_only || !show_slot_channel || slot.is_expanded();
 
-  if (show_fcurves_only || expansion_is_ok) {
-    animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(action, slot.handle);
-    if (channel_bag == nullptr) {
-      return items;
+  animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(action, slot.handle);
+  if (channel_bag == nullptr) {
+    return items;
+  }
+
+  if (show_fcurves_only) {
+    Span<FCurve *> fcurves = channel_bag->fcurves();
+    items += animfilter_fcurves_span(
+        ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
+    return items;
+  }
+
+  if (!expansion_is_ok) {
+    return items;
+  }
+
+  /* Add channel groups and their member channels. */
+  for (bActionGroup *group : channel_bag->channel_groups()) {
+    items += animfilter_act_group(
+        ac, anim_data, &action, slot.handle, group, filter_mode, animated_id);
+  }
+
+  /* Add ungrouped channels. */
+  if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
+    int first_ungrouped_fcurve_index = 0;
+    if (!channel_bag->channel_groups().is_empty()) {
+      const bActionGroup *last_group = channel_bag->channel_groups().last();
+      first_ungrouped_fcurve_index = last_group->fcurve_range_start +
+                                     last_group->fcurve_range_length;
     }
 
-    /* Add channel groups and their member channels. */
-    for (bActionGroup *group : channel_bag->channel_groups()) {
-      items += animfilter_act_group(
-          ac, anim_data, &action, slot.handle, group, filter_mode, animated_id);
-    }
-
-    /* Add ungrouped channels. */
-    if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
-      int first_ungrouped_fcurve_index = 0;
-      if (!channel_bag->channel_groups().is_empty()) {
-        const bActionGroup *last_group = channel_bag->channel_groups().last();
-        first_ungrouped_fcurve_index = last_group->fcurve_range_start +
-                                       last_group->fcurve_range_length;
-      }
-
-      Span<FCurve *> fcurves = channel_bag->fcurves().drop_front(first_ungrouped_fcurve_index);
-      items += animfilter_fcurves_span(
-          ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
-    }
+    Span<FCurve *> fcurves = channel_bag->fcurves().drop_front(first_ungrouped_fcurve_index);
+    items += animfilter_fcurves_span(
+        ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
   }
 
   return items;
