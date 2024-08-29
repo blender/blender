@@ -67,12 +67,13 @@ static bool is_vertex_in_id(BMVert *v, const int *elem_id, int elem)
 
 static bool is_vertex_pole_three(BMVert *v)
 {
-  return !BM_vert_is_boundary(v) && (BM_vert_edge_count(v) == 3);
+  return !BM_vert_is_boundary(v) && (BM_vert_edge_count_is_equal(v, 3));
 }
 
 static bool is_vertex_pole(BMVert *v)
 {
-  return !BM_vert_is_boundary(v) && (BM_vert_edge_count(v) == 3 || BM_vert_edge_count(v) >= 5);
+  return !BM_vert_is_boundary(v) &&
+         (BM_vert_edge_count_is_equal(v, 3) || BM_vert_edge_count_is_over(v, 4));
 }
 
 /**
@@ -106,30 +107,20 @@ static BMVert *unsubdivide_find_any_pole(BMesh *bm, int *elem_id, int elem)
 static bool unsubdivide_is_all_quads(BMesh *bm)
 {
   BMIter iter;
-  BMIter iter_a;
   BMFace *f;
   BMVert *v;
-  int count = 0;
   if (bm->totface < 3) {
     return false;
   }
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    count = 0;
-    BM_ITER_ELEM (v, &iter_a, f, BM_VERTS_OF_FACE) {
-      count++;
-    }
-
-    if (count != 4) {
+    if (f->len != 4) {
       return false;
     }
   }
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_vert_is_wire(v)) {
-      return false;
-    }
-    if (BM_vert_edge_count(v) == 0) {
+    if (BM_vert_is_wire(v) || (v->e == nullptr)) {
       return false;
     }
   }
@@ -924,9 +915,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
   BMesh *bm_original_mesh = context->bm_original_mesh = get_bmesh_from_mesh(original_mesh);
 
   /* Initialize the elem tables. */
-  BM_mesh_elem_table_ensure(bm_original_mesh, BM_EDGE);
-  BM_mesh_elem_table_ensure(bm_original_mesh, BM_FACE);
-  BM_mesh_elem_table_ensure(bm_original_mesh, BM_VERT);
+  BM_mesh_elem_table_ensure(bm_original_mesh, BM_VERT | BM_EDGE | BM_FACE);
 
   /* Disable all flags. */
   BM_mesh_elem_hflag_disable_all(bm_original_mesh,
@@ -1021,8 +1010,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   BMVert *v;
   BMLoop *l, *lb;
 
-  BM_mesh_elem_table_ensure(bm_base_mesh, BM_VERT);
-  BM_mesh_elem_table_ensure(bm_base_mesh, BM_FACE);
+  BM_mesh_elem_table_ensure(bm_base_mesh, BM_VERT | BM_FACE);
 
   /* Get the data-layer that contains the loops indices. */
   const int base_l_offset = CustomData_get_offset_named(
