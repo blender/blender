@@ -306,6 +306,9 @@ struct CollectionEditData {
   /* Whether the processed operation should be allowed on hierarchy roots of liboverride
    * collections, or not. */
   bool is_liboverride_hierarchy_root_allowed;
+  /* When true, do not skip the hierarchy of children when a parent collection is selected. This is
+   * useful for deleting selected child collections, see: #126860. */
+  bool is_recursive = false;
 };
 
 static TreeTraversalAction collection_collect_data_to_edit(TreeElement *te, void *customdata)
@@ -339,7 +342,7 @@ static TreeTraversalAction collection_collect_data_to_edit(TreeElement *te, void
   /* Delete, duplicate and link don't edit children, those will come along
    * with the parents. */
   BLI_gset_add(data->collections_to_edit, collection);
-  return TRAVERSE_SKIP_CHILDS;
+  return data->is_recursive ? TRAVERSE_CONTINUE : TRAVERSE_SKIP_CHILDS;
 }
 
 void outliner_collection_delete(
@@ -352,6 +355,7 @@ void outliner_collection_delete(
   data.space_outliner = space_outliner;
   data.is_liboverride_allowed = false;
   data.is_liboverride_hierarchy_root_allowed = do_hierarchy;
+  data.is_recursive = !do_hierarchy;
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
