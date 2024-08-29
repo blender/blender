@@ -1253,8 +1253,7 @@ struct ImageOpenData {
 static void image_open_init(bContext *C, wmOperator *op)
 {
   ImageOpenData *iod;
-  op->customdata = iod = static_cast<ImageOpenData *>(
-      MEM_callocN(sizeof(ImageOpenData), __func__));
+  op->customdata = iod = MEM_new<ImageOpenData>(__func__);
   iod->iuser = static_cast<ImageUser *>(
       CTX_data_pointer_get_type(C, "image_user", &RNA_ImageUser).data);
   UI_context_active_but_prop_get_templateID(C, &iod->pprop.ptr, &iod->pprop.prop);
@@ -1262,8 +1261,9 @@ static void image_open_init(bContext *C, wmOperator *op)
 
 static void image_open_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_freeN(op->customdata);
+  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   op->customdata = nullptr;
+  MEM_delete(iod);
 }
 
 static Image *image_open_single(Main *bmain,
@@ -1442,7 +1442,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
-  MEM_freeN(op->customdata);
+  op->customdata = nullptr;
+  MEM_delete(iod);
 
   return OPERATOR_FINISHED;
 }

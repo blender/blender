@@ -70,7 +70,7 @@ static void buttons_texture_user_socket_property_add(ListBase *users,
                                                      int icon,
                                                      const char *name)
 {
-  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
+  ButsTextureUser *user = MEM_new<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ptr = ptr;
@@ -94,7 +94,7 @@ static void buttons_texture_user_property_add(ListBase *users,
                                               int icon,
                                               const char *name)
 {
-  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
+  ButsTextureUser *user = MEM_new<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ptr = ptr;
@@ -117,7 +117,7 @@ static void buttons_texture_user_node_add(ListBase *users,
                                           int icon,
                                           const char *name)
 {
-  ButsTextureUser *user = MEM_cnew<ButsTextureUser>("ButsTextureUser");
+  ButsTextureUser *user = MEM_new<ButsTextureUser>("ButsTextureUser");
 
   user->id = id;
   user->ntree = ntree;
@@ -362,7 +362,10 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
     sbuts->texuser = ct;
   }
   else {
-    BLI_freelistN(&ct->users);
+    LISTBASE_FOREACH_MUTABLE (ButsTextureUser *, user, &ct->users) {
+      MEM_delete(user);
+    }
+    BLI_listbase_clear(&ct->users);
   }
 
   buttons_texture_users_from_context(&ct->users, C, sbuts);
