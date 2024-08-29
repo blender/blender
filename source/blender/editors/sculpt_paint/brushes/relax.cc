@@ -106,7 +106,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
                                             const float strength,
                                             const bool relax_face_sets,
                                             const Object &object,
-                                            const bke::pbvh::Node &node,
+                                            const bke::pbvh::MeshNode &node,
                                             MeshLocalData &tls,
                                             const MutableSpan<float> factors)
 {
@@ -144,11 +144,12 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                                           const Sculpt &sd,
                                           const Brush &brush,
                                           Object &object,
-                                          const Span<bke::pbvh::Node *> nodes,
+                                          const IndexMask &node_mask,
                                           const float strength,
                                           const bool relax_face_sets)
 {
   const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -160,15 +161,16 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
-  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(nodes, node_offset_data);
+  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
+      nodes, node_mask, node_offset_data);
 
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<MeshLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     MeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_factors_faces(depsgraph,
                          brush,
                          positions_eval,
@@ -176,15 +178,15 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                          strength,
                          relax_face_sets,
                          object,
-                         *nodes[i],
+                         nodes[i],
                          tls,
                          factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     MeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_faces(
           positions_eval,
           vert_normals,
@@ -195,23 +197,21 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
           ss.face_sets,
           hide_poly,
           relax_face_sets,
-          bke::pbvh::node_unique_verts(*nodes[i]),
+          bke::pbvh::node_unique_verts(nodes[i]),
           factors.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_faces(depsgraph,
-                            sd,
-                            positions_eval,
-                            bke::pbvh::node_unique_verts(*nodes[i]),
-                            object,
-                            translations.as_mutable_span().slice(node_vert_offsets[i]),
-                            positions_orig);
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_faces(depsgraph,
+                          sd,
+                          positions_eval,
+                          bke::pbvh::node_unique_verts(nodes[i]),
+                          object,
+                          translations.as_mutable_span().slice(node_vert_offsets[i]),
+                          positions_orig);
   });
 }
 
@@ -219,7 +219,7 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
                                             const Brush &brush,
                                             const Span<int> corner_verts,
                                             const OffsetIndices<int> faces,
-                                            const bke::pbvh::Node &node,
+                                            const bke::pbvh::GridsNode &node,
                                             const float strength,
                                             const bool relax_face_sets,
                                             Object &object,
@@ -270,11 +270,12 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
                                            const Sculpt &sd,
                                            const Brush &brush,
                                            Object &object,
-                                           const Span<bke::pbvh::Node *> nodes,
+                                           const IndexMask &node_mask,
                                            const float strength,
                                            const bool relax_face_sets)
 {
   const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -286,33 +287,33 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
-      nodes, key, node_offset_data);
+      key, nodes, node_mask, node_offset_data);
 
   Array<float3> current_positions(node_vert_offsets.total_size());
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_factors_grids(depsgraph,
                          brush,
                          corner_verts,
                          faces,
-                         *nodes[i],
+                         nodes[i],
                          strength,
                          relax_face_sets,
                          object,
                          tls,
                          current_positions.as_mutable_span().slice(node_vert_offsets[i]),
                          factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_grids(
           subdiv_ccg,
           faces,
@@ -320,30 +321,28 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
           ss.face_sets,
           ss.vert_to_face_map,
           ss.vertex_info.boundary,
-          bke::pbvh::node_grid_indices(*nodes[i]),
+          bke::pbvh::node_grid_indices(nodes[i]),
           relax_face_sets,
           factors.as_span().slice(node_vert_offsets[i]),
           current_positions.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_grids(sd,
-                            bke::pbvh::node_grid_indices(*nodes[i]),
-                            object,
-                            current_positions.as_mutable_span().slice(node_vert_offsets[i]),
-                            translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_grids(sd,
+                          bke::pbvh::node_grid_indices(nodes[i]),
+                          object,
+                          current_positions.as_mutable_span().slice(node_vert_offsets[i]),
+                          translations.as_mutable_span().slice(node_vert_offsets[i]));
   });
 }
 
 static void calc_factors_bmesh(const Depsgraph &depsgraph,
                                Object &object,
                                const Brush &brush,
-                               bke::pbvh::Node &node,
+                               bke::pbvh::BMeshNode &node,
                                const float strength,
                                const bool relax_face_sets,
                                BMeshLocalData &tls,
@@ -382,55 +381,55 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
                                            const Sculpt &sd,
                                            const Brush &brush,
                                            Object &object,
-                                           const Span<bke::pbvh::Node *> nodes,
+                                           const IndexMask &node_mask,
                                            const float strength,
                                            const bool relax_face_sets)
 {
+  SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
   Array<int> node_offset_data;
-  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(nodes,
-                                                                              node_offset_data);
+  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
+      nodes, node_mask, node_offset_data);
 
   Array<float3> current_positions(node_vert_offsets.total_size());
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<BMeshLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     BMeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_factors_bmesh(depsgraph,
                          object,
                          brush,
-                         *nodes[i],
+                         nodes[i],
                          strength,
                          relax_face_sets,
                          tls,
                          current_positions.as_mutable_span().slice(node_vert_offsets[i]),
                          factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     BMeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_bmesh(
-          BKE_pbvh_bmesh_node_unique_verts(nodes[i]),
+          BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
           current_positions.as_mutable_span().slice(node_vert_offsets[i]),
           relax_face_sets,
           factors.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_bmesh(sd,
-                            BKE_pbvh_bmesh_node_unique_verts(nodes[i]),
-                            object,
-                            translations.as_mutable_span().slice(node_vert_offsets[i]),
-                            current_positions.as_span().slice(node_vert_offsets[i]));
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_bmesh(sd,
+                          BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
+                          object,
+                          translations.as_mutable_span().slice(node_vert_offsets[i]),
+                          current_positions.as_span().slice(node_vert_offsets[i]));
   });
 }
 
@@ -443,7 +442,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_faces(const Depsgraph &deps
                                                            const Brush &brush,
                                                            const float strength,
                                                            const Object &object,
-                                                           const bke::pbvh::Node &node,
+                                                           const bke::pbvh::MeshNode &node,
                                                            MeshLocalData &tls,
                                                            const MutableSpan<float> factors)
 {
@@ -479,10 +478,11 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
                                          const Sculpt &sd,
                                          const Brush &brush,
                                          Object &object,
-                                         const Span<bke::pbvh::Node *> nodes,
+                                         const IndexMask &node_mask,
                                          const float strength)
 {
   const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -494,28 +494,29 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
-  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(nodes, node_offset_data);
+  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
+      nodes, node_mask, node_offset_data);
 
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<MeshLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     MeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_topology_relax_factors_faces(depsgraph,
                                         brush,
                                         strength,
                                         object,
-                                        *nodes[i],
+                                        nodes[i],
                                         tls,
                                         factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     MeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_faces(
           positions_eval,
           vert_normals,
@@ -526,23 +527,21 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
           ss.face_sets,
           hide_poly,
           false,
-          bke::pbvh::node_unique_verts(*nodes[i]),
+          bke::pbvh::node_unique_verts(nodes[i]),
           factors.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_faces(depsgraph,
-                            sd,
-                            positions_eval,
-                            bke::pbvh::node_unique_verts(*nodes[i]),
-                            object,
-                            translations.as_mutable_span().slice(node_vert_offsets[i]),
-                            positions_orig);
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_faces(depsgraph,
+                          sd,
+                          positions_eval,
+                          bke::pbvh::node_unique_verts(nodes[i]),
+                          object,
+                          translations.as_mutable_span().slice(node_vert_offsets[i]),
+                          positions_orig);
   });
 }
 
@@ -550,7 +549,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &deps
                                                            const Brush &brush,
                                                            const float strength,
                                                            const Object &object,
-                                                           const bke::pbvh::Node &node,
+                                                           const bke::pbvh::GridsNode &node,
                                                            GridLocalData &tls,
                                                            const MutableSpan<float3> positions,
                                                            const MutableSpan<float> factors)
@@ -591,10 +590,11 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
                                           const Sculpt &sd,
                                           const Brush &brush,
                                           Object &object,
-                                          const Span<bke::pbvh::Node *> nodes,
+                                          const IndexMask &node_mask,
                                           const float strength)
 {
   const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -606,31 +606,31 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
-      nodes, key, node_offset_data);
+      key, nodes, node_mask, node_offset_data);
 
   Array<float3> current_positions(node_vert_offsets.total_size());
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_topology_relax_factors_grids(
           depsgraph,
           brush,
           strength,
           object,
-          *nodes[i],
+          nodes[i],
           tls,
           current_positions.as_mutable_span().slice(node_vert_offsets[i]),
           factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_grids(
           subdiv_ccg,
           faces,
@@ -638,30 +638,28 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
           ss.face_sets,
           ss.vert_to_face_map,
           ss.vertex_info.boundary,
-          bke::pbvh::node_grid_indices(*nodes[i]),
+          bke::pbvh::node_grid_indices(nodes[i]),
           false,
           factors.as_span().slice(node_vert_offsets[i]),
           current_positions.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_grids(sd,
-                            bke::pbvh::node_grid_indices(*nodes[i]),
-                            object,
-                            current_positions.as_mutable_span().slice(node_vert_offsets[i]),
-                            translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_grids(sd,
+                          bke::pbvh::node_grid_indices(nodes[i]),
+                          object,
+                          current_positions.as_mutable_span().slice(node_vert_offsets[i]),
+                          translations.as_mutable_span().slice(node_vert_offsets[i]));
   });
 }
 
 static void calc_topology_relax_factors_bmesh(const Depsgraph &depsgraph,
                                               Object &object,
                                               const Brush &brush,
-                                              bke::pbvh::Node &node,
+                                              bke::pbvh::BMeshNode &node,
                                               const float strength,
                                               BMeshLocalData &tls,
                                               MutableSpan<float3> positions,
@@ -702,54 +700,55 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
                                           const Sculpt &sd,
                                           const Brush &brush,
                                           Object &object,
-                                          const Span<bke::pbvh::Node *> nodes,
+                                          const IndexMask &node_mask,
                                           const float strength)
 {
+  const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+
   Array<int> node_offset_data;
-  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(nodes,
-                                                                              node_offset_data);
+  const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
+      nodes, node_mask, node_offset_data);
 
   Array<float3> current_positions(node_vert_offsets.total_size());
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
 
   threading::EnumerableThreadSpecific<BMeshLocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     BMeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       calc_topology_relax_factors_bmesh(
           depsgraph,
           object,
           brush,
-          *nodes[i],
+          nodes[i],
           strength,
           tls,
           current_positions.as_mutable_span().slice(node_vert_offsets[i]),
           factors.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     BMeshLocalData &tls = all_tls.local();
-    for (const int i : range) {
+    node_mask.slice(range).foreach_index([&](const int i) {
       smooth::calc_relaxed_translations_bmesh(
-          BKE_pbvh_bmesh_node_unique_verts(nodes[i]),
+          BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
           current_positions.as_mutable_span().slice(node_vert_offsets[i]),
           false,
           factors.as_span().slice(node_vert_offsets[i]),
           tls.vert_neighbors,
           translations.as_mutable_span().slice(node_vert_offsets[i]));
-    }
+    });
   });
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      apply_positions_bmesh(sd,
-                            BKE_pbvh_bmesh_node_unique_verts(nodes[i]),
-                            object,
-                            translations.as_mutable_span().slice(node_vert_offsets[i]),
-                            current_positions.as_span().slice(node_vert_offsets[i]));
-    }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    apply_positions_bmesh(sd,
+                          BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
+                          object,
+                          translations.as_mutable_span().slice(node_vert_offsets[i]),
+                          current_positions.as_span().slice(node_vert_offsets[i]));
   });
 }
 /** \} */
@@ -759,7 +758,7 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
 void do_relax_face_sets_brush(const Depsgraph &depsgraph,
                               const Sculpt &sd,
                               Object &object,
-                              Span<bke::pbvh::Node *> nodes)
+                              const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -776,15 +775,15 @@ void do_relax_face_sets_brush(const Depsgraph &depsgraph,
     switch (ss.pbvh->type()) {
       case bke::pbvh::Type::Mesh:
         do_relax_face_sets_brush_mesh(
-            depsgraph, sd, brush, object, nodes, strength * strength, relax_face_sets);
+            depsgraph, sd, brush, object, node_mask, strength * strength, relax_face_sets);
         break;
       case bke::pbvh::Type::Grids:
         do_relax_face_sets_brush_grids(
-            depsgraph, sd, brush, object, nodes, strength * strength, relax_face_sets);
+            depsgraph, sd, brush, object, node_mask, strength * strength, relax_face_sets);
         break;
       case bke::pbvh::Type::BMesh:
         do_relax_face_sets_brush_bmesh(
-            depsgraph, sd, brush, object, nodes, strength * strength, relax_face_sets);
+            depsgraph, sd, brush, object, node_mask, strength * strength, relax_face_sets);
         break;
     }
   }
@@ -793,7 +792,7 @@ void do_relax_face_sets_brush(const Depsgraph &depsgraph,
 void do_topology_relax_brush(const Depsgraph &depsgraph,
                              const Sculpt &sd,
                              Object &object,
-                             Span<bke::pbvh::Node *> nodes)
+                             const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const SculptSession &ss = *object.sculpt;
@@ -809,13 +808,13 @@ void do_topology_relax_brush(const Depsgraph &depsgraph,
   for (int i = 0; i < 4; i++) {
     switch (ss.pbvh->type()) {
       case bke::pbvh::Type::Mesh:
-        do_topology_relax_brush_mesh(depsgraph, sd, brush, object, nodes, strength);
+        do_topology_relax_brush_mesh(depsgraph, sd, brush, object, node_mask, strength);
         break;
       case bke::pbvh::Type::Grids:
-        do_topology_relax_brush_grids(depsgraph, sd, brush, object, nodes, strength);
+        do_topology_relax_brush_grids(depsgraph, sd, brush, object, node_mask, strength);
         break;
       case bke::pbvh::Type::BMesh:
-        do_topology_relax_brush_bmesh(depsgraph, sd, brush, object, nodes, strength);
+        do_topology_relax_brush_bmesh(depsgraph, sd, brush, object, node_mask, strength);
         break;
     }
   }

@@ -50,7 +50,7 @@ static void calc_node(const Depsgraph &depsgraph,
                       Object &object,
                       const Brush &brush,
                       const float strength,
-                      bke::pbvh::Node &node,
+                      bke::pbvh::GridsNode &node,
                       LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -97,18 +97,18 @@ static void calc_node(const Depsgraph &depsgraph,
 void do_displacement_eraser_brush(const Depsgraph &depsgraph,
                                   const Sculpt &sd,
                                   Object &object,
-                                  Span<bke::pbvh::Node *> nodes)
+                                  const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = std::min(ss.cache->bstrength, 1.0f);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    for (const int i : range) {
-      calc_node(depsgraph, sd, object, brush, strength, *nodes[i], tls);
-    }
+    node_mask.slice(range).foreach_index(
+        [&](const int i) { calc_node(depsgraph, sd, object, brush, strength, nodes[i], tls); });
   });
 }
 

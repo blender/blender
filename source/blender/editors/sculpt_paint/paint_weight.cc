@@ -1064,15 +1064,16 @@ static void precompute_weight_values(
  * \{ */
 
 static void parallel_nodes_loop_with_mirror_check(const Mesh &mesh,
-                                                  const Span<blender::bke::pbvh::Node *> nodes,
+                                                  const IndexMask &node_mask,
                                                   FunctionRef<void(IndexRange)> fn)
 {
   /* NOTE: current mirroring code cannot be run in parallel */
   if (ME_USING_MIRROR_X_VERTEX_GROUPS(&mesh)) {
-    fn(nodes.index_range());
+    fn(node_mask.index_range());
   }
   else {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) { fn(range); });
+    threading::parallel_for(
+        node_mask.index_range(), 1, [&](const IndexRange range) { fn(range); });
   }
 }
 
@@ -1097,10 +1098,11 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
                                  WPaintData &wpd,
                                  const WeightPaintInfo &wpi,
                                  Mesh &mesh,
-                                 const Span<blender::bke::pbvh::Node *> nodes)
+                                 const IndexMask &node_mask)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
 
@@ -1130,10 +1132,10 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+  parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    for (const int i : range) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+    node_mask.slice(range).foreach_index([&](const int i) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1192,7 +1194,7 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
         weight_final /= total_hit_loops;
         do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, weight_final);
       }
-    }
+    });
   });
 }
 
@@ -1204,10 +1206,11 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
                                   WPaintData &wpd,
                                   const WeightPaintInfo &wpi,
                                   Mesh &mesh,
-                                  const Span<blender::bke::pbvh::Node *> nodes)
+                                  const IndexMask &node_mask)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache &cache = *ss.cache;
   if (!cache.is_last_valid) {
@@ -1247,10 +1250,10 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+  parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    for (const int i : range) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+    node_mask.slice(range).foreach_index([&](const int i) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1317,7 +1320,7 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
           do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, float(weight_final));
         }
       }
-    }
+    });
   });
 }
 
@@ -1330,10 +1333,11 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
                                  const WeightPaintInfo &wpi,
                                  Mesh &mesh,
                                  const float strength,
-                                 const Span<blender::bke::pbvh::Node *> nodes)
+                                 const IndexMask &node_mask)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
 
   const StrokeCache &cache = *ss.cache;
   /* NOTE: normally `BKE_brush_weight_get(scene, brush)` is used,
@@ -1363,10 +1367,10 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  parallel_nodes_loop_with_mirror_check(mesh, nodes, [&](const IndexRange range) {
+  parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    for (const int i : range) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+    node_mask.slice(range).foreach_index([&](const int i) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1408,7 +1412,7 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
 
         do_weight_paint_vertex(vp, ob, wpi, vert, final_alpha, paintweight);
       }
-    }
+    });
   });
 }
 
@@ -1418,10 +1422,11 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
                                       const Brush &brush,
                                       const VPaint &vp,
                                       WeightPaintInfo &wpi,
-                                      const Span<blender::bke::pbvh::Node *> nodes)
+                                      const IndexMask &node_mask)
 {
   using namespace blender;
   SculptSession &ss = *ob.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
 
   const bool use_normal = vwpaint::use_normal(vp);
@@ -1446,13 +1451,13 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   const WPaintAverageAccum value = threading::parallel_reduce(
-      nodes.index_range(),
+      node_mask.index_range(),
       1,
       WPaintAverageAccum{},
       [&](const IndexRange range, WPaintAverageAccum accum) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(*nodes[i]);
+        node_mask.slice(range).foreach_index([&](const int i) {
+          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide(mesh, verts, factors);
@@ -1482,7 +1487,7 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
             accum.len++;
             accum.value += wpaint_get_active_weight(dv, wpi);
           }
-        }
+        });
         return accum;
       },
       [](const WPaintAverageAccum &a, const WPaintAverageAccum &b) {
@@ -1497,7 +1502,7 @@ static void wpaint_paint_leaves(bContext *C,
                                 WPaintData &wpd,
                                 WeightPaintInfo &wpi,
                                 Mesh &mesh,
-                                const Span<blender::bke::pbvh::Node *> nodes)
+                                const IndexMask &node_mask)
 {
   const Scene &scene = *CTX_data_scene(C);
   const Brush &brush = *ob.sculpt->cache->brush;
@@ -1505,23 +1510,24 @@ static void wpaint_paint_leaves(bContext *C,
 
   switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
     case WPAINT_TOOL_AVERAGE: {
-      do_wpaint_brush_draw(depsgraph,
-                           scene,
-                           ob,
-                           brush,
-                           vp,
-                           wpd,
-                           wpi,
-                           mesh,
-                           calculate_average_weight(depsgraph, ob, mesh, brush, vp, wpi, nodes),
-                           nodes);
+      do_wpaint_brush_draw(
+          depsgraph,
+          scene,
+          ob,
+          brush,
+          vp,
+          wpd,
+          wpi,
+          mesh,
+          calculate_average_weight(depsgraph, ob, mesh, brush, vp, wpi, node_mask),
+          node_mask);
       break;
     }
     case WPAINT_TOOL_SMEAR:
-      do_wpaint_brush_smear(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      do_wpaint_brush_smear(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, node_mask);
       break;
     case WPAINT_TOOL_BLUR:
-      do_wpaint_brush_blur(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, nodes);
+      do_wpaint_brush_blur(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, node_mask);
       break;
     case WPAINT_TOOL_DRAW:
       do_wpaint_brush_draw(depsgraph,
@@ -1533,7 +1539,7 @@ static void wpaint_paint_leaves(bContext *C,
                            wpi,
                            mesh,
                            BKE_brush_weight_get(&scene, &brush),
-                           nodes);
+                           node_mask);
       break;
   }
 }
@@ -1701,10 +1707,10 @@ static void wpaint_do_paint(bContext *C,
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
-  Vector<blender::bke::pbvh::Node *> nodes = vwpaint::pbvh_gather_generic(
-      depsgraph, ob, wp, brush);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, wp, brush, memory);
 
-  wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, nodes);
+  wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, node_mask);
 }
 
 static void wpaint_do_radial_symmetry(bContext *C,

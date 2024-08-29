@@ -192,7 +192,7 @@ static void transform_node_mesh(const Depsgraph &depsgraph,
                                 const Sculpt &sd,
                                 const std::array<float4x4, 8> &transform_mats,
                                 const Span<float3> positions_eval,
-                                const bke::pbvh::Node &node,
+                                const bke::pbvh::MeshNode &node,
                                 Object &object,
                                 TransformLocalData &tls,
                                 const MutableSpan<float3> positions_orig)
@@ -219,7 +219,7 @@ static void transform_node_mesh(const Depsgraph &depsgraph,
 
 static void transform_node_grids(const Sculpt &sd,
                                  const std::array<float4x4, 8> &transform_mats,
-                                 const bke::pbvh::Node &node,
+                                 const bke::pbvh::GridsNode &node,
                                  Object &object,
                                  TransformLocalData &tls)
 {
@@ -251,7 +251,7 @@ static void transform_node_grids(const Sculpt &sd,
 
 static void transform_node_bmesh(const Sculpt &sd,
                                  const std::array<float4x4, 8> &transform_mats,
-                                 bke::pbvh::Node &node,
+                                 bke::pbvh::BMeshNode &node,
                                  Object &object,
                                  TransformLocalData &tls)
 {
@@ -293,41 +293,44 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
   bke::pbvh::Tree &pbvh = *ss.pbvh;
-  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
+  const IndexMask &node_mask = ss.filter_cache->node_mask;
 
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_mesh(
-              depsgraph, sd, transform_mats, positions_eval, *nodes[i], ob, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+              depsgraph, sd, transform_mats, positions_eval, nodes[i], ob, tls, positions_orig);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
-        for (const int i : range) {
-          transform_node_grids(sd, transform_mats, *nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          transform_node_grids(sd, transform_mats, nodes[i], ob, tls);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
     case bke::pbvh::Type::BMesh: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
-        for (const int i : range) {
-          transform_node_bmesh(sd, transform_mats, *nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          transform_node_bmesh(sd, transform_mats, nodes[i], ob, tls);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
@@ -361,7 +364,7 @@ static void elastic_transform_node_mesh(const Depsgraph &depsgraph,
                                         const float4x4 &elastic_transform_mat,
                                         const float3 &elastic_transform_pivot,
                                         const Span<float3> positions_eval,
-                                        const bke::pbvh::Node &node,
+                                        const bke::pbvh::MeshNode &node,
                                         Object &object,
                                         TransformLocalData &tls,
                                         const MutableSpan<float3> positions_orig)
@@ -391,7 +394,7 @@ static void elastic_transform_node_grids(const Sculpt &sd,
                                          const KelvinletParams &params,
                                          const float4x4 &elastic_transform_mat,
                                          const float3 &elastic_transform_pivot,
-                                         const bke::pbvh::Node &node,
+                                         const bke::pbvh::GridsNode &node,
                                          Object &object,
                                          TransformLocalData &tls)
 {
@@ -422,7 +425,7 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
                                          const KelvinletParams &params,
                                          const float4x4 &elastic_transform_mat,
                                          const float3 &elastic_transform_pivot,
-                                         bke::pbvh::Node &node,
+                                         bke::pbvh::BMeshNode &node,
                                          Object &object,
                                          TransformLocalData &tls)
 {
@@ -462,7 +465,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
       ss, symm, ss.filter_cache->transform_displacement_mode);
 
   bke::pbvh::Tree &pbvh = *ss.pbvh;
-  const Span<bke::pbvh::Node *> nodes = ss.filter_cache->nodes;
+  const IndexMask &node_mask = ss.filter_cache->node_mask;
 
   KelvinletParams params;
   /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
@@ -485,46 +488,49 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     float4x4 elastic_transform_mat = transform_mats[symm_area];
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
         Mesh &mesh = *static_cast<Mesh *>(ob.data);
         const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
         MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
-          for (const int i : range) {
+          node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_mesh(depsgraph,
                                         sd,
                                         params,
                                         elastic_transform_mat,
                                         elastic_transform_pivot,
                                         positions_eval,
-                                        *nodes[i],
+                                        nodes[i],
                                         ob,
                                         tls,
                                         positions_orig);
-            BKE_pbvh_node_mark_positions_update(*nodes[i]);
-          }
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          });
         });
         break;
       }
       case bke::pbvh::Type::Grids: {
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
-          for (const int i : range) {
+          node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_grids(
-                sd, params, elastic_transform_mat, elastic_transform_pivot, *nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(*nodes[i]);
-          }
+                sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          });
         });
         break;
       }
       case bke::pbvh::Type::BMesh: {
-        threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
-          for (const int i : range) {
+          node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_bmesh(
-                sd, params, elastic_transform_mat, elastic_transform_pivot, *nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(*nodes[i]);
-          }
+                sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
+          });
         });
         break;
       }
@@ -659,8 +665,11 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-      pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
+        return !node_fully_masked_or_hidden(node);
+      });
 
   struct LocalData {
     Vector<float> factors;
@@ -670,17 +679,18 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             threading::isolate_task([&]() {
-              for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-                const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+              node_mask.slice(range).foreach_index([&](const int i) {
+                const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
 
                 tls.positions.resize(verts.size());
                 const MutableSpan<float3> positions = tls.positions;
@@ -692,7 +702,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
                 filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
                 accumulate_weighted_average_position(positions, factors, sum);
-              }
+              });
             });
             return sum;
           },
@@ -700,15 +710,16 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-              const Span<int> grids = bke::pbvh::node_grid_indices(*node);
+            node_mask.slice(range).foreach_index([&](const int i) {
+              const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
               const MutableSpan positions = gather_grids_positions(
                   subdiv_ccg, grids, tls.positions);
 
@@ -718,21 +729,22 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
               accumulate_weighted_average_position(positions, factors, sum);
-            }
+            });
             return sum;
           },
           combine_average_position_accumulation);
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(node);
+            node_mask.slice(range).foreach_index([&](const int i) {
+              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
               const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
               tls.factors.resize(verts.size());
@@ -741,7 +753,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
               accumulate_weighted_average_position(positions, factors, sum);
-            }
+            });
             return sum;
           },
           combine_average_position_accumulation);
@@ -772,8 +784,11 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *ss.pbvh;
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-      pbvh, [&](bke::pbvh::Node &node) { return !node_fully_masked_or_hidden(node); });
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
+        return !node_fully_masked_or_hidden(node);
+      });
 
   struct LocalData {
     Vector<float> factors;
@@ -784,19 +799,20 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask_attr = *attributes.lookup_or_default<float>(
           ".sculpt_mask", bke::AttrDomain::Point, 0.0f);
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-              const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+            node_mask.slice(range).foreach_index([&](const int i) {
+              const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
               MutableSpan positions = gather_data_mesh(vert_positions, verts, tls.positions);
               MutableSpan masks = gather_data_mesh(mask_attr, verts, tls.masks);
 
@@ -808,22 +824,23 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
               accumulate_weighted_average_position(positions, factors, sum);
-            }
+            });
             return sum;
           },
           combine_average_position_accumulation);
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            for (const bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-              const Span<int> grids = bke::pbvh::node_grid_indices(*node);
+            node_mask.slice(range).foreach_index([&](const int i) {
+              const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
               const MutableSpan positions = gather_grids_positions(
                   subdiv_ccg, grids, tls.positions);
 
@@ -838,21 +855,22 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
               accumulate_weighted_average_position(positions, factors, sum);
-            }
+            });
             return sum;
           },
           combine_average_position_accumulation);
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       const AveragePositionAccumulation total = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AveragePositionAccumulation{},
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
-            for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(node);
+            node_mask.slice(range).foreach_index([&](const int i) {
+              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
               const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
               tls.masks.resize(verts.size());
@@ -866,7 +884,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
               filter_verts_outside_symmetry_area(positions, pivot, symm, factors);
 
               accumulate_weighted_average_position(positions, factors, sum);
-            }
+            });
             return sum;
           },
           combine_average_position_accumulation);

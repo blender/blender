@@ -527,7 +527,7 @@ int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
 namespace blender::bke::pbvh {
 
 /** Return pointers to all the leaf nodes in the BVH tree. */
-Vector<Node *> all_leaf_nodes(Tree &pbvh);
+IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory);
 
 /** Create a selection of nodes that match the filter function. */
 IndexMask search_nodes(const Tree &pbvh,
@@ -551,34 +551,3 @@ void update_node_bounds_grids(const CCGKey &key, Span<CCGElem *> grids, GridsNod
 void update_node_bounds_bmesh(BMeshNode &node);
 
 }  // namespace blender::bke::pbvh
-
-/* TODO: Temporary inline definitions with generic #Node type signature. To be removed as
- * refactoring changes code to use explicit node types. */
-namespace blender::bke::pbvh {
-inline Span<int> node_grid_indices(const Node &node)
-{
-  return node_grid_indices(static_cast<const GridsNode &>(node));
-}
-inline Span<int> node_verts(const Node &node)
-{
-  return node_verts(static_cast<const MeshNode &>(node));
-}
-inline Span<int> node_unique_verts(const Node &node)
-{
-  return node_unique_verts(static_cast<const MeshNode &>(node));
-}
-}  // namespace blender::bke::pbvh
-inline const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(
-    blender::bke::pbvh::Node *node)
-{
-  return BKE_pbvh_bmesh_node_unique_verts(static_cast<blender::bke::pbvh::BMeshNode *>(node));
-}
-inline const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_other_verts(
-    blender::bke::pbvh::Node *node)
-{
-  return BKE_pbvh_bmesh_node_other_verts(static_cast<blender::bke::pbvh::BMeshNode *>(node));
-}
-inline const blender::Set<BMFace *, 0> &BKE_pbvh_bmesh_node_faces(blender::bke::pbvh::Node *node)
-{
-  return BKE_pbvh_bmesh_node_faces(static_cast<blender::bke::pbvh::BMeshNode *>(node));
-}

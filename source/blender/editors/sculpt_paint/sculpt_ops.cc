@@ -783,10 +783,11 @@ static void sculpt_mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
     return len <= threshold;
   });
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   update_mask_mesh(
-      depsgraph, object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
+      depsgraph, object, node_mask, [&](MutableSpan<float> node_mask, const Span<int> verts) {
         for (const int i : verts.index_range()) {
           node_mask[i] = sculpt_mask_by_color_final_mask_get(
               node_mask[i], new_mask[verts[i]], invert, preserve_mask);
@@ -808,10 +809,11 @@ static void sculpt_mask_by_color_full_mesh(const Depsgraph &depsgraph,
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
   const float4 active_color = float4(colors[vert]);
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   update_mask_mesh(
-      depsgraph, object, nodes, [&](MutableSpan<float> node_mask, const Span<int> verts) {
+      depsgraph, object, node_mask, [&](MutableSpan<float> node_mask, const Span<int> verts) {
         for (const int i : verts.index_range()) {
           const float current_mask = node_mask[i];
           const float new_mask = sculpt_mask_by_color_delta_get(
@@ -967,7 +969,7 @@ static void bake_mask_mesh(const Depsgraph &depsgraph,
                            const auto_mask::Cache &automasking,
                            const CavityBakeMixMode mode,
                            const float factor,
-                           const bke::pbvh::Node &node,
+                           const bke::pbvh::MeshNode &node,
                            LocalData &tls,
                            const MutableSpan<float> mask)
 {
@@ -991,7 +993,7 @@ static void bake_mask_mesh(const Depsgraph &depsgraph,
   calc_new_masks(mode, node_mask, new_mask);
   mix_new_masks(new_mask, factors, node_mask);
 
-  array_utils::scatter(node_mask.as_span(), verts, mask);
+  scatter_data_mesh(node_mask.as_span(), verts, mask);
 }
 
 static void bake_mask_grids(const Depsgraph &depsgraph,
@@ -999,7 +1001,7 @@ static void bake_mask_grids(const Depsgraph &depsgraph,
                             const auto_mask::Cache &automasking,
                             const CavityBakeMixMode mode,
                             const float factor,
-                            const bke::pbvh::Node &node,
+                            const bke::pbvh::GridsNode &node,
                             LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -1034,7 +1036,7 @@ static void bake_mask_bmesh(const Depsgraph &depsgraph,
                             const auto_mask::Cache &automasking,
                             const CavityBakeMixMode mode,
                             const float factor,
-                            bke::pbvh::Node &node,
+                            bke::pbvh::BMeshNode &node,
                             LocalData &tls)
 {
   const SculptSession &ss = *object.sculpt;
@@ -1085,7 +1087,8 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   /* Set up automasking settings. */
   Sculpt sd2 = sd;
@@ -1150,7 +1153,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   std::unique_ptr<auto_mask::Cache> automasking = auto_mask::cache_init(
       *depsgraph, sd2, &brush2, ob);
 
-  undo::push_nodes(*depsgraph, ob, nodes, undo::Type::Mask);
+  undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::Mask);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (ss.pbvh->type()) {
@@ -1162,37 +1165,37 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
       if (!mask) {
         return OPERATOR_CANCELLED;
       }
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        threading::isolate_task([&]() {
-          for (const int i : range) {
-            bake_mask_mesh(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls, mask.span);
-            BKE_pbvh_node_mark_update_mask(*nodes[i]);
-            bke::pbvh::node_update_mask_mesh(mask.span,
-                                             static_cast<bke::pbvh::MeshNode &>(*nodes[i]));
-          }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          bake_mask_mesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls, mask.span);
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          bake_mask_grids(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls);
-          BKE_pbvh_node_mark_update_mask(*nodes[i]);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          bake_mask_grids(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
+        });
       });
       bke::pbvh::update_mask(ob, *ss.pbvh);
       break;
     }
     case bke::pbvh::Type::BMesh: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          bake_mask_bmesh(*depsgraph, ob, *automasking, mode, factor, *nodes[i], tls);
-          BKE_pbvh_node_mark_update_mask(*nodes[i]);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          bake_mask_bmesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
+        });
       });
       bke::pbvh::update_mask(ob, *ss.pbvh);
       break;

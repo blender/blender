@@ -13,6 +13,7 @@
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
@@ -174,7 +175,7 @@ void push_node(const Depsgraph &depsgraph,
                undo::Type type);
 void push_nodes(const Depsgraph &depsgraph,
                 Object &object,
-                Span<const bke::pbvh::Node *> nodes,
+                const IndexMask &node_mask,
                 undo::Type type);
 
 /**

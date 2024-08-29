@@ -160,7 +160,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Span<int> corner_verts,
                        const GroupedSpan<int> vert_to_face_map,
                        const Span<bool> hide_poly,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -212,7 +212,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -259,7 +259,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        Object &object,
                        const Brush &brush,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -308,7 +308,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 void do_topology_slide_brush(const Depsgraph &depsgraph,
                              const Sculpt &sd,
                              Object &object,
-                             Span<bke::pbvh::Node *> nodes)
+                             const IndexMask &node_mask)
 {
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -327,9 +327,10 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
       const Span<int> corner_verts = mesh.corner_verts();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           calc_faces(depsgraph,
                      sd,
                      brush,
@@ -338,31 +339,33 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
                      corner_verts,
                      ss.vert_to_face_map,
                      hide_poly,
-                     *nodes[i],
+                     nodes[i],
                      object,
                      tls,
                      positions_orig);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
-    case bke::pbvh::Type::Grids:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_grids(depsgraph, sd, object, brush, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_grids(depsgraph, sd, object, brush, nodes[i], tls); });
       });
       break;
-    case bke::pbvh::Type::BMesh:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    }
+    case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_bmesh(depsgraph, sd, object, brush, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_bmesh(depsgraph, sd, object, brush, nodes[i], tls); });
       });
       break;
+    }
   }
 }
 

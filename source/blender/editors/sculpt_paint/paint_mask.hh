@@ -10,6 +10,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_set.hh"
 
 struct BMesh;
@@ -46,7 +47,7 @@ void average_neighbor_mask_bmesh(int mask_offset,
 /** Write to the mask attribute for each node, storing undo data. */
 void write_mask_mesh(const Depsgraph &depsgraph,
                      Object &object,
-                     Span<bke::pbvh::Node *> nodes,
+                     const IndexMask &node_mask,
                      FunctionRef<void(MutableSpan<float>, Span<int>)> write_fn);
 
 /**
@@ -55,7 +56,7 @@ void write_mask_mesh(const Depsgraph &depsgraph,
  */
 void update_mask_mesh(const Depsgraph &depsgraph,
                       Object &object,
-                      Span<bke::pbvh::Node *> nodes,
+                      const IndexMask &node_mask,
                       FunctionRef<void(MutableSpan<float>, Span<int>)> update_fn);
 
 /** Check whether array data is the same as the stored mask for the referenced geometry. */

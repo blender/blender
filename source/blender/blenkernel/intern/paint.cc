@@ -2095,6 +2095,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
 void BKE_sculpt_update_object_before_eval(Object *ob_eval)
 {
+  using namespace blender;
   /* Update before mesh evaluation in the dependency graph. */
   SculptSession *ss = ob_eval->sculpt;
 
@@ -2120,8 +2121,24 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
     }
     else if (ss->pbvh) {
-      for (blender::bke::pbvh::Node *node : blender::bke::pbvh::all_leaf_nodes(*ss->pbvh)) {
-        BKE_pbvh_node_mark_update(*node);
+      IndexMaskMemory memory;
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss->pbvh, memory);
+      switch (ss->pbvh->type()) {
+        case bke::pbvh::Type::Mesh: {
+          MutableSpan<bke::pbvh::MeshNode> nodes = ss->pbvh->nodes<bke::pbvh::MeshNode>();
+          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+          break;
+        }
+        case bke::pbvh::Type::Grids: {
+          MutableSpan<bke::pbvh::GridsNode> nodes = ss->pbvh->nodes<bke::pbvh::GridsNode>();
+          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+          break;
+        }
+        case bke::pbvh::Type::BMesh: {
+          MutableSpan<bke::pbvh::BMeshNode> nodes = ss->pbvh->nodes<bke::pbvh::BMeshNode>();
+          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+          break;
+        }
       }
     }
   }

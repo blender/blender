@@ -124,7 +124,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Span<float3> persistent_base_positions,
                        const Span<float3> persistent_base_normals,
                        Object &object,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::MeshNode &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor,
                        MutableSpan<float3> positions_orig)
@@ -218,7 +218,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
                        Object &object,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::GridsNode &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor)
 {
@@ -284,7 +284,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
                        Object &object,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        LocalData &tls,
                        MutableSpan<float> layer_displacement_factor)
 {
@@ -349,7 +349,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 void do_layer_brush(const Depsgraph &depsgraph,
                     const Sculpt &sd,
                     Object &object,
-                    Span<bke::pbvh::Node *> nodes)
+                    const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -391,9 +391,10 @@ void do_layer_brush(const Depsgraph &depsgraph,
         displacement = ss.cache->layer_displacement_factor;
       }
 
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           calc_faces(depsgraph,
                      sd,
                      brush,
@@ -404,11 +405,11 @@ void do_layer_brush(const Depsgraph &depsgraph,
                      persistent_position,
                      persistent_normal,
                      object,
-                     *nodes[i],
+                     nodes[i],
                      tls,
                      displacement,
                      positions_orig);
-        }
+        });
       });
       persistent_disp_attr.finish();
       break;
@@ -418,11 +419,12 @@ void do_layer_brush(const Depsgraph &depsgraph,
         ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(object), 0.0f);
       }
       const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_grids(depsgraph, sd, brush, object, *nodes[i], tls, displacement);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          calc_grids(depsgraph, sd, brush, object, nodes[i], tls, displacement);
+        });
       });
       break;
     }
@@ -431,11 +433,12 @@ void do_layer_brush(const Depsgraph &depsgraph,
         ss.cache->layer_displacement_factor = Array<float>(SCULPT_vertex_count_get(object), 0.0f);
       }
       const MutableSpan<float> displacement = ss.cache->layer_displacement_factor;
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_bmesh(depsgraph, sd, brush, object, *nodes[i], tls, displacement);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          calc_bmesh(depsgraph, sd, brush, object, nodes[i], tls, displacement);
+        });
       });
       break;
     }

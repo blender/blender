@@ -3055,18 +3055,14 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
 
 namespace blender::bke::pbvh {
 
-Vector<Node *> all_leaf_nodes(Tree &pbvh)
+IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
 {
-  Vector<Node *> leaf_nodes;
   return std::visit(
-      [&](auto &nodes) {
-        leaf_nodes.reserve(nodes.size());
-        for (Node &node : nodes) {
-          if (node.flag_ & PBVH_Leaf) {
-            leaf_nodes.append(&node);
-          }
-        }
-        return leaf_nodes;
+      [&](const auto &nodes) {
+        return IndexMask::from_predicate(
+            nodes.index_range(), GrainSize(1024), memory, [&](const int i) {
+              return (nodes[i].flag_ & PBVH_Leaf) != 0;
+            });
       },
       pbvh.nodes_);
 }

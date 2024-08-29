@@ -108,15 +108,17 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (bke::pbvh::Node *node : nodes) {
-    BKE_pbvh_node_mark_topology_update(*node);
-  }
+  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
+
   /* Get the bounding box, its center and size. */
   const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob.sculpt->pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
@@ -145,9 +147,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                                           false,
                                           false))
   {
-    for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_topology_update(*node);
-    }
+    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
   }
 
   CLOG_INFO(&LOG, 2, "Detail flood fill took %f seconds.", BLI_time_now_seconds() - start_time);

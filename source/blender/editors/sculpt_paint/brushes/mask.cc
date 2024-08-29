@@ -65,7 +65,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const float strength,
                        const Span<float3> positions,
                        const Span<float3> vert_normals,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        Object &object,
                        Mesh &mesh,
                        LocalData &tls,
@@ -114,7 +114,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        Object &object,
                        const Brush &brush,
                        const float strength,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -162,7 +162,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        Object &object,
                        const Brush &brush,
                        const float strength,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -211,7 +211,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 void do_mask_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
                    Object &object,
-                   Span<bke::pbvh::Node *> nodes)
+                   const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -220,6 +220,7 @@ void do_mask_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (ss.pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -229,39 +230,39 @@ void do_mask_brush(const Depsgraph &depsgraph,
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
 
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           calc_faces(depsgraph,
                      brush,
                      bstrength,
                      positions,
                      vert_normals,
-                     *nodes[i],
+                     nodes[i],
                      object,
                      mesh,
                      tls,
                      mask.span);
-        }
+        });
       });
       mask.finish();
       break;
     }
     case blender::bke::pbvh::Type::Grids: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_grids(depsgraph, object, brush, bstrength, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_grids(depsgraph, object, brush, bstrength, nodes[i], tls); });
       });
       break;
     }
     case blender::bke::pbvh::Type::BMesh: {
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_bmesh(depsgraph, object, brush, bstrength, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_bmesh(depsgraph, object, brush, bstrength, nodes[i], tls); });
       });
       break;
     }

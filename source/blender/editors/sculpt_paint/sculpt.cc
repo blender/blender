@@ -842,11 +842,12 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-      const_cast<bke::pbvh::Tree &>(pbvh), [&](bke::pbvh::Node &node) {
+  IndexMaskMemory memory;
+  const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
         return node_in_sphere(node, location, max_distance_sq, use_original);
       });
-  if (nodes.is_empty()) {
+  if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
   }
 
@@ -855,13 +856,14 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
     float distance_sq = std::numeric_limits<float>::max();
   };
 
+  const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const NearestData nearest = threading::parallel_reduce(
-      nodes.index_range(),
+      nodes_in_sphere.index_range(),
       1,
       NearestData(),
       [&](const IndexRange range, NearestData nearest) {
-        for (const int i : range) {
-          for (const int vert : bke::pbvh::node_unique_verts(*nodes[i])) {
+        nodes_in_sphere.slice(range).foreach_index([&](const int i) {
+          for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
             if (!hide_vert.is_empty() && hide_vert[vert]) {
               continue;
             }
@@ -870,7 +872,7 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
               nearest = {vert, distance_sq};
             }
           }
-        }
+        });
         return nearest;
       },
       [](const NearestData a, const NearestData b) {
@@ -886,11 +888,12 @@ std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbv
                                                       const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-      const_cast<bke::pbvh::Tree &>(pbvh), [&](bke::pbvh::Node &node) {
+  IndexMaskMemory memory;
+  const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
         return node_in_sphere(node, location, max_distance_sq, use_original);
       });
-  if (nodes.is_empty()) {
+  if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
   }
 
@@ -903,13 +906,14 @@ std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbv
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
+  const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const NearestData nearest = threading::parallel_reduce(
-      nodes.index_range(),
+      nodes_in_sphere.index_range(),
       1,
       NearestData(),
       [&](const IndexRange range, NearestData nearest) {
-        for (const int i : range) {
-          for (const int grid : bke::pbvh::node_grid_indices(*nodes[i])) {
+        nodes_in_sphere.slice(range).foreach_index([&](const int i) {
+          for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
             CCGElem *elem = elems[grid];
             BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
               const float distance_sq = math::distance_squared(CCG_elem_offset_co(key, elem, i),
@@ -923,7 +927,7 @@ std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbv
               }
             });
           }
-        }
+        });
         return nearest;
       },
       [](const NearestData a, const NearestData b) {
@@ -938,11 +942,12 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
                                                 const bool use_original)
 {
   const float max_distance_sq = max_distance * max_distance;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-      const_cast<bke::pbvh::Tree &>(pbvh), [&](bke::pbvh::Node &node) {
+  IndexMaskMemory memory;
+  const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
         return node_in_sphere(node, location, max_distance_sq, use_original);
       });
-  if (nodes.is_empty()) {
+  if (nodes_in_sphere.is_empty()) {
     return std::nullopt;
   }
 
@@ -951,13 +956,16 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
     float distance_sq = std::numeric_limits<float>::max();
   };
 
+  const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const NearestData nearest = threading::parallel_reduce(
-      nodes.index_range(),
+      nodes_in_sphere.index_range(),
       1,
       NearestData(),
       [&](const IndexRange range, NearestData nearest) {
-        for (const int i : range) {
-          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(nodes[i])) {
+        nodes_in_sphere.slice(range).foreach_index([&](const int i) {
+          for (BMVert *vert :
+               BKE_pbvh_bmesh_node_unique_verts(const_cast<bke::pbvh::BMeshNode *>(&nodes[i])))
+          {
             if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
               continue;
             }
@@ -966,7 +974,7 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
               nearest = {vert, distance_sq};
             }
           }
-        }
+        });
         return nearest;
       },
       [](const NearestData a, const NearestData b) {
@@ -1160,61 +1168,61 @@ namespace undo {
 static void restore_mask_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
-            const Span<int> verts = bke::pbvh::node_unique_verts(*node);
-            array_utils::scatter(unode->mask.as_span(), verts, mask.span);
-            BKE_pbvh_node_mark_update_mask(*node);
-          }
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::Mask)) {
+          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          array_utils::scatter(unode->mask.as_span(), verts, mask.span);
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
       mask.finish();
       break;
     }
     case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       const int offset = CustomData_get_offset_named(&ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       if (offset != -1) {
-        for (bke::pbvh::Node *node : nodes) {
-          if (undo::get_node(node, undo::Type::Mask)) {
-            for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        node_mask.foreach_index([&](const int i) {
+          if (undo::get_node(&nodes[i], undo::Type::Mask)) {
+            for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
               const float orig_mask = BM_log_original_mask(ss.bm_log, vert);
               BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
             }
-            BKE_pbvh_node_mark_update_mask(*node);
+            BKE_pbvh_node_mark_update_mask(nodes[i]);
           }
-        }
+        });
       }
       break;
     }
     case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const Span<CCGElem *> grids = subdiv_ccg.grids;
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
-            int index = 0;
-            for (const int grid : unode->grids) {
-              CCGElem *elem = grids[grid];
-              for (const int i : IndexRange(key.grid_area)) {
-                if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
-                  CCG_elem_offset_mask(key, elem, i) = unode->mask[index];
-                }
-                index++;
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::Mask)) {
+          int index = 0;
+          for (const int grid : unode->grids) {
+            CCGElem *elem = grids[grid];
+            for (const int i : IndexRange(key.grid_area)) {
+              if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
+                CCG_elem_offset_mask(key, elem, i) = unode->mask[index];
               }
+              index++;
             }
-            BKE_pbvh_node_mark_update_mask(*node);
           }
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
       break;
@@ -1225,7 +1233,9 @@ static void restore_mask_from_undo_step(Object &object)
 static void restore_color_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1233,19 +1243,17 @@ static void restore_color_from_undo_step(Object &object)
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-      if (const undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
-        const Span<int> verts = bke::pbvh::node_unique_verts(*node);
-        for (const int i : verts.index_range()) {
-          color::color_vert_set(faces,
-                                corner_verts,
-                                vert_to_face_map,
-                                color_attribute.domain,
-                                verts[i],
-                                unode->col[i],
-                                color_attribute.span);
-        }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::Color)) {
+      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      for (const int i : verts.index_range()) {
+        color::color_vert_set(faces,
+                              corner_verts,
+                              vert_to_face_map,
+                              color_attribute.domain,
+                              verts[i],
+                              unode->col[i],
+                              color_attribute.span);
       }
     }
   });
@@ -1255,20 +1263,33 @@ static void restore_color_from_undo_step(Object &object)
 static void restore_face_set_from_undo_step(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   switch (ss.pbvh->type()) {
-    case bke::pbvh::Type::Mesh:
-    case bke::pbvh::Type::Grids: {
+    case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::FaceSet)) {
-            const Span<int> faces = unode->face_indices;
-            const Span<int> face_sets = unode->face_sets;
-            blender::array_utils::scatter(face_sets, faces, attribute.span);
-            BKE_pbvh_node_mark_update_face_sets(*node);
-          }
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::FaceSet)) {
+          const Span<int> faces = unode->face_indices;
+          const Span<int> face_sets = unode->face_sets;
+          blender::array_utils::scatter(face_sets, faces, attribute.span);
+          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+        }
+      });
+      attribute.finish();
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::FaceSet)) {
+          const Span<int> faces = unode->face_indices;
+          const Span<int> face_sets = unode->face_sets;
+          blender::array_utils::scatter(face_sets, faces, attribute.span);
+          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
         }
       });
       attribute.finish();
@@ -1282,10 +1303,12 @@ static void restore_face_set_from_undo_step(Object &object)
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
 
   switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       MutableSpan positions_eval = bke::pbvh::vert_positions_eval_for_write(depsgraph, object);
       MutableSpan positions_orig = mesh.vert_positions_for_write();
@@ -1298,11 +1321,11 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
       const bool need_translations = !ss.deform_imats.is_empty() || active_key;
 
       threading::EnumerableThreadSpecific<LocalData> all_tls;
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
-            const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+        node_mask.slice(range).foreach_index([&](const int i) {
+          if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::Position)) {
+            const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
             const Span<float3> undo_positions = unode->position.as_span().take_front(verts.size());
             if (need_translations) {
               tls.translations.resize(verts.size());
@@ -1336,48 +1359,46 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                   object, mesh, *active_key, verts, tls.translations, positions_orig);
             }
 
-            BKE_pbvh_node_mark_positions_update(*node);
+            BKE_pbvh_node_mark_positions_update(nodes[i]);
           }
-        }
+        });
       });
       break;
     }
     case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       if (!undo::get_bmesh_log_entry()) {
         return;
       }
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
-            if (const float *orig_co = BM_log_find_original_vert_co(ss.bm_log, vert)) {
-              copy_v3_v3(vert->co, orig_co);
-            }
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
+          if (const float *orig_co = BM_log_find_original_vert_co(ss.bm_log, vert)) {
+            copy_v3_v3(vert->co, orig_co);
           }
-          BKE_pbvh_node_mark_positions_update(*node);
         }
+        BKE_pbvh_node_mark_positions_update(nodes[i]);
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const Span<CCGElem *> grids = subdiv_ccg.grids;
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-        for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-          if (const undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
-            int index = 0;
-            for (const int grid : unode->grids) {
-              CCGElem *elem = grids[grid];
-              for (const int i : IndexRange(key.grid_area)) {
-                if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
-                  CCG_elem_offset_co(key, elem, i) = unode->position[index];
-                }
-                index++;
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        if (const undo::Node *unode = undo::get_node(&nodes[i], undo::Type::Position)) {
+          int index = 0;
+          for (const int grid : unode->grids) {
+            CCGElem *elem = grids[grid];
+            for (const int i : IndexRange(key.grid_area)) {
+              if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
+                CCG_elem_offset_co(key, elem, i) = unode->position[index];
               }
+              index++;
             }
-            BKE_pbvh_node_mark_positions_update(*node);
           }
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
       break;
@@ -1654,7 +1675,7 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   const Brush &brush,
                                                   const bool use_area_nos,
                                                   const bool use_area_cos,
-                                                  const bke::pbvh::Node &node,
+                                                  const bke::pbvh::MeshNode &node,
                                                   SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
 {
@@ -1737,7 +1758,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
                                                    const Brush &brush,
                                                    const bool use_area_nos,
                                                    const bool use_area_cos,
-                                                   const bke::pbvh::Node &node,
+                                                   const bke::pbvh::GridsNode &node,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
@@ -2009,7 +2030,7 @@ static AreaNormalCenterData calc_area_normal_and_center_reduce(const AreaNormalC
 void calc_area_center(const Depsgraph &depsgraph,
                       const Brush &brush,
                       const Object &ob,
-                      Span<bke::pbvh::Node *> nodes,
+                      const IndexMask &node_mask,
                       float r_area_co[3])
 {
   const SculptSession &ss = *ob.sculpt;
@@ -2025,13 +2046,14 @@ void calc_area_center(const Depsgraph &depsgraph,
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
+      const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
@@ -2039,10 +2061,10 @@ void calc_area_center(const Depsgraph &depsgraph,
                                                     brush,
                                                     false,
                                                     true,
-                                                    *nodes[i],
+                                                    nodes[i],
                                                     tls,
                                                     anctd);
-            }
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
@@ -2051,39 +2073,33 @@ void calc_area_center(const Depsgraph &depsgraph,
     case bke::pbvh::Type::BMesh: {
       const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
+      const Span<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_bmesh(
-                  ob,
-                  brush,
-                  false,
-                  true,
-                  has_bm_orco,
-                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
-                  tls,
-                  anctd);
-            }
+                  ob, brush, false, true, has_bm_orco, nodes[i], tls, anctd);
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
       break;
     }
     case bke::pbvh::Type::Grids: {
+      const Span<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
-              calc_area_normal_and_center_node_grids(
-                  ob, brush, false, true, *nodes[i], tls, anctd);
-            }
+            node_mask.slice(range).foreach_index([&](const int i) {
+              calc_area_normal_and_center_node_grids(ob, brush, false, true, nodes[i], tls, anctd);
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
@@ -2114,8 +2130,8 @@ void calc_area_center(const Depsgraph &depsgraph,
 
 std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                        const Brush &brush,
-                                       Object &ob,
-                                       Span<bke::pbvh::Node *> nodes)
+                                       const Object &ob,
+                                       const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
 
@@ -2129,13 +2145,14 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
+      const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
@@ -2143,10 +2160,10 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                                     brush,
                                                     true,
                                                     false,
-                                                    *nodes[i],
+                                                    nodes[i],
                                                     tls,
                                                     anctd);
-            }
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
@@ -2155,39 +2172,40 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
     case bke::pbvh::Type::BMesh: {
       const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
+      const Span<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_bmesh(
                   ob,
                   brush,
                   true,
                   false,
                   has_bm_orco,
-                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
+                  static_cast<const blender::bke::pbvh::BMeshNode &>(nodes[i]),
                   tls,
                   anctd);
-            }
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
       break;
     }
     case bke::pbvh::Type::Grids: {
+      const Span<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
-              calc_area_normal_and_center_node_grids(
-                  ob, brush, true, false, *nodes[i], tls, anctd);
-            }
+            node_mask.slice(range).foreach_index([&](const int i) {
+              calc_area_normal_and_center_node_grids(ob, brush, true, false, nodes[i], tls, anctd);
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
@@ -2208,7 +2226,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
 void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                  const Brush &brush,
                                  const Object &ob,
-                                 Span<bke::pbvh::Node *> nodes,
+                                 const IndexMask &node_mask,
                                  float r_area_no[3],
                                  float r_area_co[3])
 {
@@ -2225,13 +2243,14 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
+      const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_mesh(ob,
                                                     vert_positions,
                                                     vert_normals,
@@ -2239,10 +2258,10 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                                     brush,
                                                     true,
                                                     true,
-                                                    *nodes[i],
+                                                    nodes[i],
                                                     tls,
                                                     anctd);
-            }
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
@@ -2251,37 +2270,32 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
     case bke::pbvh::Type::BMesh: {
       const bool has_bm_orco = ss.bm && dyntopo::stroke_is_dyntopo(ss, brush);
 
+      const Span<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_bmesh(
-                  ob,
-                  brush,
-                  true,
-                  true,
-                  has_bm_orco,
-                  static_cast<const blender::bke::pbvh::BMeshNode &>(*nodes[i]),
-                  tls,
-                  anctd);
-            }
+                  ob, brush, true, true, has_bm_orco, nodes[i], tls, anctd);
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
       break;
     }
     case bke::pbvh::Type::Grids: {
+      const Span<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
       anctd = threading::parallel_reduce(
-          nodes.index_range(),
+          node_mask.index_range(),
           1,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
             for (const int i : range) {
-              calc_area_normal_and_center_node_grids(ob, brush, true, true, *nodes[i], tls, anctd);
+              calc_area_normal_and_center_node_grids(ob, brush, true, true, nodes[i], tls, anctd);
             }
             return anctd;
           },
@@ -2616,87 +2630,69 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
   return dist_sq < radius_sq || true;
 }
 
-static Vector<bke::pbvh::Node *> pbvh_gather_cursor_update(Object &ob, bool use_original)
+static IndexMask pbvh_gather_cursor_update(Object &ob, bool use_original, IndexMaskMemory &memory)
 {
   SculptSession &ss = *ob.sculpt;
   const float3 center = ss.cache ? ss.cache->location : ss.cursor_location;
-  return bke::pbvh::search_gather(*ss.pbvh, [&](bke::pbvh::Node &node) {
+  return bke::pbvh::search_nodes(*ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
     return node_in_sphere(node, center, ss.cursor_radius, use_original);
   });
 }
 
 /** \return All nodes that are potentially within the cursor or brush's area of influence. */
-static Vector<bke::pbvh::Node *> pbvh_gather_generic(
-    Object &ob, const Brush &brush, bool use_original, float radius_scale, PBVHNodeFlags flag)
+static IndexMask pbvh_gather_generic(
+    Object &ob, const Brush &brush, bool use_original, float radius_scale, IndexMaskMemory &memory)
 {
   SculptSession &ss = *ob.sculpt;
-
-  PBVHNodeFlags leaf_flag = PBVH_Leaf;
-  if (flag & PBVH_TexLeaf) {
-    leaf_flag = PBVH_TexLeaf;
-  }
 
   const float3 center = ss.cache->location;
   const float radius_sq = math::square(ss.cache->radius * radius_scale);
   const bool ignore_ineffective = brush.sculpt_tool != SCULPT_TOOL_MASK;
   switch (brush.falloff_shape) {
     case PAINT_FALLOFF_SHAPE_SPHERE: {
-      return bke::pbvh::search_gather(
-          *ss.pbvh,
-          [&](bke::pbvh::Node &node) {
-            if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
-              return false;
-            }
-            return node_in_sphere(node, center, radius_sq, use_original);
-          },
-          leaf_flag);
+      return bke::pbvh::search_nodes(*ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_sphere(node, center, radius_sq, use_original);
+      });
     }
 
     case PAINT_FALLOFF_SHAPE_TUBE: {
       const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
           center, ss.cache->view_normal);
-      return bke::pbvh::search_gather(
-          *ss.pbvh,
-          [&](bke::pbvh::Node &node) {
-            if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
-              return false;
-            }
-            return node_in_cylinder(ray_dist_precalc, node, radius_sq, use_original);
-          },
-          leaf_flag);
+      return bke::pbvh::search_nodes(*ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (ignore_ineffective && node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_cylinder(ray_dist_precalc, node, radius_sq, use_original);
+      });
     }
   }
 
   return {};
 }
 
-static Vector<bke::pbvh::Node *> pbvh_gather_generic(Object &ob,
-                                                     const Brush &brush,
-                                                     const bool use_original,
-                                                     const float radius_scale)
+static IndexMask pbvh_gather_texpaint(Object &ob,
+                                      const Brush &brush,
+                                      const bool use_original,
+                                      const float radius_scale,
+                                      IndexMaskMemory &memory)
 {
-  return pbvh_gather_generic(ob, brush, use_original, radius_scale, PBVH_Leaf);
-}
-
-static Vector<bke::pbvh::Node *> pbvh_gather_texpaint(Object &ob,
-                                                      const Brush &brush,
-                                                      const bool use_original,
-                                                      const float radius_scale)
-{
-  return pbvh_gather_generic(ob, brush, use_original, radius_scale, PBVH_TexLeaf);
+  return pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
 }
 
 /* Calculate primary direction of movement for many brushes. */
 static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 Span<bke::pbvh::Node *> nodes)
+                                 const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const SculptSession &ss = *ob.sculpt;
   switch (brush.sculpt_plane) {
     case SCULPT_DISP_DIR_AREA:
-      return calc_area_normal(depsgraph, brush, ob, nodes).value_or(float3(0));
+      return calc_area_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
     case SCULPT_DISP_DIR_VIEW:
       return ss.cache->true_view_normal;
     case SCULPT_DISP_DIR_X:
@@ -2713,7 +2709,7 @@ static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
 static void update_sculpt_normal(const Depsgraph &depsgraph,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 Span<bke::pbvh::Node *> nodes)
+                                 const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   StrokeCache &cache = *ob.sculpt->cache;
@@ -2727,7 +2723,7 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
   if (cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
   {
-    cache.sculpt_normal = calc_sculpt_normal(depsgraph, sd, ob, nodes);
+    cache.sculpt_normal = calc_sculpt_normal(depsgraph, sd, ob, node_mask);
     if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       project_plane_v3_v3v3(cache.sculpt_normal, cache.sculpt_normal, cache.view_normal);
       normalize_v3(cache.sculpt_normal);
@@ -3064,7 +3060,7 @@ namespace blender::ed::sculpt_paint {
 void calc_brush_plane(const Depsgraph &depsgraph,
                       const Brush &brush,
                       Object &ob,
-                      Span<bke::pbvh::Node *> nodes,
+                      const IndexMask &node_mask,
                       float3 &r_area_no,
                       float3 &r_area_co)
 {
@@ -3095,7 +3091,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
         break;
 
       case SCULPT_DISP_DIR_AREA:
-        calc_area_normal_and_center(depsgraph, brush, ob, nodes, r_area_no, r_area_co);
+        calc_area_normal_and_center(depsgraph, brush, ob, node_mask, r_area_no, r_area_co);
         if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
           project_plane_v3_v3v3(r_area_no, r_area_no, ss.cache->view_normal);
           normalize_v3(r_area_no);
@@ -3109,7 +3105,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     /* For flatten center. */
     /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA) {
-      calc_area_center(depsgraph, brush, ob, nodes, r_area_co);
+      calc_area_center(depsgraph, brush, ob, node_mask, r_area_co);
     }
 
     /* For area normal. */
@@ -3229,12 +3225,14 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = tool_needs_original(brush.sculpt_tool) ? true : !ss.cache->accum;
   const float radius_scale = 1.25f;
-  Vector<bke::pbvh::Node *> nodes = pbvh_gather_generic(ob, brush, use_original, radius_scale);
 
-  /* Only act if some verts are inside the brush area. */
-  if (nodes.is_empty()) {
+  IndexMaskMemory memory;
+  const IndexMask node_mask = pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
+  if (node_mask.is_empty()) {
     return;
   }
+
+  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
 
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
@@ -3253,18 +3251,17 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
     }
   }
 
-  for (bke::pbvh::Node *node : nodes) {
+  node_mask.foreach_index([&](const int i) {
     undo::push_node(depsgraph,
                     ob,
-                    node,
+                    &nodes[i],
                     brush.sculpt_tool == SCULPT_TOOL_MASK ? undo::Type::Mask :
                                                             undo::Type::Position);
-    BKE_pbvh_node_mark_update(*node);
+    BKE_pbvh_node_mark_update(nodes[i]);
 
-    BKE_pbvh_node_mark_topology_update(*node);
-    BKE_pbvh_bmesh_node_save_orig(
-        ss.bm, ss.bm_log, static_cast<blender::bke::pbvh::BMeshNode *>(node), false);
-  }
+    BKE_pbvh_node_mark_topology_update(nodes[i]);
+    BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, &nodes[i], false);
+  });
 
   float max_edge_len;
   if (sd.flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
@@ -3299,15 +3296,32 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
 static void push_undo_nodes(const Depsgraph &depsgraph,
                             Object &ob,
                             const Brush &brush,
-                            const Span<bke::pbvh::Node *> nodes)
+                            const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
 
   bool need_coords = ss.cache->supports_gravity;
 
   if (brush.sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
-    for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_face_sets(*node);
+    switch (ss.pbvh->type()) {
+      case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
+        break;
+      }
     }
 
     /* Draw face sets in smooth mode moves the vertices. */
@@ -3315,13 +3329,27 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
       need_coords = true;
     }
     else {
-      undo::push_nodes(depsgraph, ob, nodes, undo::Type::FaceSet);
+      undo::push_nodes(depsgraph, ob, node_mask, undo::Type::FaceSet);
     }
   }
   else if (brush.sculpt_tool == SCULPT_TOOL_MASK) {
-    undo::push_nodes(depsgraph, ob, nodes, undo::Type::Mask);
-    for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_mask(*node);
+    undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Mask);
+    switch (ss.pbvh->type()) {
+      case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
+        break;
+      }
     }
   }
   else if (SCULPT_tool_is_paint(brush.sculpt_tool)) {
@@ -3331,9 +3359,23 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
         BKE_pbvh_ensure_node_face_corners(*ss.pbvh, mesh.corner_tris());
       }
     }
-    undo::push_nodes(depsgraph, ob, nodes, undo::Type::Color);
-    for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_update_color(*node);
+    undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Color);
+    switch (ss.pbvh->type()) {
+      case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
+        break;
+      }
     }
   }
   else {
@@ -3341,9 +3383,26 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   }
 
   if (need_coords) {
-    undo::push_nodes(depsgraph, ob, nodes, undo::Type::Position);
-    for (bke::pbvh::Node *node : nodes) {
-      BKE_pbvh_node_mark_positions_update(*node);
+    undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
+    switch (ss.pbvh->type()) {
+      case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        node_mask.foreach_index(
+            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
+        break;
+      }
     }
   }
 }
@@ -3357,7 +3416,8 @@ static void do_brush_action(const Depsgraph &depsgraph,
                             PaintModeSettings &paint_mode_settings)
 {
   SculptSession &ss = *ob.sculpt;
-  Vector<bke::pbvh::Node *> nodes, texnodes;
+  IndexMaskMemory memory;
+  IndexMask node_mask, texnode_mask;
 
   const bool use_original = tool_needs_original(brush.sculpt_tool) ? true : !ss.cache->accum;
   const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
@@ -3365,9 +3425,9 @@ static void do_brush_action(const Depsgraph &depsgraph,
   if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
     sculpt_pbvh_update_pixels(depsgraph, paint_mode_settings, ob);
 
-    texnodes = pbvh_gather_texpaint(ob, brush, use_original, 1.0f);
+    texnode_mask = pbvh_gather_texpaint(ob, brush, use_original, 1.0f, memory);
 
-    if (texnodes.is_empty()) {
+    if (texnode_mask.is_empty()) {
       return;
     }
   }
@@ -3376,10 +3436,10 @@ static void do_brush_action(const Depsgraph &depsgraph,
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    nodes = bke::pbvh::all_leaf_nodes(*ss.pbvh);
+    node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
   }
   else if (brush.sculpt_tool == SCULPT_TOOL_CLOTH) {
-    nodes = cloth::brush_affected_nodes_gather(ss, brush);
+    node_mask = cloth::brush_affected_nodes_gather(ss, brush, memory);
   }
   else {
     float radius_scale = 1.0f;
@@ -3394,7 +3454,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
     if (brush.sculpt_tool == SCULPT_TOOL_DRAW && brush.flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = 2.0f;
     }
-    nodes = pbvh_gather_generic(ob, brush, use_original, radius_scale);
+    node_mask = pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -3416,7 +3476,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
 
   /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
    * bke::pbvh::Tree nodes on the first brush step. */
-  if (!nodes.is_empty() ||
+  if (!node_mask.is_empty() ||
       ((brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush.flag & BRUSH_ANCHORED)))
   {
     if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
@@ -3437,17 +3497,17 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
 
   /* Only act if some verts are inside the brush area. */
-  if (nodes.is_empty()) {
+  if (node_mask.is_empty()) {
     return;
   }
   float location[3];
 
   if (!use_pixels) {
-    push_undo_nodes(depsgraph, ob, brush, nodes);
+    push_undo_nodes(depsgraph, ob, brush, node_mask);
   }
 
   if (sculpt_brush_needs_normal(ss, sd, brush)) {
-    update_sculpt_normal(depsgraph, sd, ob, nodes);
+    update_sculpt_normal(depsgraph, sd, ob, node_mask);
   }
 
   update_brush_local_mat(sd, ob);
@@ -3463,7 +3523,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
     cloth::brush_store_simulation_state(depsgraph, ob, *ss.cache->cloth_sim);
     cloth::ensure_nodes_constraints(
-        sd, ob, nodes, *ss.cache->cloth_sim, ss.cache->location, FLT_MAX);
+        sd, ob, node_mask, *ss.cache->cloth_sim, ss.cache->location, FLT_MAX);
   }
 
   bool invert = ss.cache->pen_flip || ss.cache->invert;
@@ -3477,10 +3537,10 @@ static void do_brush_action(const Depsgraph &depsgraph,
       const bool use_vector_displacement = (brush.flag2 & BRUSH_USE_COLOR_AS_DISPLACEMENT &&
                                             (brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
       if (use_vector_displacement) {
-        do_draw_vector_displacement_brush(depsgraph, sd, ob, nodes);
+        do_draw_vector_displacement_brush(depsgraph, sd, ob, node_mask);
       }
       else {
-        do_draw_brush(depsgraph, sd, ob, nodes);
+        do_draw_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     }
@@ -3492,129 +3552,130 @@ static void do_brush_action(const Depsgraph &depsgraph,
          * enhance brush in the middle of the stroke. */
         if (ss.cache->bstrength < 0.0f) {
           /* Invert mode, intensify details. */
-          do_enhance_details_brush(depsgraph, sd, ob, nodes);
+          do_enhance_details_brush(depsgraph, sd, ob, node_mask);
         }
         else {
-          do_smooth_brush(depsgraph, sd, ob, nodes, std::clamp(ss.cache->bstrength, 0.0f, 1.0f));
+          do_smooth_brush(
+              depsgraph, sd, ob, node_mask, std::clamp(ss.cache->bstrength, 0.0f, 1.0f));
         }
       }
       else if (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
-        do_surface_smooth_brush(depsgraph, sd, ob, nodes);
+        do_surface_smooth_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     case SCULPT_TOOL_CREASE:
-      do_crease_brush(depsgraph, scene, sd, ob, nodes);
+      do_crease_brush(depsgraph, scene, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_BLOB:
-      do_blob_brush(depsgraph, scene, sd, ob, nodes);
+      do_blob_brush(depsgraph, scene, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_PINCH:
-      do_pinch_brush(depsgraph, sd, ob, nodes);
+      do_pinch_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_INFLATE:
-      do_inflate_brush(depsgraph, sd, ob, nodes);
+      do_inflate_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_GRAB:
-      do_grab_brush(depsgraph, sd, ob, nodes);
+      do_grab_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_ROTATE:
-      do_rotate_brush(depsgraph, sd, ob, nodes);
+      do_rotate_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
-      do_snake_hook_brush(depsgraph, sd, ob, nodes);
+      do_snake_hook_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_NUDGE:
-      do_nudge_brush(depsgraph, sd, ob, nodes);
+      do_nudge_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_THUMB:
-      do_thumb_brush(depsgraph, sd, ob, nodes);
+      do_thumb_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_LAYER:
-      do_layer_brush(depsgraph, sd, ob, nodes);
+      do_layer_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_FLATTEN:
-      do_flatten_brush(depsgraph, sd, ob, nodes);
+      do_flatten_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_CLAY:
-      do_clay_brush(depsgraph, sd, ob, nodes);
+      do_clay_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
-      do_clay_strips_brush(depsgraph, sd, ob, nodes);
+      do_clay_strips_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      do_multiplane_scrape_brush(depsgraph, sd, ob, nodes);
+      do_multiplane_scrape_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_CLAY_THUMB:
-      do_clay_thumb_brush(depsgraph, sd, ob, nodes);
+      do_clay_thumb_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_FILL:
       if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        do_scrape_brush(depsgraph, sd, ob, nodes);
+        do_scrape_brush(depsgraph, sd, ob, node_mask);
       }
       else {
-        do_fill_brush(depsgraph, sd, ob, nodes);
+        do_fill_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     case SCULPT_TOOL_SCRAPE:
       if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        do_fill_brush(depsgraph, sd, ob, nodes);
+        do_fill_brush(depsgraph, sd, ob, node_mask);
       }
       else {
-        do_scrape_brush(depsgraph, sd, ob, nodes);
+        do_scrape_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     case SCULPT_TOOL_MASK:
       switch ((BrushMaskTool)brush.mask_tool) {
         case BRUSH_MASK_DRAW:
-          do_mask_brush(depsgraph, sd, ob, nodes);
+          do_mask_brush(depsgraph, sd, ob, node_mask);
           break;
         case BRUSH_MASK_SMOOTH:
-          do_smooth_mask_brush(depsgraph, sd, ob, nodes, ss.cache->bstrength);
+          do_smooth_mask_brush(depsgraph, sd, ob, node_mask, ss.cache->bstrength);
           break;
       }
       break;
     case SCULPT_TOOL_POSE:
-      pose::do_pose_brush(depsgraph, sd, ob, nodes);
+      pose::do_pose_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_DRAW_SHARP:
-      do_draw_sharp_brush(depsgraph, sd, ob, nodes);
+      do_draw_sharp_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
-      do_elastic_deform_brush(depsgraph, sd, ob, nodes);
+      do_elastic_deform_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
       if (ss.cache->alt_smooth) {
-        do_topology_relax_brush(depsgraph, sd, ob, nodes);
+        do_topology_relax_brush(depsgraph, sd, ob, node_mask);
       }
       else {
-        do_topology_slide_brush(depsgraph, sd, ob, nodes);
+        do_topology_slide_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     case SCULPT_TOOL_BOUNDARY:
-      boundary::do_boundary_brush(depsgraph, sd, ob, nodes);
+      boundary::do_boundary_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_CLOTH:
-      cloth::do_cloth_brush(depsgraph, sd, ob, nodes);
+      cloth::do_cloth_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       if (!ss.cache->alt_smooth) {
-        do_draw_face_sets_brush(depsgraph, sd, ob, nodes);
+        do_draw_face_sets_brush(depsgraph, sd, ob, node_mask);
       }
       else {
-        do_relax_face_sets_brush(depsgraph, sd, ob, nodes);
+        do_relax_face_sets_brush(depsgraph, sd, ob, node_mask);
       }
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
-      do_displacement_eraser_brush(depsgraph, sd, ob, nodes);
+      do_displacement_eraser_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-      do_displacement_smear_brush(depsgraph, sd, ob, nodes);
+      do_displacement_smear_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_TOOL_PAINT:
-      color::do_paint_brush(depsgraph, paint_mode_settings, sd, ob, nodes, texnodes);
+      color::do_paint_brush(depsgraph, paint_mode_settings, sd, ob, node_mask, texnode_mask);
       break;
     case SCULPT_TOOL_SMEAR:
-      color::do_smear_brush(depsgraph, sd, ob, nodes);
+      color::do_smear_brush(depsgraph, sd, ob, node_mask);
       break;
   }
 
@@ -3623,15 +3684,15 @@ static void do_brush_action(const Depsgraph &depsgraph,
   {
     if (brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
       do_smooth_brush(
-          depsgraph, sd, ob, nodes, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
+          depsgraph, sd, ob, node_mask, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
     }
     else {
-      do_smooth_brush(depsgraph, sd, ob, nodes, brush.autosmooth_factor);
+      do_smooth_brush(depsgraph, sd, ob, node_mask, brush.autosmooth_factor);
     }
   }
 
   if (brush_uses_topology_rake(ss, brush)) {
-    do_bmesh_topology_rake_brush(depsgraph, sd, ob, nodes, brush.topology_rake_factor);
+    do_bmesh_topology_rake_brush(depsgraph, sd, ob, node_mask, brush.topology_rake_factor);
   }
 
   if (!auto_mask::tool_can_reuse_automask(brush.sculpt_tool) ||
@@ -3646,13 +3707,13 @@ static void do_brush_action(const Depsgraph &depsgraph,
       !ELEM(
           brush.sculpt_tool, SCULPT_TOOL_CLOTH, SCULPT_TOOL_DRAW_FACE_SETS, SCULPT_TOOL_BOUNDARY))
   {
-    do_gravity_brush(depsgraph, sd, ob, nodes);
+    do_gravity_brush(depsgraph, sd, ob, node_mask);
   }
 
   if (brush.deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache)) {
-      cloth::sim_activate_nodes(*ss.cache->cloth_sim, nodes);
-      cloth::do_simulation_step(depsgraph, sd, ob, *ss.cache->cloth_sim, nodes);
+      cloth::sim_activate_nodes(ob, *ss.cache->cloth_sim, node_mask);
+      cloth::do_simulation_step(depsgraph, sd, ob, *ss.cache->cloth_sim, node_mask);
     }
   }
 
@@ -4935,16 +4996,18 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   }
   ss.cursor_radius = radius;
 
-  Vector<bke::pbvh::Node *> nodes = pbvh_gather_cursor_update(ob, original);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = pbvh_gather_cursor_update(ob, original, memory);
 
   /* In case there are no nodes under the cursor, return the face normal. */
-  if (nodes.is_empty()) {
+  if (node_mask.is_empty()) {
     copy_v3_v3(out->normal, srd.face_normal);
     return true;
   }
 
   /* Calculate the sampled normal. */
-  if (const std::optional<float3> sampled_normal = calc_area_normal(*depsgraph, brush, ob, nodes))
+  if (const std::optional<float3> sampled_normal = calc_area_normal(
+          *depsgraph, brush, ob, node_mask))
   {
     copy_v3_v3(out->normal, *sampled_normal);
     copy_v3_v3(ss.cursor_sampled_normal, *sampled_normal);
@@ -5789,7 +5852,7 @@ static void fake_neighbor_search_mesh(const SculptSession &ss,
                                       const float3 &location,
                                       const float max_distance_sq,
                                       const int island_id,
-                                      const bke::pbvh::Node &node,
+                                      const bke::pbvh::MeshNode &node,
                                       NearestVertData &nvtd)
 {
   for (const int vert : bke::pbvh::node_unique_verts(node)) {
@@ -5817,7 +5880,7 @@ static void fake_neighbor_search_grids(const SculptSession &ss,
                                        const float3 &location,
                                        const float max_distance_sq,
                                        const int island_id,
-                                       const bke::pbvh::Node &node,
+                                       const bke::pbvh::GridsNode &node,
                                        NearestVertData &nvtd)
 {
   for (const int grid : bke::pbvh::node_grid_indices(node)) {
@@ -5846,10 +5909,12 @@ static void fake_neighbor_search_bmesh(const SculptSession &ss,
                                        const float3 &location,
                                        const float max_distance_sq,
                                        const int island_id,
-                                       bke::pbvh::Node &node,
+                                       const bke::pbvh::BMeshNode &node,
                                        NearestVertData &nvtd)
 {
-  for (const BMVert *bm_vert : BKE_pbvh_bmesh_node_unique_verts(&node)) {
+  for (const BMVert *bm_vert :
+       BKE_pbvh_bmesh_node_unique_verts(const_cast<bke::pbvh::BMeshNode *>(&node)))
+  {
     if (BM_elem_flag_test(bm_vert, BM_ELEM_HIDDEN)) {
       continue;
     }
@@ -5890,28 +5955,31 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         }
         const int island_id = islands::vert_id_get(ss, vert);
         const float3 &location = vert_positions[vert];
-        Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-            *ss.pbvh, [&](bke::pbvh::Node &node) {
+
+        IndexMaskMemory memory;
+        const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+            *ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
               return node_in_sphere(node, location, max_distance_sq, false);
             });
-        if (nodes.is_empty()) {
+        if (nodes_in_sphere.is_empty()) {
           continue;
         }
+        const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
         const NearestVertData nvtd = threading::parallel_reduce(
-            nodes.index_range(),
+            nodes_in_sphere.index_range(),
             1,
             NearestVertData(),
             [&](const IndexRange range, NearestVertData nvtd) {
-              for (const int i : range) {
+              nodes_in_sphere.slice(range).foreach_index([&](const int i) {
                 fake_neighbor_search_mesh(ss,
                                           vert_positions,
                                           hide_vert,
                                           location,
                                           max_distance_sq,
                                           island_id,
-                                          *nodes[i],
+                                          nodes[i],
                                           nvtd);
-              }
+              });
               return nvtd;
             },
             NearestVertData::join);
@@ -5935,19 +6003,21 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         const int island_id = islands::vert_id_get(ss, vert);
         const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vert);
         const float3 &location = CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y);
-        Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-            *ss.pbvh, [&](bke::pbvh::Node &node) {
+        IndexMaskMemory memory;
+        const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+            *ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
               return node_in_sphere(node, location, max_distance_sq, false);
             });
-        if (nodes.is_empty()) {
+        if (nodes_in_sphere.is_empty()) {
           continue;
         }
+        const Span<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
         const NearestVertData nvtd = threading::parallel_reduce(
-            nodes.index_range(),
+            nodes_in_sphere.index_range(),
             1,
             NearestVertData(),
             [&](const IndexRange range, NearestVertData nvtd) {
-              for (const int i : range) {
+              nodes_in_sphere.slice(range).foreach_index([&](const int i) {
                 fake_neighbor_search_grids(ss,
                                            key,
                                            elems,
@@ -5955,9 +6025,9 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
                                            location,
                                            max_distance_sq,
                                            island_id,
-                                           *nodes[i],
+                                           nodes[i],
                                            nvtd);
-              }
+              });
               return nvtd;
             },
             NearestVertData::join);
@@ -5977,22 +6047,24 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
         }
         const int island_id = islands::vert_id_get(ss, vert);
         const float3 &location = BM_vert_at_index(&const_cast<BMesh &>(bm), vert)->co;
-        Vector<bke::pbvh::Node *> nodes = bke::pbvh::search_gather(
-            *ss.pbvh, [&](bke::pbvh::Node &node) {
+        IndexMaskMemory memory;
+        const IndexMask nodes_in_sphere = bke::pbvh::search_nodes(
+            *ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
               return node_in_sphere(node, location, max_distance_sq, false);
             });
-        if (nodes.is_empty()) {
+        if (nodes_in_sphere.is_empty()) {
           continue;
         }
+        const Span<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
         const NearestVertData nvtd = threading::parallel_reduce(
-            nodes.index_range(),
+            nodes_in_sphere.index_range(),
             1,
             NearestVertData(),
             [&](const IndexRange range, NearestVertData nvtd) {
-              for (const int i : range) {
+              nodes_in_sphere.slice(range).foreach_index([&](const int i) {
                 fake_neighbor_search_bmesh(
-                    ss, location, max_distance_sq, island_id, *nodes[i], nvtd);
-              }
+                    ss, location, max_distance_sq, island_id, nodes[i], nvtd);
+              });
               return nvtd;
             },
             NearestVertData::join);
@@ -6248,23 +6320,23 @@ static SculptTopologyIslandCache calc_topology_islands_grids(const Object &objec
 static SculptTopologyIslandCache calc_topology_islands_bmesh(const Object &object)
 {
   const SculptSession &ss = *object.sculpt;
+  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
   BMesh &bm = *ss.bm;
   BM_mesh_elem_index_ensure(&bm, BM_VERT);
 
   bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
-  const Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   AtomicDisjointSet disjoint_set(bm.totvert);
-  threading::parallel_for(nodes.index_range(), 1024, [&](const IndexRange range) {
-    for (bke::pbvh::Node *node : nodes.as_span().slice(range)) {
-      for (const BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
-        if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-        disjoint_set.join(BM_elem_index_get(face->l_first->v),
-                          BM_elem_index_get(face->l_first->next->v));
-        disjoint_set.join(BM_elem_index_get(face->l_first->v),
-                          BM_elem_index_get(face->l_first->next->next->v));
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    for (const BMFace *face : BKE_pbvh_bmesh_node_faces(&nodes[i])) {
+      if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
+        continue;
       }
+      disjoint_set.join(BM_elem_index_get(face->l_first->v),
+                        BM_elem_index_get(face->l_first->next->v));
+      disjoint_set.join(BM_elem_index_get(face->l_first->v),
+                        BM_elem_index_get(face->l_first->next->next->v));
     }
   });
 
@@ -7320,33 +7392,38 @@ void transform_positions(const float4x4 &transform, const MutableSpan<float3> po
   }
 }
 
-OffsetIndices<int> create_node_vert_offsets(Span<bke::pbvh::Node *> nodes, Array<int> &node_data)
-{
-  node_data.reinitialize(nodes.size() + 1);
-  for (const int i : nodes.index_range()) {
-    node_data[i] = bke::pbvh::node_unique_verts(*nodes[i]).size();
-  }
-  return offset_indices::accumulate_counts_to_offsets(node_data);
-}
-
-OffsetIndices<int> create_node_vert_offsets(Span<bke::pbvh::Node *> nodes,
-                                            const CCGKey &key,
+OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> nodes,
+                                            const IndexMask &nodes_mask,
                                             Array<int> &node_data)
 {
   node_data.reinitialize(nodes.size() + 1);
-  for (const int i : nodes.index_range()) {
-    node_data[i] = bke::pbvh::node_grid_indices(*nodes[i]).size() * key.grid_area;
-  }
+  nodes_mask.foreach_index([&](const int i, const int pos) {
+    node_data[pos] = bke::pbvh::node_unique_verts(nodes[i]).size();
+  });
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }
 
-OffsetIndices<int> create_node_vert_offsets_bmesh(Span<bke::pbvh::Node *> nodes,
+OffsetIndices<int> create_node_vert_offsets(const CCGKey &key,
+                                            const Span<bke::pbvh::GridsNode> nodes,
+                                            const IndexMask &nodes_mask,
+                                            Array<int> &node_data)
+{
+  node_data.reinitialize(nodes.size() + 1);
+  nodes_mask.foreach_index([&](const int i, const int pos) {
+    node_data[pos] = bke::pbvh::node_grid_indices(nodes[i]).size() * key.grid_area;
+  });
+  return offset_indices::accumulate_counts_to_offsets(node_data);
+}
+
+OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNode> nodes,
+                                                  const IndexMask &nodes_mask,
                                                   Array<int> &node_data)
 {
   node_data.reinitialize(nodes.size() + 1);
-  for (const int i : nodes.index_range()) {
-    node_data[i] = BKE_pbvh_bmesh_node_unique_verts(nodes[i]).size();
-  }
+  nodes_mask.foreach_index([&](const int i, const int pos) {
+    node_data[pos] =
+        BKE_pbvh_bmesh_node_unique_verts(const_cast<bke::pbvh::BMeshNode *>(&nodes[i])).size();
+  });
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }
 

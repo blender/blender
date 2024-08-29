@@ -615,7 +615,7 @@ static float factor_get(const Depsgraph &depsgraph,
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        const Span<int> verts,
                        const MutableSpan<float> factors)
 {
@@ -641,7 +641,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        const OffsetIndices<int> faces,
                        const Span<int> corner_verts,
                        const Cache &cache,
-                       const bke::pbvh::Node & /*node*/,
+                       const bke::pbvh::MeshNode & /*node*/,
                        const Span<int> face_indices,
                        const MutableSpan<float> factors)
 {
@@ -658,7 +658,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
 void calc_grids_factors(const Depsgraph &depsgraph,
                         const Object &object,
                         const Cache &cache,
-                        const bke::pbvh::Node &node,
+                        const bke::pbvh::GridsNode &node,
                         const Span<int> grids,
                         const MutableSpan<float> factors)
 {
@@ -691,7 +691,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
                        const Cache &cache,
-                       const bke::pbvh::Node & /*node*/,
+                       const bke::pbvh::BMeshNode & /*node*/,
                        const Set<BMVert *, 0> &verts,
                        const MutableSpan<float> factors)
 {

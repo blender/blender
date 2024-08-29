@@ -431,12 +431,12 @@ static void do_push_undo_tile(Image &image, ImageUser &image_user, bke::pbvh::No
 /** \name Fix non-manifold edge bleeding.
  * \{ */
 
-static Vector<image::TileNumber> collect_dirty_tiles(Span<bke::pbvh::Node *> nodes)
+static Vector<image::TileNumber> collect_dirty_tiles(MutableSpan<bke::pbvh::MeshNode> nodes,
+                                                     const IndexMask &node_mask)
 {
   Vector<image::TileNumber> dirty_tiles;
-  for (bke::pbvh::Node *node : nodes) {
-    bke::pbvh::pixels::collect_dirty_tiles(*node, dirty_tiles);
-  }
+  node_mask.foreach_index(
+      [&](const int i) { bke::pbvh::pixels::collect_dirty_tiles(nodes[i], dirty_tiles); });
   return dirty_tiles;
 }
 static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
@@ -452,9 +452,10 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
 static void fix_non_manifold_seam_bleeding(Object &ob,
                                            Image &image,
                                            ImageUser &image_user,
-                                           const Span<bke::pbvh::Node *> nodes)
+                                           MutableSpan<bke::pbvh::MeshNode> nodes,
+                                           const IndexMask &node_mask)
 {
-  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(nodes);
+  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(nodes, node_mask);
   fix_non_manifold_seam_bleeding(*ob.sculpt->pbvh, image, image_user, dirty_tiles);
 }
 
@@ -499,7 +500,7 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
                                  PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const blender::Span<blender::bke::pbvh::Node *> nodes)
+                                 const blender::IndexMask &node_mask)
 {
   using namespace blender;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -509,19 +510,19 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
     return;
   }
 
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_push_undo_tile(*image_data.image, *image_data.image_user, *nodes[i]);
-    }
-  });
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      do_paint_pixels(depsgraph, ob, *brush, image_data, *nodes[i]);
-    }
-  });
-  fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes);
+  SculptSession &ss = *ob.sculpt;
+  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
 
-  for (bke::pbvh::Node *node : nodes) {
-    bke::pbvh::pixels::mark_image_dirty(*node, *image_data.image, *image_data.image_user);
-  }
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    do_push_undo_tile(*image_data.image, *image_data.image_user, nodes[i]);
+  });
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
+    do_paint_pixels(depsgraph, ob, *brush, image_data, nodes[i]);
+  });
+
+  fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes, node_mask);
+
+  node_mask.foreach_index([&](const int i) {
+    bke::pbvh::pixels::mark_image_dirty(nodes[i], *image_data.image, *image_data.image_user);
+  });
 }

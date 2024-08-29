@@ -158,7 +158,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
                       const Sculpt &sd,
                       const Brush &brush,
                       const Span<float3> positions_eval,
-                      const bke::pbvh::Node &node,
+                      const bke::pbvh::MeshNode &node,
                       Object &object,
                       BrushLocalData &tls,
                       const MutableSpan<float3> positions_orig)
@@ -210,7 +210,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
 static void calc_grids(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::GridsNode &node,
                        Object &object,
                        BrushLocalData &tls)
 {
@@ -263,7 +263,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 static void calc_bmesh(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        Object &object,
                        BrushLocalData &tls)
 {
@@ -350,7 +350,7 @@ static void grow_factors_mesh(const ePaintSymmetryFlags symm,
                               const Span<bool> hide_poly,
                               const Span<int> fake_neighbors,
                               const Span<float> prev_mask,
-                              const bke::pbvh::Node &node,
+                              const bke::pbvh::MeshNode &node,
                               GrowFactorLocalData &tls,
                               const MutableSpan<float> pose_factor,
                               PoseGrowFactorData &gftd)
@@ -389,7 +389,7 @@ static void grow_factors_grids(const ePaintSymmetryFlags symm,
                                const SubdivCCG &subdiv_ccg,
                                const Span<int> fake_neighbors,
                                const Span<float> prev_mask,
-                               const bke::pbvh::Node &node,
+                               const bke::pbvh::GridsNode &node,
                                const MutableSpan<float> pose_factor,
                                PoseGrowFactorData &gftd)
 {
@@ -441,7 +441,7 @@ static void grow_factors_bmesh(const ePaintSymmetryFlags symm,
                                const float3 &pose_initial_position,
                                const Span<int> fake_neighbors,
                                const Span<float> prev_mask,
-                               bke::pbvh::Node &node,
+                               bke::pbvh::BMeshNode &node,
                                const MutableSpan<float> pose_factor,
                                PoseGrowFactorData &gftd)
 {
@@ -488,7 +488,8 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  Vector<bke::pbvh::Node *> nodes = bke::pbvh::all_leaf_nodes(pbvh);
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   const Span<int> fake_neighbors = ss.fake_neighbors.fake_neighbor_index;
 
   bool grow_next_iteration = true;
@@ -501,6 +502,7 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
     threading::EnumerableThreadSpecific<GrowFactorLocalData> all_tls;
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
         const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
         const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
         const OffsetIndices faces = mesh.faces();
@@ -512,12 +514,12 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
         const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
                                                                     bke::AttrDomain::Face);
         gftd = threading::parallel_reduce(
-            nodes.index_range(),
+            node_mask.index_range(),
             1,
             PoseGrowFactorData{},
             [&](const IndexRange range, PoseGrowFactorData gftd) {
               GrowFactorLocalData &tls = all_tls.local();
-              for (const int i : range) {
+              node_mask.slice(range).foreach_index([&](const int i) {
                 grow_factors_mesh(symm,
                                   pose_target,
                                   vert_positions,
@@ -528,48 +530,50 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
                                   hide_poly,
                                   fake_neighbors,
                                   prev_mask,
-                                  *nodes[i],
+                                  nodes[i],
                                   tls,
                                   pose_factor,
                                   gftd);
-              }
+              });
               return gftd;
             },
             PoseGrowFactorData::join);
         break;
       }
       case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
         const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         gftd = threading::parallel_reduce(
-            nodes.index_range(),
+            node_mask.index_range(),
             1,
             PoseGrowFactorData{},
             [&](const IndexRange range, PoseGrowFactorData gftd) {
-              for (const int i : range) {
+              node_mask.slice(range).foreach_index([&](const int i) {
                 grow_factors_grids(symm,
                                    pose_target,
                                    subdiv_ccg,
                                    fake_neighbors,
                                    prev_mask,
-                                   *nodes[i],
+                                   nodes[i],
                                    pose_factor,
                                    gftd);
-              }
+              });
               return gftd;
             },
             PoseGrowFactorData::join);
         break;
       }
       case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
         gftd = threading::parallel_reduce(
-            nodes.index_range(),
+            node_mask.index_range(),
             1,
             PoseGrowFactorData{},
             [&](const IndexRange range, PoseGrowFactorData gftd) {
-              for (const int i : range) {
+              node_mask.slice(range).foreach_index([&](const int i) {
                 grow_factors_bmesh(
-                    symm, pose_target, fake_neighbors, prev_mask, *nodes[i], pose_factor, gftd);
-              }
+                    symm, pose_target, fake_neighbors, prev_mask, nodes[i], pose_factor, gftd);
+              });
               return gftd;
             },
             PoseGrowFactorData::join);
@@ -1386,7 +1390,7 @@ static void align_pivot_local_space(float r_mat[4][4],
 void do_pose_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
                    Object &ob,
-                   Span<bke::pbvh::Node *> nodes)
+                   const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -1470,34 +1474,37 @@ void do_pose_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
   switch (ob.sculpt->pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         BrushLocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_mesh(depsgraph, sd, brush, positions_eval, *nodes[i], ob, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          calc_mesh(depsgraph, sd, brush, positions_eval, nodes[i], ob, tls, positions_orig);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
-    case bke::pbvh::Type::Grids:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         BrushLocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_grids(depsgraph, sd, brush, *nodes[i], ob, tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_grids(depsgraph, sd, brush, nodes[i], ob, tls); });
       });
       break;
-    case bke::pbvh::Type::BMesh:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    }
+    case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         BrushLocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_bmesh(depsgraph, sd, brush, *nodes[i], ob, tls);
-        }
+        node_mask.slice(range).foreach_index(
+            [&](const int i) { calc_bmesh(depsgraph, sd, brush, nodes[i], ob, tls); });
       });
       break;
+    }
   }
 }
 

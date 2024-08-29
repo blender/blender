@@ -575,14 +575,14 @@ namespace blender::ed::sculpt_paint {
 void calc_brush_plane(const Depsgraph &depsgraph,
                       const Brush &brush,
                       Object &ob,
-                      Span<bke::pbvh::Node *> nodes,
+                      const IndexMask &node_mask,
                       float3 &r_area_no,
                       float3 &r_area_co);
 
 std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                        const Brush &brush,
-                                       Object &ob,
-                                       Span<bke::pbvh::Node *> nodes);
+                                       const Object &ob,
+                                       const IndexMask &node_mask);
 
 /**
  * This calculates flatten center and area normal together,
@@ -591,13 +591,13 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
 void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                  const Brush &brush,
                                  const Object &ob,
-                                 Span<bke::pbvh::Node *> nodes,
+                                 const IndexMask &node_mask,
                                  float r_area_no[3],
                                  float r_area_co[3]);
 void calc_area_center(const Depsgraph &depsgraph,
                       const Brush &brush,
                       const Object &ob,
-                      Span<bke::pbvh::Node *> nodes,
+                      const IndexMask &node_mask,
                       float r_area_co[3]);
 
 PBVHVertRef nearest_vert_calc(const Depsgraph &depsgraph,
@@ -696,7 +696,7 @@ namespace blender::ed::sculpt_paint {
 
 void calc_smooth_translations(const Depsgraph &depsgraph,
                               const Object &object,
-                              Span<bke::pbvh::Node *> nodes,
+                              const IndexMask &node_mask,
                               MutableSpan<float3> translations);
 
 }
@@ -885,7 +885,7 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
                                  PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 blender::Span<blender::bke::pbvh::Node *> texnodes);
+                                 const blender::IndexMask &node_mask);
 bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob);
 
 namespace blender::ed::sculpt_paint {

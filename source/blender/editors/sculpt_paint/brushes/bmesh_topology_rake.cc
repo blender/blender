@@ -49,7 +49,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        const Brush &brush,
                        const float3 &direction,
                        const float strength,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -93,7 +93,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
                                   const Sculpt &sd,
                                   Object &object,
-                                  Span<bke::pbvh::Node *> nodes,
+                                  const IndexMask &node_mask,
                                   const float input_strength)
 {
   const SculptSession &ss = *object.sculpt;
@@ -120,12 +120,13 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for ([[maybe_unused]] const int i : IndexRange(count)) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       LocalData &tls = all_tls.local();
-      for (const int i : range) {
+      node_mask.slice(range).foreach_index([&](const int i) {
         calc_bmesh(
-            depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, *nodes[i], tls);
-      }
+            depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, nodes[i], tls);
+      });
     });
   }
 }

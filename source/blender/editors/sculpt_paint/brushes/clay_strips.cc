@@ -47,7 +47,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const bool flip,
                        const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
                        const MutableSpan<float3> positions_orig)
@@ -103,7 +103,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const float4 &plane,
                        const float strength,
                        const bool flip,
-                       bke::pbvh::Node &node,
+                       const bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -159,7 +159,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        const float4 &plane,
                        const float strength,
                        const bool flip,
-                       bke::pbvh::Node &node,
+                       bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
   SculptSession &ss = *object.sculpt;
@@ -211,7 +211,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const Sculpt &sd,
                           Object &object,
-                          Span<bke::pbvh::Node *> nodes)
+                          const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
   if (math::is_zero(ss.cache->grab_delta_symmetry)) {
@@ -226,13 +226,13 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
 
   float3 area_position;
   float3 plane_normal;
-  calc_brush_plane(depsgraph, brush, object, nodes, plane_normal, area_position);
+  calc_brush_plane(depsgraph, brush, object, node_mask, plane_normal, area_position);
   SCULPT_tilt_apply_to_normal(plane_normal, ss.cache, brush.tilt_strength_factor);
   area_position += plane_normal * ss.cache->scale * displace;
 
   float3 area_normal;
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_normal = calc_area_normal(depsgraph, brush, object, nodes).value_or(float3(0));
+    area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
   }
   else {
     area_normal = plane_normal;
@@ -274,15 +274,16 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   const float strength = std::abs(ss.cache->bstrength);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (object.sculpt->pbvh->type()) {
+  switch (ss.pbvh->type()) {
     case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           calc_faces(depsgraph,
                      sd,
                      brush,
@@ -292,31 +293,35 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
                      flip,
                      positions_eval,
                      vert_normals,
-                     *nodes[i],
+                     nodes[i],
                      object,
                      tls,
                      positions_orig);
-          BKE_pbvh_node_mark_positions_update(*nodes[i]);
-        }
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+        });
       });
       break;
     }
-    case bke::pbvh::Type::Grids:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_grids(depsgraph, sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          calc_grids(depsgraph, sd, object, brush, mat, plane, strength, flip, nodes[i], tls);
+        });
       });
       break;
-    case bke::pbvh::Type::BMesh:
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    }
+    case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
-          calc_bmesh(depsgraph, sd, object, brush, mat, plane, strength, flip, *nodes[i], tls);
-        }
+        node_mask.slice(range).foreach_index([&](const int i) {
+          calc_bmesh(depsgraph, sd, object, brush, mat, plane, strength, flip, nodes[i], tls);
+        });
       });
       break;
+    }
   }
 }
 

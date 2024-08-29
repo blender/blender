@@ -18,7 +18,7 @@
 
 namespace blender::ed::sculpt_paint::hide {
 
-Span<int> node_visible_verts(const bke::pbvh::Node &node,
+Span<int> node_visible_verts(const bke::pbvh::MeshNode &node,
                              const Span<bool> hide_vert,
                              Vector<int> &indices)
 {

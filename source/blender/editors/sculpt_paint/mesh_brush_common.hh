@@ -304,13 +304,13 @@ namespace auto_mask {
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        Span<int> verts,
                        MutableSpan<float> factors);
 inline void calc_vert_factors(const Depsgraph &depsgraph,
                               const Object &object,
                               const Cache *cache,
-                              const bke::pbvh::Node &node,
+                              const bke::pbvh::MeshNode &node,
                               Span<int> verts,
                               MutableSpan<float> factors)
 {
@@ -322,13 +322,13 @@ inline void calc_vert_factors(const Depsgraph &depsgraph,
 void calc_grids_factors(const Depsgraph &depsgraph,
                         const Object &object,
                         const Cache &cache,
-                        const bke::pbvh::Node &node,
+                        const bke::pbvh::GridsNode &node,
                         Span<int> grids,
                         MutableSpan<float> factors);
 inline void calc_grids_factors(const Depsgraph &depsgraph,
                                const Object &object,
                                const Cache *cache,
-                               const bke::pbvh::Node &node,
+                               const bke::pbvh::GridsNode &node,
                                Span<int> grids,
                                MutableSpan<float> factors)
 {
@@ -340,13 +340,13 @@ inline void calc_grids_factors(const Depsgraph &depsgraph,
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::BMeshNode &node,
                        const Set<BMVert *, 0> &verts,
                        MutableSpan<float> factors);
 inline void calc_vert_factors(const Depsgraph &depsgraph,
                               const Object &object,
                               const Cache *cache,
-                              const bke::pbvh::Node &node,
+                              const bke::pbvh::BMeshNode &node,
                               const Set<BMVert *, 0> &verts,
                               MutableSpan<float> factors)
 {
@@ -364,7 +364,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        OffsetIndices<int> faces,
                        Span<int> corner_verts,
                        const Cache &cache,
-                       const bke::pbvh::Node &node,
+                       const bke::pbvh::MeshNode &node,
                        Span<int> face_indices,
                        MutableSpan<float> factors);
 
@@ -447,11 +447,15 @@ void write_translations(const Depsgraph &depsgraph,
  * Creates OffsetIndices based on each node's unique vertex count, allowing for easy slicing of a
  * new array.
  */
-OffsetIndices<int> create_node_vert_offsets(Span<bke::pbvh::Node *> nodes, Array<int> &node_data);
-OffsetIndices<int> create_node_vert_offsets(Span<bke::pbvh::Node *> nodes,
-                                            const CCGKey &key,
+OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> nodes,
+                                            const IndexMask &nodes_mask,
                                             Array<int> &node_data);
-OffsetIndices<int> create_node_vert_offsets_bmesh(Span<bke::pbvh::Node *> nodes,
+OffsetIndices<int> create_node_vert_offsets(const CCGKey &key,
+                                            const Span<bke::pbvh::GridsNode> nodes,
+                                            const IndexMask &nodes_mask,
+                                            Array<int> &node_data);
+OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNode> nodes,
+                                                  const IndexMask &nodes_mask,
                                                   Array<int> &node_data);
 
 /**
