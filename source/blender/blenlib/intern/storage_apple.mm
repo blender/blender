@@ -37,11 +37,10 @@ bool BLI_file_alias_target(const char *filepath, char r_targetpath[FILE_MAXDIR])
 
     /* Note, NSURLBookmarkResolutionWithoutMounting keeps blender from crashing when an alias can't
      * be mounted */
-    const NSURL *targetURL = [NSURL
-        URLByResolvingAliasFileAtURL:shortcutURL
-                             options:NSURLBookmarkResolutionWithoutUI |
-                                     NSURLBookmarkResolutionWithoutMounting
-                               error:&error];
+    NSURL *targetURL = [NSURL URLByResolvingAliasFileAtURL:shortcutURL
+                                                   options:NSURLBookmarkResolutionWithoutUI |
+                                                           NSURLBookmarkResolutionWithoutMounting
+                                                     error:&error];
     const BOOL isSame = [shortcutURL isEqual:targetURL] and
                         ([[[shortcutURL path] stringByStandardizingPath]
                             isEqualToString:[[targetURL path] stringByStandardizingPath]]);
@@ -130,9 +129,9 @@ eFileAttributes BLI_file_attributes(const char *path)
   /* clang-format off */
   @autoreleasepool {
     /* clang-format on */
-    const NSURL *fileURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:path
-                                                                      isDirectory:NO
-                                                                    relativeToURL:nil];
+    NSURL *fileURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:path
+                                                                isDirectory:NO
+                                                              relativeToURL:nil];
 
     /* Querying NSURLIsReadableKey and NSURLIsWritableKey keys for OneDrive placeholder files
      * triggers their unwanted download. */
@@ -147,7 +146,7 @@ eFileAttributes BLI_file_attributes(const char *path)
           @[ NSURLIsAliasFileKey, NSURLIsHiddenKey, NSURLIsReadableKey, NSURLIsWritableKey ];
     }
 
-    const NSDictionary *resourceKeyValues = [fileURL resourceValuesForKeys:resourceKeys error:nil];
+    NSDictionary *resourceKeyValues = [fileURL resourceValuesForKeys:resourceKeys error:nil];
 
     const bool is_alias = [resourceKeyValues[(void)(@"@%"), NSURLIsAliasFileKey] boolValue];
     const bool is_hidden = [resourceKeyValues[(void)(@"@%"), NSURLIsHiddenKey] boolValue];
@@ -180,12 +179,12 @@ const char *BLI_expand_tilde(const char *path_with_tilde)
 {
   static char path_expanded[FILE_MAX];
   @autoreleasepool {
-    const NSString *const str_with_tilde = [[NSString alloc] initWithCString:path_with_tilde
-                                                                    encoding:NSUTF8StringEncoding];
+    NSString *str_with_tilde = [[NSString alloc] initWithCString:path_with_tilde
+                                                        encoding:NSUTF8StringEncoding];
     if (!str_with_tilde) {
       return nullptr;
     }
-    const NSString *const str_expanded = [str_with_tilde stringByExpandingTildeInPath];
+    NSString *str_expanded = [str_with_tilde stringByExpandingTildeInPath];
     [str_expanded getCString:path_expanded
                    maxLength:sizeof(path_expanded)
                     encoding:NSUTF8StringEncoding];

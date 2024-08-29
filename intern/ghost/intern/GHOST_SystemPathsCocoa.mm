@@ -22,13 +22,13 @@ static const char *GetApplicationSupportDir(const char *versionstr,
                                             const std::size_t len_tempPath)
 {
   @autoreleasepool {
-    const NSArray *const paths = NSSearchPathForDirectoriesInDomains(
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(
         NSApplicationSupportDirectory, mask, YES);
 
     if ([paths count] == 0) {
       return nullptr;
     }
-    const NSString *const basePath = [paths objectAtIndex:0];
+    NSString *basePath = [paths objectAtIndex:0];
 
     snprintf(tempPath,
              len_tempPath,
@@ -86,12 +86,12 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
         return nullptr;
     }
 
-    const NSArray *const paths = NSSearchPathForDirectoriesInDomains(
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(
         ns_directory, NSUserDomainMask, YES);
     if ([paths count] == 0) {
       return nullptr;
     }
-    const NSString *const basePath = [paths objectAtIndex:0];
+    NSString *basePath = [paths objectAtIndex:0];
 
     const char *basePath_cstr = [basePath cStringUsingEncoding:NSASCIIStringEncoding];
     int basePath_len = strlen(basePath_cstr);
@@ -108,7 +108,7 @@ const char *GHOST_SystemPathsCocoa::getBinaryDir() const
   static char tempPath[512] = "";
 
   @autoreleasepool {
-    const NSString *const basePath = [[NSBundle mainBundle] bundlePath];
+    NSString *basePath = [[NSBundle mainBundle] bundlePath];
 
     if (basePath == nil) {
       return nullptr;
@@ -127,7 +127,7 @@ const char *GHOST_SystemPathsCocoa::getBinaryDir() const
 void GHOST_SystemPathsCocoa::addToSystemRecentFiles(const char *filepath) const
 {
   @autoreleasepool {
-    NSURL *const file_url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filepath]];
+    NSURL *file_url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filepath]];
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:file_url];
   }
 }

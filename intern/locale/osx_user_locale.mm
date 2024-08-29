@@ -27,8 +27,8 @@ const char *osx_user_locale()
   // like `ko-Kore_KR` instead of `ko_KR`. See #88877.
   // NSString *nsIdentifier = [myNSLocale localeIdentifier];
 
-  const NSString *nsIdentifier = [myNSLocale languageCode];
-  const NSString *const nsIdentifier_country = [myNSLocale countryCode];
+  NSString *nsIdentifier = [myNSLocale languageCode];
+  NSString *nsIdentifier_country = [myNSLocale countryCode];
   if ([nsIdentifier length] != 0 && [nsIdentifier_country length] != 0) {
     nsIdentifier = [NSString stringWithFormat:@"%@_%@", nsIdentifier, nsIdentifier_country];
   }
