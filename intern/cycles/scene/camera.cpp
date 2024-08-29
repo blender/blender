@@ -484,7 +484,7 @@ void Camera::update(Scene *scene)
   previous_need_motion = need_motion;
 }
 
-void Camera::device_update(Device * /* device */, DeviceScene *dscene, Scene *scene)
+void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scene)
 {
   update(scene);
 

@@ -111,7 +111,7 @@ static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
       &base_mesh->corner_data, CD_GRID_PAINT_MASK, base_mesh->corners_num));
 }
 
-static void context_init_commoon(MultiresReshapeContext *reshape_context)
+static void context_init_common(MultiresReshapeContext *reshape_context)
 {
   BLI_assert(reshape_context->subdiv != nullptr);
   BLI_assert(reshape_context->base_mesh != nullptr);
@@ -175,7 +175,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
   reshape_context->top.grid_size = blender::bke::subdiv::grid_size_from_level(
       reshape_context->top.level);
 
-  context_init_commoon(reshape_context);
+  context_init_common(reshape_context);
 
   return context_verify_or_free(reshape_context);
 }
@@ -219,7 +219,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
   reshape_context->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
 
-  context_init_commoon(reshape_context);
+  context_init_common(reshape_context);
 
   return context_verify_or_free(reshape_context);
 }
@@ -249,7 +249,7 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   reshape_context->top.grid_size = blender::bke::subdiv::grid_size_from_level(
       reshape_context->top.level);
 
-  context_init_commoon(reshape_context);
+  context_init_common(reshape_context);
 
   return context_verify_or_free(reshape_context);
 }
@@ -302,7 +302,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->top.level = top_level;
   reshape_context->top.grid_size = subdiv::grid_size_from_level(reshape_context->top.level);
 
-  context_init_commoon(reshape_context);
+  context_init_common(reshape_context);
 
   return context_verify_or_free(reshape_context);
 }

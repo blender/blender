@@ -771,7 +771,7 @@ ccl_device void osl_closure_glossy_toon_setup(KernelGlobals kg,
  */
 ccl_device void osl_closure_emission_setup(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
-                                           uint32_t /* path_flag */,
+                                           uint32_t /*path_flag*/,
                                            float3 weight,
                                            ccl_private const GenericEmissiveClosure *closure,
                                            float3 *layer_albedo)
@@ -789,7 +789,7 @@ ccl_device void osl_closure_emission_setup(KernelGlobals kg,
  */
 ccl_device void osl_closure_background_setup(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
-                                             uint32_t /* path_flag */,
+                                             uint32_t /*path_flag*/,
                                              float3 weight,
                                              ccl_private const GenericBackgroundClosure *closure,
                                              float3 *layer_albedo)
@@ -804,7 +804,7 @@ ccl_device void osl_closure_background_setup(KernelGlobals kg,
  */
 ccl_device void osl_closure_holdout_setup(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
-                                          uint32_t /* path_flag */,
+                                          uint32_t /*path_flag*/,
                                           float3 weight,
                                           ccl_private const HoldoutClosure *closure,
                                           float3 *layer_albedo)
@@ -815,7 +815,7 @@ ccl_device void osl_closure_holdout_setup(KernelGlobals kg,
 
 ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
-                                               uint32_t /* path_flag */,
+                                               uint32_t /*path_flag*/,
                                                float3 weight,
                                                ccl_private const DiffuseRampClosure *closure,
                                                float3 *layer_albedo)
@@ -843,7 +843,7 @@ ccl_device void osl_closure_diffuse_ramp_setup(KernelGlobals kg,
 
 ccl_device void osl_closure_phong_ramp_setup(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
-                                             uint32_t /* path_flag */,
+                                             uint32_t /*path_flag*/,
                                              float3 weight,
                                              ccl_private const PhongRampClosure *closure,
                                              float3 *layer_albedo)

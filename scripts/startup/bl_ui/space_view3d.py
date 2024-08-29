@@ -8789,16 +8789,16 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
             layout.label(text="Active Layer")
             row = layout.row(align=True)
             row.operator_context = 'EXEC_REGION_WIN'
-            row.menu("GREASE_PENCIL_MT_Layers", text='', icon='GREASEPENCIL')
-            row.prop(layer, "name", text='')
+            row.menu("GREASE_PENCIL_MT_Layers", text="", icon='GREASEPENCIL')
+            row.prop(layer, "name", text="")
             row.operator("grease_pencil.layer_remove", text="", icon='X')
 
         layout.label(text="Active Material")
         row = layout.row(align=True)
-        row.menu("VIEW3D_MT_greasepencil_material_active", text='', icon='MATERIAL')
+        row.menu("VIEW3D_MT_greasepencil_material_active", text="", icon='MATERIAL')
         ob = context.active_object
         if ob.active_material:
-            row.prop(ob.active_material, "name", text='')
+            row.prop(ob.active_material, "name", text="")
 
 
 class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
@@ -8815,8 +8815,8 @@ class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
         ups = tool_settings.unified_paint_settings
         size_owner = ups if ups.use_unified_size else brush
         strength_owner = ups if ups.use_unified_strength else brush
-        layout.prop(size_owner, "size", text='')
-        layout.prop(strength_owner, "strength", text='')
+        layout.prop(size_owner, "size", text="")
+        layout.prop(strength_owner, "strength", text="")
 
         layer = context.object.data.layers.active
 
@@ -8824,8 +8824,8 @@ class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
             layout.label(text="Active Layer")
             row = layout.row(align=True)
             row.operator_context = 'EXEC_REGION_WIN'
-            row.menu("GREASE_PENCIL_MT_Layers", text='', icon='GREASEPENCIL')
-            row.prop(layer, "name", text='')
+            row.menu("GREASE_PENCIL_MT_Layers", text="", icon='GREASEPENCIL')
+            row.prop(layer, "name", text="")
             row.operator("grease_pencil.layer_remove", text="", icon='X')
 
 
