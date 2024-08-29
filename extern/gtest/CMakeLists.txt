@@ -23,6 +23,7 @@ set(SRC
   # src/gtest_main.cc
 
   src/gtest.cc
+  src/gtest-assertion-result.cc
   src/gtest-death-test.cc
   src/gtest-filepath.cc
   src/gtest-matchers.cc
@@ -36,6 +37,7 @@ set(SRC
   include/gtest/gtest.h
   include/gtest/gtest_pred_impl.h
   include/gtest/gtest_prod.h
+  include/gtest/gtest-assertion-result.h
   include/gtest/gtest-death-test.h
   include/gtest/gtest-matchers.h
   include/gtest/gtest-message.h

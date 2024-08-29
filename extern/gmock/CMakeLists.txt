@@ -27,9 +27,6 @@ set(SRC_HEADERS
   include/gmock/gmock-actions.h
   include/gmock/gmock-cardinalities.h
   include/gmock/gmock-function-mocker.h
-  include/gmock/gmock-generated-actions.h
-  include/gmock/gmock-generated-function-mockers.h
-  include/gmock/gmock-generated-matchers.h
   include/gmock/gmock-matchers.h
   include/gmock/gmock-more-actions.h
   include/gmock/gmock-more-matchers.h
