@@ -28,6 +28,8 @@
 #include "SEQ_thumbnail_cache.hh"
 #include "SEQ_time.hh"
 
+#include "sequencer_intern.hh" /* Own include. */
+
 using namespace blender;
 
 static float thumb_calc_first_timeline_frame(const Scene *scene,
