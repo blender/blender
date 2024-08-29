@@ -52,10 +52,11 @@ namespace blender::nodes::geo_eval_log {
 
 using fn::GField;
 
+/** These values are also written to .blend files, so don't change them lightly. */
 enum class NodeWarningType {
-  Error,
-  Warning,
-  Info,
+  Error = 0,
+  Warning = 1,
+  Info = 2,
 };
 
 struct NodeWarning {
