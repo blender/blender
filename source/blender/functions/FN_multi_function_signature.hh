@@ -51,123 +51,175 @@ class SignatureBuilder {
   Signature &signature_;
 
  public:
-  SignatureBuilder(const char *function_name, Signature &signature_to_build)
-      : signature_(signature_to_build)
-  {
-    signature_.function_name = function_name;
-  }
+  SignatureBuilder(const char *function_name, Signature &signature_to_build);
 
   /* Input Parameter Types */
 
-  template<typename T> void single_input(const char *name)
-  {
-    this->single_input(name, CPPType::get<T>());
-  }
-  void single_input(const char *name, const CPPType &type)
-  {
-    this->input(name, DataType::ForSingle(type));
-  }
-  template<typename T> void vector_input(const char *name)
-  {
-    this->vector_input(name, CPPType::get<T>());
-  }
-  void vector_input(const char *name, const CPPType &base_type)
-  {
-    this->input(name, DataType::ForVector(base_type));
-  }
-  void input(const char *name, DataType data_type)
-  {
-    signature_.params.append({ParamType(ParamType::Input, data_type), name});
-  }
+  template<typename T> void single_input(const char *name);
+  void single_input(const char *name, const CPPType &type);
+  template<typename T> void vector_input(const char *name);
+  void vector_input(const char *name, const CPPType &base_type);
+  void input(const char *name, DataType data_type);
 
   /* Output Parameter Types */
 
-  template<typename T> void single_output(const char *name, const ParamFlag flag = ParamFlag::None)
-  {
-    this->single_output(name, CPPType::get<T>(), flag);
-  }
-  void single_output(const char *name, const CPPType &type, const ParamFlag flag = ParamFlag::None)
-  {
-    this->output(name, DataType::ForSingle(type), flag);
-  }
-  template<typename T> void vector_output(const char *name, const ParamFlag flag = ParamFlag::None)
-  {
-    this->vector_output(name, CPPType::get<T>(), flag);
-  }
+  template<typename T>
+  void single_output(const char *name, const ParamFlag flag = ParamFlag::None);
+  void single_output(const char *name,
+                     const CPPType &type,
+                     const ParamFlag flag = ParamFlag::None);
+  template<typename T>
+  void vector_output(const char *name, const ParamFlag flag = ParamFlag::None);
   void vector_output(const char *name,
                      const CPPType &base_type,
-                     const ParamFlag flag = ParamFlag::None)
-  {
-    this->output(name, DataType::ForVector(base_type), flag);
-  }
-  void output(const char *name, DataType data_type, const ParamFlag flag = ParamFlag::None)
-  {
-    signature_.params.append({ParamType(ParamType::Output, data_type), name, flag});
-  }
+                     const ParamFlag flag = ParamFlag::None);
+  void output(const char *name, DataType data_type, const ParamFlag flag = ParamFlag::None);
 
   /* Mutable Parameter Types */
 
-  template<typename T> void single_mutable(const char *name)
-  {
-    this->single_mutable(name, CPPType::get<T>());
-  }
-  void single_mutable(const char *name, const CPPType &type)
-  {
-    this->mutable_(name, DataType::ForSingle(type));
-  }
-  template<typename T> void vector_mutable(const char *name)
-  {
-    this->vector_mutable(name, CPPType::get<T>());
-  }
-  void vector_mutable(const char *name, const CPPType &base_type)
-  {
-    this->mutable_(name, DataType::ForVector(base_type));
-  }
-  void mutable_(const char *name, DataType data_type)
-  {
-    signature_.params.append({ParamType(ParamType::Mutable, data_type), name});
-  }
-
-  void add(const char *name, const ParamType &param_type)
-  {
-    switch (param_type.interface_type()) {
-      case ParamType::Input:
-        this->input(name, param_type.data_type());
-        break;
-      case ParamType::Mutable:
-        this->mutable_(name, param_type.data_type());
-        break;
-      case ParamType::Output:
-        this->output(name, param_type.data_type());
-        break;
-    }
-  }
+  template<typename T> void single_mutable(const char *name);
+  void single_mutable(const char *name, const CPPType &type);
+  template<typename T> void vector_mutable(const char *name);
+  void vector_mutable(const char *name, const CPPType &base_type);
+  void mutable_(const char *name, DataType data_type);
 
   template<ParamCategory Category, typename T>
-  void add(ParamTag<Category, T> /*tag*/, const char *name)
-  {
-    switch (Category) {
-      case ParamCategory::SingleInput:
-        this->single_input<T>(name);
-        return;
-      case ParamCategory::VectorInput:
-        this->vector_input<T>(name);
-        return;
-      case ParamCategory::SingleOutput:
-        this->single_output<T>(name);
-        return;
-      case ParamCategory::VectorOutput:
-        this->vector_output<T>(name);
-        return;
-      case ParamCategory::SingleMutable:
-        this->single_mutable<T>(name);
-        return;
-      case ParamCategory::VectorMutable:
-        this->vector_mutable<T>(name);
-        return;
-    }
-    BLI_assert_unreachable();
-  }
+  void add(ParamTag<Category, T> /*tag*/, const char *name);
+  void add(const char *name, const ParamType &param_type);
 };
+
+/* -------------------------------------------------------------------- */
+/** \name #SignatureBuilder Inline Methods
+ * \{ */
+
+inline SignatureBuilder::SignatureBuilder(const char *function_name, Signature &signature_to_build)
+    : signature_(signature_to_build)
+{
+  signature_.function_name = function_name;
+}
+
+template<typename T> inline void SignatureBuilder::single_input(const char *name)
+{
+  this->single_input(name, CPPType::get<T>());
+}
+
+inline void SignatureBuilder::single_input(const char *name, const CPPType &type)
+{
+  this->input(name, DataType::ForSingle(type));
+}
+
+template<typename T> inline void SignatureBuilder::vector_input(const char *name)
+{
+  this->vector_input(name, CPPType::get<T>());
+}
+
+inline void SignatureBuilder::vector_input(const char *name, const CPPType &base_type)
+{
+  this->input(name, DataType::ForVector(base_type));
+}
+
+inline void SignatureBuilder::input(const char *name, DataType data_type)
+{
+  signature_.params.append({ParamType(ParamType::Input, data_type), name});
+}
+
+template<typename T>
+inline void SignatureBuilder::single_output(const char *name, const ParamFlag flag)
+{
+  this->single_output(name, CPPType::get<T>(), flag);
+}
+
+inline void SignatureBuilder::single_output(const char *name,
+                                            const CPPType &type,
+                                            const ParamFlag flag)
+{
+  this->output(name, DataType::ForSingle(type), flag);
+}
+
+template<typename T>
+inline void SignatureBuilder::vector_output(const char *name, const ParamFlag flag)
+{
+  this->vector_output(name, CPPType::get<T>(), flag);
+}
+
+inline void SignatureBuilder::vector_output(const char *name,
+                                            const CPPType &base_type,
+                                            const ParamFlag flag)
+{
+  this->output(name, DataType::ForVector(base_type), flag);
+}
+
+inline void SignatureBuilder::output(const char *name, DataType data_type, const ParamFlag flag)
+{
+  signature_.params.append({ParamType(ParamType::Output, data_type), name, flag});
+}
+
+template<typename T> inline void SignatureBuilder::single_mutable(const char *name)
+{
+  this->single_mutable(name, CPPType::get<T>());
+}
+
+inline void SignatureBuilder::single_mutable(const char *name, const CPPType &type)
+{
+  this->mutable_(name, DataType::ForSingle(type));
+}
+
+template<typename T> inline void SignatureBuilder::vector_mutable(const char *name)
+{
+  this->vector_mutable(name, CPPType::get<T>());
+}
+
+inline void SignatureBuilder::vector_mutable(const char *name, const CPPType &base_type)
+{
+  this->mutable_(name, DataType::ForVector(base_type));
+}
+
+inline void SignatureBuilder::mutable_(const char *name, DataType data_type)
+{
+  signature_.params.append({ParamType(ParamType::Mutable, data_type), name});
+}
+
+inline void SignatureBuilder::add(const char *name, const ParamType &param_type)
+{
+  switch (param_type.interface_type()) {
+    case ParamType::Input:
+      this->input(name, param_type.data_type());
+      break;
+    case ParamType::Mutable:
+      this->mutable_(name, param_type.data_type());
+      break;
+    case ParamType::Output:
+      this->output(name, param_type.data_type());
+      break;
+  }
+}
+
+template<ParamCategory Category, typename T>
+inline void SignatureBuilder::add(ParamTag<Category, T> /*tag*/, const char *name)
+{
+  switch (Category) {
+    case ParamCategory::SingleInput:
+      this->single_input<T>(name);
+      return;
+    case ParamCategory::VectorInput:
+      this->vector_input<T>(name);
+      return;
+    case ParamCategory::SingleOutput:
+      this->single_output<T>(name);
+      return;
+    case ParamCategory::VectorOutput:
+      this->vector_output<T>(name);
+      return;
+    case ParamCategory::SingleMutable:
+      this->single_mutable<T>(name);
+      return;
+    case ParamCategory::VectorMutable:
+      this->vector_mutable<T>(name);
+      return;
+  }
+  BLI_assert_unreachable();
+}
+
+/** \} */
 
 }  // namespace blender::fn::multi_function
