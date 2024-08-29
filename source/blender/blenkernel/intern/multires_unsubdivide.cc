@@ -834,14 +834,14 @@ static void multires_unsubdivide_get_grid_corners_on_base_mesh(BMFace *f1,
   /* Do an edge step until it finds a tagged vertex, which is part of the base mesh. */
   /* x axis */
   edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
-  while (edge_x && !BM_elem_flag_test(current_vertex_x, BM_ELEM_TAG)) {
+  while (!BM_elem_flag_test(current_vertex_x, BM_ELEM_TAG)) {
     edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
   }
   *r_corner_x = current_vertex_x;
 
   /* Same for y axis */
   edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
-  while (edge_y && !BM_elem_flag_test(current_vertex_y, BM_ELEM_TAG)) {
+  while (!BM_elem_flag_test(current_vertex_y, BM_ELEM_TAG)) {
     edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
   }
   *r_corner_y = current_vertex_y;
@@ -1033,9 +1033,6 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
        * base mesh of the face of grid that is going to be extracted. */
       BMVert *corner_x, *corner_y;
       multires_unsubdivide_get_grid_corners_on_base_mesh(l->f, l->e, &corner_x, &corner_y);
-      if (!corner_x || !corner_y) {
-        continue;
-      }
 
       /* Map the two obtained vertices to the base mesh. */
       const int corner_x_index = orig_to_base_vmap[BM_elem_index_get(corner_x)];
