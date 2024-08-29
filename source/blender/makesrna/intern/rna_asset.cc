@@ -20,7 +20,11 @@
 #include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_asset_library_type_items[] = {
-    {ASSET_LIBRARY_ALL, "ALL", 0, "All", "Show assets from all of the listed asset libraries"},
+    {ASSET_LIBRARY_ALL,
+     "ALL",
+     0,
+     "All Libraries",
+     "Show assets from all of the listed asset libraries"},
     {ASSET_LIBRARY_LOCAL,
      "LOCAL",
      0,
