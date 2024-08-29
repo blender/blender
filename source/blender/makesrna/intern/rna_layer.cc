@@ -574,7 +574,10 @@ static void rna_def_object_base(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ObjectBase", nullptr);
   RNA_def_struct_sdna(srna, "Base");
-  RNA_def_struct_ui_text(srna, "Object Base", "An object instance in a render layer");
+  RNA_def_struct_ui_text(
+      srna,
+      "Object Base",
+      "An object instance in a View Layer (currently never exposed in Python API)");
   RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
 
   prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
