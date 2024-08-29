@@ -246,7 +246,7 @@ static void keymap_item_free(wmKeyMapItem *kmi)
     IDP_FreeProperty(kmi->properties);
   }
   if (kmi->ptr) {
-    MEM_freeN(kmi->ptr);
+    MEM_delete(kmi->ptr);
   }
 }
 

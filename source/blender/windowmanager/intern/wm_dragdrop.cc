@@ -184,7 +184,7 @@ static void wm_drop_item_free_data(wmDropBox *drop)
 {
   if (drop->ptr) {
     WM_operator_properties_free(drop->ptr);
-    MEM_freeN(drop->ptr);
+    MEM_delete(drop->ptr);
     drop->ptr = nullptr;
     drop->properties = nullptr;
   }

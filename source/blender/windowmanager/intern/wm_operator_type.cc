@@ -566,7 +566,7 @@ static void wm_operatortype_free_macro(wmOperatorType *ot)
   LISTBASE_FOREACH (wmOperatorTypeMacro *, otmacro, &ot->macro) {
     if (otmacro->ptr) {
       WM_operator_properties_free(otmacro->ptr);
-      MEM_freeN(otmacro->ptr);
+      MEM_delete(otmacro->ptr);
     }
   }
   BLI_freelistN(&ot->macro);

@@ -1403,7 +1403,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
   STRNCPY(op->idname, ot->idname);
 
   /* Initialize properties, either copy or create. */
-  op->ptr = MEM_cnew<PointerRNA>("wmOperatorPtrRNA");
+  op->ptr = MEM_new<PointerRNA>("wmOperatorPtrRNA");
   if (properties && properties->data) {
     op->properties = IDP_CopyProperty(static_cast<const IDProperty *>(properties->data));
   }
@@ -1916,7 +1916,7 @@ static void ui_handler_wait_for_input_remove(bContext *C, void *userdata)
     if (opwait->optype_params.opptr->data) {
       IDP_FreeProperty(static_cast<IDProperty *>(opwait->optype_params.opptr->data));
     }
-    MEM_freeN(opwait->optype_params.opptr);
+    MEM_delete(opwait->optype_params.opptr);
   }
 
   if (opwait->area != nullptr) {
@@ -2045,7 +2045,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
   opwait->area = area;
 
   if (properties) {
-    opwait->optype_params.opptr = MEM_cnew<PointerRNA>(__func__);
+    opwait->optype_params.opptr = MEM_new<PointerRNA>(__func__);
     *opwait->optype_params.opptr = *properties;
     if (properties->data != nullptr) {
       opwait->optype_params.opptr->data = IDP_CopyProperty(

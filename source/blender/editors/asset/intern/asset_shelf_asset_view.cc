@@ -211,7 +211,7 @@ static std::optional<wmOperatorCallParams> create_activate_operator_params(
     return {};
   }
 
-  PointerRNA *op_props = MEM_cnew<PointerRNA>(__func__);
+  PointerRNA *op_props = MEM_new<PointerRNA>(__func__);
   WM_operator_properties_create_ptr(op_props, ot);
   asset::operator_asset_reference_props_set(asset, *op_props);
   return wmOperatorCallParams{ot, op_props, WM_OP_INVOKE_REGION_WIN};
@@ -241,7 +241,7 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
     UI_but_operator_set(item_but, activate_op->optype, activate_op->opcontext, activate_op->opptr);
     UI_but_operator_set_never_call(item_but);
 
-    MEM_freeN(activate_op->opptr);
+    MEM_delete(activate_op->opptr);
   }
 
   ui::PreviewGridItem::build_grid_tile_button(layout);
@@ -285,7 +285,7 @@ void AssetViewItem::on_activate(bContext &C)
     WM_operator_name_call_ptr(
         &C, activate_op->optype, activate_op->opcontext, activate_op->opptr, nullptr);
     WM_operator_properties_free(activate_op->opptr);
-    MEM_freeN(activate_op->opptr);
+    MEM_delete(activate_op->opptr);
   }
 }
 

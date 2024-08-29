@@ -67,7 +67,7 @@ static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
   kmin->flag &= ~KMI_UPDATE;
 
   if (kmin->properties) {
-    kmin->ptr = static_cast<PointerRNA *>(MEM_callocN(sizeof(PointerRNA), "UserKeyMapItemPtr"));
+    kmin->ptr = MEM_new<PointerRNA>("UserKeyMapItemPtr");
     WM_operator_properties_create(kmin->ptr, kmin->idname);
 
     /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
@@ -89,7 +89,7 @@ static void wm_keymap_item_free_data(wmKeyMapItem *kmi)
   /* Not the `kmi` itself. */
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
-    MEM_freeN(kmi->ptr);
+    MEM_delete(kmi->ptr);
     kmi->ptr = nullptr;
     kmi->properties = nullptr;
   }
@@ -205,7 +205,7 @@ void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties)
 {
   if (LIKELY(kmi->ptr)) {
     WM_operator_properties_free(kmi->ptr);
-    MEM_freeN(kmi->ptr);
+    MEM_delete(kmi->ptr);
 
     kmi->ptr = nullptr;
   }
@@ -581,7 +581,7 @@ void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
   BLI_assert(BLI_findindex(&keymap->items, kmi) != -1);
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
-    MEM_freeN(kmi->ptr);
+    MEM_delete(kmi->ptr);
   }
   else if (kmi->properties) {
     IDP_FreeProperty(kmi->properties);

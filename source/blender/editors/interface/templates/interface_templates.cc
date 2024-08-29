@@ -3022,7 +3022,7 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
 
   /* Initialize properties but do not assume ownership of them.
    * This "minimal" operator owns nothing. */
-  op->ptr = MEM_cnew<PointerRNA>("wmOperatorPtrRNA");
+  op->ptr = MEM_new<PointerRNA>("wmOperatorPtrRNA");
   op->properties = static_cast<IDProperty *>(properties->data);
   *op->ptr = *properties;
 

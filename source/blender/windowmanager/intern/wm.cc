@@ -291,7 +291,7 @@ void WM_operator_free(wmOperator *op)
 
   if (op->ptr) {
     op->properties = static_cast<IDProperty *>(op->ptr->data);
-    MEM_freeN(op->ptr);
+    MEM_delete(op->ptr);
   }
 
   if (op->properties) {

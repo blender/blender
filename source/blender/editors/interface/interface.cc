@@ -1632,7 +1632,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
   extra_op_icon->icon = icon;
   extra_op_icon->optype_params = MEM_cnew<wmOperatorCallParams>(__func__);
   extra_op_icon->optype_params->optype = optype;
-  extra_op_icon->optype_params->opptr = MEM_cnew<PointerRNA>(__func__);
+  extra_op_icon->optype_params->opptr = MEM_new<PointerRNA>(__func__);
   WM_operator_properties_create_ptr(extra_op_icon->optype_params->opptr,
                                     extra_op_icon->optype_params->optype);
   extra_op_icon->optype_params->opcontext = opcontext;
@@ -1647,7 +1647,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
 static void ui_but_extra_operator_icon_free(uiButExtraOpIcon *extra_icon)
 {
   WM_operator_properties_free(extra_icon->optype_params->opptr);
-  MEM_freeN(extra_icon->optype_params->opptr);
+  MEM_delete(extra_icon->optype_params->opptr);
   MEM_freeN(extra_icon->optype_params);
   MEM_freeN(extra_icon);
 }
@@ -3453,7 +3453,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
 {
   if (but->opptr) {
     WM_operator_properties_free(but->opptr);
-    MEM_freeN(but->opptr);
+    MEM_delete(but->opptr);
   }
 
   if (but->func_argN) {
@@ -5709,9 +5709,12 @@ void UI_but_operator_set(uiBut *but,
   but->opcontext = opcontext;
   but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_rna_undo(), we never need undo here */
 
-  MEM_SAFE_FREE(but->opptr);
+  if (but->opptr) {
+    MEM_delete(but->opptr);
+    but->opptr = nullptr;
+  }
   if (opptr) {
-    but->opptr = MEM_cnew<PointerRNA>(__func__, *opptr);
+    but->opptr = MEM_new<PointerRNA>(__func__, *opptr);
   }
 }
 
@@ -5850,7 +5853,7 @@ int UI_but_return_value_get(uiBut *but)
 PointerRNA *UI_but_operator_ptr_ensure(uiBut *but)
 {
   if (but->optype && !but->opptr) {
-    but->opptr = MEM_cnew<PointerRNA>(__func__);
+    but->opptr = MEM_new<PointerRNA>(__func__);
     WM_operator_properties_create_ptr(but->opptr, but->optype);
   }
 
