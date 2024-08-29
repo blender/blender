@@ -508,7 +508,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::Array<int> preview_verts;
 
   /* Pose Brush Preview */
-  blender::float3 pose_origin;
   std::unique_ptr<SculptPoseIKChainPreview> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
