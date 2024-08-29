@@ -50,3 +50,33 @@ TEST(math_bits, BitscanReverseClearUint)
   EXPECT_EQ(bitscan_reverse_clear_uint(&a), 31);
   EXPECT_EQ(a, 0);
 }
+
+TEST(math_bits, PopCount)
+{
+  {
+    EXPECT_EQ(count_bits_i(0), 0);
+    EXPECT_EQ(count_bits_uint64(0), 0);
+  }
+  {
+    const int value = (1 << 0) | (1 << 5) | (1 << 7);
+    const int count_32 = count_bits_i(value);
+    const int count_64 = count_bits_uint64(value);
+    EXPECT_EQ(count_32, 3);
+    EXPECT_EQ(count_64, 3);
+  }
+  {
+    const uint64_t value = (uint64_t(1) << 0) | (uint64_t(1) << 50);
+    const int count = count_bits_uint64(value);
+    EXPECT_EQ(count, 2);
+  }
+  {
+    const int value = -1;
+    const int count = count_bits_i(value);
+    EXPECT_EQ(count, 32);
+  }
+  {
+    const uint64_t value = -1;
+    const int count = count_bits_uint64(value);
+    EXPECT_EQ(count, 64);
+  }
+}

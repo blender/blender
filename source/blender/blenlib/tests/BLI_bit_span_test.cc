@@ -6,6 +6,8 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_bit_span_ops.hh"
+#include "BLI_bit_span_to_index_ranges.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_timeit.hh"
 #include "BLI_vector.hh"
 
@@ -246,6 +248,63 @@ TEST(bit_span, ForEach1)
   foreach_1_index(span.slice({4, span.size() - 4}), [&](const int i) { indices_test.append(i); });
 
   EXPECT_EQ(indices_test.as_span(), Span({24, 33, 82}));
+}
+
+TEST(bit_span, or_bools_into_bits)
+{
+  {
+    Vector<bool> bools(5, false);
+    bools[2] = true;
+    BitVector<> bits(bools.size());
+    bits[0].set();
+    bits::or_bools_into_bits(bools, bits);
+    EXPECT_TRUE(bits[0]);
+    EXPECT_FALSE(bits[1]);
+    EXPECT_TRUE(bits[2]);
+    EXPECT_FALSE(bits[3]);
+    EXPECT_FALSE(bits[4]);
+  }
+  {
+    Vector<bool> bools(100, true);
+    BitVector<> bits(1000, false);
+    bits::or_bools_into_bits(bools,
+                             MutableBitSpan(bits).slice(IndexRange::from_begin_size(100, 500)));
+    EXPECT_FALSE(bits[99]);
+    EXPECT_TRUE(bits[100]);
+    EXPECT_TRUE(bits[101]);
+    EXPECT_TRUE(bits[199]);
+    EXPECT_FALSE(bits[200]);
+  }
+}
+
+TEST(bit_span, to_index_ranges_small)
+{
+  BitVector<> bits(10, false);
+  bits[2].set();
+  bits[3].set();
+  bits[4].set();
+  bits[6].set();
+  bits[7].set();
+
+  IndexRangesBuilderBuffer<int, 10> builder_buffer;
+  IndexRangesBuilder<int> builder(builder_buffer);
+  bits_to_index_ranges(bits, builder);
+
+  EXPECT_EQ(builder.size(), 2);
+  EXPECT_EQ(builder[0], IndexRange::from_begin_end_inclusive(2, 4));
+  EXPECT_EQ(builder[1], IndexRange::from_begin_end_inclusive(6, 7));
+}
+
+TEST(bit_span, to_index_ranges_all_ones)
+{
+  BitVector<> bits(10000, true);
+
+  IndexRangesBuilderBuffer<int, 10> builder_buffer;
+  IndexRangesBuilder<int> builder(builder_buffer);
+  bits_to_index_ranges(BitSpan(bits).take_back(8765), builder);
+
+  EXPECT_EQ(builder.size(), 1);
+  EXPECT_EQ(builder[0], IndexRange(8765));
 }
 
 }  // namespace blender::bits::tests
