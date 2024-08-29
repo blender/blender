@@ -2567,7 +2567,7 @@ static int node_error_type_to_icon(const geo_log::NodeWarningType type)
 {
   switch (type) {
     case geo_log::NodeWarningType::Error:
-      return ICON_ERROR;
+      return ICON_CANCEL;
     case geo_log::NodeWarningType::Warning:
       return ICON_ERROR;
     case geo_log::NodeWarningType::Info:

@@ -2344,7 +2344,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     tree_log->ensure_node_warnings();
     for (const geo_log::NodeWarning &warning : tree_log->all_warnings) {
       if (warning.type != geo_log::NodeWarningType::Info) {
-        uiItemL(layout, warning.message.c_str(), ICON_ERROR);
+        uiItemL(layout,
+                warning.message.c_str(),
+                warning.type == geo_log::NodeWarningType::Warning ? ICON_ERROR : ICON_CANCEL);
       }
     }
   }
