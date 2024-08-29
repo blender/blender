@@ -279,22 +279,6 @@ void init_session_data(const ToolSettings &ts, Object &ob)
       }
     }
   }
-  else if (ob.mode == OB_MODE_VERTEX_PAINT) {
-    /* Allocate scratch array for previous colors if needed. */
-    SculptSession &ss = *ob.sculpt;
-    if (!vwpaint::brush_use_accumulate(*ts.vpaint)) {
-      if (ss.cache->prev_colors_vpaint.is_empty()) {
-        const Mesh *mesh = BKE_object_get_original_mesh(&ob);
-        const GVArray attribute = *mesh->attributes().lookup(mesh->active_color_attribute);
-        ss.cache->prev_colors_vpaint = GArray(attribute.type(), attribute.size());
-        attribute.type().value_initialize_n(ss.cache->prev_colors_vpaint.data(),
-                                            ss.cache->prev_colors_vpaint.size());
-      }
-    }
-    else {
-      ss.cache->prev_colors_vpaint = {};
-    }
-  }
 }
 
 IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
@@ -936,6 +920,9 @@ struct VPaintData : public PaintModeData {
     GArray<> color_curr;
   } smear;
 
+  /* For brushes that don't use accumulation, a temporary holding array */
+  GArray<> prev_colors;
+
   ~VPaintData()
   {
     if (vp_handle) {
@@ -985,6 +972,17 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
     vpd->vp_handle = ED_vpaint_proj_handle_create(
         depsgraph, scene, ob, vpd->vert_positions, vpd->vert_normals);
     ob.sculpt->building_vp_handle = false;
+  }
+
+  if (!vwpaint::brush_use_accumulate(vp)) {
+    if (vpd->prev_colors.is_empty()) {
+      const GVArray attribute = *mesh.attributes().lookup(mesh.active_color_attribute);
+      vpd->prev_colors = GArray(attribute.type(), attribute.size());
+      attribute.type().value_initialize_n(vpd->prev_colors.data(), vpd->prev_colors.size());
+    }
+  }
+  else {
+    vpd->prev_colors = {};
   }
 
   return vpd;
@@ -1068,7 +1066,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
+  GMutableSpan g_previous_color = vpd.prev_colors;
 
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
@@ -1226,7 +1224,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
+  GMutableSpan g_previous_color = vpd.prev_colors;
 
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
@@ -1368,7 +1366,7 @@ static void do_vpaint_brush_smear(const bContext *C,
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   GMutableSpan g_color_curr = vpd.smear.color_curr;
   GMutableSpan g_color_prev_smear = vpd.smear.color_prev;
-  GMutableSpan g_color_prev = cache.prev_colors_vpaint;
+  GMutableSpan g_color_prev = vpd.prev_colors;
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
 
@@ -1704,7 +1702,7 @@ static void vpaint_do_draw(const bContext *C,
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
-  GMutableSpan g_previous_color = ss.cache->prev_colors_vpaint;
+  GMutableSpan g_previous_color = vpd.prev_colors;
 
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
