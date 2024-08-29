@@ -391,6 +391,7 @@ namespace blender::bke::pbvh {
 
 Span<int> node_grid_indices(const GridsNode &node);
 
+Span<int> node_tri_indices(const MeshNode &node);
 Span<int> node_verts(const MeshNode &node);
 Span<int> node_unique_verts(const MeshNode &node);
 Span<int> node_corners(const MeshNode &node);

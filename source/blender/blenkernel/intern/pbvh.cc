@@ -1786,7 +1786,7 @@ Span<int> node_face_indices_calc_mesh(const Span<int> corner_tri_faces,
 {
   faces.clear();
   int prev_face = -1;
-  for (const int tri : node.prim_indices_) {
+  for (const int tri : node_tri_indices(node)) {
     const int face = corner_tri_faces[tri];
     if (face != prev_face) {
       faces.append(face);
@@ -1811,6 +1811,11 @@ Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
     }
   }
   return faces.as_span();
+}
+
+Span<int> node_tri_indices(const MeshNode &node)
+{
+  return node.prim_indices_;
 }
 
 Span<int> node_grid_indices(const GridsNode &node)
@@ -2016,9 +2021,10 @@ static bool pbvh_faces_node_raycast(const MeshNode &node,
   using namespace blender;
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
+  const Span<int> tris = node_tri_indices(node);
 
-  for (const int i : node.prim_indices_.index_range()) {
-    const int tri_i = node.prim_indices_[i];
+  for (const int i : tris.index_range()) {
+    const int tri_i = tris[i];
     const int3 &tri = corner_tris[tri_i];
     const int3 face_verts = node.face_vert_indices_[i];
 
@@ -2371,9 +2377,10 @@ static bool pbvh_faces_node_nearest_to_ray(const MeshNode &node,
                                            float *dist_sq)
 {
   bool hit = false;
+const Span<int> tris = node_tri_indices(node);
 
-  for (const int i : node.prim_indices_.index_range()) {
-    const int tri_i = node.prim_indices_[i];
+  for (const int i : tris.index_range()) {
+    const int tri_i = tris[i];
     const int3 &corner_tri = corner_tris[tri_i];
     const int3 face_verts = node.face_vert_indices_[i];
 
