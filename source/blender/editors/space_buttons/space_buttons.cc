@@ -610,6 +610,9 @@ static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *reg
 
 static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *region)
 {
+  SpaceProperties *sbuts = CTX_wm_space_properties(C);
+  buttons_context_compute(C, sbuts);
+
   LISTBASE_FOREACH (PanelType *, pt, &region->type->paneltypes) {
     pt->flag |= PANEL_TYPE_LAYOUT_VERT_BAR;
   }
@@ -632,6 +635,10 @@ static void buttons_navigation_bar_region_message_subscribe(
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
+  /* Redraw when image editor mode changes, texture tab needs to be added when switching to "Paint"
+   * mode. */
+  WM_msg_subscribe_rna_anon_prop(
+      mbus, SpaceImageEditor, ui_mode, &msg_sub_value_region_tag_redraw);
 }
 
 /* draw a certain button set only if properties area is currently
