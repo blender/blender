@@ -84,6 +84,11 @@ class FPSDetectionTest(AbstractFFmpegSequencerTest):
             self.get_movie_file_duration('T54834.ogg'),
             50)
 
+    def test_T126866(self):
+        self.assertEqual(
+            self.get_movie_file_duration('T126866.mp4'),
+            361)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
