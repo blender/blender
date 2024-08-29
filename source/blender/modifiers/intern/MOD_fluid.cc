@@ -24,6 +24,8 @@
 #include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 
+#include "RNA_access.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -207,6 +209,18 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   }
 }
 
+static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
+{
+  FluidModifierData *fmd = (FluidModifierData *)md;
+
+  if (fmd->type == MOD_FLUID_TYPE_FLOW && fmd->flow) {
+    PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_FluidFlowSettings, fmd->flow);
+    PropertyRNA *prop = RNA_struct_find_property(&ptr, "noise_texture");
+
+    walk(user_data, ob, md, &ptr, prop);
+  }
+}
+
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -250,7 +264,7 @@ ModifierTypeInfo modifierType_Fluid = {
     /*depends_on_time*/ depends_on_time,
     /*depends_on_normals*/ nullptr,
     /*foreach_ID_link*/ foreach_ID_link,
-    /*foreach_tex_link*/ nullptr,
+    /*foreach_tex_link*/ foreach_tex_link,
     /*free_runtime_data*/ nullptr,
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,

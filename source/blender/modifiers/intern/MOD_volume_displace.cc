@@ -32,6 +32,7 @@
 
 #include "RE_texture.h"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_math_vector.h"
@@ -76,7 +77,9 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  walk(user_data, ob, md, "texture");
+  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
+  walk(user_data, ob, md, &ptr, prop);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
