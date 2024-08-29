@@ -168,9 +168,7 @@ inline void foreach_1_index_expr(ExprFn &&expr,
 }  // namespace detail
 
 template<typename ExprFn, typename FirstBitSpanT, typename... BitSpanT>
-inline void mix_into_first_expr(ExprFn &&expr,
-                                const FirstBitSpanT &first_arg,
-                                const BitSpanT &...args)
+inline void mix_into_first_expr(ExprFn &&expr, FirstBitSpanT &&first_arg, const BitSpanT &...args)
 {
   detail::mix_into_first_expr(expr, to_best_bit_span(first_arg), to_best_bit_span(args)...);
 }
@@ -191,7 +189,7 @@ inline void foreach_1_index_expr(ExprFn &&expr,
       expr, handle, to_best_bit_span(first_arg), to_best_bit_span(args)...);
 }
 
-template<typename BitSpanT> inline void invert(const BitSpanT &data)
+template<typename BitSpanT> inline void invert(BitSpanT &&data)
 {
   mix_into_first_expr([](const BitInt x) { return ~x; }, data);
 }
