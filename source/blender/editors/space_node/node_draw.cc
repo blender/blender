@@ -4119,17 +4119,12 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   BLF_disable(fontid, BLF_ASPECT);
 }
 
-static void frame_node_draw(const bContext &C,
-                            TreeDrawContext &tree_draw_ctx,
-                            const ARegion &region,
-                            const SpaceNode &snode,
-                            const bNodeTree &ntree,
-                            const bNode &node,
-                            uiBlock &block)
+static void frame_node_draw_background(const ARegion &region,
+                                       const SpaceNode &snode,
+                                       const bNode &node)
 {
   /* Skip if out of view. */
   if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
-    UI_block_end(&C, &block);
     return;
   }
 
@@ -4160,6 +4155,21 @@ static void frame_node_draw(const bContext &C,
     }
 
     UI_draw_roundbox_aa(&rct, false, BASIS_RAD, color);
+  }
+}
+
+static void frame_node_draw_overlay(const bContext &C,
+                                    TreeDrawContext &tree_draw_ctx,
+                                    const ARegion &region,
+                                    const SpaceNode &snode,
+                                    const bNodeTree &ntree,
+                                    const bNode &node,
+                                    uiBlock &block)
+{
+  /* Skip if out of view. */
+  if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
+    UI_block_end(&C, &block);
+    return;
   }
 
   /* Label and text. */
@@ -4566,7 +4576,7 @@ static void node_draw_zones_and_frames(const bContext &C,
     }
     if (const bNode *const *node_p = std::get_if<const bNode *>(&zone_or_node)) {
       const bNode &node = **node_p;
-      frame_node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()]);
+      frame_node_draw_background(region, snode, node);
     }
   }
 
@@ -4599,6 +4609,14 @@ static void node_draw_zones_and_frames(const bContext &C,
   }
 
   GPU_blend(GPU_BLEND_NONE);
+
+  /* Draw text on frame nodes. */
+  for (const ZoneOrNode &zone_or_node : draw_order) {
+    if (const bNode *const *node_p = std::get_if<const bNode *>(&zone_or_node)) {
+      const bNode &node = **node_p;
+      frame_node_draw_overlay(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()]);
+    }
+  }
 }
 
 #define USE_DRAW_TOT_UPDATE
