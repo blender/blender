@@ -168,7 +168,8 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
 
 ImBuf *IMB_thumb_load_image(const char *filepath,
                             size_t max_thumb_size,
-                            char colorspace[IM_MAX_SPACE])
+                            char colorspace[IM_MAX_SPACE],
+                            IMBThumbLoadFlags load_flags)
 {
   const ImFileType *type = IMB_file_type_from_ftype(IMB_ispic_type(filepath));
   if (type == nullptr) {
@@ -192,9 +193,11 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
   }
   else {
     /* Skip images of other types if over 100MB. */
-    const size_t file_size = BLI_file_size(filepath);
-    if (file_size != size_t(-1) && file_size > THUMB_SIZE_MAX) {
-      return nullptr;
+    if ((load_flags & IMBThumbLoadFlags::LoadLargeFiles) == IMBThumbLoadFlags::Zero) {
+      const size_t file_size = BLI_file_size(filepath);
+      if (file_size != size_t(-1) && file_size > THUMB_SIZE_MAX) {
+        return nullptr;
+      }
     }
     ibuf = IMB_loadiffname(filepath, flags, colorspace);
     if (ibuf) {

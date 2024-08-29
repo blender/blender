@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Authors
+# SPDX-FileCopyrightText: 2011-2024 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -38,6 +38,7 @@ set(SRC
   SEQ_select.hh
   SEQ_sequencer.hh
   SEQ_sound.hh
+  SEQ_thumbnail_cache.hh
   SEQ_time.hh
   SEQ_transform.hh
   SEQ_utils.hh
@@ -75,6 +76,7 @@ set(SRC
   intern/strip_time.cc
   intern/strip_time.hh
   intern/strip_transform.cc
+  intern/thumbnail_cache.cc
   intern/utils.cc
   intern/utils.hh
 )

@@ -984,6 +984,20 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
+static void scene_foreach_cache(ID *id,
+                                IDTypeForeachCacheFunctionCallback function_callback,
+                                void *user_data)
+{
+  Scene *scene = (Scene *)id;
+  if (scene->ed != nullptr) {
+    IDCacheKey key;
+    key.id_session_uid = id->session_uid;
+    /* Preserve VSE thumbnail cache across global undo steps. */
+    key.identifier = offsetof(Editing, runtime.thumbnail_cache);
+    function_callback(id, &key, (void **)&scene->ed->runtime.thumbnail_cache, 0, user_data);
+  }
+}
+
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Scene *sce = (Scene *)id;
@@ -1297,6 +1311,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     ed->prefetch_job = nullptr;
     ed->runtime.sequence_lookup = nullptr;
     ed->runtime.media_presence = nullptr;
+    ed->runtime.thumbnail_cache = nullptr;
 
     /* recursive link sequences, lb will be correctly initialized */
     link_recurs_seq(reader, &ed->seqbase);
@@ -1564,7 +1579,7 @@ constexpr IDTypeInfo get_type_info()
    * support all possible corner cases. */
   info.make_local = nullptr;
   info.foreach_id = scene_foreach_id;
-  info.foreach_cache = nullptr;
+  info.foreach_cache = scene_foreach_cache;
   info.foreach_path = scene_foreach_path;
   info.owner_pointer_get = nullptr;
 

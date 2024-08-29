@@ -55,6 +55,7 @@
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_thumbnail_cache.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

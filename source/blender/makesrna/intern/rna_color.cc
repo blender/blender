@@ -68,6 +68,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "SEQ_iterator.hh"
 #  include "SEQ_relations.hh"
+#  include "SEQ_thumbnail_cache.hh"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
@@ -680,6 +681,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       if (&scene->sequencer_colorspace_settings == colorspace_settings) {
         /* Scene colorspace was changed. */
         SEQ_cache_cleanup(scene);
+        blender::seq::thumbnail_cache_clear(scene);
       }
       else {
         /* Strip colorspace was likely changed. */

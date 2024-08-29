@@ -17,7 +17,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_math_base.h"
 
 #include "BKE_global.hh"
@@ -65,13 +64,7 @@ static void sequencer_scopes_tag_refresh(ScrArea *area)
   sseq->runtime->scopes.reference_ibuf = nullptr;
 }
 
-blender::ed::seq::SpaceSeq_Runtime::~SpaceSeq_Runtime()
-{
-  if (last_displayed_thumbnails != nullptr) {
-    BLI_ghash_free(last_displayed_thumbnails, nullptr, last_displayed_thumbnails_list_free);
-    last_displayed_thumbnails = nullptr;
-  }
-}
+blender::ed::seq::SpaceSeq_Runtime::~SpaceSeq_Runtime() {}
 
 /* ******************** manage regions ********************* */
 

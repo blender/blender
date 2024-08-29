@@ -53,10 +53,6 @@ struct ListBase;
 namespace blender::ed::seq {
 
 struct SpaceSeq_Runtime : public NonCopyable {
-  /** Required for Thumbnail job start condition. */
-  rctf last_thumbnail_area = {0, 0, 0, 0};
-  /** Stores lists of most recently displayed thumbnails. */
-  GHash *last_displayed_thumbnails = nullptr;
   int rename_channel_index = 0;
   float timeline_clamp_custom_range = 0;
 
@@ -162,7 +158,6 @@ ImBuf *sequencer_ibuf_get(const bContext *C,
 
 /* `sequencer_thumbnails.cc` */
 
-void last_displayed_thumbnails_list_free(void *val);
 void draw_seq_strip_thumbnail(View2D *v2d,
                               const bContext *C,
                               Scene *scene,

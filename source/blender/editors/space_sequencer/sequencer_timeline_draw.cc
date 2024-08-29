@@ -47,6 +47,7 @@
 #include "SEQ_retiming.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_thumbnail_cache.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
@@ -1575,6 +1576,16 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx, StripsDrawBatch &
   if (timeline_ctx->ed == nullptr) {
     return;
   }
+
+  /* Discard thumbnail requests that are far enough from viewing area:
+   * by +- 30 frames and +-2 channels outside of current view. */
+  rctf rect = timeline_ctx->v2d->cur;
+  rect.xmin -= 30;
+  rect.xmax += 30;
+  rect.ymin -= 2;
+  rect.ymax += 2;
+  seq::thumbnail_cache_discard_requests_outside(timeline_ctx->scene, rect);
+  seq::thumbnail_cache_maintain_capacity(timeline_ctx->scene);
 
   Vector<StripDrawContext> bottom_layer, top_layer;
   visible_strips_ordered_get(timeline_ctx, bottom_layer, top_layer);
