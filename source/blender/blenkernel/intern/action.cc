@@ -565,9 +565,9 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
     BLO_read_struct(reader, bActionGroup, &channelbag.group_array[i]);
     read_channel_group(reader, *channelbag.group_array[i]);
 
-    /* Clear the legacy channels listbase, since it will have been set for some
-     * groups for forward comptability. See
-     * `action_blend_write_make_legacy_channel_groups_listbase()`. */
+    /* Clear the legacy channels #ListBase, since it will have been set for some
+     * groups for forward compatibility.
+     * See #action_blend_write_make_legacy_channel_groups_listbase. */
     channelbag.group_array[i]->channels = {nullptr, nullptr};
   }
 

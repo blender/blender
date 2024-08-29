@@ -351,7 +351,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
           ++total_movies;
 #endif
 
-          /* Are we swiching to a different movie file / stream? */
+          /* Are we switching to a different movie file / stream? */
           if (request.file_path != cur_anim_path || request.stream_index != cur_stream) {
             if (cur_anim != nullptr) {
               IMB_free_anim(cur_anim);

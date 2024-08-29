@@ -65,8 +65,8 @@ static void light_copy_data(Main *bmain,
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* We always need allocation of our private ID data.
-   * User refcounting is also handled by calling code, so the duplication calls for embedded data
-   * should _never_ handle it from here. */
+   * User reference-counting is also handled by calling code,
+   * so the duplication calls for embedded data should _never_ handle it from here. */
   const int flag_embedded_id_data = (flag & ~LIB_ID_CREATE_NO_ALLOCATE) |
                                     LIB_ID_CREATE_NO_USER_REFCOUNT;
 
