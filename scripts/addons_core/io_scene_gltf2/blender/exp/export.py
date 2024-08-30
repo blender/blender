@@ -393,11 +393,10 @@ def __write_file(json, buffer, export_settings):
 
 def __notify_start(context, export_settings):
     export_settings['log'].info('Starting glTF 2.0 export')
-    context.window_manager.progress_begin(0, 100)
-    context.window_manager.progress_update(0)
+    context.window.cursor_set('WAIT')
 
 
 def __notify_end(context, elapsed, export_settings):
     export_settings['log'].info('Finished glTF 2.0 export in {} s'.format(elapsed))
-    context.window_manager.progress_end()
+    context.window.cursor_set('DEFAULT')
     print()
