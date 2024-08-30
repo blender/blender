@@ -75,7 +75,7 @@ def gather_primitives(
                 export_settings)
         else:
             # UDIM case
-            base_material, material_info, unique_material_id = udim_material
+            base_material, material_info, unique_material_id, tile = udim_material
             material = get_final_material(
                 blender_mesh,
                 unique_material_id,
@@ -83,6 +83,9 @@ def gather_primitives(
                 base_material,
                 material_info["uv_info"],
                 export_settings)
+
+            # Force change name of material to get the tile number in the name
+            material.name = material.name + "." + tile
 
         primitive = gltf2_io.MeshPrimitive(
             attributes=internal_primitive['attributes'],
