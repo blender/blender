@@ -611,8 +611,8 @@ class SCENE_UL_gltf2_filter_action(bpy.types.UIList):
         layout.context_pointer_set("id", action)
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item.action, "name", text="", emboss=False)
-            layout.prop(item, "keep", text="", emboss=True)
+            layout.split().prop(item.action, "name", text="", emboss=False)
+            layout.split().prop(item, "keep", text="", emboss=True)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
