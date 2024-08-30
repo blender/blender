@@ -132,41 +132,37 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
    * are updated in parallel. Without this there would be non-threadsafe access to changing
    * positions in other bke::pbvh::Tree nodes. */
   for (const float strength : iteration_strengths(brush_strength)) {
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
-        tls.vert_neighbors.resize(verts.size());
-        calc_vert_neighbors_interior(faces,
-                                     corner_verts,
-                                     ss.vert_to_face_map,
-                                     ss.vertex_info.boundary,
-                                     hide_poly,
-                                     verts,
-                                     tls.vert_neighbors);
-        smooth::neighbor_data_average_mesh_check_loose(
-            positions_eval,
-            verts,
-            tls.vert_neighbors,
-            new_positions.as_mutable_span().slice(node_vert_offsets[i]));
-      });
+      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      tls.vert_neighbors.resize(verts.size());
+      calc_vert_neighbors_interior(faces,
+                                   corner_verts,
+                                   ss.vert_to_face_map,
+                                   ss.vertex_info.boundary,
+                                   hide_poly,
+                                   verts,
+                                   tls.vert_neighbors);
+      smooth::neighbor_data_average_mesh_check_loose(
+          positions_eval,
+          verts,
+          tls.vert_neighbors,
+          new_positions.as_mutable_span().slice(node_vert_offsets[pos]));
     });
 
-    threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
+    node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      node_mask.slice(range).foreach_index([&](const int i) {
-        apply_positions_faces(depsgraph,
-                              sd,
-                              brush,
-                              positions_eval,
-                              vert_normals,
-                              nodes[i],
-                              strength,
-                              object,
-                              tls,
-                              new_positions.as_span().slice(node_vert_offsets[i]),
-                              positions_orig);
-      });
+      apply_positions_faces(depsgraph,
+                            sd,
+                            brush,
+                            positions_eval,
+                            vert_normals,
+                            nodes[i],
+                            strength,
+                            object,
+                            tls,
+                            new_positions.as_span().slice(node_vert_offsets[pos]),
+                            positions_orig);
     });
   }
 }

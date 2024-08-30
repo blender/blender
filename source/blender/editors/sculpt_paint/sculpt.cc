@@ -7396,11 +7396,11 @@ void transform_positions(const float4x4 &transform, const MutableSpan<float3> po
 }
 
 OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> nodes,
-                                            const IndexMask &nodes_mask,
+                                            const IndexMask &node_mask,
                                             Array<int> &node_data)
 {
-  node_data.reinitialize(nodes.size() + 1);
-  nodes_mask.foreach_index([&](const int i, const int pos) {
+  node_data.reinitialize(node_mask.size() + 1);
+  node_mask.foreach_index([&](const int i, const int pos) {
     node_data[pos] = bke::pbvh::node_unique_verts(nodes[i]).size();
   });
   return offset_indices::accumulate_counts_to_offsets(node_data);
@@ -7408,22 +7408,22 @@ OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> node
 
 OffsetIndices<int> create_node_vert_offsets(const CCGKey &key,
                                             const Span<bke::pbvh::GridsNode> nodes,
-                                            const IndexMask &nodes_mask,
+                                            const IndexMask &node_mask,
                                             Array<int> &node_data)
 {
-  node_data.reinitialize(nodes.size() + 1);
-  nodes_mask.foreach_index([&](const int i, const int pos) {
+  node_data.reinitialize(node_mask.size() + 1);
+  node_mask.foreach_index([&](const int i, const int pos) {
     node_data[pos] = bke::pbvh::node_grid_indices(nodes[i]).size() * key.grid_area;
   });
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }
 
 OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNode> nodes,
-                                                  const IndexMask &nodes_mask,
+                                                  const IndexMask &node_mask,
                                                   Array<int> &node_data)
 {
-  node_data.reinitialize(nodes.size() + 1);
-  nodes_mask.foreach_index([&](const int i, const int pos) {
+  node_data.reinitialize(node_mask.size() + 1);
+  node_mask.foreach_index([&](const int i, const int pos) {
     node_data[pos] =
         BKE_pbvh_bmesh_node_unique_verts(const_cast<bke::pbvh::BMeshNode *>(&nodes[i])).size();
   });
