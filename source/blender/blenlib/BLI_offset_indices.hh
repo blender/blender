@@ -48,7 +48,7 @@ template<typename T> class OffsetIndices {
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const
   {
-    return offsets_.size() > 1 ? offsets_.last() : 0;
+    return offsets_.size() > 1 ? offsets_.last() - offsets_.first() : 0;
   }
 
   /**
