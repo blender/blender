@@ -92,6 +92,7 @@ void Instance::begin_sync()
   auto begin_sync_layer = [&](OverlayLayer &layer) {
     layer.bounds.begin_sync();
     layer.cameras.begin_sync();
+    layer.curves.begin_sync(resources, state, view);
     layer.empties.begin_sync();
     layer.facing.begin_sync(resources, state);
     layer.force_fields.begin_sync();
@@ -146,6 +147,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_ARMATURE:
         break;
       case OB_CURVES_LEGACY:
+        layer.curves.edit_object_sync_legacy(manager, ob_ref, resources);
+        break;
+      case OB_CURVES:
+        layer.curves.edit_object_sync(manager, ob_ref, resources);
         break;
       case OB_SURF:
         break;
@@ -156,8 +161,6 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         layer.metaballs.edit_object_sync(ob_ref, resources);
         break;
       case OB_FONT:
-        break;
-      case OB_CURVES:
         break;
     }
   }
@@ -356,6 +359,7 @@ void Instance::draw(Manager &manager)
   auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);
     layer.meshes.draw_color_only(framebuffer, manager, view);
+    layer.curves.draw_color_only(framebuffer, manager, view);
   };
 
   draw_layer_color_only(regular, resources.overlay_color_only_fb);

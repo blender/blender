@@ -549,16 +549,16 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
     attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     attr_id.rad = GPU_vertformat_attr_add(&format, "rad", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     attr_id.nor = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     attr_id.tan = GPU_vertformat_attr_add(
-        &format, "tan", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "tan", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
     attr_id.pos_hq = GPU_vertformat_attr_add(&format_hq, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     attr_id.rad_hq = GPU_vertformat_attr_add(&format_hq, "rad", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     attr_id.nor_hq = GPU_vertformat_attr_add(
-        &format_hq, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format_hq, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     attr_id.tan_hq = GPU_vertformat_attr_add(
-        &format_hq, "tan", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format_hq, "tan", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 
   const GPUVertFormat &format_ptr = do_hq_normals ? format_hq : format;
@@ -660,7 +660,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
   if (format_pos.attr_len == 0) {
     /* initialize vertex formats */
     attr_id.pos = GPU_vertformat_attr_add(&format_pos, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    attr_id.data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+    attr_id.data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
 
   int verts_len_capacity = curve_render_data_overlay_verts_len_get(rdata);
@@ -715,7 +715,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
           GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
         }
         if (vbo_data) {
-          const uint8_t vflag[3] = {
+          const uint32_t vflag[3] = {
               beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id, true, handle_selected),
               beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id, false, handle_selected),
               beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id, true, handle_selected),
@@ -756,7 +756,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
           }
         }
         if (vbo_data) {
-          uint8_t vflag = bpoint_vflag_get(rdata, bp->f1, a, nu_id, u);
+          uint32_t vflag = bpoint_vflag_get(rdata, bp->f1, a, nu_id, u);
           GPU_vertbuf_attr_set(vbo_data, attr_id.data, vbo_len_used, &vflag);
         }
         if (vbo_pos) {

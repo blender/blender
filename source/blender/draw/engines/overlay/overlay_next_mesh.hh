@@ -16,6 +16,8 @@
 #include "BKE_mesh_types.hh"
 #include "BKE_subdiv_modifier.hh"
 
+#include "GPU_capabilities.hh"
+
 #include "draw_cache_impl.hh"
 
 #include "overlay_next_private.hh"
@@ -107,7 +109,8 @@ class Meshes {
     {
       /* Normals */
       const bool use_screen_size = (edit_flag & V3D_OVERLAY_EDIT_CONSTANT_SCREEN_SIZE_NORMALS);
-      const bool use_hq_normals = state.scene->r.perf_flag & SCE_PERF_HQ_NORMALS;
+      const bool use_hq_normals = (state.scene->r.perf_flag & SCE_PERF_HQ_NORMALS) ||
+                                  GPU_use_hq_normals_workaround();
 
       DRWState pass_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
                             DRW_STATE_DEPTH_LESS_EQUAL | state.clipping_state;

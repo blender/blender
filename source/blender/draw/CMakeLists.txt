@@ -293,6 +293,7 @@ set(SRC
   engines/overlay/overlay_next_background.hh
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh
+  engines/overlay/overlay_next_curve.hh
   engines/overlay/overlay_next_empty.hh
   engines/overlay/overlay_next_facing.hh
   engines/overlay/overlay_next_force_field.hh
@@ -657,12 +658,14 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_depth_only_frag.glsl
   engines/overlay/shaders/overlay_depth_only_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_geom.glsl
+  engines/overlay/shaders/overlay_edit_curve_handle_next_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
   engines/overlay/shaders/overlay_edit_curves_handle_frag.glsl
   engines/overlay/shaders/overlay_edit_curves_handle_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_wire_next_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_guide_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_vert.glsl

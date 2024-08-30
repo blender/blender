@@ -505,7 +505,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
     /* NOTE: Color already in Linear space. Which is what we want. */
     .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::UCHAR, "data")
+    .vertex_in(1, Type::UINT, "data")
     .vertex_out(overlay_edit_smooth_color_iface)
     .push_constant(Type::BOOL, "showCurveHandles")
     .push_constant(Type::INT, "curveHandleDisplay")
@@ -514,6 +514,25 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 #endif
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_next)
+    .do_static_compilation(true)
+    .typedef_source("overlay_shader_shared.h")
+    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
+    .storage_buf(1, Qualifier::READ, "uint", "data[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .push_constant(Type::IVEC2, "gpu_attr_1")
+    .vertex_out(overlay_edit_smooth_color_iface)
+    .push_constant(Type::BOOL, "showCurveHandles")
+    .push_constant(Type::INT, "curveHandleDisplay")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_edit_curve_handle_next_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "gpu_index_load",
+                     "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
     .do_static_compilation(true)
@@ -559,6 +578,28 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire)
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_curve_wire", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_normals)
+    .do_static_compilation(true)
+    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
+    .storage_buf(1, Qualifier::READ, "float", "rad[]", Frequency::GEOMETRY)
+    .storage_buf(2, Qualifier::READ, "uint", "nor[]", Frequency::GEOMETRY)
+    .storage_buf(3, Qualifier::READ, "uint", "tan[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .push_constant(Type::IVEC2, "gpu_attr_1")
+    .push_constant(Type::IVEC2, "gpu_attr_2")
+    .push_constant(Type::IVEC2, "gpu_attr_3")
+    .push_constant(Type::FLOAT, "normalSize")
+    .push_constant(Type::BOOL, "use_hq_normals")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_edit_curve_wire_next_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "gpu_index_load",
+                     "draw_globals");
 
 /** \} */
 

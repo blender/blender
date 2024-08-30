@@ -158,7 +158,7 @@ struct GPUPackedNormal {
 struct GPUNormal {
   union {
     GPUPackedNormal low;
-    short high[3];
+    short high[4];
   };
 };
 

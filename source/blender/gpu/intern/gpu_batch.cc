@@ -251,23 +251,26 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
 
   char uniform_name[] = "gpu_attr_0";
   uint16_t bound_attr = 0u;
-  const GPUVertAttr *a = &format->attrs[0];
-  for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
-    const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
-    const ShaderInput *input = interface->ssbo_get(name);
-    if (input == nullptr || input->location == -1) {
-      continue;
-    }
-    GPU_vertbuf_bind_as_ssbo(vbo, input->location);
-    bound_attr |= (1 << input->location);
+  for (uint a_idx = 0; a_idx < format->attr_len; a_idx++) {
+    const GPUVertAttr *a = &format->attrs[a_idx];
+    for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
+      const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
+      const ShaderInput *input = interface->ssbo_get(name);
+      if (input == nullptr || input->location == -1) {
+        continue;
+      }
+      GPU_vertbuf_bind_as_ssbo(vbo, input->location);
+      bound_attr |= (1 << input->location);
 
-    /* WORKAROUND: This is to support complex format. But ideally this should not be supported. */
-    uniform_name[9] = '0' + input->location;
-    /* Only support 4byte aligned attributes. */
-    BLI_assert((format->stride % 4) == 0);
-    BLI_assert((a->offset % 4) == 0);
-    int descriptor[2] = {int(format->stride) / 4, int(a->offset) / 4};
-    GPU_shader_uniform_2iv(shader, uniform_name, descriptor);
+      /* WORKAROUND: This is to support complex format. But ideally this should not be supported.
+       */
+      uniform_name[9] = '0' + input->location;
+      /* Only support 4byte aligned attributes. */
+      BLI_assert((format->stride % 4) == 0);
+      BLI_assert((a->offset % 4) == 0);
+      int descriptor[2] = {int(format->stride) / 4, int(a->offset) / 4};
+      GPU_shader_uniform_2iv(shader, uniform_name, descriptor);
+    }
   }
   return bound_attr;
 }
