@@ -359,6 +359,11 @@ bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name, const bool do_un
       return is_name_changed;
     }
 
+    /* At this point, if this is the first iteration, the initially given name is colliding with an
+     * existing ID name, and has to be modified. If this is a later iteration, the given name has
+     * already been modified one way or another. */
+    is_name_changed = true;
+
     /* The base name is already used. But our number suffix might not be used yet. */
     int number_to_use = -1;
     if (val.use_if_unused(number)) {
@@ -395,11 +400,6 @@ bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name, const bool do_un
       }
       break;
     }
-
-    /* Name had to be truncated, or number too large: mark
-     * the output name as definitely changed, and proceed with the
-     * truncated name again. */
-    is_name_changed = true;
   }
 
   return is_name_changed;

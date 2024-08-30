@@ -137,6 +137,24 @@ TEST(lib_id_main_unique_name, local_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
+
+  /* Test lower-level #BKE_main_namemap_get_name itself. */
+  /* Name already in use, needs additional numeric suffix. */
+  char future_name[MAX_ID_NAME - 2];
+  STRNCPY(future_name, "OB_B");
+  EXPECT_TRUE(BKE_main_namemap_get_name(ctx.bmain, id_c, future_name, false));
+  EXPECT_STREQ(future_name, "OB_B.001");
+  /* Name not already in use, no need to alter it. */
+  STRNCPY(future_name, "OB_BBBB");
+  EXPECT_FALSE(BKE_main_namemap_get_name(ctx.bmain, id_c, future_name, false));
+  EXPECT_STREQ(future_name, "OB_BBBB");
+  /* Name too long, needs to be truncated. */
+  STRNCPY(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+  change_name(ctx.bmain, id_a, future_name);
+  EXPECT_STREQ(id_a->name + 2, future_name);
+  EXPECT_STREQ(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+  EXPECT_TRUE(BKE_main_namemap_get_name(ctx.bmain, id_c, future_name, false));
+  EXPECT_STREQ(future_name, "OB_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
 }
 
 TEST(lib_id_main_unique_name, linked_ids_1)
