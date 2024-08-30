@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 78),
+    "version": (4, 2, 79),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -161,6 +161,20 @@ def is_draco_available():
         is_draco_available.draco_exists = gltf2_io_draco_compression_extension.dll_exists()
 
     return is_draco_available.draco_exists
+
+
+def set_debug_log():
+    import logging
+    if bpy.app.debug_value == 0:      # Default values => Display all messages except debug ones
+        return logging.INFO
+    elif bpy.app.debug_value == 1:
+        return logging.WARNING
+    elif bpy.app.debug_value == 2:
+        return logging.ERROR
+    elif bpy.app.debug_value == 3:
+        return logging.CRITICAL
+    elif bpy.app.debug_value == 4:
+        return logging.DEBUG
 
 
 class ConvertGLTF2_Base:
@@ -1052,7 +1066,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         # All custom export settings are stored in this container.
         export_settings = {}
 
-        export_settings['loglevel'] = logging.INFO
+        export_settings['loglevel'] = set_debug_log()
 
         export_settings['exported_images'] = {}
         export_settings['exported_texture_nodes'] = []
@@ -1865,7 +1879,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
     def import_gltf2(self, context):
         import os
 
-        self.set_debug_log()
+        self.loglevel = set_debug_log()
         import_settings = self.as_keywords()
 
         user_extensions = []
@@ -1923,19 +1937,6 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         except ImportError as e:
             self.report({'ERROR'}, e.args[0])
             return {'CANCELLED'}
-
-    def set_debug_log(self):
-        import logging
-        if bpy.app.debug_value == 0:      # Default values => Display all messages except debug ones
-            self.loglevel = logging.INFO
-        elif bpy.app.debug_value == 1:
-            self.loglevel = logging.WARNING
-        elif bpy.app.debug_value == 2:
-            self.loglevel = logging.ERROR
-        elif bpy.app.debug_value == 3:
-            self.loglevel = logging.CRITICAL
-        elif bpy.app.debug_value == 4:
-            self.loglevel = logging.DEBUG
 
 
 def import_bone_panel(layout, operator):
