@@ -2420,6 +2420,13 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
 }
 
+/* Cannot use rna_enum_dummy_DEFAULT_items because the OBJECT entry needs to exist as it is the
+ * default. */
+const EnumPropertyItem default_id_root_items[] = {
+    {0, "OBJECT", 0, "Object", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Access to 'legacy' Action features, like the top-level F-Curves, the corresponding F-Curve
  * groups, and the top-level id_root. */
 static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
@@ -2443,7 +2450,7 @@ static void rna_def_action_legacy(BlenderRNA *brna, StructRNA *srna)
    * but is still available/editable in 'emergencies' */
   prop = RNA_def_property(srna, "id_root", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "idroot");
-  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
+  RNA_def_property_enum_items(prop, default_id_root_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_id_root_itemf");
   RNA_def_property_ui_text(prop,
                            "ID Root Type",
