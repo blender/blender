@@ -115,6 +115,7 @@ void VKContext::activate()
 
 void VKContext::deactivate()
 {
+  rendering_end();
   immDeactivate();
   is_active_ = false;
 }

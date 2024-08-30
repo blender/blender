@@ -245,7 +245,7 @@ VertBuf *VKBackend::vertbuf_alloc()
 void VKBackend::render_begin()
 {
   VKThreadData &thread_data = device.current_thread_data();
-  BLI_assert_msg(thread_data.rendering_depth >= 0, "Inconsistent `GPU_render_begin/end`");
+  BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
   thread_data.rendering_depth += 1;
 }
 
@@ -253,7 +253,7 @@ void VKBackend::render_end()
 {
   VKThreadData &thread_data = device.current_thread_data();
   thread_data.rendering_depth -= 1;
-  BLI_assert_msg(thread_data.rendering_depth >= 0, "Inconsistent `GPU_render_begin/end`");
+  BLI_assert_msg(thread_data.rendering_depth >= 0, "Unbalanced `GPU_render_begin/end`");
 
   if (G.background) {
     if (thread_data.rendering_depth == 0) {
