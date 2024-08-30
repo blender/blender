@@ -2748,14 +2748,14 @@ class VIEW3D_MT_grease_pencil_add(Menu):
         layout = self.layout
         layout.operator("object.grease_pencil_add", text="Empty", icon='EMPTY_AXIS').type = 'EMPTY'
         layout.operator("object.grease_pencil_add", text="Stroke", icon='STROKE').type = 'STROKE'
-        layout.operator("object.grease_pencil_add", text="Suzanne", icon='MONKEY').type = 'MONKEY'
+        layout.operator("object.grease_pencil_add", text="Monkey", icon='MONKEY').type = 'MONKEY'
         layout.separator()
-        layout.operator("object.grease_pencil_add", text="Scene Line Art", icon='SCENE').type = 'LINEART_SCENE'
+        layout.operator("object.grease_pencil_add", text="Scene Line Art", icon='SCENE_DATA').type = 'LINEART_SCENE'
         layout.operator(
             "object.grease_pencil_add",
             text="Collection Line Art",
-            icon='GROUP').type = 'LINEART_COLLECTION'
-        layout.operator("object.grease_pencil_add", text="Object Line Art", icon='CUBE').type = 'LINEART_OBJECT'
+            icon='OUTLINER_COLLECTION').type = 'LINEART_COLLECTION'
+        layout.operator("object.grease_pencil_add", text="Object Line Art", icon='OBJECT_DATA').type = 'LINEART_OBJECT'
 
 
 class VIEW3D_MT_add(Menu):
