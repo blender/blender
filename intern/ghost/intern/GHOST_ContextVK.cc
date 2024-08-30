@@ -114,9 +114,6 @@ static const char *vulkan_error_as_string(VkResult result)
     printf(__VA_ARGS__); \
   }
 
-/* Triple buffering. */
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
 /* -------------------------------------------------------------------- */
 /** \name Vulkan Device
  * \{ */
