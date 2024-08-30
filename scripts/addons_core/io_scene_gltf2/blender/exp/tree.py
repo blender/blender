@@ -25,9 +25,7 @@ class VExportNode:
     COLLECTION = 6
     INSTANCE = 7  # For instances of GN
 
-    INSTANCIER = 8
-    NOT_INSTANCIER = 9
-    INST_COLLECTION = 7
+    INST_COLLECTION = 8
 
     # Parent type, to be set on child regarding its parent
     NO_PARENT = 54
@@ -77,7 +75,7 @@ class VExportNode:
         self.data = None
         self.materials = None
 
-        self.is_instancier = VExportNode.NOT_INSTANCIER
+        self.is_instancer = False
 
     def add_child(self, uuid):
         self.children.append(uuid)
@@ -175,8 +173,17 @@ class VExportTree:
         # add to parent if needed
         if parent_uuid is not None:
             self.add_children(parent_uuid, node.uuid)
-            if self.nodes[parent_uuid].blender_type == VExportNode.INST_COLLECTION or original_object is not None:
+
+            # 2 cases where we will need to store the fact that children are in collection or a real children
+            #       1. GN instance
+            #       2. Old Dupli vertices feature
+            # For any other case, children are real children
+            if (self.nodes[parent_uuid].blender_type == VExportNode.INST_COLLECTION or original_object is not None) or (
+                    self.nodes[parent_uuid].blender_object is not None and self.nodes[parent_uuid].blender_object.is_instancer is True):
                 self.nodes[parent_uuid].children_type[node.uuid] = VExportNode.CHILDREN_IS_IN_COLLECTION if is_children_in_collection is True else VExportNode.CHILDREN_REAL
+            else:
+                # We are in a regular case where children are real children
+                self.nodes[parent_uuid].children_type[node.uuid] = VExportNode.CHILDREN_REAL
         else:
             self.roots.append(node.uuid)
 
@@ -461,7 +468,7 @@ class VExportTree:
                         continue
                     if type(inst.object.data).__name__ == "Mesh" and len(inst.object.data.vertices) == 0:
                         continue  # This is nested instances, and this mesh has no vertices, so is an instancier for other instances
-                    node.is_instancier = VExportNode.INSTANCIER
+                    node.is_instancer = True
                     self.recursive_node_traverse(
                         None,
                         None,
@@ -562,7 +569,7 @@ class VExportTree:
             self.export_settings['log'].error("This should not happen")
 
         for child in self.nodes[uuid].children:
-            if self.nodes[uuid].blender_type == VExportNode.INST_COLLECTION or self.nodes[uuid].is_instancier == VExportNode.INSTANCIER:
+            if self.nodes[uuid].blender_type == VExportNode.INST_COLLECTION or self.nodes[uuid].is_instancer:
                 # We need to split children into 2 categories: real children, and objects inside the collection
                 if self.nodes[uuid].children_type[child] == VExportNode.CHILDREN_IS_IN_COLLECTION:
                     self.recursive_filter_tag(child, self.nodes[uuid].keep_tag)
