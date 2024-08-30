@@ -60,6 +60,7 @@ class Instance {
 
   struct OverlayLayer {
     const SelectionType selection_type_;
+
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Curves curves;

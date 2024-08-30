@@ -4,9 +4,11 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
+  select_id_set(drw_CustomID);
   vec3 world_pos = point_object_to_world(pos);
   if (isCameraBackground) {
     /* Model matrix converts to view position to avoid jittering (see #91398). */

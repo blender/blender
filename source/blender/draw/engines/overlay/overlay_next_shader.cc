@@ -331,6 +331,11 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.vertex_inputs_.pop_last();
       });
 
+  image_plane = selectable_shader("overlay_image", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info("draw_view", "draw_modelmat_new", "draw_resource_handle_new");
+  });
+
   particle_dot = selectable_shader("overlay_particle_dot",
                                    [](gpu::shader::ShaderCreateInfo &info) {
                                      info.additional_infos_.clear();

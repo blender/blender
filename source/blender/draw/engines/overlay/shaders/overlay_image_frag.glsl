@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
@@ -25,4 +26,6 @@ void main()
 
   /* Pre-multiplied blending. */
   fragColor.rgb *= fragColor.a;
+
+  select_id_output(select_id);
 }

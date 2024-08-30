@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_movieclip.h"
+
 #include "BLI_function_ref.hh"
 
 #include "GPU_matrix.hh"
@@ -57,6 +59,8 @@ struct State {
   short v3d_flag;     /* TODO: move to #View3DOverlay. */
   short v3d_gridflag; /* TODO: move to #View3DOverlay. */
   int cfra;
+  float3 camera_position;
+  float3 camera_forward;
   DRWState clipping_state;
 
   float view_dist_get(const float4x4 &winmat) const
@@ -212,6 +216,7 @@ class ShaderModule {
   ShaderPtr fluid_velocity_streamline;
   ShaderPtr fluid_velocity_mac;
   ShaderPtr fluid_velocity_needle;
+  ShaderPtr image_plane;
   ShaderPtr lattice_points;
   ShaderPtr lattice_wire;
   ShaderPtr particle_dot;
@@ -299,8 +304,21 @@ struct Resources : public select::SelectMap {
    */
   TextureRef depth_target_tx;
 
+  Vector<MovieClip *> bg_movie_clips;
+
   Resources(const SelectionType selection_type_, ShaderModule &shader_module)
       : select::SelectMap(selection_type_), shaders(shader_module){};
+
+  ~Resources()
+  {
+    free_movieclips_textures();
+  }
+
+  void begin_sync()
+  {
+    SelectMap::begin_sync();
+    free_movieclips_textures();
+  }
 
   ThemeColorID object_wire_theme_id(const ObjectRef &ob_ref, const State &state) const
   {
@@ -385,6 +403,14 @@ struct Resources : public select::SelectMap {
   {
     ThemeColorID theme_id = object_wire_theme_id(ob_ref, state);
     return background_blend_color(theme_id);
+  }
+
+  void free_movieclips_textures()
+  {
+    /* Free Movie clip textures after rendering */
+    for (MovieClip *clip : bg_movie_clips) {
+      BKE_movieclip_free_gputexture(clip);
+    }
   }
 };
 
