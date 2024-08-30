@@ -6,7 +6,7 @@ import struct
 import numpy as np
 
 from ..com.gltf2_io import Accessor
-from ..com.gltf2_io_constants import ComponentType, DataType
+from ..com.constants import ComponentType, DataType
 
 
 class BinaryData():

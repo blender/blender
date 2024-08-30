@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from ...io.com.gltf2_io_path import uri_to_path
+from ...io.com.path import uri_to_path
 from ..com.gltf2_io import gltf_from_dict
-from ..com.gltf2_io_debug import Log
+from ..com.debug import Log
 import logging
 import json
 import struct
