@@ -1413,6 +1413,10 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
       float(pcontext->y - pcontext->region->winrct.ymin),
   };
 
+  /* Ensure that the PBVH is generated before we call SCULPT_cursor_geometry_info_update because
+   * the PBVH is needed to do a raycast to find the active vertex. */
+  BKE_sculpt_object_pbvh_ensure(pcontext->depsgraph, pcontext->vc.obact);
+
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
   pcontext->prev_active_vert_ref = ss.active_vert_ref();

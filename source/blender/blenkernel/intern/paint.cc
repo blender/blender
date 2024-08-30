@@ -1762,19 +1762,27 @@ SculptSession::~SculptSession()
 
 PBVHVertRef SculptSession::active_vert_ref() const
 {
-  if (ELEM(this->pbvh->type(),
-           blender::bke::pbvh::Type::Mesh,
-           blender::bke::pbvh::Type::Grids,
-           blender::bke::pbvh::Type::BMesh))
-  {
-    return active_vert_;
+  /* Here to prevent possible crashes like #126914. This should be removed
+   * eventually once all of these situations are found. The PBVH should never be
+   * in an uninitialized state when calling this function. */
+  if (!this->pbvh) {
+    BLI_assert_unreachable();
+    return {PBVH_REF_NONE};
   }
 
-  return {PBVH_REF_NONE};
+  return active_vert_;
 }
 
 ActiveVert SculptSession::active_vert() const
 {
+  /* Here to prevent possible crashes like #126914. This should be removed
+   * eventually once all of these situations are found. The PBVH should never be
+   * in an uninitialized state when calling this function. */
+  if (!this->pbvh) {
+    BLI_assert_unreachable();
+    return {};
+  }
+
   /* TODO: While this code currently translates the stored PBVHVertRef into the given type, once
    * we stored the actual field as ActiveVertex, this call can replace #active_vertex. */
   switch (this->pbvh->type()) {
