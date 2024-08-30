@@ -754,6 +754,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
   BLI_args_print_arg_doc(ba, "--debug-gpu-compile-shaders");
   if (defs.with_renderdoc) {
+    BLI_args_print_arg_doc(ba, "--debug-gpu-scope-capture");
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
   BLI_args_print_arg_doc(ba, "--debug-wm");
@@ -1405,6 +1406,19 @@ static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
                                                     void * /*data*/)
 {
   G.debug |= G_DEBUG_GPU_COMPILE_SHADERS;
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_scope_capture_set_doc[] =
+    "\n"
+    "\tCapture the GPU commands issued inside the give scope name.";
+static int arg_handle_debug_gpu_scope_capture_set(int argc, const char **argv, void * /*data*/)
+{
+  if (argc > 1) {
+    STRNCPY(G.gpu_debug_scope_name, argv[1]);
+    return 1;
+  }
+  fprintf(stderr, "\nError: you must specify a scope name to capture.\n");
   return 0;
 }
 
@@ -2726,6 +2740,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                CB(arg_handle_debug_gpu_compile_shaders_set),
                nullptr);
   if (defs.with_renderdoc) {
+    BLI_args_add(ba,
+                 nullptr,
+                 "--debug-gpu-scope-capture",
+                 CB(arg_handle_debug_gpu_scope_capture_set),
+                 nullptr);
     BLI_args_add(
         ba, nullptr, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), nullptr);
   }

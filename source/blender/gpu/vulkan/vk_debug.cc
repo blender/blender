@@ -62,17 +62,34 @@ void VKBackend::debug_capture_end()
 #endif
 }
 
-void *VKContext::debug_capture_scope_create(const char * /*name*/)
+void *VKContext::debug_capture_scope_create(const char *name)
 {
-  return nullptr;
+  return (void *)name;
 }
 
-bool VKContext::debug_capture_scope_begin(void * /*scope*/)
+bool VKContext::debug_capture_scope_begin(void *scope)
 {
+#ifdef WITH_RENDERDOC
+  const char *title = (const char *)scope;
+  if (StringRefNull(title) != StringRefNull(G.gpu_debug_scope_name)) {
+    return false;
+  }
+  GLBackend::get()->debug_capture_begin(title);
+#endif
+  UNUSED_VARS(scope);
   return false;
 }
 
-void VKContext::debug_capture_scope_end(void * /*scope*/) {}
+void VKContext::debug_capture_scope_end(void *scope)
+{
+#ifdef WITH_RENDERDOC
+  const char *title = (const char *)scope;
+  if (StringRefNull(title) == StringRefNull(G.gpu_debug_scope_name)) {
+    GLBackend::get()->debug_capture_end();
+  }
+#endif
+}
+
 }  // namespace blender::gpu
 
 namespace blender::gpu::debug {

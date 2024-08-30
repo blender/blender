@@ -173,6 +173,12 @@ struct Global {
   bool opengl_deprecation_usage_detected;
   const char *opengl_deprecation_usage_filename;
   int opengl_deprecation_usage_lineno;
+
+  /**
+   * Triggers a GPU capture if the name matches a DebugScope.
+   * Set using `--debug-gpu-scope-capture "debug_scope"`.
+   */
+  char gpu_debug_scope_name[200];
 };
 
 /* **************** GLOBAL ********************* */

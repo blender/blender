@@ -435,17 +435,33 @@ void GLBackend::debug_capture_end()
 #endif
 }
 
-void *GLContext::debug_capture_scope_create(const char * /*name*/)
+void *GLContext::debug_capture_scope_create(const char *name)
 {
-  return nullptr;
+  return (void *)name;
 }
 
-bool GLContext::debug_capture_scope_begin(void * /*scope*/)
+bool GLContext::debug_capture_scope_begin(void *scope)
 {
+#ifdef WITH_RENDERDOC
+  const char *title = (const char *)scope;
+  if (StringRefNull(title) != StringRefNull(G.gpu_debug_scope_name)) {
+    return false;
+  }
+  GLBackend::get()->debug_capture_begin(title);
+#endif
+  UNUSED_VARS(scope);
   return false;
 }
 
-void GLContext::debug_capture_scope_end(void * /*scope*/) {}
+void GLContext::debug_capture_scope_end(void *scope)
+{
+#ifdef WITH_RENDERDOC
+  const char *title = (const char *)scope;
+  if (StringRefNull(title) == StringRefNull(G.gpu_debug_scope_name)) {
+    GLBackend::get()->debug_capture_end();
+  }
+#endif
+}
 
 void GLContext::debug_unbind_all_ubo()
 {
