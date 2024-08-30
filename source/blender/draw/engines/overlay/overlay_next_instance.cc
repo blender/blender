@@ -113,6 +113,7 @@ void Instance::begin_sync()
   grid.begin_sync(resources, state, view);
 
   anti_aliasing.begin_sync(resources);
+  xray_fade.begin_sync(resources, state);
 }
 
 void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
@@ -261,7 +262,7 @@ void Instance::draw(Manager &manager)
 
   if (state.xray_enabled) {
     /* For X-ray we render the scene to a separate depth buffer. */
-    resources.xray_depth_tx.acquire(render_size, GPU_DEPTH_COMPONENT24);
+    resources.xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
     resources.depth_target_tx.wrap(resources.xray_depth_tx);
   }
   else {
@@ -270,7 +271,7 @@ void Instance::draw(Manager &manager)
 
   /* TODO(fclem): Remove mandatory allocation. */
   if (!resources.depth_in_front_tx.is_valid()) {
-    resources.depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH_COMPONENT24);
+    resources.depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
     resources.depth_in_front_tx.wrap(resources.depth_in_front_alloc_tx);
   }
 
@@ -355,6 +356,8 @@ void Instance::draw(Manager &manager)
   };
 
   draw_layer(regular, resources.overlay_line_fb);
+
+  xray_fade.draw(manager);
 
   auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);

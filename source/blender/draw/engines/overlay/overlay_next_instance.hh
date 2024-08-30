@@ -31,6 +31,7 @@
 #include "overlay_next_relation.hh"
 #include "overlay_next_speaker.hh"
 #include "overlay_next_wireframe.hh"
+#include "overlay_next_xray_fade.hh"
 
 namespace blender::draw::overlay {
 
@@ -80,6 +81,7 @@ class Instance {
   Grid grid;
 
   AntiAliasing anti_aliasing;
+  XrayFade xray_fade;
 
   Instance(const SelectionType selection_type) : selection_type_(selection_type){};
 

@@ -194,6 +194,7 @@ class ShaderModule {
   ShaderPtr outline_prepass_pointcloud;
   ShaderPtr outline_prepass_gpencil;
   ShaderPtr outline_detect = shader("overlay_outline_detect");
+  ShaderPtr xray_fade = shader("overlay_xray_fade");
 
   /** Selectable Shaders */
   ShaderPtr armature_sphere_outline;
