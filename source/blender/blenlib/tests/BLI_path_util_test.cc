@@ -445,6 +445,95 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_unc
+ * \{ */
+
+TEST(path_util, IsUnc)
+{
+  EXPECT_TRUE(BLI_path_is_unc("\\\\server_name\\share_name"));
+  EXPECT_TRUE(BLI_path_is_unc("\\\\.\\C:\\file.txt"));
+  EXPECT_TRUE(BLI_path_is_unc("\\\\?\\C:\\file.txt"));
+
+  EXPECT_FALSE(BLI_path_is_unc("..\\relative\\path"));
+  EXPECT_FALSE(BLI_path_is_unc(".\\relative\\path"));
+  EXPECT_FALSE(BLI_path_is_unc("\\a_single_backslash"));
+  EXPECT_FALSE(BLI_path_is_unc("//must_be_backslashes"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_win32_drive
+ * \{ */
+
+TEST(path_util, IsWin32Drive)
+{
+  EXPECT_TRUE(BLI_path_is_win32_drive("E:\\file.txt"));
+  EXPECT_TRUE(BLI_path_is_win32_drive("E:/file.txt"));
+  EXPECT_TRUE(BLI_path_is_win32_drive("E:/"));
+  EXPECT_TRUE(BLI_path_is_win32_drive("E:\\"));
+  EXPECT_TRUE(BLI_path_is_win32_drive("E:"));
+  EXPECT_TRUE(BLI_path_is_win32_drive("e:"));
+
+  EXPECT_FALSE(BLI_path_is_win32_drive("Ef"));
+  EXPECT_FALSE(BLI_path_is_win32_drive("1:"));
+  EXPECT_FALSE(BLI_path_is_win32_drive("../file"));
+  EXPECT_FALSE(BLI_path_is_win32_drive("\\\\server_name\\share_name"));
+  EXPECT_FALSE(BLI_path_is_win32_drive("\\\\?\\C:\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_win32_drive("//relative.txt"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_win32_drive_only
+ * \{ */
+
+TEST(path_util, IsWin32DriveOnly)
+{
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("E:\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("E:/file.txt"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("E:/"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("E:\\"));
+
+  EXPECT_TRUE(BLI_path_is_win32_drive_only("E:"));
+  EXPECT_TRUE(BLI_path_is_win32_drive_only("e:"));
+
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("Ef"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("1:"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("../file"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("\\\\server_name\\share_name"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("\\\\?\\C:\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_only("//relative.txt"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_win32_drive_with_slash
+ * \{ */
+
+TEST(path_util, IsWin32DriveWithSlash)
+{
+  EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:\\file.txt"));
+  EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:/file.txt"));
+
+  EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:/"));
+  EXPECT_TRUE(BLI_path_is_win32_drive_with_slash("E:\\"));
+
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("E:"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("e:"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("Ef"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("1:"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("../file"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("\\\\server_name\\share_name"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("\\\\?\\C:\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_win32_drive_with_slash("//relative.txt"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_join
  * \{ */
 
@@ -1281,6 +1370,55 @@ TEST(path_util, RelPath_BufferOverflowSubdir)
 
 #undef PATH_REL
 #undef ABS_PREFIX
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_rel
+ * \{ */
+
+TEST(path_util, PathIsRel)
+{
+  EXPECT_TRUE(BLI_path_is_rel("//file.txt"));
+
+  EXPECT_FALSE(BLI_path_is_rel("\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("\\\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel(".hide/file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("C:/file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("../file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("\\\\host\\server\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_rel("\\\\?\\C:\\server\\file.txt"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_is_abs_from_cwd
+ * \{ */
+
+TEST(path_util, PathIsAbsFromCwd)
+{
+#ifdef WIN32
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("/file.txt"));
+
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:/file.txt"));
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("\\\\?\\C:\\server\\file.txt"));
+#else
+  EXPECT_TRUE(BLI_path_is_abs_from_cwd("/file.txt"));
+
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:/file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("C:\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("\\\\host\\server\\file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("\\\\?\\C:\\server\\file.txt"));
+#endif
+
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("../file.txt"));
+  EXPECT_FALSE(BLI_path_is_abs_from_cwd("./file.txt"));
+}
 
 /** \} */
 
