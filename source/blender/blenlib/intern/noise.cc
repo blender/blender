@@ -10,6 +10,7 @@
 
 #include "BLI_math_base.hh"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_noise.hh"
@@ -148,6 +149,11 @@ uint32_t hash_float(float3 k)
 uint32_t hash_float(float4 k)
 {
   return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
+}
+
+uint32_t hash_float(const float4x4 &k)
+{
+  return hash(hash_float(k.x), hash_float(k.y), hash_float(k.z), hash_float(k.w));
 }
 
 /* Hashing a number of uint32_t into a float in the range [0, 1]. */
