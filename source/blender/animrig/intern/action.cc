@@ -1604,12 +1604,7 @@ void ChannelBag::restore_channel_group_invariants()
 
 bool ChannelGroup::is_legacy() const
 {
-  const bool group_is_legacy = this->channel_bag == nullptr;
-
-  BLI_assert_msg(group_is_legacy || this->channels.first == nullptr,
-                 "Layered-action channel group has legacy-action data.");
-
-  return group_is_legacy;
+  return this->channel_bag == nullptr;
 }
 
 Span<FCurve *> ChannelGroup::fcurves()

@@ -406,7 +406,7 @@ static void action_blend_write_make_legacy_channel_groups_listbase(
 
 static void action_blend_write_clear_legacy_channel_groups_listbase(ListBase &listbase)
 {
-  LISTBASE_FOREACH (bActionGroup *, group, &listbase) {
+  LISTBASE_FOREACH_MUTABLE (bActionGroup *, group, &listbase) {
     group->prev = nullptr;
     group->next = nullptr;
     group->channels = {nullptr, nullptr};
@@ -450,7 +450,7 @@ static void action_blend_write_make_legacy_fcurves_listbase(ListBase &listbase,
 
 static void action_blend_write_clear_legacy_fcurves_listbase(ListBase &listbase)
 {
-  LISTBASE_FOREACH (FCurve *, fcurve, &listbase) {
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &listbase) {
     fcurve->prev = nullptr;
     fcurve->next = nullptr;
   }
