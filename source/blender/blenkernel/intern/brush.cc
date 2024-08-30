@@ -393,27 +393,37 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
 
   /* Most names copied from brush RNA (not all are available there though). */
   constexpr std::array mode_map{
-      std::pair{"use_paint_sculpt", OB_MODE_SCULPT},
-      std::pair{"use_paint_vertex", OB_MODE_VERTEX_PAINT},
-      std::pair{"use_paint_weight", OB_MODE_WEIGHT_PAINT},
-      std::pair{"use_paint_image", OB_MODE_TEXTURE_PAINT},
+      std::tuple{"use_paint_sculpt", OB_MODE_SCULPT, "sculpt_brush_type"},
+      std::tuple{"use_paint_vertex", OB_MODE_VERTEX_PAINT, "vertex_brush_type"},
+      std::tuple{"use_paint_weight", OB_MODE_WEIGHT_PAINT, "weight_brush_type"},
+      std::tuple{"use_paint_image", OB_MODE_TEXTURE_PAINT, "image_brush_type"},
       /* Sculpt UVs in the image editor while in edit mode. */
-      std::pair{"use_paint_uv_sculpt", OB_MODE_EDIT},
-      std::pair{"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
+      std::tuple{"use_paint_uv_sculpt", OB_MODE_EDIT, "image_brush_type"},
+      std::tuple{"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY, "gpencil_brush_type"},
       /* Note: Not defined in brush RNA, own name. */
-      std::pair{"use_sculpt_grease_pencil", OB_MODE_SCULPT_GPENCIL_LEGACY},
-      std::pair{"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
-      std::pair{"use_weight_grease_pencil", OB_MODE_WEIGHT_GPENCIL_LEGACY},
-      std::pair{"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES},
+      std::tuple{
+          "use_sculpt_grease_pencil", OB_MODE_SCULPT_GPENCIL_LEGACY, "gpencil_sculpt_brush_type"},
+      std::tuple{
+          "use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY, "gpencil_vertex_brush_type"},
+      std::tuple{"use_weight_gpencil", OB_MODE_WEIGHT_GPENCIL_LEGACY, "gpencil_weight_brush_type"},
+      std::tuple{"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES, "curves_sculpt_brush_type"},
   };
 
-  for (const auto &mode_mapping : mode_map) {
+  for (const auto &[prop_name, mode, tool_prop_name] : mode_map) {
     /* Only add bools for supported modes. */
-    if (!(brush->ob_mode & mode_mapping.second)) {
+    if (!(brush->ob_mode & mode)) {
       continue;
     }
-    auto mode_property = idprop::create_bool(mode_mapping.first, true);
+    auto mode_property = idprop::create_bool(prop_name, true);
     BKE_asset_metadata_idprop_ensure(asset_data, mode_property.release());
+
+    if (std::optional<int> brush_tool = BKE_paint_get_brush_tool_from_obmode(brush, mode)) {
+      auto type_property = idprop::create(tool_prop_name, *brush_tool);
+      BKE_asset_metadata_idprop_ensure(asset_data, type_property.release());
+    }
+    else {
+      BLI_assert_unreachable();
+    }
   }
 }
 
