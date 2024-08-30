@@ -343,6 +343,13 @@ class NodeNav:
                     color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
 
+            elif self.in_socket.type == 'SHADER':
+                # Historicaly, we manage RGB node plugged into a shader socket (output node)
+                if nav.node.type == 'RGB':
+                    color = list(nav.out_socket.default_value)
+                    color = color[:3]
+                    return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+
             elif self.in_socket.type == 'VALUE':
                 if nav.node.type == 'VALUE':
                     return nav.out_socket.default_value, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
