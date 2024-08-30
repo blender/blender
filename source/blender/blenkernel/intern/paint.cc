@@ -1762,57 +1762,36 @@ SculptSession::~SculptSession()
 
 PBVHVertRef SculptSession::active_vert_ref() const
 {
-  /* Here to prevent possible crashes like #126914. This should be removed
-   * eventually once all of these situations are found. The PBVH should never be
-   * in an uninitialized state when calling this function. */
-  if (!this->pbvh) {
-    BLI_assert_unreachable();
-    return {PBVH_REF_NONE};
+  if (std::holds_alternative<int>(active_vert_)) {
+    return {std::get<int>(active_vert_)};
   }
-
-  return active_vert_;
+  if (std::holds_alternative<SubdivCCGCoord>(active_vert_)) {
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
+    const int index = std::get<SubdivCCGCoord>(active_vert_).to_index(key);
+    return {index};
+  }
+  if (std::holds_alternative<BMVert *>(active_vert_)) {
+    return {reinterpret_cast<intptr_t>(std::get<BMVert *>(active_vert_))};
+  }
+  return {PBVH_REF_NONE};
 }
 
 ActiveVert SculptSession::active_vert() const
 {
-  /* Here to prevent possible crashes like #126914. This should be removed
-   * eventually once all of these situations are found. The PBVH should never be
-   * in an uninitialized state when calling this function. */
-  if (!this->pbvh) {
-    BLI_assert_unreachable();
-    return {};
-  }
-
-  /* TODO: While this code currently translates the stored PBVHVertRef into the given type, once
-   * we stored the actual field as ActiveVertex, this call can replace #active_vertex. */
-  switch (this->pbvh->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      return int(active_vert_.i);
-    case blender::bke::pbvh::Type::Grids: {
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
-      return SubdivCCGCoord::from_index(key, active_vert_.i);
-    }
-    case blender::bke::pbvh::Type::BMesh:
-      return reinterpret_cast<BMVert *>(active_vert_.i);
-    default:
-      BLI_assert_unreachable();
-  }
-
-  return {};
+  return active_vert_;
 }
 
 int SculptSession::active_vert_index() const
 {
-  const ActiveVert vert = this->active_vert();
-  if (std::holds_alternative<int>(vert)) {
-    return std::get<int>(vert);
+  if (std::holds_alternative<int>(active_vert_)) {
+    return std::get<int>(active_vert_);
   }
-  else if (std::holds_alternative<SubdivCCGCoord>(vert)) {
-    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(vert);
+  if (std::holds_alternative<SubdivCCGCoord>(active_vert_)) {
+    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(active_vert_);
     return coord.to_index(BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg));
   }
-  else if (std::holds_alternative<BMVert *>(vert)) {
-    BMVert *bm_vert = std::get<BMVert *>(vert);
+  if (std::holds_alternative<BMVert *>(active_vert_)) {
+    BMVert *bm_vert = std::get<BMVert *>(active_vert_);
     return BM_elem_index_get(bm_vert);
   }
 
@@ -1822,19 +1801,18 @@ int SculptSession::active_vert_index() const
 blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
                                                     const Object &object) const
 {
-  const ActiveVert vert = this->active_vert();
-  if (std::holds_alternative<int>(vert)) {
+  if (std::holds_alternative<int>(active_vert_)) {
     const Span<float3> positions = blender::bke::pbvh::vert_positions_eval(depsgraph, object);
-    return positions[std::get<int>(vert)];
+    return positions[std::get<int>(active_vert_)];
   }
-  else if (std::holds_alternative<SubdivCCGCoord>(vert)) {
+  if (std::holds_alternative<SubdivCCGCoord>(active_vert_)) {
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
-    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(vert);
+    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(active_vert_);
 
     return CCG_grid_elem_co(key, this->subdiv_ccg->grids[coord.grid_index], coord.x, coord.y);
   }
-  else if (std::holds_alternative<BMVert *>(vert)) {
-    BMVert *bm_vert = std::get<BMVert *>(vert);
+  if (std::holds_alternative<BMVert *>(active_vert_)) {
+    BMVert *bm_vert = std::get<BMVert *>(active_vert_);
     return bm_vert->co;
   }
 
@@ -1844,10 +1822,10 @@ blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
 
 void SculptSession::clear_active_vert()
 {
-  active_vert_ = {PBVH_REF_NONE};
+  active_vert_ = {};
 }
 
-void SculptSession::set_active_vert(const PBVHVertRef vert)
+void SculptSession::set_active_vert(const ActiveVert vert)
 {
   active_vert_ = vert;
 }
