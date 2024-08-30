@@ -4773,7 +4773,7 @@ static void draw_nodetree(const bContext &C,
     tree_draw_ctx.geo_log_by_zone = geo_log::GeoModifierLog::get_tree_log_by_zone_for_node_editor(
         *snode);
     for (geo_log::GeoTreeLog *log : tree_draw_ctx.geo_log_by_zone.values()) {
-      log->ensure_node_warnings();
+      log->ensure_node_warnings(&ntree);
       log->ensure_node_run_time();
     }
     const WorkSpace *workspace = CTX_wm_workspace(&C);

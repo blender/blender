@@ -313,7 +313,7 @@ class GeoTreeLog {
   GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers);
   ~GeoTreeLog();
 
-  void ensure_node_warnings();
+  void ensure_node_warnings(const bNodeTree *tree);
   void ensure_node_run_time();
   void ensure_socket_values();
   void ensure_viewer_node_logs();

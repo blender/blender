@@ -2341,7 +2341,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   /* Draw node warnings. */
   geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
   if (tree_log != nullptr) {
-    tree_log->ensure_node_warnings();
+    tree_log->ensure_node_warnings(nmd->node_group);
     for (const geo_log::NodeWarning &warning : tree_log->all_warnings) {
       if (warning.type != geo_log::NodeWarningType::Info) {
         uiItemL(layout,
