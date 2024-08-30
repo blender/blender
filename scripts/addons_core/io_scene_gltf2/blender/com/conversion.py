@@ -93,6 +93,8 @@ def get_component_type(attribute_component_type):
         "FLOAT_COLOR": gltf2_io_constants.ComponentType.Float,
         "FLOAT_VECTOR": gltf2_io_constants.ComponentType.Float,
         "FLOAT_VECTOR_4": gltf2_io_constants.ComponentType.Float,
+        "QUATERNION": gltf2_io_constants.ComponentType.Float,
+        "FLOAT4X4": gltf2_io_constants.ComponentType.Float,
         "INT": gltf2_io_constants.ComponentType.Float,  # No signed Int in glTF accessor
         "FLOAT": gltf2_io_constants.ComponentType.Float,
         "BOOLEAN": gltf2_io_constants.ComponentType.Float,
@@ -116,6 +118,8 @@ def get_data_type(attribute_component_type):
         "FLOAT_COLOR": gltf2_io_constants.DataType.Vec4,
         "FLOAT_VECTOR": gltf2_io_constants.DataType.Vec3,
         "FLOAT_VECTOR_4": gltf2_io_constants.DataType.Vec4,
+        "QUATERNION": gltf2_io_constants.DataType.Vec4,
+        "FLOAT4X4": gltf2_io_constants.DataType.Mat4,
         "INT": gltf2_io_constants.DataType.Scalar,
         "FLOAT": gltf2_io_constants.DataType.Scalar,
         "BOOLEAN": gltf2_io_constants.DataType.Scalar,
@@ -130,6 +134,8 @@ def get_data_length(attribute_component_type):
         "FLOAT_COLOR": 4,
         "FLOAT_VECTOR": 3,
         "FLOAT_VECTOR_4": 4,
+        "QUATERNION": 4,
+        "FLOAT4X4": 16,
         "INT": 1,
         "FLOAT": 1,
         "BOOLEAN": 1
@@ -144,6 +150,8 @@ def get_numpy_type(attribute_component_type):
         "FLOAT_COLOR": np.float32,
         "FLOAT_VECTOR": np.float32,
         "FLOAT_VECTOR_4": np.float32,
+        "QUATERNION": np.float32,
+        "FLOAT4X4": np.float32,
         "INT": np.float32,  # signed integer are not supported by glTF
         "FLOAT": np.float32,
         "BOOLEAN": np.float32,
@@ -170,6 +178,10 @@ def get_attribute_type(component_type, data_type):
             gltf2_io_constants.ComponentType.Float: "FLOAT_COLOR",
             gltf2_io_constants.ComponentType.UnsignedShort: "BYTE_COLOR",
             gltf2_io_constants.ComponentType.UnsignedByte: "BYTE_COLOR"  # What is the best for compatibility?
+        }.get(component_type, None)
+    elif gltf2_io_constants.DataType.num_elements(data_type) == 16:
+        return {
+            gltf2_io_constants.ComponentType.Float: "FLOAT4X4"
         }.get(component_type, None)
     else:
         pass

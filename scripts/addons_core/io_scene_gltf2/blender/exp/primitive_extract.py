@@ -1332,6 +1332,12 @@ class PrimitiveCreator:
         elif attr['blender_data_type'] == "FLOAT_VECTOR":
             self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('vector', data)
             data = data.reshape(-1, attr['len'])
+        elif attr['blender_data_type'] == "QUATERNION":
+            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
+            data = data.reshape(-1, attr['len'])
+        elif attr['blender_data_type'] == "FLOAT4X4":
+            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
+            data = data.reshape(-1, attr['len'])
         elif attr['blender_data_type'] == "FLOAT_VECTOR_4":  # Specific case for tangent
             pass
         elif attr['blender_data_type'] == "INT":
