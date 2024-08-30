@@ -17,6 +17,7 @@
 #include "overlay_next_curve.hh"
 #include "overlay_next_empty.hh"
 #include "overlay_next_facing.hh"
+#include "overlay_next_fluid.hh"
 #include "overlay_next_force_field.hh"
 #include "overlay_next_grease_pencil.hh"
 #include "overlay_next_grid.hh"
@@ -64,6 +65,7 @@ class Instance {
     Curves curves;
     Empties empties = {selection_type_};
     Facing facing = {selection_type_};
+    Fluids fluids = {selection_type_};
     ForceFields force_fields = {selection_type_};
     GreasePencil grease_pencil;
     Lattices lattices;

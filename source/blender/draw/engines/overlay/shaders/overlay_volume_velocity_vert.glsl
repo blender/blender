@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 /* Straight Port from BKE_defvert_weight_to_rgb()
  * TODO: port this to a color ramp. */
@@ -89,6 +90,8 @@ vec3 get_vector_mac(ivec3 cell_co)
 
 void main()
 {
+  select_id_set(in_select_id);
+
 #ifdef USE_NEEDLE
   int cell = gl_VertexID / 12;
 #elif defined(USE_MAC)

@@ -156,6 +156,7 @@ enum {
  * Fluid grid-line display color field types.
  */
 enum {
+  FLUID_GRIDLINE_COLOR_TYPE_NONE = 0,
   FLUID_GRIDLINE_COLOR_TYPE_FLAGS = 1,
   FLUID_GRIDLINE_COLOR_TYPE_RANGE = 2,
 };

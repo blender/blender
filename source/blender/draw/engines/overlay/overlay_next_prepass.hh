@@ -51,9 +51,30 @@ class Prepass {
     if (!enabled) {
       return;
     }
+
+    if (ob_ref.object->dt < OB_SOLID) {
+      return;
+    }
+
     /* TODO(fclem) This function should contain what `basic_cache_populate` contained. */
 
-    gpu::Batch *geom = DRW_cache_object_surface_get(ob_ref.object);
+    gpu::Batch *geom = nullptr;
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        geom = DRW_cache_mesh_surface_get(ob_ref.object);
+        break;
+      case OB_VOLUME:
+        if (selection_type_ == SelectionType::DISABLED) {
+          /* Disable during display, only enable for selection. */
+          /* TODO(fclem): Would be nice to have even when not selecting to occlude overlays. */
+          return;
+        }
+        geom = DRW_cache_volume_selection_surface_get(ob_ref.object);
+        break;
+      default:
+        break;
+    }
+
     if (geom) {
       ResourceHandle res_handle = manager.resource_handle(ob_ref);
       ps_.draw(geom, res_handle, res.select_id(ob_ref).get());

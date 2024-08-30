@@ -983,7 +983,8 @@ GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac)
         "overlay_volume_velocity_mac");
   }
   else if (!sh_data->volume_velocity_sh) {
-    sh_data->volume_velocity_sh = GPU_shader_create_from_info_name("overlay_volume_velocity");
+    sh_data->volume_velocity_sh = GPU_shader_create_from_info_name(
+        "overlay_volume_velocity_streamline");
   }
 
   if (use_needle) {
@@ -1007,7 +1008,8 @@ GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool color_ran
         "overlay_volume_gridlines_range");
   }
   else if (!sh_data->volume_gridlines_sh) {
-    sh_data->volume_gridlines_sh = GPU_shader_create_from_info_name("overlay_volume_gridlines");
+    sh_data->volume_gridlines_sh = GPU_shader_create_from_info_name(
+        "overlay_volume_gridlines_flat");
   }
 
   if (color_with_flags) {
