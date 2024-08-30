@@ -72,8 +72,10 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
 
-  /* 1 = UI_SELECT, internal flag to draw in white. */
-  UI_but_flag_enable(but, 1);
+  /* Regardless of theme, this text should always be bright white. */
+  uchar color[4] = {255, 255, 255, 255};
+  UI_but_color_set(but, color);
+
   UI_block_emboss_set(block, UI_EMBOSS);
 }
 

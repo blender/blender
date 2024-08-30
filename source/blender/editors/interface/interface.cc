@@ -5807,6 +5807,11 @@ void UI_but_disable(uiBut *but, const char *disabled_hint)
   but->disabled_info = disabled_hint;
 }
 
+void UI_but_color_set(uiBut *but, const uchar color[4])
+{
+  copy_v4_v4_uchar(but->col, color);
+}
+
 void UI_but_placeholder_set(uiBut *but, const char *placeholder_text)
 {
   MEM_SAFE_FREE(but->placeholder);
