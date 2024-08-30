@@ -1247,7 +1247,7 @@ void update_bounds_mesh(const Span<float3> vert_positions, Tree &pbvh)
 
   MutableSpan<MeshNode> nodes = pbvh.nodes<MeshNode>();
   nodes_to_update.foreach_index(
-      [&](const int i) { update_node_bounds_mesh(vert_positions, nodes[i]); });
+      GrainSize(1), [&](const int i) { update_node_bounds_mesh(vert_positions, nodes[i]); });
   if (!nodes.is_empty()) {
     flush_bounds_to_parents(pbvh);
   }
@@ -1261,7 +1261,7 @@ void update_bounds_grids(const CCGKey &key, const Span<CCGElem *> elems, Tree &p
 
   MutableSpan<GridsNode> nodes = pbvh.nodes<GridsNode>();
   nodes_to_update.foreach_index(
-      [&](const int i) { update_node_bounds_grids(key, elems, nodes[i]); });
+      GrainSize(1), [&](const int i) { update_node_bounds_grids(key, elems, nodes[i]); });
   if (!nodes.is_empty()) {
     flush_bounds_to_parents(pbvh);
   }
@@ -1274,7 +1274,8 @@ void update_bounds_bmesh(const BMesh & /*bm*/, Tree &pbvh)
       pbvh, memory, [&](const Node &node) { return update_search(node, PBVH_UpdateBB); });
 
   MutableSpan<BMeshNode> nodes = pbvh.nodes<BMeshNode>();
-  nodes_to_update.foreach_index([&](const int i) { update_node_bounds_bmesh(nodes[i]); });
+  nodes_to_update.foreach_index(GrainSize(1),
+                                [&](const int i) { update_node_bounds_bmesh(nodes[i]); });
   if (!nodes.is_empty()) {
     flush_bounds_to_parents(pbvh);
   }
