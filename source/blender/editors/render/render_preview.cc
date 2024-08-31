@@ -27,6 +27,8 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "BLO_readfile.hh"
 
 #include "DNA_brush_types.h"
@@ -1892,22 +1894,37 @@ static void icon_preview_free(void *customdata)
   MEM_freeN(ip);
 }
 
-bool ED_preview_id_is_supported(const ID *id)
+bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
 {
   if (id == nullptr) {
     return false;
   }
-  if (GS(id->name) == ID_NT) {
-    /* Node groups don't support standard preview generation. */
-    return false;
+
+  /* Get both the result and the "potential" disabled hint. After that we can decide if the
+   * disabled hint needs to be returned to the caller. */
+  const auto [result, disabled_hint] = [id]() -> std::pair<bool, const char *> {
+    switch (GS(id->name)) {
+      case ID_NT:
+        return {false, RPT_("Node groups do not support automatic previews")};
+      case ID_OB:
+        return {object_preview_is_type_supported((const Object *)id),
+                RPT_("Object type does not support automatic previews")};
+      case ID_GR:
+        return {
+            collection_preview_contains_geometry_recursive((const Collection *)id),
+            RPT_("Collection does not contain object types that can be rendered for the automatic "
+                 "preview")};
+      default:
+        return {BKE_previewimg_id_get_p(id) != nullptr,
+                RPT_("Data-block type does not support automatic previews")};
+    }
+  }();
+
+  if (result == false && disabled_hint && r_disabled_hint) {
+    *r_disabled_hint = disabled_hint;
   }
-  if (GS(id->name) == ID_OB) {
-    return object_preview_is_type_supported((const Object *)id);
-  }
-  if (GS(id->name) == ID_GR) {
-    return collection_preview_contains_geometry_recursive((const Collection *)id);
-  }
-  return BKE_previewimg_id_get_p(id) != nullptr;
+
+  return result;
 }
 
 void ED_preview_icon_render(

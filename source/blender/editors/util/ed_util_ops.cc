@@ -60,10 +60,6 @@ static bool lib_id_preview_editing_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "Data-block does not support previews");
     return false;
   }
-  if (!ED_preview_id_is_supported(id)) {
-    CTX_wm_operator_poll_msg_set(C, "Object type does not support previews");
-    return false;
-  }
 
   return true;
 }
@@ -147,8 +143,9 @@ static bool lib_id_generate_preview_poll(bContext *C)
 
   const PointerRNA idptr = CTX_data_pointer_get(C, "id");
   const ID *id = (ID *)idptr.data;
-  if (GS(id->name) == ID_NT) {
-    CTX_wm_operator_poll_msg_set(C, "Can't generate automatic preview for node group");
+  const char *disabled_hint = nullptr;
+  if (!ED_preview_id_is_supported(id, &disabled_hint)) {
+    CTX_wm_operator_poll_msg_set(C, disabled_hint);
     return false;
   }
 
@@ -192,7 +189,7 @@ static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
 
 static bool lib_id_generate_preview_from_object_poll(bContext *C)
 {
-  if (!lib_id_preview_editing_poll(C)) {
+  if (!lib_id_generate_preview_poll(C)) {
     return false;
   }
   if (CTX_data_active_object(C) == nullptr) {
