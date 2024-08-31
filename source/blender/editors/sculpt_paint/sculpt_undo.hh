@@ -53,7 +53,6 @@ struct Node {
   Array<float> mask;
 
   Array<float4> loop_col;
-  Array<float4> orig_loop_col;
 
   /* Mesh. */
 

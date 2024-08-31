@@ -1729,7 +1729,6 @@ static size_t node_size_in_bytes(const Node &node)
   size += node.col.as_span().size_in_bytes();
   size += node.mask.as_span().size_in_bytes();
   size += node.loop_col.as_span().size_in_bytes();
-  size += node.orig_loop_col.as_span().size_in_bytes();
   size += node.vert_indices.as_span().size_in_bytes();
   size += node.corner_indices.as_span().size_in_bytes();
   size += node.vert_hidden.size() / 8;
