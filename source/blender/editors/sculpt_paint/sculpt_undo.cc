@@ -1161,7 +1161,7 @@ static void alloc_and_store_hidden(const SculptSession &ss,
   }
 
   const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
-  unode.grid_hidden = BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
+  unode.grid_hidden = BitGroupVector<0>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode.grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
   }

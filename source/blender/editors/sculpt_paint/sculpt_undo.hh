@@ -46,32 +46,32 @@ enum class Type : int8_t {
 };
 
 struct Node {
-  Array<float3> position;
-  Array<float3> orig_position;
-  Array<float3> normal;
-  Array<float4> col;
-  Array<float> mask;
+  Array<float3, 0> position;
+  Array<float3, 0> orig_position;
+  Array<float3, 0> normal;
+  Array<float4, 0> col;
+  Array<float, 0> mask;
 
-  Array<float4> loop_col;
+  Array<float4, 0> loop_col;
 
   /* Mesh. */
 
-  Array<int> vert_indices;
+  Array<int, 0> vert_indices;
   int unique_verts_num;
 
-  Array<int> corner_indices;
+  Array<int, 0> corner_indices;
 
-  BitVector<> vert_hidden;
-  BitVector<> face_hidden;
+  BitVector<0> vert_hidden;
+  BitVector<0> face_hidden;
 
   /* Multires. */
 
   /** Indices of grids in the pbvh::Tree node. */
-  Array<int> grids;
-  BitGroupVector<> grid_hidden;
+  Array<int, 0> grids;
+  BitGroupVector<0> grid_hidden;
 
   /* Sculpt Face Sets */
-  Array<int> face_sets;
+  Array<int, 0> face_sets;
 
   Vector<int> face_indices;
 };
