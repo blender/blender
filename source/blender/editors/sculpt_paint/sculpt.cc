@@ -2428,9 +2428,7 @@ static float brush_strength(const Sculpt &sd,
         case BRUSH_MASK_SMOOTH:
           return alpha * pressure * feather;
       }
-      BLI_assert_msg(0, "Not supposed to happen");
-      return 0.0f;
-
+      break;
     case SCULPT_TOOL_CREASE:
     case SCULPT_TOOL_BLOB:
       return alpha * flip * pressure * overlap * feather;
@@ -2490,10 +2488,9 @@ static float brush_strength(const Sculpt &sd,
     case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_BOUNDARY:
       return root_alpha * feather;
-
-    default:
-      return 0.0f;
   }
+  BLI_assert_unreachable();
+  return 0.0f;
 }
 
 void sculpt_apply_texture(const SculptSession &ss,
@@ -3097,9 +3094,6 @@ void calc_brush_plane(const Depsgraph &depsgraph,
           project_plane_v3_v3v3(r_area_no, r_area_no, ss.cache->view_normal_symm);
           normalize_v3(r_area_no);
         }
-        break;
-
-      default:
         break;
     }
 

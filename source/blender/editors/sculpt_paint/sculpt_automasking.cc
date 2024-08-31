@@ -822,8 +822,6 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
     case bke::pbvh::Type::BMesh:
       fill_topology_automasking_factors_bmesh(sd, ob, *ss.bm);
       break;
-    default:
-      BLI_assert_unreachable();
   }
 }
 

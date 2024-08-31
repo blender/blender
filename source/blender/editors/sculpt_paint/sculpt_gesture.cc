@@ -363,10 +363,9 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
               return true;
             }
             return BKE_pbvh_node_frustum_exclude_AABB(&node, &frustum);
-          default:
-            BLI_assert_unreachable();
-            return true;
         }
+        BLI_assert_unreachable();
+        return false;
       });
 }
 

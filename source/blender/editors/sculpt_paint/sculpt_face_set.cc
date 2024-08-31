@@ -1435,22 +1435,12 @@ static bool edit_is_operation_valid(const Object &object,
   return true;
 }
 
-static void edit_modify_geometry(bContext *C,
-                                 Object &ob,
-                                 const int active_face_set,
-                                 const EditMode mode,
-                                 const bool modify_hidden,
-                                 wmOperator *op)
+static void edit_modify_geometry(
+    bContext *C, Object &ob, const int active_face_set, const bool modify_hidden, wmOperator *op)
 {
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   undo::geometry_begin(ob, op);
-  switch (mode) {
-    case EditMode::DeleteGeometry:
-      delete_geometry(ob, active_face_set, modify_hidden);
-      break;
-    default:
-      BLI_assert_unreachable();
-  }
+  delete_geometry(ob, active_face_set, modify_hidden);
   undo::geometry_end(ob);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
@@ -1528,7 +1518,7 @@ static int edit_op_exec(bContext *C, wmOperator *op)
 
   switch (mode) {
     case EditMode::DeleteGeometry:
-      edit_modify_geometry(C, ob, active_face_set, mode, modify_hidden, op);
+      edit_modify_geometry(C, ob, active_face_set, modify_hidden, op);
       break;
     case EditMode::Grow:
     case EditMode::Shrink:

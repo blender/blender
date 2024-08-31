@@ -2956,9 +2956,6 @@ static std::pair<float, float> calc_boundary_falloff(const SculptBoundary &bound
       /* For constant falloff distances are not allocated, so this should never happen. */
       BLI_assert_unreachable();
       break;
-    default:
-      BLI_assert_unreachable();
-      break;
   }
 
   return {falloff_distance, direction};
@@ -3170,9 +3167,6 @@ static void init_boundary_mesh(const Depsgraph &depsgraph,
       case BRUSH_BOUNDARY_DEFORM_SMOOTH:
         /* Do nothing. These deform modes don't need any extra data to be precomputed. */
         break;
-      default:
-        BLI_assert_unreachable();
-        break;
     }
 
     init_falloff_mesh(mask, brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
@@ -3231,9 +3225,6 @@ static void init_boundary_grids(Object &object,
       case BRUSH_BOUNDARY_DEFORM_SMOOTH:
         /* Do nothing. These deform modes don't need any extra data to be precomputed. */
         break;
-      default:
-        BLI_assert_unreachable();
-        break;
     }
 
     init_falloff_grids(
@@ -3288,9 +3279,6 @@ static void init_boundary_bmesh(Object &object,
       case BRUSH_BOUNDARY_DEFORM_SMOOTH:
         /* Do nothing. These deform modes don't need any extra data to be precomputed. */
         break;
-      default:
-        BLI_assert_unreachable();
-        break;
     }
 
     init_falloff_bmesh(bm, brush, ss.cache->initial_radius, *ss.cache->boundaries[symm_area]);
@@ -3333,9 +3321,6 @@ static float get_mesh_strength(const SculptSession &ss, const Brush &brush)
     }
     case BRUSH_BOUNDARY_DEFORM_SMOOTH:
       return strength;
-    default:
-      BLI_assert_unreachable();
-      break;
   }
 
   BLI_assert_unreachable();
@@ -3361,9 +3346,6 @@ void do_boundary_brush(const Depsgraph &depsgraph,
         break;
       case bke::pbvh::Type::BMesh:
         init_boundary_bmesh(ob, brush, symm_area);
-        break;
-      default:
-        BLI_assert_unreachable();
         break;
     }
   }
@@ -3429,9 +3411,6 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                       *ss.cache->boundaries[symm_area],
                       strength,
                       eBrushDeformTarget(brush.deform_target));
-      break;
-    default:
-      BLI_assert_unreachable();
       break;
   }
 }
@@ -3669,9 +3648,6 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(const Depsgraph &depsgr
       break;
     case bke::pbvh::Type::BMesh:
       boundary = data_init_bmesh(object, brush, std::get<BMVert *>(initial_vert), radius);
-      break;
-    default:
-      BLI_assert_unreachable();
       break;
   }
 
