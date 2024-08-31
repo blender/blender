@@ -916,7 +916,7 @@ static void menu_search_arg_free_fn(void *data_v)
       case MenuSearch_Item::Type::Operator: {
         if (item->op.opptr != nullptr) {
           WM_operator_properties_free(item->op.opptr);
-          MEM_freeN(item->op.opptr);
+          MEM_delete(item->op.opptr);
         }
         MEM_delete(item->op.context);
         break;
