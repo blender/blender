@@ -2343,26 +2343,23 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   return deformed;
 }
 
-void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
+void BKE_sculpt_sync_face_visibility_to_grids(const Mesh &mesh, SubdivCCG &subdiv_ccg)
 {
   using namespace blender;
   using namespace blender::bke;
-  if (!subdiv_ccg) {
-    return;
-  }
 
-  const AttributeAccessor attributes = mesh->attributes();
+  const AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", AttrDomain::Face, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
-    BKE_subdiv_ccg_grid_hidden_free(*subdiv_ccg);
+    BKE_subdiv_ccg_grid_hidden_free(subdiv_ccg);
     return;
   }
 
-  const OffsetIndices<int> faces = mesh->faces();
+  const OffsetIndices<int> faces = mesh.faces();
 
   const VArraySpan<bool> hide_poly_span(hide_poly);
-  BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(*subdiv_ccg);
+  BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       const bool face_hidden = hide_poly_span[i];
@@ -2387,7 +2384,7 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_for_dynamic_topology(Object *ob)
 static std::unique_ptr<pbvh::Tree> build_pbvh_from_regular_mesh(Object *ob,
                                                                 const Mesh *me_eval_deform)
 {
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  const Mesh &mesh = *BKE_object_get_original_mesh(ob);
   std::unique_ptr<pbvh::Tree> pbvh = pbvh::build_mesh(mesh);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
@@ -2398,9 +2395,9 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_from_regular_mesh(Object *ob,
   return pbvh;
 }
 
-static std::unique_ptr<pbvh::Tree> build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
+static std::unique_ptr<pbvh::Tree> build_pbvh_from_ccg(Object *ob, SubdivCCG &subdiv_ccg)
 {
-  Mesh *base_mesh = BKE_mesh_from_object(ob);
+  const Mesh &base_mesh = *BKE_mesh_from_object(ob);
   BKE_sculpt_sync_face_visibility_to_grids(base_mesh, subdiv_ccg);
 
   return pbvh::build_grids(base_mesh, subdiv_ccg);
@@ -2427,7 +2424,7 @@ blender::bke::pbvh::Tree *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Ob
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
     if (mesh_eval->runtime->subdiv_ccg != nullptr) {
-      ob->sculpt->pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg.get());
+      ob->sculpt->pbvh = build_pbvh_from_ccg(ob, *mesh_eval->runtime->subdiv_ccg);
     }
     else if (ob->type == OB_MESH) {
       const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(object_eval);

@@ -73,7 +73,7 @@ void sync_all_from_faces(Object &object)
       /* In addition to making the hide status of the base mesh consistent, we also have to
        * propagate the status to the Multires grids. */
       bke::mesh_hide_face_flush(mesh);
-      BKE_sculpt_sync_face_visibility_to_grids(&mesh, ss.subdiv_ccg);
+      BKE_sculpt_sync_face_visibility_to_grids(mesh, *ss.subdiv_ccg);
       break;
     }
     case bke::pbvh::Type::BMesh: {

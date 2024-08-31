@@ -342,19 +342,19 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              nodes);
 }
 
-std::unique_ptr<Tree> build_mesh(Mesh *mesh)
+std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 {
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
-  const Span<float3> vert_positions = mesh->vert_positions();
-  const Span<int> corner_verts = mesh->corner_verts();
-  const Span<int3> corner_tris = mesh->corner_tris();
+  const Span<float3> vert_positions = mesh.vert_positions();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int3> corner_tris = mesh.corner_tris();
   if (corner_tris.is_empty()) {
     return pbvh;
   }
 
-  const Span<int> tri_faces = mesh->corner_tri_faces();
+  const Span<int> tri_faces = mesh.corner_tri_faces();
 
-  Array<bool> vert_bitmap(mesh->verts_num, false);
+  Array<bool> vert_bitmap(mesh.verts_num, false);
 
   const int leaf_limit = LEAF_LIMIT;
 
@@ -379,7 +379,7 @@ std::unique_ptr<Tree> build_mesh(Mesh *mesh)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  const AttributeAccessor attributes = mesh->attributes();
+  const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
   const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
@@ -519,19 +519,19 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                               nodes);
 }
 
-std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
+std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
 {
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  const OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = base_mesh.faces();
   for (const int i : faces.index_range()) {
     max_grids = max_ii(max_grids, faces[i].size());
   }
 
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg->grids;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  const Span<CCGElem *> elems = subdiv_ccg.grids;
   if (elems.is_empty()) {
     return pbvh;
   }
@@ -564,7 +564,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
       },
       [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
 
-  const AttributeAccessor attributes = mesh->attributes();
+  const AttributeAccessor attributes = base_mesh.attributes();
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
   const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
@@ -573,7 +573,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 
   Vector<GridsNode> &nodes = std::get<Vector<GridsNode>>(pbvh->nodes_);
   nodes.resize(1);
-  build_nodes_recursive_grids(subdiv_ccg->grid_to_face_map,
+  build_nodes_recursive_grids(subdiv_ccg.grid_to_face_map,
                               material_index,
                               sharp_face,
                               leaf_limit,
@@ -590,7 +590,7 @@ std::unique_ptr<Tree> build_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   update_bounds_grids(key, elems, *pbvh);
   store_bounds_orig(*pbvh);
 
-  const BitGroupVector<> &grid_hidden = subdiv_ccg->grid_hidden;
+  const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   if (!grid_hidden.is_empty()) {
     threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
       for (const int i : range) {
