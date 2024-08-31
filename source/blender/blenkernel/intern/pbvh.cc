@@ -345,7 +345,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
 std::unique_ptr<Tree> build_mesh(Mesh *mesh)
 {
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
-  MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
+  const Span<float3> vert_positions = mesh->vert_positions();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int3> corner_tris = mesh->corner_tris();
   if (corner_tris.is_empty()) {
