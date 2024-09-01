@@ -75,8 +75,9 @@ bool VKContext::debug_capture_scope_begin(void *scope)
     return false;
   }
   VKBackend::get().debug_capture_begin(title);
-#endif
+#else
   UNUSED_VARS(scope);
+#endif
   return false;
 }
 
@@ -87,6 +88,8 @@ void VKContext::debug_capture_scope_end(void *scope)
   if (StringRefNull(title) == StringRefNull(G.gpu_debug_scope_name)) {
     VKBackend::get().debug_capture_end();
   }
+#else
+  UNUSED_VARS(scope);
 #endif
 }
 
