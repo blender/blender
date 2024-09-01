@@ -13,5 +13,5 @@ def export_user_extensions(hook_name, export_settings, *args):
             try:
                 hook(*args, export_settings)
             except Exception as e:
-                export_settings['log'].error("Extension hook " + hook_name + " fails on " + extension)
+                export_settings['log'].error("Extension hook " + hook_name + " fails on " + extension.__module__)
                 export_settings['log'].error(str(e))
