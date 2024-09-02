@@ -351,11 +351,9 @@ class DATA_PT_grease_pencil_settings(DataButtonsPanel, Panel):
         col.prop(grease_pencil, "stroke_depth_order", text="Stroke Depth Order")
 
 
-_has_gpv3 = hasattr(bpy.types, 'GreasePencilv3')
-if _has_gpv3:
-    class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
-        _context_path = "object.data"
-        _property_type = bpy.types.GreasePencilv3
+class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
+    _context_path = "object.data"
+    _property_type = bpy.types.GreasePencilv3
 
 classes = (
     GREASE_PENCIL_UL_masks,
@@ -369,12 +367,10 @@ classes = (
     DATA_PT_grease_pencil_onion_skinning_custom_colors,
     DATA_PT_grease_pencil_onion_skinning_display,
     DATA_PT_grease_pencil_settings,
+    DATA_PT_grease_pencil_custom_props,
     GREASE_PENCIL_MT_grease_pencil_add_layer_extra,
     GREASE_PENCIL_MT_group_context_menu,
 )
-
-if _has_gpv3:
-    classes += (DATA_PT_grease_pencil_custom_props,)
 
 
 if __name__ == "__main__":  # only for live edit.
