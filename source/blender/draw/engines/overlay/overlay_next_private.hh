@@ -198,7 +198,7 @@ class ShaderModule {
   ShaderPtr outline_prepass_pointcloud;
   ShaderPtr outline_prepass_gpencil;
   ShaderPtr outline_detect = shader("overlay_outline_detect");
-  ShaderPtr xray_fade = shader("overlay_xray_fade");
+  ShaderPtr xray_fade;
 
   /** Selectable Shaders */
   ShaderPtr armature_sphere_outline;
@@ -303,6 +303,7 @@ struct Resources : public select::SelectMap {
    * or `xray_depth_tx` if X-ray is enabled.
    */
   TextureRef depth_target_tx;
+  TextureRef depth_target_in_front_tx;
 
   Vector<MovieClip *> bg_movie_clips;
 

@@ -63,13 +63,13 @@ class Grid {
     }
   }
 
-  void draw(Resources &res, Manager &manager, View &view)
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
     if (!enabled_) {
       return;
     }
 
-    GPU_framebuffer_bind(res.overlay_color_only_fb);
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(grid_ps_, view);
   }
 

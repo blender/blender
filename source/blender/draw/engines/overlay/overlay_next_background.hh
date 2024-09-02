@@ -16,6 +16,8 @@ class Background {
  private:
   PassSimple bg_ps_ = {"Background"};
 
+  GPUFrameBuffer *framebuffer_ref_ = nullptr;
+
  public:
   void begin_sync(Resources &res, const State &state)
   {
@@ -67,7 +69,7 @@ class Background {
     }
 
     bg_ps_.init();
-    bg_ps_.framebuffer_set(&res.overlay_output_fb);
+    bg_ps_.framebuffer_set(&framebuffer_ref_);
     /* Don't clear background for the node editor. The node editor draws the background and we
      * need to mask out the image from the already drawn overlay color buffer. */
     if (state.space_type != SPACE_NODE) {
@@ -92,8 +94,9 @@ class Background {
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  void draw(Manager &manager)
+  void draw(Framebuffer &framebuffer, Manager &manager, View & /*view*/)
   {
+    framebuffer_ref_ = framebuffer;
     manager.submit(bg_ps_);
   }
 };
