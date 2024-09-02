@@ -71,7 +71,12 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
     }
   }
 
-  SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
+  SpaceLink *space_data = CTX_wm_space_data(C);
+  if (!space_data || space_data->spacetype != SPACE_ACTION) {
+    return nullptr;
+  }
+
+  SpaceAction *saction = (SpaceAction *)space_data;
   if (!saction) {
     return nullptr;
   }
