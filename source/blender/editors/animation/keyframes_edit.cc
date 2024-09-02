@@ -167,7 +167,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
   }
 
   /* Layered actions. */
-  animrig::ChannelBag channel_bag = agrp->channel_bag->wrap();
+  animrig::ChannelBag &channel_bag = agrp->channel_bag->wrap();
   Span<FCurve *> fcurves = channel_bag.fcurves().slice(agrp->fcurve_range_start,
                                                        agrp->fcurve_range_length);
   for (FCurve *fcurve : fcurves) {
