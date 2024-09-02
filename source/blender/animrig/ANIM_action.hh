@@ -941,8 +941,8 @@ bool assign_action(Action &action, ID &animated_id);
  * If this Action happens to already be assigned, and a Slot is assigned too, that Slot is
  * returned. Otherwise a new Slot is created + assigned.
  *
- * \returns the assigned slot if the assignment was succesful, or `nullptr` otherwise. The only
- * reason the assignment can fail is when the given ID is of an animatable type.
+ * \returns the assigned slot if the assignment was successful, or `nullptr` otherwise.
+ * The only reason the assignment can fail is when the given ID is of an animatable type.
  *
  * \note Contrary to `assign_action()` this skips the search by slot name when the Action is
  * already assigned. It should be possible for an animator to un-assign a slot, then create a new

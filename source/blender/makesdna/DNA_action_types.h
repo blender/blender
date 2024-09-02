@@ -1256,7 +1256,7 @@ typedef struct ActionChannelBag {
    * for membership is the information in the channel groups here.
    *
    * Invariants:
-   * 1. The groups are sorted by thier `fcurve_range_start` field. In other
+   * 1. The groups are sorted by their `fcurve_range_start` field. In other
    *    words, they are in the same order as their starting positions in the
    *    fcurve array.
    * 2. The grouped fcurves are tightly packed, starting at the first fcurve and

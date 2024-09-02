@@ -2362,7 +2362,7 @@ static void bevel_extend_edge_data_ex(BevVert *bv, int flag)
         start = bcur; /* Set start to first boundvert with seam_len > 0. */
       }
 
-      /* Now for all the mesh_verts starting at current index and ending at idxlen
+      /* Now for all the mesh_verts starting at current index and ending at `idx_end`
        * we go through outermost ring and through all its segments and add seams
        * for those edges. */
       int idx_end = bcur->index + extend_len;

@@ -510,7 +510,7 @@ static void segments_from_batch_predicate(
 
   /* This threshold trades off the number of segments and the number of ranges. In some cases,
    * masks with fewer segments can be build more efficiently, but when iterating over a mask it may
-   * be benefitial to have more ranges if that means that there are more ranges which can be
+   * be beneficial to have more ranges if that means that there are more ranges which can be
    * processed more efficiently. This could be exposed to the caller in the future. */
   constexpr int64_t threshold = 64;
   int64_t next_range_to_process = 0;

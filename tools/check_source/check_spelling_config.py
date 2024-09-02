@@ -312,6 +312,7 @@ dict_custom = {
     "rebalancing",
     "rebase",
     "recomputation",
+    "reconnection",
     "recurse",
     "recursed",
     "recurses",

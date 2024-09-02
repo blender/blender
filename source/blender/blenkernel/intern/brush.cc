@@ -410,7 +410,7 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
   };
 
   for (const auto &[prop_name, mode, tool_prop_name] : mode_map) {
-    /* Only add bools for supported modes. */
+    /* Only add booleans for supported modes. */
     if (!(brush->ob_mode & mode)) {
       continue;
     }

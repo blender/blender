@@ -5,11 +5,11 @@
 /** \file
  * \ingroup draw_engine
  *
- * Overlay Xray Fade:
+ * Overlay X-ray Fade:
  *
  * Full-screen pass that dim overlays that are behind scene geometry.
- * This allows to have a nice transition between opaque (or 100% xray) and wire-frame only mode.
- * This is only available if Xray mode is enabled or in wire-frame mode.
+ * This allows to have a nice transition between opaque (or 100% X-ray) and wire-frame only mode.
+ * This is only available if X-ray mode is enabled or in wire-frame mode.
  */
 
 #pragma once
