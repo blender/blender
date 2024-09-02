@@ -314,8 +314,8 @@ template<typename T, typename... Args>
 inline constexpr bool is_same_any_v = (std::is_same_v<T, Args> || ...);
 
 /**
- * Inline buffers for small-object-optimization should be disable by default. Otherwise we might
- * get large unexpected allocations on the stack.
+ * Inline buffers for small-object-optimization should be disabled by default for large objects.
+ * Otherwise we might get large unexpected allocations on the stack.
  */
 inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
 {
