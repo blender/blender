@@ -206,9 +206,9 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     """
     def class_blacklist():
         blacklist_rna_class = {getattr(bpy.types, cls_id) for cls_id in (
-            # core classes
+            # Core classes.
             "Context", "Event", "Function", "UILayout", "UnknownType", "Struct",
-            # registerable classes
+            # Registerable base classes.
             "Panel", "Menu", "Header", "RenderEngine",
             "Operator", "OperatorProperties", "OperatorMacro", "Macro", "KeyingSetInfo",
         )
@@ -353,14 +353,14 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
 
         # Panels' "tabs" system.
-        if hasattr(bl_rna, "bl_category") and bl_rna.bl_category:
-            process_msg(msgs, default_context, bl_rna.bl_category, msgsrc, reports, check_ctxt_rna, settings)
+        if hasattr(cls, "bl_category") and cls.bl_category:
+            process_msg(msgs, default_context, cls.bl_category, msgsrc, reports, check_ctxt_rna, settings)
 
-        if hasattr(bl_rna, "bl_label") and bl_rna.bl_label:
-            process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
+        if hasattr(cls, "bl_label") and cls.bl_label:
+            process_msg(msgs, msgctxt, cls.bl_label, msgsrc, reports, check_ctxt_rna, settings)
 
         # Tools Panels definitions.
-        if hasattr(bl_rna, "tools_all") and bl_rna.tools_all:
+        if hasattr(cls, "tools_all") and cls.tools_all:
             walk_tools_definitions(cls)
 
         walk_properties(cls)
@@ -413,14 +413,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     def cls_set_generate_recurse(cls_list):
         ret_cls_set = set()
         for cls in cls_list:
-            reports["rna_structs"].append(cls)
-            # Fully skip operators related types, they are discovered separately through introspection of `bpy.ops`.
-            if issubclass(cls, bpy.types.Operator) or issubclass(cls, bpy.types.OperatorProperties):
-                continue
-            # Ignore those Operator sub-classes (anyway, will get the same from OperatorProperties sub-classes!)...
+            # Do not process blacklisted classes, but do handle their children.
             if cls in blacklist_rna_class:
                 reports["rna_structs_skipped"].append(cls)
+            elif cls in ret_cls_set:
+                continue
             else:
+                reports["rna_structs"].append(cls)
                 ret_cls_set.add(cls)
             # Recursively discover subclasses, even if the current class was black-listed.
             ret_cls_set |= cls_set_generate_recurse(cls.__subclasses__())
@@ -433,20 +432,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     for cls_name in cls_dir:
         getattr(bpy.types, cls_name)
 
-    # Parse everything (recursively parsing from bpy_struct "class"...), except operators.
+    # Parse everything (recursively parsing from bpy_struct "class"...).
     cls_set = cls_set_generate_recurse(bpy.types.ID.__base__.__subclasses__())
-
-    # Operators need special handling, as the mix between the RNA types for operators, and their properties, creates
-    # a lot of issues for 'children-based' recursive type processing above. So instead, discover operators from
-    # introspecting `bpy.ops`.
-    for op_category_name in dir(bpy.ops):
-        op_category = getattr(bpy.ops, op_category_name)
-        for op_name in dir(op_category):
-            op = getattr(op_category, op_name, None)
-            if not op:
-                print(f"Cannot get Operator 'bpy.ops.{op_category}.{op_name}'")
-                continue
-            cls_set.add(op.get_rna_type().bl_rna.__class__)
 
     cls_list = sorted(cls_set, key=full_class_id)
     for cls in cls_list:
@@ -1186,19 +1173,13 @@ def dump_addon_messages(addon_module_name, do_checks, settings):
     minus_check_ctxt = _gen_check_ctxt(settings) if do_checks else None
 
     # Get strings from RNA, our addon being enabled.
-    print("A")
     reports = _gen_reports(check_ctxt)
-    print("B")
     dump_rna_messages(msgs, reports, settings)
-    print("C")
 
     # Now disable our addon, and re-scan RNA.
     utils.enable_addons(addons={addon_module_name}, disable=True)
-    print("D")
     reports["check_ctxt"] = minus_check_ctxt
-    print("E")
     dump_rna_messages(minus_msgs, reports, settings)
-    print("F")
 
     # Restore previous state if needed!
     if was_loaded:
