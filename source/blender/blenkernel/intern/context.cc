@@ -548,7 +548,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
     *r_type = result.type;
   }
   else {
-    memset(r_ptr, 0, sizeof(*r_ptr));
+    *r_ptr = {};
     r_lb->clear();
     *r_str = "";
     *r_type = 0;

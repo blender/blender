@@ -471,7 +471,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
    * distinguish it from IDProperty structs. If it is an ID property,
    * we look up an IDP PropertyRNA based on the type, and set the data
    * pointer to the IDProperty. */
-  memset(r_prop_rna_or_id, 0, sizeof(*r_prop_rna_or_id));
+  *r_prop_rna_or_id = {};
 
   r_prop_rna_or_id->ptr = *ptr;
   r_prop_rna_or_id->rawprop = prop;
@@ -4076,7 +4076,7 @@ void RNA_property_collection_begin(PointerRNA *ptr,
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
-  memset(iter, 0, sizeof(*iter));
+  *iter = {};
 
   if ((idprop = rna_idproperty_check(&prop, ptr)) || (prop->flag & PROP_IDPROPERTY)) {
     iter->parent = *ptr;
@@ -4238,7 +4238,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
   bool is_liboverride;
   if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
     if (r_ptr) {
-      memset(r_ptr, 0, sizeof(*r_ptr));
+      *r_ptr = {};
     }
     return;
   }
@@ -4284,7 +4284,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       rna_pointer_inherit_id(nullptr, ptr, r_ptr);
     }
     else {
-      memset(r_ptr, 0, sizeof(*r_ptr));
+      *r_ptr = {};
     }
   }
 }
@@ -4487,7 +4487,7 @@ bool RNA_property_collection_lookup_int(PointerRNA *ptr,
   RNA_property_collection_end(&iter);
 
   if (!iter.valid) {
-    memset(r_ptr, 0, sizeof(*r_ptr));
+    *r_ptr = {};
   }
 
   return iter.valid;
@@ -4544,7 +4544,7 @@ bool RNA_property_collection_lookup_string_index(
   RNA_property_collection_end(&iter);
 
   if (!iter.valid) {
-    memset(r_ptr, 0, sizeof(*r_ptr));
+    *r_ptr = {};
     *r_index = -1;
   }
   else {

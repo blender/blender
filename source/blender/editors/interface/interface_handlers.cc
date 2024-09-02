@@ -9040,7 +9040,7 @@ uiBut *UI_region_active_but_prop_get(const ARegion *region,
     *r_index = activebut->rnaindex;
   }
   else {
-    memset(r_ptr, 0, sizeof(*r_ptr));
+    *r_ptr = {};
     *r_prop = nullptr;
     *r_index = 0;
   }

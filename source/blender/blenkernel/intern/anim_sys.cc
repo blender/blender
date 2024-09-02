@@ -1306,6 +1306,7 @@ static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
 static void nlaevalchan_free_data(NlaEvalChannel *nec)
 {
   nlavalidmask_free(&nec->domain);
+  nec->key.~NlaEvalChannelKey();
 }
 
 /* Initialize a full NLA evaluation state structure. */
@@ -1494,7 +1495,7 @@ static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval,
 
   /* Initialize the channel. */
   nec->rna_path = path;
-  nec->key = *key;
+  new (&nec->key) NlaEvalChannelKey(*key);
 
   nec->owner = nlaeval;
   nec->index = nlaeval->num_channels++;
@@ -1540,7 +1541,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
   *p_path_nec = nullptr;
 
   /* Resolve the property and look it up in the key hash. */
-  NlaEvalChannelKey key;
+  NlaEvalChannelKey key{};
 
   if (!RNA_path_resolve_property(ptr, path, &key.ptr, &key.prop)) {
     /* Report failure to resolve the path. */

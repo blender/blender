@@ -436,7 +436,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
     }
 
     if (r_elements) {
-      prop_elem = MEM_cnew<PropertyElemRNA>(__func__);
+      prop_elem = MEM_new<PropertyElemRNA>(__func__);
       prop_elem->ptr = curptr;
       prop_elem->prop = prop;
       prop_elem->index = -1; /* index will be added later, if needed. */
@@ -512,7 +512,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
   if (prop_elem &&
       (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index))
   {
-    prop_elem = MEM_cnew<PropertyElemRNA>(__func__);
+    prop_elem = MEM_new<PropertyElemRNA>(__func__);
     prop_elem->ptr = curptr;
     prop_elem->prop = prop;
     prop_elem->index = index;
@@ -1213,7 +1213,10 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
       }
     }
 
-    BLI_freelistN(&path_elems);
+    LISTBASE_FOREACH_MUTABLE (PropertyElemRNA *, prop_elem, &path_elems) {
+      MEM_delete(prop_elem);
+    }
+    BLI_listbase_clear(&path_elems);
   }
 
   return path;

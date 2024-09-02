@@ -1061,7 +1061,7 @@ static bool rna_property_override_collection_subitem_name_id_lookup(
     RNA_property_collection_end(&iter);
 
     if (!iter.valid) {
-      memset(r_ptr_item_name, 0, sizeof(*r_ptr_item_name));
+      *r_ptr_item_name = {};
     }
 
     return iter.valid;

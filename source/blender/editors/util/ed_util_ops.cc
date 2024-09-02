@@ -305,7 +305,7 @@ static int lib_id_unlink_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  memset(&idptr, 0, sizeof(idptr));
+  idptr = {};
   RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, nullptr);
   RNA_property_update(C, &pprop.ptr, pprop.prop);
 
