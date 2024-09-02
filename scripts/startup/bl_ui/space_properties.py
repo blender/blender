@@ -125,11 +125,12 @@ class PropertiesAnimationMixin:
 
         # Only show the slot selector when a layered Action is assigned.
         if adt.action.is_action_layered:
+            layout.context_pointer_set("animated_id", animated_id)
             layout.template_search(
                 adt, "action_slot",
                 adt, "action_slots",
-                new="",  # TODO: add this operator.
-                unlink="",  # TODO: add this operator.
+                new="anim.slot_new_for_id",
+                unlink="anim.slot_unassign_from_id",
             )
 
 

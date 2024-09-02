@@ -715,7 +715,7 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Slots
+/** \name Conversion
  * \{ */
 
 static bool slot_new_for_object_poll(bContext *C)
@@ -765,49 +765,6 @@ static void ANIM_OT_slot_new_for_object(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = slot_new_for_object_exec;
   ot->poll = slot_new_for_object_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static bool slot_unassign_object_poll(bContext *C)
-{
-  Object *object = CTX_data_active_object(C);
-  if (!object) {
-    return false;
-  }
-
-  AnimData *adt = BKE_animdata_from_id(&object->id);
-  if (!adt) {
-    return false;
-  }
-
-  return adt->slot_handle != blender::animrig::Slot::unassigned;
-}
-
-static int slot_unassign_object_exec(bContext *C, wmOperator * /*op*/)
-{
-  using namespace blender;
-
-  Object *object = CTX_data_active_object(C);
-  animrig::unassign_slot(object->id);
-
-  DEG_relations_tag_update(CTX_data_main(C));
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void ANIM_OT_slot_unassign_object(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Unassign Slot";
-  ot->idname = "ANIM_OT_slot_unassign_object";
-  ot->description =
-      "Clear the assigned action slot, effectively making this data-block non-animated";
-
-  /* api callbacks */
-  ot->exec = slot_unassign_object_exec;
-  ot->poll = slot_unassign_object_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -926,7 +883,6 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
 
   WM_operatortype_append(ANIM_OT_slot_new_for_object);
-  WM_operatortype_append(ANIM_OT_slot_unassign_object);
   WM_operatortype_append(ANIM_OT_convert_legacy_action);
 }
 

@@ -668,6 +668,69 @@ class ARMATURE_OT_collection_remove_unused(Operator):
         )
 
 
+class ANIM_OT_slot_new_for_id(Operator):
+    """Create a new Action Slot for an ID.
+
+    Note that _which_ ID should get this slot must be set in the 'animated_id' context pointer, using:
+
+    >>> layout.context_pointer_set("animated_id", animated_id)
+    """
+    bl_idname = "anim.slot_new_for_id"
+    bl_label = "New Slot"
+    bl_description = "Create a new action slot for this data-block, to hold its animation"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        animated_id = getattr(context, 'animated_id', None)
+        if not animated_id:
+            return False
+        if not animated_id.animation_data or not animated_id.animation_data.action:
+            cls.poll_message_set("An action slot can only be created when an action was assigned")
+            return False
+        if not animated_id.animation_data.action.is_action_layered:
+            cls.poll_message_set("Action slots are only supported by layered Actions. Upgrade this Action first")
+            return False
+        return True
+
+    def execute(self, context):
+        animated_id = getattr(context, 'animated_id', None)
+
+        action = animated_id.animation_data.action
+        slot = action.slots.new(for_id=animated_id)
+        animated_id.animation_data.action_slot = slot
+        return {'FINISHED'}
+
+
+class ANIM_OT_slot_unassign_from_id(Operator):
+    """Un-assign the assigned Action Slot from an ID.
+
+    Note that _which_ ID should get this slot unassigned must be set in the
+    'animated_id' context pointer, using:
+
+    >>> layout.context_pointer_set("animated_id", animated_id)
+    """
+    bl_idname = "anim.slot_unassign_from_id"
+    bl_label = "Unassign Slot"
+    bl_description = "Un-assign the action slot, effectively making this data-block non-animated"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        animated_id = getattr(context, 'animated_id', None)
+        if not animated_id:
+            return False
+        if not animated_id.animation_data or not animated_id.animation_data.action_slot:
+            cls.poll_message_set("This data-block has no Action slot assigned")
+            return False
+        return True
+
+    def execute(self, context):
+        animated_id = getattr(context, 'animated_id', None)
+        animated_id.animation_data.action_slot = None
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
@@ -677,4 +740,6 @@ classes = (
     ARMATURE_OT_collection_show_all,
     ARMATURE_OT_collection_unsolo_all,
     ARMATURE_OT_collection_remove_unused,
+    ANIM_OT_slot_new_for_id,
+    ANIM_OT_slot_unassign_from_id,
 )
