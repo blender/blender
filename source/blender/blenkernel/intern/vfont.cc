@@ -853,8 +853,7 @@ static bool vfont_to_curve(Object *ob,
 
   /* Text at the beginning of the last used text-box (use for y-axis alignment).
    * We over-allocate by one to simplify logic of getting last char. */
-  int *i_textbox_array = static_cast<int *>(
-      MEM_callocN(sizeof(*i_textbox_array) * (cu->totbox + 1), "TextBox initial char index"));
+  blender::Array<int> i_textbox_array(cu->totbox + 1, 0);
 
 #define MARGIN_X_MIN (xof_scale + tb_scale.x)
 #define MARGIN_Y_MIN (yof_scale + tb_scale.y)
@@ -1415,7 +1414,6 @@ static bool vfont_to_curve(Object *ob,
   }
 
   MEM_freeN(lineinfo);
-  MEM_freeN(i_textbox_array);
 
   /* TEXT ON CURVE */
   /* NOTE: Only #OB_CURVES_LEGACY objects could have a path. */
