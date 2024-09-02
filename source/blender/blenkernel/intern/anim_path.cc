@@ -65,24 +65,25 @@ void BKE_anim_path_calc_data(Object *ob)
     CLOG_WARN(&LOG, "No curve cache!");
     return;
   }
+
+  /* Free old data. */
+  MEM_SAFE_FREE(ob->runtime->curve_cache->anim_path_accum_length);
+
   /* We only use the first curve. */
   BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
-  if (bl == nullptr || !bl->nr) {
-    CLOG_WARN(&LOG, "No bev list data!");
+  /* There are no points. */
+  if (bl == nullptr) {
+    return;
+  }
+  /* There is only a single point (with no segments). */
+  if (bl->nr == 0) {
     return;
   }
 
-  /* Free old data. */
-  if (ob->runtime->curve_cache->anim_path_accum_length) {
-    MEM_freeN((void *)ob->runtime->curve_cache->anim_path_accum_length);
-  }
-
-  /* We assume that we have at least two points.
-   * If there is less than two points in the curve,
-   * no BevList should have been generated.
-   */
-  BLI_assert(bl->nr > 1);
-
+  /* There should typically be at least two points in the curve
+   * however a single point may be present here when all points are co-located.
+   * In this case either calculate a single length (for a cyclic) curve or nothing.
+   * While not useful, it's harmless too. */
   const int seg_size = get_bevlist_seg_array_size(bl);
   float *len_data = (float *)MEM_mallocN(sizeof(float) * seg_size, "calcpathdist");
   ob->runtime->curve_cache->anim_path_accum_length = len_data;
