@@ -1643,7 +1643,7 @@ static short select_bezier_invert(KeyframeEditData * /*ked*/, BezTriple *bezt)
   return 0;
 }
 
-KeyframeEditFunc ANIM_editkeyframes_select(short selectmode)
+KeyframeEditFunc ANIM_editkeyframes_select(const eEditKeyframes_Select selectmode)
 {
   switch (selectmode) {
     case SELECT_ADD: /* add */

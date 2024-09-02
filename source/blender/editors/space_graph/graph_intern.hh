@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "ED_keyframes_edit.hh"
+
 struct ARegion;
 struct ARegionType;
 struct SpaceGraph;
@@ -53,7 +55,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
  *   2 = invert
  * - do_channels: whether to affect selection status of channels
  */
-void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channels);
+void deselect_graph_keys(bAnimContext *ac, bool test, eEditKeyframes_Select sel, bool do_channels);
 
 void GRAPH_OT_select_all(wmOperatorType *ot);
 void GRAPH_OT_select_box(wmOperatorType *ot);

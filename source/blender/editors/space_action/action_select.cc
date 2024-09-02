@@ -284,7 +284,7 @@ static bool actkeys_is_key_at_position(bAnimContext *ac, float region_x, float r
  * - test: check if select or deselect all
  * - sel: how to select keyframes (SELECT_*)
  */
-static void deselect_action_keys(bAnimContext *ac, short test, short sel)
+static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Select sel)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
@@ -530,7 +530,10 @@ static void box_select_elem(
   }
 }
 
-static void box_select_action(bAnimContext *ac, const rcti rect, short mode, short selectmode)
+static void box_select_action(bAnimContext *ac,
+                              const rcti rect,
+                              short mode,
+                              const eEditKeyframes_Select selectmode)
 {
   ListBase anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
@@ -636,7 +639,7 @@ static int actkeys_box_select_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
-  const int selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
+  const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
   }
@@ -817,8 +820,11 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
   }
 }
 
-static void region_select_action_keys(
-    bAnimContext *ac, const rctf *rectf_view, short mode, short selectmode, void *data)
+static void region_select_action_keys(bAnimContext *ac,
+                                      const rctf *rectf_view,
+                                      short mode,
+                                      eEditKeyframes_Select selectmode,
+                                      void *data)
 {
   ListBase anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
@@ -933,7 +939,7 @@ static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
-  const int selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
+  const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
   }
@@ -996,7 +1002,7 @@ static int action_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = ED_select_op_modal(
       eSelectOp(RNA_enum_get(op->ptr, "mode")),
       WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
-  const short selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
+  const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_action_keys(&ac, 0, SELECT_SUBTRACT);
   }
@@ -1514,7 +1520,9 @@ static const EnumPropertyItem prop_actkeys_leftright_select_types[] = {
 
 /* --------------------------------- */
 
-static void actkeys_select_leftright(bAnimContext *ac, short leftright, short select_mode)
+static void actkeys_select_leftright(bAnimContext *ac,
+                                     short leftright,
+                                     eEditKeyframes_Select select_mode)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
@@ -1621,7 +1629,7 @@ static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   short leftright = RNA_enum_get(op->ptr, "mode");
-  short selectmode;
+  eEditKeyframes_Select selectmode;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1726,7 +1734,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
 /* option 1) select keyframe directly under mouse */
 static void actkeys_mselect_single(bAnimContext *ac,
                                    bAnimListElem *ale,
-                                   short select_mode,
+                                   const eEditKeyframes_Select select_mode,
                                    float selx)
 {
   KeyframeEditData ked = {{nullptr}};
@@ -1818,7 +1826,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
 /* (see actkeys_select_leftright) */
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
-static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float selx)
+static void actkeys_mselect_column(bAnimContext *ac, eEditKeyframes_Select select_mode, float selx)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
@@ -1874,7 +1882,9 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 }
 
 /* option 4) select all keyframes in same channel */
-static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, short select_mode)
+static void actkeys_mselect_channel_only(bAnimContext *ac,
+                                         bAnimListElem *ale,
+                                         eEditKeyframes_Select select_mode)
 {
   KeyframeEditFunc select_cb;
 
@@ -1926,7 +1936,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 
 static int mouse_action_keys(bAnimContext *ac,
                              const int mval[2],
-                             short select_mode,
+                             eEditKeyframes_Select select_mode,
                              const bool deselect_all,
                              const bool column,
                              const bool same_channel,
@@ -2087,7 +2097,8 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   // region = ac.region; /* UNUSED. */
 
   /* select mode is either replace (deselect all, then add) or add/extend */
-  const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;
+  const eEditKeyframes_Select selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT :
+                                                                                SELECT_REPLACE;
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
   int mval[2];

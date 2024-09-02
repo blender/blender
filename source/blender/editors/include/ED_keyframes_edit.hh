@@ -348,7 +348,7 @@ KeyframeEditFunc ANIM_editkeyframes_snap(short mode);
  * \note for markers and 'value', the values to use must be supplied as the first float value.
  */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode);
-KeyframeEditFunc ANIM_editkeyframes_select(short selectmode);
+KeyframeEditFunc ANIM_editkeyframes_select(eEditKeyframes_Select selectmode);
 /**
  * Set all selected Bezier Handles to a single type.
  */
