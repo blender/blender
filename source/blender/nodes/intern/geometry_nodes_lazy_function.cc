@@ -236,18 +236,6 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     std::destroy_at(s);
   }
 
-  static const Object *get_self_object(const GeoNodesLFUserData &user_data)
-  {
-    if (user_data.call_data->modifier_data) {
-      return user_data.call_data->modifier_data->self_object;
-    }
-    if (user_data.call_data->operator_data) {
-      return user_data.call_data->operator_data->self_object_orig;
-    }
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     Storage *storage = static_cast<Storage *>(context.storage);
@@ -265,7 +253,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
       const bNodeSocket &bsocket = node_.output_socket(output_bsocket_index);
       AnonymousAttributeIDPtr attribute_id = AnonymousAttributeIDPtr(
           MEM_new<NodeAnonymousAttributeID>(__func__,
-                                            *this->get_self_object(*user_data),
+                                            *user_data->call_data->self_object(),
                                             *user_data->compute_context,
                                             node_,
                                             bsocket.identifier,
