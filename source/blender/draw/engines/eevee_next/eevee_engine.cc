@@ -109,7 +109,7 @@ static void eevee_draw_scene(void *vedata)
   else {
     ved->instance->draw_viewport();
   }
-  STRNCPY(ved->info, ved->instance->info.c_str());
+  STRNCPY(ved->info, ved->instance->info_get());
   /* Reset view for other following engines. */
   DRW_view_set_active(nullptr);
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();

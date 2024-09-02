@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <fmt/format.h>
+
 #include "BKE_object.hh"
 #include "DEG_depsgraph.hh"
 #include "DNA_lightprobe_types.h"
@@ -77,6 +79,9 @@ class Instance {
 
   bool shaders_are_ready_ = true;
 
+  /** Info string displayed at the top of the render / viewport, or the console when baking. */
+  std::string info_ = "";
+
  public:
   ShaderModule &shaders;
   SyncModule sync;
@@ -135,8 +140,6 @@ class Instance {
   bool use_curves = true;
   bool use_volumes = true;
 
-  /** Info string displayed at the top of the render / viewport. */
-  std::string info = "";
   /** Debug mode from debug value. */
   eDebugMode debug_mode = eDebugMode::DEBUG_NONE;
 
@@ -226,6 +229,26 @@ class Instance {
       FunctionRef<void(LightProbeGridCacheFrame *, float progress)> result_update);
 
   static void update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer);
+
+  /* Append a new line to the info string. */
+  template<typename... Args> void info_append(const char *msg, Args &&...args)
+  {
+    info_ += fmt::format(msg, args...);
+    info_ += "\n";
+  }
+
+  /* The same as `info_append`, but `msg` will be translated.
+   * NOTE: When calling this function, `msg` should be a string literal. */
+  template<typename... Args> void info_append_i18n(const char *msg, Args &&...args)
+  {
+    info_ += fmt::format(RPT_(msg), args...);
+    info_ += "\n";
+  }
+
+  const char *info_get()
+  {
+    return info_.c_str();
+  }
 
   bool is_viewport() const
   {

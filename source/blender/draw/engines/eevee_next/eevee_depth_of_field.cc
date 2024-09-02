@@ -72,13 +72,13 @@ void DepthOfField::sync()
 
   if (inst_.debug_mode == DEBUG_DOF_PLANES) {
     /* Set debug message even if DOF is not enabled. */
-    inst_.info =
+    inst_.info_append(
         "Debug Mode: Depth Of Field Buffers\n"
         " - Purple: Gap Fill\n"
         " - Blue: Background\n"
         " - Red: Slight Out Of Focus\n"
         " - Yellow: In Focus\n"
-        " - Green: Foreground\n";
+        " - Green: Foreground\n");
   }
 
   if (camera_data == nullptr || (camera_data->dof.flag & CAM_DOF_ENABLED) == 0) {

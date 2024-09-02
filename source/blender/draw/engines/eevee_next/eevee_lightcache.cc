@@ -186,9 +186,9 @@ class LightBake {
             }
           });
 
-      if (instance_->info != "") {
+      if (StringRefNull(instance_->info_get()) != "") {
         /* Pipe report to operator. */
-        report_ = instance_->info;
+        report_ = instance_->info_get();
       }
 
       if ((G.is_break == true) || (stop != nullptr && *stop == true)) {

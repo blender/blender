@@ -927,10 +927,10 @@ void DeferredPipeline::debug_draw(draw::View &view, GPUFrameBuffer *combined_fb)
 
   switch (inst.debug_mode) {
     case eDebugMode::DEBUG_GBUFFER_EVALUATION:
-      inst.info = "Debug Mode: Deferred Lighting Cost";
+      inst.info_append("Debug Mode: Deferred Lighting Cost");
       break;
     case eDebugMode::DEBUG_GBUFFER_STORAGE:
-      inst.info = "Debug Mode: Gbuffer Storage Cost";
+      inst.info_append("Debug Mode: Gbuffer Storage Cost");
       break;
     default:
       /* Nothing to display. */

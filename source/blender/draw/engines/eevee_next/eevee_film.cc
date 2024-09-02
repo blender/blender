@@ -78,7 +78,7 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
   }
 
   if (aovs.size() > AOV_MAX) {
-    inst_.info += "Error: Too many AOVs\n";
+    inst_.info_append_i18n("Error: Too many AOVs");
     return;
   }
 

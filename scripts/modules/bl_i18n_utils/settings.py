@@ -266,9 +266,10 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_modifier_set_error",)) +
 
-    # Compositor error messages
-    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("set_info_message",)) +
+    # Compositor and EEVEE messages.
+    # Ends either with `)` (function call close), or `,` when there are extra formatting parameters.
+    tuple((r"{}\(\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("set_info_message", "info_append_i18n")) +
 
     # This one is a tad more risky, but in practice would not expect a name/uid string parameter
     # (the second one in those functions) to ever have a comma in it, so think this is fine.
