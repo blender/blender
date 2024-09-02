@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -151,10 +151,6 @@ msgstr "Активдүү сөөк"
 
 msgid "Description"
 msgstr "Баяндама"
-
-
-msgid "All"
-msgstr "Баары"
 
 
 msgid "Data Type"
@@ -341,6 +337,10 @@ msgstr "Чоку түсү"
 
 msgid "Normal"
 msgstr "Нормаль"
+
+
+msgid "All"
+msgstr "Баары"
 
 
 msgid "Simplify"
@@ -1323,6 +1323,14 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
+msgid "Mirror"
+msgstr "Чагылтуу"
+
+
+msgid "Apply"
+msgstr "Колдонуу"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Видеофрагмент"
@@ -1368,10 +1376,6 @@ msgid "Align"
 msgstr "Түздөө"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "Import"
 msgstr "Импорттоо"
 
@@ -1390,10 +1394,6 @@ msgstr "Физика"
 
 msgid "Sequencer"
 msgstr "Секвенсор"
-
-
-msgid "Apply"
-msgstr "Колдонуу"
 
 
 msgid "Cache"
@@ -1609,6 +1609,46 @@ msgstr "Активдүү түйүн"
 
 
 msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Фон кылып орнотуу"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "Трекинг сахнасын орнотуу"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Консоль тили"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Торду кошуу"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Модификаторду кошуу"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Тез түтүн"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Жаңы"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Жаңылоо"
+
+
+msgctxt "Operator"
 msgid "Select All"
 msgstr "Баарын тандоо"
 
@@ -1686,16 +1726,6 @@ msgstr "Дубал"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Фон кылып орнотуу"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "Трекинг сахнасын орнотуу"
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "Маркерди жылдыруу"
 
@@ -1753,11 +1783,6 @@ msgstr "Мурунку сөз"
 msgctxt "Operator"
 msgid "Insert"
 msgstr "Коюу"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Консоль тили"
 
 
 msgctxt "Operator"
@@ -2101,11 +2126,6 @@ msgid "Add Plane"
 msgstr "Тегиздикти кошуу"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Торду кошуу"
-
-
 msgid "Cursor Distance"
 msgstr "Курсор аралыгы"
 
@@ -2117,11 +2137,6 @@ msgstr "Чыгуу"
 msgctxt "Operator"
 msgid "Hide"
 msgstr "Жашыруу"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Модификаторду кошуу"
 
 
 msgctxt "Operator"
@@ -2205,18 +2220,8 @@ msgid "Remove the selected particle system"
 msgstr "Тандалган бөлүкчөлөр системасын өчүрүү"
 
 
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Тез түтүн"
-
-
 msgid "Smoke Style"
 msgstr "Түтүн стили"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Жаңы"
 
 
 msgid "Child"
@@ -2251,11 +2256,6 @@ msgstr "Кайтадан жүктөө"
 
 msgid "Reset"
 msgstr "Түшүрүү"
-
-
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Жаңылоо"
 
 
 msgctxt "Operator"

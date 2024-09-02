@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -632,10 +632,6 @@ msgid "World"
 msgstr "Világ"
 
 
-msgid "All"
-msgstr "Mind"
-
-
 msgid "Current File"
 msgstr "Aktuális fájl"
 
@@ -1156,6 +1152,10 @@ msgstr "Irány"
 
 msgid "Normal"
 msgstr "Normális"
+
+
+msgid "All"
+msgstr "Mind"
 
 
 msgid "Strokes"
@@ -6713,21 +6713,53 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgctxt "MovieClip"
-msgid "Clip"
-msgstr "Klip"
-
-
-msgid "Track"
-msgstr "Nyom"
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
 
 
 msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgctxt "MovieClip"
+msgid "Clip"
+msgstr "Klip"
 
 
 msgid "Zoom"
@@ -6752,14 +6784,6 @@ msgstr "Sima"
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
 
 
 msgid "Strip"
@@ -6792,14 +6816,6 @@ msgstr "Effekt sáv"
 
 msgid "Sequencer"
 msgstr "Szekvencer"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
 
 
 msgid "Templates"
@@ -6845,22 +6861,6 @@ msgstr "Mentés & Betöltés"
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Szülő"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
 
 
 msgid "Operator Presets"
@@ -9446,6 +9446,10 @@ msgid "Selection"
 msgstr "Kijelölés"
 
 
+msgid "Warning"
+msgstr "Figyelmeztetés"
+
+
 msgid "Ambient Occlusion"
 msgstr "Környezeti elnyelődés"
 
@@ -9519,6 +9523,209 @@ msgstr "Objektum kényszerítők"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Anyagvariáns hozzáadása"
+
+
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Nem használt akciók törlése"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "Kulcsozókészlet exportálása..."
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "F-görbék létrehozása az objektumnál, ami lemásolja a kényszerítő által okozott mozgást"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "Kényszerítő F-görbévé alakítása"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "BVH motion capture fájl mentése egy csontvázból"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "BVH exportálása"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "FBX exportálása"
+
+
+msgid "Edit image in an external application"
+msgstr "A kép szerkesztése egy külső alkalmazás segítségével"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "Egy BVH motion capture fájl megnyitása"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "BVH importálása"
+
+
+msgid "Load a SVG file"
+msgstr "Egy SVG fájl megnyitása"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "SVG importálása"
+
+
+msgid "Load a FBX file"
+msgstr "FBX fájl betöltése"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "FBX importálása"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Csomópont (node) hozzáadása"
+
+
+msgctxt "Operator"
+msgid "Duplicate Item"
+msgstr "Elem duplikálása"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Módosító hozzáadása"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Új"
+
+
+msgid "Select the active camera"
+msgstr "Aktív kamera kijelölése"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Formakulcsok átvétele"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Frissítés"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "Billentyű konfiguráció exportálása..."
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "Billentyű konfiguráció importálása..."
+
+
+msgid "Add key map item"
+msgstr "Billentyűhozzárendelési elem hozzáadása"
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "Billentyűhozzárendelési elem hozzáadása"
+
+
+msgid "Remove key map item"
+msgstr "Billentyű-hozzárendelés elemének eltávolítása"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "Billentyű-hozzárendelés elemének eltávolítása"
+
+
+msgid "Restore key map item"
+msgstr "Billentyű-hozzárendelés elemének visszaállítása"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "Billentyű-hozzárendelés elemének visszaállítása"
+
+
+msgid "Restore key map(s)"
+msgstr "Billentyű-hozzárendelések visszaállítása"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "Billentyű-hozzárendelések visszaállítása"
+
+
+msgid "Load and apply a Blender XML theme file"
+msgstr "Egy Blender XML témafájl betöltése és alkalmazása"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "Téma installálása..."
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "A renderelt képek/filmek visszajátszása egy külső lejátszóval"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Renderelt animáció lejátszása"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Merev test beállításainak másolása az aktív objektumból a kijelöltekbe"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Merev test beállításainak másolása"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "Terjedelem kitöltése a kijelölés alapján"
+
+
+msgid "Open a style module file"
+msgstr "Stílus modul fájl megnyitása"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Stílus modul fájl megnyitása"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Operátor puska"
+
+
+msgid "Jump to a different tab inside the properties editor"
+msgstr "Egy másik fülre ugrás a Tulajdonságok szerkesztőn belül"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "Belső használat (egy tulajdonság adat_útvonal szerkesztése)"
+
+
+msgctxt "Operator"
 msgid "Select Keyframes"
 msgstr "Kulcs-képkockák kijelölése"
 
@@ -9580,11 +9787,6 @@ msgstr "Csatorna kulcs-képkockáinak kijelölése"
 
 
 msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Nem használt akciók törlése"
-
-
-msgctxt "Operator"
 msgid "Set End Frame"
 msgstr "Befejező képkocka megadás"
 
@@ -9625,11 +9827,6 @@ msgstr "Aktív kulcsozókészlet beállítása"
 msgctxt "Operator"
 msgid "Add Empty Keying Set"
 msgstr "Üres kulcsozókészlet hozzáadása"
-
-
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "Kulcsozókészlet exportálása..."
 
 
 msgctxt "Operator"
@@ -9752,15 +9949,6 @@ msgstr "Teljes útvonal törlése"
 
 msgid "Clear Active"
 msgstr "Aktív törlése"
-
-
-msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "Kényszerítő F-görbévé alakítása"
-
-
-msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
-msgstr "F-görbék létrehozása az objektumnál, ami lemásolja a kényszerítő által okozott mozgást"
 
 
 msgctxt "Operator"
@@ -10026,15 +10214,6 @@ msgid "Item"
 msgstr "Elem"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "BVH exportálása"
-
-
-msgid "Save a BVH motion capture file from an armature"
-msgstr "BVH motion capture fájl mentése egy csontvázból"
-
-
 msgid "End frame to export"
 msgstr "Befejeő képkocka az exportáláshoz"
 
@@ -10105,11 +10284,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Forgatás konvertálása euler ZYX-é"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "FBX exportálása"
 
 
 msgid "X Forward"
@@ -10596,10 +10770,6 @@ msgid "Relative Paths"
 msgstr "Relatív fájlútvonalak"
 
 
-msgid "Edit image in an external application"
-msgstr "A kép szerkesztése egy külső alkalmazás segítségével"
-
-
 msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Csatornák invertálása"
@@ -10694,15 +10864,6 @@ msgid "Set zoom ratio of the view"
 msgstr "A nézet nagyítási arányának beállítása"
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "BVH importálása"
-
-
-msgid "Load a BVH motion capture file"
-msgstr "Egy BVH motion capture fájl megnyitása"
-
-
 msgid "Starting frame for the animation"
 msgstr "Az animáció kezdő képkockája"
 
@@ -10725,24 +10886,6 @@ msgstr "FPS skálázása"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "A BVH képkockasebességnek a skálázása az aktuális jelenethez, másként minden BVH képkocka közvetlenül egy Blender képkockákra képeződik le"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "SVG importálása"
-
-
-msgid "Load a SVG file"
-msgstr "Egy SVG fájl megnyitása"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "FBX importálása"
-
-
-msgid "Load a FBX file"
-msgstr "FBX fájl betöltése"
 
 
 msgid "Image Search"
@@ -10932,16 +11075,6 @@ msgid "Add Material"
 msgstr "Anyag hozzáadása"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Csomópont (node) hozzáadása"
-
-
-msgctxt "Operator"
-msgid "Duplicate Item"
-msgstr "Elem duplikálása"
-
-
 msgid "Option"
 msgstr "Opció"
 
@@ -10952,11 +11085,6 @@ msgstr "Exponenciális"
 
 msgid "Add an object to the scene"
 msgstr "Objektum hozzáadása a jelenethez"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Módosító hozzáadása"
 
 
 msgid "Add an armature object to the scene"
@@ -11241,11 +11369,6 @@ msgid "Move object origin to position of the 3D cursor"
 msgstr "Objektum eredetpontjának mozgatása a 3D kurzor pozíciójához"
 
 
-msgctxt "Operator"
-msgid "New"
-msgstr "Új"
-
-
 msgid "Change selection of all visible objects in scene"
 msgstr "A jelenet összes látjató objektuma kijelölésének megváltoztatása (váltókapcsoló)"
 
@@ -11257,10 +11380,6 @@ msgstr "Kijelölés típus alapján"
 
 msgid "Select all visible objects that are of a type"
 msgstr "Valamennyi azonos típusú látható objektum kijelölése"
-
-
-msgid "Select the active camera"
-msgstr "Aktív kamera kijelölése"
 
 
 msgid "Select all visible objects grouped by various properties"
@@ -11335,11 +11454,6 @@ msgstr "Formakulcsok újra időzítése"
 
 msgid "Resets the timing for absolute shape keys"
 msgstr "Az abszolút formakulcsok időzítésének visszaállítása"
-
-
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Formakulcsok átvétele"
 
 
 msgctxt "Operator"
@@ -11578,57 +11692,6 @@ msgstr "Egy kényszerítő hozzáadása az aktív csonthoz"
 
 
 msgctxt "Operator"
-msgid "Refresh"
-msgstr "Frissítés"
-
-
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "Billentyű konfiguráció exportálása..."
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "Billentyű konfiguráció importálása..."
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "Billentyűhozzárendelési elem hozzáadása"
-
-
-msgid "Add key map item"
-msgstr "Billentyűhozzárendelési elem hozzáadása"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "Billentyű-hozzárendelés elemének eltávolítása"
-
-
-msgid "Remove key map item"
-msgstr "Billentyű-hozzárendelés elemének eltávolítása"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "Billentyű-hozzárendelés elemének visszaállítása"
-
-
-msgid "Restore key map item"
-msgstr "Billentyű-hozzárendelés elemének visszaállítása"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "Billentyű-hozzárendelések visszaállítása"
-
-
-msgid "Restore key map(s)"
-msgstr "Billentyű-hozzárendelések visszaállítása"
-
-
-msgctxt "Operator"
 msgid "Reset to Default Theme"
 msgstr "Téma alaphelyzetbe állítása"
 
@@ -11639,15 +11702,6 @@ msgstr "Visszaállítás a téma alapértelmezett színeire"
 
 msgid "Filter Folders"
 msgstr "Mappák szűrése"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "Téma installálása..."
-
-
-msgid "Load and apply a Blender XML theme file"
-msgstr "Egy Blender XML témafájl betöltése és alkalmazása"
 
 
 msgctxt "Operator"
@@ -11679,15 +11733,6 @@ msgstr "Aktuális gyorsítótár törlése"
 
 msgid "Delete current cache"
 msgstr "Aktuális gyorsítótár törlése"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Renderelt animáció lejátszása"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "A renderelt képek/filmek visszajátszása egy külső lejátszóval"
 
 
 msgctxt "Operator"
@@ -11765,15 +11810,6 @@ msgstr "Merev test beállításainak eltávolítása az objektumból"
 
 
 msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Merev test beállításainak másolása"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "Merev test beállításainak másolása az aktív objektumból a kijelöltekbe"
-
-
-msgctxt "Operator"
 msgid "Add Rigid Bodies"
 msgstr "Merev testek hozzáadása"
 
@@ -11829,11 +11865,6 @@ msgstr "Vonalszín módosító hazzáadása"
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
 msgstr "Vonalszín módosító hazzáadása az aktív vonalkészlethez kapcsolódó vonalstílushoz"
-
-
-msgctxt "Operator"
-msgid "Fill Range by Selection"
-msgstr "Terjedelem kitöltése a kijelölés alapján"
 
 
 msgid "Name of the modifier to work on"
@@ -11939,15 +11970,6 @@ msgstr "Freestyle modul mozgatása"
 
 msgid "Change the position of the style module within in the list of style modules"
 msgstr "A stílus modul pozíciójának módosítása a stílus modulok listájában"
-
-
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "Stílus modul fájl megnyitása"
-
-
-msgid "Open a style module file"
-msgstr "Stílus modul fájl megnyitása"
 
 
 msgid "Make internal"
@@ -12957,11 +12979,6 @@ msgid "Allow .blend file to execute scripts automatically, default available fro
 msgstr "Szkriptek automatikus futtatásának engedélyezése a .blend fájlnak, az alapértelmezés elérhető a rendszerbeállításokból"
 
 
-msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "Operátor puska"
-
-
 msgid "Set the active operator to its default values"
 msgstr "Az aktív operátor alapértelmezett értékének beállítása"
 
@@ -12974,14 +12991,6 @@ msgstr "PLY exportálása"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "PLY importálása"
-
-
-msgid "Jump to a different tab inside the properties editor"
-msgstr "Egy másik fülre ugrás a Tulajdonságok szerkesztőn belül"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "Belső használat (egy tulajdonság adat_útvonal szerkesztése)"
 
 
 msgctxt "Operator"
@@ -13120,6 +13129,14 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
+msgid "Render Pass"
+msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
+
+
 msgid "Chain Scaling"
 msgstr "Lánc méretezés"
 
@@ -13162,10 +13179,6 @@ msgstr "Végleges renderelés"
 
 msgid "Threads"
 msgstr "Szálak"
-
-
-msgid "Render Pass"
-msgstr "Render vezeték"
 
 
 msgid "Texture Space"
@@ -13290,10 +13303,6 @@ msgstr "Szöveg stílus"
 
 msgid "User Interface"
 msgstr "Felhasználói felület"
-
-
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
 
 
 msgctxt "Operator"
@@ -14688,11 +14697,6 @@ msgid "View"
 msgstr "Nézet"
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "Kulcstábla"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "A szöveg megjelenítéséhez használt betűméret"
 
@@ -15628,10 +15632,6 @@ msgid "TrackBall"
 msgstr "Hanyattegér"
 
 
-msgid "Warning"
-msgstr "Figyelmeztetés"
-
-
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Hiba bejelentése"
@@ -15645,11 +15645,6 @@ msgstr "Hozzárendelés"
 msgctxt "Operator"
 msgid "Deselect"
 msgstr "Kijelölés törlése"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Anyagvariáns hozzáadása"
 
 
 msgid "Description:"

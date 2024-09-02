@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1427,10 +1427,6 @@ msgstr "Biblioteca de Recursos"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Escolha a biblioteca de ativos para exibir os ativos"
-
-
-msgid "All"
-msgstr "Todos"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -3681,6 +3677,10 @@ msgstr "Direção"
 
 msgid "Normal"
 msgstr "Normais"
+
+
+msgid "All"
+msgstr "Todos"
 
 
 msgid "Strokes"
@@ -21523,6 +21523,166 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
 msgid "Basic"
 msgstr "Básico"
 
@@ -21530,10 +21690,6 @@ msgstr "Básico"
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clipe"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
 
 
 msgid "Proxy"
@@ -21556,18 +21712,6 @@ msgid "Rotation Track Specials"
 msgstr "Especiais para rastreamento de rotação"
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Zoom"
 msgstr "Ampliar"
 
@@ -21588,10 +21732,6 @@ msgid "Marker"
 msgstr "Marcadores"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Bookmarks Specials"
 msgstr "Especiais para favoritos"
 
@@ -21608,24 +21748,12 @@ msgid "Smooth"
 msgstr "Suavizar"
 
 
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
 msgid "UV"
 msgstr "UV"
 
 
 msgid "Align"
 msgstr "Alinhar"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "UV Select Mode"
@@ -21717,14 +21845,6 @@ msgid "Sequencer"
 msgstr "Editor de sequências"
 
 
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
 msgid "Inputs"
 msgstr "Entradas"
 
@@ -21801,133 +21921,13 @@ msgid "KeyPresets"
 msgstr "Predefinições de chave"
 
 
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Parente"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
 msgid "Clone Layer"
 msgstr "Clonar camada"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
 
 
 msgid "Operator Presets"
@@ -28897,6 +28897,10 @@ msgid "Conformal"
 msgstr "Conformante"
 
 
+msgid "Warning"
+msgstr "Alertas:"
+
+
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "Quadro"
@@ -30050,6 +30054,1220 @@ msgid "Collection of object modifiers"
 msgstr "Coleção de modificadores de objeto."
 
 
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Limpar ações inúteis"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "Exportar conjunto de inserção de chaves..."
+
+
+msgctxt "Operator"
+msgid "Update Animated Transform Constraints"
+msgstr "Atualizar as restrições de transformações de animação"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Mostrar tudo"
+
+
+msgctxt "Operator"
+msgid "Assign Action"
+msgstr "Atribuir Ação"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "Abrir Arquivo Blender"
+
+
+msgctxt "Operator"
+msgid "Add Asset Tag"
+msgstr "Adicionar Etiqueta de Recurso"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Tag"
+msgstr "Remover Etiqueta de Recurso"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "Permite adicionar ou remover uma predefinição de câmera"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "Adicionar predefinição de câmera"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "Permite adicionar ou remover uma predefinição de áreas de segurança."
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "Adicionar predefinição de áreas de segurança"
+
+
+msgid "Create vertex cloud using coordinates of reconstructed tracks"
+msgstr "Cria uma nuvem de vértices usando as coordenadas das reconstruções do rastreamento."
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "Marcadores 3D para a malha"
+
+
+msgid "Add or remove a Tracking Camera Intrinsics Preset"
+msgstr "Permite adicionar ou remover uma predefinição intrínseca de câmera de rastreamento."
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "Cria as curvas-f para o objeto que irá copiar os movimentos do objeto criados por esta restrição."
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "Restrição para curvas-f"
+
+
+msgid "Delete movie clip proxy files from the hard drive"
+msgstr "Apaga os arquivos de aproximações dos clipes de filme a partir do disco rígido."
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "Apagar aproximações"
+
+
+msgid "Filter tracks which has weirdly looking spikes in motion curves"
+msgstr "Filtrar os rastreamentos que possuem picos que pareçam estranhos nas curvas de movimento."
+
+
+msgctxt "Operator"
+msgid "Filter Tracks"
+msgstr "Filtrar rastreamentos"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "Definir o clipe ativo"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Configurar como plano de fundo"
+
+
+msgid "Prepare scene for compositing 3D objects into this footage"
+msgstr "Prepara a cena para a composição de objetos 3D dentro desta filmagem."
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "Configurar cena de rastreamento"
+
+
+msgid "Add or remove a Clip Track Color Preset"
+msgstr "Permite adicionar ou remover uma predefinição de cor para rastreamento de clipe"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr "Adicionar predefinição de rastreamento de cor"
+
+
+msgid "Copy tracking settings from active track to default settings"
+msgstr "Copia as configurações de rastreamento do rastreamento ativo para as configurações padrão."
+
+
+msgctxt "Operator"
+msgid "Track Settings as Default"
+msgstr "Configurações de faixas como padrão"
+
+
+msgid "Copy tracking settings from active track to selected tracks"
+msgstr "Copia as configurações de rastreamento do rastreamento ativo para os rastreamentos selecionados."
+
+
+msgctxt "Operator"
+msgid "Copy Track Settings"
+msgstr "Copiar as configurações de rastreamento"
+
+
+msgid "Create an Empty object which will be copying movement of active track"
+msgstr "Cria um objeto vazio, o qual estará copiando o movimento da trilha ativa."
+
+
+msgctxt "Operator"
+msgid "Link Empty to Track"
+msgstr "Vincular objeto vazio para a trilha"
+
+
+msgid "Add or remove a motion tracking settings preset"
+msgstr "Permite adicionar ou remover uma predefinição de configurações de captura de movimento."
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "Adicionar predefinição de configurações de rastreamento"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "Permite adicionar ou remover uma predefinição de tecido"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Adicionar predefinição de tecido"
+
+
+msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
+msgstr "Avalia o espaço de nome até o topo usando a posição do cursor e fornecendo uma lista de opções funcionais, ou complementa o nome caso haja somente uma equivalência."
+
+
+msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "Autocompletar no console"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "Imprime uma mensagem quando o terminal inicializar."
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "Aviso de console"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "Copia os conteúdos do console para usar dentro de um script."
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "Copiar para área de transferência (como script)"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Execução no console"
+
+
+msgid "Set the current language for this console"
+msgstr "Configura a linguagem atual para este console."
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Linguagem do console"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "Adicionar Alvo"
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "Desabilitar e Manter as Transformações"
+
+
+msgctxt "Operator"
+msgid "Normalize Weights"
+msgstr "Normalizar Pesos"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "Remover Alvo"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "Remover Ruído da Animação"
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "Mesclar Imagens"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Usar nós"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "Salva um arquivo de captura de movimentos de hierarquias de volume circundante a partir de uma armação."
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Exportar BVH"
+
+
+msgid "Write a FBX file"
+msgstr "Escreve um arquivo FBX"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Exportar FBX"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "Exportar glTF 2.0"
+
+
+msgid "Add or remove a Fluid Preset"
+msgstr "Permite adicionar ou remover uma predefinição de fluido."
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "Adicionar predefinição de fluido"
+
+
+msgctxt "Operator"
+msgid "Flip Colors"
+msgstr "Inverter Cores"
+
+
+msgid "Edit image in an external application"
+msgstr "Permite a edição de imagem em um aplicativo externo."
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Editar imagem externamente"
+
+
+msgid "Project edited image back onto the object"
+msgstr "Projeta a imagem editada de volta no objeto."
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "Aplicar projeção"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "Edição de projeção"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "Carrega um arquivo de captura de movimento com base em hierarquia de volume circundante."
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Importar BVH"
+
+
+msgid "Load a SVG file"
+msgstr "Carrega um arquivo de gráficos vetoriais escalonáveis (.svg)."
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Importar SVG"
+
+
+msgid "Load a FBX file"
+msgstr "Carrega um arquivo FBX"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "Importar FBX"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "Importar glTF 2.0"
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "Copia as coordenadas de espelhamento de UV no eixo X com base em uma malha espelhada."
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Adicionar objeto toroidal"
+
+
+msgid "Select the next element (using selection order)"
+msgstr "Seleciona os próximos elementos (usando a ordem de seleção)."
+
+
+msgctxt "Operator"
+msgid "Select Next Element"
+msgstr "Selecionar os próximos elementos"
+
+
+msgid "Select the previous element (using selection order)"
+msgstr "Seleciona os elementos anteriores (usando a ordem de seleção)."
+
+
+msgctxt "Operator"
+msgid "Select Previous Element"
+msgstr "Selecionar os elementos anteriores"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "Gerar e gravar ação"
+
+
+msgid "Add a node to the active tree"
+msgstr "Adiciona um nó para a árvore ativa."
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Adicionar nó"
+
+
+msgid "Toggle collapsed nodes and hide unused sockets"
+msgstr "Alterna os nós encolhidos e oculta os conectores não usados."
+
+
+msgctxt "Operator"
+msgid "Collapse and Hide Unused Sockets"
+msgstr "Encolher e ocultar os conectores não usados"
+
+
+msgctxt "Operator"
+msgid "Assign New Geometry Node Group"
+msgstr "Atribuir Novo Grupo de Nós Geométricos"
+
+
+msgid "Add or remove a Node Color Preset"
+msgstr "Permite adicionar ou remover uma predefinição de nó de cor."
+
+
+msgctxt "Operator"
+msgid "Add Node Color Preset"
+msgstr "Adicionar predefinição de nó de cor"
+
+
+msgid "Go to parent node tree"
+msgstr "Ir para a árvore de nós parente."
+
+
+msgctxt "Operator"
+msgid "Parent Node Tree"
+msgstr "Árvore de nós parente"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Adicionar modificador"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "Alinhar objetos"
+
+
+msgid "Convert object animation for normal transforms to delta transforms"
+msgstr "Converte a animação do objeto de transformações normais para transformações delta."
+
+
+msgctxt "Operator"
+msgid "Animated Transforms to Deltas"
+msgstr "Transformações animadas para deltas"
+
+
+msgctxt "Operator"
+msgid "Assign Custom Property Values as Default"
+msgstr "Atribuir Valores de Propriedade Personalizada como Padrão"
+
+
+msgctxt "Operator"
+msgid "Copy Global Transform"
+msgstr "Copiar transformações globais"
+
+
+msgid "Reveal all render objects by setting the hide render flag"
+msgstr "Revela todos os objetos renderizáveis configurando a bandeira de ocultação da renderização."
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "Limpar todas as restrições de renderização"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Cursor"
+msgstr "Configurar deslocamento a partir do cursor"
+
+
+msgid "Hide unselected render objects of same type as active by setting the hide render flag"
+msgstr "Oculta os objetos de renderização não selecionados do mesmo tipo que o ativo pela configuração da bandeira de ocultação da renderização."
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "Restringe a renderização aos não selecionados"
+
+
+msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
+msgstr "Transfere os mapas UV a partir do ativo para os objetos selecionados (é necessário uma geometria combinante)."
+
+
+msgctxt "Operator"
+msgid "Transfer UV Maps"
+msgstr "Transferir mapas UV"
+
+
+msgid "Convert objects into instanced faces"
+msgstr "Converte objetos em duplicações por face instanciadas"
+
+
+msgctxt "Operator"
+msgid "Make Instance Face"
+msgstr "Fazer Face de Instância"
+
+
+msgctxt "Operator"
+msgid "Paste Global Transform"
+msgstr "Colar Transformação Global"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Gerar explosão rápida"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Gerar pelos rápido"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Gerar fumaça rápida"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "Aleatorizar transformações"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Novo(a)"
+
+
+msgid "Select the active camera"
+msgstr "Seleciona a câmera ativa."
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Selecionar câmera"
+
+
+msgid "Select object relative to the active object's position in the hierarchy"
+msgstr "Seleciona o objeto com relação a posição do objeto ativo dentro da hierarquia."
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Selecionar hierarquia"
+
+
+msgid "Select objects matching a naming pattern"
+msgstr "Seleciona os objetos que coincidam com um padrão de nome fornecido."
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "Selecionar por padrão de nomes"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Transferir chave de formato"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "Ajuste de subdivisão"
+
+
+msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
+msgstr "Converte as transformações normais dos objetos para transformações delta, quaisquer transformações delta também serão incluídas no resultado final."
+
+
+msgctxt "Operator"
+msgid "Transforms to Deltas"
+msgstr "Transformações para deltas"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "Escurecer as cores dos vértices"
+
+
+msgid "Add or remove a Hair Dynamics Preset"
+msgstr "Permite adicionar ou remover uma predefinição de dinâmicas para cabelos."
+
+
+msgctxt "Operator"
+msgid "Add Hair Dynamics Preset"
+msgstr "Adicionar predefinição de dinâmicas para cabelos"
+
+
+msgctxt "Operator"
+msgid "Create Pose Asset"
+msgstr "Criar Recurso de Pose"
+
+
+msgid "Display information and preferences for this add-on"
+msgstr "Exibe as informações e preferências para este complemento."
+
+
+msgid "Install an add-on"
+msgstr "Permite a instalação de um complemento."
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "Instalar Complemento"
+
+
+msgid "Scan add-on directories for new modules"
+msgstr "Escaneia os diretórios de complementos por novos módulos."
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Atualizar"
+
+
+msgid "Delete the add-on from the file system"
+msgstr "Apaga o complemento a partir do sistema de arquivos."
+
+
+msgctxt "Operator"
+msgid "Remove Add-on"
+msgstr "Remover complemento"
+
+
+msgctxt "Operator"
+msgid "Install Template from File..."
+msgstr "Instalar modelo a partir do arquivo..."
+
+
+msgid "Copy settings from previous version"
+msgstr "Copia as configurações a partir da versão anterior."
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Copiar as configurações anteriores"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "Ativar configuração de teclas"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "Exportar configuração de teclas..."
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "Importar configuração de teclas..."
+
+
+msgid "Remove key config"
+msgstr "Remove uma configuração de teclas."
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "Remover configuração de teclas"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "Testar configuração de teclas por conflitos"
+
+
+msgid "Add key map item"
+msgstr "Adiciona um item ao mapa de teclas."
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "Adicionar item de mapa de teclas"
+
+
+msgid "Remove key map item"
+msgstr "Remove um item do mapa de teclas."
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "Remover item de mapa de teclas"
+
+
+msgid "Restore key map item"
+msgstr "Restaura um item de mapa de teclas."
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "Restaurar item de mapa de teclas"
+
+
+msgid "Restore key map(s)"
+msgstr "Restaura o mapas de teclas."
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "Restaurar mapas de teclas"
+
+
+msgctxt "Operator"
+msgid "Copy Studio Light Settings"
+msgstr "Copiar Definições de Luz de Estúdio"
+
+
+msgid "Install a user defined light"
+msgstr "Instalar uma lâmpada definida pelo usuário"
+
+
+msgctxt "Operator"
+msgid "Install Light"
+msgstr "Instalar Luz"
+
+
+msgctxt "Operator"
+msgid "Save Custom Studio Light"
+msgstr "Salvar Luz de Estúdio Personalizada"
+
+
+msgctxt "Operator"
+msgid "Uninstall Studio Light"
+msgstr "Desinstalar Luz de Estúdio"
+
+
+msgid "Load and apply a Blender XML theme file"
+msgstr "Carrega e aplica um arquivo de temas XML Blender."
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "Instalar tema..."
+
+
+msgid "Add an Integrator Preset"
+msgstr "Adiciona uma predefinição de integrador."
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "Adicionar predefinição de integrador"
+
+
+msgid "Add a Sampling Preset"
+msgstr "Adiciona uma predefinição de amostragem."
+
+
+msgctxt "Operator"
+msgid "Add Sampling Preset"
+msgstr "Adicionar predefinição de amostragem"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "Reproduz os quadros renderizados ou filmes usando um reprodutor externo."
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Reproduzir animação renderizada"
+
+
+msgid "Add or remove a Render Preset"
+msgstr "Permite adicionar ou remover uma predefinição de renderização."
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "Adicionar predefinição de renderização"
+
+
+msgid "Bake rigid body transformations of selected objects to keyframes"
+msgstr "Gera e grava as transformações de corpos rígidos dos objetos selecionados para quadros-chave."
+
+
+msgctxt "Operator"
+msgid "Bake to Keyframes"
+msgstr "Capturar para quadros-chave"
+
+
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "Cria restrições de corpo rígido entre os corpos rígidos ativos e selecionados."
+
+
+msgctxt "Operator"
+msgid "Connect Rigid Bodies"
+msgstr "Conectar corpos rígidos"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Configurações de corpo rígido a partir do objeto ativo para o selecionado."
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Configurações de corpo rígido"
+
+
+msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
+msgstr "Adiciona os caminhos de dados para as propriedades das marcações de arestas selecionadas Freestyle ao conjunto de inserção de chaves ativo."
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "Adicionar marcações de aresta ao CJ de inserção de chaves"
+
+
+msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
+msgstr "Adiciona caminhos de dados para a propriedade das marcações de faces Freestyle dos polígonos selecionados ao conjunto de inserção de chaves ativo."
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "Adicionar marcações de faces ao CJ de inserção de chaves"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "Preencher campo pela seleção"
+
+
+msgid "Open a style module file"
+msgstr "Abre um arquivo de módulo de estilo."
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Abrir arquivo de módulo de estilo"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Brush Preset"
+msgstr "Adicionar Predefinição de Pincéis de Lápis de Cera"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Material Preset"
+msgstr "Adicionar Material Predefinido de Lápis de Cera"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "Executar uma predefinição do Python"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "Faz uma animação de esmaecimento cruzado nos volumes do som de duas faixas de som selecionadas."
+
+
+msgid "Deinterlace all selected movie sources"
+msgstr "Desentrelaça todas as fontes de filme selecionadas."
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Desentrelaçar os filmes"
+
+
+msgctxt "Operator"
+msgid "Add Fades"
+msgstr "Adicionar Faces"
+
+
+msgid "Export given add-on's translation data as PO files"
+msgstr "Exporta os dados de tradução do complemento fornecidos como arquivos PO."
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Export"
+msgstr "Exportação de complemento l18n"
+
+
+msgid "Import given add-on's translation data from PO files"
+msgstr "Importa os dados de tradução do complemento a partir de arquivos PO."
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Import"
+msgstr "Importação de complemento l18n"
+
+
+msgid "Wrapper operator which will invoke given op after setting its module_name"
+msgstr "Operador de invólucro que irá invocar o operador fornecido após a configuração de seu nome_de_módulo (module_name)."
+
+
+msgctxt "Operator"
+msgid "Update I18n Add-on"
+msgstr "Atualizar complemento I18n"
+
+
+msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
+msgstr "Atualiza os dados de tradução do complemento fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "Carrega as configurações de tradução a partir de um arquivo JSon persistente."
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "Carregar configurações de I18n"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "Salva as configurações de tradução dentro de um arquivo persistente JSon."
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "Salvar configurações de I18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "Configurações de inicialização de atualização I18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "Inicia a atualização de seleção de línguas I18N"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "Atualizar as estatísticas l18n"
+
+
+msgid "Export UV layout to file"
+msgstr "Exporta o esquema de UV para arquivo."
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "Exportar esquema UV"
+
+
+msgid "Follow UVs from active quads along continuous face loops"
+msgstr "Segue as UVs a partir dos quadriláteros ativos até os anéis de faces contínuas."
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "Seguir os quadriláteros ativos"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "Pacote Lightmap"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "Aleatorizar"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual and Move"
+msgstr "Executar extrusão individual e mover"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Normals"
+msgstr "Executar extrusão e mover nas normais"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Individual Normals"
+msgstr "Executar extrusão e mover nas normais individuais"
+
+
+msgctxt "Operator"
+msgid "Transform Gizmo Set"
+msgstr "Transformar Conjunto de Apretechos"
+
+
+msgctxt "Operator"
+msgid "Batch Rename"
+msgstr "Renomear em Massa"
+
+
+msgctxt "Operator"
+msgid "Validate .blend strings"
+msgstr "Validar strings .blend"
+
+
+msgid "Set boolean values for a collection of items"
+msgstr "Permite definir os valores booleanos para uma coleção de itens."
+
+
+msgctxt "Operator"
+msgid "Context Collection Boolean Set"
+msgstr "Coleção de definições de contexto booleano"
+
+
+msgid "Set a context array value (useful for cycling the active mesh edit mode)"
+msgstr "Configura um valor para matriz de contexto (útil para reciclagem do modo de edição da malha ativa)."
+
+
+msgctxt "Operator"
+msgid "Context Array Cycle"
+msgstr "Ciclo para matriz de contexto"
+
+
+msgid "Toggle a context value"
+msgstr "Alterna um valor de contexto."
+
+
+msgctxt "Operator"
+msgid "Context Enum Cycle"
+msgstr "Ciclo de configuração de contexto"
+
+
+msgctxt "Operator"
+msgid "Context Int Cycle"
+msgstr "Ciclo de contexto inteiro"
+
+
+msgctxt "Operator"
+msgid "Context Enum Menu"
+msgstr "Menu de enumeração de contexto"
+
+
+msgid "Adjust arbitrary values with mouse input"
+msgstr "Ajusta valores arbitrários com a entrada do mouse."
+
+
+msgctxt "Operator"
+msgid "Context Modal Mouse"
+msgstr "Mouse em contexto modal"
+
+
+msgctxt "Operator"
+msgid "Context Enum Pie"
+msgstr "Contexto de enumeração de setores"
+
+
+msgid "Scale a float context value"
+msgstr "Escalona um valor de contexto de ponto flutuante."
+
+
+msgctxt "Operator"
+msgid "Context Scale Float"
+msgstr "Contexto de escala em ponto flutuante"
+
+
+msgid "Scale an int context value"
+msgstr "Escalona um valor de contexto inteiro."
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "Contexto de escala inteiro"
+
+
+msgid "Set a context value"
+msgstr "Permite definir um valor de contexto."
+
+
+msgctxt "Operator"
+msgid "Context Set Boolean"
+msgstr "Ajustar booliana para contexto"
+
+
+msgctxt "Operator"
+msgid "Context Set Enum"
+msgstr "Enumerador de configuração de contexto"
+
+
+msgctxt "Operator"
+msgid "Context Set Float"
+msgstr "Configurar ponto flutuante para contexto"
+
+
+msgid "Set a context value to an ID data-block"
+msgstr "Configura um valor de contexto para um identificador de bloco de dados."
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "Configurar identificador para biblioteca"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "Contexto - configurações"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "Contexto - configurar variável de texto"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "Contexto - configurar valor"
+
+
+msgctxt "Operator"
+msgid "Context Toggle"
+msgstr "Contexto - alternar"
+
+
+msgctxt "Operator"
+msgid "Context Toggle Values"
+msgstr "Contexto - alternar valores"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "Ver documentação"
+
+
+msgid "Load online manual"
+msgstr "Carrega o manual na internet."
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "Ver manual do Blender"
+
+
+msgctxt "Operator"
+msgid "Handle dropped .blend file"
+msgstr "Lidar com arquivo .blend descartado"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Lista de operadores de manipulação"
+
+
+msgctxt "Operator"
+msgid "Operator Enum Pie"
+msgstr "Operador de enumeração de setorização"
+
+
+msgid "Add or remove an Operator Preset"
+msgstr "Permite adicionar ou remover uma predefinição de operador."
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "Predefinições para operador"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Desabilitar complemento"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Habilitar complemento"
+
+
+msgid "Open a path in a file browser"
+msgstr "Abre um caminho em um navegador de arquivos."
+
+
+msgid "Clear selected .blend file's previews"
+msgstr "Limpa as previsões dos arquivos .blend selecionados usando tarefas em lote."
+
+
+msgctxt "Operator"
+msgid "Batch-Clear Previews"
+msgstr "Limpar as previsões em lote"
+
+
+msgid "Generate selected .blend file's previews"
+msgstr "Gera as previsões de arquivos .blend selecionados usando tarefas em lote."
+
+
+msgctxt "Operator"
+msgid "Batch-Generate Previews"
+msgstr "Gerar as previsões em lote"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Adicionar propriedade"
+
+
+msgid "Jump to a different tab inside the properties editor"
+msgstr "Salta para um campo diferente dentro do editor de propriedades."
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Edição de propriedades"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "Uso interno (edição do valor da propriedade \"data_path\")."
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "Remover propriedade"
+
+
+msgid "Generate system information, saved into a text file"
+msgstr "Gera informações sobre o sistema, salvando-as em um arquivo de texto."
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Salvar as informações sobre o sistema"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Name"
+msgstr "Definir Ferramenta por Nome"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Index"
+msgstr "Definir Ferramenta por Índice"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "Barra de Ferramentas"
+
+
+msgctxt "Operator"
+msgid "Toolbar Prompt"
+msgstr "Prompt da Barra de Ferramentas"
+
+
 msgid "Operator Options"
 msgstr "Opções para operadores"
 
@@ -30860,11 +32078,6 @@ msgid "Remove selected F-Curves from their current groups"
 msgstr "Remove as curvas-f selecionadas de seus grupos atuais."
 
 
-msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Limpar ações inúteis"
-
-
 msgid "Only Unused"
 msgstr "Somente os não utilizados"
 
@@ -31014,11 +32227,6 @@ msgid "Add Empty Keying Set"
 msgstr "Adicionar conjunto de inserção de chaves vazio"
 
 
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "Exportar conjunto de inserção de chaves..."
-
-
 msgid "Filter folders"
 msgstr "Filtra por pastas"
 
@@ -31086,11 +32294,6 @@ msgstr "Permite definir interativamente um intervalo de quadros usado para a rep
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "Definir quadro inicial"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Atualizar as restrições de transformações de animação"
 
 
 msgid "Convert to Radians"
@@ -31228,11 +32431,6 @@ msgstr "Extrudar para Cursor"
 
 msgid "Create a new bone going from the last selected joint to the mouse position"
 msgstr "Cria um novo osso indo da última junta selecionada até a posição do mouse."
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "Mostrar tudo"
 
 
 msgid "Pose Bone"
@@ -31400,11 +32598,6 @@ msgid "Toggle selection status of all bones"
 msgstr "Alterna o status de seleção para todos os ossos."
 
 
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "Selecionar hierarquia"
-
-
 msgid "Select immediate parent/children of selected bones"
 msgstr "Seleciona os parentes ou as crianças mais imediatas dos ossos selecionados."
 
@@ -31543,11 +32736,6 @@ msgstr "+X para -X"
 
 
 msgctxt "Operator"
-msgid "Assign Action"
-msgstr "Atribuir Ação"
-
-
-msgctxt "Operator"
 msgid "Copy to Asset Library"
 msgstr "Copiar para a Biblioteda de Recursos"
 
@@ -31675,21 +32863,6 @@ msgstr "Atualizar Biblioteca de Recursos"
 msgctxt "Operator"
 msgid "Mark as Asset"
 msgstr "Marcar como Recurso"
-
-
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "Abrir Arquivo Blender"
-
-
-msgctxt "Operator"
-msgid "Add Asset Tag"
-msgstr "Adicionar Etiqueta de Recurso"
-
-
-msgctxt "Operator"
-msgid "Remove Asset Tag"
-msgstr "Remover Etiqueta de Recurso"
 
 
 msgctxt "Operator"
@@ -31929,15 +33102,6 @@ msgid "Update objects paths list with new data from the archive"
 msgstr "Atualiza a lista de caminhos de objetos juntamente com seus dados a partir do(s) arquivo(s)."
 
 
-msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "Adicionar predefinição de câmera"
-
-
-msgid "Add or remove a Camera Preset"
-msgstr "Permite adicionar ou remover uma predefinição de câmera"
-
-
 msgid "Name of the preset, used to make the path name"
 msgstr "Nome da predefinição básica, usada para criar o nome do caminho."
 
@@ -31948,15 +33112,6 @@ msgstr "Incluir comprimento focal"
 
 msgid "Include focal length into the preset"
 msgstr "Inclui o comprimento focal dentro da predefinição."
-
-
-msgctxt "Operator"
-msgid "Add Safe Area Preset"
-msgstr "Adicionar predefinição de áreas de segurança"
-
-
-msgid "Add or remove a Safe Areas Preset"
-msgstr "Permite adicionar ou remover uma predefinição de áreas de segurança."
 
 
 msgctxt "Operator"
@@ -32022,19 +33177,6 @@ msgstr "Faixas Médias"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "Marcadores 3D para a malha"
-
-
-msgid "Create vertex cloud using coordinates of reconstructed tracks"
-msgstr "Cria uma nuvem de vértices usando as coordenadas das reconstruções do rastreamento."
-
-
-msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "Permite adicionar ou remover uma predefinição intrínseca de câmera de rastreamento."
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "Limpar rastreamentos"
 
@@ -32086,15 +33228,6 @@ msgstr "Limpa somente a trilha de rastreamento ativa ao invés de todas as trilh
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "Restrição para curvas-f"
-
-
-msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
-msgstr "Cria as curvas-f para o objeto que irá copiar os movimentos do objeto criados por esta restrição."
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "Copiar trilhas"
 
@@ -32128,15 +33261,6 @@ msgstr "Apagar marcadores"
 
 msgid "Delete marker for current frame from selected tracks"
 msgstr "Apaga o marcador para o quadro atual a partir das trilha selecionadas."
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "Apagar aproximações"
-
-
-msgid "Delete movie clip proxy files from the hard drive"
-msgstr "Apaga os arquivos de aproximações dos clipes de filme a partir do disco rígido."
 
 
 msgctxt "Operator"
@@ -32225,15 +33349,6 @@ msgstr "Estende a seleção ao invés de limpar a seleção existente"
 
 msgid "Mouse location to select channel"
 msgstr "Localização do mouse para o canal selecionado"
-
-
-msgctxt "Operator"
-msgid "Filter Tracks"
-msgstr "Filtrar rastreamentos"
-
-
-msgid "Filter tracks which has weirdly looking spikes in motion curves"
-msgstr "Filtrar os rastreamentos que possuem picos que pareçam estranhos nas curvas de movimento."
 
 
 msgid "Track Threshold"
@@ -32544,11 +33659,6 @@ msgstr "Seleciona os marcadores usando a seleção por laço."
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "Definir o clipe ativo"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "Configurar eixo"
 
@@ -32648,20 +33758,6 @@ msgstr "Quadro-chave para configurar"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Configurar como plano de fundo"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "Configurar cena de rastreamento"
-
-
-msgid "Prepare scene for compositing 3D objects into this footage"
-msgstr "Prepara a cena para a composição de objetos 3D dentro desta filmagem."
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "Deslizar marcador"
 
@@ -32743,15 +33839,6 @@ msgstr "Permite selecionar as trilhas que são usadas para estabilização da lo
 
 
 msgctxt "Operator"
-msgid "Add Track Color Preset"
-msgstr "Adicionar predefinição de rastreamento de cor"
-
-
-msgid "Add or remove a Clip Track Color Preset"
-msgstr "Permite adicionar ou remover uma predefinição de cor para rastreamento de clipe"
-
-
-msgctxt "Operator"
 msgid "Copy Color"
 msgstr "Copiar cor"
 
@@ -32778,33 +33865,6 @@ msgstr "Rastreia um marcador durante a sequência de imagem ao invés de imagem 
 
 
 msgctxt "Operator"
-msgid "Track Settings as Default"
-msgstr "Configurações de faixas como padrão"
-
-
-msgid "Copy tracking settings from active track to default settings"
-msgstr "Copia as configurações de rastreamento do rastreamento ativo para as configurações padrão."
-
-
-msgctxt "Operator"
-msgid "Copy Track Settings"
-msgstr "Copiar as configurações de rastreamento"
-
-
-msgid "Copy tracking settings from active track to selected tracks"
-msgstr "Copia as configurações de rastreamento do rastreamento ativo para os rastreamentos selecionados."
-
-
-msgctxt "Operator"
-msgid "Link Empty to Track"
-msgstr "Vincular objeto vazio para a trilha"
-
-
-msgid "Create an Empty object which will be copying movement of active track"
-msgstr "Cria um objeto vazio, o qual estará copiando o movimento da trilha ativa."
-
-
-msgctxt "Operator"
 msgid "Add Tracking Object"
 msgstr "Adicionar objeto de rastreamento"
 
@@ -32820,15 +33880,6 @@ msgstr "Remover objeto de rastreamento"
 
 msgid "Remove object for tracking"
 msgstr "Remove o objeto usado para rastreamento."
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "Adicionar predefinição de configurações de rastreamento"
-
-
-msgid "Add or remove a motion tracking settings preset"
-msgstr "Permite adicionar ou remover uma predefinição de configurações de captura de movimento."
 
 
 msgid "View whole image with markers"
@@ -32923,15 +33974,6 @@ msgstr "Proporção de ampliação, 1.0 é 1:1, mais alto é ampliado, mais baix
 
 
 msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "Adicionar predefinição de tecido"
-
-
-msgid "Add or remove a Cloth Preset"
-msgstr "Permite adicionar ou remover uma predefinição de tecido"
-
-
-msgctxt "Operator"
 msgid "Create New Collection"
 msgstr "Criar Nova Coleção"
 
@@ -32959,24 +34001,6 @@ msgstr "Remover Selecionado da Coleção Ativa"
 msgctxt "Operator"
 msgid "Remove from All Collections"
 msgstr "Remover de Todas as Coleções"
-
-
-msgctxt "Operator"
-msgid "Console Autocomplete"
-msgstr "Autocompletar no console"
-
-
-msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "Avalia o espaço de nome até o topo usando a posição do cursor e fornecendo uma lista de opções funcionais, ou complementa o nome caso haja somente uma equivalência."
-
-
-msgctxt "Operator"
-msgid "Console Banner"
-msgstr "Aviso de console"
-
-
-msgid "Print a message when the terminal initializes"
-msgstr "Imprime uma mensagem quando o terminal inicializar."
 
 
 msgctxt "Operator"
@@ -33023,15 +34047,6 @@ msgstr "Copia o texto selecionado para a área de transferência."
 
 
 msgctxt "Operator"
-msgid "Copy to Clipboard (as Script)"
-msgstr "Copiar para área de transferência (como script)"
-
-
-msgid "Copy the console contents for use in a script"
-msgstr "Copia os conteúdos do console para usar dentro de um script."
-
-
-msgctxt "Operator"
 msgid "Delete"
 msgstr "Apagar"
 
@@ -33058,11 +34073,6 @@ msgstr "Próxima palavra"
 
 msgid "Previous Word"
 msgstr "Palavra anterior"
-
-
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "Execução no console"
 
 
 msgctxt "Operator"
@@ -33124,15 +34134,6 @@ msgstr "Inserir"
 
 msgid "Insert text at cursor position"
 msgstr "Insere texto na posição do cursor."
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Linguagem do console"
-
-
-msgid "Set the current language for this console"
-msgstr "Configura a linguagem atual para este console."
 
 
 msgctxt "Operator"
@@ -33210,11 +34211,6 @@ msgstr "Apaga 4 espaços a partir do início da linha."
 
 
 msgctxt "Operator"
-msgid "Add Target"
-msgstr "Adicionar Alvo"
-
-
-msgctxt "Operator"
 msgid "Apply Constraint"
 msgstr "Adicionar Restrição"
 
@@ -33273,11 +34269,6 @@ msgstr "Remove a restrição a partir da pilha de restrições."
 
 
 msgctxt "Operator"
-msgid "Disable and Keep Transform"
-msgstr "Desabilitar e Manter as Transformações"
-
-
-msgctxt "Operator"
 msgid "Auto Animate Path"
 msgstr "Animar automaticamente o caminho"
 
@@ -33324,16 +34315,6 @@ msgstr "Mover a restrição para cima"
 
 msgid "Move constraint up in constraint stack"
 msgstr "Move a restrição para cima dentro da pilha de restrições."
-
-
-msgctxt "Operator"
-msgid "Normalize Weights"
-msgstr "Normalizar Pesos"
-
-
-msgctxt "Operator"
-msgid "Remove Target"
-msgstr "Remover Alvo"
 
 
 msgctxt "Operator"
@@ -33841,21 +34822,6 @@ msgstr "Localização para adicionar um novo vértice."
 
 
 msgctxt "Operator"
-msgid "Denoise Animation"
-msgstr "Remover Ruído da Animação"
-
-
-msgctxt "Operator"
-msgid "Merge Images"
-msgstr "Mesclar Imagens"
-
-
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "Usar nós"
-
-
-msgctxt "Operator"
 msgid "Dynamic Paint Bake"
 msgstr "Gerar e gravar pintura dinâmica"
 
@@ -33994,15 +34960,6 @@ msgid "Undo and redo previous action"
 msgstr "Desfaz e / ou refaz as ações antecedentes."
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "Exportar BVH"
-
-
-msgid "Save a BVH motion capture file from an armature"
-msgstr "Salva um arquivo de captura de movimentos de hierarquias de volume circundante a partir de uma armação."
-
-
 msgid "Filepath used for exporting the file"
 msgstr "Caminho usado para exportar o arquivo."
 
@@ -34085,15 +35042,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Converte rotações para o Euler ZYX."
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "Exportar FBX"
-
-
-msgid "Write a FBX file"
-msgstr "Escreve um arquivo FBX"
 
 
 msgid "Add Leaf Bones"
@@ -34450,11 +35398,6 @@ msgstr "Converte todas as faces para triângulos."
 
 msgid "Add binormal and tangent vectors, together with normal they form the tangent space (will only work correctly with tris/quads only meshes!)"
 msgstr "Adiciona vetores binormais e tangentes, juntamente com as normais que eles formam dentro do espaço tangente (só funciona corretamente com malhas formadas por triângulos ou quadriláteros !)."
-
-
-msgctxt "Operator"
-msgid "Export glTF 2.0"
-msgstr "Exportar glTF 2.0"
 
 
 msgid "No export"
@@ -34945,15 +35888,6 @@ msgstr "Pausar Captura"
 
 msgid "Pause Bake"
 msgstr "Pausar Captura"
-
-
-msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "Adicionar predefinição de fluido"
-
-
-msgid "Add or remove a Fluid Preset"
-msgstr "Permite adicionar ou remover uma predefinição de fluido."
 
 
 msgctxt "Operator"
@@ -36399,11 +37333,6 @@ msgstr "Aparar Traço"
 
 
 msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Inverter Cores"
-
-
-msgctxt "Operator"
 msgid "Transform Stroke Fill"
 msgstr "Transformar Preenchimento de Traço"
 
@@ -36891,15 +37820,6 @@ msgid "Cycle in Reverse"
 msgstr "Reciclar em reverso"
 
 
-msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "Editar imagem externamente"
-
-
-msgid "Edit image in an external application"
-msgstr "Permite a edição de imagem em um aplicativo externo."
-
-
 msgid "Filepath used for importing the file"
 msgstr "Caminho de arquivo usado para importação do arquivo."
 
@@ -36987,20 +37907,6 @@ msgstr "Empacotar imagem"
 
 msgid "Pack an image as embedded data into the .blend file"
 msgstr "Empacota uma imagem como dados embutidos dentro do arquivo Blender."
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "Aplicar projeção"
-
-
-msgid "Project edited image back onto the object"
-msgstr "Projeta a imagem editada de volta no objeto."
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "Edição de projeção"
 
 
 msgctxt "Operator"
@@ -37190,15 +38096,6 @@ msgid "Set zoom ratio of the view"
 msgstr "Define a proporção de ampliação da visualização."
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "Importar BVH"
-
-
-msgid "Load a BVH motion capture file"
-msgstr "Carrega um arquivo de captura de movimento com base em hierarquia de volume circundante."
-
-
 msgid "Starting frame for the animation"
 msgstr "Quadro inicial para a animação."
 
@@ -37237,24 +38134,6 @@ msgstr "Escalonar quadros por segundo"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "Escalona a taxa de quadros a partir da hierarquia de volume circundante para as cenas atuais, caso contrário, cada quadro mapeará diretamente para um quadro Blender."
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Importar SVG"
-
-
-msgid "Load a SVG file"
-msgstr "Carrega um arquivo de gráficos vetoriais escalonáveis (.svg)."
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "Importar FBX"
-
-
-msgid "Load a FBX file"
-msgstr "Carrega um arquivo FBX"
 
 
 msgid "Animation Offset"
@@ -37371,11 +38250,6 @@ msgstr "Usa uma rotação prévia ou posterior a partir das transformações FBX
 
 msgid "Subdivision Data"
 msgstr "Dados da Subdivisão"
-
-
-msgctxt "Operator"
-msgid "Import glTF 2.0"
-msgstr "Importar glTF 2.0"
 
 
 msgid "Pack all images into .blend file"
@@ -38491,10 +39365,6 @@ msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "Solda as arestas desconectadas criando faces (dividindo-as em novas faces)."
 
 
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "Copia as coordenadas de espelhamento de UV no eixo X com base em uma malha espelhada."
-
-
 msgid "Axis Direction"
 msgstr "Direção do eixo"
 
@@ -39102,11 +39972,6 @@ msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Constrói uma malha planar preenchida com 4 vértices."
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Adicionar objeto toroidal"
-
-
 msgid "Exterior Radius"
 msgstr "Raio exterior"
 
@@ -39405,15 +40270,6 @@ msgid "Select more vertices, edges or faces connected to initial selection"
 msgstr "Seleciona mais vértices, arestas ou faces conectados a seleção inicial."
 
 
-msgctxt "Operator"
-msgid "Select Next Element"
-msgstr "Selecionar os próximos elementos"
-
-
-msgid "Select the next element (using selection order)"
-msgstr "Seleciona os próximos elementos (usando a ordem de seleção)."
-
-
 msgid "Select all non-manifold vertices or edges"
 msgstr "Seleciona todos os vértices ou arestas não contíguos."
 
@@ -39444,15 +40300,6 @@ msgstr "Arestas de aramado"
 
 msgid "Deselect every Nth element starting from the active vertex, edge or face"
 msgstr "De-seleciona qualquer enésimo elemento iniciando a partir de um vértice, aresta ou face ativo."
-
-
-msgctxt "Operator"
-msgid "Select Previous Element"
-msgstr "Selecionar os elementos anteriores"
-
-
-msgid "Select the previous element (using selection order)"
-msgstr "Seleciona os elementos anteriores (usando a ordem de seleção)."
 
 
 msgid "Randomly select vertices"
@@ -39904,11 +40751,6 @@ msgid "Apply scaling of selected strips to their referenced Actions"
 msgstr "Aplica a escala das faixas selecionadas às suas ações referenciadas."
 
 
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "Gerar e gravar ação"
-
-
 msgid "Which data's transformations to bake"
 msgstr "Quais dados de transformação gerar e gravar."
 
@@ -40242,15 +41084,6 @@ msgid "Add a mask node to the current node editor"
 msgstr "Adiciona um nó de máscara ao editor de nó atual."
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Adicionar nó"
-
-
-msgid "Add a node to the active tree"
-msgstr "Adiciona um nó para a árvore ativa."
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "Configurações a ser aplicadas no nó recentemente criado."
 
@@ -40324,15 +41157,6 @@ msgstr "Amplia ou reduz a imagem de plano de fundo."
 
 msgid "Clear the boundaries for viewer operations"
 msgstr "Limpa as limitações para as operações de visualização."
-
-
-msgctxt "Operator"
-msgid "Collapse and Hide Unused Sockets"
-msgstr "Encolher e ocultar os conectores não usados"
-
-
-msgid "Toggle collapsed nodes and hide unused sockets"
-msgstr "Alterna os nós encolhidos e oculta os conectores não usados."
 
 
 msgctxt "Operator"
@@ -40568,11 +41392,6 @@ msgstr "Alternar entre mudo ou funcional"
 
 
 msgctxt "Operator"
-msgid "Assign New Geometry Node Group"
-msgstr "Atribuir Novo Grupo de Nós Geométricos"
-
-
-msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Nova árvore de nós"
 
@@ -40583,15 +41402,6 @@ msgstr "Cria uma nova árvore de nós."
 
 msgid "Tree Type"
 msgstr "Tipo de árvore"
-
-
-msgctxt "Operator"
-msgid "Add Node Color Preset"
-msgstr "Adicionar predefinição de nó de cor"
-
-
-msgid "Add or remove a Node Color Preset"
-msgstr "Permite adicionar ou remover uma predefinição de nó de cor."
 
 
 msgid "Copy color to all selected nodes"
@@ -40763,15 +41573,6 @@ msgid "Move and Attach"
 msgstr "Mover e conectar"
 
 
-msgctxt "Operator"
-msgid "Parent Node Tree"
-msgstr "Árvore de nós parente"
-
-
-msgid "Go to parent node tree"
-msgstr "Ir para a árvore de nós parente."
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "Re-escalona a vista de maneira que você possa ver todos os nós."
 
@@ -40798,22 +41599,12 @@ msgid "Add an object to the scene"
 msgstr "Permite adicionar um objeto para a cena."
 
 
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Adicionar modificador"
-
-
 msgid "Add named object"
 msgstr "Permite a adição de um objeto nomeado."
 
 
 msgid "Duplicate object but not object data, linking to the original data"
 msgstr "Duplica os objetos mas não os dados do objeto, vinculando-os aos dados originais."
-
-
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "Alinhar objetos"
 
 
 msgid "Align to axis"
@@ -40857,26 +41648,12 @@ msgstr "Usa o objeto ativo como referência de posição para que os objetos sel
 
 
 msgctxt "Operator"
-msgid "Animated Transforms to Deltas"
-msgstr "Transformações animadas para deltas"
-
-
-msgid "Convert object animation for normal transforms to delta transforms"
-msgstr "Converte a animação do objeto de transformações normais para transformações delta."
-
-
-msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Adicionar armação"
 
 
 msgid "Add an armature object to the scene"
 msgstr "Adiciona um objeto do tipo armação de ossos para a cena."
-
-
-msgctxt "Operator"
-msgid "Assign Custom Property Values as Default"
-msgstr "Atribuir Valores de Propriedade Personalizada como Padrão"
 
 
 msgctxt "Operator"
@@ -41014,11 +41791,6 @@ msgstr "Mantém os objetos originais ao invés de substituí-los."
 
 msgid "Type of object to convert to"
 msgstr "Tipo de objeto para o qual converter."
-
-
-msgctxt "Operator"
-msgid "Copy Global Transform"
-msgstr "Copiar transformações globais"
 
 
 msgctxt "Operator"
@@ -41249,15 +42021,6 @@ msgstr "Alterar visibilidade"
 
 
 msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "Limpar todas as restrições de renderização"
-
-
-msgid "Reveal all render objects by setting the hide render flag"
-msgstr "Revela todos os objetos renderizáveis configurando a bandeira de ocultação da renderização."
-
-
-msgctxt "Operator"
 msgid "Show Hidden Objects"
 msgstr "Mostrar Objetos Ocultos"
 
@@ -41343,20 +42106,6 @@ msgstr "Seleciona os vértices afetados na malha."
 
 
 msgctxt "Operator"
-msgid "Set Offset from Cursor"
-msgstr "Configurar deslocamento a partir do cursor"
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "Restringe a renderização aos não selecionados"
-
-
-msgid "Hide unselected render objects of same type as active by setting the hide render flag"
-msgstr "Oculta os objetos de renderização não selecionados do mesmo tipo que o ativo pela configuração da bandeira de ocultação da renderização."
-
-
-msgctxt "Operator"
 msgid "Join"
 msgstr "Juntar"
 
@@ -41368,15 +42117,6 @@ msgstr "Junta os objetos selecionados dentro do objeto ativo."
 msgctxt "Operator"
 msgid "Join as Shapes"
 msgstr "Juntar como formatos"
-
-
-msgctxt "Operator"
-msgid "Transfer UV Maps"
-msgstr "Transferir mapas UV"
-
-
-msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
-msgstr "Transfere os mapas UV a partir do ativo para os objetos selecionados (é necessário uma geometria combinante)."
 
 
 msgctxt "Operator"
@@ -41449,15 +42189,6 @@ msgstr "Limpar deltas"
 
 msgid "Clear delta location in addition to clearing the normal location transform"
 msgstr "Limpa a localização delta em adição a limpeza das transformações normais de localização."
-
-
-msgctxt "Operator"
-msgid "Make Instance Face"
-msgstr "Fazer Face de Instância"
-
-
-msgid "Convert objects into instanced faces"
-msgstr "Converte objetos em duplicações por face instanciadas"
 
 
 msgctxt "Operator"
@@ -41978,11 +42709,6 @@ msgid "Remove the selected particle system"
 msgstr "Remove o sistema de partículas selecionado."
 
 
-msgctxt "Operator"
-msgid "Paste Global Transform"
-msgstr "Colar Transformação Global"
-
-
 msgid "Paste Method"
 msgstr "Método de Colar"
 
@@ -42023,11 +42749,6 @@ msgid "Preserve Sharp"
 msgstr "Preservar Afiado"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Gerar explosão rápida"
-
-
 msgid "Fade the pieces over time"
 msgstr "Esmaecer as peças com o tempo."
 
@@ -42038,16 +42759,6 @@ msgstr "Estilo de explosão"
 
 msgid "Outwards Velocity"
 msgstr "Velocidade centrífuga"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Gerar pelos rápido"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Gerar fumaça rápida"
 
 
 msgid "Render Smoke Objects"
@@ -42064,11 +42775,6 @@ msgstr "Estilo de fumaça"
 
 msgid "Smoke & Fire"
 msgstr "Fogo e Fumaça"
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "Aleatorizar transformações"
 
 
 msgid "Maximum distance the objects can spread over each axis"
@@ -42128,11 +42834,6 @@ msgstr "Torna aleatórios, os valores de escala."
 
 
 msgctxt "Operator"
-msgid "New"
-msgstr "Novo(a)"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Limpar rotação"
 
@@ -42159,15 +42860,6 @@ msgstr "Inverte a seleção de todos os objetos visíveis na cena."
 
 msgid "Select all visible objects that are of a type"
 msgstr "Seleciona todos os objetos visíveis que sejam de um tipo."
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "Selecionar câmera"
-
-
-msgid "Select the active camera"
-msgstr "Seleciona a câmera ativa."
 
 
 msgid "Select all visible objects grouped by various properties"
@@ -42202,10 +42894,6 @@ msgid "Light Type"
 msgstr "Tipo de Luz"
 
 
-msgid "Select object relative to the active object's position in the hierarchy"
-msgstr "Seleciona o objeto com relação a posição do objeto ativo dentro da hierarquia."
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "Direção a selecionar na hierarquia"
 
@@ -42228,15 +42916,6 @@ msgstr "Biblioteca (dados de objetos)"
 
 msgid "Select connected parent/child objects"
 msgstr "Seleciona os objetos conectados por relações entre parentes e crianças."
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "Selecionar por padrão de nomes"
-
-
-msgid "Select objects matching a naming pattern"
-msgstr "Seleciona os objetos que coincidam com um padrão de nome fornecido."
 
 
 msgid "Case Sensitive"
@@ -42399,11 +43078,6 @@ msgid "Resets the timing for absolute shape keys"
 msgstr "Redefine as temporizações para as chaves de formato absolutas."
 
 
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Transferir chave de formato"
-
-
 msgid "Transformation Mode"
 msgstr "Modo de transformações"
 
@@ -42498,11 +43172,6 @@ msgstr "Adiciona um objeto do tipo alto-falante para a cena."
 
 
 msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "Ajuste de subdivisão"
-
-
-msgctxt "Operator"
 msgid "Surface Deform Bind"
 msgstr "Atrelar deformação de superfície"
 
@@ -42575,15 +43244,6 @@ msgstr "Trilha de luz interativa para cursor"
 msgctxt "Operator"
 msgid "Place Object Under Mouse"
 msgstr "Colocar Objeto Sob o Mouse"
-
-
-msgctxt "Operator"
-msgid "Transforms to Deltas"
-msgstr "Transformações para deltas"
-
-
-msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
-msgstr "Converte as transformações normais dos objetos para transformações delta, quaisquer transformações delta também serão incluídas no resultado final."
 
 
 msgid "Which transforms to transfer"
@@ -43744,11 +44404,6 @@ msgid "Change selection for all vertices"
 msgstr "Altera a seleção para todos os vértices."
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "Escurecer as cores dos vértices"
-
-
 msgid "Blur Iterations"
 msgstr "Interações de desfoque"
 
@@ -44081,15 +44736,6 @@ msgid "Undo all edition performed on the particle system"
 msgstr "Desfaz todas as edições feitas no sistema de partículas."
 
 
-msgctxt "Operator"
-msgid "Add Hair Dynamics Preset"
-msgstr "Adicionar predefinição de dinâmicas para cabelos"
-
-
-msgid "Add or remove a Hair Dynamics Preset"
-msgstr "Permite adicionar ou remover uma predefinição de dinâmicas para cabelos."
-
-
 msgid "Hide selected particles"
 msgstr "Oculta as partículas selecionadas"
 
@@ -44271,11 +44917,6 @@ msgstr "Fator de interpolação entre o peso do pincel atual, e o peso das chave
 
 msgid "Apply Flipped"
 msgstr "Aplicar Virado"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Criar Recurso de Pose"
 
 
 msgid "Activate New Action"
@@ -44674,52 +45315,16 @@ msgid "Module name of the add-on to enable"
 msgstr "Nome do módulo de complemento para habilitar."
 
 
-msgid "Display information and preferences for this add-on"
-msgstr "Exibe as informações e preferências para este complemento."
-
-
 msgid "Module name of the add-on to expand"
 msgstr "Nome do módulo de complemento para expandir."
-
-
-msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "Instalar Complemento"
-
-
-msgid "Install an add-on"
-msgstr "Permite a instalação de um complemento."
 
 
 msgid "Target Path"
 msgstr "Caminho alvo"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Atualizar"
-
-
-msgid "Scan add-on directories for new modules"
-msgstr "Escaneia os diretórios de complementos por novos módulos."
-
-
-msgctxt "Operator"
-msgid "Remove Add-on"
-msgstr "Remover complemento"
-
-
-msgid "Delete the add-on from the file system"
-msgstr "Apaga o complemento a partir do sistema de arquivos."
-
-
 msgid "Module name of the add-on to remove"
 msgstr "O nome do módulo de complemento a ser removido."
-
-
-msgctxt "Operator"
-msgid "Install Template from File..."
-msgstr "Instalar modelo a partir do arquivo..."
 
 
 msgid "Remove existing template with the same ID"
@@ -44746,32 +45351,8 @@ msgid "Add Auto-Execution Path"
 msgstr "Adicionar Caminho de Auto-Execução"
 
 
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "Copiar as configurações anteriores"
-
-
-msgid "Copy settings from previous version"
-msgstr "Copia as configurações a partir da versão anterior."
-
-
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "Ativar configuração de teclas"
-
-
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "Exportar configuração de teclas..."
-
-
 msgid "All Keymaps"
 msgstr "Todos os mapas de teclas"
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "Importar configuração de teclas..."
 
 
 msgid "Keep Original"
@@ -44782,62 +45363,12 @@ msgid "Keep original file after copying to configuration folder"
 msgstr "Mantém o arquivo original depois de copiar para a pasta de configuração."
 
 
-msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "Remover configuração de teclas"
-
-
-msgid "Remove key config"
-msgstr "Remove uma configuração de teclas."
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "Testar configuração de teclas por conflitos"
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "Adicionar item de mapa de teclas"
-
-
-msgid "Add key map item"
-msgstr "Adiciona um item ao mapa de teclas."
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "Remover item de mapa de teclas"
-
-
-msgid "Remove key map item"
-msgstr "Remove um item do mapa de teclas."
-
-
 msgid "Item Identifier"
 msgstr "Identificador do item"
 
 
 msgid "Identifier of the item to remove"
 msgstr "Identificado do item a ser removido."
-
-
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "Restaurar item de mapa de teclas"
-
-
-msgid "Restore key map item"
-msgstr "Restaura um item de mapa de teclas."
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "Restaurar mapas de teclas"
-
-
-msgid "Restore key map(s)"
-msgstr "Restaura o mapas de teclas."
 
 
 msgid "Restore all keymaps to default"
@@ -44853,45 +45384,12 @@ msgid "Reset to the default theme colors"
 msgstr "Redefine para as cores do tema padrão."
 
 
-msgctxt "Operator"
-msgid "Copy Studio Light Settings"
-msgstr "Copiar Definições de Luz de Estúdio"
-
-
-msgctxt "Operator"
-msgid "Install Light"
-msgstr "Instalar Luz"
-
-
-msgid "Install a user defined light"
-msgstr "Instalar uma lâmpada definida pelo usuário"
-
-
 msgid "Install custom HDRIs"
 msgstr "Instalar HDRIs personalizados"
 
 
 msgid "Studio"
 msgstr "Studio"
-
-
-msgctxt "Operator"
-msgid "Save Custom Studio Light"
-msgstr "Salvar Luz de Estúdio Personalizada"
-
-
-msgctxt "Operator"
-msgid "Uninstall Studio Light"
-msgstr "Desinstalar Luz de Estúdio"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "Instalar tema..."
-
-
-msgid "Load and apply a Blender XML theme file"
-msgstr "Carrega e aplica um arquivo de temas XML Blender."
 
 
 msgid "Remove existing theme file if exists"
@@ -44939,24 +45437,6 @@ msgstr "Apaga o cache atual."
 
 
 msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "Adicionar predefinição de integrador"
-
-
-msgid "Add an Integrator Preset"
-msgstr "Adiciona uma predefinição de integrador."
-
-
-msgctxt "Operator"
-msgid "Add Sampling Preset"
-msgstr "Adicionar predefinição de amostragem"
-
-
-msgid "Add a Sampling Preset"
-msgstr "Adiciona uma predefinição de amostragem."
-
-
-msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "Renderizar na Janela de Exibição"
 
@@ -44979,24 +45459,6 @@ msgstr "Usa a janela de visualização 3D atual para renderização, caso contr�
 
 msgid "Write Image"
 msgstr "Gravar imagem"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Reproduzir animação renderizada"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "Reproduz os quadros renderizados ou filmes usando um reprodutor externo."
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "Adicionar predefinição de renderização"
-
-
-msgid "Add or remove a Render Preset"
-msgstr "Permite adicionar ou remover uma predefinição de renderização."
 
 
 msgctxt "Operator"
@@ -45053,24 +45515,6 @@ msgstr "Mostrar ou ocultar a visualização da renderização"
 
 msgid "Toggle show render view"
 msgstr "Alterna entre mostrar e ocultar a visualização da renderização."
-
-
-msgctxt "Operator"
-msgid "Bake to Keyframes"
-msgstr "Capturar para quadros-chave"
-
-
-msgid "Bake rigid body transformations of selected objects to keyframes"
-msgstr "Gera e grava as transformações de corpos rígidos dos objetos selecionados para quadros-chave."
-
-
-msgctxt "Operator"
-msgid "Connect Rigid Bodies"
-msgstr "Conectar corpos rígidos"
-
-
-msgid "Create rigid body constraints between selected rigid bodies"
-msgstr "Cria restrições de corpo rígido entre os corpos rígidos ativos e selecionados."
 
 
 msgid "Type of generated constraint"
@@ -45239,15 +45683,6 @@ msgstr "Remove as configurações de corpo rígido do objeto."
 
 
 msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Configurações de corpo rígido"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "Configurações de corpo rígido a partir do objeto ativo para o selecionado."
-
-
-msgctxt "Operator"
 msgid "Add Rigid Bodies"
 msgstr "Adicionar corpo rígidos"
 
@@ -45318,24 +45753,6 @@ msgstr "Apaga a cena ativa."
 
 
 msgctxt "Operator"
-msgid "Add Edge Marks to Keying Set"
-msgstr "Adicionar marcações de aresta ao CJ de inserção de chaves"
-
-
-msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
-msgstr "Adiciona os caminhos de dados para as propriedades das marcações de arestas selecionadas Freestyle ao conjunto de inserção de chaves ativo."
-
-
-msgctxt "Operator"
-msgid "Add Face Marks to Keying Set"
-msgstr "Adicionar marcações de faces ao CJ de inserção de chaves"
-
-
-msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
-msgstr "Adiciona caminhos de dados para a propriedade das marcações de faces Freestyle dos polígonos selecionados ao conjunto de inserção de chaves ativo."
-
-
-msgctxt "Operator"
 msgid "Add Alpha Transparency Modifier"
 msgstr "Adicionar um modificador de transparência alfa"
 
@@ -45351,11 +45768,6 @@ msgstr "Adicionar modificador de cor de linha"
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
 msgstr "Adiciona um modificador de cor de linha ao estilo de linha associado com o conjunto de linha ativo."
-
-
-msgctxt "Operator"
-msgid "Fill Range by Selection"
-msgstr "Preencher campo pela seleção"
 
 
 msgid "Name of the modifier to work on"
@@ -45480,15 +45892,6 @@ msgid "Direction to move the chosen style module towards"
 msgstr "A direção na qual mover o módulo de estilo escolhido."
 
 
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "Abrir arquivo de módulo de estilo"
-
-
-msgid "Open a style module file"
-msgstr "Abre um arquivo de módulo de estilo."
-
-
 msgid "Make internal"
 msgstr "Tornar interno"
 
@@ -45522,16 +45925,6 @@ msgstr "Adicionar um modificador de espessura de linha"
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
 msgstr "Adiciona um modificador de espessura de linha para o estilo de linha associado com um conjunto de linha ativa."
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Brush Preset"
-msgstr "Adicionar Predefinição de Pincéis de Lápis de Cera"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Material Preset"
-msgstr "Adicionar Material Predefinido de Lápis de Cera"
 
 
 msgctxt "Operator"
@@ -45915,11 +46308,6 @@ msgid "Experimental"
 msgstr "Experimental"
 
 
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "Executar uma predefinição do Python"
-
-
 msgid "Menu ID Name"
 msgstr "Nome do identificador do menu"
 
@@ -46296,19 +46684,6 @@ msgid "Copy"
 msgstr "Copiar"
 
 
-msgid "Do cross-fading volume animation of two selected sound strips"
-msgstr "Faz uma animação de esmaecimento cruzado nos volumes do som de duas faixas de som selecionadas."
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "Desentrelaçar os filmes"
-
-
-msgid "Deinterlace all selected movie sources"
-msgstr "Desentrelaça todas as fontes de filme selecionadas."
-
-
 msgid "Duplicate the selected strips"
 msgstr "Duplicar as faixas selecionadas"
 
@@ -46366,11 +46741,6 @@ msgstr "Exportar subtítulos"
 
 msgid "Export .srt file containing text strips"
 msgstr "Exporta um arquivo com extensão .srt contendo as faixas de textos."
-
-
-msgctxt "Operator"
-msgid "Add Fades"
-msgstr "Adicionar Faces"
 
 
 msgctxt "Operator"
@@ -47660,11 +48030,6 @@ msgid "Slide a vertex along a mesh"
 msgstr "Permite deslizar um vértice ao longo de uma malha."
 
 
-msgctxt "Operator"
-msgid "Randomize"
-msgstr "Aleatorizar"
-
-
 msgid "Randomize vertices"
 msgstr "Aleatoriza a posição dos vértices."
 
@@ -47857,15 +48222,6 @@ msgid "Sample a data-block from the 3D View to store in a property"
 msgstr "Permite obter uma amostra de bloco de dados a partir da janela de visualização 3D para guardar em uma propriedade."
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Export"
-msgstr "Exportação de complemento l18n"
-
-
-msgid "Export given add-on's translation data as PO files"
-msgstr "Exporta os dados de tradução do complemento fornecidos como arquivos PO."
-
-
 msgid "Add-on to process"
 msgstr "Complemento para processar"
 
@@ -47886,24 +48242,6 @@ msgid "Update existing po files, if any, instead of overwriting them"
 msgstr "Atualiza os arquivos .po existentes, caso existam, ao invés de sobrescrevê-los."
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Import"
-msgstr "Importação de complemento l18n"
-
-
-msgid "Import given add-on's translation data from PO files"
-msgstr "Importa os dados de tradução do complemento a partir de arquivos PO."
-
-
-msgctxt "Operator"
-msgid "Update I18n Add-on"
-msgstr "Atualizar complemento I18n"
-
-
-msgid "Wrapper operator which will invoke given op after setting its module_name"
-msgstr "Operador de invólucro que irá invocar o operador fornecido após a configuração de seu nome_de_módulo (module_name)."
-
-
 msgid "Operator Name"
 msgstr "Nome do operador"
 
@@ -47912,40 +48250,8 @@ msgid "Name (id) of the operator to invoke"
 msgstr "Nome (id) do operador para invocar."
 
 
-msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "Atualiza os dados de tradução do complemento fornecidos (encontrados como uma tupla dentro do código fonte do complemento)."
-
-
-msgctxt "Operator"
-msgid "I18n Load Settings"
-msgstr "Carregar configurações de I18n"
-
-
-msgid "Load translations' settings from a persistent JSon file"
-msgstr "Carrega as configurações de tradução a partir de um arquivo JSon persistente."
-
-
 msgid "Path to the saved settings file"
 msgstr "Caminho para o arquivo de configurações salvo."
-
-
-msgctxt "Operator"
-msgid "I18n Save Settings"
-msgstr "Salvar configurações de I18n"
-
-
-msgid "Save translations' settings in a persistent JSon file"
-msgstr "Salva as configurações de tradução dentro de um arquivo persistente JSon."
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Settings"
-msgstr "Configurações de inicialização de atualização I18n"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Select Languages"
-msgstr "Inicia a atualização de seleção de línguas I18N"
 
 
 msgid "Invert Selection"
@@ -47962,11 +48268,6 @@ msgstr "Selecionar tudo"
 
 msgid "Select all if True, else deselect all"
 msgstr "Seleciona todos caso seja verdade, caso contrário, de-selecione todos."
-
-
-msgctxt "Operator"
-msgid "Update I18n Statistics"
-msgstr "Atualizar as estatísticas l18n"
 
 
 msgid "Skip POT"
@@ -48144,15 +48445,6 @@ msgid "Radius of the sphere or cylinder"
 msgstr "Raio da esfera ou cilindro."
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "Exportar esquema UV"
-
-
-msgid "Export UV layout to file"
-msgstr "Exporta o esquema de UV para arquivo."
-
-
 msgid "All UVs"
 msgstr "Todas as UVs"
 
@@ -48201,15 +48493,6 @@ msgid "Dimensions of the exported file"
 msgstr "Dimensões do arquivo exportado."
 
 
-msgctxt "Operator"
-msgid "Follow Active Quads"
-msgstr "Seguir os quadriláteros ativos"
-
-
-msgid "Follow UVs from active quads along continuous face loops"
-msgstr "Segue as UVs a partir dos quadriláteros ativos até os anéis de faces contínuas."
-
-
 msgid "Edge Length Mode"
 msgstr "Modo de comprimento de aresta"
 
@@ -48232,11 +48515,6 @@ msgstr "Média de comprimento"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "Oculta os vértices UV (de)selecionados."
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "Pacote Lightmap"
 
 
 msgid "Pack Quality"
@@ -48758,21 +49036,6 @@ msgstr "Descartar Mundo"
 
 
 msgctxt "Operator"
-msgid "Extrude Individual and Move"
-msgstr "Executar extrusão individual e mover"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Normals"
-msgstr "Executar extrusão e mover nas normais"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Individual Normals"
-msgstr "Executar extrusão e mover nas normais individuais"
-
-
-msgctxt "Operator"
 msgid "Fly Navigation"
 msgstr "Navegação em voo"
 
@@ -48954,11 +49217,6 @@ msgstr "Alternar tipo de sombreamento na janela de exibição 3D"
 msgctxt "Operator"
 msgid "Toggle X-Ray"
 msgstr "Ligar Raio-X"
-
-
-msgctxt "Operator"
-msgid "Transform Gizmo Set"
-msgstr "Transformar Conjunto de Apretechos"
 
 
 msgid "View all objects in scene"
@@ -49347,16 +49605,6 @@ msgstr "Localiza todos os dados anexados, incluindo aqueles que são vinculados 
 
 
 msgctxt "Operator"
-msgid "Batch Rename"
-msgstr "Renomear em Massa"
-
-
-msgctxt "Operator"
-msgid "Validate .blend strings"
-msgstr "Validar strings .blend"
-
-
-msgctxt "Operator"
 msgid "Call Menu"
 msgstr "Chamada de menu"
 
@@ -49531,30 +49779,12 @@ msgid "When searching Bone Chains disregard chains of length below this value"
 msgstr "Durante as pesquisas nos encadeamentos de ossos, não utiliza aqueles que estiverem com comprimento abaixo deste valor."
 
 
-msgctxt "Operator"
-msgid "Context Collection Boolean Set"
-msgstr "Coleção de definições de contexto booleano"
-
-
-msgid "Set boolean values for a collection of items"
-msgstr "Permite definir os valores booleanos para uma coleção de itens."
-
-
 msgid "The data path from each iterable to the value (int or float)"
 msgstr "O caminho de dados de cada parte de interação para o valor (inteiro ou flutuante)."
 
 
 msgid "The data path relative to the context, must point to an iterable"
 msgstr "O caminho de dados relativo ao contexto, deve apontar para um que possa interagir."
-
-
-msgctxt "Operator"
-msgid "Context Array Cycle"
-msgstr "Ciclo para matriz de contexto"
-
-
-msgid "Set a context array value (useful for cycling the active mesh edit mode)"
-msgstr "Configura um valor para matriz de contexto (útil para reciclagem do modo de edição da malha ativa)."
 
 
 msgid "Context Attributes"
@@ -49565,36 +49795,8 @@ msgid "Cycle backwards"
 msgstr "Ciclar para trás"
 
 
-msgctxt "Operator"
-msgid "Context Enum Cycle"
-msgstr "Ciclo de configuração de contexto"
-
-
-msgid "Toggle a context value"
-msgstr "Alterna um valor de contexto."
-
-
 msgid "Wrap back to the first/last values"
 msgstr "Envolve novamente os limites entre os primeiros e últimos valores."
-
-
-msgctxt "Operator"
-msgid "Context Int Cycle"
-msgstr "Ciclo de contexto inteiro"
-
-
-msgctxt "Operator"
-msgid "Context Enum Menu"
-msgstr "Menu de enumeração de contexto"
-
-
-msgctxt "Operator"
-msgid "Context Modal Mouse"
-msgstr "Mouse em contexto modal"
-
-
-msgid "Adjust arbitrary values with mouse input"
-msgstr "Ajusta valores arbitrários com a entrada do mouse."
 
 
 msgid "Header Text"
@@ -49613,31 +49815,8 @@ msgid "Invert the mouse input"
 msgstr "Inverte a entrada do mouse."
 
 
-msgctxt "Operator"
-msgid "Context Enum Pie"
-msgstr "Contexto de enumeração de setores"
-
-
-msgctxt "Operator"
-msgid "Context Scale Float"
-msgstr "Contexto de escala em ponto flutuante"
-
-
-msgid "Scale a float context value"
-msgstr "Escalona um valor de contexto de ponto flutuante."
-
-
 msgid "Assign value"
 msgstr "Atribui um valor"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "Contexto de escala inteiro"
-
-
-msgid "Scale an int context value"
-msgstr "Escalona um valor de contexto inteiro."
 
 
 msgid "Always Step"
@@ -49648,69 +49827,16 @@ msgid "Always adjust the value by a minimum of 1 when 'value' is not 1.0"
 msgstr "Sempre ajusta o valor por um mínimo de 1 quando o \"valor\" não for igual a 1.0"
 
 
-msgctxt "Operator"
-msgid "Context Set Boolean"
-msgstr "Ajustar booliana para contexto"
-
-
-msgid "Set a context value"
-msgstr "Permite definir um valor de contexto."
-
-
 msgid "Assignment value"
 msgstr "Valor de atribuição"
-
-
-msgctxt "Operator"
-msgid "Context Set Enum"
-msgstr "Enumerador de configuração de contexto"
 
 
 msgid "Assignment value (as a string)"
 msgstr "Valor de atribuição (como uma variável texto)."
 
 
-msgctxt "Operator"
-msgid "Context Set Float"
-msgstr "Configurar ponto flutuante para contexto"
-
-
 msgid "Apply relative to the current value (delta)"
 msgstr "Aplica com relação ao valor atual (delta)."
-
-
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "Configurar identificador para biblioteca"
-
-
-msgid "Set a context value to an ID data-block"
-msgstr "Configura um valor de contexto para um identificador de bloco de dados."
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "Contexto - configurações"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "Contexto - configurar variável de texto"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "Contexto - configurar valor"
-
-
-msgctxt "Operator"
-msgid "Context Toggle"
-msgstr "Contexto - alternar"
-
-
-msgctxt "Operator"
-msgid "Context Toggle Values"
-msgstr "Contexto - alternar valores"
 
 
 msgid "Toggle enum"
@@ -49730,22 +49856,8 @@ msgid "Debug Value"
 msgstr "Valor de depuração"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "Ver documentação"
-
-
 msgid "Doc ID"
 msgstr "Identificador do documento"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "Ver manual do Blender"
-
-
-msgid "Load online manual"
-msgstr "Carrega o manual na internet."
 
 
 msgctxt "Operator"
@@ -49755,11 +49867,6 @@ msgstr "Visualizar manual na internet"
 
 msgid "View a context based online manual in a web browser"
 msgstr "Permite visualizar um manual contextual disponível online em um navegador de internet."
-
-
-msgctxt "Operator"
-msgid "Handle dropped .blend file"
-msgstr "Lidar com arquivo .blend descartado"
 
 
 msgctxt "Operator"
@@ -49858,11 +49965,6 @@ msgstr "Permite que o arquivo .blend execute scripts automaticamente, padrão di
 
 
 msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "Lista de operadores de manipulação"
-
-
-msgctxt "Operator"
 msgid "Restore Operator Defaults"
 msgstr "Restaura os Padrões do Operador"
 
@@ -49871,36 +49973,8 @@ msgid "Set the active operator to its default values"
 msgstr "Configura o operador ativo aos seus valores padrão."
 
 
-msgctxt "Operator"
-msgid "Operator Enum Pie"
-msgstr "Operador de enumeração de setorização"
-
-
 msgid "Property name (as a string)"
 msgstr "Nome da propriedade, especificado como uma variável de texto."
-
-
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "Predefinições para operador"
-
-
-msgid "Add or remove an Operator Preset"
-msgstr "Permite adicionar ou remover uma predefinição de operador."
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Desabilitar complemento"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Habilitar complemento"
-
-
-msgid "Open a path in a file browser"
-msgstr "Abre um caminho em um navegador de arquivos."
 
 
 msgctxt "Operator"
@@ -49911,15 +49985,6 @@ msgstr "Exportar PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Importar PLY"
-
-
-msgctxt "Operator"
-msgid "Batch-Clear Previews"
-msgstr "Limpar as previsões em lote"
-
-
-msgid "Clear selected .blend file's previews"
-msgstr "Limpa as previsões dos arquivos .blend selecionados usando tarefas em lote."
 
 
 msgid "Save Backups"
@@ -49944,15 +50009,6 @@ msgstr "Limpa as previsões de cenas."
 
 msgid "Trusted Blend Files"
 msgstr "Arquivos Blender confiáveis"
-
-
-msgctxt "Operator"
-msgid "Batch-Generate Previews"
-msgstr "Gerar as previsões em lote"
-
-
-msgid "Generate selected .blend file's previews"
-msgstr "Gera as previsões de arquivos .blend selecionados usando tarefas em lote."
 
 
 msgid "Show Blender files in the File Browser"
@@ -50005,11 +50061,6 @@ msgid "Ensure data-block previews are available and up-to-date (to be saved in .
 msgstr "Assegura que as previsões de blocos de dados estejam disponíveis e atualizadas (para serem salvas no arquivo Blender, somente para alguns tipos como materiais, texturas, etc.)."
 
 
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "Adicionar propriedade"
-
-
 msgid "Property Edit"
 msgstr "Edição de propriedades"
 
@@ -50018,30 +50069,12 @@ msgid "Property data_path edit"
 msgstr "Edita a propriedade de caminho de dados ou \"data_path\"."
 
 
-msgid "Jump to a different tab inside the properties editor"
-msgstr "Salta para um campo diferente dentro do editor de propriedades."
-
-
 msgid "Context"
 msgstr "Contexto"
 
 
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Edição de propriedades"
-
-
 msgid "Property name edit"
 msgstr "Permite a edição do nome da propriedade."
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "Remover propriedade"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "Uso interno (edição do valor da propriedade \"data_path\")."
 
 
 msgctxt "Operator"
@@ -50420,37 +50453,8 @@ msgid "Use (import) facet normals (note that this will still give flat shading)"
 msgstr "Usa (importa) normais facetadas (note que isto ainda irá fornecer um sombreamento achatado)."
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Salvar as informações sobre o sistema"
-
-
-msgid "Generate system information, saved into a text file"
-msgstr "Gera informações sobre o sistema, salvando-as em um arquivo de texto."
-
-
-msgctxt "Operator"
-msgid "Set Tool by Name"
-msgstr "Definir Ferramenta por Nome"
-
-
-msgctxt "Operator"
-msgid "Set Tool by Index"
-msgstr "Definir Ferramenta por Índice"
-
-
 msgid "Index in Toolbar"
 msgstr "Índice da Barra de Ferramentas"
-
-
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "Barra de Ferramentas"
-
-
-msgctxt "Operator"
-msgid "Toolbar Prompt"
-msgstr "Prompt da Barra de Ferramentas"
 
 
 msgid "URL to open"
@@ -50979,6 +50983,30 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Wire Color"
+msgstr "Cor dos cabos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
+
+
 msgid "Bone Constraints"
 msgstr "Restrições de ossos"
 
@@ -51111,10 +51139,6 @@ msgid "Threads"
 msgstr "Tarefas"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
 msgid "Mist Pass"
 msgstr "Passo de névoa"
 
@@ -51125,10 +51149,6 @@ msgstr "Guias de composição"
 
 msgid "Center-Cut Safe Areas"
 msgstr "Centralizar as áreas de segurança"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
 
 
 msgid "Texture Space"
@@ -51555,18 +51575,6 @@ msgid "Gradient Colors"
 msgstr "Cores da gradiente"
 
 
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
 msgctxt "Operator"
 msgid "Scale Cage"
 msgstr "Gaiola de Escalonamento"
@@ -51800,10 +51808,6 @@ msgstr "Ferramentas padrão para modo de partículas."
 
 msgid "Pose Options"
 msgstr "Opções de pose"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Face Marks"
@@ -58544,15 +58548,6 @@ msgid "Show graph view for active element"
 msgstr "Mostra a visualização de gráfico para o elemento ativo."
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "Tabela de animação"
-
-
-msgid "Dopesheet view for tracking data"
-msgstr "Visão da tabela de animação para dados de rastreamento."
-
-
 msgid "Space Console"
 msgstr "Espaço do console"
 
@@ -62682,10 +62677,6 @@ msgstr "Múltiplos complementos com o mesmo nome encontrados !"
 msgctxt "Operator"
 msgid "None"
 msgstr "Nenhum"
-
-
-msgid "Warning"
-msgstr "Alertas:"
 
 
 msgid ":"

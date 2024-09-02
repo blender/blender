@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -573,6 +573,10 @@ msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
 
+msgid "Relations"
+msgstr "Loturak"
+
+
 msgid "UV"
 msgstr "UV"
 
@@ -603,10 +607,6 @@ msgstr "Kanpo "
 
 msgid "Help"
 msgstr "Laguntza"
-
-
-msgid "Relations"
-msgstr "Loturak"
 
 
 msgid "New"
@@ -677,6 +677,31 @@ msgstr "Z ardatza"
 
 msgid "Z Axis"
 msgstr "Z Ardatza"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Kontsola Exekutatu"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Kontsolaren Hizkuntza"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Renderizatutako Animazioa Erreproduzitu"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Sistemaren Informazioa Gorde"
 
 
 msgctxt "Operator"
@@ -770,11 +795,6 @@ msgid "Previous Word"
 msgstr "Aurreko Hitza"
 
 
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "Kontsola Exekutatu"
-
-
 msgid "The index of the cursor"
 msgstr "Kurtsorearen indizea"
 
@@ -794,11 +814,6 @@ msgstr "Lerroaren hasieran 4 zuriune gehitu"
 msgctxt "Operator"
 msgid "Insert"
 msgstr "Txertatu"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Kontsolaren Hizkuntza"
 
 
 msgctxt "Operator"
@@ -1505,11 +1520,6 @@ msgid "Join"
 msgstr "Elkartu"
 
 
-msgctxt "Operator"
-msgid "New"
-msgstr "Berria"
-
-
 msgid "Child"
 msgstr "Umea"
 
@@ -1539,11 +1549,6 @@ msgstr "Bistaratu/Izkutatu Maila Bat"
 
 msgid "Write Image"
 msgstr "Irudia Gorde"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Renderizatutako Animazioa Erreproduzitu"
 
 
 msgctxt "Operator"
@@ -1702,11 +1707,6 @@ msgstr "Lehenetsitako ezarpenak kargatu"
 msgctxt "Operator"
 msgid "Recover Last Session"
 msgstr "Azken Saioa Berreskuratu"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Sistemaren Informazioa Gorde"
 
 
 msgid "Dynamics"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -355,10 +355,6 @@ msgid "X Position"
 msgstr "स्थिति x"
 
 
-msgid "All"
-msgstr "सभी"
-
-
 msgid "Display Filter"
 msgstr "निस्पादक प्रदर्शित करें"
 
@@ -679,6 +675,10 @@ msgstr "शिरोबिन्दु रंग"
 
 msgid "Direction"
 msgstr "दिशा"
+
+
+msgid "All"
+msgstr "सभी"
 
 
 msgid "Radius"
@@ -2672,6 +2672,62 @@ msgid "Flip"
 msgstr "पलटें"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
 msgid "Basic"
 msgstr "बुनियादी"
 
@@ -2689,14 +2745,6 @@ msgid "Reconstruction"
 msgstr "पुनर्निर्माण"
 
 
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Zoom"
 msgstr "निकट करें"
 
@@ -2707,10 +2755,6 @@ msgstr "सरणि"
 
 msgid "Marker"
 msgstr "चिन्हक"
-
-
-msgid "Snap"
-msgstr "स्नैप"
 
 
 msgid "Files"
@@ -2727,14 +2771,6 @@ msgstr "यूवी"
 
 msgid "Align"
 msgstr "संरेखित करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
 
 
 msgid "Strip"
@@ -2763,10 +2799,6 @@ msgstr "संशोधक जोड़ें"
 
 msgid "Physics"
 msgstr "भौतिकी"
-
-
-msgid "Apply"
-msgstr "लागू करें"
 
 
 msgid "Texture Specials"
@@ -2805,41 +2837,9 @@ msgid "Presets"
 msgstr "पूर्ववत"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "कारण"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
 
 
 msgid "Clone Layer"
@@ -3224,6 +3224,10 @@ msgid "Z Up"
 msgstr "Z ऊर्ध्व"
 
 
+msgid "Warning"
+msgstr "चेतावनी"
+
+
 msgid "Reflection"
 msgstr "प्रतिबिंब"
 
@@ -3278,6 +3282,68 @@ msgstr "ईंटें"
 
 msgid "Curve Time"
 msgstr "वक्र समय"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "सभी दिखाएँ"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "संशोधक जोड़ें"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "नई"
+
+
+msgid "Select the active camera"
+msgstr "सक्रिय प्रतिबिंबक का चयन करें"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "प्रतिबिंबक का चयन करें"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "पदानुक्रम का चयन करें"
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "अनुवाद सेटिंग्स एक लगातार JSon संचिका से लोड"
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "I18n लोड सेटिंग्स"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "एक लगातार JSon संचिका में अनुवाद सेटिंग्स सहेजें"
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "I18n सेटिंग्स सहेजें"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "Init I18n अद्यतन सेटिंग्स"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "Init I18n अद्यतन भाषाओं का चयन करें"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "देखें प्रलेखन"
 
 
 msgid "Column Select"
@@ -3404,11 +3470,6 @@ msgid "Paste Driver"
 msgstr "चिपकाएँ यंत्र-संवादी"
 
 
-msgctxt "Operator"
-msgid "Show All"
-msgstr "सभी दिखाएँ"
-
-
 msgid "Move"
 msgstr "विचलन"
 
@@ -3425,11 +3486,6 @@ msgstr "कारणक के प्रकार"
 msgctxt "Operator"
 msgid "(De)select All"
 msgstr "सभी का (अ)चयन करें"
-
-
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "पदानुक्रम का चयन करें"
 
 
 msgctxt "Operator"
@@ -4014,11 +4070,6 @@ msgstr "दर्शक संचालन के लिए सीमाएँ �
 
 
 msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "संशोधक जोड़ें"
-
-
-msgctxt "Operator"
 msgid "Bake"
 msgstr "भर्जन"
 
@@ -4072,20 +4123,6 @@ msgstr "हड्डी सापेक्ष"
 
 msgid "Remove the selected particle system"
 msgstr "चयनित कण प्रणाली हटाएँ"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "नई"
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "प्रतिबिंबक का चयन करें"
-
-
-msgid "Select the active camera"
-msgstr "सक्रिय प्रतिबिंबक का चयन करें"
 
 
 msgid "Child"
@@ -4345,36 +4382,8 @@ msgid "Copy Data Path"
 msgstr "सामग्री पथ की प्रतिलिपि बनाएँ"
 
 
-msgctxt "Operator"
-msgid "I18n Load Settings"
-msgstr "I18n लोड सेटिंग्स"
-
-
-msgid "Load translations' settings from a persistent JSon file"
-msgstr "अनुवाद सेटिंग्स एक लगातार JSon संचिका से लोड"
-
-
 msgid "Path to the saved settings file"
 msgstr "सहेजी गई सेटिंग्स संचिका का पथ"
-
-
-msgctxt "Operator"
-msgid "I18n Save Settings"
-msgstr "I18n सेटिंग्स सहेजें"
-
-
-msgid "Save translations' settings in a persistent JSon file"
-msgstr "एक लगातार JSon संचिका में अनुवाद सेटिंग्स सहेजें"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Settings"
-msgstr "Init I18n अद्यतन सेटिंग्स"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Select Languages"
-msgstr "Init I18n अद्यतन भाषाओं का चयन करें"
 
 
 msgid "Select all if True, else deselect all"
@@ -4460,11 +4469,6 @@ msgstr "बाएँ पैन करें"
 
 msgid "Pan Right"
 msgstr "दाएँ पैन करें"
-
-
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "देखें प्रलेखन"
 
 
 msgid "Open a Blender file"
@@ -4575,6 +4579,14 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
+msgid "Motion Tracking"
+msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
+
+
 msgid "Predefined tracking camera intrinsics"
 msgstr "पूर्वनिर्धारित प्रतिबिंबक intrinsics पर नज़र रखने"
 
@@ -4651,10 +4663,6 @@ msgid "Text Style"
 msgstr "पाठ शैली"
 
 
-msgid "Motion Tracking"
-msgstr "गति मार्गन"
-
-
 msgctxt "Operator"
 msgid "Draw"
 msgstr "चित्रण"
@@ -4672,10 +4680,6 @@ msgstr "चक्र"
 
 msgid "Default tools for particle mode"
 msgstr "कण मोड के लिए मूलभूत उपकरण"
-
-
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Sub"
@@ -5197,10 +5201,6 @@ msgstr "आवरण संपादन"
 msgctxt "WindowManager"
 msgid "Animation"
 msgstr "अनुप्राणन"
-
-
-msgid "Warning"
-msgstr "चेतावनी"
 
 
 msgid "OSL shader compilation succeeded"

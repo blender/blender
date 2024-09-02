@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -1433,10 +1433,6 @@ msgstr "Maktaba ya Mali"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Chagua maktaba ya mali ili kuonyesha mali kutoka"
-
-
-msgid "All"
-msgstr "Wote"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -4385,6 +4381,10 @@ msgstr "Jaza eneo lililogeuzwa"
 
 msgid "Mode to draw boundary limits"
 msgstr "Njia ya kuchora mipaka"
+
+
+msgid "All"
+msgstr "Wote"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -29153,6 +29153,50 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Asset"
+msgstr "Mali"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
 msgid "Keyframe Insert Pie"
 msgstr "Ingiza Pai ya Fremu Muhimu"
 
@@ -29163,14 +29207,6 @@ msgstr "Msingi"
 
 msgid "Bone Collection Specials"
 msgstr "Maalum ya Kukusanya Mifupa"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
-msgid "Asset"
-msgstr "Mali"
 
 
 msgid "Catalog"
@@ -29188,10 +29224,6 @@ msgstr "Klipu"
 
 msgid "Marker Settings"
 msgstr "Mipangilio ya Alama"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
 
 
 msgid "Plane Track Image Specials"
@@ -29222,20 +29254,12 @@ msgid "Rotation Track Specials"
 msgstr "Maalum ya Wimbo wa Mzunguko"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
 msgid "Track Motion"
 msgstr "Mwendo wa Wimbo"
 
 
 msgid "Refine"
 msgstr "Safisha"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
 
 
 msgid "Context Menu"
@@ -29277,10 +29301,6 @@ msgstr "Chaneli"
 
 msgid "Marker"
 msgstr "Alama"
-
-
-msgid "Snap"
-msgstr "Picha"
 
 
 msgid "Bookmarks Specials"
@@ -29327,20 +29347,8 @@ msgid "Add Extra"
 msgstr "Ongeza Ziada"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
 msgid "Align"
 msgstr "Pangilia"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
 
 
 msgid "UV Select Mode"
@@ -29488,14 +29496,6 @@ msgstr "Weka Lebo ya Rangi"
 
 msgid "Sequencer"
 msgstr "Mfuatano"
-
-
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
 
 
 msgid "Sequencer Preview"
@@ -42104,6 +42104,10 @@ msgid "Generate a mesh on the \"surface\" of a volume"
 msgstr "Tengeneza matundu kwenye \"uso\" wa kiasi"
 
 
+msgid "Warning"
+msgstr "Onyo"
+
+
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "Fremu"
@@ -44733,10 +44737,6 @@ msgid "Object Base"
 msgstr "Msingi wa Kitu"
 
 
-msgid "An object instance in a render layer"
-msgstr "Mfano wa kitu katika safu ya kutoa"
-
-
 msgid "Object this base links to"
 msgstr "Object hii msingi viungo kwa"
 
@@ -44843,6 +44843,1827 @@ msgstr "Athari za Shader ya Kitu"
 
 msgid "Collection of object effects"
 msgstr "Mkusanyiko wa athari za kitu"
+
+
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Ongeza Lahaja ya Nyenzo"
+
+
+msgctxt "Operator"
+msgid "Display Variant"
+msgstr "Onyesho Lahaja"
+
+
+msgctxt "Operator"
+msgid "Assign To Variant"
+msgstr "Agiza Tofauti"
+
+
+msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "Weka kama Asili"
+
+
+msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
+msgstr "Weka alama kwa vitendo bila F-Curve kwa kufutwa baada ya kuhifadhi na kupakia upya faili inayohifadhi \"maktaba za vitendo\""
+
+
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Futa Vitendo Visivyofaa"
+
+
+msgid "Export Keying Set to a Python script"
+msgstr "Hamisha Ufunguo Umewekwa kwa hati ya Python"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "Hamisha Ufunguo wa Seti..."
+
+
+msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
+msgstr "Sasisha f-curves/viendeshi vinavyoathiri vizuizi vya Kubadilisha (itumie na faili kutoka 2.70 na mapema)"
+
+
+msgctxt "Operator"
+msgid "Update Animated Transform Constraints"
+msgstr "Sasisha Vizuizi vya Mabadiliko ya Uhuishaji"
+
+
+msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
+msgstr "Ondoa mikusanyo yote ya mifupa ambayo haina mifupa wala watoto."
+
+
+msgctxt "Operator"
+msgid "Remove Unused Bone Collections"
+msgstr "Ondoa Mikusanyiko ya Mifupa Isiyotumika"
+
+
+msgid "Show all bone collections"
+msgstr "Onyesha mikusanyo yote ya mifupa"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Onyesha Zote"
+
+
+msgid "Clear the 'solo' setting on all bone collections"
+msgstr "Futa mpangilio wa 'solo' kwenye mkusanyiko wote wa mifupa"
+
+
+msgctxt "Operator"
+msgid "Un-solo All"
+msgstr "Un-solo Zote"
+
+
+msgid "Copy the bone color of the active bone to all selected bones"
+msgstr "Nakili rangi ya mfupa wa mfupa hai kwa mifupa yote iliyochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Copy Colors to Selected"
+msgstr "Nakili Rangi kwa Zilizochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Assign Action"
+msgstr "Weka Kitendo"
+
+
+msgid "Open the blend file that contains the active asset"
+msgstr "Fungua faili ya mseto ambayo ina kipengee amilifu"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "Fungua faili ya Mchanganyiko"
+
+
+msgid "Add a new keyword tag to the active asset"
+msgstr "Ongeza lebo mpya ya nenomsingi kwenye kipengee kinachotumika"
+
+
+msgctxt "Operator"
+msgid "Add Asset Tag"
+msgstr "Ongeza Lebo ya Mali"
+
+
+msgid "Remove an existing keyword tag from the active asset"
+msgstr "Ondoa lebo ya nenomsingi iliyopo kwenye kipengee kinachotumika"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Tag"
+msgstr "Ondoa Lebo ya Mali"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "Ongeza au ondoa Uwekaji Mapema wa Kamera"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "Ongeza Uwekaji Awali wa Kamera"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Maeneo Salama"
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "Ongeza Uwekaji Awali wa Eneo Salama"
+
+
+msgid "Create vertex cloud using coordinates of reconstructed tracks"
+msgstr "Unda wingu la kipeo ukitumia viwianishi vya nyimbo zilizoundwa upya"
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "3D Alama kwa Mesh"
+
+
+msgid "Add or remove a Tracking Camera Intrinsics Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Mambo ya Ndani ya Kamera ya Kufuatilia"
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "Unda F-Curves kwa kitu ambacho kitakili mwendo wa kitu unaosababishwa na kizuizi hiki"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "Kizuizi kwa F-Curve"
+
+
+msgid "Delete movie clip proxy files from the hard drive"
+msgstr "Futa faili za proksi za klipu ya filamu kutoka kwa diski kuu"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "Futa Wakala"
+
+
+msgid "Filter tracks which has weirdly looking spikes in motion curves"
+msgstr "Nyimbo za kichujio ambazo zina miiba inayoonekana kwa njia ya ajabu katika mikunjo ya mwendo"
+
+
+msgctxt "Operator"
+msgid "Filter Tracks"
+msgstr "Nyimbo za Kichujio"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "Weka Klipu Inayotumika"
+
+
+msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
+msgstr "Weka klipu ya filamu ya sasa kama usuli wa kamera katika Mtazamo wa 3D (hufanya kazi tu wakati Mtazamo wa 3D unaonekana)"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Weka kama Usuli"
+
+
+msgid "Prepare scene for compositing 3D objects into this footage"
+msgstr "Tayarisha onyesho la kutunga vipengee vya 3D kwenye video hii"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "Sanidi Eneo la Ufuatiliaji"
+
+
+msgid "Add or remove a Clip Track Color Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Rangi ya Wimbo wa Klipu"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr "Ongeza Uwekaji Awali wa Rangi ya Wimbo"
+
+
+msgid "Copy tracking settings from active track to default settings"
+msgstr "Nakili mipangilio ya ufuatiliaji kutoka kwa wimbo amilifu hadi kwa mipangilio chaguomsingi"
+
+
+msgctxt "Operator"
+msgid "Track Settings as Default"
+msgstr "Fuatilia Mipangilio kama Chaguomsingi"
+
+
+msgid "Copy tracking settings from active track to selected tracks"
+msgstr "Nakili mipangilio ya ufuatiliaji kutoka kwa wimbo amilifu hadi nyimbo zilizochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Copy Track Settings"
+msgstr "Nakili Mipangilio ya Wimbo"
+
+
+msgid "Create an Empty object which will be copying movement of active track"
+msgstr "Unda Kitu Tupu ambacho kitakuwa kinakili harakati za wimbo unaotumika"
+
+
+msgctxt "Operator"
+msgid "Link Empty to Track"
+msgstr "Unganisha Tupu kwenye Kufuatilia"
+
+
+msgid "Add or remove a motion tracking settings preset"
+msgstr "Ongeza au ondoa mipangilio ya ufuatiliaji wa mwendo iliyowekwa mapema"
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "Ongeza Mipangilio ya Ufuatiliaji iliyowekwa mapema"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Nguo"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Ongeza Uwekaji Awali wa Nguo"
+
+
+msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
+msgstr "Tathmini nafasi ya majina hadi kielekezi na utoe orodha ya chaguo au ukamilishe jina ikiwa kuna moja tu."
+
+
+msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "Console ya Kukamilisha Kiotomatiki"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "Chapisha ujumbe wakati terminal inapoanzisha"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "Bango la Console"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "Nakili maudhui ya kiweko kwa matumizi katika hati"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "Nakili kwenye Ubao wa kunakili (kama Hati)"
+
+
+msgid "Execute the current console line as a Python expression"
+msgstr "Tekeleza laini ya sasa ya kiweko kama msemo wa Python"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Utekelezaji wa Console"
+
+
+msgid "Set the current language for this console"
+msgstr "Weka lugha ya sasa ya kiweko hiki"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Lugha ya Dashibodi"
+
+
+msgid "Add a target to the constraint"
+msgstr "Ongeza lengo kwenye kizuizi"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "Ongeza Lengo"
+
+
+msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
+msgstr "Weka ushawishi wa kizuizi hiki hadi sufuri huku ukijaribu kudumisha mabadiliko ya kitu."
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "Zima na Weka Mabadiliko"
+
+
+msgid "Normalize weights of all target bones"
+msgstr "Rekebisha uzani wa mifupa yote inayolengwa"
+
+
+msgctxt "Operator"
+msgid "Normalize Weights"
+msgstr "Rekebisha Uzito"
+
+
+msgid "Remove the target from the constraint"
+msgstr "Ondoa lengo kutoka kwa kizuizi"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "Ondoa Lengo"
+
+
+msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
+msgstr "Denoise inayotolewa mlolongo wa uhuishaji kwa kutumia eneo la sasa na mipangilio ya safu ya kutazama."
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "Uhuishaji wa Denoise"
+
+
+msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
+msgstr "Changanya picha za safu nyingi za OpenEXR zinazotolewa na safu tofauti za sampuli kwenye picha moja na kelele iliyopunguzwa."
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "Unganisha Picha"
+
+
+msgid "Enable nodes on a material, world or light"
+msgstr "Washa nodi kwenye nyenzo, ulimwengu au mwanga"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Tumia Nodi"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "Hifadhi faili ya kunasa mwendo ya BVH kutoka kwa silaha"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Hamisha BVH"
+
+
+msgid "Write a FBX file"
+msgstr "Andika faili ya FBX"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Hamisha FBX"
+
+
+msgid "Export scene as glTF 2.0 file"
+msgstr "Hamisha onyesho kama faili ya glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "Hamisha glTF 2.0"
+
+
+msgid "Add or remove a Fluid Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Maji"
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "Ongeza Uwekaji Awali wa Maji"
+
+
+msgid "Switch tint colors"
+msgstr "Badilisha rangi za tint"
+
+
+msgctxt "Operator"
+msgid "Flip Colors"
+msgstr "Badili Rangi"
+
+
+msgid "Edit image in an external application"
+msgstr "Hariri picha katika programu tumizi ya nje"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Hariri Picha Kwa Nje"
+
+
+msgid "Project edited image back onto the object"
+msgstr "Picha iliyohaririwa ya mradi kurudi kwenye kitu"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "Mradi Tekeleza"
+
+
+msgid "Edit a snapshot of the 3D Viewport in an external image editor"
+msgstr "Hariri taswira ya 3D Viewport katika kihariri cha picha cha nje"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "Hariri ya Mradi"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "Pakia faili ya kunasa mwendo wa BVH"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Ingiza BVH"
+
+
+msgid "Load a SVG file"
+msgstr "Pakia faili ya SVG"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Leta SVG"
+
+
+msgid "Load a FBX file"
+msgstr "Pakia faili ya FBX"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "Leta FBX"
+
+
+msgid "Load a glTF 2.0 file"
+msgstr "Pakia faili ya glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "Leta glTF 2.0"
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "Nakili viwianishi vya UV vya kioo kwenye mhimili wa X kulingana na wavu unaoakisiwa"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "Nakili Misimbo ya UV Iliyoakisiwa"
+
+
+msgid "Construct a torus mesh"
+msgstr "Tengeneza matundu ya torus"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Ongeza Torus"
+
+
+msgid "Select the next element (using selection order)"
+msgstr "Chagua kipengele kinachofuata (kwa kutumia mpangilio wa uteuzi)"
+
+
+msgctxt "Operator"
+msgid "Select Next Element"
+msgstr "Chagua Kipengele Kinachofuata"
+
+
+msgid "Select the previous element (using selection order)"
+msgstr "Chagua kipengele kilichotangulia (kwa kutumia mpangilio wa uteuzi)"
+
+
+msgctxt "Operator"
+msgid "Select Previous Element"
+msgstr "Chagua Kipengele Kilichotangulia"
+
+
+msgid "Bake all selected objects location/scale/rotation animation to an action"
+msgstr "Oka vitu vyote vilivyochaguliwa uhuishaji wa eneo/mizani/mzunguko kwa kitendo"
+
+
+msgid "Add a node to the active tree"
+msgstr "Ongeza nodi kwenye mti unaotumika"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Ongeza Nodi"
+
+
+msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
+msgstr "Ongeza eneo la kurudia linaloruhusu utekelezaji wa nodi idadi inayobadilika ya nyakati"
+
+
+msgctxt "Operator"
+msgid "Add Repeat Zone"
+msgstr "Ongeza Eneo la Kurudia"
+
+
+msgid "Add simulation zone input and output nodes to the active tree"
+msgstr "Ongeza pembejeo na nodi za eneo la kuiga kwenye mti unaotumika"
+
+
+msgctxt "Operator"
+msgid "Add Simulation Zone"
+msgstr "Ongeza Eneo la Kuiga"
+
+
+msgid "Toggle collapsed nodes and hide unused sockets"
+msgstr "Geuza nodi zilizoanguka na ufiche soketi ambazo hazijatumika"
+
+
+msgctxt "Operator"
+msgid "Collapse and Hide Unused Sockets"
+msgstr "Kunja na Ficha Soketi Zisizotumika"
+
+
+msgctxt "Operator"
+msgid "glTF Material Output"
+msgstr "GlTF Nyenzo Pato"
+
+
+msgid "Add a copy of the active item to the interface"
+msgstr "Ongeza nakala ya kipengee amilifu kwenye kiolesura"
+
+
+msgctxt "Operator"
+msgid "Duplicate Item"
+msgstr "Kipengee Nakala"
+
+
+msgid "Add a new item to the interface"
+msgstr "Ongeza kipengee kipya kwenye kiolesura"
+
+
+msgctxt "Operator"
+msgid "New Item"
+msgstr "Kipengee Kipya"
+
+
+msgid "Remove active item from the interface"
+msgstr "Ondoa kipengee amilifu kwenye kiolesura"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Ondoa Kipengee"
+
+
+msgid "Create a new geometry node group and assign it to the active modifier"
+msgstr "Unda kikundi kipya cha nodi za jiometri na uikabidhi kwa kirekebishaji kinachofanya kazi"
+
+
+msgctxt "Operator"
+msgid "Assign New Geometry Node Group"
+msgstr "Weka Kikundi Kipya cha Njia za Jiometri"
+
+
+msgid "Create a new geometry node group for a tool"
+msgstr "Unda kikundi kipya cha nodi za jiometri kwa zana"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Tool Group"
+msgstr "Kikundi Kipya cha Zana ya Njia ya Jiometri"
+
+
+msgid "Create a new modifier with a new geometry node group"
+msgstr "Unda kirekebishaji kipya na kikundi kipya cha nodi za jiometri"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Modifier"
+msgstr "Kirekebishaji Kipya cha Njia ya Jiometri"
+
+
+msgid "Add or remove a Node Color Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Rangi ya Nodi"
+
+
+msgctxt "Operator"
+msgid "Add Node Color Preset"
+msgstr "Ongeza Uwekaji Awali wa Rangi ya Nodi"
+
+
+msgid "Go to parent node tree"
+msgstr "Nenda kwa mti wa nodi ya wazazi"
+
+
+msgctxt "Operator"
+msgid "Parent Node Tree"
+msgstr "Mti wa Njia ya Mzazi"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Ongeza Kirekebishaji"
+
+
+msgid "Align objects"
+msgstr "Pangilia vitu"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "Pangilia Vitu"
+
+
+msgid "Convert object animation for normal transforms to delta transforms"
+msgstr "Badilisha uhuishaji wa kitu kwa mabadiliko ya kawaida hadi mabadiliko ya delta"
+
+
+msgctxt "Operator"
+msgid "Animated Transforms to Deltas"
+msgstr "Mabadiliko ya Uhuishaji hadi Deltas"
+
+
+msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
+msgstr "Weka thamani za sasa za sifa maalum kama chaguo-msingi zake, ili zitumike kama sehemu ya hali nyingine katika mchanganyiko wa njia za NLA."
+
+
+msgctxt "Operator"
+msgid "Assign Custom Property Values as Default"
+msgstr "Weka Thamani za Mali Maalum kama Chaguomsingi"
+
+
+msgctxt "Operator"
+msgid "Copy Global Transform"
+msgstr "Nakili Mabadiliko ya Ulimwenguni"
+
+
+msgid "Move inputs and outputs from in the modifier to a new node group"
+msgstr "Hamisha pembejeo na matokeo kutoka kwa kirekebishaji hadi kwa kikundi kipya cha nodi"
+
+
+msgctxt "Operator"
+msgid "Move to Nodes"
+msgstr "Hamisha hadi Vifundo"
+
+
+msgid "Reveal all render objects by setting the hide render flag"
+msgstr "Onyesha vitu vyote vya kutoa kwa kuweka bendera ya kuficha"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "Futa Vizuizi Vyote Utoaji"
+
+
+msgid "Set offset used for collection instances based on cursor position"
+msgstr "Kuweka kukabiliana kutumika kwa matukio ya ukusanyaji kulingana na nafasi ya kishale"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Cursor"
+msgstr "Weka Offset kutoka kwa Mshale"
+
+
+msgid "Set offset used for collection instances based on the active object position"
+msgstr "Weka usawazishaji unaotumika kwa matukio ya mkusanyiko kulingana na nafasi ya kitu kinachotumika"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Object"
+msgstr "Weka Offset kutoka kwa Kitu"
+
+
+msgid "Set cursor position to the offset used for collection instances"
+msgstr "Weka mkao wa kishale kwenye sehemu inayotumika kwa matukio ya mkusanyiko"
+
+
+msgctxt "Operator"
+msgid "Set Cursor to Offset"
+msgstr "Weka Mshale ili Kuzima"
+
+
+msgid "Hide unselected render objects of same type as active by setting the hide render flag"
+msgstr "Ficha ambavyo havijachaguliwa kutoa vipengee vya aina sawa na vinavyotumika kwa kuweka bendera ya kujificha"
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "Zuia Utoaji Haijachaguliwa"
+
+
+msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
+msgstr "Hamisha Ramani za UV kutoka amilifu hadi vitu vilivyochaguliwa (inahitaji kulinganisha jiometri)"
+
+
+msgctxt "Operator"
+msgid "Transfer UV Maps"
+msgstr "Hamisha Ramani za UV"
+
+
+msgid "Convert objects into instanced faces"
+msgstr "Badilisha vitu kuwa sura za mfano"
+
+
+msgctxt "Operator"
+msgid "Make Instance Face"
+msgstr "Tengeneza Uso wa Mfano"
+
+
+msgctxt "Operator"
+msgid "Paste Global Transform"
+msgstr "Bandika Mabadiliko ya Ulimwenguni"
+
+
+msgid "Make selected objects explode"
+msgstr "Fanya vitu vilivyochaguliwa vilipuke"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Mlipuko wa Haraka"
+
+
+msgid "Add a fur setup to the selected objects"
+msgstr "Ongeza usanidi wa manyoya kwa vitu vilivyochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Manyoya Haraka"
+
+
+msgid "Make selected objects liquid"
+msgstr "Fanya vitu vilivyochaguliwa kuwa kioevu"
+
+
+msgctxt "Operator"
+msgid "Quick Liquid"
+msgstr "Kioevu cha Haraka"
+
+
+msgid "Use selected objects as smoke emitters"
+msgstr "Tumia vitu vilivyochaguliwa kama vitoa moshi"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Moshi wa Haraka"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Mpya"
+
+
+msgid "Select object relative to the active object's position in the hierarchy"
+msgstr "Chagua kitu kinachohusiana na nafasi ya kitu amilifu katika daraja"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Chagua Hierarkia"
+
+
+msgid "Select objects matching a naming pattern"
+msgstr "Chagua vitu vinavyolingana na muundo wa majina"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "Chagua Mchoro"
+
+
+msgid "Copy the active shape key of another selected object to this one"
+msgstr "Nakili kitufe amilifu cha umbo la kitu kingine kilichochaguliwa kwa hiki"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Ufunguo wa Umbo la Kuhamisha"
+
+
+msgid "Sets a Subdivision Surface level (1 to 5)"
+msgstr "Inaweka kiwango cha uso wa Mgawanyiko (1 hadi 5)"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "Seti ndogo"
+
+
+msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
+msgstr "Badilisha kitu cha kawaida hubadilika kuwa mabadiliko ya delta, mabadiliko yoyote yaliyopo ya delta yatajumuishwa pia"
+
+
+msgctxt "Operator"
+msgid "Transforms to Deltas"
+msgstr "Mabadiliko hadi Deltas"
+
+
+msgid "Generate a dirt map gradient based on cavity"
+msgstr "Tengeneza kipenyo cha ramani cha uchafu kulingana na tundu"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "Rangi Mchafu za Kipeo"
+
+
+msgid "Add or remove a Hair Dynamics Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Mienendo ya Nywele"
+
+
+msgctxt "Operator"
+msgid "Add Hair Dynamics Preset"
+msgstr "Ongeza Mienendo ya Nywele Uwekaji Awali"
+
+
+msgctxt "Operator"
+msgid "Convert Legacy Pose Library"
+msgstr "Badilisha Maktaba ya Uwekaji Urithi"
+
+
+msgctxt "Operator"
+msgid "Copy Pose as Asset"
+msgstr "Nakili Msimamo Kama Mali"
+
+
+msgctxt "Operator"
+msgid "Create Pose Asset"
+msgstr "Unda Mali ya Kuweka"
+
+
+msgctxt "Operator"
+msgid "Paste as New Asset"
+msgstr "Bandika kama Mali Mpya"
+
+
+msgctxt "Operator"
+msgid "Select Bones"
+msgstr "Chagua Mifupa"
+
+
+msgctxt "Operator"
+msgid "Restore Previous Action"
+msgstr "Rejesha Kitendo Kilichotangulia"
+
+
+msgid "Display information and preferences for this add-on"
+msgstr "Onyesha habari na mapendeleo ya programu jalizi hii"
+
+
+msgid "Install an add-on"
+msgstr "Sakinisha nyongeza"
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "Sakinisha Nyongeza"
+
+
+msgid "Scan add-on directories for new modules"
+msgstr "Changanua saraka za nyongeza kwa moduli mpya"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Onyesha upya"
+
+
+msgid "Delete the add-on from the file system"
+msgstr "Futa nyongeza kutoka kwa mfumo wa faili"
+
+
+msgctxt "Operator"
+msgid "Remove Add-on"
+msgstr "Ondoa Nyongeza"
+
+
+msgid "Show add-on preferences"
+msgstr "Onyesha mapendeleo ya nyongeza"
+
+
+msgid "Install an application template"
+msgstr "Sakinisha kiolezo cha maombi"
+
+
+msgctxt "Operator"
+msgid "Install Template from File..."
+msgstr "Sakinisha Kiolezo kutoka kwa Faili..."
+
+
+msgid "Copy settings from previous version"
+msgstr "Nakili mipangilio kutoka toleo la awali"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Nakili Mipangilio Iliyotangulia"
+
+
+msgid "Remove key config"
+msgstr "Ondoa usanidi wa vitufe"
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "Ondoa Usanidi wa Ufunguo"
+
+
+msgid "Test key configuration for conflicts"
+msgstr "Jaribio la usanidi wa ufunguo kwa migongano"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "Usanidi wa Muhimu wa Jaribio kwa Migogoro"
+
+
+msgid "Add key map item"
+msgstr "Ongeza kipengee muhimu cha ramani"
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "Ongeza Kipengee Muhimu cha Ramani"
+
+
+msgid "Remove key map item"
+msgstr "Ondoa kipengee muhimu cha ramani"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "Ondoa Kipengee Muhimu cha Ramani"
+
+
+msgid "Restore key map item"
+msgstr "Rejesha kipengee muhimu cha ramani"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "Rejesha Kipengee Muhimu cha Ramani"
+
+
+msgid "Restore key map(s)"
+msgstr "Rejesha ramani muhimu"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "Rejesha Ramani Muhimu"
+
+
+msgctxt "Operator"
+msgid "Add Python Script Directory"
+msgstr "Ongeza Saraka ya Hati ya Python"
+
+
+msgctxt "Operator"
+msgid "Remove Python Script Directory"
+msgstr "Ondoa Saraka ya Hati ya Python"
+
+
+msgid "Copy Studio Light settings to the Studio Light editor"
+msgstr "Nakili mipangilio ya Mwanga wa Studio kwa kihariri cha Mwanga wa Studio"
+
+
+msgctxt "Operator"
+msgid "Copy Studio Light Settings"
+msgstr "Nakili Mipangilio ya Mwanga wa Studio"
+
+
+msgid "Install a user defined light"
+msgstr "Sakinisha taa iliyoainishwa ya mtumiaji"
+
+
+msgctxt "Operator"
+msgid "Install Light"
+msgstr "Sakinisha Mwanga"
+
+
+msgid "Save custom studio light from the studio light editor settings"
+msgstr "Hifadhi taa maalum ya studio kutoka kwa mipangilio ya kihariri cha taa ya studio"
+
+
+msgctxt "Operator"
+msgid "Save Custom Studio Light"
+msgstr "Hifadhi Mwangaza wa Studio Maalum"
+
+
+msgid "Delete Studio Light"
+msgstr "Futa Mwanga wa Studio"
+
+
+msgctxt "Operator"
+msgid "Uninstall Studio Light"
+msgstr "Sanidua Mwanga wa Studio"
+
+
+msgid "Load and apply a Blender XML theme file"
+msgstr "Pakia na utumie faili ya mandhari ya Blender XML"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "Sakinisha Mandhari..."
+
+
+msgid "Add an Integrator Preset"
+msgstr "Ongeza Uwekaji Awali wa Kiunganisha"
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "Ongeza Uwekaji Awali wa Kiunganisha"
+
+
+msgid "Add an Performance Preset"
+msgstr "Ongeza Uwekaji Awali wa Utendaji"
+
+
+msgctxt "Operator"
+msgid "Add Performance Preset"
+msgstr "Ongeza Uwekaji Awali wa Utendaji"
+
+
+msgid "Add a Sampling Preset"
+msgstr "Ongeza Uwekaji Awali wa Sampuli"
+
+
+msgctxt "Operator"
+msgid "Add Sampling Preset"
+msgstr "Ongeza Sampuli Uwekaji Awali"
+
+
+msgid "Add a Viewport Sampling Preset"
+msgstr "Ongeza Mpangilio wa Sampuli wa Viewport"
+
+
+msgctxt "Operator"
+msgid "Add Viewport Sampling Preset"
+msgstr "Ongeza Uwekaji Awali wa Sampuli ya Viewport"
+
+
+msgid "Add or remove an EEVEE ray-tracing preset"
+msgstr "Ongeza au ondoa uwekaji awali wa ufuatiliaji wa miale ya EEVEE"
+
+
+msgctxt "Operator"
+msgid "Add Raytracing Preset"
+msgstr "Ongeza Raytracing Preset"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "Cheza tena fremu/filamu zilizotolewa kwa kutumia kichezaji cha nje"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Cheza Uhuishaji Uliotolewa"
+
+
+msgid "Add or remove a Render Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Utoaji"
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "Ongeza Uwekaji Awali wa Toa"
+
+
+msgid "Bake rigid body transformations of selected objects to keyframes"
+msgstr "Oka mabadiliko magumu ya mwili wa vitu vilivyochaguliwa kwa fremu kuu"
+
+
+msgctxt "Operator"
+msgid "Bake to Keyframes"
+msgstr "Oka kwa Fremu Muhimu"
+
+
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "Unda vizuizi vikali vya mwili kati ya miili iliyochaguliwa ngumu"
+
+
+msgctxt "Operator"
+msgid "Connect Rigid Bodies"
+msgstr "Unganisha Miili Migumu"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Nakili mipangilio ya Mwili Mgumu kutoka kwa kitu kinachotumika hadi kilichochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Nakili Mipangilio Imara ya Mwili"
+
+
+msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
+msgstr "Ongeza njia za data kwa mali ya Freestyle Edge Mark ya kingo zilizochaguliwa kwenye seti ya ufunguo inayotumika."
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "Ongeza Alama za Ukingo kwenye Seti ya Kuweka Keying"
+
+
+msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
+msgstr "Ongeza njia za data kwa kipengele cha Freestyle Face Mark cha poligoni zilizochaguliwa kwenye seti ya vitufe inayotumika."
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "Ongeza Alama za Uso kwa Seti ya Ufunguo"
+
+
+msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
+msgstr "Jaza maingizo ya Kiwango cha chini/Upeo kwa umbali wa min/upeo kati ya vitu vilivyochaguliwa vya wavu na chanzo chanzo (ama ni kitu kilichoainishwa na mtumiaji au kamera inayotumika)"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "Jaza Masafa kwa Chaguo"
+
+
+msgid "Open a style module file"
+msgstr "Fungua faili ya moduli ya mtindo"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Fungua Faili ya Moduli ya Mtindo"
+
+
+msgid "Refresh list of actions"
+msgstr "Onyesha upya orodha ya vitendo"
+
+
+msgctxt "Operator"
+msgid "Refresh action list"
+msgstr "Onyesha upya orodha ya vitendo"
+
+
+msgid "Add or remove grease pencil brush preset"
+msgstr "Ongeza au ondoa uwekaji mapema wa brashi ya penseli ya grisi"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Brush Preset"
+msgstr "Ongeza Uwekaji Awali wa Brashi ya Penseli ya Grease"
+
+
+msgid "Add or remove grease pencil material preset"
+msgstr "Ongeza au ondoa uwekaji mapema wa nyenzo za penseli ya grisi"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Material Preset"
+msgstr "Ongeza Uwekaji Awali wa Nyenzo ya Penseli ya Grease"
+
+
+msgid "Load a preset"
+msgstr "Pakia mpangilio wa awali"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "Tekeleza Uwekaji awali wa Python"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "Fanya uhuishaji wa sauti unaofifia wa vipande viwili vya sauti vilivyochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Crossfade Sounds"
+msgstr "Sauti Zilizopita"
+
+
+msgid "Deinterlace all selected movie sources"
+msgstr "Deinterlace vyanzo vyote vya filamu vilivyochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Filamu za Deinterlace"
+
+
+msgid "Adds or updates a fade animation for either visual or audio strips"
+msgstr "Huongeza au kusasisha uhuishaji uliofifia kwa vipande vya picha au sauti"
+
+
+msgctxt "Operator"
+msgid "Add Fades"
+msgstr "Ongeza Vifijo"
+
+
+msgid "Removes fade animation from selected sequences"
+msgstr "Huondoa uhuishaji uliofifia kutoka kwa mifuatano iliyochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Clear Fades"
+msgstr "Kufifia kwa Wazi"
+
+
+msgid "Split multicam strip and select camera"
+msgstr "Gawanya ukanda wa kamera nyingi na uchague kamera"
+
+
+msgctxt "Operator"
+msgid "Split Multicam"
+msgstr "Gawanya Multicam"
+
+
+msgid "Turn on or off pinning"
+msgstr "Washa au zima upachikaji"
+
+
+msgctxt "Operator"
+msgid "Toggle Pin"
+msgstr "Badilisha Pini"
+
+
+msgid "Add or remove a Text Editor Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Kihariri cha Maandishi"
+
+
+msgctxt "Operator"
+msgid "Add Text Editor Preset"
+msgstr "Ongeza Uwekaji Awali wa Kihariri cha Maandishi"
+
+
+msgid "Export given add-on's translation data as PO files"
+msgstr "Hamisha data ya tafsiri ya nyongeza kama faili za PO"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Export"
+msgstr "I18n Usafirishaji wa Nyongeza"
+
+
+msgid "Import given add-on's translation data from PO files"
+msgstr "Leta data ya tafsiri ya nyongeza kutoka kwa faili za PO"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Import"
+msgstr "I18n Uingizaji wa Nyongeza"
+
+
+msgid "Wrapper operator which will invoke given op after setting its module_name"
+msgstr "Opereta ya kanga ambayo itaomba op baada ya kuweka jina_la_moduli yake"
+
+
+msgctxt "Operator"
+msgid "Update I18n Add-on"
+msgstr "Sasisha I18n Nyongeza"
+
+
+msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
+msgstr "Sasisha data ya tafsiri ya nyongeza (inayopatikana kama nakala py kwenye msimbo wa chanzo cha programu-jalizi)"
+
+
+msgid "Clean up i18n working repository (po files)"
+msgstr "Safisha hazina ya kufanya kazi ya i18n (faili za po)"
+
+
+msgctxt "Operator"
+msgid "Clean up I18n Work Repository"
+msgstr "Safisha Hazina ya Kazi ya I18n"
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "Pakia mipangilio ya tafsiri kutoka kwa faili endelevu ya JSon"
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "Mipangilio ya Mzigo wa I18n"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "Hifadhi mipangilio ya tafsiri katika faili endelevu ya JSon"
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "I18n Hifadhi Mipangilio"
+
+
+msgid "Update i18n data (po files) in Blender source code repository"
+msgstr "Sasisha data ya i18n (faili za po) kwenye hazina ya msimbo wa chanzo cha Blender"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "Sasisha Hifadhi ya I18n ya Kichanganyaji"
+
+
+msgid "Init settings for i18n files update operators"
+msgstr "Mipangilio ya Init ya waendeshaji kusasisha faili za i18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "Mipangilio ya Usasishaji ya Init I18n"
+
+
+msgid "(De)select (or invert selection of) all languages for i18n files update operators"
+msgstr "(De)chagua (au geuza uteuzi wa) lugha zote kwa viendeshaji visasisho vya faili za i18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "Init I18n Sasisha Chagua Lugha"
+
+
+msgid "Create or extend a 'i18n_info.txt' Text datablock"
+msgstr "Unda au ongeza kizuizi cha maandishi cha 'i18n_info.txt'"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "Sasisha Takwimu za I18n"
+
+
+msgid "Update i18n working repository (po files)"
+msgstr "Sasisha hazina ya kufanya kazi ya i18n (faili za po)"
+
+
+msgctxt "Operator"
+msgid "Update I18n Work Repository"
+msgstr "Sasisha Hifadhi ya Kazi ya I18n"
+
+
+msgid "Align the UV island's rotation"
+msgstr "Pangilia mzunguko wa kisiwa cha UV"
+
+
+msgctxt "Operator"
+msgid "Align Rotation"
+msgstr "Pangilia Mzunguko"
+
+
+msgid "Export UV layout to file"
+msgstr "Hamisha mpangilio wa UV kwenye faili"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "Hamisha Mpangilio wa UV"
+
+
+msgid "Follow UVs from active quads along continuous face loops"
+msgstr "Fuata UV kutoka kwa quadi amilifu pamoja na vitanzi vya uso vinavyoendelea"
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "Fuata Amilisho Quads"
+
+
+msgid "Pack each face's UVs into the UV bounds"
+msgstr "Pakia UV za kila uso kwenye mipaka ya UV"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "Kifurushi cha Ramani Nyepesi"
+
+
+msgid "Randomize the UV island's location, rotation, and scale"
+msgstr "Badilisha eneo la kisiwa cha UV, mzunguko na ukubwa"
+
+
+msgctxt "Operator"
+msgid "New Camera from VR Landmark"
+msgstr "Kamera Mpya kutoka VR Landmark"
+
+
+msgctxt "Operator"
+msgid "Scene Camera to VR Landmark"
+msgstr "Kamera ya Mandhari hadi Alama ya Uhalisia Pepe"
+
+
+msgctxt "Operator"
+msgid "Cursor to VR Landmark"
+msgstr "Mshale kwa Alama ya Uhalisia Pepe"
+
+
+msgid "Extrude each individual face separately along local normals"
+msgstr "Onyesha kila uso wa mtu binafsi kando kulingana na kanuni za kawaida"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual and Move"
+msgstr "Extrude Mtu binafsi na Sogeza"
+
+
+msgid "Extrude manifold region along normals"
+msgstr "Ondosha eneo lenye viwango vingi pamoja na kanuni"
+
+
+msgctxt "Operator"
+msgid "Extrude Manifold Along Normals"
+msgstr "Extrude Menifold Pamoja Kawaida"
+
+
+msgid "Extrude region together along the average normal"
+msgstr "Onyesha eneo pamoja kwa wastani wa kawaida"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Normals"
+msgstr "Extrude na Songa kwenye Kawaida"
+
+
+msgid "Extrude region together along local normals"
+msgstr "Ondosha eneo pamoja kwa kanuni za kawaida"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Individual Normals"
+msgstr "Onyesha na Uendelee na Kaida za Mtu Binafsi"
+
+
+msgid "Set the current transform gizmo"
+msgstr "Weka gizmo ya kubadilisha sasa"
+
+
+msgctxt "Operator"
+msgid "Transform Gizmo Set"
+msgstr "Badilisha Seti ya Gizmo"
+
+
+msgctxt "Operator"
+msgid "Update Custom VR Landmark"
+msgstr "Sasisha Alama Maalum ya Uhalisia Pepe"
+
+
+msgctxt "Operator"
+msgid "Add Camera and VR Landmark from Session"
+msgstr "Ongeza Alama kuu ya Kamera na Uhalisia Pepe kutoka kwa Kipindi"
+
+
+msgctxt "Operator"
+msgid "Activate VR Landmark"
+msgstr "Washa Alama ya Uhalisia Pepe"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark"
+msgstr "Ongeza Alama ya Uhalisia Pepe"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Camera"
+msgstr "Ongeza Alama ya Uhalisia Pepe kutoka kwa Kamera"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Session"
+msgstr "Ongeza Alama ya Uhalisia Pepe kutoka kwa Kikao"
+
+
+msgctxt "Operator"
+msgid "Remove VR Landmark"
+msgstr "Ondoa Alama ya Uhalisia Pepe"
+
+
+msgid "Rename multiple items at once"
+msgstr "Badilisha jina la vipengee vingi mara moja"
+
+
+msgctxt "Operator"
+msgid "Batch Rename"
+msgstr "Batch Batch"
+
+
+msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
+msgstr "Angalia na urekebishe mifuatano yote katika faili ya sasa ya .mseto ili kuwa UTF-8 Unicode halali (inahitajika kwa faili za zamani, za eneo la 2.4x)"
+
+
+msgctxt "Operator"
+msgid "Validate .blend strings"
+msgstr "Thibitisha mifuatano ya .changanya"
+
+
+msgid "Set boolean values for a collection of items"
+msgstr "Weka maadili ya boolean kwa mkusanyiko wa vitu"
+
+
+msgctxt "Operator"
+msgid "Context Collection Boolean Set"
+msgstr "Mkusanyiko wa Muktadha Seti ya Boolean"
+
+
+msgid "Set a context array value (useful for cycling the active mesh edit mode)"
+msgstr "Weka thamani ya safu ya muktadha (muhimu kwa kuendesha baisikeli modi amilifu ya kuhariri wavu)"
+
+
+msgctxt "Operator"
+msgid "Context Array Cycle"
+msgstr "Mzunguko wa Safu ya Muktadha"
+
+
+msgid "Toggle a context value"
+msgstr "Geuza thamani ya muktadha"
+
+
+msgctxt "Operator"
+msgid "Context Enum Cycle"
+msgstr "Muktadha Enum Mzunguko"
+
+
+msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
+msgstr "Weka thamani ya muktadha (muhimu kwa nyenzo amilifu ya kuendesha baiskeli, vitufe vya umbo, vikundi, n.k.)"
+
+
+msgctxt "Operator"
+msgid "Context Int Cycle"
+msgstr "Muktadha Int Mzunguko"
+
+
+msgctxt "Operator"
+msgid "Context Enum Menu"
+msgstr "Muktadha Enum Menyu"
+
+
+msgid "Adjust arbitrary values with mouse input"
+msgstr "Rekebisha maadili ya kiholela kwa kuingiza kipanya"
+
+
+msgctxt "Operator"
+msgid "Context Modal Mouse"
+msgstr "Muktadha Modal Mouse"
+
+
+msgctxt "Operator"
+msgid "Context Enum Pie"
+msgstr "Muktadha Enum Pie"
+
+
+msgid "Scale a float context value"
+msgstr "Pima thamani ya muktadha wa kuelea"
+
+
+msgctxt "Operator"
+msgid "Context Scale Float"
+msgstr "Kuelea kwa Kiwango cha Muktadha"
+
+
+msgid "Scale an int context value"
+msgstr "Pima thamani ya int muktadha"
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "Muktadha Scale Int"
+
+
+msgid "Set a context value"
+msgstr "Weka thamani ya muktadha"
+
+
+msgctxt "Operator"
+msgid "Context Set Boolean"
+msgstr "Muktadha Weka Boolean"
+
+
+msgctxt "Operator"
+msgid "Context Set Enum"
+msgstr "Muktadha Weka Enum"
+
+
+msgctxt "Operator"
+msgid "Context Set Float"
+msgstr "Muktadha Weka Kuelea"
+
+
+msgid "Set a context value to an ID data-block"
+msgstr "Weka thamani ya muktadha kwenye kizuizi cha data cha kitambulisho"
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "Weka Kitambulisho cha Maktaba"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "Muktadha Umewekwa"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "Muktadha Weka Kamba"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "Muktadha Weka Thamani"
+
+
+msgctxt "Operator"
+msgid "Context Toggle"
+msgstr "Kugeuza Muktadha"
+
+
+msgctxt "Operator"
+msgid "Context Toggle Values"
+msgstr "Muktadha wa Kugeuza Maadili"
+
+
+msgid "Open online reference docs in a web browser"
+msgstr "Fungua hati za marejeleo mtandaoni katika kivinjari cha wavuti"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "Tazama Hati"
+
+
+msgid "Load online manual"
+msgstr "Pakia mwongozo wa mtandaoni"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "Mwongozo wa Tazama"
+
+
+msgctxt "Operator"
+msgid "Handle dropped .blend file"
+msgstr "Handle imedondosha faili ya .blend"
+
+
+msgid "List all the operators in a text-block, useful for scripting"
+msgstr "Orodhesha waendeshaji wote kwenye kizuizi cha maandishi, muhimu kwa uandishi"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Karatasi ya Kudanganya ya Opereta"
+
+
+msgctxt "Operator"
+msgid "Operator Enum Pie"
+msgstr "Opereta Enum Pie"
+
+
+msgid "Add or remove an Operator Preset"
+msgstr "Ongeza au ondoa Uwekaji Awali wa Opereta"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "Uwekaji Awali wa Opereta"
+
+
+msgid "Remove outdated operator properties from presets that may cause problems"
+msgstr "Ondoa sifa za waendeshaji zilizopitwa na wakati kutoka kwa mipangilio ambayo inaweza kusababisha matatizo"
+
+
+msgctxt "Operator"
+msgid "Clean Up Operator Presets"
+msgstr "Safisha Mipangilio Awali ya Opereta"
+
+
+msgid "Disable add-on for workspace"
+msgstr "Zima programu jalizi kwa nafasi ya kazi"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Lemaza Nyongeza"
+
+
+msgid "Enable add-on for workspace"
+msgstr "Washa programu jalizi kwa nafasi ya kazi"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Wezesha Nyongeza"
+
+
+msgid "Open a path in a file browser"
+msgstr "Fungua njia katika kivinjari cha faili"
+
+
+msgid "Clear selected .blend file's previews"
+msgstr "Futa muhtasari wa faili wa .changanya uliochaguliwa"
+
+
+msgctxt "Operator"
+msgid "Batch-Clear Previews"
+msgstr "Muhtasari wa Batch-Wazi"
+
+
+msgid "Add your own property to the data-block"
+msgstr "Ongeza mali yako mwenyewe kwenye kizuizi cha data"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Ongeza Mali"
+
+
+msgid "Jump to a different tab inside the properties editor"
+msgstr "Rukia kwenye kichupo tofauti ndani ya kihariri cha mali"
+
+
+msgid "Change a custom property's type, or adjust how it is displayed in the interface"
+msgstr "Badilisha aina ya mali maalum, au rekebisha jinsi inavyoonyeshwa kwenye kiolesura"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Hariri Mali"
+
+
+msgid "Edit the value of a custom property"
+msgstr "Hariri thamani ya mali maalum"
+
+
+msgctxt "Operator"
+msgid "Edit Property Value"
+msgstr "Hariri Thamani ya Mali"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "Matumizi ya ndani (hariri data_path ya mali)"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "Ondoa Mali"
+
+
+msgid "Generate system information, saved into a text file"
+msgstr "Tengeneza habari ya mfumo, iliyohifadhiwa kwenye faili ya maandishi"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Hifadhi Maelezo ya Mfumo"
+
+
+msgid "Set the tool by name (for key-maps)"
+msgstr "Weka zana kwa jina (kwa ramani muhimu)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Name"
+msgstr "Weka Zana kwa Jina"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "Weka zana kwa faharasa (kwa ramani-msingi)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Index"
+msgstr "Weka Zana kwa Kielezo"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "Upauzana"
+
+
+msgctxt "Operator"
+msgid "Fallback Tool Pie Menu"
+msgstr "Menyu ya Pai ya Zana ya Kurudi nyuma"
+
+
+msgid "Leader key like functionality for accessing tools"
+msgstr "Kitufe cha kiongozi kama utendakazi wa kupata zana"
+
+
+msgctxt "Operator"
+msgid "Toolbar Prompt"
+msgstr "Agizo la Upau wa vidhibiti"
+
+
+msgid "Open a website in the web browser"
+msgstr "Fungua tovuti katika kivinjari"
+
+
+msgid "Open a preset website in the web browser"
+msgstr "Fungua tovuti iliyowekwa mapema katika kivinjari"
+
+
+msgctxt "Operator"
+msgid "Open Preset Website"
+msgstr "Fungua Tovuti iliyowekwa mapema"
 
 
 msgid "Operator Options"
@@ -45839,15 +47660,6 @@ msgid "Reset viewable area to show the selected channels"
 msgstr "Weka upya eneo linaloweza kutazamwa ili kuonyesha chaneli zilizochaguliwa"
 
 
-msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Futa Vitendo Visivyofaa"
-
-
-msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
-msgstr "Weka alama kwa vitendo bila F-Curve kwa kufutwa baada ya kuhifadhi na kupakia upya faili inayohifadhi \"maktaba za vitendo\""
-
-
 msgid "Only Unused"
 msgstr "Haijatumika Pekee"
 
@@ -46033,15 +47845,6 @@ msgid "Add a new (empty) keying set to the active Scene"
 msgstr "Ongeza kitufe kipya (kilichotupu) kwenye Onyesho linalotumika"
 
 
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "Hamisha Ufunguo wa Seti..."
-
-
-msgid "Export Keying Set to a Python script"
-msgstr "Hamisha Ufunguo Umewekwa kwa hati ya Python"
-
-
 msgid "Filter folders"
 msgstr "Vichujio vya folda"
 
@@ -46137,15 +47940,6 @@ msgstr "Weka Fremu ya Kuanza"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Weka fremu ya sasa kama hakikisho au fremu ya kuanza kwa tukio"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Sasisha Vizuizi vya Mabadiliko ya Uhuishaji"
-
-
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Sasisha f-curves/viendeshi vinavyoathiri vizuizi vya Kubadilisha (itumie na faili kutoka 2.70 na mapema)"
 
 
 msgid "Convert to Radians"
@@ -46390,30 +48184,12 @@ msgstr "Ondoa mkusanyiko unaotumika wa mifupa"
 
 
 msgctxt "Operator"
-msgid "Remove Unused Bone Collections"
-msgstr "Ondoa Mikusanyiko ya Mifupa Isiyotumika"
-
-
-msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
-msgstr "Ondoa mikusanyo yote ya mifupa ambayo haina mifupa wala watoto."
-
-
-msgctxt "Operator"
 msgid "Select Bones of Bone Collection"
 msgstr "Chagua Mifupa ya Ukusanyaji wa Mifupa"
 
 
 msgid "Select bones in active Bone Collection"
 msgstr "Chagua mifupa katika Mkusanyiko amilifu wa Mifupa"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "Onyesha Zote"
-
-
-msgid "Show all bone collections"
-msgstr "Onyesha mikusanyo yote ya mifupa"
 
 
 msgctxt "Operator"
@@ -46432,24 +48208,6 @@ msgstr "Ondoa Mfupa kutoka kwa Mkusanyiko wa Mfupa"
 
 msgid "Unassign the named bone from this bone collection"
 msgstr "Ondoa mfupa uliopewa jina kutoka kwa mkusanyiko huu wa mfupa"
-
-
-msgctxt "Operator"
-msgid "Un-solo All"
-msgstr "Un-solo Zote"
-
-
-msgid "Clear the 'solo' setting on all bone collections"
-msgstr "Futa mpangilio wa 'solo' kwenye mkusanyiko wote wa mifupa"
-
-
-msgctxt "Operator"
-msgid "Copy Colors to Selected"
-msgstr "Nakili Rangi kwa Zilizochaguliwa"
-
-
-msgid "Copy the bone color of the active bone to all selected bones"
-msgstr "Nakili rangi ya mfupa wa mfupa hai kwa mifupa yote iliyochaguliwa"
 
 
 msgid "Copy Bone colors from the active bone to all selected bones"
@@ -46664,11 +48422,6 @@ msgid "Toggle selection status of all bones"
 msgstr "Geuza hali ya uteuzi wa mifupa yote"
 
 
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "Chagua Hierarkia"
-
-
 msgid "Select immediate parent/children of selected bones"
 msgstr "Chagua mzazi/watoto wa karibu wa mifupa iliyochaguliwa"
 
@@ -46828,11 +48581,6 @@ msgstr "-X hadi X"
 
 msgid "+X to -X"
 msgstr "X hadi -X"
-
-
-msgctxt "Operator"
-msgid "Assign Action"
-msgstr "Weka Kitendo"
 
 
 msgid "Set this pose Action as active Action on the active Object"
@@ -47077,33 +48825,6 @@ msgstr "Weka alama kama Mali Moja"
 
 msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "Wezesha utumiaji tena rahisi wa kizuizi cha data kupitia Kivinjari cha Mali, kwa usaidizi wa metadata inayoweza kubinafsishwa (kama vile muhtasari, maelezo na lebo)"
-
-
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "Fungua faili ya Mchanganyiko"
-
-
-msgid "Open the blend file that contains the active asset"
-msgstr "Fungua faili ya mseto ambayo ina kipengee amilifu"
-
-
-msgctxt "Operator"
-msgid "Add Asset Tag"
-msgstr "Ongeza Lebo ya Mali"
-
-
-msgid "Add a new keyword tag to the active asset"
-msgstr "Ongeza lebo mpya ya nenomsingi kwenye kipengee kinachotumika"
-
-
-msgctxt "Operator"
-msgid "Remove Asset Tag"
-msgstr "Ondoa Lebo ya Mali"
-
-
-msgid "Remove an existing keyword tag from the active asset"
-msgstr "Ondoa lebo ya nenomsingi iliyopo kwenye kipengee kinachotumika"
 
 
 msgctxt "Operator"
@@ -47392,15 +49113,6 @@ msgid "Update objects paths list with new data from the archive"
 msgstr "Sasisha orodha ya njia za vitu na data mpya kutoka kwa kumbukumbu"
 
 
-msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "Ongeza Uwekaji Awali wa Kamera"
-
-
-msgid "Add or remove a Camera Preset"
-msgstr "Ongeza au ondoa Uwekaji Mapema wa Kamera"
-
-
 msgid "Name of the preset, used to make the path name"
 msgstr "Jina la uwekaji awali, unaotumika kutengeneza jina la njia"
 
@@ -47411,15 +49123,6 @@ msgstr "Jumuisha Urefu wa Kuzingatia"
 
 msgid "Include focal length into the preset"
 msgstr "Jumuisha urefu wa kuzingatia kwenye uwekaji awali"
-
-
-msgctxt "Operator"
-msgid "Add Safe Area Preset"
-msgstr "Ongeza Uwekaji Awali wa Eneo Salama"
-
-
-msgid "Add or remove a Safe Areas Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Maeneo Salama"
 
 
 msgctxt "Operator"
@@ -47498,19 +49201,6 @@ msgstr "Weka nyimbo asili"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "3D Alama kwa Mesh"
-
-
-msgid "Create vertex cloud using coordinates of reconstructed tracks"
-msgstr "Unda wingu la kipeo ukitumia viwianishi vya nyimbo zilizoundwa upya"
-
-
-msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Mambo ya Ndani ya Kamera ya Kufuatilia"
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "Nyimbo Safi"
 
@@ -47582,15 +49272,6 @@ msgstr "Futa wimbo unaotumika pekee badala ya nyimbo zote ulizochagua"
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "Kizuizi kwa F-Curve"
-
-
-msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
-msgstr "Unda F-Curves kwa kitu ambacho kitakili mwendo wa kitu unaosababishwa na kizuizi hiki"
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "Nakili Nyimbo"
 
@@ -47628,15 +49309,6 @@ msgstr "Futa Alama"
 
 msgid "Delete marker for current frame from selected tracks"
 msgstr "Futa alama kwa fremu ya sasa kutoka kwa nyimbo ulizochagua"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "Futa Wakala"
-
-
-msgid "Delete movie clip proxy files from the hard drive"
-msgstr "Futa faili za proksi za klipu ya filamu kutoka kwa diski kuu"
 
 
 msgctxt "Operator"
@@ -47741,15 +49413,6 @@ msgstr "Panua uteuzi badala ya kufuta uteuzi uliopo"
 
 msgid "Mouse location to select channel"
 msgstr "Eneo la panya ili kuchagua chaneli"
-
-
-msgctxt "Operator"
-msgid "Filter Tracks"
-msgstr "Nyimbo za Kichujio"
-
-
-msgid "Filter tracks which has weirdly looking spikes in motion curves"
-msgstr "Nyimbo za kichujio ambazo zina miiba inayoonekana kwa njia ya ajabu katika mikunjo ya mwendo"
 
 
 msgid "Track Threshold"
@@ -48113,11 +49776,6 @@ msgstr "Chagua alama kwa kutumia uteuzi wa lasso"
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "Weka Klipu Inayotumika"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "Weka Mhimili"
 
@@ -48221,24 +49879,6 @@ msgstr "Framu muhimu ya kuweka"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Weka kama Usuli"
-
-
-msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
-msgstr "Weka klipu ya filamu ya sasa kama usuli wa kamera katika Mtazamo wa 3D (hufanya kazi tu wakati Mtazamo wa 3D unaonekana)"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "Sanidi Eneo la Ufuatiliaji"
-
-
-msgid "Prepare scene for compositing 3D objects into this footage"
-msgstr "Tayarisha onyesho la kutunga vipengee vya 3D kwenye video hii"
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "Alama ya slaidi"
 
@@ -48324,15 +49964,6 @@ msgstr "Chagua nyimbo zinazotumika kuleta uthabiti wa tafsiri"
 
 
 msgctxt "Operator"
-msgid "Add Track Color Preset"
-msgstr "Ongeza Uwekaji Awali wa Rangi ya Wimbo"
-
-
-msgid "Add or remove a Clip Track Color Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Rangi ya Wimbo wa Klipu"
-
-
-msgctxt "Operator"
 msgid "Copy Color"
 msgstr "Nakili Rangi"
 
@@ -48359,33 +49990,6 @@ msgstr "Fuatilia alama wakati wa mfuatano wa picha badala ya picha moja"
 
 
 msgctxt "Operator"
-msgid "Track Settings as Default"
-msgstr "Fuatilia Mipangilio kama Chaguomsingi"
-
-
-msgid "Copy tracking settings from active track to default settings"
-msgstr "Nakili mipangilio ya ufuatiliaji kutoka kwa wimbo amilifu hadi kwa mipangilio chaguomsingi"
-
-
-msgctxt "Operator"
-msgid "Copy Track Settings"
-msgstr "Nakili Mipangilio ya Wimbo"
-
-
-msgid "Copy tracking settings from active track to selected tracks"
-msgstr "Nakili mipangilio ya ufuatiliaji kutoka kwa wimbo amilifu hadi nyimbo zilizochaguliwa"
-
-
-msgctxt "Operator"
-msgid "Link Empty to Track"
-msgstr "Unganisha Tupu kwenye Kufuatilia"
-
-
-msgid "Create an Empty object which will be copying movement of active track"
-msgstr "Unda Kitu Tupu ambacho kitakuwa kinakili harakati za wimbo unaotumika"
-
-
-msgctxt "Operator"
 msgid "Add Tracking Object"
 msgstr "Ongeza Kitu cha Kufuatilia"
 
@@ -48401,15 +50005,6 @@ msgstr "Ondoa Kitu cha Kufuatilia"
 
 msgid "Remove object for tracking"
 msgstr "Ondoa kitu kwa ufuatiliaji"
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "Ongeza Mipangilio ya Ufuatiliaji iliyowekwa mapema"
-
-
-msgid "Add or remove a motion tracking settings preset"
-msgstr "Ongeza au ondoa mipangilio ya ufuatiliaji wa mwendo iliyowekwa mapema"
 
 
 msgctxt "Operator"
@@ -48511,15 +50106,6 @@ msgstr "Uwiano wa Kuza, 1.0 ni 1:1, juu zaidi imekuzwa, ya chini imetolewa nje"
 
 
 msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "Ongeza Uwekaji Awali wa Nguo"
-
-
-msgid "Add or remove a Cloth Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Nguo"
-
-
-msgctxt "Operator"
 msgid "Create New Collection"
 msgstr "Unda Mkusanyiko Mpya"
 
@@ -48586,24 +50172,6 @@ msgstr "Ondoa vitu vilivyochaguliwa kutoka kwa mikusanyiko yote"
 
 
 msgctxt "Operator"
-msgid "Console Autocomplete"
-msgstr "Console ya Kukamilisha Kiotomatiki"
-
-
-msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "Tathmini nafasi ya majina hadi kielekezi na utoe orodha ya chaguo au ukamilishe jina ikiwa kuna moja tu."
-
-
-msgctxt "Operator"
-msgid "Console Banner"
-msgstr "Bango la Console"
-
-
-msgid "Print a message when the terminal initializes"
-msgstr "Chapisha ujumbe wakati terminal inapoanzisha"
-
-
-msgctxt "Operator"
 msgid "Clear All"
 msgstr "Futa Zote"
 
@@ -48655,15 +50223,6 @@ msgstr "Iwapo kufuta uteuzi baada ya kunakili"
 
 
 msgctxt "Operator"
-msgid "Copy to Clipboard (as Script)"
-msgstr "Nakili kwenye Ubao wa kunakili (kama Hati)"
-
-
-msgid "Copy the console contents for use in a script"
-msgstr "Nakili maudhui ya kiweko kwa matumizi katika hati"
-
-
-msgctxt "Operator"
 msgid "Delete"
 msgstr "Futa"
 
@@ -48690,15 +50249,6 @@ msgstr "Neno linalofuata"
 
 msgid "Previous Word"
 msgstr "Neno Lililotangulia"
-
-
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "Utekelezaji wa Console"
-
-
-msgid "Execute the current console line as a Python expression"
-msgstr "Tekeleza laini ya sasa ya kiweko kama msemo wa Python"
 
 
 msgctxt "Operator"
@@ -48764,15 +50314,6 @@ msgstr "Ingiza"
 
 msgid "Insert text at cursor position"
 msgstr "Ingiza maandishi katika nafasi ya kishale"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Lugha ya Dashibodi"
-
-
-msgid "Set the current language for this console"
-msgstr "Weka lugha ya sasa ya kiweko hiki"
 
 
 msgctxt "Python console"
@@ -48867,15 +50408,6 @@ msgstr "Futa nafasi 4 kutoka mwanzo wa mstari"
 
 
 msgctxt "Operator"
-msgid "Add Target"
-msgstr "Ongeza Lengo"
-
-
-msgid "Add a target to the constraint"
-msgstr "Ongeza lengo kwenye kizuizi"
-
-
-msgctxt "Operator"
 msgid "Apply Constraint"
 msgstr "Tekeleza Kizuizi"
 
@@ -48958,15 +50490,6 @@ msgstr "Ondoa kizuizi kutoka kwa safu ya kizuizi"
 
 
 msgctxt "Operator"
-msgid "Disable and Keep Transform"
-msgstr "Zima na Weka Mabadiliko"
-
-
-msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
-msgstr "Weka ushawishi wa kizuizi hiki hadi sufuri huku ukijaribu kudumisha mabadiliko ya kitu."
-
-
-msgctxt "Operator"
 msgid "Auto Animate Path"
 msgstr "Njia ya Kuhuisha Kiotomatiki"
 
@@ -49023,30 +50546,12 @@ msgid "Move constraint up in constraint stack"
 msgstr "Sogeza kizuizi juu kwenye safu ya vizuizi"
 
 
-msgctxt "Operator"
-msgid "Normalize Weights"
-msgstr "Rekebisha Uzito"
-
-
-msgid "Normalize weights of all target bones"
-msgstr "Rekebisha uzani wa mifupa yote inayolengwa"
-
-
 msgid "Clear inverse correction for Object Solver constraint"
 msgstr "Sahihisho la wazi la kinyume kwa kizuizi cha Kitatuzi cha Kitu"
 
 
 msgid "Set inverse correction for Object Solver constraint"
 msgstr "Weka marekebisho kinyume kwa kizuizi cha Kitatuzi cha Kitu"
-
-
-msgctxt "Operator"
-msgid "Remove Target"
-msgstr "Ondoa Lengo"
-
-
-msgid "Remove the target from the constraint"
-msgstr "Ondoa lengo kutoka kwa kizuizi"
 
 
 msgctxt "Operator"
@@ -49938,15 +51443,6 @@ msgid "Location to add new vertex at"
 msgstr "Mahali pa kuongeza kipeo kipya"
 
 
-msgctxt "Operator"
-msgid "Denoise Animation"
-msgstr "Uhuishaji wa Denoise"
-
-
-msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
-msgstr "Denoise inayotolewa mlolongo wa uhuishaji kwa kutumia eneo la sasa na mipangilio ya safu ya kutazama."
-
-
 msgid "Input Filepath"
 msgstr "Njia ya faili ya Ingizo"
 
@@ -49963,30 +51459,12 @@ msgid "If not specified, renders will be denoised in-place"
 msgstr "Ikiwa haijabainishwa, matoleo yatatolewa kwa sauti mahali"
 
 
-msgctxt "Operator"
-msgid "Merge Images"
-msgstr "Unganisha Picha"
-
-
-msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
-msgstr "Changanya picha za safu nyingi za OpenEXR zinazotolewa na safu tofauti za sampuli kwenye picha moja na kelele iliyopunguzwa."
-
-
 msgid "File path for image to merge"
 msgstr "Njia ya faili ya picha kuunganishwa"
 
 
 msgid "File path for merged image"
 msgstr "Njia ya faili ya picha iliyounganishwa"
-
-
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "Tumia Nodi"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Washa nodi kwenye nyenzo, ulimwengu au mwanga"
 
 
 msgctxt "Operator"
@@ -50158,15 +51636,6 @@ msgid "Undo and redo previous action"
 msgstr "Tendua na urudie kitendo kilichotangulia"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "Hamisha BVH"
-
-
-msgid "Save a BVH motion capture file from an armature"
-msgstr "Hifadhi faili ya kunasa mwendo ya BVH kutoka kwa silaha"
-
-
 msgid "Filepath used for exporting the file"
 msgstr "Njia ya faili inayotumika kusafirisha faili"
 
@@ -50225,15 +51694,6 @@ msgstr "Badilisha mizunguko kuwa euler ZXY"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Badilisha mizunguko kuwa euler ZYX"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "Hamisha FBX"
-
-
-msgid "Write a FBX file"
-msgstr "Andika faili ya FBX"
 
 
 msgid "Append a final bone to the end of each chain to specify last bone length (use this when you intend to edit the armature from exported data)"
@@ -50682,15 +52142,6 @@ msgstr "Vitu Vinavyoonekana"
 
 msgid "Export visible objects only"
 msgstr "Hamisha vitu vinavyoonekana pekee"
-
-
-msgctxt "Operator"
-msgid "Export glTF 2.0"
-msgstr "Hamisha glTF 2.0"
-
-
-msgid "Export scene as glTF 2.0 file"
-msgstr "Hamisha onyesho kama faili ya glTF 2.0"
 
 
 msgid "Filter Actions"
@@ -52124,15 +53575,6 @@ msgstr "Sitisha Oka"
 
 msgid "Pause Bake"
 msgstr "Sitisha Oka"
-
-
-msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "Ongeza Uwekaji Awali wa Maji"
-
-
-msgid "Add or remove a Fluid Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Maji"
 
 
 msgctxt "Operator"
@@ -54577,15 +56019,6 @@ msgstr "Punguza kiharusi kilichochaguliwa hadi kitanzi cha kwanza au makutano"
 
 
 msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Badili Rangi"
-
-
-msgid "Switch tint colors"
-msgstr "Badilisha rangi za tint"
-
-
-msgctxt "Operator"
 msgid "Trace Image to Grease Pencil"
 msgstr "Fuatilia Picha kwa Penseli ya Kupaka mafuta"
 
@@ -56086,15 +57519,6 @@ msgstr "Mzunguko wa Nyuma"
 
 
 msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "Hariri Picha Kwa Nje"
-
-
-msgid "Edit image in an external application"
-msgstr "Hariri picha katika programu tumizi ya nje"
-
-
-msgctxt "Operator"
 msgid "Browse Image"
 msgstr "Vinjari Picha"
 
@@ -56243,24 +57667,6 @@ msgstr "Picha ya Pakiti"
 
 msgid "Pack an image as embedded data into the .blend file"
 msgstr "Pakia picha kama data iliyopachikwa kwenye faili ya .mchanganyiko"
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "Mradi Tekeleza"
-
-
-msgid "Project edited image back onto the object"
-msgstr "Picha iliyohaririwa ya mradi kurudi kwenye kitu"
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "Hariri ya Mradi"
-
-
-msgid "Edit a snapshot of the 3D Viewport in an external image editor"
-msgstr "Hariri taswira ya 3D Viewport katika kihariri cha picha cha nje"
 
 
 msgctxt "Operator"
@@ -56578,15 +57984,6 @@ msgid "Set zoom ratio of the view"
 msgstr "Weka uwiano wa kukuza wa mwonekano"
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "Ingiza BVH"
-
-
-msgid "Load a BVH motion capture file"
-msgstr "Pakia faili ya kunasa mwendo wa BVH"
-
-
 msgid "Starting frame for the animation"
 msgstr "Fremu ya kuanza kwa uhuishaji"
 
@@ -56625,24 +58022,6 @@ msgstr "Piga FPS"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "Pima kasi ya fremu kutoka kwa BVH hadi matukio ya sasa, vinginevyo kila fremu ya BVH inaelekeza moja kwa moja kwenye fremu ya Blender"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Leta SVG"
-
-
-msgid "Load a SVG file"
-msgstr "Pakia faili ya SVG"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "Leta FBX"
-
-
-msgid "Load a FBX file"
-msgstr "Pakia faili ya FBX"
 
 
 msgid "Animation Offset"
@@ -56775,15 +58154,6 @@ msgstr "Data ndogo"
 
 msgid "Import FBX subdivision information as subdivision surface modifiers"
 msgstr "Leta maelezo ya mgawanyiko wa FBX kama virekebishaji vya uso wa mgawanyiko"
-
-
-msgctxt "Operator"
-msgid "Import glTF 2.0"
-msgstr "Leta glTF 2.0"
-
-
-msgid "Load a glTF 2.0 file"
-msgstr "Pakia faili ya glTF 2.0"
 
 
 msgid "Heuristic for placing bones. Tries to make bones pretty"
@@ -58083,10 +59453,6 @@ msgid "Extrude Region and Move"
 msgstr "Extrude Mkoa na Sogeza"
 
 
-msgid "Extrude region together along the average normal"
-msgstr "Onyesha eneo pamoja kwa wastani wa kawaida"
-
-
 msgid "Extrude Context"
 msgstr "Onyesha Muktadha"
 
@@ -58127,10 +59493,6 @@ msgid "Extrude Individual Faces and Move"
 msgstr "Onyesha Nyuso za Mtu Binafsi na Usogeze"
 
 
-msgid "Extrude each individual face separately along local normals"
-msgstr "Onyesha kila uso wa mtu binafsi kando kulingana na kanuni za kawaida"
-
-
 msgid "Extrude Individual Faces"
 msgstr "Onyesha Nyuso za Mtu Binafsi"
 
@@ -58154,10 +59516,6 @@ msgstr "Extrude eneo la nyuso"
 
 msgid "Extrude region and move result"
 msgstr "Ondosha eneo na usogeze matokeo"
-
-
-msgid "Extrude region together along local normals"
-msgstr "Ondosha eneo pamoja kwa kanuni za kawaida"
 
 
 msgctxt "Operator"
@@ -58248,15 +59606,6 @@ msgstr "Weld Edges katika Nyuso"
 
 msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "Weld kingo zilizolegea kwenye nyuso (kuzigawanya katika nyuso mpya)"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "Nakili Misimbo ya UV Iliyoakisiwa"
-
-
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "Nakili viwianishi vya UV vya kioo kwenye mhimili wa X kulingana na wavu unaoakisiwa"
 
 
 msgid "Axis Direction"
@@ -59183,15 +60532,6 @@ msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Tengeneza matundu ya planar yaliyojazwa na wima 4"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Ongeza Torus"
-
-
-msgid "Construct a torus mesh"
-msgstr "Tengeneza matundu ya torus"
-
-
 msgid "Exterior Radius"
 msgstr "Radius ya Nje"
 
@@ -59537,15 +60877,6 @@ msgstr "Chagua wima zaidi, kingo au nyuso zilizounganishwa kwenye uteuzi wa awal
 
 
 msgctxt "Operator"
-msgid "Select Next Element"
-msgstr "Chagua Kipengele Kinachofuata"
-
-
-msgid "Select the next element (using selection order)"
-msgstr "Chagua kipengele kinachofuata (kwa kutumia mpangilio wa uteuzi)"
-
-
-msgctxt "Operator"
 msgid "Select Non-Manifold"
 msgstr "Chagua Isiyo na Nyingi"
 
@@ -59584,15 +60915,6 @@ msgstr "Kingo za waya"
 
 msgid "Deselect every Nth element starting from the active vertex, edge or face"
 msgstr "Ondoa kuchagua kila kipengele cha Nth kuanzia kipeo amilifu, ukingo au uso"
-
-
-msgctxt "Operator"
-msgid "Select Previous Element"
-msgstr "Chagua Kipengele Kilichotangulia"
-
-
-msgid "Select the previous element (using selection order)"
-msgstr "Chagua kipengele kilichotangulia (kwa kutumia mpangilio wa uteuzi)"
 
 
 msgid "Randomly select vertices"
@@ -60249,10 +61571,6 @@ msgid "Apply scaling of selected strips to their referenced Actions"
 msgstr "Tekeleza kuongeza sehemu zilizochaguliwa kwa Vitendo vilivyorejelewa"
 
 
-msgid "Bake all selected objects location/scale/rotation animation to an action"
-msgstr "Oka vitu vyote vilivyochaguliwa uhuishaji wa eneo/mizani/mzunguko kwa kitendo"
-
-
 msgctxt "Action"
 msgid "Bake Data"
 msgstr "Data ya Kuoka"
@@ -60705,15 +62023,6 @@ msgid "Add a material node to the current node editor"
 msgstr "Ongeza nodi ya nyenzo kwa kihariri cha nodi ya sasa"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Ongeza Nodi"
-
-
-msgid "Add a node to the active tree"
-msgstr "Ongeza nodi kwenye mti unaotumika"
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "Mipangilio ya kutumika kwenye nodi mpya iliyoundwa"
 
@@ -60739,15 +62048,6 @@ msgid "Add an object info node to the current node editor"
 msgstr "Ongeza nodi ya maelezo ya kitu kwa kihariri cha nodi ya sasa"
 
 
-msgctxt "Operator"
-msgid "Add Repeat Zone"
-msgstr "Ongeza Eneo la Kurudia"
-
-
-msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
-msgstr "Ongeza eneo la kurudia linaloruhusu utekelezaji wa nodi idadi inayobadilika ya nyakati"
-
-
 msgid "Offset of nodes from the cursor when added"
 msgstr "Kukabiliana na nodi kutoka kwa mshale unapoongezwa"
 
@@ -60759,15 +62059,6 @@ msgstr "Ongeza Njia Nyingine"
 
 msgid "Add a reroute node"
 msgstr "Ongeza nodi ya njia nyingine"
-
-
-msgctxt "Operator"
-msgid "Add Simulation Zone"
-msgstr "Ongeza Eneo la Kuiga"
-
-
-msgid "Add simulation zone input and output nodes to the active tree"
-msgstr "Ongeza pembejeo na nodi za eneo la kuiga kwenye mti unaotumika"
 
 
 msgctxt "Operator"
@@ -60849,15 +62140,6 @@ msgstr "Bandika nodi kutoka kwa ubao wa kunakili wa ndani hadi kwenye mti wa nod
 
 msgid "The 2D view location for the center of the new nodes, or unchanged if not set"
 msgstr "Eneo la kutazamwa la 2D la katikati ya nodi mpya, au halijabadilishwa ikiwa haijawekwa."
-
-
-msgctxt "Operator"
-msgid "Collapse and Hide Unused Sockets"
-msgstr "Kunja na Ficha Soketi Zisizotumika"
-
-
-msgid "Toggle collapsed nodes and hide unused sockets"
-msgstr "Geuza nodi zilizoanguka na ufiche soketi ambazo hazijatumika"
 
 
 msgctxt "Operator"
@@ -60980,11 +62262,6 @@ msgid "Search for a node by name and focus and select it"
 msgstr "Tafuta nodi kwa jina na uzingatie na uchague"
 
 
-msgctxt "Operator"
-msgid "glTF Material Output"
-msgstr "GlTF Nyenzo Pato"
-
-
 msgid "Add a node to the active tree for glTF export"
 msgstr "Ongeza nodi kwenye mti unaotumika kwa usafirishaji wa glTF"
 
@@ -61064,11 +62341,6 @@ msgid "Add Item"
 msgstr "Ongeza Kipengee"
 
 
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Ondoa Kipengee"
-
-
 msgid "Remove an item from the index switch"
 msgstr "Ondoa kipengee kutoka kwa swichi ya faharasa"
 
@@ -61082,30 +62354,8 @@ msgid "Automatically offset nodes on insertion"
 msgstr "Rekebisha nodi kiotomati wakati wa kuingizwa"
 
 
-msgctxt "Operator"
-msgid "Duplicate Item"
-msgstr "Kipengee Nakala"
-
-
-msgid "Add a copy of the active item to the interface"
-msgstr "Ongeza nakala ya kipengee amilifu kwenye kiolesura"
-
-
-msgctxt "Operator"
-msgid "New Item"
-msgstr "Kipengee Kipya"
-
-
-msgid "Add a new item to the interface"
-msgstr "Ongeza kipengee kipya kwenye kiolesura"
-
-
 msgid "Type of the item to create"
 msgstr "Aina ya kipengee cha kuunda"
-
-
-msgid "Remove active item from the interface"
-msgstr "Ondoa kipengee amilifu kwenye kiolesura"
 
 
 msgctxt "Operator"
@@ -61250,33 +62500,6 @@ msgstr "Geuza unyamazishaji wa nodi zilizochaguliwa"
 
 
 msgctxt "Operator"
-msgid "Assign New Geometry Node Group"
-msgstr "Weka Kikundi Kipya cha Njia za Jiometri"
-
-
-msgid "Create a new geometry node group and assign it to the active modifier"
-msgstr "Unda kikundi kipya cha nodi za jiometri na uikabidhi kwa kirekebishaji kinachofanya kazi"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Tool Group"
-msgstr "Kikundi Kipya cha Zana ya Njia ya Jiometri"
-
-
-msgid "Create a new geometry node group for a tool"
-msgstr "Unda kikundi kipya cha nodi za jiometri kwa zana"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Modifier"
-msgstr "Kirekebishaji Kipya cha Njia ya Jiometri"
-
-
-msgid "Create a new modifier with a new geometry node group"
-msgstr "Unda kirekebishaji kipya na kikundi kipya cha nodi za jiometri"
-
-
-msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Mti Mpya wa Nodi"
 
@@ -61287,15 +62510,6 @@ msgstr "Unda mti mpya wa nodi"
 
 msgid "Tree Type"
 msgstr "Aina ya Mti"
-
-
-msgctxt "Operator"
-msgid "Add Node Color Preset"
-msgstr "Ongeza Uwekaji Awali wa Rangi ya Nodi"
-
-
-msgid "Add or remove a Node Color Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Rangi ya Nodi"
 
 
 msgid "Copy color to all selected nodes"
@@ -61496,15 +62710,6 @@ msgid "Move and Attach"
 msgstr "Sogeza na Uambatanishe"
 
 
-msgctxt "Operator"
-msgid "Parent Node Tree"
-msgstr "Mti wa Njia ya Mzazi"
-
-
-msgid "Go to parent node tree"
-msgstr "Nenda kwa mti wa nodi ya wazazi"
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "Resize mwonekano ili uweze kuona nodi zote"
 
@@ -61531,11 +62736,6 @@ msgid "Add an object to the scene"
 msgstr "Ongeza kitu kwenye tukio"
 
 
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Ongeza Kirekebishaji"
-
-
 msgid "Add named object"
 msgstr "Ongeza kitu kilichopewa jina"
 
@@ -61558,15 +62758,6 @@ msgstr "Y-coordinate (nafasi ya skrini) ili kuweka kitu kipya chini"
 
 msgid "Duplicate object but not object data, linking to the original data"
 msgstr "Rudufu kitu lakini sio data ya kitu, inayounganisha na data asili"
-
-
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "Pangilia Vitu"
-
-
-msgid "Align objects"
-msgstr "Pangilia vitu"
 
 
 msgid "Align to axis"
@@ -61626,30 +62817,12 @@ msgstr "Tumia kitu amilifu kama nafasi ya vitu vilivyochaguliwa kupatanisha"
 
 
 msgctxt "Operator"
-msgid "Animated Transforms to Deltas"
-msgstr "Mabadiliko ya Uhuishaji hadi Deltas"
-
-
-msgid "Convert object animation for normal transforms to delta transforms"
-msgstr "Badilisha uhuishaji wa kitu kwa mabadiliko ya kawaida hadi mabadiliko ya delta"
-
-
-msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Ongeza Armature"
 
 
 msgid "Add an armature object to the scene"
 msgstr "Ongeza kifaa cha silaha kwenye tukio"
-
-
-msgctxt "Operator"
-msgid "Assign Custom Property Values as Default"
-msgstr "Weka Thamani za Mali Maalum kama Chaguomsingi"
-
-
-msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
-msgstr "Weka thamani za sasa za sifa maalum kama chaguo-msingi zake, ili zitumike kama sehemu ya hali nyingine katika mchanganyiko wa njia za NLA."
 
 
 msgid "Process bone properties"
@@ -61886,11 +63059,6 @@ msgstr "Miviringo kutoka kwa data ya curve iliyotathminiwa"
 
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Paka Penseli ya Mafuta kutoka kwa vitu vya Curve au Mesh"
-
-
-msgctxt "Operator"
-msgid "Copy Global Transform"
-msgstr "Nakili Mabadiliko ya Ulimwenguni"
 
 
 msgid "Copies the matrix of the currently active object or pose bone to the clipboard. Uses world-space matrices"
@@ -62198,15 +63366,6 @@ msgstr "Jina la Ingizo"
 
 
 msgctxt "Operator"
-msgid "Move to Nodes"
-msgstr "Hamisha hadi Vifundo"
-
-
-msgid "Move inputs and outputs from in the modifier to a new node group"
-msgstr "Hamisha pembejeo na matokeo kutoka kwa kirekebishaji hadi kwa kikundi kipya cha nodi"
-
-
-msgctxt "Operator"
 msgid "Add Grease Pencil"
 msgstr "Ongeza Penseli ya Grease"
 
@@ -62310,15 +63469,6 @@ msgstr "Geuza mwonekano"
 
 
 msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "Futa Vizuizi Vyote Utoaji"
-
-
-msgid "Reveal all render objects by setting the hide render flag"
-msgstr "Onyesha vitu vyote vya kutoa kwa kuweka bendera ya kuficha"
-
-
-msgctxt "Operator"
 msgid "Show Hidden Objects"
 msgstr "Onyesha Vitu Vilivyofichwa"
 
@@ -62416,42 +63566,6 @@ msgstr "Chagua wima zilizoathiriwa kwenye matundu"
 
 
 msgctxt "Operator"
-msgid "Set Offset from Cursor"
-msgstr "Weka Offset kutoka kwa Mshale"
-
-
-msgid "Set offset used for collection instances based on cursor position"
-msgstr "Kuweka kukabiliana kutumika kwa matukio ya ukusanyaji kulingana na nafasi ya kishale"
-
-
-msgctxt "Operator"
-msgid "Set Offset from Object"
-msgstr "Weka Offset kutoka kwa Kitu"
-
-
-msgid "Set offset used for collection instances based on the active object position"
-msgstr "Weka usawazishaji unaotumika kwa matukio ya mkusanyiko kulingana na nafasi ya kitu kinachotumika"
-
-
-msgctxt "Operator"
-msgid "Set Cursor to Offset"
-msgstr "Weka Mshale ili Kuzima"
-
-
-msgid "Set cursor position to the offset used for collection instances"
-msgstr "Weka mkao wa kishale kwenye sehemu inayotumika kwa matukio ya mkusanyiko"
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "Zuia Utoaji Haijachaguliwa"
-
-
-msgid "Hide unselected render objects of same type as active by setting the hide render flag"
-msgstr "Ficha ambavyo havijachaguliwa kutoa vipengee vya aina sawa na vinavyotumika kwa kuweka bendera ya kujificha"
-
-
-msgctxt "Operator"
 msgid "Join"
 msgstr "Jiunge"
 
@@ -62467,15 +63581,6 @@ msgstr "Jiunge kama Maumbo"
 
 msgid "Copy the current resulting shape of another selected object to this one"
 msgstr "Nakili umbo la sasa linalotokana la kitu kingine kilichochaguliwa kwa hiki"
-
-
-msgctxt "Operator"
-msgid "Transfer UV Maps"
-msgstr "Hamisha Ramani za UV"
-
-
-msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
-msgstr "Hamisha Ramani za UV kutoka amilifu hadi vitu vilivyochaguliwa (inahitaji kulinganisha jiometri)"
 
 
 msgid "Bind mesh to system in laplacian deform modifier"
@@ -62676,15 +63781,6 @@ msgstr "Wazi Delta"
 
 msgid "Clear delta location in addition to clearing the normal location transform"
 msgstr "Futa eneo la delta pamoja na kusafisha ubadilishaji wa eneo la kawaida"
-
-
-msgctxt "Operator"
-msgid "Make Instance Face"
-msgstr "Tengeneza Uso wa Mfano"
-
-
-msgid "Convert objects into instanced faces"
-msgstr "Badilisha vitu kuwa sura za mfano"
 
 
 msgctxt "Operator"
@@ -63353,11 +64449,6 @@ msgid "Remove the selected particle system"
 msgstr "Ondoa mfumo wa chembe uliochaguliwa"
 
 
-msgctxt "Operator"
-msgid "Paste Global Transform"
-msgstr "Bandika Mabadiliko ya Ulimwenguni"
-
-
 msgid "Pastes the matrix from the clipboard to the currently active pose bone or object. Uses world-space matrices"
 msgstr "Hubandika matrix kutoka ubao kunakili hadi kwenye mfupa wa mkao unaotumika kwa sasa."
 
@@ -63568,15 +64659,6 @@ msgid "Try to preserve sharp features on the mesh"
 msgstr "Jaribu kuhifadhi vipengele vikali kwenye matundu"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Mlipuko wa Haraka"
-
-
-msgid "Make selected objects explode"
-msgstr "Fanya vitu vilivyochaguliwa vilipuke"
-
-
 msgid "Number of Pieces"
 msgstr "Idadi ya Vipande"
 
@@ -63593,15 +64675,6 @@ msgid "Outwards Velocity"
 msgstr "Kasi ya Nje"
 
 
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Manyoya Haraka"
-
-
-msgid "Add a fur setup to the selected objects"
-msgstr "Ongeza usanidi wa manyoya kwa vitu vilivyochaguliwa"
-
-
 msgid "Apply Hair Guides"
 msgstr "Weka Miongozo ya Nywele"
 
@@ -63614,30 +64687,12 @@ msgid "View Percentage"
 msgstr "Asilimia ya Mtazamo"
 
 
-msgctxt "Operator"
-msgid "Quick Liquid"
-msgstr "Kioevu cha Haraka"
-
-
-msgid "Make selected objects liquid"
-msgstr "Fanya vitu vilivyochaguliwa kuwa kioevu"
-
-
 msgid "Render Liquid Objects"
 msgstr "Toa Vitu vya Kimiminika"
 
 
 msgid "Keep the liquid objects visible during rendering"
 msgstr "Weka vitu vya kioevu vinavyoonekana wakati wa utoaji"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Moshi wa Haraka"
-
-
-msgid "Use selected objects as smoke emitters"
-msgstr "Tumia vitu vilivyochaguliwa kama vitoa moshi"
 
 
 msgid "Render Smoke Objects"
@@ -63654,11 +64709,6 @@ msgstr "Mtindo wa Moshi"
 
 msgid "Smoke & Fire"
 msgstr "Moshi"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Mpya"
 
 
 msgid "Select all visible objects grouped by various properties"
@@ -63697,10 +64747,6 @@ msgid "Matching light types"
 msgstr "Aina za mwanga zinazolingana"
 
 
-msgid "Select object relative to the active object's position in the hierarchy"
-msgstr "Chagua kitu kinachohusiana na nafasi ya kitu amilifu katika daraja"
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "Melekeo wa kuchagua katika daraja"
 
@@ -63731,15 +64777,6 @@ msgstr "Chagua vitu vya kioo vya kitu kilichochaguliwa k.m."
 
 msgid "Select connected parent/child objects"
 msgstr "Chagua vitu vilivyounganishwa vya mzazi/mtoto"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "Chagua Mchoro"
-
-
-msgid "Select objects matching a naming pattern"
-msgstr "Chagua vitu vinavyolingana na muundo wa majina"
 
 
 msgid "Case Sensitive"
@@ -64023,15 +65060,6 @@ msgid "Resets the timing for absolute shape keys"
 msgstr "Huweka upya muda wa vitufe vya umbo kamili"
 
 
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Ufunguo wa Umbo la Kuhamisha"
-
-
-msgid "Copy the active shape key of another selected object to this one"
-msgstr "Nakili kitufe amilifu cha umbo la kitu kingine kilichochaguliwa kwa hiki"
-
-
 msgid "Transformation Mode"
 msgstr "Njia ya Mabadiliko"
 
@@ -64164,15 +65192,6 @@ msgid "Add a speaker object to the scene"
 msgstr "Ongeza kitu cha mzungumzaji kwenye tukio"
 
 
-msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "Seti ndogo"
-
-
-msgid "Sets a Subdivision Surface level (1 to 5)"
-msgstr "Inaweka kiwango cha uso wa Mgawanyiko (1 hadi 5)"
-
-
 msgid "Apply the subdivision surface level as an offset relative to the current level"
 msgstr "Tumia kiwango cha uso cha mgawanyiko kama suluhu inayohusiana na kiwango cha sasa"
 
@@ -64299,15 +65318,6 @@ msgstr "UUID wa Kikao"
 
 msgid "Session UUID of the object to place (uses the active object when this and 'name' are unset)"
 msgstr "UUID ya Kikao cha kitu cha kuweka (hutumia kitu kinachotumika wakati hii na 'jina' haijawekwa)"
-
-
-msgctxt "Operator"
-msgid "Transforms to Deltas"
-msgstr "Mabadiliko hadi Deltas"
-
-
-msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
-msgstr "Badilisha kitu cha kawaida hubadilika kuwa mabadiliko ya delta, mabadiliko yoyote yaliyopo ya delta yatajumuishwa pia"
 
 
 msgid "Which transforms to transfer"
@@ -65978,15 +66988,6 @@ msgid "Select Vertices connected to existing selection"
 msgstr "Chagua Wima zilizounganishwa kwa uteuzi uliopo"
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "Rangi Mchafu za Kipeo"
-
-
-msgid "Generate a dirt map gradient based on cavity"
-msgstr "Tengeneza kipenyo cha ramani cha uchafu kulingana na tundu"
-
-
 msgid "Blur Iterations"
 msgstr "Marudio ya Ukungu"
 
@@ -66397,15 +67398,6 @@ msgid "Undo all edition performed on the particle system"
 msgstr "Tendua toleo lote lililotekelezwa kwenye mfumo wa chembe"
 
 
-msgctxt "Operator"
-msgid "Add Hair Dynamics Preset"
-msgstr "Ongeza Mienendo ya Nywele Uwekaji Awali"
-
-
-msgid "Add or remove a Hair Dynamics Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Mienendo ya Nywele"
-
-
 msgid "Hide selected particles"
 msgstr "Ficha chembe zilizochaguliwa"
 
@@ -66618,11 +67610,6 @@ msgid "Blend the given Pose Action to the rig"
 msgstr "Changanya Kitendo cha Kuweka ulichopewa kwenye kifaa"
 
 
-msgctxt "Operator"
-msgid "Convert Legacy Pose Library"
-msgstr "Badilisha Maktaba ya Uwekaji Urithi"
-
-
 msgid "Create a pose asset for each pose marker in this legacy pose library data-block"
 msgstr "Unda kipengee cha pozi kwa kila alama ya pozi katika kizuizi hiki cha data cha maktaba ya urithi"
 
@@ -66631,18 +67618,8 @@ msgid "Create a pose asset for each pose marker in the current action"
 msgstr "Unda kipengee cha pozi kwa kila alama ya mkao katika kitendo cha sasa"
 
 
-msgctxt "Operator"
-msgid "Copy Pose as Asset"
-msgstr "Nakili Msimamo Kama Mali"
-
-
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Unda kipengee kipya kwenye ubao wa kunakili, ili kubandikwe kwenye Kivinjari cha Mali."
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Unda Mali ya Kuweka"
 
 
 msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
@@ -66657,27 +67634,12 @@ msgid "Pose Name"
 msgstr "Jina la Kuweka"
 
 
-msgctxt "Operator"
-msgid "Paste as New Asset"
-msgstr "Bandika kama Mali Mpya"
-
-
 msgid "Paste the Asset that was previously copied using Copy As Asset"
 msgstr "Bandika Kipengee ambacho kilinakiliwa hapo awali kwa kutumia Copy Asset"
 
 
-msgctxt "Operator"
-msgid "Select Bones"
-msgstr "Chagua Mifupa"
-
-
 msgid "Select those bones that are used in this pose"
 msgstr "Chagua hiyo mifupa ambayo inatumika katika mkao huu"
-
-
-msgctxt "Operator"
-msgid "Restore Previous Action"
-msgstr "Rejesha Kitendo Kilichotangulia"
 
 
 msgid "Switch back to the previous Action, after creating a pose asset"
@@ -67127,60 +68089,16 @@ msgid "Module name of the add-on to enable"
 msgstr "Jina la moduli la programu jalizi ili kuwezesha"
 
 
-msgid "Display information and preferences for this add-on"
-msgstr "Onyesha habari na mapendeleo ya programu jalizi hii"
-
-
 msgid "Module name of the add-on to expand"
 msgstr "Jina la moduli ya programu jalizi ya kupanua"
-
-
-msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "Sakinisha Nyongeza"
-
-
-msgid "Install an add-on"
-msgstr "Sakinisha nyongeza"
 
 
 msgid "Target Path"
 msgstr "Njia Lengwa"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Onyesha upya"
-
-
-msgid "Scan add-on directories for new modules"
-msgstr "Changanua saraka za nyongeza kwa moduli mpya"
-
-
-msgctxt "Operator"
-msgid "Remove Add-on"
-msgstr "Ondoa Nyongeza"
-
-
-msgid "Delete the add-on from the file system"
-msgstr "Futa nyongeza kutoka kwa mfumo wa faili"
-
-
 msgid "Module name of the add-on to remove"
 msgstr "Jina la moduli la programu jalizi ya kuondoa"
-
-
-msgid "Show add-on preferences"
-msgstr "Onyesha mapendeleo ya nyongeza"
-
-
-msgctxt "Operator"
-msgid "Install Template from File..."
-msgstr "Sakinisha Kiolezo kutoka kwa Faili..."
-
-
-msgid "Install an application template"
-msgstr "Sakinisha kiolezo cha maombi"
 
 
 msgid "Remove existing template with the same ID"
@@ -67230,15 +68148,6 @@ msgstr "Ondoa Njia ya Utekelezaji Kiotomatiki"
 
 msgid "Remove path to exclude from auto-execution"
 msgstr "Ondoa njia ya kuwatenga kutoka kwa utekelezaji wa kiotomatiki"
-
-
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "Nakili Mipangilio Iliyotangulia"
-
-
-msgid "Copy settings from previous version"
-msgstr "Nakili mipangilio kutoka toleo la awali"
 
 
 msgctxt "Operator"
@@ -67295,42 +68204,6 @@ msgid "Keep original file after copying to configuration folder"
 msgstr "Weka faili asili baada ya kunakili kwenye folda ya usanidi"
 
 
-msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "Ondoa Usanidi wa Ufunguo"
-
-
-msgid "Remove key config"
-msgstr "Ondoa usanidi wa vitufe"
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "Usanidi wa Muhimu wa Jaribio kwa Migogoro"
-
-
-msgid "Test key configuration for conflicts"
-msgstr "Jaribio la usanidi wa ufunguo kwa migongano"
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "Ongeza Kipengee Muhimu cha Ramani"
-
-
-msgid "Add key map item"
-msgstr "Ongeza kipengee muhimu cha ramani"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "Ondoa Kipengee Muhimu cha Ramani"
-
-
-msgid "Remove key map item"
-msgstr "Ondoa kipengee muhimu cha ramani"
-
-
 msgid "Item Identifier"
 msgstr "Kitambulisho cha Kipengee"
 
@@ -67339,26 +68212,8 @@ msgid "Identifier of the item to remove"
 msgstr "Kitambulisho cha kipengee cha kuondoa"
 
 
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "Rejesha Kipengee Muhimu cha Ramani"
-
-
-msgid "Restore key map item"
-msgstr "Rejesha kipengee muhimu cha ramani"
-
-
 msgid "Identifier of the item to restore"
 msgstr "Kitambulisho cha kitu cha kurejesha"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "Rejesha Ramani Muhimu"
-
-
-msgid "Restore key map(s)"
-msgstr "Rejesha ramani muhimu"
 
 
 msgid "Restore all keymaps to default"
@@ -67374,40 +68229,12 @@ msgid "Reset to the default theme colors"
 msgstr "Weka upya kwa rangi za mandhari chaguo-msingi"
 
 
-msgctxt "Operator"
-msgid "Add Python Script Directory"
-msgstr "Ongeza Saraka ya Hati ya Python"
-
-
 msgid "Filter Folders"
 msgstr "Vichujio vya Folda"
 
 
-msgctxt "Operator"
-msgid "Remove Python Script Directory"
-msgstr "Ondoa Saraka ya Hati ya Python"
-
-
 msgid "Index of the script directory to remove"
 msgstr "Fahirisi ya saraka ya hati ya kuondoa"
-
-
-msgctxt "Operator"
-msgid "Copy Studio Light Settings"
-msgstr "Nakili Mipangilio ya Mwanga wa Studio"
-
-
-msgid "Copy Studio Light settings to the Studio Light editor"
-msgstr "Nakili mipangilio ya Mwanga wa Studio kwa kihariri cha Mwanga wa Studio"
-
-
-msgctxt "Operator"
-msgid "Install Light"
-msgstr "Sakinisha Mwanga"
-
-
-msgid "Install a user defined light"
-msgstr "Sakinisha taa iliyoainishwa ya mtumiaji"
 
 
 msgid "Install custom MatCaps"
@@ -67420,33 +68247,6 @@ msgstr "Sakinisha HDRI maalum"
 
 msgid "Install custom Studio Lights"
 msgstr "Sakinisha Taa maalum za Studio"
-
-
-msgctxt "Operator"
-msgid "Save Custom Studio Light"
-msgstr "Hifadhi Mwangaza wa Studio Maalum"
-
-
-msgid "Save custom studio light from the studio light editor settings"
-msgstr "Hifadhi taa maalum ya studio kutoka kwa mipangilio ya kihariri cha taa ya studio"
-
-
-msgctxt "Operator"
-msgid "Uninstall Studio Light"
-msgstr "Sanidua Mwanga wa Studio"
-
-
-msgid "Delete Studio Light"
-msgstr "Futa Mwanga wa Studio"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "Sakinisha Mandhari..."
-
-
-msgid "Load and apply a Blender XML theme file"
-msgstr "Pakia na utumie faili ya mandhari ya Blender XML"
 
 
 msgid "Remove existing theme file if exists"
@@ -67526,51 +68326,6 @@ msgstr "Futa akiba ya sasa"
 
 
 msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "Ongeza Uwekaji Awali wa Kiunganisha"
-
-
-msgid "Add an Integrator Preset"
-msgstr "Ongeza Uwekaji Awali wa Kiunganisha"
-
-
-msgctxt "Operator"
-msgid "Add Performance Preset"
-msgstr "Ongeza Uwekaji Awali wa Utendaji"
-
-
-msgid "Add an Performance Preset"
-msgstr "Ongeza Uwekaji Awali wa Utendaji"
-
-
-msgctxt "Operator"
-msgid "Add Sampling Preset"
-msgstr "Ongeza Sampuli Uwekaji Awali"
-
-
-msgid "Add a Sampling Preset"
-msgstr "Ongeza Uwekaji Awali wa Sampuli"
-
-
-msgctxt "Operator"
-msgid "Add Viewport Sampling Preset"
-msgstr "Ongeza Uwekaji Awali wa Sampuli ya Viewport"
-
-
-msgid "Add a Viewport Sampling Preset"
-msgstr "Ongeza Mpangilio wa Sampuli wa Viewport"
-
-
-msgctxt "Operator"
-msgid "Add Raytracing Preset"
-msgstr "Ongeza Raytracing Preset"
-
-
-msgid "Add or remove an EEVEE ray-tracing preset"
-msgstr "Ongeza au ondoa uwekaji awali wa ufuatiliaji wa miale ya EEVEE"
-
-
-msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "Onyesho la Mtazamo"
 
@@ -67609,24 +68364,6 @@ msgstr "Andika Picha"
 
 msgid "Save the rendered image to the output path (used only when animation is disabled)"
 msgstr "Hifadhi picha iliyotolewa kwa njia ya pato (inatumika tu wakati uhuishaji umezimwa)"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Cheza Uhuishaji Uliotolewa"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "Cheza tena fremu/filamu zilizotolewa kwa kutumia kichezaji cha nje"
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "Ongeza Uwekaji Awali wa Toa"
-
-
-msgid "Add or remove a Render Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Utoaji"
 
 
 msgid "Render active scene"
@@ -67678,24 +68415,6 @@ msgstr "Onyesha/Ficha Mtazamo wa Kutoa"
 
 msgid "Toggle show render view"
 msgstr "Geuza onyesho la kutoa mwonekano"
-
-
-msgctxt "Operator"
-msgid "Bake to Keyframes"
-msgstr "Oka kwa Fremu Muhimu"
-
-
-msgid "Bake rigid body transformations of selected objects to keyframes"
-msgstr "Oka mabadiliko magumu ya mwili wa vitu vilivyochaguliwa kwa fremu kuu"
-
-
-msgctxt "Operator"
-msgid "Connect Rigid Bodies"
-msgstr "Unganisha Miili Migumu"
-
-
-msgid "Create rigid body constraints between selected rigid bodies"
-msgstr "Unda vizuizi vikali vya mwili kati ya miili iliyochaguliwa ngumu"
 
 
 msgid "Type of generated constraint"
@@ -67864,15 +68583,6 @@ msgstr "Ondoa mipangilio ya Mwili Mgumu kutoka kwa Kitu"
 
 
 msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Nakili Mipangilio Imara ya Mwili"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "Nakili mipangilio ya Mwili Mgumu kutoka kwa kitu kinachotumika hadi kilichochaguliwa"
-
-
-msgctxt "Operator"
 msgid "Add Rigid Bodies"
 msgstr "Ongeza Miili Imara"
 
@@ -67951,24 +68661,6 @@ msgstr "Futa tukio amilifu"
 
 
 msgctxt "Operator"
-msgid "Add Edge Marks to Keying Set"
-msgstr "Ongeza Alama za Ukingo kwenye Seti ya Kuweka Keying"
-
-
-msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
-msgstr "Ongeza njia za data kwa mali ya Freestyle Edge Mark ya kingo zilizochaguliwa kwenye seti ya ufunguo inayotumika."
-
-
-msgctxt "Operator"
-msgid "Add Face Marks to Keying Set"
-msgstr "Ongeza Alama za Uso kwa Seti ya Ufunguo"
-
-
-msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
-msgstr "Ongeza njia za data kwa kipengele cha Freestyle Face Mark cha poligoni zilizochaguliwa kwenye seti ya vitufe inayotumika."
-
-
-msgctxt "Operator"
 msgid "Add Alpha Transparency Modifier"
 msgstr "Ongeza Kirekebishaji cha Uwazi cha Alpha"
 
@@ -67984,15 +68676,6 @@ msgstr "Ongeza Kirekebisha Rangi cha Mstari"
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
 msgstr "Ongeza kirekebisha rangi ya mstari kwa mtindo wa mstari unaohusishwa na safu inayotumika"
-
-
-msgctxt "Operator"
-msgid "Fill Range by Selection"
-msgstr "Jaza Masafa kwa Chaguo"
-
-
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
-msgstr "Jaza maingizo ya Kiwango cha chini/Upeo kwa umbali wa min/upeo kati ya vitu vilivyochaguliwa vya wavu na chanzo chanzo (ama ni kitu kilichoainishwa na mtumiaji au kamera inayotumika)"
 
 
 msgid "Name of the modifier to work on"
@@ -68125,15 +68808,6 @@ msgid "Direction to move the chosen style module towards"
 msgstr "Mwelekeo wa kusogeza moduli ya mtindo iliyochaguliwa kuelekea"
 
 
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "Fungua Faili ya Moduli ya Mtindo"
-
-
-msgid "Open a style module file"
-msgstr "Fungua faili ya moduli ya mtindo"
-
-
 msgid "Make internal"
 msgstr "Fanya ndani"
 
@@ -68167,33 +68841,6 @@ msgstr "Ongeza Kirekebishaji cha Unene wa Mstari"
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
 msgstr "Ongeza kirekebishaji cha unene wa mstari kwa mtindo wa mstari unaohusishwa na safu inayotumika"
-
-
-msgctxt "Operator"
-msgid "Refresh action list"
-msgstr "Onyesha upya orodha ya vitendo"
-
-
-msgid "Refresh list of actions"
-msgstr "Onyesha upya orodha ya vitendo"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Brush Preset"
-msgstr "Ongeza Uwekaji Awali wa Brashi ya Penseli ya Grease"
-
-
-msgid "Add or remove grease pencil brush preset"
-msgstr "Ongeza au ondoa uwekaji mapema wa brashi ya penseli ya grisi"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Material Preset"
-msgstr "Ongeza Uwekaji Awali wa Nyenzo ya Penseli ya Grease"
-
-
-msgid "Add or remove grease pencil material preset"
-msgstr "Ongeza au ondoa uwekaji mapema wa nyenzo za penseli ya grisi"
 
 
 msgctxt "Operator"
@@ -68784,15 +69431,6 @@ msgstr "Nafasi ya Kazi ya Mzunguko"
 
 msgid "Cycle through workspaces"
 msgstr "Baiskeli kupitia nafasi za kazi"
-
-
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "Tekeleza Uwekaji awali wa Python"
-
-
-msgid "Load a preset"
-msgstr "Pakia mpangilio wa awali"
 
 
 msgid "Menu ID Name"
@@ -69994,26 +70632,8 @@ msgid "Copy the selected strips to the internal clipboard"
 msgstr "Nakili vipande vilivyochaguliwa kwenye ubao wa kunakili wa ndani"
 
 
-msgctxt "Operator"
-msgid "Crossfade Sounds"
-msgstr "Sauti Zilizopita"
-
-
-msgid "Do cross-fading volume animation of two selected sound strips"
-msgstr "Fanya uhuishaji wa sauti unaofifia wa vipande viwili vya sauti vilivyochaguliwa"
-
-
 msgid "Cursor location in normalized preview coordinates"
 msgstr "Mahali pa mshale katika viwianishi vya onyesho la kuchungulia vilivyorekebishwa"
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "Filamu za Deinterlace"
-
-
-msgid "Deinterlace all selected movie sources"
-msgstr "Deinterlace vyanzo vyote vya filamu vilivyochaguliwa"
 
 
 msgid "Delete selected strips from the sequencer"
@@ -70103,15 +70723,6 @@ msgid "Export .srt file containing text strips"
 msgstr "Hamisha faili ya .srt iliyo na vipande vya maandishi"
 
 
-msgctxt "Operator"
-msgid "Add Fades"
-msgstr "Ongeza Vifijo"
-
-
-msgid "Adds or updates a fade animation for either visual or audio strips"
-msgstr "Huongeza au kusasisha uhuishaji uliofifia kwa vipande vya picha au sauti"
-
-
 msgid "Fade Duration"
 msgstr "Kufifia Muda"
 
@@ -70166,15 +70777,6 @@ msgstr "Kwa Fremu ya Sasa"
 
 msgid "Fade from the start of sequences under the time cursor to the current frame"
 msgstr "Fifisha kuanzia mwanzo wa mifuatano chini ya kishale cha muda hadi kwenye fremu ya sasa"
-
-
-msgctxt "Operator"
-msgid "Clear Fades"
-msgstr "Kufifia kwa Wazi"
-
-
-msgid "Removes fade animation from selected sequences"
-msgstr "Huondoa uhuishaji uliofifia kutoka kwa mifuatano iliyochaguliwa"
 
 
 msgctxt "Operator"
@@ -70855,15 +71457,6 @@ msgid "Split at position of the cursor instead of current frame"
 msgstr "Gawanya katika nafasi ya kishale badala ya fremu ya sasa"
 
 
-msgctxt "Operator"
-msgid "Split Multicam"
-msgstr "Gawanya Multicam"
-
-
-msgid "Split multicam strip and select camera"
-msgstr "Gawanya ukanda wa kamera nyingi na uchague kamera"
-
-
 msgid "Set a color tag for the selected strips"
 msgstr "Weka lebo ya rangi kwa vibanzi vilivyochaguliwa"
 
@@ -71298,15 +71891,6 @@ msgstr "Ondoa kichujio cha safu kutoka kwa sheria"
 
 
 msgctxt "Operator"
-msgid "Toggle Pin"
-msgstr "Badilisha Pini"
-
-
-msgid "Turn on or off pinning"
-msgstr "Washa au zima upachikaji"
-
-
-msgctxt "Operator"
 msgid "Add Surface Circle"
 msgstr "Ongeza Mduara wa Uso"
 
@@ -71394,15 +71978,6 @@ msgstr "Bandika Mipangilio ya Nafasi ya Umbile"
 
 msgid "Copy the texture settings and nodes"
 msgstr "Nakili mipangilio ya unamu na nodi"
-
-
-msgctxt "Operator"
-msgid "Add Text Editor Preset"
-msgstr "Ongeza Uwekaji Awali wa Kihariri cha Maandishi"
-
-
-msgid "Add or remove a Text Editor Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Kihariri cha Maandishi"
 
 
 msgctxt "Operator"
@@ -72149,15 +72724,6 @@ msgid "Sample a data-block from the 3D View to store in a property"
 msgstr "Mfano wa kizuizi cha data kutoka kwa Mwonekano wa 3D ili kuhifadhi katika mali"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Export"
-msgstr "I18n Usafirishaji wa Nyongeza"
-
-
-msgid "Export given add-on's translation data as PO files"
-msgstr "Hamisha data ya tafsiri ya nyongeza kama faili za PO"
-
-
 msgid "Add-on to process"
 msgstr "Nyongeza ya kuchakata"
 
@@ -72178,24 +72744,6 @@ msgid "Update existing po files, if any, instead of overwriting them"
 msgstr "Sasisha faili za po zilizopo, ikiwa zipo, badala ya kuzifuta"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Import"
-msgstr "I18n Uingizaji wa Nyongeza"
-
-
-msgid "Import given add-on's translation data from PO files"
-msgstr "Leta data ya tafsiri ya nyongeza kutoka kwa faili za PO"
-
-
-msgctxt "Operator"
-msgid "Update I18n Add-on"
-msgstr "Sasisha I18n Nyongeza"
-
-
-msgid "Wrapper operator which will invoke given op after setting its module_name"
-msgstr "Opereta ya kanga ambayo itaomba op baada ya kuweka jina_la_moduli yake"
-
-
 msgid "Operator Name"
 msgstr "Jina la Opereta"
 
@@ -72204,66 +72752,8 @@ msgid "Name (id) of the operator to invoke"
 msgstr "Jina (id) la opereta wa kumwomba"
 
 
-msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "Sasisha data ya tafsiri ya nyongeza (inayopatikana kama nakala py kwenye msimbo wa chanzo cha programu-jalizi)"
-
-
-msgctxt "Operator"
-msgid "Clean up I18n Work Repository"
-msgstr "Safisha Hazina ya Kazi ya I18n"
-
-
-msgid "Clean up i18n working repository (po files)"
-msgstr "Safisha hazina ya kufanya kazi ya i18n (faili za po)"
-
-
-msgctxt "Operator"
-msgid "I18n Load Settings"
-msgstr "Mipangilio ya Mzigo wa I18n"
-
-
-msgid "Load translations' settings from a persistent JSon file"
-msgstr "Pakia mipangilio ya tafsiri kutoka kwa faili endelevu ya JSon"
-
-
 msgid "Path to the saved settings file"
 msgstr "Njia ya faili ya mipangilio iliyohifadhiwa"
-
-
-msgctxt "Operator"
-msgid "I18n Save Settings"
-msgstr "I18n Hifadhi Mipangilio"
-
-
-msgid "Save translations' settings in a persistent JSon file"
-msgstr "Hifadhi mipangilio ya tafsiri katika faili endelevu ya JSon"
-
-
-msgctxt "Operator"
-msgid "Update I18n Blender Repository"
-msgstr "Sasisha Hifadhi ya I18n ya Kichanganyaji"
-
-
-msgid "Update i18n data (po files) in Blender source code repository"
-msgstr "Sasisha data ya i18n (faili za po) kwenye hazina ya msimbo wa chanzo cha Blender"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Settings"
-msgstr "Mipangilio ya Usasishaji ya Init I18n"
-
-
-msgid "Init settings for i18n files update operators"
-msgstr "Mipangilio ya Init ya waendeshaji kusasisha faili za i18n"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Select Languages"
-msgstr "Init I18n Sasisha Chagua Lugha"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n files update operators"
-msgstr "(De)chagua (au geuza uteuzi wa) lugha zote kwa viendeshaji visasisho vya faili za i18n"
 
 
 msgid "Invert Selection"
@@ -72280,24 +72770,6 @@ msgstr "Chagua Zote"
 
 msgid "Select all if True, else deselect all"
 msgstr "Chagua zote kama Kweli, vinginevyo ondoa zote"
-
-
-msgctxt "Operator"
-msgid "Update I18n Statistics"
-msgstr "Sasisha Takwimu za I18n"
-
-
-msgid "Create or extend a 'i18n_info.txt' Text datablock"
-msgstr "Unda au ongeza kizuizi cha maandishi cha 'i18n_info.txt'"
-
-
-msgctxt "Operator"
-msgid "Update I18n Work Repository"
-msgstr "Sasisha Hifadhi ya Kazi ya I18n"
-
-
-msgid "Update i18n working repository (po files)"
-msgstr "Sasisha hazina ya kufanya kazi ya i18n (faili za po)"
 
 
 msgid "Skip POT"
@@ -72495,15 +72967,6 @@ msgid "Align UV vertices on a horizontal line"
 msgstr "Pangilia wima za UV kwenye mstari mlalo"
 
 
-msgctxt "Operator"
-msgid "Align Rotation"
-msgstr "Pangilia Mzunguko"
-
-
-msgid "Align the UV island's rotation"
-msgstr "Pangilia mzunguko wa kisiwa cha UV"
-
-
 msgid "Axis to align to"
 msgstr "Mhimili wa kupangilia"
 
@@ -72664,15 +73127,6 @@ msgid "Separate projections by islands isolated by seams"
 msgstr "Makadirio tofauti na visiwa vilivyotengwa na mishono"
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "Hamisha Mpangilio wa UV"
-
-
-msgid "Export UV layout to file"
-msgstr "Hamisha mpangilio wa UV kwenye faili"
-
-
 msgid "All UVs"
 msgstr "UV zote"
 
@@ -72750,15 +73204,6 @@ msgid "Dimensions of the exported file"
 msgstr "Vipimo vya faili iliyosafirishwa"
 
 
-msgctxt "Operator"
-msgid "Follow Active Quads"
-msgstr "Fuata Amilisho Quads"
-
-
-msgid "Follow UVs from active quads along continuous face loops"
-msgstr "Fuata UV kutoka kwa quadi amilifu pamoja na vitanzi vya uso vinavyoendelea"
-
-
 msgid "Edge Length Mode"
 msgstr "Njia ya Urefu wa Ukingo"
 
@@ -72781,15 +73226,6 @@ msgstr "Wastani wa Urefu"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "Ficha (un) wima za UV zilizochaguliwa"
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "Kifurushi cha Ramani Nyepesi"
-
-
-msgid "Pack each face's UVs into the UV bounds"
-msgstr "Pakia UV za kila uso kwenye mipaka ya UV"
 
 
 msgid "Pack Quality"
@@ -73070,10 +73506,6 @@ msgstr "Ramani za UV kwenye eneo la kamera ikizingatia azimio na kipengele"
 
 msgid "Use orthographic projection"
 msgstr "Tumia makadirio ya orthografia"
-
-
-msgid "Randomize the UV island's location, rotation, and scale"
-msgstr "Badilisha eneo la kisiwa cha UV, mzunguko na ukubwa"
 
 
 msgid "Maximum rotation"
@@ -73542,11 +73974,6 @@ msgid "Zoom Factor Y"
 msgstr "Kipengele cha Kuza Y"
 
 
-msgctxt "Operator"
-msgid "New Camera from VR Landmark"
-msgstr "Kamera Mpya kutoka VR Landmark"
-
-
 msgid "Create a new Camera from the selected VR Landmark"
 msgstr "Unda Kamera mpya kutoka kwa Alama ya Uhalisia Pepe iliyochaguliwa"
 
@@ -73584,11 +74011,6 @@ msgstr "Fremu Inayolingana ya Kamera Ili Kuchaguliwa"
 
 msgid "Move the camera so selected objects are framed"
 msgstr "Sogeza kamera ili vitu vilivyochaguliwa viwekewe fremu"
-
-
-msgctxt "Operator"
-msgid "Scene Camera to VR Landmark"
-msgstr "Kamera ya Mandhari hadi Alama ya Uhalisia Pepe"
 
 
 msgid "Position the scene camera at the selected landmark"
@@ -73654,11 +74076,6 @@ msgid "Project onto the surface"
 msgstr "Mradi juu ya uso"
 
 
-msgctxt "Operator"
-msgid "Cursor to VR Landmark"
-msgstr "Mshale kwa Alama ya Uhalisia Pepe"
-
-
 msgid "Move the 3D Cursor to the selected VR Landmark"
 msgstr "Hamishia Mshale wa 3D hadi Alama kuu ya Uhalisia Pepe iliyochaguliwa"
 
@@ -73684,32 +74101,8 @@ msgid "Drop a world into the scene"
 msgstr "Angusha ulimwengu kwenye eneo"
 
 
-msgctxt "Operator"
-msgid "Extrude Individual and Move"
-msgstr "Extrude Mtu binafsi na Sogeza"
-
-
-msgctxt "Operator"
-msgid "Extrude Manifold Along Normals"
-msgstr "Extrude Menifold Pamoja Kawaida"
-
-
-msgid "Extrude manifold region along normals"
-msgstr "Ondosha eneo lenye viwango vingi pamoja na kanuni"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Normals"
-msgstr "Extrude na Songa kwenye Kawaida"
-
-
 msgid "Dissolves adjacent faces and intersects new geometry"
 msgstr "Huyeyusha nyuso zilizo karibu na kuingiliana na jiometri mpya"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Individual Normals"
-msgstr "Onyesha na Uendelee na Kaida za Mtu Binafsi"
 
 
 msgctxt "Operator"
@@ -74027,20 +74420,6 @@ msgid "Transparent scene display. Allow selecting through items"
 msgstr "Onyesho la onyesho la uwazi."
 
 
-msgctxt "Operator"
-msgid "Transform Gizmo Set"
-msgstr "Badilisha Seti ya Gizmo"
-
-
-msgid "Set the current transform gizmo"
-msgstr "Weka gizmo ya kubadilisha sasa"
-
-
-msgctxt "Operator"
-msgid "Update Custom VR Landmark"
-msgstr "Sasisha Alama Maalum ya Uhalisia Pepe"
-
-
 msgid "Update the selected landmark from the current viewer pose in the VR session"
 msgstr "Sasisha alama muhimu iliyochaguliwa kutoka kwa pozi la sasa la mtazamaji katika kipindi cha Uhalisia Pepe"
 
@@ -74324,54 +74703,24 @@ msgid "Move the view to the selection center"
 msgstr "Sogeza mwonekano hadi kituo cha uteuzi"
 
 
-msgctxt "Operator"
-msgid "Add Camera and VR Landmark from Session"
-msgstr "Ongeza Alama kuu ya Kamera na Uhalisia Pepe kutoka kwa Kipindi"
-
-
 msgid "Create a new Camera and VR Landmark from the viewer pose of the running VR session and select it"
 msgstr "Unda Alama mpya ya Kamera na Uhalisia Pepe kutoka kwa mkao wa mtazamaji wa kipindi cha Uhalisia Pepe na uchague"
-
-
-msgctxt "Operator"
-msgid "Activate VR Landmark"
-msgstr "Washa Alama ya Uhalisia Pepe"
 
 
 msgid "Change to the selected VR landmark from the list"
 msgstr "Badilisha hadi alama kuu ya Uhalisia Pepe iliyochaguliwa kutoka kwenye orodha"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark"
-msgstr "Ongeza Alama ya Uhalisia Pepe"
-
-
 msgid "Add a new VR landmark to the list and select it"
 msgstr "Ongeza alama mpya ya Uhalisia Pepe kwenye orodha na uchague"
-
-
-msgctxt "Operator"
-msgid "Add VR Landmark from Camera"
-msgstr "Ongeza Alama ya Uhalisia Pepe kutoka kwa Kamera"
 
 
 msgid "Add a new VR landmark from the active camera object to the list and select it"
 msgstr "Ongeza alama mpya ya Uhalisia Pepe kutoka kwa kifaa amilifu cha kamera hadi kwenye orodha na ukichague"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark from Session"
-msgstr "Ongeza Alama ya Uhalisia Pepe kutoka kwa Kikao"
-
-
 msgid "Add VR landmark from the viewer pose of the running VR session to the list and select it"
 msgstr "Ongeza alama muhimu ya Uhalisia Pepe kutoka kwa mkao wa mtazamaji wa kipindi cha Uhalisia Pepe kwenye orodha na uchague"
-
-
-msgctxt "Operator"
-msgid "Remove VR Landmark"
-msgstr "Ondoa Alama ya Uhalisia Pepe"
 
 
 msgid "Delete the selected VR landmark from the list"
@@ -74675,15 +75024,6 @@ msgid "Localize all appended data, including those indirectly linked from other 
 msgstr "Janibisha data yote iliyoambatishwa, ikijumuisha zile zilizounganishwa kwa njia isiyo ya moja kwa moja kutoka kwa maktaba zingine"
 
 
-msgctxt "Operator"
-msgid "Batch Rename"
-msgstr "Batch Batch"
-
-
-msgid "Rename multiple items at once"
-msgstr "Badilisha jina la vipengee vingi mara moja"
-
-
 msgid "Type of data to rename"
 msgstr "Aina ya data ya kubadilisha jina"
 
@@ -74698,15 +75038,6 @@ msgstr "Vipande vya Mfuatano"
 
 msgid "Action Clips"
 msgstr "Klipu za Vitendo"
-
-
-msgctxt "Operator"
-msgid "Validate .blend strings"
-msgstr "Thibitisha mifuatano ya .changanya"
-
-
-msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
-msgstr "Angalia na urekebishe mifuatano yote katika faili ya sasa ya .mseto ili kuwa UTF-8 Unicode halali (inahitajika kwa faili za zamani, za eneo la 2.4x)"
 
 
 msgctxt "Operator"
@@ -75096,30 +75427,12 @@ msgid "When searching Bone Chains disregard chains of length below this value"
 msgstr "Wakati wa kutafuta Minyororo ya Mifupa puuza minyororo ya urefu chini ya thamani hii"
 
 
-msgctxt "Operator"
-msgid "Context Collection Boolean Set"
-msgstr "Mkusanyiko wa Muktadha Seti ya Boolean"
-
-
-msgid "Set boolean values for a collection of items"
-msgstr "Weka maadili ya boolean kwa mkusanyiko wa vitu"
-
-
 msgid "The data path from each iterable to the value (int or float)"
 msgstr "Njia ya data kutoka kwa kila iterable hadi thamani (int au kuelea)"
 
 
 msgid "The data path relative to the context, must point to an iterable"
 msgstr "Njia ya data inayohusiana na muktadha, lazima ielekeze kwa iterable"
-
-
-msgctxt "Operator"
-msgid "Context Array Cycle"
-msgstr "Mzunguko wa Safu ya Muktadha"
-
-
-msgid "Set a context array value (useful for cycling the active mesh edit mode)"
-msgstr "Weka thamani ya safu ya muktadha (muhimu kwa kuendesha baisikeli modi amilifu ya kuhariri wavu)"
 
 
 msgid "Context Attributes"
@@ -75134,40 +75447,8 @@ msgid "Cycle backwards"
 msgstr "Baiskeli kwenda nyuma"
 
 
-msgctxt "Operator"
-msgid "Context Enum Cycle"
-msgstr "Muktadha Enum Mzunguko"
-
-
-msgid "Toggle a context value"
-msgstr "Geuza thamani ya muktadha"
-
-
 msgid "Wrap back to the first/last values"
 msgstr "Funga tena kwa maadili ya kwanza/ya mwisho"
-
-
-msgctxt "Operator"
-msgid "Context Int Cycle"
-msgstr "Muktadha Int Mzunguko"
-
-
-msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
-msgstr "Weka thamani ya muktadha (muhimu kwa nyenzo amilifu ya kuendesha baiskeli, vitufe vya umbo, vikundi, n.k.)"
-
-
-msgctxt "Operator"
-msgid "Context Enum Menu"
-msgstr "Muktadha Enum Menyu"
-
-
-msgctxt "Operator"
-msgid "Context Modal Mouse"
-msgstr "Muktadha Modal Mouse"
-
-
-msgid "Adjust arbitrary values with mouse input"
-msgstr "Rekebisha maadili ya kiholela kwa kuingiza kipanya"
 
 
 msgid "Header Text"
@@ -75186,31 +75467,8 @@ msgid "Invert the mouse input"
 msgstr "Geuza ingizo la kipanya"
 
 
-msgctxt "Operator"
-msgid "Context Enum Pie"
-msgstr "Muktadha Enum Pie"
-
-
-msgctxt "Operator"
-msgid "Context Scale Float"
-msgstr "Kuelea kwa Kiwango cha Muktadha"
-
-
-msgid "Scale a float context value"
-msgstr "Pima thamani ya muktadha wa kuelea"
-
-
 msgid "Assign value"
 msgstr "Weka thamani"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "Muktadha Scale Int"
-
-
-msgid "Scale an int context value"
-msgstr "Pima thamani ya int muktadha"
 
 
 msgid "Always Step"
@@ -75221,73 +75479,20 @@ msgid "Always adjust the value by a minimum of 1 when 'value' is not 1.0"
 msgstr "Rekebisha thamani kila wakati kwa angalau 1 wakati 'thamani' si 1.0"
 
 
-msgctxt "Operator"
-msgid "Context Set Boolean"
-msgstr "Muktadha Weka Boolean"
-
-
-msgid "Set a context value"
-msgstr "Weka thamani ya muktadha"
-
-
 msgid "Assignment value"
 msgstr "Thamani ya mgawo"
-
-
-msgctxt "Operator"
-msgid "Context Set Enum"
-msgstr "Muktadha Weka Enum"
 
 
 msgid "Assignment value (as a string)"
 msgstr "Thamani ya mgawo (kama mfuatano)"
 
 
-msgctxt "Operator"
-msgid "Context Set Float"
-msgstr "Muktadha Weka Kuelea"
-
-
 msgid "Apply relative to the current value (delta)"
 msgstr "Tumia kulingana na thamani ya sasa (delta)"
 
 
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "Weka Kitambulisho cha Maktaba"
-
-
-msgid "Set a context value to an ID data-block"
-msgstr "Weka thamani ya muktadha kwenye kizuizi cha data cha kitambulisho"
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "Muktadha Umewekwa"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "Muktadha Weka Kamba"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "Muktadha Weka Thamani"
-
-
-msgctxt "Operator"
-msgid "Context Toggle"
-msgstr "Kugeuza Muktadha"
-
-
 msgid "Optionally override the context with a module"
 msgstr "Batilisha muktadha kwa hiari kwa moduli"
-
-
-msgctxt "Operator"
-msgid "Context Toggle Values"
-msgstr "Muktadha wa Kugeuza Maadili"
 
 
 msgid "Toggle enum"
@@ -75307,26 +75512,8 @@ msgid "Debug Value"
 msgstr "Thamani ya Kutatua"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "Tazama Hati"
-
-
-msgid "Open online reference docs in a web browser"
-msgstr "Fungua hati za marejeleo mtandaoni katika kivinjari cha wavuti"
-
-
 msgid "Doc ID"
 msgstr "Kitambulisho cha Hati"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "Mwongozo wa Tazama"
-
-
-msgid "Load online manual"
-msgstr "Pakia mwongozo wa mtandaoni"
 
 
 msgctxt "Operator"
@@ -75336,11 +75523,6 @@ msgstr "Tazama Mwongozo wa Mtandaoni"
 
 msgid "View a context based online manual in a web browser"
 msgstr "Tazama muktadha kulingana na mwongozo wa mtandaoni katika kivinjari cha wavuti"
-
-
-msgctxt "Operator"
-msgid "Handle dropped .blend file"
-msgstr "Handle imedondosha faili ya .blend"
 
 
 msgctxt "Operator"
@@ -75737,26 +75919,12 @@ msgstr "Ruhusu faili ya .mchanganyiko itekeleze hati kiotomatiki, chaguomsingi i
 
 
 msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "Karatasi ya Kudanganya ya Opereta"
-
-
-msgid "List all the operators in a text-block, useful for scripting"
-msgstr "Orodhesha waendeshaji wote kwenye kizuizi cha maandishi, muhimu kwa uandishi"
-
-
-msgctxt "Operator"
 msgid "Restore Operator Defaults"
 msgstr "Rejesha Chaguomsingi za Opereta"
 
 
 msgid "Set the active operator to its default values"
 msgstr "Weka opereta amilifu kwa maadili yake chaguomsingi"
-
-
-msgctxt "Operator"
-msgid "Operator Enum Pie"
-msgstr "Opereta Enum Pie"
 
 
 msgid "Operator name (in Python as string)"
@@ -75767,48 +75935,8 @@ msgid "Property name (as a string)"
 msgstr "Jina la mali (kama kamba)"
 
 
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "Uwekaji Awali wa Opereta"
-
-
-msgid "Add or remove an Operator Preset"
-msgstr "Ongeza au ondoa Uwekaji Awali wa Opereta"
-
-
-msgctxt "Operator"
-msgid "Clean Up Operator Presets"
-msgstr "Safisha Mipangilio Awali ya Opereta"
-
-
-msgid "Remove outdated operator properties from presets that may cause problems"
-msgstr "Ondoa sifa za waendeshaji zilizopitwa na wakati kutoka kwa mipangilio ambayo inaweza kusababisha matatizo"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Lemaza Nyongeza"
-
-
-msgid "Disable add-on for workspace"
-msgstr "Zima programu jalizi kwa nafasi ya kazi"
-
-
 msgid "UI Tag"
 msgstr "Lebo ya UI"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Wezesha Nyongeza"
-
-
-msgid "Enable add-on for workspace"
-msgstr "Washa programu jalizi kwa nafasi ya kazi"
-
-
-msgid "Open a path in a file browser"
-msgstr "Fungua njia katika kivinjari cha faili"
 
 
 msgctxt "Operator"
@@ -75881,15 +76009,6 @@ msgid "Merges vertices by distance"
 msgstr "Huunganisha wima kwa umbali"
 
 
-msgctxt "Operator"
-msgid "Batch-Clear Previews"
-msgstr "Muhtasari wa Batch-Wazi"
-
-
-msgid "Clear selected .blend file's previews"
-msgstr "Futa muhtasari wa faili wa .changanya uliochaguliwa"
-
-
 msgid "Save Backups"
 msgstr "Hifadhi Hifadhi Nakala"
 
@@ -75919,15 +76038,6 @@ msgid "Ensure data-block previews are available and up-to-date (to be saved in .
 msgstr "Hakikisha uhakiki wa kizuizi cha data unapatikana na umesasishwa (ili kuhifadhiwa katika faili ya .mchanganyiko, kwa aina fulani tu kama nyenzo, maumbo, n.k.)"
 
 
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "Ongeza Mali"
-
-
-msgid "Add your own property to the data-block"
-msgstr "Ongeza mali yako mwenyewe kwenye kizuizi cha data"
-
-
 msgid "Property Edit"
 msgstr "Hariri ya Mali"
 
@@ -75936,21 +76046,8 @@ msgid "Property data_path edit"
 msgstr "Kuhariri_njia ya data ya mali"
 
 
-msgid "Jump to a different tab inside the properties editor"
-msgstr "Rukia kwenye kichupo tofauti ndani ya kihariri cha mali"
-
-
 msgid "Context"
 msgstr "Muktadha"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Hariri Mali"
-
-
-msgid "Change a custom property's type, or adjust how it is displayed in the interface"
-msgstr "Badilisha aina ya mali maalum, au rekebisha jinsi inavyoonyeshwa kwenye kiolesura"
 
 
 msgid "Array Length"
@@ -76037,26 +76134,8 @@ msgid "Limits the Property Value slider to a range, values outside the range mus
 msgstr "Huweka kikomo kitelezi cha Thamani ya Mali kwa masafa, thamani zilizo nje ya safu lazima ziingizwe kwa nambari."
 
 
-msgctxt "Operator"
-msgid "Edit Property Value"
-msgstr "Hariri Thamani ya Mali"
-
-
-msgid "Edit the value of a custom property"
-msgstr "Hariri thamani ya mali maalum"
-
-
 msgid "Value for custom property types that can only be edited as a Python expression"
 msgstr "Thamani ya aina za mali maalum ambazo zinaweza tu kuhaririwa kama usemi wa Chatu"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "Ondoa Mali"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "Matumizi ya ndani (hariri data_path ya mali)"
 
 
 msgctxt "Operator"
@@ -76507,24 +76586,6 @@ msgid "Validate Mesh"
 msgstr "Thibitisha Mesh"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Hifadhi Maelezo ya Mfumo"
-
-
-msgid "Generate system information, saved into a text file"
-msgstr "Tengeneza habari ya mfumo, iliyohifadhiwa kwenye faili ya maandishi"
-
-
-msgctxt "Operator"
-msgid "Set Tool by Name"
-msgstr "Weka Zana kwa Jina"
-
-
-msgid "Set the tool by name (for key-maps)"
-msgstr "Weka zana kwa jina (kwa ramani muhimu)"
-
-
 msgid "Set Fallback"
 msgstr "Weka Nyuma"
 
@@ -76545,15 +76606,6 @@ msgid "Identifier of the tool"
 msgstr "Kitambulisho cha chombo"
 
 
-msgctxt "Operator"
-msgid "Set Tool by Index"
-msgstr "Weka Zana kwa Kielezo"
-
-
-msgid "Set the tool by index (for key-maps)"
-msgstr "Weka zana kwa faharasa (kwa ramani-msingi)"
-
-
 msgid "Set the fallback tool instead of the primary"
 msgstr "Weka zana mbadala badala ya ya msingi"
 
@@ -76566,40 +76618,8 @@ msgid "Index in Toolbar"
 msgstr "Fahirisi kwenye Upau wa vidhibiti"
 
 
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "Upauzana"
-
-
-msgctxt "Operator"
-msgid "Fallback Tool Pie Menu"
-msgstr "Menyu ya Pai ya Zana ya Kurudi nyuma"
-
-
-msgctxt "Operator"
-msgid "Toolbar Prompt"
-msgstr "Agizo la Upau wa vidhibiti"
-
-
-msgid "Leader key like functionality for accessing tools"
-msgstr "Kitufe cha kiongozi kama utendakazi wa kupata zana"
-
-
-msgid "Open a website in the web browser"
-msgstr "Fungua tovuti katika kivinjari"
-
-
 msgid "URL to open"
 msgstr "URL ya kufungua"
-
-
-msgctxt "Operator"
-msgid "Open Preset Website"
-msgstr "Fungua Tovuti iliyowekwa mapema"
-
-
-msgid "Open a preset website in the web browser"
-msgstr "Fungua tovuti iliyowekwa mapema katika kivinjari"
 
 
 msgid "Site"
@@ -77758,6 +77778,98 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Wire Color"
+msgstr "Rangi ya Waya"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Compositor"
+msgstr "Mtunzi"
+
+
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
+
+
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Njia ya Kuhariri Mesh"
+
+
+msgid "Measurement"
+msgstr "Kipimo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Snapping"
+msgstr "Kupiga"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
+msgid "Curve Editing"
+msgstr "Uhariri wa Curve"
+
+
+msgid "Auto-masking"
+msgstr "Kufunika macho kiotomatiki"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
+
+
 msgid "Fast GI Approximation"
 msgstr "Ukadiriaji wa GI wa Haraka"
 
@@ -77824,10 +77936,6 @@ msgstr "Utendaji"
 
 msgid "Acceleration Structure"
 msgstr "Muundo wa Kuongeza kasi"
-
-
-msgid "Compositor"
-msgstr "Mtunzi"
 
 
 msgid "Final Render"
@@ -77916,10 +78024,6 @@ msgstr "Tengeneza Mali ya Pose"
 
 msgid "Filters"
 msgstr "Vichujio"
-
-
-msgid "Snapping"
-msgstr "Kupiga"
 
 
 msgid "Advanced Filter"
@@ -78059,84 +78163,12 @@ msgid "Save Preferences"
 msgstr "Hifadhi Mapendeleo"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
-
-
 msgid "Brush Presets"
 msgstr "Mipangilio ya awali ya Brashi"
 
 
-msgid "Curve Editing"
-msgstr "Uhariri wa Curve"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Auto-masking"
-msgstr "Kufunika macho kiotomatiki"
-
-
 msgid "Masking"
 msgstr "Kufunika uso"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "Wire Color"
-msgstr "Rangi ya Waya"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
 
 
 msgid "Stencil Mask"
@@ -78403,18 +78435,6 @@ msgstr "Kata Chembe kwa Umbo"
 
 msgid "Pose Options"
 msgstr "Chaguzi za Kuweka"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Action Maps"
@@ -88796,15 +88816,6 @@ msgid "Show graph view for active element"
 msgstr "Onyesha mwonekano wa grafu kwa kipengele kinachotumika"
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "Karatasi ya karatasi"
-
-
-msgid "Dopesheet view for tracking data"
-msgstr "Mwonekano wa karatasi ya kufuatilia data"
-
-
 msgid "Space Console"
 msgstr "Dashibodi ya Nafasi"
 
@@ -94589,10 +94600,6 @@ msgid "Show the Face Orientation Overlay"
 msgstr "Onyesha Uwekeleaji wa Mwelekeo wa Uso"
 
 
-msgid "Highlight selected faces"
-msgstr "Angazia nyuso zilizochaguliwa"
-
-
 msgid "Fade Inactive Objects"
 msgstr "Fifisha Vipengee Visivyotumika"
 
@@ -98799,10 +98806,6 @@ msgid "None"
 msgstr "Hapana"
 
 
-msgid "Warning"
-msgstr "Onyo"
-
-
 msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Ripoti Mdudu"
@@ -99270,28 +99273,8 @@ msgstr "Imeshindwa kupakia mipangilio ya kuhamisha."
 
 
 msgctxt "Operator"
-msgid "Display Variant"
-msgstr "Onyesho Lahaja"
-
-
-msgctxt "Operator"
-msgid "Assign To Variant"
-msgstr "Agiza Tofauti"
-
-
-msgctxt "Operator"
 msgid "Reset To Original"
 msgstr "Weka Upya Kwa Asili"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "Weka kama Asili"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Ongeza Lahaja ya Nyenzo"
 
 
 msgid "No glTF Animation"
@@ -115411,10 +115394,6 @@ msgstr "Haiwezi kuhariri onyesho la kukagua data ya maktaba iliyobatilishwa"
 
 msgid "Data-block does not support previews"
 msgstr "Uzuiaji wa data hauauni uhakiki"
-
-
-msgid "Can't generate automatic preview for node group"
-msgstr "Haiwezi kutoa hakikisho otomatiki kwa kikundi cha nodi"
 
 
 msgid "Numeric input evaluation"

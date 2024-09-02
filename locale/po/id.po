@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-07-26 18:34+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1679,10 +1679,6 @@ msgstr "Perpustakaan Aset"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Pilih perpustakaan aset untuk menampilkan aset dari"
-
-
-msgid "All"
-msgstr "Semua"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -4828,6 +4824,10 @@ msgstr "Isi area terbalik"
 
 msgid "Mode to draw boundary limits"
 msgstr "Mode ke menggambar batas batasan"
+
+
+msgid "All"
+msgstr "Semua"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -15144,17 +15144,57 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
 msgid "Asset"
 msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Klip"
-
-
-msgid "Track"
-msgstr "Lacak"
 
 
 msgid "Zoom"
@@ -15179,10 +15219,6 @@ msgstr "Saluran"
 
 msgid "Marker"
 msgstr "Tanda"
-
-
-msgid "Snap"
-msgstr "Jepret"
 
 
 msgid "Grease Pencil Vertex Groups"
@@ -15213,20 +15249,8 @@ msgid "Smooth"
 msgstr "Halus"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgid "Shape Key Specials"
@@ -15296,14 +15320,6 @@ msgstr "Transisi"
 
 msgid "Change"
 msgstr "Ganti"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgid "Select Channel"
@@ -15398,25 +15414,9 @@ msgid "Save & Load"
 msgstr "Simpan & Buka"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Induk"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
 
 
 msgid "Edge index"
@@ -18832,6 +18832,10 @@ msgid "Translate Instances"
 msgstr "Menerjemahkan Contoh-contoh"
 
 
+msgid "Warning"
+msgstr "Peringatan"
+
+
 msgid "Label Font Size"
 msgstr "Label Ukuran Font"
 
@@ -19052,12 +19056,299 @@ msgid "Active Node"
 msgstr "Tambah Baru"
 
 
-msgid "An object instance in a render layer"
-msgstr "Sebuah contoh benda di lapisan render"
-
-
 msgid "Object Modifiers"
 msgstr "Pengubah Benda"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Tampilkan Semua"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "Nama"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "Hapus"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "Atur Klip yang Aktif"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Gambar Latar"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "Adegan"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "Kamera"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "Menambah atau mengurangi Preset Kain"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Menambah Preset Kain"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "Hapus Target"
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "Kamera"
+
+
+msgid "Switch tint colors"
+msgstr "Beralih warna kehalusan"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Penyunting Gambar"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "Objek"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "Objek"
+
+
+msgid "Load a SVG file"
+msgstr "Memuat dokumen SVG"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Impor SVG"
+
+
+msgid "Add a node to the active tree"
+msgstr "Tambah node ke pohon aktif"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Tambah Node"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Modus Pahat"
+
+
+msgid "Align objects"
+msgstr "Menyejajarkan objek"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "Menyejajarkan Objek"
+
+
+msgid "Convert objects into instanced faces"
+msgstr "Mengonversi benda menjadi wajah yang telah dicontohkan"
+
+
+msgctxt "Operator"
+msgid "Make Instance Face"
+msgstr "Buat Wajah Contoh"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Sunting Cepat"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Sunting Cepat"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "Orientasi Transformasi"
+
+
+msgid "Create a new action"
+msgstr "Tambah aksi baru"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Baru"
+
+
+msgid "Select the active camera"
+msgstr "Hapus"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Seleksi"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "Seleksi"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Orientasi Transformasi"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "Warna Standar"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Partikel"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "Tekstur"
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "Induk"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "Induk"
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Modus Sunting"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "Kamera"
+
+
+msgid "Scale a float context value"
+msgstr "Skalakan nilai konteks float"
+
+
+msgid "Scale an int context value"
+msgstr "Skalakan nilai koneks int"
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "Int Skala Konteks"
+
+
+msgid "Set a context value"
+msgstr "Set nilai koneks"
+
+
+msgid "Set a context value to an ID data-block"
+msgstr "Set nilai konteks ke data-blok ID"
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "Set ID Perpustakaan"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "Koneks Set"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "Konteks Set String"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "Konteks Set Nilai"
+
+
+msgid "Open online reference docs in a web browser"
+msgstr "Buka docs referensi online di browser web"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "Lihat Dokumentasi"
+
+
+msgid "Load online manual"
+msgstr "Muat manual online"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "Lihat Manual"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Nama Properti"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Modus Sunting"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "Induk"
 
 
 msgctxt "Operator"
@@ -19384,11 +19675,6 @@ msgstr "Tambah koleksi tulang baru"
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Tampilkan Semua"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Hapus Titik"
 
@@ -19416,11 +19702,6 @@ msgstr "Induk"
 msgctxt "Operator"
 msgid "Make Parent"
 msgstr "Induk"
-
-
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -19553,11 +19834,6 @@ msgstr "Menambahkan Lapisan"
 
 
 msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "Kamera"
-
-
-msgctxt "Operator"
 msgid "Add Marker"
 msgstr "Tambah Gambar"
 
@@ -19570,11 +19846,6 @@ msgstr "Tambah Penanda pada Klik"
 msgctxt "Operator"
 msgid "Add Marker and Slide"
 msgstr "Gambar Latar"
-
-
-msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "Nama"
 
 
 msgctxt "Operator"
@@ -19603,11 +19874,6 @@ msgstr "Hapus"
 
 msgctxt "Operator"
 msgid "Delete Marker"
-msgstr "Hapus"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
 msgstr "Hapus"
 
 
@@ -19703,11 +19969,6 @@ msgstr "Seleksi"
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "Atur Klip yang Aktif"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "Atur Sumbu"
 
@@ -19766,22 +20027,7 @@ msgstr "Tipe"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Gambar Latar"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "Adegan"
-
-
-msgctxt "Operator"
 msgid "Solve Camera"
-msgstr "Kamera"
-
-
-msgctxt "Operator"
-msgid "Add Track Color Preset"
 msgstr "Kamera"
 
 
@@ -19807,11 +20053,6 @@ msgstr "Tambah benda baru untuk pelacakan"
 msgctxt "Operator"
 msgid "Remove Tracking Object"
 msgstr "Sunting Objek"
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "Kamera"
 
 
 msgid "Fit View"
@@ -19845,15 +20086,6 @@ msgstr "Perbesar"
 msgctxt "Operator"
 msgid "Zoom Out"
 msgstr "Perkecil"
-
-
-msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "Menambah Preset Kain"
-
-
-msgid "Add or remove a Cloth Preset"
-msgstr "Menambah atau mengurangi Preset Kain"
 
 
 msgid "Name of the new collection"
@@ -19937,11 +20169,6 @@ msgstr "Konsol Python"
 msgctxt "Operator"
 msgid "Move Constraint Up"
 msgstr "Konsol Python"
-
-
-msgctxt "Operator"
-msgid "Remove Target"
-msgstr "Hapus Target"
 
 
 msgid "Add new bezier curve"
@@ -20257,11 +20484,6 @@ msgstr "Gambar Latar"
 
 
 msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "Kamera"
-
-
-msgctxt "Operator"
 msgid "Set Case"
 msgstr "Kamera"
 
@@ -20488,10 +20710,6 @@ msgid "Close new stroke"
 msgstr "Tutup sapuan baru"
 
 
-msgid "Switch tint colors"
-msgstr "Beralih warna kehalusan"
-
-
 msgctxt "Operator"
 msgid "Assign to Vertex Group"
 msgstr "Menugaskan ke Grup Vertex"
@@ -20698,11 +20916,6 @@ msgstr "Partikel"
 
 
 msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "Penyunting Gambar"
-
-
-msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "Saluran"
 
@@ -20728,16 +20941,6 @@ msgstr "Gambar"
 msgctxt "Operator"
 msgid "Pack Image"
 msgstr "Gambar Latar"
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "Objek"
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "Objek"
 
 
 msgctxt "Operator"
@@ -20855,15 +21058,6 @@ msgstr "Skala FPS"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "Skalakan framerate dari BVH ke adegan sekarang, jika tidak, setiap peta frame BVH secara langsung ke frame Blender"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Impor SVG"
-
-
-msgid "Load a SVG file"
-msgstr "Memuat dokumen SVG"
 
 
 msgid "Decal Offset"
@@ -21658,15 +21852,6 @@ msgid "Add a mask node to the current node editor"
 msgstr "Tambah node masker ke editor node sekarang"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Tambah Node"
-
-
-msgid "Add a node to the active tree"
-msgstr "Tambah node ke pohon aktif"
-
-
 msgid "Node Type"
 msgstr "Tipe Node"
 
@@ -21803,20 +21988,6 @@ msgstr "Seleksi Terhubung Ke"
 msgctxt "Operator"
 msgid "Add Object"
 msgstr "Tambah Objek"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Modus Pahat"
-
-
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "Menyejajarkan Objek"
-
-
-msgid "Align objects"
-msgstr "Menyejajarkan objek"
 
 
 msgid "Align to axis"
@@ -22063,15 +22234,6 @@ msgid "Clear Delta"
 msgstr "Hapus Delta"
 
 
-msgctxt "Operator"
-msgid "Make Instance Face"
-msgstr "Buat Wajah Contoh"
-
-
-msgid "Convert objects into instanced faces"
-msgstr "Mengonversi benda menjadi wajah yang telah dicontohkan"
-
-
 msgid "Link Collections"
 msgstr "Hubungkan Koleksi"
 
@@ -22311,50 +22473,12 @@ msgstr "Kamera"
 
 
 msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Sunting Cepat"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Sunting Cepat"
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "Orientasi Transformasi"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Baru"
-
-
-msgid "Create a new action"
-msgstr "Tambah aksi baru"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Kosongkan Rotasi"
 
 
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "Kamera"
-
-
-msgid "Select the active camera"
-msgstr "Hapus"
-
-
 msgid "Instanced Collection"
 msgstr "Koleksi yang Mencontoh"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -22407,11 +22531,6 @@ msgstr "Induk"
 msgctxt "Operator"
 msgid "Re-Time Shape Keys"
 msgstr "Induk"
-
-
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Orientasi Transformasi"
 
 
 msgid "Mark/clear selected vertices as loose"
@@ -22854,11 +22973,6 @@ msgid "Select Linked Vertices Pick"
 msgstr "Pilih Simpul Terhubung Pilih"
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "Warna Standar"
-
-
 msgid "Blur Iterations"
 msgstr "Iterasi Buram"
 
@@ -23121,26 +23235,6 @@ msgstr "Modus Sunting"
 
 
 msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "Partikel"
-
-
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "Tekstur"
-
-
-msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "Induk"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "Induk"
-
-
-msgctxt "Operator"
 msgid "Add New Cache"
 msgstr "Tambah Baru"
 
@@ -23152,11 +23246,6 @@ msgstr "Tambah cache baru"
 msgctxt "Operator"
 msgid "Delete Current Cache"
 msgstr "Setelah Ini"
-
-
-msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "Kamera"
 
 
 msgctxt "Operator"
@@ -23534,11 +23623,6 @@ msgstr "Campuran Warna"
 msgctxt "Operator"
 msgid "Copy"
 msgstr "Salin"
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "Modus Sunting"
 
 
 msgid "Duplicate selected strips and move them"
@@ -24217,11 +24301,6 @@ msgstr "Isi Opasitas"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "Menyembunyikan simpul UV yang (tidak) terpilih"
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "Kamera"
 
 
 msgid "Selected Faces"
@@ -25079,83 +25158,24 @@ msgid "Invert the mouse input"
 msgstr "Balikkan masukan mouse"
 
 
-msgid "Scale a float context value"
-msgstr "Skalakan nilai konteks float"
-
-
 msgid "Assign value"
 msgstr "Menugaskan nilai"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "Int Skala Konteks"
-
-
-msgid "Scale an int context value"
-msgstr "Skalakan nilai koneks int"
 
 
 msgid "Always Step"
 msgstr "Selalu Langkah"
 
 
-msgid "Set a context value"
-msgstr "Set nilai koneks"
-
-
 msgid "Assignment value"
 msgstr "Nilai yang ditugaskan"
-
-
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "Set ID Perpustakaan"
-
-
-msgid "Set a context value to an ID data-block"
-msgstr "Set nilai konteks ke data-blok ID"
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "Koneks Set"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "Konteks Set String"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "Konteks Set Nilai"
 
 
 msgid "Toggle enum"
 msgstr "Kamera"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "Lihat Dokumentasi"
-
-
-msgid "Open online reference docs in a web browser"
-msgstr "Buka docs referensi online di browser web"
-
-
 msgid "Doc ID"
 msgstr "ID Doc"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "Lihat Manual"
-
-
-msgid "Load online manual"
-msgstr "Muat manual online"
 
 
 msgctxt "Operator"
@@ -25189,11 +25209,6 @@ msgid "Load user interface setup in the .blend file"
 msgstr "Muat setup antarmuka pengguna di dokumen .blend"
 
 
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "Kamera"
-
-
 msgid "Merges vertices by distance"
 msgstr "Gabung simpul secara jarak"
 
@@ -25204,21 +25219,6 @@ msgstr "Tipe Data-Blok"
 
 msgid "All Types"
 msgstr "Semua Tipe"
-
-
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "Nama Properti"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Modus Sunting"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "Induk"
 
 
 msgctxt "Operator"
@@ -25526,6 +25526,14 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
+msgid "Wire Color"
+msgstr "Warna Kabel"
+
+
+msgid "Snapping"
+msgstr "Gertakan"
+
+
 msgid "Custom Shape"
 msgstr "Bentuk Kustom"
 
@@ -25620,10 +25628,6 @@ msgstr "Paragraf"
 
 msgid "Effects"
 msgstr "Efek"
-
-
-msgid "Snapping"
-msgstr "Gertakan"
 
 
 msgid "Fluid Presets"
@@ -25845,10 +25849,6 @@ msgstr "Warna Gradien"
 
 msgid "Brush Presets"
 msgstr "Preset Brush"
-
-
-msgid "Wire Color"
-msgstr "Warna Kabel"
 
 
 msgctxt "Operator"
@@ -27805,10 +27805,6 @@ msgstr "Ditemukan banyak add-on dengan nama yang sama!"
 msgctxt "Operator"
 msgid "None"
 msgstr "Kosong"
-
-
-msgid "Warning"
-msgstr "Peringatan"
 
 
 msgid ":"

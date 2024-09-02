@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -197,12 +197,12 @@ msgid "Pattern"
 msgstr "बुट्टा"
 
 
-msgid "Align"
-msgstr "पंक्तिबद्ध पार"
-
-
 msgid "Names"
 msgstr "नामहरु"
+
+
+msgid "Align"
+msgstr "पंक्तिबद्ध पार"
 
 
 msgid "Operator Presets"
@@ -229,13 +229,112 @@ msgid "At"
 msgstr "मा"
 
 
-msgid "Deselect"
-msgstr "नछान्ने"
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "पुर्व-स्थापित कपड  संग्रह बनाऊ "
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "बस्तुहरुलाई पंक्तिबद्ध पार"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "द्रिश्यांकन बन्देजहरु हटाउने "
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "नछानेको बस्तुलाई द्रिश्यांकन बन्देज "
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "अव्यवस्तित रुपान्तरण गर "
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "क्यामेरा छनोट "
 
 
 msgctxt "Operator"
 msgid "Select Hierarchy"
 msgstr "तह छनोट'"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "बुट्टा रोज "
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "आकारको साँचो सार्नुस "
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "अर्धभाग "
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "पहिलेको बेबस्ता सार्ने"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "keyconfig सक्रिय पार्ने"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "द्रिश्यांकन भएको चलचित्र देखाऊ "
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "पुर्व-स्थापित द्रिश्यांकन  संग्रह बनाऊ "
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "पुर्व-स्थापित python संग्रह चलाऊ"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "चलचित्रहरु De-interlace "
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "यसको अभिलेख हेर्ने"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "गुण थप्नुस "
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "गुण सम्पादन गर्ने"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "अन्तरिक प्रयोग (जस्तै गुण data_ठेगाना संपादन गरेर)"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "गुण : सम्पादन "
+
+
+msgid "Deselect"
+msgstr "नछान्ने"
 
 
 msgid "Name of the preset, used to make the path name"
@@ -245,11 +344,6 @@ msgstr "पृर्व-स्तापित संग्रह "
 msgctxt "Operator"
 msgid "Select"
 msgstr "छान्ने "
-
-
-msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "पुर्व-स्थापित कपड  संग्रह बनाऊ "
 
 
 msgid "Limit"
@@ -278,23 +372,8 @@ msgid "Hide"
 msgstr "लुकाउ"
 
 
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "बस्तुहरुलाई पंक्तिबद्ध पार"
-
-
 msgid "Align to axis"
 msgstr "अक्ष संग पंक्तिबद्ध "
-
-
-msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "द्रिश्यांकन बन्देजहरु हटाउने "
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "नछानेको बस्तुलाई द्रिश्यांकन बन्देज "
 
 
 msgid "Selected Only"
@@ -303,11 +382,6 @@ msgstr "छानीएका मात्र "
 
 msgid "Render Smoke Objects"
 msgstr "धुँवा-बस्तु  द्रिश्यांकन "
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "अव्यवस्तित रुपान्तरण गर "
 
 
 msgid "Seed value for the random generator"
@@ -350,11 +424,6 @@ msgid "Randomize the scale values"
 msgstr "डालका अंकहरु अव्यवस्ति गर "
 
 
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "क्यामेरा छनोट "
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "बर्गीएतामा छनोटको दिशा (तल वा माथि )"
 
@@ -363,22 +432,12 @@ msgid "Child"
 msgstr "सह बस्तु "
 
 
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "बुट्टा रोज "
-
-
 msgid "Case Sensitive"
 msgstr "ठुलो-सानो अक्षर ले फरक पार्ने (english alphabet only)"
 
 
 msgid "Do a case sensitive compare"
 msgstr "अक्षर सम्बेदनशील तुलना "
-
-
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "आकारको साँचो सार्नुस "
 
 
 msgid "Transformation Mode"
@@ -401,38 +460,8 @@ msgid "Relative Edge"
 msgstr "तुनालात्मक धार"
 
 
-msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "अर्धभाग "
-
-
 msgid "Property Name"
 msgstr "गुण : नाम "
-
-
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "पहिलेको बेबस्ता सार्ने"
-
-
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "keyconfig सक्रिय पार्ने"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "द्रिश्यांकन भएको चलचित्र देखाऊ "
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "पुर्व-स्थापित द्रिश्यांकन  संग्रह बनाऊ "
-
-
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "पुर्व-स्थापित python संग्रह चलाऊ"
 
 
 msgid "Menu ID Name"
@@ -444,11 +473,6 @@ msgstr "सुचीको परिचय नाम जसबाट यो क�
 
 
 msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "चलचित्रहरु De-interlace "
-
-
-msgctxt "Operator"
 msgid "Transform"
 msgstr "रुपान्तरण"
 
@@ -456,16 +480,6 @@ msgstr "रुपान्तरण"
 msgctxt "Operator"
 msgid "Align"
 msgstr "पंक्तिबद्ध पार"
-
-
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "यसको अभिलेख हेर्ने"
-
-
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "गुण थप्नुस "
 
 
 msgid "Property Edit"
@@ -480,22 +494,8 @@ msgid "Context"
 msgstr "संदर्भ "
 
 
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "गुण सम्पादन गर्ने"
-
-
 msgid "Property name edit"
 msgstr "गुण :नाम संपादन "
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "गुण : सम्पादन "
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "अन्तरिक प्रयोग (जस्तै गुण data_ठेगाना संपादन गरेर)"
 
 
 msgctxt "Operator"

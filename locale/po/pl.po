@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-07-27 01:56+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -1369,10 +1369,6 @@ msgstr "Biblioteka prefabrykatów"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Wybiera bibliotekę prefabrykatów do wyświetlania"
-
-
-msgid "All"
-msgstr "Wszystko"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -3409,6 +3405,10 @@ msgstr "Kierunek wypełnienia"
 
 msgid "Normal"
 msgstr "Wektor normalny"
+
+
+msgid "All"
+msgstr "Wszystko"
 
 
 msgid "Strokes"
@@ -11238,12 +11238,80 @@ msgid "Use Material Mask"
 msgstr "Używa maski materiału"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Snap"
+msgstr "Przyciągaj"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
 
 
 msgid "Asset"
 msgstr "Prefabrykat"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Catalog"
@@ -11256,18 +11324,6 @@ msgstr "Prefabrykaty"
 
 msgid "Select Grouped"
 msgstr "Zaznacz zgrupowane"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
 
 
 msgid "Context Menu"
@@ -11290,28 +11346,12 @@ msgid "Add Attribute"
 msgstr "Dodaj atrybut"
 
 
-msgid "Snap"
-msgstr "Przyciągaj"
-
-
 msgid "Smooth"
 msgstr "Wygładzanie"
 
 
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
 msgid "Align"
 msgstr "Wyrównaj"
-
-
-msgid "Merge"
-msgstr "Scal"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
 
 
 msgid "Show/Hide Faces"
@@ -11381,14 +11421,6 @@ msgid "Transition"
 msgstr "Przekształcenie"
 
 
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
 msgid "Open Shading Language"
 msgstr "Open Shading Language"
 
@@ -11447,38 +11479,6 @@ msgstr "Ustawienia wstępne"
 
 msgid "Save & Load"
 msgstr "Zapis i odczyt"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Convert"
-msgstr "Konwertuj"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
 
 
 msgid "Quick Setup"
@@ -12410,6 +12410,10 @@ msgid "Set Selection"
 msgstr "Ustaw zaznaczenie"
 
 
+msgid "Warning"
+msgstr "Uwaga"
+
+
 msgid "Group Input"
 msgstr "Wejście grupy"
 
@@ -12714,6 +12718,270 @@ msgstr "Kolekcja blokerów"
 
 
 msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Usuń niepotrzebne akcje"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Pokaż wszystko"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "Otwórz plik Blend"
+
+
+msgctxt "Operator"
+msgid "Add Asset Tag"
+msgstr "Dodaj etykietę prefabrykatu"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Tag"
+msgstr "Usuń etykietę prefabrykatu"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "Dodaj ustawienie wstępne kamery"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Ustaw jako tło"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Dodaj ustawienie wstępne tkaniny"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Język konsoli"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "Odszumianie animacji"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Użyj węzłów"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Eksportuj BVH"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Eksportuj FBX"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "Eksportuj glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Flip Colors"
+msgstr "Zamień kolory"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Importuj BVH"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Importuj SVG"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "Importuj glTF 2.0"
+
+
+msgid "Construct a torus mesh"
+msgstr "Tworzy siatkę torusa"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Dodaj torus"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "Akcja przeliczania"
+
+
+msgctxt "Operator"
+msgid "glTF Material Output"
+msgstr "Wyjście materiału glTF"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Dodaj modyfikator"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Szybka eksplozja"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Szybkie futro"
+
+
+msgctxt "Operator"
+msgid "Quick Liquid"
+msgstr "Szybka ciecz"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Szybki dym"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Zaznacz kamerę"
+
+
+msgctxt "Operator"
+msgid "Copy Pose as Asset"
+msgstr "Kopiuj pozę jako prefabrykat"
+
+
+msgctxt "Operator"
+msgid "Create Pose Asset"
+msgstr "Utwórz prefabrykat pozy"
+
+
+msgctxt "Operator"
+msgid "Paste as New Asset"
+msgstr "Wklej jako nowy prefabrykat"
+
+
+msgctxt "Operator"
+msgid "Select Bones"
+msgstr "Zaznacz kości"
+
+
+msgid "Install an add-on"
+msgstr "Instaluje wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "Instaluj wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Odśwież"
+
+
+msgctxt "Operator"
+msgid "Remove Add-on"
+msgstr "Usuń wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Kopiuj poprzednie ustawienia"
+
+
+msgid "Add a Viewport Sampling Preset"
+msgstr "Dodaje nowe predefiniowane położenie rzutni"
+
+
+msgctxt "Operator"
+msgid "Add Viewport Sampling Preset"
+msgstr "Dodaj predefiniowane położenie rzutni"
+
+
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "Tworzy ograniczenia bryły sztycznej pomiędzy zaznaczonymi bryłami sztywnymi"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Kopiuje ustawienia bryły sztywnej z aktywnego obiektu do zaznaczonego"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Kopiuj ustawienia bryły sztywnej"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "Zaktualizuj repozytorium I18n Blendera"
+
+
+msgctxt "Operator"
+msgid "Align Rotation"
+msgstr "Wyrównaj obrót"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "Losowo"
+
+
+msgctxt "Operator"
+msgid "Transform Gizmo Set"
+msgstr "Transformuj ustawienie Gizmo"
+
+
+msgid "List all the operators in a text-block, useful for scripting"
+msgstr "Lista wszystkich operatorów w bloku tekstowym, przydatna w skryptach"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Wyłącz wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Włącz wtyczkę"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Dodaj właściwość"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Edytuj właściwość"
+
+
+msgctxt "Operator"
+msgid "Edit Property Value"
+msgstr "Edytuj wartość właściwości"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Zapisz informacje o systemie"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "Pasek narzędzi"
+
+
+msgctxt "Operator"
 msgid "Bake Keyframes"
 msgstr "Wypal klatki kluczowe"
 
@@ -12868,11 +13136,6 @@ msgstr "Przełącz ustawienie kanału"
 
 
 msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Usuń niepotrzebne akcje"
-
-
-msgctxt "Operator"
 msgid "Set End Frame"
 msgstr "Ustaw klatkę końcową"
 
@@ -12971,11 +13234,6 @@ msgstr "Przenieś kolekcję kości"
 msgctxt "Operator"
 msgid "Remove Bone Collection"
 msgstr "Usuń kolekcję kości"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "Pokaż wszystko"
 
 
 msgctxt "Operator"
@@ -13125,21 +13383,6 @@ msgid "Mark as Single Asset"
 msgstr "Oznacz jako pojedynczy prefabrykat"
 
 
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "Otwórz plik Blend"
-
-
-msgctxt "Operator"
-msgid "Add Asset Tag"
-msgstr "Dodaj etykietę prefabrykatu"
-
-
-msgctxt "Operator"
-msgid "Remove Asset Tag"
-msgstr "Usuń etykietę prefabrykatu"
-
-
 msgid "Asset Library Identifier"
 msgstr "Identyfikator biblioteki prefabrykatów"
 
@@ -13193,11 +13436,6 @@ msgstr "Otwórz plik pamięci podręcznej"
 
 
 msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "Dodaj ustawienie wstępne kamery"
-
-
-msgctxt "Operator"
 msgid "Set 2D Cursor"
 msgstr "Ustaw kursor 2D"
 
@@ -13220,11 +13458,6 @@ msgid "Set Origin"
 msgstr "Ustaw początek"
 
 
-msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Ustaw jako tło"
-
-
 msgid "Zoom in/out the view"
 msgstr "Powiększ/zmniejsz widok"
 
@@ -13237,11 +13470,6 @@ msgstr "Przybliż"
 msgctxt "Operator"
 msgid "Zoom Out"
 msgstr "Oddal"
-
-
-msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "Dodaj ustawienie wstępne tkaniny"
 
 
 msgctxt "Operator"
@@ -13294,11 +13522,6 @@ msgstr "Usuń"
 
 msgid "Delete text by cursor position"
 msgstr "Usuwa tekst po pozycji kursora"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Język konsoli"
 
 
 msgctxt "Operator"
@@ -13399,16 +13622,6 @@ msgstr "Gładkie"
 
 
 msgctxt "Operator"
-msgid "Denoise Animation"
-msgstr "Odszumianie animacji"
-
-
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "Użyj węzłów"
-
-
-msgctxt "Operator"
 msgid "Generate Preview"
 msgstr "Wygeneruj podgląd"
 
@@ -13440,11 +13653,6 @@ msgid "Redo specific action in history"
 msgstr "Przywraca wybrany stan z historii"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "Eksportuj BVH"
-
-
 msgid "Euler (Native)"
 msgstr "Eulera (natywny)"
 
@@ -13471,11 +13679,6 @@ msgstr "Eulera (ZXY)"
 
 msgid "Euler (ZYX)"
 msgstr "Eulera (ZYX)"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "Eksportuj FBX"
 
 
 msgid "Null"
@@ -13528,11 +13731,6 @@ msgstr "Eksportuje własne właściwości"
 
 msgid "Use Metadata"
 msgstr "Używa Metadanych"
-
-
-msgctxt "Operator"
-msgid "Export glTF 2.0"
-msgstr "Eksportuj glTF 2.0"
 
 
 msgid "Export custom properties as glTF extras"
@@ -14194,11 +14392,6 @@ msgid "Trim Stroke"
 msgstr "Przytnij kreskę"
 
 
-msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Zamień kolory"
-
-
 msgid "Color Threshold"
 msgstr "Próg koloru"
 
@@ -14302,23 +14495,8 @@ msgid "Save Sequence"
 msgstr "Zapisz sekwencję"
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "Importuj BVH"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Importuj SVG"
-
-
 msgid "Armature-related settings"
 msgstr "Ustawienia dotyczące szkieletu"
-
-
-msgctxt "Operator"
-msgid "Import glTF 2.0"
-msgstr "Importuj glTF 2.0"
 
 
 msgctxt "Operator"
@@ -14484,15 +14662,6 @@ msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Tworzy wypełnioną siatkę płaszczyzny z czterema wierzchołkami"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Dodaj torus"
-
-
-msgid "Construct a torus mesh"
-msgstr "Tworzy siatkę torusa"
-
-
 msgid "Exterior Radius"
 msgstr "Zewnętrzny promień"
 
@@ -14556,11 +14725,6 @@ msgid "Wireframe"
 msgstr "Model krawędziowy"
 
 
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "Akcja przeliczania"
-
-
 msgctxt "Action"
 msgid "Bake Data"
 msgstr "Wypal dane"
@@ -14580,11 +14744,6 @@ msgid "Delete with Reconnect"
 msgstr "Usuń z ponownym połączeniem"
 
 
-msgctxt "Operator"
-msgid "glTF Material Output"
-msgstr "Wyjście materiału glTF"
-
-
 msgid "Clear Viewer"
 msgstr "Wyczyść widok"
 
@@ -14592,11 +14751,6 @@ msgstr "Wyczyść widok"
 msgctxt "Operator"
 msgid "Viewer Region"
 msgstr "Przeglądaj region"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Dodaj modyfikator"
 
 
 msgid "Add named object"
@@ -14949,33 +15103,8 @@ msgstr "Osie obrotu"
 
 
 msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Szybka eksplozja"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Szybkie futro"
-
-
-msgctxt "Operator"
-msgid "Quick Liquid"
-msgstr "Szybka ciecz"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Szybki dym"
-
-
-msgctxt "Operator"
 msgid "Select by Type"
 msgstr "Zaznacz według typu"
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "Zaznacz kamerę"
 
 
 msgid "Shared collection"
@@ -15168,26 +15297,6 @@ msgid "Hue, Saturation, Value"
 msgstr "Barwa, nasycenie, wartość"
 
 
-msgctxt "Operator"
-msgid "Copy Pose as Asset"
-msgstr "Kopiuj pozę jako prefabrykat"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Utwórz prefabrykat pozy"
-
-
-msgctxt "Operator"
-msgid "Paste as New Asset"
-msgstr "Wklej jako nowy prefabrykat"
-
-
-msgctxt "Operator"
-msgid "Select Bones"
-msgstr "Zaznacz kości"
-
-
 msgid "Location only"
 msgstr "Tylko położenie"
 
@@ -15209,25 +15318,6 @@ msgstr "Nazwa właściwości"
 
 
 msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "Instaluj wtyczkę"
-
-
-msgid "Install an add-on"
-msgstr "Instaluje wtyczkę"
-
-
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Odśwież"
-
-
-msgctxt "Operator"
-msgid "Remove Add-on"
-msgstr "Usuń wtyczkę"
-
-
-msgctxt "Operator"
 msgid "Add Asset Library"
 msgstr "Dodaj bibliotekę prefabrykatów"
 
@@ -15235,11 +15325,6 @@ msgstr "Dodaj bibliotekę prefabrykatów"
 msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Usuń bibliotekę prefabrykatów"
-
-
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "Kopiuj poprzednie ustawienia"
 
 
 msgctxt "Operator"
@@ -15279,15 +15364,6 @@ msgstr "Usuwa przeliczenie fizyki"
 
 
 msgctxt "Operator"
-msgid "Add Viewport Sampling Preset"
-msgstr "Dodaj predefiniowane położenie rzutni"
-
-
-msgid "Add a Viewport Sampling Preset"
-msgstr "Dodaje nowe predefiniowane położenie rzutni"
-
-
-msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "Renderowanie rzutni"
 
@@ -15299,10 +15375,6 @@ msgstr "Renderuj"
 
 msgid "Render active scene"
 msgstr "Renderuje aktywną scenę"
-
-
-msgid "Create rigid body constraints between selected rigid bodies"
-msgstr "Tworzy ograniczenia bryły sztycznej pomiędzy zaznaczonymi bryłami sztywnymi"
 
 
 msgid "Hinge"
@@ -15363,15 +15435,6 @@ msgstr "Usuń bryłę sztywną"
 
 msgid "Remove Rigid Body settings from Object"
 msgstr "Usuwa ustawienia bryły sztywnej z obiektu"
-
-
-msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Kopiuj ustawienia bryły sztywnej"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "Kopiuje ustawienia bryły sztywnej z aktywnego obiektu do zaznaczonego"
 
 
 msgid "Remove selected objects from Rigid Body simulation"
@@ -15677,23 +15740,8 @@ msgstr "Przesuń"
 
 
 msgctxt "Operator"
-msgid "Randomize"
-msgstr "Losowo"
-
-
-msgctxt "Operator"
-msgid "Update I18n Blender Repository"
-msgstr "Zaktualizuj repozytorium I18n Blendera"
-
-
-msgctxt "Operator"
 msgid "Align"
 msgstr "Wyrównaj"
-
-
-msgctxt "Operator"
-msgid "Align Rotation"
-msgstr "Wyrównaj obrót"
 
 
 msgid "Only selected edges"
@@ -15942,11 +15990,6 @@ msgstr "Wyświetla przezroczystą scenę. Pozwala zaznaczać przez przedmioty"
 
 
 msgctxt "Operator"
-msgid "Transform Gizmo Set"
-msgstr "Transformuj ustawienie Gizmo"
-
-
-msgctxt "Operator"
 msgid "View Axis"
 msgstr "Wyświetlaj osie"
 
@@ -16096,23 +16139,9 @@ msgid "Trusted Source"
 msgstr "Zaufane źródło"
 
 
-msgid "List all the operators in a text-block, useful for scripting"
-msgstr "Lista wszystkich operatorów w bloku tekstowym, przydatna w skryptach"
-
-
 msgctxt "Operator"
 msgid "Restore Operator Defaults"
 msgstr "Przywróć domyślne operatora"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Wyłącz wtyczkę"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Włącz wtyczkę"
 
 
 msgctxt "Operator"
@@ -16123,21 +16152,6 @@ msgstr "Eksportuj PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "Importuj PLY"
-
-
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "Dodaj właściwość"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Edytuj właściwość"
-
-
-msgctxt "Operator"
-msgid "Edit Property Value"
-msgstr "Edytuj wartość właściwości"
 
 
 msgctxt "Operator"
@@ -16270,16 +16284,6 @@ msgstr "Eksportuj STL"
 msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importuj STL"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Zapisz informacje o systemie"
-
-
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "Pasek narzędzi"
 
 
 msgctxt "Operator"
@@ -16444,6 +16448,42 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
+msgid "Motion Tracking"
+msgstr "Śledzenie ruchu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Tryb edycji siatki"
+
+
+msgid "Measurement"
+msgstr "Pomiar"
+
+
+msgid "Curve Edit Mode"
+msgstr "Tryb edycji krzywej"
+
+
+msgid "Snapping"
+msgstr "Przyciąganie"
+
+
+msgid "Transform Orientations"
+msgstr "Orientacje przekształcenia"
+
+
 msgid "Aperture"
 msgstr "Szczelina"
 
@@ -16476,10 +16516,6 @@ msgid "Performance"
 msgstr "Wydajność"
 
 
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
 msgid "Path Guiding"
 msgstr "Prowadzenie po ścieżce"
 
@@ -16490,10 +16526,6 @@ msgstr "Dane geometrii"
 
 msgid "Slot"
 msgstr "Gniazdo"
-
-
-msgid "Snapping"
-msgstr "Przyciąganie"
 
 
 msgid "Advanced Filter"
@@ -16511,10 +16543,6 @@ msgstr "Ostatnie"
 msgctxt "File browser"
 msgid "Volumes"
 msgstr "Nośniki"
-
-
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
 
 
 msgid "Color Picker"
@@ -16803,26 +16831,6 @@ msgid "Masking"
 msgstr "Maskowanie"
 
 
-msgid "Curve Edit Mode"
-msgstr "Tryb edycji krzywej"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Tryb edycji siatki"
-
-
-msgid "Measurement"
-msgstr "Pomiar"
-
-
-msgid "Motion Tracking"
-msgstr "Śledzenie ruchu"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
 msgctxt "Operator"
 msgid "Measure"
 msgstr "Mierzenie"
@@ -16856,10 +16864,6 @@ msgstr "Linia"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Okrąg"
-
-
-msgid "Transform Orientations"
-msgstr "Orientacje przekształcenia"
 
 
 msgid "Filter Add-ons"
@@ -18852,10 +18856,6 @@ msgstr "Obróć wektory normalne"
 msgctxt "Operator"
 msgid "None"
 msgstr "Brak"
-
-
-msgid "Warning"
-msgstr "Uwaga"
 
 
 msgctxt "Operator"
@@ -21169,11 +21169,6 @@ msgstr "Renderowanie rzutni z animacją"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Pusty"
-
-
-msgctxt "Operator"
-msgid "Suzanne"
-msgstr "Zuzanna"
 
 
 msgctxt "Operator"

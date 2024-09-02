@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -1441,10 +1441,6 @@ msgstr "Thư Viện Tài Sản"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Chọn thư viện tài sản để hiển thị các tài sản từ đó"
-
-
-msgid "All"
-msgstr "Toàn Bộ"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -4429,6 +4425,10 @@ msgstr "Phủ kín vùng đảo ngược"
 
 msgid "Mode to draw boundary limits"
 msgstr "Chế độ vẽ vùng giới hạn của diện tích"
+
+
+msgid "All"
+msgstr "Toàn Bộ"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -31617,20 +31617,228 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Basic"
-msgstr "Cơ Bản"
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
 
 
-msgid "Bone Collection Specials"
-msgstr "Bộ Sưu Tập Xương Đặc Biệt"
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Names"
+msgstr "Tên"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
+
+
+msgid "Generate Weights"
+msgstr "Sinh Tạo Trọng lượng"
+
+
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
+
+
+msgid "Pivot Point"
+msgstr "Điểm Tựa"
+
+
+msgid "Snap"
+msgstr "Bám Dính"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
+
+
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
+
+
+msgid "Select More/Less"
+msgstr "Tăng/Giảm Lựa Chọn"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+
+
+msgid "Select Linked"
+msgstr "Chọn cái Kết Nối"
+
+
+msgid "Select Loops"
+msgstr "Chọn Vòng Mạch"
+
+
+msgid "Add Image"
+msgstr "Thêm Hình Ảnh"
+
+
+msgid "Relations"
+msgstr "Mối Quan Hệ"
+
+
+msgid "Rigid Body"
+msgstr "Thân Cứng"
+
+
+msgid "Apply"
+msgstr "Áp Dụng"
+
+
+msgid "Track"
+msgstr "Giám Sát/Rãnh"
+
+
+msgid "Quick Effects"
+msgstr "Hiệu Ứng Nhanh"
+
+
+msgid "Asset"
+msgstr "Tài Sản"
+
+
+msgid "Make Single User"
+msgstr "Biến Thành Đơn Người Dùng"
+
+
+msgid "Convert"
+msgstr "Chuyển Đổi"
+
+
+msgid "Link/Transfer Data"
+msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
+
+
+msgid "Hooks"
+msgstr "Móc"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Điêu Khắc: Đặt Điểm Tựa"
+
+
+msgid "Face Sets Init"
+msgstr "Khởi Thủy các Mặt Ấn Định"
+
+
+msgid "Random Mask"
+msgstr "Màn Chắn Lọc Ngẫu Nhiên"
+
+
+msgid "Clear Transform"
+msgstr "Xóa Biến Hóa"
+
+
+msgid "In-Betweens"
+msgstr "Bước Trung Gian"
+
+
+msgid "Propagate"
+msgstr "Lan Truyền"
 
 
 msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Asset"
-msgstr "Tài Sản"
+msgid "Toggle Bone Options"
+msgstr "Bật/Tắt Tùy Chọn về Xương"
+
+
+msgid "Enable Bone Options"
+msgstr "Bật các Tùy Chọn về Xương"
+
+
+msgid "Disable Bone Options"
+msgstr "Tắt các Tùy Chọn về Xương"
+
+
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
+
+
+msgid "Select by Face Strength"
+msgstr "Chọn theo Cường Độ Mặt"
+
+
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
+
+
+msgid "Basic"
+msgstr "Cơ Bản"
+
+
+msgid "Bone Collection Specials"
+msgstr "Bộ Sưu Tập Xương Đặc Biệt"
 
 
 msgid "Catalog"
@@ -31648,10 +31856,6 @@ msgstr "Đoạn Phim"
 
 msgid "Marker Settings"
 msgstr "Sắp Đặt về Dấu Mốc"
-
-
-msgid "Pivot Point"
-msgstr "Điểm Tựa"
 
 
 msgid "Plane Track Image Specials"
@@ -31682,24 +31886,12 @@ msgid "Rotation Track Specials"
 msgstr "Những Đặc Biệt của Giám Sát Xoay Chiều"
 
 
-msgid "Track"
-msgstr "Giám Sát/Rãnh"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
-
-
 msgid "Track Motion"
 msgstr "Giám Sát Chuyển Động"
 
 
 msgid "Refine"
 msgstr "Tinh Chỉnh"
-
-
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
 
 
 msgid "Context Menu"
@@ -31747,10 +31939,6 @@ msgid "Marker"
 msgstr "Dấu Mốc/Bút Dạ"
 
 
-msgid "Snap"
-msgstr "Bám Dính"
-
-
 msgid "Bookmarks Specials"
 msgstr "Những Đặc Biệt về Dấu Trang"
 
@@ -31795,24 +31983,12 @@ msgid "Add Extra"
 msgstr "Bổ Sung về Thêm"
 
 
-msgid "Select Linked"
-msgstr "Chọn cái Kết Nối"
-
-
 msgid "UV"
 msgstr "UV"
 
 
 msgid "Align"
 msgstr "Canh/Thẳng Hàng"
-
-
-msgid "Merge"
-msgstr "Hợp Nhất"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "UV Select Mode"
@@ -31962,14 +32138,6 @@ msgid "Sequencer"
 msgstr "Trình Phối Hình"
 
 
-msgid "Apply"
-msgstr "Áp Dụng"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
 msgid "Sequencer Preview"
 msgstr "Xem Trước Trình Phối Hình"
 
@@ -32115,28 +32283,8 @@ msgid "Save & Load"
 msgstr "Lưu & Nạp"
 
 
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
-
-
-msgid "Disable Bone Options"
-msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Enable Bone Options"
-msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Toggle Bone Options"
-msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
 msgid "Brush Specials"
 msgstr "Những Đặc Biệt về Đầu Bút"
-
-
-msgid "Names"
-msgstr "Tên"
 
 
 msgctxt "Operator"
@@ -32144,156 +32292,8 @@ msgid "Parent"
 msgstr "Phụ Huynh"
 
 
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Select More/Less"
-msgstr "Tăng/Giảm Lựa Chọn"
-
-
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
-
-
-msgid "Select by Face Strength"
-msgstr "Chọn theo Cường Độ Mặt"
-
-
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
-
-
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
-
-
-msgid "Select Loops"
-msgstr "Chọn Vòng Mạch"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
-
-
-msgid "Face Sets Init"
-msgstr "Khởi Thủy các Mặt Ấn Định"
-
-
-msgid "Generate Weights"
-msgstr "Sinh Tạo Trọng lượng"
-
-
-msgid "Hooks"
-msgstr "Móc"
-
-
-msgid "Add Image"
-msgstr "Thêm Hình Ảnh"
-
-
-msgid "Link/Transfer Data"
-msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
-
-
-msgid "Make Single User"
-msgstr "Biến Thành Đơn Người Dùng"
-
-
-msgid "Convert"
-msgstr "Chuyển Đổi"
-
-
-msgid "Quick Effects"
-msgstr "Hiệu Ứng Nhanh"
-
-
-msgid "Relations"
-msgstr "Mối Quan Hệ"
-
-
-msgid "Rigid Body"
-msgstr "Thân Cứng"
-
-
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Propagate"
-msgstr "Lan Truyền"
-
-
-msgid "In-Betweens"
-msgstr "Bước Trung Gian"
-
-
-msgid "Clear Transform"
-msgstr "Xóa Biến Hóa"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Random Mask"
-msgstr "Màn Chắn Lọc Ngẫu Nhiên"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Điêu Khắc: Đặt Điểm Tựa"
-
-
 msgid "Clone Layer"
 msgstr "Rập Khuôn Tầng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
 
 
 msgid "Landmark Controls"
@@ -45297,6 +45297,10 @@ msgid "Generate a mesh on the \"surface\" of a volume"
 msgstr "Tạo lưới trên \"bề mặt\" của một thể tích"
 
 
+msgid "Warning"
+msgstr "Cảnh Báo"
+
+
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "Khung Hình"
@@ -47991,10 +47995,6 @@ msgid "Object Base"
 msgstr "Cơ Sở Đối Tượng"
 
 
-msgid "An object instance in a render layer"
-msgstr "Một thực thể của đối tượng đối tượng trong tầng kết xuất"
-
-
 msgid "Object this base links to"
 msgstr "Đối tượng mà cơ sở này kết nối với"
 
@@ -48101,6 +48101,1887 @@ msgstr "Hiệu Ứng Bộ Tô Bóng Đối Tượng"
 
 msgid "Collection of object effects"
 msgstr "Bộ sưu tập các hiệu ứng của đối tượng"
+
+
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Thêm Biến Thể Nguyên Vật Liệu"
+
+
+msgctxt "Operator"
+msgid "Display Variant"
+msgstr "Hiển Thị Biến Thể"
+
+
+msgctxt "Operator"
+msgid "Assign To Variant"
+msgstr "Ấn Định sang Biến Thể"
+
+
+msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "Ấn Định sang Bản Gốc"
+
+
+msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
+msgstr "Đánh dấu các hành động không có Đường Cong-F để xóa chúng đi, sau khi đã lưu & nạp lại tập tin, song bảo tồn \"các thư viện hành động\""
+
+
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Xóa các Hành Động Vô Dụng"
+
+
+msgid "Export Keying Set to a Python script"
+msgstr "Xuất khẩu Bộ Khóa ra một tập lệnh Python"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "Xuất Khẩu Bộ Khóa..."
+
+
+msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
+msgstr "Cập nhật các Đường Cong-F/Điều Vận tác động đến những ràng buộc Biến Hóa (sử dụng nó với các tập tin từ phiên bản 2.70 và sớm hơn)"
+
+
+msgctxt "Operator"
+msgid "Update Animated Transform Constraints"
+msgstr "Cập Nhật các Ràng Buộc Biến Hóa Hoạt Họa"
+
+
+msgid "Show all bone collections"
+msgstr "Hiển thị tất cả các bộ sưu tập xương"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Hiển Thị Toàn Bộ"
+
+
+msgid "Copy the bone color of the active bone to all selected bones"
+msgstr "Sao chép màu xương của xương đang hoạt động sang tất cả các xương đã chọn"
+
+
+msgctxt "Operator"
+msgid "Copy Colors to Selected"
+msgstr "Sao Chép Màu sang cái Đã Chọn"
+
+
+msgctxt "Operator"
+msgid "Assign Action"
+msgstr "Ấn Định Hành Động"
+
+
+msgid "Open the blend file that contains the active asset"
+msgstr "Mở tập tin blend có chứa tài sản đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "Mở Tập Tin Blend"
+
+
+msgid "Add a new keyword tag to the active asset"
+msgstr "Thêm một từ khóa đánh dấu vào tài sản đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Add Asset Tag"
+msgstr "Thêm Dấu Nhãn Tài Sản"
+
+
+msgid "Remove an existing keyword tag from the active asset"
+msgstr "Xóa một từ khóa đánh dấu hiện tồn tại khỏi tài sản đang/hoạt động"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Tag"
+msgstr "Xóa Dấu Nhãn Tài Sản"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Máy Quay Phim"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Máy Quay Phim"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Khu Vực An Toàn"
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Khu Vực An Toàn"
+
+
+msgid "Create vertex cloud using coordinates of reconstructed tracks"
+msgstr "Sinh kiến tạo đám mây điểm đỉnh dùng tọa độ của các giám sát đã khôi phục"
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "Các Dấu Mốc 3D thành Khung Lưới"
+
+
+msgid "Add or remove a Tracking Camera Intrinsics Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Tính Chất Cơ Bản của Máy Quay Phim cho Quá Trình Giám Sát"
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "Kiến Tạo Đường Cong-F cho đối tượng, tức cái sẽ sao chép chuyển động của đối tượng mà ràng buộc này gây ra"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "Ràng Buộc thành Đường Cong-F"
+
+
+msgid "Delete movie clip proxy files from the hard drive"
+msgstr "Xóa các tập tin đại diện của đoạn phim khỏi ổ cứng"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "Xóa Đại Diện"
+
+
+msgid "Filter tracks which has weirdly looking spikes in motion curves"
+msgstr "Thanh lọc các giám sát có các đỉnh nhọn bất thường trong đường cong chuyển động"
+
+
+msgctxt "Operator"
+msgid "Filter Tracks"
+msgstr "Thanh Lọc Giám Sát"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "Đặt Đoạn Phim đang Hoạt Động"
+
+
+msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
+msgstr "Đặt đoạn phim hiện tại làm nền máy quay phim trong cổng nhìn 3D (chỉ hoạt động khi cổng nhìn 3D nhìn thấy được)'"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "Đặt làm Nền"
+
+
+msgid "Prepare scene for compositing 3D objects into this footage"
+msgstr "Chuẩn bị cảnh cho quá trình tổng hợp các đối tượng 3D vào trong đoạn phim này"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "Thiết Lập Cảnh Giám Sát"
+
+
+msgid "Add or remove a Clip Track Color Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Màu Giám Sát của Đoạn Phim"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Màu Giám Sát"
+
+
+msgid "Copy tracking settings from active track to default settings"
+msgstr "Sao chép các sắp đặt của giám sát, từ dấu giám sát đang hoạt động, thành sắp đặt mặc định"
+
+
+msgctxt "Operator"
+msgid "Track Settings as Default"
+msgstr "Sắp Đặt của Giám Sát làm Sắp Đặt Mặc Định"
+
+
+msgid "Copy tracking settings from active track to selected tracks"
+msgstr "Sao chép sắp đặt của quá trình giám sát từ dấu giám sát đang hoạt động sang dấu giám sát được chọn"
+
+
+msgctxt "Operator"
+msgid "Copy Track Settings"
+msgstr "Sao Chép Sắp Đặt về Giám Sát"
+
+
+msgid "Create an Empty object which will be copying movement of active track"
+msgstr "Kiến Tạo đối tượng Rỗng, tức cái sẽ sao chép chuyển động của dấu giám sát đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Link Empty to Track"
+msgstr "Kết Nối Đối Tượng Rỗng với Giám Sát"
+
+
+msgid "Add or remove a motion tracking settings preset"
+msgstr "Thêm hay xóa một sắp đặt sẵn về cấu hình giám sát chuyển động"
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Cấu Hình Giám Sát"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "Thêm hay xóa Sắp Đặt Sẵn về Vải Vóc"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Vải Vóc"
+
+
+msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
+msgstr "Tính toán không gian tên đến vị trí con trỏ và cung cấp một danh sách các tùy chọn, hoặc hoàn chỉnh tên nếu chỉ có một cái duy nhất"
+
+
+msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "Tự Động Hoàn Chỉnh trong Bàn Giao Tiếp"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "In một thông điệp ra khi khởi động thiết bị cuối"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "Biểu Ngữ của Bàn Giao Tiếp"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "Sao chép nội dung bàn giao tiếp để sử dụng trong một tập lệnh"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "Sao Chép vào Bảng Nhớ Tạm (thành Tập Lệnh)"
+
+
+msgid "Execute the current console line as a Python expression"
+msgstr "Thực thi dòng hiện tại của giao diện dòng lệnh như một biểu thức Python vậy"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Thi Hành Bàn Giao Tiếp"
+
+
+msgid "Set the current language for this console"
+msgstr "Đặt ngôn ngữ hiện tại cho bàn giao tiếp"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Ngôn Ngữ Bàn Giao Tiếp"
+
+
+msgid "Add a target to the constraint"
+msgstr "Thêm một mục tiêu vào ràng buộc"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "Thêm Mục Tiêu"
+
+
+msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
+msgstr "Đặt ảnh hưởng của ràng buộc này bằng 0 trong khi cố gắng duy trì biến hóa của đối tượng. Những ràng buộc đang hoạt động khác vẫn có thể tác động tới biến hóa cuối cùng"
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "Tắt nhưng Duy Trì Biến Hóa"
+
+
+msgid "Normalize weights of all target bones"
+msgstr "Bình thường hóa trọng lượng của toàn bộ các xương"
+
+
+msgctxt "Operator"
+msgid "Normalize Weights"
+msgstr "Bình Thường Hóa Trọng Lượng"
+
+
+msgid "Remove the target from the constraint"
+msgstr "Xóa mục tiêu khỏi ràng buộc"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "Xóa Mục Tiêu"
+
+
+msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
+msgstr "Khử nhiễu chuỗi hoạt họa được kết xuất bằng cách sử dụng cảnh hiện tại và các sắp đặt của Tầng Góc Nhìn. Yêu cầu phải có các lượt về khử nhiễu dữ liệu và xuất ra các tập tin đa tầng lớp OpenEXR"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "Khử Nhiễu Hoạt Họa"
+
+
+msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
+msgstr "Kết hợp các hình ảnh đa tầng lớp OpenEXR đã kết xuất với các phạm vi mẫu khác nhau thành một hình ảnh với độ nhiễu thuyên giảm"
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "Hợp Nhất các Hình Ảnh"
+
+
+msgid "Enable nodes on a material, world or light"
+msgstr "Kích hoạt các nút trên một chất liệu, thế giới, hay một nguồn sáng"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Sử Dụng Nút"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "Lưu tập tin BVH (Bounding Volume Hierarchy : Cây Phân Cấp Giới Hạn Thể Tích) nắm bắt chuyển động từ một khung rối"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Xuất Khẩu BVH"
+
+
+msgid "Write a FBX file"
+msgstr "Ghi một tập tin FBX"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Xuất Khẩu FBX"
+
+
+msgid "Export scene as glTF 2.0 file"
+msgstr "Xuất Khẩu cảnh ra tập tin glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "Xuất Khẩu glTF 2.0"
+
+
+msgid "Add or remove a Fluid Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Chất Lỏng"
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Chất Lỏng"
+
+
+msgid "Switch tint colors"
+msgstr "Đổi màu nhuốm"
+
+
+msgctxt "Operator"
+msgid "Flip Colors"
+msgstr "Đảo Màu"
+
+
+msgid "Edit image in an external application"
+msgstr "Biên soạn hình ảnh bằng một trình ứng dụng ở bên ngoài"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Biên Soạn Hình Ảnh ở Bên Ngoài"
+
+
+msgid "Project edited image back onto the object"
+msgstr "Phóng chiếu hình ảnh đã biên soạn trở lại lên trên mình đối tượng"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "Áp Dụng Phóng Chiếu"
+
+
+msgid "Edit a snapshot of the 3D Viewport in an external image editor"
+msgstr "Biên soạn ảnh chụp nhanh Cổng Nhìn 3D trong một trình biên soạn hình ảnh ở bên ngoài"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "Biên Soạn Ảnh Chụp Cổng Nhìn"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "Nạp một tập tin nắm bắt chuyển động BVH (Bounding Volume Hierarchy : Cây Phân Cấp Giới Hạn Thể Tích)"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Nhập Khẩu BVH"
+
+
+msgid "Load a SVG file"
+msgstr "Nạp một tập tin SVG"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Nhập Khẩu SVG"
+
+
+msgid "Load a FBX file"
+msgstr "Nạp một tập tin FBX"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "Nhập Khẩu FBX"
+
+
+msgid "Load a glTF 2.0 file"
+msgstr "Nạp một tập tin glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "Nhập Khẩu glTF 2.0"
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "Sao chép các tọa độ UV phản chiếu đối xứng trên trục X dựa trên khung lưới đang được phản chiếu đối xứng"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "Sao Chép các Tọa Độ UV Phản Chiếu Đối Xứng"
+
+
+msgid "Construct a torus mesh"
+msgstr "Kiến tạo một khung lưới hình xuyến"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Thêm Hình Xuyến"
+
+
+msgid "Select the next element (using selection order)"
+msgstr "Chọn phần tử tiếp theo (theo thứ tự lựa chọn)"
+
+
+msgctxt "Operator"
+msgid "Select Next Element"
+msgstr "Chọn Phần Tử Tiếp Theo"
+
+
+msgid "Select the previous element (using selection order)"
+msgstr "Chọn phần tử trước (dùng trật tự lựa chọn)"
+
+
+msgctxt "Operator"
+msgid "Select Previous Element"
+msgstr "Chọn Phần Tử Trước"
+
+
+msgid "Bake all selected objects location/scale/rotation animation to an action"
+msgstr "Nướng toàn bộ các hoạt họa về vị trí/tỷ lệ/xoay chiều của các đối tượng đã chọn thành một hành động"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "Nướng Hành Động"
+
+
+msgid "Add a node to the active tree"
+msgstr "Thêm một nút vào cây đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Thêm Nút"
+
+
+msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
+msgstr "Thêm vùng lặp lại cho phép thực thi các nút với một số lần năng động"
+
+
+msgctxt "Operator"
+msgid "Add Repeat Zone"
+msgstr "Thêm Vùng Lặp Lại"
+
+
+msgid "Add simulation zone input and output nodes to the active tree"
+msgstr "Thêm các nút đầu vào và đầu ra của vùng mô phỏng vào cây hiện nay đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Add Simulation Zone"
+msgstr "Thêm Vùng Mô Phỏng"
+
+
+msgid "Toggle collapsed nodes and hide unused sockets"
+msgstr "Bật/Tắt trạng thái nút thu lại và ẩn giấu các ổ cắm không dùng đến"
+
+
+msgctxt "Operator"
+msgid "Collapse and Hide Unused Sockets"
+msgstr "Thu Lại và Ẩn Giấu các Ổ Cắm Chưa Dùng"
+
+
+msgctxt "Operator"
+msgid "glTF Material Output"
+msgstr "đầu Ra Nguyên Vật Liệu glTF"
+
+
+msgid "Add a copy of the active item to the interface"
+msgstr "Thêm một bản sao của mục đang hoạt động vào giao diện"
+
+
+msgctxt "Operator"
+msgid "Duplicate Item"
+msgstr "Nhân Đôi Mục"
+
+
+msgid "Add a new item to the interface"
+msgstr "Thêm mục mới vào giao diện"
+
+
+msgctxt "Operator"
+msgid "New Item"
+msgstr "Mục Mới"
+
+
+msgid "Remove active item from the interface"
+msgstr "Xóa mục đang hoạt động khỏi giao diện"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Xóa Mục"
+
+
+msgid "Create a new geometry node group and assign it to the active modifier"
+msgstr "[Kiến tạo nhóm nút hình học mới và ấn định nó vào bộ điều chỉnh đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Assign New Geometry Node Group"
+msgstr "Ấn Định Nhóm Nút Hình Học Mới"
+
+
+msgid "Create a new geometry node group for a tool"
+msgstr "Tạo một nhóm nút hình học mới cho một công cụ"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Tool Group"
+msgstr "Nhóm Công Cụ Nút Hình Học Mới"
+
+
+msgid "Create a new modifier with a new geometry node group"
+msgstr "Kiến Tạo một bộ điều chỉnh với một nhóm nút hình học mới"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Modifier"
+msgstr "Tạo Bộ Điều Chỉnh Nút Hình Học"
+
+
+msgid "Add or remove a Node Color Preset"
+msgstr "Thêm và xóa một Sắp Đặt Sẵn về Màu Sắc của Nút"
+
+
+msgctxt "Operator"
+msgid "Add Node Color Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Màu Sắc của Nút"
+
+
+msgid "Go to parent node tree"
+msgstr "Đi tới cây nút phụ huynh"
+
+
+msgctxt "Operator"
+msgid "Parent Node Tree"
+msgstr "Cây Nút Phụ Huynh"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Thêm Bộ Điều Chỉnh"
+
+
+msgid "Align objects"
+msgstr "Căn chỉnh các đối tượng"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "Căn Chỉnh các Đối Tượng"
+
+
+msgid "Convert object animation for normal transforms to delta transforms"
+msgstr "Chuyển đổi hoạt họa của đối tượng từ biến hóa bình thường sang biến hóa Delta"
+
+
+msgctxt "Operator"
+msgid "Animated Transforms to Deltas"
+msgstr "Biến Hóa Hoạt Họa sang Delta"
+
+
+msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
+msgstr "Ấn định các giá trị hiện tại của các tính chất tùy chỉnh làm mặc định của chúng, để sử dụng như một phần của trạng thái tư thế nghỉ trong quá trình pha trộn rãnh NLA"
+
+
+msgctxt "Operator"
+msgid "Assign Custom Property Values as Default"
+msgstr "Ấn Định các Giá Trị Tính Chất Tùy Chỉnh làm Mặc Định"
+
+
+msgctxt "Operator"
+msgid "Copy Global Transform"
+msgstr "Sao Chép Biến Hóa Toàn Cầu"
+
+
+msgid "Move inputs and outputs from in the modifier to a new node group"
+msgstr "Di chuyển đầu vào và đầu ra từ trong bộ điều chỉnh sang nhóm nút mới"
+
+
+msgctxt "Operator"
+msgid "Move to Nodes"
+msgstr "Di Chuyển đến các Nút"
+
+
+msgid "Reveal all render objects by setting the hide render flag"
+msgstr "Hiện toàn bộ các đối tượng kết xuất bằng cách tắt cờ hiệu ẩn kết xuất"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "Xóa Toàn Bộ các Hạn Chế Kết Xuất"
+
+
+msgid "Set offset used for collection instances based on cursor position"
+msgstr "Đặt dịch chuyển cho các thực thể của bộ sưu tập dựa trên vị trí của con trỏ"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Cursor"
+msgstr "Đặt Dịch Chuyển từ Con Trỏ"
+
+
+msgid "Set offset used for collection instances based on the active object position"
+msgstr "Đặt dịch chuyển sử dụng cho các thực thể bộ sưu tập dựa trên vị trí của đối tượng đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Object"
+msgstr "Đặt Dịch Chuyển từ Đối Tượng"
+
+
+msgid "Set cursor position to the offset used for collection instances"
+msgstr "Đặt vị trí con trỏ vào dịch chuyển sử dụng cho các thực thể bộ sưu tập"
+
+
+msgctxt "Operator"
+msgid "Set Cursor to Offset"
+msgstr "Đặt Con Trỏ vào vị trí Dịch Chuyển"
+
+
+msgid "Hide unselected render objects of same type as active by setting the hide render flag"
+msgstr "Ẩn giấu các đối tượng kết xuất chưa được chọn có cùng thể loại như cái đang hoạt động bằng cách đặt cờ hiệu ẩn kết xuất"
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "Hạn Chế Kết Xuất cái Chưa được Chọn"
+
+
+msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
+msgstr "Thuyên chuyển các Ánh Xạ UV từ đối tượng đang hoạt động sang cái được chọn (yêu cầu hình học xứng khớp)"
+
+
+msgctxt "Operator"
+msgid "Transfer UV Maps"
+msgstr "Thuyên Chuyển các Ánh Xạ UV"
+
+
+msgid "Convert objects into instanced faces"
+msgstr "Chuyển đổi các đối tượng sang thành các bản sao theo các mặt"
+
+
+msgctxt "Operator"
+msgid "Make Instance Face"
+msgstr "Tạo Thực Thể theo Mặt"
+
+
+msgctxt "Operator"
+msgid "Paste Global Transform"
+msgstr "Dán Biến Hóa Toàn Cầu"
+
+
+msgid "Make selected objects explode"
+msgstr "Làm cho những đối tượng được chọn nổ tung"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Hiệu Ứng Nổ Nhanh"
+
+
+msgid "Add a fur setup to the selected objects"
+msgstr "Thêm một cài đặt về lông/tóc cho đối tượng được chọn"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Hiệu Ứng Lông Nhanh"
+
+
+msgid "Make selected objects liquid"
+msgstr "Làm cho các đối tượng đã chọn trở thành chất lỏng"
+
+
+msgctxt "Operator"
+msgid "Quick Liquid"
+msgstr "Chất Lỏng Nhanh Chóng"
+
+
+msgid "Use selected objects as smoke emitters"
+msgstr "Sử dụng các đối tượng làm nguồn phát khói"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Hiệu Ứng Khói Nhanh"
+
+
+msgid "Randomize objects location, rotation, and scale"
+msgstr "Ngẫu nhiên hóa vị trí, xoay chiều, và tỷ lệ của đối tượng"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "Ngẫu Nhiên Hóa sự Biến Hóa"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Mới"
+
+
+msgid "Select the active camera"
+msgstr "Chọn máy quay phim đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Chọn Máy Quay Phim"
+
+
+msgid "Select object relative to the active object's position in the hierarchy"
+msgstr "Chọn đối tượng tương đối với vị trí của đối tượng đang hoạt động trong thứ bậc"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Chọn Thứ Bậc"
+
+
+msgid "Select objects matching a naming pattern"
+msgstr "Chọn các đối tượng xứng khớp với một mẫu tên"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "Chọn Kiểu Mẫu"
+
+
+msgid "Copy the active shape key of another selected object to this one"
+msgstr "Sao chép hình mẫu đang hoạt động của một đối tượng đã chọn khác vào cái này"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Thuyên Chuyển Hình Mẫu"
+
+
+msgid "Sets a Subdivision Surface level (1 to 5)"
+msgstr "Đặt mức Bề Mặt Phân Hóa (1 đến 5)"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "Đặt Mức Phân Hóa"
+
+
+msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
+msgstr "Chuyển đổi các biến hóa đối tượng bình thường sang biến hóa Delta. Bất cứ sự biến hóa Delta hiện có nào đều cũng sẽ được bao gồm cả vào nữa"
+
+
+msgctxt "Operator"
+msgid "Transforms to Deltas"
+msgstr "Biến Hóa sang Delta"
+
+
+msgid "Generate a dirt map gradient based on cavity"
+msgstr "Sinh tạo một dốc màu ánh xạ bụi bẩn dựa trên hố hốc"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "Màu Điểm Đỉnh Kẽ Bẩn"
+
+
+msgid "Add or remove a Hair Dynamics Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Động Lực Học của Tóc"
+
+
+msgctxt "Operator"
+msgid "Add Hair Dynamics Preset"
+msgstr "Thêm Sắp Đặt Sẵn Động Lực Học của Tóc"
+
+
+msgctxt "Operator"
+msgid "Convert Legacy Pose Library"
+msgstr "Chuyển Đổi Thư Viện Tư Thế Lỗi Thời"
+
+
+msgctxt "Operator"
+msgid "Copy Pose as Asset"
+msgstr "Sao Chép Tư Thế làm Tài Sản"
+
+
+msgctxt "Operator"
+msgid "Create Pose Asset"
+msgstr "Kiến Tạo Tài Sản Tư Thế"
+
+
+msgctxt "Operator"
+msgid "Paste as New Asset"
+msgstr "Dán thành Tài Sản Mới"
+
+
+msgctxt "Operator"
+msgid "Select Bones"
+msgstr "Chọn Xương"
+
+
+msgctxt "Operator"
+msgid "Restore Previous Action"
+msgstr "Khôi Phục Lại Hành Động Trước Đây"
+
+
+msgid "Display information and preferences for this add-on"
+msgstr "Hiển thị thông tin và các cài đặt sở thích cho trình bổ sung này"
+
+
+msgid "Install an add-on"
+msgstr "Lắp đặt một trình bổ sung"
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "Lắp Đặt Trình Bổ Sung"
+
+
+msgid "Scan add-on directories for new modules"
+msgstr "Rà quét các thư mục của trình bổ sung để tìm những mô-đun mới"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Làm Tươi Lại"
+
+
+msgid "Delete the add-on from the file system"
+msgstr "Xóa trình bổ sung khỏi hệ thống tập tin"
+
+
+msgctxt "Operator"
+msgid "Remove Add-on"
+msgstr "Xóa Trình Bổ Sung"
+
+
+msgid "Show add-on preferences"
+msgstr "Hiển thị cài đặt sở thích về trình bổ sung"
+
+
+msgid "Install an application template"
+msgstr "Cài đặt một bản mẫu trình ứng dụng"
+
+
+msgctxt "Operator"
+msgid "Install Template from File..."
+msgstr "Lắp Đặt Bản Mẫu Từ Tập Tin..."
+
+
+msgid "Copy settings from previous version"
+msgstr "Sao chép các sắp đặt từ phiên bản trước"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "Sao Chép Sắp Đặt Trước Đây"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "Kích Hoạt Cấu Hình Phím"
+
+
+msgid "Export key configuration to a Python script"
+msgstr "Xuất khẩu cấu hình khóa ra một tập lệnh Python"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "Xuất Khẩu Cấu Hình Phím..."
+
+
+msgid "Import key configuration from a Python script"
+msgstr "Nhập khẩu cấu hình khóa từ tập lệnh Python"
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "Nhập Khẩu Cấu Hình Phím..."
+
+
+msgid "Remove key config"
+msgstr "Xóa cấu hình phím"
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "Xóa Cấu Hình Phím"
+
+
+msgid "Test key configuration for conflicts"
+msgstr "Kiểm tra xem có sự mâu thuẫn nào trong cấu hình phím hay không"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "Kiểm Tra Cấu Hình Phím Mâu Thuẫn"
+
+
+msgid "Add key map item"
+msgstr "Thêm bố trí bàn phím"
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "Thêm Bố Trí Bàn Phím"
+
+
+msgid "Remove key map item"
+msgstr "Xóa bố trí bàn phím"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "Xóa Bố Trí Bàn Phím"
+
+
+msgid "Restore key map item"
+msgstr "Khôi phục bố trí bàn phím"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "Khôi Phục Bố Trí Bàn Phím"
+
+
+msgid "Restore key map(s)"
+msgstr "Khôi phục (các) bố trí bàn phím"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "Khôi Phục (các) Bố Trí Bàn Phím"
+
+
+msgctxt "Operator"
+msgid "Add Python Script Directory"
+msgstr "Thêm Thư Mục Tập Lệnh Python"
+
+
+msgctxt "Operator"
+msgid "Remove Python Script Directory"
+msgstr "Xóa Thư Mục Tập Lệnh Python"
+
+
+msgid "Copy Studio Light settings to the Studio Light editor"
+msgstr "Sao chép sắp đặt về Ánh Sáng Studio sang trình biên soạn Ánh Sáng Studio"
+
+
+msgctxt "Operator"
+msgid "Copy Studio Light Settings"
+msgstr "Sao Chép Sắp Đặt Ánh Sáng Studio"
+
+
+msgid "Install a user defined light"
+msgstr "Lắp đặt một nguồn ánh sáng do người dùng định nghĩa"
+
+
+msgctxt "Operator"
+msgid "Install Light"
+msgstr "Lắp Đặt Nguồn Ánh Sáng"
+
+
+msgid "Save custom studio light from the studio light editor settings"
+msgstr "Lưu bố trí ánh sáng studio tùy chỉnh từ các sắp đặt của trình biên soạn ánh sáng studio"
+
+
+msgctxt "Operator"
+msgid "Save Custom Studio Light"
+msgstr "Lưu Bố Trí Ánh Sáng Studio Tùy Chỉnh"
+
+
+msgid "Delete Studio Light"
+msgstr "Xóa Bố Trí Ánh Sáng Studio"
+
+
+msgctxt "Operator"
+msgid "Uninstall Studio Light"
+msgstr "Tháo Lắp Đặt Ánh Sáng Studio"
+
+
+msgid "Load and apply a Blender XML theme file"
+msgstr "Nạp và áp dụng tập tin kiểu mẫu XML của Blender"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "Lắp Đặt Kiểu Mẫu ..."
+
+
+msgid "Add an Integrator Preset"
+msgstr "Thêm một Sắp Đặt Sẵn về Máy Tích Hợp"
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Máy Tích Hợp"
+
+
+msgid "Add an Performance Preset"
+msgstr "Thêm một Sắp Đặt Sẵn về Hiệu Suất Hoạt Động"
+
+
+msgctxt "Operator"
+msgid "Add Performance Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Hiệu Suất Hoạt Động"
+
+
+msgid "Add a Sampling Preset"
+msgstr "Thêm một Sắp Đặt Sẵn về Lấy Mẫu Vật"
+
+
+msgctxt "Operator"
+msgid "Add Sampling Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Lấy Mẫu Vật"
+
+
+msgid "Add a Viewport Sampling Preset"
+msgstr "Thêm một Sắp Đặt Sẵn về Lấy Mẫu Vật Cổng Nhìn"
+
+
+msgctxt "Operator"
+msgid "Add Viewport Sampling Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Lấy Mẫu Cổng Nhìn"
+
+
+msgid "Add or remove an EEVEE ray-tracing preset"
+msgstr "Thêm hoặc xóa cài đặt sẵn về dò tia EEVEE"
+
+
+msgctxt "Operator"
+msgid "Add Raytracing Preset"
+msgstr "Thêm Cài Đặt Sẵn về Dò Tia"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "Chơi lại khung hình/phim đã kết xuất bằng máy chơi ở ngoài"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Chơi Hoạt Họa đã Kết Xuất"
+
+
+msgid "Add or remove a Render Preset"
+msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Kết Xuất"
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Kết Xuất"
+
+
+msgid "Bake rigid body transformations of selected objects to keyframes"
+msgstr "Nướng những biến hóa thân cứng của đối tượng được chọn thành các khung khóa"
+
+
+msgctxt "Operator"
+msgid "Bake to Keyframes"
+msgstr "Nướng thành Khung Khóa"
+
+
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "Kiến Tạo ràng buộc thân cứng giữa các thân cứng được chọn"
+
+
+msgctxt "Operator"
+msgid "Connect Rigid Bodies"
+msgstr "Kết Nối các Thân Cứng"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "Sao chép các sắp đặt Thân Cứng từ đối tượng đang hoạt động sang đối tượng được chọn"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Sao Chép Sắp Đặt về Thân Cứng"
+
+
+msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
+msgstr "Thêm các đường dẫn dữ liệu tới tính chất Dấu Cạnh Phong Cách Tự Do của các cạnh được chọn vào Bộ Khóa đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "Thêm Dấu Cạnh vào Bộ Khóa"
+
+
+msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
+msgstr "Thêm các đường dẫn dữ liệu vào tính chất Dấu Chỉ Mặt Phong Cách Tự Do của những đa giác được chọn vào Bộ Khóa đang hoạt động"
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "Thêm Dấu Chỉ Mặt vào Bộ Khóa"
+
+
+msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
+msgstr "Điền Phạm Vi Tối Thiểu/Tối Đa theo khoảng cách tối thiểu/tối đa giữa các đối tượng khung lưới đã chọn và đối tượng nguồn (đối tượng do người dùng chỉ định hoặc máy quay phim đang hoạt động)"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "Tính Toán Phạm Vi theo Lựa Chọn"
+
+
+msgid "Open a style module file"
+msgstr "Mở một tập tin mô-đun phong cách"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Mở Tập Tin Mô-Đun Phong Cách"
+
+
+msgid "Refresh list of actions"
+msgstr "Làm mới lại danh sách các hành động"
+
+
+msgctxt "Operator"
+msgid "Refresh action list"
+msgstr "Làm mới lại danh sách hành động"
+
+
+msgid "Add or remove grease pencil brush preset"
+msgstr "Thêm hoặc xóa sắp đặt sẵn về đầu bút cho Bút Chì Dầu"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Brush Preset"
+msgstr "Thêm Sắp Đặt Sẵn về Đầu Bút Chì Dầu"
+
+
+msgid "Add or remove grease pencil material preset"
+msgstr "Thêm hoặc xóa sắp đặt trước về nguyên vật liệu của Bút Chì Dầu"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Material Preset"
+msgstr "Thêm Sắp Đặt Trước về Nguyên Vật Liệu của Bút Chì Dầu"
+
+
+msgid "Load a preset"
+msgstr "Nạp một sắp đặt sẵn"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "Thi hành một Sắp Đặt Sẵn Python"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "Hoạt họa âm lượng hòa trộn xuyên kênh của hai dải âm thanh được chọn"
+
+
+msgctxt "Operator"
+msgid "Crossfade Sounds"
+msgstr "Hòa Trộn Âm Thanh Xuyên Kênh"
+
+
+msgid "Deinterlace all selected movie sources"
+msgstr "Tuần tự hóa (deinterlace) toàn bộ các nguồn phim đã chọn"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "Tuần Tự Hóa Phim"
+
+
+msgid "Adds or updates a fade animation for either visual or audio strips"
+msgstr "Thêm hoặc cập nhật một đoạn hoạt họa phai mờ dần cho các dải phim hoặc âm thanh"
+
+
+msgctxt "Operator"
+msgid "Add Fades"
+msgstr "Thêm Phai Mờ Dần"
+
+
+msgid "Removes fade animation from selected sequences"
+msgstr "Xóa hoạt họa phai mờ dần khỏi các trình tự được chọn"
+
+
+msgctxt "Operator"
+msgid "Clear Fades"
+msgstr "Xóa Hiệu Ứng Phai Mờ Dần"
+
+
+msgid "Split multicam strip and select camera"
+msgstr "Tách phân dải đa máy quay và chọn máy quay phim"
+
+
+msgctxt "Operator"
+msgid "Split Multicam"
+msgstr "Tách Phân Đa Máy Quay"
+
+
+msgid "Turn on or off pinning"
+msgstr "Bật hoặc tắt đính ghim"
+
+
+msgctxt "Operator"
+msgid "Toggle Pin"
+msgstr "Bật/Tắt Đính Ghim"
+
+
+msgid "Add or remove a Text Editor Preset"
+msgstr "Thêm hoặc xóa Cài Đặt Sẵn của Trình Biên Soạn Văn Bản"
+
+
+msgctxt "Operator"
+msgid "Add Text Editor Preset"
+msgstr "Thêm Cài Sẵn Trình Biên Soạn Văn Bản"
+
+
+msgid "Add an entry to the list after the current active item"
+msgstr "Thêm một mục nhập vào danh sách, sau mục đang hoạt động hiện tại"
+
+
+msgctxt "Operator"
+msgid "Add Entry"
+msgstr "Thêm Mục Nhập"
+
+
+msgid "Move an entry in the list up or down"
+msgstr "Di chuyển một mục trong danh sách lên hoặc xuống"
+
+
+msgctxt "Operator"
+msgid "Move Entry"
+msgstr "Di Chuyển Mục"
+
+
+msgid "Remove the selected entry from the list"
+msgstr "Xóa mục đã chọn khỏi danh sách"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Entry"
+msgstr "Xóa Danh Mục đã Chọn"
+
+
+msgid "Export given add-on's translation data as PO files"
+msgstr "Xuất Khẩu dữ liệu phiên dịch của trình bổ sung chỉ định thành các tập tin PO"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Export"
+msgstr "Xuất Khẩu Trình Bổ Sung I18n"
+
+
+msgid "Import given add-on's translation data from PO files"
+msgstr "Nhập Khẩu dữ liệu phiên dịch của trình bổ sung từ các tập PO"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Import"
+msgstr "Nhập Khẩu Trình Bổ Sung I18n"
+
+
+msgid "Wrapper operator which will invoke given op after setting its module_name"
+msgstr "Vỏ bọc ngoài của operator (wrapper) sẽ là cái kích hoạt op đã cho, sau khi sắp đặt tên mô-đun của nó"
+
+
+msgctxt "Operator"
+msgid "Update I18n Add-on"
+msgstr "Nâng Cấp Trình Bổ Sung I18n"
+
+
+msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
+msgstr "Cập nhật dữ liệu phiên dịch của trình bổ sung chỉ định (một tập hợp 'py' trong mã nguồn của trình bổ sung)"
+
+
+msgid "Clean up i18n working repository (po files)"
+msgstr "Dọn dẹp kho lưu trữ làm việc của i18n (các tập tin po)"
+
+
+msgctxt "Operator"
+msgid "Clean up I18n Work Repository"
+msgstr "Dọn dẹp Kho Lưu Trữ Công Việc I18n"
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "Nạp các sắp đặt về phiên dịch từ tập tin JSon ổn định"
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "I18n Nạp các Sắp Đặt"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "Lưu các sắp đặt về phiên dịch vào một tập tin JSon ổn định"
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "I18n Lưu các Sắp Đặt"
+
+
+msgid "Update i18n data (po files) in Blender source code repository"
+msgstr "Cập nhật dữ liệu i18n (các tập tin po) trong kho lưu trữ mã nguồn Blender"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Blender I18n"
+
+
+msgid "Init settings for i18n files update operators"
+msgstr "Khởi động cài đặt cho thao tác nâng cấp của svn I18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "Khởi Động các Sắp Đặt Nâng Cấp I18n"
+
+
+msgid "(De)select (or invert selection of) all languages for i18n files update operators"
+msgstr "Chọn/hủy chọn (hay đảo nghịch sự lựa chọn) toàn bộ các ngôn ngữ cho thao tác nâng cấp tập tin I18n"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "Khởi Động I18n Nâng Cấp các Ngôn Ngữ được Chọn"
+
+
+msgid "Create or extend a 'i18n_info.txt' Text datablock"
+msgstr "Kiến Tạo hoặc mở rộng một khối dữ liệu Văn Bản 'i18n_info.txt'"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "Cập Nhật các Thống Kê I18n"
+
+
+msgid "Update i18n working repository (po files)"
+msgstr "Cập nhật kho lưu trữ công việc i18n (các tập tin po)"
+
+
+msgctxt "Operator"
+msgid "Update I18n Work Repository"
+msgstr "Cập Nhật Kho Lưu Trữ Công Việc I18n"
+
+
+msgid "Align the UV island's rotation"
+msgstr "Căn chỉnh xoay chiều của hải đảo UV"
+
+
+msgctxt "Operator"
+msgid "Align Rotation"
+msgstr "Căn Chỉnh Xoay Chiều"
+
+
+msgid "Export UV layout to file"
+msgstr "Xuất Khẩu bố trí UV ra tập tin"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "Xuất Khẩu Bố Trí UV"
+
+
+msgid "Follow UVs from active quads along continuous face loops"
+msgstr "Đi theo các UV từ tứ giác đang hoạt động dọc theo các vòng mặt nối tiếp"
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "Đi Theo Tứ Giác đang Hoạt Động"
+
+
+msgid "Pack each face's UVs into the UV bounds"
+msgstr "Đóng gói mỗi UV của mặt vào ranh giới UV"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "Đóng Gói Ánh Xạ Ánh Sáng"
+
+
+msgid "Randomize the UV island's location, rotation, and scale"
+msgstr "Ngẫu nhiên hóa vị trí, xoay chiều và tỷ lệ của hải đảo UV"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "Ngẫu Nhiên Hóa"
+
+
+msgctxt "Operator"
+msgid "New Camera from VR Landmark"
+msgstr "Máy Quay Phim Mới từ Địa Ranh VR"
+
+
+msgctxt "Operator"
+msgid "Scene Camera to VR Landmark"
+msgstr "Máy Quay Phim của Cảnh vào Địa Ranh VR"
+
+
+msgctxt "Operator"
+msgid "Cursor to VR Landmark"
+msgstr "Con Trỏ đến Địa Ranh VR"
+
+
+msgid "Extrude each individual face separately along local normals"
+msgstr "Đẩy trồi riêng biệt từng cá nhân mặt dọc theo pháp tuyến địa phương"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual and Move"
+msgstr "Đẩy Trồi Cá Nhân và Di Chuyển"
+
+
+msgid "Extrude manifold region along normals"
+msgstr "Đẩy trồi vùng đa tạp và di chuyển theo pháp tuyến"
+
+
+msgctxt "Operator"
+msgid "Extrude Manifold Along Normals"
+msgstr "Đẩy Trồi Đa Tạp Dọc Theo Pháp Tuyến"
+
+
+msgid "Extrude region together along the average normal"
+msgstr "Đẩy trồi cả vùng cùng một lúc dọc theo pháp tuyến trung bình"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Normals"
+msgstr "Đẩy Trồi và Di Chuyển trên các Pháp Tuyến"
+
+
+msgid "Extrude region together along local normals"
+msgstr "Đẩy trồi cả vùng cùng một lúc dọc theo pháp tuyến địa phương"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Individual Normals"
+msgstr "Đẩy trồi và Di Chuyển trên các Pháp Tuyến Cá Nhân"
+
+
+msgid "Set the current transform gizmo"
+msgstr "Đặt dụng cụ (gizmo) biến hóa hiện tại"
+
+
+msgctxt "Operator"
+msgid "Transform Gizmo Set"
+msgstr "Đặt Gizmo Biến Hóa"
+
+
+msgctxt "Operator"
+msgid "Update Custom VR Landmark"
+msgstr "Cập Nhật Địa Ranh VR Tùy Chỉnh"
+
+
+msgctxt "Operator"
+msgid "Add Camera and VR Landmark from Session"
+msgstr "Thêm Máy Quay Phim và Địa Ranh VR từ Phiên Sử Dụng"
+
+
+msgctxt "Operator"
+msgid "Activate VR Landmark"
+msgstr "Khởi Thủy Địa Ranh VR"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark"
+msgstr "Cho Thêm Địa Ranh VR"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Camera"
+msgstr "Thêm Địa Ranh VR từ Máy Quay Phim"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Session"
+msgstr "Thêm Địa Ranh VR từ Phiên Sử Dụng"
+
+
+msgctxt "Operator"
+msgid "Remove VR Landmark"
+msgstr "Xóa Địa Ranh VR"
+
+
+msgid "Rename multiple items at once"
+msgstr "Đổi tên nhiều mục cùng một lúc"
+
+
+msgctxt "Operator"
+msgid "Batch Rename"
+msgstr "Đổi Tên Hàng Loạt"
+
+
+msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
+msgstr "Kiểm tra và sửa toàn bộ các chuỗi ký tự trong tập tin .blend hiện tại xem chúng có hợp lệ với mã Unicode UTF-8 hay không (cần thiết đối với một số các tập tin cũ trong địa phận của 2.4x)"
+
+
+msgctxt "Operator"
+msgid "Validate .blend strings"
+msgstr "Kiểm chứng các chuỗi ký tự trong bản .blend"
+
+
+msgid "Set boolean values for a collection of items"
+msgstr "Đặt giá trị bool cho một bộ sưu tập các phần tử"
+
+
+msgctxt "Operator"
+msgid "Context Collection Boolean Set"
+msgstr "Ngữ Cảnh Đặt Giá Trị Bool cho Bộ Sưu Tập"
+
+
+msgid "Set a context array value (useful for cycling the active mesh edit mode)"
+msgstr "Đặt một giá trị mảng ngữ cảnh (có lợi cho việc luân chuyển Chế Độ Biên Soạn của khung lưới đang hoạt động)"
+
+
+msgctxt "Operator"
+msgid "Context Array Cycle"
+msgstr "Ngữ Cảnh Luân Chuyển Mảng"
+
+
+msgid "Toggle a context value"
+msgstr "Đổi một giá trị ngữ cảnh"
+
+
+msgctxt "Operator"
+msgid "Context Enum Cycle"
+msgstr "Luân Chuyển Ngữ Cảnh Enum"
+
+
+msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
+msgstr "Đặt giá trị ngữ cảnh (hữu ích để quay vòng nguyên vật liệu đang hoạt động, hình mẫu, nhóm, v.v.)"
+
+
+msgctxt "Operator"
+msgid "Context Int Cycle"
+msgstr "Luân Chuyển Số Nguyên (Int)"
+
+
+msgctxt "Operator"
+msgid "Context Enum Menu"
+msgstr "Ngữ Cảnh Trình Đơn Enum"
+
+
+msgid "Adjust arbitrary values with mouse input"
+msgstr "Chỉnh các giá trị tùy chọn bằng đầu vào của chuột"
+
+
+msgctxt "Operator"
+msgid "Context Modal Mouse"
+msgstr "Ngữ Cảnh Chuột Mô Thái"
+
+
+msgctxt "Operator"
+msgid "Context Enum Pie"
+msgstr "Ngữ Cảnh Enum Hình Rẻ Quạt"
+
+
+msgid "Scale a float context value"
+msgstr "Đổi tỷ lệ giá trị của một số float (số thực)"
+
+
+msgctxt "Operator"
+msgid "Context Scale Float"
+msgstr "Ngữ Cảnh Đổi Tỷ Lệ Số Thực"
+
+
+msgid "Scale an int context value"
+msgstr "Đổi tỷ lệ giá trị của một số nguyên (int) theo ngữ cảnh"
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "Ngữ Cảnh Đổi Tỷ Lệ Số Nguyên"
+
+
+msgid "Set a context value"
+msgstr "Đặt một giá trị ngữ cảnh"
+
+
+msgctxt "Operator"
+msgid "Context Set Boolean"
+msgstr "Ngữ Cảnh Đặt Giá Trị Bool"
+
+
+msgctxt "Operator"
+msgid "Context Set Enum"
+msgstr "Ngữ Cảnh Đặt Enum"
+
+
+msgctxt "Operator"
+msgid "Context Set Float"
+msgstr "Đặt Số Thực"
+
+
+msgid "Set a context value to an ID data-block"
+msgstr "Đặt giá trị ngữ cảnh cho một khối dữ liệu ID"
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "Đặt ID cho Thư Viện"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "Ngữ Cảnh Thiết Lập"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "Ngữ Cảnh Đặt Chuỗi Ký Tự"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "Ngữ Cảnh Đặt Giá Trị"
+
+
+msgctxt "Operator"
+msgid "Context Toggle"
+msgstr "Ngữ Cảnh Bật/Tắt"
+
+
+msgctxt "Operator"
+msgid "Context Toggle Values"
+msgstr "Ngữ Cảnh Bật/Tắt các Giá Trị"
+
+
+msgid "Open online reference docs in a web browser"
+msgstr "Mở tài liệu tham chiếu trên mạng trong trình duyệt mạng"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "Xem Tài Liệu"
+
+
+msgid "Load online manual"
+msgstr "Nạp bản hướng dẫn sử dụng trực tuyến"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "Xem Bản Hướng Dẫn"
+
+
+msgctxt "Operator"
+msgid "Handle dropped .blend file"
+msgstr "Xử lý tập tin .blend thả vào"
+
+
+msgid "List all the operators in a text-block, useful for scripting"
+msgstr "Liệt kê toàn bộ các thao tác trong khối văn bản, có lợi cho việc biên soạn tập lệnh"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Bảng Liệt Kê các Thao Tác"
+
+
+msgctxt "Operator"
+msgid "Operator Enum Pie"
+msgstr "Thao Tác: Trình Đơn Rẻ Quạt"
+
+
+msgid "Add or remove an Operator Preset"
+msgstr "Thêm hay xóa một sắp đặt sẵn của Thao Tác"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "Sắp Đặt Sẵn của Thao Tác"
+
+
+msgid "Disable add-on for workspace"
+msgstr "Tắt trình bổ sung cho không gian làm việc"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Tắt Trình Bổ Sung"
+
+
+msgid "Enable add-on for workspace"
+msgstr "Bật trình bổ sung cho không gian làm việc"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Bật Trình Bổ Sung"
+
+
+msgid "Open a path in a file browser"
+msgstr "Mở đường dẫn trong trình duyệt tập tin"
+
+
+msgid "Clear selected .blend file's previews"
+msgstr "Xóa các xem trước của tập tin .blend được chọn"
+
+
+msgctxt "Operator"
+msgid "Batch-Clear Previews"
+msgstr "Xóa Đồng Loạt các Xem Trước"
+
+
+msgid "Generate selected .blend file's previews"
+msgstr "Tạo các xem trước cho tập tin .blend được chọn"
+
+
+msgctxt "Operator"
+msgid "Batch-Generate Previews"
+msgstr "Sinh Tạo các Xem Trước Đồng Loạt"
+
+
+msgid "Add your own property to the data-block"
+msgstr "Cho thêm tính chất của riêng mình vào khối dữ liệu"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Thêm Tính Chất"
+
+
+msgid "Jump to a different tab inside the properties editor"
+msgstr "Nhảy đến một mục khác trong trình biên soạn tính chất"
+
+
+msgid "Change a custom property's type, or adjust how it is displayed in the interface"
+msgstr "Đổi thể loại thuộc tính tùy chỉnh, hoặc điều chỉnh diện mạo hiển thị trong giao diện"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Biên Soạn Tính Chất"
+
+
+msgid "Edit the value of a custom property"
+msgstr "Biên soạn giá trị của tính chất tùy chỉnh"
+
+
+msgctxt "Operator"
+msgid "Edit Property Value"
+msgstr "Biên Soạn Giá Trị của Tính Chất"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "Sử dụng nội bộ (biên soạn một data_path (đường_dẫn_dữ_liệu) của tính chất)"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "Xóa Tính Chất"
+
+
+msgid "Generate system information, saved into a text file"
+msgstr "Sinh tạo thông tin của hệ thống rồi lưu trong một tập tin văn bản"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Lưu Thông Tin Hệ Thống"
+
+
+msgid "Set the tool by name (for key-maps)"
+msgstr "Đặt công cụ bằng tên (cho bố trí phím)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Name"
+msgstr "Đặt Công Cụ bằng Tên"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "Đặt công cụ theo chỉ số (dành cho bố trí phím)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Index"
+msgstr "Đặt Công Cụ bằng Chỉ Số"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "Thanh Công Cụ"
+
+
+msgctxt "Operator"
+msgid "Fallback Tool Pie Menu"
+msgstr "Công Cụ Dự Bị của Trình Đơn Rẻ Quạt"
+
+
+msgid "Leader key like functionality for accessing tools"
+msgstr "Chức năng tương tự như khóa dẫn đầu dành cho việc tiếp cận các công cụ"
+
+
+msgctxt "Operator"
+msgid "Toolbar Prompt"
+msgstr "Nhắc Lệnh của Thanh Công Cụ"
+
+
+msgid "Open a website in the web browser"
+msgstr "Mở một trang mạng trong trình duyệt mạng"
+
+
+msgid "Open a preset website in the web browser"
+msgstr "Mở một trang mạng định sẵn trong trình duyệt mạng"
+
+
+msgctxt "Operator"
+msgid "Open Preset Website"
+msgstr "Mở Trang Mạng Định Sẵn"
 
 
 msgid "Operator Options"
@@ -49119,15 +51000,6 @@ msgid "Reset viewable area to show the selected channels"
 msgstr "Hoàn lại khu vực quan sát được để hiển thị các kênh đã chọn"
 
 
-msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Xóa các Hành Động Vô Dụng"
-
-
-msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
-msgstr "Đánh dấu các hành động không có Đường Cong-F để xóa chúng đi, sau khi đã lưu & nạp lại tập tin, song bảo tồn \"các thư viện hành động\""
-
-
 msgid "Only Unused"
 msgstr "Duy cái Chưa Sử Dụng"
 
@@ -49313,15 +51185,6 @@ msgid "Add a new (empty) keying set to the active Scene"
 msgstr "Thêm bộ khóa mới (trống rỗng) vào Cảnh đang hoạt động"
 
 
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "Xuất Khẩu Bộ Khóa..."
-
-
-msgid "Export Keying Set to a Python script"
-msgstr "Xuất khẩu Bộ Khóa ra một tập lệnh Python"
-
-
 msgid "Filter folders"
 msgstr "Thanh lọc các danh mục"
 
@@ -49417,15 +51280,6 @@ msgstr "Đặt Khung Hình Đầu"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "Đặt khung hình hiện tại làm khung hình bắt đầu của cảnh hoặc của xem trước"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "Cập Nhật các Ràng Buộc Biến Hóa Hoạt Họa"
-
-
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "Cập nhật các Đường Cong-F/Điều Vận tác động đến những ràng buộc Biến Hóa (sử dụng nó với các tập tin từ phiên bản 2.70 và sớm hơn)"
 
 
 msgid "Convert to Radians"
@@ -49695,15 +51549,6 @@ msgstr "Chọn các xương trong Bộ Sưu Tập Xương đang hoạt động"
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Hiển Thị Toàn Bộ"
-
-
-msgid "Show all bone collections"
-msgstr "Hiển thị tất cả các bộ sưu tập xương"
-
-
-msgctxt "Operator"
 msgid "Remove Selected from Bone collections"
 msgstr "Xóa cái Đã Chọn khỏi bộ sưu tập Xương"
 
@@ -49727,15 +51572,6 @@ msgstr "Loại bỏ xương đã được đặt tên ra khỏi bộ sưu tập 
 
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
 msgstr "Tên của xương cần tách ra khỏi bộ sưu tập; để trống để sử dụng xương đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Copy Colors to Selected"
-msgstr "Sao Chép Màu sang cái Đã Chọn"
-
-
-msgid "Copy the bone color of the active bone to all selected bones"
-msgstr "Sao chép màu xương của xương đang hoạt động sang tất cả các xương đã chọn"
 
 
 msgid "Copy Bone colors from the active bone to all selected bones"
@@ -49960,11 +51796,6 @@ msgid "Toggle selection status of all bones"
 msgstr "Lật đảo trạng thái lựa chọn của toàn bộ các xương"
 
 
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "Chọn Thứ Bậc"
-
-
 msgid "Select immediate parent/children of selected bones"
 msgstr "Chọn phụ huynh/con cái ruột kề cận của các xương được chọn"
 
@@ -50124,11 +51955,6 @@ msgstr "-X đến +X"
 
 msgid "+X to -X"
 msgstr "+X đến -X"
-
-
-msgctxt "Operator"
-msgid "Assign Action"
-msgstr "Ấn Định Hành Động"
 
 
 msgid "Set this pose Action as active Action on the active Object"
@@ -50373,33 +52199,6 @@ msgstr "Đánh Dấu là Đơn Tài Sản"
 
 msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "Cho phép tái dụng khối dữ liệu dễ dàng hơn thông qua Trình Duyệt Tài Sản, với sự trợ giúp của siêu dữ liệu khả tùy chỉnh (như các xem trước, các miêu tả và các thẻ)"
-
-
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "Mở Tập Tin Blend"
-
-
-msgid "Open the blend file that contains the active asset"
-msgstr "Mở tập tin blend có chứa tài sản đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Add Asset Tag"
-msgstr "Thêm Dấu Nhãn Tài Sản"
-
-
-msgid "Add a new keyword tag to the active asset"
-msgstr "Thêm một từ khóa đánh dấu vào tài sản đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Remove Asset Tag"
-msgstr "Xóa Dấu Nhãn Tài Sản"
-
-
-msgid "Remove an existing keyword tag from the active asset"
-msgstr "Xóa một từ khóa đánh dấu hiện tồn tại khỏi tài sản đang/hoạt động"
 
 
 msgctxt "Operator"
@@ -50697,15 +52496,6 @@ msgid "Update objects paths list with new data from the archive"
 msgstr "Cập nhật danh sách đường dẫn đối tượng bằng dữ liệu mới từ kho"
 
 
-msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Máy Quay Phim"
-
-
-msgid "Add or remove a Camera Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Máy Quay Phim"
-
-
 msgid "Name of the preset, used to make the path name"
 msgstr "Tên của sắp đặt sẵn, dùng để đặt tên đường dẫn"
 
@@ -50716,15 +52506,6 @@ msgstr "Bao Gồm Tiêu Cự"
 
 msgid "Include focal length into the preset"
 msgstr "Bao gồm cả tiêu cự trong sắp đặt sẵn"
-
-
-msgctxt "Operator"
-msgid "Add Safe Area Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Khu Vực An Toàn"
-
-
-msgid "Add or remove a Safe Areas Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Khu Vực An Toàn"
 
 
 msgctxt "Operator"
@@ -50803,19 +52584,6 @@ msgstr "Giữ lại các các giám sát gốc"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "Các Dấu Mốc 3D thành Khung Lưới"
-
-
-msgid "Create vertex cloud using coordinates of reconstructed tracks"
-msgstr "Sinh kiến tạo đám mây điểm đỉnh dùng tọa độ của các giám sát đã khôi phục"
-
-
-msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Tính Chất Cơ Bản của Máy Quay Phim cho Quá Trình Giám Sát"
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "Dọn Dẹp Giám Sát"
 
@@ -50887,15 +52655,6 @@ msgstr "Chỉ xóa giám sát đang hoạt động mà thôi, thay vì toàn b�
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "Ràng Buộc thành Đường Cong-F"
-
-
-msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
-msgstr "Kiến Tạo Đường Cong-F cho đối tượng, tức cái sẽ sao chép chuyển động của đối tượng mà ràng buộc này gây ra"
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "Sao Chép Giám Sát"
 
@@ -50933,15 +52692,6 @@ msgstr "Xóa Dấu Mốc"
 
 msgid "Delete marker for current frame from selected tracks"
 msgstr "Xóa dấu mốc cho khung hình hiện tại khỏi các giám sát đã chọn"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "Xóa Đại Diện"
-
-
-msgid "Delete movie clip proxy files from the hard drive"
-msgstr "Xóa các tập tin đại diện của đoạn phim khỏi ổ cứng"
 
 
 msgctxt "Operator"
@@ -51046,15 +52796,6 @@ msgstr "Nới rộng lựa chọn, thay vì xóa lựa chọn đang có"
 
 msgid "Mouse location to select channel"
 msgstr "Vị trí chuột để chọn kênh"
-
-
-msgctxt "Operator"
-msgid "Filter Tracks"
-msgstr "Thanh Lọc Giám Sát"
-
-
-msgid "Filter tracks which has weirdly looking spikes in motion curves"
-msgstr "Thanh lọc các giám sát có các đỉnh nhọn bất thường trong đường cong chuyển động"
 
 
 msgid "Track Threshold"
@@ -51428,11 +53169,6 @@ msgstr "Chọn các dấu mốc bằng dây thòng lọng"
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "Đặt Đoạn Phim đang Hoạt Động"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "Đặt Trục"
 
@@ -51536,24 +53272,6 @@ msgstr "Khung khóa để đặt"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "Đặt làm Nền"
-
-
-msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
-msgstr "Đặt đoạn phim hiện tại làm nền máy quay phim trong cổng nhìn 3D (chỉ hoạt động khi cổng nhìn 3D nhìn thấy được)'"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "Thiết Lập Cảnh Giám Sát"
-
-
-msgid "Prepare scene for compositing 3D objects into this footage"
-msgstr "Chuẩn bị cảnh cho quá trình tổng hợp các đối tượng 3D vào trong đoạn phim này"
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "Trượt Đẩy Dấu Mốc"
 
@@ -51639,15 +53357,6 @@ msgstr "Chọn các dấu giám sát được sử dụng trong quá trình ổn
 
 
 msgctxt "Operator"
-msgid "Add Track Color Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Màu Giám Sát"
-
-
-msgid "Add or remove a Clip Track Color Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Màu Giám Sát của Đoạn Phim"
-
-
-msgctxt "Operator"
 msgid "Copy Color"
 msgstr "Sao Chép Màu"
 
@@ -51674,33 +53383,6 @@ msgstr "Giám sát dấu mốc trong trình tự hình ảnh thay vì một đơ
 
 
 msgctxt "Operator"
-msgid "Track Settings as Default"
-msgstr "Sắp Đặt của Giám Sát làm Sắp Đặt Mặc Định"
-
-
-msgid "Copy tracking settings from active track to default settings"
-msgstr "Sao chép các sắp đặt của giám sát, từ dấu giám sát đang hoạt động, thành sắp đặt mặc định"
-
-
-msgctxt "Operator"
-msgid "Copy Track Settings"
-msgstr "Sao Chép Sắp Đặt về Giám Sát"
-
-
-msgid "Copy tracking settings from active track to selected tracks"
-msgstr "Sao chép sắp đặt của quá trình giám sát từ dấu giám sát đang hoạt động sang dấu giám sát được chọn"
-
-
-msgctxt "Operator"
-msgid "Link Empty to Track"
-msgstr "Kết Nối Đối Tượng Rỗng với Giám Sát"
-
-
-msgid "Create an Empty object which will be copying movement of active track"
-msgstr "Kiến Tạo đối tượng Rỗng, tức cái sẽ sao chép chuyển động của dấu giám sát đang hoạt động"
-
-
-msgctxt "Operator"
 msgid "Add Tracking Object"
 msgstr "Thêm Đối Tượng Giám Sát"
 
@@ -51716,15 +53398,6 @@ msgstr "Loại Bỏ Đối Tượng Giám Sát"
 
 msgid "Remove object for tracking"
 msgstr "Xóa đối tượng sử dụng Acho quá trình giám sát"
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Cấu Hình Giám Sát"
-
-
-msgid "Add or remove a motion tracking settings preset"
-msgstr "Thêm hay xóa một sắp đặt sẵn về cấu hình giám sát chuyển động"
 
 
 msgctxt "Operator"
@@ -51840,15 +53513,6 @@ msgstr "Tỷ lệ thu-phóng, 1.0 nghĩa là 1:1, lớn hơn nghĩa là phóng t
 
 
 msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Vải Vóc"
-
-
-msgid "Add or remove a Cloth Preset"
-msgstr "Thêm hay xóa Sắp Đặt Sẵn về Vải Vóc"
-
-
-msgctxt "Operator"
 msgid "Create New Collection"
 msgstr "Kiến Tạo Bộ Sưu Tập Mới"
 
@@ -51915,24 +53579,6 @@ msgstr "Xóa các đối tượng được chọn khỏi toàn bộ các bộ s�
 
 
 msgctxt "Operator"
-msgid "Console Autocomplete"
-msgstr "Tự Động Hoàn Chỉnh trong Bàn Giao Tiếp"
-
-
-msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "Tính toán không gian tên đến vị trí con trỏ và cung cấp một danh sách các tùy chọn, hoặc hoàn chỉnh tên nếu chỉ có một cái duy nhất"
-
-
-msgctxt "Operator"
-msgid "Console Banner"
-msgstr "Biểu Ngữ của Bàn Giao Tiếp"
-
-
-msgid "Print a message when the terminal initializes"
-msgstr "In một thông điệp ra khi khởi động thiết bị cuối"
-
-
-msgctxt "Operator"
 msgid "Clear All"
 msgstr "Xóa Toàn Bộ"
 
@@ -51984,15 +53630,6 @@ msgstr "Có nên xóa lựa chọn sau khi sao chép hay không"
 
 
 msgctxt "Operator"
-msgid "Copy to Clipboard (as Script)"
-msgstr "Sao Chép vào Bảng Nhớ Tạm (thành Tập Lệnh)"
-
-
-msgid "Copy the console contents for use in a script"
-msgstr "Sao chép nội dung bàn giao tiếp để sử dụng trong một tập lệnh"
-
-
-msgctxt "Operator"
 msgid "Delete"
 msgstr "Xóa"
 
@@ -52019,15 +53656,6 @@ msgstr "Từ Tiếp Theo"
 
 msgid "Previous Word"
 msgstr "Từ Đứng Trước"
-
-
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "Thi Hành Bàn Giao Tiếp"
-
-
-msgid "Execute the current console line as a Python expression"
-msgstr "Thực thi dòng hiện tại của giao diện dòng lệnh như một biểu thức Python vậy"
 
 
 msgctxt "Operator"
@@ -52093,15 +53721,6 @@ msgstr "Chèn Thêm"
 
 msgid "Insert text at cursor position"
 msgstr "Chèn thêm văn bản tại vị trí con trỏ"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "Ngôn Ngữ Bàn Giao Tiếp"
-
-
-msgid "Set the current language for this console"
-msgstr "Đặt ngôn ngữ hiện tại cho bàn giao tiếp"
 
 
 msgctxt "Python console"
@@ -52196,15 +53815,6 @@ msgstr "Xóa 4 dấu cách ở đầu dòng"
 
 
 msgctxt "Operator"
-msgid "Add Target"
-msgstr "Thêm Mục Tiêu"
-
-
-msgid "Add a target to the constraint"
-msgstr "Thêm một mục tiêu vào ràng buộc"
-
-
-msgctxt "Operator"
 msgid "Apply Constraint"
 msgstr "Áp Dụng Ràng Buộc"
 
@@ -52287,15 +53897,6 @@ msgstr "Xóa ràng buộc khỏi ngăn xếp ràng buộc"
 
 
 msgctxt "Operator"
-msgid "Disable and Keep Transform"
-msgstr "Tắt nhưng Duy Trì Biến Hóa"
-
-
-msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
-msgstr "Đặt ảnh hưởng của ràng buộc này bằng 0 trong khi cố gắng duy trì biến hóa của đối tượng. Những ràng buộc đang hoạt động khác vẫn có thể tác động tới biến hóa cuối cùng"
-
-
-msgctxt "Operator"
 msgid "Auto Animate Path"
 msgstr "Tự Động Hoạt Họa Đường Dẫn"
 
@@ -52352,30 +53953,12 @@ msgid "Move constraint up in constraint stack"
 msgstr "Di chuyển ràng buộc lên trong ngăn xếp ràng buộc"
 
 
-msgctxt "Operator"
-msgid "Normalize Weights"
-msgstr "Bình Thường Hóa Trọng Lượng"
-
-
-msgid "Normalize weights of all target bones"
-msgstr "Bình thường hóa trọng lượng của toàn bộ các xương"
-
-
 msgid "Clear inverse correction for Object Solver constraint"
 msgstr "Xóa chỉnh sửa đảo ngược cho ràng buộc Giải Nghiệm Đối Tượng"
 
 
 msgid "Set inverse correction for Object Solver constraint"
 msgstr "Đặt chỉnh sửa đảo ngược cho ràng buộc Giải Nghiệm Đối Tượng"
-
-
-msgctxt "Operator"
-msgid "Remove Target"
-msgstr "Xóa Mục Tiêu"
-
-
-msgid "Remove the target from the constraint"
-msgstr "Xóa mục tiêu khỏi ràng buộc"
 
 
 msgctxt "Operator"
@@ -53256,15 +54839,6 @@ msgid "Location to add new vertex at"
 msgstr "Vị trí để thêm điểm đỉnh mới vào"
 
 
-msgctxt "Operator"
-msgid "Denoise Animation"
-msgstr "Khử Nhiễu Hoạt Họa"
-
-
-msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
-msgstr "Khử nhiễu chuỗi hoạt họa được kết xuất bằng cách sử dụng cảnh hiện tại và các sắp đặt của Tầng Góc Nhìn. Yêu cầu phải có các lượt về khử nhiễu dữ liệu và xuất ra các tập tin đa tầng lớp OpenEXR"
-
-
 msgid "Input Filepath"
 msgstr "Đường Dẫn Tập Tin Đầu Vào"
 
@@ -53281,30 +54855,12 @@ msgid "If not specified, renders will be denoised in-place"
 msgstr "Nếu không xác định thì các bản kết xuất sẽ được khử nhiễu tại chỗ"
 
 
-msgctxt "Operator"
-msgid "Merge Images"
-msgstr "Hợp Nhất các Hình Ảnh"
-
-
-msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
-msgstr "Kết hợp các hình ảnh đa tầng lớp OpenEXR đã kết xuất với các phạm vi mẫu khác nhau thành một hình ảnh với độ nhiễu thuyên giảm"
-
-
 msgid "File path for image to merge"
 msgstr "Đường dẫn tập tin của hình ảnh hợp nhất"
 
 
 msgid "File path for merged image"
 msgstr "Đường dẫn tập tin của hình ảnh hợp nhất"
-
-
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "Sử Dụng Nút"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Kích hoạt các nút trên một chất liệu, thế giới, hay một nguồn sáng"
 
 
 msgctxt "Operator"
@@ -53476,15 +55032,6 @@ msgid "Undo and redo previous action"
 msgstr "Hoàn tác hay tái thực hiện hành động trước đây"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "Xuất Khẩu BVH"
-
-
-msgid "Save a BVH motion capture file from an armature"
-msgstr "Lưu tập tin BVH (Bounding Volume Hierarchy : Cây Phân Cấp Giới Hạn Thể Tích) nắm bắt chuyển động từ một khung rối"
-
-
 msgid "Filepath used for exporting the file"
 msgstr "Đường dẫn tập tin sử dụng để xuất khẩu tập tin"
 
@@ -53567,15 +55114,6 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Chuyển đổi mọi sự xoay chiều thành Euler ZYX"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "Xuất Khẩu FBX"
-
-
-msgid "Write a FBX file"
-msgstr "Ghi một tập tin FBX"
 
 
 msgid "Add Leaf Bones"
@@ -54032,15 +55570,6 @@ msgstr "Các Đối Tượng Hữu Hình"
 
 msgid "Export visible objects only"
 msgstr "Chỉ Xuất Khẩu các đối tượng nhìn thấy được mà thôi"
-
-
-msgctxt "Operator"
-msgid "Export glTF 2.0"
-msgstr "Xuất Khẩu glTF 2.0"
-
-
-msgid "Export scene as glTF 2.0 file"
-msgstr "Xuất Khẩu cảnh ra tập tin glTF 2.0"
 
 
 msgid "Filter Actions"
@@ -55482,15 +57011,6 @@ msgstr "Tạm Ngưng Quá Trình Nướng"
 
 msgid "Pause Bake"
 msgstr "Tạm Ngưng Quá Trình Nướng"
-
-
-msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Chất Lỏng"
-
-
-msgid "Add or remove a Fluid Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Chất Lỏng"
 
 
 msgctxt "Operator"
@@ -57971,15 +59491,6 @@ msgstr "Cắt gọn nét vẽ tới vòng mạch đầu tiên hoặc tới đi�
 
 
 msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "Đảo Màu"
-
-
-msgid "Switch tint colors"
-msgstr "Đổi màu nhuốm"
-
-
-msgctxt "Operator"
 msgid "Trace Image to Grease Pencil"
 msgstr "Can Hình Ảnh thành Bút Chì Dầu"
 
@@ -59423,15 +60934,6 @@ msgstr "Luân Chuyển Ngược Chiều"
 
 
 msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "Biên Soạn Hình Ảnh ở Bên Ngoài"
-
-
-msgid "Edit image in an external application"
-msgstr "Biên soạn hình ảnh bằng một trình ứng dụng ở bên ngoài"
-
-
-msgctxt "Operator"
 msgid "Browse Image"
 msgstr "Duyệt Thảo Hình Ảnh"
 
@@ -59584,24 +61086,6 @@ msgstr "Đóng Gói Hình Ảnh"
 
 msgid "Pack an image as embedded data into the .blend file"
 msgstr "Đóng gói một hình ảnh thành dữ liệu nhúng sẵn vào trong tập tin .blend"
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "Áp Dụng Phóng Chiếu"
-
-
-msgid "Project edited image back onto the object"
-msgstr "Phóng chiếu hình ảnh đã biên soạn trở lại lên trên mình đối tượng"
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "Biên Soạn Ảnh Chụp Cổng Nhìn"
-
-
-msgid "Edit a snapshot of the 3D Viewport in an external image editor"
-msgstr "Biên soạn ảnh chụp nhanh Cổng Nhìn 3D trong một trình biên soạn hình ảnh ở bên ngoài"
 
 
 msgctxt "Operator"
@@ -59882,15 +61366,6 @@ msgid "Set zoom ratio of the view"
 msgstr "Đặt tỷ lệ thu-phóng của khung nhìn"
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "Nhập Khẩu BVH"
-
-
-msgid "Load a BVH motion capture file"
-msgstr "Nạp một tập tin nắm bắt chuyển động BVH (Bounding Volume Hierarchy : Cây Phân Cấp Giới Hạn Thể Tích)"
-
-
 msgid "Starting frame for the animation"
 msgstr "Khung hình khởi đầu của hoạt họa"
 
@@ -59929,24 +61404,6 @@ msgstr "Đổi Tỷ Lệ Tần Số Khung Hình"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "Đổi tỷ lệ tần số khung hình từ BVH sang các cảnh hiện tại, nếu không, mỗi khung hình BVH sẽ được ánh xạ trực tiếp sang một khung hình Blender"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Nhập Khẩu SVG"
-
-
-msgid "Load a SVG file"
-msgstr "Nạp một tập tin SVG"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "Nhập Khẩu FBX"
-
-
-msgid "Load a FBX file"
-msgstr "Nạp một tập tin FBX"
 
 
 msgid "Animation Offset"
@@ -60083,15 +61540,6 @@ msgstr "Dữ Liệu Phân Hóa"
 
 msgid "Import FBX subdivision information as subdivision surface modifiers"
 msgstr "Nhập Khẩu thông tin về Bề Mặt Phân Hóa của FBX thành các bộ điều chỉnh bề mặt phân hóa"
-
-
-msgctxt "Operator"
-msgid "Import glTF 2.0"
-msgstr "Nhập Khẩu glTF 2.0"
-
-
-msgid "Load a glTF 2.0 file"
-msgstr "Nạp một tập tin glTF 2.0"
 
 
 msgid "Bone Dir"
@@ -61423,10 +62871,6 @@ msgid "Extrude Region and Move"
 msgstr "Đẩy Trồi Vùng và Di Chuyển"
 
 
-msgid "Extrude region together along the average normal"
-msgstr "Đẩy trồi cả vùng cùng một lúc dọc theo pháp tuyến trung bình"
-
-
 msgid "Extrude Context"
 msgstr "Bối Cảnh Đẩy Trồi"
 
@@ -61467,10 +62911,6 @@ msgid "Extrude Individual Faces and Move"
 msgstr "Đẩy Trồi Từng Cá Nhân Các Mặt và Di Chuyển"
 
 
-msgid "Extrude each individual face separately along local normals"
-msgstr "Đẩy trồi riêng biệt từng cá nhân mặt dọc theo pháp tuyến địa phương"
-
-
 msgid "Extrude Individual Faces"
 msgstr "Đẩy Trồi Từng Cá Nhân Các Mặt"
 
@@ -61508,10 +62948,6 @@ msgstr "Đẩy trồi vùng và di chuyển kết quả"
 msgctxt "Operator"
 msgid "Extrude Region and Shrink/Fatten"
 msgstr "Đẩy Trồi Vùng và Thu Nhỏ/Phình To"
-
-
-msgid "Extrude region together along local normals"
-msgstr "Đẩy trồi cả vùng cùng một lúc dọc theo pháp tuyến địa phương"
 
 
 msgctxt "Operator"
@@ -61602,15 +63038,6 @@ msgstr "Hàn Cạnh vào Các Mặt"
 
 msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "Hàn các cạnh rời rạc vào thành các mặt (tách phân chúng thành các mặt mới)"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "Sao Chép các Tọa Độ UV Phản Chiếu Đối Xứng"
-
-
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "Sao chép các tọa độ UV phản chiếu đối xứng trên trục X dựa trên khung lưới đang được phản chiếu đối xứng"
 
 
 msgid "Axis Direction"
@@ -62593,15 +64020,6 @@ msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "Tạo một khung lưới mặt phẳng tô kín với 4 điểm đỉnh"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Thêm Hình Xuyến"
-
-
-msgid "Construct a torus mesh"
-msgstr "Kiến tạo một khung lưới hình xuyến"
-
-
 msgid "Exterior Radius"
 msgstr "Bán Kính Bên Ngoài"
 
@@ -62951,15 +64369,6 @@ msgstr "Chọn thêm các điểm đỉnh, cạnh, hay các mặt kết nối v�
 
 
 msgctxt "Operator"
-msgid "Select Next Element"
-msgstr "Chọn Phần Tử Tiếp Theo"
-
-
-msgid "Select the next element (using selection order)"
-msgstr "Chọn phần tử tiếp theo (theo thứ tự lựa chọn)"
-
-
-msgctxt "Operator"
 msgid "Select Non-Manifold"
 msgstr "Lựa Chọn Phi Đa Tạp"
 
@@ -62998,15 +64407,6 @@ msgstr "Các cạnh dây"
 
 msgid "Deselect every Nth element starting from the active vertex, edge or face"
 msgstr "Hủy chọn bất cứ phần tử thứ N nào, bắt đầu từ điểm đỉnh, cạnh, hay mặt đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Select Previous Element"
-msgstr "Chọn Phần Tử Trước"
-
-
-msgid "Select the previous element (using selection order)"
-msgstr "Chọn phần tử trước (dùng trật tự lựa chọn)"
 
 
 msgid "Randomly select vertices"
@@ -63681,15 +65081,6 @@ msgid "Apply scaling of selected strips to their referenced Actions"
 msgstr "Áp dụng thay đổi về tỷ lệ của các dải được chọn vào các Hành Động tham chiếu của chúng"
 
 
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "Nướng Hành Động"
-
-
-msgid "Bake all selected objects location/scale/rotation animation to an action"
-msgstr "Nướng toàn bộ các hoạt họa về vị trí/tỷ lệ/xoay chiều của các đối tượng đã chọn thành một hành động"
-
-
 msgctxt "Action"
 msgid "Bake Data"
 msgstr "Dữ Liệu Nướng"
@@ -64142,15 +65533,6 @@ msgid "Add a material node to the current node editor"
 msgstr "Thêm nút nguyên vật liệu vào trình biên soạn nút hiện tại"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Thêm Nút"
-
-
-msgid "Add a node to the active tree"
-msgstr "Thêm một nút vào cây đang hoạt động"
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "Các sắp đặt để áp dụng vào nút mới được kiến tạo"
 
@@ -64176,15 +65558,6 @@ msgid "Add an object info node to the current node editor"
 msgstr "Thêm nút thông tin đối tượng vào trình biên soạn nút hiện tại"
 
 
-msgctxt "Operator"
-msgid "Add Repeat Zone"
-msgstr "Thêm Vùng Lặp Lại"
-
-
-msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
-msgstr "Thêm vùng lặp lại cho phép thực thi các nút với một số lần năng động"
-
-
 msgid "Offset of nodes from the cursor when added"
 msgstr "Dịch chuyển của các nút từ con trỏ khi đã được thêm vào"
 
@@ -64196,15 +65569,6 @@ msgstr "Thêm Đổi Tuyến"
 
 msgid "Add a reroute node"
 msgstr "Thêm một nút đổi tuyến"
-
-
-msgctxt "Operator"
-msgid "Add Simulation Zone"
-msgstr "Thêm Vùng Mô Phỏng"
-
-
-msgid "Add simulation zone input and output nodes to the active tree"
-msgstr "Thêm các nút đầu vào và đầu ra của vùng mô phỏng vào cây hiện nay đang hoạt động"
 
 
 msgctxt "Operator"
@@ -64286,15 +65650,6 @@ msgstr "Dán các nút từ bảng nhớ tạm nội bộ vào cây nút đang h
 
 msgid "The 2D view location for the center of the new nodes, or unchanged if not set"
 msgstr "Vị trí góc nhìn 2D để làm trung tâm của các nút mới, hoặc không thay đổi gì nếu chưa đặt"
-
-
-msgctxt "Operator"
-msgid "Collapse and Hide Unused Sockets"
-msgstr "Thu Lại và Ẩn Giấu các Ổ Cắm Chưa Dùng"
-
-
-msgid "Toggle collapsed nodes and hide unused sockets"
-msgstr "Bật/Tắt trạng thái nút thu lại và ẩn giấu các ổ cắm không dùng đến"
 
 
 msgctxt "Operator"
@@ -64417,11 +65772,6 @@ msgid "Search for a node by name and focus and select it"
 msgstr "Tìm kiếm nút bằng cách sử dụng chỉ danh, rồi tập trung vào và đồng thời chọn nó"
 
 
-msgctxt "Operator"
-msgid "glTF Material Output"
-msgstr "đầu Ra Nguyên Vật Liệu glTF"
-
-
 msgid "Add a node to the active tree for glTF export"
 msgstr "Thêm một nút vào cây đang hoạt động để xuất khẩu glTF"
 
@@ -64501,11 +65851,6 @@ msgid "Add Item"
 msgstr "Thêm Mục"
 
 
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Xóa Mục"
-
-
 msgid "Remove an item from the index switch"
 msgstr "Xóa một mục khỏi đổi chỉ số"
 
@@ -64519,30 +65864,8 @@ msgid "Automatically offset nodes on insertion"
 msgstr "Tự động dịch chuyển các nút khi chèn thêm"
 
 
-msgctxt "Operator"
-msgid "Duplicate Item"
-msgstr "Nhân Đôi Mục"
-
-
-msgid "Add a copy of the active item to the interface"
-msgstr "Thêm một bản sao của mục đang hoạt động vào giao diện"
-
-
-msgctxt "Operator"
-msgid "New Item"
-msgstr "Mục Mới"
-
-
-msgid "Add a new item to the interface"
-msgstr "Thêm mục mới vào giao diện"
-
-
 msgid "Type of the item to create"
 msgstr "Thể loại mục cần tạo"
-
-
-msgid "Remove active item from the interface"
-msgstr "Xóa mục đang hoạt động khỏi giao diện"
 
 
 msgctxt "Operator"
@@ -64687,33 +66010,6 @@ msgstr "Bật/tắt giải hoạt các nút đã chọn"
 
 
 msgctxt "Operator"
-msgid "Assign New Geometry Node Group"
-msgstr "Ấn Định Nhóm Nút Hình Học Mới"
-
-
-msgid "Create a new geometry node group and assign it to the active modifier"
-msgstr "[Kiến tạo nhóm nút hình học mới và ấn định nó vào bộ điều chỉnh đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Tool Group"
-msgstr "Nhóm Công Cụ Nút Hình Học Mới"
-
-
-msgid "Create a new geometry node group for a tool"
-msgstr "Tạo một nhóm nút hình học mới cho một công cụ"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Modifier"
-msgstr "Tạo Bộ Điều Chỉnh Nút Hình Học"
-
-
-msgid "Create a new modifier with a new geometry node group"
-msgstr "Kiến Tạo một bộ điều chỉnh với một nhóm nút hình học mới"
-
-
-msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Cây Nút Mới"
 
@@ -64724,15 +66020,6 @@ msgstr "Kiến Tạo một cây nút mới"
 
 msgid "Tree Type"
 msgstr "Loại Cây"
-
-
-msgctxt "Operator"
-msgid "Add Node Color Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Màu Sắc của Nút"
-
-
-msgid "Add or remove a Node Color Preset"
-msgstr "Thêm và xóa một Sắp Đặt Sẵn về Màu Sắc của Nút"
 
 
 msgid "Copy color to all selected nodes"
@@ -64937,15 +66224,6 @@ msgid "Move and Attach"
 msgstr "Di Chuyển và Gắn Vào"
 
 
-msgctxt "Operator"
-msgid "Parent Node Tree"
-msgstr "Cây Nút Phụ Huynh"
-
-
-msgid "Go to parent node tree"
-msgstr "Đi tới cây nút phụ huynh"
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "Đổi cỡ khung nhìn để bạn có thể nhìn thấy được toàn bộ các nút"
 
@@ -64972,11 +66250,6 @@ msgid "Add an object to the scene"
 msgstr "Thêm một đối tượng vào cảnh"
 
 
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Thêm Bộ Điều Chỉnh"
-
-
 msgid "Add named object"
 msgstr "Thêm đối tượng được đặt tên"
 
@@ -64999,15 +66272,6 @@ msgstr "Tọa độ-Y (không gian màn hình) để đặt đối tượng mớ
 
 msgid "Duplicate object but not object data, linking to the original data"
 msgstr "Nhân đôi đối tượng nhưng không nhân đôi dữ liệu, liên kết với dữ liệu gốc"
-
-
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "Căn Chỉnh các Đối Tượng"
-
-
-msgid "Align objects"
-msgstr "Căn chỉnh các đối tượng"
 
 
 msgid "Align to axis"
@@ -65067,30 +66331,12 @@ msgstr "Dùng đối tượng đang hoạt động làm vị trí cho các đố
 
 
 msgctxt "Operator"
-msgid "Animated Transforms to Deltas"
-msgstr "Biến Hóa Hoạt Họa sang Delta"
-
-
-msgid "Convert object animation for normal transforms to delta transforms"
-msgstr "Chuyển đổi hoạt họa của đối tượng từ biến hóa bình thường sang biến hóa Delta"
-
-
-msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Thêm Khung Rối"
 
 
 msgid "Add an armature object to the scene"
 msgstr "Thêm đối tượng khung rối vào cảnh"
-
-
-msgctxt "Operator"
-msgid "Assign Custom Property Values as Default"
-msgstr "Ấn Định các Giá Trị Tính Chất Tùy Chỉnh làm Mặc Định"
-
-
-msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
-msgstr "Ấn định các giá trị hiện tại của các tính chất tùy chỉnh làm mặc định của chúng, để sử dụng như một phần của trạng thái tư thế nghỉ trong quá trình pha trộn rãnh NLA"
 
 
 msgid "Process bone properties"
@@ -65327,11 +66573,6 @@ msgstr "Đường cong từ dữ liệu đường cong đã tính toán"
 
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Bút Chì Dầu từ các đối tượng Đường Cong hoặc Khung Lưới"
-
-
-msgctxt "Operator"
-msgid "Copy Global Transform"
-msgstr "Sao Chép Biến Hóa Toàn Cầu"
 
 
 msgid "Copies the matrix of the currently active object or pose bone to the clipboard. Uses world-space matrices"
@@ -65635,15 +66876,6 @@ msgstr "Tên Đầu Vào"
 
 
 msgctxt "Operator"
-msgid "Move to Nodes"
-msgstr "Di Chuyển đến các Nút"
-
-
-msgid "Move inputs and outputs from in the modifier to a new node group"
-msgstr "Di chuyển đầu vào và đầu ra từ trong bộ điều chỉnh sang nhóm nút mới"
-
-
-msgctxt "Operator"
 msgid "Add Grease Pencil"
 msgstr "Thêm Bút Chì Dầu"
 
@@ -65747,15 +66979,6 @@ msgstr "Bật/tắt tính ẩn/hiện"
 
 
 msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "Xóa Toàn Bộ các Hạn Chế Kết Xuất"
-
-
-msgid "Reveal all render objects by setting the hide render flag"
-msgstr "Hiện toàn bộ các đối tượng kết xuất bằng cách tắt cờ hiệu ẩn kết xuất"
-
-
-msgctxt "Operator"
 msgid "Show Hidden Objects"
 msgstr "Hiển Thị Đối Tượng Ẩn Giấu"
 
@@ -65853,42 +67076,6 @@ msgstr "Chọn các điểm đỉnh bị ảnh hưởng trong khung lưới"
 
 
 msgctxt "Operator"
-msgid "Set Offset from Cursor"
-msgstr "Đặt Dịch Chuyển từ Con Trỏ"
-
-
-msgid "Set offset used for collection instances based on cursor position"
-msgstr "Đặt dịch chuyển cho các thực thể của bộ sưu tập dựa trên vị trí của con trỏ"
-
-
-msgctxt "Operator"
-msgid "Set Offset from Object"
-msgstr "Đặt Dịch Chuyển từ Đối Tượng"
-
-
-msgid "Set offset used for collection instances based on the active object position"
-msgstr "Đặt dịch chuyển sử dụng cho các thực thể bộ sưu tập dựa trên vị trí của đối tượng đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Set Cursor to Offset"
-msgstr "Đặt Con Trỏ vào vị trí Dịch Chuyển"
-
-
-msgid "Set cursor position to the offset used for collection instances"
-msgstr "Đặt vị trí con trỏ vào dịch chuyển sử dụng cho các thực thể bộ sưu tập"
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "Hạn Chế Kết Xuất cái Chưa được Chọn"
-
-
-msgid "Hide unselected render objects of same type as active by setting the hide render flag"
-msgstr "Ẩn giấu các đối tượng kết xuất chưa được chọn có cùng thể loại như cái đang hoạt động bằng cách đặt cờ hiệu ẩn kết xuất"
-
-
-msgctxt "Operator"
 msgid "Join"
 msgstr "Chắp Nối/Hội Nhập"
 
@@ -65904,15 +67091,6 @@ msgstr "Hội Nhập thành các Hình Dạng"
 
 msgid "Copy the current resulting shape of another selected object to this one"
 msgstr "Sao chép hình dạng kết quả hiện tại của một đối tượng đã chọn khác sang cái này"
-
-
-msgctxt "Operator"
-msgid "Transfer UV Maps"
-msgstr "Thuyên Chuyển các Ánh Xạ UV"
-
-
-msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
-msgstr "Thuyên chuyển các Ánh Xạ UV từ đối tượng đang hoạt động sang cái được chọn (yêu cầu hình học xứng khớp)"
 
 
 msgctxt "Operator"
@@ -66123,15 +67301,6 @@ msgstr "Xóa Delta"
 
 msgid "Clear delta location in addition to clearing the normal location transform"
 msgstr "Khi xóa biến hóa vị trí bình thường thì xóa cả vị trí Delta nữa"
-
-
-msgctxt "Operator"
-msgid "Make Instance Face"
-msgstr "Tạo Thực Thể theo Mặt"
-
-
-msgid "Convert objects into instanced faces"
-msgstr "Chuyển đổi các đối tượng sang thành các bản sao theo các mặt"
 
 
 msgctxt "Operator"
@@ -66806,11 +67975,6 @@ msgid "Remove the selected particle system"
 msgstr "Xóa hệ thống hạt đã chọn"
 
 
-msgctxt "Operator"
-msgid "Paste Global Transform"
-msgstr "Dán Biến Hóa Toàn Cầu"
-
-
 msgid "Pastes the matrix from the clipboard to the currently active pose bone or object. Uses world-space matrices"
 msgstr "Dán ma trận từ bảng nhớ tạm vào xương hoặc đối tượng tư thế hiện đang hoạt động. Sử dụng ma trận không gian thế giới"
 
@@ -67026,15 +68190,6 @@ msgid "Try to preserve sharp features on the mesh"
 msgstr "Cố gắng bảo tồn những nét đặc trưng sắc nhọn trên hình thể của khung lưới"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Hiệu Ứng Nổ Nhanh"
-
-
-msgid "Make selected objects explode"
-msgstr "Làm cho những đối tượng được chọn nổ tung"
-
-
 msgid "Number of Pieces"
 msgstr "Số Mảnh"
 
@@ -67049,15 +68204,6 @@ msgstr "Mốt Nổ Tung"
 
 msgid "Outwards Velocity"
 msgstr "Vận Tốc Bay Ra"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Hiệu Ứng Lông Nhanh"
-
-
-msgid "Add a fur setup to the selected objects"
-msgstr "Thêm một cài đặt về lông/tóc cho đối tượng được chọn"
 
 
 msgid "Apply Hair Guides"
@@ -67076,30 +68222,12 @@ msgid "View Percentage"
 msgstr "Phần Trăm Quan Sát"
 
 
-msgctxt "Operator"
-msgid "Quick Liquid"
-msgstr "Chất Lỏng Nhanh Chóng"
-
-
-msgid "Make selected objects liquid"
-msgstr "Làm cho các đối tượng đã chọn trở thành chất lỏng"
-
-
 msgid "Render Liquid Objects"
 msgstr "Kết Xuất các Đối Tượng Chất Lỏng"
 
 
 msgid "Keep the liquid objects visible during rendering"
 msgstr "Duy trì sự hữu hình (nhìn thấy được) của các đối tượng chất lỏng trong quá trình kết xuất"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Hiệu Ứng Khói Nhanh"
-
-
-msgid "Use selected objects as smoke emitters"
-msgstr "Sử dụng các đối tượng làm nguồn phát khói"
 
 
 msgid "Render Smoke Objects"
@@ -67116,15 +68244,6 @@ msgstr "Mốt Khói"
 
 msgid "Smoke & Fire"
 msgstr "Khói & Lửa"
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "Ngẫu Nhiên Hóa sự Biến Hóa"
-
-
-msgid "Randomize objects location, rotation, and scale"
-msgstr "Ngẫu nhiên hóa vị trí, xoay chiều, và tỷ lệ của đối tượng"
 
 
 msgid "Maximum distance the objects can spread over each axis"
@@ -67193,11 +68312,6 @@ msgstr "Hoàn lại các vượt quyền cục bộ đã chọn thành các giá
 
 
 msgctxt "Operator"
-msgid "New"
-msgstr "Mới"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Xóa Sự Xoay Chiều"
 
@@ -67229,15 +68343,6 @@ msgstr "Chọn theo Thể Loại"
 
 msgid "Select all visible objects that are of a type"
 msgstr "Chọn toàn bộ các đối tượng nhìn thấy được và cùng thể loại"
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "Chọn Máy Quay Phim"
-
-
-msgid "Select the active camera"
-msgstr "Chọn máy quay phim đang hoạt động"
 
 
 msgid "Select all visible objects grouped by various properties"
@@ -67276,10 +68381,6 @@ msgid "Matching light types"
 msgstr "Loại nguồn sáng tương xứng"
 
 
-msgid "Select object relative to the active object's position in the hierarchy"
-msgstr "Chọn đối tượng tương đối với vị trí của đối tượng đang hoạt động trong thứ bậc"
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "Phương hướng chọn trong thứ bậc"
 
@@ -67310,15 +68411,6 @@ msgstr "Chọn các đối tượng phản chiếu đối xứng của đối t�
 
 msgid "Select connected parent/child objects"
 msgstr "Chọn các đối tượng phụ huynh/con cái có kết nối"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "Chọn Kiểu Mẫu"
-
-
-msgid "Select objects matching a naming pattern"
-msgstr "Chọn các đối tượng xứng khớp với một mẫu tên"
 
 
 msgid "Case Sensitive"
@@ -67584,15 +68676,6 @@ msgid "Resets the timing for absolute shape keys"
 msgstr "Hoàn lại thời định cho các hình mẫu tuyệt đối"
 
 
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Thuyên Chuyển Hình Mẫu"
-
-
-msgid "Copy the active shape key of another selected object to this one"
-msgstr "Sao chép hình mẫu đang hoạt động của một đối tượng đã chọn khác vào cái này"
-
-
 msgid "Transformation Mode"
 msgstr "Chế Độ Biến Hóa"
 
@@ -67725,15 +68808,6 @@ msgid "Add a speaker object to the scene"
 msgstr "Thêm một đối tượng loa vào cảnh"
 
 
-msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "Đặt Mức Phân Hóa"
-
-
-msgid "Sets a Subdivision Surface level (1 to 5)"
-msgstr "Đặt mức Bề Mặt Phân Hóa (1 đến 5)"
-
-
 msgid "Apply the subdivision surface level as an offset relative to the current level"
 msgstr "Áp dụng mức bề mặt phân hóa tựa như một dịch chuyển tương đối với mức hiện tại"
 
@@ -67856,15 +68930,6 @@ msgstr "UUID của Phiên Sử Dụng"
 
 msgid "Session UUID of the object to place (uses the active object when this and 'name' are unset)"
 msgstr "UUID của phiên sử dụng của đối tượng cần đặt vào (sử dụng đối tượng đang hoạt động khi cái này và 'tên' (name) chưa được đặt)"
-
-
-msgctxt "Operator"
-msgid "Transforms to Deltas"
-msgstr "Biến Hóa sang Delta"
-
-
-msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
-msgstr "Chuyển đổi các biến hóa đối tượng bình thường sang biến hóa Delta. Bất cứ sự biến hóa Delta hiện có nào đều cũng sẽ được bao gồm cả vào nữa"
 
 
 msgid "Which transforms to transfer"
@@ -69590,15 +70655,6 @@ msgid "Select Vertices connected to existing selection"
 msgstr "Chọn các Điểm Đỉnh kết nối với lựa chọn hiện tại"
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "Màu Điểm Đỉnh Kẽ Bẩn"
-
-
-msgid "Generate a dirt map gradient based on cavity"
-msgstr "Sinh tạo một dốc màu ánh xạ bụi bẩn dựa trên hố hốc"
-
-
 msgid "Blur Iterations"
 msgstr "Số Lần Làm Nhòe Mờ"
 
@@ -70009,15 +71065,6 @@ msgid "Undo all edition performed on the particle system"
 msgstr "Hoàn tác toàn bộ các biên soạn đã thi hành trên hệ thống hạt"
 
 
-msgctxt "Operator"
-msgid "Add Hair Dynamics Preset"
-msgstr "Thêm Sắp Đặt Sẵn Động Lực Học của Tóc"
-
-
-msgid "Add or remove a Hair Dynamics Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Động Lực Học của Tóc"
-
-
 msgid "Hide selected particles"
 msgstr "Ẩn giấu các hạt đã chọn"
 
@@ -70235,11 +71282,6 @@ msgid "Blend the given Pose Action to the rig"
 msgstr "Pha trộn Hành Động của Tư Thế nhất định vào giàn dựng nhân vật"
 
 
-msgctxt "Operator"
-msgid "Convert Legacy Pose Library"
-msgstr "Chuyển Đổi Thư Viện Tư Thế Lỗi Thời"
-
-
 msgid "Create a pose asset for each pose marker in this legacy pose library data-block"
 msgstr "Kiến Tạo tài sản tư thế cho mỗi dấu mốc tư thế trong khối dữ liệu thư viện tư thế lỗi thời này"
 
@@ -70248,18 +71290,8 @@ msgid "Create a pose asset for each pose marker in the current action"
 msgstr "Kiến Tạo tài sản tư thế cho mỗi dấu mốc tư thế trong hành động hiện tại"
 
 
-msgctxt "Operator"
-msgid "Copy Pose as Asset"
-msgstr "Sao Chép Tư Thế làm Tài Sản"
-
-
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Kiến Tạo tài sản tư thế mới trên bảng nhớ tạm của hệ thống, để dán vào Trình Duyệt Tài Sản"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "Kiến Tạo Tài Sản Tư Thế"
 
 
 msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
@@ -70274,27 +71306,12 @@ msgid "Pose Name"
 msgstr "Tên Tư Thế"
 
 
-msgctxt "Operator"
-msgid "Paste as New Asset"
-msgstr "Dán thành Tài Sản Mới"
-
-
 msgid "Paste the Asset that was previously copied using Copy As Asset"
 msgstr "Dán Tài Sản đã được sao chép trước đó bằng Sao Chép Làm Tài Sản"
 
 
-msgctxt "Operator"
-msgid "Select Bones"
-msgstr "Chọn Xương"
-
-
 msgid "Select those bones that are used in this pose"
 msgstr "Chọn các xương được sử dụng trong tư thế này"
-
-
-msgctxt "Operator"
-msgid "Restore Previous Action"
-msgstr "Khôi Phục Lại Hành Động Trước Đây"
 
 
 msgid "Switch back to the previous Action, after creating a pose asset"
@@ -70756,60 +71773,16 @@ msgid "Module name of the add-on to enable"
 msgstr "Tên mô-đun của trình bổ sung để bật lên"
 
 
-msgid "Display information and preferences for this add-on"
-msgstr "Hiển thị thông tin và các cài đặt sở thích cho trình bổ sung này"
-
-
 msgid "Module name of the add-on to expand"
 msgstr "Tên mô đun của trình bổ sung để mở rộng"
-
-
-msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "Lắp Đặt Trình Bổ Sung"
-
-
-msgid "Install an add-on"
-msgstr "Lắp đặt một trình bổ sung"
 
 
 msgid "Target Path"
 msgstr "Đường Dẫn Mục Tiêu"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Làm Tươi Lại"
-
-
-msgid "Scan add-on directories for new modules"
-msgstr "Rà quét các thư mục của trình bổ sung để tìm những mô-đun mới"
-
-
-msgctxt "Operator"
-msgid "Remove Add-on"
-msgstr "Xóa Trình Bổ Sung"
-
-
-msgid "Delete the add-on from the file system"
-msgstr "Xóa trình bổ sung khỏi hệ thống tập tin"
-
-
 msgid "Module name of the add-on to remove"
 msgstr "Tên mô-đun của trình bổ sung để xóa"
-
-
-msgid "Show add-on preferences"
-msgstr "Hiển thị cài đặt sở thích về trình bổ sung"
-
-
-msgctxt "Operator"
-msgid "Install Template from File..."
-msgstr "Lắp Đặt Bản Mẫu Từ Tập Tin..."
-
-
-msgid "Install an application template"
-msgstr "Cài đặt một bản mẫu trình ứng dụng"
 
 
 msgid "Remove existing template with the same ID"
@@ -70862,15 +71835,6 @@ msgstr "Xóa đường dẫn nhằm loại trừ ra khỏi sự thi hành tự �
 
 
 msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "Sao Chép Sắp Đặt Trước Đây"
-
-
-msgid "Copy settings from previous version"
-msgstr "Sao chép các sắp đặt từ phiên bản trước"
-
-
-msgctxt "Operator"
 msgid "Add Extension Repository"
 msgstr "Thêm Kho Lưu Trữ Tiện Ích Mở Rộng"
 
@@ -70892,35 +71856,12 @@ msgid "Remove an extension repository"
 msgstr "Xóa kho lưu trữ tiện ích mở rộng"
 
 
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "Kích Hoạt Cấu Hình Phím"
-
-
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "Xuất Khẩu Cấu Hình Phím..."
-
-
-msgid "Export key configuration to a Python script"
-msgstr "Xuất khẩu cấu hình khóa ra một tập lệnh Python"
-
-
 msgid "All Keymaps"
 msgstr "Toàn Thể các Cấu Hình Phím"
 
 
 msgid "Write all keymaps (not just user modified)"
 msgstr "Ghi toàn bộ các cấu hình phím (không chỉ cái mà người dùng đã thay đổi mà thôi)"
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "Nhập Khẩu Cấu Hình Phím..."
-
-
-msgid "Import key configuration from a Python script"
-msgstr "Nhập khẩu cấu hình khóa từ tập lệnh Python"
 
 
 msgid "Keep Original"
@@ -70931,42 +71872,6 @@ msgid "Keep original file after copying to configuration folder"
 msgstr "Duy trì tập tin gốc sau khi sao chép nó vào thư mục cấu hình"
 
 
-msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "Xóa Cấu Hình Phím"
-
-
-msgid "Remove key config"
-msgstr "Xóa cấu hình phím"
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "Kiểm Tra Cấu Hình Phím Mâu Thuẫn"
-
-
-msgid "Test key configuration for conflicts"
-msgstr "Kiểm tra xem có sự mâu thuẫn nào trong cấu hình phím hay không"
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "Thêm Bố Trí Bàn Phím"
-
-
-msgid "Add key map item"
-msgstr "Thêm bố trí bàn phím"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "Xóa Bố Trí Bàn Phím"
-
-
-msgid "Remove key map item"
-msgstr "Xóa bố trí bàn phím"
-
-
 msgid "Item Identifier"
 msgstr "Định danh của Phần Tử"
 
@@ -70975,26 +71880,8 @@ msgid "Identifier of the item to remove"
 msgstr "Định danh của phần tử để xóa bỏ"
 
 
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "Khôi Phục Bố Trí Bàn Phím"
-
-
-msgid "Restore key map item"
-msgstr "Khôi phục bố trí bàn phím"
-
-
 msgid "Identifier of the item to restore"
 msgstr "Định danh của phần tử khôi phục lại"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "Khôi Phục (các) Bố Trí Bàn Phím"
-
-
-msgid "Restore key map(s)"
-msgstr "Khôi phục (các) bố trí bàn phím"
 
 
 msgid "Restore all keymaps to default"
@@ -71010,40 +71897,12 @@ msgid "Reset to the default theme colors"
 msgstr "Hoàn lại về các màu kiểu mẫu mặc định"
 
 
-msgctxt "Operator"
-msgid "Add Python Script Directory"
-msgstr "Thêm Thư Mục Tập Lệnh Python"
-
-
 msgid "Filter Folders"
 msgstr "Thanh Lọc Danh Mục"
 
 
-msgctxt "Operator"
-msgid "Remove Python Script Directory"
-msgstr "Xóa Thư Mục Tập Lệnh Python"
-
-
 msgid "Index of the script directory to remove"
 msgstr "Chỉ Số của thư mục tập lệnh cần xóa"
-
-
-msgctxt "Operator"
-msgid "Copy Studio Light Settings"
-msgstr "Sao Chép Sắp Đặt Ánh Sáng Studio"
-
-
-msgid "Copy Studio Light settings to the Studio Light editor"
-msgstr "Sao chép sắp đặt về Ánh Sáng Studio sang trình biên soạn Ánh Sáng Studio"
-
-
-msgctxt "Operator"
-msgid "Install Light"
-msgstr "Lắp Đặt Nguồn Ánh Sáng"
-
-
-msgid "Install a user defined light"
-msgstr "Lắp đặt một nguồn ánh sáng do người dùng định nghĩa"
 
 
 msgid "MatCap"
@@ -71064,33 +71923,6 @@ msgstr "Xưởng"
 
 msgid "Install custom Studio Lights"
 msgstr "Lắp Đặt Ánh Sáng Studio tùy chỉnh"
-
-
-msgctxt "Operator"
-msgid "Save Custom Studio Light"
-msgstr "Lưu Bố Trí Ánh Sáng Studio Tùy Chỉnh"
-
-
-msgid "Save custom studio light from the studio light editor settings"
-msgstr "Lưu bố trí ánh sáng studio tùy chỉnh từ các sắp đặt của trình biên soạn ánh sáng studio"
-
-
-msgctxt "Operator"
-msgid "Uninstall Studio Light"
-msgstr "Tháo Lắp Đặt Ánh Sáng Studio"
-
-
-msgid "Delete Studio Light"
-msgstr "Xóa Bố Trí Ánh Sáng Studio"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "Lắp Đặt Kiểu Mẫu ..."
-
-
-msgid "Load and apply a Blender XML theme file"
-msgstr "Nạp và áp dụng tập tin kiểu mẫu XML của Blender"
 
 
 msgid "Remove existing theme file if exists"
@@ -71170,51 +72002,6 @@ msgstr "Xóa bộ đệm nhớ hiện tại"
 
 
 msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Máy Tích Hợp"
-
-
-msgid "Add an Integrator Preset"
-msgstr "Thêm một Sắp Đặt Sẵn về Máy Tích Hợp"
-
-
-msgctxt "Operator"
-msgid "Add Performance Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Hiệu Suất Hoạt Động"
-
-
-msgid "Add an Performance Preset"
-msgstr "Thêm một Sắp Đặt Sẵn về Hiệu Suất Hoạt Động"
-
-
-msgctxt "Operator"
-msgid "Add Sampling Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Lấy Mẫu Vật"
-
-
-msgid "Add a Sampling Preset"
-msgstr "Thêm một Sắp Đặt Sẵn về Lấy Mẫu Vật"
-
-
-msgctxt "Operator"
-msgid "Add Viewport Sampling Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Lấy Mẫu Cổng Nhìn"
-
-
-msgid "Add a Viewport Sampling Preset"
-msgstr "Thêm một Sắp Đặt Sẵn về Lấy Mẫu Vật Cổng Nhìn"
-
-
-msgctxt "Operator"
-msgid "Add Raytracing Preset"
-msgstr "Thêm Cài Đặt Sẵn về Dò Tia"
-
-
-msgid "Add or remove an EEVEE ray-tracing preset"
-msgstr "Thêm hoặc xóa cài đặt sẵn về dò tia EEVEE"
-
-
-msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "Kết Xuất Cổng Nhìn"
 
@@ -71249,24 +72036,6 @@ msgstr "Dùng ngữ cảnh góc nhìn 3D hiện tại cho quá trình kết xu�
 
 msgid "Write Image"
 msgstr "Ghi Hình Ảnh"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Chơi Hoạt Họa đã Kết Xuất"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "Chơi lại khung hình/phim đã kết xuất bằng máy chơi ở ngoài"
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Kết Xuất"
-
-
-msgid "Add or remove a Render Preset"
-msgstr "Thêm hay xóa một Sắp Đặt Sẵn về Kết Xuất"
 
 
 msgctxt "Operator"
@@ -71323,24 +72092,6 @@ msgstr "Hiển Thị/Ẩn Giấu Cảnh Kết Xuất"
 
 msgid "Toggle show render view"
 msgstr "Bật/Tắt hiển thị cảnh kết xuất"
-
-
-msgctxt "Operator"
-msgid "Bake to Keyframes"
-msgstr "Nướng thành Khung Khóa"
-
-
-msgid "Bake rigid body transformations of selected objects to keyframes"
-msgstr "Nướng những biến hóa thân cứng của đối tượng được chọn thành các khung khóa"
-
-
-msgctxt "Operator"
-msgid "Connect Rigid Bodies"
-msgstr "Kết Nối các Thân Cứng"
-
-
-msgid "Create rigid body constraints between selected rigid bodies"
-msgstr "Kiến Tạo ràng buộc thân cứng giữa các thân cứng được chọn"
 
 
 msgid "Type of generated constraint"
@@ -71513,15 +72264,6 @@ msgstr "Xóa các sắp đặt Thân Cứng khỏi Đối Tượng"
 
 
 msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Sao Chép Sắp Đặt về Thân Cứng"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "Sao chép các sắp đặt Thân Cứng từ đối tượng đang hoạt động sang đối tượng được chọn"
-
-
-msgctxt "Operator"
 msgid "Add Rigid Bodies"
 msgstr "Thêm các Thân Cứng"
 
@@ -71600,24 +72342,6 @@ msgstr "Xóa cảnh đang hoạt động"
 
 
 msgctxt "Operator"
-msgid "Add Edge Marks to Keying Set"
-msgstr "Thêm Dấu Cạnh vào Bộ Khóa"
-
-
-msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
-msgstr "Thêm các đường dẫn dữ liệu tới tính chất Dấu Cạnh Phong Cách Tự Do của các cạnh được chọn vào Bộ Khóa đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Add Face Marks to Keying Set"
-msgstr "Thêm Dấu Chỉ Mặt vào Bộ Khóa"
-
-
-msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
-msgstr "Thêm các đường dẫn dữ liệu vào tính chất Dấu Chỉ Mặt Phong Cách Tự Do của những đa giác được chọn vào Bộ Khóa đang hoạt động"
-
-
-msgctxt "Operator"
 msgid "Add Alpha Transparency Modifier"
 msgstr "Thêm Bộ Điều Chỉnh Độ Trong Alpha"
 
@@ -71633,15 +72357,6 @@ msgstr "Thêm Bộ Điều Chỉnh Màu của Đường Nét"
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
 msgstr "Thêm một bộ điều chỉnh màu đường nét vào phong cách của bộ đường nét đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Fill Range by Selection"
-msgstr "Tính Toán Phạm Vi theo Lựa Chọn"
-
-
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
-msgstr "Điền Phạm Vi Tối Thiểu/Tối Đa theo khoảng cách tối thiểu/tối đa giữa các đối tượng khung lưới đã chọn và đối tượng nguồn (đối tượng do người dùng chỉ định hoặc máy quay phim đang hoạt động)"
 
 
 msgid "Name of the modifier to work on"
@@ -71774,15 +72489,6 @@ msgid "Direction to move the chosen style module towards"
 msgstr "Hướng để di chuyển mô-đun phong cách đã chọn tới"
 
 
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "Mở Tập Tin Mô-Đun Phong Cách"
-
-
-msgid "Open a style module file"
-msgstr "Mở một tập tin mô-đun phong cách"
-
-
 msgid "Make internal"
 msgstr "Biến thành nội bộ"
 
@@ -71816,33 +72522,6 @@ msgstr "Thêm Bộ Điều Chỉnh Độ Dày Nét"
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
 msgstr "Thêm một bộ điều chỉnh độ dày đường nét vào phong cách của bộ đường nét đang hoạt động"
-
-
-msgctxt "Operator"
-msgid "Refresh action list"
-msgstr "Làm mới lại danh sách hành động"
-
-
-msgid "Refresh list of actions"
-msgstr "Làm mới lại danh sách các hành động"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Brush Preset"
-msgstr "Thêm Sắp Đặt Sẵn về Đầu Bút Chì Dầu"
-
-
-msgid "Add or remove grease pencil brush preset"
-msgstr "Thêm hoặc xóa sắp đặt sẵn về đầu bút cho Bút Chì Dầu"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Material Preset"
-msgstr "Thêm Sắp Đặt Trước về Nguyên Vật Liệu của Bút Chì Dầu"
-
-
-msgid "Add or remove grease pencil material preset"
-msgstr "Thêm hoặc xóa sắp đặt trước về nguyên vật liệu của Bút Chì Dầu"
 
 
 msgctxt "Operator"
@@ -72433,15 +73112,6 @@ msgstr "Luân Chuyển Không Gian Làm Việc"
 
 msgid "Cycle through workspaces"
 msgstr "Luân chuyển qua các không gian làm việc"
-
-
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "Thi hành một Sắp Đặt Sẵn Python"
-
-
-msgid "Load a preset"
-msgstr "Nạp một sắp đặt sẵn"
 
 
 msgid "Menu ID Name"
@@ -73705,26 +74375,8 @@ msgid "Copy the selected strips to the internal clipboard"
 msgstr "Sao chép các dải đã chọn vào bảng nhớ tạm nội bộ"
 
 
-msgctxt "Operator"
-msgid "Crossfade Sounds"
-msgstr "Hòa Trộn Âm Thanh Xuyên Kênh"
-
-
-msgid "Do cross-fading volume animation of two selected sound strips"
-msgstr "Hoạt họa âm lượng hòa trộn xuyên kênh của hai dải âm thanh được chọn"
-
-
 msgid "Cursor location in normalized preview coordinates"
 msgstr "Vị trí con trỏ trong tọa độ bình thường hóa của xem trước"
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "Tuần Tự Hóa Phim"
-
-
-msgid "Deinterlace all selected movie sources"
-msgstr "Tuần tự hóa (deinterlace) toàn bộ các nguồn phim đã chọn"
 
 
 msgid "Delete selected strips from the sequencer"
@@ -73814,15 +74466,6 @@ msgid "Export .srt file containing text strips"
 msgstr "Xuất Khẩu tập tin .srt có chứa các dải văn bản"
 
 
-msgctxt "Operator"
-msgid "Add Fades"
-msgstr "Thêm Phai Mờ Dần"
-
-
-msgid "Adds or updates a fade animation for either visual or audio strips"
-msgstr "Thêm hoặc cập nhật một đoạn hoạt họa phai mờ dần cho các dải phim hoặc âm thanh"
-
-
 msgid "Fade Duration"
 msgstr "Thời Lượng Phai Mờ Dần"
 
@@ -73877,15 +74520,6 @@ msgstr "Tới Khung Hình Hiện Tại"
 
 msgid "Fade from the start of sequences under the time cursor to the current frame"
 msgstr "Phai mờ dần từ đầu trình tự dưới con trỏ đến khung hình hiện tại"
-
-
-msgctxt "Operator"
-msgid "Clear Fades"
-msgstr "Xóa Hiệu Ứng Phai Mờ Dần"
-
-
-msgid "Removes fade animation from selected sequences"
-msgstr "Xóa hoạt họa phai mờ dần khỏi các trình tự được chọn"
 
 
 msgctxt "Operator"
@@ -74536,15 +75170,6 @@ msgid "Split at position of the cursor instead of current frame"
 msgstr "Tách phân tại vị trí con trỏ, thay vì tại vị trí của khung hình hiện tại"
 
 
-msgctxt "Operator"
-msgid "Split Multicam"
-msgstr "Tách Phân Đa Máy Quay"
-
-
-msgid "Split multicam strip and select camera"
-msgstr "Tách phân dải đa máy quay và chọn máy quay phim"
-
-
 msgid "Set a color tag for the selected strips"
 msgstr "Đặt một nhãn màu cho các dải đã chọn"
 
@@ -74991,15 +75616,6 @@ msgstr "Xóa một thanh lọc hàng khỏi các quy tắc"
 
 
 msgctxt "Operator"
-msgid "Toggle Pin"
-msgstr "Bật/Tắt Đính Ghim"
-
-
-msgid "Turn on or off pinning"
-msgstr "Bật hoặc tắt đính ghim"
-
-
-msgctxt "Operator"
 msgid "Add Surface Circle"
 msgstr "Thêm Vòng Tròn Bề Mặt"
 
@@ -75087,15 +75703,6 @@ msgstr "Dán Sắp Đặt của Khe Chất Liệu"
 
 msgid "Copy the texture settings and nodes"
 msgstr "Sao chép các sắp đặt và các nút về chất liệu"
-
-
-msgctxt "Operator"
-msgid "Add Text Editor Preset"
-msgstr "Thêm Cài Sẵn Trình Biên Soạn Văn Bản"
-
-
-msgid "Add or remove a Text Editor Preset"
-msgstr "Thêm hoặc xóa Cài Đặt Sẵn của Trình Biên Soạn Văn Bản"
 
 
 msgctxt "Operator"
@@ -75868,11 +76475,6 @@ msgid "Slide a vertex along a mesh"
 msgstr "Đẩy trượt một điểm đỉnh dọc theo khung lưới"
 
 
-msgctxt "Operator"
-msgid "Randomize"
-msgstr "Ngẫu Nhiên Hóa"
-
-
 msgid "Randomize vertices"
 msgstr "Ngẫu nhiên hóa điểm đỉnh"
 
@@ -75914,39 +76516,12 @@ msgid "Amount to warp about the cursor"
 msgstr "Lượng uốn oằn quanh con trỏ"
 
 
-msgctxt "Operator"
-msgid "Add Entry"
-msgstr "Thêm Mục Nhập"
-
-
-msgid "Add an entry to the list after the current active item"
-msgstr "Thêm một mục nhập vào danh sách, sau mục đang hoạt động hiện tại"
-
-
-msgctxt "Operator"
-msgid "Move Entry"
-msgstr "Di Chuyển Mục"
-
-
-msgid "Move an entry in the list up or down"
-msgstr "Di chuyển một mục trong danh sách lên hoặc xuống"
-
-
 msgid "UP"
 msgstr "LÊN"
 
 
 msgid "DOWN"
 msgstr "XUỐNG"
-
-
-msgctxt "Operator"
-msgid "Remove Selected Entry"
-msgstr "Xóa Danh Mục đã Chọn"
-
-
-msgid "Remove the selected entry from the list"
-msgstr "Xóa mục đã chọn khỏi danh sách"
 
 
 msgctxt "Operator"
@@ -76187,15 +76762,6 @@ msgid "Sample a data-block from the 3D View to store in a property"
 msgstr "Lấy mẫu vật một khối dữ liệu từ góc nhìn 3D để lưu trữ trong một tính chất"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Export"
-msgstr "Xuất Khẩu Trình Bổ Sung I18n"
-
-
-msgid "Export given add-on's translation data as PO files"
-msgstr "Xuất Khẩu dữ liệu phiên dịch của trình bổ sung chỉ định thành các tập tin PO"
-
-
 msgid "Add-on to process"
 msgstr "Trình bổ sung để xử lý"
 
@@ -76216,24 +76782,6 @@ msgid "Update existing po files, if any, instead of overwriting them"
 msgstr "Cập nhật các tập tin .po tồn tại, nếu có, thay vì viết đè lên chúng"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Import"
-msgstr "Nhập Khẩu Trình Bổ Sung I18n"
-
-
-msgid "Import given add-on's translation data from PO files"
-msgstr "Nhập Khẩu dữ liệu phiên dịch của trình bổ sung từ các tập PO"
-
-
-msgctxt "Operator"
-msgid "Update I18n Add-on"
-msgstr "Nâng Cấp Trình Bổ Sung I18n"
-
-
-msgid "Wrapper operator which will invoke given op after setting its module_name"
-msgstr "Vỏ bọc ngoài của operator (wrapper) sẽ là cái kích hoạt op đã cho, sau khi sắp đặt tên mô-đun của nó"
-
-
 msgid "Operator Name"
 msgstr "Tên của Thao Tác"
 
@@ -76242,66 +76790,8 @@ msgid "Name (id) of the operator to invoke"
 msgstr "Tên (id : chỉ danh) của thao tác để kích hoạt"
 
 
-msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "Cập nhật dữ liệu phiên dịch của trình bổ sung chỉ định (một tập hợp 'py' trong mã nguồn của trình bổ sung)"
-
-
-msgctxt "Operator"
-msgid "Clean up I18n Work Repository"
-msgstr "Dọn dẹp Kho Lưu Trữ Công Việc I18n"
-
-
-msgid "Clean up i18n working repository (po files)"
-msgstr "Dọn dẹp kho lưu trữ làm việc của i18n (các tập tin po)"
-
-
-msgctxt "Operator"
-msgid "I18n Load Settings"
-msgstr "I18n Nạp các Sắp Đặt"
-
-
-msgid "Load translations' settings from a persistent JSon file"
-msgstr "Nạp các sắp đặt về phiên dịch từ tập tin JSon ổn định"
-
-
 msgid "Path to the saved settings file"
 msgstr "Đường dẫn tới tập tin lưu trữ các sắp đặt"
-
-
-msgctxt "Operator"
-msgid "I18n Save Settings"
-msgstr "I18n Lưu các Sắp Đặt"
-
-
-msgid "Save translations' settings in a persistent JSon file"
-msgstr "Lưu các sắp đặt về phiên dịch vào một tập tin JSon ổn định"
-
-
-msgctxt "Operator"
-msgid "Update I18n Blender Repository"
-msgstr "Cập Nhật Kho Lưu Trữ Blender I18n"
-
-
-msgid "Update i18n data (po files) in Blender source code repository"
-msgstr "Cập nhật dữ liệu i18n (các tập tin po) trong kho lưu trữ mã nguồn Blender"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Settings"
-msgstr "Khởi Động các Sắp Đặt Nâng Cấp I18n"
-
-
-msgid "Init settings for i18n files update operators"
-msgstr "Khởi động cài đặt cho thao tác nâng cấp của svn I18n"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Select Languages"
-msgstr "Khởi Động I18n Nâng Cấp các Ngôn Ngữ được Chọn"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n files update operators"
-msgstr "Chọn/hủy chọn (hay đảo nghịch sự lựa chọn) toàn bộ các ngôn ngữ cho thao tác nâng cấp tập tin I18n"
 
 
 msgid "Invert Selection"
@@ -76318,24 +76808,6 @@ msgstr "Chọn Toàn Bộ"
 
 msgid "Select all if True, else deselect all"
 msgstr "Chọn toàn bộ nếu 'Đúng', nếu không, hủy chọn toàn bộ các"
-
-
-msgctxt "Operator"
-msgid "Update I18n Statistics"
-msgstr "Cập Nhật các Thống Kê I18n"
-
-
-msgid "Create or extend a 'i18n_info.txt' Text datablock"
-msgstr "Kiến Tạo hoặc mở rộng một khối dữ liệu Văn Bản 'i18n_info.txt'"
-
-
-msgctxt "Operator"
-msgid "Update I18n Work Repository"
-msgstr "Cập Nhật Kho Lưu Trữ Công Việc I18n"
-
-
-msgid "Update i18n working repository (po files)"
-msgstr "Cập nhật kho lưu trữ công việc i18n (các tập tin po)"
 
 
 msgid "Skip POT"
@@ -76537,15 +77009,6 @@ msgid "Align UV vertices on a horizontal line"
 msgstr "Căn chỉnh các điểm đỉnh UV trên một đường ngang"
 
 
-msgctxt "Operator"
-msgid "Align Rotation"
-msgstr "Căn Chỉnh Xoay Chiều"
-
-
-msgid "Align the UV island's rotation"
-msgstr "Căn chỉnh xoay chiều của hải đảo UV"
-
-
 msgid "Axis to align to"
 msgstr "Trục để căn chỉnh vào"
 
@@ -76722,15 +77185,6 @@ msgid "Separate projections by islands isolated by seams"
 msgstr "Tách phân các phóng chiếu riêng biệt theo các hải đảo vốn được cô lập bởi các đường khâu"
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "Xuất Khẩu Bố Trí UV"
-
-
-msgid "Export UV layout to file"
-msgstr "Xuất Khẩu bố trí UV ra tập tin"
-
-
 msgid "All UVs"
 msgstr "Toàn Bộ UV"
 
@@ -76812,15 +77266,6 @@ msgid "Dimensions of the exported file"
 msgstr "Kích thước của tập tin được kết xuất"
 
 
-msgctxt "Operator"
-msgid "Follow Active Quads"
-msgstr "Đi Theo Tứ Giác đang Hoạt Động"
-
-
-msgid "Follow UVs from active quads along continuous face loops"
-msgstr "Đi theo các UV từ tứ giác đang hoạt động dọc theo các vòng mặt nối tiếp"
-
-
 msgid "Edge Length Mode"
 msgstr "Chế Độ Chiều Dài Cạnh"
 
@@ -76843,15 +77288,6 @@ msgstr "Trung Bình Chiều Dài"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "Ẩn giấu các điểm đỉnh UV (được/chưa) chọn"
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "Đóng Gói Ánh Xạ Ánh Sáng"
-
-
-msgid "Pack each face's UVs into the UV bounds"
-msgstr "Đóng gói mỗi UV của mặt vào ranh giới UV"
 
 
 msgid "Pack Quality"
@@ -77121,10 +77557,6 @@ msgstr "Ánh xạ các UV tới vùng của máy quay phim, cân nhắc tới đ
 
 msgid "Use orthographic projection"
 msgstr "Dùng phóng chiếu trực giao"
-
-
-msgid "Randomize the UV island's location, rotation, and scale"
-msgstr "Ngẫu nhiên hóa vị trí, xoay chiều và tỷ lệ của hải đảo UV"
 
 
 msgid "Maximum rotation"
@@ -77611,11 +78043,6 @@ msgid "Zoom Factor Y"
 msgstr "Hệ Số Thu Phóng Y"
 
 
-msgctxt "Operator"
-msgid "New Camera from VR Landmark"
-msgstr "Máy Quay Phim Mới từ Địa Ranh VR"
-
-
 msgid "Create a new Camera from the selected VR Landmark"
 msgstr "Kiến Tạo một máy quay phim mới từ địa ranh VR đã chọn"
 
@@ -77653,11 +78080,6 @@ msgstr "Máy Quay Khít Khung Hình vào cái được Chọn"
 
 msgid "Move the camera so selected objects are framed"
 msgstr "Di chuyển máy quay phim hầu cho các đối tượng được chọn nằm ở trong khung của máy quay phim"
-
-
-msgctxt "Operator"
-msgid "Scene Camera to VR Landmark"
-msgstr "Máy Quay Phim của Cảnh vào Địa Ranh VR"
 
 
 msgid "Position the scene camera at the selected landmark"
@@ -77723,11 +78145,6 @@ msgid "Project onto the surface"
 msgstr "Phóng chiếu lên trên bề mặt"
 
 
-msgctxt "Operator"
-msgid "Cursor to VR Landmark"
-msgstr "Con Trỏ đến Địa Ranh VR"
-
-
 msgid "Move the 3D Cursor to the selected VR Landmark"
 msgstr "Di chuyển con trỏ 3D tới địa ranh VR đã chọn"
 
@@ -77758,32 +78175,8 @@ msgid "Drop a world into the scene"
 msgstr "Thả thế giới vào cảnh"
 
 
-msgctxt "Operator"
-msgid "Extrude Individual and Move"
-msgstr "Đẩy Trồi Cá Nhân và Di Chuyển"
-
-
-msgctxt "Operator"
-msgid "Extrude Manifold Along Normals"
-msgstr "Đẩy Trồi Đa Tạp Dọc Theo Pháp Tuyến"
-
-
-msgid "Extrude manifold region along normals"
-msgstr "Đẩy trồi vùng đa tạp và di chuyển theo pháp tuyến"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Normals"
-msgstr "Đẩy Trồi và Di Chuyển trên các Pháp Tuyến"
-
-
 msgid "Dissolves adjacent faces and intersects new geometry"
 msgstr "Tiêu hủy các mặt kề cạnh và giao cắt với hình học mới"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Individual Normals"
-msgstr "Đẩy trồi và Di Chuyển trên các Pháp Tuyến Cá Nhân"
 
 
 msgctxt "Operator"
@@ -78119,20 +78512,6 @@ msgid "Transparent scene display. Allow selecting through items"
 msgstr "Hiển thị cảnh trong suốt. Cho phép lựa chọn xuyên qua các phần tử"
 
 
-msgctxt "Operator"
-msgid "Transform Gizmo Set"
-msgstr "Đặt Gizmo Biến Hóa"
-
-
-msgid "Set the current transform gizmo"
-msgstr "Đặt dụng cụ (gizmo) biến hóa hiện tại"
-
-
-msgctxt "Operator"
-msgid "Update Custom VR Landmark"
-msgstr "Cập Nhật Địa Ranh VR Tùy Chỉnh"
-
-
 msgid "Update the selected landmark from the current viewer pose in the VR session"
 msgstr "Cập nhật địa danh đã chọn từ tư thế quan sát hiện tại trong phiên VR"
 
@@ -78420,54 +78799,24 @@ msgid "Move the view to the selection center"
 msgstr "Di chuyển góc nhìn đến trung tâm của lựa chọn"
 
 
-msgctxt "Operator"
-msgid "Add Camera and VR Landmark from Session"
-msgstr "Thêm Máy Quay Phim và Địa Ranh VR từ Phiên Sử Dụng"
-
-
 msgid "Create a new Camera and VR Landmark from the viewer pose of the running VR session and select it"
 msgstr "Kiến Tạo một Máy Quay Phim và Địa Danh VR mới từ tư thế quan sát viên của phiên VR đang hoạt động và lựa chọn nó"
-
-
-msgctxt "Operator"
-msgid "Activate VR Landmark"
-msgstr "Khởi Thủy Địa Ranh VR"
 
 
 msgid "Change to the selected VR landmark from the list"
 msgstr "Đổi sang địa ranh VR đã chọn trong danh sách"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark"
-msgstr "Cho Thêm Địa Ranh VR"
-
-
 msgid "Add a new VR landmark to the list and select it"
 msgstr "Thêm địa ranh VR mới vào trong danh sách và lựa chọn nó"
-
-
-msgctxt "Operator"
-msgid "Add VR Landmark from Camera"
-msgstr "Thêm Địa Ranh VR từ Máy Quay Phim"
 
 
 msgid "Add a new VR landmark from the active camera object to the list and select it"
 msgstr "Cho thêm địa ranh VR mới từ đối tượng máy quay phim đang hoạt động vào danh sách và lựa chọn nó"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark from Session"
-msgstr "Thêm Địa Ranh VR từ Phiên Sử Dụng"
-
-
 msgid "Add VR landmark from the viewer pose of the running VR session to the list and select it"
 msgstr "Thêm địa ranh VR mới tư thế quan sát trong phiên VR đang hoạt động vào danh sách và lựa chọn nó"
-
-
-msgctxt "Operator"
-msgid "Remove VR Landmark"
-msgstr "Xóa Địa Ranh VR"
 
 
 msgid "Delete the selected VR landmark from the list"
@@ -78779,15 +79128,6 @@ msgid "Localize all appended data, including those indirectly linked from other 
 msgstr "Cục bộ hóa toàn bộ các dữ liệu bổ sung, bao gồm cả những cái được kết nối gián tiếp từ những thư viện khác"
 
 
-msgctxt "Operator"
-msgid "Batch Rename"
-msgstr "Đổi Tên Hàng Loạt"
-
-
-msgid "Rename multiple items at once"
-msgstr "Đổi tên nhiều mục cùng một lúc"
-
-
 msgid "Type of data to rename"
 msgstr "Kiểu dữ liệu để đổi tên"
 
@@ -78802,15 +79142,6 @@ msgstr "Dải Trình Tự"
 
 msgid "Action Clips"
 msgstr "Đoạn Quay Hành Động"
-
-
-msgctxt "Operator"
-msgid "Validate .blend strings"
-msgstr "Kiểm chứng các chuỗi ký tự trong bản .blend"
-
-
-msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
-msgstr "Kiểm tra và sửa toàn bộ các chuỗi ký tự trong tập tin .blend hiện tại xem chúng có hợp lệ với mã Unicode UTF-8 hay không (cần thiết đối với một số các tập tin cũ trong địa phận của 2.4x)"
 
 
 msgctxt "Operator"
@@ -79217,30 +79548,12 @@ msgid "When searching Bone Chains disregard chains of length below this value"
 msgstr "Khi tìm kiếm các Dây Chuyền Xương, bỏ qua các dây chuyền ngắn hơn giá trị này"
 
 
-msgctxt "Operator"
-msgid "Context Collection Boolean Set"
-msgstr "Ngữ Cảnh Đặt Giá Trị Bool cho Bộ Sưu Tập"
-
-
-msgid "Set boolean values for a collection of items"
-msgstr "Đặt giá trị bool cho một bộ sưu tập các phần tử"
-
-
 msgid "The data path from each iterable to the value (int or float)"
 msgstr "Đường dẫn dữ liệu đến giá trị (số nguyên hay số thực) từ mỗi phần tử khả dĩ tuần hoàn (iterable)"
 
 
 msgid "The data path relative to the context, must point to an iterable"
 msgstr "Đường dẫn dữ liệu tương đối với ngữ cảnh, phải hướng đến một phần tử khả dĩ tuần hoàn (iterable)"
-
-
-msgctxt "Operator"
-msgid "Context Array Cycle"
-msgstr "Ngữ Cảnh Luân Chuyển Mảng"
-
-
-msgid "Set a context array value (useful for cycling the active mesh edit mode)"
-msgstr "Đặt một giá trị mảng ngữ cảnh (có lợi cho việc luân chuyển Chế Độ Biên Soạn của khung lưới đang hoạt động)"
 
 
 msgid "Context Attributes"
@@ -79255,40 +79568,8 @@ msgid "Cycle backwards"
 msgstr "Luân Chuyển Ngược Chiều"
 
 
-msgctxt "Operator"
-msgid "Context Enum Cycle"
-msgstr "Luân Chuyển Ngữ Cảnh Enum"
-
-
-msgid "Toggle a context value"
-msgstr "Đổi một giá trị ngữ cảnh"
-
-
 msgid "Wrap back to the first/last values"
 msgstr "Quay trở lại các giá trị đầu/cuối"
-
-
-msgctxt "Operator"
-msgid "Context Int Cycle"
-msgstr "Luân Chuyển Số Nguyên (Int)"
-
-
-msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
-msgstr "Đặt giá trị ngữ cảnh (hữu ích để quay vòng nguyên vật liệu đang hoạt động, hình mẫu, nhóm, v.v.)"
-
-
-msgctxt "Operator"
-msgid "Context Enum Menu"
-msgstr "Ngữ Cảnh Trình Đơn Enum"
-
-
-msgctxt "Operator"
-msgid "Context Modal Mouse"
-msgstr "Ngữ Cảnh Chuột Mô Thái"
-
-
-msgid "Adjust arbitrary values with mouse input"
-msgstr "Chỉnh các giá trị tùy chọn bằng đầu vào của chuột"
 
 
 msgid "Header Text"
@@ -79307,31 +79588,8 @@ msgid "Invert the mouse input"
 msgstr "Đảo nghịch đầu vào của chuột"
 
 
-msgctxt "Operator"
-msgid "Context Enum Pie"
-msgstr "Ngữ Cảnh Enum Hình Rẻ Quạt"
-
-
-msgctxt "Operator"
-msgid "Context Scale Float"
-msgstr "Ngữ Cảnh Đổi Tỷ Lệ Số Thực"
-
-
-msgid "Scale a float context value"
-msgstr "Đổi tỷ lệ giá trị của một số float (số thực)"
-
-
 msgid "Assign value"
 msgstr "Chỉ định giá trị"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "Ngữ Cảnh Đổi Tỷ Lệ Số Nguyên"
-
-
-msgid "Scale an int context value"
-msgstr "Đổi tỷ lệ giá trị của một số nguyên (int) theo ngữ cảnh"
 
 
 msgid "Always Step"
@@ -79342,73 +79600,20 @@ msgid "Always adjust the value by a minimum of 1 when 'value' is not 1.0"
 msgstr "Luôn luôn sửa giá trị thành giá trị tối thiểu 1 khi 'giá trị' khác 1.0"
 
 
-msgctxt "Operator"
-msgid "Context Set Boolean"
-msgstr "Ngữ Cảnh Đặt Giá Trị Bool"
-
-
-msgid "Set a context value"
-msgstr "Đặt một giá trị ngữ cảnh"
-
-
 msgid "Assignment value"
 msgstr "Giá trị chỉ định"
-
-
-msgctxt "Operator"
-msgid "Context Set Enum"
-msgstr "Ngữ Cảnh Đặt Enum"
 
 
 msgid "Assignment value (as a string)"
 msgstr "Giá trị chỉ định (chuỗi ký tự)"
 
 
-msgctxt "Operator"
-msgid "Context Set Float"
-msgstr "Đặt Số Thực"
-
-
 msgid "Apply relative to the current value (delta)"
 msgstr "Áp dụng tương đối với giá trị hiện tại (delta)"
 
 
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "Đặt ID cho Thư Viện"
-
-
-msgid "Set a context value to an ID data-block"
-msgstr "Đặt giá trị ngữ cảnh cho một khối dữ liệu ID"
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "Ngữ Cảnh Thiết Lập"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "Ngữ Cảnh Đặt Chuỗi Ký Tự"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "Ngữ Cảnh Đặt Giá Trị"
-
-
-msgctxt "Operator"
-msgid "Context Toggle"
-msgstr "Ngữ Cảnh Bật/Tắt"
-
-
 msgid "Optionally override the context with a module"
 msgstr "Có thể (tùy ý) vượt quyền ngữ cảnh với một mô-đun"
-
-
-msgctxt "Operator"
-msgid "Context Toggle Values"
-msgstr "Ngữ Cảnh Bật/Tắt các Giá Trị"
 
 
 msgid "Toggle enum"
@@ -79428,26 +79633,8 @@ msgid "Debug Value"
 msgstr "Giá Trị Hiệu Chỉnh Lỗi"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "Xem Tài Liệu"
-
-
-msgid "Open online reference docs in a web browser"
-msgstr "Mở tài liệu tham chiếu trên mạng trong trình duyệt mạng"
-
-
 msgid "Doc ID"
 msgstr "ID của Tài Liệu"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "Xem Bản Hướng Dẫn"
-
-
-msgid "Load online manual"
-msgstr "Nạp bản hướng dẫn sử dụng trực tuyến"
 
 
 msgctxt "Operator"
@@ -79457,11 +79644,6 @@ msgstr "Xem Hướng Dẫn Sử Dụng Trực Tuyến"
 
 msgid "View a context based online manual in a web browser"
 msgstr "Xem bản hướng dẫn sự dụng trên mạng tùy ngữ cảnh đòi hỏi trong một trình duyệt mạng"
-
-
-msgctxt "Operator"
-msgid "Handle dropped .blend file"
-msgstr "Xử lý tập tin .blend thả vào"
 
 
 msgctxt "Operator"
@@ -79858,26 +80040,12 @@ msgstr "Cho phép tập tin .blend thi hành tập lệnh tự động. Sắp đ
 
 
 msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "Bảng Liệt Kê các Thao Tác"
-
-
-msgid "List all the operators in a text-block, useful for scripting"
-msgstr "Liệt kê toàn bộ các thao tác trong khối văn bản, có lợi cho việc biên soạn tập lệnh"
-
-
-msgctxt "Operator"
 msgid "Restore Operator Defaults"
 msgstr "Hoàn Lại về các Mặc Định của Thao Tác"
 
 
 msgid "Set the active operator to its default values"
 msgstr "Hoàn lại các giá trị của thao của (operator) đang hoạt động về sắp đặt mặc định"
-
-
-msgctxt "Operator"
-msgid "Operator Enum Pie"
-msgstr "Thao Tác: Trình Đơn Rẻ Quạt"
 
 
 msgid "Operator name (in Python as string)"
@@ -79888,39 +80056,8 @@ msgid "Property name (as a string)"
 msgstr "Tên tính chất (là một chuỗi ký tự)"
 
 
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "Sắp Đặt Sẵn của Thao Tác"
-
-
-msgid "Add or remove an Operator Preset"
-msgstr "Thêm hay xóa một sắp đặt sẵn của Thao Tác"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Tắt Trình Bổ Sung"
-
-
-msgid "Disable add-on for workspace"
-msgstr "Tắt trình bổ sung cho không gian làm việc"
-
-
 msgid "UI Tag"
 msgstr "Nhãn UI"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Bật Trình Bổ Sung"
-
-
-msgid "Enable add-on for workspace"
-msgstr "Bật trình bổ sung cho không gian làm việc"
-
-
-msgid "Open a path in a file browser"
-msgstr "Mở đường dẫn trong trình duyệt tập tin"
 
 
 msgctxt "Operator"
@@ -79993,15 +80130,6 @@ msgid "Merges vertices by distance"
 msgstr "Hợp nhất các điểm đỉnh theo khoảng cách"
 
 
-msgctxt "Operator"
-msgid "Batch-Clear Previews"
-msgstr "Xóa Đồng Loạt các Xem Trước"
-
-
-msgid "Clear selected .blend file's previews"
-msgstr "Xóa các xem trước của tập tin .blend được chọn"
-
-
 msgid "Save Backups"
 msgstr "Lưu Bản Dự Phòng"
 
@@ -80036,15 +80164,6 @@ msgstr "Tập Tin Blender Đáng Tin Cậy"
 
 msgid "Enable Python evaluation for selected files"
 msgstr "Bật tính toán Python cho các tập tin đã chọn"
-
-
-msgctxt "Operator"
-msgid "Batch-Generate Previews"
-msgstr "Sinh Tạo các Xem Trước Đồng Loạt"
-
-
-msgid "Generate selected .blend file's previews"
-msgstr "Tạo các xem trước cho tập tin .blend được chọn"
 
 
 msgid "Root path of all files listed in `files` collection"
@@ -80129,15 +80248,6 @@ msgid "Ensure data-block previews are available and up-to-date (to be saved in .
 msgstr "Đảm bảo các trường hợp xem trước dữ liệu là sẵn có để sử dụng và được cập nhật với những thay đổi mới nhất (sẽ được lưu trong tập tin .blend, song chỉ dành cho một số thể loại như nguyên vật liệu, chất liệu, v.v. mà thôi)"
 
 
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "Thêm Tính Chất"
-
-
-msgid "Add your own property to the data-block"
-msgstr "Cho thêm tính chất của riêng mình vào khối dữ liệu"
-
-
 msgid "Property Edit"
 msgstr "Biên Soạn Tính Chất"
 
@@ -80146,21 +80256,8 @@ msgid "Property data_path edit"
 msgstr "Biên soạn data_path (đường_dẫn_dữ_liệu) tính chất"
 
 
-msgid "Jump to a different tab inside the properties editor"
-msgstr "Nhảy đến một mục khác trong trình biên soạn tính chất"
-
-
 msgid "Context"
 msgstr "Ngữ Cảnh"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Biên Soạn Tính Chất"
-
-
-msgid "Change a custom property's type, or adjust how it is displayed in the interface"
-msgstr "Đổi thể loại thuộc tính tùy chỉnh, hoặc điều chỉnh diện mạo hiển thị trong giao diện"
 
 
 msgid "Array Length"
@@ -80247,26 +80344,8 @@ msgid "Limits the Property Value slider to a range, values outside the range mus
 msgstr "Đặt khoảng giới hạn thanh trượt của Giá Trị Tính Chất trong một phạm vi nhất định. Các giá trị nằm ngoài phạm vi này nhất định phải được điền vào một cách thủ công"
 
 
-msgctxt "Operator"
-msgid "Edit Property Value"
-msgstr "Biên Soạn Giá Trị của Tính Chất"
-
-
-msgid "Edit the value of a custom property"
-msgstr "Biên soạn giá trị của tính chất tùy chỉnh"
-
-
 msgid "Value for custom property types that can only be edited as a Python expression"
 msgstr "Giá trị cho các thể loại tính chất tùy chỉnh chỉ có thể được biên soạn dưới dạng biểu thức Python mà thôi"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "Xóa Tính Chất"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "Sử dụng nội bộ (biên soạn một data_path (đường_dẫn_dữ_liệu) của tính chất)"
 
 
 msgctxt "Operator"
@@ -80807,24 +80886,6 @@ msgid "Validate Mesh"
 msgstr "Kiểm Nhận Khung Lưới"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Lưu Thông Tin Hệ Thống"
-
-
-msgid "Generate system information, saved into a text file"
-msgstr "Sinh tạo thông tin của hệ thống rồi lưu trong một tập tin văn bản"
-
-
-msgctxt "Operator"
-msgid "Set Tool by Name"
-msgstr "Đặt Công Cụ bằng Tên"
-
-
-msgid "Set the tool by name (for key-maps)"
-msgstr "Đặt công cụ bằng tên (cho bố trí phím)"
-
-
 msgid "Set Fallback"
 msgstr "Đặt Sử Dụng Chức Năng Dự Bị"
 
@@ -80845,15 +80906,6 @@ msgid "Identifier of the tool"
 msgstr "Định danh của công cụ"
 
 
-msgctxt "Operator"
-msgid "Set Tool by Index"
-msgstr "Đặt Công Cụ bằng Chỉ Số"
-
-
-msgid "Set the tool by index (for key-maps)"
-msgstr "Đặt công cụ theo chỉ số (dành cho bố trí phím)"
-
-
 msgid "Set the fallback tool instead of the primary"
 msgstr "Đặt công cụ dự bị thay vì công cụ chủ yếu"
 
@@ -80866,40 +80918,8 @@ msgid "Index in Toolbar"
 msgstr "Chỉ Số trong Thanh Công Cụ"
 
 
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "Thanh Công Cụ"
-
-
-msgctxt "Operator"
-msgid "Fallback Tool Pie Menu"
-msgstr "Công Cụ Dự Bị của Trình Đơn Rẻ Quạt"
-
-
-msgctxt "Operator"
-msgid "Toolbar Prompt"
-msgstr "Nhắc Lệnh của Thanh Công Cụ"
-
-
-msgid "Leader key like functionality for accessing tools"
-msgstr "Chức năng tương tự như khóa dẫn đầu dành cho việc tiếp cận các công cụ"
-
-
-msgid "Open a website in the web browser"
-msgstr "Mở một trang mạng trong trình duyệt mạng"
-
-
 msgid "URL to open"
 msgstr "URL để mở"
-
-
-msgctxt "Operator"
-msgid "Open Preset Website"
-msgstr "Mở Trang Mạng Định Sẵn"
-
-
-msgid "Open a preset website in the web browser"
-msgstr "Mở một trang mạng định sẵn trong trình duyệt mạng"
 
 
 msgid "Site"
@@ -82093,6 +82113,130 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
+msgid "Active Tool"
+msgstr "Công Cụ đang Hoạt Động"
+
+
+msgid "View Lock"
+msgstr "Khóa Góc Nhìn"
+
+
+msgid "Selectability & Visibility"
+msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
+
+
+msgid "Wire Color"
+msgstr "Màu của Dây"
+
+
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
+
+
+msgid "Compositor"
+msgstr "Trình Tổng Hợp"
+
+
+msgid "Overlays"
+msgstr "Lớp Vẽ Lồng"
+
+
+msgid "Guides"
+msgstr "Hướng Dẫn"
+
+
+msgid "Viewer Node"
+msgstr "Nút Quan Sát"
+
+
+msgid "Motion Tracking"
+msgstr "Giám Sát Chuyển Động"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Chế Độ Biên Soạn Khung Lưới"
+
+
+msgid "Measurement"
+msgstr "Đo Lường"
+
+
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Snapping"
+msgstr "Bám Dính"
+
+
+msgid "Transform Orientations"
+msgstr "Các Định Hướng Biến Hóa"
+
+
+msgid "Stroke Placement"
+msgstr "Phương Pháp Đặt Nét Vẽ"
+
+
+msgid "Drawing Plane"
+msgstr "Bề Diện Tác Họa"
+
+
+msgid "Quad View"
+msgstr "Bốn Góc Nhìn"
+
+
+msgid "Onion Skin"
+msgstr "Bóc Vỏ Hành"
+
+
+msgid "Stereoscopy"
+msgstr "Lập Thể"
+
+
+msgid "Multi Frame"
+msgstr "Đa Khung Hình"
+
+
+msgid "Curve Editing"
+msgstr "Biên Soạn Đường Cong"
+
+
+msgid "Auto-masking"
+msgstr "Tự động chắn lọc"
+
+
+msgid "Auto-Masking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Điêu Khắc Đường Cong: Các Tùy Chọn về Thêm Đường Cong"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Điêu Khắc Đường Cong Tham Số Suy Giảm Dần"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
+
+
+msgid "Viewport Debug"
+msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
+
+
+msgid "VR"
+msgstr "Virtual Reality: Thực Tế Ảo"
+
+
 msgid "Chain Scaling"
 msgstr "Đổi Tỷ Lệ Dây Chuyền"
 
@@ -82318,10 +82462,6 @@ msgid "Acceleration Structure"
 msgstr "Cấu Trúc Tăng Tốc"
 
 
-msgid "Compositor"
-msgstr "Trình Tổng Hợp"
-
-
 msgid "Final Render"
 msgstr "Kết Xuất Kết Thúc"
 
@@ -82332,10 +82472,6 @@ msgstr "Số Luồng"
 
 msgid "Path Guiding"
 msgstr "Hướng Dẫn Đường Đi"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
 
 
 msgid "Mist Pass"
@@ -82360,10 +82496,6 @@ msgstr "Khung Bố Cục"
 
 msgid "Center-Cut Safe Areas"
 msgstr "Vùng An Toàn Trung Tâm"
-
-
-msgid "Stereoscopy"
-msgstr "Lập Thể"
 
 
 msgid "Texture Space"
@@ -82422,10 +82554,6 @@ msgid "Filters"
 msgstr "Các Thao Tác Thanh Lọc"
 
 
-msgid "Snapping"
-msgstr "Bám Dính"
-
-
 msgid "Advanced Filter"
 msgstr "Thao Tác Thanh Lọc Cấp Tiến"
 
@@ -82453,18 +82581,6 @@ msgstr "Sắp Đặt về Thanh Lọc"
 
 msgid "Fluid Presets"
 msgstr "Sắp Đặt Sẵn cho Chất Lỏng"
-
-
-msgid "Active Tool"
-msgstr "Công Cụ đang Hoạt Động"
-
-
-msgid "Overlays"
-msgstr "Lớp Vẽ Lồng"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
 
 
 msgid "Clone from Image/UV Map"
@@ -82922,10 +83038,6 @@ msgid "Keyframing Settings"
 msgstr "Sắp Đặt về Khung Khóa Hóa"
 
 
-msgid "Onion Skin"
-msgstr "Bóc Vỏ Hành"
-
-
 msgid "Cache Settings"
 msgstr "Sắp Đặt của Bộ Đệm Nhớ"
 
@@ -83269,88 +83381,12 @@ msgid "Mirror Options"
 msgstr "Các Tùy Chọn Phản Chiếu Đối Xứng"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Điêu Khắc Đường Cong: Các Tùy Chọn về Thêm Đường Cong"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Điêu Khắc Đường Cong Tham Số Suy Giảm Dần"
-
-
 msgid "Brush Presets"
 msgstr "Sắp Đặt Sẵn Đầu Bút"
 
 
-msgid "Curve Editing"
-msgstr "Biên Soạn Đường Cong"
-
-
-msgid "Drawing Plane"
-msgstr "Bề Diện Tác Họa"
-
-
-msgid "Multi Frame"
-msgstr "Đa Khung Hình"
-
-
-msgid "Stroke Placement"
-msgstr "Phương Pháp Đặt Nét Vẽ"
-
-
-msgid "Auto-masking"
-msgstr "Tự động chắn lọc"
-
-
 msgid "Masking"
 msgstr "Chắn Lọc"
-
-
-msgid "Selectability & Visibility"
-msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
-
-
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Chế Độ Biên Soạn Khung Lưới"
-
-
-msgid "Measurement"
-msgstr "Đo Lường"
-
-
-msgid "Motion Tracking"
-msgstr "Giám Sát Chuyển Động"
-
-
-msgid "Viewer Node"
-msgstr "Nút Quan Sát"
-
-
-msgid "Quad View"
-msgstr "Bốn Góc Nhìn"
-
-
-msgid "Auto-Masking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Wire Color"
-msgstr "Màu của Dây"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
 
 
 msgid "Stencil Mask"
@@ -83651,22 +83687,6 @@ msgstr "Cắt Hạt thành Hình Dạng"
 
 msgid "Pose Options"
 msgstr "Tùy Chọn về Tư Thế"
-
-
-msgid "Transform Orientations"
-msgstr "Các Định Hướng Biến Hóa"
-
-
-msgid "View Lock"
-msgstr "Khóa Góc Nhìn"
-
-
-msgid "Viewport Debug"
-msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
-
-
-msgid "VR"
-msgstr "Virtual Reality: Thực Tế Ảo"
 
 
 msgid "Action Maps"
@@ -94644,15 +94664,6 @@ msgid "Show graph view for active element"
 msgstr "Hiển thị biểu đồ cho yếu tố đang hoạt động"
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "Bảng Hành Động"
-
-
-msgid "Dopesheet view for tracking data"
-msgstr "Khung nhìn bảng hành động cho dữ liệu giám sát"
-
-
 msgid "Space Console"
 msgstr "Không Gian Bàn Giao Tiếp"
 
@@ -100777,10 +100788,6 @@ msgid "Show the Face Orientation Overlay"
 msgstr "Hiển thị lớp vẽ lồng Chiều Hướng của Mặt"
 
 
-msgid "Highlight selected faces"
-msgstr "Nêu bật các mặt đã chọn"
-
-
 msgid "Fade Inactive Objects"
 msgstr "Phai Mờ Dần các Đối Tượng Không Hoạt Động"
 
@@ -105426,10 +105433,6 @@ msgid "None"
 msgstr "Không Có"
 
 
-msgid "Warning"
-msgstr "Cảnh Báo"
-
-
 msgid ":"
 msgstr ":"
 
@@ -105951,28 +105954,8 @@ msgstr "Thanh Lọc Hành Động"
 
 
 msgctxt "Operator"
-msgid "Display Variant"
-msgstr "Hiển Thị Biến Thể"
-
-
-msgctxt "Operator"
-msgid "Assign To Variant"
-msgstr "Ấn Định sang Biến Thể"
-
-
-msgctxt "Operator"
 msgid "Reset To Original"
 msgstr "Hoàn Lại về Bản Gốc"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "Ấn Định sang Bản Gốc"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Thêm Biến Thể Nguyên Vật Liệu"
 
 
 msgid "No glTF Animation"
@@ -112768,11 +112751,6 @@ msgstr "Khối Tiếp Theo"
 msgctxt "Operator"
 msgid "Empty"
 msgstr "Trống Rỗng"
-
-
-msgctxt "Operator"
-msgid "Suzanne"
-msgstr "Đầu Khỉ"
 
 
 msgctxt "Operator"
@@ -122778,10 +122756,6 @@ msgstr "Không thể biên soạn các xem trước của dữ liệu thư việ
 
 msgid "Data-block does not support previews"
 msgstr "Khối dữ liệu không hỗ trợ xem trước"
-
-
-msgid "Can't generate automatic preview for node group"
-msgstr "Không thể tạo bản xem trước tự động cho nhóm nút"
 
 
 msgid "Numeric input evaluation"

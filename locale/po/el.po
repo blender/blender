@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -83,10 +83,6 @@ msgid "Active Bone"
 msgstr "Ενεργό Οστό"
 
 
-msgid "All"
-msgstr "Όλα"
-
-
 msgid "Point"
 msgstr "Σημείο"
 
@@ -145,6 +141,10 @@ msgstr "Παραμόρφωση"
 
 msgid "Mode"
 msgstr "Κατάσταση"
+
+
+msgid "All"
+msgstr "Όλα"
 
 
 msgid "Fill"
@@ -551,32 +551,40 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
-msgid "Track"
-msgstr "Ανίχνευση"
-
-
 msgid "Snap"
 msgstr "Προσκόλληση"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Merge"
-msgstr "Συγχώνευση"
 
 
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
 
 
-msgid "Import"
-msgstr "Εισαγωγή"
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
 msgid "Apply"
 msgstr "Εφαρμογή"
+
+
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Cache"
@@ -597,14 +605,6 @@ msgstr "Εξαγωγή"
 
 msgid "Help"
 msgstr "Βοήθεια"
-
-
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
 
 
 msgid "Ball"

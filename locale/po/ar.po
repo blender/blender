@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:28+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -706,10 +706,6 @@ msgstr "موقع النافذة الافقي النسبي للمنطقة"
 
 msgid "Description"
 msgstr "تعريف"
-
-
-msgid "All"
-msgstr "الكل"
 
 
 msgid "ID Name"
@@ -2060,6 +2056,10 @@ msgstr "إتجاه"
 
 msgid "Normal"
 msgstr "ناظم"
+
+
+msgid "All"
+msgstr "الكل"
 
 
 msgid "Strokes"
@@ -16059,6 +16059,106 @@ msgid "Material slot name"
 msgstr "إسم فتحة الخامة"
 
 
+msgid "Special Characters"
+msgstr "أحرف خاصة"
+
+
+msgid "Names"
+msgstr "أسماء"
+
+
+msgid "Bone Roll"
+msgstr "التواء العظمة"
+
+
+msgid "Snap"
+msgstr "حاذي"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "تلاشي التحرير النسبي"
+
+
+msgid "Mirror"
+msgstr "ماثل"
+
+
+msgid "UV Mapping"
+msgstr "إكساء UV"
+
+
+msgid "Navigation"
+msgstr "تصفّح"
+
+
+msgid "Align View"
+msgstr "حاذي المنظر"
+
+
+msgid "Align View to Active"
+msgstr "حاذي المنظر للفعّال"
+
+
+msgid "Select More/Less"
+msgstr "اختيار اكثر/اقل"
+
+
+msgid "Select Similar"
+msgstr "إختر المماثل"
+
+
+msgid "Select All by Trait"
+msgstr "اختيار كل حسب السمة"
+
+
+msgid "Select Linked"
+msgstr "إختار المرتبطة"
+
+
+msgid "Relations"
+msgstr "العلاقات"
+
+
+msgid "Rigid Body"
+msgstr "جسم متفاعل"
+
+
+msgid "Apply"
+msgstr "طبق"
+
+
+msgid "Track"
+msgstr "تعقّب"
+
+
+msgid "Quick Effects"
+msgstr "تأثيرات سريعة"
+
+
+msgid "Make Single User"
+msgstr "اجعله وحيد المستخدم"
+
+
+msgid "Hooks"
+msgstr "خطافات"
+
+
+msgid "In-Betweens"
+msgstr "ما بين"
+
+
+msgid "Propagate"
+msgstr "عمم"
+
+
+msgid "Face Data"
+msgstr "بيانات الوجه"
+
+
+msgid "Merge"
+msgstr "إدمج"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "قلم"
@@ -16070,10 +16170,6 @@ msgstr "مندوب"
 
 msgid "Reconstruction"
 msgstr "اعادة البناء"
-
-
-msgid "Track"
-msgstr "تعقّب"
 
 
 msgid "Zoom"
@@ -16096,10 +16192,6 @@ msgid "Marker"
 msgstr "علامة"
 
 
-msgid "Snap"
-msgstr "حاذي"
-
-
 msgid "Material Specials"
 msgstr "إضافات الخامات"
 
@@ -16108,24 +16200,12 @@ msgid "Smooth"
 msgstr "ناعم"
 
 
-msgid "Select Linked"
-msgstr "إختار المرتبطة"
-
-
 msgid "UV"
 msgstr "محاور"
 
 
 msgid "Align"
 msgstr "حاذي"
-
-
-msgid "Merge"
-msgstr "إدمج"
-
-
-msgid "Mirror"
-msgstr "ماثل"
 
 
 msgid "UV Select Mode"
@@ -16200,14 +16280,6 @@ msgid "Sequencer"
 msgstr "مسلسِل"
 
 
-msgid "Apply"
-msgstr "طبق"
-
-
-msgid "Navigation"
-msgstr "تصفّح"
-
-
 msgid "Inputs"
 msgstr "مداخل"
 
@@ -16260,81 +16332,9 @@ msgid "Presets"
 msgstr "إعدادات مسبقة"
 
 
-msgid "Names"
-msgstr "أسماء"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "أصل"
-
-
-msgid "Bone Roll"
-msgstr "التواء العظمة"
-
-
-msgid "Select More/Less"
-msgstr "اختيار اكثر/اقل"
-
-
-msgid "Special Characters"
-msgstr "أحرف خاصة"
-
-
-msgid "Face Data"
-msgstr "بيانات الوجه"
-
-
-msgid "Select All by Trait"
-msgstr "اختيار كل حسب السمة"
-
-
-msgid "Select Similar"
-msgstr "إختر المماثل"
-
-
-msgid "Hooks"
-msgstr "خطافات"
-
-
-msgid "Make Single User"
-msgstr "اجعله وحيد المستخدم"
-
-
-msgid "Quick Effects"
-msgstr "تأثيرات سريعة"
-
-
-msgid "Relations"
-msgstr "العلاقات"
-
-
-msgid "Rigid Body"
-msgstr "جسم متفاعل"
-
-
-msgid "Propagate"
-msgstr "عمم"
-
-
-msgid "In-Betweens"
-msgstr "ما بين"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "تلاشي التحرير النسبي"
-
-
-msgid "UV Mapping"
-msgstr "إكساء UV"
-
-
-msgid "Align View"
-msgstr "حاذي المنظر"
-
-
-msgid "Align View to Active"
-msgstr "حاذي المنظر للفعّال"
 
 
 msgid "Operator Presets"
@@ -20006,6 +20006,10 @@ msgid "Conformal"
 msgstr "متكيف"
 
 
+msgid "Warning"
+msgstr "تحذير:"
+
+
 msgid "Label Font Size"
 msgstr "حجم خط الملصق"
 
@@ -20566,6 +20570,609 @@ msgid "Object Constraints"
 msgstr "قيود الكائن"
 
 
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "نظف الحركات الغير مستخدمة"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "تصدير مجموعة المفاتيح..."
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "اظهر الكل"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "اضف أو الغ إعداد مسبق للكاميرا"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "اضف إعداد مسبق للكميرا"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "اضف أو إحذف إعداد مسبق لمنطقة آمنة"
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "اضف إعداد مسبق لمنطقة آمنة"
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "علامات الـ 3D للمجسم"
+
+
+msgid "Add or remove a Tracking Camera Intrinsics Preset"
+msgstr "أضف أو الغ إعداد مسبق لجوهريات كاميرا الملاحقة"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "قيد لمنحنى العمل"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "احذف المندوب"
+
+
+msgctxt "Operator"
+msgid "Filter Tracks"
+msgstr "صفّي المسارات"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "حدد القصاصة الفعّالة"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "ضع كخلفية"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "إعدادات مشهد الملاحقة"
+
+
+msgid "Add or remove a Clip Track Color Preset"
+msgstr "أضف أو الغ إعداد مسبق للون مسار القصاصة"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr " أضف إعداد مسبق للون المسار"
+
+
+msgctxt "Operator"
+msgid "Copy Track Settings"
+msgstr "انسخ إعدادات المسار"
+
+
+msgid "Add or remove a motion tracking settings preset"
+msgstr "اضف أو الغ اعداد مسبق لإعددات حركة الملاحقة"
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "اضف اعداد مسبق للملاحقة"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr " أضف إعداد مسبق لمحاكي الملابس"
+
+
+msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
+msgstr "قيم مساحة الاسم لعند المؤشر و أعط قائمة خيارات أو أكمل الاسم إذا كان هناك فقط واحد"
+
+
+msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "التكميل التلقائي في لوحة الأوامر"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "شريط لوحة الأوامر"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "أفتح لوحة الأوامر"
+
+
+msgid "Set the current language for this console"
+msgstr "حدد اللغة الحالية للوحة الأوامر هذه "
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "لغة لوحة الأوامر"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "إستخدم العقد"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "صدّر BVH"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "صدّر FBX"
+
+
+msgid "Add or remove a Fluid Preset"
+msgstr "اضف أو الغ اعداد مسبق للسائل"
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "اضف اعداد مسبق للسائل"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "حرر الصورة خارجيا"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "طبق الاسقاط"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "حرر الإسقاط"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "إستورد FBX"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "أضف اطار"
+
+
+msgctxt "Operator"
+msgid "Select Previous Element"
+msgstr "اختر العنصر السابق"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "خزن الحركة"
+
+
+msgid "Add a node to the active tree"
+msgstr "اضف عقدة للشجرة الفعالة"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "أضف جديد"
+
+
+msgctxt "Operator"
+msgid "Collapse and Hide Unused Sockets"
+msgstr "اطوي و اخفي الفتحات الغير مستخدمة"
+
+
+msgid "Add or remove a Node Color Preset"
+msgstr " أضف أو الغ إعداد مسبق للون العقدة"
+
+
+msgctxt "Operator"
+msgid "Add Node Color Preset"
+msgstr " أضف إعداد لون مسبق للعقدة"
+
+
+msgctxt "Operator"
+msgid "Parent Node Tree"
+msgstr "شجرة العقدة الاصل"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "أضف مغير"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "حاذي الكائنات"
+
+
+msgctxt "Operator"
+msgid "Animated Transforms to Deltas"
+msgstr "التحولات المحرّكة الى الفوارق"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "ألغ كل قيود التصيير"
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "قيد التصيير للغير مختار"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "انفجار سريع"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "فرو سريع"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "دخان سريع"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "نوّع التحول عشوائيا"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "جديد"
+
+
+msgid "Select the active camera"
+msgstr "اختر الكميرا الفعالة"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "إختار الكاميرا"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "إختار الهيكلية"
+
+
+msgid "Select objects matching a naming pattern"
+msgstr "اختر الكائنات المطابقة لنمط تسمية"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "إختار النمط"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "إنقل مفتاح الشكل"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "مجموعة تنعيم"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "الوان النقط ملوّثة"
+
+
+msgid "Add or remove a Hair Dynamics Preset"
+msgstr "اضف أو إحذف إعداد مسبق لديناميات الشعر"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "حدّث"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "نسخ الإعدادات السابقة"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "تفعيل خيارات وظائف أزرار لوحة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "صدّر إعدادات المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "استورد إعدادات المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "حذف إعداد مسبق لإعدادات المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "أفحص تعارض إعدادات المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "اضف عنصر لخريطة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "احذف عنصر لخريطة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "استرجع عنصر خريطة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "استرجع خريطة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "نصّب النمط..."
+
+
+msgid "Add an Integrator Preset"
+msgstr "اضف إعداد مسبق للمكامل"
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "اضف إعداد مسبق للمكامل"
+
+
+msgid "Add a Sampling Preset"
+msgstr "اضف اعداد مسبق للمعاينة"
+
+
+msgctxt "Operator"
+msgid "Add Sampling Preset"
+msgstr "اضف اعداد مسبق للمعاينة"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "اعد عرض الاطر/الافلام المصيّرة باستخدام عرض خارجي"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "اعرض الحركة المصيّرة"
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "اضف إعداد مسبق للتصيير"
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "اضف علامات حافة لمجموعة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "اضف علامات وجه لمجموعة المفاتيح"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "نفذ ملف بايثون معد مسبقا"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "انشئ تحرك حجمي متداخل متضائل لشريطي صوت مختارين"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "تقليل التشابك في الأفلام"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "صدّر نموذج UV"
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "اتبع الرباعيات الفعالة"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "حزمة خريطة الضوء"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "إجعل عشوائي"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual and Move"
+msgstr "ابثق فرديا و حرّك"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Normals"
+msgstr "ابثق و حرّك على النواظم"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Individual Normals"
+msgstr "إبثق و حرّك على النواظم منفصلا"
+
+
+msgctxt "Operator"
+msgid "Context Collection Boolean Set"
+msgstr "مجموعة قيم منطقية في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Array Cycle"
+msgstr "دورة مصفوفة سياق"
+
+
+msgid "Toggle a context value"
+msgstr "اقلب قيمة السياق"
+
+
+msgctxt "Operator"
+msgid "Context Enum Cycle"
+msgstr "دورة عداد السياق"
+
+
+msgctxt "Operator"
+msgid "Context Int Cycle"
+msgstr "دورة رقم السياق"
+
+
+msgctxt "Operator"
+msgid "Context Enum Menu"
+msgstr "قائمة عداد السياق"
+
+
+msgctxt "Operator"
+msgid "Context Modal Mouse"
+msgstr "فأرة مشروطة بالسياق"
+
+
+msgctxt "Operator"
+msgid "Context Enum Pie"
+msgstr "عدد سياق القطع"
+
+
+msgid "Scale a float context value"
+msgstr "حجّم القيمة الكسرية في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Scale Float"
+msgstr "حجم القيمة الكسرية في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "حجم القيمة الصحيحة في السياق"
+
+
+msgid "Set a context value"
+msgstr "ضع قيمة سياق"
+
+
+msgctxt "Operator"
+msgid "Context Set Boolean"
+msgstr "ضع قيمة منطقية في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Set Enum"
+msgstr "ضع قيمة عداد في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Set Float"
+msgstr "ضع قيمة كسرية في السياق"
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "ضع معرف المكتبة"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "مجموعة السياق"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "ضع قيمة نصية في السياق"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "ضع قيمة السياق"
+
+
+msgctxt "Operator"
+msgid "Context Toggle"
+msgstr "اقلب السياق"
+
+
+msgctxt "Operator"
+msgid "Context Toggle Values"
+msgstr "اقلب قيم السياق"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "اظهر التوثيق"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "اظهر يدويا"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "ورقة خبايا العامل"
+
+
+msgid "Add or remove an Operator Preset"
+msgstr "اضف أو الغ إعداد مسبق لعامل"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "إعداد مسبق للعامل"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "أضف سمة"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "عدل السمة"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "استعمال داخلي (عدل سمة مسار بيانات)"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "احذف السمة"
+
+
 msgid "Operator Options"
 msgstr "خيارات العامل"
 
@@ -20904,11 +21511,6 @@ msgstr "اقلب اعداد القناة"
 
 
 msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "نظف الحركات الغير مستخدمة"
-
-
-msgctxt "Operator"
 msgid "Copy Driver"
 msgstr "انسخ المحرّك"
 
@@ -21000,11 +21602,6 @@ msgstr "حدد مجموعة المفاتيح الفعالة"
 msgctxt "Operator"
 msgid "Add Empty Keying Set"
 msgstr "اضف مجموعة مفاتيح فارغة"
-
-
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "تصدير مجموعة المفاتيح..."
 
 
 msgid "Filter folders"
@@ -21115,11 +21712,6 @@ msgid "Global -Z Axis"
 msgstr "محور -Z عالمي"
 
 
-msgctxt "Operator"
-msgid "Show All"
-msgstr "اظهر الكل"
-
-
 msgid "Pose Bone"
 msgstr "عظم الوقفة"
 
@@ -21193,11 +21785,6 @@ msgstr "(معامل غير موثق)"
 msgctxt "Operator"
 msgid "(De)select All"
 msgstr "اختار الكل/لاشيء"
-
-
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "إختار الهيكلية"
 
 
 msgctxt "Operator"
@@ -21383,30 +21970,12 @@ msgid "Directory of the file"
 msgstr "مجلّد الملف"
 
 
-msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "اضف إعداد مسبق للكميرا"
-
-
-msgid "Add or remove a Camera Preset"
-msgstr "اضف أو الغ إعداد مسبق للكاميرا"
-
-
 msgid "Name of the preset, used to make the path name"
 msgstr "إسم الملف المعد مسبقا, يستخدم لعمل إسم المسار"
 
 
 msgid "Include Focal Length"
 msgstr "ضمن الطول البؤري"
-
-
-msgctxt "Operator"
-msgid "Add Safe Area Preset"
-msgstr "اضف إعداد مسبق لمنطقة آمنة"
-
-
-msgid "Add or remove a Safe Areas Preset"
-msgstr "اضف أو إحذف إعداد مسبق لمنطقة آمنة"
 
 
 msgctxt "Operator"
@@ -21455,15 +22024,6 @@ msgstr "المسافة بين المسارات المختارة"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "علامات الـ 3D للمجسم"
-
-
-msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "أضف أو الغ إعداد مسبق لجوهريات كاميرا الملاحقة"
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "نظف المسارات"
 
@@ -21495,11 +22055,6 @@ msgstr "ازل المسار الفعال فقط بدل من كل المسارا�
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "قيد لمنحنى العمل"
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "انسخ المسارات"
 
@@ -21520,11 +22075,6 @@ msgstr "احذف العلامة"
 
 msgid "Delete marker for current frame from selected tracks"
 msgstr "احذف علامة الإطار الحالي من المسارات المختارة"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "احذف المندوب"
 
 
 msgctxt "Operator"
@@ -21588,11 +22138,6 @@ msgstr "اختر قناة ملاحقة الفلم"
 
 msgid "Mouse location to select channel"
 msgstr "موقع الفأرة لاختيار القناة"
-
-
-msgctxt "Operator"
-msgid "Filter Tracks"
-msgstr "صفّي المسارات"
 
 
 msgid "Track Threshold"
@@ -21785,11 +22330,6 @@ msgstr "إختر العلامات باستعمال الاختيار بالحبل
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "حدد القصاصة الفعّالة"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "ضع المحور"
 
@@ -21857,16 +22397,6 @@ msgstr " ضع المفتاح"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "ضع كخلفية"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "إعدادات مشهد الملاحقة"
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "حرّك علامة"
 
@@ -21897,15 +22427,6 @@ msgstr "اختر مسارات تثبيت"
 
 
 msgctxt "Operator"
-msgid "Add Track Color Preset"
-msgstr " أضف إعداد مسبق للون المسار"
-
-
-msgid "Add or remove a Clip Track Color Preset"
-msgstr "أضف أو الغ إعداد مسبق للون مسار القصاصة"
-
-
-msgctxt "Operator"
 msgid "Copy Color"
 msgstr "انسخ اللون"
 
@@ -21928,11 +22449,6 @@ msgstr "لاحق التسلسل"
 
 
 msgctxt "Operator"
-msgid "Copy Track Settings"
-msgstr "انسخ إعدادات المسار"
-
-
-msgctxt "Operator"
 msgid "Add Tracking Object"
 msgstr "اضف كائن ملاحقة"
 
@@ -21948,15 +22464,6 @@ msgstr "احذف كائن الملاحقة"
 
 msgid "Remove object for tracking"
 msgstr "احذف كائن الملاحقة"
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "اضف اعداد مسبق للملاحقة"
-
-
-msgid "Add or remove a motion tracking settings preset"
-msgstr "اضف أو الغ اعداد مسبق لإعددات حركة الملاحقة"
 
 
 msgid "Fit View"
@@ -22015,27 +22522,8 @@ msgstr "معدل تحجيم المنظر"
 
 
 msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr " أضف إعداد مسبق لمحاكي الملابس"
-
-
-msgctxt "Operator"
 msgid "Export"
 msgstr "صدّر"
-
-
-msgctxt "Operator"
-msgid "Console Autocomplete"
-msgstr "التكميل التلقائي في لوحة الأوامر"
-
-
-msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "قيم مساحة الاسم لعند المؤشر و أعط قائمة خيارات أو أكمل الاسم إذا كان هناك فقط واحد"
-
-
-msgctxt "Operator"
-msgid "Console Banner"
-msgstr "شريط لوحة الأوامر"
 
 
 msgid "Clear the scrollback history"
@@ -22055,11 +22543,6 @@ msgstr "انسخ الى الذاكرة"
 msgctxt "Operator"
 msgid "Delete"
 msgstr "احذف"
-
-
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "أفتح لوحة الأوامر"
 
 
 msgctxt "Operator"
@@ -22092,15 +22575,6 @@ msgstr "أضف 4 مسافات في أول السطر"
 msgctxt "Operator"
 msgid "Insert"
 msgstr "Insert"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "لغة لوحة الأوامر"
-
-
-msgid "Set the current language for this console"
-msgstr "حدد اللغة الحالية للوحة الأوامر هذه "
 
 
 msgctxt "Operator"
@@ -22449,11 +22923,6 @@ msgstr "ضع وزن هدف الجسم اللين للنقط المختارة"
 
 
 msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "إستخدم العقد"
-
-
-msgctxt "Operator"
 msgid "Dynamic Paint Bake"
 msgstr "خزن الرسم الحيوي"
 
@@ -22522,11 +22991,6 @@ msgid "Undo Message"
 msgstr "رسالة تراجع"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "صدّر BVH"
-
-
 msgid "Use the rotation order defined in the BVH file"
 msgstr "استخدم ترتيب الدوران المعرّف في ملف BVH"
 
@@ -22541,11 +23005,6 @@ msgstr "حول التداوير إلى YZX يولر"
 
 msgid "Euler (ZYX)"
 msgstr "يولر (ZYX)"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "صدّر FBX"
 
 
 msgid "Apply Unit"
@@ -22779,15 +23238,6 @@ msgstr "فرغ تخزين الصورة"
 
 msgid "Write file to original location (overwrite existing file)"
 msgstr "اكتب الملفات في الموقع الاصلي (استبدل الملفات الموجودة)"
-
-
-msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "اضف اعداد مسبق للسائل"
-
-
-msgid "Add or remove a Fluid Preset"
-msgstr "اضف أو الغ اعداد مسبق للسائل"
 
 
 msgctxt "Operator"
@@ -23328,11 +23778,6 @@ msgstr "دوّر عكسيا"
 
 
 msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "حرر الصورة خارجيا"
-
-
-msgctxt "Operator"
 msgid "Invert Channels"
 msgstr "اعكس القنوات"
 
@@ -23367,16 +23812,6 @@ msgstr "افتح صورة"
 msgctxt "Operator"
 msgid "Pack Image"
 msgstr "خزن الصورة"
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "طبق الاسقاط"
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "حرر الإسقاط"
 
 
 msgctxt "Operator"
@@ -23488,11 +23923,6 @@ msgstr "ضع معدل التحجيم للمنظر"
 
 msgid "Scale FPS"
 msgstr "حجّم الأطر لكل ثانية"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "إستورد FBX"
 
 
 msgid "Animation Offset"
@@ -24382,11 +24812,6 @@ msgid "Add Plane"
 msgstr "اضف سطح"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "أضف اطار"
-
-
 msgid "Exterior Radius"
 msgstr "نصف القطر الخارجي"
 
@@ -24525,11 +24950,6 @@ msgstr "وضع اختيار الوجه"
 
 msgid "Multiple Faces"
 msgstr "أوجه متعددة"
-
-
-msgctxt "Operator"
-msgid "Select Previous Element"
-msgstr "اختر العنصر السابق"
 
 
 msgctxt "Operator"
@@ -24763,11 +25183,6 @@ msgid "Apply Scale"
 msgstr "طبق الحجم"
 
 
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "خزن الحركة"
-
-
 msgid "Which data's transformations to bake"
 msgstr "طبّق تحولات الكائن لبياناته"
 
@@ -24908,15 +25323,6 @@ msgid "Add Mask Node"
 msgstr "أضف عقدة قناع"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "أضف جديد"
-
-
-msgid "Add a node to the active tree"
-msgstr "اضف عقدة للشجرة الفعالة"
-
-
 msgid "Node Type"
 msgstr "نوع العقدة"
 
@@ -24969,11 +25375,6 @@ msgstr "تحجيم الصورة الخلفية"
 
 msgid "Zoom in/out the background image"
 msgstr "حجّم الصورة الخلفية لاكبر/لاصغر"
-
-
-msgctxt "Operator"
-msgid "Collapse and Hide Unused Sockets"
-msgstr "اطوي و اخفي الفتحات الغير مستخدمة"
 
 
 msgctxt "Operator"
@@ -25116,15 +25517,6 @@ msgid "Create a new node tree"
 msgstr "انشئ شجرة عقد جديدة"
 
 
-msgctxt "Operator"
-msgid "Add Node Color Preset"
-msgstr " أضف إعداد لون مسبق للعقدة"
-
-
-msgid "Add or remove a Node Color Preset"
-msgstr " أضف أو الغ إعداد مسبق للون العقدة"
-
-
 msgid "Copy color to all selected nodes"
 msgstr "انسخ اللون لكل العقد المختارة"
 
@@ -25223,11 +25615,6 @@ msgid "Select nodes linked to the selected ones"
 msgstr "اختر العقد المرتبطة مع المختارة"
 
 
-msgctxt "Operator"
-msgid "Parent Node Tree"
-msgstr "شجرة العقدة الاصل"
-
-
 msgid "Resize view so you can see selected nodes"
 msgstr "حجّم المنظر حتى تظهر العقد المختارة"
 
@@ -25237,27 +25624,12 @@ msgid "Add Object"
 msgstr "أضف كائن"
 
 
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "أضف مغير"
-
-
 msgid "Add named object"
 msgstr "أضف كائن مسمى"
 
 
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "حاذي الكائنات"
-
-
 msgid "Align to axis"
 msgstr "حاذي لمحور"
-
-
-msgctxt "Operator"
-msgid "Animated Transforms to Deltas"
-msgstr "التحولات المحرّكة الى الفوارق"
 
 
 msgctxt "Operator"
@@ -25367,11 +25739,6 @@ msgstr "قرد"
 
 
 msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "ألغ كل قيود التصيير"
-
-
-msgctxt "Operator"
 msgid "Hook to New Object"
 msgstr "خطاف جديد للكائن"
 
@@ -25408,11 +25775,6 @@ msgstr "أعد ضبط الخطاف"
 msgctxt "Operator"
 msgid "Select Hook"
 msgstr "إختر الخطاف"
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "قيد التصيير للغير مختار"
 
 
 msgctxt "Operator"
@@ -25666,11 +26028,6 @@ msgid "Edge Length"
 msgstr "طول الحافة"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "انفجار سريع"
-
-
 msgid "Explode Style"
 msgstr "أسلوب الانفجار"
 
@@ -25679,23 +26036,8 @@ msgid "Outwards Velocity"
 msgstr "السرعة المتجه خارجيا"
 
 
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "فرو سريع"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "دخان سريع"
-
-
 msgid "Render Smoke Objects"
 msgstr "صيّر كائنات الدخان"
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "نوّع التحول عشوائيا"
 
 
 msgid "Maximum distance the objects can spread over each axis"
@@ -25755,11 +26097,6 @@ msgstr "نوّع قيم التحجيم عشوائيا"
 
 
 msgctxt "Operator"
-msgid "New"
-msgstr "جديد"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "اعد ضبط الدوران"
 
@@ -25768,30 +26105,12 @@ msgid "Clear the object's scale"
 msgstr "اعد ضبط تحجيم الكائن"
 
 
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "إختار الكاميرا"
-
-
-msgid "Select the active camera"
-msgstr "اختر الكميرا الفعالة"
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "إتجاه الإختيار في الهيكلية"
 
 
 msgid "Child"
 msgstr "فرع"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "إختار النمط"
-
-
-msgid "Select objects matching a naming pattern"
-msgstr "اختر الكائنات المطابقة لنمط تسمية"
 
 
 msgid "Case Sensitive"
@@ -25846,11 +26165,6 @@ msgstr "احذف كل مفاتيح الشكل"
 msgctxt "Operator"
 msgid "Re-Time Shape Keys"
 msgstr "اعد مزامنة مفاتيح الشكل"
-
-
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "إنقل مفتاح الشكل"
 
 
 msgid "Transformation Mode"
@@ -25922,11 +26236,6 @@ msgstr "علّم النقط المختارة كجذور"
 msgctxt "Operator"
 msgid "Add Speaker"
 msgstr "اضف سماعة"
-
-
-msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "مجموعة تنعيم"
 
 
 msgctxt "Operator"
@@ -26420,11 +26729,6 @@ msgid "Texture Paint Toggle"
 msgstr "قلب تلوين النسيج"
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "الوان النقط ملوّثة"
-
-
 msgid "Blur strength per iteration"
 msgstr "قوة الضبابية لكل تكرار"
 
@@ -26549,10 +26853,6 @@ msgstr "نظف المحرر"
 
 msgid "Undo all edition performed on the particle system"
 msgstr "تراجع عن كل التعديلات المنفذة على نظام الجزيئات"
-
-
-msgid "Add or remove a Hair Dynamics Preset"
-msgstr "اضف أو إحذف إعداد مسبق لديناميات الشعر"
 
 
 msgid "Hide selected particles"
@@ -26801,73 +27101,13 @@ msgid "Apply Visual Transform to Pose"
 msgstr "طبق التحول الظاهري للوقفة"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "حدّث"
-
-
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "نسخ الإعدادات السابقة"
-
-
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "تفعيل خيارات وظائف أزرار لوحة المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "صدّر إعدادات المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "استورد إعدادات المفاتيح"
-
-
 msgid "Keep original file after copying to configuration folder"
 msgstr "أبق الملف الأصلي بعد النسخ إلى مجلد الإعدادات"
 
 
 msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "حذف إعداد مسبق لإعدادات المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "أفحص تعارض إعدادات المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "اضف عنصر لخريطة المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "احذف عنصر لخريطة المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "استرجع عنصر خريطة المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "استرجع خريطة المفاتيح"
-
-
-msgctxt "Operator"
 msgid "Reset to Default Theme"
 msgstr "اعد الضبط للنمط المفترض"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "نصّب النمط..."
 
 
 msgctxt "Operator"
@@ -26890,24 +27130,6 @@ msgid "Delete Current Cache"
 msgstr "احذف الحساب المسبق الحالي"
 
 
-msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "اضف إعداد مسبق للمكامل"
-
-
-msgid "Add an Integrator Preset"
-msgstr "اضف إعداد مسبق للمكامل"
-
-
-msgctxt "Operator"
-msgid "Add Sampling Preset"
-msgstr "اضف اعداد مسبق للمعاينة"
-
-
-msgid "Add a Sampling Preset"
-msgstr "اضف اعداد مسبق للمعاينة"
-
-
 msgid "View Context"
 msgstr "اظهر السياق"
 
@@ -26918,20 +27140,6 @@ msgstr "استخدم المنظر الحالي للثلاثي للتصيير, أ
 
 msgid "Write Image"
 msgstr "أكتب الصورة"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "اعرض الحركة المصيّرة"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "اعد عرض الاطر/الافلام المصيّرة باستخدام عرض خارجي"
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "اضف إعداد مسبق للتصيير"
 
 
 msgctxt "Operator"
@@ -27021,16 +27229,6 @@ msgstr "جسم متفاعل"
 msgctxt "Operator"
 msgid "Delete Scene"
 msgstr "احذف المشهد"
-
-
-msgctxt "Operator"
-msgid "Add Edge Marks to Keying Set"
-msgstr "اضف علامات حافة لمجموعة المفاتيح"
-
-
-msgctxt "Operator"
-msgid "Add Face Marks to Keying Set"
-msgstr "اضف علامات وجه لمجموعة المفاتيح"
 
 
 msgid "Name of the modifier to work on"
@@ -27235,11 +27433,6 @@ msgid "Experimental"
 msgstr "تجربي"
 
 
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "نفذ ملف بايثون معد مسبقا"
-
-
 msgid "Menu ID Name"
 msgstr "الإسم المعرف للقائمة"
 
@@ -27413,15 +27606,6 @@ msgstr "أستخدم حجز الامكنة"
 msgctxt "Operator"
 msgid "Copy"
 msgstr "نسخ"
-
-
-msgid "Do cross-fading volume animation of two selected sound strips"
-msgstr "انشئ تحرك حجمي متداخل متضائل لشريطي صوت مختارين"
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "تقليل التشابك في الأفلام"
 
 
 msgid "Duplicate selected strips and move them"
@@ -28021,11 +28205,6 @@ msgid "Slide a vertex along a mesh"
 msgstr "ازلق تسلسل الحافة على طول المجسم"
 
 
-msgctxt "Operator"
-msgid "Randomize"
-msgstr "إجعل عشوائي"
-
-
 msgid "Distance to offset"
 msgstr "المسافة للإزاحة"
 
@@ -28152,11 +28331,6 @@ msgid "Radius of the sphere or cylinder"
 msgstr "قطر الكرة أو الاسطوانة"
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "صدّر نموذج UV"
-
-
 msgid "All UVs"
 msgstr "كل الـ UV's"
 
@@ -28169,22 +28343,12 @@ msgid "Fill Opacity"
 msgstr "عتومة التعبئة"
 
 
-msgctxt "Operator"
-msgid "Follow Active Quads"
-msgstr "اتبع الرباعيات الفعالة"
-
-
 msgid "Average space UVs edge length of each loop"
 msgstr "متوسط فضاء طول حافة UV لكل تسلسل"
 
 
 msgid "Length Average"
 msgstr "المعدل"
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "حزمة خريطة الضوء"
 
 
 msgid "Clear Seams"
@@ -28391,21 +28555,6 @@ msgstr "ضع موقع مؤشر الثلاثي"
 
 msgid "Dolly in/out in the view"
 msgstr "ارجحة للداخل/للخارج في المنظر"
-
-
-msgctxt "Operator"
-msgid "Extrude Individual and Move"
-msgstr "ابثق فرديا و حرّك"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Normals"
-msgstr "ابثق و حرّك على النواظم"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Individual Normals"
-msgstr "إبثق و حرّك على النواظم منفصلا"
 
 
 msgctxt "Operator"
@@ -28623,46 +28772,12 @@ msgid "Minimum Chain Length"
 msgstr "أقل طول للسلسة"
 
 
-msgctxt "Operator"
-msgid "Context Collection Boolean Set"
-msgstr "مجموعة قيم منطقية في السياق"
-
-
-msgctxt "Operator"
-msgid "Context Array Cycle"
-msgstr "دورة مصفوفة سياق"
-
-
 msgid "Context Attributes"
 msgstr "صفات السياق"
 
 
 msgid "Cycle backwards"
 msgstr "دوَر عكسيا"
-
-
-msgctxt "Operator"
-msgid "Context Enum Cycle"
-msgstr "دورة عداد السياق"
-
-
-msgid "Toggle a context value"
-msgstr "اقلب قيمة السياق"
-
-
-msgctxt "Operator"
-msgid "Context Int Cycle"
-msgstr "دورة رقم السياق"
-
-
-msgctxt "Operator"
-msgid "Context Enum Menu"
-msgstr "قائمة عداد السياق"
-
-
-msgctxt "Operator"
-msgid "Context Modal Mouse"
-msgstr "فأرة مشروطة بالسياق"
 
 
 msgid "Text to display in header during scale"
@@ -28677,27 +28792,8 @@ msgid "Invert the mouse input"
 msgstr "اعكس دخل الفأرة"
 
 
-msgctxt "Operator"
-msgid "Context Enum Pie"
-msgstr "عدد سياق القطع"
-
-
-msgctxt "Operator"
-msgid "Context Scale Float"
-msgstr "حجم القيمة الكسرية في السياق"
-
-
-msgid "Scale a float context value"
-msgstr "حجّم القيمة الكسرية في السياق"
-
-
 msgid "Assign value"
 msgstr "عين القيمة"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "حجم القيمة الصحيحة في السياق"
 
 
 msgid "Always Step"
@@ -28708,65 +28804,16 @@ msgid "Always adjust the value by a minimum of 1 when 'value' is not 1.0"
 msgstr "دائما عدّل القيمة لقيمة دنيا 1 عندما تكون 'القيمة' لا تساوي 1.0"
 
 
-msgctxt "Operator"
-msgid "Context Set Boolean"
-msgstr "ضع قيمة منطقية في السياق"
-
-
-msgid "Set a context value"
-msgstr "ضع قيمة سياق"
-
-
 msgid "Assignment value"
 msgstr "القيمة المعينة"
-
-
-msgctxt "Operator"
-msgid "Context Set Enum"
-msgstr "ضع قيمة عداد في السياق"
 
 
 msgid "Assignment value (as a string)"
 msgstr "القيمة المعينة (كنص)"
 
 
-msgctxt "Operator"
-msgid "Context Set Float"
-msgstr "ضع قيمة كسرية في السياق"
-
-
 msgid "Apply relative to the current value (delta)"
 msgstr "اجعل القيمة الحالية نسبية (مع مراعات الفرق)"
-
-
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "ضع معرف المكتبة"
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "مجموعة السياق"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "ضع قيمة نصية في السياق"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "ضع قيمة السياق"
-
-
-msgctxt "Operator"
-msgid "Context Toggle"
-msgstr "اقلب السياق"
-
-
-msgctxt "Operator"
-msgid "Context Toggle Values"
-msgstr "اقلب قيم السياق"
 
 
 msgid "Toggle enum"
@@ -28778,18 +28825,8 @@ msgid "Debug Menu"
 msgstr "قائمة التصحيح"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "اظهر التوثيق"
-
-
 msgid "Doc ID"
 msgstr "معرف الوثيقة"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "اظهر يدويا"
 
 
 msgctxt "Operator"
@@ -28810,22 +28847,8 @@ msgid "Load UI"
 msgstr "حمّل الواجهة"
 
 
-msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "ورقة خبايا العامل"
-
-
 msgid "Set the active operator to its default values"
 msgstr "ضع العظمة الفعالة كأصل للعظام المختارة"
-
-
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "إعداد مسبق للعامل"
-
-
-msgid "Add or remove an Operator Preset"
-msgstr "اضف أو الغ إعداد مسبق لعامل"
 
 
 msgctxt "Operator"
@@ -28836,11 +28859,6 @@ msgstr "صدّر PLY"
 msgctxt "Operator"
 msgid "Import PLY"
 msgstr "استورد PLY"
-
-
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "أضف سمة"
 
 
 msgid "Property Edit"
@@ -28855,22 +28873,8 @@ msgid "Context"
 msgstr "سياق"
 
 
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "عدل السمة"
-
-
 msgid "Property name edit"
 msgstr "تعديل إسم السمة"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "احذف السمة"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "استعمال داخلي (عدل سمة مسار بيانات)"
 
 
 msgctxt "Operator"
@@ -29174,6 +29178,22 @@ msgid "Palette Color"
 msgstr "لوحة اللون"
 
 
+msgid "Wire Color"
+msgstr "لون الرابط"
+
+
+msgid "Render Pass"
+msgstr "ممر تصيير"
+
+
+msgid "Motion Tracking"
+msgstr "ملاحقة الحركة"
+
+
+msgid "Transform Orientations"
+msgstr "اتجاهات التحول"
+
+
 msgid "Bone Constraints"
 msgstr "قيود العظم"
 
@@ -29276,10 +29296,6 @@ msgstr "اداء"
 
 msgid "Threads"
 msgstr "شعب"
-
-
-msgid "Render Pass"
-msgstr "ممر تصيير"
 
 
 msgid "Composition Guides"
@@ -29478,14 +29494,6 @@ msgid "Gradient Colors"
 msgstr "ارسم اللون"
 
 
-msgid "Motion Tracking"
-msgstr "ملاحقة الحركة"
-
-
-msgid "Wire Color"
-msgstr "لون الرابط"
-
-
 msgctxt "Operator"
 msgid "Draw"
 msgstr "ارسم"
@@ -29536,10 +29544,6 @@ msgstr "اضف دائرة"
 
 msgid "Pose Options"
 msgstr "خيارات الوقفة"
-
-
-msgid "Transform Orientations"
-msgstr "اتجاهات التحول"
 
 
 msgid "Face Marks"
@@ -33195,15 +33199,6 @@ msgid "View"
 msgstr "المنظر"
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "ورقة التخطيط"
-
-
-msgid "Dopesheet view for tracking data"
-msgstr "منظر محرر التخطيط لبيانات الملاحقة"
-
-
 msgid "Command line prompt language"
 msgstr "لغة نافذة لوحة الاوامر"
 
@@ -35217,10 +35212,6 @@ msgstr "خريطة قياسية مشروطة"
 msgctxt "WindowManager"
 msgid "Transform Modal Map"
 msgstr "خريطة متحوّلة مشروطة"
-
-
-msgid "Warning"
-msgstr "تحذير:"
 
 
 msgctxt "Operator"

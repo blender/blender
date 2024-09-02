@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-05-03 12:13+0000\n"
 "Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3007,6 +3007,26 @@ msgid "Pivot Point"
 msgstr "نقطه چرخش"
 
 
+msgid "Mirror"
+msgstr "آینه"
+
+
+msgid "Add Image"
+msgstr "اضافه‌کردن تصویر"
+
+
+msgid "Relations"
+msgstr "روابط"
+
+
+msgid "Apply"
+msgstr "اعمال"
+
+
+msgid "Convert"
+msgstr "تبدیل"
+
+
 msgid "Marker"
 msgstr "نشانگر"
 
@@ -3017,10 +3037,6 @@ msgstr "صاف"
 
 msgid "UV"
 msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "آینه"
 
 
 msgid "Math"
@@ -3048,10 +3064,6 @@ msgid "Physics"
 msgstr "فیزیک"
 
 
-msgid "Apply"
-msgstr "اعمال"
-
-
 msgid "Python"
 msgstr "پایتون"
 
@@ -3074,18 +3086,6 @@ msgstr "دادهٔ خارجی"
 
 msgid "Help"
 msgstr "کمک"
-
-
-msgid "Add Image"
-msgstr "اضافه‌کردن تصویر"
-
-
-msgid "Convert"
-msgstr "تبدیل"
-
-
-msgid "Relations"
-msgstr "روابط"
 
 
 msgid "Sharpness Max"
@@ -3607,6 +3607,41 @@ msgid "Object Modifiers"
 msgstr "اصلاحگرهای شیء"
 
 
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "نشانگر های 3D به مش"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "محدودیت به منحنی-F"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "حذف پروکسی"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "تنظیم به عنوان تصویر پس زمینه"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "اضافه‌کردن اصلاحگر"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "مشاهده راهنما"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "برگه تقلب کاربر"
+
+
 msgid "Toggle"
 msgstr "سویچ"
 
@@ -3688,28 +3723,13 @@ msgstr "انتخاب مشابه"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "نشانگر های 3D به مش"
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "پاک کردن ترک‌ها"
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "محدودیت به منحنی-F"
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "کپی ترک‌ها"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "حذف پروکسی"
 
 
 msgctxt "Operator"
@@ -3798,11 +3818,6 @@ msgstr "تنظیم محور"
 
 msgid "Use Median"
 msgstr "استفاده از میانه"
-
-
-msgctxt "Operator"
-msgid "Set as Background"
-msgstr "تنظیم به عنوان تصویر پس زمینه"
 
 
 msgctxt "Operator"
@@ -4005,11 +4020,6 @@ msgstr "سویچ گزینه های گره"
 msgctxt "Operator"
 msgid "Add Object"
 msgstr "افزودن شیء"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "اضافه‌کردن اصلاحگر"
 
 
 msgctxt "Operator"
@@ -4255,18 +4265,8 @@ msgid "Object Name"
 msgstr "نام شیء"
 
 
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "مشاهده راهنما"
-
-
 msgid "State"
 msgstr "وضعیت"
-
-
-msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "برگه تقلب کاربر"
 
 
 msgid "Primary Data Path"
@@ -4327,6 +4327,14 @@ msgstr "قفل کردن Z"
 
 msgid "Restrict"
 msgstr "محدود کردن"
+
+
+msgid "Motion Tracking"
+msgstr "ردیابی حرکت"
+
+
+msgid "Transform Orientations"
+msgstr "جهت تغییر شکل"
 
 
 msgid "Bone Constraints"
@@ -4417,16 +4425,8 @@ msgid "Tab"
 msgstr "Tab"
 
 
-msgid "Motion Tracking"
-msgstr "ردیابی حرکت"
-
-
 msgid "Pose Options"
 msgstr "گزینه‌های ژست"
-
-
-msgid "Transform Orientations"
-msgstr "جهت تغییر شکل"
 
 
 msgid "Image Editor"

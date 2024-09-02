@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -486,10 +486,6 @@ msgid "World"
 msgstr "Wereld"
 
 
-msgid "All"
-msgstr "Alle"
-
-
 msgid "Custom"
 msgstr "Aangepast"
 
@@ -878,6 +874,10 @@ msgstr "Materiaal"
 
 msgid "Vertex Color"
 msgstr "Kleur van Punt"
+
+
+msgid "All"
+msgstr "Alle"
 
 
 msgid "Precision"
@@ -2682,13 +2682,65 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
 
 
 msgid "Console"
@@ -2705,14 +2757,6 @@ msgstr "Kanaal"
 
 msgid "Smooth"
 msgstr "Glad"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
 
 
 msgid "Import"
@@ -2734,10 +2778,6 @@ msgstr "Genereer"
 msgctxt "Operator"
 msgid "Scene"
 msgstr "Scene"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
 
 
 msgid "Text to 3D Object"
@@ -2780,49 +2820,9 @@ msgid "Save & Load"
 msgstr "Opslaan & Laden"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Ouder"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
 
 
 msgid "Loose"
@@ -3158,6 +3158,10 @@ msgid "Set Position"
 msgstr "Zet Positie"
 
 
+msgid "Warning"
+msgstr "Waarschuwing"
+
+
 msgid "Layer Weight"
 msgstr "Invloed van Laag"
 
@@ -3228,6 +3232,165 @@ msgstr "Actieve Node"
 
 msgid "Active Modifier"
 msgstr "Actieve Aanpasser"
+
+
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "Verwijden Nutteloze Acties"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Toon Alles"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "Verwijder Proxy"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "Zet Actieve Clip"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Gebruik Nodes"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Exporteer BVH"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Exporteer FBX"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "Pas Project Toe"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Importeer BVH"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Importeer SVG"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "Importeer FBX"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Voeg Donut Toe"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "Bak Actie"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "Voeg Node Toe"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Voeg Aanpasser Toe"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "Snel Explosie"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "Snel Haar"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "Snel Rook"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Nieuw"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "Selecteer Camera"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "Selecteer Hiërarchie"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "Selecteer Patroon"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "Transporteer Sleutelvorm"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Ververs"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "Speel gerenderde frames af in een externe speler"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Speel gerenderde Animatie"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "Kopieer Star Lichaam Instellingen"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "Exporteer UV Indeling"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "Voeg Eigenschap Toe"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "Bewerk Eigenschap"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "Verwijder Eigenschap"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Systeem Informatie Opslaan"
 
 
 msgctxt "Operator"
@@ -3425,11 +3588,6 @@ msgstr "Zet Kanaal Uit Groep"
 
 
 msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "Verwijden Nutteloze Acties"
-
-
-msgctxt "Operator"
 msgid "Set End Frame"
 msgstr "Zet Eindframe"
 
@@ -3483,11 +3641,6 @@ msgstr "Voeg Bot Toe"
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Toon Alles"
-
-
-msgctxt "Operator"
 msgid "Extrude"
 msgstr "Uitrekken"
 
@@ -3524,11 +3677,6 @@ msgstr "Toon Verborgen"
 msgctxt "Operator"
 msgid "(De)select All"
 msgstr "(De)selecteer Alles"
-
-
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "Selecteer Hiërarchie"
 
 
 msgid "Select Parent"
@@ -3629,11 +3777,6 @@ msgstr "Verwijder Markering"
 
 
 msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "Verwijder Proxy"
-
-
-msgctxt "Operator"
 msgid "Delete Track"
 msgstr "Verwijder Baan"
 
@@ -3681,11 +3824,6 @@ msgstr "Open Clip"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Plak Banen"
-
-
-msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "Zet Actieve Clip"
 
 
 msgctxt "Operator"
@@ -3855,11 +3993,6 @@ msgid "Smooth"
 msgstr "Glad"
 
 
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "Gebruik Nodes"
-
-
 msgid "Output A"
 msgstr "Uitvoer A"
 
@@ -3881,16 +4014,6 @@ msgstr "Maak Ongedaan"
 msgctxt "Operator"
 msgid "Undo History"
 msgstr "Ongedaan Maak Geschiedenis"
-
-
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "Exporteer BVH"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "Exporteer FBX"
 
 
 msgid "Baked Animation"
@@ -4378,11 +4501,6 @@ msgstr "Pak Afbeelding In"
 
 
 msgctxt "Operator"
-msgid "Project Apply"
-msgstr "Pas Project Toe"
-
-
-msgctxt "Operator"
 msgid "Replace Image"
 msgstr "Vervang Afbeelding"
 
@@ -4418,21 +4536,6 @@ msgstr "Zoom in/uit op de afbeelding"
 
 msgid "Zoom Out"
 msgstr "Zoom Uit"
-
-
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "Importeer BVH"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Importeer SVG"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "Importeer FBX"
 
 
 msgid "Import Animation"
@@ -4637,11 +4740,6 @@ msgstr "Voeg Vlak Toe"
 
 
 msgctxt "Operator"
-msgid "Add Torus"
-msgstr "Voeg Donut Toe"
-
-
-msgctxt "Operator"
 msgid "Add UV Sphere"
 msgstr "Voeg UV Bol Toe"
 
@@ -4658,11 +4756,6 @@ msgstr "Koppel Punt"
 msgctxt "Operator"
 msgid "Apply Scale"
 msgstr "Pas Schaal Toe"
-
-
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "Bak Actie"
 
 
 msgctxt "Operator"
@@ -4726,11 +4819,6 @@ msgstr "Voeg Bestand-node Toe"
 msgctxt "Operator"
 msgid "Add Mask Node"
 msgstr "Voeg Masker-node Toe"
-
-
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "Voeg Node Toe"
 
 
 msgctxt "Operator"
@@ -4803,11 +4891,6 @@ msgstr "Verander Grote van Node"
 msgctxt "Operator"
 msgid "Add Object"
 msgstr "Voeg Object Toe"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Voeg Aanpasser Toe"
 
 
 msgctxt "Operator"
@@ -5034,38 +5117,13 @@ msgid "X Mirror"
 msgstr "X Spiegel"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "Snel Explosie"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "Snel Haar"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "Snel Rook"
-
-
 msgid "Smoke & Fire"
 msgstr "Rook & Vuur"
 
 
 msgctxt "Operator"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "Maak Rotatie Schoon"
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "Selecteer Camera"
 
 
 msgid "Light Type"
@@ -5074,11 +5132,6 @@ msgstr "Licht Type"
 
 msgid "Child"
 msgstr "Kind"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "Selecteer Patroon"
 
 
 msgctxt "ID"
@@ -5109,11 +5162,6 @@ msgstr "Verplaats Sleutelvorm"
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Verwijder Sleutelvorm"
-
-
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "Transporteer Sleutelvorm"
 
 
 msgctxt "Operator"
@@ -5409,22 +5457,8 @@ msgid "Apply Visual Transform to Pose"
 msgstr "Pas Visuele Transformatie Toe aan Pose"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Ververs"
-
-
 msgid "Keep Original"
 msgstr "Hou Orgineel"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "Speel gerenderde Animatie"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "Speel gerenderde frames af in een externe speler"
 
 
 msgctxt "Operator"
@@ -5476,11 +5510,6 @@ msgstr "Passief"
 msgctxt "Operator"
 msgid "Remove Rigid Body"
 msgstr "Verwijder Star Lichaam"
-
-
-msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "Kopieer Star Lichaam Instellingen"
 
 
 msgctxt "Operator"
@@ -6067,11 +6096,6 @@ msgid "Cylinder Projection"
 msgstr "Cylinder Projectie"
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "Exporteer UV Indeling"
-
-
 msgid "Selected Faces"
 msgstr "Geselecteerde Vlakken"
 
@@ -6232,21 +6256,6 @@ msgstr "Alle Types"
 
 
 msgctxt "Operator"
-msgid "Add Property"
-msgstr "Voeg Eigenschap Toe"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "Bewerk Eigenschap"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "Verwijder Eigenschap"
-
-
-msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "Blender Afsluiten"
 
@@ -6352,11 +6361,6 @@ msgstr "Exporteer STL"
 msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importeer STL"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Systeem Informatie Opslaan"
 
 
 msgctxt "Operator"
@@ -7208,10 +7212,6 @@ msgstr "Animatie Kanalen"
 msgctxt "Operator"
 msgid "None"
 msgstr "Niets"
-
-
-msgid "Warning"
-msgstr "Waarschuwing"
 
 
 msgid ":"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
-"PO-Revision-Date: 2024-08-22 06:56+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"PO-Revision-Date: 2024-08-26 19:22+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -1643,10 +1643,6 @@ msgstr "资产库"
 
 msgid "Choose the asset library to display assets from"
 msgstr "添加要显示的资产库"
-
-
-msgid "All"
-msgstr "全部"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -4860,6 +4856,10 @@ msgstr "填充反相区域"
 
 msgid "Mode to draw boundary limits"
 msgstr "绘制边缘的限制模式"
+
+
+msgid "All"
+msgstr "全部"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -33411,6 +33411,230 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Special Characters"
+msgstr "特殊字符"
+
+
+msgid "Kerning"
+msgstr "字距"
+
+
+msgid "Names"
+msgstr "名称"
+
+
+msgid "Bone Roll"
+msgstr "骨骼扭转"
+
+
+msgid "Generate Weights"
+msgstr "生成权重"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
+
+
+msgid "Cleanup"
+msgstr "清理"
+
+
+msgid "Pivot Point"
+msgstr "轴心点"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "衰减编辑的衰减方式"
+
+
+msgid "Mask Edit"
+msgstr "遮罩编辑"
+
+
+msgid "Automasking"
+msgstr "自动遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面组编辑"
+
+
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
+msgid "Mirror"
+msgstr "镜像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射"
+
+
+msgid "Local View"
+msgstr "局部视图"
+
+
+msgid "Viewpoint"
+msgstr "视图"
+
+
+msgid "Navigation"
+msgstr "视图切换"
+
+
+msgid "Align View"
+msgstr "对齐视图"
+
+
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
+
+
+msgid "View Regions"
+msgstr "视图框"
+
+
+msgid "Select More/Less"
+msgstr "扩展/缩减选择"
+
+
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
+msgid "Select Linked"
+msgstr "选择相连元素"
+
+
+msgid "Select Loops"
+msgstr "选择循环"
+
+
+msgid "Add Image"
+msgstr "添加图像"
+
+
+msgid "Relations"
+msgstr "关系"
+
+
+msgid "Rigid Body"
+msgstr "刚体"
+
+
+msgid "Apply"
+msgstr "应用"
+
+
+msgid "Track"
+msgstr "追踪"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Asset"
+msgstr "资产"
+
+
+msgid "Make Single User"
+msgstr "使其独立化"
+
+
+msgid "Convert"
+msgstr "转换"
+
+
+msgid "Link/Transfer Data"
+msgstr "关联/传递数据"
+
+
+msgid "Hooks"
+msgstr "钩挂"
+
+
+msgid "Trim/Add"
+msgstr "修剪 / 添加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻集轴心点"
+
+
+msgid "Face Sets Init"
+msgstr "面组初始化"
+
+
+msgid "Random Mask"
+msgstr "随机遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清空变换"
+
+
+msgid "In-Betweens"
+msgstr "间帧调整"
+
+
+msgid "Propagate"
+msgstr "传导"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集合"
+
+
+msgid "Toggle Bone Options"
+msgstr "切换骨骼设置"
+
+
+msgid "Enable Bone Options"
+msgstr "启用骨骼设置"
+
+
+msgid "Disable Bone Options"
+msgstr "禁用骨骼设置"
+
+
+msgid "Mesh Select Mode"
+msgstr "网格选择模式"
+
+
+msgid "Face Data"
+msgstr "面数据"
+
+
+msgid "Select by Face Strength"
+msgstr "按面强度选择"
+
+
+msgid "Set Face Strength"
+msgstr "设置面强度"
+
+
+msgid "Merge"
+msgstr "合并"
+
+
 msgid "Keyframe Insert Pie"
 msgstr "插入关键帧饼菜单"
 
@@ -33427,20 +33651,12 @@ msgid "Bone Collection Specials"
 msgstr "骨骼集合专用项"
 
 
-msgid "Bone Collections"
-msgstr "骨骼集合"
-
-
 msgid "Add -> Armature -> Rigify Meta-Rigs."
 msgstr "添加 -> 骨架-> Rigify 元骨骼."
 
 
 msgid "Rigify Meta-Rigs"
 msgstr "Rigify 元骨骼"
-
-
-msgid "Asset"
-msgstr "资产"
 
 
 msgid "Catalog"
@@ -33458,10 +33674,6 @@ msgstr "剪辑"
 
 msgid "Marker Settings"
 msgstr "标记设置"
-
-
-msgid "Pivot Point"
-msgstr "轴心点"
 
 
 msgid "Plane Track Image Specials"
@@ -33492,24 +33704,12 @@ msgid "Rotation Track Specials"
 msgstr "旋转轨迹专用项"
 
 
-msgid "Track"
-msgstr "追踪"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Track Motion"
 msgstr "追踪运动"
 
 
 msgid "Refine"
 msgstr "改善"
-
-
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
 
 
 msgid "Context Menu"
@@ -33559,10 +33759,6 @@ msgstr "通道"
 
 msgid "Marker"
 msgstr "标记"
-
-
-msgid "Snap"
-msgstr "吸附"
 
 
 msgid "Bookmarks Specials"
@@ -33617,24 +33813,12 @@ msgid "Add Mask"
 msgstr "添加遮罩"
 
 
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
 msgid "UV"
 msgstr "UV"
 
 
 msgid "Align"
 msgstr "对齐"
-
-
-msgid "Merge"
-msgstr "合并"
-
-
-msgid "Mirror"
-msgstr "镜像"
 
 
 msgid "UV Select Mode"
@@ -33889,14 +34073,6 @@ msgid "Sequencer"
 msgstr "序列编辑器"
 
 
-msgid "Apply"
-msgstr "应用"
-
-
-msgid "Navigation"
-msgstr "视图切换"
-
-
 msgid "Sequencer Preview"
 msgstr "序列编辑器预览"
 
@@ -34062,28 +34238,8 @@ msgid "Save & Load"
 msgstr "保存&加载"
 
 
-msgid "Assign Material"
-msgstr "指定材质"
-
-
-msgid "Disable Bone Options"
-msgstr "禁用骨骼设置"
-
-
-msgid "Enable Bone Options"
-msgstr "启用骨骼设置"
-
-
-msgid "Toggle Bone Options"
-msgstr "切换骨骼设置"
-
-
 msgid "Brush Specials"
 msgstr "笔刷专用项"
-
-
-msgid "Names"
-msgstr "名称"
 
 
 msgctxt "Operator"
@@ -34091,173 +34247,17 @@ msgid "Parent"
 msgstr "父级"
 
 
-msgid "Bone Roll"
-msgstr "骨骼扭转"
-
-
-msgid "Select More/Less"
-msgstr "扩展/缩减选择"
-
-
-msgid "Special Characters"
-msgstr "特殊字符"
-
-
-msgid "Kerning"
-msgstr "字距"
-
-
-msgid "Cleanup"
-msgstr "清理"
-
-
-msgid "Face Data"
-msgstr "面数据"
-
-
-msgid "Select by Face Strength"
-msgstr "按面强度选择"
-
-
-msgid "Set Face Strength"
-msgstr "设置面强度"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Select Loops"
-msgstr "选择循环"
-
-
-msgid "Mesh Select Mode"
-msgstr "网格选择模式"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Face Sets Init"
-msgstr "面组初始化"
-
-
-msgid "Generate Weights"
-msgstr "生成权重"
-
-
-msgid "Hooks"
-msgstr "钩挂"
-
-
-msgid "Add Image"
-msgstr "添加图像"
-
-
-msgid "Link/Transfer Data"
-msgstr "关联/传递数据"
-
-
-msgid "Make Single User"
-msgstr "使其独立化"
-
-
-msgid "Convert"
-msgstr "转换"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Relations"
-msgstr "关系"
-
-
-msgid "Rigid Body"
-msgstr "刚体"
-
-
 msgctxt "Constraint"
 msgid "Track"
 msgstr "追踪"
-
-
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
-
-
-msgid "Propagate"
-msgstr "传导"
-
-
-msgid "In-Betweens"
-msgstr "间帧调整"
-
-
-msgid "Clear Transform"
-msgstr "清空变换"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "衰减编辑的衰减方式"
-
-
-msgid "Random Mask"
-msgstr "随机遮罩"
 
 
 msgid "Rigify"
 msgstr "Rigify"
 
 
-msgid "Automasking"
-msgstr "自动遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面组编辑"
-
-
-msgid "Mask Edit"
-msgstr "遮罩编辑"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻集轴心点"
-
-
-msgid "Trim/Add"
-msgstr "修剪 / 添加"
-
-
 msgid "Clone Layer"
 msgstr "克隆图层"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "View Regions"
-msgstr "视图框"
-
-
-msgid "Viewpoint"
-msgstr "视图"
 
 
 msgid "Landmark Controls"
@@ -48631,6 +48631,10 @@ msgid "Generate a mesh on the \"surface\" of a volume"
 msgstr "在体积的“表面”上生成网格"
 
 
+msgid "Warning"
+msgstr "警告"
+
+
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "框"
@@ -51506,10 +51510,6 @@ msgid "Object Base"
 msgstr "物体基础"
 
 
-msgid "An object instance in a render layer"
-msgstr "渲染层中的物体实例"
-
-
 msgid "Object this base links to"
 msgstr "链接的物体基础"
 
@@ -51624,6 +51624,2739 @@ msgstr "物体着色器效果"
 
 msgid "Collection of object effects"
 msgstr "物体效果集合"
+
+
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "添加材质变量"
+
+
+msgctxt "Operator"
+msgid "Display Variant"
+msgstr "显示变量"
+
+
+msgctxt "Operator"
+msgid "Assign To Variant"
+msgstr "指定到变量"
+
+
+msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "指定为原始"
+
+
+msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
+msgstr "对无函数曲线的动作进行标记, 用于对存储及重载文件后所保留的 \"动作库\" 进行删除"
+
+
+msgctxt "Operator"
+msgid "Clear Useless Actions"
+msgstr "清空无用动作"
+
+
+msgid "Export Keying Set to a Python script"
+msgstr "将插帧集导出为 Python 脚本"
+
+
+msgctxt "Operator"
+msgid "Export Keying Set..."
+msgstr "导出插帧集..."
+
+
+msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
+msgstr "更新影响变换约束的函数曲线/驱动器(用于 2.70 及更早版本的文件)"
+
+
+msgctxt "Operator"
+msgid "Update Animated Transform Constraints"
+msgstr "更新动画变换约束"
+
+
+msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
+msgstr "移除所有未包含骨骼也不含子级的骨骼集合。这是递归操作，因此仅包含未使用子级的骨骼集合也会被移除"
+
+
+msgctxt "Operator"
+msgid "Remove Unused Bone Collections"
+msgstr "移除未使用的骨骼集合"
+
+
+msgid "Show all bone collections"
+msgstr "显示全部骨骼集合"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "显示全部"
+
+
+msgid "Clear the 'solo' setting on all bone collections"
+msgstr "清除所有骨骼集合的 '孤立' 设置"
+
+
+msgctxt "Operator"
+msgid "Un-solo All"
+msgstr "全部取消孤立"
+
+
+msgid "Copy the bone color of the active bone to all selected bones"
+msgstr "复制活动骨骼颜色到全部选中的骨骼"
+
+
+msgctxt "Operator"
+msgid "Copy Colors to Selected"
+msgstr "复制颜色到选中的骨骼"
+
+
+msgid "Create a sample metarig to be modified before generating the final rig"
+msgstr "在生成最终绑定前，创建一个元骨骼范例用于修改"
+
+
+msgctxt "Operator"
+msgid "Add Metarig Sample"
+msgstr "添加元骨骼范例"
+
+
+msgctxt "Operator"
+msgid "Rigify Add Standard Color Sets"
+msgstr "RIgify 添加标准配色集"
+
+
+msgctxt "Operator"
+msgid "Rigify Apply user defined active/select colors"
+msgstr "Rigify 应用用户定义的 活动/选择 颜色"
+
+
+msgctxt "Operator"
+msgid "Add/Remove UI Rows"
+msgstr "添加/移除 UI 行"
+
+
+msgctxt "Operator"
+msgid "Make Collection Active"
+msgstr "使集合为活动"
+
+
+msgctxt "Operator"
+msgid "Move Between UI Rows"
+msgstr "UI 行之间移动"
+
+
+msgctxt "Operator"
+msgid "Rigify Add Color Set"
+msgstr "Rigify 添加配色集"
+
+
+msgctxt "Operator"
+msgid "Rigify Add Color Set from Theme"
+msgstr "Rigify 从主题中添加配色集"
+
+
+msgctxt "Operator"
+msgid "Rigify Remove Color Set"
+msgstr "Rigify 移除配色集"
+
+
+msgctxt "Operator"
+msgid "Rigify Remove All Color Sets"
+msgstr "Rigify 移除所有配色集"
+
+
+msgid "Create Python code that will generate the selected metarig"
+msgstr "创建将要生成选定元骨骼的Python代码"
+
+
+msgctxt "Operator"
+msgid "Rigify Encode Metarig"
+msgstr "Rigify 编码元骨骼"
+
+
+msgid "Create Python code that will generate the selected metarig as a sample"
+msgstr "创建将把选中的元骨骼作为范例的Python代码"
+
+
+msgctxt "Operator"
+msgid "Rigify Encode Metarig Sample"
+msgstr "Rigify 编码元骨骼范例"
+
+
+msgctxt "Operator"
+msgid "Rigify Upgrade Metarig Layers"
+msgstr "Rigify 升级元骨骼层"
+
+
+msgctxt "Operator"
+msgid "Rigify Get active/select colors from current theme"
+msgstr "Rigify 从当前主题中获取 活动/选择 颜色"
+
+
+msgctxt "Operator"
+msgid "Validate Collection References"
+msgstr "验证集合引用"
+
+
+msgctxt "Operator"
+msgid "Assign Action"
+msgstr "指定动作"
+
+
+msgid "Open the blend file that contains the active asset"
+msgstr "打开包含活动资产的Blender文件"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "打开Blender文件"
+
+
+msgid "Add a new keyword tag to the active asset"
+msgstr "向活动资产添加新关键字标签"
+
+
+msgctxt "Operator"
+msgid "Add Asset Tag"
+msgstr "添加资产标签"
+
+
+msgid "Remove an existing keyword tag from the active asset"
+msgstr "从活动资产中删除现有关键字标签"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Tag"
+msgstr "删除资产标签"
+
+
+msgid "Add or remove a Camera Preset"
+msgstr "添加或删除一个摄像机预设"
+
+
+msgctxt "Operator"
+msgid "Add Camera Preset"
+msgstr "添加摄像机预设"
+
+
+msgid "Add or remove a Safe Areas Preset"
+msgstr "添加或删除一个安全区预设"
+
+
+msgctxt "Operator"
+msgid "Add Safe Area Preset"
+msgstr "添加安全区预设"
+
+
+msgid "Create vertex cloud using coordinates of reconstructed tracks"
+msgstr "使用已重建轨迹的坐标创建顶点云"
+
+
+msgctxt "Operator"
+msgid "3D Markers to Mesh"
+msgstr "网格 3D 标记"
+
+
+msgid "Add or remove a Tracking Camera Intrinsics Preset"
+msgstr "添加或移除一个追踪摄像机固有参数预设"
+
+
+msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
+msgstr "为将要复制由约束器引发的物体运动运距的物体创建函数曲线"
+
+
+msgctxt "Operator"
+msgid "Constraint to F-Curve"
+msgstr "约束到函数曲线"
+
+
+msgid "Delete movie clip proxy files from the hard drive"
+msgstr "从硬盘中删除影片剪辑代理文件"
+
+
+msgctxt "Operator"
+msgid "Delete Proxy"
+msgstr "删除代理"
+
+
+msgid "Filter tracks which has weirdly looking spikes in motion curves"
+msgstr "过滤在运动曲线上存在怪异尖峰的轨迹"
+
+
+msgctxt "Operator"
+msgid "Filter Tracks"
+msgstr "过滤追踪轨"
+
+
+msgctxt "Operator"
+msgid "Set Active Clip"
+msgstr "设置活动剪辑"
+
+
+msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
+msgstr "使用当前影片剪辑, 作为3D窗口中的摄像机背景图(仅当3D视口可见时有效)"
+
+
+msgctxt "Operator"
+msgid "Set as Background"
+msgstr "设为背景图"
+
+
+msgid "Prepare scene for compositing 3D objects into this footage"
+msgstr "准备场景, 用于将三维物体合成到镜头中"
+
+
+msgctxt "Operator"
+msgid "Setup Tracking Scene"
+msgstr "设置追踪场景"
+
+
+msgid "Add or remove a Clip Track Color Preset"
+msgstr "添加或移除一个剪辑追踪颜色预设"
+
+
+msgctxt "Operator"
+msgid "Add Track Color Preset"
+msgstr "添加轨迹颜色预设"
+
+
+msgid "Copy tracking settings from active track to default settings"
+msgstr "将追踪设置从活动轨迹复制到默认设置中"
+
+
+msgctxt "Operator"
+msgid "Track Settings as Default"
+msgstr "设为缺省的轨迹设置"
+
+
+msgid "Copy tracking settings from active track to selected tracks"
+msgstr "将追踪设置从活动轨迹复制到选中轨迹中"
+
+
+msgctxt "Operator"
+msgid "Copy Track Settings"
+msgstr "复制轨迹设置"
+
+
+msgid "Create an Empty object which will be copying movement of active track"
+msgstr "创建一个空物体, 将用于复制激活轨迹的运动"
+
+
+msgctxt "Operator"
+msgid "Link Empty to Track"
+msgstr "将空物体链接到轨迹"
+
+
+msgid "Add or remove a motion tracking settings preset"
+msgstr "添加或移除一个运动追踪设置预设"
+
+
+msgctxt "Operator"
+msgid "Add Tracking Settings Preset"
+msgstr "添加追踪设置预设"
+
+
+msgid "Add or remove a Cloth Preset"
+msgstr "新增或移除布料预设"
+
+
+msgctxt "Operator"
+msgid "Add Cloth Preset"
+msgstr "新增布料预设"
+
+
+msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
+msgstr "计算直至光标处的名称空间, 并提供选项列表, 如果仅有一个选项, 则补全名称"
+
+
+msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "控制台自动补全"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "当终端初始化时打印信息"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "控制台横条"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "复制控制台内容, 以用于脚本"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "复制到剪贴板 (作为脚本)"
+
+
+msgid "Execute the current console line as a Python expression"
+msgstr "将当前控制台行命令作为Python表达式执行"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "控制台执行"
+
+
+msgid "Set the current language for this console"
+msgstr "为控制台设置当前语言"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "控制台语言"
+
+
+msgid "Add a target to the constraint"
+msgstr "对约束添加目标"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "添加目标"
+
+
+msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
+msgstr "当尝试维持对象的变换时, 将此约束的影响设置为零。其他活动的约束仍然会影响最终的变换"
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "禁用并保持变换"
+
+
+msgid "Normalize weights of all target bones"
+msgstr "归一化所有目标骨骼的权重"
+
+
+msgctxt "Operator"
+msgid "Normalize Weights"
+msgstr "将权重规格化"
+
+
+msgid "Remove the target from the constraint"
+msgstr "从约束中删除目标"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "删除目标"
+
+
+msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
+msgstr "使用当前场景和视图图层设置对渲染动画序列降噪。需要降噪数据通道并且输出为OpenEXR 多层文件"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "动画降噪"
+
+
+msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
+msgstr "将不同采样范围渲染的OpenEXR多层图像合并到一个低噪点的图像中"
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "合并图像"
+
+
+msgid "Enable nodes on a material, world or light"
+msgstr "在材质、世界或灯光上启用节点"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "使用节点"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "从骨架中保存一个 BVH 运动捕捉文件"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "导出 BVH"
+
+
+msgid "Write a FBX file"
+msgstr "写出FBX文件"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "导出 FBX"
+
+
+msgid "Export scene as glTF 2.0 file"
+msgstr "导出场景为glTF 2.0文件"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "导出 glTF 2.0"
+
+
+msgctxt "Operator"
+msgid "Ext Demo"
+msgstr "扩展演示"
+
+
+msgid "Turn off this extension"
+msgstr "关闭此扩展"
+
+
+msgctxt "Operator"
+msgid "Disable extension"
+msgstr "禁用扩展"
+
+
+msgid "Turn on this extension"
+msgstr "打开此扩展"
+
+
+msgctxt "Operator"
+msgid "Enable Extension"
+msgstr "启用扩展"
+
+
+msgid "Download and install the extension"
+msgstr "下载并安装扩展"
+
+
+msgctxt "Operator"
+msgid "Install Extension"
+msgstr "安装扩展"
+
+
+msgid "Install extensions from files into a locally managed repository"
+msgstr "从文件安装扩展到一个本地管理的存储库"
+
+
+msgctxt "Operator"
+msgid "Install from Disk"
+msgstr "从磁盘安装"
+
+
+msgctxt "Operator"
+msgid "Ext Package Install_marked"
+msgstr "扩展包安装标记"
+
+
+msgctxt "Operator"
+msgid "Clear Marked Package"
+msgstr "清除标记的程序包"
+
+
+msgctxt "Operator"
+msgid "Clear All Marked Packages"
+msgstr "清除所有标记的程序包"
+
+
+msgctxt "Operator"
+msgid "Mark Package"
+msgstr "标记程序包"
+
+
+msgctxt "Operator"
+msgid "Mark All Packages"
+msgstr "标记所有程序包"
+
+
+msgid "Zeroes package versions, useful for development - to test upgrading"
+msgstr "Zeroes软件包版本，适用于从开发到测试的升级"
+
+
+msgctxt "Operator"
+msgid "Obsolete Marked"
+msgstr "废弃已标记项"
+
+
+msgctxt "Operator"
+msgid "Show Package Clear"
+msgstr "显示程序包清除"
+
+
+msgctxt "Operator"
+msgid "Show Package Set"
+msgstr "显示程序包集"
+
+
+msgctxt "Operator"
+msgid "Show Settings"
+msgstr "显示设置"
+
+
+msgid "Turn off this theme"
+msgstr "关闭此主题"
+
+
+msgctxt "Operator"
+msgid "Disable theme extension"
+msgstr "禁用主题扩展"
+
+
+msgctxt "Operator"
+msgid "Enable theme extension"
+msgstr "启用主题扩展"
+
+
+msgid "Disable and uninstall the extension"
+msgstr "禁用并卸载扩展"
+
+
+msgctxt "Operator"
+msgid "Ext Package Uninstall"
+msgstr "扩展包卸载"
+
+
+msgctxt "Operator"
+msgid "Ext Package Uninstall Marked"
+msgstr "扩展包卸载标记"
+
+
+msgctxt "Operator"
+msgid "Uninstall"
+msgstr "卸载"
+
+
+msgid "Upgrade all the extensions to their latest version for all the remote repositories"
+msgstr "升级所有远程存储库的所有扩展到其最新版本"
+
+
+msgctxt "Operator"
+msgid "Install Available Updates"
+msgstr "安装可用的更新"
+
+
+msgctxt "Operator"
+msgid "Enable Repository from Drop"
+msgstr "在下拉面板中开启存储库"
+
+
+msgid "Lock repositories - to test locking"
+msgstr "锁定存储库 - 测试锁定"
+
+
+msgctxt "Operator"
+msgid "Lock All Repositories (Testing)"
+msgstr "锁定全部存储库 (测试中)"
+
+
+msgid "Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). Any issues are reported as warnings"
+msgstr "扫描扩展和旧式插件的模块和元数据的更改（类似于重新启动）.任何问题都会以警告形式报告"
+
+
+msgctxt "Operator"
+msgid "Refresh Local"
+msgstr "刷新本地"
+
+
+msgctxt "Operator"
+msgid "Ext Repo Sync"
+msgstr "扩展报告同步"
+
+
+msgid "Refresh the list of extensions for all the remote repositories"
+msgstr "刷新所有远程存储库的扩展列表"
+
+
+msgctxt "Operator"
+msgid "Refresh Remote"
+msgstr "刷新远程"
+
+
+msgid "Remove the repository file-system lock"
+msgstr "移除存储库文件系统锁"
+
+
+msgctxt "Operator"
+msgid "Force Unlock Active Repository"
+msgstr "强制解锁活动存储库"
+
+
+msgid "Unlock repositories - to test unlocking"
+msgstr "解锁存储库 - 测试解锁"
+
+
+msgctxt "Operator"
+msgid "Unlock All Repositories (Testing)"
+msgstr "解锁全部存储库 (测试中)"
+
+
+msgctxt "Operator"
+msgid "Clear Status"
+msgstr "清除状态"
+
+
+msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
+msgstr "允许互联网访问。Blender可以访问已配置的在线扩展存储库。已安装的第三方插件可以访问互联网以获得其自身的功能"
+
+
+msgid "Open extensions preferences"
+msgstr "打开扩展设置"
+
+
+msgid "Show system preferences \"Network\" panel to allow online access"
+msgstr "显示系统设置 \"网络\" 面板以允许联机访问"
+
+
+msgid "Set the value of all tags"
+msgstr "设置所有标签值"
+
+
+msgctxt "Operator"
+msgid "Set Extension Tags"
+msgstr "设置扩展标签"
+
+
+msgid "Add or remove a Fluid Preset"
+msgstr "新增或删除一个流体预设"
+
+
+msgctxt "Operator"
+msgid "Add Fluid Preset"
+msgstr "新增流体预设"
+
+
+msgid "Switch tint colors"
+msgstr "切换染色"
+
+
+msgctxt "Operator"
+msgid "Flip Colors"
+msgstr "翻转颜色"
+
+
+msgid "Convert selected reference images to textured mesh plane"
+msgstr "将选中的参考图像转换为具有纹理的网格平面"
+
+
+msgctxt "Operator"
+msgid "Convert Image Empty to Mesh Plane"
+msgstr "将图像空物体转换为网格平面"
+
+
+msgid "Edit image in an external application"
+msgstr "在外部程序中编辑图像"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "外部编辑图像"
+
+
+msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
+msgstr "从图像文件创建带适当宽高比的网格平面"
+
+
+msgctxt "Operator"
+msgid "Import Images as Planes"
+msgstr "导入图像为平面"
+
+
+msgctxt "Operator"
+msgid "Open Images"
+msgstr "打开图像"
+
+
+msgid "Project edited image back onto the object"
+msgstr "将编辑过图像投射回物体上"
+
+
+msgctxt "Operator"
+msgid "Project Apply"
+msgstr "应用投射"
+
+
+msgid "Edit a snapshot of the 3D Viewport in an external image editor"
+msgstr "在外部图像编辑器中编辑3D视口截图"
+
+
+msgctxt "Operator"
+msgid "Project Edit"
+msgstr "编辑投射"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "加载一个 BVH 运动捕捉文件"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "导入 BVH"
+
+
+msgid "Load a SVG file"
+msgstr "加载 SVG 文件"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "导入 SVG"
+
+
+msgid "Load a FBX file"
+msgstr "加载FBX文件"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "导入 FBX"
+
+
+msgid "Load a glTF 2.0 file"
+msgstr "加载 glTF 2.0 文件"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "导入 glTF 2.0"
+
+
+msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
+msgstr "复制沿 X 轴镜像的 UV 坐标, 基于一个镜像网格"
+
+
+msgctxt "Operator"
+msgid "Copy Mirrored UV Coords"
+msgstr "复制镜像 UV 坐标"
+
+
+msgid "Construct a torus mesh"
+msgstr "创建一个圆环网格"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "添加环体"
+
+
+msgctxt "Operator"
+msgid "Rigify Encode Widget"
+msgstr "Rigify 编码小部件"
+
+
+msgid "Select the next element (using selection order)"
+msgstr "选择下一个元素(根据选择次序)"
+
+
+msgctxt "Operator"
+msgid "Select Next Element"
+msgstr "选择下一个元素"
+
+
+msgid "Select the previous element (using selection order)"
+msgstr "选择上一个元素(根据选择次序)"
+
+
+msgctxt "Operator"
+msgid "Select Previous Element"
+msgstr "选择上一个元素"
+
+
+msgid "Bake all selected objects location/scale/rotation animation to an action"
+msgstr "将所有选中物体的位置/缩放/旋转动画数据烘焙到一个动作"
+
+
+msgctxt "Operator"
+msgid "Bake Action"
+msgstr "烘焙动作"
+
+
+msgid "Add a node to the active tree"
+msgstr "为活动节点树添加一个节点"
+
+
+msgctxt "Operator"
+msgid "Add Node"
+msgstr "添加节点"
+
+
+msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
+msgstr "添加一个重复区，允许多次运行节点"
+
+
+msgctxt "Operator"
+msgid "Add Repeat Zone"
+msgstr "添加重复区"
+
+
+msgid "Add simulation zone input and output nodes to the active tree"
+msgstr "添加一个带输入和输出节点的模拟区"
+
+
+msgctxt "Operator"
+msgid "Add Simulation Zone"
+msgstr "添加模拟区"
+
+
+msgid "Toggle collapsed nodes and hide unused sockets"
+msgstr "切换已收起节点, 并隐藏闲置接口"
+
+
+msgctxt "Operator"
+msgid "Collapse and Hide Unused Sockets"
+msgstr "折叠并隐藏未使用的接口"
+
+
+msgctxt "Operator"
+msgid "Connect to Output"
+msgstr "连接到输出端"
+
+
+msgctxt "Operator"
+msgid "glTF Material Output"
+msgstr "glTF材质输出"
+
+
+msgid "Add a copy of the active item to the interface"
+msgstr "在界面上添加一个激活条目的副本"
+
+
+msgctxt "Operator"
+msgid "Duplicate Item"
+msgstr "复制条目"
+
+
+msgid "Add a new item to the interface"
+msgstr "给界面添加一个新的条目"
+
+
+msgctxt "Operator"
+msgid "New Item"
+msgstr "新建条目"
+
+
+msgid "Remove active item from the interface"
+msgstr "从界面上移除活动的条目"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "移除条目"
+
+
+msgid "Create a new geometry node group and assign it to the active modifier"
+msgstr "创建新的几何节点组，并为其指定活动修改器"
+
+
+msgctxt "Operator"
+msgid "Assign New Geometry Node Group"
+msgstr "指定新的几何节点组"
+
+
+msgid "Create a new geometry node group for a tool"
+msgstr "给一个工具创建一个新的几何节点组"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Tool Group"
+msgstr "新建几何节点工具组"
+
+
+msgid "Create a new modifier with a new geometry node group"
+msgstr "使用新的几何节点组创建新修改器"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Modifier"
+msgstr "新建几何节点修改器"
+
+
+msgid "Add or remove a Node Color Preset"
+msgstr "添加或删除一个节点颜色预设"
+
+
+msgctxt "Operator"
+msgid "Add Node Color Preset"
+msgstr "添加节点颜色预设"
+
+
+msgid "Add an Attribute node with this name"
+msgstr "添加一个以此命名的属性节点"
+
+
+msgctxt "Operator"
+msgid "Add UV map"
+msgstr "添加 UV 贴图"
+
+
+msgid "Add multiple images at once"
+msgstr "一次添加多个图像"
+
+
+msgctxt "Operator"
+msgid "Open Selected Images"
+msgstr "打开所选图像"
+
+
+msgctxt "Operator"
+msgid "Add Reroutes"
+msgstr "添加转接点"
+
+
+msgid "Add an Image Sequence"
+msgstr "添加一个图像序列"
+
+
+msgctxt "Operator"
+msgid "Import Image Sequence"
+msgstr "导入图像序列"
+
+
+msgctxt "Operator"
+msgid "Texture Setup"
+msgstr "纹理配置"
+
+
+msgctxt "Operator"
+msgid "Principled Texture Setup"
+msgstr "原理化纹理配置"
+
+
+msgid "Align the selected nodes neatly in a row/column"
+msgstr "将所选节点对齐成行/成列"
+
+
+msgctxt "Operator"
+msgid "Align Nodes"
+msgstr "对齐节点"
+
+
+msgctxt "Operator"
+msgid "Batch Change"
+msgstr "批量更改"
+
+
+msgid "Reset the zoom and position of the background image"
+msgstr "重置背景图像的缩放和位置"
+
+
+msgctxt "Operator"
+msgid "Reset Backdrop"
+msgstr "重置背景图"
+
+
+msgid "Link from this output"
+msgstr "从此输出端连接"
+
+
+msgctxt "Operator"
+msgid "Make Link"
+msgstr "生成连接"
+
+
+msgctxt "Operator"
+msgid "Clear Label"
+msgstr "清除标签"
+
+
+msgctxt "Operator"
+msgid "Copy Label"
+msgstr "复制标签"
+
+
+msgctxt "Operator"
+msgid "Copy Settings"
+msgstr "复制设置"
+
+
+msgid "Delete all nodes whose output is not used"
+msgstr "删除所有输出端未使用的节点"
+
+
+msgctxt "Operator"
+msgid "Delete Unused Nodes"
+msgstr "删除未使用节点"
+
+
+msgid "Detach outputs of selected node leaving inputs linked"
+msgstr "脱离所选节点的输出端同时维持输入端的连接"
+
+
+msgctxt "Operator"
+msgid "Detach Outputs"
+msgstr "脱离输出"
+
+
+msgctxt "Operator"
+msgid "Change Factor"
+msgstr "更改系数"
+
+
+msgctxt "NodeTree"
+msgid "Frame Selected"
+msgstr "框住所选"
+
+
+msgid "Connect two nodes without clicking a specific socket (automatically determined"
+msgstr "无需单击特定接口即可连接两个节点 (自动决定"
+
+
+msgctxt "Operator"
+msgid "Lazy Connect"
+msgstr "懒人连接"
+
+
+msgid "Add a Mix RGB/Shader node by interactively drawing lines between nodes"
+msgstr "通过交互地在节点之间绘制线来添加混合RGB/着色器节点"
+
+
+msgctxt "Operator"
+msgid "Mix Nodes"
+msgstr "混合节点"
+
+
+msgid "Link active node to selected nodes basing on various criteria"
+msgstr "基于各种规则连接活动节点到选中节点"
+
+
+msgctxt "Operator"
+msgid "Link Active Node to Selected"
+msgstr "连接活动节点到选中项"
+
+
+msgid "Link to Composite node or Material Output node"
+msgstr "连接到合成节点或材质输出节点"
+
+
+msgid "Make a link from one socket to another"
+msgstr "从一个接口连接到另一个接口"
+
+
+msgctxt "Operator"
+msgid "Merge Nodes"
+msgstr "合并节点"
+
+
+msgid "Modify labels of all selected nodes"
+msgstr "修改所有选中节点的标签"
+
+
+msgctxt "Operator"
+msgid "Modify Labels"
+msgstr "修改标签"
+
+
+msgctxt "Operator"
+msgid "Reload Images"
+msgstr "重新载入图像"
+
+
+msgid "Reset Nodes in Selection"
+msgstr "重置选中的节点"
+
+
+msgctxt "Operator"
+msgid "Reset Nodes"
+msgstr "重置节点"
+
+
+msgid "Save the current viewer node to an image file"
+msgstr "保存当前预览器节点为图像文件"
+
+
+msgctxt "Operator"
+msgid "Save This Image"
+msgstr "保存此图像"
+
+
+msgctxt "Operator"
+msgid "Select Parent or Children"
+msgstr "选择父级或子级"
+
+
+msgid "Swap the output connections of the two selected nodes, or two similar inputs of a single node"
+msgstr "交换两个所选节点的输出端连接, 或交换单个节点的两个相似输入端"
+
+
+msgctxt "Operator"
+msgid "Swap Links"
+msgstr "交换连接"
+
+
+msgid "Go to parent node tree"
+msgstr "回到父级节点树"
+
+
+msgctxt "Operator"
+msgid "Parent Node Tree"
+msgstr "父级节点树"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+
+msgid "Align objects"
+msgstr "对齐物体"
+
+
+msgctxt "Operator"
+msgid "Align Objects"
+msgstr "对齐物体"
+
+
+msgid "Convert object animation for normal transforms to delta transforms"
+msgstr "将正常变换型物体动画转换为增量变换"
+
+
+msgctxt "Operator"
+msgid "Animated Transforms to Deltas"
+msgstr "动画变换 -> 增量"
+
+
+msgctxt "Operator"
+msgid "Add Basic human (metarig)"
+msgstr "添加基础人类 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Basic quadruped (metarig)"
+msgstr "添加基础四足动物 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Bird (metarig)"
+msgstr "添加鸟 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Cat (metarig)"
+msgstr "添加猫 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Horse (metarig)"
+msgstr "添加马 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Human (metarig)"
+msgstr "添加人类 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Shark (metarig)"
+msgstr "添加鲨鱼 (元骨骼)"
+
+
+msgctxt "Operator"
+msgid "Add Wolf (metarig)"
+msgstr "添加狼 (元骨骼)"
+
+
+msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
+msgstr "将自定义属性的当前值指定为其默认值，作为NLA轨道混合中的静置姿势状态的一部分"
+
+
+msgctxt "Operator"
+msgid "Assign Custom Property Values as Default"
+msgstr "将自定义属性值指定为默认值"
+
+
+msgctxt "Operator"
+msgid "Copy Global Transform"
+msgstr "复制全局变换"
+
+
+msgctxt "Operator"
+msgid "Copy Relative Transform"
+msgstr "复制相对变换"
+
+
+msgctxt "Operator"
+msgid "Delete Generated Keys"
+msgstr "删除创建的关键帧"
+
+
+msgctxt "Operator"
+msgid "Fix to Scene Camera"
+msgstr "固定到场景摄像机"
+
+
+msgid "Move inputs and outputs from in the modifier to a new node group"
+msgstr "将修改器中的输入和输出移动到新节点组"
+
+
+msgctxt "Operator"
+msgid "Move to Nodes"
+msgstr "转移到节点"
+
+
+msgid "Reveal all render objects by setting the hide render flag"
+msgstr "通过设置隐藏渲染标记恢复显示所有渲染物体"
+
+
+msgctxt "Operator"
+msgid "Clear All Restrict Render"
+msgstr "清除所有渲染限制"
+
+
+msgid "Set offset used for collection instances based on cursor position"
+msgstr "根据游标位置设置用于集合实例的偏移量"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Cursor"
+msgstr "设置相对游标偏移量"
+
+
+msgid "Set offset used for collection instances based on the active object position"
+msgstr "根据活动物体位置设置用于集合实例的偏移量"
+
+
+msgctxt "Operator"
+msgid "Set Offset from Object"
+msgstr "设置相对物体偏移量"
+
+
+msgid "Set cursor position to the offset used for collection instances"
+msgstr "将游标位置设置为用于集合实例的偏移量"
+
+
+msgctxt "Operator"
+msgid "Set Cursor to Offset"
+msgstr "设置游标至偏移量"
+
+
+msgid "Hide unselected render objects of same type as active by setting the hide render flag"
+msgstr "将物体设置为限制渲染以不参与渲染"
+
+
+msgctxt "Operator"
+msgid "Restrict Render Unselected"
+msgstr "不渲染未选中的物体"
+
+
+msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
+msgstr "从活动的物体向选中的物体传递 UV 布局 (需匹配几何结构)"
+
+
+msgctxt "Operator"
+msgid "Transfer UV Maps"
+msgstr "传递 UV 映射"
+
+
+msgid "Convert objects into instanced faces"
+msgstr "将物体转换为实例化的面副本"
+
+
+msgctxt "Operator"
+msgid "Make Instance Face"
+msgstr "创建实例面"
+
+
+msgctxt "Operator"
+msgid "Paste Global Transform"
+msgstr "粘贴全局变换"
+
+
+msgid "Make selected objects explode"
+msgstr "使选中物体爆破"
+
+
+msgctxt "Operator"
+msgid "Quick Explode"
+msgstr "快速爆破"
+
+
+msgid "Add a fur setup to the selected objects"
+msgstr "添加一个毛发配置到所选物体"
+
+
+msgctxt "Operator"
+msgid "Quick Fur"
+msgstr "快速毛发"
+
+
+msgid "Make selected objects liquid"
+msgstr "使选中物体变为液体"
+
+
+msgctxt "Operator"
+msgid "Quick Liquid"
+msgstr "快速液体"
+
+
+msgid "Use selected objects as smoke emitters"
+msgstr "使用选中物体为烟雾发射源"
+
+
+msgctxt "Operator"
+msgid "Quick Smoke"
+msgstr "快速烟雾"
+
+
+msgid "Randomize objects location, rotation, and scale"
+msgstr "随机化物体的位置/转动/缩放"
+
+
+msgctxt "Operator"
+msgid "Randomize Transform"
+msgstr "随机变换"
+
+
+msgid "Create a new action"
+msgstr "创建新的动作"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "新建"
+
+
+msgid "Set Active Action Slot Index"
+msgstr "设置活动动作槽索引"
+
+
+msgctxt "Operator"
+msgid "Jump to Action Slot"
+msgstr "跳至操作槽"
+
+
+msgid "Select the active camera"
+msgstr "选择活动摄像机"
+
+
+msgctxt "Operator"
+msgid "Select Camera"
+msgstr "选择摄像机"
+
+
+msgid "Select object relative to the active object's position in the hierarchy"
+msgstr "在层级中选择与活动物体的位置相关的物体"
+
+
+msgctxt "Operator"
+msgid "Select Hierarchy"
+msgstr "选择层级"
+
+
+msgid "Select objects matching a naming pattern"
+msgstr "选择匹配命名规则的物体"
+
+
+msgctxt "Operator"
+msgid "Select Pattern"
+msgstr "按名称选择"
+
+
+msgid "Copy the active shape key of another selected object to this one"
+msgstr "拷贝另外一个选择物体的活动形态键到此物体"
+
+
+msgctxt "Operator"
+msgid "Transfer Shape Key"
+msgstr "传递形态键"
+
+
+msgid "Sets a Subdivision Surface level (1 to 5)"
+msgstr "设置表面细分等级 (1-5)"
+
+
+msgctxt "Operator"
+msgid "Subdivision Set"
+msgstr "细分设置"
+
+
+msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
+msgstr "将普通物体的变换转换为为变换增量，任何现有的变换增量也将包括在内"
+
+
+msgctxt "Operator"
+msgid "Transforms to Deltas"
+msgstr "变换 -> 增量"
+
+
+msgid "Generate a dirt map gradient based on cavity"
+msgstr "基于凹腔生成脏旧贴图渐变"
+
+
+msgctxt "Operator"
+msgid "Dirty Vertex Colors"
+msgstr "脏旧顶点色"
+
+
+msgid "Add or remove a Hair Dynamics Preset"
+msgstr "添加或删除一个毛发动力学预设"
+
+
+msgctxt "Operator"
+msgid "Add Hair Dynamics Preset"
+msgstr "添加毛发动力学预设"
+
+
+msgctxt "Operator"
+msgid "Convert Legacy Pose Library"
+msgstr "转换旧版姿态库"
+
+
+msgctxt "Operator"
+msgid "Copy Pose as Asset"
+msgstr "复制姿态作为资产"
+
+
+msgctxt "Operator"
+msgid "Create Pose Asset"
+msgstr "创建姿态资产"
+
+
+msgctxt "Operator"
+msgid "Paste as New Asset"
+msgstr "粘贴为新资产"
+
+
+msgctxt "Operator"
+msgid "Select Bones"
+msgstr "选择骨骼"
+
+
+msgctxt "Operator"
+msgid "Restore Previous Action"
+msgstr "恢复上一步动作"
+
+
+msgctxt "Operator"
+msgid "Convert Rotation Modes"
+msgstr "转换旋转模式"
+
+
+msgctxt "Operator"
+msgid "Add Bone Collection Reference"
+msgstr "添加骨骼集合引用"
+
+
+msgctxt "Operator"
+msgid "Remove Bone Collection Reference"
+msgstr "移除骨骼集合引用"
+
+
+msgid "Copy Rigify type and parameters from active to selected bones"
+msgstr "从活动骨骼拷贝 Rigify 类型和参数到选择的骨骼"
+
+
+msgctxt "Operator"
+msgid "Copy Rigify Parameters to Selected"
+msgstr "拷贝 Rigify 参数到选中项"
+
+
+msgctxt "Operator"
+msgid "Copy Option To Selected Rigs"
+msgstr "拷贝选项到选择的绑定"
+
+
+msgctxt "Operator"
+msgid "Rigify Generate Rig"
+msgstr "Rigify 生成绑定"
+
+
+msgid "Mirror Rigify type and parameters of selected bones to the opposite side. Names should end in L/R"
+msgstr "镜像选中骨骼的 Rigify 类型和参数到另一边，名称应以 L/R 结尾"
+
+
+msgctxt "Operator"
+msgid "Mirror Rigify Parameters"
+msgstr "镜像 Rigify 参数"
+
+
+msgctxt "Operator"
+msgid "Upgrade Face Rig"
+msgstr "升级面部绑定"
+
+
+msgctxt "Operator"
+msgid "Rigify Upgrade Metarig Types"
+msgstr "Rigify 升级元骨骼类型"
+
+
+msgctxt "Operator"
+msgid "Create Selection Set"
+msgstr "创建选择集"
+
+
+msgctxt "Operator"
+msgid "Create and Add Bones to Selection Set"
+msgstr "创建并添加骨骼到选择集"
+
+
+msgctxt "Operator"
+msgid "Add Bones to Selection Set"
+msgstr "将骨骼添加到选择集"
+
+
+msgctxt "Operator"
+msgid "Copy Selection Set(s)"
+msgstr "复制选择集"
+
+
+msgctxt "Operator"
+msgid "Delete All Sets"
+msgstr "删除全部选择集"
+
+
+msgctxt "Operator"
+msgid "Deselect Selection Set"
+msgstr "取消选择选择集"
+
+
+msgctxt "Operator"
+msgid "Move Selection Set in List"
+msgstr "在列表中移动选择集"
+
+
+msgctxt "Operator"
+msgid "Paste Selection Set(s)"
+msgstr "粘贴选择集"
+
+
+msgctxt "Operator"
+msgid "Delete Selection Set"
+msgstr "删除选择集"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Bones from All Sets"
+msgstr "从所有选择集中移除所选骨骼"
+
+
+msgctxt "Operator"
+msgid "Select Selection Set"
+msgstr "选择 选择集"
+
+
+msgctxt "Operator"
+msgid "Remove Bones from Selection Set"
+msgstr "从选择集中移除骨骼"
+
+
+msgctxt "Operator"
+msgid "Disable Extension"
+msgstr "禁用扩展"
+
+
+msgid "Display information and preferences for this add-on"
+msgstr "显示该插件的信息与用户设置"
+
+
+msgid "Install an add-on"
+msgstr "安装插件"
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "安装插件"
+
+
+msgid "Scan add-on directories for new modules"
+msgstr "扫描插件目录，查找新插件"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "刷新"
+
+
+msgid "Delete the add-on from the file system"
+msgstr "从文件系统删除该插件"
+
+
+msgctxt "Operator"
+msgid "Remove Add-on"
+msgstr "删除插件"
+
+
+msgid "Show add-on preferences"
+msgstr "显示插件设置"
+
+
+msgid "Install an application template"
+msgstr "安装应用模板"
+
+
+msgctxt "Operator"
+msgid "Install Template from File..."
+msgstr "从文件安装模板..."
+
+
+msgid "Copy settings from previous version"
+msgstr "复制之前版本的设置"
+
+
+msgctxt "Operator"
+msgid "Copy Previous Settings"
+msgstr "复制以往设置"
+
+
+msgctxt "Operator"
+msgid "Activate Keyconfig"
+msgstr "激活键位配置"
+
+
+msgid "Export key configuration to a Python script"
+msgstr "将键位配置导出为一个Python脚本"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "导出键位配置..."
+
+
+msgid "Import key configuration from a Python script"
+msgstr "从 Python 脚本导入键位配置"
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "导入键配置..."
+
+
+msgid "Remove key config"
+msgstr "移除键配置"
+
+
+msgctxt "Operator"
+msgid "Remove Key Config"
+msgstr "移除键配置"
+
+
+msgid "Test key configuration for conflicts"
+msgstr "测试键配置冲突"
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "测试键配置冲突"
+
+
+msgid "Add key map item"
+msgstr "添加键位映射条目"
+
+
+msgctxt "Operator"
+msgid "Add Key Map Item"
+msgstr "添加键位映射条目"
+
+
+msgid "Remove key map item"
+msgstr "移除键位映射条目"
+
+
+msgctxt "Operator"
+msgid "Remove Key Map Item"
+msgstr "移除键位映射条目"
+
+
+msgid "Restore key map item"
+msgstr "还原键位映射条目"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map Item"
+msgstr "还原键位映射条目"
+
+
+msgid "Restore key map(s)"
+msgstr "还原键位映射"
+
+
+msgctxt "Operator"
+msgid "Restore Key Map(s)"
+msgstr "还原键位映射"
+
+
+msgctxt "Operator"
+msgid "Add Python Script Directory"
+msgstr "添加Python脚本目录"
+
+
+msgctxt "Operator"
+msgid "Remove Python Script Directory"
+msgstr "删除Python脚本目录"
+
+
+msgid "Copy Studio Light settings to the Studio Light editor"
+msgstr "复制棚灯光源设置到棚灯编辑器"
+
+
+msgctxt "Operator"
+msgid "Copy Studio Light Settings"
+msgstr "复制棚灯设置"
+
+
+msgid "Install a user defined light"
+msgstr "安装用户自定义灯光"
+
+
+msgctxt "Operator"
+msgid "Install Light"
+msgstr "安装灯光"
+
+
+msgid "Save custom studio light from the studio light editor settings"
+msgstr "从棚灯编辑器设置中保存自定义棚灯"
+
+
+msgctxt "Operator"
+msgid "Save Custom Studio Light"
+msgstr "保存自定义棚灯"
+
+
+msgid "Delete Studio Light"
+msgstr "删除棚灯"
+
+
+msgctxt "Operator"
+msgid "Uninstall Studio Light"
+msgstr "卸载自定义棚灯"
+
+
+msgid "Load and apply a Blender XML theme file"
+msgstr "加载并应用一个Blender的XML主题文件"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "安装主题..."
+
+
+msgid "Add an Integrator Preset"
+msgstr "新增积分器预设"
+
+
+msgctxt "Operator"
+msgid "Add Integrator Preset"
+msgstr "添加积分器预设"
+
+
+msgid "Add an Performance Preset"
+msgstr "添加性能预设"
+
+
+msgctxt "Operator"
+msgid "Add Performance Preset"
+msgstr "添加性能预设"
+
+
+msgid "Add a Sampling Preset"
+msgstr "新增一个采样预设"
+
+
+msgctxt "Operator"
+msgid "Add Sampling Preset"
+msgstr "新增采样预设"
+
+
+msgid "Add a Viewport Sampling Preset"
+msgstr "新增一个视图采样预设"
+
+
+msgctxt "Operator"
+msgid "Add Viewport Sampling Preset"
+msgstr "新增视图采样预设"
+
+
+msgid "Add or remove an EEVEE ray-tracing preset"
+msgstr "添加或删除一个EEVEE光线追踪预设"
+
+
+msgctxt "Operator"
+msgid "Add Raytracing Preset"
+msgstr "新增光线追踪预设"
+
+
+msgid "Play back rendered frames/movies using an external player"
+msgstr "使用一个外部播放器回放已渲染的帧 / 影片"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "播放渲染动画"
+
+
+msgid "Add or remove a Render Preset"
+msgstr "新增或删除一个渲染预设"
+
+
+msgctxt "Operator"
+msgid "Add Render Preset"
+msgstr "新增渲染预设"
+
+
+msgid "Bake rigid body transformations of selected objects to keyframes"
+msgstr "将所选物体的刚体变换烘焙到关键帧"
+
+
+msgctxt "Operator"
+msgid "Bake to Keyframes"
+msgstr "烘焙到关键帧"
+
+
+msgid "Create rigid body constraints between selected rigid bodies"
+msgstr "在选中的刚体之间创建刚体约束"
+
+
+msgctxt "Operator"
+msgid "Connect Rigid Bodies"
+msgstr "关连刚体"
+
+
+msgid "Copy Rigid Body settings from active object to selected"
+msgstr "将活动物体的刚体设置复制到选中的物体"
+
+
+msgctxt "Operator"
+msgid "Copy Rigid Body Settings"
+msgstr "复制刚体设置"
+
+
+msgctxt "Operator"
+msgid "Clear Animation"
+msgstr "清除动画"
+
+
+msgctxt "Operator"
+msgid "FK2IK"
+msgstr "FK捕捉IK"
+
+
+msgctxt "Operator"
+msgid "Get Frame Range"
+msgstr "获取帧范围"
+
+
+msgctxt "Operator"
+msgid "IK2FK"
+msgstr "IK捕捉FK"
+
+
+msgctxt "Operator"
+msgid "Rotation - Pole toggle"
+msgstr "旋转 - 极向切换"
+
+
+msgctxt "Operator"
+msgid "Transfer FK anim to IK"
+msgstr "转换 FK 动画为 IK"
+
+
+msgctxt "Operator"
+msgid "Transfer IK anim to FK"
+msgstr "转换 IK 动画为 FK"
+
+
+msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
+msgstr "将所选边的Freestyle边标记属性的数据路径添加到活动插帧集中"
+
+
+msgctxt "Operator"
+msgid "Add Edge Marks to Keying Set"
+msgstr "向插帧集中添加边标记"
+
+
+msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
+msgstr "将所选多边形的Freestyle边缘标记属性的数据路径添加到活动的插帧集中"
+
+
+msgctxt "Operator"
+msgid "Add Face Marks to Keying Set"
+msgstr "向插帧集中添加面标记"
+
+
+msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
+msgstr "根据所选网格对象和源对象之间的最小/最大距离，填充范围最小/最大条目"
+
+
+msgctxt "Operator"
+msgid "Fill Range by Selection"
+msgstr "按选中项填充范围"
+
+
+msgid "Open a style module file"
+msgstr "打开样式模块文件"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "打开样式模块文件"
+
+
+msgid "Refresh list of actions"
+msgstr "刷新动作列表"
+
+
+msgctxt "Operator"
+msgid "Refresh action list"
+msgstr "刷新动作列表"
+
+
+msgid "Add or remove grease pencil brush preset"
+msgstr "添加或移除蜡笔笔刷预设"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Brush Preset"
+msgstr "添加蜡笔笔刷预设"
+
+
+msgid "Add or remove grease pencil material preset"
+msgstr "添加或移除蜡笔材质预设"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil Material Preset"
+msgstr "添加蜡笔材质预设"
+
+
+msgid "Load a preset"
+msgstr "加载预设"
+
+
+msgctxt "Operator"
+msgid "Execute a Python Preset"
+msgstr "执行一个 Python 预设"
+
+
+msgid "Do cross-fading volume animation of two selected sound strips"
+msgstr "在两个所选声音片段间应用淡化音量动画"
+
+
+msgctxt "Operator"
+msgid "Crossfade Sounds"
+msgstr "声音交替渐变"
+
+
+msgid "Deinterlace all selected movie sources"
+msgstr "逐行扫描所有片源"
+
+
+msgctxt "Operator"
+msgid "Deinterlace Movies"
+msgstr "逐行扫描影片"
+
+
+msgid "Adds or updates a fade animation for either visual or audio strips"
+msgstr "为视觉或音频片段添加或更新淡入淡出动画"
+
+
+msgctxt "Operator"
+msgid "Add Fades"
+msgstr "添加淡化"
+
+
+msgid "Removes fade animation from selected sequences"
+msgstr "从所选序列中删除淡入淡出动画"
+
+
+msgctxt "Operator"
+msgid "Clear Fades"
+msgstr "清除淡化"
+
+
+msgid "Split multicam strip and select camera"
+msgstr "剪切多镜头片段并选中摄像机"
+
+
+msgctxt "Operator"
+msgid "Split Multicam"
+msgstr "切割多摄像机"
+
+
+msgid "Turn on or off pinning"
+msgstr "打开或关闭钉固"
+
+
+msgctxt "Operator"
+msgid "Toggle Pin"
+msgstr "切换钉固"
+
+
+msgid "Add or remove a Text Editor Preset"
+msgstr "添加或删除文本编辑器预设"
+
+
+msgctxt "Operator"
+msgid "Add Text Editor Preset"
+msgstr "添加文本编辑器预设"
+
+
+msgid "Add an entry to the list after the current active item"
+msgstr "在当前活动项之后向列表中添加一个条目"
+
+
+msgctxt "Operator"
+msgid "Add Entry"
+msgstr "添加条目"
+
+
+msgid "Move an entry in the list up or down"
+msgstr "向上或向下移动列表中的条目"
+
+
+msgctxt "Operator"
+msgid "Move Entry"
+msgstr "移动条目"
+
+
+msgid "Remove the selected entry from the list"
+msgstr "从列表中删除所选条目"
+
+
+msgctxt "Operator"
+msgid "Remove Selected Entry"
+msgstr "删除所选条目"
+
+
+msgid "Export given add-on's translation data as PO files"
+msgstr "将指定插件的翻译数据导出为一个PO文件"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Export"
+msgstr "I18n 插件导出"
+
+
+msgid "Import given add-on's translation data from PO files"
+msgstr "从PO文件中导入指定插件的翻译数据"
+
+
+msgctxt "Operator"
+msgid "I18n Add-on Import"
+msgstr "I18n 插件导入"
+
+
+msgid "Wrapper operator which will invoke given op after setting its module_name"
+msgstr "封装操作符，它将在设置 module_name 后调用给定的操作符"
+
+
+msgctxt "Operator"
+msgid "Update I18n Add-on"
+msgstr "更新 i18n 插件"
+
+
+msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
+msgstr "更新指定的插件数据(作为插件源代码的一个 py 元组来查找)"
+
+
+msgid "Clean up i18n working repository (po files)"
+msgstr "清理I18n工作存储库 (po文件)"
+
+
+msgctxt "Operator"
+msgid "Clean up I18n Work Repository"
+msgstr "清理I18n工作存储库"
+
+
+msgid "Load translations' settings from a persistent JSon file"
+msgstr "从连续的JSon文件加载翻译设置"
+
+
+msgctxt "Operator"
+msgid "I18n Load Settings"
+msgstr "I18n加载设置"
+
+
+msgid "Save translations' settings in a persistent JSon file"
+msgstr "将翻译设置保存为持久的 JSon 文件"
+
+
+msgctxt "Operator"
+msgid "I18n Save Settings"
+msgstr "i18n保存设置"
+
+
+msgid "Update i18n data (po files) in Blender source code repository"
+msgstr "在Blender源代码库中更新i18n数据（po文件）"
+
+
+msgctxt "Operator"
+msgid "Update I18n Blender Repository"
+msgstr "更新 I18n Blender 存储库"
+
+
+msgid "Init settings for i18n files update operators"
+msgstr "初始化 i18n 文件更新操作的设置"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Settings"
+msgstr "初始化i18n更新设置"
+
+
+msgid "(De)select (or invert selection of) all languages for i18n files update operators"
+msgstr "选择(或反选)所有用于i18n svn的更新操作项的语言"
+
+
+msgctxt "Operator"
+msgid "Init I18n Update Select Languages"
+msgstr "初始化 i18n 更新选择语言"
+
+
+msgid "Create or extend a 'i18n_info.txt' Text datablock"
+msgstr "创建或扩展 'i18n_info.txt' 文本数据块"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "更新 I18n 统计信息"
+
+
+msgid "Update i18n working repository (po files)"
+msgstr "更新 i18n 存储库 (po 文件)"
+
+
+msgctxt "Operator"
+msgid "Update I18n Work Repository"
+msgstr "更新 I18n 工作存储库"
+
+
+msgid "Add an entry to the list"
+msgstr "向列表中添加条目"
+
+
+msgid "Align the UV island's rotation"
+msgstr "对齐UV孤岛的旋转"
+
+
+msgctxt "Operator"
+msgid "Align Rotation"
+msgstr "对齐旋转"
+
+
+msgid "Export UV layout to file"
+msgstr "将 UV 布局图导出为文件"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "导出 UV 布局图"
+
+
+msgid "Follow UVs from active quads along continuous face loops"
+msgstr "根据激活的四边面, 沿连续的循环面拆解 UV"
+
+
+msgctxt "Operator"
+msgid "Follow Active Quads"
+msgstr "沿活动四边面展开"
+
+
+msgid "Pack each face's UVs into the UV bounds"
+msgstr "把每个面的UV拼排到UV边界内"
+
+
+msgctxt "Operator"
+msgid "Lightmap Pack"
+msgstr "光照贴图拼排"
+
+
+msgid "Randomize the UV island's location, rotation, and scale"
+msgstr "随机化UV孤岛的位置/旋转/缩放"
+
+
+msgctxt "Operator"
+msgid "Randomize"
+msgstr "随机"
+
+
+msgctxt "Operator"
+msgid "New Camera from VR Landmark"
+msgstr "来自VR地标的新摄像机"
+
+
+msgctxt "Operator"
+msgid "Scene Camera to VR Landmark"
+msgstr "场景摄像机 -> VR地标"
+
+
+msgctxt "Operator"
+msgid "Cursor to VR Landmark"
+msgstr "游标 -> VR地标"
+
+
+msgid "Extrude each individual face separately along local normals"
+msgstr "沿着各自的法线挤出每个面"
+
+
+msgctxt "Operator"
+msgid "Extrude Individual and Move"
+msgstr "各自挤出并移动"
+
+
+msgid "Extrude manifold region along normals"
+msgstr "沿法向挤出流形区域"
+
+
+msgctxt "Operator"
+msgid "Extrude Manifold Along Normals"
+msgstr "沿法向挤出流形"
+
+
+msgid "Extrude region together along the average normal"
+msgstr "沿平均法向整体区域挤出"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Normals"
+msgstr "沿法线挤出并移动"
+
+
+msgid "Extrude region together along local normals"
+msgstr "沿着局部法线挤出整体区域"
+
+
+msgctxt "Operator"
+msgid "Extrude and Move on Individual Normals"
+msgstr "沿各自法线挤出并移动"
+
+
+msgid "Set the current transform gizmo"
+msgstr "设置当前变换操控器"
+
+
+msgctxt "Operator"
+msgid "Transform Gizmo Set"
+msgstr "变换操控器设置"
+
+
+msgctxt "Operator"
+msgid "Update Custom VR Landmark"
+msgstr "更新自定义VR地标"
+
+
+msgctxt "Operator"
+msgid "Add Camera and VR Landmark from Session"
+msgstr "从会话添加摄像机和VR地标"
+
+
+msgctxt "Operator"
+msgid "Activate VR Landmark"
+msgstr "激活VR地标"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark"
+msgstr "添加VR地标"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Camera"
+msgstr "从摄像机添加VR地标"
+
+
+msgctxt "Operator"
+msgid "Add VR Landmark from Session"
+msgstr "从会话添加VR地标"
+
+
+msgctxt "Operator"
+msgid "Remove VR Landmark"
+msgstr "删除VR地标"
+
+
+msgid "Rename multiple items at once"
+msgstr "一次重命名多项"
+
+
+msgctxt "Operator"
+msgid "Batch Rename"
+msgstr "批量重命名"
+
+
+msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
+msgstr "检查当前 .blend 文件中所有字符串，并修复为有效的 UTF-8 Unicode编码(一些旧的, 2.4x 区域文件需要)"
+
+
+msgctxt "Operator"
+msgid "Validate .blend strings"
+msgstr "无效.blend 字符串"
+
+
+msgid "Set boolean values for a collection of items"
+msgstr "为一部分类别设置布尔值"
+
+
+msgctxt "Operator"
+msgid "Context Collection Boolean Set"
+msgstr "上下文集合布尔设置"
+
+
+msgid "Set a context array value (useful for cycling the active mesh edit mode)"
+msgstr "设置一个上下文阵列值 (适用于活动网格的编辑模式的循环)"
+
+
+msgctxt "Operator"
+msgid "Context Array Cycle"
+msgstr "上下文阵列循环"
+
+
+msgid "Toggle a context value"
+msgstr "切换上下文值"
+
+
+msgctxt "Operator"
+msgid "Context Enum Cycle"
+msgstr "上下文枚举循环"
+
+
+msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
+msgstr "设置一个上下文值 (适用于循环切换活动的材质, 形态键及群组等)"
+
+
+msgctxt "Operator"
+msgid "Context Int Cycle"
+msgstr "上下文整型循环"
+
+
+msgctxt "Operator"
+msgid "Context Enum Menu"
+msgstr "上下文枚举菜单"
+
+
+msgid "Adjust arbitrary values with mouse input"
+msgstr "用鼠标输入方式调节任意值"
+
+
+msgctxt "Operator"
+msgid "Context Modal Mouse"
+msgstr "上下文模态鼠标"
+
+
+msgctxt "Operator"
+msgid "Context Enum Pie"
+msgstr "上下文枚举饼菜单"
+
+
+msgid "Scale a float context value"
+msgstr "缩放上下文的浮点值"
+
+
+msgctxt "Operator"
+msgid "Context Scale Float"
+msgstr "上下文浮点缩放"
+
+
+msgid "Scale an int context value"
+msgstr "缩放上下文的整型值"
+
+
+msgctxt "Operator"
+msgid "Context Scale Int"
+msgstr "上下文整型缩放"
+
+
+msgid "Set a context value"
+msgstr "设置上下文值"
+
+
+msgctxt "Operator"
+msgid "Context Set Boolean"
+msgstr "上下文设置布尔型"
+
+
+msgctxt "Operator"
+msgid "Context Set Enum"
+msgstr "上下文设置枚举"
+
+
+msgctxt "Operator"
+msgid "Context Set Float"
+msgstr "上下文设置浮点"
+
+
+msgid "Set a context value to an ID data-block"
+msgstr "将上下文设置一个值到 ID 数据块"
+
+
+msgctxt "Operator"
+msgid "Set Library ID"
+msgstr "设置库ID"
+
+
+msgctxt "Operator"
+msgid "Context Set"
+msgstr "设置上下文"
+
+
+msgctxt "Operator"
+msgid "Context Set String"
+msgstr "上下文设置字符串型"
+
+
+msgctxt "Operator"
+msgid "Context Set Value"
+msgstr "上下文设置值"
+
+
+msgctxt "Operator"
+msgid "Context Toggle"
+msgstr "切换上下文"
+
+
+msgctxt "Operator"
+msgid "Context Toggle Values"
+msgstr "上下文切换值"
+
+
+msgid "Open online reference docs in a web browser"
+msgstr "在浏览器中打开在线参数文档"
+
+
+msgctxt "Operator"
+msgid "View Documentation"
+msgstr "查看文档"
+
+
+msgid "Load online manual"
+msgstr "加载在线手册"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "查看指南"
+
+
+msgctxt "Operator"
+msgid "Handle dropped .blend file"
+msgstr "处理拖放的 .blend 文件"
+
+
+msgid "Add a custom theme to the preset list"
+msgstr "添加一个自定义主题到预设列表"
+
+
+msgctxt "Operator"
+msgid "Add Theme"
+msgstr "添加主题"
+
+
+msgid "Remove a custom theme from the preset list"
+msgstr "从预设列表移除一个自定义主题"
+
+
+msgctxt "Operator"
+msgid "Remove Theme"
+msgstr "移除主题"
+
+
+msgid "Save a custom theme in the preset list"
+msgstr "保存一个自定义主题到预设列表"
+
+
+msgctxt "Operator"
+msgid "Save Theme"
+msgstr "保存主题"
+
+
+msgid "Add a custom keymap configuration to the preset list"
+msgstr "添加一个自定义键位映射配置到预设列表中"
+
+
+msgctxt "Operator"
+msgid "Add Custom Keymap Configuration"
+msgstr "添加自定义键位映射配置"
+
+
+msgid "Remove a custom keymap configuration from the preset list"
+msgstr "从预设列表中移除一个自定义键位映射配置"
+
+
+msgctxt "Operator"
+msgid "Remove Keymap Configuration"
+msgstr "移除键位映射配置"
+
+
+msgid "List all the operators in a text-block, useful for scripting"
+msgstr "在一个文本块列出所有操作, 写脚本时非常有用"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "操作项信息一览"
+
+
+msgctxt "Operator"
+msgid "Operator Enum Pie"
+msgstr "枚举饼菜单操作"
+
+
+msgid "Add or remove an Operator Preset"
+msgstr "添加或删除一个操作项预设"
+
+
+msgctxt "Operator"
+msgid "Operator Preset"
+msgstr "操作项预设"
+
+
+msgid "Remove outdated operator properties from presets that may cause problems"
+msgstr "删除预设中可能导致问题的过时的操作符属性"
+
+
+msgctxt "Operator"
+msgid "Clean Up Operator Presets"
+msgstr "清理操作项预设"
+
+
+msgid "Disable add-on for workspace"
+msgstr "禁用工作区的插件"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "禁用插件"
+
+
+msgid "Enable add-on for workspace"
+msgstr "启用工作区的插件"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "启用插件"
+
+
+msgid "Open a path in a file browser"
+msgstr "在文件浏览器中打开路径"
+
+
+msgid "Clear selected .blend file's previews"
+msgstr "清除选中的.blend文件的预览"
+
+
+msgctxt "Operator"
+msgid "Batch-Clear Previews"
+msgstr "批量清除预览"
+
+
+msgid "Generate selected .blend file's previews"
+msgstr "为选中的.blend 文件生成预览"
+
+
+msgctxt "Operator"
+msgid "Batch-Generate Previews"
+msgstr "批量生成预览"
+
+
+msgid "Add your own property to the data-block"
+msgstr "向数据块中加入自定义属性"
+
+
+msgctxt "Operator"
+msgid "Add Property"
+msgstr "添加属性"
+
+
+msgid "Jump to a different tab inside the properties editor"
+msgstr "跳转到属性编辑器中的其他选项卡"
+
+
+msgid "Change a custom property's type, or adjust how it is displayed in the interface"
+msgstr "修改自定义属性类型，或者调整在界面中的显示方式"
+
+
+msgctxt "Operator"
+msgid "Edit Property"
+msgstr "编辑属性"
+
+
+msgid "Edit the value of a custom property"
+msgstr "编辑自定义属性的值"
+
+
+msgctxt "Operator"
+msgid "Edit Property Value"
+msgstr "编辑属性值"
+
+
+msgid "Internal use (edit a property data_path)"
+msgstr "内部调用(用于编辑data_path的属性)"
+
+
+msgctxt "Operator"
+msgid "Remove Property"
+msgstr "移除属性"
+
+
+msgctxt "Operator"
+msgid "Add External Feature Set"
+msgstr "添加外部功能集"
+
+
+msgctxt "Operator"
+msgid "Remove External Feature Set"
+msgstr "移除外部功能集"
+
+
+msgid "Generate system information, saved into a text file"
+msgstr "生成系统信息并保存为文本文件"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "保存系统信息"
+
+
+msgid "Set the tool by name (for key-maps)"
+msgstr "按名称设置工具(用于键位映射)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Name"
+msgstr "按名称设置工具"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "按索引设置工具(用于键位映射)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Index"
+msgstr "按编号设置工具"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "工具栏"
+
+
+msgctxt "Operator"
+msgid "Fallback Tool Pie Menu"
+msgstr "回退工具饼菜单"
+
+
+msgid "Leader key like functionality for accessing tools"
+msgstr "类似访问工具的关键功能"
+
+
+msgctxt "Operator"
+msgid "Toolbar Prompt"
+msgstr "工具栏提示符"
+
+
+msgid "Open a website in the web browser"
+msgstr "在网页浏览器中打开网站"
+
+
+msgid "Open a preset website in the web browser"
+msgstr "在浏览器中打开预设网站"
+
+
+msgctxt "Operator"
+msgid "Open Preset Website"
+msgstr "打开预设网站"
+
+
+msgid "Convert the volume of a world to a mesh. The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"
+msgstr "将世界的体积转换为网格. 世界的体积过去由旧版EEVEE渲染. 需要转换才能正确渲染"
+
+
+msgctxt "Operator"
+msgid "Convert Volume"
+msgstr "转换体积"
 
 
 msgid "Operator Options"
@@ -52646,15 +55379,6 @@ msgid "Reset viewable area to show the selected channels"
 msgstr "重置可视区域以显示所选通道"
 
 
-msgctxt "Operator"
-msgid "Clear Useless Actions"
-msgstr "清空无用动作"
-
-
-msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
-msgstr "对无函数曲线的动作进行标记, 用于对存储及重载文件后所保留的 \"动作库\" 进行删除"
-
-
 msgid "Only Unused"
 msgstr "仅未使用"
 
@@ -52840,15 +55564,6 @@ msgid "Add a new (empty) keying set to the active Scene"
 msgstr "添加新的(空白)插帧集到活动场景"
 
 
-msgctxt "Operator"
-msgid "Export Keying Set..."
-msgstr "导出插帧集..."
-
-
-msgid "Export Keying Set to a Python script"
-msgstr "将插帧集导出为 Python 脚本"
-
-
 msgid "Filter folders"
 msgstr "过滤文件夹"
 
@@ -52953,15 +55668,6 @@ msgstr "设置起始帧"
 
 msgid "Set the current frame as the preview or scene start frame"
 msgstr "设定当前帧作为预览或场景起始帧"
-
-
-msgctxt "Operator"
-msgid "Update Animated Transform Constraints"
-msgstr "更新动画变换约束"
-
-
-msgid "Update f-curves/drivers affecting Transform constraints (use it with files from 2.70 and earlier)"
-msgstr "更新影响变换约束的函数曲线/驱动器(用于 2.70 及更早版本的文件)"
 
 
 msgid "Convert to Radians"
@@ -53222,30 +55928,12 @@ msgstr "移除活动骨骼集合"
 
 
 msgctxt "Operator"
-msgid "Remove Unused Bone Collections"
-msgstr "移除未使用的骨骼集合"
-
-
-msgid "Remove all bone collections that have neither bones nor children. This is done recursively, so bone collections that only have unused children are also removed"
-msgstr "移除所有未包含骨骼也不含子级的骨骼集合。这是递归操作，因此仅包含未使用子级的骨骼集合也会被移除"
-
-
-msgctxt "Operator"
 msgid "Select Bones of Bone Collection"
 msgstr "选择骨骼集合的骨骼"
 
 
 msgid "Select bones in active Bone Collection"
 msgstr "选择活动骨骼集合中的骨骼"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "显示全部"
-
-
-msgid "Show all bone collections"
-msgstr "显示全部骨骼集合"
 
 
 msgctxt "Operator"
@@ -53272,24 +55960,6 @@ msgstr "从此骨骼集合解除分配已命名骨骼"
 
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
 msgstr "要从集合中解除分配的骨骼的名称；空为使用活动骨骼"
-
-
-msgctxt "Operator"
-msgid "Un-solo All"
-msgstr "全部取消孤立"
-
-
-msgid "Clear the 'solo' setting on all bone collections"
-msgstr "清除所有骨骼集合的 '孤立' 设置"
-
-
-msgctxt "Operator"
-msgid "Copy Colors to Selected"
-msgstr "复制颜色到选中的骨骼"
-
-
-msgid "Copy the bone color of the active bone to all selected bones"
-msgstr "复制活动骨骼颜色到全部选中的骨骼"
 
 
 msgid "Copy Bone colors from the active bone to all selected bones"
@@ -53424,15 +56094,6 @@ msgid "Hide unselected rather than selected"
 msgstr "隐藏未选中项而不是已选中项"
 
 
-msgctxt "Operator"
-msgid "Add Metarig Sample"
-msgstr "添加元骨骼范例"
-
-
-msgid "Create a sample metarig to be modified before generating the final rig"
-msgstr "在生成最终绑定前，创建一个元骨骼范例用于修改"
-
-
 msgid "Name of the rig type to generate a sample of"
 msgstr "要生成范例的绑定类型的名称"
 
@@ -53505,98 +56166,20 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "显示所有编辑模式下隐藏的骨骼"
 
 
-msgctxt "Operator"
-msgid "Rigify Add Standard Color Sets"
-msgstr "RIgify 添加标准配色集"
-
-
 msgid "(undocumented operator)"
 msgstr "(无文档记载的操作项)"
-
-
-msgctxt "Operator"
-msgid "Rigify Apply user defined active/select colors"
-msgstr "Rigify 应用用户定义的 活动/选择 颜色"
-
-
-msgctxt "Operator"
-msgid "Add/Remove UI Rows"
-msgstr "添加/移除 UI 行"
 
 
 msgid "Row"
 msgstr "行"
 
 
-msgctxt "Operator"
-msgid "Make Collection Active"
-msgstr "使集合为活动"
-
-
 msgid "Make this collection active"
 msgstr "使此集合为活动"
 
 
-msgctxt "Operator"
-msgid "Move Between UI Rows"
-msgstr "UI 行之间移动"
-
-
-msgctxt "Operator"
-msgid "Rigify Add Color Set"
-msgstr "Rigify 添加配色集"
-
-
-msgctxt "Operator"
-msgid "Rigify Add Color Set from Theme"
-msgstr "Rigify 从主题中添加配色集"
-
-
-msgctxt "Operator"
-msgid "Rigify Remove Color Set"
-msgstr "Rigify 移除配色集"
-
-
-msgctxt "Operator"
-msgid "Rigify Remove All Color Sets"
-msgstr "Rigify 移除所有配色集"
-
-
-msgctxt "Operator"
-msgid "Rigify Encode Metarig"
-msgstr "Rigify 编码元骨骼"
-
-
-msgid "Create Python code that will generate the selected metarig"
-msgstr "创建将要生成选定元骨骼的Python代码"
-
-
-msgctxt "Operator"
-msgid "Rigify Encode Metarig Sample"
-msgstr "Rigify 编码元骨骼范例"
-
-
-msgid "Create Python code that will generate the selected metarig as a sample"
-msgstr "创建将把选中的元骨骼作为范例的Python代码"
-
-
-msgctxt "Operator"
-msgid "Rigify Upgrade Metarig Layers"
-msgstr "Rigify 升级元骨骼层"
-
-
 msgid "Upgrade the metarig from bone layers to bone collections"
 msgstr "升级元骨骼层为骨骼集合"
-
-
-msgctxt "Operator"
-msgid "Rigify Get active/select colors from current theme"
-msgstr "Rigify 从当前主题中获取 活动/选择 颜色"
-
-
-msgctxt "Operator"
-msgid "Validate Collection References"
-msgstr "验证集合引用"
 
 
 msgid ""
@@ -53623,11 +56206,6 @@ msgstr "全选 / 取消全选"
 
 msgid "Toggle selection status of all bones"
 msgstr "切换所有骨骼的选择状态"
-
-
-msgctxt "Operator"
-msgid "Select Hierarchy"
-msgstr "选择层级"
 
 
 msgid "Select immediate parent/children of selected bones"
@@ -53789,11 +56367,6 @@ msgstr "-X 到 +X"
 
 msgid "+X to -X"
 msgstr "+X 到 -X"
-
-
-msgctxt "Operator"
-msgid "Assign Action"
-msgstr "指定动作"
 
 
 msgid "Set this pose Action as active Action on the active Object"
@@ -54038,33 +56611,6 @@ msgstr "标记为单个资产"
 
 msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "借助可自定义的元数据(如预览、描述和标记)，通过资产浏览器更轻松地重新使用选定的数据块"
-
-
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "打开Blender文件"
-
-
-msgid "Open the blend file that contains the active asset"
-msgstr "打开包含活动资产的Blender文件"
-
-
-msgctxt "Operator"
-msgid "Add Asset Tag"
-msgstr "添加资产标签"
-
-
-msgid "Add a new keyword tag to the active asset"
-msgstr "向活动资产添加新关键字标签"
-
-
-msgctxt "Operator"
-msgid "Remove Asset Tag"
-msgstr "删除资产标签"
-
-
-msgid "Remove an existing keyword tag from the active asset"
-msgstr "从活动资产中删除现有关键字标签"
 
 
 msgctxt "Operator"
@@ -54441,15 +56987,6 @@ msgid "Update objects paths list with new data from the archive"
 msgstr "使用存档中的新数据更新对象路径列表"
 
 
-msgctxt "Operator"
-msgid "Add Camera Preset"
-msgstr "添加摄像机预设"
-
-
-msgid "Add or remove a Camera Preset"
-msgstr "添加或删除一个摄像机预设"
-
-
 msgid "Name of the preset, used to make the path name"
 msgstr "预设的名称, 用于创建路径名"
 
@@ -54460,15 +56997,6 @@ msgstr "包含焦距"
 
 msgid "Include focal length into the preset"
 msgstr "在预设中包含焦距"
-
-
-msgctxt "Operator"
-msgid "Add Safe Area Preset"
-msgstr "添加安全区预设"
-
-
-msgid "Add or remove a Safe Areas Preset"
-msgstr "添加或删除一个安全区预设"
 
 
 msgctxt "Operator"
@@ -54547,19 +57075,6 @@ msgstr "保留原始轨迹"
 
 
 msgctxt "Operator"
-msgid "3D Markers to Mesh"
-msgstr "网格 3D 标记"
-
-
-msgid "Create vertex cloud using coordinates of reconstructed tracks"
-msgstr "使用已重建轨迹的坐标创建顶点云"
-
-
-msgid "Add or remove a Tracking Camera Intrinsics Preset"
-msgstr "添加或移除一个追踪摄像机固有参数预设"
-
-
-msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "清理轨迹"
 
@@ -54631,15 +57146,6 @@ msgstr "仅清除活动轨迹, 而不是所有选中的轨迹"
 
 
 msgctxt "Operator"
-msgid "Constraint to F-Curve"
-msgstr "约束到函数曲线"
-
-
-msgid "Create F-Curves for object which will copy object's movement caused by this constraint"
-msgstr "为将要复制由约束器引发的物体运动运距的物体创建函数曲线"
-
-
-msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "复制轨迹"
 
@@ -54677,15 +57183,6 @@ msgstr "删除标记"
 
 msgid "Delete marker for current frame from selected tracks"
 msgstr "删除当前帧内所选轨迹的标记"
-
-
-msgctxt "Operator"
-msgid "Delete Proxy"
-msgstr "删除代理"
-
-
-msgid "Delete movie clip proxy files from the hard drive"
-msgstr "从硬盘中删除影片剪辑代理文件"
 
 
 msgctxt "Operator"
@@ -54790,15 +57287,6 @@ msgstr "扩展选择而不是清除现有的选择"
 
 msgid "Mouse location to select channel"
 msgstr "用于选择轨道的鼠标指针位置"
-
-
-msgctxt "Operator"
-msgid "Filter Tracks"
-msgstr "过滤追踪轨"
-
-
-msgid "Filter tracks which has weirdly looking spikes in motion curves"
-msgstr "过滤在运动曲线上存在怪异尖峰的轨迹"
 
 
 msgid "Track Threshold"
@@ -55172,11 +57660,6 @@ msgstr "使用套索选择标记"
 
 
 msgctxt "Operator"
-msgid "Set Active Clip"
-msgstr "设置活动剪辑"
-
-
-msgctxt "Operator"
 msgid "Set Axis"
 msgstr "设置轴"
 
@@ -55280,24 +57763,6 @@ msgstr "供设置的关键帧"
 
 
 msgctxt "Operator"
-msgid "Set as Background"
-msgstr "设为背景图"
-
-
-msgid "Set current movie clip as a camera background in 3D Viewport (works only when a 3D Viewport is visible)"
-msgstr "使用当前影片剪辑, 作为3D窗口中的摄像机背景图(仅当3D视口可见时有效)"
-
-
-msgctxt "Operator"
-msgid "Setup Tracking Scene"
-msgstr "设置追踪场景"
-
-
-msgid "Prepare scene for compositing 3D objects into this footage"
-msgstr "准备场景, 用于将三维物体合成到镜头中"
-
-
-msgctxt "Operator"
 msgid "Slide Marker"
 msgstr "滑动标记"
 
@@ -55383,15 +57848,6 @@ msgstr "选择平移稳像轨"
 
 
 msgctxt "Operator"
-msgid "Add Track Color Preset"
-msgstr "添加轨迹颜色预设"
-
-
-msgid "Add or remove a Clip Track Color Preset"
-msgstr "添加或移除一个剪辑追踪颜色预设"
-
-
-msgctxt "Operator"
 msgid "Copy Color"
 msgstr "复制颜色"
 
@@ -55418,33 +57874,6 @@ msgstr "在图像序列间进行标记追踪, 而不是单幅图像"
 
 
 msgctxt "Operator"
-msgid "Track Settings as Default"
-msgstr "设为缺省的轨迹设置"
-
-
-msgid "Copy tracking settings from active track to default settings"
-msgstr "将追踪设置从活动轨迹复制到默认设置中"
-
-
-msgctxt "Operator"
-msgid "Copy Track Settings"
-msgstr "复制轨迹设置"
-
-
-msgid "Copy tracking settings from active track to selected tracks"
-msgstr "将追踪设置从活动轨迹复制到选中轨迹中"
-
-
-msgctxt "Operator"
-msgid "Link Empty to Track"
-msgstr "将空物体链接到轨迹"
-
-
-msgid "Create an Empty object which will be copying movement of active track"
-msgstr "创建一个空物体, 将用于复制激活轨迹的运动"
-
-
-msgctxt "Operator"
 msgid "Add Tracking Object"
 msgstr "添加追踪物体"
 
@@ -55460,15 +57889,6 @@ msgstr "移除追踪物体"
 
 msgid "Remove object for tracking"
 msgstr "移除追踪物体"
-
-
-msgctxt "Operator"
-msgid "Add Tracking Settings Preset"
-msgstr "添加追踪设置预设"
-
-
-msgid "Add or remove a motion tracking settings preset"
-msgstr "添加或移除一个运动追踪设置预设"
 
 
 msgctxt "Operator"
@@ -55584,15 +58004,6 @@ msgstr "缩放比率, 1.0代表1:1, 高于此值为放大, 低于此值为缩小
 
 
 msgctxt "Operator"
-msgid "Add Cloth Preset"
-msgstr "新增布料预设"
-
-
-msgid "Add or remove a Cloth Preset"
-msgstr "新增或移除布料预设"
-
-
-msgctxt "Operator"
 msgid "Create New Collection"
 msgstr "创建新集合"
 
@@ -55698,24 +58109,6 @@ msgstr "从所有集合中移除所选物体"
 
 
 msgctxt "Operator"
-msgid "Console Autocomplete"
-msgstr "控制台自动补全"
-
-
-msgid "Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one"
-msgstr "计算直至光标处的名称空间, 并提供选项列表, 如果仅有一个选项, 则补全名称"
-
-
-msgctxt "Operator"
-msgid "Console Banner"
-msgstr "控制台横条"
-
-
-msgid "Print a message when the terminal initializes"
-msgstr "当终端初始化时打印信息"
-
-
-msgctxt "Operator"
 msgid "Clear All"
 msgstr "清除全部"
 
@@ -55767,15 +58160,6 @@ msgstr "复制后是否删除所选内容"
 
 
 msgctxt "Operator"
-msgid "Copy to Clipboard (as Script)"
-msgstr "复制到剪贴板 (作为脚本)"
-
-
-msgid "Copy the console contents for use in a script"
-msgstr "复制控制台内容, 以用于脚本"
-
-
-msgctxt "Operator"
 msgid "Delete"
 msgstr "删除"
 
@@ -55802,15 +58186,6 @@ msgstr "下一单词"
 
 msgid "Previous Word"
 msgstr "上一单词"
-
-
-msgctxt "Operator"
-msgid "Console Execute"
-msgstr "控制台执行"
-
-
-msgid "Execute the current console line as a Python expression"
-msgstr "将当前控制台行命令作为Python表达式执行"
 
 
 msgctxt "Operator"
@@ -55876,15 +58251,6 @@ msgstr "插入"
 
 msgid "Insert text at cursor position"
 msgstr "在光标处插入文本"
-
-
-msgctxt "Operator"
-msgid "Console Language"
-msgstr "控制台语言"
-
-
-msgid "Set the current language for this console"
-msgstr "为控制台设置当前语言"
 
 
 msgctxt "Python console"
@@ -55979,15 +58345,6 @@ msgstr "从文本开头处删除 4 个空格"
 
 
 msgctxt "Operator"
-msgid "Add Target"
-msgstr "添加目标"
-
-
-msgid "Add a target to the constraint"
-msgstr "对约束添加目标"
-
-
-msgctxt "Operator"
 msgid "Apply Constraint"
 msgstr "应用约束"
 
@@ -56070,15 +58427,6 @@ msgstr "从约束面板中删除约束控制器"
 
 
 msgctxt "Operator"
-msgid "Disable and Keep Transform"
-msgstr "禁用并保持变换"
-
-
-msgid "Set the influence of this constraint to zero while trying to maintain the object's transformation. Other active constraints can still influence the final transformation"
-msgstr "当尝试维持对象的变换时, 将此约束的影响设置为零。其他活动的约束仍然会影响最终的变换"
-
-
-msgctxt "Operator"
 msgid "Auto Animate Path"
 msgstr "自动动画路径"
 
@@ -56135,30 +58483,12 @@ msgid "Move constraint up in constraint stack"
 msgstr "在约束面板中向上移动约束控制器"
 
 
-msgctxt "Operator"
-msgid "Normalize Weights"
-msgstr "将权重规格化"
-
-
-msgid "Normalize weights of all target bones"
-msgstr "归一化所有目标骨骼的权重"
-
-
 msgid "Clear inverse correction for Object Solver constraint"
 msgstr "清除物体解算器约束的逆向修正"
 
 
 msgid "Set inverse correction for Object Solver constraint"
 msgstr "设置物体解算器约束的逆向修正"
-
-
-msgctxt "Operator"
-msgid "Remove Target"
-msgstr "删除目标"
-
-
-msgid "Remove the target from the constraint"
-msgstr "从约束中删除目标"
 
 
 msgctxt "Operator"
@@ -57115,15 +59445,6 @@ msgid "Location to add new vertex at"
 msgstr "新增点的目标位置"
 
 
-msgctxt "Operator"
-msgid "Denoise Animation"
-msgstr "动画降噪"
-
-
-msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
-msgstr "使用当前场景和视图图层设置对渲染动画序列降噪。需要降噪数据通道并且输出为OpenEXR 多层文件"
-
-
 msgid "Input Filepath"
 msgstr "输入文件路径"
 
@@ -57140,30 +59461,12 @@ msgid "If not specified, renders will be denoised in-place"
 msgstr "如未指定，渲染将被原地降噪"
 
 
-msgctxt "Operator"
-msgid "Merge Images"
-msgstr "合并图像"
-
-
-msgid "Combine OpenEXR multi-layer images rendered with different sample ranges into one image with reduced noise"
-msgstr "将不同采样范围渲染的OpenEXR多层图像合并到一个低噪点的图像中"
-
-
 msgid "File path for image to merge"
 msgstr "用于合并的图像文件路径"
 
 
 msgid "File path for merged image"
 msgstr "合并后的图像文件路径"
-
-
-msgctxt "Operator"
-msgid "Use Nodes"
-msgstr "使用节点"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "在材质、世界或灯光上启用节点"
 
 
 msgctxt "Operator"
@@ -57335,15 +59638,6 @@ msgid "Undo and redo previous action"
 msgstr "撤销并重做上一个动作"
 
 
-msgctxt "Operator"
-msgid "Export BVH"
-msgstr "导出 BVH"
-
-
-msgid "Save a BVH motion capture file from an armature"
-msgstr "从骨架中保存一个 BVH 运动捕捉文件"
-
-
 msgid "Filepath used for exporting the file"
 msgstr "输出文件的文件路径"
 
@@ -57426,15 +59720,6 @@ msgstr "欧拉 (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "转换转动至欧拉ZYX"
-
-
-msgctxt "Operator"
-msgid "Export FBX"
-msgstr "导出 FBX"
-
-
-msgid "Write a FBX file"
-msgstr "写出FBX文件"
 
 
 msgid "Add Leaf Bones"
@@ -57903,15 +60188,6 @@ msgstr "可见物体"
 
 msgid "Export visible objects only"
 msgstr "仅导出可见的物体"
-
-
-msgctxt "Operator"
-msgid "Export glTF 2.0"
-msgstr "导出 glTF 2.0"
-
-
-msgid "Export scene as glTF 2.0 file"
-msgstr "导出场景为glTF 2.0文件"
 
 
 msgid "Export at Collection Center"
@@ -58742,38 +61018,6 @@ msgid "Store glTF export settings in the Blender project"
 msgstr "将 glTF 导出设置存储在 Blender 中"
 
 
-msgctxt "Operator"
-msgid "Ext Demo"
-msgstr "扩展演示"
-
-
-msgctxt "Operator"
-msgid "Disable extension"
-msgstr "禁用扩展"
-
-
-msgid "Turn off this extension"
-msgstr "关闭此扩展"
-
-
-msgctxt "Operator"
-msgid "Enable Extension"
-msgstr "启用扩展"
-
-
-msgid "Turn on this extension"
-msgstr "打开此扩展"
-
-
-msgctxt "Operator"
-msgid "Install Extension"
-msgstr "安装扩展"
-
-
-msgid "Download and install the extension"
-msgstr "下载并安装扩展"
-
-
 msgid "Do Legacy Replace"
 msgstr "进行旧版替换"
 
@@ -58802,15 +61046,6 @@ msgid "URL"
 msgstr "URL"
 
 
-msgctxt "Operator"
-msgid "Install from Disk"
-msgstr "从磁盘安装"
-
-
-msgid "Install extensions from files into a locally managed repository"
-msgstr "从文件安装扩展到一个本地管理的存储库"
-
-
 msgid "Legacy Overwrite"
 msgstr "旧式覆盖"
 
@@ -58835,180 +61070,8 @@ msgid "Path to install legacy add-on packages to"
 msgstr "安装旧式插件包到此路径下"
 
 
-msgctxt "Operator"
-msgid "Ext Package Install_marked"
-msgstr "扩展包安装标记"
-
-
-msgctxt "Operator"
-msgid "Clear Marked Package"
-msgstr "清除标记的程序包"
-
-
-msgctxt "Operator"
-msgid "Clear All Marked Packages"
-msgstr "清除所有标记的程序包"
-
-
-msgctxt "Operator"
-msgid "Mark Package"
-msgstr "标记程序包"
-
-
-msgctxt "Operator"
-msgid "Mark All Packages"
-msgstr "标记所有程序包"
-
-
-msgctxt "Operator"
-msgid "Obsolete Marked"
-msgstr "废弃已标记项"
-
-
-msgid "Zeroes package versions, useful for development - to test upgrading"
-msgstr "Zeroes软件包版本，适用于从开发到测试的升级"
-
-
-msgctxt "Operator"
-msgid "Show Package Clear"
-msgstr "显示程序包清除"
-
-
-msgctxt "Operator"
-msgid "Show Package Set"
-msgstr "显示程序包集"
-
-
-msgctxt "Operator"
-msgid "Show Settings"
-msgstr "显示设置"
-
-
-msgctxt "Operator"
-msgid "Disable theme extension"
-msgstr "禁用主题扩展"
-
-
-msgid "Turn off this theme"
-msgstr "关闭此主题"
-
-
-msgctxt "Operator"
-msgid "Enable theme extension"
-msgstr "启用主题扩展"
-
-
-msgctxt "Operator"
-msgid "Ext Package Uninstall"
-msgstr "扩展包卸载"
-
-
-msgid "Disable and uninstall the extension"
-msgstr "禁用并卸载扩展"
-
-
-msgctxt "Operator"
-msgid "Ext Package Uninstall Marked"
-msgstr "扩展包卸载标记"
-
-
-msgctxt "Operator"
-msgid "Uninstall"
-msgstr "卸载"
-
-
-msgctxt "Operator"
-msgid "Install Available Updates"
-msgstr "安装可用的更新"
-
-
-msgid "Upgrade all the extensions to their latest version for all the remote repositories"
-msgstr "升级所有远程存储库的所有扩展到其最新版本"
-
-
 msgid "Only sync the active repository"
 msgstr "仅同步活动存储库"
-
-
-msgctxt "Operator"
-msgid "Enable Repository from Drop"
-msgstr "在下拉面板中开启存储库"
-
-
-msgctxt "Operator"
-msgid "Lock All Repositories (Testing)"
-msgstr "锁定全部存储库 (测试中)"
-
-
-msgid "Lock repositories - to test locking"
-msgstr "锁定存储库 - 测试锁定"
-
-
-msgctxt "Operator"
-msgid "Refresh Local"
-msgstr "刷新本地"
-
-
-msgid "Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). Any issues are reported as warnings"
-msgstr "扫描扩展和旧式插件的模块和元数据的更改（类似于重新启动）.任何问题都会以警告形式报告"
-
-
-msgctxt "Operator"
-msgid "Ext Repo Sync"
-msgstr "扩展报告同步"
-
-
-msgctxt "Operator"
-msgid "Refresh Remote"
-msgstr "刷新远程"
-
-
-msgid "Refresh the list of extensions for all the remote repositories"
-msgstr "刷新所有远程存储库的扩展列表"
-
-
-msgctxt "Operator"
-msgid "Force Unlock Active Repository"
-msgstr "强制解锁活动存储库"
-
-
-msgid "Remove the repository file-system lock"
-msgstr "移除存储库文件系统锁"
-
-
-msgctxt "Operator"
-msgid "Unlock All Repositories (Testing)"
-msgstr "解锁全部存储库 (测试中)"
-
-
-msgid "Unlock repositories - to test unlocking"
-msgstr "解锁存储库 - 测试解锁"
-
-
-msgctxt "Operator"
-msgid "Clear Status"
-msgstr "清除状态"
-
-
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "允许互联网访问。Blender可以访问已配置的在线扩展存储库。已安装的第三方插件可以访问互联网以获得其自身的功能"
-
-
-msgid "Open extensions preferences"
-msgstr "打开扩展设置"
-
-
-msgid "Show system preferences \"Network\" panel to allow online access"
-msgstr "显示系统设置 \"网络\" 面板以允许联机访问"
-
-
-msgctxt "Operator"
-msgid "Set Extension Tags"
-msgstr "设置扩展标签"
-
-
-msgid "Set the value of all tags"
-msgstr "设置所有标签值"
 
 
 msgid "Enable or disable all tags"
@@ -59698,15 +61761,6 @@ msgstr "暂停烘焙"
 
 msgid "Pause Bake"
 msgstr "暂停烘焙"
-
-
-msgctxt "Operator"
-msgid "Add Fluid Preset"
-msgstr "新增流体预设"
-
-
-msgid "Add or remove a Fluid Preset"
-msgstr "新增或删除一个流体预设"
 
 
 msgctxt "Operator"
@@ -62251,15 +64305,6 @@ msgstr "将选定的笔画裁剪到第一个循环或交点"
 
 
 msgctxt "Operator"
-msgid "Flip Colors"
-msgstr "翻转颜色"
-
-
-msgid "Switch tint colors"
-msgstr "切换染色"
-
-
-msgctxt "Operator"
 msgid "Trace Image to Grease Pencil"
 msgstr "识别图像至蜡笔"
 
@@ -63862,15 +65907,6 @@ msgid "Paste new image from the clipboard"
 msgstr "从剪贴板粘贴新图像"
 
 
-msgctxt "Operator"
-msgid "Convert Image Empty to Mesh Plane"
-msgstr "将图像空物体转换为网格平面"
-
-
-msgid "Convert selected reference images to textured mesh plane"
-msgstr "将选中的参考图像转换为具有纹理的网格平面"
-
-
 msgid "Delete Reference Object"
 msgstr "删除参考物体"
 
@@ -63998,15 +66034,6 @@ msgstr "反向周期"
 
 
 msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "外部编辑图像"
-
-
-msgid "Edit image in an external application"
-msgstr "在外部程序中编辑图像"
-
-
-msgctxt "Operator"
 msgid "Browse Image"
 msgstr "浏览图片"
 
@@ -64030,15 +66057,6 @@ msgstr "水平翻转图像"
 
 msgid "Flip the image vertically"
 msgstr "垂直翻转图像"
-
-
-msgctxt "Operator"
-msgid "Import Images as Planes"
-msgstr "导入图像为平面"
-
-
-msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
-msgstr "从图像文件创建带适当宽高比的网格平面"
 
 
 msgid "How to align the planes"
@@ -64333,11 +66351,6 @@ msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "检测选定的 UDIM 文件并加载所有匹配的分块"
 
 
-msgctxt "Operator"
-msgid "Open Images"
-msgstr "打开图像"
-
-
 msgid "Use relative path"
 msgstr "使用相对路径"
 
@@ -64357,24 +66370,6 @@ msgstr "打包图像"
 
 msgid "Pack an image as embedded data into the .blend file"
 msgstr "将图像作为内嵌数据打包到 .blend 文件中"
-
-
-msgctxt "Operator"
-msgid "Project Apply"
-msgstr "应用投射"
-
-
-msgid "Project edited image back onto the object"
-msgstr "将编辑过图像投射回物体上"
-
-
-msgctxt "Operator"
-msgid "Project Edit"
-msgstr "编辑投射"
-
-
-msgid "Edit a snapshot of the 3D Viewport in an external image editor"
-msgstr "在外部图像编辑器中编辑3D视口截图"
 
 
 msgctxt "Operator"
@@ -64692,15 +66687,6 @@ msgid "Set zoom ratio of the view"
 msgstr "设置视图缩放比"
 
 
-msgctxt "Operator"
-msgid "Import BVH"
-msgstr "导入 BVH"
-
-
-msgid "Load a BVH motion capture file"
-msgstr "加载一个 BVH 运动捕捉文件"
-
-
 msgid "Starting frame for the animation"
 msgstr "动画起始帧"
 
@@ -64739,24 +66725,6 @@ msgstr "缩放帧速率"
 
 msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 msgstr "将帧率从 BVH 缩放至当前场景，否则各个 BVH 帧会直接映射到各个 Blender 帧"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "导入 SVG"
-
-
-msgid "Load a SVG file"
-msgstr "加载 SVG 文件"
-
-
-msgctxt "Operator"
-msgid "Import FBX"
-msgstr "导入 FBX"
-
-
-msgid "Load a FBX file"
-msgstr "加载FBX文件"
 
 
 msgid "Animation Offset"
@@ -64893,15 +66861,6 @@ msgstr "细分数据"
 
 msgid "Import FBX subdivision information as subdivision surface modifiers"
 msgstr "将FBX的细分信息导入为表面细分修改器"
-
-
-msgctxt "Operator"
-msgid "Import glTF 2.0"
-msgstr "导入 glTF 2.0"
-
-
-msgid "Load a glTF 2.0 file"
-msgstr "加载 glTF 2.0 文件"
 
 
 msgid "Bone Dir"
@@ -66250,10 +68209,6 @@ msgid "Extrude Region and Move"
 msgstr "挤出选区并移动"
 
 
-msgid "Extrude region together along the average normal"
-msgstr "沿平均法向整体区域挤出"
-
-
 msgid "Extrude Context"
 msgstr "挤出的上下文"
 
@@ -66294,10 +68249,6 @@ msgid "Extrude Individual Faces and Move"
 msgstr "挤出各面并移动"
 
 
-msgid "Extrude each individual face separately along local normals"
-msgstr "沿着各自的法线挤出每个面"
-
-
 msgid "Extrude Individual Faces"
 msgstr "挤出各个面"
 
@@ -66335,10 +68286,6 @@ msgstr "挤出选区并移动挤出的元素"
 msgctxt "Operator"
 msgid "Extrude Region and Shrink/Fatten"
 msgstr "挤出区域并沿法向缩放"
-
-
-msgid "Extrude region together along local normals"
-msgstr "沿着局部法线挤出整体区域"
 
 
 msgctxt "Operator"
@@ -66429,15 +68376,6 @@ msgstr "焊接边线到面"
 
 msgid "Weld loose edges into faces (splitting them into new faces)"
 msgstr "焊接松散边线到面(切割为新的面)"
-
-
-msgctxt "Operator"
-msgid "Copy Mirrored UV Coords"
-msgstr "复制镜像 UV 坐标"
-
-
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "复制沿 X 轴镜像的 UV 坐标, 基于一个镜像网格"
 
 
 msgid "Axis Direction"
@@ -67436,15 +69374,6 @@ msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "创建一个四点基准平面网格"
 
 
-msgctxt "Operator"
-msgid "Add Torus"
-msgstr "添加环体"
-
-
-msgid "Construct a torus mesh"
-msgstr "创建一个圆环网格"
-
-
 msgid "Exterior Radius"
 msgstr "外径"
 
@@ -67558,11 +69487,6 @@ msgstr "允许选中顶点与未选中顶点合并"
 
 msgid "Reveal all hidden vertices, edges and faces"
 msgstr "恢复显示所有顶点、边或面"
-
-
-msgctxt "Operator"
-msgid "Rigify Encode Widget"
-msgstr "Rigify 编码小部件"
 
 
 msgctxt "Operator"
@@ -67803,15 +69727,6 @@ msgstr "扩展选择与初始选中项相连的顶点、边或面"
 
 
 msgctxt "Operator"
-msgid "Select Next Element"
-msgstr "选择下一个元素"
-
-
-msgid "Select the next element (using selection order)"
-msgstr "选择下一个元素(根据选择次序)"
-
-
-msgctxt "Operator"
 msgid "Select Non-Manifold"
 msgstr "选择非流形"
 
@@ -67850,15 +69765,6 @@ msgstr "线框边"
 
 msgid "Deselect every Nth element starting from the active vertex, edge or face"
 msgstr "从选中的顶点 / 边 / 面中按照指定的元素间隔数量执行弃选"
-
-
-msgctxt "Operator"
-msgid "Select Previous Element"
-msgstr "选择上一个元素"
-
-
-msgid "Select the previous element (using selection order)"
-msgstr "选择上一个元素(根据选择次序)"
 
 
 msgid "Randomly select vertices"
@@ -68546,15 +70452,6 @@ msgid "Apply scaling of selected strips to their referenced Actions"
 msgstr "根据参考的动作应用选择片段的缩放"
 
 
-msgctxt "Operator"
-msgid "Bake Action"
-msgstr "烘焙动作"
-
-
-msgid "Bake all selected objects location/scale/rotation animation to an action"
-msgstr "将所有选中物体的位置/缩放/旋转动画数据烘焙到一个动作"
-
-
 msgctxt "Action"
 msgid "Bake Data"
 msgstr "烘焙数据"
@@ -69011,15 +70908,6 @@ msgid "Add a material node to the current node editor"
 msgstr "在当前节点编辑器中添加一个材质节点"
 
 
-msgctxt "Operator"
-msgid "Add Node"
-msgstr "添加节点"
-
-
-msgid "Add a node to the active tree"
-msgstr "为活动节点树添加一个节点"
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "应用到新创建节点的设置"
 
@@ -69045,15 +70933,6 @@ msgid "Add an object info node to the current node editor"
 msgstr "向当前节点编辑器添加物体信息节点"
 
 
-msgctxt "Operator"
-msgid "Add Repeat Zone"
-msgstr "添加重复区"
-
-
-msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
-msgstr "添加一个重复区，允许多次运行节点"
-
-
 msgid "Offset of nodes from the cursor when added"
 msgstr "添加时节点时与游标的偏移量"
 
@@ -69065,15 +70944,6 @@ msgstr "添加转接点"
 
 msgid "Add a reroute node"
 msgstr "添加一个转接点节点"
-
-
-msgctxt "Operator"
-msgid "Add Simulation Zone"
-msgstr "添加模拟区"
-
-
-msgid "Add simulation zone input and output nodes to the active tree"
-msgstr "添加一个带输入和输出节点的模拟区"
 
 
 msgctxt "Operator"
@@ -69198,20 +71068,6 @@ msgstr "从内部剪贴板粘贴节点到活动的节点树"
 
 msgid "The 2D view location for the center of the new nodes, or unchanged if not set"
 msgstr "新节点中心的 2D 视图位置，如果未设置，则保持不变"
-
-
-msgctxt "Operator"
-msgid "Collapse and Hide Unused Sockets"
-msgstr "折叠并隐藏未使用的接口"
-
-
-msgid "Toggle collapsed nodes and hide unused sockets"
-msgstr "切换已收起节点, 并隐藏闲置接口"
-
-
-msgctxt "Operator"
-msgid "Connect to Output"
-msgstr "连接到输出端"
 
 
 msgid "Connect active node to the active output node of the node tree"
@@ -69369,11 +71225,6 @@ msgid "Search for a node by name and focus and select it"
 msgstr "按名称搜索节点然后汇聚并选中"
 
 
-msgctxt "Operator"
-msgid "glTF Material Output"
-msgstr "glTF材质输出"
-
-
 msgid "Add a node to the active tree for glTF export"
 msgstr "为活动节点树添加一个节点供glTF输出"
 
@@ -69453,11 +71304,6 @@ msgid "Add Item"
 msgstr "添加项目"
 
 
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "移除条目"
-
-
 msgid "Remove an item from the index switch"
 msgstr "从编号切换移除一个条目"
 
@@ -69475,30 +71321,8 @@ msgid "Automatically offset nodes on insertion"
 msgstr "插入时自动偏移节点"
 
 
-msgctxt "Operator"
-msgid "Duplicate Item"
-msgstr "复制条目"
-
-
-msgid "Add a copy of the active item to the interface"
-msgstr "在界面上添加一个激活条目的副本"
-
-
-msgctxt "Operator"
-msgid "New Item"
-msgstr "新建条目"
-
-
-msgid "Add a new item to the interface"
-msgstr "给界面添加一个新的条目"
-
-
 msgid "Type of the item to create"
 msgstr "创建条目的类型"
-
-
-msgid "Remove active item from the interface"
-msgstr "从界面上移除活动的条目"
 
 
 msgctxt "Operator"
@@ -69647,33 +71471,6 @@ msgstr "切换禁用的已选节点"
 
 
 msgctxt "Operator"
-msgid "Assign New Geometry Node Group"
-msgstr "指定新的几何节点组"
-
-
-msgid "Create a new geometry node group and assign it to the active modifier"
-msgstr "创建新的几何节点组，并为其指定活动修改器"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Tool Group"
-msgstr "新建几何节点工具组"
-
-
-msgid "Create a new geometry node group for a tool"
-msgstr "给一个工具创建一个新的几何节点组"
-
-
-msgctxt "Operator"
-msgid "New Geometry Node Modifier"
-msgstr "新建几何节点修改器"
-
-
-msgid "Create a new modifier with a new geometry node group"
-msgstr "使用新的几何节点组创建新修改器"
-
-
-msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "新节点树"
 
@@ -69686,40 +71483,8 @@ msgid "Tree Type"
 msgstr "树类型"
 
 
-msgctxt "Operator"
-msgid "Add Node Color Preset"
-msgstr "添加节点颜色预设"
-
-
-msgid "Add or remove a Node Color Preset"
-msgstr "添加或删除一个节点颜色预设"
-
-
 msgid "Copy color to all selected nodes"
 msgstr "将颜色复制到所有选中的节点"
-
-
-msgctxt "Operator"
-msgid "Add UV map"
-msgstr "添加 UV 贴图"
-
-
-msgid "Add an Attribute node with this name"
-msgstr "添加一个以此命名的属性节点"
-
-
-msgctxt "Operator"
-msgid "Open Selected Images"
-msgstr "打开所选图像"
-
-
-msgid "Add multiple images at once"
-msgstr "一次添加多个图像"
-
-
-msgctxt "Operator"
-msgid "Add Reroutes"
-msgstr "添加转接点"
 
 
 msgid "Add Reroutes to outputs"
@@ -69754,22 +71519,8 @@ msgid "Add only to linked outputs"
 msgstr "仅添加到已连接的输出端"
 
 
-msgctxt "Operator"
-msgid "Import Image Sequence"
-msgstr "导入图像序列"
-
-
-msgid "Add an Image Sequence"
-msgstr "添加一个图像序列"
-
-
 msgid "Set the file path relative to the blend file, when possible"
 msgstr "设置相对于blend文件的路径, 如果可行"
-
-
-msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "纹理配置"
 
 
 msgid "Add texture node setup to selected shaders"
@@ -69784,11 +71535,6 @@ msgid "Create coordinate and mapping nodes for the texture (ignored for selected
 msgstr "为纹理创建坐标与映射节点 (忽略所选纹理节点)"
 
 
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "原理化纹理配置"
-
-
 msgid "Add texture node setup for Principled BSDF"
 msgstr "为原理化BSDF添加纹理节点配置"
 
@@ -69797,22 +71543,8 @@ msgid "Folder to search in for image files"
 msgstr "搜索图像文件的文件夹"
 
 
-msgctxt "Operator"
-msgid "Align Nodes"
-msgstr "对齐节点"
-
-
-msgid "Align the selected nodes neatly in a row/column"
-msgstr "将所选节点对齐成行/成列"
-
-
 msgid "The amount of space between nodes"
 msgstr "节点之间的间距"
-
-
-msgctxt "Operator"
-msgid "Batch Change"
-msgstr "批量更改"
 
 
 msgid "Batch change blend type and math operation"
@@ -70127,36 +71859,8 @@ msgid "To Degrees Mode"
 msgstr "到角度模式"
 
 
-msgctxt "Operator"
-msgid "Reset Backdrop"
-msgstr "重置背景图"
-
-
-msgid "Reset the zoom and position of the background image"
-msgstr "重置背景图像的缩放和位置"
-
-
-msgctxt "Operator"
-msgid "Make Link"
-msgstr "生成连接"
-
-
-msgid "Link from this output"
-msgstr "从此输出端连接"
-
-
-msgctxt "Operator"
-msgid "Clear Label"
-msgstr "清除标签"
-
-
 msgid "Clear labels on selected nodes"
 msgstr "清除所选节点上的标签"
-
-
-msgctxt "Operator"
-msgid "Copy Label"
-msgstr "复制标签"
 
 
 msgid "Copy label from active to selected nodes"
@@ -70187,22 +71891,8 @@ msgid "From socket linked to selected node"
 msgstr "来自连接到所选节点的接口"
 
 
-msgctxt "Operator"
-msgid "Copy Settings"
-msgstr "复制设置"
-
-
 msgid "Copy settings from active to selected nodes"
 msgstr "从活动节点向选中节点复制设置"
-
-
-msgctxt "Operator"
-msgid "Delete Unused Nodes"
-msgstr "删除未使用节点"
-
-
-msgid "Delete all nodes whose output is not used"
-msgstr "删除所有输出端未使用的节点"
 
 
 msgid "Delete Empty Frames"
@@ -70221,27 +71911,8 @@ msgid "Delete (but reconnect, like Ctrl-X) all muted nodes"
 msgstr "删除 (但重新连接, 如同 Ctrl-X) 全部已屏蔽的节点"
 
 
-msgctxt "Operator"
-msgid "Detach Outputs"
-msgstr "脱离输出"
-
-
-msgid "Detach outputs of selected node leaving inputs linked"
-msgstr "脱离所选节点的输出端同时维持输入端的连接"
-
-
-msgctxt "Operator"
-msgid "Change Factor"
-msgstr "更改系数"
-
-
 msgid "Change factors of Mix nodes and Mix Shader nodes"
 msgstr "更改混合节点与混合着色器节点的系数"
-
-
-msgctxt "NodeTree"
-msgid "Frame Selected"
-msgstr "框住所选"
 
 
 msgid "Add a frame node and parent the selected nodes to it"
@@ -70258,46 +71929,6 @@ msgstr "框节点的可见名称"
 
 msgid "Use custom color for the frame node"
 msgstr "为框节点使用自定义颜色"
-
-
-msgctxt "Operator"
-msgid "Lazy Connect"
-msgstr "懒人连接"
-
-
-msgid "Connect two nodes without clicking a specific socket (automatically determined"
-msgstr "无需单击特定接口即可连接两个节点 (自动决定"
-
-
-msgctxt "Operator"
-msgid "Mix Nodes"
-msgstr "混合节点"
-
-
-msgid "Add a Mix RGB/Shader node by interactively drawing lines between nodes"
-msgstr "通过交互地在节点之间绘制线来添加混合RGB/着色器节点"
-
-
-msgctxt "Operator"
-msgid "Link Active Node to Selected"
-msgstr "连接活动节点到选中项"
-
-
-msgid "Link active node to selected nodes basing on various criteria"
-msgstr "基于各种规则连接活动节点到选中节点"
-
-
-msgid "Link to Composite node or Material Output node"
-msgstr "连接到合成节点或材质输出节点"
-
-
-msgid "Make a link from one socket to another"
-msgstr "从一个接口连接到另一个接口"
-
-
-msgctxt "Operator"
-msgid "Merge Nodes"
-msgstr "合并节点"
 
 
 msgid "Merge selected nodes"
@@ -70372,15 +72003,6 @@ msgid "Union Mode"
 msgstr "并集模式"
 
 
-msgctxt "Operator"
-msgid "Modify Labels"
-msgstr "修改标签"
-
-
-msgid "Modify labels of all selected nodes"
-msgstr "修改所有选中节点的标签"
-
-
 msgid "Add to End"
 msgstr "添加到末尾"
 
@@ -70397,31 +72019,8 @@ msgid "Replace with"
 msgstr "替换为"
 
 
-msgctxt "Operator"
-msgid "Reload Images"
-msgstr "重新载入图像"
-
-
 msgid "Update all the image nodes to match their files on disk"
 msgstr "更新所有图像节点以匹配其位于磁盘上的文件"
-
-
-msgctxt "Operator"
-msgid "Reset Nodes"
-msgstr "重置节点"
-
-
-msgid "Reset Nodes in Selection"
-msgstr "重置选中的节点"
-
-
-msgctxt "Operator"
-msgid "Save This Image"
-msgstr "保存此图像"
-
-
-msgid "Save the current viewer node to an image file"
-msgstr "保存当前预览器节点为图像文件"
 
 
 msgid "Choose the file format to save to"
@@ -70448,11 +72047,6 @@ msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
 
 
-msgctxt "Operator"
-msgid "Select Parent or Children"
-msgstr "选择父级或子级"
-
-
 msgid "Select Parent Frame"
 msgstr "选择父级框"
 
@@ -70463,15 +72057,6 @@ msgstr "选择子级"
 
 msgid "Select members of selected frame"
 msgstr "选择所选框的成员"
-
-
-msgctxt "Operator"
-msgid "Swap Links"
-msgstr "交换连接"
-
-
-msgid "Swap the output connections of the two selected nodes, or two similar inputs of a single node"
-msgstr "交换两个所选节点的输出端连接, 或交换单个节点的两个相似输入端"
 
 
 msgctxt "Operator"
@@ -70702,15 +72287,6 @@ msgid "Move and Attach"
 msgstr "移动并关联"
 
 
-msgctxt "Operator"
-msgid "Parent Node Tree"
-msgstr "父级节点树"
-
-
-msgid "Go to parent node tree"
-msgstr "回到父级节点树"
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "缩放视图, 以浏览全部节点"
 
@@ -70737,11 +72313,6 @@ msgid "Add an object to the scene"
 msgstr "向场景中添加新物体"
 
 
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "添加修改器"
-
-
 msgid "Add named object"
 msgstr "添加已命名的物体"
 
@@ -70764,15 +72335,6 @@ msgstr "新物体放置的Y向坐标(屏幕空间)"
 
 msgid "Duplicate object but not object data, linking to the original data"
 msgstr "复制物体但不复制物体数据, 而是关联至原始数据"
-
-
-msgctxt "Operator"
-msgid "Align Objects"
-msgstr "对齐物体"
-
-
-msgid "Align objects"
-msgstr "对齐物体"
 
 
 msgid "Align to axis"
@@ -70832,70 +72394,12 @@ msgstr "将选定的物体与活动物体对齐"
 
 
 msgctxt "Operator"
-msgid "Animated Transforms to Deltas"
-msgstr "动画变换 -> 增量"
-
-
-msgid "Convert object animation for normal transforms to delta transforms"
-msgstr "将正常变换型物体动画转换为增量变换"
-
-
-msgctxt "Operator"
 msgid "Add Armature"
 msgstr "添加骨架"
 
 
 msgid "Add an armature object to the scene"
 msgstr "向场景中添加一个骨架物体"
-
-
-msgctxt "Operator"
-msgid "Add Basic human (metarig)"
-msgstr "添加基础人类 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Basic quadruped (metarig)"
-msgstr "添加基础四足动物 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Bird (metarig)"
-msgstr "添加鸟 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Cat (metarig)"
-msgstr "添加猫 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Horse (metarig)"
-msgstr "添加马 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Human (metarig)"
-msgstr "添加人类 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Shark (metarig)"
-msgstr "添加鲨鱼 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Add Wolf (metarig)"
-msgstr "添加狼 (元骨骼)"
-
-
-msgctxt "Operator"
-msgid "Assign Custom Property Values as Default"
-msgstr "将自定义属性值指定为默认值"
-
-
-msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
-msgstr "将自定义属性的当前值指定为其默认值，作为NLA轨道混合中的静置姿势状态的一部分"
 
 
 msgid "Process bone properties"
@@ -71172,18 +72676,8 @@ msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "曲线或网格物体转换为蜡笔"
 
 
-msgctxt "Operator"
-msgid "Copy Global Transform"
-msgstr "复制全局变换"
-
-
 msgid "Copies the matrix of the currently active object or pose bone to the clipboard. Uses world-space matrices"
 msgstr "将当前活动物体的矩阵或姿态骨骼复制到剪贴板。使用世界空间矩阵"
-
-
-msgctxt "Operator"
-msgid "Copy Relative Transform"
-msgstr "复制相对变换"
 
 
 msgid "Copies the matrix of the currently active object or pose bone to the clipboard. Uses matrices relative to a specific object or the active scene camera"
@@ -71328,11 +72822,6 @@ msgid "Remove object from all scenes"
 msgstr "从所有场景中移除物体"
 
 
-msgctxt "Operator"
-msgid "Delete Generated Keys"
-msgstr "删除创建的关键帧"
-
-
 msgid "Delete all keys that were generated by the 'Fix to Scene Camera' operator"
 msgstr "删除全部通过“固定到场景摄像机”创建的关键帧"
 
@@ -71450,11 +72939,6 @@ msgid "Refresh data in the Explode modifier"
 msgstr "刷新爆破修改器的数据"
 
 
-msgctxt "Operator"
-msgid "Fix to Scene Camera"
-msgstr "固定到场景摄像机"
-
-
 msgid "Generate new keys to fix the selected object/bone to the camera on unkeyed frames"
 msgstr "将选定的物体/骨骼固定到摄像机，在未有关键帧的位置生成新的关键帧"
 
@@ -71514,15 +72998,6 @@ msgstr "在属性和单个值之间切换以定义每个元素的数据"
 
 msgid "Input Name"
 msgstr "输入名称"
-
-
-msgctxt "Operator"
-msgid "Move to Nodes"
-msgstr "转移到节点"
-
-
-msgid "Move inputs and outputs from in the modifier to a new node group"
-msgstr "将修改器中的输入和输出移动到新节点组"
 
 
 msgid "Affect all selected objects instead of just the active object"
@@ -71688,15 +73163,6 @@ msgstr "切换可见性"
 
 
 msgctxt "Operator"
-msgid "Clear All Restrict Render"
-msgstr "清除所有渲染限制"
-
-
-msgid "Reveal all render objects by setting the hide render flag"
-msgstr "通过设置隐藏渲染标记恢复显示所有渲染物体"
-
-
-msgctxt "Operator"
 msgid "Show Hidden Objects"
 msgstr "显示隐藏物体"
 
@@ -71794,42 +73260,6 @@ msgstr "选中网格上的受影响点"
 
 
 msgctxt "Operator"
-msgid "Set Offset from Cursor"
-msgstr "设置相对游标偏移量"
-
-
-msgid "Set offset used for collection instances based on cursor position"
-msgstr "根据游标位置设置用于集合实例的偏移量"
-
-
-msgctxt "Operator"
-msgid "Set Offset from Object"
-msgstr "设置相对物体偏移量"
-
-
-msgid "Set offset used for collection instances based on the active object position"
-msgstr "根据活动物体位置设置用于集合实例的偏移量"
-
-
-msgctxt "Operator"
-msgid "Set Cursor to Offset"
-msgstr "设置游标至偏移量"
-
-
-msgid "Set cursor position to the offset used for collection instances"
-msgstr "将游标位置设置为用于集合实例的偏移量"
-
-
-msgctxt "Operator"
-msgid "Restrict Render Unselected"
-msgstr "不渲染未选中的物体"
-
-
-msgid "Hide unselected render objects of same type as active by setting the hide render flag"
-msgstr "将物体设置为限制渲染以不参与渲染"
-
-
-msgctxt "Operator"
 msgid "Join"
 msgstr "合并"
 
@@ -71845,15 +73275,6 @@ msgstr "合并为形变"
 
 msgid "Copy the current resulting shape of another selected object to this one"
 msgstr "复制另一个选定物体的当前结果形状到此物体"
-
-
-msgctxt "Operator"
-msgid "Transfer UV Maps"
-msgstr "传递 UV 映射"
-
-
-msgid "Transfer UV Maps from active to selected objects (needs matching geometry)"
-msgstr "从活动的物体向选中的物体传递 UV 布局 (需匹配几何结构)"
 
 
 msgctxt "Operator"
@@ -72072,15 +73493,6 @@ msgstr "清除增量"
 
 msgid "Clear delta location in addition to clearing the normal location transform"
 msgstr "在清除常规位置变换的同时清除增量位置变换"
-
-
-msgctxt "Operator"
-msgid "Make Instance Face"
-msgstr "创建实例面"
-
-
-msgid "Convert objects into instanced faces"
-msgstr "将物体转换为实例化的面副本"
 
 
 msgctxt "Operator"
@@ -72777,11 +74189,6 @@ msgid "Remove the selected particle system"
 msgstr "移除选择的粒子系统"
 
 
-msgctxt "Operator"
-msgid "Paste Global Transform"
-msgstr "粘贴全局变换"
-
-
 msgid "Pastes the matrix from the clipboard to the currently active pose bone or object. Uses world-space matrices"
 msgstr "将剪贴板中的矩阵粘贴到当前活动的姿态骨骼或物体。使用世界空间矩阵"
 
@@ -73005,15 +74412,6 @@ msgid "Try to preserve sharp features on the mesh"
 msgstr "尝试在网格上保留锐边特征"
 
 
-msgctxt "Operator"
-msgid "Quick Explode"
-msgstr "快速爆破"
-
-
-msgid "Make selected objects explode"
-msgstr "使选中物体爆破"
-
-
 msgid "Number of Pieces"
 msgstr "块数"
 
@@ -73028,15 +74426,6 @@ msgstr "爆破风格"
 
 msgid "Outwards Velocity"
 msgstr "朝外速度"
-
-
-msgctxt "Operator"
-msgid "Quick Fur"
-msgstr "快速毛发"
-
-
-msgid "Add a fur setup to the selected objects"
-msgstr "添加一个毛发配置到所选物体"
 
 
 msgid "Apply Hair Guides"
@@ -73055,30 +74444,12 @@ msgid "View Percentage"
 msgstr "显示百分比"
 
 
-msgctxt "Operator"
-msgid "Quick Liquid"
-msgstr "快速液体"
-
-
-msgid "Make selected objects liquid"
-msgstr "使选中物体变为液体"
-
-
 msgid "Render Liquid Objects"
 msgstr "渲染液体物体"
 
 
 msgid "Keep the liquid objects visible during rendering"
 msgstr "在渲染过程中保持液体物体可见"
-
-
-msgctxt "Operator"
-msgid "Quick Smoke"
-msgstr "快速烟雾"
-
-
-msgid "Use selected objects as smoke emitters"
-msgstr "使用选中物体为烟雾发射源"
 
 
 msgid "Render Smoke Objects"
@@ -73095,15 +74466,6 @@ msgstr "烟雾样式"
 
 msgid "Smoke & Fire"
 msgstr "烟雾 + 火焰"
-
-
-msgctxt "Operator"
-msgid "Randomize Transform"
-msgstr "随机变换"
-
-
-msgid "Randomize objects location, rotation, and scale"
-msgstr "随机化物体的位置/转动/缩放"
 
 
 msgid "Maximum distance the objects can spread over each axis"
@@ -73172,24 +74534,6 @@ msgstr "重置选中的本地重写为其关联数值"
 
 
 msgctxt "Operator"
-msgid "New"
-msgstr "新建"
-
-
-msgid "Create a new action"
-msgstr "创建新的动作"
-
-
-msgctxt "Operator"
-msgid "Jump to Action Slot"
-msgstr "跳至操作槽"
-
-
-msgid "Set Active Action Slot Index"
-msgstr "设置活动动作槽索引"
-
-
-msgctxt "Operator"
 msgid "Clear Rotation"
 msgstr "旋转归零"
 
@@ -73221,15 +74565,6 @@ msgstr "按类型选择"
 
 msgid "Select all visible objects that are of a type"
 msgstr "选择所有同类型的可见物体"
-
-
-msgctxt "Operator"
-msgid "Select Camera"
-msgstr "选择摄像机"
-
-
-msgid "Select the active camera"
-msgstr "选择活动摄像机"
 
 
 msgid "Select all visible objects grouped by various properties"
@@ -73268,10 +74603,6 @@ msgid "Matching light types"
 msgstr "匹配光源类型"
 
 
-msgid "Select object relative to the active object's position in the hierarchy"
-msgstr "在层级中选择与活动物体的位置相关的物体"
-
-
 msgid "Direction to select in the hierarchy"
 msgstr "指向层级中的选择"
 
@@ -73302,15 +74633,6 @@ msgstr "选取所选物体的镜像物体, 例如 \"L.sword\" 和 \"R.sword\""
 
 msgid "Select connected parent/child objects"
 msgstr "选择连接的父级/子级物体"
-
-
-msgctxt "Operator"
-msgid "Select Pattern"
-msgstr "按名称选择"
-
-
-msgid "Select objects matching a naming pattern"
-msgstr "选择匹配命名规则的物体"
 
 
 msgid "Case Sensitive"
@@ -73626,15 +74948,6 @@ msgid "Resets the timing for absolute shape keys"
 msgstr "重置所有绝对形态键的时序"
 
 
-msgctxt "Operator"
-msgid "Transfer Shape Key"
-msgstr "传递形态键"
-
-
-msgid "Copy the active shape key of another selected object to this one"
-msgstr "拷贝另外一个选择物体的活动形态键到此物体"
-
-
 msgid "Transformation Mode"
 msgstr "变换模式"
 
@@ -73767,15 +75080,6 @@ msgid "Add a speaker object to the scene"
 msgstr "向场景中添加一个扬声器"
 
 
-msgctxt "Operator"
-msgid "Subdivision Set"
-msgstr "细分设置"
-
-
-msgid "Sets a Subdivision Surface level (1 to 5)"
-msgstr "设置表面细分等级 (1-5)"
-
-
 msgid "Apply the subdivision surface level as an offset relative to the current level"
 msgstr "将细分级数应用为相对当前级数的偏移"
 
@@ -73902,15 +75206,6 @@ msgstr "会话UUID"
 
 msgid "Session UUID of the object to place (uses the active object when this and 'name' are unset)"
 msgstr "要放置的物体的会话 UUID(如果未设置此物体和“名称”时，使用活动物体)"
-
-
-msgctxt "Operator"
-msgid "Transforms to Deltas"
-msgstr "变换 -> 增量"
-
-
-msgid "Convert normal object transforms to delta transforms, any existing delta transforms will be included as well"
-msgstr "将普通物体的变换转换为为变换增量，任何现有的变换增量也将包括在内"
 
 
 msgid "Which transforms to transfer"
@@ -75707,15 +77002,6 @@ msgid "Select Vertices connected to existing selection"
 msgstr "选择连接到现有选择的顶点"
 
 
-msgctxt "Operator"
-msgid "Dirty Vertex Colors"
-msgstr "脏旧顶点色"
-
-
-msgid "Generate a dirt map gradient based on cavity"
-msgstr "基于凹腔生成脏旧贴图渐变"
-
-
 msgid "Blur Iterations"
 msgstr "模糊迭代"
 
@@ -76155,15 +77441,6 @@ msgid "Undo all edition performed on the particle system"
 msgstr "撤销所有对粒子系统作出的动作"
 
 
-msgctxt "Operator"
-msgid "Add Hair Dynamics Preset"
-msgstr "添加毛发动力学预设"
-
-
-msgid "Add or remove a Hair Dynamics Preset"
-msgstr "添加或删除一个毛发动力学预设"
-
-
 msgid "Hide selected particles"
 msgstr "隐藏所选的粒子"
 
@@ -76381,11 +77658,6 @@ msgid "Blend the given Pose Action to the rig"
 msgstr "将给定的姿态动作混合到绑定中"
 
 
-msgctxt "Operator"
-msgid "Convert Legacy Pose Library"
-msgstr "转换旧版姿态库"
-
-
 msgid "Create a pose asset for each pose marker in this legacy pose library data-block"
 msgstr "为此旧姿态库数据块中的每个姿态标记创建一个姿态资产"
 
@@ -76394,18 +77666,8 @@ msgid "Create a pose asset for each pose marker in the current action"
 msgstr "为当前动作中的每个姿态标记创建姿态资产"
 
 
-msgctxt "Operator"
-msgid "Copy Pose as Asset"
-msgstr "复制姿态作为资产"
-
-
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "在剪贴板上创建新的姿态资产，以供粘贴到资产浏览器中"
-
-
-msgctxt "Operator"
-msgid "Create Pose Asset"
-msgstr "创建姿态资产"
 
 
 msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
@@ -76420,27 +77682,12 @@ msgid "Pose Name"
 msgstr "姿态名称"
 
 
-msgctxt "Operator"
-msgid "Paste as New Asset"
-msgstr "粘贴为新资产"
-
-
 msgid "Paste the Asset that was previously copied using Copy As Asset"
 msgstr "粘贴之前使用复制为资产操作复制的资产"
 
 
-msgctxt "Operator"
-msgid "Select Bones"
-msgstr "选择骨骼"
-
-
 msgid "Select those bones that are used in this pose"
 msgstr "选择此姿态中使用的骨骼"
-
-
-msgctxt "Operator"
-msgid "Restore Previous Action"
-msgstr "恢复上一步动作"
 
 
 msgid "Switch back to the previous Action, after creating a pose asset"
@@ -76582,11 +77829,6 @@ msgstr "将约束复制到当前所选骨骼"
 
 msgid "Copy constraints to other selected bones"
 msgstr "将约束复制到其他选中的骨骼"
-
-
-msgctxt "Operator"
-msgid "Convert Rotation Modes"
-msgstr "转换旋转模式"
 
 
 msgid "Convert animation from any rotation mode to any other"
@@ -76823,22 +78065,12 @@ msgid "Reveal all bones hidden in Pose Mode"
 msgstr "显示所有姿态模式下隐藏的骨骼"
 
 
-msgctxt "Operator"
-msgid "Add Bone Collection Reference"
-msgstr "添加骨骼集合引用"
-
-
 msgid "Add a new row to the bone collection reference list"
 msgstr "将新行添加到骨骼集合引用列表中"
 
 
 msgid "Property Name"
 msgstr "属性名"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Collection Reference"
-msgstr "移除骨骼集合引用"
 
 
 msgid "Remove this row from the bone collection reference list"
@@ -76849,26 +78081,12 @@ msgid "Entry Index"
 msgstr "条目索引"
 
 
-msgctxt "Operator"
-msgid "Copy Rigify Parameters to Selected"
-msgstr "拷贝 Rigify 参数到选中项"
-
-
-msgid "Copy Rigify type and parameters from active to selected bones"
-msgstr "从活动骨骼拷贝 Rigify 类型和参数到选择的骨骼"
-
-
 msgid "Match Type"
 msgstr "匹配类型"
 
 
 msgid "Only mirror rigify parameters to selected bones which have the same rigify type as the active bone"
 msgstr "仅镜像 rigify 参数到选择的骨骼，骨骼拥有和活动骨骼相同的 rigify 类型"
-
-
-msgctxt "Operator"
-msgid "Copy Option To Selected Rigs"
-msgstr "拷贝选项到选择的绑定"
 
 
 msgid "Copy this property value to all selected rigs of the appropriate type"
@@ -76887,36 +78105,12 @@ msgid "Module Name"
 msgstr "模块名称"
 
 
-msgctxt "Operator"
-msgid "Rigify Generate Rig"
-msgstr "Rigify 生成绑定"
-
-
 msgid "Generate a rig from the active metarig armature"
 msgstr "从活动的元骨骼骨架创建一个绑定"
 
 
-msgctxt "Operator"
-msgid "Mirror Rigify Parameters"
-msgstr "镜像 Rigify 参数"
-
-
-msgid "Mirror Rigify type and parameters of selected bones to the opposite side. Names should end in L/R"
-msgstr "镜像选中骨骼的 Rigify 类型和参数到另一边，名称应以 L/R 结尾"
-
-
-msgctxt "Operator"
-msgid "Upgrade Face Rig"
-msgstr "升级面部绑定"
-
-
 msgid "Upgrades the legacy super_face rig type to the new modular face. This preserves compatibility with existing weight painting, but not animation"
 msgstr "升级旧的面部绑定类型到新的模块化面部，这将保留与现有权重绘制的兼容性，但不保留与动画的兼容性"
-
-
-msgctxt "Operator"
-msgid "Rigify Upgrade Metarig Types"
-msgstr "Rigify 升级元骨骼类型"
 
 
 msgid "Upgrade the Rigify types on the active metarig armature"
@@ -76993,63 +78187,28 @@ msgid "Select bones that are parents of the currently selected bones"
 msgstr "选择当前所选骨骼的父级"
 
 
-msgctxt "Operator"
-msgid "Create Selection Set"
-msgstr "创建选择集"
-
-
 msgid "Create a new empty Selection Set"
 msgstr "创建一个空的选择集"
-
-
-msgctxt "Operator"
-msgid "Create and Add Bones to Selection Set"
-msgstr "创建并添加骨骼到选择集"
 
 
 msgid "Create a new Selection Set with the currently selected bones"
 msgstr "使用当前选定的骨骼创建新的选择集"
 
 
-msgctxt "Operator"
-msgid "Add Bones to Selection Set"
-msgstr "将骨骼添加到选择集"
-
-
 msgid "Add selected bones to Selection Set"
 msgstr "将选定骨骼添加到选择集"
-
-
-msgctxt "Operator"
-msgid "Copy Selection Set(s)"
-msgstr "复制选择集"
 
 
 msgid "Copy the selected Selection Set(s) to the clipboard"
 msgstr "将所选选择集复制到内部剪贴板"
 
 
-msgctxt "Operator"
-msgid "Delete All Sets"
-msgstr "删除全部选择集"
-
-
 msgid "Remove all Selection Sets from this Armature"
 msgstr "移除骨架中全部选择集"
 
 
-msgctxt "Operator"
-msgid "Deselect Selection Set"
-msgstr "取消选择选择集"
-
-
 msgid "Remove Selection Set bones from current selection"
 msgstr "从当前选择中移除选择集骨骼"
-
-
-msgctxt "Operator"
-msgid "Move Selection Set in List"
-msgstr "在列表中移动选择集"
 
 
 msgid "Move the active Selection Set up/down the list of sets"
@@ -77064,36 +78223,16 @@ msgid "Direction to move the active Selection Set: UP (default) or DOWN"
 msgstr "移动活动选择集的方向：向上（默认）或向下"
 
 
-msgctxt "Operator"
-msgid "Paste Selection Set(s)"
-msgstr "粘贴选择集"
-
-
 msgid "Add new Selection Set(s) from the clipboard"
 msgstr "从剪贴板中添加新的选择集"
-
-
-msgctxt "Operator"
-msgid "Delete Selection Set"
-msgstr "删除选择集"
 
 
 msgid "Remove a Selection Set from this Armature"
 msgstr "从骨架中移除一个选择集"
 
 
-msgctxt "Operator"
-msgid "Remove Selected Bones from All Sets"
-msgstr "从所有选择集中移除所选骨骼"
-
-
 msgid "Remove the selected bones from all Selection Sets"
 msgstr "从所有选择集中移除所选骨骼"
-
-
-msgctxt "Operator"
-msgid "Select Selection Set"
-msgstr "选择 选择集"
 
 
 msgid "Select the bones from this Selection Set"
@@ -77106,11 +78245,6 @@ msgstr "选择集索引"
 
 msgid "Which Selection Set to select; -1 uses the active Selection Set"
 msgstr "选择哪个选择集；-1使用活动的选择集"
-
-
-msgctxt "Operator"
-msgid "Remove Bones from Selection Set"
-msgstr "从选择集中移除骨骼"
 
 
 msgid "Remove selected bones from Selection Set"
@@ -77148,11 +78282,6 @@ msgid "Apply final constrained position of pose bones to their transform"
 msgstr "将骨骼的最终约束结果应用到自身变换"
 
 
-msgctxt "Operator"
-msgid "Disable Extension"
-msgstr "禁用扩展"
-
-
 msgid "Module name of the add-on to disable"
 msgstr "待禁用的插件模块名称"
 
@@ -77161,60 +78290,16 @@ msgid "Module name of the add-on to enable"
 msgstr "要启用的插件模块名称"
 
 
-msgid "Display information and preferences for this add-on"
-msgstr "显示该插件的信息与用户设置"
-
-
 msgid "Module name of the add-on to expand"
 msgstr "要展开的插件模块名称"
-
-
-msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "安装插件"
-
-
-msgid "Install an add-on"
-msgstr "安装插件"
 
 
 msgid "Target Path"
 msgstr "目标路径"
 
 
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "刷新"
-
-
-msgid "Scan add-on directories for new modules"
-msgstr "扫描插件目录，查找新插件"
-
-
-msgctxt "Operator"
-msgid "Remove Add-on"
-msgstr "删除插件"
-
-
-msgid "Delete the add-on from the file system"
-msgstr "从文件系统删除该插件"
-
-
 msgid "Module name of the add-on to remove"
 msgstr "要删除的插件模块名称"
-
-
-msgid "Show add-on preferences"
-msgstr "显示插件设置"
-
-
-msgctxt "Operator"
-msgid "Install Template from File..."
-msgstr "从文件安装模板..."
-
-
-msgid "Install an application template"
-msgstr "安装应用模板"
 
 
 msgid "Remove existing template with the same ID"
@@ -77264,15 +78349,6 @@ msgstr "删除自动执行路径"
 
 msgid "Remove path to exclude from auto-execution"
 msgstr "删除自动执行中被排除的路径"
-
-
-msgctxt "Operator"
-msgid "Copy Previous Settings"
-msgstr "复制以往设置"
-
-
-msgid "Copy settings from previous version"
-msgstr "复制之前版本的设置"
 
 
 msgctxt "Operator"
@@ -77378,35 +78454,12 @@ msgid "Location of the extension to install"
 msgstr "要安装扩展的位置"
 
 
-msgctxt "Operator"
-msgid "Activate Keyconfig"
-msgstr "激活键位配置"
-
-
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "导出键位配置..."
-
-
-msgid "Export key configuration to a Python script"
-msgstr "将键位配置导出为一个Python脚本"
-
-
 msgid "All Keymaps"
 msgstr "全部按键功能映射表"
 
 
 msgid "Write all keymaps (not just user modified)"
 msgstr "写入所有键位映射 (不只是用户修改的)"
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "导入键配置..."
-
-
-msgid "Import key configuration from a Python script"
-msgstr "从 Python 脚本导入键位配置"
 
 
 msgid "Keep Original"
@@ -77417,42 +78470,6 @@ msgid "Keep original file after copying to configuration folder"
 msgstr "在复制到配置文件夹之后保留原始文件"
 
 
-msgctxt "Operator"
-msgid "Remove Key Config"
-msgstr "移除键配置"
-
-
-msgid "Remove key config"
-msgstr "移除键配置"
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "测试键配置冲突"
-
-
-msgid "Test key configuration for conflicts"
-msgstr "测试键配置冲突"
-
-
-msgctxt "Operator"
-msgid "Add Key Map Item"
-msgstr "添加键位映射条目"
-
-
-msgid "Add key map item"
-msgstr "添加键位映射条目"
-
-
-msgctxt "Operator"
-msgid "Remove Key Map Item"
-msgstr "移除键位映射条目"
-
-
-msgid "Remove key map item"
-msgstr "移除键位映射条目"
-
-
 msgid "Item Identifier"
 msgstr "项ID"
 
@@ -77461,26 +78478,8 @@ msgid "Identifier of the item to remove"
 msgstr "待移除的项ID"
 
 
-msgctxt "Operator"
-msgid "Restore Key Map Item"
-msgstr "还原键位映射条目"
-
-
-msgid "Restore key map item"
-msgstr "还原键位映射条目"
-
-
 msgid "Identifier of the item to restore"
 msgstr "待还原的项ID"
-
-
-msgctxt "Operator"
-msgid "Restore Key Map(s)"
-msgstr "还原键位映射"
-
-
-msgid "Restore key map(s)"
-msgstr "还原键位映射"
 
 
 msgid "Restore all keymaps to default"
@@ -77496,40 +78495,12 @@ msgid "Reset to the default theme colors"
 msgstr "恢复到默认主题色调"
 
 
-msgctxt "Operator"
-msgid "Add Python Script Directory"
-msgstr "添加Python脚本目录"
-
-
 msgid "Filter Folders"
 msgstr "过滤文件夹"
 
 
-msgctxt "Operator"
-msgid "Remove Python Script Directory"
-msgstr "删除Python脚本目录"
-
-
 msgid "Index of the script directory to remove"
 msgstr "要删除的脚本目录的索引"
-
-
-msgctxt "Operator"
-msgid "Copy Studio Light Settings"
-msgstr "复制棚灯设置"
-
-
-msgid "Copy Studio Light settings to the Studio Light editor"
-msgstr "复制棚灯光源设置到棚灯编辑器"
-
-
-msgctxt "Operator"
-msgid "Install Light"
-msgstr "安装灯光"
-
-
-msgid "Install a user defined light"
-msgstr "安装用户自定义灯光"
 
 
 msgid "MatCap"
@@ -77550,33 +78521,6 @@ msgstr "棚灯"
 
 msgid "Install custom Studio Lights"
 msgstr "安装自定义棚灯"
-
-
-msgctxt "Operator"
-msgid "Save Custom Studio Light"
-msgstr "保存自定义棚灯"
-
-
-msgid "Save custom studio light from the studio light editor settings"
-msgstr "从棚灯编辑器设置中保存自定义棚灯"
-
-
-msgctxt "Operator"
-msgid "Uninstall Studio Light"
-msgstr "卸载自定义棚灯"
-
-
-msgid "Delete Studio Light"
-msgstr "删除棚灯"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "安装主题..."
-
-
-msgid "Load and apply a Blender XML theme file"
-msgstr "加载并应用一个Blender的XML主题文件"
 
 
 msgid "Remove existing theme file if exists"
@@ -77656,51 +78600,6 @@ msgstr "删除当前缓存"
 
 
 msgctxt "Operator"
-msgid "Add Integrator Preset"
-msgstr "添加积分器预设"
-
-
-msgid "Add an Integrator Preset"
-msgstr "新增积分器预设"
-
-
-msgctxt "Operator"
-msgid "Add Performance Preset"
-msgstr "添加性能预设"
-
-
-msgid "Add an Performance Preset"
-msgstr "添加性能预设"
-
-
-msgctxt "Operator"
-msgid "Add Sampling Preset"
-msgstr "新增采样预设"
-
-
-msgid "Add a Sampling Preset"
-msgstr "新增一个采样预设"
-
-
-msgctxt "Operator"
-msgid "Add Viewport Sampling Preset"
-msgstr "新增视图采样预设"
-
-
-msgid "Add a Viewport Sampling Preset"
-msgstr "新增一个视图采样预设"
-
-
-msgctxt "Operator"
-msgid "Add Raytracing Preset"
-msgstr "新增光线追踪预设"
-
-
-msgid "Add or remove an EEVEE ray-tracing preset"
-msgstr "添加或删除一个EEVEE光线追踪预设"
-
-
-msgctxt "Operator"
 msgid "Viewport Render"
 msgstr "视图渲染"
 
@@ -77739,24 +78638,6 @@ msgstr "保存图像"
 
 msgid "Save the rendered image to the output path (used only when animation is disabled)"
 msgstr "将渲染的图像保存到导出路径(尽在未启用动画时可用)"
-
-
-msgctxt "Operator"
-msgid "Play Rendered Animation"
-msgstr "播放渲染动画"
-
-
-msgid "Play back rendered frames/movies using an external player"
-msgstr "使用一个外部播放器回放已渲染的帧 / 影片"
-
-
-msgctxt "Operator"
-msgid "Add Render Preset"
-msgstr "新增渲染预设"
-
-
-msgid "Add or remove a Render Preset"
-msgstr "新增或删除一个渲染预设"
 
 
 msgctxt "Operator"
@@ -77813,24 +78694,6 @@ msgstr "显示 / 隐藏渲染窗口"
 
 msgid "Toggle show render view"
 msgstr "渲染窗口显示切换"
-
-
-msgctxt "Operator"
-msgid "Bake to Keyframes"
-msgstr "烘焙到关键帧"
-
-
-msgid "Bake rigid body transformations of selected objects to keyframes"
-msgstr "将所选物体的刚体变换烘焙到关键帧"
-
-
-msgctxt "Operator"
-msgid "Connect Rigid Bodies"
-msgstr "关连刚体"
-
-
-msgid "Create rigid body constraints between selected rigid bodies"
-msgstr "在选中的刚体之间创建刚体约束"
 
 
 msgid "Type of generated constraint"
@@ -78003,15 +78866,6 @@ msgstr "从物体上移除刚体属性"
 
 
 msgctxt "Operator"
-msgid "Copy Rigid Body Settings"
-msgstr "复制刚体设置"
-
-
-msgid "Copy Rigid Body settings from active object to selected"
-msgstr "将活动物体的刚体设置复制到选中的物体"
-
-
-msgctxt "Operator"
 msgid "Add Rigid Bodies"
 msgstr "添加刚体"
 
@@ -78080,63 +78934,28 @@ msgid "Remove Rigid Body simulation world from the current scene"
 msgstr "从当前场景中移除刚体模拟环境"
 
 
-msgctxt "Operator"
-msgid "Clear Animation"
-msgstr "清除动画"
-
-
 msgid "Clear animation for FK or IK bones"
 msgstr "清除 FK 或 IK 骨骼的动画"
-
-
-msgctxt "Operator"
-msgid "FK2IK"
-msgstr "FK捕捉IK"
 
 
 msgid "Snaps FK limb on IK"
 msgstr "在 IK上捕捉 FK 肢体"
 
 
-msgctxt "Operator"
-msgid "Get Frame Range"
-msgstr "获取帧范围"
-
-
 msgid "Set start and end frame from scene"
 msgstr "从场景获取并设置开始和结束帧"
-
-
-msgctxt "Operator"
-msgid "IK2FK"
-msgstr "IK捕捉FK"
 
 
 msgid "Snaps IK limb on FK"
 msgstr "在 FK上捕捉 IK 肢体"
 
 
-msgctxt "Operator"
-msgid "Rotation - Pole toggle"
-msgstr "旋转 - 极向切换"
-
-
 msgid "Toggles IK chain between rotation and pole target"
 msgstr "在旋转和极向目标之间切换IK链"
 
 
-msgctxt "Operator"
-msgid "Transfer FK anim to IK"
-msgstr "转换 FK 动画为 IK"
-
-
 msgid "Transfer FK animation to IK bones"
 msgstr "转换 FK 动画为 IK 骨骼"
-
-
-msgctxt "Operator"
-msgid "Transfer IK anim to FK"
-msgstr "转换 IK 动画为 FK"
 
 
 msgid "Transfer IK animation to FK bones"
@@ -78150,24 +78969,6 @@ msgstr "删除场景"
 
 msgid "Delete active scene"
 msgstr "删除激活的场景"
-
-
-msgctxt "Operator"
-msgid "Add Edge Marks to Keying Set"
-msgstr "向插帧集中添加边标记"
-
-
-msgid "Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"
-msgstr "将所选边的Freestyle边标记属性的数据路径添加到活动插帧集中"
-
-
-msgctxt "Operator"
-msgid "Add Face Marks to Keying Set"
-msgstr "向插帧集中添加面标记"
-
-
-msgid "Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"
-msgstr "将所选多边形的Freestyle边缘标记属性的数据路径添加到活动的插帧集中"
 
 
 msgctxt "Operator"
@@ -78186,15 +78987,6 @@ msgstr "添加直线色彩修改器"
 
 msgid "Add a line color modifier to the line style associated with the active lineset"
 msgstr "激活线条集中添加一个线条颜色修改器来添加线条样式"
-
-
-msgctxt "Operator"
-msgid "Fill Range by Selection"
-msgstr "按选中项填充范围"
-
-
-msgid "Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera)"
-msgstr "根据所选网格对象和源对象之间的最小/最大距离，填充范围最小/最大条目"
 
 
 msgid "Name of the modifier to work on"
@@ -78327,15 +79119,6 @@ msgid "Direction to move the chosen style module towards"
 msgstr "把选择的样式单元往前移"
 
 
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "打开样式模块文件"
-
-
-msgid "Open a style module file"
-msgstr "打开样式模块文件"
-
-
 msgid "Make internal"
 msgstr "加载为内部文件"
 
@@ -78369,33 +79152,6 @@ msgstr "添加线宽修改器"
 
 msgid "Add a line thickness modifier to the line style associated with the active lineset"
 msgstr "给激活的线条集添加一个线条宽度修改器"
-
-
-msgctxt "Operator"
-msgid "Refresh action list"
-msgstr "刷新动作列表"
-
-
-msgid "Refresh list of actions"
-msgstr "刷新动作列表"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Brush Preset"
-msgstr "添加蜡笔笔刷预设"
-
-
-msgid "Add or remove grease pencil brush preset"
-msgstr "添加或移除蜡笔笔刷预设"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil Material Preset"
-msgstr "添加蜡笔材质预设"
-
-
-msgid "Add or remove grease pencil material preset"
-msgstr "添加或移除蜡笔材质预设"
 
 
 msgctxt "Operator"
@@ -79010,15 +79766,6 @@ msgstr "循环工作区"
 
 msgid "Cycle through workspaces"
 msgstr "根据工作区循环"
-
-
-msgctxt "Operator"
-msgid "Execute a Python Preset"
-msgstr "执行一个 Python 预设"
-
-
-msgid "Load a preset"
-msgstr "加载预设"
 
 
 msgid "Menu ID Name"
@@ -80411,26 +81158,8 @@ msgid "Copy the selected strips to the internal clipboard"
 msgstr "将选定的片段复制到内部剪贴板"
 
 
-msgctxt "Operator"
-msgid "Crossfade Sounds"
-msgstr "声音交替渐变"
-
-
-msgid "Do cross-fading volume animation of two selected sound strips"
-msgstr "在两个所选声音片段间应用淡化音量动画"
-
-
 msgid "Cursor location in normalized preview coordinates"
 msgstr "以归一化后的预览坐标表示的游标位置"
-
-
-msgctxt "Operator"
-msgid "Deinterlace Movies"
-msgstr "逐行扫描影片"
-
-
-msgid "Deinterlace all selected movie sources"
-msgstr "逐行扫描所有片源"
 
 
 msgid "Delete selected strips from the sequencer"
@@ -80520,15 +81249,6 @@ msgid "Export .srt file containing text strips"
 msgstr "导出包含文本片段的 .srt 文件"
 
 
-msgctxt "Operator"
-msgid "Add Fades"
-msgstr "添加淡化"
-
-
-msgid "Adds or updates a fade animation for either visual or audio strips"
-msgstr "为视觉或音频片段添加或更新淡入淡出动画"
-
-
 msgid "Fade Duration"
 msgstr "淡化持续时间"
 
@@ -80583,15 +81303,6 @@ msgstr "至当前帧"
 
 msgid "Fade from the start of sequences under the time cursor to the current frame"
 msgstr "从时间轴光标下的序列开始淡化至当前帧"
-
-
-msgctxt "Operator"
-msgid "Clear Fades"
-msgstr "清除淡化"
-
-
-msgid "Removes fade animation from selected sequences"
-msgstr "从所选序列中删除淡入淡出动画"
 
 
 msgctxt "Operator"
@@ -81281,15 +81992,6 @@ msgid "Split at position of the cursor instead of current frame"
 msgstr "从光标位置而非当前帧位置切割"
 
 
-msgctxt "Operator"
-msgid "Split Multicam"
-msgstr "切割多摄像机"
-
-
-msgid "Split multicam strip and select camera"
-msgstr "剪切多镜头片段并选中摄像机"
-
-
 msgid "Set a color tag for the selected strips"
 msgstr "为所选片段设置颜色标记"
 
@@ -81740,15 +82442,6 @@ msgstr "从规则中移除行筛选器"
 
 
 msgctxt "Operator"
-msgid "Toggle Pin"
-msgstr "切换钉固"
-
-
-msgid "Turn on or off pinning"
-msgstr "打开或关闭钉固"
-
-
-msgctxt "Operator"
 msgid "Add Surface Circle"
 msgstr "添加 NURBS 曲面圆"
 
@@ -81836,15 +82529,6 @@ msgstr "粘贴纹理槽设置"
 
 msgid "Copy the texture settings and nodes"
 msgstr "复制纹理设置与节点"
-
-
-msgctxt "Operator"
-msgid "Add Text Editor Preset"
-msgstr "添加文本编辑器预设"
-
-
-msgid "Add or remove a Text Editor Preset"
-msgstr "添加或删除文本编辑器预设"
 
 
 msgctxt "Operator"
@@ -82633,11 +83317,6 @@ msgid "Slide a vertex along a mesh"
 msgstr "沿网格滑移顶点"
 
 
-msgctxt "Operator"
-msgid "Randomize"
-msgstr "随机"
-
-
 msgid "Randomize vertices"
 msgstr "顶点随机化"
 
@@ -82679,39 +83358,12 @@ msgid "Amount to warp about the cursor"
 msgstr "以游标为中心的弯绕量"
 
 
-msgctxt "Operator"
-msgid "Add Entry"
-msgstr "添加条目"
-
-
-msgid "Add an entry to the list after the current active item"
-msgstr "在当前活动项之后向列表中添加一个条目"
-
-
-msgctxt "Operator"
-msgid "Move Entry"
-msgstr "移动条目"
-
-
-msgid "Move an entry in the list up or down"
-msgstr "向上或向下移动列表中的条目"
-
-
 msgid "UP"
 msgstr "向上"
 
 
 msgid "DOWN"
 msgstr "向下"
-
-
-msgctxt "Operator"
-msgid "Remove Selected Entry"
-msgstr "删除所选条目"
-
-
-msgid "Remove the selected entry from the list"
-msgstr "从列表中删除所选条目"
 
 
 msgctxt "Operator"
@@ -82969,15 +83621,6 @@ msgid "Sample a data-block from the 3D View to store in a property"
 msgstr "从3D视图中采样数据块并保存在属性中"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Export"
-msgstr "I18n 插件导出"
-
-
-msgid "Export given add-on's translation data as PO files"
-msgstr "将指定插件的翻译数据导出为一个PO文件"
-
-
 msgid "Add-on to process"
 msgstr "待处理的插件"
 
@@ -82998,24 +83641,6 @@ msgid "Update existing po files, if any, instead of overwriting them"
 msgstr "如果 PO 文件已存在，则对其进行更新，而非覆盖"
 
 
-msgctxt "Operator"
-msgid "I18n Add-on Import"
-msgstr "I18n 插件导入"
-
-
-msgid "Import given add-on's translation data from PO files"
-msgstr "从PO文件中导入指定插件的翻译数据"
-
-
-msgctxt "Operator"
-msgid "Update I18n Add-on"
-msgstr "更新 i18n 插件"
-
-
-msgid "Wrapper operator which will invoke given op after setting its module_name"
-msgstr "封装操作符，它将在设置 module_name 后调用给定的操作符"
-
-
 msgid "Operator Name"
 msgstr "操作项名称"
 
@@ -83024,66 +83649,8 @@ msgid "Name (id) of the operator to invoke"
 msgstr "调用的操作名称(id)"
 
 
-msgid "Update given add-on's translation data (found as a py tuple in the add-on's source code)"
-msgstr "更新指定的插件数据(作为插件源代码的一个 py 元组来查找)"
-
-
-msgctxt "Operator"
-msgid "Clean up I18n Work Repository"
-msgstr "清理I18n工作存储库"
-
-
-msgid "Clean up i18n working repository (po files)"
-msgstr "清理I18n工作存储库 (po文件)"
-
-
-msgctxt "Operator"
-msgid "I18n Load Settings"
-msgstr "I18n加载设置"
-
-
-msgid "Load translations' settings from a persistent JSon file"
-msgstr "从连续的JSon文件加载翻译设置"
-
-
 msgid "Path to the saved settings file"
 msgstr "设置文件的保存路径"
-
-
-msgctxt "Operator"
-msgid "I18n Save Settings"
-msgstr "i18n保存设置"
-
-
-msgid "Save translations' settings in a persistent JSon file"
-msgstr "将翻译设置保存为持久的 JSon 文件"
-
-
-msgctxt "Operator"
-msgid "Update I18n Blender Repository"
-msgstr "更新 I18n Blender 存储库"
-
-
-msgid "Update i18n data (po files) in Blender source code repository"
-msgstr "在Blender源代码库中更新i18n数据（po文件）"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Settings"
-msgstr "初始化i18n更新设置"
-
-
-msgid "Init settings for i18n files update operators"
-msgstr "初始化 i18n 文件更新操作的设置"
-
-
-msgctxt "Operator"
-msgid "Init I18n Update Select Languages"
-msgstr "初始化 i18n 更新选择语言"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n files update operators"
-msgstr "选择(或反选)所有用于i18n svn的更新操作项的语言"
 
 
 msgid "Invert Selection"
@@ -83100,24 +83667,6 @@ msgstr "全选"
 
 msgid "Select all if True, else deselect all"
 msgstr "若为真, 则全选; 否则全部取消选择"
-
-
-msgctxt "Operator"
-msgid "Update I18n Statistics"
-msgstr "更新 I18n 统计信息"
-
-
-msgid "Create or extend a 'i18n_info.txt' Text datablock"
-msgstr "创建或扩展 'i18n_info.txt' 文本数据块"
-
-
-msgctxt "Operator"
-msgid "Update I18n Work Repository"
-msgstr "更新 I18n 工作存储库"
-
-
-msgid "Update i18n working repository (po files)"
-msgstr "更新 i18n 存储库 (po 文件)"
 
 
 msgid "Skip POT"
@@ -83222,10 +83771,6 @@ msgid "Reset this property's value to its default value"
 msgstr "将当前属性值恢复到默认值"
 
 
-msgid "Add an entry to the list"
-msgstr "向列表中添加条目"
-
-
 msgctxt "Operator"
 msgid "Unset Property"
 msgstr "销毁属性"
@@ -83321,15 +83866,6 @@ msgstr "水平对齐"
 
 msgid "Align UV vertices on a horizontal line"
 msgstr "将UV顶点对齐到水平线上"
-
-
-msgctxt "Operator"
-msgid "Align Rotation"
-msgstr "对齐旋转"
-
-
-msgid "Align the UV island's rotation"
-msgstr "对齐UV孤岛的旋转"
 
 
 msgid "Axis to align to"
@@ -83508,15 +84044,6 @@ msgid "Separate projections by islands isolated by seams"
 msgstr "通过由接缝隔离的孤岛分离投影"
 
 
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "导出 UV 布局图"
-
-
-msgid "Export UV layout to file"
-msgstr "将 UV 布局图导出为文件"
-
-
 msgid "All UVs"
 msgstr "所有 UV"
 
@@ -83598,15 +84125,6 @@ msgid "Dimensions of the exported file"
 msgstr "输出文件的尺寸"
 
 
-msgctxt "Operator"
-msgid "Follow Active Quads"
-msgstr "沿活动四边面展开"
-
-
-msgid "Follow UVs from active quads along continuous face loops"
-msgstr "根据激活的四边面, 沿连续的循环面拆解 UV"
-
-
 msgid "Edge Length Mode"
 msgstr "边长模式"
 
@@ -83629,15 +84147,6 @@ msgstr "平均长度"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "隐藏(非)选定的 UV 顶点"
-
-
-msgctxt "Operator"
-msgid "Lightmap Pack"
-msgstr "光照贴图拼排"
-
-
-msgid "Pack each face's UVs into the UV bounds"
-msgstr "把每个面的UV拼排到UV边界内"
 
 
 msgid "Pack Quality"
@@ -83923,10 +84432,6 @@ msgstr "将 UV 映射到顾及分辨率和宽高比的摄像机区域"
 
 msgid "Use orthographic projection"
 msgstr "使用正交投射"
-
-
-msgid "Randomize the UV island's location, rotation, and scale"
-msgstr "随机化UV孤岛的位置/旋转/缩放"
 
 
 msgid "Maximum rotation"
@@ -84417,11 +84922,6 @@ msgid "Zoom Factor Y"
 msgstr "Y 向缩放系数"
 
 
-msgctxt "Operator"
-msgid "New Camera from VR Landmark"
-msgstr "来自VR地标的新摄像机"
-
-
 msgid "Create a new Camera from the selected VR Landmark"
 msgstr "从选中的VR地标创建新摄像机"
 
@@ -84477,11 +84977,6 @@ msgstr "摄像机匹配帧 -> 所选"
 
 msgid "Move the camera so selected objects are framed"
 msgstr "移动摄像机, 以便覆盖选中的物体"
-
-
-msgctxt "Operator"
-msgid "Scene Camera to VR Landmark"
-msgstr "场景摄像机 -> VR地标"
 
 
 msgid "Position the scene camera at the selected landmark"
@@ -84547,11 +85042,6 @@ msgid "Project onto the surface"
 msgstr "投射到表面上"
 
 
-msgctxt "Operator"
-msgid "Cursor to VR Landmark"
-msgstr "游标 -> VR地标"
-
-
 msgid "Move the 3D Cursor to the selected VR Landmark"
 msgstr "将3D游标移动到选定的VR地标"
 
@@ -84582,32 +85072,8 @@ msgid "Drop a world into the scene"
 msgstr "拖放一个世界至场景"
 
 
-msgctxt "Operator"
-msgid "Extrude Individual and Move"
-msgstr "各自挤出并移动"
-
-
-msgctxt "Operator"
-msgid "Extrude Manifold Along Normals"
-msgstr "沿法向挤出流形"
-
-
-msgid "Extrude manifold region along normals"
-msgstr "沿法向挤出流形区域"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Normals"
-msgstr "沿法线挤出并移动"
-
-
 msgid "Dissolves adjacent faces and intersects new geometry"
 msgstr "融并相邻的面，并与新的网格相交"
-
-
-msgctxt "Operator"
-msgid "Extrude and Move on Individual Normals"
-msgstr "沿各自法线挤出并移动"
 
 
 msgctxt "Operator"
@@ -84943,20 +85409,6 @@ msgid "Transparent scene display. Allow selecting through items"
 msgstr "透明场景显示。允许通条目选择"
 
 
-msgctxt "Operator"
-msgid "Transform Gizmo Set"
-msgstr "变换操控器设置"
-
-
-msgid "Set the current transform gizmo"
-msgstr "设置当前变换操控器"
-
-
-msgctxt "Operator"
-msgid "Update Custom VR Landmark"
-msgstr "更新自定义VR地标"
-
-
 msgid "Update the selected landmark from the current viewer pose in the VR session"
 msgstr "从VR会话中的当前查看器姿势更新所选地标"
 
@@ -85244,54 +85696,24 @@ msgid "Move the view to the selection center"
 msgstr "将视图移动到选中元素的中心"
 
 
-msgctxt "Operator"
-msgid "Add Camera and VR Landmark from Session"
-msgstr "从会话添加摄像机和VR地标"
-
-
 msgid "Create a new Camera and VR Landmark from the viewer pose of the running VR session and select it"
 msgstr "从正在运行的VR会话的查看器姿势创建摄像机和VR地标并选中"
-
-
-msgctxt "Operator"
-msgid "Activate VR Landmark"
-msgstr "激活VR地标"
 
 
 msgid "Change to the selected VR landmark from the list"
 msgstr "从列表中更改为选定的VR地标"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark"
-msgstr "添加VR地标"
-
-
 msgid "Add a new VR landmark to the list and select it"
 msgstr "向列表中添加新的VR地标并选中"
-
-
-msgctxt "Operator"
-msgid "Add VR Landmark from Camera"
-msgstr "从摄像机添加VR地标"
 
 
 msgid "Add a new VR landmark from the active camera object to the list and select it"
 msgstr "从活动摄像机向列表中添加新的VR地标并选中"
 
 
-msgctxt "Operator"
-msgid "Add VR Landmark from Session"
-msgstr "从会话添加VR地标"
-
-
 msgid "Add VR landmark from the viewer pose of the running VR session to the list and select it"
 msgstr "从正在运行的VR会话的查看器姿势将VR地标添加到列表中并选中"
-
-
-msgctxt "Operator"
-msgid "Remove VR Landmark"
-msgstr "删除VR地标"
 
 
 msgid "Delete the selected VR landmark from the list"
@@ -85611,15 +86033,6 @@ msgid "Localize all appended data, including those indirectly linked from other 
 msgstr "本地化全部追加数据, 包含那些间接关联自其它库的"
 
 
-msgctxt "Operator"
-msgid "Batch Rename"
-msgstr "批量重命名"
-
-
-msgid "Rename multiple items at once"
-msgstr "一次重命名多项"
-
-
 msgid "Type of data to rename"
 msgstr "重命名的数据类型"
 
@@ -85634,15 +86047,6 @@ msgstr "序列片段"
 
 msgid "Action Clips"
 msgstr "动作剪辑"
-
-
-msgctxt "Operator"
-msgid "Validate .blend strings"
-msgstr "无效.blend 字符串"
-
-
-msgid "Check and fix all strings in current .blend file to be valid UTF-8 Unicode (needed for some old, 2.4x area files)"
-msgstr "检查当前 .blend 文件中所有字符串，并修复为有效的 UTF-8 Unicode编码(一些旧的, 2.4x 区域文件需要)"
 
 
 msgctxt "Operator"
@@ -86076,30 +86480,12 @@ msgid "Invoke all configured exporters for all collections"
 msgstr "调用所有集合的所有已配置的导出器"
 
 
-msgctxt "Operator"
-msgid "Context Collection Boolean Set"
-msgstr "上下文集合布尔设置"
-
-
-msgid "Set boolean values for a collection of items"
-msgstr "为一部分类别设置布尔值"
-
-
 msgid "The data path from each iterable to the value (int or float)"
 msgstr "从各个可迭代项指向值的数据路径 (整型或浮点型)"
 
 
 msgid "The data path relative to the context, must point to an iterable"
 msgstr "涉及上下文的数据路径, 须指向一个可迭代项"
-
-
-msgctxt "Operator"
-msgid "Context Array Cycle"
-msgstr "上下文阵列循环"
-
-
-msgid "Set a context array value (useful for cycling the active mesh edit mode)"
-msgstr "设置一个上下文阵列值 (适用于活动网格的编辑模式的循环)"
 
 
 msgid "Context Attributes"
@@ -86114,40 +86500,8 @@ msgid "Cycle backwards"
 msgstr "逆向循环"
 
 
-msgctxt "Operator"
-msgid "Context Enum Cycle"
-msgstr "上下文枚举循环"
-
-
-msgid "Toggle a context value"
-msgstr "切换上下文值"
-
-
 msgid "Wrap back to the first/last values"
 msgstr "回退到第一次/最后一次的值"
-
-
-msgctxt "Operator"
-msgid "Context Int Cycle"
-msgstr "上下文整型循环"
-
-
-msgid "Set a context value (useful for cycling active material, shape keys, groups, etc.)"
-msgstr "设置一个上下文值 (适用于循环切换活动的材质, 形态键及群组等)"
-
-
-msgctxt "Operator"
-msgid "Context Enum Menu"
-msgstr "上下文枚举菜单"
-
-
-msgctxt "Operator"
-msgid "Context Modal Mouse"
-msgstr "上下文模态鼠标"
-
-
-msgid "Adjust arbitrary values with mouse input"
-msgstr "用鼠标输入方式调节任意值"
 
 
 msgid "Header Text"
@@ -86166,31 +86520,8 @@ msgid "Invert the mouse input"
 msgstr "反转鼠标输入"
 
 
-msgctxt "Operator"
-msgid "Context Enum Pie"
-msgstr "上下文枚举饼菜单"
-
-
-msgctxt "Operator"
-msgid "Context Scale Float"
-msgstr "上下文浮点缩放"
-
-
-msgid "Scale a float context value"
-msgstr "缩放上下文的浮点值"
-
-
 msgid "Assign value"
 msgstr "赋值"
-
-
-msgctxt "Operator"
-msgid "Context Scale Int"
-msgstr "上下文整型缩放"
-
-
-msgid "Scale an int context value"
-msgstr "缩放上下文的整型值"
 
 
 msgid "Always Step"
@@ -86201,73 +86532,20 @@ msgid "Always adjust the value by a minimum of 1 when 'value' is not 1.0"
 msgstr "当 '值' 不为 0 时, 始终用最小值 1 对值进行调节"
 
 
-msgctxt "Operator"
-msgid "Context Set Boolean"
-msgstr "上下文设置布尔型"
-
-
-msgid "Set a context value"
-msgstr "设置上下文值"
-
-
 msgid "Assignment value"
 msgstr "指定值"
-
-
-msgctxt "Operator"
-msgid "Context Set Enum"
-msgstr "上下文设置枚举"
 
 
 msgid "Assignment value (as a string)"
 msgstr "指定值 (作为字符串型)"
 
 
-msgctxt "Operator"
-msgid "Context Set Float"
-msgstr "上下文设置浮点"
-
-
 msgid "Apply relative to the current value (delta)"
 msgstr "复制时将帧粘贴至当前帧的相对位置"
 
 
-msgctxt "Operator"
-msgid "Set Library ID"
-msgstr "设置库ID"
-
-
-msgid "Set a context value to an ID data-block"
-msgstr "将上下文设置一个值到 ID 数据块"
-
-
-msgctxt "Operator"
-msgid "Context Set"
-msgstr "设置上下文"
-
-
-msgctxt "Operator"
-msgid "Context Set String"
-msgstr "上下文设置字符串型"
-
-
-msgctxt "Operator"
-msgid "Context Set Value"
-msgstr "上下文设置值"
-
-
-msgctxt "Operator"
-msgid "Context Toggle"
-msgstr "切换上下文"
-
-
 msgid "Optionally override the context with a module"
 msgstr "随意使用一个模块重写上下文"
-
-
-msgctxt "Operator"
-msgid "Context Toggle Values"
-msgstr "上下文切换值"
 
 
 msgid "Toggle enum"
@@ -86287,26 +86565,8 @@ msgid "Debug Value"
 msgstr "调试数值"
 
 
-msgctxt "Operator"
-msgid "View Documentation"
-msgstr "查看文档"
-
-
-msgid "Open online reference docs in a web browser"
-msgstr "在浏览器中打开在线参数文档"
-
-
 msgid "Doc ID"
 msgstr "文档ID"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "查看指南"
-
-
-msgid "Load online manual"
-msgstr "加载在线手册"
 
 
 msgctxt "Operator"
@@ -86316,11 +86576,6 @@ msgstr "查看在线手册"
 
 msgid "View a context based online manual in a web browser"
 msgstr "在网络浏览器中查看在线手册"
-
-
-msgctxt "Operator"
-msgid "Handle dropped .blend file"
-msgstr "处理拖放的 .blend 文件"
 
 
 msgctxt "Operator"
@@ -86425,51 +86680,6 @@ msgstr "场景单位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to imported data"
 msgstr "应用当前场景单位(由单位比例定义)导入数据"
-
-
-msgctxt "Operator"
-msgid "Add Theme"
-msgstr "添加主题"
-
-
-msgid "Add a custom theme to the preset list"
-msgstr "添加一个自定义主题到预设列表"
-
-
-msgctxt "Operator"
-msgid "Remove Theme"
-msgstr "移除主题"
-
-
-msgid "Remove a custom theme from the preset list"
-msgstr "从预设列表移除一个自定义主题"
-
-
-msgctxt "Operator"
-msgid "Save Theme"
-msgstr "保存主题"
-
-
-msgid "Save a custom theme in the preset list"
-msgstr "保存一个自定义主题到预设列表"
-
-
-msgctxt "Operator"
-msgid "Add Custom Keymap Configuration"
-msgstr "添加自定义键位映射配置"
-
-
-msgid "Add a custom keymap configuration to the preset list"
-msgstr "添加一个自定义键位映射配置到预设列表中"
-
-
-msgctxt "Operator"
-msgid "Remove Keymap Configuration"
-msgstr "移除键位映射配置"
-
-
-msgid "Remove a custom keymap configuration from the preset list"
-msgstr "从预设列表中移除一个自定义键位映射配置"
 
 
 msgctxt "Operator"
@@ -86767,26 +86977,12 @@ msgstr "允许 .blend 文件自动执行脚本, 默认可从系统偏好设置�
 
 
 msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "操作项信息一览"
-
-
-msgid "List all the operators in a text-block, useful for scripting"
-msgstr "在一个文本块列出所有操作, 写脚本时非常有用"
-
-
-msgctxt "Operator"
 msgid "Restore Operator Defaults"
 msgstr "恢复操作默认值"
 
 
 msgid "Set the active operator to its default values"
 msgstr "将活动操作符恢复到默认值"
-
-
-msgctxt "Operator"
-msgid "Operator Enum Pie"
-msgstr "枚举饼菜单操作"
 
 
 msgid "Operator name (in Python as string)"
@@ -86797,48 +86993,8 @@ msgid "Property name (as a string)"
 msgstr "属性名称(字符串)"
 
 
-msgctxt "Operator"
-msgid "Operator Preset"
-msgstr "操作项预设"
-
-
-msgid "Add or remove an Operator Preset"
-msgstr "添加或删除一个操作项预设"
-
-
-msgctxt "Operator"
-msgid "Clean Up Operator Presets"
-msgstr "清理操作项预设"
-
-
-msgid "Remove outdated operator properties from presets that may cause problems"
-msgstr "删除预设中可能导致问题的过时的操作符属性"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "禁用插件"
-
-
-msgid "Disable add-on for workspace"
-msgstr "禁用工作区的插件"
-
-
 msgid "UI Tag"
 msgstr "UI标签"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "启用插件"
-
-
-msgid "Enable add-on for workspace"
-msgstr "启用工作区的插件"
-
-
-msgid "Open a path in a file browser"
-msgstr "在文件浏览器中打开路径"
 
 
 msgctxt "Operator"
@@ -86911,15 +87067,6 @@ msgid "Merges vertices by distance"
 msgstr "按距离合并顶点"
 
 
-msgctxt "Operator"
-msgid "Batch-Clear Previews"
-msgstr "批量清除预览"
-
-
-msgid "Clear selected .blend file's previews"
-msgstr "清除选中的.blend文件的预览"
-
-
 msgid "Save Backups"
 msgstr "保存备份"
 
@@ -86954,15 +87101,6 @@ msgstr "信任的Blend文件"
 
 msgid "Enable Python evaluation for selected files"
 msgstr "为选定文件启用Python评估"
-
-
-msgctxt "Operator"
-msgid "Batch-Generate Previews"
-msgstr "批量生成预览"
-
-
-msgid "Generate selected .blend file's previews"
-msgstr "为选中的.blend 文件生成预览"
 
 
 msgid "Root path of all files listed in `files` collection"
@@ -87047,15 +87185,6 @@ msgid "Ensure data-block previews are available and up-to-date (to be saved in .
 msgstr "确保数据块预览可用且为最新状态(与.blend文件一起保存，仅适用于一些数据类型，比如材质、纹理等)"
 
 
-msgctxt "Operator"
-msgid "Add Property"
-msgstr "添加属性"
-
-
-msgid "Add your own property to the data-block"
-msgstr "向数据块中加入自定义属性"
-
-
 msgid "Property Edit"
 msgstr "编辑属性"
 
@@ -87064,21 +87193,8 @@ msgid "Property data_path edit"
 msgstr "编辑属性数据路径"
 
 
-msgid "Jump to a different tab inside the properties editor"
-msgstr "跳转到属性编辑器中的其他选项卡"
-
-
 msgid "Context"
 msgstr "上下文"
-
-
-msgctxt "Operator"
-msgid "Edit Property"
-msgstr "编辑属性"
-
-
-msgid "Change a custom property's type, or adjust how it is displayed in the interface"
-msgstr "修改自定义属性类型，或者调整在界面中的显示方式"
 
 
 msgid "Array Length"
@@ -87165,26 +87281,8 @@ msgid "Limits the Property Value slider to a range, values outside the range mus
 msgstr "限制属性值滑块限制在一个范围，范围以外的值必须以数字方式输入"
 
 
-msgctxt "Operator"
-msgid "Edit Property Value"
-msgstr "编辑属性值"
-
-
-msgid "Edit the value of a custom property"
-msgstr "编辑自定义属性的值"
-
-
 msgid "Value for custom property types that can only be edited as a Python expression"
 msgstr "只能作为 Python 表达式进行编辑的自定义属性类型的值"
-
-
-msgctxt "Operator"
-msgid "Remove Property"
-msgstr "移除属性"
-
-
-msgid "Internal use (edit a property data_path)"
-msgstr "内部调用(用于编辑data_path的属性)"
 
 
 msgctxt "Operator"
@@ -87466,18 +87564,8 @@ msgid "Reload the saved file"
 msgstr "重新加载已保存的文件"
 
 
-msgctxt "Operator"
-msgid "Add External Feature Set"
-msgstr "添加外部功能集"
-
-
 msgid "Add external feature set (rigs, metarigs, ui templates)"
 msgstr "添加外部功能集 (绑定、元骨骼、ui 模板)"
-
-
-msgctxt "Operator"
-msgid "Remove External Feature Set"
-msgstr "移除外部功能集"
 
 
 msgid "Remove external feature set (rigs, metarigs, ui templates)"
@@ -87747,24 +87835,6 @@ msgid "Validate Mesh"
 msgstr "验证网格"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "保存系统信息"
-
-
-msgid "Generate system information, saved into a text file"
-msgstr "生成系统信息并保存为文本文件"
-
-
-msgctxt "Operator"
-msgid "Set Tool by Name"
-msgstr "按名称设置工具"
-
-
-msgid "Set the tool by name (for key-maps)"
-msgstr "按名称设置工具(用于键位映射)"
-
-
 msgid "Set Fallback"
 msgstr "设置回退"
 
@@ -87785,15 +87855,6 @@ msgid "Identifier of the tool"
 msgstr "工具标识符"
 
 
-msgctxt "Operator"
-msgid "Set Tool by Index"
-msgstr "按编号设置工具"
-
-
-msgid "Set the tool by index (for key-maps)"
-msgstr "按索引设置工具(用于键位映射)"
-
-
 msgid "Set the fallback tool instead of the primary"
 msgstr "设置回退工具替代初始工具"
 
@@ -87806,40 +87867,8 @@ msgid "Index in Toolbar"
 msgstr "工具栏上的编号"
 
 
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "工具栏"
-
-
-msgctxt "Operator"
-msgid "Fallback Tool Pie Menu"
-msgstr "回退工具饼菜单"
-
-
-msgctxt "Operator"
-msgid "Toolbar Prompt"
-msgstr "工具栏提示符"
-
-
-msgid "Leader key like functionality for accessing tools"
-msgstr "类似访问工具的关键功能"
-
-
-msgid "Open a website in the web browser"
-msgstr "在网页浏览器中打开网站"
-
-
 msgid "URL to open"
 msgstr "要打开的URL"
-
-
-msgctxt "Operator"
-msgid "Open Preset Website"
-msgstr "打开预设网站"
-
-
-msgid "Open a preset website in the web browser"
-msgstr "在浏览器中打开预设网站"
 
 
 msgid "Site"
@@ -88745,15 +88774,6 @@ msgstr "记住当前工作区上次使用的场景，并在再次激活此工作
 
 
 msgctxt "Operator"
-msgid "Convert Volume"
-msgstr "转换体积"
-
-
-msgid "Convert the volume of a world to a mesh. The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly"
-msgstr "将世界的体积转换为网格. 世界的体积过去由旧版EEVEE渲染. 需要转换才能正确渲染"
-
-
-msgctxt "Operator"
 msgid "New World"
 msgstr "新建环境"
 
@@ -89278,6 +89298,130 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
+msgid "Active Tool"
+msgstr "活动工具"
+
+
+msgid "View Lock"
+msgstr "视图锁定"
+
+
+msgid "Selectability & Visibility"
+msgstr "可选择性 & 可见性"
+
+
+msgid "Wire Color"
+msgstr "线框颜色"
+
+
+msgid "Shadow Settings"
+msgstr "阴影设置"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO设置"
+
+
+msgid "Render Pass"
+msgstr "渲染通道"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "叠加"
+
+
+msgid "Guides"
+msgstr "引导"
+
+
+msgid "Viewer Node"
+msgstr "查看器节点"
+
+
+msgid "Motion Tracking"
+msgstr "运动追踪"
+
+
+msgid "Mesh Edit Mode"
+msgstr "网格编辑模式"
+
+
+msgid "Measurement"
+msgstr "测量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "Snapping"
+msgstr "吸附"
+
+
+msgid "Transform Orientations"
+msgstr "变换坐标系"
+
+
+msgid "Stroke Placement"
+msgstr "笔画放置"
+
+
+msgid "Drawing Plane"
+msgstr "绘制平面"
+
+
+msgid "Quad View"
+msgstr "四格视图"
+
+
+msgid "Onion Skin"
+msgstr "洋葱皮"
+
+
+msgid "Stereoscopy"
+msgstr "立体视法"
+
+
+msgid "Multi Frame"
+msgstr "多次绘制"
+
+
+msgid "Curve Editing"
+msgstr "曲线编辑"
+
+
+msgid "Auto-masking"
+msgstr "自动遮罩"
+
+
+msgid "Auto-Masking"
+msgstr "自动遮罩"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "曲线雕刻 添加曲线选项"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "曲线雕刻衰减参数"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "曲线生长/收缩缩放"
+
+
+msgid "Viewport Debug"
+msgstr "视口调试"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Chain Scaling"
 msgstr "链比例"
 
@@ -89515,10 +89659,6 @@ msgid "Acceleration Structure"
 msgstr "加速架构"
 
 
-msgid "Compositor"
-msgstr "合成器"
-
-
 msgid "Final Render"
 msgstr "最终渲染"
 
@@ -89529,10 +89669,6 @@ msgstr "线程"
 
 msgid "Path Guiding"
 msgstr "路径引导"
-
-
-msgid "Render Pass"
-msgstr "渲染通道"
 
 
 msgid "Mist Pass"
@@ -89557,10 +89693,6 @@ msgstr "构图辅助线"
 
 msgid "Center-Cut Safe Areas"
 msgstr "中间裁切安全区"
-
-
-msgid "Stereoscopy"
-msgstr "立体视法"
 
 
 msgid "Texture Space"
@@ -89635,10 +89767,6 @@ msgid "Filters"
 msgstr "过滤器"
 
 
-msgid "Snapping"
-msgstr "吸附"
-
-
 msgctxt "Material"
 msgid "Thickness"
 msgstr "厚度"
@@ -89675,18 +89803,6 @@ msgstr "过滤设置"
 
 msgid "Fluid Presets"
 msgstr "流体预设"
-
-
-msgid "Active Tool"
-msgstr "活动工具"
-
-
-msgid "Overlays"
-msgstr "叠加"
-
-
-msgid "Guides"
-msgstr "引导"
 
 
 msgid "UV Stretch"
@@ -90174,10 +90290,6 @@ msgid "Keyframing Settings"
 msgstr "插入关键帧设置"
 
 
-msgid "Onion Skin"
-msgstr "洋葱皮"
-
-
 msgid "Cache Settings"
 msgstr "缓存设置"
 
@@ -90558,92 +90670,16 @@ msgid "Mirror Options"
 msgstr "镜像选项"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "曲线雕刻 添加曲线选项"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "曲线生长/收缩缩放"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "曲线雕刻衰减参数"
-
-
 msgid "Brush Presets"
 msgstr "笔刷预设"
-
-
-msgid "Curve Editing"
-msgstr "曲线编辑"
-
-
-msgid "Drawing Plane"
-msgstr "绘制平面"
-
-
-msgid "Multi Frame"
-msgstr "多次绘制"
-
-
-msgid "Stroke Placement"
-msgstr "笔画放置"
-
-
-msgid "Auto-masking"
-msgstr "自动遮罩"
 
 
 msgid "Masking"
 msgstr "遮罩"
 
 
-msgid "Selectability & Visibility"
-msgstr "可选择性 & 可见性"
-
-
-msgid "Curve Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Mesh Edit Mode"
-msgstr "网格编辑模式"
-
-
-msgid "Measurement"
-msgstr "测量"
-
-
-msgid "Motion Tracking"
-msgstr "运动追踪"
-
-
-msgid "Viewer Node"
-msgstr "查看器节点"
-
-
-msgid "Quad View"
-msgstr "四格视图"
-
-
 msgid "Rigify Animation Tools"
 msgstr "Rigify 动画工具"
-
-
-msgid "Auto-Masking"
-msgstr "自动遮罩"
-
-
-msgid "Wire Color"
-msgstr "线框颜色"
-
-
-msgid "Shadow Settings"
-msgstr "阴影设置"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO设置"
 
 
 msgid "Stencil Mask"
@@ -90988,22 +91024,6 @@ msgstr "姿态选项"
 
 msgid "Rigify Dev Tools"
 msgstr "Rigify 开发工具"
-
-
-msgid "Transform Orientations"
-msgstr "变换坐标系"
-
-
-msgid "View Lock"
-msgstr "视图锁定"
-
-
-msgid "Viewport Debug"
-msgstr "视口调试"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Action Maps"
@@ -103574,15 +103594,6 @@ msgid "Show graph view for active element"
 msgstr "为激活的元素显示曲线图"
 
 
-msgctxt "MovieClip"
-msgid "Dopesheet"
-msgstr "动画摄影表视图"
-
-
-msgid "Dopesheet view for tracking data"
-msgstr "用于追踪数据的动画摄影表视图"
-
-
 msgid "Zoom percentage"
 msgstr "缩放百分比"
 
@@ -110063,10 +110074,6 @@ msgid "Show the Face Orientation Overlay"
 msgstr "显示面朝向叠加层"
 
 
-msgid "Highlight selected faces"
-msgstr "高亮显示选中的面"
-
-
 msgid "Fade Inactive Objects"
 msgstr "淡化非活动物体"
 
@@ -115256,10 +115263,6 @@ msgid "Maintainer"
 msgstr "维护者"
 
 
-msgid "Warning"
-msgstr "警告"
-
-
 msgid "Blender's extension repository not found!"
 msgstr "未找到Blender扩展存储库！"
 
@@ -115993,28 +115996,8 @@ msgstr "动作过滤器"
 
 
 msgctxt "Operator"
-msgid "Display Variant"
-msgstr "显示变量"
-
-
-msgctxt "Operator"
-msgid "Assign To Variant"
-msgstr "指定到变量"
-
-
-msgctxt "Operator"
 msgid "Reset To Original"
 msgstr "重置为原始"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "指定为原始"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "添加材质变量"
 
 
 msgid "No glTF Animation"
@@ -124598,11 +124581,6 @@ msgstr "空白蜡笔"
 
 
 msgctxt "Operator"
-msgid "Suzanne"
-msgstr "苏珊娜"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "点云"
 
@@ -132385,6 +132363,10 @@ msgid "A narrow horizontal area interferes with this operation"
 msgstr "狭窄的水平区域会干扰此操作"
 
 
+msgid "Join Areas"
+msgstr "合并区域"
+
+
 msgid "Join Up"
 msgstr "向上合并"
 
@@ -132399,6 +132381,10 @@ msgstr "向下合并"
 
 msgid "Join Left"
 msgstr "向左合并"
+
+
+msgid "Move/Split Area"
+msgstr "移动/拆分区域"
 
 
 msgid "Restore Areas"
@@ -133360,6 +133346,10 @@ msgstr "'%s' 给定路径 OS-无效, 创建 '%s' 路径代替"
 
 msgid "Could not create new folder: %s"
 msgstr "无法创建新文件夹: %s"
+
+
+msgid "%s%s, %s"
+msgstr "%s%s, %s"
 
 
 msgid "More than one item is selected"
@@ -136364,10 +136354,6 @@ msgid "Data-block does not support previews"
 msgstr "数据块不支持预览"
 
 
-msgid "Can't generate automatic preview for node group"
-msgstr "无法为节点组生成自动预览"
-
-
 msgid "Numeric input evaluation"
 msgstr "数值输入运算"
 
@@ -136564,6 +136550,14 @@ msgstr "无法打开Alembic存档进行读取，有关详细信息，请参阅�
 msgctxt "Action"
 msgid "Group"
 msgstr "群组"
+
+
+msgid "Unable to create new object"
+msgstr "无法新建物体"
+
+
+msgid "SVG has gradients, Grease Pencil color will be approximated"
+msgstr "SVG有渐变效果，蜡笔的颜色将会近似取值"
 
 
 msgid "PLY Export: Unable to find collection '%s'"
@@ -139863,7 +139857,7 @@ msgstr "可逆"
 
 
 msgid "The inverted matrix or the identity matrix if the input is not invertible"
-msgstr "如果输入不可逆，则为逆矩阵或单位矩阵"
+msgstr "逆矩阵，如果输入不可逆则为单位矩阵"
 
 
 msgid "True if the input matrix is invertible"
@@ -141991,6 +141985,10 @@ msgid "Optional factor for modulating the component which is transmitted into th
 msgstr "用于调节投射到毛发中的光线的可选系数，从毛发的背面反射并透射出毛发，并拾取毛发内部颜料的颜色，光线大致围绕入射方向定向，为了物理正确性，请保持1.0"
 
 
+msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
+msgstr "旋转各向异性的方向，取值 1.0 表示旋转一整圈"
+
+
 msgid "Diffuse Roughness"
 msgstr "漫射粗糙度"
 
@@ -142124,10 +142122,6 @@ msgstr "调整折射率（IOR）以增加或减少高光强度（0.5表示无调
 
 msgid "Tint dielectric reflection at normal incidence for artistic control, and metallic reflection at near-grazing incidence to simulate complex index of refraction"
 msgstr "使用正入射时的染色介电反射，以实现艺术控制，而在接近斜入射时使用金属反射，以模拟复杂的折射率"
-
-
-msgid "Rotates the direction of anisotropy, with 1.0 going full circle"
-msgstr "旋转各向异性的方向，取值 1.0 表示旋转一整圈"
 
 
 msgid "Controls the tangent direction for anisotropy"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1395,10 +1395,6 @@ msgstr "Varlık Kitaplığı"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Varlıkların görüntüleneceği varlık kitaplığını seç"
-
-
-msgid "All"
-msgstr "Tümü"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -4329,6 +4325,10 @@ msgstr "Ters çevrilen alanı doldur"
 
 msgid "Mode to draw boundary limits"
 msgstr "Had sınırlarını çizmek için kip"
+
+
+msgid "All"
+msgstr "Tümü"
 
 
 msgid "Use both visible strokes and edit lines as fill boundary limits"
@@ -7646,16 +7646,48 @@ msgid "Texture"
 msgstr "Doku"
 
 
-msgid "Bone Collection Specials"
-msgstr "Kemik Koleksiyonu Özel Seçimleri"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
 
 
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Bone Collection Specials"
+msgstr "Kemik Koleksiyonu Özel Seçimleri"
 
 
 msgid "Context Menu"
@@ -7674,16 +7706,8 @@ msgid "Marker"
 msgstr "İmleyici"
 
 
-msgid "Snap"
-msgstr "Yakala"
-
-
 msgid "Smooth"
 msgstr "Pürüzsüz"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
 
 
 msgid "Unwrap"
@@ -7717,10 +7741,6 @@ msgstr "Fizik"
 msgctxt "Operator"
 msgid "Scene"
 msgstr "Sahne"
-
-
-msgid "Apply"
-msgstr "Uygula"
 
 
 msgid "Templates"
@@ -7773,26 +7793,6 @@ msgstr "Yardım"
 
 msgid "Save & Load"
 msgstr "Kaydet ve Yükle"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Convert"
-msgstr "Çevir"
 
 
 msgid "Splash"
@@ -8226,6 +8226,174 @@ msgid "Object Modifiers"
 msgstr "Nesne Değiştiricileri"
 
 
+msgid "Open the blend file that contains the active asset"
+msgstr "Etkin varlığı içeren harman dosyasını aç"
+
+
+msgctxt "Operator"
+msgid "Open Blend File"
+msgstr "Harman Dosyası Aç"
+
+
+msgctxt "Operator"
+msgid "Image Edit Externally"
+msgstr "Görseli Dışarıda Düzenle"
+
+
+msgctxt "Operator"
+msgid "New Geometry Node Modifier"
+msgstr "Yeni Geometri Düğümü Değiştiricisi"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Değiştirici Ekle"
+
+
+msgctxt "Operator"
+msgid "Move to Nodes"
+msgstr "Düğümlere Taşı"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Yeni"
+
+
+msgid "Display information and preferences for this add-on"
+msgstr "Bu eklenti üzerine bilgi ve tercihleri görüntüle"
+
+
+msgid "Install an add-on"
+msgstr "Bir eklenti kur"
+
+
+msgctxt "Operator"
+msgid "Install Add-on"
+msgstr "Eklenti Kur"
+
+
+msgctxt "Operator"
+msgid "Refresh"
+msgstr "Yenile"
+
+
+msgid "Install an application template"
+msgstr "Bir uygulama şablonu kur"
+
+
+msgctxt "Operator"
+msgid "Install Template from File..."
+msgstr "Dosyadan Şablon Kur..."
+
+
+msgid "Install a user defined light"
+msgstr "Kullanıcı tanımlı bir ışık kur"
+
+
+msgctxt "Operator"
+msgid "Install Light"
+msgstr "Işık Kur"
+
+
+msgctxt "Operator"
+msgid "Install Theme..."
+msgstr "Tema Kur..."
+
+
+msgid "Open a style module file"
+msgstr "Bir biçem modülü dosyası aç"
+
+
+msgctxt "Operator"
+msgid "Open Style Module File"
+msgstr "Biçem Modülü Dosyası Aç"
+
+
+msgid "Clean up i18n working repository (po files)"
+msgstr "i18n çalışma deposunu temizle (po dosyaları)"
+
+
+msgctxt "Operator"
+msgid "Update I18n Statistics"
+msgstr "I18n İstatistiklerini Güncelle"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "UV Yerleşimini Dışa Aktar"
+
+
+msgid "Rename multiple items at once"
+msgstr "Aynı anda birden çok ögeyi yeniden adlandır"
+
+
+msgctxt "Operator"
+msgid "Batch Rename"
+msgstr "Toplu Yeniden Adlandır"
+
+
+msgctxt "Operator"
+msgid "View Manual"
+msgstr "Kılavuzu Görüntüle"
+
+
+msgid "List all the operators in a text-block, useful for scripting"
+msgstr "Bir metin blokundaki tüm işleçlerin listesi, betik yazımında yararlıdır"
+
+
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Eklentiyi Devre Dışı Bırak"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Eklenti Etkinleştir"
+
+
+msgid "Open a path in a file browser"
+msgstr "Bir dosya tarayıcısında bir yol aç"
+
+
+msgctxt "Operator"
+msgid "Batch-Clear Previews"
+msgstr "Toptan Önizlemeleri Temizle"
+
+
+msgctxt "Operator"
+msgid "Batch-Generate Previews"
+msgstr "Toptan Önizlemeler Oluştur"
+
+
+msgctxt "Operator"
+msgid "Save System Info"
+msgstr "Sistem Bilgisini Kaydet"
+
+
+msgctxt "Operator"
+msgid "Toolbar"
+msgstr "Araç Çubuğu"
+
+
+msgctxt "Operator"
+msgid "Toolbar Prompt"
+msgstr "Araç Çubuğu İstemi"
+
+
+msgid "Open a website in the web browser"
+msgstr "Web sayfasını tarayıcıda aç"
+
+
+msgid "Open a preset website in the web browser"
+msgstr "Web tarayıcısında bir önayar web sayfası aç"
+
+
+msgctxt "Operator"
+msgid "Open Preset Website"
+msgstr "Önayar Web Sitesini Aç"
+
+
 msgid "True when run from the 'Adjust Last Operation' panel"
 msgstr "'Son İşlemi Düzelt' panelinden çalıştırıldığında doğru"
 
@@ -8320,15 +8488,6 @@ msgstr "Varlık Kataloglarını Kaydet"
 msgctxt "Operator"
 msgid "Refresh Asset Library"
 msgstr "Varlık Kitaplığını Yenile"
-
-
-msgctxt "Operator"
-msgid "Open Blend File"
-msgstr "Harman Dosyası Aç"
-
-
-msgid "Open the blend file that contains the active asset"
-msgstr "Etkin varlığı içeren harman dosyasını aç"
 
 
 msgctxt "Operator"
@@ -8807,11 +8966,6 @@ msgid "Paste Image"
 msgstr "Görseli Yapıştır"
 
 
-msgctxt "Operator"
-msgid "Image Edit Externally"
-msgstr "Görseli Dışarıda Düzenle"
-
-
 msgid "Open an image file browser, hold Shift to open the file, Alt to browse containing directory"
 msgstr "Bir görsel dosyası tarayıcısı aç; dosyayı açmak için Üst Karakter, içeren dizine göz atmak için Seçenek düğmelerini basılı tut"
 
@@ -8988,22 +9142,12 @@ msgstr "Bağlantıları Sessize Al"
 
 
 msgctxt "Operator"
-msgid "New Geometry Node Modifier"
-msgstr "Yeni Geometri Düğümü Değiştiricisi"
-
-
-msgctxt "Operator"
 msgid "New Node Tree"
 msgstr "Yeni Düğüm Ağacı"
 
 
 msgid "Wrap"
 msgstr "Sar"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Değiştirici Ekle"
 
 
 msgid "Scene Origin"
@@ -9030,11 +9174,6 @@ msgstr "Nesneleri Çoğalt"
 
 msgid "Input Name"
 msgstr "Girdi Adı"
-
-
-msgctxt "Operator"
-msgid "Move to Nodes"
-msgstr "Düğümlere Taşı"
 
 
 msgctxt "Operator"
@@ -9075,11 +9214,6 @@ msgstr "Nokta Bulutu Ekle"
 
 msgid "Hair Radius"
 msgstr "Kıl Yarıçapı"
-
-
-msgctxt "Operator"
-msgid "New"
-msgstr "Yeni"
 
 
 msgctxt "Operator"
@@ -9237,44 +9371,8 @@ msgid "Module name of the add-on to enable"
 msgstr "Etkinleştirilecek eklenti modülünün adı"
 
 
-msgid "Display information and preferences for this add-on"
-msgstr "Bu eklenti üzerine bilgi ve tercihleri görüntüle"
-
-
 msgid "Module name of the add-on to expand"
 msgstr "Genişletilecek eklenti modülünün adı"
-
-
-msgctxt "Operator"
-msgid "Install Add-on"
-msgstr "Eklenti Kur"
-
-
-msgid "Install an add-on"
-msgstr "Bir eklenti kur"
-
-
-msgctxt "Operator"
-msgid "Refresh"
-msgstr "Yenile"
-
-
-msgctxt "Operator"
-msgid "Install Template from File..."
-msgstr "Dosyadan Şablon Kur..."
-
-
-msgid "Install an application template"
-msgstr "Bir uygulama şablonu kur"
-
-
-msgctxt "Operator"
-msgid "Install Light"
-msgstr "Işık Kur"
-
-
-msgid "Install a user defined light"
-msgstr "Kullanıcı tanımlı bir ışık kur"
 
 
 msgid "Install custom MatCaps"
@@ -9287,11 +9385,6 @@ msgstr "Özel HDRI'ler kur"
 
 msgid "Install custom Studio Lights"
 msgstr "Özel StudioLight'lar kur"
-
-
-msgctxt "Operator"
-msgid "Install Theme..."
-msgstr "Tema Kur..."
 
 
 msgctxt "Operator"
@@ -9312,15 +9405,6 @@ msgstr "Serbest Modül Ekle"
 msgctxt "Operator"
 msgid "Move Freestyle Module"
 msgstr "Serbest Modülü Taşı"
-
-
-msgctxt "Operator"
-msgid "Open Style Module File"
-msgstr "Biçem Modülü Dosyası Aç"
-
-
-msgid "Open a style module file"
-msgstr "Bir biçem modülü dosyası aç"
 
 
 msgctxt "Operator"
@@ -9566,15 +9650,6 @@ msgid "Copy as New Driver"
 msgstr "Yeni Sürücü Olarak Kopyala"
 
 
-msgid "Clean up i18n working repository (po files)"
-msgstr "i18n çalışma deposunu temizle (po dosyaları)"
-
-
-msgctxt "Operator"
-msgid "Update I18n Statistics"
-msgstr "I18n İstatistiklerini Güncelle"
-
-
 msgctxt "Operator"
 msgid "View Drop"
 msgstr "Görünüm Bırakma"
@@ -9604,11 +9679,6 @@ msgstr "Küp Projeksiyonu"
 
 msgid "Cube Size"
 msgstr "Küp Boyutu"
-
-
-msgctxt "Operator"
-msgid "Export UV Layout"
-msgstr "UV Yerleşimini Dışa Aktar"
 
 
 msgid "New UV Map"
@@ -9699,15 +9769,6 @@ msgid "Clear Asset Data"
 msgstr "Varlık Verisini Temizle"
 
 
-msgctxt "Operator"
-msgid "Batch Rename"
-msgstr "Toplu Yeniden Adlandır"
-
-
-msgid "Rename multiple items at once"
-msgstr "Aynı anda birden çok ögeyi yeniden adlandır"
-
-
 msgid "Open a predefined menu"
 msgstr "Önceden tanımlanmış bir menü aç"
 
@@ -9731,11 +9792,6 @@ msgstr "Hata ayıklama düzeyini ayarlamak için bir açılır pencere aç"
 
 msgid "Debug Value"
 msgstr "Hata Ayıklama Değeri"
-
-
-msgctxt "Operator"
-msgid "View Manual"
-msgstr "Kılavuzu Görüntüle"
 
 
 msgctxt "Operator"
@@ -9774,40 +9830,12 @@ msgid "State"
 msgstr "Durum"
 
 
-msgid "List all the operators in a text-block, useful for scripting"
-msgstr "Bir metin blokundaki tüm işleçlerin listesi, betik yazımında yararlıdır"
-
-
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Eklentiyi Devre Dışı Bırak"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Eklenti Etkinleştir"
-
-
-msgid "Open a path in a file browser"
-msgstr "Bir dosya tarayıcısında bir yol aç"
-
-
 msgid "Export Vertex Colors"
 msgstr "Tepecik Renklerini Dışa Aktar"
 
 
-msgctxt "Operator"
-msgid "Batch-Clear Previews"
-msgstr "Toptan Önizlemeleri Temizle"
-
-
 msgid "Save Backups"
 msgstr "Yedekleri Kaydet"
-
-
-msgctxt "Operator"
-msgid "Batch-Generate Previews"
-msgstr "Toptan Önizlemeler Oluştur"
 
 
 msgctxt "Operator"
@@ -9979,34 +10007,6 @@ msgid "Open a window with information about Blender"
 msgstr "Blender hakkında bilgi içeren bir pencere aç"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Sistem Bilgisini Kaydet"
-
-
-msgctxt "Operator"
-msgid "Toolbar"
-msgstr "Araç Çubuğu"
-
-
-msgctxt "Operator"
-msgid "Toolbar Prompt"
-msgstr "Araç Çubuğu İstemi"
-
-
-msgid "Open a website in the web browser"
-msgstr "Web sayfasını tarayıcıda aç"
-
-
-msgctxt "Operator"
-msgid "Open Preset Website"
-msgstr "Önayar Web Sitesini Aç"
-
-
-msgid "Open a preset website in the web browser"
-msgstr "Web tarayıcısında bir önayar web sayfası aç"
-
-
 msgid "Textures Directory"
 msgstr "Dokular Dizini"
 
@@ -10110,6 +10110,26 @@ msgid "UV Sculpting"
 msgstr "UV Yontması"
 
 
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Curve Editing"
+msgstr "Eğri Düzenleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
 msgid "Bone Constraints"
 msgstr "Kemik Kısıtlamaları"
 
@@ -10165,10 +10185,6 @@ msgstr "Dizin Yolu"
 
 msgid "Filter Settings"
 msgstr "Süzgeç Ayarları"
-
-
-msgid "Active Tool"
-msgstr "Etkin Araç"
 
 
 msgctxt "Operator"
@@ -10275,24 +10291,8 @@ msgid "Toolbar Item"
 msgstr "Araç Çubuğu Ögesi"
 
 
-msgid "Curve Editing"
-msgstr "Eğri Düzenleme"
-
-
 msgid "Masking"
 msgstr "Maskeleme"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "Viewport Feedback"

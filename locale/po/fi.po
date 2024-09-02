@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -804,10 +804,6 @@ msgstr "Työtila"
 msgctxt "ID"
 msgid "World"
 msgstr "Maailma"
-
-
-msgid "All"
-msgstr "Kaikki"
 
 
 msgid "Current File"
@@ -2154,6 +2150,10 @@ msgstr "Suunta"
 
 msgid "Normal"
 msgstr "Normaali"
+
+
+msgid "All"
+msgstr "Kaikki"
 
 
 msgid "Strokes"
@@ -4699,16 +4699,56 @@ msgid "Mirror Object"
 msgstr "Peilaa objekti"
 
 
-msgid "Basic"
-msgstr "Tavallinen"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
 
 
 msgid "Track"
 msgstr "Raide"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Basic"
+msgstr "Tavallinen"
 
 
 msgid "Console"
@@ -4821,49 +4861,9 @@ msgid "Save & Load"
 msgstr "Tallenna & lataa"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
 msgctxt "Operator"
 msgid "Parent"
 msgstr "Isäntä"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
 
 
 msgid "Seam"
@@ -6307,6 +6307,10 @@ msgid "Volume Cube"
 msgstr "Volyymikuutio"
 
 
+msgid "Warning"
+msgstr "Varoitus"
+
+
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "Kehys"
@@ -6635,6 +6639,11 @@ msgstr "Objektin muuntimet"
 
 msgid "Active Modifier"
 msgstr "Aktiivinen muunnin"
+
+
+msgctxt "Operator"
+msgid "New"
+msgstr "Uusi"
 
 
 msgid "Only Channel"
@@ -7384,11 +7393,6 @@ msgid "Add Segment"
 msgstr "Lisää segmentti"
 
 
-msgctxt "Operator"
-msgid "New"
-msgstr "Uusi"
-
-
 msgid "Column"
 msgstr "Sarake"
 
@@ -7714,10 +7718,6 @@ msgstr "Poista valinta"
 msgctxt "WindowManager"
 msgid "Snap"
 msgstr "Napsauta"
-
-
-msgid "Warning"
-msgstr "Varoitus"
 
 
 msgid "Viewports"

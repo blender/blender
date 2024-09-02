@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-05-23 14:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -1338,10 +1338,6 @@ msgid "Choose the asset library to display assets from"
 msgstr "Vælg det aktivbibliotek, du vil vise aktiver fra"
 
 
-msgid "All"
-msgstr "alle"
-
-
 msgid "Show assets from all of the listed asset libraries"
 msgstr "Vis aktiver fra alle de listede aktivbiblioteker"
 
@@ -2036,6 +2032,10 @@ msgstr "Materiale"
 
 msgid "Direction"
 msgstr "Retning"
+
+
+msgid "All"
+msgstr "alle"
 
 
 msgid "Threshold"

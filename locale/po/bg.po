@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:31+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -100,10 +100,6 @@ msgid "Author"
 msgstr "Автор"
 
 
-msgid "All"
-msgstr "Всички"
-
-
 msgid "Custom"
 msgstr "Потребителски"
 
@@ -158,6 +154,10 @@ msgstr "Деформиране"
 
 msgid "Index"
 msgstr "Индекс"
+
+
+msgid "All"
+msgstr "Всички"
 
 
 msgid "Thickness"
@@ -700,20 +700,40 @@ msgid "Click"
 msgstr "Клик"
 
 
-msgid "Languages..."
-msgstr "Езици..."
+msgid "UV Mapping"
+msgstr "UV Картиране"
+
+
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
+
+
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Merge"
 msgstr "Слей"
 
 
+msgid "Languages..."
+msgstr "Езици..."
+
+
 msgid "Import"
 msgstr "Внеси"
-
-
-msgid "Apply"
-msgstr "Прилагане"
 
 
 msgid "Cache"
@@ -734,26 +754,6 @@ msgstr "Външни Данни"
 
 msgid "Help"
 msgstr "Помощ"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
-msgid "UV Mapping"
-msgstr "UV Картиране"
 
 
 msgid "Ball"
@@ -850,6 +850,26 @@ msgstr "Мътност"
 
 msgid "Triangle"
 msgstr "Триъгълник"
+
+
+msgctxt "Operator"
+msgid "Export Key Configuration..."
+msgstr "Изнеси Клавишна Настройка..."
+
+
+msgctxt "Operator"
+msgid "Import Key Configuration..."
+msgstr "Внеси Клавишна Настройка..."
+
+
+msgctxt "Operator"
+msgid "Test Key Configuration for Conflicts"
+msgstr "Провери Клавишната Настройка за Конфликти"
+
+
+msgctxt "Operator"
+msgid "Operator Cheat Sheet"
+msgstr "Списък с Оператори"
 
 
 msgid "Mouse X"
@@ -1345,27 +1365,12 @@ msgid "Select all visible bones grouped by similar properties"
 msgstr "Избери всички видими кости според общи свойства"
 
 
-msgctxt "Operator"
-msgid "Export Key Configuration..."
-msgstr "Изнеси Клавишна Настройка..."
-
-
-msgctxt "Operator"
-msgid "Import Key Configuration..."
-msgstr "Внеси Клавишна Настройка..."
-
-
 msgid "Keep Original"
 msgstr "Запазване на оригинала"
 
 
 msgid "Keep original file after copying to configuration folder"
 msgstr "Запази оригиналния файл след копиране в папката с настройката"
-
-
-msgctxt "Operator"
-msgid "Test Key Configuration for Conflicts"
-msgstr "Провери Клавишната Настройка за Конфликти"
 
 
 msgctxt "Operator"
@@ -1541,11 +1546,6 @@ msgstr "Отваряне на Blender файл"
 
 msgid "Trusted Source"
 msgstr "Надежден Източник"
-
-
-msgctxt "Operator"
-msgid "Operator Cheat Sheet"
-msgstr "Списък с Оператори"
 
 
 msgctxt "Operator"

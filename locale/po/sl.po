@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'205d95107e6e')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 09:41+0000\n"
-"PO-Revision-Date: 2024-08-23 23:56+0000\n"
+"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"PO-Revision-Date: 2024-08-30 15:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -73,6 +73,10 @@ msgstr "F-krivulje"
 
 msgid "The individual F-Curves that animate the slot"
 msgstr "Posamezne F-krivulje, ki sestavljajo polje"
+
+
+msgid "F-Curve Groups"
+msgstr "Skupine F-krivulj"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -1188,7 +1192,7 @@ msgstr "Urejevalnik vozlišč"
 
 
 msgid "Editor for node-based shading and compositing tools"
-msgstr "Urejevalnik za senčenje z vozlišči in grafično sestavljanje"
+msgstr "Urejevalnik za senčenje z vozlišči in slikovno stavljenje"
 
 
 msgid "Video Sequencer"
@@ -1737,10 +1741,6 @@ msgstr "Knjižnica sredstev"
 
 msgid "Choose the asset library to display assets from"
 msgstr "Izberite knjižnico, katere sredstva naj se pokažejo"
-
-
-msgid "All"
-msgstr "Vse"
 
 
 msgid "Show assets from all of the listed asset libraries"
@@ -2484,7 +2484,7 @@ msgstr "Obarva obhod"
 
 
 msgid "Add diffuse contribution"
-msgstr "Upošteva razpršilni prispevek"
+msgstr "Upošteva prispevek razpršitve"
 
 
 msgid "Add direct lighting contribution"
@@ -4960,6 +4960,10 @@ msgid "Mode to draw boundary limits"
 msgstr "Način za risanje mej"
 
 
+msgid "All"
+msgstr "Vse"
+
+
 msgid "Use both visible strokes and edit lines as fill boundary limits"
 msgstr "Za polnilne meje uporabi vidne poteze in urejevalne črte"
 
@@ -5524,7 +5528,7 @@ msgstr "Motnost"
 
 
 msgid "Image opacity to blend the image against the background color"
-msgstr "Neprozornost slike za zlivanje z barvo ozadja"
+msgstr "Motnost slike za zlivanje z barvo ozadja"
 
 
 msgid "MovieClip"
@@ -11679,7 +11683,7 @@ msgstr "Prekrivne barve po meri"
 
 
 msgid "Annotation Layer Opacity"
-msgstr "Neprozornost plasti skice"
+msgstr "Motnost plasti skice"
 
 
 msgid "Frames"
@@ -12105,7 +12109,7 @@ msgstr "Obratna starševska matrika"
 
 
 msgid "Layer Opacity"
-msgstr "Neprozornost plasti"
+msgstr "Motnost plasti"
 
 
 msgid "Parent Bone"
@@ -14405,8 +14409,1175 @@ msgid "Small Caps"
 msgstr "Male črke"
 
 
+msgid "Textboxes"
+msgstr "Besedilna polja"
+
+
+msgid "Underline Thickness"
+msgstr "Debelina podčrte"
+
+
+msgid "Underline Position"
+msgstr "Položaj podčrte"
+
+
+msgid "Fast Editing"
+msgstr "Hitro urejanje"
+
+
+msgid "Normals"
+msgstr "Normale"
+
+
+msgid "Selection Domain"
+msgstr "Domena izbora"
+
+
+msgid "Surface UV Map"
+msgstr "Površinska preslikava UV"
+
+
+msgid "Use Sculpt Collision"
+msgstr "Trki med kiparjenjem"
+
+
+msgid "Freestyle Line Style"
+msgstr "Slog poteze Freestyle"
+
+
+msgid "Active Texture"
+msgstr "Aktivna tekstura"
+
+
+msgid "Active Texture Index"
+msgstr "Indeks aktivne teksture"
+
+
+msgid "Alpha Transparency"
+msgstr "Prozornost alfa"
+
+
+msgid "Alpha Modifiers"
+msgstr "Modifikatorji alfe"
+
+
+msgid "Max 2D Angle"
+msgstr "Največji 2D kot"
+
+
+msgid "Min 2D Angle"
+msgstr "Najmanjši 2D kot"
+
+
+msgid "Caps"
+msgstr "Konca"
+
+
+msgid "Butt"
+msgstr "Ravno"
+
+
+msgid "Square"
+msgstr "Kvadratno"
+
+
+msgid "Chaining Method"
+msgstr "Metoda veriženja"
+
+
+msgid "Color Modifiers"
+msgstr "Barvni modifikatorji"
+
+
+msgid "Dash 1"
+msgstr "Črtica 1"
+
+
+msgid "Dash 2"
+msgstr "Črtica 2"
+
+
+msgid "Dash 3"
+msgstr "Črtica 3"
+
+
+msgid "Gap 1"
+msgstr "Presledek 1"
+
+
+msgid "Gap 2"
+msgstr "Presledek 2"
+
+
+msgid "Gap 3"
+msgstr "Presledek 3"
+
+
+msgid "Geometry Modifiers"
+msgstr "Geometrijski modifikatorji"
+
+
+msgid "Mean"
+msgstr "Srednja vrednost"
+
+
+msgid "Min"
+msgstr "Nižek"
+
+
+msgid "Max"
+msgstr "Višek"
+
+
+msgid "First"
+msgstr "Prvo"
+
+
+msgid "Last"
+msgstr "Zadnje"
+
+
+msgid "Max 2D Length"
+msgstr "Najdaljša 2D dolžina"
+
+
+msgid "Min 2D Length"
+msgstr "Najkrajša 2D dolžina"
+
+
+msgid "Panel"
+msgstr "Plošča"
+
+
+msgid "Rounds"
+msgstr "Obhodi"
+
+
+msgid "Sort Key"
+msgstr "Razvrščevalni ključ"
+
+
+msgid "Distance from Camera"
+msgstr "Razdalja od kamere"
+
+
+msgid "2D Length"
+msgstr "2D dolžina"
+
+
+msgid "Projected X"
+msgstr "Projicirani X"
+
+
+msgid "Projected Y"
+msgstr "Projicirani Y"
+
+
+msgid "Sort Order"
+msgstr "Smer razvrstitve"
+
+
+msgid "Texture Spacing"
+msgstr "Teksturni razmik"
+
+
+msgid "Thickness Modifiers"
+msgstr "Modifikatorji debeline"
+
+
+msgid "Thickness Position"
+msgstr "Položaj debeline"
+
+
+msgid "Thickness Ratio"
+msgstr "Razmerje debeline"
+
+
+msgid "Use Chain Count"
+msgstr "Štej verige"
+
+
+msgid "Chaining"
+msgstr "Veriženje"
+
+
+msgid "Dashed Line"
+msgstr "Črtkana črta"
+
+
+msgid "Use Nodes"
+msgstr "Uporabi vozlišča"
+
+
+msgid "Same Object"
+msgstr "Isti objekt"
+
+
+msgid "Sorting"
+msgstr "Razvrščanje"
+
+
+msgid "Use Split Length"
+msgstr "Cepitev po dolžini"
+
+
+msgid "Use Split Pattern"
+msgstr "Cepitveni vzorec"
+
+
+msgid "Use Textures"
+msgstr "Uporabi teksture"
+
+
+msgid "Layer Groups"
+msgstr "Skupine plasti"
+
+
+msgid "Grease Pencil layers"
+msgstr "Plasti Grease Pencil"
+
+
+msgid "Onion Opacity"
+msgstr "Prekrivna motnost"
+
+
+msgid "Filter by Type"
+msgstr "Filtriranje po vrsti"
+
+
+msgid "Selected"
+msgstr "Izbrano"
+
+
+msgid "Stroke Depth Order"
+msgstr "Globinska razporeditev potez"
+
+
+msgid "2D Layers"
+msgstr "2D plasti"
+
+
+msgid "3D Location"
+msgstr "3D lega"
+
+
+msgid "Auto-Lock Layers"
+msgstr "Samozaklepanje plasti"
+
+
+msgid "Use Custom Ghost Colors"
+msgstr "Fantomske barve po meri"
+
+
+msgid "Fade"
+msgstr "Pojemanje"
+
+
+msgid "Show Start Frame"
+msgstr "Pokaži začetni okvir"
+
+
+msgid "Alpha Mode"
+msgstr "Način alfa"
+
+
+msgid "Premultiplied"
+msgstr "Vnaprej množeno"
+
+
+msgid "Channel Packed"
+msgstr "Zapakirano v kanale"
+
+
+msgid "Color Space Settings"
+msgstr "Nastavitve barvnega prostora"
+
+
+msgid "Display Aspect"
+msgstr "Prikazovalno razmerje"
+
+
+msgid "BMP"
+msgstr "BMP"
+
+
+msgid "Iris"
+msgstr "Iris"
+
+
+msgid "JPEG"
+msgstr "JPEG"
+
+
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
+
+
+msgid "Targa"
+msgstr "Targa"
+
+
+msgid "Targa Raw"
+msgstr "Targa Raw"
+
+
+msgid "Cineon"
+msgstr "Cineon"
+
+
+msgid "DPX"
+msgstr "DPX"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLayer"
+
+
+msgid "Radiance HDR"
+msgstr "Radiance HDR"
+
+
+msgid "TIFF"
+msgstr "TIFF"
+
+
+msgid "WebP"
+msgstr "WebP"
+
+
+msgid "FFmpeg Video"
+msgstr "FFmpeg Video"
+
+
+msgid "Duration"
+msgstr "Trajanje"
+
+
+msgid "Generated Height"
+msgstr "Tvorjena višina"
+
+
+msgid "Generated Type"
+msgstr "Tvorjena vrsta"
+
+
+msgid "Blank"
+msgstr "Prazno"
+
+
+msgid "UV Grid"
+msgstr "Mreža UV"
+
+
+msgid "Generated Width"
+msgstr "Tvorjena širina"
+
+
+msgid "Has Data"
+msgstr "Ima podatke"
+
+
+msgid "Dirty"
+msgstr "Umazano"
+
+
+msgid "Is Float"
+msgstr "Je realnoštevilska"
+
+
+msgid "Multiple Views"
+msgstr "Več pogledov"
+
+
+msgid "Stereo 3D"
+msgstr "Stereo 3D"
+
+
+msgid "Packed File"
+msgstr "Zapakirana datoteka"
+
+
+msgid "Packed Files"
+msgstr "Zapakirane datoteke"
+
+
+msgid "Pixels"
+msgstr "Piksli"
+
+
+msgid "Render Slots"
+msgstr "Upodabljalna polja"
+
+
+msgid "Seam Margin"
+msgstr "Rob šiva"
+
+
+msgctxt "Image"
+msgid "Source"
+msgstr "Vir"
+
+
+msgctxt "Image"
+msgid "Single Image"
+msgstr "Ena slika"
+
+
+msgctxt "Image"
+msgid "Image Sequence"
+msgstr "Zaporedje slik"
+
+
+msgctxt "Image"
+msgid "Movie"
+msgstr "Videoposnetek"
+
+
+msgctxt "Image"
+msgid "Generated"
+msgstr "Tvorjena"
+
+
+msgctxt "Image"
+msgid "Viewer"
+msgstr "Prikazovalnik"
+
+
+msgctxt "Image"
+msgid "UDIM Tiles"
+msgstr "Ploščice UDIM"
+
+
+msgid "Stereo 3D Format"
+msgstr "Format stereo 3D"
+
+
+msgid "Image Tiles"
+msgstr "Slikovne ploščice"
+
+
+msgid "Multilayer"
+msgstr "Večplastna"
+
+
+msgid "UV Test"
+msgstr "Test UV"
+
+
+msgid "Render Result"
+msgstr "Rezultat upodobitve"
+
+
+msgid "Compositing"
+msgstr "Stavljenje slike"
+
+
+msgid "Deinterlace"
+msgstr "Razpletanje"
+
+
+msgid "Float Buffer"
+msgstr "Realnoštevilski medpomnilnik"
+
+
+msgid "Half Float Precision"
+msgstr "Polovična natančnost plavajoče vejice"
+
+
+msgid "Use Multi-View"
+msgstr "Uporabi več pogledov"
+
+
+msgid "View as Render"
+msgstr "Prikaži kot upodobitev"
+
+
+msgid "Views Format"
+msgstr "Prikazni format"
+
+
+msgid "Individual"
+msgstr "Posamezne"
+
+
+msgid "Key Blocks"
+msgstr "Ključni bloki"
+
+
+msgid "Reference Key"
+msgstr "Sklicni ključ"
+
+
+msgid "User"
+msgstr "Uporabnik"
+
+
+msgid "Interpolation Type U"
+msgstr "Vrsta interpolacije po U"
+
+
+msgid "Catmull-Rom"
+msgstr "Catmull-Rom"
+
+
+msgid "BSpline"
+msgstr "BSpline"
+
+
+msgid "Interpolation Type V"
+msgstr "Vrsta interpolacije po V"
+
+
+msgid "Interpolation Type W"
+msgstr "Vrsta interpolacije po W"
+
+
+msgid "U"
+msgstr "U"
+
+
+msgid "V"
+msgstr "V"
+
+
+msgid "W"
+msgstr "W"
+
+
+msgid "Library Overrides Need resync"
+msgstr "Prepisi knjižnic se morajo uskladiti"
+
+
+msgctxt "Light"
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Cutoff Distance"
+msgstr "Domet vpliva"
+
+
+msgid "Cycles Light Settings"
+msgstr "Nastavitve luči za Cycles"
+
+
+msgid "Diffuse Factor"
+msgstr "Faktor razpršitve"
+
+
+msgid "Specular Factor"
+msgstr "Faktor zrcaljenja"
+
+
+msgid "Transmission Factor"
+msgstr "Faktor prepustnosti"
+
+
+msgctxt "Light"
+msgid "Type"
+msgstr "Vrsta"
+
+
+msgctxt "Light"
+msgid "Point"
+msgstr "Točkasta"
+
+
+msgctxt "Light"
+msgid "Sun"
+msgstr "Sonce"
+
+
+msgctxt "Light"
+msgid "Spot"
+msgstr "Reflektor"
+
+
+msgctxt "Light"
+msgid "Area"
+msgstr "Področna"
+
+
+msgid "Custom Attenuation"
+msgstr "Slabljenje po meri"
+
+
+msgid "Volume Factor"
+msgstr "Faktor prostornine"
+
+
+msgid "Area Light"
+msgstr "Področna luč"
+
+
+msgid "Contact Shadow Bias"
+msgstr "Popravek stičnih senc"
+
+
+msgid "Contact Shadow Distance"
+msgstr "Razdalja stičnih senc"
+
+
+msgid "Contact Shadow Thickness"
+msgstr "Debelina stičnih senc"
+
+
+msgctxt "Light"
+msgid "Power"
+msgstr "Moč"
+
+
+msgid "Shadow Buffer Bias"
+msgstr "Popravek senčnega medpomnilnika"
+
+
+msgid "Shadow Buffer Clip Start"
+msgstr "Oddaljenost začetka senčnega medpomnilnika"
+
+
+msgid "Shadow Color"
+msgstr "Barva senc"
+
+
+msgid "Shadow Filter Radius"
+msgstr "Polmer filtriranja senc"
+
+
+msgid "Shadows Resolution Limit"
+msgstr "Omejitev ločljivosti senc"
+
+
+msgid "Shadow Soft Size"
+msgstr "Velikost mehkih senc"
+
+
+msgid "Rectangle"
+msgstr "Pravokotnik"
+
+
+msgid "Disk"
+msgstr "Disk"
+
+
+msgid "Ellipse"
+msgstr "Elipsa"
+
+
+msgid "Size Y"
+msgstr "Velikost Y"
+
+
+msgid "Absolute Resolution Limit"
+msgstr "Omejitev absolutne ločljivosti"
+
+
+msgid "Contact Shadow"
+msgstr "Stična senca"
+
+
+msgid "Shadow Jitter"
+msgstr "Tresenje sence"
+
+
+msgid "Point Light"
+msgstr "Točkovna luč"
+
+
+msgid "Soft Falloff"
+msgstr "Mehko slabenje"
+
+
+msgid "Spot Light"
+msgstr "Reflektor"
+
+
+msgid "Show Cone"
+msgstr "Pokaži stožec"
+
+
+msgid "Spot Blend"
+msgstr "Prelivanje roba"
+
+
+msgid "Spot Size"
+msgstr "Širina osvetlitve"
+
+
+msgid "Sun Light"
+msgstr "Sonce"
+
+
+msgid "Cascade Count"
+msgstr "Količina kaskad"
+
+
+msgid "Exponential Distribution"
+msgstr "Eksponentna porazdelitev"
+
+
+msgid "Cascade Fade"
+msgstr "Kaskadno prelivanje"
+
+
+msgid "Cascade Max Distance"
+msgstr "Največja oddaljenost kaskad"
+
+
+msgid "Display Data Size"
+msgstr "Velikost prikaza podatkov"
+
+
+msgid "Influence Distance"
+msgstr "Domet vpliva"
+
+
+msgid "Invert Collection"
+msgstr "Obračanje zbirke"
+
+
+msgid "Display Data (Deprecated)"
+msgstr "Prikaži podatke (ni več v rabi)"
+
+
+msgid "Display Data"
+msgstr "Prikaz podatkov"
+
+
+msgid "Visibility Bleed Bias"
+msgstr "Popravek svetlobnega puščanja"
+
+
+msgid "Visibility Blur"
+msgstr "Zabris"
+
+
+msgid "Visibility Bias"
+msgstr "Popravek vidnosti"
+
+
+msgid "Visibility Collection"
+msgstr "Zbirka vidnih"
+
+
+msgid "Planar Probe"
+msgstr "Ravninska sonda"
+
+
+msgid "Spherical Probe"
+msgstr "Sferična sonda"
+
+
+msgid "Parallax Radius"
+msgstr "Domet paralakse"
+
+
+msgid "Parallax"
+msgstr "Paralaksa"
+
+
+msgid "Use Custom Parallax"
+msgstr "Uporabi paralakso po meri"
+
+
+msgid "Volume Probe"
+msgstr "Prostorninska sonda"
+
+
+msgid "Bake Samples"
+msgstr "Računski vzorci"
+
+
+msgid "Capture Distance"
+msgstr "Razdalja zajema"
+
+
+msgid "Capture Emission"
+msgstr "Zajemi emisijo"
+
+
+msgid "Capture Indirect"
+msgstr "Zajemi posredno"
+
+
+msgid "Capture World"
+msgstr "Zajemi svet"
+
+
+msgid "Clamp Direct"
+msgstr "Obreži neposredno"
+
+
+msgid "Clamp Indirect"
+msgstr "Obreži posredno"
+
+
+msgid "Dilation Radius"
+msgstr "Domet širitve"
+
+
+msgid "Dilation Threshold"
+msgstr "Prag širitve"
+
+
+msgid "Search Distance"
+msgstr "Iskalna razdalja"
+
+
+msgid "Facing Bias"
+msgstr "Popravek obrnjenosti"
+
+
+msgid "Intensity"
+msgstr "Intenziteta"
+
+
+msgid "Normal Bias"
+msgstr "Popravek normal"
+
+
+msgid "Resolution X"
+msgstr "Ločljivost X"
+
+
+msgid "Resolution Y"
+msgstr "Ločljivost Y"
+
+
+msgid "Resolution Z"
+msgstr "Ločljivost Z"
+
+
+msgid "Surface Offset"
+msgstr "Odmik od površine"
+
+
+msgid "Surfel Resolution"
+msgstr "Ločljivost surflov"
+
+
+msgid "Validity Threshold"
+msgstr "Prag veljavnosti"
+
+
+msgid "View Bias"
+msgstr "Glediščni popravek"
+
+
+msgid "Active Shape Index"
+msgstr "Indeks aktivne oblike"
+
+
+msgid "Clip Threshold"
+msgstr "Meja rezanja"
+
+
+msgctxt "Material"
+msgid "Blend Mode"
+msgstr "Način mešanja"
+
+
+msgctxt "Material"
+msgid "Opaque"
+msgstr "Neprozorno"
+
+
+msgctxt "Material"
+msgid "Alpha Clip"
+msgstr "Rezanje z alfo"
+
+
+msgctxt "Material"
+msgid "Alpha Hashed"
+msgstr "Zgoščena alfa"
+
+
+msgctxt "Material"
+msgid "Alpha Blend"
+msgstr "Mešanje alfe"
+
+
+msgid "Cycles Material Settings"
+msgstr "Nastavitve materiala Cycles"
+
+
+msgid "Diffuse Color"
+msgstr "Razpršena barva"
+
+
+msgid "Displacement Method"
+msgstr "Metoda odstopanja"
+
+
+msgid "Bump Only"
+msgstr "Samo izbokline"
+
+
+msgid "Displacement Only"
+msgstr "Samo odstopanje"
+
+
+msgid "Displacement and Bump"
+msgstr "Odstopanje in izbokline"
+
+
+msgid "Grease Pencil Settings"
+msgstr "Nastavitve Grease Pencil"
+
+
+msgid "Is Grease Pencil"
+msgstr "Za Grease Pencil"
+
+
+msgid "Line Color"
+msgstr "Barva črte"
+
+
+msgid "Line Priority"
+msgstr "Prioriteta črte"
+
+
+msgid "Line Art Settings"
+msgstr "Nastavitve Line Art"
+
+
+msgid "Max Vertex Displacement"
+msgstr "Največje odstopanje oglišč"
+
+
+msgid "Metallic"
+msgstr "Kovinskost"
+
+
+msgid "Active Paint Texture Index"
+msgstr "Indeks aktivne risalne teksture"
+
+
+msgid "Clone Paint Texture Index"
+msgstr "Indeks klonirne risalne teksture"
+
+
+msgctxt "Material"
+msgid "Preview Render Type"
+msgstr "Vrsta predogledne upodobitve"
+
+
+msgctxt "Material"
+msgid "Flat"
+msgstr "Ravno"
+
+
+msgctxt "Material"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgctxt "Material"
+msgid "Cube"
+msgstr "Kvader"
+
+
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgctxt "Material"
+msgid "Hair"
+msgstr "Dlake"
+
+
+msgctxt "Material"
+msgid "Shader Ball"
+msgstr "Senčilna krogla"
+
+
+msgctxt "Material"
+msgid "Cloth"
+msgstr "Blago"
+
+
+msgid "Cloth"
+msgstr "Blago"
+
+
+msgctxt "Material"
+msgid "Fluid"
+msgstr "Kapljevina"
+
+
+msgid "Refraction Depth"
+msgstr "Globina loma svetlobe"
+
+
+msgid "Roughness"
+msgstr "Hrapavost"
+
+
+msgid "Shadow Mode"
+msgstr "Način senc"
+
+
+msgid "Opaque"
+msgstr "Neprozorno"
+
+
+msgid "Alpha Clip"
+msgstr "Rezanje z alfo"
+
+
+msgid "Alpha Hashed"
+msgstr "Zgoščena alfa"
+
+
+msgid "Show Backface"
+msgstr "Pokaži zadnjo plat"
+
+
+msgid "Specular Color"
+msgstr "Zrcalna barva"
+
+
+msgid "Specular"
+msgstr "Zrcaljenje"
+
+
+msgid "Surface Render Method"
+msgstr "Metoda upodabljanja površin"
+
+
+msgid "Dithered"
+msgstr "Streseno"
+
+
+msgid "Blended"
+msgstr "Mešanje"
+
+
+msgid "Texture Slot Images"
+msgstr "Slike teksturnih polj"
+
+
+msgid "Texture Slots"
+msgstr "Teksturna polja"
+
+
+msgid "Thickness Mode"
+msgstr "Način debeline"
+
+
+msgid "Slab"
+msgstr "Plošča"
+
+
+msgid "Backface Culling"
+msgstr "Izločanje zadnjih lic"
+
+
+msgid "Shadow Backface Culling"
+msgstr "Izločanje senc zadnjih lic"
+
+
+msgid "Preview World"
+msgstr "Svet v predogledu"
+
+
+msgid "Raytrace Transmission"
+msgstr "Prepustnost s sledenjem žarkom"
+
+
+msgid "Subsurface Translucency"
+msgstr "Podpovršinska prosojnost"
+
+
+msgid "Thickness From Shadow"
+msgstr "Debelina iz senc"
+
+
+msgid "Use Transparency Overlap"
+msgstr "Uporabi prozornostno prekrivanje"
+
+
+msgid "Transparent Shadows"
+msgstr "Prozorne sence"
+
+
+msgid "Volume Intersection Method"
+msgstr "Metoda presečišča volumna"
+
+
+msgid "Fast"
+msgstr "Hitro"
+
+
+msgid "Accurate"
+msgstr "Natančno"
+
+
+msgid "Corner Normals"
+msgstr "Kotne normale"
+
+
+msgid "Edges"
+msgstr "Robovi"
+
+
+msgid "Has Custom Normals"
+msgstr "Ima normale po meri"
+
+
+msgid "Triangle Faces"
+msgstr "Trikotna lica"
+
+
+msgid "Loop Triangles"
+msgstr "Zančni trikotniki"
+
+
+msgid "Loops"
+msgstr "Zanke"
+
+
+msgid "Normal Domain"
+msgstr "Domena normal"
+
+
+msgid "Corner"
+msgstr "Vogal"
+
+
+msgid "Polygon Normals"
+msgstr "Poligonske normale"
+
+
+msgid "Polygons"
+msgstr "Poligoni"
+
+
+msgid "Remesh Mode"
+msgstr "Način prerazporeditve mreže"
+
+
+msgid "Voxel"
+msgstr "Voksli"
+
+
+msgid "Quad"
+msgstr "Štirikotniki"
+
+
+msgid "Adaptivity"
+msgstr "Prilagodljivost"
+
+
+msgid "Voxel Size"
+msgstr "Velikost vokslov"
+
+
 msgid "Attribute"
 msgstr "atribut"
+
+
+msgid "Line Art"
+msgstr "Line Art"
 
 
 msgid "Simulation"
