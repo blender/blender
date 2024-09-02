@@ -47,14 +47,16 @@ void DRW_globals_update()
   GlobalsUboStorage *gb = &G_draw.block;
 
   const DRWContextState *ctx = DRW_context_state_get();
-  int plane_len = (RV3D_LOCK_FLAGS(ctx->rv3d) & RV3D_BOXCLIP) ? 4 : 6;
-  for (auto i : IndexRange(plane_len)) {
-    gb->clip_planes[i] = float4(ctx->rv3d->clip[i]);
-  }
-  if (plane_len < 6) {
-    for (auto i : IndexRange(plane_len, 6 - plane_len)) {
-      /* Fill other planes with same valid planes. Avoid changing. */
-      gb->clip_planes[i] = gb->clip_planes[plane_len - 1];
+  if (ctx->rv3d != nullptr) {
+    int plane_len = (RV3D_LOCK_FLAGS(ctx->rv3d) & RV3D_BOXCLIP) ? 4 : 6;
+    for (auto i : IndexRange(plane_len)) {
+      gb->clip_planes[i] = float4(ctx->rv3d->clip[i]);
+    }
+    if (plane_len < 6) {
+      for (auto i : IndexRange(plane_len, 6 - plane_len)) {
+        /* Fill other planes with same valid planes. Avoid changing. */
+        gb->clip_planes[i] = gb->clip_planes[plane_len - 1];
+      }
     }
   }
 
