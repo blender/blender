@@ -24,9 +24,17 @@ class Particles {
   PassMain::Sub *shape_ps_ = nullptr;
   PassMain::Sub *hair_ps_ = nullptr;
 
+  bool enabled_ = false;
+
  public:
   void begin_sync(Resources &res, const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
     const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
 
     {
@@ -84,6 +92,10 @@ class Particles {
 
   void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
 
     ResourceHandle handle = {0};
@@ -162,6 +174,10 @@ class Particles {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(particle_ps_, view);
   }

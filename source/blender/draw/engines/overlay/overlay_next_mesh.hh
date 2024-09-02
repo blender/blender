@@ -63,9 +63,17 @@ class Meshes {
   View view_edit_vert = {"view_edit_vert"};
   float view_dist = 0.0f;
 
+  bool enabled_ = false;
+
  public:
   void begin_sync(Resources &res, const State &state, const View &view)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
     view_dist = state.view_dist_get(view.winmat());
     xray_enabled = state.xray_enabled;
 
@@ -232,6 +240,10 @@ class Meshes {
 
   void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources & /*res*/)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ResourceHandle res_handle = manager.resource_handle(ob_ref);
 
     Object *ob = ob_ref.object;
@@ -296,6 +308,10 @@ class Meshes {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_debug_group_begin("Mesh Edit");
 
     GPU_framebuffer_bind(framebuffer);
@@ -324,6 +340,10 @@ class Meshes {
 
   void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     if (!xray_enabled) {
       return;
     }

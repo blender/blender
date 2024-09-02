@@ -28,13 +28,14 @@ class Wireframe {
     PassMain::Sub *mesh_all_edges_ps_ = nullptr;
   } colored, non_colored;
 
-  bool enabled = false;
+  bool enabled_ = false;
 
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled = state.is_wireframe_mode || (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
-    if (!enabled) {
+    enabled_ = state.is_wireframe_mode || (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
+    enabled_ &= state.space_type == SPACE_VIEW3D;
+    if (!enabled_) {
       return;
     }
 
@@ -88,7 +89,7 @@ class Wireframe {
                    Resources &res,
                    const bool in_edit_paint_mode)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 
@@ -159,7 +160,7 @@ class Wireframe {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    if (!enabled) {
+    if (!enabled_) {
       return;
     }
 

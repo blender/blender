@@ -49,11 +49,19 @@ class Empties {
     EmptyInstanceBuf image_buf = {selection_type_, "image_buf"};
   } call_buffers_;
 
+  bool enabled_ = false;
+
  public:
   Empties(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
   void begin_sync(Resources &res, const State &state, const View &view)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
     view_dist = state.view_dist_get(view.winmat());
 
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
@@ -104,6 +112,10 @@ class Empties {
                    Resources &res,
                    const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     const float4 color = res.object_wire_color(ob_ref, state);
     const select::ID select_id = res.select_id(ob_ref);
     if (ob_ref.object->empty_drawtype == OB_EMPTY_IMAGE) {
@@ -154,6 +166,10 @@ class Empties {
 
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ps_.init();
     res.select_bind(ps_);
     end_sync(res, shapes, state, ps_, call_buffers_);
@@ -182,18 +198,30 @@ class Empties {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
   }
 
   void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(images_back_ps_, view);
   }
 
   void draw_images(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
 
     view_reference_images.sync(view.viewmat(),
@@ -205,6 +233,10 @@ class Empties {
 
   void draw_in_front_images(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
 
     view_reference_images.sync(view.viewmat(),

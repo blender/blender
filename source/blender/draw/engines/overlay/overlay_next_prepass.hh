@@ -29,6 +29,8 @@ class Prepass {
   void begin_sync(Resources &res, const State &state)
   {
     enabled = !state.xray_enabled || (selection_type_ != SelectionType::DISABLED);
+    enabled &= state.space_type == SPACE_VIEW3D;
+
     if (!enabled) {
       /* Not used. But release the data. */
       ps_.init();

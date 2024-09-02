@@ -41,9 +41,17 @@ class Curves {
   View view_edit_cage = {"view_edit_cage"};
   float view_dist = 0.0f;
 
+  bool enabled_ = false;
+
  public:
   void begin_sync(Resources &res, const State &state, const View &view)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
     view_dist = state.view_dist_get(view.winmat());
     xray_enabled = state.xray_enabled;
 
@@ -134,6 +142,10 @@ class Curves {
 
   void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources & /*res*/)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ResourceHandle res_handle = manager.resource_handle(ob_ref);
 
     Object *ob = ob_ref.object;
@@ -161,6 +173,10 @@ class Curves {
   /* Used for legacy curves. */
   void edit_object_sync_legacy(Manager &manager, const ObjectRef &ob_ref, Resources & /*res*/)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ResourceHandle res_handle = manager.resource_handle(ob_ref);
 
     Object *ob = ob_ref.object;
@@ -186,6 +202,10 @@ class Curves {
 
   void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     view_edit_cage.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
 
     GPU_framebuffer_bind(framebuffer);

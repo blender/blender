@@ -361,11 +361,19 @@ class Cameras {
     }
   }
 
+  bool enabled_ = false;
+
  public:
   Cameras(const SelectionType selection_type) : call_buffers_{selection_type} {};
 
   void begin_sync(Resources &res, State &state, View &view)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
     view_dist = state.view_dist_get(view.winmat());
 
     call_buffers_.distances_buf.clear();
@@ -403,6 +411,10 @@ class Cameras {
   void object_sync(
       const ObjectRef &ob_ref, ShapeCache &shapes, Manager &manager, Resources &res, State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
     const select::ID select_id = res.select_id(ob_ref);
     CameraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state));
@@ -410,11 +422,6 @@ class Cameras {
     const View3D *v3d = state.v3d;
     const Scene *scene = state.scene;
     const RegionView3D *rv3d = state.rv3d;
-
-    if (v3d == nullptr) {
-      /* Can happen in when in UV view. */
-      return;
-    }
 
     const Camera *cam = static_cast<Camera *>(ob->data);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
@@ -553,6 +560,10 @@ class Cameras {
 
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ps_.init();
     res.select_bind(ps_);
 
@@ -606,38 +617,44 @@ class Cameras {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    GPU_framebuffer_bind(framebuffer);
-    manager.submit(ps_, view);
-  }
-
-  void draw_scene_background_images(Framebuffer &framebuffer,
-                                    const State &state,
-                                    Manager &manager,
-                                    View &view)
-  {
-    if (state.space_type != SPACE_VIEW3D) {
+    if (!enabled_) {
       return;
     }
 
     GPU_framebuffer_bind(framebuffer);
+    manager.submit(ps_, view);
+  }
 
+  void draw_scene_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(background_scene_ps_, view);
     manager.submit(foreground_scene_ps_, view);
   }
 
   void draw_background_images(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(background_ps_, view);
   }
 
   void draw_in_front(Framebuffer &framebuffer, Manager &manager, View &view)
   {
-    GPU_framebuffer_bind(framebuffer);
+    if (!enabled_) {
+      return;
+    }
 
     view_reference_images.sync(view.viewmat(),
                                winmat_polygon_offset(view.winmat(), view_dist, -1.0f));
-
+    GPU_framebuffer_bind(framebuffer);
     manager.submit(foreground_ps_, view_reference_images);
   }
 
