@@ -295,6 +295,10 @@ struct SceneResources {
   Texture missing_tx = "missing_tx";
   MaterialTexture missing_texture;
 
+  Texture dummy_texture_tx = {"dummy_texture"};
+  Texture dummy_tile_data_tx = {"dummy_tile_data"};
+  Texture dummy_tile_array_tx = {"dummy_tile_array"};
+
   void init(const SceneState &scene_state);
   void load_jitter_tx(int total_samples);
 };
