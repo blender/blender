@@ -2905,7 +2905,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp",
      (PyCFunction)bpy_bmface_copy_from_face_interp,
-     METH_O,
+     METH_VARARGS,
      bpy_bmface_copy_from_face_interp_doc},
 
     {"copy", (PyCFunction)bpy_bmface_copy, METH_VARARGS | METH_KEYWORDS, bpy_bmface_copy_doc},
@@ -2957,7 +2957,7 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp",
      (PyCFunction)bpy_bmloop_copy_from_face_interp,
-     METH_O,
+     METH_VARARGS,
      bpy_bmloop_copy_from_face_interp_doc},
 
     {"calc_angle", (PyCFunction)bpy_bmloop_calc_angle, METH_NOARGS, bpy_bmloop_calc_angle_doc},
