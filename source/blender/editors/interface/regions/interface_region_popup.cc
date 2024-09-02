@@ -814,12 +814,15 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     UI_block_translate(block, -region->winrct.xmin, -region->winrct.ymin);
     /* Popups can change size, fix scroll offset if a panel was closed. */
     float ymin = FLT_MAX;
+    float ymax = -FLT_MAX;
     LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
       ymin = min_ff(ymin, bt->rect.ymin);
+      ymax = max_ff(ymax, bt->rect.ymax);
     }
-
-    handle->scrolloffset = std::clamp<float>(
-        handle->scrolloffset, 0.0f, std::max<float>(block->rect.ymin - ymin, 0.0f));
+    const int scroll_pad = ui_block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f;
+    const float scroll_min = std::min(block->rect.ymax - ymax - scroll_pad, 0.0f);
+    const float scroll_max = std::max(block->rect.ymin - ymin + scroll_pad, 0.0f);
+    handle->scrolloffset = std::clamp(handle->scrolloffset, scroll_min, scroll_max);
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
       LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
