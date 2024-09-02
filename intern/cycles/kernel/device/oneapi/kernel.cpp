@@ -138,10 +138,7 @@ bool oneapi_zero_memory_on_device(SyclQueue *queue_, void *device_pointer, size_
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   try {
-    queue->submit([&](sycl::handler &cgh) {
-      cgh.parallel_for(num_bytes,
-                       [=](sycl::id<1> idx) { ((char *)device_pointer)[idx.get(0)] = (char)0; });
-    });
+    queue->memset(device_pointer, 0, num_bytes);
     queue->wait_and_throw();
     return true;
   }
