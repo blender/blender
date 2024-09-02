@@ -355,6 +355,7 @@ class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel)
     _context_path = "object.data"
     _property_type = bpy.types.GreasePencilv3
 
+
 classes = (
     GREASE_PENCIL_UL_masks,
     GREASE_PENCIL_MT_layer_mask_add,
