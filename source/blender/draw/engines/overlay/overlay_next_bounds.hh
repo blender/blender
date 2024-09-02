@@ -148,8 +148,8 @@ class Bounds {
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
     ps_.init();
-    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                  state.clipping_state);
+    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                  state.clipping_plane_count);
     ps_.shader_set(res.shaders.extra_shape.get());
     ps_.bind_ubo("globalsBlock", &res.globals_buf);
     res.select_bind(ps_);

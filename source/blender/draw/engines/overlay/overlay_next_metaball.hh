@@ -76,8 +76,8 @@ class Metaballs {
   void end_sync(Resources &res, ShapeCache &shapes, const State &state)
   {
     ps_.init();
-    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                  state.clipping_state);
+    ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                  state.clipping_plane_count);
     /* NOTE: Use armature sphere outline shader to have perspective correct outline instead of
      * just a circle facing the camera. */
     ps_.shader_set(res.shaders.armature_sphere_outline.get());

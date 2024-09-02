@@ -45,8 +45,8 @@ class Fluids {
     {
       auto &pass = fluid_ps_;
       pass.init();
-      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     state.clipping_state);
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                     state.clipping_plane_count);
       res.select_bind(pass);
 
       /* TODO(fclem): Use either specialization constants or push constants to reduce the amount of

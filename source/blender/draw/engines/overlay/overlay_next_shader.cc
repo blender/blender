@@ -26,6 +26,12 @@ ShaderModule::ShaderPtr ShaderModule::shader(
 
   patch(info);
 
+  info.define("OVERLAY_NEXT");
+
+  if (clipping_enabled_) {
+    info.define("USE_WORLD_CLIP_PLANES");
+  }
+
   return ShaderPtr(
       GPU_shader_create_from_info(reinterpret_cast<const GPUShaderCreateInfo *>(&info)));
 }
@@ -37,7 +43,6 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
   // create_info_name += SelectEngineT::shader_suffix;
   // create_info_name += clipping_enabled_ ? "_clipped" : "";
   // this->shader_ = GPU_shader_create_from_info_name(create_info_name.c_str());
-  UNUSED_VARS(clipping_enabled_);
 
   /* WORKAROUND: ... but for now, we have to patch the create info used by the old engine. */
   gpu::shader::ShaderCreateInfo info = *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(
@@ -47,6 +52,10 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
 
   if (selection_type_ != SelectionType::DISABLED) {
     info.define("SELECT_ENABLE");
+  }
+
+  if (clipping_enabled_) {
+    info.define("USE_WORLD_CLIP_PLANES");
   }
 
   return ShaderPtr(
@@ -74,6 +83,10 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(
       }
     }
     info.additional_info("select_id_patch");
+  }
+
+  if (clipping_enabled_) {
+    info.define("USE_WORLD_CLIP_PLANES");
   }
 
   return ShaderPtr(
@@ -217,7 +230,8 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 
   depth_mesh = selectable_shader("overlay_depth_only", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
-    info.additional_info("draw_view", "draw_modelmat_new", "draw_resource_handle_new");
+    info.additional_info(
+        "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
   });
 
   facing = shader("overlay_facing", [](gpu::shader::ShaderCreateInfo &info) {
@@ -333,7 +347,8 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 
   image_plane = selectable_shader("overlay_image", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
-    info.additional_info("draw_view", "draw_modelmat_new", "draw_resource_handle_new");
+    info.additional_info(
+        "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
   });
 
   particle_dot = selectable_shader("overlay_particle_dot",

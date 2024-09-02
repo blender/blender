@@ -58,15 +58,16 @@ class Empties {
 
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
-      pass.state_set(draw_state | state.clipping_state);
+      pass.state_set(draw_state, state.clipping_plane_count);
       pass.shader_set(res.shaders.image_plane.get());
+      pass.bind_ubo("globalsBlock", &res.globals_buf);
       res.select_bind(pass);
     };
 
     auto init_sortable = [&](PassSortable &pass, DRWState draw_state) {
       pass.init();
       PassMain::Sub &sub = pass.sub("ResourceBind", -FLT_MAX);
-      sub.state_set(draw_state | state.clipping_state);
+      sub.state_set(draw_state, state.clipping_plane_count);
       res.select_bind(pass, sub);
     };
 
@@ -164,8 +165,8 @@ class Empties {
                        PassSimple::Sub &ps,
                        CallBuffers &call_buffers)
   {
-    ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                 state.clipping_state);
+    ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                 state.clipping_plane_count);
     ps.shader_set(res.shaders.extra_shape.get());
     ps.bind_ubo("globalsBlock", &res.globals_buf);
 
@@ -288,7 +289,7 @@ class Empties {
                                 const Object &ob,
                                 const bool use_alpha_blend,
                                 const float4x4 &mat,
-                                const Resources &res)
+                                Resources &res)
   {
     const bool in_front = state.use_in_front && (ob.dtx & OB_DRAW_IN_FRONT);
     if (in_front) {
@@ -309,13 +310,14 @@ class Empties {
 
   static PassMain::Sub &create_subpass(const State &state,
                                        const float4x4 &mat,
-                                       const Resources &res,
+                                       Resources &res,
                                        PassSortable &parent)
   {
     const float3 tmp = state.camera_position - mat.location();
     const float z = -math::dot(state.camera_forward, tmp);
     PassMain::Sub &sub = parent.sub("Sub", z);
     sub.shader_set(res.shaders.image_plane.get());
+    sub.bind_ubo("globalsBlock", &res.globals_buf);
     return sub;
   };
 

@@ -33,6 +33,9 @@ void Instance::init()
   state.active_base = BKE_view_layer_active_base_get(ctx->view_layer);
   state.object_mode = ctx->object_mode;
 
+  /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
+  state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
+
   state.pixelsize = U.pixelsize;
   state.ctx_mode = CTX_data_mode_enum_ex(ctx->object_edit, ctx->obact, ctx->object_mode);
   state.space_type = state.v3d != nullptr ? SPACE_VIEW3D : eSpace_Type(ctx->space_data->spacetype);
@@ -46,8 +49,7 @@ void Instance::init()
     state.xray_enabled_and_not_wire = state.xray_enabled && (state.v3d->shading.type > OB_WIRE);
     state.xray_opacity = XRAY_ALPHA(state.v3d);
     state.cfra = DEG_get_ctime(state.depsgraph);
-    state.clipping_state = RV3D_CLIPPING_ENABLED(state.v3d, state.rv3d) ? DRW_STATE_CLIP_PLANES :
-                                                                          DRWState(0);
+
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
       state.v3d_flag = state.v3d->flag;

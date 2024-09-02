@@ -38,7 +38,12 @@ static void SELECT_next_engine_init(void *vedata)
   OVERLAY_Data *ved = reinterpret_cast<OVERLAY_Data *>(vedata);
 
   if (ved->instance == nullptr) {
-    ved->instance = new Instance(select::SelectionType::ENABLED);
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const RegionView3D *rv3d = draw_ctx->rv3d;
+    const View3D *v3d = draw_ctx->v3d;
+    const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+
+    ved->instance = new Instance(select::SelectionType::ENABLED, clipping_enabled);
   }
 
   reinterpret_cast<Instance *>(ved->instance)->init();

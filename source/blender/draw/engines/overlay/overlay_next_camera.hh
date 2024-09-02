@@ -382,8 +382,9 @@ class Cameras {
     /* Init image passes. */
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
-      pass.state_set(draw_state | state.clipping_state);
+      pass.state_set(draw_state, state.clipping_plane_count);
       pass.shader_set(res.shaders.image_plane.get());
+      pass.bind_ubo("globalsBlock", &res.globals_buf);
       res.select_bind(pass);
     };
 
@@ -558,7 +559,8 @@ class Cameras {
     {
       PassSimple::Sub &sub_pass = ps_.sub("volume");
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK | state.clipping_state);
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.volume_buf.end_sync(sub_pass, shapes.camera_volume.get());
@@ -566,7 +568,8 @@ class Cameras {
     {
       PassSimple::Sub &sub_pass = ps_.sub("volume_wire");
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
-                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK | state.clipping_state);
+                             DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
+                         state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.volume_wire_buf.end_sync(sub_pass, shapes.camera_volume_wire.get());
@@ -575,7 +578,8 @@ class Cameras {
     {
       PassSimple::Sub &sub_pass = ps_.sub("camera_shapes");
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                         DRW_STATE_DEPTH_LESS_EQUAL | state.clipping_state);
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_shape.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.distances_buf.end_sync(sub_pass, shapes.camera_distances.get());
@@ -587,7 +591,8 @@ class Cameras {
     {
       PassSimple::Sub &sub_pass = ps_.sub("camera_extra_wire");
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                         DRW_STATE_DEPTH_LESS_EQUAL | state.clipping_state);
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
       sub_pass.shader_set(res.shaders.extra_wire.get());
       sub_pass.bind_ubo("globalsBlock", &res.globals_buf);
       call_buffers_.stereo_connect_lines.end_sync(sub_pass);

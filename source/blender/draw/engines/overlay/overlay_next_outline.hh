@@ -62,8 +62,8 @@ class Outline {
       pass.init();
       pass.framebuffer_set(&prepass_fb_);
       pass.clear_color_depth_stencil(float4(0.0f), 1.0f, 0x0);
-      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     state.clipping_state);
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
+                     state.clipping_plane_count);
       {
         auto &sub = pass.sub("Curves");
         sub.shader_set(res.shaders.outline_prepass_curves.get());

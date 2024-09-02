@@ -61,7 +61,7 @@ struct State {
   int cfra;
   float3 camera_position;
   float3 camera_forward;
-  DRWState clipping_state;
+  int clipping_plane_count;
 
   float view_dist_get(const float4x4 &winmat) const
   {

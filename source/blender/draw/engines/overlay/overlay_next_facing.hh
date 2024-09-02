@@ -42,7 +42,8 @@ class Facing {
 
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH |
-                  state.clipping_state | backface_cull_state);
+                      backface_cull_state,
+                  state.clipping_plane_count);
     ps_.shader_set(res.shaders.facing.get());
     ps_.bind_ubo("globalsBlock", &res.globals_buf);
   }

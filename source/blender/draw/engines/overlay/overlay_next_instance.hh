@@ -42,6 +42,7 @@ namespace blender::draw::overlay {
  */
 class Instance {
   const SelectionType selection_type_;
+  const bool clipping_enabled_;
 
  public:
   /* WORKAROUND: Legacy. Move to grid pass. */
@@ -51,7 +52,7 @@ class Instance {
 
   /** Global types. */
   Resources resources = {selection_type_,
-                         overlay::ShaderModule::module_get(selection_type_, false /*TODO*/)};
+                         overlay::ShaderModule::module_get(selection_type_, clipping_enabled_)};
   State state;
 
   /** Overlay types. */
@@ -86,7 +87,8 @@ class Instance {
   AntiAliasing anti_aliasing;
   XrayFade xray_fade;
 
-  Instance(const SelectionType selection_type) : selection_type_(selection_type){};
+  Instance(const SelectionType selection_type, const bool clipping_enabled)
+      : selection_type_(selection_type), clipping_enabled_(clipping_enabled){};
 
   ~Instance()
   {
@@ -98,6 +100,11 @@ class Instance {
   void object_sync(ObjectRef &ob_ref, Manager &manager);
   void end_sync();
   void draw(Manager &manager);
+
+  bool clipping_enabled() const
+  {
+    return clipping_enabled_;
+  }
 
  private:
   bool object_is_selected(const ObjectRef &ob_ref);

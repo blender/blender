@@ -43,8 +43,21 @@ static void OVERLAY_next_engine_init(void *vedata)
 {
   OVERLAY_Data *ved = reinterpret_cast<OVERLAY_Data *>(vedata);
 
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const RegionView3D *rv3d = draw_ctx->rv3d;
+  const View3D *v3d = draw_ctx->v3d;
+  const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+
+  /* WORKAROUND: Restart the engine when clipping is being toggled. */
+  if (ved->instance != nullptr &&
+      reinterpret_cast<Instance *>(ved->instance)->clipping_enabled() != clipping_enabled)
+  {
+    delete reinterpret_cast<Instance *>(ved->instance);
+    ved->instance = nullptr;
+  }
+
   if (ved->instance == nullptr) {
-    ved->instance = new Instance(select::SelectionType::DISABLED);
+    ved->instance = new Instance(select::SelectionType::DISABLED, clipping_enabled);
   }
 
   reinterpret_cast<Instance *>(ved->instance)->init();
