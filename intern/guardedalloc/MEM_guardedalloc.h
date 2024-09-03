@@ -52,7 +52,9 @@ extern "C" {
 extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Release memory previously allocated by this module.
+ * Release memory previously allocated by the C-style and #MEM_cnew functions of this module.
+ *
+ * It is illegal to call this function with data allocated by #MEM_new.
  */
 void MEM_freeN(void *vmemh);
 
@@ -288,9 +290,8 @@ void MEM_use_guarded_allocator(void);
                                                           alignof(void *))
 
 /**
- * Allocate new memory for and constructs an object of type #T.
- * #MEM_delete should be used to delete the object. Just calling #MEM_freeN is not enough when #T
- * is not a trivial type.
+ * Allocate new memory for an object of type #T, and construct it.
+ * #MEM_delete must be used to delete the object. Calling #MEM_freeN on it is illegal.
  *
  * Note that when no arguments are passed, C++ will do recursive member-wise value initialization.
  * That is because C++ differentiates between creating an object with `T` (default initialization)
@@ -307,15 +308,20 @@ inline T *MEM_new(const char *allocation_name, Args &&...args)
 }
 
 /**
- * Destructs and deallocates an object previously allocated with any `MEM_*` function.
- * Passing in null does nothing.
+ * Destruct and deallocate an object previously allocated and constructed with #MEM_new, or some
+ * type-overloaded `new` operators using MEM_guardedalloc as backend.
+ *
+ * As with the `delete` C++ operator, passing in `nullptr` is allowed and does nothing.
+ *
+ * It is illegal to call this function with data allocated by #MEM_cnew or the C-style allocation
+ * functions of this module.
  */
 template<typename T> inline void MEM_delete(const T *ptr)
 {
-  static_assert(!std::is_void_v<T>,
-                "MEM_delete on a void pointer not possible. Cast it to a non-void type?");
+  static_assert(
+      !std::is_void_v<T>,
+      "MEM_delete on a void pointer is not possible, `static_cast` it to the correct type");
   if (ptr == nullptr) {
-    /* Support #ptr being null, because C++ `delete` supports that as well. */
     return;
   }
   /* C++ allows destruction of `const` objects, so the pointer is allowed to be `const`. */
@@ -325,14 +331,15 @@ template<typename T> inline void MEM_delete(const T *ptr)
 }
 
 /**
- * Allocates zero-initialized memory for an object of type #T. The constructor of #T is not called,
- * therefor this should only used with trivial types (like all C types).
- * It's valid to call #MEM_freeN on a pointer returned by this, because a destructor call is not
- * necessary, because the type is trivial.
+ * Allocate zero-initialized memory for an object of type #T. The constructor of #T is not called,
+ * therefore this should only be used with trivial types (like all C types).
+ *
+ * #MEM_freeN must be used to free a pointer returned by this call. Calling #MEM_delete on it is
+ * illegal.
  */
 template<typename T> inline T *MEM_cnew(const char *allocation_name)
 {
-  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
   return static_cast<T *>(MEM_calloc_arrayN_aligned(1, sizeof(T), alignof(T), allocation_name));
 }
 
@@ -341,24 +348,24 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name)
  */
 template<typename T> inline T *MEM_cnew_array(const size_t length, const char *allocation_name)
 {
-  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
   return static_cast<T *>(
       MEM_calloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
- * Allocate memory for an object of type #T and copy construct an object from `other`.
- * Only applicable for a trivial types.
+ * Allocate memory for an object of type #T and memory-copy `other` into it.
+ * Only applicable for trivial types.
  *
- * This function works around problem of copy-constructing DNA structs which contains deprecated
- * fields: some compilers will generate access deprecated field in implicitly defined copy
- * constructors.
+ * This function works around the problem of copy-constructing DNA structs which contains
+ * deprecated fields: some compilers will generate access deprecated field warnings in implicitly
+ * defined copy constructors.
  *
  * This is a better alternative to #MEM_dupallocN.
  */
 template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &other)
 {
-  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
   T *new_object = static_cast<T *>(MEM_mallocN_aligned(sizeof(T), alignof(T), allocation_name));
   if (new_object) {
     memcpy(new_object, &other, sizeof(T));
