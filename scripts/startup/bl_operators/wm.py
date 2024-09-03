@@ -1086,7 +1086,7 @@ class WM_OT_url_open_preset(Operator):
     )
 
     def _url_from_bug(self, _context):
-        from bl_ui_utils.bug_report_url import url_prefill_from_blender
+        from _bpy_internal.system_info.runtime import url_prefill_from_blender
         return url_prefill_from_blender()
 
     def _url_from_release_notes(self, _context):
