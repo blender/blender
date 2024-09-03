@@ -215,7 +215,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
       LocalData &tls = all_tls.local();
       const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
       const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
-      const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
+      const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
 
       tls.average_positions.resize(positions.size());

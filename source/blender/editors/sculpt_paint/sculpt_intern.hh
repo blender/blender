@@ -718,14 +718,16 @@ struct OrigPositionData {
  * Retrieve positions from the latest undo state. This is often used for modal actions that depend
  * on the initial state of the geometry from before the start of the action.
  */
-OrigPositionData orig_position_data_get_mesh(const Object &object, const bke::pbvh::Node &node);
-OrigPositionData orig_position_data_get_grids(const Object &object, const bke::pbvh::Node &node);
+OrigPositionData orig_position_data_get_mesh(const Object &object,
+                                             const bke::pbvh::MeshNode &node);
+OrigPositionData orig_position_data_get_grids(const Object &object,
+                                              const bke::pbvh::GridsNode &node);
 void orig_position_data_gather_bmesh(const BMLog &bm_log,
                                      const Set<BMVert *, 0> &verts,
                                      MutableSpan<float3> positions,
                                      MutableSpan<float3> normals);
 
-Span<float4> orig_color_data_get_mesh(const Object &object, const bke::pbvh::Node &node);
+Span<float4> orig_color_data_get_mesh(const Object &object, const bke::pbvh::MeshNode &node);
 
 }
 

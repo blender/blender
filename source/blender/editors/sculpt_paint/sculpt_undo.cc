@@ -2125,7 +2125,7 @@ void push_multires_mesh_end(bContext *C, const char *str)
 namespace blender::ed::sculpt_paint {
 
 OrigPositionData orig_position_data_get_mesh(const Object & /*object*/,
-                                             const bke::pbvh::Node &node)
+                                             const bke::pbvh::MeshNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
   return {unode->position.as_span().take_front(unode->unique_verts_num),
@@ -2133,7 +2133,7 @@ OrigPositionData orig_position_data_get_mesh(const Object & /*object*/,
 }
 
 OrigPositionData orig_position_data_get_grids(const Object & /*object*/,
-                                              const bke::pbvh::Node &node)
+                                              const bke::pbvh::GridsNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
   return {unode->position.as_span(), unode->normal.as_span()};
@@ -2159,7 +2159,7 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
   }
 }
 
-Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const bke::pbvh::Node &node)
+Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const bke::pbvh::MeshNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Color);
   return unode->col.as_span();
