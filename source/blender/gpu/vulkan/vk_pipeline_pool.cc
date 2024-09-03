@@ -115,6 +115,17 @@ VKPipelinePool::VKPipelinePool()
   vk_push_constant_range_.offset = 0;
   vk_push_constant_range_.size = 0;
 }
+void VKPipelinePool::init()
+{
+  VK_ALLOCATION_CALLBACKS;
+  VKDevice &device = VKBackend::get().device;
+  VkPipelineCacheCreateInfo create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+  vkCreatePipelineCache(
+      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_static_);
+  vkCreatePipelineCache(
+      device.vk_handle(), &create_info, vk_allocation_callbacks, &vk_pipeline_cache_non_static_);
+}
 
 VkSpecializationInfo *VKPipelinePool::specialization_info_update(
     Span<shader::SpecializationConstant::Value> specialization_constants)
@@ -147,6 +158,7 @@ void VKPipelinePool::specialization_info_reset()
 }
 
 VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute_info,
+                                                          const bool is_static_shader,
                                                           VkPipeline vk_pipeline_base)
 {
   std::scoped_lock lock(mutex_);
@@ -170,7 +182,8 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateComputePipelines(device.vk_handle(),
-                           device.vk_pipeline_cache_get(),
+                           is_static_shader ? vk_pipeline_cache_static_ :
+                                              vk_pipeline_cache_non_static_,
                            1,
                            &vk_compute_pipeline_create_info_,
                            vk_allocation_callbacks,
@@ -188,6 +201,7 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
 }
 
 VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
+                                                           const bool is_static_shader,
                                                            VkPipeline vk_pipeline_base)
 {
   std::scoped_lock lock(mutex_);
@@ -525,7 +539,8 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateGraphicsPipelines(device.vk_handle(),
-                            device.vk_pipeline_cache_get(),
+                            is_static_shader ? vk_pipeline_cache_static_ :
+                                               vk_pipeline_cache_non_static_,
                             1,
                             &vk_graphics_pipeline_create_info_,
                             vk_allocation_callbacks,
@@ -619,6 +634,10 @@ void VKPipelinePool::free_data()
     vkDestroyPipeline(device.vk_handle(), vk_pipeline, vk_allocation_callbacks);
   }
   compute_pipelines_.clear();
+
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, vk_allocation_callbacks);
+  vkDestroyPipelineCache(
+      device.vk_handle(), vk_pipeline_cache_non_static_, vk_allocation_callbacks);
 }
 
 }  // namespace blender::gpu

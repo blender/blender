@@ -275,10 +275,16 @@ class VKPipelinePool : public NonCopyable {
   Vector<VkSpecializationMapEntry> vk_specialization_map_entries_;
   VkPushConstantRange vk_push_constant_range_;
 
+  VkPipelineCache vk_pipeline_cache_static_;
+  VkPipelineCache vk_pipeline_cache_non_static_;
+
   std::mutex mutex_;
 
  public:
   VKPipelinePool();
+
+  void init();
+
   /**
    * Get an existing or create a new compute pipeline based on the provided ComputeInfo.
    *
@@ -286,7 +292,8 @@ class VKPipelinePool : public NonCopyable {
    * pipeline creation process.
    */
   VkPipeline get_or_create_compute_pipeline(VKComputeInfo &compute_info,
-                                            VkPipeline vk_pipeline_base = VK_NULL_HANDLE);
+                                            bool is_static_shader,
+                                            VkPipeline vk_pipeline_base);
 
   /**
    * Get an existing or create a new compute pipeline based on the provided ComputeInfo.
@@ -295,7 +302,8 @@ class VKPipelinePool : public NonCopyable {
    * pipeline creation process.
    */
   VkPipeline get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
-                                             VkPipeline vk_pipeline_base = VK_NULL_HANDLE);
+                                             bool is_static_shader,
+                                             VkPipeline vk_pipeline_base);
 
   /**
    * Remove all shader pipelines that uses the given shader_module.

@@ -576,6 +576,7 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool /*is_batch_compil
   VKShaderInterface *vk_interface = new VKShaderInterface();
   vk_interface->init(info);
   interface = vk_interface;
+  is_static_shader_ = info.do_static_compilation_;
 }
 
 VKShader::~VKShader()
@@ -1287,8 +1288,8 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline()
 
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
-  VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(compute_info,
-                                                                           vk_pipeline_);
+  VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(
+      compute_info, is_static_shader_, vk_pipeline_);
   vk_pipeline_ = vk_pipeline;
   return vk_pipeline;
 }
@@ -1333,8 +1334,8 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
 
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
-  VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(graphics_info,
-                                                                            vk_pipeline_);
+  VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
+      graphics_info, is_static_shader_, vk_pipeline_);
   vk_pipeline_ = vk_pipeline;
   return vk_pipeline;
 }

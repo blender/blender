@@ -44,6 +44,8 @@ class VKShader : public Shader {
    * What is the reason to store the last pipeline. */
   VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
 
+  bool is_static_shader_ = false;
+
  public:
   VkPipelineLayout vk_pipeline_layout = VK_NULL_HANDLE;
   VKPushConstants push_constants;
