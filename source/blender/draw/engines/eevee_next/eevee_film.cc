@@ -99,6 +99,10 @@ float *Film::read_aov(ViewLayerAOV *aov)
 {
   GPUTexture *pass_tx = this->get_aov_texture(aov);
 
+  if (pass_tx == nullptr) {
+    return nullptr;
+  }
+
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
