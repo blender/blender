@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 struct Mesh;
 namespace blender::bke {
 class AttributeIDRef;

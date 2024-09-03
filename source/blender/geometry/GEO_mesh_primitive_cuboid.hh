@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "BLI_math_vector_types.hh"
 
 struct Mesh;
