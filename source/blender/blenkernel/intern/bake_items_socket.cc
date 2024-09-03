@@ -128,9 +128,9 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
 [[nodiscard]] static bool copy_bake_item_to_socket_value(
     const BakeItem &bake_item,
     const eNodeSocketDatatype socket_type,
-    const FunctionRef<std::shared_ptr<AnonymousAttributeFieldInput>(const CPPType &type)>
+    const FunctionRef<std::shared_ptr<AttributeFieldInput>(const CPPType &type)>
         make_attribute_field,
-    Map<std::string, AnonymousAttributeIDPtr> &r_attribute_map,
+    Map<std::string, std::string> &r_attribute_map,
     void *r_value)
 {
   switch (socket_type) {
@@ -158,12 +158,10 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         return false;
       }
       if (const auto *item = dynamic_cast<const AttributeBakeItem *>(&bake_item)) {
-        std::shared_ptr<AnonymousAttributeFieldInput> attribute_field = make_attribute_field(
-            base_type);
-        const AnonymousAttributeIDPtr &attribute_id = attribute_field->anonymous_id();
+        std::shared_ptr<AttributeFieldInput> attribute_field = make_attribute_field(base_type);
+        r_attribute_map.add(item->name(), attribute_field->attribute_name());
         fn::GField field{attribute_field};
         new (r_value) SocketValueVariant(std::move(field));
-        r_attribute_map.add(item->name(), attribute_id);
         return true;
       }
 #ifdef WITH_OPENVDB
@@ -198,7 +196,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
 }
 
 static void rename_attributes(const Span<GeometrySet *> geometries,
-                              const Map<std::string, AnonymousAttributeIDPtr> &attribute_map)
+                              const Map<std::string, std::string> &attribute_map)
 {
   for (GeometrySet *geometry : geometries) {
     for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
@@ -221,10 +219,8 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
 
       GeometryComponent &component = geometry->get_component_for_write(type);
       MutableAttributeAccessor attributes = *component.attributes_for_write();
-      for (const MapItem<std::string, AnonymousAttributeIDPtr> &attribute_item :
-           attribute_map.items())
-      {
-        attributes.rename(attribute_item.key, *attribute_item.value);
+      for (const MapItem<std::string, std::string> &attribute_item : attribute_map.items()) {
+        attributes.rename(attribute_item.key, attribute_item.value);
       }
     }
   }
@@ -255,11 +251,10 @@ void move_bake_items_to_socket_values(
     const Span<BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
-    FunctionRef<std::shared_ptr<AnonymousAttributeFieldInput>(int, const CPPType &)>
-        make_attribute_field,
+    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field,
     const Span<void *> r_socket_values)
 {
-  Map<std::string, AnonymousAttributeIDPtr> attribute_map;
+  Map<std::string, std::string> attribute_map;
 
   Vector<GeometrySet *> geometries;
 
@@ -296,11 +291,10 @@ void copy_bake_items_to_socket_values(
     const Span<const BakeItem *> bake_items,
     const BakeSocketConfig &config,
     BakeDataBlockMap *data_block_map,
-    FunctionRef<std::shared_ptr<AnonymousAttributeFieldInput>(int, const CPPType &)>
-        make_attribute_field,
+    FunctionRef<std::shared_ptr<AttributeFieldInput>(int, const CPPType &)> make_attribute_field,
     const Span<void *> r_socket_values)
 {
-  Map<std::string, AnonymousAttributeIDPtr> attribute_map;
+  Map<std::string, std::string> attribute_map;
   Vector<GeometrySet *> geometries;
 
   for (const int i : bake_items.index_range()) {

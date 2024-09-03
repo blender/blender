@@ -6,12 +6,7 @@
 
 namespace blender::bke {
 
-std::string AnonymousAttributeID::user_name() const
-{
-  return this->name();
-}
-
-bool AnonymousAttributePropagationInfo::propagate(const AnonymousAttributeID &anonymous_id) const
+bool AnonymousAttributePropagationInfo::propagate(const StringRef attribute) const
 {
   if (this->propagate_all) {
     return true;
@@ -19,7 +14,7 @@ bool AnonymousAttributePropagationInfo::propagate(const AnonymousAttributeID &an
   if (!this->names) {
     return false;
   }
-  return this->names->contains_as(anonymous_id.name());
+  return this->names->contains_as(attribute);
 }
 
 }  // namespace blender::bke

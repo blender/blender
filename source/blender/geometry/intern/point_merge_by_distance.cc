@@ -123,7 +123,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Transfer all other attributes. */
   for (const bke::AttributeIDRef &id : attribute_ids) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       continue;
     }
 

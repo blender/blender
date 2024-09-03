@@ -35,6 +35,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_object
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager
 )

@@ -310,7 +310,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int total_groups_num = geometry_by_group_id.size();
   dst_instances->resize(total_groups_num);
 
-  AnonymousAttributeIDPtr dst_group_id_attribute_id =
+  std::optional<std::string> dst_group_id_attribute_id =
       params.get_output_anonymous_attribute_id_if_needed("Group ID");
   if (dst_group_id_attribute_id) {
     SpanAttributeWriter<int> dst_group_id =

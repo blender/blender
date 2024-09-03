@@ -869,7 +869,7 @@ static void gather_attributes_for_propagation(
                         return;
                       }
                       if (attribute_id.is_anonymous() &&
-                          !propagation_info.propagate(attribute_id.anonymous_id())) {
+                          !propagation_info.propagate(attribute_id.name())) {
                         return;
                       }
 

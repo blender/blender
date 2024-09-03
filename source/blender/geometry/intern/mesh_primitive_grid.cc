@@ -41,7 +41,7 @@ Mesh *create_grid_mesh(const int verts_x,
                        const int verts_y,
                        const float size_x,
                        const float size_y,
-                       const bke::AttributeIDRef &uv_map_id)
+                       const std::optional<std::string> &uv_map_id)
 {
   BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
@@ -143,7 +143,7 @@ Mesh *create_grid_mesh(const int verts_x,
       });
 
   if (uv_map_id && mesh->faces_num != 0) {
-    calculate_uvs(mesh, positions, corner_verts, size_x, size_y, uv_map_id);
+    calculate_uvs(mesh, positions, corner_verts, size_x, size_y, *uv_map_id);
   }
 
   if (verts_x > 1 || verts_y > 1) {

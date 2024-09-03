@@ -62,7 +62,7 @@ static Bounds<float3> calculate_bounds_ico_sphere(const float radius, const int 
 
 static Mesh *create_ico_sphere_mesh(const int subdivisions,
                                     const float radius,
-                                    const AttributeIDRef &uv_map_id)
+                                    const std::optional<std::string> &uv_map_id)
 {
   if (subdivisions >= 3) {
     /* Most nodes don't need this because they internally use multi-threading which triggers
@@ -105,7 +105,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
   if (create_uv_map) {
     const VArraySpan orig_uv_map = *attributes.lookup<float2>("UVMap");
     SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
-        uv_map_id, AttrDomain::Corner);
+        *uv_map_id, AttrDomain::Corner);
     uv_map.span.copy_from(orig_uv_map);
     uv_map.finish();
   }
@@ -123,9 +123,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int subdivisions = std::min(params.extract_input<int>("Subdivisions"), 10);
   const float radius = params.extract_input<float>("Radius");
 
-  AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
+  std::optional<std::string> uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
+      "UV Map");
 
-  Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius, uv_map_id.get());
+  Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius, uv_map_id);
   params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 

@@ -186,7 +186,7 @@ static void clean_unused_attributes(const AnonymousAttributePropagationInfo &pro
     if (skip.contains(id)) {
       return true;
     }
-    if (propagation_info.propagate(id.anonymous_id())) {
+    if (propagation_info.propagate(id.name())) {
       return true;
     }
     unused_ids.append(id.name());
@@ -215,7 +215,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Vector<const NodeGeometryAttributeCaptureItem *> used_items;
   Vector<GField> fields;
-  Vector<AnonymousAttributeIDPtr> attribute_id_ptrs;
+  Vector<std::string> attribute_id_ptrs;
   Set<AttributeIDRef> used_attribute_ids_set;
   for (const NodeGeometryAttributeCaptureItem &item :
        Span{storage.capture_items, storage.capture_items_num})
@@ -224,14 +224,14 @@ static void node_geo_exec(GeoNodeExecParams params)
         CaptureAttributeItemsAccessor::input_socket_identifier_for_item(item);
     const std::string output_identifier =
         CaptureAttributeItemsAccessor::output_socket_identifier_for_item(item);
-    AnonymousAttributeIDPtr attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+    std::optional<std::string> attribute_id = params.get_output_anonymous_attribute_id_if_needed(
         output_identifier);
     if (!attribute_id) {
       continue;
     }
     used_attribute_ids_set.add(*attribute_id);
     fields.append(params.extract_input<GField>(input_identifier));
-    attribute_id_ptrs.append(std::move(attribute_id));
+    attribute_id_ptrs.append(std::move(*attribute_id));
     used_items.append(&item);
   }
 
@@ -243,7 +243,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Array<AttributeIDRef> attribute_ids(attribute_id_ptrs.size());
   for (const int i : attribute_id_ptrs.index_range()) {
-    attribute_ids[i] = *attribute_id_ptrs[i];
+    attribute_ids[i] = attribute_id_ptrs[i];
   }
 
   const auto capture_on = [&](GeometryComponent &component) {

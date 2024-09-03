@@ -139,7 +139,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     if (ELEM(attribute_id, "opacity")) {
       return true;
     }
-    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.anonymous_id())) {
+    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.name())) {
       return true;
     }
     const GAttributeReader src_attribute = instances_attributes.lookup(attribute_id);

@@ -15,8 +15,11 @@ class AttributeIDRef;
 
 namespace blender::geometry {
 
-Mesh *create_cuboid_mesh(
-    const float3 &size, int verts_x, int verts_y, int verts_z, const bke::AttributeIDRef &uv_id);
+Mesh *create_cuboid_mesh(const float3 &size,
+                         int verts_x,
+                         int verts_y,
+                         int verts_z,
+                         const std::optional<std::string> &uv_id);
 
 Mesh *create_cuboid_mesh(const float3 &size, int verts_x, int verts_y, int verts_z);
 

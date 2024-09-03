@@ -183,14 +183,14 @@ static void gather_point_attributes_to_interpolate(
   if (output_ids.tangent_id) {
     result.src_evaluated_tangents = src_curves.evaluated_tangents();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        output_ids.tangent_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
+        *output_ids.tangent_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
     result.dst_tangents = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }
   if (output_ids.normal_id) {
     result.src_evaluated_normals = src_curves.evaluated_normals();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        output_ids.normal_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
+        *output_ids.normal_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
     result.dst_normals = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }

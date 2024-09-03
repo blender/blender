@@ -26,6 +26,6 @@ Bounds<float3> calculate_bounds_radial_primitive(float radius_top,
 Mesh *create_uv_sphere_mesh(float radius,
                             int segments,
                             int rings,
-                            const bke::AttributeIDRef &uv_map_id);
+                            const std::optional<std::string> &uv_map_id);
 
 }  // namespace blender::geometry

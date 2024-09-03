@@ -376,7 +376,7 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
   if (curve_attributes.is_builtin(id) && !mesh_attributes.is_builtin(id)) {
     return false;
   }
-  if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+  if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
     return false;
   }
   if (meta_data.data_type == CD_PROP_STRING) {

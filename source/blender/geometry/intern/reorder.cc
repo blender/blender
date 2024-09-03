@@ -225,7 +225,7 @@ static void clean_unused_attributes(const bke::AnonymousAttributePropagationInfo
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (propagation_info.propagate(id.anonymous_id())) {
+    if (propagation_info.propagate(id.name())) {
       return true;
     }
     unused_ids.append(id.name());

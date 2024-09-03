@@ -635,7 +635,7 @@ void GeometrySet::propagate_attributes_from_layer_to_instances(
     const AnonymousAttributePropagationInfo &propagation_info)
 {
   src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     const GAttributeReader src = src_attributes.lookup(id, AttrDomain::Layer);
@@ -683,8 +683,7 @@ void GeometrySet::gather_attributes_for_propagation(
           /* Propagating string attributes is not supported yet. */
           return;
         }
-        if (attribute_id.is_anonymous() &&
-            !propagation_info.propagate(attribute_id.anonymous_id())) {
+        if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.name())) {
           return;
         }
 

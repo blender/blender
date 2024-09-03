@@ -60,11 +60,10 @@ static Curves *create_star_curve(const float inner_radius,
   return curves_id;
 }
 
-static void create_selection_output(CurveComponent &component,
-                                    AnonymousAttributeIDPtr &r_attribute)
+static void create_selection_output(CurveComponent &component, const StringRef &r_attribute)
 {
   SpanAttributeWriter<bool> selection =
-      component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(*r_attribute,
+      component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(r_attribute,
                                                                                 AttrDomain::Point);
   for (int i : selection.span.index_range()) {
     selection.span[i] = i % 2 == 0;
@@ -80,10 +79,10 @@ static void node_geo_exec(GeoNodeExecParams params)
                                      std::max(params.extract_input<int>("Points"), 3));
   GeometrySet output = GeometrySet::from_curves(curves);
 
-  if (AnonymousAttributeIDPtr outer_points_id = params.get_output_anonymous_attribute_id_if_needed(
-          "Outer Points"))
+  if (std::optional<std::string> outer_points_id =
+          params.get_output_anonymous_attribute_id_if_needed("Outer Points"))
   {
-    create_selection_output(output.get_component_for_write<CurveComponent>(), outer_points_id);
+    create_selection_output(output.get_component_for_write<CurveComponent>(), *outer_points_id);
   }
   params.set_output("Curve", std::move(output));
 }

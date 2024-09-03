@@ -430,6 +430,9 @@ GVArray AttributeExistsFieldInput::get_varray_for_context(const bke::GeometryFie
 
 std::string AttributeFieldInput::socket_inspection_name() const
 {
+  if (socket_inspection_name_) {
+    return *socket_inspection_name_;
+  }
   return fmt::format(TIP_("\"{}\" attribute from geometry"), name_);
 }
 
@@ -501,47 +504,6 @@ bool IDAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
 {
   /* All random ID attribute inputs are the same within the same evaluation context. */
   return dynamic_cast<const IDAttributeFieldInput *>(&other) != nullptr;
-}
-
-GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                             const IndexMask & /*mask*/) const
-{
-  const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  return *context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
-}
-
-std::string AnonymousAttributeFieldInput::socket_inspection_name() const
-{
-  return fmt::format(TIP_("\"{}\" from {}"), TIP_(debug_name_.c_str()), producer_name_);
-}
-
-uint64_t AnonymousAttributeFieldInput::hash() const
-{
-  return get_default_hash(anonymous_id_.get(), type_);
-}
-
-bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  if (const AnonymousAttributeFieldInput *other_typed =
-          dynamic_cast<const AnonymousAttributeFieldInput *>(&other))
-  {
-    return anonymous_id_.get() == other_typed->anonymous_id_.get() && type_ == other_typed->type_;
-  }
-  return false;
-}
-
-std::optional<AttrDomain> AnonymousAttributeFieldInput::preferred_domain(
-    const GeometryComponent &component) const
-{
-  const std::optional<AttributeAccessor> attributes = component.attributes();
-  if (!attributes.has_value()) {
-    return std::nullopt;
-  }
-  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(*anonymous_id_);
-  if (!meta_data.has_value()) {
-    return std::nullopt;
-  }
-  return meta_data->domain;
 }
 
 GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
@@ -763,9 +725,6 @@ static std::optional<AttributeIDRef> try_get_field_direct_attribute_id(const fn:
 {
   if (const auto *field = dynamic_cast<const AttributeFieldInput *>(&any_field.node())) {
     return field->attribute_name();
-  }
-  if (const auto *field = dynamic_cast<const AnonymousAttributeFieldInput *>(&any_field.node())) {
-    return *field->anonymous_id();
   }
   return {};
 }

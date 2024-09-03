@@ -252,9 +252,6 @@ AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains)
 
 static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer &layer)
 {
-  if (layer.anonymous_id != nullptr) {
-    return *layer.anonymous_id;
-  }
   return layer.name;
 }
 
@@ -264,15 +261,10 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const int domain_size,
                                            const AttributeIDRef &attribute_id)
 {
-  if (!attribute_id.is_anonymous()) {
-    char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
-    attribute_id.name().copy(attribute_name_c);
-    return CustomData_add_layer_named(
-        &custom_data, data_type, alloctype, domain_size, attribute_name_c);
-  }
-  const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
-  return CustomData_add_layer_anonymous(
-      &custom_data, data_type, alloctype, domain_size, &anonymous_id);
+  char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
+  attribute_id.name().copy(attribute_name_c);
+  return CustomData_add_layer_named(
+      &custom_data, data_type, alloctype, domain_size, attribute_name_c);
 }
 
 static const void *add_generic_custom_data_layer_with_existing_data(
@@ -283,11 +275,6 @@ static const void *add_generic_custom_data_layer_with_existing_data(
     void *layer_data,
     const ImplicitSharingInfo *sharing_info)
 {
-  if (attribute_id.is_anonymous()) {
-    const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
-    return CustomData_add_layer_anonymous_with_data(
-        &custom_data, data_type, &anonymous_id, domain_size, layer_data, sharing_info);
-  }
   return CustomData_add_layer_named_with_data(
       &custom_data, data_type, layer_data, domain_size, attribute_id.name(), sharing_info);
 }
@@ -673,15 +660,15 @@ Set<AttributeIDRef> AttributeAccessor::all_ids() const
 
 void MutableAttributeAccessor::remove_anonymous()
 {
-  Vector<const AnonymousAttributeID *> anonymous_ids;
+  Vector<std::string> anonymous_ids;
   for (const AttributeIDRef &id : this->all_ids()) {
     if (id.is_anonymous()) {
-      anonymous_ids.append(&id.anonymous_id());
+      anonymous_ids.append(id.name());
     }
   }
 
   while (!anonymous_ids.is_empty()) {
-    this->remove(*anonymous_ids.pop_last());
+    this->remove(anonymous_ids.pop_last());
   }
 }
 
@@ -835,7 +822,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     if (skip.contains(id.name())) {
@@ -869,7 +856,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     if (skip.contains(id.name())) {
@@ -911,7 +898,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (meta_data.data_type == CD_PROP_STRING) {
         return true;
       }
-      if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
         return true;
       }
       if (skip.contains(id.name())) {
@@ -946,7 +933,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     if (skip.contains(id.name())) {
@@ -979,7 +966,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     if (skip.contains(id.name())) {
@@ -1031,7 +1018,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
       return true;
     }
     if (skip.contains(id.name())) {

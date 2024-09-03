@@ -14,8 +14,8 @@ namespace blender::geometry {
 using bke::CurvesGeometry;
 
 struct ResampleCurvesOutputAttributeIDs {
-  bke::AttributeIDRef tangent_id;
-  bke::AttributeIDRef normal_id;
+  std::optional<std::string> tangent_id;
+  std::optional<std::string> normal_id;
 };
 
 /**

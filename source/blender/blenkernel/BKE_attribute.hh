@@ -55,7 +55,6 @@ enum class AttrDomain : int8_t {
 class AttributeIDRef {
  private:
   StringRef name_;
-  const AnonymousAttributeID *anonymous_id_ = nullptr;
 
  public:
   AttributeIDRef();
@@ -63,19 +62,28 @@ class AttributeIDRef {
   AttributeIDRef(StringRefNull name);
   AttributeIDRef(const char *name);
   AttributeIDRef(const std::string &name);
-  AttributeIDRef(const AnonymousAttributeID &anonymous_id);
-  AttributeIDRef(const AnonymousAttributeID *anonymous_id);
 
   operator bool() const;
   uint64_t hash() const;
   bool is_anonymous() const;
   StringRef name() const;
-  const AnonymousAttributeID &anonymous_id() const;
 
   BLI_STRUCT_EQUALITY_OPERATORS_1(AttributeIDRef, name_)
 
   friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
+
+/**
+ * Checks if the attribute name has the `.a_` prefix which indicates that it is an anonymous
+ * attribute. I.e. it is just internally used by Blender and the name should not be exposed to the
+ * user.
+ *
+ * Use #hash_to_anonymous_attribute_name to generate names for anonymous attributes.
+ */
+inline bool attribute_name_is_anonymous(const StringRef name)
+{
+  return name.startswith(".a_");
+}
 
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
@@ -862,19 +870,6 @@ inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name) {}
 
 inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name) {}
 
-/* The anonymous id is only borrowed, the caller has to keep a reference to it. */
-inline AttributeIDRef::AttributeIDRef(const AnonymousAttributeID &anonymous_id)
-    : AttributeIDRef(anonymous_id.name())
-{
-  anonymous_id_ = &anonymous_id;
-}
-
-inline AttributeIDRef::AttributeIDRef(const AnonymousAttributeID *anonymous_id)
-    : AttributeIDRef(anonymous_id ? anonymous_id->name() : "")
-{
-  anonymous_id_ = anonymous_id;
-}
-
 inline AttributeIDRef::operator bool() const
 {
   return !name_.is_empty();
@@ -887,18 +882,12 @@ inline uint64_t AttributeIDRef::hash() const
 
 inline bool AttributeIDRef::is_anonymous() const
 {
-  return anonymous_id_ != nullptr;
+  return attribute_name_is_anonymous(name_);
 }
 
 inline StringRef AttributeIDRef::name() const
 {
   return name_;
-}
-
-inline const AnonymousAttributeID &AttributeIDRef::anonymous_id() const
-{
-  BLI_assert(this->is_anonymous());
-  return *anonymous_id_;
 }
 
 void gather_attributes(AttributeAccessor src_attributes,

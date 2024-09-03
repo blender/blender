@@ -235,7 +235,7 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<int> corner_verts,
 BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh,
                                               const float segments,
                                               const float rings,
-                                              const bke::AttributeIDRef &uv_map_id)
+                                              const StringRef uv_map_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
@@ -294,7 +294,7 @@ static Bounds<float3> calculate_bounds_uv_sphere(const float radius,
 Mesh *create_uv_sphere_mesh(const float radius,
                             const int segments,
                             const int rings,
-                            const bke::AttributeIDRef &uv_map_id)
+                            const std::optional<std::string> &uv_map_id)
 {
   Mesh *mesh = BKE_mesh_new_nomain(sphere_vert_total(segments, rings),
                                    sphere_edge_total(segments, rings),
@@ -319,7 +319,7 @@ Mesh *create_uv_sphere_mesh(const float radius,
       [&]() { calculate_sphere_corners(corner_verts, corner_edges, segments, rings); },
       [&]() {
         if (uv_map_id) {
-          calculate_sphere_uvs(mesh, segments, rings, uv_map_id);
+          calculate_sphere_uvs(mesh, segments, rings, *uv_map_id);
         }
       });
 

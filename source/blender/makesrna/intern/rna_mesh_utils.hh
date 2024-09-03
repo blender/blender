@@ -17,7 +17,7 @@
                                                              void *data) \
   { \
     CustomDataLayer *layer = (CustomDataLayer *)data; \
-    return (layer->anonymous_id != NULL || layer->type != layer_type); \
+    return (blender::bke::attribute_name_is_anonymous(layer->name) || layer->type != layer_type); \
   } \
   /* begin */ \
   [[maybe_unused]] static void rna_Mesh_##collection_name##s_begin( \

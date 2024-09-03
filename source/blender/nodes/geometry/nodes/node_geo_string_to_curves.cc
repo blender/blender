@@ -335,7 +335,8 @@ static void create_attributes(GeoNodeExecParams &params,
 {
   MutableAttributeAccessor attributes = instances.attributes_for_write();
 
-  if (AnonymousAttributeIDPtr line_id = params.get_output_anonymous_attribute_id_if_needed("Line"))
+  if (std::optional<std::string> line_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Line"))
   {
     SpanAttributeWriter<int> line_attribute = attributes.lookup_or_add_for_write_only_span<int>(
         *line_id, AttrDomain::Instance);
@@ -343,7 +344,7 @@ static void create_attributes(GeoNodeExecParams &params,
     line_attribute.finish();
   }
 
-  if (AnonymousAttributeIDPtr pivot_id = params.get_output_anonymous_attribute_id_if_needed(
+  if (std::optional<std::string> pivot_id = params.get_output_anonymous_attribute_id_if_needed(
           "Pivot Point"))
   {
     SpanAttributeWriter<float3> pivot_attribute =

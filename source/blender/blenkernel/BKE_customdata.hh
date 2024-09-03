@@ -282,19 +282,6 @@ const void *CustomData_add_layer_named_with_data(CustomData *data,
                                                  blender::StringRef name,
                                                  const blender::ImplicitSharingInfo *sharing_info);
 
-void *CustomData_add_layer_anonymous(CustomData *data,
-                                     eCustomDataType type,
-                                     eCDAllocType alloctype,
-                                     int totelem,
-                                     const AnonymousAttributeIDHandle *anonymous_id);
-const void *CustomData_add_layer_anonymous_with_data(
-    CustomData *data,
-    eCustomDataType type,
-    const AnonymousAttributeIDHandle *anonymous_id,
-    int totelem,
-    void *layer_data,
-    const blender::ImplicitSharingInfo *sharing_info);
-
 /**
  * Frees the active or first data layer with the give type.
  * returns 1 on success, 0 if no layer with the given type is found

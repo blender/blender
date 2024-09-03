@@ -56,7 +56,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct IndexAttributes {
-  AnonymousAttributeIDPtr duplicate_index;
+  std::optional<std::string> duplicate_index;
 };
 
 /* -------------------------------------------------------------------- */
@@ -112,7 +112,7 @@ static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attri
                                              const OffsetIndices<int> offsets)
 {
   SpanAttributeWriter<int> duplicate_indices = attributes.lookup_or_add_for_write_only_span<int>(
-      attribute_outputs.duplicate_index.get(), output_domain);
+      *attribute_outputs.duplicate_index, output_domain);
   for (const int i : IndexRange(selection.size())) {
     MutableSpan<int> indices = duplicate_indices.span.slice(offsets[i]);
     for (const int i : indices.index_range()) {

@@ -11,10 +11,10 @@ struct Mesh;
 namespace blender::geometry {
 
 struct ConeAttributeOutputs {
-  bke::AnonymousAttributeIDPtr top_id;
-  bke::AnonymousAttributeIDPtr bottom_id;
-  bke::AnonymousAttributeIDPtr side_id;
-  bke::AnonymousAttributeIDPtr uv_map_id;
+  std::optional<std::string> top_id;
+  std::optional<std::string> bottom_id;
+  std::optional<std::string> side_id;
+  std::optional<std::string> uv_map_id;
 };
 
 enum class ConeFillType {

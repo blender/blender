@@ -42,7 +42,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct AttributeOutputs {
-  AnonymousAttributeIDPtr intersecting_edges_id;
+  std::optional<std::string> intersecting_edges_id;
 };
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -198,7 +198,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (attribute_outputs.intersecting_edges_id) {
     MutableAttributeAccessor attributes = result->attributes_for_write();
     SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
-        attribute_outputs.intersecting_edges_id.get(), AttrDomain::Edge);
+        *attribute_outputs.intersecting_edges_id, AttrDomain::Edge);
 
     selection.span.fill(false);
     for (const int i : intersecting_edges) {

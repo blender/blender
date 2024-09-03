@@ -14,16 +14,6 @@
 
 #include "BLI_implicit_sharing.h"
 
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-namespace blender::bke {
-class AnonymousAttributeID;
-}  // namespace blender::bke
-using AnonymousAttributeIDHandle = blender::bke::AnonymousAttributeID;
-#else
-typedef struct AnonymousAttributeIDHandle AnonymousAttributeIDHandle;
-#endif
-
 /** Descriptor and storage for a custom data layer. */
 typedef struct CustomDataLayer {
   /** Type of data in layer. */
@@ -47,11 +37,6 @@ typedef struct CustomDataLayer {
   char _pad1[4];
   /** Layer data. */
   void *data;
-  /**
-   * Run-time identifier for this layer. Can be used to retrieve information about where this
-   * attribute was created.
-   */
-  const AnonymousAttributeIDHandle *anonymous_id;
   /**
    * Run-time data that allows sharing `data` with other entities (mostly custom data layers on
    * other geometries).

@@ -15,6 +15,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_anonymous_attribute_make.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_bake_items_socket.hh"
 #include "BKE_context.hh"
@@ -535,21 +536,17 @@ class LazyFunctionForBakeNode final : public LazyFunction {
         r_output_values);
   }
 
-  std::shared_ptr<AnonymousAttributeFieldInput> make_attribute_field(
-      const Object &self_object,
-      const ComputeContext &compute_context,
-      const NodeGeometryBakeItem &item,
-      const CPPType &type) const
+  std::shared_ptr<AttributeFieldInput> make_attribute_field(const Object &self_object,
+                                                            const ComputeContext &compute_context,
+                                                            const NodeGeometryBakeItem &item,
+                                                            const CPPType &type) const
   {
-    AnonymousAttributeIDPtr attribute_id = AnonymousAttributeIDPtr(
-        MEM_new<NodeAnonymousAttributeID>(__func__,
-                                          self_object,
-                                          compute_context,
-                                          node_,
-                                          std::to_string(item.identifier),
-                                          item.name));
-    return std::make_shared<AnonymousAttributeFieldInput>(
-        attribute_id, type, node_.label_or_name());
+    std::string attribute_name = bke::hash_to_anonymous_attribute_name(
+        compute_context.hash(), self_object.id.name, node_.identifier, item.identifier);
+    std::string socket_inspection_name = make_anonymous_attribute_socket_inspection_string(
+        node_.label_or_name(), item.name);
+    return std::make_shared<AttributeFieldInput>(
+        std::move(attribute_name), type, std::move(socket_inspection_name));
   }
 };
 

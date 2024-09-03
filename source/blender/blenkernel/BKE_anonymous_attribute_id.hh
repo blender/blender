@@ -13,52 +13,6 @@
 namespace blender::bke {
 
 /**
- * An #AnonymousAttributeID contains information about a specific anonymous attribute.
- * Like normal attributes, anonymous attributes are also identified by their name, so one should
- * not have to compare #AnonymousAttributeID pointers.
- *
- * Anonymous attributes don't need additional information besides their name, with a few
- * exceptions:
- * - The name of anonymous attributes is generated automatically, so it is generally not human
- *   readable (just random characters). #AnonymousAttributeID can provide more context as where a
- *   specific anonymous attribute was created which can simplify debugging.
- * - [Not yet supported.] When anonymous attributes are contained in on-disk caches, we have to map
- *   those back to anonymous attributes at run-time. The issue is that (for various reasons) we
- *   might change how anonymous attribute names are generated in the future, which would lead to a
- *   mis-match between stored and new attribute names. To work around it, we should cache
- *   additional information for anonymous attributes on disk (like which node created it). This
- *   information can then be used to map stored attributes to their run-time counterpart.
- *
- * Once created, #AnonymousAttributeID is immutable. Also it is intrinsically reference counted so
- * that it can have shared ownership. `std::shared_ptr` can't be used for that purpose here,
- * because that is not available in C code. If possible, the #AnonymousAttributeIDPtr wrapper
- * should be used to avoid manual reference counting in C++ code.
- */
-class AnonymousAttributeID : public ImplicitSharingMixin {
- protected:
-  std::string name_;
-
- public:
-  virtual ~AnonymousAttributeID() = default;
-
-  StringRefNull name() const
-  {
-    return name_;
-  }
-
-  virtual std::string user_name() const;
-
- private:
-  void delete_self() override
-  {
-    MEM_delete(this);
-  }
-};
-
-/** Wrapper for #AnonymousAttributeID that avoids manual reference counting. */
-using AnonymousAttributeIDPtr = ImplicitSharingPtr<const AnonymousAttributeID>;
-
-/**
  * A set of anonymous attribute names that is passed around in geometry nodes.
  */
 class AnonymousAttributeSet {
@@ -91,7 +45,7 @@ class AnonymousAttributePropagationInfo {
   /**
    * Return true when the anonymous attribute should be propagated and false otherwise.
    */
-  bool propagate(const AnonymousAttributeID &anonymous_id) const;
+  bool propagate(StringRef anonymous_id) const;
 };
 
 }  // namespace blender::bke

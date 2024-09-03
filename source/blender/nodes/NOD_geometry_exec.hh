@@ -24,9 +24,6 @@
 
 namespace blender::nodes {
 
-using bke::AnonymousAttributeFieldInput;
-using bke::AnonymousAttributeID;
-using bke::AnonymousAttributeIDPtr;
 using bke::AnonymousAttributePropagationInfo;
 using bke::AttrDomain;
 using bke::AttributeAccessor;
@@ -67,7 +64,7 @@ class GeoNodeExecParams {
   const lf::Context &lf_context_;
   const Span<int> lf_input_for_output_bsocket_usage_;
   const Span<int> lf_input_for_attribute_propagation_to_output_;
-  const FunctionRef<AnonymousAttributeIDPtr(int)> get_output_attribute_id_;
+  const FunctionRef<std::string(int)> get_output_attribute_id_;
 
  public:
   GeoNodeExecParams(const bNode &node,
@@ -75,7 +72,7 @@ class GeoNodeExecParams {
                     const lf::Context &lf_context,
                     const Span<int> lf_input_for_output_bsocket_usage,
                     const Span<int> lf_input_for_attribute_propagation_to_output,
-                    const FunctionRef<AnonymousAttributeIDPtr(int)> get_output_attribute_id)
+                    const FunctionRef<std::string(int)> get_output_attribute_id)
       : node_(node),
         params_(params),
         lf_context_(lf_context),
@@ -275,11 +272,11 @@ class GeoNodeExecParams {
    * Return a new anonymous attribute id for the given output. None is returned if the anonymous
    * attribute is not needed.
    */
-  AnonymousAttributeIDPtr get_output_anonymous_attribute_id_if_needed(
+  std::optional<std::string> get_output_anonymous_attribute_id_if_needed(
       const StringRef output_identifier, const bool force_create = false)
   {
     if (!this->anonymous_attribute_output_is_required(output_identifier) && !force_create) {
-      return {};
+      return std::nullopt;
     }
     const bNodeSocket &output_socket = node_.output_by_identifier(output_identifier);
     return get_output_attribute_id_(output_socket.index());

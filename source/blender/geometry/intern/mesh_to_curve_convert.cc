@@ -61,7 +61,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
         if (skip.contains(id.name())) {
           return true;
         }
-        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
           return true;
         }
 
