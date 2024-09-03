@@ -1158,49 +1158,55 @@ static int delete_single_file(const char *from, const char * /*to*/)
   return RecursiveOp_Callback_OK;
 }
 
-#  ifdef __APPLE__
-static int delete_soft(const char *filepath, const char **r_error_message)
+FILE *BLI_fopen(const char *filepath, const char *mode)
 {
-  int ret = -1;
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  Class NSAutoreleasePoolClass = objc_getClass("NSAutoreleasePool");
-  SEL allocSel = sel_registerName("alloc");
-  SEL initSel = sel_registerName("init");
-  id poolAlloc = ((id(*)(Class, SEL))objc_msgSend)(NSAutoreleasePoolClass, allocSel);
-  id pool = ((id(*)(id, SEL))objc_msgSend)(poolAlloc, initSel);
-
-  Class NSStringClass = objc_getClass("NSString");
-  SEL stringWithUTF8StringSel = sel_registerName("stringWithUTF8String:");
-  id pathString = ((id(*)(Class, SEL, const char *))objc_msgSend)(
-      NSStringClass, stringWithUTF8StringSel, filepath);
-
-  Class NSFileManagerClass = objc_getClass("NSFileManager");
-  SEL defaultManagerSel = sel_registerName("defaultManager");
-  id fileManager = ((id(*)(Class, SEL))objc_msgSend)(NSFileManagerClass, defaultManagerSel);
-
-  Class NSURLClass = objc_getClass("NSURL");
-  SEL fileURLWithPathSel = sel_registerName("fileURLWithPath:");
-  id nsurl = ((id(*)(Class, SEL, id))objc_msgSend)(NSURLClass, fileURLWithPathSel, pathString);
-
-  SEL trashItemAtURLSel = sel_registerName("trashItemAtURL:resultingItemURL:error:");
-  BOOL deleteSuccessful = ((BOOL(*)(id, SEL, id, id, id))objc_msgSend)(
-      fileManager, trashItemAtURLSel, nsurl, nil, nil);
-
-  if (deleteSuccessful) {
-    ret = 0;
-  }
-  else {
-    *r_error_message = "The Cocoa API call to delete file or directory failed";
-  }
-
-  SEL drainSel = sel_registerName("drain");
-  ((void (*)(id, SEL))objc_msgSend)(pool, drainSel);
-
-  return ret;
+  return fopen(filepath, mode);
 }
-#  else
-static int delete_soft(const char *filepath, const char **r_error_message)
+
+void *BLI_gzopen(const char *filepath, const char *mode)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
+
+  return gzopen(filepath, mode);
+}
+
+int BLI_open(const char *filepath, int oflag, int pmode)
+{
+  BLI_assert(!BLI_path_is_rel(filepath));
+
+  return open(filepath, oflag, pmode);
+}
+
+int BLI_access(const char *filepath, int mode)
+{
+  BLI_assert(!BLI_path_is_rel(filepath));
+
+  return access(filepath, mode);
+}
+
+int BLI_delete(const char *path, bool dir, bool recursive)
+{
+  BLI_assert(!BLI_path_is_rel(path));
+  /* Not an error but avoid ambiguous arguments (recursive file deletion isn't meaningful). */
+  BLI_assert(!(dir == false && recursive == true));
+
+  if (recursive) {
+    return recursive_operation(path, nullptr, nullptr, delete_single_file, delete_callback_post);
+  }
+  if (dir) {
+    return rmdir(path);
+  }
+  return remove(path);
+}
+
+/* Apple version is defined in fileops_apple.mm */
+#  ifndef __APPLE__
+int BLI_delete_soft(const char *filepath, const char **r_error_message)
+{
+  BLI_assert(!BLI_path_is_rel(filepath));
+
   const char *args[5];
   const char *process_failed;
 
@@ -1277,56 +1283,6 @@ static int delete_soft(const char *filepath, const char **r_error_message)
   return result;
 }
 #  endif
-
-FILE *BLI_fopen(const char *filepath, const char *mode)
-{
-  BLI_assert(!BLI_path_is_rel(filepath));
-
-  return fopen(filepath, mode);
-}
-
-void *BLI_gzopen(const char *filepath, const char *mode)
-{
-  BLI_assert(!BLI_path_is_rel(filepath));
-
-  return gzopen(filepath, mode);
-}
-
-int BLI_open(const char *filepath, int oflag, int pmode)
-{
-  BLI_assert(!BLI_path_is_rel(filepath));
-
-  return open(filepath, oflag, pmode);
-}
-
-int BLI_access(const char *filepath, int mode)
-{
-  BLI_assert(!BLI_path_is_rel(filepath));
-
-  return access(filepath, mode);
-}
-
-int BLI_delete(const char *path, bool dir, bool recursive)
-{
-  BLI_assert(!BLI_path_is_rel(path));
-  /* Not an error but avoid ambiguous arguments (recursive file deletion isn't meaningful). */
-  BLI_assert(!(dir == false && recursive == true));
-
-  if (recursive) {
-    return recursive_operation(path, nullptr, nullptr, delete_single_file, delete_callback_post);
-  }
-  if (dir) {
-    return rmdir(path);
-  }
-  return remove(path);
-}
-
-int BLI_delete_soft(const char *filepath, const char **r_error_message)
-{
-  BLI_assert(!BLI_path_is_rel(filepath));
-
-  return delete_soft(filepath, r_error_message);
-}
 
 /**
  * Do the two paths denote the same file-system object?
