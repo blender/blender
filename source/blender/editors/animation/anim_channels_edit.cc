@@ -2279,7 +2279,10 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  /* do groups only first (unless in Drivers mode, where there are none) */
+  /* Do groups and other "summary/expander" types first (unless in Drivers mode, where there are
+   * none), because the following loop will not find those channels. Also deleting an entire group
+   * or slot will delete the channels they contain as well, so better avoid looping over those in
+   * the same loop. */
   if (ac.datatype != ANIMCONT_DRIVERS) {
     /* filter data */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
@@ -2290,6 +2293,21 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
     /* delete selected groups and their associated channels */
     LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       switch (ale->type) {
+        case ANIMTYPE_ACTION_SLOT: {
+          BLI_assert(ale->fcurve_owner_id);
+          BLI_assert(ale->data);
+          BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
+                         "fcurve_owner_id should be an Action");
+
+          blender::animrig::Action &action =
+              reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+          blender::animrig::Slot &slot_to_remove = static_cast<ActionSlot *>(ale->data)->wrap();
+
+          action.slot_remove(slot_to_remove);
+
+          tag_update_animation_element(ale);
+          break;
+        }
         case ANIMTYPE_GROUP: {
           bActionGroup *agrp = (bActionGroup *)ale->data;
           AnimData *adt = ale->adt;
@@ -2332,7 +2350,6 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
         case ANIMTYPE_NLACONTROLS:
         case ANIMTYPE_NLACURVE:
         case ANIMTYPE_FILLACT_LAYERED:
-        case ANIMTYPE_ACTION_SLOT:
         case ANIMTYPE_FILLACTD:
         case ANIMTYPE_FILLDRIVERS:
         case ANIMTYPE_DSMAT:
