@@ -157,6 +157,7 @@ if(WITH_BLENDER)
 
     set(SVG_FILENAMES_NOEXT
       action
+      action_slot
       action_tweak
       add
       aliased

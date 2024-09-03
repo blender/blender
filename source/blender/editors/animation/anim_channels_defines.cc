@@ -1278,7 +1278,7 @@ static bAnimChannelType ACF_NLACURVE = {
 /* TODO: just get this from RNA? */
 static int acf_fillanim_icon(bAnimListElem * /*ale*/)
 {
-  return ICON_ACTION; /* TODO: give Animation its own icon? */
+  return ICON_ACTION;
 }
 
 /* check if some setting exists for this channel */
@@ -1398,7 +1398,7 @@ static bool acf_action_slot_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, Pro
 
 static int acf_action_slot_icon(bAnimListElem * /*ale*/)
 {
-  return ICON_LINK_BLEND; /* TODO: design icon. */
+  return ICON_ACTION_SLOT;
 }
 
 static int acf_action_slot_idtype_icon(bAnimListElem *ale)
