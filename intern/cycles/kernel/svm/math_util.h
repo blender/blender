@@ -174,7 +174,7 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
     case NODE_MATH_ARCTANGENT:
       return atanf(a);
     case NODE_MATH_ARCTAN2:
-      return atan2f(a, b);
+      return compatible_atan2(a, b);
     case NODE_MATH_SIGN:
       return compatible_signf(a);
     case NODE_MATH_EXPONENT:

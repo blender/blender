@@ -480,6 +480,14 @@ ccl_device_inline float nonzerof(float f, float eps)
   }
 }
 
+/* The behavior of `atan2(0, 0)` is undefined on many platforms, to ensure consistent behavior, we
+ * return 0 in this case. See !126951.
+ * Computes the angle between the positive x axis and the vector pointing from origin to (x, y). */
+ccl_device_inline float compatible_atan2(const float y, const float x)
+{
+  return (x == 0.0f && y == 0.0f) ? 0.0f : atan2f(y, x);
+}
+
 /* `signum` function testing for zero. Matches GLSL and OSL functions. */
 ccl_device_inline float compatible_signf(float f)
 {
