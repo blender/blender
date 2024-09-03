@@ -165,7 +165,7 @@ void imapaint_image_update(
 
   /* When buffer is partial updated the planes should be set to a larger value than 8. This will
    * make sure that partial updating is working but uses more GPU memory as the gpu texture will
-   * have 4 channels. When so the whole texture needs to be reuploaded to the GPU using the new
+   * have 4 channels. When so the whole texture needs to be re-uploaded to the GPU using the new
    * texture format. */
   if (ibuf != nullptr && ibuf->planes == 8) {
     ibuf->planes = 32;

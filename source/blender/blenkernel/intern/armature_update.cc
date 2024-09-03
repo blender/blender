@@ -675,7 +675,7 @@ static void splineik_evaluate_bone(
             }
           }
 
-          /* Compute scale factor for xz axes from this value. */
+          /* Compute scale factor for XZ axes from this value. */
           final_scale = sqrtf(bulge);
         }
         else {

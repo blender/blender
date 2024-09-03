@@ -982,52 +982,52 @@ typedef enum eKinematic_Flags {
   CONSTRAINT_IK_TARGETAXIS = (1 << 14),
 } eKinematic_Flags;
 
-/* bSplineIKConstraint->flag */
+/** #bSplineIKConstraint::flag */
 typedef enum eSplineIK_Flags {
-  /* chain has been attached to spline */
+  /** Chain has been attached to spline. */
   CONSTRAINT_SPLINEIK_BOUND = (1 << 0),
-  /* root of chain is not influenced by the constraint */
+  /** Root of chain is not influenced by the constraint. */
   CONSTRAINT_SPLINEIK_NO_ROOT = (1 << 1),
 #ifdef DNA_DEPRECATED_ALLOW
-  /* bones in the chain should not scale to fit the curve */
+  /** Bones in the chain should not scale to fit the curve. */
   CONSTRAINT_SPLINEIK_SCALE_LIMITED = (1 << 2),
 #endif
-  /* evenly distribute the bones along the path regardless of length */
+  /** Evenly distribute the bones along the path regardless of length. */
   CONSTRAINT_SPLINEIK_EVENSPLITS = (1 << 3),
-  /* don't adjust the x and z scaling of the bones by the curve radius */
+  /** Don't adjust the X and Z scaling of the bones by the curve radius. */
   CONSTRAINT_SPLINEIK_NO_CURVERAD = (1 << 4),
 
-  /* for "volumetric" xz scale mode, limit the minimum or maximum scale values */
+  /** For "volumetric" XZ scale mode, limit the minimum or maximum scale values. */
   CONSTRAINT_SPLINEIK_USE_BULGE_MIN = (1 << 5),
   CONSTRAINT_SPLINEIK_USE_BULGE_MAX = (1 << 6),
 
-  /* apply volume preservation over original scaling of the bone */
+  /** Apply volume preservation over original scaling of the bone. */
   CONSTRAINT_SPLINEIK_USE_ORIGINAL_SCALE = (1 << 7),
 } eSplineIK_Flags;
 
-/* bSplineIKConstraint->xzScaleMode */
+/** #bSplineIKConstraint::xzScaleMode */
 typedef enum eSplineIK_XZScaleModes {
-  /* no x/z scaling */
+  /** No X/Z scaling. */
   CONSTRAINT_SPLINEIK_XZS_NONE = 0,
-  /* bones in the chain should take their x/z scales from the original scaling */
+  /** Bones in the chain should take their X/Z scales from the original scaling. */
   CONSTRAINT_SPLINEIK_XZS_ORIGINAL = 1,
-  /* x/z scales are the inverse of the y-scale */
+  /** X/Z scales are the inverse of the Y-scale. */
   CONSTRAINT_SPLINEIK_XZS_INVERSE = 2,
-  /* x/z scales are computed using a volume preserving technique (from Stretch To constraint) */
+  /** X/Z scales are computed using a volume preserving technique (from Stretch To constraint). */
   CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC = 3,
 } eSplineIK_XZScaleModes;
 
-/* bSplineIKConstraint->yScaleMode */
+/** #bSplineIKConstraint::yScaleMode */
 typedef enum eSplineIK_YScaleModes {
-  /* no y scaling */
+  /** No Y scaling. */
   CONSTRAINT_SPLINEIK_YS_NONE = 0,
-  /* bones in the chain should be scaled to fit the length of the curve */
+  /** Bones in the chain should be scaled to fit the length of the curve. */
   CONSTRAINT_SPLINEIK_YS_FIT_CURVE = 1,
-  /* bones in the chain should take their y scales from the original scaling */
+  /** Bones in the chain should take their y scales from the original scaling. */
   CONSTRAINT_SPLINEIK_YS_ORIGINAL = 2,
 } eSplineIK_YScaleModes;
 
-/* bArmatureConstraint -> flag */
+/** #bArmatureConstraint::flag */
 typedef enum eArmature_Flags {
   /** use dual quaternion blending */
   CONSTRAINT_ARMATURE_QUATERNION = (1 << 0),

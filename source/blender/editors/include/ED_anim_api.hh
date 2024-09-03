@@ -910,7 +910,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
  * (check anim_channels_defines.cc for details).
  *
  * \return the icon of whatever struct the F-Curve's RNA path resolves to.
- * Returns std::nullopt if the path could not be resolved.
+ * Returns #std::nullopt if the path could not be resolved.
  */
 std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
 

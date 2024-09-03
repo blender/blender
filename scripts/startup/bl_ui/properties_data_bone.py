@@ -294,7 +294,7 @@ class BONE_PT_collections(BoneButtonsPanel, Panel):
 
             row.prop(bcoll, "is_solo", text="", icon='SOLO_ON' if bcoll.is_solo else 'SOLO_OFF')
 
-            # Unassignment operator, less safe so with a bit of spacing.
+            # Unassign operator, less safe so with a bit of spacing.
             props = bcoll_row.operator("armature.collection_unassign_named", text="", icon='X')
             props.name = bcoll.name
             props.bone_name = bone.name

@@ -1516,7 +1516,7 @@ void ccgFaceIterator_next(CCGFaceIterator *fi)
   ccg_ehashIterator_next((EHashIterator *)fi);
 }
 
-/*** Extern API final vert/edge/face interface ***/
+/*** External API final vert/edge/face interface. ***/
 
 int ccgSubSurf_getNumFinalVerts(const CCGSubSurf *ss)
 {
