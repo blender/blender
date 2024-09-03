@@ -296,9 +296,12 @@ bool BlenderSubprocess::create(Span<StringRefNull> args)
   /* Child process initialization. */
   execv(path, char_args.data());
 
+  /* This should only be reached if `execvp` fails and stack isn't replaced. */
   ERROR("execv");
-  exit(errno);
 
+  /* Use `_exit` instead of `exit` so Blender's `atexit` cleanup functions don't run. */
+  _exit(errno);
+  BLI_assert_unreachable();
   return false;
 }
 
