@@ -640,6 +640,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
     /* Update default material to be a bit more rough. */
     ma->roughness = 0.5f;
+    /* Enable transparent shadows. */
+    ma->blend_flag |= MA_BL_TRANSPARENT_SHADOW;
 
     if (ma->nodetree) {
       for (bNode *node : ma->nodetree->all_nodes()) {
