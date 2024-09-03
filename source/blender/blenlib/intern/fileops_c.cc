@@ -1248,6 +1248,10 @@ int BLI_delete_soft(const char *filepath, const char **r_error_message)
     execvp(args[0], (char **)args);
     /* This should only be reached if `execvp` fails and stack isn't replaced. */
 
+    /* Ensure outputs are flushed as `_exit` doesn't flush. */
+    fflush(stdout);
+    fflush(stderr);
+
     /* Use `_exit` instead of `exit` so Blender's `atexit` cleanup functions don't run. */
     _exit(errno);
     BLI_assert_unreachable();
