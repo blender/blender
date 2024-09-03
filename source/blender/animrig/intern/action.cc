@@ -306,6 +306,17 @@ int64_t Action::find_layer_index(const Layer &layer) const
   return -1;
 }
 
+int64_t Action::find_slot_index(const Slot &slot) const
+{
+  for (const int64_t slot_index : this->slots().index_range()) {
+    const Slot *visit_slot = this->slot(slot_index);
+    if (visit_slot == &slot) {
+      return slot_index;
+    }
+  }
+  return -1;
+}
+
 blender::Span<const Slot *> Action::slots() const
 {
   return blender::Span<Slot *>{reinterpret_cast<Slot **>(this->slot_array), this->slot_array_num};
@@ -480,6 +491,48 @@ Slot &Action::slot_add_for_id(const ID &animated_id)
    * this brand new Slot yet. */
 
   return slot;
+}
+
+static void slot_ptr_destructor(ActionSlot **dna_slot_ptr)
+{
+  Slot &slot = (*dna_slot_ptr)->wrap();
+  MEM_delete(&slot);
+};
+
+bool Action::slot_remove(Slot &slot_to_remove)
+{
+  /* Check that this slot belongs to this Action. */
+  const int64_t slot_index = this->find_slot_index(slot_to_remove);
+  if (slot_index < 0) {
+    return false;
+  }
+
+  /* Remove the slot's data from each layer. */
+  for (Layer *layer : this->layers()) {
+    layer->slot_data_remove(slot_to_remove.handle);
+  }
+
+  /* Un-assign this slot from its users. Only do this if the list of users is valid, */
+  for (ID *user : slot_to_remove.runtime_users()) {
+    /* Sanity check: make sure the slot is still assigned, before un-assigning anything. */
+    std::optional<std::pair<Action *, Slot *>> action_and_slot = get_action_slot_pair(*user);
+    BLI_assert_msg(action_and_slot, "Slot user has no Action assigned");
+    BLI_assert_msg(action_and_slot->first == this, "Slot user has other Action assigned");
+    BLI_assert_msg(action_and_slot->second == &slot_to_remove,
+                   "Slot user has other Slot assigned");
+    if (!action_and_slot || action_and_slot->first != this ||
+        action_and_slot->second != &slot_to_remove)
+    {
+      continue;
+    }
+
+    this->assign_id(nullptr, *user);
+  }
+
+  /* Remove the actual slot. */
+  dna::array::remove_index(
+      &this->slot_array, &this->slot_array_num, nullptr, slot_index, slot_ptr_destructor);
+  return true;
 }
 
 void Action::slot_active_set(const slot_handle_t slot_handle)
@@ -723,6 +776,13 @@ int64_t Layer::find_strip_index(const Strip &strip) const
   return -1;
 }
 
+void Layer::slot_data_remove(const slot_handle_t slot_handle)
+{
+  for (Strip *strip : this->strips()) {
+    strip->slot_data_remove(slot_handle);
+  }
+}
+
 /* ----- ActionSlot implementation ----------- */
 
 Slot::Slot()
@@ -893,6 +953,14 @@ void Slot::name_ensure_prefix()
   }
 
   *reinterpret_cast<short *>(this->name) = this->idtype;
+}
+
+void Strip::slot_data_remove(const slot_handle_t slot_handle)
+{
+  switch (this->type()) {
+    case Type::Keyframe:
+      this->as<KeyframeStrip>().slot_data_remove(slot_handle);
+  }
 }
 
 /* ----- Functions  ----------- */
@@ -1222,6 +1290,15 @@ bool KeyframeStrip::channelbag_remove(ChannelBag &channelbag_to_remove)
                            channelbag_ptr_destructor);
 
   return true;
+}
+
+void KeyframeStrip::slot_data_remove(const slot_handle_t slot_handle)
+{
+  ChannelBag *channelbag = this->channelbag_for_slot(slot_handle);
+  if (!channelbag) {
+    return;
+  }
+  this->channelbag_remove(*channelbag);
 }
 
 const FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor) const

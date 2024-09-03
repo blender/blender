@@ -200,6 +200,15 @@ class Action : public ::bAction {
   Slot &slot_add_for_id(const ID &animated_id);
 
   /**
+   * Remove a slot, and ALL animation data that belongs to it.
+   *
+   * After this call, the reference is no longer valid as the slot will have been freed.
+   *
+   * \return true when the layer was found & removed, false if it wasn't found.
+   */
+  bool slot_remove(Slot &slot_to_remove);
+
+  /**
    * Set the active Slot, ensuring only one Slot is flagged as the Active one.
    *
    * \param slot_handle if Slot::unassigned, there will not be any active slot.
@@ -275,6 +284,9 @@ class Action : public ::bAction {
  protected:
   /** Return the layer's index, or -1 if not found in this Action. */
   int64_t find_layer_index(const Layer &layer) const;
+
+  /** Return the slot's index, or -1 if not found in this Action. */
+  int64_t find_slot_index(const Slot &slot) const;
 
  private:
   Slot &slot_allocate();
@@ -368,6 +380,13 @@ class Strip : public ::ActionStrip {
    * (negative for frame_start, positive for frame_end) are supported.
    */
   void resize(float frame_start, float frame_end);
+
+  /**
+   * Remove all data belonging to the given slot.
+   *
+   * This is typically only called from Layer::slot_data_remove().
+   */
+  void slot_data_remove(slot_handle_t slot_handle);
 };
 static_assert(sizeof(Strip) == sizeof(::ActionStrip),
               "DNA struct and its C++ wrapper must have the same size");
@@ -454,6 +473,13 @@ class Layer : public ::ActionLayer {
    * \return true when the strip was found & removed, false if it wasn't found.
    */
   bool strip_remove(Strip &strip);
+
+  /**
+   * Remove all data belonging to the given slot.
+   *
+   * This is typically only called from Action::slot_remove().
+   */
+  void slot_data_remove(slot_handle_t slot_handle);
 
  protected:
   /** Return the strip's index, or -1 if not found in this layer. */
@@ -658,6 +684,13 @@ class KeyframeStrip : public ::KeyframeActionStrip {
    * \return true when the ChannelBag was found & removed, false if it wasn't found.
    */
   bool channelbag_remove(ChannelBag &channelbag_to_remove);
+
+  /**
+   * Remove all strip data for the given slot.
+   *
+   * Typically only called from Strip::slot_data_remove().
+   */
+  void slot_data_remove(slot_handle_t slot_handle);
 
   /** Return the channelbag's index, or -1 if there is none for this slot handle. */
   int64_t find_channelbag_index(const ChannelBag &channelbag) const;

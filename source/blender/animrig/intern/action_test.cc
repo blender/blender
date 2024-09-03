@@ -244,6 +244,103 @@ TEST_F(ActionLayersTest, add_slot_multiple)
   EXPECT_EQ(2, slot_suzanne.handle);
 }
 
+TEST_F(ActionLayersTest, slot_remove)
+{
+  { /* Canary test: removing a just-created slot on an otherwise empty Action should work. */
+    Slot &slot = action->slot_add();
+    EXPECT_EQ(1, slot.handle);
+    EXPECT_EQ(1, action->last_slot_handle);
+
+    EXPECT_TRUE(action->slot_remove(slot));
+    EXPECT_EQ(1, action->last_slot_handle)
+        << "Removing a slot should not change the last-used slot handle.";
+    EXPECT_EQ(0, action->slot_array_num);
+  }
+
+  { /* Removing a non-existing slot should return false. */
+    Slot slot;
+    EXPECT_FALSE(action->slot_remove(slot));
+  }
+
+  { /* Removing a slot should remove its ChannelBag. */
+    Slot &slot = action->slot_add();
+    const slot_handle_t slot_handle = slot.handle;
+    EXPECT_EQ(2, slot.handle);
+    EXPECT_EQ(2, action->last_slot_handle);
+
+    /* Create an F-Curve in a ChannelBag for the slot. */
+    action->layer_keystrip_ensure();
+    KeyframeStrip &strip = action->layer(0)->strip(0)->as<KeyframeStrip>();
+    ChannelBag &channelbag = strip.channelbag_for_slot_ensure(slot);
+    channelbag.fcurve_create_unique(bmain, {"location", 1});
+
+    /* Remove the slot. */
+    EXPECT_TRUE(action->slot_remove(slot));
+    EXPECT_EQ(2, action->last_slot_handle)
+        << "Removing a slot should not change the last-used slot handle.";
+    EXPECT_EQ(0, action->slot_array_num);
+
+    /* Check that its channelbag is gone. */
+    ChannelBag *found_cbag = strip.channelbag_for_slot(slot_handle);
+    EXPECT_EQ(found_cbag, nullptr);
+  }
+
+  { /* Removing one slot should leave the other two in place. */
+    Slot &slot1 = action->slot_add();
+    Slot &slot2 = action->slot_add();
+    Slot &slot3 = action->slot_add();
+    EXPECT_EQ(3, slot1.handle);
+    EXPECT_EQ(4, slot2.handle);
+    EXPECT_EQ(5, slot3.handle);
+    EXPECT_EQ(5, action->last_slot_handle);
+
+    /* For referencing the slot handle after the slot is removed. */
+    const slot_handle_t slot2_handle = slot2.handle;
+
+    /* Create a Channelbag for each slot. */
+    action->layer_keystrip_ensure();
+    KeyframeStrip &strip = action->layer(0)->strip(0)->as<KeyframeStrip>();
+    strip.channelbag_for_slot_ensure(slot1);
+    strip.channelbag_for_slot_ensure(slot2);
+    strip.channelbag_for_slot_ensure(slot3);
+
+    /* Remove the slot. */
+    EXPECT_TRUE(action->slot_remove(slot2));
+    EXPECT_EQ(5, action->last_slot_handle);
+
+    /* Check the correct slot + channelbag are removed. */
+    EXPECT_EQ(action->slot_for_handle(slot1.handle), &slot1);
+    EXPECT_EQ(action->slot_for_handle(slot2_handle), nullptr);
+    EXPECT_EQ(action->slot_for_handle(slot3.handle), &slot3);
+
+    EXPECT_NE(strip.channelbag_for_slot(slot1.handle), nullptr);
+    EXPECT_EQ(strip.channelbag_for_slot(slot2_handle), nullptr);
+    EXPECT_NE(strip.channelbag_for_slot(slot3.handle), nullptr);
+  }
+
+  { /* Removing an in-use slot should un-assign it from its users. */
+    Slot &slot = action->slot_add_for_id(cube->id);
+    action->assign_id(&slot, cube->id);
+    ASSERT_TRUE(slot.runtime_users().contains(&cube->id));
+    ASSERT_EQ(cube->adt->slot_handle, slot.handle);
+
+    ASSERT_TRUE(action->slot_remove(slot));
+    EXPECT_EQ(cube->adt->slot_handle, Slot::unassigned);
+  }
+
+  { /* Creating a slot after removing one should not reuse its handle. */
+    action->last_slot_handle = 3; /* To create independence between sub-tests. */
+    Slot &slot1 = action->slot_add();
+    ASSERT_EQ(4, slot1.handle);
+    ASSERT_EQ(4, action->last_slot_handle);
+    ASSERT_TRUE(action->slot_remove(slot1));
+
+    Slot &slot2 = action->slot_add();
+    EXPECT_EQ(5, slot2.handle);
+    EXPECT_EQ(5, action->last_slot_handle);
+  }
+}
+
 TEST_F(ActionLayersTest, action_assign_id)
 {
   /* Assign to the only, 'virgin' Slot, should always work. */

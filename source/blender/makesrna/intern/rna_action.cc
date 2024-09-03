@@ -202,6 +202,23 @@ static ActionSlot *rna_Action_slots_new(bAction *dna_action,
   return slot;
 }
 
+void rna_Action_slots_remove(bAction *dna_action,
+                             bContext *C,
+                             ReportList *reports,
+                             PointerRNA *slot_ptr)
+{
+  animrig::Action &action = dna_action->wrap();
+  animrig::Slot &slot = rna_data_slot(slot_ptr);
+  if (!action.slot_remove(slot)) {
+    BKE_report(reports, RPT_ERROR, "This slot does not belong to this Action");
+    return;
+  }
+
+  RNA_POINTER_INVALIDATE(slot_ptr);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
+  DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION);
+}
+
 static void rna_iterator_action_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
@@ -1689,7 +1706,7 @@ static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* Animation.slots.new(...) */
   func = RNA_def_function(srna, "new", "rna_Action_slots_new");
-  RNA_def_function_ui_description(func, "Add a slot to the animation");
+  RNA_def_function_ui_description(func, "Add a slot to the Action");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func,
@@ -1704,6 +1721,15 @@ static void rna_def_action_slots(BlenderRNA *brna, PropertyRNA *cprop)
 
   parm = RNA_def_pointer(func, "slot", "ActionSlot", "", "Newly created action slot");
   RNA_def_function_return(func, parm);
+
+  /* Animation.slots.remove(layer) */
+  func = RNA_def_function(srna, "remove", "rna_Action_slots_remove");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func,
+                                  "Remove the slot from the Action, including all animation that "
+                                  "is associated with that slot");
+  parm = RNA_def_pointer(func, "action_slot", "ActionSlot", "Action Slot", "The slot to remove");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 }
 
 static void rna_def_action_layers(BlenderRNA *brna, PropertyRNA *cprop)
