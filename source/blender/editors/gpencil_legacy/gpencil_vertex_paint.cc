@@ -962,7 +962,7 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
     }
 
     /* If nothing hit, check if the mouse is inside any filled stroke. */
-    if ((!hit) && ELEM(tool, GPAINT_TOOL_TINT, GPVERTEX_TOOL_DRAW)) {
+    if ((!hit) && ELEM(tool, GPAINT_BRUSH_TYPE_TINT, GPVERTEX_BRUSH_TYPE_DRAW)) {
       MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(gso->object,
                                                                      gps_active->mat_nr + 1);
       if (gp_style->flag & GP_MATERIAL_FILL_SHOW) {
@@ -993,8 +993,9 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
                                                const float bound_mat[4][4])
 {
   Object *ob = CTX_data_active_object(C);
-  const char tool = ob->mode == OB_MODE_VERTEX_GPENCIL_LEGACY ? gso->brush->gpencil_vertex_tool :
-                                                                gso->brush->gpencil_tool;
+  const char tool = ob->mode == OB_MODE_VERTEX_GPENCIL_LEGACY ?
+                        gso->brush->gpencil_vertex_brush_type :
+                        gso->brush->gpencil_brush_type;
   const int radius = (gso->brush->flag & GP_BRUSH_USE_PRESSURE) ?
                          gso->brush->size * gso->pressure :
                          gso->brush->size;
@@ -1030,7 +1031,7 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
    * under the brush. */
   float average_color[3] = {0};
   int totcol = 0;
-  if ((tool == GPVERTEX_TOOL_AVERAGE) && (gso->pbuffer_used > 0)) {
+  if ((tool == GPVERTEX_BRUSH_TYPE_AVERAGE) && (gso->pbuffer_used > 0)) {
     for (i = 0; i < gso->pbuffer_used; i++) {
       selected = &gso->pbuffer[i];
       bGPDstroke *gps = selected->gps;
@@ -1064,29 +1065,29 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
     selected = &gso->pbuffer[i];
 
     switch (tool) {
-      case GPAINT_TOOL_TINT:
-      case GPVERTEX_TOOL_DRAW: {
+      case GPAINT_BRUSH_TYPE_TINT:
+      case GPVERTEX_BRUSH_TYPE_DRAW: {
         brush_tint_apply(gso, selected->gps, selected->pt_index, radius, selected->pc);
         changed |= true;
         break;
       }
-      case GPVERTEX_TOOL_BLUR: {
+      case GPVERTEX_BRUSH_TYPE_BLUR: {
         brush_blur_apply(gso, selected->gps, selected->pt_index, radius, selected->pc);
         changed |= true;
         break;
       }
-      case GPVERTEX_TOOL_AVERAGE: {
+      case GPVERTEX_BRUSH_TYPE_AVERAGE: {
         brush_average_apply(
             gso, selected->gps, selected->pt_index, radius, selected->pc, average_color);
         changed |= true;
         break;
       }
-      case GPVERTEX_TOOL_SMEAR: {
+      case GPVERTEX_BRUSH_TYPE_SMEAR: {
         brush_smear_apply(gso, selected->gps, selected->pt_index, selected);
         changed |= true;
         break;
       }
-      case GPVERTEX_TOOL_REPLACE: {
+      case GPVERTEX_BRUSH_TYPE_REPLACE: {
         brush_replace_apply(gso, selected->gps, selected->pt_index);
         changed |= true;
         break;

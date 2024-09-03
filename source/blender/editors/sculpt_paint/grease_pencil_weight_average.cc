@@ -78,7 +78,7 @@ class AverageWeightPaintOperation : public WeightPaintOperation {
           /* Get the average weight of the points in the brush buffer. */
           const float average_weight = this->get_average_weight_in_brush_buffer(drawing_weights);
 
-          /* Apply the Average tool to all points in the brush buffer. */
+          /* Apply the Average brush to all points in the brush buffer. */
           threading::parallel_for_each(drawing_weights, [&](DrawingWeightData &drawing_weight) {
             for (const BrushPoint &point : drawing_weight.points_in_brush) {
               this->apply_weight_to_point(point, average_weight, drawing_weight);

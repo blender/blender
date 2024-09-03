@@ -418,14 +418,14 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
 {
   switch (mode) {
     case PaintMode::Sculpt:
-      return rna_enum_brush_sculpt_tool_items;
+      return rna_enum_brush_sculpt_brush_type_items;
     case PaintMode::Vertex:
-      return rna_enum_brush_vertex_tool_items;
+      return rna_enum_brush_vertex_brush_type_items;
     case PaintMode::Weight:
-      return rna_enum_brush_weight_tool_items;
+      return rna_enum_brush_weight_brush_type_items;
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
-      return rna_enum_brush_image_tool_items;
+      return rna_enum_brush_image_brush_type_items;
     case PaintMode::GPencil:
       return rna_enum_brush_gpencil_types_items;
     case PaintMode::VertexGPencil:
@@ -435,7 +435,7 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
     case PaintMode::WeightGPencil:
       return rna_enum_brush_gpencil_weight_types_items;
     case PaintMode::SculptCurves:
-      return rna_enum_brush_curves_sculpt_tool_items;
+      return rna_enum_brush_curves_sculpt_brush_type_items;
     case PaintMode::SculptGreasePencil:
       return rna_enum_brush_gpencil_sculpt_types_items;
     case PaintMode::Invalid:
@@ -947,59 +947,59 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   paint->runtime.initialized = true;
 }
 
-uint BKE_paint_get_brush_tool_offset_from_paintmode(const PaintMode mode)
+uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)
 {
   switch (mode) {
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
-      return offsetof(Brush, imagepaint_tool);
+      return offsetof(Brush, image_brush_type);
     case PaintMode::Sculpt:
-      return offsetof(Brush, sculpt_tool);
+      return offsetof(Brush, sculpt_brush_type);
     case PaintMode::Vertex:
-      return offsetof(Brush, vertexpaint_tool);
+      return offsetof(Brush, vertex_brush_type);
     case PaintMode::Weight:
-      return offsetof(Brush, weightpaint_tool);
+      return offsetof(Brush, weight_brush_type);
     case PaintMode::GPencil:
-      return offsetof(Brush, gpencil_tool);
+      return offsetof(Brush, gpencil_brush_type);
     case PaintMode::VertexGPencil:
-      return offsetof(Brush, gpencil_vertex_tool);
+      return offsetof(Brush, gpencil_vertex_brush_type);
     case PaintMode::SculptGPencil:
-      return offsetof(Brush, gpencil_sculpt_tool);
+      return offsetof(Brush, gpencil_sculpt_brush_type);
     case PaintMode::WeightGPencil:
-      return offsetof(Brush, gpencil_weight_tool);
+      return offsetof(Brush, gpencil_weight_brush_type);
     case PaintMode::SculptCurves:
-      return offsetof(Brush, curves_sculpt_tool);
+      return offsetof(Brush, curves_sculpt_brush_type);
     case PaintMode::SculptGreasePencil:
-      return offsetof(Brush, gpencil_sculpt_tool);
+      return offsetof(Brush, gpencil_sculpt_brush_type);
     case PaintMode::Invalid:
       break; /* We don't use these yet. */
   }
   return 0;
 }
 
-std::optional<int> BKE_paint_get_brush_tool_from_obmode(const Brush *brush,
+std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
                                                         const eObjectMode ob_mode)
 {
   switch (ob_mode) {
     case OB_MODE_TEXTURE_PAINT:
     case OB_MODE_EDIT:
-      return brush->imagepaint_tool;
+      return brush->image_brush_type;
     case OB_MODE_SCULPT:
-      return brush->sculpt_tool;
+      return brush->sculpt_brush_type;
     case OB_MODE_VERTEX_PAINT:
-      return brush->vertexpaint_tool;
+      return brush->vertex_brush_type;
     case OB_MODE_WEIGHT_PAINT:
-      return brush->weightpaint_tool;
+      return brush->weight_brush_type;
     case OB_MODE_PAINT_GPENCIL_LEGACY:
-      return brush->gpencil_tool;
+      return brush->gpencil_brush_type;
     case OB_MODE_VERTEX_GPENCIL_LEGACY:
-      return brush->gpencil_vertex_tool;
+      return brush->gpencil_vertex_brush_type;
     case OB_MODE_SCULPT_GPENCIL_LEGACY:
-      return brush->gpencil_sculpt_tool;
+      return brush->gpencil_sculpt_brush_type;
     case OB_MODE_WEIGHT_GPENCIL_LEGACY:
-      return brush->gpencil_weight_tool;
+      return brush->gpencil_weight_brush_type;
     case OB_MODE_SCULPT_CURVES:
-      return brush->curves_sculpt_tool;
+      return brush->curves_sculpt_brush_type;
     default:
       return {};
   }
@@ -1551,7 +1551,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 /* Threshold to move before updating the brush rotation, reduces jitter. */
 static float paint_rake_rotation_spacing(const UnifiedPaintSettings & /*ups*/, const Brush &brush)
 {
-  return brush.sculpt_tool == SCULPT_TOOL_CLAY_STRIPS ? 1.0f : 20.0f;
+  return brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS ? 1.0f : 20.0f;
 }
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings &ups,

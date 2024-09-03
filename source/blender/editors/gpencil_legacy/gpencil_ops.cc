@@ -64,7 +64,7 @@ static bool gpencil_stroke_paintmode_poll(bContext *C)
   return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE));
 }
 
-static bool gpencil_stroke_paintmode_poll_with_tool(bContext *C, const char gpencil_tool)
+static bool gpencil_stroke_paintmode_poll_with_tool(bContext *C, const char gpencil_brush_type)
 {
   /* TODO: limit this to mode, but review 2D editors */
   bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -79,10 +79,12 @@ static bool gpencil_stroke_paintmode_poll_with_tool(bContext *C, const char gpen
 
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   return ((gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush && brush->gpencil_settings) &&
-          WM_toolsystem_active_tool_is_brush(C) && (brush->gpencil_tool == gpencil_tool));
+          WM_toolsystem_active_tool_is_brush(C) &&
+          (brush->gpencil_brush_type == gpencil_brush_type));
 }
 
-static bool gpencil_stroke_vertexmode_poll_with_tool(bContext *C, const char gpencil_vertex_tool)
+static bool gpencil_stroke_vertexmode_poll_with_tool(bContext *C,
+                                                     const char gpencil_vertex_brush_type)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
@@ -97,10 +99,11 @@ static bool gpencil_stroke_vertexmode_poll_with_tool(bContext *C, const char gpe
   Brush *brush = BKE_paint_brush(&ts->gp_vertexpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_VERTEXMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
-          (brush->gpencil_vertex_tool == gpencil_vertex_tool));
+          (brush->gpencil_vertex_brush_type == gpencil_vertex_brush_type));
 }
 
-static bool gpencil_stroke_sculptmode_poll_with_tool(bContext *C, const char gpencil_sculpt_tool)
+static bool gpencil_stroke_sculptmode_poll_with_tool(bContext *C,
+                                                     const char gpencil_sculpt_brush_type)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
@@ -115,10 +118,11 @@ static bool gpencil_stroke_sculptmode_poll_with_tool(bContext *C, const char gpe
   Brush *brush = BKE_paint_brush(&ts->gp_sculptpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_SCULPTMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
-          (brush->gpencil_sculpt_tool == gpencil_sculpt_tool));
+          (brush->gpencil_sculpt_brush_type == gpencil_sculpt_brush_type));
 }
 
-static bool gpencil_stroke_weightmode_poll_with_tool(bContext *C, const char gpencil_weight_tool)
+static bool gpencil_stroke_weightmode_poll_with_tool(bContext *C,
+                                                     const char gpencil_weight_brush_type)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
@@ -133,31 +137,31 @@ static bool gpencil_stroke_weightmode_poll_with_tool(bContext *C, const char gpe
   Brush *brush = BKE_paint_brush(&ts->gp_weightpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
-          (brush->gpencil_weight_tool == gpencil_weight_tool));
+          (brush->gpencil_weight_brush_type == gpencil_weight_brush_type));
 }
 
 /* Poll callback for stroke painting (draw brush) */
 static bool gpencil_stroke_paintmode_draw_poll(bContext *C)
 {
-  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_DRAW);
+  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_BRUSH_TYPE_DRAW);
 }
 
 /* Poll callback for stroke painting (erase brush) */
 static bool gpencil_stroke_paintmode_erase_poll(bContext *C)
 {
-  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_ERASE);
+  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_BRUSH_TYPE_ERASE);
 }
 
 /* Poll callback for stroke painting (fill) */
 static bool gpencil_stroke_paintmode_fill_poll(bContext *C)
 {
-  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_FILL);
+  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_BRUSH_TYPE_FILL);
 }
 
 /* Poll callback for stroke painting (tint) */
 static bool gpencil_stroke_paintmode_tint_poll(bContext *C)
 {
-  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_TINT);
+  return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_BRUSH_TYPE_TINT);
 }
 
 /* Poll callback for stroke sculpting mode */
@@ -208,107 +212,107 @@ static bool gpencil_stroke_vertexmode_poll(bContext *C)
 /* Poll callback for vertex painting (draw) */
 static bool gpencil_stroke_vertexmode_draw_poll(bContext *C)
 {
-  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_TOOL_DRAW);
+  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_BRUSH_TYPE_DRAW);
 }
 
 /* Poll callback for vertex painting (blur) */
 static bool gpencil_stroke_vertexmode_blur_poll(bContext *C)
 {
-  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_TOOL_BLUR);
+  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_BRUSH_TYPE_BLUR);
 }
 
 /* Poll callback for vertex painting (average) */
 static bool gpencil_stroke_vertexmode_average_poll(bContext *C)
 {
-  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_TOOL_AVERAGE);
+  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_BRUSH_TYPE_AVERAGE);
 }
 
 /* Poll callback for vertex painting (smear) */
 static bool gpencil_stroke_vertexmode_smear_poll(bContext *C)
 {
-  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_TOOL_SMEAR);
+  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_BRUSH_TYPE_SMEAR);
 }
 
 /* Poll callback for vertex painting (replace) */
 static bool gpencil_stroke_vertexmode_replace_poll(bContext *C)
 {
-  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_TOOL_REPLACE);
+  return gpencil_stroke_vertexmode_poll_with_tool(C, GPVERTEX_BRUSH_TYPE_REPLACE);
 }
 
 /* Poll callback for sculpt (Smooth) */
 static bool gpencil_stroke_sculptmode_smooth_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_SMOOTH);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_SMOOTH);
 }
 /* Poll callback for sculpt (Thickness) */
 static bool gpencil_stroke_sculptmode_thickness_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_THICKNESS);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_THICKNESS);
 }
 
 /* Poll callback for sculpt (Strength) */
 static bool gpencil_stroke_sculptmode_strength_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_STRENGTH);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_STRENGTH);
 }
 
 /* Poll callback for sculpt (Grab) */
 static bool gpencil_stroke_sculptmode_grab_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_GRAB);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_GRAB);
 }
 
 /* Poll callback for sculpt (Push) */
 static bool gpencil_stroke_sculptmode_push_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_PUSH);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_PUSH);
 }
 
 /* Poll callback for sculpt (Twist) */
 static bool gpencil_stroke_sculptmode_twist_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_TWIST);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_TWIST);
 }
 
 /* Poll callback for sculpt (Pinch) */
 static bool gpencil_stroke_sculptmode_pinch_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_PINCH);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_PINCH);
 }
 /* Poll callback for sculpt (Randomize) */
 static bool gpencil_stroke_sculptmode_randomize_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_RANDOMIZE);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_RANDOMIZE);
 }
 
 /* Poll callback for sculpt (Clone) */
 static bool gpencil_stroke_sculptmode_clone_poll(bContext *C)
 {
-  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_TOOL_CLONE);
+  return gpencil_stroke_sculptmode_poll_with_tool(C, GPSCULPT_BRUSH_TYPE_CLONE);
 }
 
 /* Poll callback for weight paint (Draw) */
 static bool gpencil_stroke_weightmode_draw_poll(bContext *C)
 {
-  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_TOOL_DRAW);
+  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_BRUSH_TYPE_DRAW);
 }
 
 /* Poll callback for weight paint (Blur) */
 static bool gpencil_stroke_weightmode_blur_poll(bContext *C)
 {
-  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_TOOL_BLUR);
+  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_BRUSH_TYPE_BLUR);
 }
 
 /* Poll callback for weight paint (Average) */
 static bool gpencil_stroke_weightmode_average_poll(bContext *C)
 {
-  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_TOOL_AVERAGE);
+  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_BRUSH_TYPE_AVERAGE);
 }
 
 /* Poll callback for weight paint (Smear) */
 static bool gpencil_stroke_weightmode_smear_poll(bContext *C)
 {
-  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_TOOL_SMEAR);
+  return gpencil_stroke_weightmode_poll_with_tool(C, GPWEIGHT_BRUSH_TYPE_SMEAR);
 }
 
 /* Stroke Editing Keymap - Only when editmode is enabled */

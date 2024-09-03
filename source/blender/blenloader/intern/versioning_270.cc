@@ -652,7 +652,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 272, 1)) {
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       if ((br->ob_mode & OB_MODE_SCULPT) &&
-          ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK))
+          ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_SNAKE_HOOK))
       {
         br->alpha = 1.0f;
       }
@@ -1221,7 +1221,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      if (br->sculpt_tool == SCULPT_TOOL_FLATTEN) {
+      if (br->sculpt_brush_type == SCULPT_BRUSH_TYPE_FLATTEN) {
         br->flag |= BRUSH_ACCUMULATE;
       }
     }

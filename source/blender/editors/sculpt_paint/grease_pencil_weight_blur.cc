@@ -8,9 +8,9 @@ namespace blender::ed::sculpt_paint::greasepencil {
 
 class BlurWeightPaintOperation : public WeightPaintOperation {
   /* Apply the Blur tool to a point under the brush. */
-  void apply_blur_tool(const BrushPoint &point,
-                       DrawingWeightData &drawing_weight,
-                       PointsTouchedByBrush &touched_points)
+  void apply_blur_brush(const BrushPoint &point,
+                        DrawingWeightData &drawing_weight,
+                        PointsTouchedByBrush &touched_points)
   {
     /* Find the nearest neighbors of the to-be-blurred point. The point itself is included. */
     KDTreeNearest_2d nearest_points[BLUR_NEIGHBOUR_NUM];
@@ -99,10 +99,10 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
           PointsTouchedByBrush touched_points = this->create_affected_points_kdtree(
               drawing_weights);
 
-          /* Apply the Blur tool to all points in the brush buffer. */
+          /* Apply the Blur brush to all points in the brush buffer. */
           threading::parallel_for_each(drawing_weights, [&](DrawingWeightData &drawing_weight) {
             for (const BrushPoint &point : drawing_weight.points_in_brush) {
-              this->apply_blur_tool(point, drawing_weight, touched_points);
+              this->apply_blur_brush(point, drawing_weight, touched_points);
 
               /* Normalize weights of bone-deformed vertex groups to 1.0f. */
               if (this->auto_normalize) {

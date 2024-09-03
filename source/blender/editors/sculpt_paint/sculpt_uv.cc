@@ -48,15 +48,15 @@
 #include "UI_view2d.hh"
 
 typedef enum eBrushUVSculptTool {
-  UV_SCULPT_TOOL_GRAB = 0,
-  UV_SCULPT_TOOL_RELAX = 1,
-  UV_SCULPT_TOOL_PINCH = 2,
+  UV_SCULPT_BRUSH_TYPE_GRAB = 0,
+  UV_SCULPT_BRUSH_TYPE_RELAX = 1,
+  UV_SCULPT_BRUSH_TYPE_PINCH = 2,
 } eBrushUVSculptTool;
 
 enum {
-  UV_SCULPT_TOOL_RELAX_LAPLACIAN = 0,
-  UV_SCULPT_TOOL_RELAX_HC = 1,
-  UV_SCULPT_TOOL_RELAX_COTAN = 2,
+  UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN = 0,
+  UV_SCULPT_BRUSH_TYPE_RELAX_HC = 1,
+  UV_SCULPT_BRUSH_TYPE_RELAX_COTAN = 2,
 };
 
 /* When set, the UV element is on the boundary of the graph.
@@ -364,10 +364,10 @@ static void add_weighted_edge(float (*delta_buf)[3],
 static float tri_weight_v3(int method, const float *v1, const float *v2, const float *v3)
 {
   switch (method) {
-    case UV_SCULPT_TOOL_RELAX_LAPLACIAN:
-    case UV_SCULPT_TOOL_RELAX_HC:
+    case UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN:
+    case UV_SCULPT_BRUSH_TYPE_RELAX_HC:
       return 1.0f;
-    case UV_SCULPT_TOOL_RELAX_COTAN:
+    case UV_SCULPT_BRUSH_TYPE_RELAX_COTAN:
       return cotangent_tri_weight_v3(v1, v2, v3);
     default:
       BLI_assert_unreachable();
@@ -383,12 +383,12 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
                                     const float aspect_ratio,
                                     const int method)
 {
-  if (method == UV_SCULPT_TOOL_RELAX_HC) {
+  if (method == UV_SCULPT_BRUSH_TYPE_RELAX_HC) {
     HC_relaxation_iteration_uv(
         sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_sq, aspect_ratio);
     return;
   }
-  if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
+  if (method == UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN) {
     laplacian_relaxation_iteration_uv(
         sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_sq, aspect_ratio);
     return;
@@ -425,7 +425,7 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
     const float weight_prev = tri_weight_v3(method, v_prev_co, v_curr_co, v_next_co);
     add_weighted_edge(delta_buf, storage, head_next, head_curr, *luv_next, *luv_curr, weight_prev);
 
-    if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
+    if (method == UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN) {
       /* Laplacian method has zero weights on virtual edges. */
       continue;
     }
@@ -508,7 +508,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
   switch (tool) {
-    case UV_SCULPT_TOOL_PINCH: {
+    case UV_SCULPT_BRUSH_TYPE_PINCH: {
       int i;
       alpha *= invert;
       for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
@@ -542,7 +542,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
       }
       break;
     }
-    case UV_SCULPT_TOOL_RELAX: {
+    case UV_SCULPT_BRUSH_TYPE_RELAX: {
       relaxation_iteration_uv(sculptdata,
                               cd_loop_uv_offset,
                               co,
@@ -552,7 +552,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
                               RNA_enum_get(op->ptr, "relax_method"));
       break;
     }
-    case UV_SCULPT_TOOL_GRAB: {
+    case UV_SCULPT_BRUSH_TYPE_GRAB: {
       int i;
       float diff[2];
       sub_v2_v2v2(diff, co, sculptdata->initial_stroke->init_coord);
@@ -676,13 +676,13 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
   int island_index = 0;
   if (STREQ(op->type->idname, "SCULPT_OT_uv_sculpt_relax")) {
-    data->tool = UV_SCULPT_TOOL_RELAX;
+    data->tool = UV_SCULPT_BRUSH_TYPE_RELAX;
   }
   else if (STREQ(op->type->idname, "SCULPT_OT_uv_sculpt_grab")) {
-    data->tool = UV_SCULPT_TOOL_GRAB;
+    data->tool = UV_SCULPT_BRUSH_TYPE_GRAB;
   }
   else {
-    data->tool = UV_SCULPT_TOOL_PINCH;
+    data->tool = UV_SCULPT_BRUSH_TYPE_PINCH;
   }
   data->invert = RNA_boolean_get(op->ptr, "use_invert");
 
@@ -762,7 +762,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         counter++;
         data->uv[counter].element = element;
         data->uv[counter].uv = *luv;
-        if (data->tool != UV_SCULPT_TOOL_GRAB) {
+        if (data->tool != UV_SCULPT_BRUSH_TYPE_GRAB) {
           if (BM_ELEM_CD_GET_BOOL(element->l, offsets.pin)) {
             data->uv[counter].is_locked = true;
           }
@@ -856,7 +856,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   BKE_image_find_nearest_tile_with_offset(sima->image, co, data->uv_base_offset);
 
   /* Allocate initial selection for grab tool */
-  if (data->tool == UV_SCULPT_TOOL_GRAB) {
+  if (data->tool == UV_SCULPT_BRUSH_TYPE_GRAB) {
     float alpha = data->uvsculpt->strength;
     float radius = data->uvsculpt->size;
     int width, height;
@@ -1004,13 +1004,13 @@ void SCULPT_OT_uv_sculpt_relax(wmOperatorType *ot)
   register_common_props(ot);
 
   static const EnumPropertyItem relax_method_items[] = {
-      {UV_SCULPT_TOOL_RELAX_LAPLACIAN,
+      {UV_SCULPT_BRUSH_TYPE_RELAX_LAPLACIAN,
        "LAPLACIAN",
        0,
        "Laplacian",
        "Use Laplacian method for relaxation"},
-      {UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
-      {UV_SCULPT_TOOL_RELAX_COTAN,
+      {UV_SCULPT_BRUSH_TYPE_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
+      {UV_SCULPT_BRUSH_TYPE_RELAX_COTAN,
        "COTAN",
        0,
        "Geometry",

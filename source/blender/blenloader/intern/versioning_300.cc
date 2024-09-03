@@ -3560,7 +3560,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       /* Buggy code in wm_toolsystem broke smear in old files,
        * reset to defaults. */
-      if (br->sculpt_tool == SCULPT_TOOL_SMEAR) {
+      if (br->sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR) {
         br->alpha = 1.0f;
         br->spacing = 5;
         br->flag &= ~BRUSH_ALPHA_PRESSURE;
@@ -3724,7 +3724,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
      * to bugs in the wm_toolsystem API (auto-creation of sculpt brushes
      * was broken).  Go through and reset all smear brushes. */
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      if (br->sculpt_tool == SCULPT_TOOL_SMEAR) {
+      if (br->sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR) {
         br->alpha = 1.0f;
         br->spacing = 5;
         br->flag &= ~BRUSH_ALPHA_PRESSURE;

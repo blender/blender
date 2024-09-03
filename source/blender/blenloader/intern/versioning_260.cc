@@ -1329,7 +1329,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 8)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
         brush->alpha = 1.0f;
       }
     }

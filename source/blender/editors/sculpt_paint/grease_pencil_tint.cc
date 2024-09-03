@@ -137,7 +137,7 @@ void TintOperation::execute_tint(const bContext &C, const InputSample &extension
   Paint *paint = &scene->toolsettings->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);
 
-  /* Get the tool's data. */
+  /* Get the brush's data. */
   const float2 mouse_position = extension_sample.mouse_position;
   float radius = radius_;
   float strength = strength_;

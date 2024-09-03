@@ -198,8 +198,9 @@ bool use_normal(const VPaint &vp)
 bool brush_use_accumulate_ex(const Brush &brush, const eObjectMode ob_mode)
 {
   return ((brush.flag & BRUSH_ACCUMULATE) != 0 ||
-          (ob_mode == OB_MODE_VERTEX_PAINT ? (brush.vertexpaint_tool == VPAINT_TOOL_SMEAR) :
-                                             (brush.weightpaint_tool == WPAINT_TOOL_SMEAR)));
+          (ob_mode == OB_MODE_VERTEX_PAINT ?
+               (brush.vertex_brush_type == VPAINT_BRUSH_TYPE_SMEAR) :
+               (brush.weight_brush_type == WPAINT_BRUSH_TYPE_SMEAR)));
 }
 
 bool brush_use_accumulate(const VPaint &vp)
@@ -956,9 +957,9 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
   vpd->paintcol = vpaint_get_current_col(
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
 
-  vpd->is_texbrush = !(brush.vertexpaint_tool == VPAINT_TOOL_BLUR) && brush.mtex.tex;
+  vpd->is_texbrush = !(brush.vertex_brush_type == VPAINT_BRUSH_TYPE_BLUR) && brush.mtex.tex;
 
-  if (brush.vertexpaint_tool == VPAINT_TOOL_SMEAR) {
+  if (brush.vertex_brush_type == VPAINT_BRUSH_TYPE_SMEAR) {
     const GVArray attribute = *mesh.attributes().lookup(mesh.active_color_attribute, domain);
     vpd->smear.color_prev = GArray(attribute.type(), attribute.size());
     attribute.materialize(vpd->smear.color_prev.data());
@@ -1874,18 +1875,18 @@ static void vpaint_paint_leaves(bContext *C,
 
   const Brush &brush = *ob.sculpt->cache->brush;
 
-  switch ((eBrushVertexPaintTool)brush.vertexpaint_tool) {
-    case VPAINT_TOOL_AVERAGE:
+  switch ((eBrushVertexPaintType)brush.vertex_brush_type) {
+    case VPAINT_BRUSH_TYPE_AVERAGE:
       calculate_average_color(vpd, ob, mesh, brush, attribute, nodes, node_mask);
       vpaint_do_draw(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
-    case VPAINT_TOOL_DRAW:
+    case VPAINT_BRUSH_TYPE_DRAW:
       vpaint_do_draw(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
-    case VPAINT_TOOL_BLUR:
+    case VPAINT_BRUSH_TYPE_BLUR:
       vpaint_do_blur(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
-    case VPAINT_TOOL_SMEAR:
+    case VPAINT_BRUSH_TYPE_SMEAR:
       do_vpaint_brush_smear(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
   }
@@ -2024,7 +2025,7 @@ static void vpaint_stroke_update_step(bContext *C,
   BKE_mesh_batch_cache_dirty_tag((Mesh *)ob.data, BKE_MESH_BATCH_DIRTY_ALL);
 
   Brush &brush = *BKE_paint_brush(&vp.paint);
-  if (brush.vertexpaint_tool == VPAINT_TOOL_SMEAR) {
+  if (brush.vertex_brush_type == VPAINT_BRUSH_TYPE_SMEAR) {
     vpd.smear.color_prev = vpd.smear.color_curr;
   }
 

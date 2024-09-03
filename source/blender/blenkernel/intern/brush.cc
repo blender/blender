@@ -417,7 +417,7 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
     auto mode_property = idprop::create_bool(prop_name, true);
     BKE_asset_metadata_idprop_ensure(asset_data, mode_property.release());
 
-    if (std::optional<int> brush_tool = BKE_paint_get_brush_tool_from_obmode(brush, mode)) {
+    if (std::optional<int> brush_tool = BKE_paint_get_brush_type_from_obmode(brush, mode)) {
       auto type_property = idprop::create(tool_prop_name, *brush_tool);
       BKE_asset_metadata_idprop_ensure(asset_data, type_property.release());
     }
@@ -749,30 +749,30 @@ void BKE_brush_sculpt_reset(Brush *br)
   br->alpha = 0.5f;
 
   /* Brush settings */
-  switch (br->sculpt_tool) {
-    case SCULPT_TOOL_DRAW_SHARP:
+  switch (br->sculpt_brush_type) {
+    case SCULPT_BRUSH_TYPE_DRAW_SHARP:
       br->flag |= BRUSH_DIR_IN;
       br->curve_preset = BRUSH_CURVE_POW4;
       br->spacing = 5;
       break;
-    case SCULPT_TOOL_DISPLACEMENT_ERASER:
+    case SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER:
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       br->spacing = 10;
       br->alpha = 1.0f;
       break;
-    case SCULPT_TOOL_SLIDE_RELAX:
+    case SCULPT_BRUSH_TYPE_SLIDE_RELAX:
       br->spacing = 10;
       br->alpha = 1.0f;
       br->slide_deform_type = BRUSH_SLIDE_DEFORM_DRAG;
       break;
-    case SCULPT_TOOL_CLAY:
+    case SCULPT_BRUSH_TYPE_CLAY:
       br->flag |= BRUSH_SIZE_PRESSURE;
       br->spacing = 3;
       br->autosmooth_factor = 0.25f;
       br->normal_radius_factor = 0.75f;
       br->hardness = 0.65f;
       break;
-    case SCULPT_TOOL_CLAY_THUMB:
+    case SCULPT_BRUSH_TYPE_CLAY_THUMB:
       br->alpha = 0.5f;
       br->normal_radius_factor = 1.0f;
       br->spacing = 6;
@@ -780,7 +780,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
       br->flag |= BRUSH_ACCUMULATE | BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->alpha = 0.6f;
@@ -789,7 +789,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->tip_roundness = 0.18f;
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
-    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+    case SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE:
       br->flag2 |= BRUSH_MULTIPLANE_SCRAPE_DYNAMIC | BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW;
       br->alpha = 0.7f;
       br->normal_radius_factor = 0.70f;
@@ -797,22 +797,22 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTH;
       br->spacing = 5;
       break;
-    case SCULPT_TOOL_CREASE:
+    case SCULPT_BRUSH_TYPE_CREASE:
       br->flag |= BRUSH_DIR_IN;
       br->alpha = 0.25;
       break;
-    case SCULPT_TOOL_SCRAPE:
-    case SCULPT_TOOL_FILL:
+    case SCULPT_BRUSH_TYPE_SCRAPE:
+    case SCULPT_BRUSH_TYPE_FILL:
       br->alpha = 0.7f;
       br->area_radius_factor = 0.5f;
       br->spacing = 7;
       br->flag |= BRUSH_ACCUMULATE;
       br->flag |= BRUSH_INVERT_TO_SCRAPE_FILL;
       break;
-    case SCULPT_TOOL_ROTATE:
+    case SCULPT_BRUSH_TYPE_ROTATE:
       br->alpha = 1.0;
       break;
-    case SCULPT_TOOL_SMOOTH:
+    case SCULPT_BRUSH_TYPE_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->spacing = 5;
       br->alpha = 0.7f;
@@ -820,24 +820,24 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->surface_smooth_current_vertex = 0.5f;
       br->surface_smooth_iterations = 4;
       break;
-    case SCULPT_TOOL_SNAKE_HOOK:
+    case SCULPT_BRUSH_TYPE_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
       break;
-    case SCULPT_TOOL_THUMB:
+    case SCULPT_BRUSH_TYPE_THUMB:
       br->size = 75;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_ELASTIC_DEFORM:
+    case SCULPT_BRUSH_TYPE_ELASTIC_DEFORM:
       br->elastic_deform_volume_preservation = 0.4f;
       br->elastic_deform_type = BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_POSE:
+    case SCULPT_BRUSH_TYPE_POSE:
       br->pose_smooth_iterations = 4;
       br->pose_ik_segments = 1;
       br->flag2 |= BRUSH_POSE_IK_ANCHORED | BRUSH_USE_CONNECTED_ONLY;
@@ -845,26 +845,26 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_BOUNDARY:
+    case SCULPT_BRUSH_TYPE_BOUNDARY:
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_CONSTANT;
       break;
-    case SCULPT_TOOL_DRAW_FACE_SETS:
+    case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
       br->alpha = 0.5f;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_GRAB:
+    case SCULPT_BRUSH_TYPE_GRAB:
       br->alpha = 0.4f;
       br->size = 75;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
-    case SCULPT_TOOL_CLOTH:
+    case SCULPT_BRUSH_TYPE_CLOTH:
       br->cloth_mass = 1.0f;
       br->cloth_damping = 0.01f;
       br->cloth_sim_limit = 2.5f;
@@ -872,13 +872,13 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->cloth_deform_type = BRUSH_CLOTH_DEFORM_DRAG;
       br->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE);
       break;
-    case SCULPT_TOOL_LAYER:
+    case SCULPT_BRUSH_TYPE_LAYER:
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->hardness = 0.35f;
       br->alpha = 1.0f;
       br->height = 0.05f;
       break;
-    case SCULPT_TOOL_PAINT:
+    case SCULPT_BRUSH_TYPE_PAINT:
       br->hardness = 0.4f;
       br->spacing = 10;
       br->alpha = 1.0f;
@@ -888,14 +888,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       zero_v3(br->rgb);
       copy_v3_fl(br->secondary_rgb, 1.0f);
       break;
-    case SCULPT_TOOL_SMEAR:
+    case SCULPT_BRUSH_TYPE_SMEAR:
       br->alpha = 0.6f;
       br->spacing = 5;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
       break;
-    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+    case SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR:
       br->alpha = 1.0f;
       br->spacing = 5;
       br->hardness = 0.7f;
@@ -913,16 +913,16 @@ void BKE_brush_sculpt_reset(Brush *br)
   br->add_col[3] = 0.90f;
   br->sub_col[3] = 0.90f;
 
-  switch (br->sculpt_tool) {
-    case SCULPT_TOOL_DRAW:
-    case SCULPT_TOOL_DRAW_SHARP:
-    case SCULPT_TOOL_CLAY:
-    case SCULPT_TOOL_CLAY_STRIPS:
-    case SCULPT_TOOL_CLAY_THUMB:
-    case SCULPT_TOOL_LAYER:
-    case SCULPT_TOOL_INFLATE:
-    case SCULPT_TOOL_BLOB:
-    case SCULPT_TOOL_CREASE:
+  switch (br->sculpt_brush_type) {
+    case SCULPT_BRUSH_TYPE_DRAW:
+    case SCULPT_BRUSH_TYPE_DRAW_SHARP:
+    case SCULPT_BRUSH_TYPE_CLAY:
+    case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
+    case SCULPT_BRUSH_TYPE_CLAY_THUMB:
+    case SCULPT_BRUSH_TYPE_LAYER:
+    case SCULPT_BRUSH_TYPE_INFLATE:
+    case SCULPT_BRUSH_TYPE_BLOB:
+    case SCULPT_BRUSH_TYPE_CREASE:
       br->add_col[0] = 0.0f;
       br->add_col[1] = 0.5f;
       br->add_col[2] = 1.0f;
@@ -931,11 +931,11 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 1.0f;
       break;
 
-    case SCULPT_TOOL_SMOOTH:
-    case SCULPT_TOOL_FLATTEN:
-    case SCULPT_TOOL_FILL:
-    case SCULPT_TOOL_SCRAPE:
-    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+    case SCULPT_BRUSH_TYPE_SMOOTH:
+    case SCULPT_BRUSH_TYPE_FLATTEN:
+    case SCULPT_BRUSH_TYPE_FILL:
+    case SCULPT_BRUSH_TYPE_SCRAPE:
+    case SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE:
       br->add_col[0] = 0.877f;
       br->add_col[1] = 0.142f;
       br->add_col[2] = 0.117f;
@@ -944,16 +944,16 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.117f;
       break;
 
-    case SCULPT_TOOL_PINCH:
-    case SCULPT_TOOL_GRAB:
-    case SCULPT_TOOL_SNAKE_HOOK:
-    case SCULPT_TOOL_THUMB:
-    case SCULPT_TOOL_NUDGE:
-    case SCULPT_TOOL_ROTATE:
-    case SCULPT_TOOL_ELASTIC_DEFORM:
-    case SCULPT_TOOL_POSE:
-    case SCULPT_TOOL_BOUNDARY:
-    case SCULPT_TOOL_SLIDE_RELAX:
+    case SCULPT_BRUSH_TYPE_PINCH:
+    case SCULPT_BRUSH_TYPE_GRAB:
+    case SCULPT_BRUSH_TYPE_SNAKE_HOOK:
+    case SCULPT_BRUSH_TYPE_THUMB:
+    case SCULPT_BRUSH_TYPE_NUDGE:
+    case SCULPT_BRUSH_TYPE_ROTATE:
+    case SCULPT_BRUSH_TYPE_ELASTIC_DEFORM:
+    case SCULPT_BRUSH_TYPE_POSE:
+    case SCULPT_BRUSH_TYPE_BOUNDARY:
+    case SCULPT_BRUSH_TYPE_SLIDE_RELAX:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.95f;
       br->add_col[2] = 0.005f;
@@ -962,12 +962,12 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.005f;
       break;
 
-    case SCULPT_TOOL_SIMPLIFY:
-    case SCULPT_TOOL_PAINT:
-    case SCULPT_TOOL_MASK:
-    case SCULPT_TOOL_DRAW_FACE_SETS:
-    case SCULPT_TOOL_DISPLACEMENT_ERASER:
-    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+    case SCULPT_BRUSH_TYPE_SIMPLIFY:
+    case SCULPT_BRUSH_TYPE_PAINT:
+    case SCULPT_BRUSH_TYPE_MASK:
+    case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
+    case SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER:
+    case SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR:
       br->add_col[0] = 0.75f;
       br->add_col[1] = 0.75f;
       br->add_col[2] = 0.75f;
@@ -976,7 +976,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.75f;
       break;
 
-    case SCULPT_TOOL_CLOTH:
+    case SCULPT_BRUSH_TYPE_CLOTH:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.5f;
       br->add_col[2] = 0.1f;
@@ -1340,21 +1340,21 @@ bool BKE_brush_use_alpha_pressure(const Brush *brush)
 
 bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
 {
-  return ELEM(brush->sculpt_tool,
-              SCULPT_TOOL_BLOB,
-              SCULPT_TOOL_DRAW,
-              SCULPT_TOOL_DRAW_SHARP,
-              SCULPT_TOOL_INFLATE,
-              SCULPT_TOOL_CLAY,
-              SCULPT_TOOL_CLAY_STRIPS,
-              SCULPT_TOOL_CLAY_THUMB,
-              SCULPT_TOOL_PINCH,
-              SCULPT_TOOL_CREASE,
-              SCULPT_TOOL_LAYER,
-              SCULPT_TOOL_FLATTEN,
-              SCULPT_TOOL_FILL,
-              SCULPT_TOOL_SCRAPE,
-              SCULPT_TOOL_MASK);
+  return ELEM(brush->sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_INFLATE,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_CLAY_THUMB,
+              SCULPT_BRUSH_TYPE_PINCH,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_LAYER,
+              SCULPT_BRUSH_TYPE_FLATTEN,
+              SCULPT_BRUSH_TYPE_FILL,
+              SCULPT_BRUSH_TYPE_SCRAPE,
+              SCULPT_BRUSH_TYPE_MASK);
 }
 
 void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojected_radius)
@@ -1751,11 +1751,11 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
 {
   switch (paint_mode) {
     case PaintMode::Sculpt: {
-      if (brush->sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE) {
         return true;
       }
 
-      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
+      if (ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT) &&
           (brush->tip_roundness < 1.0f || brush->tip_scale_x != 1.0f))
       {
         return true;

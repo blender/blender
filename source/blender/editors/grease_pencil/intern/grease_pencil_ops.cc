@@ -156,7 +156,7 @@ static bool keymap_grease_pencil_brush_stroke_poll(bContext *C)
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
-  return brush && brush->gpencil_settings && brush->gpencil_tool != GPAINT_TOOL_FILL;
+  return brush && brush->gpencil_settings && brush->gpencil_brush_type != GPAINT_BRUSH_TYPE_FILL;
 }
 
 static void keymap_grease_pencil_brush_stroke(wmKeyConfig *keyconf)
@@ -177,7 +177,7 @@ static bool keymap_grease_pencil_fill_tool_poll(bContext *C)
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
-  return brush && brush->gpencil_settings && brush->gpencil_tool == GPAINT_TOOL_FILL;
+  return brush && brush->gpencil_settings && brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_FILL;
 }
 
 static void keymap_grease_pencil_fill_tool(wmKeyConfig *keyconf)

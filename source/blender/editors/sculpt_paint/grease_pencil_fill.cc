@@ -1120,7 +1120,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
     return {};
   }
 
-  /* TODO should use the same hardness as the paint tool. */
+  /* TODO should use the same hardness as the paint brush. */
   const float stroke_hardness = 1.0f;
 
   bke::CurvesGeometry fill_curves = process_image(*ima,

@@ -158,7 +158,7 @@ struct EraseOperationExecutor {
   }
 
   /**
-   * Computes the intersection between the eraser tool and a 2D segment, using integer values.
+   * Computes the intersection between the eraser brush and a 2D segment, using integer values.
    * Also computes if the endpoints of the segment lie inside/outside, or in the boundary of the
    * eraser.
    *
@@ -840,11 +840,11 @@ struct EraseOperationExecutor {
     Paint *paint = &scene->toolsettings->gp_paint->paint;
     Brush *brush = BKE_paint_brush(paint);
 
-    if (brush->gpencil_tool == GPAINT_TOOL_DRAW) {
+    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) {
       brush = BKE_paint_eraser_brush(paint);
     }
 
-    /* Get the tool's data. */
+    /* Get the brush data. */
     this->mouse_position = extension_sample.mouse_position;
     this->eraser_radius = self.radius_;
     this->eraser_strength = self.strength_;

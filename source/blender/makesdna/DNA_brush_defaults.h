@@ -24,7 +24,7 @@
  \
     .ob_mode = OB_MODE_ALL_PAINT, \
  \
-    /* BRUSH SCULPT TOOL SETTINGS */ \
+    /* BRUSH SCULPT BRUSH SETTINGS */ \
     .weight = 1.0f, /* weight of brush 0 - 1.0 */ \
     .size = 35,     /* radius of the brush in pixels */ \
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
@@ -47,7 +47,7 @@
     .normal_weight = 0.0f, \
     .fill_threshold = 0.2f, \
  \
-    /* BRUSH PAINT TOOL SETTINGS */ \
+    /* BRUSH PAINT BRUSH SETTINGS */ \
     /* Default rgb color of the brush when painting - white. */ \
     .rgb = {1.0f, 1.0f, 1.0f}, \
  \
@@ -87,8 +87,8 @@
     .stencil_pos = {256, 256}, \
     .stencil_dimension = {256, 256}, \
  \
-    /* sculpting defaults to the draw tool for new brushes */ \
-    .sculpt_tool = SCULPT_TOOL_DRAW, \
+    /* sculpting defaults to the draw brush for new brushes */ \
+    .sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW, \
     .pose_smooth_iterations = 4, \
     .pose_ik_segments = 1, \
     .hardness = 0.0f, \

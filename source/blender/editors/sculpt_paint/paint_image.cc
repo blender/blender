@@ -329,7 +329,7 @@ static bool image_paint_2d_clone_poll(bContext *C)
   Brush *brush = image_paint_brush(C);
 
   if (!CTX_wm_region_view3d(C) && ED_image_tools_paint_poll(C)) {
-    if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
+    if (brush && (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE)) {
       if (brush->clone.image) {
         return true;
       }
@@ -349,8 +349,10 @@ bool paint_use_opacity_masking(Brush *brush)
 {
   return ((brush->flag & BRUSH_AIRBRUSH) || (brush->flag & BRUSH_DRAG_DOT) ||
                   (brush->flag & BRUSH_ANCHORED) ||
-                  ELEM(brush->imagepaint_tool, PAINT_TOOL_SMEAR, PAINT_TOOL_SOFTEN) ||
-                  (brush->imagepaint_tool == PAINT_TOOL_FILL) ||
+                  ELEM(brush->image_brush_type,
+                       IMAGE_PAINT_BRUSH_TYPE_SMEAR,
+                       IMAGE_PAINT_BRUSH_TYPE_SOFTEN) ||
+                  (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) ||
                   (brush->flag & BRUSH_USE_GRADIENT) ||
                   (brush->mtex.tex && !ELEM(brush->mtex.brush_map_mode,
                                             MTEX_MAP_MODE_TILED,
@@ -1050,7 +1052,7 @@ static bool brush_colors_flip_poll(bContext *C)
 {
   if (ED_image_tools_paint_poll(C)) {
     Brush *br = image_paint_brush(C);
-    if (ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL)) {
+    if (ELEM(br->image_brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL)) {
       return true;
     }
   }

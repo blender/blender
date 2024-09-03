@@ -713,19 +713,19 @@ static bool brush_smear_apply(tGP_BrushWeightpaintData *gso,
 /* Header Info */
 static void gpencil_weightpaint_brush_header_set(bContext *C, tGP_BrushWeightpaintData *gso)
 {
-  switch (gso->brush->gpencil_weight_tool) {
-    case GPWEIGHT_TOOL_DRAW:
+  switch (gso->brush->gpencil_weight_brush_type) {
+    case GPWEIGHT_BRUSH_TYPE_DRAW:
       ED_workspace_status_text(C,
                                IFACE_("GPencil Weight Paint: LMB to paint | RMB/Escape to Exit"));
       break;
-    case GPWEIGHT_TOOL_BLUR:
+    case GPWEIGHT_BRUSH_TYPE_BLUR:
       ED_workspace_status_text(C, IFACE_("GPencil Weight Blur: LMB to blur | RMB/Escape to Exit"));
       break;
-    case GPWEIGHT_TOOL_AVERAGE:
+    case GPWEIGHT_BRUSH_TYPE_AVERAGE:
       ED_workspace_status_text(
           C, IFACE_("GPencil Weight Average: LMB to set average | RMB/Escape to Exit"));
       break;
-    case GPWEIGHT_TOOL_SMEAR:
+    case GPWEIGHT_BRUSH_TYPE_SMEAR:
       ED_workspace_status_text(C,
                                IFACE_("GPencil Weight Smear: LMB to smear | RMB/Escape to Exit"));
       break;
@@ -770,7 +770,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   gso->fn_used = 0;
   gso->fn_size = 0;
   gso->use_find_nearest = ELEM(
-      gso->brush->gpencil_weight_tool, GPWEIGHT_TOOL_BLUR, GPWEIGHT_TOOL_SMEAR);
+      gso->brush->gpencil_weight_brush_type, GPWEIGHT_BRUSH_TYPE_BLUR, GPWEIGHT_BRUSH_TYPE_SMEAR);
 
   gso->gpd = ED_gpencil_data_get_active(C);
   gso->scene = scene;
@@ -957,7 +957,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
   Brush *brush = gso->brush;
   /* For the blur tool, look a bit wider than the brush itself,
    * because we need the weight of surrounding points to perform the blur. */
-  const bool widen_brush = (gso->brush->gpencil_weight_tool == GPWEIGHT_TOOL_BLUR);
+  const bool widen_brush = (gso->brush->gpencil_weight_brush_type == GPWEIGHT_BRUSH_TYPE_BLUR);
   int radius_brush = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
                                                              gso->brush->size;
   int radius_wide = (widen_brush) ? radius_brush * 1.3f : radius_brush;
@@ -1090,7 +1090,7 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
                                                const float bound_mat[4][4])
 {
   Object *ob = CTX_data_active_object(C);
-  char tool = gso->brush->gpencil_weight_tool;
+  char tool = gso->brush->gpencil_weight_brush_type;
   const int radius = (gso->brush->flag & GP_BRUSH_USE_PRESSURE) ?
                          gso->brush->size * gso->pressure :
                          gso->brush->size;
@@ -1127,7 +1127,7 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
    * Second step: Calculations on selected points.
    *--------------------------------------------------------------------- */
   /* For average tool, get average weight of affected points. */
-  if (tool == GPWEIGHT_TOOL_AVERAGE) {
+  if (tool == GPWEIGHT_BRUSH_TYPE_AVERAGE) {
     gpencil_select_buffer_avg_weight_set(gso);
   }
   /* Balance find-nearest kdtree. */
@@ -1143,20 +1143,20 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
     selected = &gso->pbuffer[i];
 
     switch (tool) {
-      case GPWEIGHT_TOOL_DRAW: {
+      case GPWEIGHT_BRUSH_TYPE_DRAW: {
         changed |= brush_draw_apply(gso, selected->gps, selected->pt_index, radius, selected->pc);
         break;
       }
-      case GPWEIGHT_TOOL_AVERAGE: {
+      case GPWEIGHT_BRUSH_TYPE_AVERAGE: {
         changed |= brush_average_apply(
             gso, selected->gps, selected->pt_index, radius, selected->pc);
         break;
       }
-      case GPWEIGHT_TOOL_BLUR: {
+      case GPWEIGHT_BRUSH_TYPE_BLUR: {
         changed |= brush_blur_apply(gso, selected->gps, selected->pt_index, radius, selected->pc);
         break;
       }
-      case GPWEIGHT_TOOL_SMEAR: {
+      case GPWEIGHT_BRUSH_TYPE_SMEAR: {
         changed |= brush_smear_apply(gso, selected->gps, selected->pt_index, radius, selected->pc);
         break;
       }
@@ -1269,7 +1269,7 @@ static void gpencil_weightpaint_brush_apply(bContext *C, wmOperator *op, Pointer
   gso->brush_rect.ymax = mouse[1] + radius;
 
   /* Calculate brush direction. */
-  if (gso->brush->gpencil_weight_tool == GPWEIGHT_TOOL_SMEAR) {
+  if (gso->brush->gpencil_weight_brush_type == GPWEIGHT_BRUSH_TYPE_SMEAR) {
     brush_calc_brush_dir_2d(gso);
 
     if (!gso->brush_dir_is_set) {

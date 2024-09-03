@@ -173,7 +173,11 @@ static bool is_constrained_by_radius(const Brush *br)
     return false;
   }
 
-  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
+  if (ELEM(br->sculpt_brush_type,
+           SCULPT_BRUSH_TYPE_GRAB,
+           SCULPT_BRUSH_TYPE_THUMB,
+           SCULPT_BRUSH_TYPE_ROTATE))
+  {
     return true;
   }
   return false;
@@ -591,7 +595,7 @@ static float factor_get(const Depsgraph &depsgraph,
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
     bool ignore = ss.cache && ss.cache->brush &&
-                  ss.cache->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
+                  ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                   face_set::vert_face_set_get(ss, vert) == ss.cache->paint_face_set;
 
     if (!ignore && !face_set::vert_has_unique_face_set(ss, vert)) {
@@ -977,13 +981,13 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
   }
 }
 
-bool tool_can_reuse_automask(int sculpt_tool)
+bool brush_type_can_reuse_automask(int sculpt_brush_type)
 {
-  return ELEM(sculpt_tool,
-              SCULPT_TOOL_PAINT,
-              SCULPT_TOOL_SMEAR,
-              SCULPT_TOOL_MASK,
-              SCULPT_TOOL_DRAW_FACE_SETS);
+  return ELEM(sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_PAINT,
+              SCULPT_BRUSH_TYPE_SMEAR,
+              SCULPT_BRUSH_TYPE_MASK,
+              SCULPT_BRUSH_TYPE_DRAW_FACE_SETS);
 }
 
 std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)
@@ -1059,7 +1063,9 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
     bool have_occlusion = (mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
                           (mode & BRUSH_AUTOMASKING_VIEW_NORMAL);
 
-    if (brush && auto_mask::tool_can_reuse_automask(brush->sculpt_tool) && !have_occlusion) {
+    if (brush && auto_mask::brush_type_can_reuse_automask(brush->sculpt_brush_type) &&
+        !have_occlusion)
+    {
       int hash = settings_hash(ob, *automasking);
 
       if (hash == ss.last_automasking_settings_hash) {

@@ -1417,10 +1417,10 @@ static bool gpencil_stroke_eraser_is_occluded(
   Brush *eraser = p->eraser;
   BrushGpencilSettings *gp_settings = nullptr;
 
-  if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+  if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE) {
     gp_settings = brush->gpencil_settings;
   }
-  else if ((eraser != nullptr) && (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
+  else if ((eraser != nullptr) && (eraser->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE)) {
     gp_settings = eraser->gpencil_settings;
   }
 
@@ -1808,11 +1808,11 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
   BrushGpencilSettings *gp_settings = nullptr;
 
   /* detect if use pressure in eraser */
-  if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+  if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE) {
     use_pressure = bool(brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
     gp_settings = brush->gpencil_settings;
   }
-  else if ((eraser != nullptr) && (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
+  else if ((eraser != nullptr) && (eraser->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE)) {
     use_pressure = bool(eraser->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
     gp_settings = eraser->gpencil_settings;
   }
@@ -1940,7 +1940,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
   p->brush = brush;
 
   Brush *eraser_brush;
-  if (p->brush->gpencil_tool != GPAINT_TOOL_ERASE &&
+  if (p->brush->gpencil_brush_type != GPAINT_BRUSH_TYPE_ERASE &&
       (eraser_brush = BKE_paint_eraser_brush(paint)))
   {
     if (eraser_brush && !eraser_brush->gpencil_settings) {
@@ -2504,7 +2504,7 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* if mode is draw and the brush is eraser, cancel */
   if (paintmode != GP_PAINTMODE_ERASER) {
-    if ((brush) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
+    if ((brush) && (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_ERASE)) {
       return 0;
     }
   }
@@ -2804,8 +2804,8 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
       copy_v2_v2(p->mval, now_mouse);
 
       GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
-      bool is_speed_guide = ((guide->use_guide) &&
-                             (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
+      bool is_speed_guide = ((guide->use_guide) && (p->brush && (p->brush->gpencil_brush_type ==
+                                                                 GPAINT_BRUSH_TYPE_DRAW)));
       if (is_speed_guide) {
         gpencil_snap_to_guide(p, guide, p->mval);
       }
@@ -2872,7 +2872,7 @@ static void gpencil_draw_apply_event(bContext *C,
   PointerRNA itemptr;
   float mousef[2];
   bool is_speed_guide = ((guide->use_guide) &&
-                         (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
+                         (p->brush && (p->brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW)));
 
   /* convert from window-space to area-space mouse coordinates
    * add any x,y override position
@@ -3562,7 +3562,7 @@ static void gpencil_add_fake_points(const wmEvent *event, tGPsdata *p)
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
   int input_samples = brush->gpencil_settings->input_samples;
   bool is_speed_guide = ((guide->use_guide) &&
-                         (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
+                         (p->brush && (p->brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW)));
 
   /* TODO: ensure sampling enough points when using circular guide,
    * but the arc must be around the center. (see if above to check other guides only). */
@@ -3807,8 +3807,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     /* handle painting mouse-movements? */
     if (ISMOUSE_MOTION(event->type) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
       /* handle drawing event */
-      bool is_speed_guide = ((guide->use_guide) &&
-                             (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
+      bool is_speed_guide = ((guide->use_guide) && (p->brush && (p->brush->gpencil_brush_type ==
+                                                                 GPAINT_BRUSH_TYPE_DRAW)));
 
       int size_before = p->gpd->runtime.sbuffer_used;
       if (((p->flags & GP_PAINTFLAG_FIRSTRUN) == 0) && (p->paintmode != GP_PAINTMODE_ERASER) &&

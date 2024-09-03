@@ -135,7 +135,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                        ((sima->flag & SI_DRAW_STRETCH) != 0);
   const bool do_tex_paint_shadows = (sima->flag & SI_NO_DRAW_TEXPAINT) == 0;
   const bool do_stencil_overlay = is_paint_mode && is_image_type && brush &&
-                                  (brush->imagepaint_tool == PAINT_TOOL_CLONE) &&
+                                  (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) &&
                                   brush->clone.image;
 
   pd->edit_uv.do_verts = show_overlays && (!do_edges_only);

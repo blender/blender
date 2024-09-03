@@ -74,7 +74,7 @@ typedef struct BrushGpencilSettings {
   int input_samples;
   /** Random factor for UV rotation. */
   float uv_random;
-  /** Moved to 'Brush.gpencil_tool'. */
+  /** Moved to 'Brush.gpencil_brush_type'. */
   int brush_type DNA_DEPRECATED;
   /** Soft, hard or stroke. */
   int eraser_mode;
@@ -261,7 +261,7 @@ typedef struct Brush {
   int gradient_spacing;
   /** Source for stroke color gradient application. */
   char gradient_stroke_mode;
-  /** Source for fill tool color gradient application. */
+  /** Source for fill brush color gradient application. */
   char gradient_fill_mode;
 
   char _pad0;
@@ -270,26 +270,26 @@ typedef struct Brush {
   char falloff_shape;
   float falloff_angle;
 
-  /** Active sculpt tool. */
-  char sculpt_tool;
+  /** Active sculpt brush type. */
+  char sculpt_brush_type;
   /** Active vertex paint. */
-  char vertexpaint_tool;
+  char vertex_brush_type;
   /** Active weight paint. */
-  char weightpaint_tool;
-  /** Active image paint tool. */
-  char imagepaint_tool;
-  /** Enum eBrushMaskTool, only used if sculpt_tool is SCULPT_TOOL_MASK. */
+  char weight_brush_type;
+  /** Active image paint brush type. */
+  char image_brush_type;
+  /** Enum eBrushMaskTool, only used if sculpt_brush_type is SCULPT_BRUSH_TYPE_MASK. */
   char mask_tool;
-  /** Active grease pencil tool. */
-  char gpencil_tool;
-  /** Active grease pencil vertex tool. */
-  char gpencil_vertex_tool;
-  /** Active grease pencil sculpt tool. */
-  char gpencil_sculpt_tool;
-  /** Active grease pencil weight tool. */
-  char gpencil_weight_tool;
-  /** Active curves sculpt tool (#eBrushCurvesSculptTool). */
-  char curves_sculpt_tool;
+  /** Active grease pencil brush type. */
+  char gpencil_brush_type;
+  /** Active grease pencil vertex brush type. */
+  char gpencil_vertex_brush_type;
+  /** Active grease pencil sculpt brush type. */
+  char gpencil_sculpt_brush_type;
+  /** Active grease pencil weight brush type. */
+  char gpencil_weight_brush_type;
+  /** Active curves sculpt brush type (#eBrushCurvesSculptType). */
+  char curves_sculpt_brush_type;
   char _pad1[6];
 
   float autosmooth_factor;

@@ -21,7 +21,7 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
     this->ensure_active_vertex_group_in_object();
     this->get_locked_and_bone_deformed_vertex_groups();
 
-    /* Get the add/subtract mode of the draw tool. */
+    /* Get the add/subtract mode of the draw brush. */
     this->invert_brush_weight = (this->brush->flag & BRUSH_DIR_IN) != 0;
     if (this->stroke_mode == BRUSH_STROKE_INVERT) {
       this->invert_brush_weight = !this->invert_brush_weight;
@@ -67,7 +67,7 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
             }
           });
 
-          /* Apply the Draw tool to all points in the brush buffer. */
+          /* Apply the Draw brush to all points in the brush buffer. */
           threading::parallel_for_each(drawing_weights, [&](DrawingWeightData &drawing_weight) {
             for (const BrushPoint &point : drawing_weight.points_in_brush) {
               this->apply_weight_to_point(point, this->brush_weight, drawing_weight);

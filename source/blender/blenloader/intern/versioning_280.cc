@@ -2594,7 +2594,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 30)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->gpencil_settings != nullptr) {
-        brush->gpencil_tool = brush->gpencil_settings->brush_type;
+        brush->gpencil_brush_type = brush->gpencil_settings->brush_type;
       }
     }
   }
@@ -2960,7 +2960,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* Paint Brush. This ensure that the brush paints by default. Used during the development and
      * patch review of the initial Sculpt Vertex Colors implementation (D5975) */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->ob_mode & OB_MODE_SCULPT && brush->sculpt_tool == SCULPT_TOOL_PAINT) {
+      if (brush->ob_mode & OB_MODE_SCULPT && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT) {
         brush->tip_roundness = 1.0f;
         brush->flow = 1.0f;
         brush->density = 1.0f;
@@ -2970,7 +2970,9 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 
     /* Pose Brush with support for loose parts. */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->sculpt_tool == SCULPT_TOOL_POSE && brush->disconnected_distance_max == 0.0f) {
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE &&
+          brush->disconnected_distance_max == 0.0f)
+      {
         brush->flag2 |= BRUSH_USE_CONNECTED_ONLY;
         brush->disconnected_distance_max = 0.1f;
       }
@@ -4123,7 +4125,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->gpencil_settings != nullptr) {
           BrushGpencilSettings *gp = brush->gpencil_settings;
-          if (gp->brush_type == GPAINT_TOOL_ERASE) {
+          if (gp->brush_type == GPAINT_BRUSH_TYPE_ERASE) {
             gp->era_strength_f = 100.0f;
             gp->era_thickness_f = 10.0f;
           }
@@ -4378,7 +4380,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "char", "weightpaint_tool")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "char", "weight_brush_type")) {
       /* Magic defines from old files (2.7x) */
 
 #define PAINT_BLEND_MIX 0
@@ -4405,30 +4407,30 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->ob_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-          const char tool_init = brush->vertexpaint_tool;
+          const char tool_init = brush->vertex_brush_type;
           bool is_blend = false;
 
           {
             char tool;
             switch (tool_init) {
               case PAINT_BLEND_MIX:
-                tool = VPAINT_TOOL_DRAW;
+                tool = VPAINT_BRUSH_TYPE_DRAW;
                 break;
               case PAINT_BLEND_BLUR:
-                tool = VPAINT_TOOL_BLUR;
+                tool = VPAINT_BRUSH_TYPE_BLUR;
                 break;
               case PAINT_BLEND_AVERAGE:
-                tool = VPAINT_TOOL_AVERAGE;
+                tool = VPAINT_BRUSH_TYPE_AVERAGE;
                 break;
               case PAINT_BLEND_SMEAR:
-                tool = VPAINT_TOOL_SMEAR;
+                tool = VPAINT_BRUSH_TYPE_SMEAR;
                 break;
               default:
-                tool = VPAINT_TOOL_DRAW;
+                tool = VPAINT_BRUSH_TYPE_DRAW;
                 is_blend = true;
                 break;
             }
-            brush->vertexpaint_tool = tool;
+            brush->vertex_brush_type = tool;
           }
 
           if (is_blend == false) {
@@ -4493,7 +4495,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
         /* For now these match, in the future new items may not. */
-        brush->weightpaint_tool = brush->vertexpaint_tool;
+        brush->weight_brush_type = brush->vertex_brush_type;
       }
 
 #undef PAINT_BLEND_MIX
@@ -5853,7 +5855,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Pose brush keep anchor point. */
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      if (br->sculpt_tool == SCULPT_TOOL_POSE) {
+      if (br->sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
         br->flag2 |= BRUSH_POSE_IK_ANCHORED;
       }
     }
@@ -5861,7 +5863,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Tip Roundness. */
     if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "tip_roundness")) {
       LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-        if (br->ob_mode & OB_MODE_SCULPT && br->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS) {
+        if (br->ob_mode & OB_MODE_SCULPT && br->sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS)
+        {
           br->tip_roundness = 0.18f;
         }
       }
@@ -5939,9 +5942,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       {
         LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
           if (brush->gpencil_settings != nullptr) {
-            brush->gpencil_vertex_tool = brush->gpencil_settings->brush_type;
-            brush->gpencil_sculpt_tool = brush->gpencil_settings->brush_type;
-            brush->gpencil_weight_tool = brush->gpencil_settings->brush_type;
+            brush->gpencil_vertex_brush_type = brush->gpencil_settings->brush_type;
+            brush->gpencil_sculpt_brush_type = brush->gpencil_settings->brush_type;
+            brush->gpencil_weight_brush_type = brush->gpencil_settings->brush_type;
           }
         }
       }
@@ -6363,7 +6366,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 283, 17)) {
     /* Reset the cloth mass to 1.0 in brushes with an invalid value. */
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      if (br->sculpt_tool == SCULPT_TOOL_CLOTH) {
+      if (br->sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
         if (br->cloth_mass == 0.0f) {
           br->cloth_mass = 1.0f;
         }

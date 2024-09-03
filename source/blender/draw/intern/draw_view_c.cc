@@ -77,7 +77,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
       const Paint *paint = BKE_paint_get_active(scene, view_layer);
       const Brush *brush = (paint) ? BKE_paint_brush_for_read(paint) : nullptr;
 
-      if (brush && brush->imagepaint_tool == PAINT_TOOL_CLONE) {
+      if (brush && brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
         if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
           return true;
         }

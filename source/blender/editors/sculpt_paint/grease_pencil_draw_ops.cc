@@ -93,7 +93,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
   const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
 
   if (mode == PaintMode::GPencil) {
-    if (eBrushGPaintTool(brush.gpencil_tool) == GPAINT_TOOL_DRAW &&
+    if (eBrushGPaintType(brush.gpencil_brush_type) == GPAINT_BRUSH_TYPE_DRAW &&
         stroke_mode == BRUSH_STROKE_ERASE)
     {
       /* Special case: We're using the draw tool but with the eraser mode, so create an erase
@@ -101,49 +101,49 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
       return greasepencil::new_erase_operation(true);
     }
     /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
-    switch (eBrushGPaintTool(brush.gpencil_tool)) {
-      case GPAINT_TOOL_DRAW:
+    switch (eBrushGPaintType(brush.gpencil_brush_type)) {
+      case GPAINT_BRUSH_TYPE_DRAW:
         return greasepencil::new_paint_operation();
-      case GPAINT_TOOL_ERASE:
+      case GPAINT_BRUSH_TYPE_ERASE:
         return greasepencil::new_erase_operation(false);
-      case GPAINT_TOOL_FILL:
+      case GPAINT_BRUSH_TYPE_FILL:
         /* Fill tool keymap uses the paint operator as alternative mode. */
         return greasepencil::new_paint_operation();
-      case GPAINT_TOOL_TINT:
+      case GPAINT_BRUSH_TYPE_TINT:
         return greasepencil::new_tint_operation();
     }
   }
   else if (mode == PaintMode::SculptGreasePencil) {
-    switch (eBrushGPSculptTool(brush.gpencil_sculpt_tool)) {
-      case GPSCULPT_TOOL_SMOOTH:
+    switch (eBrushGPSculptType(brush.gpencil_sculpt_brush_type)) {
+      case GPSCULPT_BRUSH_TYPE_SMOOTH:
         return greasepencil::new_smooth_operation(stroke_mode);
-      case GPSCULPT_TOOL_THICKNESS:
+      case GPSCULPT_BRUSH_TYPE_THICKNESS:
         return greasepencil::new_thickness_operation(stroke_mode);
-      case GPSCULPT_TOOL_STRENGTH:
+      case GPSCULPT_BRUSH_TYPE_STRENGTH:
         return greasepencil::new_strength_operation(stroke_mode);
-      case GPSCULPT_TOOL_GRAB:
+      case GPSCULPT_BRUSH_TYPE_GRAB:
         return greasepencil::new_grab_operation(stroke_mode);
-      case GPSCULPT_TOOL_PUSH:
+      case GPSCULPT_BRUSH_TYPE_PUSH:
         return greasepencil::new_push_operation(stroke_mode);
-      case GPSCULPT_TOOL_TWIST:
+      case GPSCULPT_BRUSH_TYPE_TWIST:
         return greasepencil::new_twist_operation(stroke_mode);
-      case GPSCULPT_TOOL_PINCH:
+      case GPSCULPT_BRUSH_TYPE_PINCH:
         return greasepencil::new_pinch_operation(stroke_mode);
-      case GPSCULPT_TOOL_RANDOMIZE:
+      case GPSCULPT_BRUSH_TYPE_RANDOMIZE:
         return greasepencil::new_randomize_operation(stroke_mode);
-      case GPSCULPT_TOOL_CLONE:
+      case GPSCULPT_BRUSH_TYPE_CLONE:
         return greasepencil::new_clone_operation(stroke_mode);
     }
   }
   else if (mode == PaintMode::WeightGPencil) {
-    switch (eBrushGPWeightTool(brush.gpencil_weight_tool)) {
-      case GPWEIGHT_TOOL_DRAW:
+    switch (eBrushGPWeightType(brush.gpencil_weight_brush_type)) {
+      case GPWEIGHT_BRUSH_TYPE_DRAW:
         return greasepencil::new_weight_paint_draw_operation(stroke_mode);
-      case GPWEIGHT_TOOL_BLUR:
+      case GPWEIGHT_BRUSH_TYPE_BLUR:
         return greasepencil::new_weight_paint_blur_operation();
-      case GPWEIGHT_TOOL_AVERAGE:
+      case GPWEIGHT_BRUSH_TYPE_AVERAGE:
         return greasepencil::new_weight_paint_average_operation();
-      case GPWEIGHT_TOOL_SMEAR:
+      case GPWEIGHT_BRUSH_TYPE_SMEAR:
         return greasepencil::new_weight_paint_smear_operation();
     }
   }
@@ -220,11 +220,14 @@ static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const 
     if (mode == PaintMode::GPencil) {
       /* For the eraser and tint tool, we don't want auto-key to create an empty keyframe, so we
        * duplicate the previous frame. */
-      if (ELEM(eBrushGPaintTool(brush.gpencil_tool), GPAINT_TOOL_ERASE, GPAINT_TOOL_TINT)) {
+      if (ELEM(eBrushGPaintType(brush.gpencil_brush_type),
+               GPAINT_BRUSH_TYPE_ERASE,
+               GPAINT_BRUSH_TYPE_TINT))
+      {
         return true;
       }
       /* Same for the temporary eraser when using the draw tool. */
-      if (eBrushGPaintTool(brush.gpencil_tool) == GPAINT_TOOL_DRAW &&
+      if (eBrushGPaintType(brush.gpencil_brush_type) == GPAINT_BRUSH_TYPE_DRAW &&
           stroke_mode == BRUSH_STROKE_ERASE)
       {
         return true;

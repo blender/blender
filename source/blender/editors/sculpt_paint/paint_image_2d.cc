@@ -120,7 +120,7 @@ struct ImagePaintState {
   Scene *scene;
 
   Brush *brush;
-  short tool, blend;
+  short brush_type, blend;
   Image *image;
   ImBuf *clonecanvas;
 
@@ -169,8 +169,10 @@ static void brush_painter_2d_require_imbuf(
   cache->use_float = use_float;
   cache->use_color_correction = use_float && use_color_correction;
   cache->invert = invert;
-  cache->is_texbrush = (brush->mtex.tex && brush->imagepaint_tool == PAINT_TOOL_DRAW) ? true :
-                                                                                        false;
+  cache->is_texbrush = (brush->mtex.tex &&
+                        brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) ?
+                           true :
+                           false;
   cache->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
 }
 
@@ -387,7 +389,7 @@ static ImBuf *brush_painter_imbuf_new(
   ImBuf *ibuf = IMB_allocImBuf(size, size, 32, (use_float) ? IB_rectfloat : IB_rect);
 
   /* get brush color */
-  if (brush->imagepaint_tool == PAINT_TOOL_DRAW) {
+  if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     paint_brush_color_get(
         scene, brush, use_color_correction, cache->invert, distance, pressure, brush_rgb, display);
   }
@@ -471,7 +473,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   ImBuf *texibuf = cache->texibuf;
 
   /* get brush color */
-  if (brush->imagepaint_tool == PAINT_TOOL_DRAW) {
+  if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     paint_brush_color_get(
         scene, brush, use_color_correction, cache->invert, 0.0f, 1.0f, brush_rgb, display);
   }
@@ -1298,11 +1300,11 @@ static int paint_2d_op(void *state,
   paint_2d_convert_brushco(ibufb, pos, bpos);
 
   /* lift from canvas */
-  if (s->tool == PAINT_TOOL_SOFTEN) {
+  if (s->brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
     paint_2d_lift_soften(s, tile, canvas, ibufb, bpos, paint_tile);
     blend = IMB_BLEND_INTERPOLATE;
   }
-  else if (s->tool == PAINT_TOOL_SMEAR) {
+  else if (s->brush_type == IMAGE_PAINT_BRUSH_TYPE_SMEAR) {
     if (lastpos[0] == pos[0] && lastpos[1] == pos[1]) {
       return 0;
     }
@@ -1311,7 +1313,7 @@ static int paint_2d_op(void *state,
     paint_2d_lift_smear(canvas, ibufb, blastpos, paint_tile);
     blend = IMB_BLEND_INTERPOLATE;
   }
-  else if (s->tool == PAINT_TOOL_CLONE && s->clonecanvas) {
+  else if (s->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE && s->clonecanvas) {
     liftpos[0] = pos[0] - offset[0] * canvas->x;
     liftpos[1] = pos[1] - offset[1] * canvas->y;
 
@@ -1407,7 +1409,7 @@ static int paint_2d_op(void *state,
 static int paint_2d_canvas_set(ImagePaintState *s)
 {
   /* set clone canvas */
-  if (s->tool == PAINT_TOOL_CLONE) {
+  if (s->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
     Image *ima = s->brush->clone.image;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
 
@@ -1572,7 +1574,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   s->scene = scene;
 
   s->brush = brush;
-  s->tool = brush->imagepaint_tool;
+  s->brush_type = brush->image_brush_type;
   s->blend = brush->blend;
 
   s->image = s->sima->image;
@@ -1636,7 +1638,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
     return nullptr;
   }
 
-  if (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) {
+  if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
     s->blurkernel = paint_new_blur_kernel(brush, false);
   }
 

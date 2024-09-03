@@ -340,7 +340,7 @@ static bool toggle_weight_tool_direction_poll(bContext *C)
   if (brush == nullptr) {
     return false;
   }
-  return brush->gpencil_weight_tool == GPWEIGHT_TOOL_DRAW;
+  return brush->gpencil_weight_brush_type == GPWEIGHT_BRUSH_TYPE_DRAW;
 }
 
 static void GREASE_PENCIL_OT_weight_toggle_direction(wmOperatorType *ot)

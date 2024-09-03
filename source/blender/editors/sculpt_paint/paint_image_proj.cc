@@ -268,10 +268,10 @@ struct ProjPaintState {
   Brush *brush;
 
   /**
-   * Based on #Brush::imagepaint_tool but may be overridden by mode (#BrushStrokeMode).
-   * So check this value instead of `brush->imagepaint_tool`.
+   * Based on #Brush::image_brush_type but may be overridden by mode (#BrushStrokeMode).
+   * So check this value instead of `brush->image_brush_type`.
    */
-  short tool;
+  short brush_type;
   short blend;
   BrushStrokeMode mode;
 
@@ -1776,9 +1776,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
   return mask;
 }
 
-static int project_paint_pixel_sizeof(const short tool)
+static int project_paint_pixel_sizeof(const short brush_type)
 {
-  if (ELEM(tool, PAINT_TOOL_CLONE, PAINT_TOOL_SMEAR)) {
+  if (ELEM(brush_type, IMAGE_PAINT_BRUSH_TYPE_CLONE, IMAGE_PAINT_BRUSH_TYPE_SMEAR)) {
     return sizeof(ProjPixelClone);
   }
   return sizeof(ProjPixel);
@@ -1875,7 +1875,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   x_px = mod_i(x_px, ibuf->x);
   y_px = mod_i(y_px, ibuf->y);
 
-  BLI_assert(ps->pixel_sizeof == project_paint_pixel_sizeof(ps->tool));
+  BLI_assert(ps->pixel_sizeof == project_paint_pixel_sizeof(ps->brush_type));
   projPixel = static_cast<ProjPixel *>(BLI_memarena_alloc(arena, ps->pixel_sizeof));
 
   /* calculate the undo tile offset of the pixel, used to store the original
@@ -1936,7 +1936,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
                                  PROJ_BOUNDBOX_DIV;
 
   /* done with view3d_project_float inline */
-  if (ps->tool == PAINT_TOOL_CLONE) {
+  if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
     if (ps->poly_to_loop_uv_clone) {
       ImBuf *ibuf_other;
       Image *other_tpage = project_paint_face_clone_image(ps, tri_index);
@@ -4587,7 +4587,7 @@ static void project_paint_begin(const bContext *C,
 static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 {
   /* setup clone offset */
-  if (ps->tool == PAINT_TOOL_CLONE) {
+  if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
     float projCo[4];
     copy_v3_v3(projCo, ps->scene->cursor.location);
     mul_m4_v3(ps->obmat_imat, projCo);
@@ -5195,7 +5195,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
   float falloff;
   int bucket_index;
   bool is_floatbuf = false;
-  const short tool = ps->tool;
+  const short brush_type = ps->brush_type;
   rctf bucket_bounds;
 
   /* for smear only */
@@ -5221,13 +5221,13 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
   /* mem arena for this brush projection only */
   MemArena *softenArena = nullptr;
 
-  if (tool == PAINT_TOOL_SMEAR) {
+  if (brush_type == IMAGE_PAINT_BRUSH_TYPE_SMEAR) {
     pos_ofs[0] = pos[0] - lastpos[0];
     pos_ofs[1] = pos[1] - lastpos[1];
 
     smearArena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "paint smear arena");
   }
-  else if (tool == PAINT_TOOL_SOFTEN) {
+  else if (brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
     softenArena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "paint soften arena");
   }
 
@@ -5264,7 +5264,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
         }
         /* end copy */
 
-        /* fill tools */
+        /* fill brushes */
         if (ps->source == PROJ_SRC_VIEW_FILL) {
           if (brush->flag & BRUSH_USE_GRADIENT) {
             /* these could probably be cached instead of being done per pixel */
@@ -5495,8 +5495,8 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
               image_paint_partial_redraw_expand(last_partial_redraw_cell, projPixel);
 
               /* texrgb is not used for clone, smear or soften */
-              switch (tool) {
-                case PAINT_TOOL_CLONE:
+              switch (brush_type) {
+                case IMAGE_PAINT_BRUSH_TYPE_CLONE:
                   if (is_floatbuf) {
                     do_projectpaint_clone_f(ps, projPixel, mask);
                   }
@@ -5504,7 +5504,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
                     do_projectpaint_clone(ps, projPixel, mask);
                   }
                   break;
-                case PAINT_TOOL_SMEAR:
+                case IMAGE_PAINT_BRUSH_TYPE_SMEAR:
                   sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
 
                   if (is_floatbuf) {
@@ -5514,7 +5514,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
                     do_projectpaint_smear(ps, projPixel, mask, smearArena, &smearPixels, co);
                   }
                   break;
-                case PAINT_TOOL_SOFTEN:
+                case IMAGE_PAINT_BRUSH_TYPE_SOFTEN:
                   if (is_floatbuf) {
                     do_projectpaint_soften_f(ps, projPixel, mask, softenArena, &softenPixels_f);
                   }
@@ -5522,7 +5522,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
                     do_projectpaint_soften(ps, projPixel, mask, softenArena, &softenPixels);
                   }
                   break;
-                case PAINT_TOOL_MASK:
+                case IMAGE_PAINT_BRUSH_TYPE_MASK:
                   if (is_floatbuf) {
                     do_projectpaint_mask_f(ps, projPixel, mask);
                   }
@@ -5553,7 +5553,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
     }
   }
 
-  if (tool == PAINT_TOOL_SMEAR) {
+  if (brush_type == IMAGE_PAINT_BRUSH_TYPE_SMEAR) {
 
     for (node = smearPixels; node; node = node->next) { /* this won't run for a float image */
       projPixel = static_cast<ProjPixel *>(node->link);
@@ -5573,7 +5573,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 
     BLI_memarena_free(smearArena);
   }
-  else if (tool == PAINT_TOOL_SOFTEN) {
+  else if (brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
 
     for (node = softenPixels; node; node = node->next) { /* this won't run for a float image */
       projPixel = static_cast<ProjPixel *>(node->link);
@@ -5754,7 +5754,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
   }
 
   /* handle gradient and inverted stroke color here */
-  if (ELEM(ps->tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL)) {
+  if (ELEM(ps->brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL)) {
     paint_brush_color_get(scene,
                           brush,
                           false,
@@ -5765,7 +5765,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
                           nullptr);
     srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
   }
-  else if (ps->tool == PAINT_TOOL_MASK) {
+  else if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
     ps->stencil_value = brush->weight;
 
     if ((ps->mode == BRUSH_STROKE_INVERT) ^
@@ -5834,14 +5834,14 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   ps->brush = BKE_paint_brush(&settings->imapaint.paint);
   if (ps->brush) {
     Brush *brush = ps->brush;
-    ps->tool = brush->imagepaint_tool;
+    ps->brush_type = brush->image_brush_type;
     ps->blend = brush->blend;
     if (mode == BRUSH_STROKE_SMOOTH) {
-      ps->tool = PAINT_TOOL_SOFTEN;
+      ps->brush_type = IMAGE_PAINT_BRUSH_TYPE_SOFTEN;
     }
-    /* only check for inversion for the soften tool, elsewhere,
+    /* only check for inversion for the soften brush, elsewhere,
      * a resident brush inversion flag can cause issues */
-    if (ps->tool == PAINT_TOOL_SOFTEN) {
+    if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
       ps->mode = (((ps->mode == BRUSH_STROKE_INVERT) ^ ((brush->flag & BRUSH_DIR_IN) != 0)) ?
                       BRUSH_STROKE_INVERT :
                       BRUSH_STROKE_NORMAL);
@@ -5851,7 +5851,8 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 
     /* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
     ps->do_masking = paint_use_opacity_masking(brush);
-    ps->is_texbrush = (brush->mtex.tex && ps->tool == PAINT_TOOL_DRAW) ? true : false;
+    ps->is_texbrush = (brush->mtex.tex && ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) ? true :
+                                                                                           false;
     ps->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
   }
   else {
@@ -5862,7 +5863,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   }
 
   /* sizeof(ProjPixel), since we alloc this a _lot_ */
-  ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
+  ps->pixel_sizeof = project_paint_pixel_sizeof(ps->brush_type);
   BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 
   /* these can be nullptr */
@@ -5884,7 +5885,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   ps->cavity_curve = settings->imapaint.paint.cavity_curve;
 
   /* setup projection painting data */
-  if (ps->tool != PAINT_TOOL_FILL) {
+  if (ps->brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL) {
     ps->do_backfacecull = !(settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE);
     ps->do_occlude = !(settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY);
     ps->do_mask_normal = !(settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT);
@@ -5893,11 +5894,11 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
     ps->do_backfacecull = ps->do_occlude = ps->do_mask_normal = false;
   }
 
-  if (ps->tool == PAINT_TOOL_CLONE) {
+  if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
     ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
   }
 
-  ps->do_stencil_brush = (ps->tool == PAINT_TOOL_MASK);
+  ps->do_stencil_brush = (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK);
   /* deactivate stenciling for the stencil brush :) */
   ps->do_layer_stencil = ((settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) &&
                           !(ps->do_stencil_brush) && ps->stencil_ima);
@@ -5946,7 +5947,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 
   if (mode == BRUSH_STROKE_INVERT) {
     /* Bypass regular stroke logic. */
-    if (ps_handle->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
+    if (ps_handle->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
       view3d_operator_needs_opengl(C);
       ps_handle->is_clone_cursor_pick = true;
       return ps_handle;
@@ -6004,7 +6005,8 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = ps_handle->ps_views[i];
 
-    ps->source = (ps->tool == PAINT_TOOL_FILL) ? PROJ_SRC_VIEW_FILL : PROJ_SRC_VIEW;
+    ps->source = (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) ? PROJ_SRC_VIEW_FILL :
+                                                                   PROJ_SRC_VIEW;
     project_image_refresh_tagged(ps);
 
     /* re-use! */
@@ -6160,7 +6162,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   BKE_brush_size_set(&scene, ps.brush, 32 * U.pixelsize);
 
   /* so pixels are initialized with minimal info */
-  ps.tool = PAINT_TOOL_DRAW;
+  ps.brush_type = IMAGE_PAINT_BRUSH_TYPE_DRAW;
 
   scene.toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
@@ -6436,7 +6438,7 @@ bool ED_paint_proj_mesh_data_check(Scene &scene,
   }
 
   /* Make sure we have a stencil to paint on! */
-  if (br && br->imagepaint_tool == PAINT_TOOL_MASK) {
+  if (br && br->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
     imapaint.flag |= IMAGEPAINT_PROJECT_LAYER_STENCIL;
 
     if (imapaint.stencil == nullptr) {

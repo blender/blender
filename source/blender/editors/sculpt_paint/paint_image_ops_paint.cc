@@ -313,7 +313,9 @@ static std::unique_ptr<PaintOperation> texture_paint_init(bContext *C,
     return nullptr;
   }
 
-  if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
+  if ((brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) &&
+      (brush->flag & BRUSH_USE_GRADIENT))
+  {
     pop->cursor = WM_paint_cursor_activate(
         SPACE_TYPE_ANY, RGN_TYPE_ANY, ED_image_tools_paint_poll, gradient_draw_line, pop.get());
   }
@@ -352,7 +354,7 @@ static void paint_stroke_update_step(bContext *C,
   size = RNA_float_get(itemptr, "size");
 
   /* stroking with fill tool only acts on stroke end */
-  if (brush->imagepaint_tool == PAINT_TOOL_FILL) {
+  if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) {
     copy_v2_v2(pop->prevmouse, mouse);
     return;
   }
@@ -393,7 +395,7 @@ static void paint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 
-  if (brush->imagepaint_tool == PAINT_TOOL_FILL) {
+  if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) {
     if (brush->flag & BRUSH_USE_GRADIENT) {
       pop->mode->paint_gradient_fill(
           C, scene, brush, stroke, pop->stroke_handle, pop->startmouse, pop->prevmouse);

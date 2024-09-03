@@ -524,7 +524,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  ED_paint_tool_update_sticky_shading_color(C, &ob);
+  ED_image_paint_brush_type_update_sticky_shading_color(C, &ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

@@ -1001,7 +1001,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   /* Brush may have changed after initialization. */
   brush = BKE_paint_brush(&vp.paint);
-  if (ELEM(brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
+  if (ELEM(brush->weight_brush_type, WPAINT_BRUSH_TYPE_SMEAR, WPAINT_BRUSH_TYPE_BLUR)) {
     wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh.verts_num, __func__);
   }
 
@@ -1508,8 +1508,8 @@ static void wpaint_paint_leaves(bContext *C,
   const Brush &brush = *ob.sculpt->cache->brush;
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
-  switch ((eBrushWeightPaintTool)brush.weightpaint_tool) {
-    case WPAINT_TOOL_AVERAGE: {
+  switch ((eBrushWeightPaintType)brush.weight_brush_type) {
+    case WPAINT_BRUSH_TYPE_AVERAGE: {
       do_wpaint_brush_draw(
           depsgraph,
           scene,
@@ -1523,13 +1523,13 @@ static void wpaint_paint_leaves(bContext *C,
           node_mask);
       break;
     }
-    case WPAINT_TOOL_SMEAR:
+    case WPAINT_BRUSH_TYPE_SMEAR:
       do_wpaint_brush_smear(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, node_mask);
       break;
-    case WPAINT_TOOL_BLUR:
+    case WPAINT_BRUSH_TYPE_BLUR:
       do_wpaint_brush_blur(depsgraph, scene, ob, brush, vp, wpd, wpi, mesh, node_mask);
       break;
-    case WPAINT_TOOL_DRAW:
+    case WPAINT_BRUSH_TYPE_DRAW:
       do_wpaint_brush_draw(depsgraph,
                            scene,
                            ob,
