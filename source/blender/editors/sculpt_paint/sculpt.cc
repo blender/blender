@@ -5036,6 +5036,8 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     return true;
   }
 
+  bke::pbvh::update_normals(*depsgraph, ob, *ss.pbvh);
+
   /* Calculate the sampled normal. */
   if (const std::optional<float3> sampled_normal = calc_area_normal(
           *depsgraph, brush, ob, node_mask))
