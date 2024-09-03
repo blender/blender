@@ -6,6 +6,11 @@
 # Keep the information collected in this script synchronized with `runtime.py`.
 
 def prefill_bug_report_info() -> int:
+    from typing import (
+        Dict,
+        Optional,
+    )
+
     import re
     import struct
     import platform
@@ -34,15 +39,15 @@ def prefill_bug_report_info() -> int:
     os_type = platform.system()
     script_directory = Path(__file__).parent.resolve()
     if os_type == "Darwin":  # macOS appears as Darwin.
-        blender_dir = script_directory.joinpath("../../../../../../MacOS/Blender")
+        blender_bin = script_directory.joinpath("../../../../../../MacOS/Blender")
     elif os_type == "Windows":
-        blender_dir = script_directory.joinpath("../../../../../Blender.exe")
+        blender_bin = script_directory.joinpath("../../../../../Blender.exe")
     else:  # Linux and other Unix systems.
-        blender_dir = script_directory.joinpath("../../../../../blender")
+        blender_bin = script_directory.joinpath("../../../../../blender")
 
     try:
         blender_output = subprocess.run(
-            [blender_dir, "--version"],
+            (blender_bin, "--version"),
             stdout=subprocess.PIPE,
             encoding="utf-8",
             errors="surrogateescape",
@@ -53,27 +58,32 @@ def prefill_bug_report_info() -> int:
 
     text = blender_output.stdout
 
-    # Gather Blender version information.
-    version_match = re.search(r"^Blender (.*)", text, flags=re.MULTILINE)
-    branch_match = re.search(r"^\s+build branch: (.*)", text, flags=re.MULTILINE)
-    commit_date_match = re.search(r"^\s+build commit date: (.*)", text, flags=re.MULTILINE)
-    commit_time_match = re.search(r"^\s+build commit time: (.*)", text, flags=re.MULTILINE)
-    build_hash_match = re.search(r"^\s+build hash: (.*)", text, flags=re.MULTILINE)
+    unknown_string = "<unknown>"
 
-    if not (version_match or branch_match or commit_date_match or commit_time_match or build_hash_match):
+    def re_group_or_unknown(m: Optional[re.Match[str]]) -> str:
+        if m is None:
+            return unknown_string
+        return m.group(1)
+
+    # Gather Blender version information.
+    values: Dict[str, str] = {
+        "version": re_group_or_unknown(re.search(r"^Blender (.*)", text, flags=re.MULTILINE)),
+        "branch": re_group_or_unknown(re.search(r"^\s+build branch: (.*)", text, flags=re.MULTILINE)),
+        "commit_date": re_group_or_unknown(re.search(r"^\s+build commit date: (.*)", text, flags=re.MULTILINE)),
+        "commit_time": re_group_or_unknown(re.search(r"^\s+build commit time: (.*)", text, flags=re.MULTILINE)),
+        "build_hash": re_group_or_unknown(re.search(r"^\s+build hash: (.*)", text, flags=re.MULTILINE)),
+    }
+
+    if not (set(values.values()) - {unknown_string}):
         # No valid Blender info could be found.
         print("Blender did not provide any build information. Blender may be corrupt or blocked from running.")
         print("Please try reinstalling Blender and double check your anti-virus isn't blocking it from running.")
         return 1
 
-    missing_string = "<unknown>"
-
-    query_params["broken_version"] = "{:s}, branch: {:s}, commit date: {:s} {:s}, hash `{:s}`".format(
-        version_match.group(1) if version_match else missing_string,
-        branch_match.group(1) if branch_match else missing_string,
-        commit_date_match.group(1) if commit_date_match else missing_string,
-        commit_time_match.group(1) if commit_time_match else missing_string,
-        build_hash_match.group(1) if build_hash_match else missing_string,
+    query_params["broken_version"] = (
+        "{version:s}, branch: {branch:s}, commit date: {commit_date:s} {commit_time:s}, hash `{build_hash:s}`".format(
+            **values,
+        )
     )
 
     query_str = urllib.parse.urlencode(query_params)
