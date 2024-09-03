@@ -229,7 +229,13 @@ bool OneapiDevice::load_kernels(const uint requested_features)
 {
   assert(device_queue_);
 
-  kernel_features = requested_features;
+  /* Kernel loading is expected to be a cumulative operation; for example, if
+   * a device is asked to load kernel A and then kernel B, then after these
+   * operations, both A and B should be available for use. So we need to store
+   * and use a cumulative mask of the requested kernel features, and not just
+   * the latest requested features.
+   */
+  kernel_features |= requested_features;
 
   bool is_finished_ok = oneapi_run_test_kernel(device_queue_);
   if (is_finished_ok == false) {
