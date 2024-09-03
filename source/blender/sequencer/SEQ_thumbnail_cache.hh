@@ -55,4 +55,6 @@ void thumbnail_cache_discard_requests_outside(Scene *scene, const rctf &rect);
 void thumbnail_cache_clear(Scene *scene);
 void thumbnail_cache_destroy(Scene *scene);
 
+bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq);
+
 }  // namespace blender::seq

@@ -36,6 +36,8 @@
 
 #include "GPU_matrix.hh"
 
+#include "IMB_imbuf.hh"
+
 #include "RNA_prototypes.hh"
 
 #include "SEQ_channels.hh"
@@ -1519,9 +1521,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   UI_view2d_view_ortho(timeline_ctx->v2d);
 
   /* Draw parts of strips below thumbnails. */
-  GPU_blend(GPU_BLEND_ALPHA);
   draw_strips_background(timeline_ctx, strips_batch, strips);
 
+  GPU_blend(GPU_BLEND_ALPHA);
   const float round_radius = calc_strip_round_radius(timeline_ctx->pixely);
   for (const StripDrawContext &strip_ctx : strips) {
     draw_strip_offsets(timeline_ctx, &strip_ctx);
@@ -1529,20 +1531,8 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
   }
   timeline_ctx->quads->draw();
 
-  /* Draw all thumbnails and retiming continuity. */
-  GPU_blend(GPU_BLEND_ALPHA);
-  for (const StripDrawContext &strip_ctx : strips) {
-    draw_seq_strip_thumbnail(timeline_ctx->v2d,
-                             timeline_ctx->C,
-                             timeline_ctx->scene,
-                             strip_ctx.seq,
-                             strip_ctx.bottom,
-                             strip_ctx.strip_content_top,
-                             strip_ctx.top,
-                             timeline_ctx->pixelx,
-                             timeline_ctx->pixely,
-                             round_radius);
-  }
+  /* Draw thumbnails. */
+  draw_strip_thumbnails(timeline_ctx, strips_batch, strips);
   /* Draw retiming continuity ranges. */
   draw_retiming_continuity_ranges(timeline_ctx, strips);
 

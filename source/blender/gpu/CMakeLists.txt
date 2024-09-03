@@ -511,6 +511,8 @@ set(GLSL_SRC
 
   shaders/gpu_shader_sequencer_strips_vert.glsl
   shaders/gpu_shader_sequencer_strips_frag.glsl
+  shaders/gpu_shader_sequencer_thumbs_vert.glsl
+  shaders/gpu_shader_sequencer_thumbs_frag.glsl
 
   shaders/gpu_shader_codegen_lib.glsl
 
@@ -531,6 +533,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_math_rotation_lib.glsl
   shaders/common/gpu_shader_math_vector_lib.glsl
   shaders/common/gpu_shader_print_lib.glsl
+  shaders/common/gpu_shader_sequencer_lib.glsl
   shaders/common/gpu_shader_shared_exponent_lib.glsl
   shaders/common/gpu_shader_smaa_lib.glsl
   shaders/common/gpu_shader_test_lib.glsl

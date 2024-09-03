@@ -2,13 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Signed distance to rounded box, centered at origin.
- * Reference: https://iquilezles.org/articles/distfunctions2d/ */
-float sdf_rounded_box(vec2 pos, vec2 size, float radius)
-{
-  vec2 q = abs(pos) - size + radius;
-  return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
-}
+#pragma BLENDER_REQUIRE(gpu_shader_sequencer_lib.glsl)
 
 vec3 color_shade(vec3 rgb, float shade)
 {
@@ -44,20 +38,19 @@ void main()
 
   SeqStripDrawData strip = strip_data[strip_id];
 
-  /* Snap to pixel grid coordinates, so that outline/border is non-fractional
-   * pixel sizes. */
-  vec2 pos1 = round(vec2(strip.left_handle, strip.bottom));
-  vec2 pos2 = round(vec2(strip.right_handle, strip.top));
-  /* Make sure strip is at least 1px wide. */
-  pos2.x = max(pos2.x, pos1.x + 1.0);
-  vec2 size = (pos2 - pos1) * 0.5;
-  vec2 center = (pos1 + pos2) * 0.5;
-  vec2 pos = round(co);
-
-  float radius = context_data.round_radius;
-  if (radius > size.x) {
-    radius = 0.0;
-  }
+  vec2 pos1, pos2, size, center, pos;
+  float radius;
+  strip_box(strip.left_handle,
+            strip.right_handle,
+            strip.bottom,
+            strip.top,
+            co,
+            pos1,
+            pos2,
+            size,
+            center,
+            pos,
+            radius);
 
   bool border = (strip.flags & GPU_SEQ_FLAG_BORDER) != 0;
   bool selected = (strip.flags & GPU_SEQ_FLAG_SELECTED) != 0;

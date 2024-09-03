@@ -89,6 +89,8 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_gpencil_stroke";
     case GPU_SHADER_SEQUENCER_STRIPS:
       return "gpu_shader_sequencer_strips";
+    case GPU_SHADER_SEQUENCER_THUMBS:
+      return "gpu_shader_sequencer_thumbs";
     case GPU_SHADER_INDEXBUF_POINTS:
       return "gpu_shader_index_2d_array_points";
     case GPU_SHADER_INDEXBUF_LINES:

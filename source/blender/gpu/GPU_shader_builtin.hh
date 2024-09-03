@@ -77,6 +77,8 @@ enum eGPUBuiltinShader {
 
   /** Draw strip widgets in sequencer timeline. */
   GPU_SHADER_SEQUENCER_STRIPS,
+  /** Draw strip thumbnails in sequencer timeline. */
+  GPU_SHADER_SEQUENCER_THUMBS,
 
   /** Compute shaders to generate 2d index buffers (mainly for curve drawing). */
   GPU_SHADER_INDEXBUF_POINTS,

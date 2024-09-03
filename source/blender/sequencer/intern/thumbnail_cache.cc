@@ -156,7 +156,7 @@ static ThumbnailCache *query_thumbnail_cache(Scene *scene)
   return scene->ed->runtime.thumbnail_cache;
 }
 
-static bool can_have_thumbnail(Scene *scene, const Sequence *seq)
+bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq)
 {
   if (scene == nullptr || scene->ed == nullptr || seq == nullptr) {
     return false;
@@ -489,7 +489,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
                            const Sequence *seq,
                            float timeline_frame)
 {
-  if (!can_have_thumbnail(scene, seq)) {
+  if (!strip_can_have_thumbnail(scene, seq)) {
     return nullptr;
   }
 
@@ -516,7 +516,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
 
 void thumbnail_cache_invalidate_strip(Scene *scene, const Sequence *seq)
 {
-  if (!can_have_thumbnail(scene, seq)) {
+  if (!strip_can_have_thumbnail(scene, seq)) {
     return;
   }
 

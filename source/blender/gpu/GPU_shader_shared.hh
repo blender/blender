@@ -138,6 +138,17 @@ BLI_STATIC_ASSERT_ALIGN(SeqStripDrawData, 16)
 BLI_STATIC_ASSERT(sizeof(SeqStripDrawData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
                   "SeqStripDrawData UBO must not exceed minspec UBO size (16384)")
 
+/* VSE per-thumbnail data for timeline rendering. */
+struct SeqStripThumbData {
+  float left, right, bottom, top; /* Strip rectangle positions. */
+  float x1, y1, x2, y2;           /* Thumbnail rectangle positions. */
+  float u1, v1, u2, v2;           /* Thumbnail UVs. */
+  float4 tint_color;
+};
+BLI_STATIC_ASSERT_ALIGN(SeqStripThumbData, 16)
+BLI_STATIC_ASSERT(sizeof(SeqStripThumbData) * GPU_SEQ_STRIP_DRAW_DATA_LEN <= 16384,
+                  "SeqStripThumbData UBO must not exceed minspec UBO size (16384)")
+
 /* VSE global data for timeline rendering. */
 struct SeqContextDrawData {
   float round_radius;

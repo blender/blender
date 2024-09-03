@@ -52,6 +52,8 @@ struct ListBase;
 
 namespace blender::ed::seq {
 
+class StripsDrawBatch;
+
 struct SpaceSeq_Runtime : public NonCopyable {
   int rename_channel_index = 0;
   float timeline_clamp_custom_range = 0;
@@ -158,16 +160,9 @@ ImBuf *sequencer_ibuf_get(const bContext *C,
 
 /* `sequencer_thumbnails.cc` */
 
-void draw_seq_strip_thumbnail(View2D *v2d,
-                              const bContext *C,
-                              Scene *scene,
-                              Sequence *seq,
-                              float y1,
-                              float y2,
-                              float y_top,
-                              float pixelx,
-                              float pixely,
-                              float round_radius);
+void draw_strip_thumbnails(TimelineDrawContext *ctx,
+                           blender::ed::seq::StripsDrawBatch &strips_batch,
+                           const blender::Vector<StripDrawContext> &strips);
 
 /* sequencer_draw_channels.c */
 

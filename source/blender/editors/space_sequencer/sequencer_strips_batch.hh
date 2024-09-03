@@ -59,7 +59,6 @@ class StripsDrawBatch {
 
   void flush_batch();
 
- private:
   /* Same math as `UI_view2d_view_to_region_*` but avoiding divisions,
    * and without relying on View2D data type. */
   inline float pos_to_pixel_space_x(float x) const
@@ -73,6 +72,11 @@ class StripsDrawBatch {
   inline float size_to_pixel_space_x(float x) const
   {
     return x * view_cur_inv_size_.x * view_mask_size_.x;
+  }
+
+  GPUUniformBuf *get_ubo_context() const
+  {
+    return ubo_context_;
   }
 };
 
