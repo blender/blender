@@ -86,6 +86,8 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, float val);
  * Projects target onto source, and pulls interpolated custom-data from source.
  *
  * \note Only handles loop custom-data. multi-res is handled.
+ * \note Attributes such as selection, material & normals
+ * must be handled with a separate call to #BM_elem_attrs_copy.
  */
 void BM_face_interp_from_face_ex(BMesh *bm,
                                  BMFace *f_dst,
