@@ -150,10 +150,6 @@ void BM_face_interp_from_face_ex(BMesh *bm,
   float *w = BLI_array_alloca(w, f_src->len);
   float co[2];
 
-  if (f_src != f_dst) {
-    BM_elem_attrs_copy(bm, bm, f_src, f_dst);
-  }
-
   /* interpolate */
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
   do {
