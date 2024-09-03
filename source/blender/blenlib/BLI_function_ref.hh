@@ -132,29 +132,6 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
     return callback_(callable_, std::forward<Params>(params)...);
   }
 
-  using OptionalReturnValue = std::conditional_t<std::is_void_v<Ret>, void, std::optional<Ret>>;
-
-  /**
-   * Calls the referenced function if it is available.
-   * The return value is of type `std::optional<Ret>` if `Ret` is not `void`.
-   * Otherwise the return type is `void`.
-   */
-  OptionalReturnValue call_safe(Params... params) const
-  {
-    if constexpr (std::is_void_v<Ret>) {
-      if (callback_ == nullptr) {
-        return;
-      }
-      callback_(callable_, std::forward<Params>(params)...);
-    }
-    else {
-      if (callback_ == nullptr) {
-        return {};
-      }
-      return callback_(callable_, std::forward<Params>(params)...);
-    }
-  }
-
   /**
    * Returns true, when the `FunctionRef` references a function currently.
    * If this returns false, the `FunctionRef` must not be called.

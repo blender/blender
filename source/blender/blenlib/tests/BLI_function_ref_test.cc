@@ -101,31 +101,6 @@ TEST(function_ref, ReferenceAnotherFunctionRef)
   EXPECT_EQ(y(), 2);
 }
 
-TEST(function_ref, CallSafe)
-{
-  FunctionRef<int()> f;
-  EXPECT_FALSE(f.call_safe().has_value());
-  auto func = []() { return 10; };
-  f = func;
-  EXPECT_TRUE(f.call_safe().has_value());
-  EXPECT_EQ(*f.call_safe(), 10);
-  f = {};
-  EXPECT_FALSE(f.call_safe().has_value());
-  BLI_STATIC_ASSERT((std::is_same_v<decltype(f.call_safe()), std::optional<int>>), "");
-}
-
-TEST(function_ref, CallSafeVoid)
-{
-  FunctionRef<void()> f;
-  BLI_STATIC_ASSERT((std::is_same_v<decltype(f.call_safe()), void>), "");
-  f.call_safe();
-  int value = 0;
-  auto func = [&]() { value++; };
-  f = func;
-  f.call_safe();
-  EXPECT_EQ(value, 1);
-}
-
 TEST(function_ref, InitializeWithNull)
 {
   FunctionRef<int(int, int)> f{nullptr};
