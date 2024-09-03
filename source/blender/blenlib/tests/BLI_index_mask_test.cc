@@ -161,6 +161,9 @@ TEST(index_mask, FromBitsAlternating)
   EXPECT_EQ(mask[3], 6);
 }
 
+/* The benchmark is too slow to run during normal test runs. */
+#if 0
+
 static BitVector<> build_bits_with_uniform_distribution(const int bits_num,
                                                         const int set_bits_num,
                                                         const uint32_t seed = 0)
@@ -183,9 +186,6 @@ static BitVector<> build_bits_with_uniform_distribution(const int bits_num,
   }
   return bit_vec;
 }
-
-/* The benchmark is too slow to run during normal test runs. */
-#if 0
 
 static void benchmark_uniform_bit_distribution(const int bits_num,
                                                const int set_bits_num,
