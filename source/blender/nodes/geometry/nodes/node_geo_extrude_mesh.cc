@@ -170,6 +170,12 @@ static void expand_mesh(Mesh &mesh,
     mesh.face_offset_indices[mesh.faces_num] = mesh.corners_num + loop_expand;
   }
   if (loop_expand != 0) {
+    if (mesh.corners_num == 0) {
+      mesh.attributes_for_write().add(
+          ".corner_vert", AttrDomain::Corner, CD_PROP_INT32, bke::AttributeInitConstruct());
+      mesh.attributes_for_write().add(
+          ".corner_edge", AttrDomain::Corner, CD_PROP_INT32, bke::AttributeInitConstruct());
+    }
     const int old_loops_num = mesh.corners_num;
     mesh.corners_num += loop_expand;
     CustomData_realloc(&mesh.corner_data, old_loops_num, mesh.corners_num);
