@@ -372,7 +372,12 @@ enum eAnimFilter_Flags {
   /** duplicate entries for animation data attached to multi-user blocks must not occur */
   ANIMFILTER_NODUPLIS = (1 << 11),
 
-  /** avoid channel that does not have any F-curve data */
+  /**
+   * Avoid channels that don't have any F-curve data under them.
+   *
+   * Note that this isn't just direct fcurve channels, but also includes e.g.
+   * channel groups with fcurve channels as members.
+   */
   ANIMFILTER_FCURVESONLY = (1 << 12),
 
   /** for checking if we should keep some collapsed channel around (internal use only!) */

@@ -1582,10 +1582,9 @@ static size_t animfilter_action_slot(bAnimContext *ac,
    * anyway. */
   const bool is_action_mode = (ac->spacetype == SPACE_ACTION &&
                                ac->dopesheet_mode == SACTCONT_ACTION);
-  const bool show_fcurves_only = (filter_mode & ANIMFILTER_FCURVESONLY);
   const bool show_active_group_only = filter_mode & ANIMFILTER_ACTGROUPED;
   const bool include_summary_channels = (filter_mode & ANIMFILTER_LIST_CHANNELS);
-  const bool show_slot_channel = (is_action_mode && selection_ok_for_slot && !show_fcurves_only &&
+  const bool show_slot_channel = (is_action_mode && selection_ok_for_slot &&
                                   include_summary_channels);
   if (show_slot_channel) {
     ANIMCHANNEL_NEW_CHANNEL(ac->bmain, &slot, ANIMTYPE_ACTION_SLOT, animated_id, &action.id);
@@ -1599,13 +1598,6 @@ static size_t animfilter_action_slot(bAnimContext *ac,
 
   animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(action, slot.handle);
   if (channel_bag == nullptr) {
-    return items;
-  }
-
-  if (show_fcurves_only) {
-    Span<FCurve *> fcurves = channel_bag->fcurves();
-    items += animfilter_fcurves_span(
-        ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
     return items;
   }
 
