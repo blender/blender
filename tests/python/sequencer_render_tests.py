@@ -33,7 +33,7 @@ def create_argparse():
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
     parser.add_argument("-oiiotool", nargs=1)
-    parser.add_argument('--batch', default=False, action='store_true')
+    parser.add_argument("--batch", default=False, action="store_true")
     return parser
 
 
@@ -49,11 +49,11 @@ def main():
     from modules import render_report
     report = render_report.Report("Sequencer", output_dir, oiiotool)
     report.set_pixelated(True)
-    # default error tolerances are quite large, lower them
+    # Default error tolerances are quite large, lower them.
     report.set_fail_threshold(1.0 / 255.0)
-    if os.path.basename(test_dir) == 'effects':
-        # effects test uses input images with nan/inf values on purpose,
-        # and they have slightly more variance between platforms
+    if os.path.basename(test_dir) == "effects":
+        # Effects test uses input images with nan/inf values on purpose,
+        # and they have slightly more variance between platforms.
         report.set_fail_threshold(2.0 / 255.0)
     report.set_fail_percent(0.01)
     report.set_reference_dir("reference")

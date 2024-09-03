@@ -961,7 +961,7 @@ TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__root_unroot)
   EXPECT_EQ(1, arm.collection_array[4]->child_count);
   EXPECT_EQ(0, arm.collection_array[5]->child_count);
 
-  // TODO: test with circular parenthood.
+  /* TODO: test with circular parenthood. */
 }
 
 TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__within_siblings)

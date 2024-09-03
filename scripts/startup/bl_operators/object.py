@@ -516,7 +516,7 @@ class JoinUVs(Operator):
             nbr_loops = len(mesh.loops)
 
             # seems to be the fastest way to create an array
-            uv_array = array.array('f', [0.0] * 2) * nbr_loops
+            uv_array = array.array("f", [0.0] * 2) * nbr_loops
             mesh.uv_layers.active.data.foreach_get("uv", uv_array)
 
             objects = context.selected_editable_objects[:]

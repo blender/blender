@@ -24,10 +24,10 @@ class VKImmediate;
 
 using AttributeMask = uint16_t;
 
-// TODO: VKVertexAttributeObject should not contain any reference to VBO's. This should make the
-// API be compatible with both VKBatch and VKImmediate.
-// TODO: In steam of storing the bindings/attributes we should add a data structure that can store
-// them. Building the bindings/attributes should be done inside VKPipelinePool.
+/* TODO: VKVertexAttributeObject should not contain any reference to VBO's. This should make the
+ * API be compatible with both #VKBatch and #VKImmediate. */
+/* TODO: In steam of storing the bindings/attributes we should add a data structure that can store
+ * them. Building the bindings/attributes should be done inside #VKPipelinePool. */
 class VKVertexAttributeObject {
  public:
   bool is_valid = false;

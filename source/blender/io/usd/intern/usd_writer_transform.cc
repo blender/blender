@@ -26,8 +26,8 @@ pxr::UsdGeomXformable USDTransformWriter::create_xformable() const
 {
   pxr::UsdGeomXform xform;
 
-  // If prim exists, cast to UsdGeomXform (Solves merge transform and shape issue for animated
-  // exports)
+  /* If prim exists, cast to #UsdGeomXform
+   * (Solves merge transform and shape issue for animated exports). */
   pxr::UsdPrim existing_prim = usd_export_context_.stage->GetPrimAtPath(
       usd_export_context_.usd_path);
   if (existing_prim.IsValid() && existing_prim.IsA<pxr::UsdGeomXform>()) {
@@ -73,7 +73,7 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
+  float parent_relative_matrix[4][4]; /* The object matrix relative to the parent. */
 
   if (should_apply_root_xform(context)) {
     float matrix_world[4][4];

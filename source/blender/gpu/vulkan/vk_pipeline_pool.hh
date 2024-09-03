@@ -101,7 +101,7 @@ struct VKGraphicsInfo {
 
     bool operator==(const FragmentShader &other) const
     {
-      // TODO: Do not use hash.
+      /* TODO: Do not use hash. */
       return vk_fragment_module == other.vk_fragment_module && hash() == other.hash();
     }
 

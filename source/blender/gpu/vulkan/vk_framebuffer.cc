@@ -285,17 +285,17 @@ static void set_load_store(VkRenderingAttachmentInfo &r_rendering_attachment,
 void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
                                             Span<GPUAttachmentState> color_attachment_states)
 {
-  // TODO: this is a fallback implementation. We should also provide support for
-  // `VK_EXT_dynamic_rendering_local_read`. This extension is only supported on Windows
-  // platforms (2024Q2), but would reduce the rendering synchronization overhead.
+  /* TODO: this is a fallback implementation. We should also provide support for
+   * `VK_EXT_dynamic_rendering_local_read`. This extension is only supported on Windows
+   * platforms (2024Q2), but would reduce the rendering synchronization overhead. */
   VKContext &context = *VKContext::get();
   if (is_rendering_) {
     rendering_end(context);
 
-    // TODO: this might need a better implementation:
-    // READ -> DONTCARE
-    // WRITE -> LOAD, STORE based on previous value.
-    // IGNORE -> DONTCARE -> IGNORE
+    /* TODO: this might need a better implementation:
+     * READ -> DONTCARE
+     * WRITE -> LOAD, STORE based on previous value.
+     * IGNORE -> DONTCARE -> IGNORE */
     load_stores.fill(default_load_store());
   }
 
@@ -618,9 +618,9 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
       depth_image_view = depth_texture.image_view_get(image_view_info).vk_handle();
     }
 
-    // TODO: we should be able to use a single attachment info and only set the
-    // pDepthAttachment/pStencilAttachment to the same struct. But perhaps the stencil clear op
-    // might be different.
+    /* TODO: we should be able to use a single attachment info and only set the
+     * #pDepthAttachment/#pStencilAttachment to the same struct.
+     * But perhaps the stencil clear op might be different. */
     {
       VkRenderingAttachmentInfo &attachment_info = begin_rendering.node_data.depth_attachment;
       attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;

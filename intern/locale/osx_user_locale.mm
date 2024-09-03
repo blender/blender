@@ -14,7 +14,7 @@
 
 static char *user_locale = NULL;
 
-// get current locale
+/* Get current locale. */
 const char *osx_user_locale()
 {
   ::free(user_locale);
@@ -24,8 +24,8 @@ const char *osx_user_locale()
     NSLocale *myNSLocale = (NSLocale *)myCFLocale;
     [myNSLocale autorelease];
 
-    // This produces gettext-invalid locale in recent macOS versions (11.4),
-    // like `ko-Kore_KR` instead of `ko_KR`. See #88877.
+    /* This produces gettext-invalid locale in recent macOS versions (11.4),
+     * like `ko-Kore_KR` instead of `ko_KR`. See #88877. */
     // NSString *nsIdentifier = [myNSLocale localeIdentifier];
 
     NSString *nsIdentifier = myNSLocale.languageCode;

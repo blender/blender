@@ -555,7 +555,7 @@ class DATA_PT_camera_animation(CameraButtonsPanel, PropertiesAnimationMixin, Pro
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
     }
-    _animated_id_context_property = 'camera'
+    _animated_id_context_property = "camera"
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):

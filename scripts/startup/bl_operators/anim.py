@@ -682,7 +682,7 @@ class ANIM_OT_slot_new_for_id(Operator):
 
     @classmethod
     def poll(cls, context):
-        animated_id = getattr(context, 'animated_id', None)
+        animated_id = getattr(context, "animated_id", None)
         if not animated_id:
             return False
         if not animated_id.animation_data or not animated_id.animation_data.action:
@@ -694,7 +694,7 @@ class ANIM_OT_slot_new_for_id(Operator):
         return True
 
     def execute(self, context):
-        animated_id = getattr(context, 'animated_id', None)
+        animated_id = getattr(context, "animated_id", None)
 
         action = animated_id.animation_data.action
         slot = action.slots.new(for_id=animated_id)
@@ -706,7 +706,7 @@ class ANIM_OT_slot_unassign_from_id(Operator):
     """Un-assign the assigned Action Slot from an ID.
 
     Note that _which_ ID should get this slot unassigned must be set in the
-    'animated_id' context pointer, using:
+    "animated_id" context pointer, using:
 
     >>> layout.context_pointer_set("animated_id", animated_id)
     """
@@ -717,7 +717,7 @@ class ANIM_OT_slot_unassign_from_id(Operator):
 
     @classmethod
     def poll(cls, context):
-        animated_id = getattr(context, 'animated_id', None)
+        animated_id = getattr(context, "animated_id", None)
         if not animated_id:
             return False
         if not animated_id.animation_data or not animated_id.animation_data.action_slot:
@@ -726,7 +726,7 @@ class ANIM_OT_slot_unassign_from_id(Operator):
         return True
 
     def execute(self, context):
-        animated_id = getattr(context, 'animated_id', None)
+        animated_id = getattr(context, "animated_id", None)
         animated_id.animation_data.action_slot = None
         return {'FINISHED'}
 

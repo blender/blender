@@ -40,8 +40,8 @@ class VKShader : public Shader {
    * the shader. In case for compute shaders without specialization constants this handle is also
    * used as an early exit. In this case there is only 1 variation.
    */
-  // TODO: Should be refactored to stor the vk_pipeline_base_. What is the reason to store the last
-  // pipeline.
+  /* TODO: Should be refactored to store the `vk_pipeline_base_`.
+   * What is the reason to store the last pipeline. */
   VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
 
  public:

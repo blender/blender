@@ -515,7 +515,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
 
   /* Common values */
   vk_graphics_pipeline_create_info_.layout = graphics_info.vk_pipeline_layout;
-  // TODO: based on `vk_pipeline_base` we should update the flags.
+  /* TODO: based on `vk_pipeline_base` we should update the flags. */
   vk_graphics_pipeline_create_info_.basePipelineHandle = vk_pipeline_base;
 
   /* Build pipeline. */
