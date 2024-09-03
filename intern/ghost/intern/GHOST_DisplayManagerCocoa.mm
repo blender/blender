@@ -14,11 +14,10 @@ GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void) {}
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) const
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  @autoreleasepool {
+    numDisplays = (uint8_t)[[NSScreen screens] count];
+  }
 
-  numDisplays = (uint8_t)[[NSScreen screens] count];
-
-  [pool drain];
   return GHOST_kSuccess;
 }
 
@@ -34,78 +33,73 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
                                                             int32_t /*index*/,
                                                             GHOST_DisplaySetting &setting) const
 {
-  NSScreen *askedDisplay;
+  @autoreleasepool {
+    NSScreen *askedDisplay;
 
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    if (display == kMainDisplay) /* Screen #0 may not be the main one. */
+      askedDisplay = [NSScreen mainScreen];
+    else
+      askedDisplay = [[NSScreen screens] objectAtIndex:display];
 
-  if (display == kMainDisplay) /* Screen #0 may not be the main one. */
-    askedDisplay = [NSScreen mainScreen];
-  else
-    askedDisplay = [[NSScreen screens] objectAtIndex:display];
+    if (askedDisplay == nil) {
+      return GHOST_kFailure;
+    }
 
-  if (askedDisplay == nil) {
-    [pool drain];
-    return GHOST_kFailure;
-  }
+    NSRect frame = askedDisplay.visibleFrame;
+    setting.xPixels = frame.size.width;
+    setting.yPixels = frame.size.height;
 
-  NSRect frame = [askedDisplay visibleFrame];
-  setting.xPixels = frame.size.width;
-  setting.yPixels = frame.size.height;
+    setting.bpp = NSBitsPerPixelFromDepth(askedDisplay.depth);
 
-  setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
-
-  setting.frequency = 0; /* No more CRT display. */
+    setting.frequency = 0; /* No more CRT display. */
 
 #ifdef GHOST_DEBUG
-  printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
-         setting.xPixels,
-         setting.yPixels,
-         setting.bpp,
-         setting.frequency);
+    printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
+           setting.xPixels,
+           setting.yPixels,
+           setting.bpp,
+           setting.frequency);
 #endif /* GHOST_DEBUG */
+  }
 
-  [pool drain];
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
     uint8_t display, GHOST_DisplaySetting &setting) const
 {
-  NSScreen *askedDisplay;
-
   GHOST_ASSERT(
       (display == kMainDisplay),
       "GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(): only main display is supported");
 
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  @autoreleasepool {
+    NSScreen *askedDisplay;
 
-  if (display == kMainDisplay) /* Screen #0 may not be the main one. */
-    askedDisplay = [NSScreen mainScreen];
-  else
-    askedDisplay = [[NSScreen screens] objectAtIndex:display];
+    if (display == kMainDisplay) /* Screen #0 may not be the main one. */
+      askedDisplay = [NSScreen mainScreen];
+    else
+      askedDisplay = [[NSScreen screens] objectAtIndex:display];
 
-  if (askedDisplay == nil) {
-    [pool drain];
-    return GHOST_kFailure;
-  }
+    if (askedDisplay == nil) {
+      return GHOST_kFailure;
+    }
 
-  NSRect frame = [askedDisplay visibleFrame];
-  setting.xPixels = frame.size.width;
-  setting.yPixels = frame.size.height;
+    NSRect frame = askedDisplay.visibleFrame;
+    setting.xPixels = frame.size.width;
+    setting.yPixels = frame.size.height;
 
-  setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
+    setting.bpp = NSBitsPerPixelFromDepth(askedDisplay.depth);
 
-  setting.frequency = 0; /* No more CRT display. */
+    setting.frequency = 0; /* No more CRT display. */
 
 #ifdef GHOST_DEBUG
-  printf("current display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
-         setting.xPixels,
-         setting.yPixels,
-         setting.bpp,
-         setting.frequency);
+    printf("current display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
+           setting.xPixels,
+           setting.yPixels,
+           setting.bpp,
+           setting.frequency);
 #endif /* GHOST_DEBUG */
-
-  [pool drain];
+  }
   return GHOST_kSuccess;
 }
 

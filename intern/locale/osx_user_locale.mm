@@ -18,23 +18,24 @@ static char *user_locale = NULL;
 const char *osx_user_locale()
 {
   ::free(user_locale);
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
-  NSLocale *myNSLocale = (NSLocale *)myCFLocale;
-  [myNSLocale autorelease];
 
-  // This produces gettext-invalid locale in recent macOS versions (11.4),
-  // like `ko-Kore_KR` instead of `ko_KR`. See #88877.
-  // NSString *nsIdentifier = [myNSLocale localeIdentifier];
+  @autoreleasepool {
+    CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
+    NSLocale *myNSLocale = (NSLocale *)myCFLocale;
+    [myNSLocale autorelease];
 
-  NSString *nsIdentifier = [myNSLocale languageCode];
-  NSString *nsIdentifier_country = [myNSLocale countryCode];
-  if ([nsIdentifier length] != 0 && [nsIdentifier_country length] != 0) {
-    nsIdentifier = [NSString stringWithFormat:@"%@_%@", nsIdentifier, nsIdentifier_country];
+    // This produces gettext-invalid locale in recent macOS versions (11.4),
+    // like `ko-Kore_KR` instead of `ko_KR`. See #88877.
+    // NSString *nsIdentifier = [myNSLocale localeIdentifier];
+
+    NSString *nsIdentifier = myNSLocale.languageCode;
+    NSString *nsIdentifier_country = myNSLocale.countryCode;
+    if (nsIdentifier.length != 0 && nsIdentifier_country.length != 0) {
+      nsIdentifier = [NSString stringWithFormat:@"%@_%@", nsIdentifier, nsIdentifier_country];
+    }
+
+    user_locale = ::strdup(nsIdentifier.UTF8String);
   }
-
-  user_locale = ::strdup([nsIdentifier UTF8String]);
-  [pool drain];
 
   return user_locale;
 }

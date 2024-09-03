@@ -24,7 +24,7 @@ static const char *GetApplicationSupportDir(const char *versionstr,
   @autoreleasepool {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, mask, YES);
 
-    if ([paths count] == 0) {
+    if (paths.count == 0) {
       return nullptr;
     }
     NSString *basePath = [paths objectAtIndex:0];
@@ -86,7 +86,7 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     }
 
     NSArray *paths = NSSearchPathForDirectoriesInDomains(ns_directory, NSUserDomainMask, YES);
-    if ([paths count] == 0) {
+    if (paths.count == 0) {
       return nullptr;
     }
     NSString *basePath = [paths objectAtIndex:0];
