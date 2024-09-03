@@ -1627,6 +1627,8 @@ void BKE_sculptsession_free_deformMats(SculptSession *ss)
 {
   ss->deform_cos = {};
   ss->deform_imats = {};
+  ss->vert_normals_deform = {};
+  ss->face_normals_deform = {};
 }
 
 void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
