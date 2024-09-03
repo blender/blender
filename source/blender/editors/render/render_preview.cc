@@ -1005,6 +1005,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
   if (camera_eval == nullptr) {
     printf("Scene has no camera, unable to render preview of %s without it.\n",
            preview->id->name + 2);
+    action_preview_render_cleanup(preview, pose_backup);
     return;
   }
 
