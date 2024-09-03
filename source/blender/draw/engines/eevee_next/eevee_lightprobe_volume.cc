@@ -1042,7 +1042,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
 
       if (G.background) {
         /* Print something in background mode instead of failing silently. */
-        fprintf(stderr, inst_.info_get());
+        fprintf(stderr, "%s", inst_.info_get());
       }
 
       do_break_ = true;
