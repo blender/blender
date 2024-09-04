@@ -190,6 +190,15 @@ void BM_log_before_all_removed(BMesh *bm, BMLog *log);
 const float *BM_log_find_original_vert_co(BMLog *log, BMVert *v);
 
 /**
+ * Search the log for the original vertex mask.
+ *
+ * Does not modify the log or the vertex.
+ *
+ * \return the pointer or nullptr if the vertex isn't found.
+ */
+const float *BM_log_find_original_vert_mask(BMLog *log, BMVert *v);
+
+/**
  * Get the logged coordinates of a vertex.
  *
  * Does not modify the log or the vertex.

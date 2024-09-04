@@ -45,37 +45,6 @@ enum class Type : int8_t {
   Color,
 };
 
-struct Node {
-  Array<float3, 0> position;
-  Array<float3, 0> orig_position;
-  Array<float3, 0> normal;
-  Array<float4, 0> col;
-  Array<float, 0> mask;
-
-  Array<float4, 0> loop_col;
-
-  /* Mesh. */
-
-  Array<int, 0> vert_indices;
-  int unique_verts_num;
-
-  Array<int, 0> corner_indices;
-
-  BitVector<0> vert_hidden;
-  BitVector<0> face_hidden;
-
-  /* Multires. */
-
-  /** Indices of grids in the pbvh::Tree node. */
-  Array<int, 0> grids;
-  BitGroupVector<0> grid_hidden;
-
-  /* Sculpt Face Sets */
-  Array<int, 0> face_sets;
-
-  Vector<int> face_indices;
-};
-
 /* Storage of geometry for the undo node.
  * Is used as a storage for either original or modified geometry. */
 struct NodeGeometry {
@@ -94,6 +63,8 @@ struct NodeGeometry {
   int totloop;
   int faces_num;
 };
+
+struct Node;
 
 struct StepData {
   /**
@@ -176,14 +147,6 @@ void push_nodes(const Depsgraph &depsgraph,
                 Object &object,
                 const IndexMask &node_mask,
                 undo::Type type);
-
-/**
- * Retrieve the undo data of a given type for the active undo step. For example, this is used to
- * access "original" data from before the current stroke.
- *
- * This is only possible when building an undo step, in between #push_begin and #push_end.
- */
-const undo::Node *get_node(const bke::pbvh::Node *node, undo::Type type);
 
 /**
  * Pushes an undo step using the operator name. This is necessary for

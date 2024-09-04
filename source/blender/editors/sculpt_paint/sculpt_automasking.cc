@@ -625,8 +625,8 @@ void calc_vert_factors(const Depsgraph &depsgraph,
 {
   Span<float3> orig_normals;
   if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
-    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
-      orig_normals = unode->normal.as_span();
+    if (std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(object, node)) {
+      orig_normals = orig_data->normals;
     }
   }
 
@@ -672,8 +672,9 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 
   Span<float3> orig_normals;
   if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
-    if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
-      orig_normals = unode->normal.as_span();
+    if (std::optional<OrigPositionData> orig_data = orig_position_data_lookup_grids(object, node))
+    {
+      orig_normals = orig_data->normals;
     }
   }
 

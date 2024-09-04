@@ -129,6 +129,37 @@ namespace blender::ed::sculpt_paint::undo {
 
 #define NO_ACTIVE_LAYER bke::AttrDomain::Auto
 
+struct Node {
+  Array<float3, 0> position;
+  Array<float3, 0> orig_position;
+  Array<float3, 0> normal;
+  Array<float4, 0> col;
+  Array<float, 0> mask;
+
+  Array<float4, 0> loop_col;
+
+  /* Mesh. */
+
+  Array<int, 0> vert_indices;
+  int unique_verts_num;
+
+  Array<int, 0> corner_indices;
+
+  BitVector<0> vert_hidden;
+  BitVector<0> face_hidden;
+
+  /* Multires. */
+
+  /** Indices of grids in the pbvh::Tree node. */
+  Array<int, 0> grids;
+  BitGroupVector<0> grid_hidden;
+
+  /* Sculpt Face Sets */
+  Array<int, 0> face_sets;
+
+  Vector<int> face_indices;
+};
+
 struct SculptAttrRef {
   bke::AttrDomain domain;
   eCustomDataType type;
@@ -1129,7 +1160,13 @@ static void free_step_data(StepData &step_data)
   step_data.~StepData();
 }
 
-const Node *get_node(const bke::pbvh::Node *node, const Type type)
+/**
+ * Retrieve the undo data of a given type for the active undo step. For example, this is used to
+ * access "original" data from before the current stroke.
+ *
+ * This is only possible when building an undo step, in between #push_begin and #push_end.
+ */
+static const Node *get_node(const bke::pbvh::Node *node, const Type type)
 {
   StepData *step_data = get_step_data();
   if (!step_data) {
@@ -2124,19 +2161,25 @@ void push_multires_mesh_end(bContext *C, const char *str)
 
 namespace blender::ed::sculpt_paint {
 
-OrigPositionData orig_position_data_get_mesh(const Object & /*object*/,
-                                             const bke::pbvh::MeshNode &node)
+std::optional<OrigPositionData> orig_position_data_lookup_mesh(const Object & /*object*/,
+                                                               const bke::pbvh::MeshNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
-  return {unode->position.as_span().take_front(unode->unique_verts_num),
-          unode->normal.as_span().take_front(unode->unique_verts_num)};
+  if (!unode) {
+    return std::nullopt;
+  }
+  return OrigPositionData{unode->position.as_span().take_front(unode->unique_verts_num),
+                          unode->normal.as_span().take_front(unode->unique_verts_num)};
 }
 
-OrigPositionData orig_position_data_get_grids(const Object & /*object*/,
-                                              const bke::pbvh::GridsNode &node)
+std::optional<OrigPositionData> orig_position_data_lookup_grids(const Object & /*object*/,
+                                                                const bke::pbvh::GridsNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
-  return {unode->position.as_span(), unode->normal.as_span()};
+  if (!unode) {
+    return std::nullopt;
+  }
+  return OrigPositionData{unode->position.as_span(), unode->normal.as_span()};
 }
 
 void orig_position_data_gather_bmesh(const BMLog &bm_log,
@@ -2159,10 +2202,54 @@ void orig_position_data_gather_bmesh(const BMLog &bm_log,
   }
 }
 
-Span<float4> orig_color_data_get_mesh(const Object & /*object*/, const bke::pbvh::MeshNode &node)
+std::optional<Span<float4>> orig_color_data_lookup_mesh(const Object & /*object*/,
+                                                        const bke::pbvh::MeshNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Color);
+  if (!unode) {
+    return std::nullopt;
+  }
   return unode->col.as_span();
+}
+
+std::optional<Span<int>> orig_face_set_data_lookup_mesh(const Object & /*object*/,
+                                                        const bke::pbvh::MeshNode &node)
+{
+  const undo::Node *unode = undo::get_node(&node, undo::Type::FaceSet);
+  if (!unode) {
+    return std::nullopt;
+  }
+  return unode->face_sets.as_span();
+}
+
+std::optional<Span<int>> orig_face_set_data_lookup_grids(const Object & /*object*/,
+                                                         const bke::pbvh::GridsNode &node)
+{
+  const undo::Node *unode = undo::get_node(&node, undo::Type::FaceSet);
+  if (!unode) {
+    return std::nullopt;
+  }
+  return unode->face_sets.as_span();
+}
+
+std::optional<Span<float>> orig_mask_data_lookup_mesh(const Object & /*object*/,
+                                                      const bke::pbvh::MeshNode &node)
+{
+  const undo::Node *unode = undo::get_node(&node, undo::Type::Mask);
+  if (!unode) {
+    return std::nullopt;
+  }
+  return unode->mask.as_span();
+}
+
+std::optional<Span<float>> orig_mask_data_lookup_grids(const Object & /*object*/,
+                                                       const bke::pbvh::GridsNode &node)
+{
+  const undo::Node *unode = undo::get_node(&node, undo::Type::Mask);
+  if (!unode) {
+    return std::nullopt;
+  }
+  return unode->mask.as_span();
 }
 
 }  // namespace blender::ed::sculpt_paint
