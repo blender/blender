@@ -1956,7 +1956,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
   GPU_matrix_push();
   GPU_matrix_mul(pcontext->vc.obact->object_to_world().ptr());
 
-  /* Draw the special active cursors different brushe types may have. */
+  /* Draw the special active cursors different brush types may have. */
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB) {
     sculpt_geometry_preview_lines_draw(

@@ -77,7 +77,7 @@ struct AZone {
   int type;
 
   union {
-    /** Region-azone, which of the edges (only for #AZONE_REGION). */
+    /** Region-AZone, which of the edges (only for #AZONE_REGION). */
     AZEdge edge;
     AZScrollDirection direction;
   };

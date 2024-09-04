@@ -1860,7 +1860,7 @@ class SShape {
     return _BBox;
   }
 
-  /** Returns the ith material of the shape. */
+  /** Returns the i-th material of the shape. */
   inline const FrsMaterial &frs_material(uint i) const
   {
     return _FrsMaterials[i];

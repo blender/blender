@@ -622,9 +622,9 @@ struct wmGesture {
   /**
    * customdata
    * - for border is a #rcti.
-   * - for circle is #rcti, (xmin, ymin) is center, xmax radius.
+   * - for circle is #rcti, (`xmin`, `ymin`) is center, `xmax` radius.
    * - for lasso is short array.
-   * - for straight line is a #rcti: (xmin, ymin) is start, (xmax, ymax) is end.
+   * - for straight line is a #rcti: (`xmin`, `ymin`) is start, (`xmax`, `ymax`) is end.
    */
   void *customdata;
 

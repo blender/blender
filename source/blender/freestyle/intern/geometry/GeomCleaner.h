@@ -35,7 +35,7 @@ class GeomCleaner {
    *    iIndices
    *      The array containing the vertex indices
    *      (used to refer to the vertex coordinates in an indexed face).
-   *      Each element is an unsignedeger multiple of 3.
+   *      Each element is a uint multiple of 3.
    *    iISize
    *      The size of iIndices array
    *    oVertices
@@ -64,7 +64,7 @@ class GeomCleaner {
    *    iIndices
    *      The array containing the vertex indices
    *      (used to refer to the vertex coordinates in an indexed face).
-   *      Each element is an unsignedeger multiple of 3.
+   *      Each element is a uint multiple of 3.
    *    iISize
    *      The size of iIndices array
    *    oVertices
@@ -92,7 +92,7 @@ class GeomCleaner {
    *    iIndices
    *      The array containing the vertex indices
    *      (used to refer to the vertex coordinates in an indexed face).
-   *      Each element is an unsignedeger multiple of 3.
+   *      Each element is a uint multiple of 3.
    *    iISize
    *      The size of iIndices array
    *    oVertices
@@ -121,7 +121,7 @@ class GeomCleaner {
    *    iIndices
    *      The array containing the vertex indices
    *      (used to refer to the vertex coordinates in an indexed face).
-   *      Each element is an unsignedeger multiple of 3.
+   *      Each element is a uint multiple of 3.
    *    iISize
    *      The size of iIndices array
    *    oVertices

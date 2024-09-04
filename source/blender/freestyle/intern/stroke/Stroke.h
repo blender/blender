@@ -366,7 +366,7 @@ class StrokeVertex : public CurvePoint {
     return getPoint2D();
   }
 
-  /** Returns the ith 2D point coordinate (i=0 or 1). */
+  /** Returns the i-th 2D point coordinate (i=0 or 1). */
   inline real operator[](const int i) const
   {
     return _Point2d[i];
@@ -429,7 +429,7 @@ class StrokeVertex : public CurvePoint {
     _Point2d[1] = p[1];
   }
 
-  /** Returns a reference to the ith 2D point coordinate (i=0 or 1) */
+  /** Returns a reference to the i-th 2D point coordinate (i=0 or 1). */
   inline real &operator[](const int i)
   {
     return _Point2d[i];
