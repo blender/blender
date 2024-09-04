@@ -50,6 +50,7 @@
 
 namespace blender::bke::pbvh {
 
+// #define DEBUG_BUILD_TIME
 #define LEAF_LIMIT 10000
 #define STACK_FIXED_DEPTH 100
 
@@ -205,7 +206,9 @@ BLI_NOINLINE static void build_mesh_leaf_nodes(const int verts_num,
                                                const Span<int3> corner_tris,
                                                MutableSpan<MeshNode> nodes)
 {
+#ifdef DEBUG_BUILD_TIME
   SCOPED_TIMER_AVERAGED(__func__);
+#endif
   Array<bool> vert_bitmap(verts_num, false);
   for (const int i : nodes.index_range()) {
     if ((nodes[i].flag_ & PBVH_Leaf) == 0) {
@@ -332,7 +335,9 @@ static void build_nodes_recursive_mesh(const Span<int> tri_faces,
 
 std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 {
+#ifdef DEBUG_BUILD_TIME
   SCOPED_TIMER_AVERAGED(__func__);
+#endif
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
   const Span<float3> vert_positions = mesh.vert_positions();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -375,18 +380,23 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 
   Vector<MeshNode> &nodes = std::get<Vector<MeshNode>>(pbvh->nodes_);
   nodes.resize(1);
-  build_nodes_recursive_mesh(tri_faces,
-                             material_index,
-                             leaf_limit,
-                             0,
-                             bounds,
-                             prim_bounds,
-                             0,
-                             corner_tris.size(),
-                             Array<int>(pbvh->prim_indices_.size()),
-                             0,
-                             pbvh->prim_indices_,
-                             nodes);
+  {
+#ifdef DEBUG_BUILD_TIME
+    SCOPED_TIMER_AVERAGED("build_nodes_recursive_mesh");
+#endif
+    build_nodes_recursive_mesh(tri_faces,
+                               material_index,
+                               leaf_limit,
+                               0,
+                               bounds,
+                               prim_bounds,
+                               0,
+                               corner_tris.size(),
+                               Array<int>(pbvh->prim_indices_.size()),
+                               0,
+                               pbvh->prim_indices_,
+                               nodes);
+  }
 
   build_mesh_leaf_nodes(mesh.verts_num, corner_verts, corner_tris, nodes);
 
