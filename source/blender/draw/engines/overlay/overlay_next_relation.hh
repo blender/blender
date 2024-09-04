@@ -23,10 +23,16 @@ class Relations {
  private:
   PassSimple ps_ = {"Relations"};
 
-  LinePrimitiveBuf relations_buf_ = {SelectionType::DISABLED, "relations_buf_"};
-  PointPrimitiveBuf points_buf_ = {SelectionType::DISABLED, "points_buf_"};
+  LinePrimitiveBuf relations_buf_;
+  PointPrimitiveBuf points_buf_;
 
  public:
+  Relations(SelectionType selection_type)
+      : relations_buf_(selection_type, "relations_buf_"),
+        points_buf_(selection_type, "points_buf_")
+  {
+  }
+
   void begin_sync()
   {
     points_buf_.clear();
@@ -38,12 +44,10 @@ class Relations {
     Object *ob = ob_ref.object;
     const float4 &relation_color = res.theme_settings.color_wire;
     const float4 &constraint_color = res.theme_settings.color_grid_axis_z; /* ? */
-    const select::ID select_id = res.select_id(ob_ref);
 
     if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
       const float3 &parent_pos = ob->runtime->parent_display_origin;
-      relations_buf_.append(
-          parent_pos, ob->object_to_world().location(), relation_color, select_id);
+      relations_buf_.append(parent_pos, ob->object_to_world().location(), relation_color);
     }
 
     /* Drawing the hook lines. */

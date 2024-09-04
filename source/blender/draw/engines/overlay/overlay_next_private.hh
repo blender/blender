@@ -533,15 +533,12 @@ struct PointPrimitiveBuf : public VertexPrimitiveBuf {
   {
   }
 
-  void append(const float3 &position, const float4 &color)
-  {
-    VertexPrimitiveBuf::append(position, color);
-  }
-
-  void append(const float3 &position, const float4 &color, select::ID select_id)
+  void append(const float3 &position,
+              const float4 &color,
+              select::ID select_id = select::SelectMap::select_invalid_id())
   {
     select_buf.select_append(select_id);
-    append(position, color);
+    VertexPrimitiveBuf::append(position, color);
   }
 
   void append(const float3 &position, const int color_id, select::ID select_id)
@@ -564,19 +561,20 @@ struct LinePrimitiveBuf : public VertexPrimitiveBuf {
   {
   }
 
-  void append(const float3 &start, const float3 &end, const float4 &color)
+  void append(const float3 &start,
+              const float3 &end,
+              const float4 &color,
+              select::ID select_id = select::SelectMap::select_invalid_id())
   {
+    select_buf.select_append(select_id);
     VertexPrimitiveBuf::append(start, color);
     VertexPrimitiveBuf::append(end, color);
   }
 
-  void append(const float3 &start, const float3 &end, const float4 &color, select::ID select_id)
-  {
-    select_buf.select_append(select_id);
-    append(start, end, color);
-  }
-
-  void append(const float3 &start, const float3 &end, const int color_id, select::ID select_id)
+  void append(const float3 &start,
+              const float3 &end,
+              const int color_id,
+              select::ID select_id = select::SelectMap::select_invalid_id())
   {
     this->color_id = color_id;
     append(start, end, float4(), select_id);

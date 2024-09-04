@@ -79,7 +79,7 @@ class Instance {
     Meshes meshes;
     Particles particles;
     Prepass prepass = {selection_type_};
-    Relations relations;
+    Relations relations = {selection_type_};
     Speakers speakers = {selection_type_};
     Wireframe wireframe;
   } regular{selection_type_}, infront{selection_type_};

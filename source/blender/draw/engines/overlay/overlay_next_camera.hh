@@ -241,7 +241,7 @@ class Cameras {
             if (a > 0) {
               /* This one is suboptimal (gl_lines instead of gl_line_strip)
                * but we keep this for simplicity */
-              call_buffers.tracking_path.append(v0, v1, TH_CAMERA_PATH, select_id);
+              call_buffers.tracking_path.append(v0, v1, TH_CAMERA_PATH);
             }
           }
         }

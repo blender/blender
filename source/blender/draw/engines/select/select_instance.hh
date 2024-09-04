@@ -139,6 +139,7 @@ struct SelectMap {
     return {id};
   }
 
+  /* TODO: refactor this method to select::ID::invalid(). */
   /* Load an invalid index that will not write to the output (not selectable). */
   [[nodiscard]] static const ID select_invalid_id()
   {
