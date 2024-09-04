@@ -885,7 +885,6 @@ static void drw_shgroup_bone_custom_solid_mesh(const Armatures::DrawContext *ctx
                                                Object &custom)
 {
   using namespace blender::draw;
-  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -954,7 +953,6 @@ static void drw_shgroup_bone_custom_mesh_wire(const Armatures::DrawContext *ctx,
                                               Object &custom)
 {
   using namespace blender::draw;
-  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -990,7 +988,6 @@ static void drw_shgroup_custom_bone_curve(const Armatures::DrawContext *ctx,
                                           Object *custom)
 {
   using namespace blender::draw;
-  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_curve_batch_cache_validate(curve);
@@ -1092,7 +1089,6 @@ static void drw_shgroup_bone_custom_empty(const Armatures::DrawContext *ctx,
                                           Object *custom)
 {
   using namespace blender::draw;
-  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
 
   if (ctx->is_overlay_next()) {
     gpu::Batch *geom = nullptr;
