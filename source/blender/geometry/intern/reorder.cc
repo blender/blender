@@ -48,31 +48,30 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
                                               const Span<int> old_by_new_map,
                                               bke::MutableAttributeAccessor dst_attributes)
 {
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain != domain) {
-          return true;
-        }
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        const GVArray src = *src_attributes.lookup(id, domain);
-        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, domain, meta_data.data_type);
-        if (!dst) {
-          return true;
-        }
+  src_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
+    const GVArray src = *src_attributes.lookup(id, domain);
+    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, domain, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
 
-        threading::parallel_for(old_by_new_map.index_range(), 1024, [&](const IndexRange range) {
-          for (const int new_i : range) {
-            const int old_i = old_by_new_map[new_i];
-            array_utils::copy(src.slice(src_offsets[old_i]), dst.span.slice(dst_offsets[new_i]));
-          }
-        });
+    threading::parallel_for(old_by_new_map.index_range(), 1024, [&](const IndexRange range) {
+      for (const int new_i : range) {
+        const int old_i = old_by_new_map[new_i];
+        array_utils::copy(src.slice(src_offsets[old_i]), dst.span.slice(dst_offsets[new_i]));
+      }
+    });
 
-        dst.finish();
-        return true;
-      });
+    dst.finish();
+    return true;
+  });
 }
 
 static Array<int> invert_permutation(const Span<int> permutation)
@@ -218,17 +217,17 @@ static void clean_unused_attributes(const bke::AnonymousAttributePropagationInfo
                                     bke::MutableAttributeAccessor attributes)
 {
   Vector<std::string> unused_ids;
-  attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-    if (!id.is_anonymous()) {
+  attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
+    if (!bke::attribute_name_is_anonymous(id)) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (propagation_info.propagate(id.name())) {
+    if (propagation_info.propagate(id)) {
       return true;
     }
-    unused_ids.append(id.name());
+    unused_ids.append(id);
     return true;
   });
 

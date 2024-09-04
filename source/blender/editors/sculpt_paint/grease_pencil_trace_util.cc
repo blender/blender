@@ -147,7 +147,7 @@ void free_trace(Trace *trace)
   potrace_state_free(trace);
 }
 bke::CurvesGeometry trace_to_curves(const Trace &trace,
-                                    const bke::AttributeIDRef &hole_attribute_id,
+                                    const StringRef hole_attribute_id,
                                     const float4x4 &transform)
 {
 
@@ -157,7 +157,7 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
 }
 
 bke::CurvesGeometry trace_to_curves(const Trace &trace,
-                                    const bke::AttributeIDRef &hole_attribute_id,
+                                    const StringRef hole_attribute_id,
                                     FunctionRef<float3(const int2 &)> pixel_to_position)
 {
   auto project_pixel = [&](const potrace_dpoint_t &point) -> float3 {

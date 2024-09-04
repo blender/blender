@@ -11,11 +11,6 @@
 #include "BLI_string_ref.hh"
 
 struct Mesh;
-namespace blender {
-namespace bke {
-class AttributeIDRef;
-}
-}  // namespace blender
 
 namespace blender::geometry {
 

@@ -346,7 +346,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
 }
 
 static AttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_attributes,
-                                                const AttributeIDRef &attribute_id)
+                                                const StringRef attribute_id)
 {
   /* Only use a different domain if it is builtin and must only exist on one domain. */
   if (!mesh_attributes.is_builtin(attribute_id)) {
@@ -363,20 +363,20 @@ static AttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_at
 
 static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attributes,
                                          const AttributeAccessor &mesh_attributes,
-                                         const AttributeIDRef &id,
+                                         const StringRef id,
                                          const AttributeMetaData &meta_data,
                                          const AnonymousAttributePropagationInfo &propagation_info)
 {
 
   /* The position attribute has special non-generic evaluation. */
-  if (id.name() == "position") {
+  if (id == "position") {
     return false;
   }
   /* Don't propagate built-in curves attributes that are not built-in on meshes. */
   if (curve_attributes.is_builtin(id) && !mesh_attributes.is_builtin(id)) {
     return false;
   }
-  if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+  if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
     return false;
   }
   if (meta_data.data_type == CD_PROP_STRING) {
@@ -556,7 +556,7 @@ static void copy_main_point_data_to_mesh_faces(const Span<T> src,
 }
 
 static bool try_sharing_point_data(const CurvesGeometry &main,
-                                   const AttributeIDRef &id,
+                                   const StringRef id,
                                    const GAttributeReader &src,
                                    MutableAttributeAccessor mesh_attributes)
 {
@@ -588,7 +588,7 @@ static bool try_direct_evaluate_point_data(const CurvesGeometry &main,
 }
 
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
-                                                     const AttributeIDRef &id,
+                                                     const StringRef id,
                                                      const ResultOffsets &offsets,
                                                      const AttrDomain dst_domain,
                                                      const GAttributeReader &src_attribute,
@@ -911,7 +911,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   sharp_edges.finish();
 
   const AttributeAccessor main_attributes = main.attributes();
-  main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  main_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
             main_attributes, mesh_attributes, id, meta_data, propagation_info))
     {
@@ -944,7 +944,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   profile.ensure_can_interpolate_to_evaluated();
 
   const AttributeAccessor profile_attributes = profile.attributes();
-  profile_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  profile_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (main_attributes.contains(id)) {
       return true;
     }

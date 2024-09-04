@@ -37,9 +37,9 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
 
   /* Don't copy attributes that are built-in on meshes but not on curves. */
   Set<std::string> skip;
-  for (const bke::AttributeIDRef &id : mesh_attributes.all_ids()) {
+  for (const StringRef id : mesh_attributes.all_ids()) {
     if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
-      skip.add(id.name());
+      skip.add(id);
     }
   }
 
@@ -50,36 +50,35 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
                          vert_indices,
                          curves_attributes);
 
-  mesh_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain == bke::AttrDomain::Point) {
-          return true;
-        }
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        if (skip.contains(id.name())) {
-          return true;
-        }
-        if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
-          return true;
-        }
+  mesh_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData meta_data) {
+    if (meta_data.domain == bke::AttrDomain::Point) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
+    if (skip.contains(id)) {
+      return true;
+    }
+    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+      return true;
+    }
 
-        const bke::GAttributeReader src = mesh_attributes.lookup(id, bke::AttrDomain::Point);
-        /* Some attributes might not exist if they were builtin on domains that don't have
-         * any elements, i.e. a face attribute on the output of the line primitive node. */
-        if (!src) {
-          return true;
-        }
-        bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
-            id, bke::AttrDomain::Point, meta_data.data_type);
-        if (!dst) {
-          return true;
-        }
-        bke::attribute_math::gather(*src, vert_indices, dst.span);
-        dst.finish();
-        return true;
-      });
+    const bke::GAttributeReader src = mesh_attributes.lookup(id, bke::AttrDomain::Point);
+    /* Some attributes might not exist if they were builtin on domains that don't have
+     * any elements, i.e. a face attribute on the output of the line primitive node. */
+    if (!src) {
+      return true;
+    }
+    bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
+        id, bke::AttrDomain::Point, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
+    bke::attribute_math::gather(*src, vert_indices, dst.span);
+    dst.finish();
+    return true;
+  });
 
   debug_randomize_curve_order(&curves);
 

@@ -10,6 +10,7 @@
 
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_string_ref.hh"
 
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
@@ -19,7 +20,6 @@ struct ModifierData;
 namespace blender::bke {
 
 enum class AttrDomain : int8_t;
-class AttributeIDRef;
 
 namespace mesh {
 /* -------------------------------------------------------------------- */
@@ -363,7 +363,7 @@ void mesh_select_face_flush(Mesh &mesh);
 
 /** Set the default name when adding a color attribute if there is no default yet. */
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
-                                                const AttributeIDRef &id,
+                                                StringRef id,
                                                 AttrDomain domain,
                                                 eCustomDataType data_type);
 

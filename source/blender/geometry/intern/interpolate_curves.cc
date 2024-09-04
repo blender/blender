@@ -24,21 +24,16 @@ using bke::CurvesGeometry;
  * Return true if the attribute should be copied/interpolated to the result curves.
  * Don't output attributes that correspond to curve types that have no curves in the result.
  */
-static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute_id,
+static bool interpolate_attribute_to_curves(const StringRef attribute_id,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (attribute_id.is_anonymous()) {
+  if (bke::attribute_name_is_anonymous(attribute_id)) {
     return true;
   }
-  if (ELEM(attribute_id.name(),
-           "handle_type_left",
-           "handle_type_right",
-           "handle_left",
-           "handle_right"))
-  {
+  if (ELEM(attribute_id, "handle_type_left", "handle_type_right", "handle_left", "handle_right")) {
     return type_counts[CURVE_TYPE_BEZIER] != 0;
   }
-  if (ELEM(attribute_id.name(), "nurbs_weight")) {
+  if (ELEM(attribute_id, "nurbs_weight")) {
     return type_counts[CURVE_TYPE_NURBS] != 0;
   }
   return true;
@@ -47,7 +42,7 @@ static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute
 /**
  * Return true if the attribute should be copied to poly curves.
  */
-static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attribute_id)
+static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
 {
   static const Set<StringRef> no_interpolation{{
       "handle_type_left",
@@ -56,7 +51,7 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
       "handle_left",
       "nurbs_weight",
   }};
-  return !no_interpolation.contains(attribute_id.name());
+  return !no_interpolation.contains(attribute_id);
 }
 
 struct AttributesForInterpolation {
@@ -69,7 +64,7 @@ struct AttributesForInterpolation {
 /**
  * Retrieve spans from source and result attributes.
  */
-static AttributesForInterpolation retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
+static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef> ids,
                                                            const CurvesGeometry &src_from_curves,
                                                            const CurvesGeometry &src_to_curves,
                                                            CurvesGeometry &dst_curves)
@@ -117,8 +112,8 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<bke::Attri
 static AttributesForInterpolation gather_point_attributes_to_interpolate(
     const CurvesGeometry &from_curves, const CurvesGeometry &to_curves, CurvesGeometry &dst_curves)
 {
-  VectorSet<bke::AttributeIDRef> ids;
-  auto add_attribute = [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+  VectorSet<StringRef> ids;
+  auto add_attribute = [&](const StringRef id, const bke::AttributeMetaData meta_data) {
     if (meta_data.domain != bke::AttrDomain::Point) {
       return true;
     }

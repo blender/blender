@@ -461,9 +461,8 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
 
   /* Interpolate attributes from guide curves to child curves. Attributes stay on the same domain
    * that they had on the guides. */
-  guide_curve_attributes.for_all([&](const AttributeIDRef &id,
-                                     const AttributeMetaData &meta_data) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+  guide_curve_attributes.for_all([&](const StringRef id, const AttributeMetaData &meta_data) {
+    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
     const eCustomDataType type = meta_data.data_type;
@@ -471,7 +470,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       return true;
     }
     if (guide_curve_attributes.is_builtin(id) &&
-        !ELEM(id.name(), "radius", "tilt", "resolution", "cyclic"))
+        !ELEM(id, "radius", "tilt", "resolution", "cyclic"))
     {
       return true;
     }
@@ -595,14 +594,14 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
 
   /* Interpolate attributes from the points to child curves. All attributes become curve
    * attributes. */
-  point_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+  point_attributes.for_all([&](const StringRef id, const AttributeMetaData &meta_data) {
     if (point_attributes.is_builtin(id) && !children_attributes.is_builtin(id)) {
       return true;
     }
     if (guide_curve_attributes.contains(id)) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {

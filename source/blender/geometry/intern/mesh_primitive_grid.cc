@@ -14,7 +14,7 @@ static void calculate_uvs(Mesh *mesh,
                           const Span<int> corner_verts,
                           const float size_x,
                           const float size_y,
-                          const bke::AttributeIDRef &uv_map_id)
+                          const StringRef uv_map_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(

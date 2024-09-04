@@ -520,9 +520,7 @@ static void calculate_selection_outputs(const ConeConfig &config,
  * If the mesh is a truncated cone or a cylinder, the side faces are unwrapped into
  * a rectangle that fills the top half of the UV (or the entire UV, if there are no fills).
  */
-static void calculate_cone_uvs(const ConeConfig &config,
-                               Mesh *mesh,
-                               const bke::AttributeIDRef &uv_map_id)
+static void calculate_cone_uvs(const ConeConfig &config, Mesh *mesh, const StringRef uv_map_id)
 {
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 

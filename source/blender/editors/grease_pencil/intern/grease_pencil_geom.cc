@@ -303,9 +303,8 @@ blender::bke::CurvesGeometry curves_merge_by_distance(
 
   bke::AttributeAccessor src_attributes = src_curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  src_attributes.for_all([&](const bke::AttributeIDRef &id,
-                             const bke::AttributeMetaData &meta_data) {
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+  src_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData &meta_data) {
+    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
     if (meta_data.domain != bke::AttrDomain::Point) {

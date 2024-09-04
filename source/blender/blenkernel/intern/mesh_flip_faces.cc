@@ -74,14 +74,14 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
   }
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  attributes.for_all([&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     if (meta_data.domain != AttrDomain::Corner) {
       return true;
     }
-    if (ELEM(attribute_id.name(), ".corner_vert", ".corner_edge")) {
+    if (ELEM(attribute_id, ".corner_vert", ".corner_edge")) {
       return true;
     }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(attribute_id);

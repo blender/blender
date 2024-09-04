@@ -468,11 +468,11 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 namespace blender::bke {
 
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
-                                                const AttributeIDRef &id,
+                                                const StringRef id,
                                                 AttrDomain domain,
                                                 eCustomDataType data_type)
 {
-  if (id.is_anonymous()) {
+  if (bke::attribute_name_is_anonymous(id)) {
     return;
   }
   if (!(CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) ||
@@ -483,7 +483,7 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
   if (mesh.default_color_attribute) {
     return;
   }
-  mesh.default_color_attribute = BLI_strdupn(id.name().data(), id.name().size());
+  mesh.default_color_attribute = BLI_strdupn(id.data(), id.size());
 }
 
 void mesh_ensure_required_data_layers(Mesh &mesh)

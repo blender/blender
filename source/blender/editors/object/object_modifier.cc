@@ -1147,7 +1147,7 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   /* Propagate layer attributes. */
   AttributeAccessor src_attributes = grease_pencil_result.attributes();
   MutableAttributeAccessor dst_attributes = grease_pencil_orig.attributes_for_write();
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }

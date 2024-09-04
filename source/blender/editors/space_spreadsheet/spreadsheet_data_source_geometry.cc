@@ -197,30 +197,27 @@ void GeometryDataSource::foreach_default_column_ids(
 
   extra_columns_.foreach_default_column_ids(fn);
 
-  attributes->for_all(
-      [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
-        if (meta_data.domain != domain_) {
-          return true;
-        }
-        if (attribute_id.is_anonymous()) {
-          return true;
-        }
-        if (!bke::allow_procedural_attribute_access(attribute_id.name())) {
-          return true;
-        }
-        if (meta_data.domain == bke::AttrDomain::Instance &&
-            attribute_id.name() == "instance_transform")
-        {
-          /* Don't display the instance transform attribute, since matrix visualization in the
-           * spreadsheet isn't helpful. */
-          return true;
-        }
-        SpreadsheetColumnID column_id;
-        column_id.name = (char *)attribute_id.name().data();
-        const bool is_front = attribute_id.name() == ".viewer";
-        fn(column_id, is_front);
-        return true;
-      });
+  attributes->for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
+    if (meta_data.domain != domain_) {
+      return true;
+    }
+    if (bke::attribute_name_is_anonymous(attribute_id)) {
+      return true;
+    }
+    if (!bke::allow_procedural_attribute_access(attribute_id)) {
+      return true;
+    }
+    if (meta_data.domain == bke::AttrDomain::Instance && attribute_id == "instance_transform") {
+      /* Don't display the instance transform attribute, since matrix visualization in the
+       * spreadsheet isn't helpful. */
+      return true;
+    }
+    SpreadsheetColumnID column_id;
+    column_id.name = (char *)attribute_id.data();
+    const bool is_front = attribute_id == ".viewer";
+    fn(column_id, is_front);
+    return true;
+  });
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
     fn({(char *)"Position"}, false);

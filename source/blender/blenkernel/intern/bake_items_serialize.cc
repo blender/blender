@@ -979,15 +979,15 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const Set<std::string> &attributes_to_ignore)
 {
   auto io_attributes = std::make_shared<io::serialize::ArrayValue>();
-  attributes.for_all([&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-    BLI_assert(!attribute_id.is_anonymous());
-    if (attributes_to_ignore.contains_as(attribute_id.name())) {
+  attributes.for_all([&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
+    BLI_assert(!bke::attribute_name_is_anonymous(attribute_id));
+    if (attributes_to_ignore.contains_as(attribute_id)) {
       return true;
     }
 
     auto io_attribute = io_attributes->append_dict();
 
-    io_attribute->append_str("name", attribute_id.name());
+    io_attribute->append_str("name", attribute_id);
 
     const StringRefNull domain_name = get_domain_io_name(meta_data.domain);
     io_attribute->append_str("domain", domain_name);

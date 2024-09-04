@@ -725,9 +725,9 @@ static void attr_create_generic(Scene *scene,
   const bool need_uv = hair->need_attribute(scene, ATTR_STD_UV);
   bool have_uv = false;
 
-  b_attributes.for_all([&](const blender::bke::AttributeIDRef &id,
+  b_attributes.for_all([&](const blender::StringRef id,
                            const blender::bke::AttributeMetaData meta_data) {
-    const ustring name{std::string_view(id.name())};
+    const ustring name{std::string_view(id)};
 
     const blender::bke::AttrDomain b_domain = meta_data.domain;
     const eCustomDataType b_data_type = meta_data.data_type;

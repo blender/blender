@@ -13,7 +13,6 @@ struct Key;
 struct SubsurfModifierData;
 
 namespace blender::bke {
-class AttributeIDRef;
 struct AttributeMetaData;
 }  // namespace blender::bke
 
@@ -52,15 +51,15 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_custom_data(const Object *obj, const Mesh *mesh, const pxr::UsdGeomMesh &usd_mesh);
   void write_generic_data(const Mesh *mesh,
                           const pxr::UsdGeomMesh &usd_mesh,
-                          const bke::AttributeIDRef &attribute_id,
+                          const StringRef attribute_id,
                           const bke::AttributeMetaData &meta_data);
   void write_uv_data(const Mesh *mesh,
                      const pxr::UsdGeomMesh &usd_mesh,
-                     const bke::AttributeIDRef &attribute_id,
+                     const StringRef attribute_id,
                      const char *active_set_name);
   void write_color_data(const Mesh *mesh,
                         const pxr::UsdGeomMesh &usd_mesh,
-                        const bke::AttributeIDRef &attribute_id,
+                        const StringRef attribute_id,
                         const bke::AttributeMetaData &meta_data);
 };
 

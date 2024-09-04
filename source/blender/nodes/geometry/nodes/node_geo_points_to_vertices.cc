@@ -42,7 +42,7 @@ static void geometry_set_points_to_vertices(
   selection_evaluator.evaluate();
   const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-  Map<AttributeIDRef, AttributeKind> attributes;
+  Map<StringRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::PointCloud},
                                                  GeometryComponent::Type::Mesh,
                                                  false,
@@ -63,8 +63,8 @@ static void geometry_set_points_to_vertices(
   const AttributeAccessor src_attributes = points->attributes();
   MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
 
-  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
-    const AttributeIDRef id = entry.key;
+  for (MapItem<StringRef, AttributeKind> entry : attributes.items()) {
+    const StringRef id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
     const GAttributeReader src = src_attributes.lookup(id);
     if (selection.size() == points->totpoint && src.sharing_info && src.varray.is_span()) {

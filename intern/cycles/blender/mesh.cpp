@@ -285,9 +285,9 @@ static void attr_create_generic(Scene *scene,
   static const ustring u_velocity("velocity");
   const ustring default_color_name{BKE_id_attributes_default_color_name(&b_mesh.id)};
 
-  b_attributes.for_all([&](const blender::bke::AttributeIDRef &id,
+  b_attributes.for_all([&](const blender::StringRef id,
                            const blender::bke::AttributeMetaData meta_data) {
-    const ustring name{std::string_view(id.name())};
+    const ustring name{std::string_view(id)};
     const bool is_render_color = name == default_color_name;
 
     if (need_motion && name == u_velocity) {
@@ -424,17 +424,17 @@ static void attr_create_generic(Scene *scene,
 static set<ustring> get_blender_uv_names(const ::Mesh &b_mesh)
 {
   set<ustring> uv_names;
-  b_mesh.attributes().for_all([&](const blender::bke::AttributeIDRef &id,
-                                  const blender::bke::AttributeMetaData meta_data) {
-    if (meta_data.domain == blender::bke::AttrDomain::Corner &&
-        meta_data.data_type == CD_PROP_FLOAT2)
-    {
-      if (!id.is_anonymous()) {
-        uv_names.emplace(std::string_view(id.name()));
-      }
-    }
-    return true;
-  });
+  b_mesh.attributes().for_all(
+      [&](const blender::StringRef id, const blender::bke::AttributeMetaData meta_data) {
+        if (meta_data.domain == blender::bke::AttrDomain::Corner &&
+            meta_data.data_type == CD_PROP_FLOAT2)
+        {
+          if (!blender::bke::attribute_name_is_anonymous(id)) {
+            uv_names.emplace(std::string_view(id));
+          }
+        }
+        return true;
+      });
   return uv_names;
 }
 

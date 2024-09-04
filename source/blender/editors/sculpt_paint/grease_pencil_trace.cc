@@ -191,7 +191,7 @@ static bool grease_pencil_trace_image(TraceJob &trace_job,
   image_trace::free_bitmap(bm);
 
   /* Attribute ID for which curves are "holes" with a negative trace sign. */
-  const bke::AttributeIDRef hole_attribute_id = "is_hole";
+  const StringRef hole_attribute_id = "is_hole";
 
   /* Transform from bitmap index space to local image object space. */
   const float4x4 transform = pixel_to_object_transform(*trace_job.ob_active, ibuf);

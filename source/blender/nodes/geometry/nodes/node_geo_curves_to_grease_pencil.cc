@@ -129,7 +129,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
 
   const bke::AttributeAccessor instances_attributes = instances.attributes();
   bke::MutableAttributeAccessor grease_pencil_attributes = grease_pencil->attributes_for_write();
-  instances_attributes.for_all([&](const AttributeIDRef &attribute_id,
+  instances_attributes.for_all([&](const StringRef attribute_id,
                                    const AttributeMetaData &meta_data) {
     if (instances_attributes.is_builtin(attribute_id) &&
         !grease_pencil_attributes.is_builtin(attribute_id))
@@ -139,7 +139,9 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     if (ELEM(attribute_id, "opacity")) {
       return true;
     }
-    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.name())) {
+    if (bke::attribute_name_is_anonymous(attribute_id) &&
+        !propagation_info.propagate(attribute_id))
+    {
       return true;
     }
     const GAttributeReader src_attribute = instances_attributes.lookup(attribute_id);

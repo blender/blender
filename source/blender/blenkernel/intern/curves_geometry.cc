@@ -1366,14 +1366,14 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
 
   MutableAttributeAccessor attributes = this->attributes_for_write();
 
-  attributes.for_all([&](const AttributeIDRef &id, AttributeMetaData meta_data) {
+  attributes.for_all([&](const StringRef id, AttributeMetaData meta_data) {
     if (meta_data.domain != AttrDomain::Point) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (bezier_handle_names.contains(id.name())) {
+    if (bezier_handle_names.contains(id)) {
       return true;
     }
 

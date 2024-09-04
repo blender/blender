@@ -66,9 +66,9 @@ static void copy_attributes(PointCloud *pointcloud,
 
   AttributeSet &attributes = pointcloud->attributes;
   static const ustring u_velocity("velocity");
-  b_attributes.for_all([&](const blender::bke::AttributeIDRef &id,
+  b_attributes.for_all([&](const blender::StringRef id,
                            const blender::bke::AttributeMetaData /*meta_data*/) {
-    const ustring name{std::string_view(id.name())};
+    const ustring name{std::string_view(id)};
 
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attr = *b_attributes.lookup<blender::float3>(id);

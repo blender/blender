@@ -495,10 +495,10 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
  * test files to compare these layers. For now it has been decided to
  * skip them.
  */
-static bool ignored_attribute(const AttributeIDRef &id)
+static bool ignored_attribute(const StringRef id)
 {
-  return id.is_anonymous() || id.name().startswith(".vs.") || id.name().startswith(".es.") ||
-         id.name().startswith(".pn.");
+  return attribute_name_is_anonymous(id) || id.startswith(".vs.") || id.startswith(".es.") ||
+         id.startswith(".pn.");
 }
 
 /**
@@ -510,8 +510,8 @@ static bool ignored_attribute(const AttributeIDRef &id)
 static std::optional<MeshMismatch> verify_attributes_compatible(
     const AttributeAccessor &mesh1_attributes, const AttributeAccessor &mesh2_attributes)
 {
-  Set<AttributeIDRef> mesh1_attribute_ids = mesh1_attributes.all_ids();
-  Set<AttributeIDRef> mesh2_attribute_ids = mesh2_attributes.all_ids();
+  Set<StringRefNull> mesh1_attribute_ids = mesh1_attributes.all_ids();
+  Set<StringRefNull> mesh2_attribute_ids = mesh2_attributes.all_ids();
   mesh1_attribute_ids.remove_if(ignored_attribute);
   mesh2_attribute_ids.remove_if(ignored_attribute);
 
@@ -519,7 +519,7 @@ static std::optional<MeshMismatch> verify_attributes_compatible(
     /* Disabled for now due to tests not being up to date. */
     // return MeshMismatch::Attributes;
   }
-  for (const AttributeIDRef &id : mesh1_attribute_ids) {
+  for (const StringRef id : mesh1_attribute_ids) {
     GAttributeReader reader1 = mesh1_attributes.lookup(id);
     GAttributeReader reader2 = mesh2_attributes.lookup(id);
     if (reader1.domain != reader2.domain || reader1.varray.type() != reader2.varray.type()) {
@@ -544,13 +544,13 @@ static std::optional<MeshMismatch> sort_domain_using_attributes(
 {
 
   /* We only need the ids from one mesh, since we know they have the same attributes. */
-  Set<AttributeIDRef> attribute_ids = mesh1_attributes.all_ids();
+  Set<StringRefNull> attribute_ids = mesh1_attributes.all_ids();
   for (const StringRef name : excluded_attributes) {
-    attribute_ids.remove(name);
+    attribute_ids.remove_as(name);
   }
   attribute_ids.remove_if(ignored_attribute);
 
-  for (const AttributeIDRef &id : attribute_ids) {
+  for (const StringRef id : attribute_ids) {
     if (!mesh2_attributes.contains(id)) {
       /* Only needed right now since some test meshes don't have the same attributes. */
       return MeshMismatch::Attributes;

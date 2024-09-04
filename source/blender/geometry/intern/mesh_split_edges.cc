@@ -28,7 +28,7 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
   mesh.verts_num += new_to_old_verts_map.size();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const bke::AttributeIDRef &id : attributes.all_ids()) {
+  for (const StringRef id : attributes.all_ids()) {
     if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Point) {
       continue;
     }
@@ -67,11 +67,11 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
   mesh.edges_num += new_to_old_edge_map.size();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const bke::AttributeIDRef &id : attributes.all_ids()) {
+  for (const StringRef id : attributes.all_ids()) {
     if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Edge) {
       continue;
     }
-    if (id.name() == ".edge_verts") {
+    if (id == ".edge_verts") {
       /* Edge vertices are updated and combined with new edges separately. */
       continue;
     }

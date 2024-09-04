@@ -170,7 +170,7 @@ static void node_operators()
 }
 
 static void clean_unused_attributes(const AnonymousAttributePropagationInfo &propagation_info,
-                                    const Set<AttributeIDRef> &skip,
+                                    const Set<StringRef> &skip,
                                     GeometryComponent &component)
 {
   std::optional<MutableAttributeAccessor> attributes = component.attributes_for_write();
@@ -179,17 +179,17 @@ static void clean_unused_attributes(const AnonymousAttributePropagationInfo &pro
   }
 
   Vector<std::string> unused_ids;
-  attributes->for_all([&](const AttributeIDRef &id, const AttributeMetaData /*meta_data*/) {
-    if (!id.is_anonymous()) {
+  attributes->for_all([&](const StringRef id, const AttributeMetaData /*meta_data*/) {
+    if (!bke::attribute_name_is_anonymous(id)) {
       return true;
     }
     if (skip.contains(id)) {
       return true;
     }
-    if (propagation_info.propagate(id.name())) {
+    if (propagation_info.propagate(id)) {
       return true;
     }
-    unused_ids.append(id.name());
+    unused_ids.append(id);
     return true;
   });
 
@@ -216,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<const NodeGeometryAttributeCaptureItem *> used_items;
   Vector<GField> fields;
   Vector<std::string> attribute_id_ptrs;
-  Set<AttributeIDRef> used_attribute_ids_set;
+  Set<StringRef> used_attribute_ids_set;
   for (const NodeGeometryAttributeCaptureItem &item :
        Span{storage.capture_items, storage.capture_items_num})
   {
@@ -241,7 +241,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Array<AttributeIDRef> attribute_ids(attribute_id_ptrs.size());
+  Array<StringRef> attribute_ids(attribute_id_ptrs.size());
   for (const int i : attribute_id_ptrs.index_range()) {
     attribute_ids[i] = attribute_id_ptrs[i];
   }

@@ -139,17 +139,17 @@ static void transfer_attributes(
 {
   /* Retrieve all attributes except for position which is handled manually.
    * Remove anonymous attributes that don't need to be propagated. */
-  Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
+  Set<StringRefNull> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
   attribute_ids.remove(".edge_verts");
   attribute_ids.remove(".corner_vert");
   attribute_ids.remove(".corner_edge");
   attribute_ids.remove("sharp_face");
-  attribute_ids.remove_if([&](const AttributeIDRef &id) {
-    return id.is_anonymous() && !propagation_info.propagate(id.name());
+  attribute_ids.remove_if([&](const StringRef id) {
+    return bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id);
   });
 
-  for (const AttributeIDRef &id : attribute_ids) {
+  for (const StringRef id : attribute_ids) {
     GAttributeReader src = src_attributes.lookup(id);
 
     AttrDomain out_domain;

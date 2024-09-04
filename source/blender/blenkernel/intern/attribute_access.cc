@@ -105,17 +105,6 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   return static_cast<eCustomDataType>(-1);
 }
 
-std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id)
-{
-  if (attribute_id) {
-    stream << attribute_id.name();
-  }
-  else {
-    stream << "<none>";
-  }
-  return stream;
-}
-
 const char *no_procedural_access_message = N_(
     "This attribute cannot be accessed in a procedural context");
 
@@ -250,19 +239,14 @@ AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains)
   return highest_priority_domain;
 }
 
-static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer &layer)
-{
-  return layer.name;
-}
-
 static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const eCustomDataType data_type,
                                            const eCDAllocType alloctype,
                                            const int domain_size,
-                                           const AttributeIDRef &attribute_id)
+                                           const StringRef attribute_id)
 {
   char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
-  attribute_id.name().copy(attribute_name_c);
+  attribute_id.copy(attribute_name_c);
   return CustomData_add_layer_named(
       &custom_data, data_type, alloctype, domain_size, attribute_name_c);
 }
@@ -270,16 +254,16 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
 static const void *add_generic_custom_data_layer_with_existing_data(
     CustomData &custom_data,
     const eCustomDataType data_type,
-    const AttributeIDRef &attribute_id,
+    const StringRef attribute_id,
     const int domain_size,
     void *layer_data,
     const ImplicitSharingInfo *sharing_info)
 {
   return CustomData_add_layer_named_with_data(
-      &custom_data, data_type, layer_data, domain_size, attribute_id.name(), sharing_info);
+      &custom_data, data_type, layer_data, domain_size, attribute_id, sharing_info);
 }
 
-static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
+static bool add_custom_data_layer_from_attribute_init(const StringRef attribute_id,
                                                       CustomData &custom_data,
                                                       const eCustomDataType data_type,
                                                       const int domain_num,
@@ -336,12 +320,9 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
 }
 
 static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
-                                                   const AttributeIDRef &attribute_id)
+                                                   const StringRef attribute_id)
 {
-  if (!attribute_id) {
-    return false;
-  }
-  return layer.name == attribute_id.name();
+  return layer.name == attribute_id;
 }
 
 bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data) const
@@ -460,8 +441,8 @@ bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
   return CustomData_has_layer_named(custom_data, data_type_, name_);
 }
 
-GAttributeReader CustomDataAttributeProvider::try_get_for_read(
-    const void *owner, const AttributeIDRef &attribute_id) const
+GAttributeReader CustomDataAttributeProvider::try_get_for_read(const void *owner,
+                                                               const StringRef attribute_id) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(owner);
   if (custom_data == nullptr) {
@@ -482,8 +463,8 @@ GAttributeReader CustomDataAttributeProvider::try_get_for_read(
   return {};
 }
 
-GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
-    void *owner, const AttributeIDRef &attribute_id) const
+GAttributeWriter CustomDataAttributeProvider::try_get_for_write(void *owner,
+                                                                const StringRef attribute_id) const
 {
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
@@ -507,7 +488,7 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
   return {};
 }
 
-bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &attribute_id) const
+bool CustomDataAttributeProvider::try_delete(void *owner, const StringRef attribute_id) const
 {
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
@@ -527,7 +508,7 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
 }
 
 bool CustomDataAttributeProvider::try_create(void *owner,
-                                             const AttributeIDRef &attribute_id,
+                                             const StringRef attribute_id,
                                              const AttrDomain domain,
                                              const eCustomDataType data_type,
                                              const AttributeInit &initializer) const
@@ -564,7 +545,7 @@ bool CustomDataAttributeProvider::foreach_attribute(const void *owner,
     const eCustomDataType data_type = (eCustomDataType)layer.type;
     if (this->type_is_supported(data_type)) {
       AttributeMetaData meta_data{domain_, data_type};
-      const AttributeIDRef attribute_id = attribute_id_from_custom_data_layer(layer);
+      const StringRefNull attribute_id = layer.name;
       if (!callback(attribute_id, meta_data)) {
         return false;
       }
@@ -600,7 +581,7 @@ std::optional<AttributeAccessor> AttributeAccessor::from_id(const ID &id)
   return {};
 }
 
-GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
+GAttributeReader AttributeAccessor::lookup(const StringRef attribute_id,
                                            const std::optional<AttrDomain> domain,
                                            const std::optional<eCustomDataType> data_type) const
 {
@@ -631,7 +612,7 @@ GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
   return attribute;
 }
 
-GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attribute_id,
+GAttributeReader AttributeAccessor::lookup_or_default(const StringRef attribute_id,
                                                       const AttrDomain domain,
                                                       const eCustomDataType data_type,
                                                       const void *default_value) const
@@ -648,10 +629,10 @@ GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attr
   return {GVArray::ForSingle(type, domain_size, default_value), domain, nullptr};
 }
 
-Set<AttributeIDRef> AttributeAccessor::all_ids() const
+Set<StringRefNull> AttributeAccessor::all_ids() const
 {
-  Set<AttributeIDRef> ids;
-  this->for_all([&](const AttributeIDRef &attribute_id, const AttributeMetaData & /*meta_data*/) {
+  Set<StringRefNull> ids;
+  this->for_all([&](const StringRefNull attribute_id, const AttributeMetaData & /*meta_data*/) {
     ids.add(attribute_id);
     return true;
   });
@@ -661,9 +642,9 @@ Set<AttributeIDRef> AttributeAccessor::all_ids() const
 void MutableAttributeAccessor::remove_anonymous()
 {
   Vector<std::string> anonymous_ids;
-  for (const AttributeIDRef &id : this->all_ids()) {
-    if (id.is_anonymous()) {
-      anonymous_ids.append(id.name());
+  for (const StringRef id : this->all_ids()) {
+    if (attribute_name_is_anonymous(id)) {
+      anonymous_ids.append(id);
     }
   }
 
@@ -690,14 +671,14 @@ struct FinishCallChecker {
 };
 #endif
 
-GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef &attribute_id)
+GAttributeWriter MutableAttributeAccessor::lookup_for_write(const StringRef attribute_id)
 {
   GAttributeWriter attribute = fn_->lookup_for_write(owner_, attribute_id);
   /* Check that the #finish method is called in debug builds. */
 #ifndef NDEBUG
   if (attribute) {
     auto checker = std::make_shared<FinishCallChecker>();
-    checker->name = attribute_id.name();
+    checker->name = attribute_id;
     checker->real_finish_fn = attribute.tag_modified_fn;
     attribute.tag_modified_fn = [checker]() {
       if (checker->real_finish_fn) {
@@ -710,8 +691,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
   return attribute;
 }
 
-GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
-    const AttributeIDRef &attribute_id)
+GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(const StringRef attribute_id)
 {
   GAttributeWriter attribute = this->lookup_for_write(attribute_id);
   if (attribute) {
@@ -721,7 +701,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
 }
 
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
-    const AttributeIDRef &attribute_id,
+    const StringRef attribute_id,
     const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
@@ -740,7 +720,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
 }
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
-    const AttributeIDRef &attribute_id,
+    const StringRef attribute_id,
     const AttrDomain domain,
     const eCustomDataType data_type,
     const AttributeInit &initializer)
@@ -754,7 +734,7 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
 }
 
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span(
-    const AttributeIDRef &attribute_id, const AttrDomain domain, const eCustomDataType data_type)
+    const StringRef attribute_id, const AttrDomain domain, const eCustomDataType data_type)
 {
   GAttributeWriter attribute = this->lookup_or_add_for_write(
       attribute_id, domain, data_type, AttributeInitConstruct());
@@ -764,8 +744,8 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
   return {};
 }
 
-bool MutableAttributeAccessor::rename(const AttributeIDRef &old_attribute_id,
-                                      const AttributeIDRef &new_attribute_id)
+bool MutableAttributeAccessor::rename(const StringRef old_attribute_id,
+                                      const StringRef new_attribute_id)
 {
   if (old_attribute_id == new_attribute_id) {
     return true;
@@ -818,14 +798,14 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const Set<std::string> &skip)
 {
   Vector<AttributeTransferData> attributes;
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
 
@@ -849,17 +829,17 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        MutableAttributeAccessor dst_attributes)
 {
   const int src_size = src_attributes.domain_size(domain);
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
     const GAttributeReader src = src_attributes.lookup(id, domain);
@@ -891,17 +871,17 @@ void gather_attributes(const AttributeAccessor src_attributes,
     copy_attributes(src_attributes, domain, propagation_info, skip, dst_attributes);
   }
   else {
-    src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
       if (meta_data.domain != domain) {
         return true;
       }
       if (meta_data.data_type == CD_PROP_STRING) {
         return true;
       }
-      if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+      if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
         return true;
       }
-      if (skip.contains(id.name())) {
+      if (skip.contains(id)) {
         return true;
       }
       const GAttributeReader src = src_attributes.lookup(id, domain);
@@ -926,17 +906,17 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       const IndexMask &selection,
                                       MutableAttributeAccessor dst_attributes)
 {
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
@@ -959,17 +939,17 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes)
 {
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
@@ -1011,17 +991,17 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
   if (selection.is_empty()) {
     return;
   }
-  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (id.is_anonymous() && !propagation_info.propagate(id.name())) {
+    if (attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
     const GVArraySpan src = *src_attributes.lookup(id, domain);
@@ -1041,11 +1021,11 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
                                   const Set<std::string> &skip,
                                   const IndexRange range)
 {
-  attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+  attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
       return true;
     }
-    if (skip.contains(id.name())) {
+    if (skip.contains(id)) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {

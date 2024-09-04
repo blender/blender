@@ -11,20 +11,19 @@
 
 namespace blender::geometry {
 
-using bke::AttributeIDRef;
 using bke::AttributeMetaData;
 using bke::GeometryComponent;
 using bke::GeometrySet;
 
-static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
+static Map<StringRef, AttributeMetaData> get_final_attribute_info(
     const Span<const GeometryComponent *> components, const Span<StringRef> ignored_attributes)
 {
-  Map<AttributeIDRef, AttributeMetaData> info;
+  Map<StringRef, AttributeMetaData> info;
 
   for (const GeometryComponent *component : components) {
     component->attributes()->for_all(
-        [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          if (ignored_attributes.contains(attribute_id.name())) {
+        [&](const StringRef attribute_id, const AttributeMetaData &meta_data) {
+          if (ignored_attributes.contains(attribute_id)) {
             return true;
           }
           if (meta_data.data_type == CD_PROP_STRING) {
@@ -47,7 +46,7 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
 }
 
 static void fill_new_attribute(const Span<const GeometryComponent *> src_components,
-                               const AttributeIDRef &attribute_id,
+                               const StringRef attribute_id,
                                const eCustomDataType data_type,
                                const bke::AttrDomain domain,
                                GMutableSpan dst_span)
@@ -77,11 +76,11 @@ void join_attributes(const Span<const GeometryComponent *> src_components,
                      GeometryComponent &result,
                      const Span<StringRef> ignored_attributes)
 {
-  const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
-                                                                               ignored_attributes);
+  const Map<StringRef, AttributeMetaData> info = get_final_attribute_info(src_components,
+                                                                          ignored_attributes);
 
-  for (const MapItem<AttributeIDRef, AttributeMetaData> item : info.items()) {
-    const AttributeIDRef attribute_id = item.key;
+  for (const MapItem<StringRef, AttributeMetaData> item : info.items()) {
+    const StringRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 
     bke::GSpanAttributeWriter write_attribute =

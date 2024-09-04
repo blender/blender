@@ -89,24 +89,23 @@ static void fill_rotation_attribute(const Span<float3> tangents,
 static void copy_curve_domain_attributes(const AttributeAccessor curve_attributes,
                                          MutableAttributeAccessor point_attributes)
 {
-  curve_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
-        if (curve_attributes.is_builtin(id)) {
-          return true;
-        }
-        if (meta_data.domain != AttrDomain::Curve) {
-          return true;
-        }
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
-        point_attributes.add(
-            id,
-            AttrDomain::Point,
-            meta_data.data_type,
-            bke::AttributeInitVArray(*curve_attributes.lookup(id, AttrDomain::Point)));
-        return true;
-      });
+  curve_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData &meta_data) {
+    if (curve_attributes.is_builtin(id)) {
+      return true;
+    }
+    if (meta_data.domain != AttrDomain::Curve) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
+    point_attributes.add(
+        id,
+        AttrDomain::Point,
+        meta_data.data_type,
+        bke::AttributeInitVArray(*curve_attributes.lookup(id, AttrDomain::Point)));
+    return true;
+  });
 }
 
 static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
