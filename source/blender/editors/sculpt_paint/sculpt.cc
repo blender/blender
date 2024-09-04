@@ -4761,18 +4761,18 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
   if (BKE_pbvh_node_get_tmin(&node) >= *tmin) {
     return;
   }
-  const float(*origco)[3] = nullptr;
   bool use_origco = false;
-
+  Span<float3> origco;
   if (srd.original && srd.ss->cache) {
     if (srd.ss->pbvh->type() == bke::pbvh::Type::BMesh) {
       use_origco = true;
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
-      origco = (unode) ? reinterpret_cast<const float(*)[3]>(unode->position.data()) : nullptr;
-      use_origco = origco ? true : false;
+      if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+        use_origco = true;
+        origco = unode->position.as_span();
+      }
     }
   }
 
@@ -4808,18 +4808,18 @@ static void sculpt_find_nearest_to_ray_cb(blender::bke::pbvh::Node &node,
   if (BKE_pbvh_node_get_tmin(&node) >= *tmin) {
     return;
   }
-  const float(*origco)[3] = nullptr;
   bool use_origco = false;
-
+  Span<float3> origco;
   if (srd.original && srd.ss->cache) {
     if (srd.ss->pbvh->type() == bke::pbvh::Type::BMesh) {
       use_origco = true;
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
-      origco = (unode) ? reinterpret_cast<const float(*)[3]>(unode->position.data()) : nullptr;
-      use_origco = origco ? true : false;
+      if (const undo::Node *unode = undo::get_node(&node, undo::Type::Position)) {
+        use_origco = true;
+        origco = unode->position.as_span();
+      }
     }
   }
 

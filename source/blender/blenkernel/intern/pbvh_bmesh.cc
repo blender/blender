@@ -1830,8 +1830,8 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 /************************* Called from pbvh.cc *************************/
 
 bool bmesh_node_raycast(BMeshNode &node,
-                        const float ray_start[3],
-                        const float ray_normal[3],
+                        const float3 &ray_start,
+                        const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
                         float *depth,
                         bool use_original,
@@ -1911,7 +1911,7 @@ bool bmesh_node_raycast(BMeshNode &node,
 }
 
 bool bmesh_node_raycast_detail(BMeshNode &node,
-                               const float ray_start[3],
+                               const float3 &ray_start,
                                IsectRayPrecalc *isect_precalc,
                                float *depth,
                                float *r_edge_length)
@@ -1954,8 +1954,8 @@ bool bmesh_node_raycast_detail(BMeshNode &node,
 }
 
 bool bmesh_node_nearest_to_ray(BMeshNode &node,
-                               const float ray_start[3],
-                               const float ray_normal[3],
+                               const float3 &ray_start,
+                               const float3 &ray_normal,
                                float *depth,
                                float *dist_sq,
                                bool use_original)

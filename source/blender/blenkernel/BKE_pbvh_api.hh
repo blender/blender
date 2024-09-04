@@ -239,13 +239,13 @@ void free(std::unique_ptr<Tree> &pbvh);
 
 void raycast(Tree &pbvh,
              FunctionRef<void(Node &node, float *tmin)> cb,
-             const float ray_start[3],
-             const float ray_normal[3],
+             const float3 &ray_start,
+             const float3 &ray_normal,
              bool original);
 
 bool raycast_node(Tree &pbvh,
                   Node &node,
-                  const float (*origco)[3],
+                  Span<float3> node_positions,
                   bool use_origco,
                   Span<float3> vert_positions,
                   Span<int> corner_verts,
@@ -253,8 +253,8 @@ bool raycast_node(Tree &pbvh,
                   Span<int> corner_tri_faces,
                   Span<bool> hide_poly,
                   const SubdivCCG *subdiv_ccg,
-                  const float ray_start[3],
-                  const float ray_normal[3],
+                  const float3 &ray_start,
+                  const float3 &ray_normal,
                   IsectRayPrecalc *isect_precalc,
                   float *depth,
                   PBVHVertRef *active_vertex,
@@ -262,7 +262,7 @@ bool raycast_node(Tree &pbvh,
                   float *face_normal);
 
 bool bmesh_node_raycast_detail(BMeshNode &node,
-                               const float ray_start[3],
+                               const float3 &ray_start,
                                IsectRayPrecalc *isect_precalc,
                                float *depth,
                                float *r_edge_length);
@@ -282,13 +282,13 @@ void clip_ray_ortho(
 
 void find_nearest_to_ray(Tree &pbvh,
                          const FunctionRef<void(Node &node, float *tmin)> fn,
-                         const float ray_start[3],
-                         const float ray_normal[3],
+                         const float3 &ray_start,
+                         const float3 &ray_normal,
                          bool original);
 
 bool find_nearest_to_ray_node(Tree &pbvh,
                               Node &node,
-                              const float (*origco)[3],
+                              Span<float3> node_positions,
                               bool use_origco,
                               Span<float3> vert_positions,
                               Span<int> corner_verts,
