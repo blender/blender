@@ -53,7 +53,7 @@ ENUM_OPERATORS(OVERLAY_GridBits, CUSTOM_GRID)
 #define OVERLAY_GRID_STEPS_LEN 8
 
 /* Due to the encoding clamping the passed in floats, the wire width needs to be scaled down. */
-#define WIRE_WIDTH_COMPRESSION 16
+#define WIRE_WIDTH_COMPRESSION 16.0
 
 struct OVERLAY_GridData {
   float4 steps[OVERLAY_GRID_STEPS_LEN]; /* float arrays are padded to float4 in std130. */
@@ -228,6 +228,21 @@ struct ExtraInstanceData {
     return copy;
   }
 
+  /* For degrees of freedom. */
+  ExtraInstanceData(const float4x4 &object_to_world,
+                    const float4 &color,
+                    float angle_min_x,
+                    float angle_min_z,
+                    float angle_max_x,
+                    float angle_max_z)
+  {
+    this->color_ = color;
+    this->object_to_world_ = object_to_world;
+    this->object_to_world_[0][3] = angle_min_x;
+    this->object_to_world_[1][3] = angle_min_z;
+    this->object_to_world_[2][3] = angle_max_x;
+    this->object_to_world_[3][3] = angle_max_z;
+  };
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(ExtraInstanceData, 16)
@@ -255,6 +270,84 @@ struct ParticlePointData {
   float4 rotation;
 };
 BLI_STATIC_ASSERT_ALIGN(ParticlePointData, 16)
+
+struct BoneEnvelopeData {
+  float4 head_sphere;
+  float4 tail_sphere;
+  float4 bone_color_and_wire_width;
+  float4 state_color;
+  float4 x_axis;
+
+#ifndef GPU_SHADER
+  BoneEnvelopeData() = default;
+
+  /* For bone fills. */
+  BoneEnvelopeData(float4 &head_sphere,
+                   float4 &tail_sphere,
+                   float3 &bone_color,
+                   float3 &state_color,
+                   float3 &x_axis)
+      : head_sphere(head_sphere),
+        tail_sphere(tail_sphere),
+        bone_color_and_wire_width(bone_color),
+        state_color(state_color),
+        x_axis(x_axis){};
+
+  /* For bone outlines. */
+  BoneEnvelopeData(float4 &head_sphere,
+                   float4 &tail_sphere,
+                   float4 &color_and_wire_width,
+                   float3 &x_axis)
+      : head_sphere(head_sphere),
+        tail_sphere(tail_sphere),
+        bone_color_and_wire_width(color_and_wire_width),
+        x_axis(x_axis){};
+
+  /* For bone distance volumes. */
+  BoneEnvelopeData(float4 &head_sphere, float4 &tail_sphere, float3 &x_axis)
+      : head_sphere(head_sphere), tail_sphere(tail_sphere), x_axis(x_axis){};
+#endif
+};
+BLI_STATIC_ASSERT_ALIGN(BoneEnvelopeData, 16)
+
+/* Keep in sync with armature_stick_vert.glsl. */
+enum StickBoneFlag {
+  COL_WIRE = (1u << 0u),
+  COL_HEAD = (1u << 1u),
+  COL_TAIL = (1u << 2u),
+  COL_BONE = (1u << 3u),
+  POS_HEAD = (1u << 4u),
+  POS_TAIL = (1u << 5u),
+  POS_BONE = (1u << 6u),
+};
+
+struct BoneStickData {
+  float4 bone_start;
+  float4 bone_end;
+  float4 wire_color;
+  float4 bone_color;
+  float4 head_color;
+  float4 tail_color;
+
+#ifndef GPU_SHADER
+  BoneStickData() = default;
+
+  /* For bone fills. */
+  BoneStickData(float3 &bone_start,
+                float3 &bone_end,
+                float4 &wire_color,
+                float4 &bone_color,
+                float4 &head_color,
+                float4 &tail_color)
+      : bone_start(bone_start),
+        bone_end(bone_end),
+        wire_color(wire_color),
+        bone_color(bone_color),
+        head_color(head_color),
+        tail_color(tail_color){};
+#endif
+};
+BLI_STATIC_ASSERT_ALIGN(BoneStickData, 16)
 
 #ifndef GPU_SHADER
 #  ifdef __cplusplus

@@ -10,6 +10,8 @@
 
 #include "BKE_global.hh"
 
+#include "BLI_math_matrix.hh"
+
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
@@ -465,6 +467,7 @@ struct OVERLAY_DupliData {
 struct BoneInstanceData {
   /* Keep sync with bone instance vertex format (OVERLAY_InstanceFormats) */
   union {
+    float4x4 mat44;
     float mat[4][4];
     struct {
       float _pad0[3], color_hint_a;
@@ -481,9 +484,55 @@ struct BoneInstanceData {
   };
 
   BoneInstanceData() = default;
+
   /* Constructor used by metaball overlays and expected to be used for drawing
-   * metaball_wire_sphere with armature wire shader that produces wide-lines. */
-  BoneInstanceData(Object *ob, const float *pos, const float radius, const float color[4]);
+   * metaball edit circles with armature wire shader that produces wide-lines. */
+  BoneInstanceData(const float4x4 &ob_mat,
+                   const float3 &pos,
+                   const float radius,
+                   const float color[4])
+
+  {
+    mat44[0] = ob_mat[0] * radius;
+    mat44[1] = ob_mat[1] * radius;
+    mat44[2] = ob_mat[2] * radius;
+    mat44[3] = float4(blender::math::transform_point(ob_mat, pos));
+    set_color(color);
+  }
+
+  BoneInstanceData(const float4x4 &bone_mat, const float4 &bone_color, const float4 &hint_color)
+      : mat44(bone_mat)
+  {
+    set_color(bone_color);
+    set_hint_color(hint_color);
+  };
+
+  BoneInstanceData(const float4x4 &bone_mat, const float4 &bone_color) : mat44(bone_mat)
+  {
+    set_color(bone_color);
+  };
+
+  void set_color(const float4 &bone_color)
+  {
+    /* Encoded color into 2 floats to be able to use the matrix to color the custom bones. */
+    color_a = encode_2f_to_float(bone_color[0], bone_color[1]);
+    color_b = encode_2f_to_float(bone_color[2], bone_color[3]);
+  }
+
+  void set_hint_color(const float4 &hint_color)
+  {
+    /* Encoded color into 2 floats to be able to use the matrix to color the custom bones. */
+    color_hint_a = encode_2f_to_float(hint_color[0], hint_color[1]);
+    color_hint_b = encode_2f_to_float(hint_color[2], hint_color[3]);
+  }
+
+ private:
+  /* Encode 2 units float with byte precision into a float. */
+  float encode_2f_to_float(float a, float b) const
+  {
+    /* NOTE: `b` can go up to 2. Needed to encode wire size. */
+    return float(int(clamp_f(a, 0.0f, 1.0f) * 255) | (int(clamp_f(b, 0.0f, 2.0f) * 255) << 8));
+  }
 };
 
 struct OVERLAY_InstanceFormats {

@@ -177,6 +177,11 @@ void Draw::execute(RecordingState &state) const
     IndexRange expanded_range = {vert_range.start() * expand_prim_len,
                                  vert_range.size() * expand_prim_len};
 
+    if (expanded_range.is_empty()) {
+      /* Nothing to draw, and can lead to asserts in GPU_batch_bind_as_resources. */
+      return;
+    }
+
     GPU_batch_bind_as_resources(batch, state.shader);
 
     gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand_prim_type));

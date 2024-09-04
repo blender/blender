@@ -4,9 +4,12 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
+  select_id_set(in_select_buf[gl_InstanceID]);
+
   vec3 bone_vec = tailSphere.xyz - headSphere.xyz;
   float bone_len = max(1e-8, sqrt(dot(bone_vec, bone_vec)));
   float bone_lenrcp = 1.0 / bone_len;

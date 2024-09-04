@@ -279,8 +279,8 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire()
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_dof_wire) {
     sh_data->armature_dof_wire = GPU_shader_create_from_info_name(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_armature_dof_wire_clipped" :
-                                                       "overlay_armature_dof_wire");
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_armature_dof_clipped" :
+                                                       "overlay_armature_dof");
   }
   return sh_data->armature_dof_wire;
 }
@@ -291,8 +291,8 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid()
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_dof_solid) {
     sh_data->armature_dof_solid = GPU_shader_create_from_info_name(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_armature_dof_solid_clipped" :
-                                                       "overlay_armature_dof_solid");
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_armature_dof_clipped" :
+                                                       "overlay_armature_dof");
   }
   return sh_data->armature_dof_solid;
 }

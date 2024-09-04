@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(select_lib.glsl)
+
 void main()
 {
   /* Manual back-face culling. Not ideal for performance
@@ -9,7 +11,9 @@ void main()
    * for inverted bone matrices. */
   if ((inverted == 1) == gl_FrontFacing) {
     discard;
+    return;
   }
   fragColor = vec4(finalColor.rgb, alpha);
   lineOutput = vec4(0.0);
+  select_id_output(select_id);
 }

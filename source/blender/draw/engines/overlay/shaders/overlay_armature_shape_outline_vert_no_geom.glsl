@@ -19,11 +19,9 @@ vec2 proj(vec4 pos)
 
 void do_vertex_shader(mat4 in_inst_obmat,
                       vec3 in_pos,
-                      vec3 in_snor,
                       out vec4 out_pPos,
                       out vec3 out_vPos,
                       out vec2 out_ssPos,
-                      out vec2 out_ssNor,
                       out vec4 out_vColSize,
                       out int out_inverted,
                       out vec4 out_wpos)
@@ -42,10 +40,6 @@ void do_vertex_shader(mat4 in_inst_obmat,
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
   mat3 normal_mat = transpose(inverse(mat3(model_mat)));
-  /* TODO FIX: there is still a problem with this vector
-   * when the bone is scaled or in persp mode. But it's
-   * barely visible at the outline corners. */
-  out_ssNor = normalize(normal_world_to_view(normal_mat * in_snor).xy);
 
   out_ssPos = proj(out_pPos);
 
@@ -73,37 +67,19 @@ void main()
   in_pos[2] = vertex_fetch_attribute_raw(vertex_id_from_index_id(4 * line_prim_id + 2), pos, vec3);
   in_pos[3] = vertex_fetch_attribute_raw(vertex_id_from_index_id(4 * line_prim_id + 3), pos, vec3);
 
-  vec3 in_snor[4];
-  in_snor[0] = vertex_fetch_attribute_raw(vertex_id_from_index_id(4 * line_prim_id), snor, vec3);
-  in_snor[1] = vertex_fetch_attribute_raw(
-      vertex_id_from_index_id(4 * line_prim_id + 1), snor, vec3);
-  in_snor[2] = vertex_fetch_attribute_raw(
-      vertex_id_from_index_id(4 * line_prim_id + 2), snor, vec3);
-  in_snor[3] = vertex_fetch_attribute_raw(
-      vertex_id_from_index_id(4 * line_prim_id + 3), snor, vec3);
-
   mat4 in_inst_obmat = vertex_fetch_attribute(gl_VertexID, inst_obmat, mat4);
 
   /* Run original GL vertex shader implementation per vertex in adjacency list. */
   vec4 pPos[4];
   vec3 vPos[4];
   vec2 ssPos[4];
-  vec2 ssNor[4];
   vec4 vColSize[4];
   int inverted[4];
   vec4 wPos[4];
 
   for (int v = 0; v < 4; v++) {
-    do_vertex_shader(in_inst_obmat,
-                     in_pos[v],
-                     in_snor[v],
-                     pPos[v],
-                     vPos[v],
-                     ssPos[v],
-                     ssNor[v],
-                     vColSize[v],
-                     inverted[v],
-                     wPos[v]);
+    do_vertex_shader(
+        in_inst_obmat, in_pos[v], pPos[v], vPos[v], ssPos[v], vColSize[v], inverted[v], wPos[v]);
   }
 
   /* Geometry Shader equivalent to calculate vertex output position. */

@@ -45,65 +45,14 @@
 #include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
+#include "overlay_next_armature.hh"
 #include "overlay_private.hh"
 
 #include "draw_cache_impl.hh"
 
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
 
-using namespace blender;
-
-enum eArmatureDrawMode {
-  ARM_DRAW_MODE_OBJECT,
-  ARM_DRAW_MODE_POSE,
-  ARM_DRAW_MODE_EDIT,
-};
-
-struct ArmatureDrawContext {
-  /* Current armature object */
-  Object *ob;
-  // bArmature *arm; /* TODO. */
-  eArmatureDrawMode draw_mode;
-  eArmature_Drawtype drawtype;
-
-  union {
-    struct {
-      DRWCallBuffer *outline;
-      DRWCallBuffer *solid;
-      DRWCallBuffer *wire;
-    };
-    struct {
-      DRWCallBuffer *envelope_outline;
-      DRWCallBuffer *envelope_solid;
-      DRWCallBuffer *envelope_distance;
-    };
-    struct {
-      DRWCallBuffer *stick;
-    };
-  };
-
-  DRWCallBuffer *dof_lines;
-  DRWCallBuffer *dof_sphere;
-  DRWCallBuffer *point_solid;
-  DRWCallBuffer *point_outline;
-  DRWShadingGroup *custom_solid;
-  DRWShadingGroup *custom_outline;
-  DRWShadingGroup *custom_wire;
-  GHash *custom_shapes_ghash;
-
-  OVERLAY_ExtraCallBuffers *extras;
-
-  /* not a theme, this is an override */
-  const float *const_color;
-  float const_wire;
-
-  bool do_relations;
-  bool transparent;
-  bool show_relations;
-  bool draw_relation_from_head;
-
-  const ThemeWireColor *bcolor; /* pchan color */
-};
+using namespace blender::draw::overlay;
 
 /**
  * Container for either an #EditBone or a #bPoseChannel.
@@ -260,12 +209,12 @@ class ArmatureBoneDrawStrategy {
                             const Object *ob,
                             const bPoseChannel *pchan) const = 0;
 
-  virtual void draw_context_setup(ArmatureDrawContext *ctx,
+  virtual void draw_context_setup(Armatures::DrawContext *ctx,
                                   const OVERLAY_ArmatureCallBuffersInner *cb,
                                   const bool is_filled,
                                   const bool do_envelope_dist) const = 0;
 
-  virtual void draw_bone(const ArmatureDrawContext *ctx,
+  virtual void draw_bone(const Armatures::DrawContext *ctx,
                          const UnifiedBonePtr bone,
                          const eBone_Flag boneflag,
                          const int select_id) const = 0;
@@ -614,6 +563,17 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
   }
 }
 
+// #define NO_LEGACY_OVERLAY
+
+/* Allows to check that all legacy API usage are guarded behind this flag.
+ * Checks that all code have been ported to new API.  */
+#ifdef NO_LEGACY_OVERLAY
+#  define DRW_buffer_add_entry_struct POISON
+#  define DRW_select_load_id POISON
+#  define OVERLAY_empty_shape POISON
+#  define OVERLAY_extra_line_dashed POISON
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Shader Groups (DRW_shgroup)
  * \{ */
@@ -652,8 +612,10 @@ void OVERLAY_bone_instance_data_set_color(BoneInstanceData *data, const float bo
   data->color_b = encode_2f_to_float(bone_color[2], bone_color[3]);
 }
 
+#ifndef NO_LEGACY_OVERLAY
+
 /* Octahedral */
-static void drw_shgroup_bone_octahedral(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_octahedral(const Armatures::DrawContext *ctx,
                                         const float (*bone_mat)[4],
                                         const float bone_color[4],
                                         const float hint_color[4],
@@ -673,7 +635,7 @@ static void drw_shgroup_bone_octahedral(const ArmatureDrawContext *ctx,
 }
 
 /* Box / B-Bone */
-static void drw_shgroup_bone_box(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_box(const Armatures::DrawContext *ctx,
                                  const float (*bone_mat)[4],
                                  const float bone_color[4],
                                  const float hint_color[4],
@@ -691,45 +653,47 @@ static void drw_shgroup_bone_box(const ArmatureDrawContext *ctx,
     DRW_buffer_add_entry_struct(ctx->outline, &inst_data);
   }
 }
-
-/* Wire */
-static void drw_shgroup_bone_wire(const ArmatureDrawContext *ctx,
-                                  const float (*bone_mat)[4],
-                                  const float color[4])
-{
-  float head[3], tail[3];
-  mul_v3_m4v3(head, ctx->ob->object_to_world().ptr(), bone_mat[3]);
-  add_v3_v3v3(tail, bone_mat[3], bone_mat[1]);
-  mul_m4_v3(ctx->ob->object_to_world().ptr(), tail);
-
-  DRW_buffer_add_entry(ctx->wire, head, color);
-  DRW_buffer_add_entry(ctx->wire, tail, color);
-}
+#endif
 
 /* Stick */
-static void drw_shgroup_bone_stick(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_stick(const Armatures::DrawContext *ctx,
                                    const float (*bone_mat)[4],
                                    const float col_wire[4],
                                    const float col_bone[4],
                                    const float col_head[4],
-                                   const float col_tail[4])
+                                   const float col_tail[4],
+                                   const int select_id)
 {
-  float head[3], tail[3];
-  mul_v3_m4v3(head, ctx->ob->object_to_world().ptr(), bone_mat[3]);
-  add_v3_v3v3(tail, bone_mat[3], bone_mat[1]);
-  mul_m4_v3(ctx->ob->object_to_world().ptr(), tail);
+  float4x4 bmat = float4x4(bone_mat);
+  float3 head = math::transform_point(ctx->ob->object_to_world(), bmat.location());
+  float3 tail = math::transform_point(ctx->ob->object_to_world(), bmat.location() + bmat.y_axis());
 
-  DRW_buffer_add_entry(ctx->stick, head, tail, col_wire, col_bone, col_head, col_tail);
+  if (ctx->is_overlay_next()) {
+    auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id);
+
+    ctx->bone_buf->stick_buf.append({head,
+                                     tail,
+                                     *(float4 *)col_wire,
+                                     *(float4 *)col_bone,
+                                     *(float4 *)col_head,
+                                     *(float4 *)col_tail},
+                                    sel_id);
+  }
+#ifndef NO_LEGACY_OVERLAY
+  else {
+    DRW_buffer_add_entry(ctx->stick, head, tail, col_wire, col_bone, col_head, col_tail);
+  }
+#endif
 }
 
 /* Envelope */
-static void drw_shgroup_bone_envelope_distance(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_envelope_distance(const Armatures::DrawContext *ctx,
                                                const float (*bone_mat)[4],
                                                const float *radius_head,
                                                const float *radius_tail,
                                                const float *distance)
 {
-  if (ctx->envelope_distance) {
+  if (ctx->draw_envelope_distance) {
     float head_sph[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sph[4] = {0.0f, 1.0f, 0.0f, 1.0f};
     float xaxis[4] = {1.0f, 0.0f, 0.0f, 1.0f};
     /* Still less operation than m4 multiplication. */
@@ -745,17 +709,28 @@ static void drw_shgroup_bone_envelope_distance(const ArmatureDrawContext *ctx,
     head_sph[3] += *distance * obscale;
     tail_sph[3] = *radius_tail * obscale;
     tail_sph[3] += *distance * obscale;
-    DRW_buffer_add_entry(ctx->envelope_distance, head_sph, tail_sph, xaxis);
+    if (ctx->is_overlay_next()) {
+      /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+      ctx->bone_buf->envelope_distance_buf.append(
+          {*(float4 *)head_sph, *(float4 *)tail_sph, *(float3 *)xaxis},
+          draw::select::SelectMap::select_invalid_id());
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->envelope_distance) {
+      DRW_buffer_add_entry(ctx->envelope_distance, head_sph, tail_sph, xaxis);
+    }
+#endif
   }
 }
 
-static void drw_shgroup_bone_envelope(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_envelope(const Armatures::DrawContext *ctx,
                                       const float (*bone_mat)[4],
                                       const float bone_col[4],
                                       const float hint_col[4],
                                       const float outline_col[4],
                                       const float *radius_head,
-                                      const float *radius_tail)
+                                      const float *radius_tail,
+                                      const int select_id)
 {
   float head_sph[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sph[4] = {0.0f, 1.0f, 0.0f, 1.0f};
   float xaxis[4] = {1.0f, 0.0f, 0.0f, 1.0f};
@@ -770,6 +745,9 @@ static void drw_shgroup_bone_envelope(const ArmatureDrawContext *ctx,
   head_sph[3] = *radius_head * obscale;
   tail_sph[3] = *radius_tail * obscale;
 
+  auto sel_id = (ctx->bone_buf) ? ctx->res->select_id(*ctx->ob_ref, select_id) :
+                                  draw::select::SelectMap::select_invalid_id();
+
   if (head_sph[3] < 0.0f || tail_sph[3] < 0.0f) {
     BoneInstanceData inst_data;
     if (head_sph[3] < 0.0f) {
@@ -783,15 +761,27 @@ static void drw_shgroup_bone_envelope(const ArmatureDrawContext *ctx,
       copy_v3_v3(inst_data.mat[3], head_sph);
     }
 
-    if (ctx->point_solid) {
-      OVERLAY_bone_instance_data_set_color(&inst_data, bone_col);
-      OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_col);
-      DRW_buffer_add_entry_struct(ctx->point_solid, &inst_data);
+    if (ctx->is_overlay_next()) {
+      if (ctx->is_filled) {
+        ctx->bone_buf->sphere_fill_buf.append({inst_data.mat44, bone_col, hint_col}, sel_id);
+      }
+      if (outline_col[3] > 0.0f) {
+        ctx->bone_buf->sphere_outline_buf.append({inst_data.mat44, outline_col}, sel_id);
+      }
     }
-    if (outline_col[3] > 0.0f) {
-      OVERLAY_bone_instance_data_set_color(&inst_data, outline_col);
-      DRW_buffer_add_entry_struct(ctx->point_outline, &inst_data);
+#ifndef NO_LEGACY_OVERLAY
+    else {
+      if (ctx->point_solid) {
+        OVERLAY_bone_instance_data_set_color(&inst_data, bone_col);
+        OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_col);
+        DRW_buffer_add_entry_struct(ctx->point_solid, &inst_data);
+      }
+      if (outline_col[3] > 0.0f) {
+        OVERLAY_bone_instance_data_set_color(&inst_data, outline_col);
+        DRW_buffer_add_entry_struct(ctx->point_outline, &inst_data);
+      }
     }
+#endif
   }
   else {
     /* Draw Body */
@@ -804,12 +794,33 @@ static void drw_shgroup_bone_envelope(const ArmatureDrawContext *ctx,
       copy_v4_v4(tmp_sph, head_sph);
       interp_v4_v4v4(head_sph, tail_sph, head_sph, fac_head);
       interp_v4_v4v4(tail_sph, tmp_sph, tail_sph, fac_tail);
-      if (ctx->envelope_solid) {
-        DRW_buffer_add_entry(ctx->envelope_solid, head_sph, tail_sph, bone_col, hint_col, xaxis);
+
+      if (ctx->is_overlay_next()) {
+        if (ctx->is_filled) {
+          /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+          ctx->bone_buf->envelope_fill_buf.append({*(float4 *)head_sph,
+                                                   *(float4 *)tail_sph,
+                                                   *(float3 *)bone_col,
+                                                   *(float3 *)hint_col,
+                                                   *(float3 *)xaxis},
+                                                  sel_id);
+        }
+        if (outline_col[3] > 0.0f) {
+          ctx->bone_buf->envelope_outline_buf.append(
+              {*(float4 *)head_sph, *(float4 *)tail_sph, *(float4 *)outline_col, *(float3 *)xaxis},
+              sel_id);
+        }
       }
-      if (outline_col[3] > 0.0f) {
-        DRW_buffer_add_entry(ctx->envelope_outline, head_sph, tail_sph, outline_col, xaxis);
+#ifndef NO_LEGACY_OVERLAY
+      else {
+        if (ctx->envelope_solid) {
+          DRW_buffer_add_entry(ctx->envelope_solid, head_sph, tail_sph, bone_col, hint_col, xaxis);
+        }
+        if (outline_col[3] > 0.0f) {
+          DRW_buffer_add_entry(ctx->envelope_outline, head_sph, tail_sph, outline_col, xaxis);
+        }
       }
+#endif
     }
     else {
       /* Distance between endpoints is too small for a capsule. Draw a Sphere instead. */
@@ -819,22 +830,36 @@ static void drw_shgroup_bone_envelope(const ArmatureDrawContext *ctx,
       BoneInstanceData inst_data;
       scale_m4_fl(inst_data.mat, tmp_sph[3] / PT_DEFAULT_RAD);
       copy_v3_v3(inst_data.mat[3], tmp_sph);
-      if (ctx->point_solid) {
-        OVERLAY_bone_instance_data_set_color(&inst_data, bone_col);
-        OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_col);
-        DRW_buffer_add_entry_struct(ctx->point_solid, &inst_data);
+
+      if (ctx->is_overlay_next()) {
+        if (ctx->is_filled) {
+          ctx->bone_buf->sphere_fill_buf.append({inst_data.mat44, bone_col, hint_col}, sel_id);
+        }
+        if (outline_col[3] > 0.0f) {
+          ctx->bone_buf->sphere_outline_buf.append({inst_data.mat44, outline_col}, sel_id);
+        }
       }
-      if (outline_col[3] > 0.0f) {
-        OVERLAY_bone_instance_data_set_color(&inst_data, outline_col);
-        DRW_buffer_add_entry_struct(ctx->point_outline, &inst_data);
+#ifndef NO_LEGACY_OVERLAY
+      else {
+        if (ctx->point_solid) {
+          OVERLAY_bone_instance_data_set_color(&inst_data, bone_col);
+          OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_col);
+          DRW_buffer_add_entry_struct(ctx->point_solid, &inst_data);
+        }
+        if (outline_col[3] > 0.0f) {
+          OVERLAY_bone_instance_data_set_color(&inst_data, outline_col);
+          DRW_buffer_add_entry_struct(ctx->point_outline, &inst_data);
+        }
       }
+#endif
     }
   }
 }
 
 /* Custom (geometry) */
 
-BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(const ArmatureDrawContext *ctx,
+#ifndef NO_LEGACY_OVERLAY
+BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(const Armatures::DrawContext *ctx,
                                                        DRWShadingGroup *grp,
                                                        blender::gpu::Batch *custom_geom)
 {
@@ -847,17 +872,20 @@ BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(const ArmatureDrawContext
   }
   return buf;
 }
+#endif
 
-static void drw_shgroup_bone_custom_solid_mesh(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_custom_solid_mesh(const Armatures::DrawContext *ctx,
                                                Mesh &mesh,
                                                const float (*bone_mat)[4],
                                                const float bone_color[4],
                                                const float hint_color[4],
                                                const float outline_color[4],
                                                const float wire_width,
+                                               const draw::select::ID select_id,
                                                Object &custom)
 {
   using namespace blender::draw;
+  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -869,69 +897,100 @@ static void drw_shgroup_bone_custom_solid_mesh(const ArmatureDrawContext *ctx,
   DRWCallBuffer *buf;
 
   if (surf || edges || loose_edges) {
-    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), bone_mat);
+    inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
   }
 
-  if (surf && ctx->custom_solid) {
-    buf = custom_bone_instance_shgroup(ctx, ctx->custom_solid, surf);
-    OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_color);
-    OVERLAY_bone_instance_data_set_color(&inst_data, bone_color);
-    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+  if (surf) {
+    inst_data.set_hint_color(hint_color);
+    inst_data.set_color(bone_color);
+    if (ctx->is_overlay_next() && ctx->is_filled) {
+      ctx->bone_buf->custom_shape_fill_get_buffer(surf).append(inst_data, select_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->custom_solid) {
+      buf = custom_bone_instance_shgroup(ctx, ctx->custom_solid, surf);
+      DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    }
+#endif
   }
 
-  if (edges && ctx->custom_outline) {
-    buf = custom_bone_instance_shgroup(ctx, ctx->custom_outline, edges);
-    OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
-    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+  if (edges) {
+    inst_data.set_color(outline_color);
+    if (ctx->is_overlay_next()) {
+      ctx->bone_buf->custom_shape_outline_get_buffer(edges).append(inst_data, select_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->custom_outline) {
+      buf = custom_bone_instance_shgroup(ctx, ctx->custom_outline, edges);
+      DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    }
+#endif
   }
 
   if (loose_edges) {
-    buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
-    OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
-    inst_data.color_a = encode_2f_to_float(outline_color[0], outline_color[1]);
-    inst_data.color_b = encode_2f_to_float(outline_color[2], wire_width / WIRE_WIDTH_COMPRESSION);
-    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    inst_data.set_hint_color(outline_color);
+    inst_data.set_color(float4(UNPACK3(outline_color), wire_width / WIRE_WIDTH_COMPRESSION));
+    if (ctx->is_overlay_next()) {
+      ctx->bone_buf->custom_shape_wire_get_buffer(loose_edges).append(inst_data, select_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else {
+      buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
+      DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    }
+#endif
   }
 
   /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(&custom);
 }
 
-static void drw_shgroup_bone_custom_mesh_wire(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_custom_mesh_wire(const Armatures::DrawContext *ctx,
                                               Mesh &mesh,
                                               const float (*bone_mat)[4],
                                               const float color[4],
                                               const float wire_width,
+                                              const draw::select::ID select_id,
                                               Object &custom)
 {
   using namespace blender::draw;
+  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
 
   blender::gpu::Batch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {
-    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, geom);
     BoneInstanceData inst_data;
-    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), bone_mat);
-    OVERLAY_bone_instance_data_set_color_hint(&inst_data, color);
-    inst_data.color_a = encode_2f_to_float(color[0], color[1]);
-    inst_data.color_b = encode_2f_to_float(color[2], wire_width / WIRE_WIDTH_COMPRESSION);
-    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
+    inst_data.set_hint_color(color);
+    inst_data.set_color(float4(UNPACK3(color), wire_width / WIRE_WIDTH_COMPRESSION));
+
+    if (ctx->is_overlay_next()) {
+      ctx->bone_buf->custom_shape_wire_get_buffer(geom).append(inst_data, select_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else {
+      DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, geom);
+      DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    }
+#endif
   }
 
   /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(&custom);
 }
 
-static void drw_shgroup_custom_bone_curve(const ArmatureDrawContext *ctx,
+static void drw_shgroup_custom_bone_curve(const Armatures::DrawContext *ctx,
                                           Curve *curve,
                                           const float (*bone_mat)[4],
                                           const float outline_color[4],
                                           const float wire_width,
+                                          const draw::select::ID select_id,
                                           Object *custom)
 {
   using namespace blender::draw;
+  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_curve_batch_cache_validate(curve);
@@ -948,25 +1007,32 @@ static void drw_shgroup_custom_bone_curve(const ArmatureDrawContext *ctx,
 
   if (loose_edges) {
     BoneInstanceData inst_data;
-    mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), bone_mat);
+    inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
+    inst_data.set_hint_color(outline_color);
+    inst_data.set_color(float4(UNPACK3(outline_color), wire_width / WIRE_WIDTH_COMPRESSION));
 
-    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
-    OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
-    inst_data.color_a = encode_2f_to_float(outline_color[0], outline_color[1]);
-    inst_data.color_b = encode_2f_to_float(outline_color[2], wire_width / WIRE_WIDTH_COMPRESSION);
-    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    if (ctx->is_overlay_next()) {
+      ctx->bone_buf->custom_shape_wire_get_buffer(loose_edges).append(inst_data, select_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else {
+      DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
+      DRW_buffer_add_entry_struct(buf, inst_data.mat);
+    }
+#endif
   }
 
   /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(custom);
 }
 
-static void drw_shgroup_bone_custom_solid(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_custom_solid(const Armatures::DrawContext *ctx,
                                           const float (*bone_mat)[4],
                                           const float bone_color[4],
                                           const float hint_color[4],
                                           const float outline_color[4],
                                           const float wire_width,
+                                          const draw::select::ID select_id,
                                           Object *custom)
 {
   /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
@@ -975,44 +1041,103 @@ static void drw_shgroup_bone_custom_solid(const ArmatureDrawContext *ctx,
    * larger refactor of this area. */
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(custom);
   if (mesh != nullptr) {
-    drw_shgroup_bone_custom_solid_mesh(
-        ctx, *mesh, bone_mat, bone_color, hint_color, outline_color, wire_width, *custom);
+    drw_shgroup_bone_custom_solid_mesh(ctx,
+                                       *mesh,
+                                       bone_mat,
+                                       bone_color,
+                                       hint_color,
+                                       outline_color,
+                                       wire_width,
+                                       select_id,
+                                       *custom);
     return;
   }
 
   if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    drw_shgroup_custom_bone_curve(
-        ctx, static_cast<Curve *>(custom->data), bone_mat, outline_color, wire_width, custom);
+    drw_shgroup_custom_bone_curve(ctx,
+                                  static_cast<Curve *>(custom->data),
+                                  bone_mat,
+                                  outline_color,
+                                  wire_width,
+                                  select_id,
+                                  custom);
   }
 }
 
-static void drw_shgroup_bone_custom_wire(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_custom_wire(const Armatures::DrawContext *ctx,
                                          const float (*bone_mat)[4],
                                          const float color[4],
                                          const float wire_width,
+                                         const draw::select::ID select_id,
                                          Object *custom)
 {
   /* See comments in #drw_shgroup_bone_custom_solid. */
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(custom);
   if (mesh != nullptr) {
-    drw_shgroup_bone_custom_mesh_wire(ctx, *mesh, bone_mat, color, wire_width, *custom);
+    drw_shgroup_bone_custom_mesh_wire(ctx, *mesh, bone_mat, color, wire_width, select_id, *custom);
     return;
   }
 
   if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     drw_shgroup_custom_bone_curve(
-        ctx, static_cast<Curve *>(custom->data), bone_mat, color, wire_width, custom);
+        ctx, static_cast<Curve *>(custom->data), bone_mat, color, wire_width, select_id, custom);
   }
 }
 
-static void drw_shgroup_bone_custom_empty(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_custom_empty(const Armatures::DrawContext *ctx,
                                           const float (*bone_mat)[4],
                                           const float color[4],
+                                          const float wire_width,
+                                          const draw::select::ID select_id,
                                           Object *custom)
 {
-  const float final_color[4] = {color[0], color[1], color[2], 1.0f};
-  float mat[4][4];
-  mul_m4_m4m4(mat, ctx->ob->object_to_world().ptr(), bone_mat);
+  using namespace blender::draw;
+  using BoneInstanceBuf = ShapeInstanceBuf<BoneInstanceData>;
+
+  if (ctx->is_overlay_next()) {
+    gpu::Batch *geom = nullptr;
+    switch (custom->empty_drawtype) {
+      case OB_PLAINAXES:
+        geom = ctx->shapes->plain_axes.get();
+        break;
+      case OB_SINGLE_ARROW:
+        geom = ctx->shapes->single_arrow.get();
+        break;
+      case OB_CUBE:
+        geom = ctx->shapes->cube.get();
+        break;
+      case OB_CIRCLE:
+        geom = ctx->shapes->circle.get();
+        break;
+      case OB_EMPTY_SPHERE:
+        geom = ctx->shapes->empty_sphere.get();
+        break;
+      case OB_EMPTY_CONE:
+        geom = ctx->shapes->empty_cone.get();
+        break;
+      case OB_ARROWS:
+        geom = ctx->shapes->arrows.get();
+        break;
+      case OB_EMPTY_IMAGE:
+        /* Not supported. */
+        return;
+    }
+    BLI_assert(geom);
+
+    const float4 final_color(UNPACK3(color), 1.0f);
+
+    BoneInstanceData inst_data;
+    inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
+    inst_data.set_hint_color(final_color);
+    inst_data.set_color(float4(UNPACK3(final_color), wire_width / WIRE_WIDTH_COMPRESSION));
+
+    ctx->bone_buf->custom_shape_wire_get_buffer(geom).append(inst_data, select_id);
+    return;
+  }
+
+#ifndef NO_LEGACY_OVERLAY
+  const float4 final_color(UNPACK3(color), 1.0f);
+  const float4x4 mat = ctx->ob->object_to_world() * float4x4(bone_mat);
 
   switch (custom->empty_drawtype) {
     case OB_PLAINAXES:
@@ -1023,22 +1148,40 @@ static void drw_shgroup_bone_custom_empty(const ArmatureDrawContext *ctx,
     case OB_EMPTY_CONE:
     case OB_ARROWS:
       OVERLAY_empty_shape(
-          ctx->extras, mat, custom->empty_drawsize, custom->empty_drawtype, final_color);
+          ctx->extras, mat.ptr(), custom->empty_drawsize, custom->empty_drawtype, final_color);
       break;
     case OB_EMPTY_IMAGE:
       break;
   }
+#endif
 }
 
 /* Head and tail sphere */
-static void drw_shgroup_bone_point(const ArmatureDrawContext *ctx,
-                                   const float (*bone_mat)[4],
-                                   const float bone_color[4],
-                                   const float hint_color[4],
-                                   const float outline_color[4])
+static void drw_shgroup_bone_sphere(const Armatures::DrawContext *ctx,
+                                    const float (*bone_mat)[4],
+                                    const float bone_color[4],
+                                    const float hint_color[4],
+                                    const float outline_color[4],
+                                    const int select_id)
 {
+  auto sel_id = (ctx->bone_buf) ? ctx->res->select_id(*ctx->ob_ref, select_id) :
+                                  draw::select::SelectMap::select_invalid_id();
+  float4x4 mat = ctx->ob->object_to_world() * float4x4(bone_mat);
+
+  if (ctx->is_overlay_next()) {
+    if (ctx->is_filled) {
+      ctx->bone_buf->sphere_fill_buf.append({mat, bone_color, hint_color}, sel_id);
+    }
+    if (outline_color[3] > 0.0f) {
+      ctx->bone_buf->sphere_outline_buf.append({mat, outline_color}, sel_id);
+    }
+    return;
+  }
+
+#ifndef NO_LEGACY_OVERLAY
   BoneInstanceData inst_data;
-  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), bone_mat);
+  inst_data.mat44 = mat;
+
   if (ctx->point_solid) {
     OVERLAY_bone_instance_data_set_color(&inst_data, bone_color);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, hint_color);
@@ -1048,48 +1191,65 @@ static void drw_shgroup_bone_point(const ArmatureDrawContext *ctx,
     OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
     DRW_buffer_add_entry_struct(ctx->point_outline, &inst_data);
   }
+#endif
 }
 
 /* Axes */
-static void drw_shgroup_bone_axes(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_axes(const Armatures::DrawContext *ctx,
                                   const float (*bone_mat)[4],
                                   const float color[4])
 {
-  float mat[4][4];
-  mul_m4_m4m4(mat, ctx->ob->object_to_world().ptr(), bone_mat);
+  float4x4 mat = ctx->ob->object_to_world() * float4x4(bone_mat);
   /* Move to bone tail. */
-  add_v3_v3(mat[3], mat[1]);
-  OVERLAY_empty_shape(ctx->extras, mat, 0.25f, OB_ARROWS, color);
+  mat[3] += mat[1];
+  if (ctx->is_overlay_next()) {
+    ExtraInstanceData data(mat, color, 0.25f);
+    /* NOTE: Axes are not drawn in bone selection (pose or edit mode).
+     * They are only drawn and selectable in object mode. So only load the object select ID. */
+    ctx->bone_buf->arrows_buf.append(data, ctx->res->select_id(*ctx->ob_ref));
+    return;
+  }
+#ifndef NO_LEGACY_OVERLAY
+  OVERLAY_empty_shape(ctx->extras, mat.ptr(), 0.25f, OB_ARROWS, color);
+#endif
 }
 
 /* Relationship lines */
-static void drw_shgroup_bone_relationship_lines_ex(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_relationship_lines_ex(const Armatures::DrawContext *ctx,
                                                    const float start[3],
                                                    const float end[3],
                                                    const float color[4])
 {
-  float s[3], e[3];
-  mul_v3_m4v3(s, ctx->ob->object_to_world().ptr(), start);
-  mul_v3_m4v3(e, ctx->ob->object_to_world().ptr(), end);
-  /* reverse order to have less stipple overlap */
-  OVERLAY_extra_line_dashed(ctx->extras, s, e, color);
+  float3 start_pt = math::transform_point(ctx->ob->object_to_world(), float3(start));
+  float3 end_pt = math::transform_point(ctx->ob->object_to_world(), float3(end));
+
+  if (ctx->is_overlay_next()) {
+    /* reverse order to have less stipple overlap */
+    ctx->bone_buf->relations_buf.append(start_pt, end_pt, float4(color));
+  }
+#ifndef NO_LEGACY_OVERLAY
+  else {
+    /* reverse order to have less stipple overlap */
+    OVERLAY_extra_line_dashed(ctx->extras, start_pt, end_pt, color);
+  }
+#endif
 }
 
-static void drw_shgroup_bone_relationship_lines(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_relationship_lines(const Armatures::DrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
   drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_wire);
 }
 
-static void drw_shgroup_bone_ik_lines(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_ik_lines(const Armatures::DrawContext *ctx,
                                       const float start[3],
                                       const float end[3])
 {
   drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_bone_ik_line);
 }
 
-static void drw_shgroup_bone_ik_no_target_lines(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_ik_no_target_lines(const Armatures::DrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
@@ -1097,7 +1257,7 @@ static void drw_shgroup_bone_ik_no_target_lines(const ArmatureDrawContext *ctx,
       ctx, start, end, G_draw.block.color_bone_ik_line_no_target);
 }
 
-static void drw_shgroup_bone_ik_spline_lines(const ArmatureDrawContext *ctx,
+static void drw_shgroup_bone_ik_spline_lines(const Armatures::DrawContext *ctx,
                                              const float start[3],
                                              const float end[3])
 {
@@ -1114,7 +1274,7 @@ static void drw_shgroup_bone_ik_spline_lines(const ArmatureDrawContext *ctx,
  * \{ */
 
 /* This function sets the color-set for coloring a certain bone */
-static void set_ctx_bcolor(ArmatureDrawContext *ctx, const UnifiedBonePtr bone)
+static void set_ctx_bcolor(Armatures::DrawContext *ctx, const UnifiedBonePtr bone)
 {
   bArmature *arm = static_cast<bArmature *>(ctx->ob->data);
 
@@ -1265,7 +1425,8 @@ static void bone_locked_color_shade(float color[4])
   interp_v3_v3v3(color, color, locked_color, locked_color[3]);
 }
 
-static const float *get_bone_solid_color(const ArmatureDrawContext *ctx, const eBone_Flag boneflag)
+static const float *get_bone_solid_color(const Armatures::DrawContext *ctx,
+                                         const eBone_Flag boneflag)
 {
   if (ctx->const_color) {
     return G_draw.block.color_bone_solid;
@@ -1281,7 +1442,7 @@ static const float *get_bone_solid_color(const ArmatureDrawContext *ctx, const e
   return disp_color;
 }
 
-static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *ctx,
+static const float *get_bone_solid_with_consts_color(const Armatures::DrawContext *ctx,
                                                      const UnifiedBonePtr bone,
                                                      const eBone_Flag boneflag)
 {
@@ -1300,7 +1461,7 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
   return consts_color;
 }
 
-static float get_bone_wire_thickness(const ArmatureDrawContext *ctx, int boneflag)
+static float get_bone_wire_thickness(const Armatures::DrawContext *ctx, int boneflag)
 {
   if (ctx->const_color) {
     return ctx->const_wire;
@@ -1312,7 +1473,8 @@ static float get_bone_wire_thickness(const ArmatureDrawContext *ctx, int bonefla
   return 1.0f;
 }
 
-static const float *get_bone_wire_color(const ArmatureDrawContext *ctx, const eBone_Flag boneflag)
+static const float *get_bone_wire_color(const Armatures::DrawContext *ctx,
+                                        const eBone_Flag boneflag)
 {
   static float disp_color[4];
 
@@ -1351,7 +1513,8 @@ static void bone_hint_color_shade(float hint_color[4], const float color[4])
   hint_color[3] = 1.0f;
 }
 
-static const float *get_bone_hint_color(const ArmatureDrawContext *ctx, const eBone_Flag boneflag)
+static const float *get_bone_hint_color(const Armatures::DrawContext *ctx,
+                                        const eBone_Flag boneflag)
 {
   static float hint_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -1621,7 +1784,7 @@ static void draw_bone_update_disp_matrix_bbone(UnifiedBonePtr bone)
   draw_bone_update_disp_matrix_default(bone);
 }
 
-static void draw_axes(const ArmatureDrawContext *ctx,
+static void draw_axes(const Armatures::DrawContext *ctx,
                       const UnifiedBonePtr bone,
                       const bArmature *arm)
 {
@@ -1654,7 +1817,7 @@ static void draw_axes(const ArmatureDrawContext *ctx,
   }
 }
 
-static void draw_points(const ArmatureDrawContext *ctx,
+static void draw_points(const Armatures::DrawContext *ctx,
                         const UnifiedBonePtr bone,
                         const eBone_Flag boneflag,
                         const float col_solid[4],
@@ -1699,9 +1862,11 @@ static void draw_points(const ArmatureDrawContext *ctx,
   /* Draw root point if we are not connected to our parent */
 
   if (!(bone.has_parent() && (boneflag & BONE_CONNECTED))) {
-    if (select_id != -1) {
+#ifndef NO_LEGACY_OVERLAY
+    if (!ctx->is_overlay_next() && select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_ROOT);
     }
+#endif
 
     if (is_envelope_draw) {
       drw_shgroup_bone_envelope(ctx,
@@ -1710,17 +1875,21 @@ static void draw_points(const ArmatureDrawContext *ctx,
                                 col_hint_root,
                                 col_wire_root,
                                 &bone.rad_head(),
-                                &envelope_ignore);
+                                &envelope_ignore,
+                                select_id | BONESEL_ROOT);
     }
     else {
-      drw_shgroup_bone_point(ctx, bone.disp_mat(), col_solid, col_hint_root, col_wire_root);
+      drw_shgroup_bone_sphere(
+          ctx, bone.disp_mat(), col_solid, col_hint_root, col_wire_root, select_id | BONESEL_ROOT);
     }
   }
 
   /*  Draw tip point */
-  if (select_id != -1) {
+#ifndef NO_LEGACY_OVERLAY
+  if (!ctx->is_overlay_next() && select_id != -1) {
     DRW_select_load_id(select_id | BONESEL_TIP);
   }
+#endif
 
   if (is_envelope_draw) {
     drw_shgroup_bone_envelope(ctx,
@@ -1729,15 +1898,23 @@ static void draw_points(const ArmatureDrawContext *ctx,
                               col_hint_tail,
                               col_wire_tail,
                               &envelope_ignore,
-                              &bone.rad_tail());
+                              &bone.rad_tail(),
+                              select_id | BONESEL_TIP);
   }
   else {
-    drw_shgroup_bone_point(ctx, bone.disp_tail_mat(), col_solid, col_hint_tail, col_wire_tail);
+    drw_shgroup_bone_sphere(ctx,
+                            bone.disp_tail_mat(),
+                            col_solid,
+                            col_hint_tail,
+                            col_wire_tail,
+                            select_id | BONESEL_TIP);
   }
 
-  if (select_id != -1) {
+#ifndef NO_LEGACY_OVERLAY
+  if (!ctx->is_overlay_next() && select_id != -1) {
     DRW_select_load_id(-1);
   }
+#endif
 }
 
 /** \} */
@@ -1746,16 +1923,13 @@ static void draw_points(const ArmatureDrawContext *ctx,
 /** \name Draw Degrees of Freedom
  * \{ */
 
-static void draw_bone_degrees_of_freedom(const ArmatureDrawContext *ctx, const bPoseChannel *pchan)
+static void draw_bone_degrees_of_freedom(const Armatures::DrawContext *ctx,
+                                         const bPoseChannel *pchan)
 {
   BoneInstanceData inst_data;
   float tmp[4][4], posetrans[4][4];
   float xminmax[2], zminmax[2];
   float color[4];
-
-  if (ctx->dof_sphere == nullptr) {
-    return;
-  }
 
   /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
   xminmax[0] = sinf(pchan->limitmin[0] * 0.5f);
@@ -1780,27 +1954,59 @@ static void draw_bone_degrees_of_freedom(const ArmatureDrawContext *ctx, const b
   mul_m4_m4m4(posetrans, posetrans, tmp);
 
   /* into world space. */
-  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world().ptr(), posetrans);
+  inst_data.mat44 = ctx->ob->object_to_world() * float4x4(posetrans);
+
+  /* Not selectable. */
+  auto sel_id = draw::select::SelectMap::select_invalid_id();
 
   if ((pchan->ikflag & BONE_IK_XLIMIT) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
-    bone_instance_data_set_angle_minmax(
-        &inst_data, xminmax[0], zminmax[0], xminmax[1], zminmax[1]);
+    if (ctx->is_overlay_next()) {
+      ExtraInstanceData data(
+          inst_data.mat44, float4(0.25f), xminmax[0], zminmax[0], xminmax[1], zminmax[1]);
 
-    copy_v4_fl4(color, 0.25f, 0.25f, 0.25f, 0.25f);
-    DRW_buffer_add_entry(ctx->dof_sphere, color, &inst_data);
+      ctx->bone_buf->degrees_of_freedom_fill_buf.append(data, sel_id);
+      ctx->bone_buf->degrees_of_freedom_wire_buf.append(data.with_color({0.0f, 0.0f, 0.0f, 1.0f}),
+                                                        sel_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->dof_sphere) {
+      bone_instance_data_set_angle_minmax(
+          &inst_data, xminmax[0], zminmax[0], xminmax[1], zminmax[1]);
+      copy_v4_fl4(color, 0.25f, 0.25f, 0.25f, 0.25f);
+      DRW_buffer_add_entry(ctx->dof_sphere, color, &inst_data);
 
-    copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 1.0f);
-    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+      copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 1.0f);
+      DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+    }
+#endif
   }
   if (pchan->ikflag & BONE_IK_XLIMIT) {
-    bone_instance_data_set_angle_minmax(&inst_data, xminmax[0], 0.0f, xminmax[1], 0.0f);
-    copy_v4_fl4(color, 1.0f, 0.0f, 0.0f, 1.0f);
-    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+    if (ctx->is_overlay_next()) {
+      ExtraInstanceData data(
+          inst_data.mat44, float4(1.0f, 0.0f, 0.0f, 1.0f), xminmax[0], 0.0f, xminmax[1], 0.0f);
+      ctx->bone_buf->degrees_of_freedom_wire_buf.append(data, sel_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->dof_sphere) {
+      bone_instance_data_set_angle_minmax(&inst_data, xminmax[0], 0.0f, xminmax[1], 0.0f);
+      copy_v4_fl4(color, 1.0f, 0.0f, 0.0f, 1.0f);
+      DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+    }
+#endif
   }
   if (pchan->ikflag & BONE_IK_ZLIMIT) {
-    bone_instance_data_set_angle_minmax(&inst_data, 0.0f, zminmax[0], 0.0f, zminmax[1]);
-    copy_v4_fl4(color, 0.0f, 0.0f, 1.0f, 1.0f);
-    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+    if (ctx->is_overlay_next()) {
+      ExtraInstanceData data(
+          inst_data.mat44, float4(0.0f, 0.0f, 1.0f, 1.0f), 0.0f, zminmax[0], 0.0f, zminmax[1]);
+      ctx->bone_buf->degrees_of_freedom_wire_buf.append(data, sel_id);
+    }
+#ifndef NO_LEGACY_OVERLAY
+    else if (ctx->dof_sphere) {
+      bone_instance_data_set_angle_minmax(&inst_data, 0.0f, zminmax[0], 0.0f, zminmax[1]);
+      copy_v4_fl4(color, 0.0f, 0.0f, 1.0f, 1.0f);
+      DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+    }
+#endif
   }
 }
 
@@ -1810,7 +2016,7 @@ static void draw_bone_degrees_of_freedom(const ArmatureDrawContext *ctx, const b
 /** \name Draw Relationships
  * \{ */
 
-static void pchan_draw_ik_lines(const ArmatureDrawContext *ctx,
+static void pchan_draw_ik_lines(const Armatures::DrawContext *ctx,
                                 const bPoseChannel *pchan,
                                 const bool only_temp)
 {
@@ -1890,7 +2096,7 @@ static void pchan_draw_ik_lines(const ArmatureDrawContext *ctx,
   }
 }
 
-static void draw_bone_bone_relationship_line(const ArmatureDrawContext *ctx,
+static void draw_bone_bone_relationship_line(const Armatures::DrawContext *ctx,
                                              const float bone_head[3],
                                              const float parent_head[3],
                                              const float parent_tail[3])
@@ -1903,7 +2109,7 @@ static void draw_bone_bone_relationship_line(const ArmatureDrawContext *ctx,
   }
 }
 
-static void draw_bone_relations(const ArmatureDrawContext *ctx,
+static void draw_bone_relations(const Armatures::DrawContext *ctx,
                                 const ArmatureBoneDrawStrategy &draw_strategy,
                                 const UnifiedBonePtr bone,
                                 const eBone_Flag boneflag)
@@ -1937,7 +2143,7 @@ static void draw_bone_relations(const ArmatureDrawContext *ctx,
   }
 }
 
-static void draw_bone_name(const ArmatureDrawContext *ctx,
+static void draw_bone_name(const Armatures::DrawContext *ctx,
                            const UnifiedBonePtr bone,
                            const eBone_Flag boneflag)
 {
@@ -2048,14 +2254,14 @@ class ArmatureBoneDrawStrategyEmpty : public ArmatureBoneDrawStrategy {
     return false;
   }
 
-  void draw_context_setup(ArmatureDrawContext * /*ctx*/,
+  void draw_context_setup(Armatures::DrawContext * /*ctx*/,
                           const OVERLAY_ArmatureCallBuffersInner * /*cb*/,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
   {
   }
 
-  void draw_bone(const ArmatureDrawContext * /*ctx*/,
+  void draw_bone(const Armatures::DrawContext * /*ctx*/,
                  const UnifiedBonePtr /*bone*/,
                  const eBone_Flag /*boneflag*/,
                  const int /*select_id*/) const override
@@ -2106,14 +2312,14 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
     return pchan_culling_test_simple(view, ob, pchan);
   }
 
-  void draw_context_setup(ArmatureDrawContext * /*ctx*/,
+  void draw_context_setup(Armatures::DrawContext * /*ctx*/,
                           const OVERLAY_ArmatureCallBuffersInner * /*cb*/,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
   {
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
@@ -2123,6 +2329,39 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
     const float *col_hint = get_bone_hint_color(ctx, boneflag);
     const float(*disp_mat)[4] = bone.disp_mat();
 
+    if (ctx->is_overlay_next()) {
+      /* TODO(fclem): Code after this scope should be removed when we remove the legacy code. */
+      auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE);
+
+      /* Custom bone shapes are only supported in pose mode for now. */
+      const bPoseChannel *pchan = bone.as_posebone();
+      Object *custom_shape_ob = pchan->custom;
+
+      if (custom_shape_ob->type == OB_EMPTY) {
+        if (custom_shape_ob->empty_drawtype != OB_EMPTY_IMAGE) {
+          drw_shgroup_bone_custom_empty(
+              ctx, disp_mat, col_wire, pchan->custom_shape_wire_width, sel_id, pchan->custom);
+        }
+      }
+      else if (boneflag & (BONE_DRAWWIRE | BONE_DRAW_LOCKED_WEIGHT)) {
+        drw_shgroup_bone_custom_wire(
+            ctx, disp_mat, col_wire, pchan->custom_shape_wire_width, sel_id, pchan->custom);
+      }
+      else {
+        drw_shgroup_bone_custom_solid(ctx,
+                                      disp_mat,
+                                      col_solid,
+                                      col_hint,
+                                      col_wire,
+                                      pchan->custom_shape_wire_width,
+                                      sel_id,
+                                      pchan->custom);
+      }
+
+      return;
+    }
+
+#ifndef NO_LEGACY_OVERLAY
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_BONE);
     }
@@ -2133,7 +2372,13 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
     if (pchan->custom->type == OB_EMPTY) {
       Object *ob = pchan->custom;
       if (ob->empty_drawtype != OB_EMPTY_IMAGE) {
-        drw_shgroup_bone_custom_empty(ctx, disp_mat, col_wire, pchan->custom);
+        drw_shgroup_bone_custom_empty(ctx,
+                                      disp_mat,
+                                      col_wire,
+                                      pchan->custom_shape_wire_width,
+                                      /* Dummy values for legacy pipeline. */
+                                      draw::select::SelectMap::select_invalid_id(),
+                                      pchan->custom);
       }
     }
     if ((boneflag & BONE_DRAWWIRE) == 0 && (boneflag & BONE_DRAW_LOCKED_WEIGHT) == 0) {
@@ -2143,16 +2388,24 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
                                     col_hint,
                                     col_wire,
                                     pchan->custom_shape_wire_width,
+                                    /* Dummy values for legacy pipeline. */
+                                    draw::select::SelectMap::select_invalid_id(),
                                     pchan->custom);
     }
     else {
-      drw_shgroup_bone_custom_wire(
-          ctx, disp_mat, col_wire, pchan->custom_shape_wire_width, pchan->custom);
+      drw_shgroup_bone_custom_wire(ctx,
+                                   disp_mat,
+                                   col_wire,
+                                   pchan->custom_shape_wire_width,
+                                   /* Dummy values for legacy pipeline. */
+                                   draw::select::SelectMap::select_invalid_id(),
+                                   pchan->custom);
     }
 
     if (select_id != -1) {
       DRW_select_load_id(-1);
     }
+#endif
   }
 };
 
@@ -2174,7 +2427,7 @@ class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
     return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
   }
 
-  void draw_context_setup(ArmatureDrawContext *ctx,
+  void draw_context_setup(Armatures::DrawContext *ctx,
                           const OVERLAY_ArmatureCallBuffersInner *cb,
                           const bool is_filled,
                           const bool /*do_envelope_dist*/) const override
@@ -2183,7 +2436,7 @@ class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
     ctx->solid = (is_filled) ? cb->octa_fill : nullptr;
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
@@ -2192,6 +2445,23 @@ class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
     const float *col_wire = get_bone_wire_color(ctx, boneflag);
     const float *col_hint = get_bone_hint_color(ctx, boneflag);
 
+    if (ctx->is_overlay_next()) {
+      /* TODO(fclem): Code after this scope should be removed when we remove the legacy code. */
+      auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE);
+      float4x4 bone_mat = ctx->ob->object_to_world() * float4x4(bone.disp_mat());
+
+      if (ctx->is_filled) {
+        ctx->bone_buf->octahedral_fill_buf.append({bone_mat, col_solid, col_hint}, sel_id);
+      }
+      if (col_wire[3] > 0.0f) {
+        ctx->bone_buf->octahedral_outline_buf.append({bone_mat, col_wire}, sel_id);
+      }
+
+      draw_points(ctx, bone, boneflag, col_solid, select_id);
+      return;
+    }
+
+#ifndef NO_LEGACY_OVERLAY
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_BONE);
     }
@@ -2203,6 +2473,7 @@ class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
     }
 
     draw_points(ctx, bone, boneflag, col_solid, select_id);
+#endif
   }
 };
 
@@ -2225,7 +2496,7 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
     return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
   }
 
-  void draw_context_setup(ArmatureDrawContext *ctx,
+  void draw_context_setup(Armatures::DrawContext *ctx,
                           const OVERLAY_ArmatureCallBuffersInner *cb,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
@@ -2233,7 +2504,7 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
     ctx->stick = cb->stick;
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
@@ -2266,23 +2537,58 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
     }
 
     if (select_id == -1) {
-      /* Not in selection mode, draw everything at once. */
-      drw_shgroup_bone_stick(ctx, bone.disp_mat(), col_wire, col_bone, col_head, col_tail);
+      /* Not in bone selection mode (can still be object select mode), draw everything at once. */
+      drw_shgroup_bone_stick(
+          ctx, bone.disp_mat(), col_wire, col_bone, col_head, col_tail, select_id);
     }
     else {
       /* In selection mode, draw bone, root and tip separately. */
-      DRW_select_load_id(select_id | BONESEL_BONE);
-      drw_shgroup_bone_stick(ctx, bone.disp_mat(), col_wire, col_bone, no_display, no_display);
+#ifndef NO_LEGACY_OVERLAY
+      if (!ctx->is_overlay_next()) {
+        DRW_select_load_id(select_id | BONESEL_BONE);
+      }
+#endif
+      drw_shgroup_bone_stick(ctx,
+                             bone.disp_mat(),
+                             col_wire,
+                             col_bone,
+                             no_display,
+                             no_display,
+                             select_id | BONESEL_BONE);
 
       if (col_head[3] > 0.0f) {
-        DRW_select_load_id(select_id | BONESEL_ROOT);
-        drw_shgroup_bone_stick(ctx, bone.disp_mat(), col_wire, no_display, col_head, no_display);
+#ifndef NO_LEGACY_OVERLAY
+        if (!ctx->is_overlay_next()) {
+          DRW_select_load_id(select_id | BONESEL_ROOT);
+        }
+#endif
+        drw_shgroup_bone_stick(ctx,
+                               bone.disp_mat(),
+                               col_wire,
+                               no_display,
+                               col_head,
+                               no_display,
+                               select_id | BONESEL_ROOT);
       }
 
-      DRW_select_load_id(select_id | BONESEL_TIP);
-      drw_shgroup_bone_stick(ctx, bone.disp_mat(), col_wire, no_display, no_display, col_tail);
+#ifndef NO_LEGACY_OVERLAY
+      if (!ctx->is_overlay_next()) {
+        DRW_select_load_id(select_id | BONESEL_TIP);
+      }
+#endif
+      drw_shgroup_bone_stick(ctx,
+                             bone.disp_mat(),
+                             col_wire,
+                             no_display,
+                             no_display,
+                             col_tail,
+                             select_id | BONESEL_TIP);
 
-      DRW_select_load_id(-1);
+#ifndef NO_LEGACY_OVERLAY
+      if (!ctx->is_overlay_next()) {
+        DRW_select_load_id(-1);
+      }
+#endif
     }
   }
 };
@@ -2317,7 +2623,7 @@ class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
     return false;
   }
 
-  void draw_context_setup(ArmatureDrawContext *ctx,
+  void draw_context_setup(Armatures::DrawContext *ctx,
                           const OVERLAY_ArmatureCallBuffersInner *cb,
                           const bool is_filled,
                           const bool /*do_envelope_dist*/) const override
@@ -2326,7 +2632,7 @@ class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
     ctx->solid = (is_filled) ? cb->box_fill : nullptr;
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
@@ -2335,6 +2641,41 @@ class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
     const float *col_wire = get_bone_wire_color(ctx, boneflag);
     const float *col_hint = get_bone_hint_color(ctx, boneflag);
 
+    if (ctx->is_overlay_next()) {
+      /* TODO(fclem): Code after this scope should be removed when we remove the legacy code. */
+
+      /* NOTE: Cannot reinterpret as float4x4 because of alignment requirement of float4x4.
+       * This would require a deeper refactor. */
+      Span<Mat4> bbone_matrices;
+      if (bone.is_posebone()) {
+        bbone_matrices = {(Mat4 *)bone.as_posebone()->draw_data->bbone_matrix,
+                          bone.as_posebone()->bone->segments};
+      }
+      else {
+        bbone_matrices = {(Mat4 *)bone.as_editbone()->disp_bbone_mat,
+                          bone.as_editbone()->segments};
+      }
+
+      auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE);
+
+      for (const Mat4 &in_bone_mat : bbone_matrices) {
+        float4x4 bone_mat = ctx->ob->object_to_world() * float4x4(in_bone_mat.mat);
+
+        if (ctx->is_filled) {
+          ctx->bone_buf->bbones_fill_buf.append({bone_mat, col_solid, col_hint}, sel_id);
+        }
+        if (col_wire[3] > 0.0f) {
+          ctx->bone_buf->bbones_outline_buf.append({bone_mat, col_wire}, sel_id);
+        }
+      }
+
+      if (ctx->draw_mode == ARM_DRAW_MODE_EDIT) {
+        draw_points(ctx, bone, boneflag, col_solid, select_id);
+      }
+      return;
+    }
+
+#ifndef NO_LEGACY_OVERLAY
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_BONE);
     }
@@ -2362,6 +2703,7 @@ class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
     if (bone.is_editbone()) {
       draw_points(ctx, bone, boneflag, col_solid, select_id);
     }
+#endif
   }
 };
 
@@ -2388,7 +2730,7 @@ class ArmatureBoneDrawStrategyEnvelope : public ArmatureBoneDrawStrategy {
     return DRW_culling_sphere_test(view, &bsphere);
   }
 
-  void draw_context_setup(ArmatureDrawContext *ctx,
+  void draw_context_setup(Armatures::DrawContext *ctx,
                           const OVERLAY_ArmatureCallBuffersInner *cb,
                           const bool is_filled,
                           const bool do_envelope_dist) const override
@@ -2398,7 +2740,7 @@ class ArmatureBoneDrawStrategyEnvelope : public ArmatureBoneDrawStrategy {
     ctx->envelope_distance = (do_envelope_dist) ? cb->envelope_distance : nullptr;
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
@@ -2430,16 +2772,26 @@ class ArmatureBoneDrawStrategyEnvelope : public ArmatureBoneDrawStrategy {
       drw_shgroup_bone_envelope_distance(ctx, bone.disp_mat(), rad_head, rad_tail, distance);
     }
 
+#ifndef NO_LEGACY_OVERLAY
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_BONE);
     }
+#endif
 
-    drw_shgroup_bone_envelope(
-        ctx, bone.disp_mat(), col_solid, col_hint, col_wire, rad_head, rad_tail);
+    drw_shgroup_bone_envelope(ctx,
+                              bone.disp_mat(),
+                              col_solid,
+                              col_hint,
+                              col_wire,
+                              rad_head,
+                              rad_tail,
+                              select_id | BONESEL_BONE);
 
+#ifndef NO_LEGACY_OVERLAY
     if (select_id != -1) {
       DRW_select_load_id(-1);
     }
+#endif
 
     draw_points(ctx, bone, boneflag, col_solid, select_id);
   }
@@ -2461,7 +2813,7 @@ class ArmatureBoneDrawStrategyWire : public ArmatureBoneDrawStrategy {
     return pchan_culling_test_simple(view, ob, pchan);
   }
 
-  void draw_context_setup(ArmatureDrawContext *ctx,
+  void draw_context_setup(Armatures::DrawContext *ctx,
                           const OVERLAY_ArmatureCallBuffersInner *cb,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
@@ -2470,36 +2822,54 @@ class ArmatureBoneDrawStrategyWire : public ArmatureBoneDrawStrategy {
     ctx->const_wire = 1.5f;
   }
 
-  void draw_bone(const ArmatureDrawContext *ctx,
+  void draw_bone(const Armatures::DrawContext *ctx,
                  const UnifiedBonePtr bone,
                  const eBone_Flag boneflag,
                  const int select_id) const override
   {
+    using namespace blender::math;
+
     const float *col_wire = get_bone_wire_color(ctx, boneflag);
 
-    if (select_id != -1) {
+#ifndef NO_LEGACY_OVERLAY
+    if (!ctx->is_overlay_next() && select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_BONE);
     }
+#endif
 
+    auto sel_id = (ctx->bone_buf) ? ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE) :
+                                    draw::select::SelectMap::select_invalid_id();
+
+    /* NOTE: Cannot reinterpret as float4x4 because of alignment requirement of float4x4.
+     * This would require a deeper refactor. */
+    Span<Mat4> bbone_matrices;
     if (bone.is_posebone()) {
-      const bPoseChannel *pchan = bone.as_posebone();
-      Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
-      BLI_assert(bbones_mat != nullptr);
-
-      for (int i = pchan->bone->segments; i--; bbones_mat++) {
-        drw_shgroup_bone_wire(ctx, bbones_mat->mat, col_wire);
-      }
+      bbone_matrices = {(Mat4 *)bone.as_posebone()->draw_data->bbone_matrix,
+                        bone.as_posebone()->bone->segments};
     }
     else {
-      const EditBone *eBone = bone.as_editbone();
-      for (int i = 0; i < eBone->segments; i++) {
-        drw_shgroup_bone_wire(ctx, eBone->disp_bbone_mat[i], col_wire);
+      bbone_matrices = {(Mat4 *)bone.as_editbone()->disp_bbone_mat, bone.as_editbone()->segments};
+    }
+
+    for (const Mat4 &in_bone_mat : bbone_matrices) {
+      float4x4 bmat = float4x4(in_bone_mat.mat);
+      float3 head = transform_point(ctx->ob->object_to_world(), bmat.location());
+      float3 tail = transform_point(ctx->ob->object_to_world(), bmat.location() + bmat.y_axis());
+
+      if (ctx->is_overlay_next()) {
+        ctx->bone_buf->wire_buf.append(head, tail, float4(col_wire), sel_id);
+      }
+      else {
+        DRW_buffer_add_entry(ctx->wire, head, col_wire);
+        DRW_buffer_add_entry(ctx->wire, tail, col_wire);
       }
     }
 
-    if (select_id != -1) {
+#ifndef NO_LEGACY_OVERLAY
+    if (!ctx->is_overlay_next() && select_id != -1) {
       DRW_select_load_id(-1);
     }
+#endif
 
     if (bone.is_editbone()) {
       const float *col_solid = get_bone_solid_with_consts_color(ctx, bone, boneflag);
@@ -2556,7 +2926,7 @@ static ArmatureBoneDrawStrategy &strategy_for_armature_drawtype(const eArmature_
 /** \name Main Draw Loops
  * \{ */
 
-static void draw_armature_edit(ArmatureDrawContext *ctx)
+void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 {
   Object *ob = ctx->ob;
   EditBone *eBone;
@@ -2577,7 +2947,9 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(
       eArmature_Drawtype(arm->drawtype));
 
-  for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime->select_id;
+  for (eBone = static_cast<EditBone *>(arm->edbo->first),
+      /* Note: Selection Next handles the object id merging later. */
+       index = ctx->bone_buf ? 0x0 : ob_orig->runtime->select_id;
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
@@ -2624,7 +2996,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   }
 }
 
-static void draw_armature_pose(ArmatureDrawContext *ctx)
+void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 {
   Object *ob = ctx->ob;
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -2667,7 +3039,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     if (is_pose_select) {
       const Object *ob_orig = DEG_get_original_object(ob);
-      index = ob_orig->runtime->select_id;
+      /* Note: Selection Next handles the object id merging later. */
+      index = ctx->bone_buf ? 0x0 : ob_orig->runtime->select_id;
     }
   }
 
@@ -2698,6 +3071,9 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
     }
   }
 
+  /* TODO(fclem): Remove global access. This is only used for culling in selection mode.
+   * This is just a workaround for slow selection queries. Selection-next will not have this issue.
+   */
   const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
 
   const ArmatureBoneDrawStrategy &draw_strat_normal = strategy_for_armature_drawtype(
@@ -2768,13 +3144,14 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   }
 }
 
-static void armature_context_setup(ArmatureDrawContext *ctx,
+static void armature_context_setup(Armatures::DrawContext *ctx,
                                    OVERLAY_PrivateData *pd,
                                    Object *ob,
                                    const eArmatureDrawMode draw_mode,
                                    const float *const_color)
 {
-  BLI_assert(BLI_memory_is_zero(ctx, sizeof(*ctx)));
+  /* Not true anymore. */
+  // BLI_assert(BLI_memory_is_zero(ctx, sizeof(*ctx)));
   const bool is_edit_or_pose_mode = draw_mode != ARM_DRAW_MODE_OBJECT;
   const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0 ||
                        (pd->armature.do_pose_xray && draw_mode == ARM_DRAW_MODE_POSE);
@@ -2805,6 +3182,7 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->const_wire = ((ob->base_flag & BASE_SELECTED) && (pd->v3d_flag & V3D_SELECT_OUTLINE) ?
                          1.5f :
                          ((!is_filled || is_transparent) ? 1.0f : 0.0f));
+  ctx->draw_envelope_distance = is_edit_or_pose_mode;
   ctx->draw_relation_from_head = (arm->flag & ARM_DRAW_RELATION_FROM_HEAD);
 
   /* Call the draw strategy after setting the generic context properties, so
@@ -2818,24 +3196,24 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
 void OVERLAY_edit_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  ArmatureDrawContext arm_ctx = {nullptr};
+  Armatures::DrawContext arm_ctx = {};
   armature_context_setup(&arm_ctx, pd, ob, ARM_DRAW_MODE_EDIT, nullptr);
-  draw_armature_edit(&arm_ctx);
+  Armatures::draw_armature_edit(&arm_ctx);
 }
 
 void OVERLAY_pose_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  ArmatureDrawContext arm_ctx = {nullptr};
+  Armatures::DrawContext arm_ctx = {};
   armature_context_setup(&arm_ctx, pd, ob, ARM_DRAW_MODE_POSE, nullptr);
-  draw_armature_pose(&arm_ctx);
+  Armatures::draw_armature_pose(&arm_ctx);
 }
 
 void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  ArmatureDrawContext arm_ctx = {nullptr};
+  Armatures::DrawContext arm_ctx = {};
   float *color;
 
   if (ob->dt == OB_BOUNDBOX) {
@@ -2844,7 +3222,7 @@ void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
   armature_context_setup(&arm_ctx, pd, ob, ARM_DRAW_MODE_OBJECT, color);
-  draw_armature_pose(&arm_ctx);
+  Armatures::draw_armature_pose(&arm_ctx);
 }
 
 static bool POSE_is_driven_by_active_armature(Object *ob)

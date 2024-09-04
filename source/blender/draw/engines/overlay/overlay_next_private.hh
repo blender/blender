@@ -55,6 +55,10 @@ struct State {
   bool hide_overlays;
   bool xray_enabled;
   bool xray_enabled_and_not_wire;
+  /* Brings the active pose armature in front of all objects. */
+  bool do_pose_xray;
+  /* Add a veil on top of all surfaces to make the active pose armature pop out. */
+  bool do_pose_fade_geom;
   float xray_opacity;
   short v3d_flag;     /* TODO: move to #View3DOverlay. */
   short v3d_gridflag; /* TODO: move to #View3DOverlay. */
@@ -95,6 +99,19 @@ class ShapeCache {
   using BatchPtr = std::unique_ptr<gpu::Batch, BatchDeleter>;
 
  public:
+  BatchPtr bone_box;
+  BatchPtr bone_box_wire;
+  BatchPtr bone_envelope;
+  BatchPtr bone_envelope_wire;
+  BatchPtr bone_octahedron;
+  BatchPtr bone_octahedron_wire;
+  BatchPtr bone_sphere;
+  BatchPtr bone_sphere_wire;
+  BatchPtr bone_stick;
+
+  BatchPtr bone_degrees_of_freedom;
+  BatchPtr bone_degrees_of_freedom_wire;
+
   BatchPtr quad_wire;
   BatchPtr quad_solid;
   BatchPtr plain_axes;
@@ -172,6 +189,7 @@ class ShaderModule {
  public:
   /** Shaders */
   ShaderPtr anti_aliasing = shader("overlay_antialiasing");
+  ShaderPtr armature_degrees_of_freedom;
   ShaderPtr background_fill = shader("overlay_background");
   ShaderPtr background_clip_bound = shader("overlay_clipbound");
   ShaderPtr curve_edit_points;
@@ -201,7 +219,15 @@ class ShaderModule {
   ShaderPtr xray_fade;
 
   /** Selectable Shaders */
+  ShaderPtr armature_envelope_fill;
+  ShaderPtr armature_envelope_outline;
+  ShaderPtr armature_shape_outline;
+  ShaderPtr armature_shape_fill;
+  ShaderPtr armature_shape_wire;
   ShaderPtr armature_sphere_outline;
+  ShaderPtr armature_sphere_fill;
+  ShaderPtr armature_stick;
+  ShaderPtr armature_wire;
   ShaderPtr depth_mesh;
   ShaderPtr extra_grid;
   ShaderPtr extra_shape;
@@ -446,6 +472,21 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     data_buf.push_update();
     pass.bind_ssbo("data_buf", &data_buf);
     pass.draw(shape, data_buf.size());
+  }
+
+  void end_sync(PassSimple::Sub &pass,
+                gpu::Batch *shape,
+                GPUPrimType primitive_type,
+                uint primitive_len)
+  {
+    if (data_buf.is_empty()) {
+      return;
+    }
+    this->select_bind(pass);
+    data_buf.push_update();
+    pass.bind_ssbo("data_buf", &data_buf);
+    pass.draw_expand(
+        shape, primitive_type, primitive_len, data_buf.size(), ResourceHandle(0), uint(0));
   }
 };
 
