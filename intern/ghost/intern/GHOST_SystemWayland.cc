@@ -475,11 +475,13 @@ struct GWL_Cursor {
  * Collect tablet event data before the frame callback runs.
  */
 enum class GWL_TabletTool_EventTypes {
-  Unset = -1,
-
   Motion = 0,
   Pressure,
   Tilt,
+
+  Wheel,
+
+  /* NOTE: Keep buttons last (simplifies switch statement). */
 
   /* Left mouse button. */
   Stylus0_Down,
@@ -494,8 +496,7 @@ enum class GWL_TabletTool_EventTypes {
   Stylus3_Down,
   Stylus3_Up,
 
-  Wheel,
-#define GWL_TabletTool_FrameTypes_NUM (int(GWL_TabletTool_EventTypes::Wheel) + 1)
+#define GWL_TabletTool_FrameTypes_NUM (int(GWL_TabletTool_EventTypes::Stylus3_Up) + 1)
 };
 
 static const GHOST_TButton gwl_tablet_tool_ebutton[] = {
@@ -536,7 +537,7 @@ struct GWL_TabletTool {
    */
   struct {
     GWL_TabletTool_EventTypes frame_types[GWL_TabletTool_FrameTypes_NUM] = {
-        GWL_TabletTool_EventTypes::Unset,
+        GWL_TabletTool_EventTypes::Motion, /* Dummy, never used. */
     };
     int frame_types_num = 0;
     int frame_types_mask = 0;
@@ -4667,7 +4668,7 @@ static void tablet_tool_handle_button(void *data,
 
   seat->data_source_serial = serial;
 
-  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::Unset;
+  GWL_TabletTool_EventTypes ty = GWL_TabletTool_EventTypes::Motion;
   switch (button) {
     case BTN_STYLUS: {
       ty = is_press ? GWL_TabletTool_EventTypes::Stylus1_Down :
@@ -4686,7 +4687,7 @@ static void tablet_tool_handle_button(void *data,
     }
   }
 
-  if (ty != GWL_TabletTool_EventTypes::Unset) {
+  if (ty != GWL_TabletTool_EventTypes::Motion) {
     gwl_tablet_tool_frame_event_add(tablet_tool, ty);
   }
 }
@@ -4705,13 +4706,9 @@ static void tablet_tool_handle_frame(void *data,
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
     bool has_motion = false;
 
-    for (int i = 0; i < tablet_tool->frame_pending.frame_types_num; i++) {
-      const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[i];
+    for (int ty_index = 0; ty_index < tablet_tool->frame_pending.frame_types_num; ty_index++) {
+      const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[ty_index];
       switch (ty) {
-        case GWL_TabletTool_EventTypes::Unset: {
-          GHOST_ASSERT(0, "Event types should never be Unset");
-          break;
-        }
         /* Use motion for pressure and tilt as there are no explicit event types for these. */
         case GWL_TabletTool_EventTypes::Motion:
         case GWL_TabletTool_EventTypes::Pressure:
@@ -4734,6 +4731,9 @@ static void tablet_tool_handle_frame(void *data,
           has_motion = true;
           break;
         }
+#ifdef NDEBUG
+        default:
+#else /* Warn when any events aren't handled (in debug builds). */
         case GWL_TabletTool_EventTypes::Stylus0_Down:
         case GWL_TabletTool_EventTypes::Stylus0_Up:
         case GWL_TabletTool_EventTypes::Stylus1_Down:
@@ -4741,7 +4741,9 @@ static void tablet_tool_handle_frame(void *data,
         case GWL_TabletTool_EventTypes::Stylus2_Down:
         case GWL_TabletTool_EventTypes::Stylus2_Up:
         case GWL_TabletTool_EventTypes::Stylus3_Down:
-        case GWL_TabletTool_EventTypes::Stylus3_Up: {
+        case GWL_TabletTool_EventTypes::Stylus3_Up:
+#endif
+        {
           const int button_enum_offset = int(ty) - int(GWL_TabletTool_EventTypes::Stylus0_Down);
           const int button_index = button_enum_offset / 2;
           const bool button_down = (button_index * 2) == button_enum_offset;
