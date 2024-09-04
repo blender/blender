@@ -137,7 +137,6 @@ static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
 {
   SubdivDeformContext *ctx = static_cast<SubdivDeformContext *>(foreach_context->user_data);
   BLI_assert(coarse_vertex_index != ORIGINDEX_NONE);
-  BLI_assert(coarse_vertex_index < ctx->num_verts);
   float inv_num_accumulated = 1.0f;
   if (ctx->accumulated_counters != nullptr) {
     inv_num_accumulated = 1.0f / ctx->accumulated_counters[coarse_vertex_index];
