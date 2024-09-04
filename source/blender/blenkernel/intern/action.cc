@@ -643,6 +643,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (action.is_action_layered()) {
     /* Clear the forward-compatible storage (see action_blend_write_data()). */
+    BLI_listbase_clear(&action.chanbase);
     BLI_listbase_clear(&action.curves);
     BLI_listbase_clear(&action.groups);
   }
@@ -651,6 +652,11 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_list(reader, bActionChannel, &action.chanbase);
     BLO_read_struct_list(reader, FCurve, &action.curves);
     BLO_read_struct_list(reader, bActionGroup, &action.groups);
+
+    LISTBASE_FOREACH (bActionChannel *, achan, &action.chanbase) {
+      BLO_read_struct(reader, bActionGroup, &achan->grp);
+      BLO_read_struct_list(reader, bConstraintChannel, &achan->constraintChannels);
+    }
 
     BKE_fcurve_blend_read_data_listbase(reader, &action.curves);
 
@@ -661,11 +667,6 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BLO_read_struct_list(reader, TimeMarker, &action.markers);
-
-  LISTBASE_FOREACH (bActionChannel *, achan, &action.chanbase) {
-    BLO_read_struct(reader, bActionGroup, &achan->grp);
-    BLO_read_struct_list(reader, bConstraintChannel, &achan->constraintChannels);
-  }
 
   /* End of reading legacy data. */
 
