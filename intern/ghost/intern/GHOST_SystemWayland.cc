@@ -3640,7 +3640,9 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
   if (scale > 0 && seat_state_pointer->theme_scale != scale) {
     seat_state_pointer->theme_scale = scale;
     if (!cursor.is_custom) {
-      wl_surface_set_buffer_scale(wl_surface_cursor, scale);
+      if (wl_surface_cursor) {
+        wl_surface_set_buffer_scale(wl_surface_cursor, scale);
+      }
     }
     wl_cursor_theme_destroy(cursor.wl.theme);
     cursor.wl.theme = wl_cursor_theme_load(
@@ -9015,24 +9017,20 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
 
   for (GWL_Seat *seat : display_->seats) {
     if (seat->pointer.outputs.count(output)) {
-      if (seat->cursor.wl.surface_cursor != nullptr) {
-        update_cursor_scale(seat->cursor,
-                            seat->system->wl_shm_get(),
-                            &seat->pointer,
-                            seat->cursor.wl.surface_cursor);
-      }
+      update_cursor_scale(seat->cursor,
+                          seat->system->wl_shm_get(),
+                          &seat->pointer,
+                          seat->cursor.wl.surface_cursor);
     }
 
     if (seat->tablet.outputs.count(output)) {
       for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
         GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
             zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
-        if (tablet_tool->wl.surface_cursor != nullptr) {
-          update_cursor_scale(seat->cursor,
-                              seat->system->wl_shm_get(),
-                              &seat->tablet,
-                              tablet_tool->wl.surface_cursor);
-        }
+        update_cursor_scale(seat->cursor,
+                            seat->system->wl_shm_get(),
+                            &seat->tablet,
+                            tablet_tool->wl.surface_cursor);
       }
     }
   }
