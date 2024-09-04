@@ -4548,6 +4548,8 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   }
 
   /* Handle 'rake' */
+  cache->rake_rotation = std::nullopt;
+  cache->rake_rotation_symm = std::nullopt;
   invert_m4_m4(imat, ob.object_to_world().ptr());
   mul_mat3_m4_v3(imat, grab_location);
 
