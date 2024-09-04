@@ -110,9 +110,9 @@ static void copy_curve_domain_attributes(const AttributeAccessor curve_attribute
 }
 
 static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
-                                          const std::optional<std::string> &tangent_id,
-                                          const std::optional<std::string> &normal_id,
-                                          const std::optional<std::string> &rotation_id)
+                                          const std::optional<StringRef> &tangent_id,
+                                          const std::optional<StringRef> &normal_id,
+                                          const std::optional<StringRef> &rotation_id)
 {
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
   pointcloud->totpoint = curves.points_num();
@@ -142,7 +142,7 @@ static void curve_to_points(GeometrySet &geometry_set,
                             GeoNodeExecParams params,
                             const GeometryNodeCurveResampleMode mode,
                             geometry::ResampleCurvesOutputAttributeIDs resample_attributes,
-                            std::optional<std::string> rotation_anonymous_id)
+                            const std::optional<StringRef> &rotation_anonymous_id)
 {
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT: {
@@ -213,7 +213,7 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
                                     GeoNodeExecParams params,
                                     const GeometryNodeCurveResampleMode mode,
                                     geometry::ResampleCurvesOutputAttributeIDs resample_attributes,
-                                    std::optional<std::string> rotation_anonymous_id,
+                                    const std::optional<StringRef> &rotation_anonymous_id,
                                     const AnonymousAttributePropagationInfo &propagation_info)
 {
   Field<int> count;

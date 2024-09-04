@@ -46,7 +46,7 @@ static Mesh *create_cube_mesh(const float3 size,
                               const int verts_x,
                               const int verts_y,
                               const int verts_z,
-                              const std::optional<std::string> &uv_map_id)
+                              const std::optional<StringRef> &uv_map_id)
 {
   const int dimensions = (verts_x - 1 > 0) + (verts_y - 1 > 0) + (verts_z - 1 > 0);
   if (dimensions == 0) {

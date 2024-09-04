@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "BKE_anonymous_attribute_id.hh"
+#include <optional>
+#include <string>
 
 struct Mesh;
 

@@ -41,7 +41,7 @@ Mesh *create_grid_mesh(const int verts_x,
                        const int verts_y,
                        const float size_x,
                        const float size_y,
-                       const std::optional<std::string> &uv_map_id)
+                       const std::optional<StringRef> &uv_map_id)
 {
   BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
