@@ -131,8 +131,6 @@ class Instance {
   const View3D *v3d;
   const RegionView3D *rv3d;
 
-  /** True if the grease pencil engine might be running. */
-  bool gpencil_engine_enabled;
   /** True if the instance is created for light baking. */
   bool is_light_bake = false;
   /** View-layer overrides. */
@@ -273,6 +271,12 @@ class Instance {
   bool overlays_enabled() const
   {
     return overlays_enabled_;
+  }
+
+  /** True if the grease pencil engine might be running. */
+  bool gpencil_engine_enabled() const
+  {
+    return DEG_id_type_any_exists(depsgraph, ID_GP);
   }
 
   bool is_playback() const

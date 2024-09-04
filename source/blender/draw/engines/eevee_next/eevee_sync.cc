@@ -514,10 +514,8 @@ static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
 void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle)
 {
   /* TODO(fclem): Waiting for a user option to use the render engine instead of gpencil engine. */
-  if (true) {
-    inst_.gpencil_engine_enabled = true;
-    return;
-  }
+  return;
+
   /* Is this a surface or curves? */
   if (!inst_.use_surfaces) {
     return;

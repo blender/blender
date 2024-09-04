@@ -207,8 +207,6 @@ void Instance::begin_sync()
   sphere_probes.begin_sync();
   light_probes.begin_sync();
 
-  gpencil_engine_enabled = false;
-
   depth_of_field.sync();
   raytracing.sync();
   motion_blur.sync();
