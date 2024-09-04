@@ -56,10 +56,6 @@ struct PBVHData;
 struct NodeData;
 }  // namespace pixels
 }  // namespace bke::pbvh
-namespace draw::pbvh {
-struct PBVHBatches;
-struct PBVH_GPU_Args;
-}  // namespace draw::pbvh
 }  // namespace blender
 
 namespace blender::bke::pbvh {
@@ -74,9 +70,6 @@ class Node {
   friend Tree;
 
  public:
-  /* Opaque handle for drawing code */
-  draw::pbvh::PBVHBatches *draw_batches_ = nullptr;
-
   /** Axis aligned min and max of all vertex positions in the node. */
   Bounds<float3> bounds_ = {};
   /** Bounds from the start of current brush stroke. */
@@ -164,6 +157,11 @@ struct BMeshNode : public Node {
   int bm_tot_ortri_ = 0;
 };
 
+class DrawCache {
+ public:
+  virtual ~DrawCache() = default;
+};
+
 /**
  * \todo Most data is public but should either be removed or become private in the future.
  * The "_" suffix means that fields shouldn't be used by consumers of the `bke::pbvh` API.
@@ -183,10 +181,13 @@ class Tree {
 
   pixels::PBVHData *pixels_ = nullptr;
 
+  std::unique_ptr<DrawCache> draw_data;
+
  public:
   explicit Tree(Type type);
   ~Tree();
 
+  int nodes_num() const;
   template<typename NodeT> Span<NodeT> nodes() const;
   template<typename NodeT> MutableSpan<NodeT> nodes();
 
@@ -305,13 +306,6 @@ bool find_nearest_to_ray_node(Tree &pbvh,
 void set_frustum_planes(Tree &pbvh, PBVHFrustumPlanes *planes);
 void get_frustum_planes(const Tree &pbvh, PBVHFrustumPlanes *planes);
 
-void draw_cb(const Object &object_eval,
-             Tree &pbvh,
-             bool update_only_visible,
-             const PBVHFrustumPlanes &update_frustum,
-             const PBVHFrustumPlanes &draw_frustum,
-             FunctionRef<void(draw::pbvh::PBVHBatches *batches,
-                              const draw::pbvh::PBVH_GPU_Args &args)> draw_fn);
 /**
  * Get the Tree root's bounding box.
  */
@@ -382,6 +376,8 @@ bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node);
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh);
 
 namespace blender::bke::pbvh {
+
+void remove_node_draw_tags(bke::pbvh::Tree &pbvh, const IndexMask &node_mask);
 
 Span<int> node_grid_indices(const GridsNode &node);
 
@@ -513,6 +509,8 @@ MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Ob
 Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_orig);
 Span<float3> vert_normals_eval_from_eval(const Object &object_eval);
 
+Span<float3> face_normals_eval_from_eval(const Object &object_eval);
+
 }  // namespace blender::bke::pbvh
 
 void BKE_pbvh_ensure_node_face_corners(blender::bke::pbvh::Tree &pbvh,
@@ -529,9 +527,9 @@ IndexMask search_nodes(const Tree &pbvh,
                        IndexMaskMemory &memory,
                        FunctionRef<bool(const Node &)> filter_fn);
 
-Vector<Node *> search_gather(Tree &pbvh,
-                             FunctionRef<bool(Node &)> scb,
-                             PBVHNodeFlags leaf_flag = PBVH_Leaf);
+IndexMask node_draw_update_mask(const Tree &pbvh,
+                                const IndexMask &node_mask,
+                                IndexMaskMemory &memory);
 
 void node_update_mask_mesh(Span<float> mask, MeshNode &node);
 void node_update_mask_grids(const CCGKey &key, Span<CCGElem *> grids, GridsNode &node);

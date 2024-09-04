@@ -10,7 +10,6 @@
 
 #include "draw_attributes.hh"
 #include "draw_manager_c.hh"
-#include "draw_pbvh.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curve.hh"
@@ -20,7 +19,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
 #include "BKE_volume.hh"
 
 /* For debug cursor position. */
@@ -1248,40 +1246,31 @@ static float sculpt_debug_colors[9][4] = {
     {0.7f, 0.2f, 1.0f, 1.0f},
 };
 
-static void sculpt_draw_cb(DRWSculptCallbackData *scd,
-                           blender::draw::pbvh::PBVHBatches *batches,
-                           const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
+static void draw_pbvh_nodes(const Object &object,
+                            const blender::Span<blender::gpu::Batch *> batches,
+                            const blender::Span<int> material_indices,
+                            const blender::Span<DRWShadingGroup *> shading_groups,
+                            const blender::IndexMask &nodes_to_draw)
 {
-  using namespace blender::draw;
-  blender::gpu::Batch *geom;
-
-  if (!scd->use_wire) {
-    geom = pbvh::tris_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
-  }
-  else {
-    geom = pbvh::lines_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
-  }
-
-  short index = 0;
-
-  if (scd->use_mats) {
-    index = pbvh::material_index_get(batches);
-    index = clamp_i(index, 0, scd->num_shading_groups - 1);
-  }
-
-  DRWShadingGroup *shgrp = scd->shading_groups[index];
-  if (geom != nullptr && shgrp != nullptr) {
+  nodes_to_draw.foreach_index([&](const int i) {
+    if (!batches[i]) {
+      return;
+    }
+    const int material_index = material_indices.is_empty() ? 0 : material_indices[i];
+    DRWShadingGroup *shgrp = shading_groups[material_index];
+    if (!shgrp) {
+      return;
+    }
     if (SCULPT_DEBUG_BUFFERS) {
       /* Color each buffers in different colors. Only work in solid/X-ray mode. */
       shgrp = DRW_shgroup_create_sub(shgrp);
-      DRW_shgroup_uniform_vec3(
-          shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
+      DRW_shgroup_uniform_vec3(shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(i), 1);
     }
 
     /* DRW_shgroup_call_no_cull reuses matrices calculations for all the drawcalls of this
      * object. */
-    DRW_shgroup_call_no_cull(shgrp, geom, scd->ob);
-  }
+    DRW_shgroup_call_no_cull(shgrp, batches[i], &object);
+  });
 }
 
 void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node,
@@ -1331,7 +1320,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 {
   using namespace blender;
   /* pbvh::Tree should always exist for non-empty meshes, created by depsgraph eval. */
-  bke::pbvh::Tree *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh.get() : nullptr;
+  const Object &object = *scd->ob;
+  bke::pbvh::Tree *pbvh = (object.sculpt) ? object.sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return;
   }
@@ -1387,18 +1377,45 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 
   bke::pbvh::update_normals_from_eval(*const_cast<Object *>(scd->ob), *pbvh);
 
-  bke::pbvh::draw_cb(
-      *scd->ob,
-      *pbvh,
-      update_only_visible,
-      update_frustum,
-      draw_frustum,
-      [&](blender::draw::pbvh::PBVHBatches *batches,
-          const blender::draw::pbvh::PBVH_GPU_Args &args) { sculpt_draw_cb(scd, batches, args); });
+  draw::pbvh::DrawCache &draw_data = draw::pbvh::ensure_draw_data(pbvh->draw_data);
+
+  IndexMaskMemory memory;
+  const IndexMask visible_nodes = bke::pbvh::search_nodes(
+      *pbvh, memory, [&](const bke::pbvh::Node &node) {
+        return BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum);
+      });
+
+  const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
+                                                          bke::pbvh::all_leaf_nodes(*pbvh, memory);
+
+  draw_data.tag_all_attributes_dirty(
+      bke::pbvh::node_draw_update_mask(*pbvh, nodes_to_update, memory));
+
+  const draw::pbvh::ViewportRequest request{scd->attrs, scd->fast_mode};
+  Span<gpu::Batch *> batches;
+  if (scd->use_wire) {
+    batches = draw_data.ensure_lines_batches(object, request, nodes_to_update);
+  }
+  else {
+    batches = draw_data.ensure_tris_batches(object, request, nodes_to_update);
+  }
+
+  bke::pbvh::remove_node_draw_tags(const_cast<bke::pbvh::Tree &>(*pbvh), nodes_to_update);
+
+  Span<int> material_indices;
+  if (scd->use_mats) {
+    material_indices = draw_data.ensure_material_indices(object);
+  }
+
+  draw_pbvh_nodes(object,
+                  batches,
+                  material_indices,
+                  {scd->shading_groups, scd->num_shading_groups},
+                  visible_nodes);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
-    DRW_debug_modelmat(scd->ob->object_to_world().ptr());
+    DRW_debug_modelmat(object.object_to_world().ptr());
     BKE_pbvh_draw_debug_cb(
         *pbvh,
         (void (*)(
@@ -1509,7 +1526,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   scd.use_wire = false;
   scd.use_mats = true;
   scd.use_mask = false;
-  scd.attrs = attrs;
+  scd.attrs = std::move(attrs);
 
   drw_sculpt_generate_calls(&scd);
 }

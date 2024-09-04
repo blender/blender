@@ -42,8 +42,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_pbvh.hh"
-
 #include "bmesh.hh"
 
 #include "atomic_ops.h"
@@ -623,6 +621,11 @@ Tree::Tree(const Type type) : type_(type)
   }
 }
 
+int Tree::nodes_num() const
+{
+  return std::visit([](const auto &nodes) { return nodes.size(); }, this->nodes_);
+}
+
 template<> Span<MeshNode> Tree::nodes() const
 {
   return std::get<Vector<MeshNode>>(this->nodes_);
@@ -653,12 +656,6 @@ Tree::~Tree()
   std::visit(
       [](auto &nodes) {
         for (Node &node : nodes) {
-          if (node.flag_ & PBVH_Leaf) {
-            if (node.draw_batches_) {
-              blender::draw::pbvh::node_free(node.draw_batches_);
-            }
-          }
-
           if (node.flag_ & (PBVH_Leaf | PBVH_TexLeaf)) {
             node_pixels_free(&node);
           }
@@ -1766,6 +1763,33 @@ bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node)
 
 namespace blender::bke::pbvh {
 
+void remove_node_draw_tags(bke::pbvh::Tree &pbvh, const IndexMask &node_mask)
+{
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+      node_mask.foreach_index([&](const int i) {
+        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+      node_mask.foreach_index([&](const int i) {
+        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
+      node_mask.foreach_index([&](const int i) {
+        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
+      });
+      break;
+    }
+  }
+}
+
 Span<int> node_corners(const MeshNode &node)
 {
   return node.corner_indices_;
@@ -2660,203 +2684,6 @@ bool BKE_pbvh_node_frustum_exclude_AABB(const blender::bke::pbvh::Node *node,
          blender::bke::pbvh::ISECT_INSIDE;
 }
 
-static blender::draw::pbvh::PBVH_GPU_Args pbvh_draw_args_init(const Object &object_orig,
-                                                              const Object &object_eval,
-                                                              blender::bke::pbvh::Tree &pbvh,
-                                                              const blender::bke::pbvh::Node &node)
-{
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
-  const Mesh &mesh_eval = *static_cast<const Mesh *>(object_eval.data);
-  blender::draw::pbvh::PBVH_GPU_Args args{};
-
-  args.pbvh_type = pbvh.type();
-
-  args.face_sets_color_default = mesh_orig.face_sets_color_default;
-  args.face_sets_color_seed = mesh_orig.face_sets_color_seed;
-
-  args.active_color = mesh_orig.active_color_attribute;
-  args.render_color = mesh_orig.default_color_attribute;
-
-  switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      args.vert_data = &mesh_eval.vert_data;
-      args.corner_data = &mesh_eval.corner_data;
-      args.face_data = &mesh_eval.face_data;
-      args.mesh = &mesh_orig;
-      args.vert_positions = blender::bke::pbvh::vert_positions_eval_from_eval(object_eval);
-      args.corner_verts = mesh_eval.corner_verts();
-      args.corner_edges = mesh_eval.corner_edges();
-      args.corner_tris = mesh_eval.corner_tris();
-      args.vert_normals = blender::bke::pbvh::vert_normals_eval_from_eval(object_eval);
-      args.face_normals =
-          blender::bke::pbvh::face_normals_cache_eval(object_orig, object_eval).data();
-      args.hide_poly = *mesh_orig.attributes().lookup<bool>(".hide_poly",
-                                                            blender::bke::AttrDomain::Face);
-
-      args.prim_indices = static_cast<const blender::bke::pbvh::MeshNode &>(node).prim_indices_;
-      args.tri_faces = mesh_eval.corner_tri_faces();
-      break;
-    case blender::bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *mesh_eval.runtime->subdiv_ccg;
-      args.vert_data = &mesh_orig.vert_data;
-      args.corner_data = &mesh_orig.corner_data;
-      args.face_data = &mesh_orig.face_data;
-      args.ccg_key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      args.mesh = &mesh_orig;
-      args.grid_indices = static_cast<const blender::bke::pbvh::GridsNode &>(node).prim_indices_;
-      args.subdiv_ccg = &const_cast<SubdivCCG &>(subdiv_ccg);
-      args.grids = subdiv_ccg.grids;
-      break;
-    }
-    case blender::bke::pbvh::Type::BMesh: {
-      BMesh &bm = *object_orig.sculpt->bm;
-      args.bm = &bm;
-      args.vert_data = &args.bm->vdata;
-      args.corner_data = &args.bm->ldata;
-      args.face_data = &args.bm->pdata;
-      args.bm_faces = &static_cast<const blender::bke::pbvh::BMeshNode &>(node).bm_faces_;
-      args.cd_mask_layer = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
-
-      break;
-    }
-  }
-
-  return args;
-}
-
-namespace blender::bke::pbvh {
-
-static void node_update_draw_buffers(const Object &object_orig,
-                                     const Object &object_eval,
-                                     Tree &pbvh,
-                                     Node &node)
-{
-  /* Create and update draw buffers. The functions called here must not
-   * do any OpenGL calls. Flags are not cleared immediately, that happens
-   * after GPU_pbvh_buffer_flush() which does the final OpenGL calls. */
-  if (node.flag_ & PBVH_RebuildDrawBuffers) {
-    const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-        object_orig, object_eval, pbvh, node);
-    node.draw_batches_ = blender::draw::pbvh::node_create(args);
-  }
-
-  if (node.flag_ & PBVH_UpdateDrawBuffers) {
-    node.debug_draw_gen_++;
-
-    if (node.draw_batches_) {
-      const blender::draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-          object_orig, object_eval, pbvh, node);
-      blender::draw::pbvh::node_update(node.draw_batches_, args);
-    }
-  }
-}
-
-void free_draw_buffers(Tree & /*pbvh*/, Node *node)
-{
-  if (node->draw_batches_) {
-    draw::pbvh::node_free(node->draw_batches_);
-    node->draw_batches_ = nullptr;
-  }
-}
-
-static void pbvh_update_draw_buffers(const Object &object_orig,
-                                     const Object &object_eval,
-                                     Tree &pbvh,
-                                     Span<Node *> nodes,
-                                     int update_flag)
-{
-  if (pbvh.type() == Type::BMesh && !object_orig.sculpt->bm) {
-    /* BMesh hasn't been created yet */
-    return;
-  }
-
-  if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh.type(), Type::Grids, Type::BMesh)) {
-    /* Free buffers uses OpenGL, so not in parallel. */
-    for (Node *node : nodes) {
-      if (node->flag_ & PBVH_RebuildDrawBuffers) {
-        free_draw_buffers(pbvh, node);
-      }
-      else if ((node->flag_ & PBVH_UpdateDrawBuffers) && node->draw_batches_) {
-        const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-            object_orig, object_eval, pbvh, *node);
-        draw::pbvh::update_pre(node->draw_batches_, args);
-      }
-    }
-  }
-
-  /* Parallel creation and update of draw buffers. */
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (Node *node : nodes.slice(range)) {
-      node_update_draw_buffers(object_orig, object_eval, pbvh, *node);
-    }
-  });
-
-  /* Flush buffers uses OpenGL, so not in parallel. */
-  for (Node *node : nodes) {
-    if (node->flag_ & PBVH_UpdateDrawBuffers) {
-
-      if (node->draw_batches_) {
-        draw::pbvh::node_gpu_flush(node->draw_batches_);
-      }
-    }
-
-    node->flag_ &= ~(PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
-  }
-}
-
-void draw_cb(const Object &object_eval,
-             Tree &pbvh,
-             bool update_only_visible,
-             const PBVHFrustumPlanes &update_frustum,
-             const PBVHFrustumPlanes &draw_frustum,
-             const FunctionRef<void(draw::pbvh::PBVHBatches *batches,
-                                    const draw::pbvh::PBVH_GPU_Args &args)> draw_fn)
-{
-  /* Using the original object/geometry is necessary because we skip depsgraph updates in sculpt
-   * mode to improve performance. This means the evaluated mesh doesn't have the latest position,
-   * face set, visibility, and mask data. */
-  const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
-  if (update_only_visible) {
-    int update_flag = 0;
-    Vector<Node *> nodes = search_gather(pbvh, [&](Node &node) {
-      if (!BKE_pbvh_node_frustum_contain_AABB(&node, &update_frustum)) {
-        return false;
-      }
-      update_flag |= node.flag_;
-      return true;
-    });
-    if (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers)) {
-      pbvh_update_draw_buffers(object_orig, object_eval, pbvh, nodes, update_flag);
-    }
-  }
-  else {
-    /* Get all nodes with draw updates, also those outside the view. */
-    Vector<Node *> nodes = search_gather(pbvh, [&](Node &node) {
-      return update_search(node, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
-    });
-    pbvh_update_draw_buffers(
-        object_orig, object_eval, pbvh, nodes, PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
-  }
-
-  /* Draw visible nodes. */
-  Vector<Node *> nodes = search_gather(
-      pbvh, [&](Node &node) { return BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum); });
-
-  for (Node *node : nodes) {
-    if (node->flag_ & PBVH_FullyHidden) {
-      continue;
-    }
-    if (!node->draw_batches_) {
-      continue;
-    }
-    const draw::pbvh::PBVH_GPU_Args args = pbvh_draw_args_init(
-        object_orig, object_eval, pbvh, *node);
-    draw_fn(node->draw_batches_, args);
-  }
-}
-
-}  // namespace blender::bke::pbvh
-
 void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
                             void (*draw_fn)(blender::bke::pbvh::Node *node,
                                             void *user_data,
@@ -2997,6 +2824,13 @@ Span<float3> vert_normals_eval_from_eval(const Object &object_eval)
   BLI_assert(!DEG_is_original_object(&object_eval));
   Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
   return vert_normals_cache_eval(object_orig, object_eval).data();
+}
+
+Span<float3> face_normals_eval_from_eval(const Object &object_eval)
+{
+  BLI_assert(!DEG_is_original_object(&object_eval));
+  Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
+  return face_normals_cache_eval(object_orig, object_eval).data();
 }
 
 }  // namespace blender::bke::pbvh
@@ -3149,9 +2983,9 @@ IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
       pbvh.nodes_);
 }
 
-Vector<Node *> search_gather(Tree &pbvh,
-                             const FunctionRef<bool(Node &)> scb,
-                             PBVHNodeFlags leaf_flag)
+static Vector<Node *> search_gather(Tree &pbvh,
+                                    const FunctionRef<bool(Node &)> scb,
+                                    PBVHNodeFlags leaf_flag)
 {
   if (tree_is_empty(pbvh)) {
     return {};
@@ -3176,8 +3010,8 @@ IndexMask search_nodes(const Tree &pbvh,
                        IndexMaskMemory &memory,
                        FunctionRef<bool(const Node &)> filter_fn)
 {
-  Vector<Node *> nodes = search_gather(const_cast<Tree &>(pbvh),
-                                       [&](Node &node) { return filter_fn(node); });
+  Vector<Node *> nodes = search_gather(
+      const_cast<Tree &>(pbvh), [&](Node &node) { return filter_fn(node); }, PBVH_Leaf);
   Array<int> indices(nodes.size());
   std::visit(
       [&](const auto &pbvh_nodes) {
@@ -3189,6 +3023,19 @@ IndexMask search_nodes(const Tree &pbvh,
       pbvh.nodes_);
   std::sort(indices.begin(), indices.end());
   return IndexMask::from_indices(indices.as_span(), memory);
+}
+
+IndexMask node_draw_update_mask(const Tree &pbvh,
+                                const IndexMask &node_mask,
+                                IndexMaskMemory &memory)
+{
+  return std::visit(
+      [&](const auto &nodes) {
+        return IndexMask::from_predicate(node_mask, GrainSize(1024), memory, [&](const int i) {
+          return nodes[i].flag_ & PBVH_UpdateDrawBuffers;
+        });
+      },
+      pbvh.nodes_);
 }
 
 }  // namespace blender::bke::pbvh

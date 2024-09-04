@@ -9,12 +9,10 @@
 #include "draw_sculpt.hh"
 
 #include "draw_attributes.hh"
-#include "draw_pbvh.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
 
 #include "DRW_pbvh.hh"
 
@@ -98,24 +96,40 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   bke::pbvh::update_normals_from_eval(*const_cast<Object *>(ob), *pbvh);
 
-  Vector<SculptBatch> result_batches;
-  bke::pbvh::draw_cb(*ob,
-                     *pbvh,
-                     update_only_visible,
-                     update_frustum,
-                     draw_frustum,
-                     [&](pbvh::PBVHBatches *batches, const pbvh::PBVH_GPU_Args &args) {
-                       SculptBatch batch{};
-                       if (use_wire) {
-                         batch.batch = pbvh::lines_get(batches, attrs, args, fast_mode);
-                       }
-                       else {
-                         batch.batch = pbvh::tris_get(batches, attrs, args, fast_mode);
-                       }
-                       batch.material_slot = pbvh::material_index_get(batches);
-                       batch.debug_index = result_batches.size();
-                       result_batches.append(batch);
-                     });
+  pbvh::DrawCache &draw_data = pbvh::ensure_draw_data(pbvh->draw_data);
+
+  IndexMaskMemory memory;
+  const IndexMask visible_nodes = bke::pbvh::search_nodes(
+      *pbvh, memory, [&](const bke::pbvh::Node &node) {
+        return BKE_pbvh_node_frustum_contain_AABB(&node, &draw_frustum);
+      });
+
+  const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
+                                                          bke::pbvh::all_leaf_nodes(*pbvh, memory);
+
+  draw_data.tag_all_attributes_dirty(
+      bke::pbvh::node_draw_update_mask(*pbvh, nodes_to_update, memory));
+
+  Span<gpu::Batch *> batches;
+  if (use_wire) {
+    batches = draw_data.ensure_lines_batches(*ob, {{}, fast_mode}, nodes_to_update);
+  }
+  else {
+    batches = draw_data.ensure_tris_batches(*ob, {attrs, fast_mode}, nodes_to_update);
+  }
+
+  const Span<int> material_indices = draw_data.ensure_material_indices(*ob);
+
+  bke::pbvh::remove_node_draw_tags(const_cast<bke::pbvh::Tree &>(*pbvh), nodes_to_update);
+
+  Vector<SculptBatch> result_batches(visible_nodes.size());
+  visible_nodes.foreach_index([&](const int i, const int pos) {
+    result_batches[pos] = {};
+    result_batches[pos].batch = batches[i];
+    result_batches[pos].material_slot = material_indices.is_empty() ? 0 : material_indices[i];
+    result_batches[pos].debug_index = pos;
+  });
+
   return result_batches;
 }
 

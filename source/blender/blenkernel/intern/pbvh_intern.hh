@@ -67,6 +67,5 @@ void bmesh_normals_update(Tree &pbvh, const IndexMask &nodes_to_update);
 
 void node_pixels_free(blender::bke::pbvh::Node *node);
 void pixels_free(blender::bke::pbvh::Tree *pbvh);
-void free_draw_buffers(blender::bke::pbvh::Tree &pbvh, blender::bke::pbvh::Node *node);
 
 }  // namespace blender::bke::pbvh

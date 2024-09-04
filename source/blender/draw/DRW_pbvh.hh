@@ -8,33 +8,36 @@
 
 #pragma once
 
-/* Needed for BKE_ccg.hh. */
-#include "BLI_assert.h"
-#include "BLI_math_vector_types.hh"
-#include "BLI_offset_indices.hh"
-#include "BLI_set.hh"
-#include "BLI_span.hh"
+#include <variant>
+
+#include "BLI_index_mask_fwd.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_struct_equality_utils.hh"
-#include "BLI_virtual_array.hh"
+#include "BLI_vector.hh"
+
+#include "BKE_pbvh_api.hh"
 
 #include "DNA_customdata_types.h"
 
-#include "BKE_ccg.hh"
-#include "BKE_pbvh.hh"
-
 namespace blender::gpu {
 class Batch;
-}
+class IndexBuf;
+class VertBuf;
+}  // namespace blender::gpu
 struct Mesh;
 struct CustomData;
+struct Object;
 struct SubdivCCG;
 struct BMesh;
 struct BMFace;
+struct RegionView3D;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 namespace pbvh {
 class Node;
-}
+class DrawCache;
+class Tree;
+}  // namespace pbvh
 }  // namespace blender::bke
 
 namespace blender::draw::pbvh {
@@ -60,58 +63,45 @@ enum class CustomRequest : int8_t {
 
 using AttributeRequest = std::variant<CustomRequest, GenericRequest>;
 
-struct PBVHBatches;
-
-struct PBVH_GPU_Args {
-  bke::pbvh::Type pbvh_type;
-
-  BMesh *bm;
-  const Mesh *mesh;
-  Span<float3> vert_positions;
-  Span<int> corner_verts;
-  Span<int> corner_edges;
-  const CustomData *vert_data;
-  const CustomData *corner_data;
-  const CustomData *face_data;
-  Span<float3> vert_normals;
-  Span<float3> face_normals;
-
-  const char *active_color;
-  const char *render_color;
-
-  int face_sets_color_seed;
-  int face_sets_color_default;
-
-  SubdivCCG *subdiv_ccg;
-  Span<int> grid_indices;
-  CCGKey ccg_key;
-  Span<CCGElem *> grids;
-
-  Span<int> prim_indices;
-
-  VArraySpan<bool> hide_poly;
-
-  Span<int3> corner_tris;
-  Span<int> tri_faces;
-
-  /* BMesh. */
-  const Set<BMFace *, 0> *bm_faces;
-  int cd_mask_layer;
+struct ViewportRequest {
+  Vector<AttributeRequest> attributes;
+  bool use_coarse_grids;
+  BLI_STRUCT_EQUALITY_OPERATORS_2(ViewportRequest, attributes, use_coarse_grids);
+  uint64_t hash() const;
 };
 
-void node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
-void update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
+class DrawCache : public bke::pbvh::DrawCache {
+ public:
+  virtual ~DrawCache() = default;
+  /**
+   * Tag all attribute values dirty for the selected nodes.
+   * \todo It is inefficient to tag all attributes dirty when only one has changed. It would be
+   *   more efficient for sculpt mode operations to tag the specific attribute that they're
+   *   modifying.
+   */
+  virtual void tag_all_attributes_dirty(const IndexMask &node_mask) = 0;
+  /**
+   * Recalculate and copy data as necessary to prepare batches for drawing triangles for a
+   * specific combination of attributes.
+   */
+  virtual Span<gpu::Batch *> ensure_tris_batches(const Object &object,
+                                                 const ViewportRequest &request,
+                                                 const IndexMask &nodes_to_update) = 0;
+  /**
+   * Recalculate and copy data as necessary to prepare batches for drawing wireframe geometry for a
+   * specific combination of attributes.
+   */
+  virtual Span<gpu::Batch *> ensure_lines_batches(const Object &object,
+                                                  const ViewportRequest &request,
+                                                  const IndexMask &nodes_to_update) = 0;
 
-void node_gpu_flush(PBVHBatches *batches);
-PBVHBatches *node_create(const PBVH_GPU_Args &args);
-void node_free(PBVHBatches *batches);
-gpu::Batch *tris_get(PBVHBatches *batches,
-                     Span<AttributeRequest> attrs,
-                     const PBVH_GPU_Args &args,
-                     bool do_coarse_grids);
-gpu::Batch *lines_get(PBVHBatches *batches,
-                      Span<AttributeRequest> attrs,
-                      const PBVH_GPU_Args &args,
-                      bool do_coarse_grids);
+  /**
+   * Return the material index for each node (all faces in a node should have the same material
+   * index, as ensured by the BVH building process).
+   */
+  virtual Span<int> ensure_material_indices(const Object &object) = 0;
+};
+
+DrawCache &ensure_draw_data(std::unique_ptr<bke::pbvh::DrawCache> &ptr);
 
 }  // namespace blender::draw::pbvh

@@ -225,7 +225,6 @@ set(SRC
   intern/draw_manager_testing.hh
   intern/draw_manager_text.hh
   intern/draw_pass.hh
-  intern/draw_pbvh.hh
   intern/draw_resource.hh
   intern/draw_sculpt.hh
   intern/draw_shader.hh
