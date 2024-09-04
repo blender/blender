@@ -17,10 +17,10 @@ public:
     WorldObject();
     virtual ~WorldObject();
 
-	virtual void updateCoordinates(const Timestamp& timestamp) {};
-	virtual void updateKinematics(const Timestamp& timestamp) {};
-	virtual void pushCache(const Timestamp& timestamp) {};
-	virtual void initCache(Cache *_cache) {};
+	virtual void updateCoordinates(const Timestamp & /*timestamp*/){};
+	virtual void updateKinematics(const Timestamp & /*timestamp*/){};
+	virtual void pushCache(const Timestamp & /*timestamp*/){};
+	virtual void initCache(Cache * /*cache*/){};
 protected:
 	virtual void updateJacobian() {}
 
