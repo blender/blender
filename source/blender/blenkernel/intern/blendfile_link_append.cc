@@ -21,6 +21,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -618,6 +619,12 @@ static void loose_data_instantiate_obdata_preprocess(
     const ID_Type idcode = GS(id->name);
     if (!OB_DATA_SUPPORT_ID(idcode)) {
       continue;
+    }
+    if (idcode == ID_GD_LEGACY) {
+      bGPdata *legacy_gpd = reinterpret_cast<bGPdata *>(id);
+      if ((legacy_gpd->flag & GP_DATA_ANNOTATIONS) != 0) {
+        continue;
+      }
     }
 
     id->tag |= ID_TAG_DOIT;
