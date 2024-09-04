@@ -137,7 +137,7 @@ struct StrokeCache {
   float initial_radius;
   float3 scale;
   struct {
-    int flag = 0;
+    uint8_t flag = 0;
     float3 tolerance;
     float4x4 mat;
     float4x4 mat_inv;
