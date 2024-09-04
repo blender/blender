@@ -3275,15 +3275,15 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
     }
   }
 
-  node_mask.foreach_index([&](const int i) {
-    undo::push_node(depsgraph,
-                    ob,
-                    &nodes[i],
-                    brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK ? undo::Type::Mask :
-                                                                        undo::Type::Position);
-    BKE_pbvh_node_mark_update(nodes[i]);
-
-    BKE_pbvh_node_mark_topology_update(nodes[i]);
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
+    undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Mask);
+  }
+  else {
+    undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
+  }
+  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
+  node_mask.foreach_index(GrainSize(1), [&](const int i) {
     BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, &nodes[i], false);
   });
 

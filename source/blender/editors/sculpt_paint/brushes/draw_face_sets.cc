@@ -177,8 +177,9 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const Span<int> corner_tris = mesh.corner_tri_faces();
 
-  bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
-  MutableSpan<int> face_sets = attribute.span;
+  undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
+
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
   threading::EnumerableThreadSpecific<MeshLocalData> all_tls;
   MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
@@ -187,8 +188,6 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
     node_mask.slice(range).foreach_index([&](const int i) {
       const Span<int> face_indices = bke::pbvh::node_face_indices_calc_mesh(
           corner_tris, nodes[i], tls.face_indices);
-
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
 
       calc_faces(depsgraph,
                  object,
@@ -199,11 +198,11 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
                  nodes[i],
                  face_indices,
                  tls,
-                 face_sets);
+                 face_sets.span);
     });
   });
 
-  attribute.finish();
+  face_sets.finish();
 }
 
 struct GridLocalData {
@@ -278,16 +277,15 @@ static void do_draw_face_sets_brush_grids(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
 
-  bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
-  MutableSpan<int> face_sets = attribute.span;
+  undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
+
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
   MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     GridLocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
-
       calc_grids(depsgraph,
                  object,
                  brush,
@@ -295,10 +293,10 @@ static void do_draw_face_sets_brush_grids(const Depsgraph &depsgraph,
                  ss.cache->paint_face_set,
                  nodes[i],
                  tls,
-                 face_sets);
+                 face_sets.span);
     });
   });
-  attribute.finish();
+  face_sets.finish();
 }
 struct BMeshLocalData {
   Vector<float3> positions;
@@ -409,6 +407,9 @@ static void do_draw_face_sets_brush_bmesh(const Depsgraph &depsgraph,
                                           const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
+
+  undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
+
   const int cd_offset = face_set::ensure_face_sets_bmesh(object);
 
   threading::EnumerableThreadSpecific<BMeshLocalData> all_tls;
@@ -416,7 +417,6 @@ static void do_draw_face_sets_brush_bmesh(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     BMeshLocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
       calc_bmesh(
           object, brush, ss.cache->bstrength, ss.cache->paint_face_set, nodes[i], tls, cd_offset);
     });
