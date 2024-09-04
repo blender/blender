@@ -131,9 +131,8 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   }
 
   if (totedge == 0) {
-    /* flag that mesh has edges */
-    (*r_medge) = (MEdge *)MEM_callocN(0, __func__);
-    (*r_totedge) = 0;
+    *r_medge = nullptr;
+    *r_totedge = 0;
     return;
   }
 
@@ -211,6 +210,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     }
   }
 
+  BLI_assert(totedge_final > 0);
   *r_medge = edges;
   *r_totedge = totedge_final;
 }
@@ -238,7 +238,7 @@ void BKE_mesh_calc_edges_legacy(Mesh *mesh)
       &totedge);
 
   if (totedge == 0) {
-    /* flag that mesh has edges */
+    BLI_assert(edges == nullptr);
     mesh->edges_num = 0;
     return;
   }
