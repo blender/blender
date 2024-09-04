@@ -200,21 +200,15 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
 static bool leaf_needs_material_split(const Span<int> prim_indices,
                                       const Span<int> prim_to_face_map,
                                       const Span<int> material_indices,
-                                      int offset,
-                                      int count)
+                                      const IndexRange prim_range)
 {
-  if (count <= 1) {
+  if (material_indices.is_empty()) {
     return false;
   }
-
-  const int first = prim_to_face_map[prim_indices[offset]];
-  for (int i = offset + count - 1; i > offset; i--) {
-    int prim = prim_indices[i];
-    if (!face_materials_match(material_indices, first, prim_to_face_map[prim])) {
-      return true;
-    }
-  }
-
+  const int first = material_indices[prim_to_face_map[prim_indices[prim_range.first()]]];
+  return std::any_of(prim_range.begin(), prim_range.end(), [&](const int i) {
+    return material_indices[prim_to_face_map[prim_indices[i]]] != first;
+    });
   return false;
 }
 
@@ -240,7 +234,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
   const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            prim_indices, tri_faces, material_indices, prim_offset, prims_num))
+            prim_indices, tri_faces, material_indices, IndexRange(prim_offset, prims_num)))
     {
       MeshNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
@@ -416,7 +410,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
   const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            prim_indices, grid_to_face_map, material_indices, prim_offset, prims_num))
+            prim_indices, grid_to_face_map, material_indices, IndexRange(prim_offset, prims_num)))
     {
       GridsNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
