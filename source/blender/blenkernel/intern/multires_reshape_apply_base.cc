@@ -136,7 +136,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)
 {
   blender::bke::subdiv::eval_refine_from_mesh(
-      reshape_context->subdiv, reshape_context->base_mesh, nullptr);
+      reshape_context->subdiv, reshape_context->base_mesh, {});
 }
 
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context)
@@ -152,7 +152,5 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
       BKE_multires_create_deformed_base_mesh_vert_coords(depsgraph, object, mmd);
 
   blender::bke::subdiv::eval_refine_from_mesh(
-      reshape_context->subdiv,
-      reshape_context->base_mesh,
-      reinterpret_cast<float(*)[3]>(deformed_verts.data()));
+      reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
 }

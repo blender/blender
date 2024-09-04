@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 struct Mesh;
@@ -25,7 +27,6 @@ struct Subdiv;
  * vertex_cos are supposed to hold coordinates of the coarse mesh. */
 void deform_coarse_vertices(Subdiv *subdiv,
                             const Mesh *coarse_mesh,
-                            float (*vertex_cos)[3],
-                            int num_verts);
+                            MutableSpan<float3> vert_positions);
 
 }  // namespace blender::bke::subdiv

@@ -939,9 +939,8 @@ static void refine_subdiv(Depsgraph *depsgraph,
   Array<float3> deformed_verts = BKE_multires_create_deformed_base_mesh_vert_coords(
       depsgraph, &object, ss.multires.modifier);
 
-  bke::subdiv::eval_refine_from_mesh(subdiv,
-                                     static_cast<const Mesh *>(object.data),
-                                     reinterpret_cast<float(*)[3]>(deformed_verts.data()));
+  bke::subdiv::eval_refine_from_mesh(
+      subdiv, static_cast<const Mesh *>(object.data), deformed_verts);
 }
 
 static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)

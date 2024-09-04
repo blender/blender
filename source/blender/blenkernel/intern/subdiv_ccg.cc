@@ -492,7 +492,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
 {
   /* Make sure evaluator is ready. */
   stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-  if (!eval_begin_from_mesh(&subdiv, &coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+  if (!eval_begin_from_mesh(&subdiv, &coarse_mesh, {}, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     if (coarse_mesh.faces_num) {
       return nullptr;
     }

@@ -297,8 +297,7 @@ static void deform_matrices(ModifierData *md,
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  blender::bke::subdiv::deform_coarse_vertices(
-      subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
+  blender::bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     blender::bke::subdiv::free(subdiv);
   }

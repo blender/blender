@@ -1162,7 +1162,7 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * it is refined for the new positions of coarse vertices. */
-  if (!eval_begin_from_mesh(subdiv, coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+  if (!eval_begin_from_mesh(subdiv, coarse_mesh, {}, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

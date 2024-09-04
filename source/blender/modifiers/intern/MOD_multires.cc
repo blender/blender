@@ -294,8 +294,7 @@ static void deform_matrices(ModifierData *md,
     return;
   }
   blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
-  blender::bke::subdiv::deform_coarse_vertices(
-      subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
+  blender::bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
   if (subdiv != runtime_data->subdiv) {
     blender::bke::subdiv::free(subdiv);
   }

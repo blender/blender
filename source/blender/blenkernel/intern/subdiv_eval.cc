@@ -211,7 +211,7 @@ static void get_mesh_evaluator_settings(OpenSubdiv_EvaluatorSettings *settings, 
 
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,
-                          const float (*coarse_vertex_cos)[3],
+                          const Span<float3> coarse_vert_positions,
                           eSubdivEvaluatorType evaluator_type,
                           OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
@@ -221,14 +221,16 @@ bool eval_begin_from_mesh(Subdiv *subdiv,
   if (!eval_begin(subdiv, evaluator_type, evaluator_cache, &settings)) {
     return false;
   }
-  return eval_refine_from_mesh(subdiv, mesh, coarse_vertex_cos);
+  return eval_refine_from_mesh(subdiv, mesh, coarse_vert_positions);
 #else
-  UNUSED_VARS(subdiv, mesh, coarse_vertex_cos, evaluator_type, evaluator_cache);
+  UNUSED_VARS(subdiv, mesh, coarse_vert_positions, evaluator_type, evaluator_cache);
   return false;
 #endif
 }
 
-bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coarse_vertex_cos)[3])
+bool eval_refine_from_mesh(Subdiv *subdiv,
+                           const Mesh *mesh,
+                           const Span<float3> coarse_vert_positions)
 {
 #ifdef WITH_OPENSUBDIV
   if (subdiv->evaluator == nullptr) {
@@ -237,12 +239,10 @@ bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coars
     return false;
   }
   /* Set coordinates of base mesh vertices. */
-  set_coarse_positions(
-      subdiv,
-      coarse_vertex_cos ?
-          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->verts_num) :
-          mesh->vert_positions(),
-      mesh->verts_no_face());
+  set_coarse_positions(subdiv,
+                       coarse_vert_positions.is_empty() ? mesh->vert_positions() :
+                                                          coarse_vert_positions,
+                       mesh->verts_no_face());
 
   /* Set face-varying data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
@@ -259,7 +259,7 @@ bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coars
   stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
   return true;
 #else
-  UNUSED_VARS(subdiv, mesh, coarse_vertex_cos);
+  UNUSED_VARS(subdiv, mesh, coarse_vert_positions);
   return false;
 #endif
 }

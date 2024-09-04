@@ -49,7 +49,7 @@ static blender::bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *
   subdiv::converter_free(&converter);
 
   if (!subdiv::eval_begin_from_mesh(
-          subdiv, base_mesh, nullptr, subdiv::SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
+          subdiv, base_mesh, {}, subdiv::SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
   {
     subdiv::free(subdiv);
     return nullptr;
