@@ -59,18 +59,10 @@ static Bounds<float3> negative_bounds()
   return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
 }
 
-static bool face_materials_match(const Span<int> material_indices,
-                                 const Span<bool> sharp_faces,
-                                 const int a,
-                                 const int b)
+static bool face_materials_match(const Span<int> material_indices, const int a, const int b)
 {
   if (!material_indices.is_empty()) {
     if (material_indices[a] != material_indices[b]) {
-      return false;
-    }
-  }
-  if (!sharp_faces.is_empty()) {
-    if (sharp_faces[a] != sharp_faces[b]) {
       return false;
     }
   }
@@ -114,23 +106,16 @@ static int partition_prim_indices(MutableSpan<int> prim_indices,
 static int partition_indices_material_faces(MutableSpan<int> indices,
                                             const Span<int> prim_to_face_map,
                                             const Span<int> material_indices,
-                                            const Span<bool> sharp_faces,
                                             const int lo,
                                             const int hi)
 {
   int i = lo, j = hi;
   for (;;) {
     const int first = prim_to_face_map[indices[lo]];
-    for (;
-         face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[indices[i]]);
-         i++)
-    {
+    for (; face_materials_match(material_indices, first, prim_to_face_map[indices[i]]); i++) {
       /* pass */
     }
-    for (;
-         !face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[indices[j]]);
-         j--)
-    {
+    for (; !face_materials_match(material_indices, first, prim_to_face_map[indices[j]]); j--) {
       /* pass */
     }
     if (!(i < j)) {
@@ -215,7 +200,6 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
 static bool leaf_needs_material_split(const Span<int> prim_indices,
                                       const Span<int> prim_to_face_map,
                                       const Span<int> material_indices,
-                                      const Span<bool> sharp_faces,
                                       int offset,
                                       int count)
 {
@@ -226,7 +210,7 @@ static bool leaf_needs_material_split(const Span<int> prim_indices,
   const int first = prim_to_face_map[prim_indices[offset]];
   for (int i = offset + count - 1; i > offset; i--) {
     int prim = prim_indices[i];
-    if (!face_materials_match(material_indices, sharp_faces, first, prim_to_face_map[prim])) {
+    if (!face_materials_match(material_indices, first, prim_to_face_map[prim])) {
       return true;
     }
   }
@@ -238,7 +222,6 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                                        const Span<int3> corner_tris,
                                        const Span<int> tri_faces,
                                        const Span<int> material_indices,
-                                       const Span<bool> sharp_faces,
                                        const int leaf_limit,
                                        MutableSpan<bool> vert_bitmap,
                                        const int node_index,
@@ -257,7 +240,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
   const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            prim_indices, tri_faces, material_indices, sharp_faces, prim_offset, prims_num))
+            prim_indices, tri_faces, material_indices, prim_offset, prims_num))
     {
       MeshNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
@@ -297,12 +280,8 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
   }
   else {
     /* Partition primitives by material */
-    end = partition_indices_material_faces(prim_indices,
-                                           tri_faces,
-                                           material_indices,
-                                           sharp_faces,
-                                           prim_offset,
-                                           prim_offset + prims_num - 1);
+    end = partition_indices_material_faces(
+        prim_indices, tri_faces, material_indices, prim_offset, prim_offset + prims_num - 1);
   }
 
   /* Build children */
@@ -310,7 +289,6 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              corner_tris,
                              tri_faces,
                              material_indices,
-                             sharp_faces,
                              leaf_limit,
                              vert_bitmap,
                              nodes[node_index].children_offset_,
@@ -326,7 +304,6 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              corner_tris,
                              tri_faces,
                              material_indices,
-                             sharp_faces,
                              leaf_limit,
                              vert_bitmap,
                              nodes[node_index].children_offset_ + 1,
@@ -342,6 +319,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
 
 std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 {
+  SCOPED_TIMER_AVERAGED(__func__);
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
   const Span<float3> vert_positions = mesh.vert_positions();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -380,7 +358,6 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
-  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
   pbvh->prim_indices_.reinitialize(corner_tris.size());
   array_utils::fill_index_range<int>(pbvh->prim_indices_);
@@ -391,7 +368,6 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
                              corner_tris,
                              tri_faces,
                              material_index,
-                             sharp_face,
                              leaf_limit,
                              vert_bitmap,
                              0,
@@ -423,7 +399,6 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 
 static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                                         const Span<int> material_indices,
-                                        const Span<bool> sharp_faces,
                                         const int leaf_limit,
                                         const int node_index,
                                         const Bounds<float3> *cb,
@@ -441,7 +416,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
   const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(
-            prim_indices, grid_to_face_map, material_indices, sharp_faces, prim_offset, prims_num))
+            prim_indices, grid_to_face_map, material_indices, prim_offset, prims_num))
     {
       GridsNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
@@ -483,7 +458,6 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
     end = partition_indices_material_faces(prim_indices,
                                            grid_to_face_map,
                                            material_indices,
-                                           sharp_faces,
                                            prim_offset,
                                            prim_offset + prims_num - 1);
   }
@@ -491,7 +465,6 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
   /* Build children */
   build_nodes_recursive_grids(grid_to_face_map,
                               material_indices,
-                              sharp_faces,
                               leaf_limit,
                               nodes[node_index].children_offset_,
                               nullptr,
@@ -504,7 +477,6 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                               nodes);
   build_nodes_recursive_grids(grid_to_face_map,
                               material_indices,
-                              sharp_faces,
                               leaf_limit,
                               nodes[node_index].children_offset_ + 1,
                               nullptr,
@@ -573,7 +545,6 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   nodes.resize(1);
   build_nodes_recursive_grids(subdiv_ccg.grid_to_face_map,
                               material_index,
-                              sharp_face,
                               leaf_limit,
                               0,
                               &cb,
