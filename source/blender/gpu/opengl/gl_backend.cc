@@ -453,6 +453,27 @@ static void detect_workarounds()
     }
   }
 
+/* Snapdragon X Elite devices currently have a driver bug that results in
+ * eevee rendering a black cube with anything except an emission shader
+ * if shader draw parameters are enabled (#122837) */
+#if defined(WIN32)
+  long long driverVersion = 0;
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    if (BLI_windows_get_directx_driver_version(L"Qualcomm(R) Adreno(TM)", &driverVersion)) {
+      /* Parse out the driver version */
+      WORD ver0 = (driverVersion >> 48) & 0xffff;
+
+      /* X Elite devices have GPU driver version 31, and currently no known release version of the
+       * GPU driver renders the cube correctly. This will be changed when a working driver version
+       * is released to commercial devices to only enable these flags on older drivers. */
+      if (ver0 == 31) {
+        GCaps.shader_draw_parameters_support = false;
+        GLContext::shader_draw_parameters_support = false;
+      }
+    }
+  }
+#endif
+
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
    * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
    * Only check at the end after all other workarounds because this uses the drawing code.
