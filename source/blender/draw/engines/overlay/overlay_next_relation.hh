@@ -156,6 +156,7 @@ class Relations {
   void end_sync(Resources &res, const State &state)
   {
     ps_.init();
+    res.select_bind(ps_);
     {
       PassSimple::Sub &sub_pass = ps_.sub("lines");
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
