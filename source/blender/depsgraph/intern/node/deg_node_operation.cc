@@ -204,6 +204,8 @@ const char *operationCodeAsString(OperationCode opcode)
       return "INSTANCER";
     case OperationCode::INSTANCE:
       return "INSTANCE";
+    case OperationCode::INSTANCE_GEOMETRY:
+      return "INSTANCE_GEOMETRY";
   }
   BLI_assert_msg(0, "Unhandled operation code, should never happen.");
   return "UNKNOWN";

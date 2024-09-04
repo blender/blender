@@ -205,6 +205,7 @@ enum class OperationCode {
 
   /* Operation on an object which is being instanced. */
   INSTANCE,
+  INSTANCE_GEOMETRY,
 };
 const char *operationCodeAsString(OperationCode opcode);
 
