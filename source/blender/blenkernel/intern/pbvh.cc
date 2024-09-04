@@ -552,7 +552,6 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 
   const AttributeAccessor attributes = base_mesh.attributes();
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
-  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
 
   pbvh->prim_indices_.reinitialize(elems.size());
   array_utils::fill_index_range<int>(pbvh->prim_indices_);
