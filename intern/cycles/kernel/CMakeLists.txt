@@ -921,39 +921,43 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   # Enable zebin, a graphics binary format with improved compatibility.
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
 
-  # Add the list of Intel devices to build binaries for.
-  foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
-    # Run ocloc ids to test if the device is supported.
-    if(WIN32)
-      execute_process(
-        COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
-        RESULT_VARIABLE oclocids_ret
-        OUTPUT_QUIET
-        ERROR_QUIET
-      )
-    else()
-      execute_process(
-        COMMAND ${CMAKE_COMMAND}
-        -E env "LD_LIBRARY_PATH=${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
-        ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
-
-        RESULT_VARIABLE oclocids_ret
-        OUTPUT_QUIET
-        ERROR_QUIET
-      )
-    endif()
-    if(NOT oclocids_ret EQUAL 0)
-      list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
-      message(STATUS "Cycles oneAPI: binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped.")
-    endif()
-  endforeach()
-  list(JOIN CYCLES_ONEAPI_INTEL_BINARIES_ARCH "," gen_devices_string)
-  if(NOT "${gen_devices_string}" STREQUAL "")
-    string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
-  endif()
-
   # Host execution won't use GPU binaries, no need to compile them.
   if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
+    # Add the list of Intel devices to build binaries for.
+    foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
+      # Run ocloc ids to test if the device is supported.
+      if(WIN32)
+        execute_process(
+          COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
+          RESULT_VARIABLE oclocids_ret
+          OUTPUT_QUIET
+          ERROR_QUIET
+        )
+      else()
+        execute_process(
+          COMMAND ${CMAKE_COMMAND}
+          -E env "LD_LIBRARY_PATH=${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+          ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
+
+          RESULT_VARIABLE oclocids_ret
+          OUTPUT_QUIET
+          ERROR_QUIET
+        )
+      endif()
+      if(NOT oclocids_ret EQUAL 0)
+        list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
+        message(STATUS "Cycles oneAPI: binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped.")
+      endif()
+    endforeach()
+    list(JOIN CYCLES_ONEAPI_INTEL_BINARIES_ARCH "," gen_devices_string)
+    if("${gen_devices_string}" STREQUAL "")
+      # Don't compile spir64_gen if no device is targeted
+      message(STATUS "Cycles oneAPI: skipping spir64_gen compilation as no devices are targeted.")
+      list(REMOVE_ITEM CYCLES_ONEAPI_SYCL_TARGETS spir64_gen)
+    else()
+      string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
+    endif()
+
     # Iterate over all targest and their options
     list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
