@@ -2258,7 +2258,15 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   /* Avoid re-initializing tools while resizing areas & regions. */
   if ((G.moving & G_TRANSFORM_WM) == 0) {
     if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-      if (WM_toolsystem_refresh_screen_area(workspace, scene, view_layer, area)) {
+      if (WM_toolsystem_refresh_screen_area(workspace, scene, view_layer, area) ||
+          /* When the tool is null it may not be initialized.
+           * This happens when switching to a new area, see: #126990.
+           *
+           * NOTE(@ideasman42): There is a possible down-side here: when refreshing
+           * tools results in a null value, refreshing won't be skipped here as intended.
+           * As it happens, spaces that use tools will practically always have a default tool. */
+          (area->runtime.tool == nullptr))
+      {
         /* Only re-initialize as needed to prevent redundant updates as they
          * can cause gizmos to flicker when the flag is set continuously, see: #126525. */
         area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
