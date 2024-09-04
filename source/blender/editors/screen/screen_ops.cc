@@ -3858,7 +3858,7 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
 
   if (jd->dock_target == AreaDockTarget::None) {
     if (U.experimental.use_docking) {
-      return WM_CURSOR_NONE;
+      return WM_CURSOR_DEFAULT;
     }
     else {
       if (jd->dir == SCREEN_DIR_N) {
@@ -3879,7 +3879,7 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
   if (U.experimental.use_docking &&
       (jd->dir != SCREEN_DIR_NONE || jd->dock_target != AreaDockTarget::None))
   {
-    return WM_CURSOR_NONE;
+    return WM_CURSOR_DEFAULT;
   }
 
   return U.experimental.use_docking ? WM_CURSOR_PICK_AREA : WM_CURSOR_STOP;

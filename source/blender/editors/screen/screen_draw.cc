@@ -15,9 +15,13 @@
 
 #include "BKE_screen.hh"
 
+#include "BLF_api.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
+
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 
@@ -219,40 +223,67 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-static void screen_draw_area_icon(int x, int y, int icon)
+static void screen_draw_area_drag_tip(int x, int y, ScrArea *source, std::string hint)
 {
   if (!U.experimental.use_docking) {
     return;
   }
 
-  const float bg_width = UI_SCALE_FAC * 35.0f;
-  const float bg_height = UI_SCALE_FAC * 40.0f;
+  const char *area_name = IFACE_(ED_area_name(source).c_str());
+  const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
+  float col_fg[4], col_bg[4];
+  rgba_uchar_to_float(col_fg, wcol->text);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
-  const float bg_color[4] = {0.9f, 0.9f, 0.9f, 1.0f};
-  const float outline[4] = {0.0f, 0.0f, 0.0f, 0.4f};
-  const rctf bg_rect = {
-      /*xmin*/ x - (bg_width / 2.0f),
-      /*xmax*/ x + bg_width - (bg_width / 2.0f),
-      /*ymin*/ y - (bg_height / 2.0f),
-      /*ymax*/ y + bg_height - (bg_height / 2.0f),
-  };
+  float scale = fstyle->points * UI_SCALE_FAC / UI_DEFAULT_TOOLTIP_POINTS;
+  BLF_size(fstyle->uifont_id, UI_DEFAULT_TOOLTIP_POINTS * scale);
 
-  ui_draw_dropshadow(&bg_rect, 4 * U.pixelsize, 6 * U.pixelsize, 1.0f, 0.3f);
+  const float margin = scale * 4.0f;
+  const float icon_width = (scale * ICON_DEFAULT_WIDTH / 1.4f);
+  const float icon_gap = scale * 3.0f;
+  const float line_gap = scale * 5.0f;
+  const int lheight = BLF_height_max(fstyle->uifont_id);
+  const int descent = BLF_descender(fstyle->uifont_id);
+  const float line1_len = BLF_width(fstyle->uifont_id, hint.c_str(), hint.size());
+  const float line2_len = BLF_width(fstyle->uifont_id, area_name, BLF_DRAW_STR_DUMMY_MAX);
+  const float width = margin + std::max(line1_len, line2_len + icon_width + icon_gap) + margin;
+  const float height = margin + lheight + line_gap + lheight + margin;
 
-  UI_draw_roundbox_4fv_ex(
-      &bg_rect, bg_color, nullptr, 1.0f, outline, U.pixelsize, 4 * U.pixelsize);
+  /* Position of this hint relative to the mouse position. */
+  const int left = x + int(5.0f * UI_SCALE_FAC);
+  const int top = y - int(7.0f * UI_SCALE_FAC);
 
-  const float icon_size = 24.0f * UI_SCALE_FAC;
-  const uchar color[4] = {0, 0, 0, 220};
-  UI_icon_draw_ex(x - (icon_size / 2.0f),
-                  y - (icon_size / 2.0f),
-                  icon,
-                  16.0f / icon_size,
-                  float(color[3]) / 255.0f,
+  rctf rect;
+  rect.xmin = left;
+  rect.xmax = left + width;
+  rect.ymax = top;
+  rect.ymin = top - height;
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv(&rect, true, wcol->roundness * U.widget_unit, col_bg);
+
+  UI_icon_draw_ex(left + margin,
+                  top - height + margin + (1.0f * scale),
+                  ED_area_icon(source),
+                  1.4f / scale,
+                  1.0f,
                   0.0f,
-                  color,
-                  false,
+                  wcol->text,
+                  true,
                   UI_NO_ICON_OVERLAY_TEXT);
+
+  BLF_size(fstyle->uifont_id, UI_DEFAULT_TOOLTIP_POINTS * scale);
+  BLF_color4fv(fstyle->uifont_id, col_fg);
+
+  BLF_position(fstyle->uifont_id, left + margin, top - margin - lheight + (2.0f * scale), 0.0f);
+  BLF_draw(fstyle->uifont_id, hint.c_str(), hint.size());
+
+  BLF_position(fstyle->uifont_id,
+               left + margin + icon_width + icon_gap,
+               top - height + margin - descent,
+               0.0f);
+  BLF_draw(fstyle->uifont_id, area_name, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 static void screen_draw_area_closed(int xmin, int xmax, int ymin, int ymax)
@@ -356,7 +387,8 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   UI_draw_roundbox_4fv_ex(&combined, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
 
-  screen_draw_area_icon(win->eventstate->xy[0], win->eventstate->xy[1], ED_area_icon(sa1));
+  screen_draw_area_drag_tip(
+      win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
 }
 
 void screen_draw_dock_preview(
@@ -407,8 +439,6 @@ void screen_draw_dock_preview(
 
   UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
 
-  screen_draw_area_icon(x, y, ED_area_icon(source));
-
   if (dock_target != AreaDockTarget::Center) {
     /* Darken the split position itself. */
     if (ELEM(dock_target, AreaDockTarget::Right, AreaDockTarget::Left)) {
@@ -421,6 +451,12 @@ void screen_draw_dock_preview(
     }
     UI_draw_roundbox_4fv(&dest, true, 0.0f, border);
   }
+
+  screen_draw_area_drag_tip(x,
+                            y,
+                            source,
+                            dock_target == AreaDockTarget::Center ? IFACE_("Replace Area") :
+                                                                    IFACE_("Split Area"));
 }
 
 void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float fac)
