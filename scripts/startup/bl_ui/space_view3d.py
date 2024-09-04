@@ -8778,7 +8778,10 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
             col.prop_menu_enum(gp_settings, "vertex_mode", text="Mode")
             col.separator()
 
-        if brush.gpencil_tool not in {'FILL', 'CUTTER'}:
+        if brush.gpencil_tool not in {'FILL', 'CUTTER', 'ERASE'}:
+            radius = "size" if (brush.use_locked_size == 'VIEW') else "unprojected_radius"
+            layout.prop(brush, radius, text="Radius", slider=True)
+        if brush.gpencil_tool == 'ERASE':
             layout.prop(brush, "size", slider=True)
         if brush.gpencil_tool not in {'ERASE', 'FILL', 'CUTTER'}:
             layout.prop(gp_settings, "pen_strength")
