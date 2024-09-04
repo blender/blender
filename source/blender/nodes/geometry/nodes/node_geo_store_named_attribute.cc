@@ -94,6 +94,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
+  if (bke::attribute_name_is_anonymous(name)) {
+    params.error_message_add(NodeWarningType::Info,
+                             TIP_("Anonymous attributes can't be created here"));
+    params.set_output("Geometry", std::move(geometry_set));
+    return;
+  }
 
   params.used_named_attribute(name, NamedAttributeUsage::Write);
 

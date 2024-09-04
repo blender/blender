@@ -90,6 +90,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
+  if (bke::attribute_name_is_anonymous(name)) {
+    params.error_message_add(NodeWarningType::Info,
+                             TIP_("Anonymous attributes can't be accessed by name"));
+    params.set_default_remaining_outputs();
+    return;
+  }
 
   params.used_named_attribute(name, NamedAttributeUsage::Read);
 
