@@ -154,7 +154,7 @@ static int map_insert_vert(Map<int, int> &map,
   });
 }
 
-/* Find vertices used by the faces in this node and update the draw buffers */
+/** Find vertices used by the faces in this node. */
 static void build_mesh_leaf_node(const Span<int> corner_verts,
                                  const Span<int3> corner_tris,
                                  MutableSpan<bool> vert_bitmap,
@@ -200,6 +200,21 @@ static void build_mesh_leaf_node(const Span<int> corner_verts,
   }
 }
 
+BLI_NOINLINE static void build_mesh_leaf_nodes(const int verts_num,
+                                               const Span<int> corner_verts,
+                                               const Span<int3> corner_tris,
+                                               MutableSpan<MeshNode> nodes)
+{
+  SCOPED_TIMER_AVERAGED(__func__);
+  Array<bool> vert_bitmap(verts_num, false);
+  for (const int i : nodes.index_range()) {
+    if ((nodes[i].flag_ & PBVH_Leaf) == 0) {
+      continue;
+    }
+    build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, nodes[i]);
+  }
+}
+
 /* Return zero if all primitives in the node can be drawn with the
  * same material (including flat/smooth shading), non-zero otherwise */
 static bool leaf_needs_material_split(const Span<int> prim_indices,
@@ -217,12 +232,9 @@ static bool leaf_needs_material_split(const Span<int> prim_indices,
   return false;
 }
 
-static void build_nodes_recursive_mesh(const Span<int> corner_verts,
-                                       const Span<int3> corner_tris,
-                                       const Span<int> tri_faces,
+static void build_nodes_recursive_mesh(const Span<int> tri_faces,
                                        const Span<int> material_indices,
                                        const int leaf_limit,
-                                       MutableSpan<bool> vert_bitmap,
                                        const int node_index,
                                        const std::optional<Bounds<float3>> &bounds_precalc,
                                        const Span<Bounds<float3>> prim_bounds,
@@ -244,7 +256,6 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
       MeshNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
       node.prim_indices_ = prim_indices.as_span().slice(prim_offset, prims_num);
-      build_mesh_leaf_node(corner_verts, corner_tris, vert_bitmap, node);
       return;
     }
   }
@@ -293,12 +304,9 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
   }
 
   /* Build children */
-  build_nodes_recursive_mesh(corner_verts,
-                             corner_tris,
-                             tri_faces,
+  build_nodes_recursive_mesh(tri_faces,
                              material_indices,
                              leaf_limit,
-                             vert_bitmap,
                              nodes[node_index].children_offset_,
                              std::nullopt,
                              prim_bounds,
@@ -308,12 +316,9 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              depth + 1,
                              prim_indices,
                              nodes);
-  build_nodes_recursive_mesh(corner_verts,
-                             corner_tris,
-                             tri_faces,
+  build_nodes_recursive_mesh(tri_faces,
                              material_indices,
                              leaf_limit,
-                             vert_bitmap,
                              nodes[node_index].children_offset_ + 1,
                              std::nullopt,
                              prim_bounds,
@@ -337,8 +342,6 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
   }
 
   const Span<int> tri_faces = mesh.corner_tri_faces();
-
-  Array<bool> vert_bitmap(mesh.verts_num, false);
 
   const int leaf_limit = LEAF_LIMIT;
 
@@ -372,12 +375,9 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 
   Vector<MeshNode> &nodes = std::get<Vector<MeshNode>>(pbvh->nodes_);
   nodes.resize(1);
-  build_nodes_recursive_mesh(corner_verts,
-                             corner_tris,
-                             tri_faces,
+  build_nodes_recursive_mesh(tri_faces,
                              material_index,
                              leaf_limit,
-                             vert_bitmap,
                              0,
                              bounds,
                              prim_bounds,
@@ -387,6 +387,8 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
                              0,
                              pbvh->prim_indices_,
                              nodes);
+
+  build_mesh_leaf_nodes(mesh.verts_num, corner_verts, corner_tris, nodes);
 
   update_bounds_mesh(vert_positions, *pbvh);
   store_bounds_orig(*pbvh);
