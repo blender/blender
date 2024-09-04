@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include "ANIM_keyframing.hh"
+
 #include "BKE_context.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -45,8 +47,23 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     TransDataContainer &tc = trans_data_contrainers[i];
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
 
-    const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
+    Vector<ed::greasepencil::MutableDrawingInfo> drawings =
         ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+
+    if (blender::animrig::is_autokey_on(scene)) {
+      for (const int info_i : drawings.index_range()) {
+        blender::bke::greasepencil::Layer &target_layer = *grease_pencil.layer(
+            drawings[info_i].layer_index);
+        const int current_frame = scene->r.cfra;
+        std::optional<int> start_frame = target_layer.start_frame_at(current_frame);
+        if (start_frame.has_value() && (start_frame.value() != current_frame)) {
+          grease_pencil.insert_duplicate_frame(
+              target_layer, *target_layer.start_frame_at(current_frame), current_frame, false);
+        }
+      }
+      drawings = ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+    }
+
     all_drawings.append(drawings);
     total_number_of_drawings += drawings.size();
   }
