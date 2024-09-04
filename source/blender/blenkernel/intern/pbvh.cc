@@ -59,6 +59,11 @@ static Bounds<float3> negative_bounds()
   return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
 }
 
+static Bounds<float3> merge_bounds(const Bounds<float3> &a, const Bounds<float3> &b)
+{
+  return bounds::merge(a, b);
+}
+
 static bool face_materials_match(const Span<int> material_indices, const int a, const int b)
 {
   if (!material_indices.is_empty()) {
@@ -208,7 +213,7 @@ static bool leaf_needs_material_split(const Span<int> prim_indices,
   const int first = material_indices[prim_to_face_map[prim_indices[prim_range.first()]]];
   return std::any_of(prim_range.begin(), prim_range.end(), [&](const int i) {
     return material_indices[prim_to_face_map[prim_indices[i]]] != first;
-    });
+  });
   return false;
 }
 
@@ -219,7 +224,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                                        const int leaf_limit,
                                        MutableSpan<bool> vert_bitmap,
                                        const int node_index,
-                                       const Bounds<float3> *cb,
+                                       const std::optional<Bounds<float3>> &bounds_precalc,
                                        const Span<Bounds<float3>> prim_bounds,
                                        const int prim_offset,
                                        const int prims_num,
@@ -248,19 +253,28 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
   nodes[node_index].children_offset_ = nodes.size();
   nodes.resize(nodes.size() + 2);
 
-  Bounds<float3> cb_backing;
   if (!below_leaf_limit) {
     /* Find axis with widest range of primitive centroids */
-    if (!cb) {
-      cb_backing = negative_bounds();
-      for (int i = prim_offset + prims_num - 1; i >= prim_offset; i--) {
-        const int prim = prim_indices[i];
-        const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
-        math::min_max(center, cb_backing.min, cb_backing.max);
-      }
-      cb = &cb_backing;
+    Bounds<float3> bounds;
+    if (bounds_precalc) {
+      bounds = *bounds_precalc;
     }
-    const int axis = math::dominant_axis(cb->max - cb->min);
+    else {
+      bounds = threading::parallel_reduce(
+          IndexRange(prim_offset, prims_num),
+          1024,
+          negative_bounds(),
+          [&](const IndexRange range, Bounds<float3> value) {
+            for (const int i : range) {
+              const int prim = prim_indices[i];
+              const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
+              math::min_max(center, value.min, value.max);
+            }
+            return value;
+          },
+          merge_bounds);
+    }
+    const int axis = math::dominant_axis(bounds.max - bounds.min);
 
     /* Partition primitives along that axis */
     end = partition_prim_indices(prim_indices,
@@ -268,7 +282,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                                  prim_offset,
                                  prim_offset + prims_num,
                                  axis,
-                                 math::midpoint(cb->min[axis], cb->max[axis]),
+                                 math::midpoint(bounds.min[axis], bounds.max[axis]),
                                  prim_bounds,
                                  tri_faces);
   }
@@ -286,7 +300,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              leaf_limit,
                              vert_bitmap,
                              nodes[node_index].children_offset_,
-                             nullptr,
+                             std::nullopt,
                              prim_bounds,
                              prim_offset,
                              end - prim_offset,
@@ -301,7 +315,7 @@ static void build_nodes_recursive_mesh(const Span<int> corner_verts,
                              leaf_limit,
                              vert_bitmap,
                              nodes[node_index].children_offset_ + 1,
-                             nullptr,
+                             std::nullopt,
                              prim_bounds,
                              end,
                              prim_offset + prims_num - end,
@@ -330,7 +344,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 
   /* For each face, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(corner_tris.size());
-  const Bounds<float3> cb = threading::parallel_reduce(
+  const Bounds<float3> bounds = threading::parallel_reduce(
       corner_tris.index_range(),
       1024,
       negative_bounds(),
@@ -347,7 +361,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
         }
         return current;
       },
-      [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
+      merge_bounds);
 
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
@@ -365,7 +379,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
                              leaf_limit,
                              vert_bitmap,
                              0,
-                             &cb,
+                             bounds,
                              prim_bounds,
                              0,
                              corner_tris.size(),
@@ -395,7 +409,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                                         const Span<int> material_indices,
                                         const int leaf_limit,
                                         const int node_index,
-                                        const Bounds<float3> *cb,
+                                        const std::optional<Bounds<float3>> &bounds_precalc,
                                         const Span<Bounds<float3>> prim_bounds,
                                         const int prim_offset,
                                         const int prims_num,
@@ -423,19 +437,27 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
   nodes[node_index].children_offset_ = nodes.size();
   nodes.resize(nodes.size() + 2);
 
-  Bounds<float3> cb_backing;
   if (!below_leaf_limit) {
-    /* Find axis with widest range of primitive centroids */
-    if (!cb) {
-      cb_backing = negative_bounds();
-      for (int i = prim_offset + prims_num - 1; i >= prim_offset; i--) {
-        const int prim = prim_indices[i];
-        const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
-        math::min_max(center, cb_backing.min, cb_backing.max);
-      }
-      cb = &cb_backing;
+    Bounds<float3> bounds;
+    if (bounds_precalc) {
+      bounds = *bounds_precalc;
     }
-    const int axis = math::dominant_axis(cb->max - cb->min);
+    else {
+      bounds = threading::parallel_reduce(
+          IndexRange(prim_offset, prims_num),
+          1024,
+          negative_bounds(),
+          [&](const IndexRange range, Bounds<float3> value) {
+            for (const int i : range) {
+              const int prim = prim_indices[i];
+              const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
+              math::min_max(center, value.min, value.max);
+            }
+            return value;
+          },
+          merge_bounds);
+    }
+    const int axis = math::dominant_axis(bounds.max - bounds.min);
 
     /* Partition primitives along that axis */
     end = partition_prim_indices(prim_indices,
@@ -443,7 +465,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                                  prim_offset,
                                  prim_offset + prims_num,
                                  axis,
-                                 math::midpoint(cb->min[axis], cb->max[axis]),
+                                 math::midpoint(bounds.min[axis], bounds.max[axis]),
                                  prim_bounds,
                                  grid_to_face_map);
   }
@@ -461,7 +483,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                               material_indices,
                               leaf_limit,
                               nodes[node_index].children_offset_,
-                              nullptr,
+                              std::nullopt,
                               prim_bounds,
                               prim_offset,
                               end - prim_offset,
@@ -473,7 +495,7 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
                               material_indices,
                               leaf_limit,
                               nodes[node_index].children_offset_ + 1,
-                              nullptr,
+                              std::nullopt,
                               prim_bounds,
                               end,
                               prim_offset + prims_num - end,
@@ -508,7 +530,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 
   /* For each grid, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(elems.size());
-  const Bounds<float3> cb = threading::parallel_reduce(
+  const Bounds<float3> bounds = threading::parallel_reduce(
       elems.index_range(),
       1024,
       negative_bounds(),
@@ -526,7 +548,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
         }
         return current;
       },
-      [](const Bounds<float3> &a, const Bounds<float3> &b) { return bounds::merge(a, b); });
+      merge_bounds);
 
   const AttributeAccessor attributes = base_mesh.attributes();
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
@@ -541,7 +563,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
                               material_index,
                               leaf_limit,
                               0,
-                              &cb,
+                              bounds,
                               prim_bounds,
                               0,
                               elems.size(),
