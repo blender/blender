@@ -113,10 +113,10 @@ void main()
 
 #ifndef CUSTOM_DEPTH_BIAS_CONST
 /* TODO(fclem): Cleanup after overlay next. */
-#  ifdef CUSTOM_DEPTH_BIAS
-  const bool use_custom_depth_bias = true;
-#  else
+#  ifndef CUSTOM_DEPTH_BIAS
   const bool use_custom_depth_bias = false;
+#  else
+  const bool use_custom_depth_bias = true;
 #  endif
 #endif
 
