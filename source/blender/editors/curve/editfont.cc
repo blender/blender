@@ -2203,7 +2203,10 @@ void ED_curve_editfont_make(Object *obedit)
   ef->len = len_char32;
   BLI_assert(ef->len >= 0);
 
-  memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
+  /* Old files may not have this initialized (v2.34). Leaving zeroed is OK. */
+  if (cu->strinfo) {
+    memcpy(ef->textbufinfo, cu->strinfo, ef->len * sizeof(CharInfo));
+  }
 
   ef->pos = cu->pos;
   if (ef->pos > ef->len) {
