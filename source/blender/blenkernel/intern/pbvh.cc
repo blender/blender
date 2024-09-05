@@ -1863,19 +1863,12 @@ blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(
   return node->bounds_orig_;
 }
 
-void BKE_pbvh_node_get_bm_orco_data(blender::bke::pbvh::BMeshNode *node,
-                                    int (**r_orco_tris)[3],
-                                    int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3],
-                                    BMVert ***r_orco_verts)
+void BKE_pbvh_node_get_bm_orco_data(const blender::bke::pbvh::BMeshNode &node,
+                                    blender::Span<blender::float3> &r_orig_positions,
+                                    blender::Span<blender::int3> &r_orig_tris)
 {
-  *r_orco_tris = node->bm_ortri_;
-  *r_orco_tris_num = node->bm_tot_ortri_;
-  *r_orco_coords = node->bm_orco_;
-
-  if (r_orco_verts) {
-    *r_orco_verts = node->bm_orvert_;
-  }
+  r_orig_positions = node.orig_positions_;
+  r_orig_tris = node.orig_tris_;
 }
 
 /********************************* Ray-cast ***********************************/

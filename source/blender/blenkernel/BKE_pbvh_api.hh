@@ -150,11 +150,10 @@ struct BMeshNode : public Node {
   Set<BMVert *, 0> bm_unique_verts_;
   Set<BMVert *, 0> bm_other_verts_;
 
-  /* Deprecated. Stores original coordinates of triangles. */
-  float (*bm_orco_)[3] = nullptr;
-  int (*bm_ortri_)[3] = nullptr;
-  BMVert **bm_orvert_ = nullptr;
-  int bm_tot_ortri_ = 0;
+  /* Stores original coordinates of triangles. */
+  Array<float3, 0> orig_positions_;
+  Array<int3, 0> orig_tris_;
+  Array<BMVert *, 0> orig_verts_;
 };
 
 class DrawCache {
@@ -478,11 +477,9 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
 void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
                                 blender::Span<blender::float3> vert_positions);
 
-void BKE_pbvh_node_get_bm_orco_data(blender::bke::pbvh::BMeshNode *node,
-                                    int (**r_orco_tris)[3],
-                                    int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3],
-                                    BMVert ***r_orco_verts);
+void BKE_pbvh_node_get_bm_orco_data(const blender::bke::pbvh::BMeshNode &node,
+                                    blender::Span<blender::float3> &r_orig_positions,
+                                    blender::Span<blender::int3> &r_orig_tris);
 
 namespace blender::bke::pbvh {
 

@@ -1902,22 +1902,17 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
   /* When the mesh is edited we can't rely on original coords
    * (original mesh may not even have verts in brush radius). */
   if (use_original && has_bm_orco) {
-    float(*orco_coords)[3];
-    int(*orco_tris)[3];
-    int orco_tris_num;
-    BKE_pbvh_node_get_bm_orco_data(&const_cast<bke::pbvh::BMeshNode &>(node),
-                                   &orco_tris,
-                                   &orco_tris_num,
-                                   &orco_coords,
-                                   nullptr);
+    Span<float3> orig_positions;
+    Span<int3> orig_tris;
+    BKE_pbvh_node_get_bm_orco_data(node, orig_positions, orig_tris);
 
-    tls.positions.resize(orco_tris_num);
+    tls.positions.resize(orig_tris.size());
     const MutableSpan<float3> positions = tls.positions;
-    for (int i = 0; i < orco_tris_num; i++) {
+    for (const int i : orig_tris.index_range()) {
       const float *co_tri[3] = {
-          orco_coords[orco_tris[i][0]],
-          orco_coords[orco_tris[i][1]],
-          orco_coords[orco_tris[i][2]],
+          orig_positions[orig_tris[i][0]],
+          orig_positions[orig_tris[i][1]],
+          orig_positions[orig_tris[i][2]],
       };
       closest_on_tri_to_point_v3(positions[i], location, UNPACK3(co_tri));
     }
@@ -1927,15 +1922,15 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
     calc_brush_distances_squared(
         ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
 
-    for (int i = 0; i < orco_tris_num; i++) {
+    for (const int i : orig_tris.index_range()) {
       const bool normal_test_r = use_area_nos && distances_sq[i] <= normal_radius_sq;
       const bool area_test_r = use_area_cos && distances_sq[i] <= position_radius_sq;
       if (!normal_test_r && !area_test_r) {
         continue;
       }
-      const float3 normal = math::normal_tri(float3(orco_coords[orco_tris[i][0]]),
-                                             float3(orco_coords[orco_tris[i][1]]),
-                                             float3(orco_coords[orco_tris[i][2]]));
+      const float3 normal = math::normal_tri(float3(orig_positions[orig_tris[i][0]]),
+                                             float3(orig_positions[orig_tris[i][1]]),
+                                             float3(orig_positions[orig_tris[i][2]]));
 
       const float distance = std::sqrt(distances_sq[i]);
       const int flip_index = math::dot(view_normal, normal) <= 0.0f;
