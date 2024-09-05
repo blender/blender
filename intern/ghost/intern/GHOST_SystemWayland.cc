@@ -735,7 +735,7 @@ enum class GWL_Pointer_EventTypes {
   Button6_Down,
   Button6_Up,
 
-#define GWL_SeatStatePointer_EventTypes_NUM (int(GWL_Pointer_EventTypes::Scroll) + 1)
+#define GWL_SeatStatePointer_EventTypes_NUM (int(GWL_Pointer_EventTypes::Button6_Up) + 1)
 };
 
 static const GHOST_TButton gwl_pointer_events_ebutton[] = {
@@ -757,7 +757,6 @@ struct GWL_SeatStatePointer_Events {
    * Collect data before the #zwp_tablet_tool_v2_listener::frame runs.
    */
   struct {
-
     GWL_Pointer_EventTypes frame_types[GWL_TabletTool_FrameTypes_NUM] = {
         GWL_Pointer_EventTypes::Motion, /* Dummy, never used. */
     };
