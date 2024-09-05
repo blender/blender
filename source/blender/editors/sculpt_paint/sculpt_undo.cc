@@ -736,6 +736,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
   else {
     BKE_sculptsession_free_pbvh(&ss);
     DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
+    BM_mesh_normals_update(ss.bm);
   }
 }
 
