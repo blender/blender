@@ -622,17 +622,6 @@ static const float bone_box_verts[8][3] = {
     {-1.0f, 1.0f, 1.0f},
 };
 
-static const float bone_box_smooth_normals[8][3] = {
-    {M_SQRT3, -M_SQRT3, M_SQRT3},
-    {M_SQRT3, -M_SQRT3, -M_SQRT3},
-    {-M_SQRT3, -M_SQRT3, -M_SQRT3},
-    {-M_SQRT3, -M_SQRT3, M_SQRT3},
-    {M_SQRT3, M_SQRT3, M_SQRT3},
-    {M_SQRT3, M_SQRT3, -M_SQRT3},
-    {-M_SQRT3, M_SQRT3, -M_SQRT3},
-    {-M_SQRT3, M_SQRT3, M_SQRT3},
-};
-
 static const uint bone_box_wire[24] = {
     0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
 };
@@ -1977,22 +1966,6 @@ static const float bone_octahedral_verts[6][3] = {
     {0.1f, 0.1f, -0.1f},
     {-0.1f, 0.1f, -0.1f},
     {-0.1f, 0.1f, 0.1f},
-    {0.0f, 1.0f, 0.0f},
-};
-
-static const float bone_octahedral_smooth_normals[6][3] = {
-    {0.0f, -1.0f, 0.0f},
-#if 0 /* creates problems for outlines when scaled */
-    {0.943608f * M_SQRT1_2, -0.331048f, 0.943608f * M_SQRT1_2},
-    {0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
-    {-0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
-    {-0.943608f * M_SQRT1_2, -0.331048f, 0.943608f * M_SQRT1_2},
-#else
-    {M_SQRT1_2, 0.0f, M_SQRT1_2},
-    {M_SQRT1_2, 0.0f, -M_SQRT1_2},
-    {-M_SQRT1_2, 0.0f, -M_SQRT1_2},
-    {-M_SQRT1_2, 0.0f, M_SQRT1_2},
-#endif
     {0.0f, 1.0f, 0.0f},
 };
 
