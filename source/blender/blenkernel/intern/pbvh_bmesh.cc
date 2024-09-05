@@ -130,18 +130,18 @@ static std::array<BMEdge *, 3> bm_edges_from_tri(BMesh &bm, const Span<BMVert *>
   };
 }
 
-BLI_INLINE int3 bm_face_as_array_index_tri(BMFace *f)
+BLI_INLINE std::array<BMVert *, 3> bm_face_as_array(BMFace *f)
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
 
   BLI_assert(f->len == 3);
 
-  int3 result;
-  result[0] = BM_elem_index_get(l->v);
+  std::array<BMVert *, 3> result;
+  result[0] = l->v;
   l = l->next;
-  result[1] = BM_elem_index_get(l->v);
+  result[1] = l->v;
   l = l->next;
-  result[2] = BM_elem_index_get(l->v);
+  result[2] = l->v;
   return result;
 }
 
@@ -2382,7 +2382,6 @@ static void copy_original_vert(BMLog *log, BMeshNode *node, BMVert *v, int i, bo
   }
 
   node->orig_verts_[i] = v;
-  BM_elem_index_set(v, i); /* set_dirty! */
 }
 
 }  // namespace blender::bke::pbvh
@@ -2392,6 +2391,7 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
                                    blender::bke::pbvh::BMeshNode *node,
                                    bool use_original)
 {
+  using namespace blender;
   /* Skip if original coords/triangles are already saved. */
   if (!node->orig_tris_.is_empty()) {
     return;
@@ -2402,14 +2402,19 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
   node->orig_positions_.reinitialize(totvert);
   node->orig_verts_.reinitialize(totvert);
 
+  VectorSet<BMVert *> vert_map;
+  vert_map.reserve(totvert);
+
   /* Copy out the vertices and assign a temporary index. */
   int i = 0;
   for (BMVert *v : node->bm_unique_verts_) {
-    blender::bke::pbvh::copy_original_vert(log, node, v, i, use_original);
+    bke::pbvh::copy_original_vert(log, node, v, i, use_original);
+    vert_map.add(v);
     i++;
   }
   for (BMVert *v : node->bm_other_verts_) {
-    blender::bke::pbvh::copy_original_vert(log, node, v, i, use_original);
+    bke::pbvh::copy_original_vert(log, node, v, i, use_original);
+    vert_map.add(v);
     i++;
   }
   /* Likely this is already dirty. */
@@ -2426,7 +2431,9 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       continue;
     }
-    node->orig_tris_[i] = blender::bke::pbvh::bm_face_as_array_index_tri(f);
+    const std::array<BMVert *, 3> verts = bke::pbvh::bm_face_as_array(f);
+    node->orig_tris_[i] = int3(
+        vert_map.index_of(verts[0]), vert_map.index_of(verts[1]), vert_map.index_of(verts[2]));
     i++;
   }
 }
