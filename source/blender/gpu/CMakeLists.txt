@@ -33,6 +33,10 @@ set(INC
   ../../../intern/mantaflow/extern
 )
 
+if(WITH_BUILDINFO)
+  add_definitions(-DWITH_BUILDINFO)
+endif()
+
 if(WITH_RENDERDOC)
   list(APPEND INC
     ../../../extern/renderdoc/include

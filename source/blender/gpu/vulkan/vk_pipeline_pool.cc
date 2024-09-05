@@ -5,10 +5,22 @@
 /** \file
  * \ingroup gpu
  */
+#include "BKE_appdir.hh"
+#include "BKE_blender_version.h"
 
-#include "vk_pipeline_pool.hh"
+#include "BLI_fileops.hh"
+#include "BLI_path_util.h"
+
+#include "CLG_log.h"
+
 #include "vk_backend.hh"
 #include "vk_memory.hh"
+#include "vk_pipeline_pool.hh"
+
+#ifdef WITH_BUILDINFO
+extern "C" char build_hash[];
+static CLG_LogRef LOG = {"gpu.vulkan"};
+#endif
 
 namespace blender::gpu {
 
@@ -639,5 +651,135 @@ void VKPipelinePool::free_data()
   vkDestroyPipelineCache(
       device.vk_handle(), vk_pipeline_cache_non_static_, vk_allocation_callbacks);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Persistent cache
+ * \{ */
+
+#ifdef WITH_BUILDINFO
+struct VKPipelineCachePrefixHeader {
+  /* 'B'lender 'C'ache + 2 bytes for file versioning. */
+  uint32_t magic = 0xBC00;
+  uint32_t blender_version = BLENDER_VERSION;
+  uint32_t blender_subversion = BLENDER_VERSION_PATCH;
+  char commit_hash[8];
+  uint32_t data_size;
+  uint32_t vendor_id;
+  uint32_t device_id;
+  uint32_t driver_version;
+  uint8_t pipeline_cache_uuid[VK_UUID_SIZE];
+
+  VKPipelineCachePrefixHeader()
+  {
+    const VKDevice &device = VKBackend::get().device;
+    data_size = 0;
+    const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
+    vendor_id = properties.vendorID;
+    device_id = properties.deviceID;
+    driver_version = properties.driverVersion;
+    memcpy(&pipeline_cache_uuid, &properties.pipelineCacheUUID, VK_UUID_SIZE);
+
+    memset(commit_hash, 0, sizeof(commit_hash));
+    BLI_strncpy(commit_hash, build_hash, sizeof(commit_hash));
+  }
+};
+
+static std::string pipeline_cache_filepath_get()
+{
+  static char tmp_dir_buffer[1024];
+  BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer));
+
+  std::string cache_dir = std::string(tmp_dir_buffer) + "vk-pipeline-cache" + SEP_STR;
+  BLI_dir_create_recursive(cache_dir.c_str());
+  std::string cache_file = cache_dir + "static-shaders.bin";
+  return cache_file;
+}
+#endif
+
+void VKPipelinePool::read_from_disk()
+{
+#ifdef WITH_BUILDINFO
+  /* Don't read the shader cache when GPU debugging is enabled. When enabled we use different
+   * shaders and compilation settings. Previous generated pipelines will not be used. */
+  if (bool(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
+
+  std::string cache_file = pipeline_cache_filepath_get();
+  if (!BLI_exists(cache_file.c_str())) {
+    return;
+  }
+
+  /* Prevent old cache files from being deleted if they're still being used. */
+  BLI_file_touch(cache_file.c_str());
+  /* Read cached binary. */
+  fstream file(cache_file, std::ios::binary | std::ios::in | std::ios::ate);
+  std::streamsize data_size = file.tellg();
+  file.seekg(0, std::ios::beg);
+  void *buffer = MEM_mallocN(data_size, __func__);
+  file.read(reinterpret_cast<char *>(buffer), data_size);
+  file.close();
+
+  /* Validate the prefix header. */
+  VKPipelineCachePrefixHeader prefix;
+  VKPipelineCachePrefixHeader &read_prefix = *static_cast<VKPipelineCachePrefixHeader *>(buffer);
+  prefix.data_size = read_prefix.data_size;
+  if (memcmp(&read_prefix, &prefix, sizeof(VKPipelineCachePrefixHeader)) != 0) {
+    /* Headers are different, most likely the cache will not work and potentially crash the driver.
+     * [https://medium.com/@zeuxcg/creating-a-robust-pipeline-cache-with-vulkan-961d09416cda]
+     */
+    MEM_freeN(buffer);
+    CLOG_WARN(&LOG,
+              "Pipeline cache on disk [%s] is ignored as it was written by a different driver or "
+              "Blender version.",
+              cache_file.c_str());
+    return;
+  }
+
+  CLOG_INFO(&LOG, 0, "Initialize static pipeline cache from disk [%s].", cache_file.c_str());
+  VKDevice &device = VKBackend::get().device;
+  VkPipelineCacheCreateInfo create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+  create_info.initialDataSize = read_prefix.data_size;
+  create_info.pInitialData = static_cast<uint8_t *>(buffer) + sizeof(VKPipelineCachePrefixHeader);
+  VkPipelineCache vk_pipeline_cache = VK_NULL_HANDLE;
+  vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache);
+  MEM_freeN(buffer);
+
+  vkMergePipelineCaches(device.vk_handle(), vk_pipeline_cache_static_, 1, &vk_pipeline_cache);
+  vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache, nullptr);
+#endif
+}
+
+void VKPipelinePool::write_to_disk()
+{
+#ifdef WITH_BUILDINFO
+  /* Don't write the pipeline cache when GPU debugging is enabled. When enabled we use different
+   * shaders and compilation settings. Writing them to disk will clutter the pipeline cache. */
+  if (bool(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
+
+  VKDevice &device = VKBackend::get().device;
+  size_t data_size;
+  vkGetPipelineCacheData(device.vk_handle(), vk_pipeline_cache_static_, &data_size, nullptr);
+  void *buffer = MEM_mallocN(data_size, __func__);
+  vkGetPipelineCacheData(device.vk_handle(), vk_pipeline_cache_static_, &data_size, buffer);
+
+  std::string cache_file = pipeline_cache_filepath_get();
+  CLOG_INFO(&LOG, 0, "Writing static pipeline cache to disk [%s].", cache_file.c_str());
+
+  fstream file(cache_file, std::ios::binary | std::ios::out);
+
+  VKPipelineCachePrefixHeader header;
+  header.data_size = data_size;
+  file.write(reinterpret_cast<char *>(&header), sizeof(VKPipelineCachePrefixHeader));
+  file.write(static_cast<char *>(buffer), data_size);
+
+  MEM_freeN(buffer);
+#endif
+}
+
+/* \} */
 
 }  // namespace blender::gpu
