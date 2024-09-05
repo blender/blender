@@ -1255,6 +1255,8 @@ static void node_link_cancel(bContext *C, wmOperator *op)
   UI_view2d_edge_pan_cancel(C, &nldrag->pan_data);
   snode->runtime->linkdrag.reset();
   clear_picking_highlight(&snode->edittree->links);
+  BKE_ntree_update_tag_link_removed(snode->edittree);
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
 }
 
 static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cursor)
