@@ -3513,7 +3513,7 @@ static void ui_block_free_active_operator(uiBlock *block)
   if (block->ui_operator_free) {
     /* This assumes the operator instance owns the pointer. This is not
      * true for all operators by default, but it can be copied when needed. */
-    MEM_freeN(block->ui_operator->ptr);
+    MEM_delete(block->ui_operator->ptr);
     MEM_freeN(block->ui_operator);
   }
 
