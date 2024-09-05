@@ -705,11 +705,6 @@ static Node &first_node(Tree &pbvh)
   return std::visit([](auto &nodes) -> Node & { return nodes.first(); }, pbvh.nodes_);
 }
 
-void free(std::unique_ptr<Tree> &pbvh)
-{
-  pbvh.reset();
-}
-
 struct StackItem {
   Node *node;
   bool revisiting;

@@ -249,7 +249,6 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 std::unique_ptr<Tree> build_bmesh(BMesh *bm);
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
-void free(std::unique_ptr<Tree> &pbvh);
 
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;

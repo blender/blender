@@ -1680,7 +1680,7 @@ void BKE_sculptsession_free_pbvh(Object &object)
     return;
   }
 
-  blender::bke::pbvh::free(ss->pbvh);
+  ss->pbvh.reset();
   ss->vert_to_face_map = {};
   ss->edge_to_face_offsets = {};
   ss->edge_to_face_indices = {};
