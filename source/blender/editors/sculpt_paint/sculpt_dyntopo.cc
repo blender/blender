@@ -65,7 +65,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
-  BKE_sculptsession_free_pbvh(&ss);
+  BKE_sculptsession_free_pbvh(ob);
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(mesh);
@@ -119,7 +119,7 @@ static void disable(
     BM_data_layer_free_named(bm, &bm->pdata, ".sculpt_dyntopo_node_id_face");
   }
 
-  BKE_sculptsession_free_pbvh(&ss);
+  BKE_sculptsession_free_pbvh(ob);
 
   if (undo_step) {
     undo::restore_from_bmesh_enter_geometry(*undo_step, *mesh);

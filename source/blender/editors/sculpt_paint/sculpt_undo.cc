@@ -739,7 +739,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
   else {
-    BKE_sculptsession_free_pbvh(&ss);
+    BKE_sculptsession_free_pbvh(object);
     DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
     BM_mesh_normals_update(ss.bm);
   }
@@ -751,7 +751,7 @@ static void bmesh_enable(Object &object, StepData &step_data)
   SculptSession &ss = *object.sculpt;
   Mesh *mesh = static_cast<Mesh *>(object.data);
 
-  BKE_sculptsession_free_pbvh(&ss);
+  BKE_sculptsession_free_pbvh(object);
   DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
 
   /* Create empty BMesh and enable logging. */
@@ -868,8 +868,7 @@ static void geometry_free_data(NodeGeometry *geometry)
 static void restore_geometry(StepData &step_data, Object &object)
 {
   if (step_data.geometry_clear_pbvh) {
-    SculptSession &ss = *object.sculpt;
-    BKE_sculptsession_free_pbvh(&ss);
+    BKE_sculptsession_free_pbvh(object);
     DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
   }
 

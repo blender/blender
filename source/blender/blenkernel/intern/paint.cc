@@ -1673,8 +1673,9 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
   }
 }
 
-void BKE_sculptsession_free_pbvh(SculptSession *ss)
+void BKE_sculptsession_free_pbvh(Object &object)
 {
+  SculptSession *ss = object.sculpt;
   if (!ss) {
     return;
   }
@@ -1730,7 +1731,7 @@ void BKE_sculptsession_free(Object *ob)
       BM_mesh_free(ss->bm);
     }
 
-    BKE_sculptsession_free_pbvh(ss);
+    BKE_sculptsession_free_pbvh(*ob);
 
     MEM_delete(ss);
 
@@ -2111,7 +2112,8 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
 {
   using namespace blender;
   /* Update before mesh evaluation in the dependency graph. */
-  SculptSession *ss = ob_eval->sculpt;
+  Object *ob_orig = DEG_get_original_object(ob_eval);
+  SculptSession *ss = ob_orig->sculpt;
   if (!ss) {
     return;
   }
@@ -2119,7 +2121,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
     return;
   }
 
-  bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob_eval);
+  bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob_orig);
 
   if (!ss->cache && !ss->filter_cache && !ss->expand_cache) {
     /* Avoid performing the following normal update for Multires, as it causes race conditions
@@ -2134,12 +2136,12 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
     /* We free pbvh on changes, except in the middle of drawing a stroke
      * since it can't deal with changing PVBH node organization, we hope
      * topology does not change in the meantime .. weak. */
-    BKE_sculptsession_free_pbvh(ss);
+    BKE_sculptsession_free_pbvh(*ob_orig);
 
-    BKE_sculptsession_free_deformMats(ob_eval->sculpt);
+    BKE_sculptsession_free_deformMats(ss);
 
     /* In vertex/weight paint, force maps to be rebuilt. */
-    BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
+    BKE_sculptsession_free_vwpaint_data(ss);
   }
   else if (pbvh) {
     IndexMaskMemory memory;
