@@ -290,7 +290,6 @@ void register_node_type_cmp_composite()
   ntype.declare = file_ns::cmp_node_composite_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_composite;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
   blender::bke::node_register_type(&ntype);
