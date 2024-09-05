@@ -8989,8 +8989,10 @@ static void bpy_class_free(void *pyob_ptr)
   // PyDict_Clear(((PyTypeObject *)self)->tp_dict);
 
   /* Remove the RNA attribute instead. */
-  PyDict_DelItem(((PyTypeObject *)self)->tp_dict, bpy_intern_str_bl_rna);
-  if (PyErr_Occurred()) {
+
+  /* NOTE: it's important to use `delattr` instead of `PyDict_DelItem`
+   * to ensure the internal slots are updated (which is also used for assignment). */
+  if (PyObject_DelAttr(self, bpy_intern_str_bl_rna) == -1) {
     PyErr_Clear();
   }
 
@@ -9385,9 +9387,11 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
   /* Call unregister. */
   unreg(CTX_data_main(C), srna); /* Calls bpy_class_free, this decref's py_class. */
 
-  PyDict_DelItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();  // return nullptr;
+  /* Typically `bpy_class_free` will have removed, remove here just in case. */
+  if (UNLIKELY(PyDict_Contains(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna))) {
+    if (PyDict_DelItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna) == -1) {
+      PyErr_Clear();
+    }
   }
 
   Py_RETURN_NONE;
