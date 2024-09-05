@@ -848,66 +848,84 @@ void import_skeleton(Main *bmain,
     }
   }
 
-  float avg_len_scale = 0;
-  for (size_t i = 0; i < num_joints; ++i) {
+  /* Use our custom bone length data if possible, otherwise fallback to estimated lengths. */
+  const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(skel.GetPrim());
+  const pxr::UsdGeomPrimvar pv_lengths = pv_api.GetPrimvar(BlenderBoneLengths);
+  if (pv_lengths.HasValue()) {
+    pxr::VtArray<float> bone_lengths;
+    pv_lengths.ComputeFlattened(&bone_lengths);
 
-    /* If the bone has any children, scale its length
-     * by the distance between this bone's head
-     * and the average head location of its children. */
+    for (size_t i = 0; i < num_joints; ++i) {
+      EditBone *bone = edit_bones[i];
+      pxr::GfVec3f head(bone->head);
+      pxr::GfVec3f tail(bone->tail);
 
-    if (child_bones[i].is_empty()) {
-      continue;
-    }
-
-    EditBone *parent = edit_bones[i];
-    if (!parent) {
-      continue;
-    }
-
-    pxr::GfVec3f avg_child_head(0);
-    for (int j : child_bones[i]) {
-      EditBone *child = edit_bones[j];
-      if (!child) {
-        continue;
-      }
-      pxr::GfVec3f child_head(child->head);
-      avg_child_head += child_head;
-    }
-
-    avg_child_head /= child_bones[i].size();
-
-    pxr::GfVec3f parent_head(parent->head);
-    pxr::GfVec3f parent_tail(parent->tail);
-
-    const float new_len = (avg_child_head - parent_head).GetLength();
-
-    /* Check for epsilon relative to the parent head before scaling. */
-    if (new_len > .00001 * max_mag_component(parent_head)) {
-      parent_tail = parent_head + (parent_tail - parent_head).GetNormalized() * new_len;
-      copy_v3_v3(parent->tail, parent_tail.data());
-      avg_len_scale += new_len;
+      tail = head + (tail - head).GetNormalized() * bone_lengths[i];
+      copy_v3_v3(bone->tail, tail.data());
     }
   }
+  else {
+    float avg_len_scale = 0;
+    for (size_t i = 0; i < num_joints; ++i) {
 
-  /* Scale terminal bones by the average length scale. */
-  avg_len_scale /= num_joints;
+      /* If the bone has any children, scale its length
+       * by the distance between this bone's head
+       * and the average head location of its children. */
 
-  for (size_t i = 0; i < num_joints; ++i) {
-    if (!child_bones[i].is_empty()) {
-      /* Not a terminal bone. */
-      continue;
+      if (child_bones[i].is_empty()) {
+        continue;
+      }
+
+      EditBone *parent = edit_bones[i];
+      if (!parent) {
+        continue;
+      }
+
+      pxr::GfVec3f avg_child_head(0);
+      for (int j : child_bones[i]) {
+        EditBone *child = edit_bones[j];
+        if (!child) {
+          continue;
+        }
+        pxr::GfVec3f child_head(child->head);
+        avg_child_head += child_head;
+      }
+
+      avg_child_head /= child_bones[i].size();
+
+      pxr::GfVec3f parent_head(parent->head);
+      pxr::GfVec3f parent_tail(parent->tail);
+
+      const float new_len = (avg_child_head - parent_head).GetLength();
+
+      /* Check for epsilon relative to the parent head before scaling. */
+      if (new_len > .00001 * max_mag_component(parent_head)) {
+        parent_tail = parent_head + (parent_tail - parent_head).GetNormalized() * new_len;
+        copy_v3_v3(parent->tail, parent_tail.data());
+        avg_len_scale += new_len;
+      }
     }
-    EditBone *bone = edit_bones[i];
-    if (!bone) {
-      continue;
-    }
-    pxr::GfVec3f head(bone->head);
 
-    /* Check for epsilon relative to the head before scaling. */
-    if (avg_len_scale > .00001 * max_mag_component(head)) {
-      pxr::GfVec3f tail(bone->tail);
-      tail = head + (tail - head).GetNormalized() * avg_len_scale;
-      copy_v3_v3(bone->tail, tail.data());
+    /* Scale terminal bones by the average length scale. */
+    avg_len_scale /= num_joints;
+
+    for (size_t i = 0; i < num_joints; ++i) {
+      if (!child_bones[i].is_empty()) {
+        /* Not a terminal bone. */
+        continue;
+      }
+      EditBone *bone = edit_bones[i];
+      if (!bone) {
+        continue;
+      }
+      pxr::GfVec3f head(bone->head);
+
+      /* Check for epsilon relative to the head before scaling. */
+      if (avg_len_scale > .00001 * max_mag_component(head)) {
+        pxr::GfVec3f tail(bone->tail);
+        tail = head + (tail - head).GetNormalized() * avg_len_scale;
+        copy_v3_v3(bone->tail, tail.data());
+      }
     }
   }
 

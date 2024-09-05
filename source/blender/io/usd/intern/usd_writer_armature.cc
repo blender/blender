@@ -11,6 +11,7 @@
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/skeleton.h>
@@ -54,6 +55,7 @@ static void initialize(const Object *obj,
   using namespace blender::io::usd;
 
   pxr::VtTokenArray joints;
+  pxr::VtArray<float> bone_lengths;
   pxr::VtArray<pxr::GfMatrix4d> bind_xforms;
   pxr::VtArray<pxr::GfMatrix4d> rest_xforms;
 
@@ -68,6 +70,9 @@ static void initialize(const Object *obj,
        * Bones not found in the map should be skipped. */
       return;
     }
+
+    /* Store Blender bone lengths to facilitate better roundtripping. */
+    bone_lengths.push_back(bone->length);
 
     joints.push_back(build_usd_joint_path(bone, allow_unicode));
     const pxr::GfMatrix4f arm_mat(bone->arm_mat);
@@ -93,7 +98,15 @@ static void initialize(const Object *obj,
   skel.GetBindTransformsAttr().Set(bind_xforms);
   skel.GetRestTransformsAttr().Set(rest_xforms);
 
-  pxr::UsdSkelBindingAPI usd_skel_api = pxr::UsdSkelBindingAPI::Apply(skel.GetPrim());
+  const pxr::UsdPrim skel_prim = skel.GetPrim();
+
+  /* Store the custom bone lengths as just a regular Primvar attached to the Skeleton. */
+  const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(skel_prim);
+  pxr::UsdGeomPrimvar pv_lengths = pv_api.CreatePrimvar(
+      BlenderBoneLengths, pxr::SdfValueTypeNames->FloatArray, pxr::UsdGeomTokens->uniform);
+  pv_lengths.Set(bone_lengths);
+
+  pxr::UsdSkelBindingAPI usd_skel_api = pxr::UsdSkelBindingAPI::Apply(skel_prim);
 
   if (skel_anim) {
     usd_skel_api.CreateAnimationSourceRel().SetTargets(
