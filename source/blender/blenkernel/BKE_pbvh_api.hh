@@ -228,7 +228,7 @@ BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
   return ret;
 }
 
-BLI_INLINE int BKE_pbvh_vertex_to_index(blender::bke::pbvh::Tree &pbvh, PBVHVertRef v)
+BLI_INLINE int BKE_pbvh_vertex_to_index(const blender::bke::pbvh::Tree &pbvh, PBVHVertRef v)
 {
   return (pbvh.type() == blender::bke::pbvh::Type::BMesh && v.i != PBVH_REF_NONE ?
               BM_elem_index_get((BMVert *)(v.i)) :
@@ -470,7 +470,7 @@ void update_normals_from_eval(Object &object_eval, Tree &pbvh);
 
 }  // namespace blender::bke::pbvh
 
-blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(blender::bke::pbvh::Tree &pbvh);
+blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(const blender::bke::pbvh::Tree &pbvh);
 namespace blender::bke::pbvh {
 IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
                                         Span<GridsNode> nodes,

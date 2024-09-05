@@ -251,14 +251,14 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
 }
 
 static void do_paint_pixels(const Depsgraph &depsgraph,
-                            const Object &object,
+                            Object &object,
                             const Brush &brush,
                             ImageData image_data,
                             bke::pbvh::Node &node)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
@@ -456,7 +456,7 @@ static void fix_non_manifold_seam_bleeding(Object &ob,
                                            const IndexMask &node_mask)
 {
   Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(nodes, node_mask);
-  fix_non_manifold_seam_bleeding(*ob.sculpt->pbvh, image, image_user, dirty_tiles);
+  fix_non_manifold_seam_bleeding(*bke::object::pbvh_get(ob), image, image_user, dirty_tiles);
 }
 
 /** \} */
@@ -510,8 +510,8 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
     return;
   }
 
-  SculptSession &ss = *ob.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     do_push_undo_tile(*image_data.image, *image_data.image_user, nodes[i]);

@@ -74,7 +74,7 @@ namespace blender::ed::sculpt_paint::face_set {
 int find_next_available_id(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
     case bke::pbvh::Type::Grids: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -138,14 +138,13 @@ int active_update_and_get(bContext *C, Object &ob, const float mval[2])
   if (!ob.sculpt) {
     return SCULPT_FACE_SET_NONE;
   }
-  SculptSession &ss = *ob.sculpt;
 
   SculptCursorGeometryInfo gi;
   if (!SCULPT_cursor_geometry_info_update(C, &gi, mval, false)) {
     return SCULPT_FACE_SET_NONE;
   }
 
-  return active_face_set_get(ss);
+  return active_face_set_get(ob);
 }
 
 bool create_face_sets_mesh(Object &object)
@@ -288,7 +287,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
                              const FunctionRef<void(Span<int>, MutableSpan<int>)> calc_face_sets)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(object);
 
@@ -299,7 +298,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -320,7 +319,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
     });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -360,11 +359,11 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
     return;
   }
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const int default_face_set = mesh.face_sets_color_default;
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
       const Span<int> faces = nodes[i].faces();
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
@@ -378,7 +377,7 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
     threading::EnumerableThreadSpecific<Vector<int>> all_face_indices;
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       Vector<int> &face_indices = all_face_indices.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -400,7 +399,6 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
 static int create_op_exec(bContext *C, wmOperator *op)
 {
   Object &object = *CTX_data_active_object(C);
-  SculptSession &ss = *object.sculpt;
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   const CreateMode mode = CreateMode(RNA_enum_get(op->ptr, "mode"));
@@ -411,7 +409,8 @@ static int create_op_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
     /* Dyntopo not supported. */
     return OPERATOR_CANCELLED;
   }
@@ -426,7 +425,7 @@ static int create_op_exec(bContext *C, wmOperator *op)
   const int next_face_set = find_next_available_id(object);
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   switch (mode) {
     case CreateMode::Masked: {
       const OffsetIndices faces = mesh.faces();
@@ -663,7 +662,6 @@ Set<int> gather_hidden_face_sets(const Span<bool> hide_poly, const Span<int> fac
 static int init_op_exec(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
@@ -676,12 +674,12 @@ static int init_op_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   /* Dyntopo not supported. */
-  if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
     return OPERATOR_CANCELLED;
   }
 
-  bke::pbvh::Tree &pbvh = *ob.sculpt->pbvh;
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   if (node_mask.is_empty()) {
@@ -779,11 +777,11 @@ static int init_op_exec(bContext *C, wmOperator *op)
   undo::push_end(ob);
 
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
 
@@ -871,7 +869,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
                              const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
 {
   SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
@@ -885,7 +883,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
   bool any_changed = false;
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -907,7 +905,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
     });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -938,7 +936,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
 
 static void show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
 {
-  switch (object.sculpt->pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       hide::mesh_show_all(depsgraph, object, node_mask);
       break;
@@ -960,17 +958,18 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
   Mesh *mesh = BKE_object_get_original_mesh(&object);
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
-  if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
     /* Not supported for dyntopo. There is no active face. */
     return OPERATOR_CANCELLED;
   }
 
   const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
-  const int active_face_set = active_face_set_get(ss);
+  const int active_face_set = active_face_set_get(object);
 
   undo::push_begin(object, op);
 
-  bke::pbvh::Tree &pbvh = *object.sculpt->pbvh;
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
@@ -1044,7 +1043,7 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
 
   undo::push_end(object);
 
-  bke::pbvh::update_visibility(object, *ss.pbvh);
+  bke::pbvh::update_visibility(object, pbvh);
   BKE_sculpt_hide_poly_pointer_update(object);
 
   islands::invalidate(*object.sculpt);
@@ -1056,7 +1055,6 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
 static int change_visibility_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1068,7 +1066,7 @@ static int change_visibility_invoke(bContext *C, wmOperator *op, const wmEvent *
    * cursor updates. */
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ob);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   return change_visibility_exec(C, op);
@@ -1118,12 +1116,13 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
   /* Dyntopo not supported. */
-  if (ss.pbvh->type() == bke::pbvh::Type::BMesh) {
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
     return OPERATOR_CANCELLED;
   }
 
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
@@ -1141,11 +1140,11 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
 
@@ -1182,6 +1181,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
                              wmOperator *op)
 {
   SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1196,7 +1196,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
   undo::push_begin(object, op);
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   face_sets_update(
       depsgraph, object, node_mask, [&](const Span<int> indices, MutableSpan<int> face_sets) {
         for (const int i : indices.index_range()) {
@@ -1325,7 +1325,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   boundary::ensure_boundary_info(ob);
 
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
@@ -1358,7 +1358,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1380,13 +1380,14 @@ static bool edit_is_operation_valid(const Object &object,
                                     const EditMode mode,
                                     const bool modify_hidden)
 {
-  if (object.sculpt->pbvh->type() == bke::pbvh::Type::BMesh) {
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
     /* Dyntopo is not supported. */
     return false;
   }
 
   if (mode == EditMode::DeleteGeometry) {
-    if (object.sculpt->pbvh->type() == bke::pbvh::Type::Grids) {
+    if (pbvh.type() == bke::pbvh::Type::Grids) {
       /* Modification of base mesh geometry requires special remapping of multi-resolution
        * displacement, which does not happen here.
        * Disable delete operation. It can be supported in the future by doing similar displacement
@@ -1401,7 +1402,7 @@ static bool edit_is_operation_valid(const Object &object,
   }
 
   if (ELEM(mode, EditMode::FairPositions, EditMode::FairTangency)) {
-    if (object.sculpt->pbvh->type() == bke::pbvh::Type::Grids) {
+    if (pbvh.type() == bke::pbvh::Type::Grids) {
       /* TODO: Multi-resolution topology representation using grids and duplicates can't be used
        * directly by the fair algorithm. Multi-resolution topology needs to be exposed in a
        * different way or converted to a mesh for this operation. */
@@ -1410,7 +1411,7 @@ static bool edit_is_operation_valid(const Object &object,
   }
 
   if (ELEM(mode, EditMode::Grow, EditMode::Shrink)) {
-    if (object.sculpt->pbvh->type() == bke::pbvh::Type::Mesh) {
+    if (pbvh.type() == bke::pbvh::Type::Mesh) {
       const Mesh &mesh = *static_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       if (!attributes.contains(".sculpt_face_set")) {
@@ -1441,8 +1442,7 @@ static void edit_modify_coordinates(
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
@@ -1452,11 +1452,11 @@ static void edit_modify_coordinates(
   undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
 
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
   }
 
@@ -1528,7 +1528,6 @@ static int edit_op_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1546,7 +1545,7 @@ static int edit_op_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;
   }
-  RNA_int_set(op->ptr, "active_face_set", active_face_set_get(ss));
+  RNA_int_set(op->ptr, "active_face_set", active_face_set_get(ob));
 
   return edit_op_exec(C, op);
 }
@@ -1636,7 +1635,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::AttributeAccessor attributes = mesh.attributes();
   SculptSession &ss = *gesture_data.ss;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
   const OffsetIndices<int> faces = mesh.faces();
@@ -1650,7 +1649,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
 
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
       undo::push_node(depsgraph, *gesture_data.vc.obact, &nodes[i], undo::Type::FaceSet);
       bool any_updated = false;
@@ -1673,7 +1672,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
     });
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
@@ -1711,7 +1710,8 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexM
   const Depsgraph &depsgraph = *gesture_data.vc.depsgraph;
   const int new_face_set = face_set_operation->new_face_set_id;
   SculptSession &ss = *gesture_data.ss;
-  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   BMesh *bm = ss.bm;
   const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
@@ -1742,7 +1742,7 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexM
 
 static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
-  switch (gesture_data.ss->pbvh->type()) {
+  switch (bke::object::pbvh_get(*gesture_data.vc.obact)->type()) {
     case bke::pbvh::Type::Grids:
     case bke::pbvh::Type::Mesh:
       gesture_apply_mesh(gesture_data, gesture_data.node_mask);

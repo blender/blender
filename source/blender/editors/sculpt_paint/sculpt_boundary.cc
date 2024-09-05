@@ -1310,14 +1310,15 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1343,7 +1344,7 @@ static void do_bend_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1366,7 +1367,7 @@ static void do_bend_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1601,14 +1602,15 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1633,7 +1635,7 @@ static void do_slide_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1655,7 +1657,7 @@ static void do_slide_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1875,14 +1877,15 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1906,7 +1909,7 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -1927,7 +1930,7 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2148,14 +2151,15 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2180,7 +2184,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2202,7 +2206,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2430,14 +2434,15 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2463,7 +2468,7 @@ static void do_twist_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2486,7 +2491,7 @@ static void do_twist_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2828,7 +2833,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             const eBrushDeformTarget deform_target)
 {
   SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
       Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
@@ -2840,7 +2846,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2868,7 +2874,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataGrids &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -2888,7 +2894,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       threading::EnumerableThreadSpecific<LocalDataBMesh> all_tls;
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataBMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -3120,6 +3126,7 @@ static void init_boundary_mesh(const Depsgraph &depsgraph,
                                const ePaintSymmetryFlags symm_area)
 {
   const SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -3141,7 +3148,7 @@ static void init_boundary_mesh(const Depsgraph &depsgraph,
   else {
     float3 location = symmetry_flip(positions_eval[std::get<int>(initial_vert_ref)], symm_area);
     initial_vert = nearest_vert_calc_mesh(
-        *ss.pbvh, positions_eval, hide_vert, location, ss.cache->radius_squared, false);
+        pbvh, positions_eval, hide_vert, location, ss.cache->radius_squared, false);
   }
 
   if (!initial_vert) {
@@ -3178,7 +3185,7 @@ static void init_boundary_grids(Object &object,
                                 const ePaintSymmetryFlags symm_area)
 {
   const SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey &key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -3237,7 +3244,7 @@ static void init_boundary_bmesh(Object &object,
                                 const ePaintSymmetryFlags symm_area)
 {
   const SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   BMesh *bm = ss.bm;
 
@@ -3333,11 +3340,12 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                        const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   const ePaintSymmetryFlags symm_area = ss.cache->mirror_symmetry_pass;
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    switch (ss.pbvh->type()) {
+    switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh:
         init_boundary_mesh(depsgraph, ob, brush, symm_area);
         break;
@@ -3430,8 +3438,9 @@ std::unique_ptr<SculptBoundary> data_init(const Depsgraph &depsgraph,
   /* TODO: Temporary bridge method to help in refactoring, this method should be deprecated
    * entirely. */
   const SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case (bke::pbvh::Type::Mesh): {
       return data_init_mesh(depsgraph, object, brush, initial_vert, radius);
     }
@@ -3587,7 +3596,7 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(object);
   boundary::ensure_boundary_info(object);
 
   const std::optional<BMVert *> boundary_initial_vert = get_closest_boundary_vert_bmesh(
@@ -3638,8 +3647,10 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(const Depsgraph &depsgr
     return nullptr;
   }
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+
   std::unique_ptr<SculptBoundary> boundary = nullptr;
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       boundary = data_init_mesh(depsgraph, object, brush, std::get<int>(initial_vert), radius);
       break;

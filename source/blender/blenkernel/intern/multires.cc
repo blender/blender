@@ -393,13 +393,17 @@ void multires_mark_as_modified(Depsgraph *depsgraph, Object *object, MultiresMod
 
 void multires_flush_sculpt_updates(Object *object)
 {
-  if (object == nullptr || object->sculpt == nullptr || object->sculpt->pbvh == nullptr) {
+  if (object == nullptr || object->sculpt == nullptr) {
+    return;
+  }
+  const blender::bke::pbvh::Tree *pbvh = blender::bke::object::pbvh_get(*object);
+  if (!pbvh) {
     return;
   }
 
   SculptSession *sculpt_session = object->sculpt;
-  if (sculpt_session->pbvh->type() != blender::bke::pbvh::Type::Grids ||
-      !sculpt_session->multires.active || sculpt_session->multires.modifier == nullptr)
+  if (pbvh->type() != blender::bke::pbvh::Type::Grids || !sculpt_session->multires.active ||
+      sculpt_session->multires.modifier == nullptr)
   {
     return;
   }
@@ -1204,8 +1208,8 @@ void multires_stitch_grids(Object *ob)
   if (subdiv_ccg == nullptr) {
     return;
   }
-  BLI_assert(sculpt_session->pbvh &&
-             sculpt_session->pbvh->type() == blender::bke::pbvh::Type::Grids);
+  BLI_assert(bke::object::pbvh_get(*ob) &&
+             bke::object::pbvh_get(*ob)->type() == blender::bke::pbvh::Type::Grids);
   BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, IndexMask(subdiv_ccg->faces.size()));
 }
 

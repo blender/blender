@@ -69,7 +69,7 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
 
   ss.pivot_rot[3] = 1.0f;
 
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ob);
 
   filter::cache_init(C, ob, sd, undo::Type::Position, mval_fl, 5.0, 1.0f);
 
@@ -292,13 +292,13 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const IndexMask &node_mask = ss.filter_cache->node_mask;
 
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
@@ -313,7 +313,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
       break;
     }
     case bke::pbvh::Type::Grids: {
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -324,7 +324,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
       break;
     }
     case bke::pbvh::Type::BMesh: {
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -464,7 +464,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
       ss, symm, ss.filter_cache->transform_displacement_mode);
 
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const IndexMask &node_mask = ss.filter_cache->node_mask;
 
   KelvinletParams params;
@@ -488,7 +488,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     float4x4 elastic_transform_mat = transform_mats[symm_area];
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         Mesh &mesh = *static_cast<Mesh *>(ob.data);
         const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
         MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
@@ -511,7 +511,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
         break;
       }
       case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
@@ -523,7 +523,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
         break;
       }
       case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
@@ -544,7 +544,7 @@ void update_modal_transform(bContext *C, Object &ob)
   SculptSession &ss = *ob.sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ob);
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   switch (sd.transform_mode) {
@@ -663,7 +663,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
                                         const ePaintSymmetryFlags symm)
 {
   const SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::search_nodes(
@@ -679,7 +679,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
@@ -710,7 +710,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::Grids: {
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
@@ -736,7 +736,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::BMesh: {
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
           1,
@@ -744,7 +744,8 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
+                  &const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
               const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
               tls.factors.resize(verts.size());
@@ -782,7 +783,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
                                            const ePaintSymmetryFlags symm)
 {
   const SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::search_nodes(
@@ -799,7 +800,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -831,7 +832,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::Grids: {
-      MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
@@ -862,7 +863,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
       return float3(math::safe_divide(total.position, total.weight_total));
     }
     case bke::pbvh::Type::BMesh: {
-      MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+      const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       const AveragePositionAccumulation total = threading::parallel_reduce(
           node_mask.index_range(),
           1,
@@ -870,7 +871,8 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
+                  &const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
               const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
 
               tls.masks.resize(verts.size());

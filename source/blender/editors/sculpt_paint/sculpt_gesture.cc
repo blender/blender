@@ -323,7 +323,7 @@ static void flip_for_symmetry_pass(GestureData &gesture_data, const ePaintSymmet
 
 static void update_affected_nodes_by_line_plane(GestureData &gesture_data)
 {
-  SculptSession &ss = *gesture_data.ss;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
   float clip_planes[3][4];
   copy_v4_v4(clip_planes[0], gesture_data.line.plane);
   copy_v4_v4(clip_planes[1], gesture_data.line.side_plane[0]);
@@ -334,14 +334,14 @@ static void update_affected_nodes_by_line_plane(GestureData &gesture_data)
   frustum.num_planes = gesture_data.line.use_side_planes ? 3 : 1;
 
   gesture_data.node_mask = bke::pbvh::search_nodes(
-      *ss.pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
+      pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
         return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
       });
 }
 
 static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
 {
-  SculptSession &ss = *gesture_data.ss;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
   float clip_planes[4][4];
   copy_m4_m4(clip_planes, gesture_data.clip_planes);
   negate_m4(clip_planes);
@@ -351,7 +351,7 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
   frustum.num_planes = 4;
 
   gesture_data.node_mask = bke::pbvh::search_nodes(
-      *ss.pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
+      pbvh, gesture_data.node_mask_memory, [&](const bke::pbvh::Node &node) {
         switch (gesture_data.selection_type) {
           case SelectionType::Inside:
             return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);

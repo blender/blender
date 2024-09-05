@@ -362,12 +362,13 @@ static bool stats_is_object_dynamic_topology_sculpt(const Object *ob)
 
 static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 {
-  SculptSession *ss = ob->sculpt;
-  if (ss == nullptr || ss->pbvh == nullptr) {
+  const SculptSession *ss = ob->sculpt;
+  const blender::bke::pbvh::Tree *pbvh = blender::bke::object::pbvh_get(*ob);
+  if (ss == nullptr || pbvh == nullptr) {
     return;
   }
 
-  switch (ss->pbvh->type()) {
+  switch (pbvh->type()) {
     case blender::bke::pbvh::Type::Mesh:
       stats->totvertsculpt = ss->totvert;
       stats->totfacesculpt = ss->totfaces;

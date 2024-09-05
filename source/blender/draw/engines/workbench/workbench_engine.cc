@@ -146,7 +146,8 @@ class Instance {
 
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
-        const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob_ref.object->sculpt->pbvh);
+        const Bounds<float3> bounds = bke::pbvh::bounds_get(
+            *bke::object::pbvh_get(*ob_ref.object));
         const float3 center = math::midpoint(bounds.min, bounds.max);
         const float3 half_extent = bounds.max - center;
         ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);

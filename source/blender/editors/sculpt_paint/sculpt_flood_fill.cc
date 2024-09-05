@@ -21,8 +21,7 @@ namespace blender::ed::sculpt_paint::flood_fill {
 
 FillData init_fill(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(object);
   FillData data;
   data.visited_verts.resize(SCULPT_vertex_count_get(object));
   return data;
@@ -225,15 +224,15 @@ void execute(Object &object,
              FillData &flood,
              FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func)
 {
-  SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   while (!flood.queue.empty()) {
     PBVHVertRef from_v = flood.queue.front();
     flood.queue.pop();
 
     SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
+    SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (object, from_v, ni) {
       const PBVHVertRef to_v = ni.vertex;
-      int to_v_i = BKE_pbvh_vertex_to_index(*ss.pbvh, to_v);
+      int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
 
       if (flood.visited_verts[to_v_i]) {
         continue;
@@ -243,7 +242,7 @@ void execute(Object &object,
         continue;
       }
 
-      flood.visited_verts[BKE_pbvh_vertex_to_index(*ss.pbvh, to_v)].set();
+      flood.visited_verts[BKE_pbvh_vertex_to_index(pbvh, to_v)].set();
 
       if (func(from_v, to_v, ni.is_duplicate)) {
         flood.queue.push(to_v);

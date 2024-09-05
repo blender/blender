@@ -510,8 +510,9 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 {
   Object *object = gesture_data.vc.obact;
   SculptSession &ss = *object->sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*object);
 
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       face_set::create_face_sets_mesh(*object);
       break;
@@ -760,9 +761,10 @@ static bool can_exec(const bContext &C, ReportList &reports)
 {
   const Object &object = *CTX_data_active_object(&C);
   const SculptSession &ss = *object.sculpt;
-  if (ss.pbvh->type() != bke::pbvh::Type::Mesh) {
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  if (pbvh.type() != bke::pbvh::Type::Mesh) {
     /* Not supported in Multires and Dyntopo. */
-    report_invalid_mode(ss.pbvh->type(), reports);
+    report_invalid_mode(pbvh.type(), reports);
     return false;
   }
 
@@ -778,10 +780,9 @@ static void initialize_cursor_info(bContext &C,
                                    const wmOperator &op,
                                    gesture::GestureData &gesture_data)
 {
-  const Object &ob = *CTX_data_active_object(&C);
-  SculptSession &ss = *ob.sculpt;
+  Object &ob = *CTX_data_active_object(&C);
 
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ob);
 
   int mval[2];
   RNA_int_get_array(op.ptr, "location", mval);

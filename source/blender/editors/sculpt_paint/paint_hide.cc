@@ -62,7 +62,7 @@ void sync_all_from_faces(Object &object)
 
   islands::invalidate(ss);
 
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
       /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
        * vertices and edges consistent. */
@@ -124,8 +124,8 @@ void tag_update_visibility(const bContext &C)
 
 void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -149,8 +149,8 @@ void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &
 
 void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
@@ -275,8 +275,8 @@ static void vert_hide_update(const Depsgraph &depsgraph,
                              const IndexMask &node_mask,
                              const FunctionRef<void(Span<int>, MutableSpan<bool>)> calc_hide)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -318,8 +318,8 @@ static void grid_hide_update(Depsgraph &depsgraph,
                              const IndexMask &node_mask,
                              const FunctionRef<void(const int, MutableBoundedBitSpan)> calc_hide)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
 
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
   BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
@@ -403,8 +403,8 @@ static void partialvis_update_bmesh_nodes(const Depsgraph &depsgraph,
                                           const VisAction action,
                                           const FunctionRef<bool(BMVert *v)> vert_test_fn)
 {
-  SculptSession &ss = *ob.sculpt;
-  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
 
   node_mask.foreach_index([&](const int i) {
     bool any_changed = false;
@@ -501,7 +501,7 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
   bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
-  BLI_assert(BKE_object_sculpt_pbvh_get(&ob) == pbvh);
+  BLI_assert(bke::object::pbvh_get(ob) == pbvh);
 
   /* Start undo. */
   switch (action) {
@@ -621,7 +621,7 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
   bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
-  BLI_assert(BKE_object_sculpt_pbvh_get(&ob) == pbvh);
+  BLI_assert(bke::object::pbvh_get(ob) == pbvh);
 
   /* Start undo. */
   switch (action) {
@@ -707,8 +707,8 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
                                    Object &object,
                                    const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -726,15 +726,15 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
 
   hide_poly.finish();
   bke::mesh_hide_face_flush(mesh);
-  bke::pbvh::update_visibility(object, *object.sculpt->pbvh);
+  bke::pbvh::update_visibility(object, *bke::object::pbvh_get(object));
 }
 
 static void invert_visibility_grids(Depsgraph &depsgraph,
                                     Object &object,
                                     const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::HideVert);
@@ -756,8 +756,8 @@ static void invert_visibility_bmesh(const Depsgraph &depsgraph,
                                     Object &object,
                                     const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::HideVert);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -780,7 +780,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
   bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
-  BLI_assert(BKE_object_sculpt_pbvh_get(&object) == pbvh);
+  BLI_assert(bke::object::pbvh_get(object) == pbvh);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
@@ -896,8 +896,8 @@ static void update_undo_state(const Depsgraph &depsgraph,
                               const Span<bool> old_hide_vert,
                               const Span<bool> new_hide_vert)
 {
-  const SculptSession &ss = *object.sculpt;
-  const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     for (const int vert : nodes[i].verts()) {
@@ -967,11 +967,12 @@ static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
    * not used for coarse filtering while iterating.*/
   flush_edge_changes(mesh, last_buffer);
 
-  update_node_visibility_from_face_changes(object.sculpt->pbvh->nodes<bke::pbvh::MeshNode>(),
-                                           node_mask,
-                                           orig_hide_poly,
-                                           hide_poly,
-                                           last_buffer);
+  update_node_visibility_from_face_changes(
+      bke::object::pbvh_get(object)->nodes<bke::pbvh::MeshNode>(),
+      node_mask,
+      orig_hide_poly,
+      hide_poly,
+      last_buffer);
   array_utils::copy(last_buffer, hide_vert.span);
   hide_vert.finish();
 }
@@ -998,7 +999,8 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
                                         const int iterations)
 {
   SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -1104,7 +1106,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
   bke::pbvh::Tree &pbvh = *BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
-  BLI_assert(BKE_object_sculpt_pbvh_get(&object) == &pbvh);
+  BLI_assert(bke::object::pbvh_get(object) == &pbvh);
 
   const VisAction mode = VisAction(RNA_enum_get(op->ptr, "action"));
 
@@ -1282,7 +1284,7 @@ static void hide_show_apply_for_symmetry_pass(bContext &C, gesture::GestureData 
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
 
-  switch (gesture_data.ss->pbvh->type()) {
+  switch (bke::object::pbvh_get(*gesture_data.vc.obact)->type()) {
     case bke::pbvh::Type::Mesh:
       partialvis_gesture_update_mesh(gesture_data);
       break;

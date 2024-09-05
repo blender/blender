@@ -360,7 +360,7 @@ bool SCULPT_brush_cursor_poll(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
- * (ss->pbvh->type() == bke::pbvh::Type::Mesh).  If false an error
+ * (pbvh->type() == bke::pbvh::Type::Mesh).  If false an error
  * message will be shown to the user.  Operators should return
  * OPERATOR_CANCELLED in this case.
  *
@@ -368,7 +368,7 @@ bool SCULPT_brush_cursor_poll(bContext *C);
  * Calling code must handle this itself; in most cases a call to
  * BKE_sculpt_color_layer_create_if_needed() is sufficient.
  */
-bool SCULPT_handles_colors_report(SculptSession &ss, ReportList *reports);
+bool SCULPT_handles_colors_report(const Object &object, ReportList *reports);
 
 /** \} */
 
@@ -480,7 +480,7 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
  * \{ */
 
 /** Ensure random access; required for blender::bke::pbvh::Type::BMesh */
-void SCULPT_vertex_random_access_ensure(SculptSession &ss);
+void SCULPT_vertex_random_access_ensure(Object &object);
 
 int SCULPT_vertex_count_get(const Object &object);
 const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
@@ -505,14 +505,14 @@ Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, cons
 
 }
 
-void SCULPT_vertex_neighbors_get(const SculptSession &ss,
+void SCULPT_vertex_neighbors_get(const Object &object,
                                  PBVHVertRef vertex,
                                  bool include_duplicates,
                                  SculptVertexNeighborIter *iter);
 
 /** Iterator over neighboring vertices. */
-#define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
-  SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
+#define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(object, v_index, neighbor_iterator) \
+  SCULPT_vertex_neighbors_get(object, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.neighbors.size(); \
        neighbor_iterator.i++) \
   { \
@@ -523,8 +523,8 @@ void SCULPT_vertex_neighbors_get(const SculptSession &ss,
  * Iterate over neighboring and duplicate vertices (for blender::bke::pbvh::Type::Grids).
  * Duplicates come first since they are nearest for flood-fill.
  */
-#define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
-  SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
+#define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(object, v_index, neighbor_iterator) \
+  SCULPT_vertex_neighbors_get(object, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.neighbors.size() - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) \
   { \

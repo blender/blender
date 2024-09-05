@@ -1321,7 +1321,9 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   using namespace blender;
   /* pbvh::Tree should always exist for non-empty meshes, created by depsgraph eval. */
   const Object &object = *scd->ob;
-  bke::pbvh::Tree *pbvh = (object.sculpt) ? object.sculpt->pbvh.get() : nullptr;
+  bke::pbvh::Tree *pbvh = (object.sculpt) ?
+                              const_cast<bke::pbvh::Tree *>(bke::object::pbvh_get(object)) :
+                              nullptr;
   if (!pbvh) {
     return;
   }

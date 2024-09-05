@@ -139,8 +139,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
   Object &object = *gesture_data.vc.obact;
-  SculptSession &ss = *object.sculpt;
-  bke::pbvh::Tree &pbvh = *ss.pbvh;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Sculpt &sd = *CTX_data_tool_settings(&C)->sculpt;
   const IndexMask &node_mask = gesture_data.node_mask;
 
@@ -149,7 +148,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
     case gesture::ShapeType::Line:
       switch (pbvh.type()) {
         case bke::pbvh::Type::Mesh: {
-          MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+          MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
           Mesh &mesh = *static_cast<Mesh *>(object.data);
           const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
           const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -173,7 +172,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           break;
         }
         case bke::pbvh::Type::BMesh: {
-          MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+          MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);
           threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();
@@ -185,7 +184,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           break;
         }
         case bke::pbvh::Type::Grids: {
-          MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+          MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);
           threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
             LocalData &tls = all_tls.local();

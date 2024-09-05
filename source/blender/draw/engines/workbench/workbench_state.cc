@@ -12,6 +12,7 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
+
 #include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
@@ -234,7 +235,7 @@ ObjectState::ObjectState(const SceneState &scene_state,
 
   if (sculpt_pbvh) {
     if (color_type == V3D_SHADING_TEXTURE_COLOR &&
-        ob->sculpt->pbvh->type() != bke::pbvh::Type::Mesh)
+        bke::object::pbvh_get(*ob)->type() != bke::pbvh::Type::Mesh)
     {
       /* Force use of material color for sculpt. */
       color_type = V3D_SHADING_MATERIAL_COLOR;

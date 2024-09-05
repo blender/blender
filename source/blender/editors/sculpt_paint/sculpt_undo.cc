@@ -482,6 +482,7 @@ static void restore_position_mesh(Object &object,
                                   MutableSpan<bool> modified_verts)
 {
   SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   if (ss.shapekey_active) {
     float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(&object, ss.shapekey_active);
@@ -513,7 +514,7 @@ static void restore_position_mesh(Object &object,
 
     /* bke::pbvh::Tree uses its own vertex array, so coords should be */
     /* propagated to bke::pbvh::Tree here. */
-    BKE_pbvh_vert_coords_apply(*ss.pbvh, key_positions);
+    BKE_pbvh_vert_coords_apply(pbvh, key_positions);
 
     MEM_freeN(vertCos);
   }
@@ -731,9 +732,10 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
   }
 
   if (step_data.type == Type::Mask) {
+    bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
     IndexMaskMemory memory;
-    const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
-    MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+    const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
+    MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
   }
   else {
@@ -958,6 +960,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     return;
   }
   SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   /* Restore pivot. */
   ss.pivot_pos = step_data.pivot_pos;
@@ -989,7 +992,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
     case Type::Position: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -997,7 +1000,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         MutableSpan<CCGElem *> grids = subdiv_ccg.grids;
         const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -1015,7 +1018,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         multires_mark_as_modified(depsgraph, &object, MULTIRES_COORDS_MODIFIED);
       }
       else {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         if (!restore_active_shape_key(*C, *depsgraph, step_data, object)) {
           return;
         }
@@ -1033,13 +1036,13 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         mesh.tag_positions_changed();
         BKE_sculptsession_free_deformMats(&ss);
       }
-      bke::pbvh::update_bounds(*depsgraph, object, *ss.pbvh);
-      bke::pbvh::store_bounds_orig(*ss.pbvh);
+      bke::pbvh::update_bounds(*depsgraph, object, pbvh);
+      bke::pbvh::store_bounds_orig(pbvh);
       break;
     }
     case Type::HideVert: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1047,7 +1050,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         Array<bool> modified_grids(subdiv_ccg.grids.size(), false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
@@ -1060,7 +1063,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
       else {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         Array<bool> modified_verts(ss.totvert, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_mesh(object, *unode, modified_verts);
@@ -1073,7 +1076,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       BKE_pbvh_sync_visibility_from_verts(object);
-      bke::pbvh::update_visibility(object, *ss.pbvh);
+      bke::pbvh::update_visibility(object, pbvh);
       if (BKE_sculpt_multires_active(scene, &object)) {
         multires_mark_as_modified(depsgraph, &object, MULTIRES_HIDDEN_MODIFIED);
       }
@@ -1081,7 +1084,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
     case Type::HideFace: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1094,7 +1097,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         Vector<int> faces_vector;
         node_mask.foreach_index([&](const int i) {
@@ -1107,7 +1110,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
       else {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         node_mask.foreach_index([&](const int i) {
           const Span<int> faces = nodes[i].faces();
           if (indices_contain_true(modified_faces, faces)) {
@@ -1117,12 +1120,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       hide::sync_all_from_faces(object);
-      bke::pbvh::update_visibility(object, *ss.pbvh);
+      bke::pbvh::update_visibility(object, pbvh);
       break;
     }
     case Type::Mask: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1130,7 +1133,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       if (use_multires_undo(step_data, ss)) {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         Array<bool> modified_grids(ss.subdiv_ccg->grids.size(), false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_grids(object, *unode, modified_grids);
@@ -1142,7 +1145,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
       else {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         Array<bool> modified_verts(ss.totvert, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_mesh(object, *unode, modified_verts);
@@ -1154,12 +1157,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
 
-      bke::pbvh::update_mask(object, *ss.pbvh);
+      bke::pbvh::update_mask(object, pbvh);
       break;
     }
     case Type::FaceSet: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
@@ -1171,7 +1174,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         restore_face_sets(object, *unode, modified_faces);
       }
       if (use_multires_undo(step_data, ss)) {
-        MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
         Vector<int> faces_vector;
         node_mask.foreach_index([&](const int i) {
@@ -1184,7 +1187,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         });
       }
       else {
-        MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         node_mask.foreach_index([&](const int i) {
           const Span<int> faces = nodes[i].faces();
           if (indices_contain_true(modified_faces, faces)) {
@@ -1196,14 +1199,14 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
     }
     case Type::Color: {
       IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
       BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
       if (!topology_matches(step_data, object)) {
         return;
       }
 
-      MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       Array<bool> modified_verts(ss.totvert, false);
       restore_color(object, step_data, modified_verts);
       node_mask.foreach_index([&](const int i) {
@@ -1704,6 +1707,7 @@ void push_node(const Depsgraph &depsgraph,
                Type type)
 {
   SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
     bmesh_push(object, static_cast<const bke::pbvh::BMeshNode *>(node), type);
     return;
@@ -1722,7 +1726,7 @@ void push_node(const Depsgraph &depsgraph,
 
   ss.needs_flush_to_id = 1;
 
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       fill_node_data_mesh(
           depsgraph, object, static_cast<const bke::pbvh::MeshNode &>(*node), type, *unode);
@@ -1742,8 +1746,9 @@ void push_nodes(const Depsgraph &depsgraph,
                 const Type type)
 {
   SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
-    const Span<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+    const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
     node_mask.foreach_index([&](const int i) { bmesh_push(object, &nodes[i], type); });
     return;
   }
@@ -1752,9 +1757,9 @@ void push_nodes(const Depsgraph &depsgraph,
   BLI_assert(ELEM(step_data->type, Type::None, type));
   step_data->type = type;
 
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       Vector<std::pair<const bke::pbvh::MeshNode *, Node *>, 32> nodes_to_fill;
       node_mask.foreach_index([&](const int i) {
         bool newly_added;
@@ -1771,7 +1776,7 @@ void push_nodes(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Span<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+      const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       Vector<std::pair<const bke::pbvh::GridsNode *, Node *>, 32> nodes_to_fill;
       node_mask.foreach_index([&](const int i) {
         bool newly_added;
@@ -1855,8 +1860,9 @@ void push_begin_ex(Object &ob, const char *name)
   }
 
   const SculptSession &ss = *ob.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
-  switch (ss.pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
       us->data.mesh_verts_num = ss.totvert;
@@ -2234,8 +2240,6 @@ static bool use_multires_mesh(bContext *C)
 
 static void push_all_grids(const Depsgraph &depsgraph, Object *object)
 {
-  SculptSession &ss = *object->sculpt;
-
   /* It is possible that undo push is done from an object state where there is no tree. This
    * happens, for example, when an operation which tagged for geometry update was performed prior
    * to the current operation without making any stroke in between.
@@ -2244,12 +2248,13 @@ static void push_all_grids(const Depsgraph &depsgraph, Object *object)
    * ensure pbvh::Tree for the new base geometry, which will have same coordinates as if we create
    * pbvh::Tree here.
    */
-  if (ss.pbvh == nullptr) {
+  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*object);
+  if (pbvh == nullptr) {
     return;
   }
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss.pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
   push_nodes(depsgraph, *object, node_mask, Type::Position);
 }
 

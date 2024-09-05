@@ -67,9 +67,9 @@ bool mode_enabled(const Sculpt &sd, const Brush *br, const eAutomasking_flag mod
   return (eAutomasking_flag)automasking & mode;
 }
 
-bool is_enabled(const Sculpt &sd, const SculptSession *ss, const Brush *br)
+bool is_enabled(const Sculpt &sd, const Object &object, const Brush *br)
 {
-  if (ss && br && dyntopo::stroke_is_dyntopo(*ss, *br)) {
+  if (object.sculpt && br && dyntopo::stroke_is_dyntopo(object, *br)) {
     return false;
   }
   if (mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
@@ -386,7 +386,7 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
     }
 
     SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v, ni) {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (object, v, ni) {
       PBVHVertRef v2 = ni.vertex;
 
       if (visit.contains(v2.i)) {
@@ -575,20 +575,20 @@ static float factor_get(const Depsgraph &depsgraph,
 
   if (!automasking->settings.topology_use_brush_limit &&
       automasking->settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-      islands::vert_id_get(ss, BKE_pbvh_vertex_to_index(*ss.pbvh, vert)) !=
+      islands::vert_id_get(ss, BKE_pbvh_vertex_to_index(*bke::object::pbvh_get(object), vert)) !=
           automasking->settings.initial_island_nr)
   {
     return 0.0f;
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-    if (!face_set::vert_has_face_set(ss, vert, automasking->settings.initial_face_set)) {
+    if (!face_set::vert_has_face_set(object, vert, automasking->settings.initial_face_set)) {
       return 0.0f;
     }
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    if (boundary::vert_is_boundary(ss, vert)) {
+    if (boundary::vert_is_boundary(object, vert)) {
       return 0.0f;
     }
   }
@@ -596,9 +596,9 @@ static float factor_get(const Depsgraph &depsgraph,
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
     bool ignore = ss.cache && ss.cache->brush &&
                   ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                  face_set::vert_face_set_get(ss, vert) == ss.cache->paint_face_set;
+                  face_set::vert_face_set_get(object, vert) == ss.cache->paint_face_set;
 
-    if (!ignore && !face_set::vert_has_unique_face_set(ss, vert)) {
+    if (!ignore && !face_set::vert_has_unique_face_set(object, vert)) {
       return 0.0f;
     }
   }
@@ -731,7 +731,7 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
   const int active_vert = std::get<int>(ss.active_vert());
   flood_fill::FillDataMesh flood = flood_fill::FillDataMesh(vert_positions.size());
 
-  flood.add_initial_with_symmetry(depsgraph, ob, *ss.pbvh, active_vert, radius);
+  flood.add_initial_with_symmetry(depsgraph, ob, *bke::object::pbvh_get(ob), active_vert, radius);
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -763,7 +763,7 @@ static void fill_topology_automasking_factors_grids(const Sculpt &sd,
 
   flood_fill::FillDataGrids flood = flood_fill::FillDataGrids(grid_verts_num);
 
-  flood.add_initial_with_symmetry(ob, *ss.pbvh, subdiv_ccg, active_vert, radius);
+  flood.add_initial_with_symmetry(ob, *bke::object::pbvh_get(ob), subdiv_ccg, active_vert, radius);
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -793,7 +793,7 @@ static void fill_topology_automasking_factors_bmesh(const Sculpt &sd, Object &ob
   const int num_verts = BM_mesh_elem_count(&bm, BM_VERT);
   flood_fill::FillDataBMesh flood = flood_fill::FillDataBMesh(num_verts);
 
-  flood.add_initial_with_symmetry(ob, *ss.pbvh, active_vert, radius);
+  flood.add_initial_with_symmetry(ob, *bke::object::pbvh_get(ob), active_vert, radius);
 
   const bool use_radius = ss.cache && is_constrained_by_radius(brush);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -816,7 +816,7 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
    * pbvh types. */
   SculptSession &ss = *ob.sculpt;
 
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh:
       fill_topology_automasking_factors_mesh(
           depsgraph, sd, ob, bke::pbvh::vert_positions_eval(depsgraph, ob));
@@ -835,16 +835,16 @@ static void init_face_sets_masking(const Sculpt &sd, Object &ob)
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
-  if (!is_enabled(sd, &ss, brush)) {
+  if (!is_enabled(sd, ob, brush)) {
     return;
   }
 
   int tot_vert = SCULPT_vertex_count_get(ob);
-  int active_face_set = face_set::active_face_set_get(ss);
+  int active_face_set = face_set::active_face_set_get(ob);
   for (int i : IndexRange(tot_vert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
 
-    if (!face_set::vert_has_face_set(ss, vertex, active_face_set)) {
+    if (!face_set::vert_has_face_set(ob, vertex, active_face_set)) {
       *(float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_factor) = 0.0f;
     }
   }
@@ -1069,12 +1069,12 @@ static void init_boundary_masking(Object &object,
 
 /* Updates the cached values, preferring brush settings over tool-level settings. */
 static void cache_settings_update(Cache &automasking,
-                                  SculptSession &ss,
+                                  Object &object,
                                   const Sculpt &sd,
                                   const Brush *brush)
 {
   automasking.settings.flags = calc_effective_bits(sd, brush);
-  automasking.settings.initial_face_set = face_set::active_face_set_get(ss);
+  automasking.settings.initial_face_set = face_set::active_face_set_get(object);
 
   if (brush && (brush->automasking_flags & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
     automasking.settings.view_normal_limit = brush->automasking_view_normal_limit;
@@ -1157,19 +1157,19 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.sculpt;
 
-  if (!is_enabled(sd, &ss, brush)) {
+  if (!is_enabled(sd, ob, brush)) {
     return nullptr;
   }
 
   std::unique_ptr<Cache> automasking = std::make_unique<Cache>();
-  cache_settings_update(*automasking, ss, sd, brush);
+  cache_settings_update(*automasking, ob, sd, brush);
   boundary::ensure_boundary_info(ob);
 
   automasking->current_stroke_id = ss.stroke_id;
 
   int mode = calc_effective_bits(sd, brush);
 
-  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ob);
   if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vert_index() != -1) {
     islands::ensure_cache(ob);
     automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vert_index());
@@ -1266,24 +1266,24 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
   /* Additive modes. */
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
-    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_vertex_random_access_ensure(ob);
 
     automasking->settings.topology_use_brush_limit = is_constrained_by_radius(brush);
     fill_topology_automasking_factors(depsgraph, sd, ob);
   }
 
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
-    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_vertex_random_access_ensure(ob);
     init_face_sets_masking(sd, ob);
   }
 
   const int steps = boundary_propagation_steps(sd, brush);
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_vertex_random_access_ensure(ob);
     init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::Edges, steps);
   }
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
-    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_vertex_random_access_ensure(ob);
     init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::FaceSets, steps);
   }
 

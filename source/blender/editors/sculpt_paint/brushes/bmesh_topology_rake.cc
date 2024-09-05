@@ -97,6 +97,7 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
                                   const float input_strength)
 {
   const SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = std::clamp(input_strength, 0.0f, 1.0f);
 
@@ -120,7 +121,7 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for ([[maybe_unused]] const int i : IndexRange(count)) {
-    MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+    MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       LocalData &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {

@@ -489,8 +489,7 @@ namespace blender::bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
-  SculptSession &ss = *object.sculpt;
-  Tree &pbvh = *ss.pbvh;
+  Tree &pbvh = *object::pbvh_get(object);
   pixels::update_pixels(depsgraph, object, pbvh, image, image_user);
 }
 

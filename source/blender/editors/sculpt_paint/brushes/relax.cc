@@ -149,7 +149,8 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                                           const bool relax_face_sets)
 {
   const SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -271,7 +272,8 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
                                            const bool relax_face_sets)
 {
   const SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -377,8 +379,8 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
                                            const float strength,
                                            const bool relax_face_sets)
 {
-  SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
       nodes, node_mask, node_offset_data);
@@ -470,7 +472,8 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
                                          const float strength)
 {
   const SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -578,7 +581,8 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
                                           const float strength)
 {
   const SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -683,8 +687,8 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
                                           const IndexMask &node_mask,
                                           const float strength)
 {
-  const SculptSession &ss = *object.sculpt;
-  MutableSpan<bke::pbvh::BMeshNode> nodes = ss.pbvh->nodes<bke::pbvh::BMeshNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
@@ -748,7 +752,7 @@ void do_relax_face_sets_brush(const Depsgraph &depsgraph,
   const bool relax_face_sets = !(ss.cache->iteration_count % 3 == 0);
 
   for (const float strength : strengths) {
-    switch (ss.pbvh->type()) {
+    switch (bke::object::pbvh_get(object)->type()) {
       case bke::pbvh::Type::Mesh:
         do_relax_face_sets_brush_mesh(
             depsgraph, sd, brush, object, node_mask, strength * strength, relax_face_sets);
@@ -782,7 +786,7 @@ void do_topology_relax_brush(const Depsgraph &depsgraph,
   boundary::ensure_boundary_info(object);
 
   for (int i = 0; i < 4; i++) {
-    switch (ss.pbvh->type()) {
+    switch (bke::object::pbvh_get(object)->type()) {
       case bke::pbvh::Type::Mesh:
         do_topology_relax_brush_mesh(depsgraph, sd, brush, object, node_mask, strength);
         break;

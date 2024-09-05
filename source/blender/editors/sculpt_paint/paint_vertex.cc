@@ -289,12 +289,13 @@ IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
                               IndexMaskMemory &memory)
 {
   SculptSession &ss = *ob.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const bool use_normal = vwpaint::use_normal(wp);
   IndexMask nodes;
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
   if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    nodes = bke::pbvh::search_nodes(*ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
+    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
       return node_in_sphere(node, ss.cache->location_symm, ss.cache->radius_squared, true);
     });
 
@@ -304,7 +305,7 @@ IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
   else {
     const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
         ss.cache->location_symm, ss.cache->view_normal_symm);
-    nodes = bke::pbvh::search_nodes(*ss.pbvh, memory, [&](const bke::pbvh::Node &node) {
+    nodes = bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
       return node_in_cylinder(ray_dist_precalc, node, ss.cache->radius_squared, true);
     });
 
@@ -551,8 +552,8 @@ void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
 
   cache->radius_squared = cache->radius * cache->radius;
 
-  if (ss.pbvh) {
-    bke::pbvh::update_bounds(depsgraph, ob, *ss.pbvh);
+  if (bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob)) {
+    bke::pbvh::update_bounds(depsgraph, ob, *pbvh);
   }
 }
 
@@ -1916,8 +1917,14 @@ static void vpaint_do_paint(bContext *C,
   BLI_assert(attribute.domain == vpd.domain);
 
   /* Paint those leaves. */
-  vpaint_paint_leaves(
-      C, vp, vpd, ob, mesh, attribute.span, ss.pbvh->nodes<bke::pbvh::MeshNode>(), node_mask);
+  vpaint_paint_leaves(C,
+                      vp,
+                      vpd,
+                      ob,
+                      mesh,
+                      attribute.span,
+                      bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>(),
+                      node_mask);
 
   attribute.finish();
 }
@@ -2303,15 +2310,17 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   /* Ensure valid sculpt state. */
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(obact);
+
   undo::push_begin(obact, op);
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*obact.sculpt->pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
   undo::push_nodes(depsgraph, obact, node_mask, undo::Type::Color);
 
   fill_active_color(obact, paintcol, true, affect_alpha);
 
-  MutableSpan<bke::pbvh::MeshNode> nodes = obact.sculpt->pbvh->nodes<bke::pbvh::MeshNode>();
+  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
   undo::push_end(obact);
 

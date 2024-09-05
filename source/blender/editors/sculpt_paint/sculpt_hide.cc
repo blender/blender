@@ -40,7 +40,7 @@ Span<int> node_visible_verts(const bke::pbvh::MeshNode &node,
 bool vert_visible_get(const Object &object, PBVHVertRef vertex)
 {
   const SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();

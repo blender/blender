@@ -104,7 +104,8 @@ void do_displacement_eraser_brush(const Depsgraph &depsgraph,
   const float strength = std::min(ss.cache->bstrength, 1.0f);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  MutableSpan<bke::pbvh::GridsNode> nodes = ss.pbvh->nodes<bke::pbvh::GridsNode>();
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index(
