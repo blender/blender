@@ -762,7 +762,10 @@ template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
   static constexpr uint32_t max = scalar;
-  dst.value = clamp_f((src.value * float(scalar)), 0, float(max));
+  /* When converting a DEPTH32F to DEPTH24 the scalar gets to large where 1.0 will wrap around and
+   * become 0. Make sure that depth 1.0 will not wrap around. Without this gpu_select_pick will
+   * fail as all depth 1.0 will occlude previous depths. */
+  dst.value = src.value >= 1.0f ? max : max_ff(src.value * float(scalar), 0.0);
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
