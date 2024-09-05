@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Authors
+/* SPDX-FileCopyrightText: 2012-2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,6 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -37,6 +38,8 @@
 #include "BLO_read_write.hh"
 
 #include "render.hh"
+
+using namespace blender;
 
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
 static bool modifierTypesInit = false;
@@ -202,7 +205,7 @@ static void modifier_apply_threaded(ImBuf *ibuf,
 /** \name Color Balance Modifier
  * \{ */
 
-static StripColorBalance calc_cb_lgg(StripColorBalance *cb_)
+static StripColorBalance calc_cb_lgg(const StripColorBalance *cb_)
 {
   StripColorBalance cb = *cb_;
   int c;
@@ -248,7 +251,7 @@ static StripColorBalance calc_cb_lgg(StripColorBalance *cb_)
   return cb;
 }
 
-static StripColorBalance calc_cb_sop(StripColorBalance *cb_)
+static StripColorBalance calc_cb_sop(const StripColorBalance *cb_)
 {
   StripColorBalance cb = *cb_;
   int c;
@@ -283,7 +286,7 @@ static StripColorBalance calc_cb_sop(StripColorBalance *cb_)
   return cb;
 }
 
-static StripColorBalance calc_cb(StripColorBalance *cb_)
+static StripColorBalance calc_cb(const StripColorBalance *cb_)
 {
   if (cb_->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
     return calc_cb_lgg(cb_);
@@ -292,8 +295,8 @@ static StripColorBalance calc_cb(StripColorBalance *cb_)
   return calc_cb_sop(cb_);
 }
 
-/* NOTE: lift is actually 2-lift. */
-MINLINE float color_balance_fl_lgg(
+/* Lift-Gamma-Gain math. NOTE: lift is actually (2-lift). */
+static float color_balance_lgg(
     float in, const float lift, const float gain, const float gamma, const float mul)
 {
   float x = (((in - 1.0f) * lift) + 1.0f) * gain;
@@ -308,12 +311,9 @@ MINLINE float color_balance_fl_lgg(
   return x;
 }
 
-MINLINE float color_balance_fl_sop(float in,
-                                   const float slope,
-                                   const float offset,
-                                   const float power,
-                                   const float pivot,
-                                   float mul)
+/* Slope-Offset-Power (ASC CDL) math, see https://en.wikipedia.org/wiki/ASC_CDL */
+static float color_balance_sop(
+    float in, const float slope, const float offset, const float power, float mul)
 {
   float x = in * slope + offset;
 
@@ -322,265 +322,153 @@ MINLINE float color_balance_fl_sop(float in,
     x = 0.0f;
   }
 
-  x = powf(x / pivot, power) * pivot;
+  x = powf(x, power);
   x *= mul;
   CLAMP(x, FLT_MIN, FLT_MAX);
   return x;
 }
 
-static void make_cb_table_float_lgg(float lift, float gain, float gamma, float *table, float mul)
-{
-  for (int y = 0; y < 256; y++) {
-    float v = color_balance_fl_lgg(float(y) * (1.0f / 255.0f), lift, gain, gamma, mul);
+/* Use a larger lookup table than 256 possible byte values: due to alpha
+ * premultiplication, dark values with low alphas might need more precision. */
+static constexpr int CB_TABLE_SIZE = 1024;
 
-    table[y] = v;
+static void make_cb_table_lgg(
+    float lift, float gain, float gamma, float mul, float r_table[CB_TABLE_SIZE])
+{
+  for (int i = 0; i < CB_TABLE_SIZE; i++) {
+    float x = float(i) * (1.0f / (CB_TABLE_SIZE - 1.0f));
+    r_table[i] = color_balance_lgg(x, lift, gain, gamma, mul);
   }
 }
 
-static void make_cb_table_float_sop(
-    float slope, float offset, float power, float pivot, float *table, float mul)
+static void make_cb_table_sop(
+    float slope, float offset, float power, float mul, float r_table[CB_TABLE_SIZE])
 {
-  for (int y = 0; y < 256; y++) {
-    float v = color_balance_fl_sop(float(y) * (1.0f / 255.0f), slope, offset, power, pivot, mul);
-
-    table[y] = v;
+  for (int i = 0; i < CB_TABLE_SIZE; i++) {
+    float x = float(i) * (1.0f / (CB_TABLE_SIZE - 1.0f));
+    r_table[i] = color_balance_sop(x, slope, offset, power, mul);
   }
 }
 
-static void color_balance_byte_byte(
-    StripColorBalance *cb_, uchar *rect, const uchar *mask_rect, int width, int height, float mul)
+static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
+                               uchar *rect,
+                               const uchar *mask_rect,
+                               int width,
+                               int height)
 {
-  // uchar cb_tab[3][256];
-  uchar *cp = rect;
-  uchar *e = cp + width * 4 * height;
-  const uchar *m = mask_rect;
+  uchar *ptr = rect;
+  uchar *ptr_end = ptr + int64_t(width) * height * 4;
+  const uchar *mask_ptr = mask_rect;
 
-  StripColorBalance cb = calc_cb(cb_);
+  if (mask_ptr != nullptr) {
+    /* Mask is used.*/
+    while (ptr < ptr_end) {
+      float pix[4];
+      straight_uchar_to_premul_float(pix, ptr);
 
-  while (cp < e) {
-    float p[4];
-    int c;
+      int p0 = int(pix[0] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p1 = int(pix[1] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p2 = int(pix[2] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      const float t[3] = {mask_ptr[0] / 255.0f, mask_ptr[1] / 255.0f, mask_ptr[2] / 255.0f};
 
-    straight_uchar_to_premul_float(p, cp);
+      pix[0] = pix[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p0];
+      pix[1] = pix[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p1];
+      pix[2] = pix[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p2];
 
-    for (c = 0; c < 3; c++) {
-      float t;
-      if (cb.method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
-        t = color_balance_fl_lgg(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
-      }
-      else {
-        t = color_balance_fl_sop(p[c], cb.slope[c], cb.offset[c], cb.power[c], 1.0, mul);
-      }
-
-      if (m) {
-        float m_normal = float(m[c]) / 255.0f;
-
-        p[c] = p[c] * (1.0f - m_normal) + t * m_normal;
-      }
-      else {
-        p[c] = t;
-      }
-    }
-
-    premul_float_to_straight_uchar(cp, p);
-
-    cp += 4;
-    if (m) {
-      m += 4;
-    }
-  }
-}
-
-static void color_balance_byte_float(StripColorBalance *cb_,
-                                     uchar *rect,
-                                     float *rect_float,
-                                     const uchar *mask_rect,
-                                     int width,
-                                     int height,
-                                     float mul)
-{
-  float cb_tab[4][256];
-  int c, i;
-  uchar *p = rect;
-  uchar *e = p + width * 4 * height;
-  const uchar *m = mask_rect;
-  float *o;
-  StripColorBalance cb;
-
-  o = rect_float;
-
-  cb = calc_cb(cb_);
-
-  for (c = 0; c < 3; c++) {
-    if (cb.method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
-      make_cb_table_float_lgg(cb.lift[c], cb.gain[c], cb.gamma[c], cb_tab[c], mul);
-    }
-    else {
-      make_cb_table_float_sop(cb.slope[c], cb.offset[c], cb.power[c], 1.0, cb_tab[c], mul);
-    }
-  }
-
-  for (i = 0; i < 256; i++) {
-    cb_tab[3][i] = float(i) * (1.0f / 255.0f);
-  }
-
-  while (p < e) {
-    if (m) {
-      const float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
-
-      p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
-      p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];
-      p[2] = p[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p[2]];
-
-      m += 4;
-    }
-    else {
-      o[0] = cb_tab[0][p[0]];
-      o[1] = cb_tab[1][p[1]];
-      o[2] = cb_tab[2][p[2]];
-    }
-
-    o[3] = cb_tab[3][p[3]];
-
-    p += 4;
-    o += 4;
-  }
-}
-
-static void color_balance_float_float(StripColorBalance *cb_,
-                                      float *rect_float,
-                                      const float *mask_rect_float,
-                                      int width,
-                                      int height,
-                                      float mul)
-{
-  float *p = rect_float;
-  const float *e = rect_float + width * 4 * height;
-  const float *m = mask_rect_float;
-  StripColorBalance cb = calc_cb(cb_);
-
-  while (p < e) {
-    int c;
-    for (c = 0; c < 3; c++) {
-      float t;
-      if (cb_->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
-        t = color_balance_fl_lgg(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
-      }
-      else {
-        t = color_balance_fl_sop(p[c], cb.slope[c], cb.offset[c], cb.power[c], 1.0, mul);
-      }
-
-      if (m) {
-        p[c] = p[c] * (1.0f - m[c]) + t * m[c];
-      }
-      else {
-        p[c] = t;
-      }
-    }
-
-    p += 4;
-    if (m) {
-      m += 4;
-    }
-  }
-}
-
-struct ColorBalanceInitData {
-  StripColorBalance *cb;
-  ImBuf *ibuf;
-  float mul;
-  ImBuf *mask;
-  bool make_float;
-};
-
-struct ColorBalanceThread {
-  StripColorBalance *cb;
-  float mul;
-
-  int width, height;
-
-  uchar *rect, *mask_rect;
-  float *rect_float, *mask_rect_float;
-
-  bool make_float;
-};
-
-static void color_balance_init_handle(void *handle_v,
-                                      int start_line,
-                                      int tot_line,
-                                      void *init_data_v)
-{
-  ColorBalanceThread *handle = (ColorBalanceThread *)handle_v;
-  ColorBalanceInitData *init_data = (ColorBalanceInitData *)init_data_v;
-  ImBuf *ibuf = init_data->ibuf;
-  ImBuf *mask = init_data->mask;
-
-  int offset = 4 * start_line * ibuf->x;
-
-  memset(handle, 0, sizeof(ColorBalanceThread));
-
-  handle->cb = init_data->cb;
-  handle->mul = init_data->mul;
-  handle->width = ibuf->x;
-  handle->height = tot_line;
-  handle->make_float = init_data->make_float;
-
-  if (ibuf->byte_buffer.data) {
-    handle->rect = ibuf->byte_buffer.data + offset;
-  }
-
-  if (ibuf->float_buffer.data) {
-    handle->rect_float = ibuf->float_buffer.data + offset;
-  }
-
-  if (mask) {
-    if (mask->byte_buffer.data) {
-      handle->mask_rect = mask->byte_buffer.data + offset;
-    }
-
-    if (mask->float_buffer.data) {
-      handle->mask_rect_float = mask->float_buffer.data + offset;
+      premul_float_to_straight_uchar(ptr, pix);
+      ptr += 4;
+      mask_ptr += 4;
     }
   }
   else {
-    handle->mask_rect = nullptr;
-    handle->mask_rect_float = nullptr;
+    /* No mask. */
+    while (ptr < ptr_end) {
+      float pix[4];
+      straight_uchar_to_premul_float(pix, ptr);
+
+      int p0 = int(pix[0] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p1 = int(pix[1] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p2 = int(pix[2] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      pix[0] = cb_tab[0][p0];
+      pix[1] = cb_tab[1][p1];
+      pix[2] = cb_tab[2][p2];
+      premul_float_to_straight_uchar(ptr, pix);
+      ptr += 4;
+    }
   }
 }
 
-static void *color_balance_do_thread(void *thread_data_v)
+static void color_balance_float(const StripColorBalance *cb,
+                                float *rect_float,
+                                const float *mask_rect_float,
+                                int width,
+                                int height,
+                                float mul)
 {
-  ColorBalanceThread *thread_data = (ColorBalanceThread *)thread_data_v;
-  StripColorBalance *cb = thread_data->cb;
-  int width = thread_data->width, height = thread_data->height;
-  uchar *rect = thread_data->rect;
-  const uchar *mask_rect = thread_data->mask_rect;
-  float *rect_float = thread_data->rect_float;
-  const float *mask_rect_float = thread_data->mask_rect_float;
-  float mul = thread_data->mul;
+  float *ptr = rect_float;
+  const float *ptr_end = rect_float + int64_t(width) * height * 4;
+  const float *mask_ptr = mask_rect_float;
 
-  if (rect_float) {
-    color_balance_float_float(cb, rect_float, mask_rect_float, width, height, mul);
-  }
-  else if (thread_data->make_float) {
-    color_balance_byte_float(cb, rect, rect_float, mask_rect, width, height, mul);
+  if (cb->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+    /* Lift/Gamma/Gain */
+    const float3 lift = cb->lift;
+    const float3 gain = cb->gain;
+    const float3 gamma = cb->gamma;
+    while (ptr < ptr_end) {
+      float t0 = color_balance_lgg(ptr[0], lift.x, gain.x, gamma.x, mul);
+      float t1 = color_balance_lgg(ptr[1], lift.y, gain.y, gamma.y, mul);
+      float t2 = color_balance_lgg(ptr[2], lift.z, gain.z, gamma.z, mul);
+      if (mask_ptr) {
+        ptr[0] = ptr[0] * (1.0f - mask_ptr[0]) + t0 * mask_ptr[0];
+        ptr[1] = ptr[1] * (1.0f - mask_ptr[1]) + t1 * mask_ptr[1];
+        ptr[2] = ptr[2] * (1.0f - mask_ptr[2]) + t2 * mask_ptr[2];
+      }
+      else {
+        ptr[0] = t0;
+        ptr[1] = t1;
+        ptr[2] = t2;
+      }
+      ptr += 4;
+      if (mask_ptr) {
+        mask_ptr += 4;
+      }
+    }
   }
   else {
-    color_balance_byte_byte(cb, rect, mask_rect, width, height, mul);
+    /* Slope/Offset/Power */
+    const float3 slope = cb->slope;
+    const float3 offset = cb->offset;
+    const float3 power = cb->power;
+    while (ptr < ptr_end) {
+      float t0 = color_balance_sop(ptr[0], slope.x, offset.x, power.x, mul);
+      float t1 = color_balance_sop(ptr[1], slope.y, offset.y, power.y, mul);
+      float t2 = color_balance_sop(ptr[2], slope.z, offset.z, power.z, mul);
+      if (mask_ptr) {
+        ptr[0] = ptr[0] * (1.0f - mask_ptr[0]) + t0 * mask_ptr[0];
+        ptr[1] = ptr[1] * (1.0f - mask_ptr[1]) + t1 * mask_ptr[1];
+        ptr[2] = ptr[2] * (1.0f - mask_ptr[2]) + t2 * mask_ptr[2];
+      }
+      else {
+        ptr[0] = t0;
+        ptr[1] = t1;
+        ptr[2] = t2;
+      }
+      ptr += 4;
+      if (mask_ptr) {
+        mask_ptr += 4;
+      }
+    }
   }
-
-  return nullptr;
 }
 
 static void colorBalance_init_data(SequenceModifierData *smd)
 {
   ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
-  int c;
 
   cbmd->color_multiply = 1.0f;
   cbmd->color_balance.method = 0;
 
-  for (c = 0; c < 3; c++) {
+  for (int c = 0; c < 3; c++) {
     cbmd->color_balance.lift[c] = 1.0f;
     cbmd->color_balance.gamma[c] = 1.0f;
     cbmd->color_balance.gain[c] = 1.0f;
@@ -590,41 +478,47 @@ static void colorBalance_init_data(SequenceModifierData *smd)
   }
 }
 
-static void modifier_color_balance_apply(
-    StripColorBalance *cb, ImBuf *ibuf, float mul, bool make_float, ImBuf *mask_input)
-{
-  ColorBalanceInitData init_data;
-
-  if (!ibuf->float_buffer.data && make_float) {
-    imb_addrectfloatImBuf(ibuf, 4);
-  }
-
-  init_data.cb = cb;
-  init_data.ibuf = ibuf;
-  init_data.mul = mul;
-  init_data.make_float = make_float;
-  init_data.mask = mask_input;
-
-  IMB_processor_apply_threaded(ibuf->y,
-                               sizeof(ColorBalanceThread),
-                               &init_data,
-                               color_balance_init_handle,
-                               color_balance_do_thread);
-
-  /* color balance either happens on float buffer or byte buffer, but never on both,
-   * free byte buffer if there's float buffer since float buffer would be used for
-   * color balance in favor of byte buffer
-   */
-  if (ibuf->float_buffer.data && ibuf->byte_buffer.data) {
-    imb_freerectImBuf(ibuf);
-  }
-}
-
 static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
-  ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
+  const ColorBalanceModifierData *cbmd = (const ColorBalanceModifierData *)smd;
 
-  modifier_color_balance_apply(&cbmd->color_balance, ibuf, cbmd->color_multiply, false, mask);
+  const StripColorBalance cb = calc_cb(&cbmd->color_balance);
+  const float mul = cbmd->color_multiply;
+
+  /* When working on non-float image, precalculate CB LUTs. */
+  float cb_tab[3][CB_TABLE_SIZE];
+  if (ibuf->float_buffer.data == nullptr) {
+    for (int c = 0; c < 3; c++) {
+      if (cb.method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+        make_cb_table_lgg(cb.lift[c], cb.gain[c], cb.gamma[c], mul, cb_tab[c]);
+      }
+      else {
+        make_cb_table_sop(cb.slope[c], cb.offset[c], cb.power[c], mul, cb_tab[c]);
+      }
+    }
+  }
+
+  threading::parallel_for(IndexRange(ibuf->y), 32, [&](const IndexRange y_range) {
+    const int64_t offset = y_range.first() * ibuf->x * 4;
+    const int y_size = int(y_range.size());
+    if (ibuf->float_buffer.data != nullptr) {
+      /* Float pixels. */
+      color_balance_float(&cb,
+                          ibuf->float_buffer.data + offset,
+                          mask ? mask->float_buffer.data + offset : nullptr,
+                          ibuf->x,
+                          y_size,
+                          mul);
+    }
+    else {
+      /* Byte pixels. */
+      color_balance_byte(cb_tab,
+                         ibuf->byte_buffer.data + offset,
+                         mask ? mask->byte_buffer.data + offset : nullptr,
+                         ibuf->x,
+                         y_size);
+    }
+  });
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
