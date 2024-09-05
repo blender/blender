@@ -1053,8 +1053,7 @@ static void init_boundary_masking(Object &object,
                                   const BoundaryAutomaskMode mode,
                                   const int propagation_steps)
 {
-  SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       init_boundary_masking_mesh(object, depsgraph, mode, propagation_steps);
       break;
