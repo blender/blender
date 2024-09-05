@@ -5,6 +5,7 @@
 import bpy
 from bpy.types import Panel, Menu, UIList
 from rna_prop_ui import PropertyPanel
+from .space_properties import PropertiesAnimationMixin
 
 from bl_ui.properties_animviz import (
     MotionPathButtonsPanel,
@@ -280,6 +281,10 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         self.draw_settings(context, avs, mpath, bones=True)
 
 
+class DATA_PT_armature_animation(ArmatureButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
+    _animated_id_context_property = 'armature'
+
+
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
@@ -418,6 +423,7 @@ classes = (
     DATA_PT_motion_paths_display,
     DATA_PT_display,
     DATA_PT_iksolver_itasc,
+    DATA_PT_armature_animation,
     DATA_PT_custom_props_arm,
     DATA_PT_custom_props_bcoll,
     POSE_MT_selection_set_create,

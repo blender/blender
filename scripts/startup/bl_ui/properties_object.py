@@ -9,6 +9,7 @@ from bl_ui.properties_animviz import (
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
+from .space_properties import PropertiesAnimationMixin
 
 
 class ObjectButtonsPanel:
@@ -420,6 +421,10 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "is_holdout")
 
 
+class OBJECT_PT_animation(ObjectButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
+    _animated_id_context_property = 'object'
+
+
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object"
@@ -440,6 +445,7 @@ classes = (
     OBJECT_PT_display,
     OBJECT_PT_visibility,
     OBJECT_PT_lineart,
+    OBJECT_PT_animation,
     OBJECT_PT_custom_props,
 )
 

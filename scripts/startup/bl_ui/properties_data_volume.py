@@ -5,6 +5,7 @@
 import bpy
 from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel
+from .space_properties import PropertiesAnimationMixin
 
 
 class DataButtonsPanel:
@@ -207,6 +208,16 @@ class DATA_PT_volume_viewport_display_slicing(DataButtonsPanel, Panel):
         col.prop(display, "slice_depth")
 
 
+class DATA_PT_volume_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+    _animated_id_context_property = 'volume'
+
+
 class DATA_PT_custom_props_volume(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
@@ -225,6 +236,7 @@ classes = (
     DATA_PT_volume_viewport_display,
     DATA_PT_volume_viewport_display_slicing,
     DATA_PT_volume_render,
+    DATA_PT_volume_animation,
     DATA_PT_custom_props_volume,
     VOLUME_UL_grids,
 )

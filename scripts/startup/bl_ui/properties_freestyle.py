@@ -4,6 +4,7 @@
 
 import bpy
 from bpy.types import Menu, Panel, UIList
+from .space_properties import PropertiesAnimationMixin
 
 
 # Render properties
@@ -1214,6 +1215,23 @@ class VIEWLAYER_PT_freestyle_linestyle_texture(ViewLayerFreestyleLineStyle, Pane
         props.context = 'TEXTURE'
 
 
+class VIEWLAYER_PT_freestyle_animation(ViewLayerFreestyleButtonsPanel, PropertiesAnimationMixin, Panel):
+    bl_label = "Freestyle Animation"
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+    @classmethod
+    def _animated_id(cls, context):
+        try:
+            return context.view_layer.freestyle_settings.linesets.active.linestyle
+        except AttributeError:
+            return None
+
+
 # Material properties
 class MaterialFreestyleButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -1276,6 +1294,7 @@ classes = (
     VIEWLAYER_PT_freestyle_linestyle_thickness,
     VIEWLAYER_PT_freestyle_linestyle_geometry,
     VIEWLAYER_PT_freestyle_linestyle_texture,
+    VIEWLAYER_PT_freestyle_animation,
     MATERIAL_PT_freestyle_line,
 )
 

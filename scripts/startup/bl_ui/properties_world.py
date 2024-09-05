@@ -7,6 +7,7 @@ from bpy.types import Panel
 from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bpy_extras.node_utils import find_node_input
+from .space_properties import PropertiesAnimationMixin
 
 
 class WorldButtonsPanel:
@@ -69,6 +70,31 @@ class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(world.mist_settings, "falloff")
+
+
+class WORLD_PT_animation(WorldButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        # WorldButtonsPanel.poll ensures this is not None.
+        world = context.world
+
+        col = layout.column(align=True)
+        col.label(text="World")
+        self.draw_action_and_slot_selector(context, col, world)
+
+        if node_tree := world.node_tree:
+            col = layout.column(align=True)
+            col.label(text="Shader Node Tree")
+            self.draw_action_and_slot_selector(context, col, node_tree)
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
@@ -252,6 +278,7 @@ classes = (
     EEVEE_WORLD_PT_sun,
     EEVEE_WORLD_PT_sun_shadow,
     WORLD_PT_viewport_display,
+    WORLD_PT_animation,
     WORLD_PT_custom_props,
 )
 
