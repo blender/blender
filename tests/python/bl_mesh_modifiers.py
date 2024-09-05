@@ -47,7 +47,7 @@ def render_gl(context, filepath, shade):
 
     # stop to inspect!
     # if filepath == "test_cube_shell_solidify_subsurf_wp_wire":
-    #     assert(0)
+    #     assert False
     # else:
     #     return
 

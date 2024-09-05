@@ -265,9 +265,9 @@ class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
     def setUp(self):
         super().setUp()
         bpy.utils.register_class(self.TestDynRNAClass)
-        assert(type(self.id) == bpy.types.Scene)
+        assert type(self.id) == bpy.types.Scene
         bpy.types.Scene.dynrna_prop = bpy.props.PointerProperty(type=self.TestDynRNAClass)
-        assert(hasattr(self.id, "dynrna_prop"))
+        assert hasattr(self.id, "dynrna_prop")
 
     def tearDown(self):
         del bpy.types.Scene.dynrna_prop

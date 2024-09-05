@@ -143,8 +143,8 @@ def argparse_create():
 def main():
     args = argparse_create().parse_args()
 
-    assert(args.slice_range > 0)
-    assert(0 <= args.slice_index < args.slice_range)
+    assert args.slice_range > 0
+    assert 0 <= args.slice_index < args.slice_range
 
     for Test in TESTS:
         Test(args).run_all_tests()
