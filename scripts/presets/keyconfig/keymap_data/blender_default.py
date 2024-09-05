@@ -3463,6 +3463,7 @@ def km_clip_dopesheet_editor(_params):
          {"properties": [("extend", True)]}),
         ("clip.dopesheet_view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("clip.dopesheet_view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
+        ("clip.delete_track", {"type": 'X', "value": 'PRESS'}, None),
     ])
 
     return keymap
