@@ -9,6 +9,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "RNA_enum_types.hh"
+
 namespace blender::nodes::node_geo_warning_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -71,18 +73,11 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_rna(StructRNA *srna)
 {
-  static EnumPropertyItem warning_type_items[] = {
-      {int(NodeWarningType::Error), "ERROR", 0, "Error", ""},
-      {int(NodeWarningType::Warning), "WARNING", 0, "Warning", ""},
-      {int(NodeWarningType::Info), "INFO", 0, "Info", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   RNA_def_node_enum(srna,
                     "warning_type",
                     "Warning Type",
                     "",
-                    warning_type_items,
+                    rna_enum_node_warning_type_items,
                     NOD_inline_enum_accessors(custom1));
 }
 
