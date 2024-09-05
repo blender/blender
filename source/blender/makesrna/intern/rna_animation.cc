@@ -1677,6 +1677,9 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
 #  ifdef WITH_ANIM_BAKLAVA
+  /* This property is not necessary for the Python API (that is better off using
+   * slot references/pointers directly), but it is needed for library overrides
+   * to work. */
   prop = RNA_def_property(srna, "action_slot_handle", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "slot_handle");
   RNA_def_property_int_funcs(prop, nullptr, "rna_AnimData_action_slot_handle_set", nullptr);
