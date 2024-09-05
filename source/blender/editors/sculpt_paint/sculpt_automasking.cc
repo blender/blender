@@ -313,149 +313,111 @@ static float calc_cavity_factor(const Cache *automasking, float factor)
                                                                              factor;
 }
 
-struct CavityBlurVert {
-  PBVHVertRef vertex;
-  float dist;
-  int depth;
-
-  CavityBlurVert(PBVHVertRef vertex_, float dist_, int depth_)
-      : vertex(vertex_), dist(dist_), depth(depth_)
-  {
-  }
-
-  CavityBlurVert() = default;
-};
-
 static void calc_blurred_cavity(const Depsgraph &depsgraph,
                                 const Object &object,
                                 const Cache *automasking,
-                                int steps,
-                                PBVHVertRef vertex)
+                                const int steps,
+                                const PBVHVertRef vertex)
 {
-  SculptSession &ss = *object.sculpt;
-  float3 sno1(0.0f);
-  float3 sno2(0.0f);
-  float3 sco1(0.0f);
-  float3 sco2(0.0f);
-  float len1_sum = 0.0f;
-  int sco1_len = 0, sco2_len = 0;
+  struct CavityBlurVert {
+    PBVHVertRef vertex;
+    int depth;
 
+    CavityBlurVert(PBVHVertRef vertex_, int depth_) : vertex(vertex_), depth(depth_) {}
+
+    CavityBlurVert() = default;
+  };
+
+  struct AccumulatedVert {
+    float3 position = float3(0.0f);
+    float3 normal = float3(0.0f);
+    float distance = 0.0f;
+    int count = 0;
+  };
+
+  const SculptSession &ss = *object.sculpt;
+  AccumulatedVert all_verts;
+  AccumulatedVert verts_in_range;
   /* Steps starts at 1, but API and user interface
    * are zero-based.
    */
-  steps++;
+  const int num_steps = steps + 1;
 
-  Vector<CavityBlurVert, 64> queue;
-  Set<int64_t, 64> visit;
+  std::queue<CavityBlurVert> queue;
+  Set<int64_t, 64> visited_verts;
 
-  int start = 0, end = 0;
+  const CavityBlurVert initial(vertex, 0);
+  visited_verts.add_new(vertex.i);
+  queue.push(initial);
 
-  queue.resize(64);
+  const float3 starting_position = SCULPT_vertex_co_get(depsgraph, object, vertex);
 
-  CavityBlurVert initial(vertex, 0.0f, 0);
+  while (!queue.empty()) {
+    const CavityBlurVert blurvert = queue.front();
+    queue.pop();
 
-  visit.add_new(vertex.i);
-  queue[0] = initial;
-  end = 1;
+    const PBVHVertRef v = blurvert.vertex;
 
-  const float *co1 = SCULPT_vertex_co_get(depsgraph, object, vertex);
+    const float3 blur_vert_position = SCULPT_vertex_co_get(depsgraph, object, v);
+    const float3 blur_vert_normal = SCULPT_vertex_normal_get(depsgraph, object, v);
 
-  while (start != end) {
-    CavityBlurVert &blurvert = queue[start];
-    PBVHVertRef v = blurvert.vertex;
-    start = (start + 1) % queue.size();
+    const float dist_to_start = math::distance(blur_vert_position, starting_position);
 
-    const float *co = SCULPT_vertex_co_get(depsgraph, object, v);
-    const float3 no = SCULPT_vertex_normal_get(depsgraph, object, v);
+    all_verts.position += blur_vert_position;
+    all_verts.distance += dist_to_start;
+    all_verts.count++;
 
-    float centdist = len_v3v3(co, co1);
-
-    sco1 += co;
-    sno1 += no;
-    len1_sum += centdist;
-    sco1_len++;
-
-    if (blurvert.depth < steps) {
-      sco2 += co;
-      sno2 += no;
-      sco2_len++;
+    if (blurvert.depth < num_steps) {
+      verts_in_range.position += blur_vert_position;
+      verts_in_range.normal += blur_vert_normal;
+      verts_in_range.count++;
     }
 
-    if (blurvert.depth >= steps) {
+    /* Use the total number of steps used to get to this particular vert to determine if we should
+     * keep processing */
+    if (blurvert.depth >= num_steps) {
       continue;
     }
 
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (object, v, ni) {
-      PBVHVertRef v2 = ni.vertex;
-
-      if (visit.contains(v2.i)) {
+      const PBVHVertRef v2 = ni.vertex;
+      if (visited_verts.contains(v2.i)) {
         continue;
       }
 
-      float dist = len_v3v3(SCULPT_vertex_co_get(depsgraph, object, v2),
-                            SCULPT_vertex_co_get(depsgraph, object, v));
-
-      visit.add_new(v2.i);
-      CavityBlurVert blurvert2(v2, dist, blurvert.depth + 1);
-
-      int nextend = (end + 1) % queue.size();
-
-      if (nextend == start) {
-        int oldsize = queue.size();
-
-        queue.resize(queue.size() << 1);
-
-        if (end < start) {
-          int n = oldsize - start;
-
-          for (int i = 0; i < n; i++) {
-            queue[queue.size() - n + i] = queue[i + start];
-          }
-
-          start = queue.size() - n;
-        }
-      }
-
-      queue[end] = blurvert2;
-      end = (end + 1) % queue.size();
+      visited_verts.add_new(v2.i);
+      queue.emplace(v2, blurvert.depth + 1);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  BLI_assert(sco1_len != sco2_len);
+  BLI_assert(all_verts.count != verts_in_range.count);
 
-  if (!sco1_len) {
-    sco1 = SCULPT_vertex_co_get(depsgraph, object, vertex);
+  if (all_verts.count == 0) {
+    all_verts.position = SCULPT_vertex_co_get(depsgraph, object, vertex);
   }
   else {
-    sco1 /= float(sco1_len);
-    len1_sum /= sco1_len;
+    all_verts.position /= float(all_verts.count);
+    all_verts.distance /= all_verts.count;
   }
 
-  if (!sco2_len) {
-    sco2 = SCULPT_vertex_co_get(depsgraph, object, vertex);
+  if (verts_in_range.count == 0) {
+    verts_in_range.position = SCULPT_vertex_co_get(depsgraph, object, vertex);
   }
   else {
-    sco2 /= float(sco2_len);
+    verts_in_range.position /= float(verts_in_range.count);
   }
 
-  normalize_v3(sno1);
-  if (dot_v3v3(sno1, sno1) == 0.0f) {
-    sno1 = SCULPT_vertex_normal_get(depsgraph, object, vertex);
+  verts_in_range.normal = math::normalize(verts_in_range.normal);
+  if (math::dot(verts_in_range.normal, verts_in_range.normal) == 0.0f) {
+    verts_in_range.normal = SCULPT_vertex_normal_get(depsgraph, object, vertex);
   }
 
-  normalize_v3(sno2);
-  if (dot_v3v3(sno2, sno2) == 0.0f) {
-    sno2 = SCULPT_vertex_normal_get(depsgraph, object, vertex);
-  }
-
-  float3 vec = sco1 - sco2;
-  float factor_sum = dot_v3v3(vec, sno2) / len1_sum;
-
-  factor_sum = calc_cavity_factor(automasking, factor_sum);
-
-  *(float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_cavity) = factor_sum;
+  const float3 vec = all_verts.position - verts_in_range.position;
+  float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
+  *(float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_cavity) = calc_cavity_factor(
+      automasking, factor_sum);
 }
 
 int settings_hash(const Object &ob, const Cache &automasking)
