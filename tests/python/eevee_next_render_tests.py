@@ -9,6 +9,22 @@ import pathlib
 import subprocess
 import sys
 from pathlib import Path
+try:
+    # Render report is not always available and leads to errors in the console logs that can be ignored.
+    from modules import render_report
+
+    class EEVEEReport(render_report.Report):
+        def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[]):
+            super().__init__(title, output_dir, oiiotool, device=device, blocklist=blocklist)
+            self.gpu_backend = device
+
+        def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+            return arguments_cb(filepath, base_output_filepath, gpu_backend=self.device)
+
+except ImportError:
+    # render_report can only be loaded when running the render tests. It errors when
+    # this script is run during preparation steps.
+    pass
 
 # List of .blend files that are known to be failing and are not ready to be
 # tested, or that only make sense on some devices. Accepts regular expressions.
@@ -143,20 +159,27 @@ def get_gpu_device_type(blender):
     return None
 
 
-def get_arguments(filepath, output_filepath):
-    return [
+def get_arguments(filepath, output_filepath, gpu_backend):
+    arguments = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
-        "--debug-exit-on-error",
+        "--debug-exit-on-error"]
+
+    if gpu_backend:
+        arguments.extend(["--gpu-backend", gpu_backend])
+
+    arguments.extend([
         filepath,
         "-E", "BLENDER_EEVEE_NEXT",
         "-P",
         os.path.realpath(__file__),
         "-o", output_filepath,
         "-F", "PNG",
-        "-f", "1"]
+        "-f", "1"])
+
+    return arguments
 
 
 def create_argparse():
@@ -167,6 +190,7 @@ def create_argparse():
     parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--fail-silently', default=False, action='store_true')
+    parser.add_argument('--gpu-backend', nargs=1)
     return parser
 
 
@@ -178,19 +202,22 @@ def main():
     test_dir = args.testdir[0]
     oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
+    gpu_backend = args.gpu_backend[0]
 
     gpu_device_type = get_gpu_device_type(blender)
     reference_override_dir = None
     if gpu_device_type == "AMD":
         reference_override_dir = "eevee_next_renders/amd"
 
-    from modules import render_report
-    report = render_report.Report("Eevee Next", output_dir, oiiotool, blocklist=BLOCKLIST)
+    report = EEVEEReport("Eevee Next", output_dir, oiiotool, device=gpu_backend, blocklist=BLOCKLIST)
+    if gpu_backend == "vulkan":
+        report.set_compare_engine('eevee_next', 'opengl')
+    else:
+        report.set_compare_engine('cycles', 'CPU')
+
     report.set_pixelated(True)
-    report.set_engine_name('eevee_next')
     report.set_reference_dir("eevee_next_renders")
     report.set_reference_override_dir(reference_override_dir)
-    report.set_compare_engine('cycles', 'CPU')
 
     test_dir_name = Path(test_dir).name
     if test_dir_name.startswith('image_mapping'):

@@ -8,6 +8,22 @@ import os
 import platform
 import sys
 from pathlib import Path
+try:
+    # Render report is not always available and leads to errors in the console logs that can be ignored.
+    from modules import render_report
+
+    class WorkbenchReport(render_report.Report):
+        def __init__(self, title, output_dir, oiiotool, device=None, blocklist=[]):
+            super().__init__(title, output_dir, oiiotool, device=device, blocklist=blocklist)
+            self.gpu_backend = device
+
+        def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+            return arguments_cb(filepath, base_output_filepath, gpu_backend=self.device)
+
+except ImportError:
+    # render_report can only be loaded when running the render tests. It errors when
+    # this script is run during preparation steps.
+    pass
 
 
 def setup():
@@ -34,20 +50,27 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath):
-    return [
+def get_arguments(filepath, output_filepath, gpu_backend):
+    arguments = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
-        "--debug-exit-on-error",
+        "--debug-exit-on-error"]
+
+    if gpu_backend:
+        arguments.extend(["--gpu-backend", gpu_backend])
+
+    arguments.extend([
         filepath,
         "-E", "BLENDER_WORKBENCH",
         "-P",
         os.path.realpath(__file__),
         "-o", output_filepath,
         "-F", "PNG",
-        "-f", "1"]
+        "-f", "1"])
+
+    return arguments
 
 
 def create_argparse():
@@ -58,6 +81,7 @@ def create_argparse():
     parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--fail-silently', default=False, action='store_true')
+    parser.add_argument('--gpu-backend', nargs=1)
     return parser
 
 
@@ -69,12 +93,16 @@ def main():
     test_dir = args.testdir[0]
     oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
+    gpu_backend = args.gpu_backend[0]
 
     from modules import render_report
-    report = render_report.Report("Workbench", output_dir, oiiotool)
+    report = WorkbenchReport("Workbench", output_dir, oiiotool, device=gpu_backend)
+    if gpu_backend == "vulkan":
+        report.set_compare_engine('workbench', 'opengl')
+    else:
+        report.set_compare_engine('eevee_next', 'opengl')
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
-    report.set_compare_engine('eevee')
 
     test_dir_name = Path(test_dir).name
     if test_dir_name.startswith('hair') and platform.system() == "Darwin":
