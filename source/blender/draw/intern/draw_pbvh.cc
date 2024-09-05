@@ -1277,19 +1277,15 @@ static void fill_vbos_bmesh(const Object &object,
 }
 
 static gpu::IndexBuf *create_index_faces(const OffsetIndices<int> faces,
-                                         const Span<int> corner_verts,
+                                         const Span<int3> corner_tris,
                                          const Span<bool> hide_poly,
-                                         const Span<int> face_indices,
-                                         const bke::pbvh::MeshNode::LocalVertMap &vert_map)
+                                         const Span<int> face_indices)
 {
-  int tris_count = 0;
   int corners_count = 0;
   for (const int face : face_indices) {
     if (!hide_poly.is_empty() && hide_poly[face]) {
       continue;
     }
-
-    tris_count += bke::mesh::face_triangles_num(faces[face].size());
     corners_count += faces[face].size();
   }
 
@@ -1297,22 +1293,29 @@ static gpu::IndexBuf *create_index_faces(const OffsetIndices<int> faces,
   GPU_indexbuf_init(&builder, GPU_PRIM_LINES, corners_count, INT_MAX);
   MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
-  int edge_index = 0;
+  int index_offset = 0;
+  int line_index = 0;
   for (const int face_index : face_indices) {
     if (!hide_poly.is_empty() && hide_poly[face_index]) {
       continue;
     }
+
+    const IndexRange tris_range = bke::mesh::face_triangles_range(faces, face_index);
+    const Span<int> face_tri_corners = corner_tris.slice(tris_range).cast<int>();
+
     const IndexRange face = faces[face_index];
     for (const int corner : face) {
-      data[edge_index] = uint2(
-          vert_map.index_of(corner_verts[corner]),
-          vert_map.index_of(corner_verts[bke::mesh::face_corner_next(face, corner)]));
-      edge_index++;
+      const int corner_next = bke::mesh::face_corner_next(face, corner);
+      data[line_index] = index_offset + uint2(face_tri_corners.first_index(corner),
+                                              face_tri_corners.first_index(corner_next));
+      line_index++;
     }
+
+    index_offset += bke::mesh::face_triangles_num(faces[face_index].size()) * 3;
   }
 
   gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(&builder, 0, tris_count * 3, false, ibo);
+  GPU_indexbuf_build_in_place_ex(&builder, 0, index_offset, false, ibo);
   return ibo;
 }
 
@@ -1709,12 +1712,11 @@ Span<gpu::IndexBuf *> DrawCacheImpl::ensure_lines_indices(const Object &object,
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const OffsetIndices<int> faces = mesh.faces();
-      const Span<int> corner_verts = mesh.corner_verts();
+      const Span<int3> corner_tris = mesh.corner_tris();
       const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
       nodes_to_calculate.foreach_index(GrainSize(1), [&](const int i) {
-        ibos[i] = create_index_faces(
-            faces, corner_verts, hide_poly, nodes[i].faces(), nodes[i].vert_indices_);
+        ibos[i] = create_index_faces(faces, corner_tris, hide_poly, nodes[i].faces());
       });
       break;
     }
