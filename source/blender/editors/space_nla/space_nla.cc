@@ -466,6 +466,7 @@ static void nla_track_region_listener(const wmRegionListenerParams *params)
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_LAYER_CONTENT:
+        case ND_FRAME:
         case ND_OB_SELECT:
           ED_region_tag_redraw(region);
           break;
