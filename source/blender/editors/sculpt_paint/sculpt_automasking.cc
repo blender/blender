@@ -21,6 +21,7 @@
 #include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_colortools.hh"
 #include "BKE_paint.hh"
@@ -44,7 +45,6 @@
 #include <cstdlib>
 
 namespace blender::ed::sculpt_paint::auto_mask {
-
 const Cache *active_cache_get(const SculptSession &ss)
 {
   if (ss.cache) {
@@ -857,59 +857,213 @@ enum class BoundaryAutomaskMode {
   FaceSets = 2,
 };
 
-static void init_boundary_masking(Object &ob, BoundaryAutomaskMode mode, int propagation_steps)
+static void init_boundary_masking_mesh(Object &object,
+                                       const Depsgraph &depsgraph,
+                                       const BoundaryAutomaskMode mode,
+                                       const int propagation_steps)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *object.sculpt;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const int totvert = SCULPT_vertex_count_get(ob);
-  Array<int> edge_distance(totvert, 0);
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
 
-  for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-    edge_distance[i] = EDGE_DISTANCE_INF;
+  const int num_verts = bke::pbvh::vert_positions_eval(depsgraph, object).size();
+  Array<int> edge_distance(num_verts, EDGE_DISTANCE_INF);
+
+  for (const int i : IndexRange(num_verts)) {
     switch (mode) {
       case BoundaryAutomaskMode::Edges:
-        if (boundary::vert_is_boundary(ss, vertex)) {
+        if (boundary::vert_is_boundary(hide_poly, ss.vert_to_face_map, ss.vertex_info.boundary, i))
+        {
           edge_distance[i] = 0;
         }
         break;
       case BoundaryAutomaskMode::FaceSets:
-        if (!face_set::vert_has_unique_face_set(ss, vertex)) {
+        if (!face_set::vert_has_unique_face_set(ss.vert_to_face_map, ss.face_sets, i)) {
           edge_distance[i] = 0;
         }
         break;
     }
   }
 
-  for (int propagation_it : IndexRange(propagation_steps)) {
-    for (int i : IndexRange(totvert)) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
-
+  Vector<int> neighbors;
+  for (const int propagation_it : IndexRange(propagation_steps)) {
+    for (const int i : IndexRange(num_verts)) {
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
       }
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        if (edge_distance[ni.index] == propagation_it) {
+
+      for (const int neighbor : vert_neighbors_get_mesh(
+               i, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+      {
+        if (edge_distance[neighbor] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
         }
       }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
     }
   }
 
-  for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
-
+  for (const int i : IndexRange(num_verts)) {
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
     }
+
+    const float p = 1.0f - (float(edge_distance[i]) / float(propagation_steps));
+    const float edge_boundary_automask = pow2f(p);
+
+    *(float *)SCULPT_vertex_attr_get(i, ss.attrs.automasking_factor) *= (1.0f -
+                                                                         edge_boundary_automask);
+  }
+}
+
+static void init_boundary_masking_grids(Object &object,
+                                        const BoundaryAutomaskMode mode,
+                                        const int propagation_steps)
+{
+  SculptSession &ss = *object.sculpt;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+
+  const int num_grids = key.grid_area * grids.size();
+  Array<int> edge_distance(num_grids, EDGE_DISTANCE_INF);
+  for (const int i : IndexRange(num_grids)) {
+    const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, i);
+    switch (mode) {
+      case BoundaryAutomaskMode::Edges:
+        if (boundary::vert_is_boundary(
+                subdiv_ccg, corner_verts, faces, ss.vertex_info.boundary, coord))
+        {
+          edge_distance[i] = 0;
+        }
+        break;
+      case BoundaryAutomaskMode::FaceSets:
+        if (!face_set::vert_has_unique_face_set(
+                ss.vert_to_face_map, corner_verts, faces, ss.face_sets, subdiv_ccg, coord))
+        {
+          edge_distance[i] = 0;
+        }
+        break;
+    }
+  }
+
+  SubdivCCGNeighbors neighbors;
+  for (const int propagation_it : IndexRange(propagation_steps)) {
+    for (const int i : IndexRange(num_grids)) {
+      if (edge_distance[i] != EDGE_DISTANCE_INF) {
+        continue;
+      }
+
+      const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, i);
+
+      BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
+      for (const SubdivCCGCoord neighbor : neighbors.coords) {
+        const int neighbor_idx = neighbor.to_index(key);
+        if (edge_distance[neighbor_idx] == propagation_it) {
+          edge_distance[i] = propagation_it + 1;
+        }
+      }
+    }
+  }
+
+  for (const int i : IndexRange(num_grids)) {
+    if (edge_distance[i] == EDGE_DISTANCE_INF) {
+      continue;
+    }
+
+    const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, i);
+
     const float p = 1.0f - (float(edge_distance[i]) / float(propagation_steps));
     const float edge_boundary_automask = pow2f(p);
 
     *(float *)SCULPT_vertex_attr_get(
-        vertex, ss.attrs.automasking_factor) *= (1.0f - edge_boundary_automask);
+        key, coord, ss.attrs.automasking_factor) *= (1.0f - edge_boundary_automask);
+  }
+}
+
+static void init_boundary_masking_bmesh(Object &object,
+                                        const BoundaryAutomaskMode mode,
+                                        const int propagation_steps)
+{
+  SculptSession &ss = *object.sculpt;
+  BMesh *bm = ss.bm;
+  const int num_verts = BM_mesh_elem_count(bm, BM_VERT);
+
+  Array<int> edge_distance(num_verts, EDGE_DISTANCE_INF);
+
+  for (const int i : IndexRange(num_verts)) {
+    BMVert *vert = BM_vert_at_index(bm, i);
+    switch (mode) {
+      case BoundaryAutomaskMode::Edges:
+        if (boundary::vert_is_boundary(vert)) {
+          edge_distance[i] = 0;
+        }
+        break;
+      case BoundaryAutomaskMode::FaceSets:
+        if (!face_set::vert_has_unique_face_set(vert)) {
+          edge_distance[i] = 0;
+        }
+    }
+  }
+
+  Vector<BMVert *, 64> neighbors;
+  for (const int propagation_it : IndexRange(propagation_steps)) {
+    for (const int i : IndexRange(num_verts)) {
+      if (edge_distance[i] != EDGE_DISTANCE_INF) {
+        continue;
+      }
+
+      BMVert *vert = BM_vert_at_index(bm, i);
+      for (BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
+        const int neighbor_idx = BM_elem_index_get(neighbor);
+
+        if (edge_distance[neighbor_idx] == propagation_it) {
+          edge_distance[i] = propagation_it + 1;
+        }
+      }
+    }
+  }
+
+  for (const int i : IndexRange(num_verts)) {
+    if (edge_distance[i] == EDGE_DISTANCE_INF) {
+      continue;
+    }
+
+    BMVert *vert = BM_vert_at_index(bm, i);
+
+    const float p = 1.0f - (float(edge_distance[i]) / float(propagation_steps));
+    const float edge_boundary_automask = pow2f(p);
+
+    *(float *)SCULPT_vertex_attr_get(
+        vert, ss.attrs.automasking_factor) *= (1.0f - edge_boundary_automask);
+  }
+}
+
+static void init_boundary_masking(Object &object,
+                                  const Depsgraph &depsgraph,
+                                  const BoundaryAutomaskMode mode,
+                                  const int propagation_steps)
+{
+  SculptSession &ss = *object.sculpt;
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
+      init_boundary_masking_mesh(object, depsgraph, mode, propagation_steps);
+      break;
+    case bke::pbvh::Type::Grids:
+      init_boundary_masking_grids(object, mode, propagation_steps);
+      break;
+    case bke::pbvh::Type::BMesh:
+      init_boundary_masking_bmesh(object, mode, propagation_steps);
+      break;
   }
 }
 
@@ -1126,11 +1280,11 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
   const int steps = boundary_propagation_steps(sd, brush);
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     SCULPT_vertex_random_access_ensure(ss);
-    init_boundary_masking(ob, BoundaryAutomaskMode::Edges, steps);
+    init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::Edges, steps);
   }
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);
-    init_boundary_masking(ob, BoundaryAutomaskMode::FaceSets, steps);
+    init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::FaceSets, steps);
   }
 
   /* Subtractive modes. */
