@@ -2498,9 +2498,6 @@ static void rna_def_action(BlenderRNA *brna)
 
 #  ifdef WITH_ANIM_BAKLAVA
   /* Properties. */
-  prop = RNA_def_property(srna, "last_slot_handle", PROP_INT, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
   prop = RNA_def_property(srna, "is_empty", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
