@@ -33,16 +33,13 @@ class VKShader : public Shader {
    * The handle is owned by `VKDescriptorSetLayouts` of the device.
    */
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
-  /* deprecated `when use_render_graph=true`. In that case use vk_pipeline_ */
 
   /**
-   * Last created VkPipeline handle. This handle is used as template when building a variation of
+   * Base VkPipeline handle. This handle is used as template when building a variation of
    * the shader. In case for compute shaders without specialization constants this handle is also
-   * used as an early exit. In this case there is only 1 variation.
+   * used as an early exit as in there would only be a single variation.
    */
-  /* TODO: Should be refactored to store the `vk_pipeline_base_`.
-   * What is the reason to store the last pipeline. */
-  VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
+  VkPipeline vk_pipeline_base_ = VK_NULL_HANDLE;
 
   bool is_static_shader_ = false;
 

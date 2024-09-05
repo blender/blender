@@ -1275,10 +1275,10 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline()
   BLI_assert(compute_module_ != VK_NULL_HANDLE);
   BLI_assert(vk_pipeline_layout != VK_NULL_HANDLE);
 
-  /* Early exit when no specialization constants are used and the vk_pipeline_ is already
+  /* Early exit when no specialization constants are used and the vk_pipeline_base_ is already
    * valid. This would handle most cases. */
-  if (constants.values.is_empty() && vk_pipeline_ != VK_NULL_HANDLE) {
-    return vk_pipeline_;
+  if (constants.values.is_empty() && vk_pipeline_base_ != VK_NULL_HANDLE) {
+    return vk_pipeline_base_;
   }
 
   VKComputeInfo compute_info = {};
@@ -1289,8 +1289,10 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline()
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
   VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(
-      compute_info, is_static_shader_, vk_pipeline_);
-  vk_pipeline_ = vk_pipeline;
+      compute_info, is_static_shader_, vk_pipeline_base_);
+  if (vk_pipeline_base_ == VK_NULL_HANDLE) {
+    vk_pipeline_base_ = vk_pipeline;
+  }
   return vk_pipeline;
 }
 
@@ -1335,8 +1337,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
-      graphics_info, is_static_shader_, vk_pipeline_);
-  vk_pipeline_ = vk_pipeline;
+      graphics_info, is_static_shader_, vk_pipeline_base_);
+  if (vk_pipeline_base_ == VK_NULL_HANDLE) {
+    vk_pipeline_base_ = vk_pipeline;
+  }
   return vk_pipeline;
 }
 
