@@ -97,6 +97,8 @@
 
 #include "UI_interface_icons.hh"
 
+#include "ANIM_pose.hh"
+
 #ifndef NDEBUG
 /* Used for database init assert(). */
 #  include "BLI_threads.h"
@@ -963,7 +965,7 @@ static PoseBackup *action_preview_render_prepare(IconPreview *preview)
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
   AnimationEvalContext anim_eval_context = {preview->depsgraph, 0.0f};
-  BKE_pose_apply_action_all_bones(object, action, &anim_eval_context);
+  blender::animrig::pose_apply_action_all_bones(object, action, &anim_eval_context);
 
   /* Force evaluation of the new pose, before the preview is rendered. */
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);

@@ -34,6 +34,8 @@
 
 #  include "BLI_ghash.h"
 
+#  include "ANIM_pose.hh"
+
 static float rna_PoseBone_do_envelope(bPoseChannel *chan, const float vec[3])
 {
   Bone *bone = chan->bone;
@@ -125,7 +127,7 @@ static void rna_Pose_apply_pose_from_action(ID *pose_owner,
   Object *pose_owner_ob = (Object *)pose_owner;
 
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  BKE_pose_apply_action_selected_bones(pose_owner_ob, action, &anim_eval_context);
+  blender::animrig::pose_apply_action_selected_bones(pose_owner_ob, action, &anim_eval_context);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
@@ -142,7 +144,8 @@ static void rna_Pose_blend_pose_from_action(ID *pose_owner,
   Object *pose_owner_ob = (Object *)pose_owner;
 
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  BKE_pose_apply_action_blend(pose_owner_ob, action, &anim_eval_context, blend_factor);
+  blender::animrig::pose_apply_action_blend(
+      pose_owner_ob, action, &anim_eval_context, blend_factor);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);

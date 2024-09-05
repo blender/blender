@@ -41,6 +41,7 @@ set(LIB
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::animrig
 )
 
 if(WITH_HEADLESS)

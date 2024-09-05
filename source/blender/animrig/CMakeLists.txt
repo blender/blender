@@ -34,6 +34,7 @@ set(SRC
   intern/fcurve.cc
   intern/keyframing.cc
   intern/keyframing_auto.cc
+  intern/pose.cc
   intern/visualkey.cc
 
   ANIM_action.hh
@@ -48,6 +49,7 @@ set(SRC
   ANIM_fcurve.hh
   ANIM_keyframing.hh
   ANIM_keyingsets.hh
+  ANIM_pose.hh
   ANIM_rna.hh
   ANIM_visualkey.hh
   intern/action_runtime.hh

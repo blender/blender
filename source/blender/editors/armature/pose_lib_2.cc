@@ -49,6 +49,7 @@
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
+#include "ANIM_pose.hh"
 
 #include "armature_intern.hh"
 
@@ -193,7 +194,8 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
   bAction *to_blend = poselib_action_to_blend(pbd);
-  BKE_pose_apply_action_blend(pbd->ob, to_blend, &anim_eval_context, pbd->blend_factor);
+  blender::animrig::pose_apply_action_blend(
+      pbd->ob, to_blend, &anim_eval_context, pbd->blend_factor);
 }
 
 /* ---------------------------- */
