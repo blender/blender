@@ -14,6 +14,8 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
+#include "BKE_customdata.hh"
+
 #include "intern/bmesh_operators_private.hh" /* own include */
 
 void bmo_bevel_exec(BMesh *bm, BMOperator *op)
@@ -81,7 +83,9 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
                   miter_inner,
                   spread,
                   custom_profile,
-                  vmesh_method);
+                  vmesh_method,
+                  CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert"),
+                  CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge"));
 
     BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
     BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);

@@ -7694,7 +7694,9 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_inner,
                    const float spread,
                    const CurveProfile *custom_profile,
-                   const int vmesh_method)
+                   const int vmesh_method,
+                   const int bweight_offset_vert,
+                   const int bweight_offset_edge)
 {
   BMIter iter, liter;
   BMVert *v, *v_next;
@@ -7711,10 +7713,8 @@ void BM_mesh_bevel(BMesh *bm,
   bp.pro_super_r = -logf(2.0) / logf(sqrtf(profile)); /* Convert to superellipse exponent. */
   bp.affect_type = affect_type;
   bp.use_weights = use_weights;
-  bp.bweight_offset_vert = CustomData_get_offset_named(
-      &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
-  bp.bweight_offset_edge = CustomData_get_offset_named(
-      &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+  bp.bweight_offset_vert = bweight_offset_vert;
+  bp.bweight_offset_edge = bweight_offset_edge;
   bp.loop_slide = loop_slide;
   bp.limit_offset = limit_offset;
   bp.offset_adjust = (bp.affect_type != BEVEL_AFFECT_VERTICES) &&

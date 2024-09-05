@@ -520,7 +520,11 @@ typedef struct BevelModifierData {
   /** Curve info for the custom profile */
   struct CurveProfile *custom_profile;
 
-  void *_pad2;
+  /** Custom bevel edge weight name. */
+  char edge_weight_name[64];
+
+  /** Custom bevel vertex weight name. */
+  char vertex_weight_name[64];
 } BevelModifierData;
 
 /** #BevelModifierData.flags and BevelModifierData.lim_flags */

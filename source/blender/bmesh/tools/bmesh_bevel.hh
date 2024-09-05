@@ -44,4 +44,6 @@ void BM_mesh_bevel(BMesh *bm,
                    int miter_inner,
                    float spread,
                    const CurveProfile *custom_profile,
-                   int vmesh_method);
+                   int vmesh_method,
+                   int bweight_offset_vert,
+                   int bweight_offset_edge);
