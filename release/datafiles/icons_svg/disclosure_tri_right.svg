@@ -1,1 +1,20 @@
-<svg id="svg2" height="700" viewBox="0 0 800 700" width="800" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><path id="path1" d="m220.4707 623.86046c-.26463.0156-.47113.23492-.4707.5v4.01528c.00017.35718.36395.59902.69336.46094l4.98472-1.9862c.39771-.16741.41088-.72615.0215-.91211l-4.98472-2.02908c-.076-.0366-.15996-.0534-.24416-.0488z" fill="#fff" transform="matrix(100 0 0 100 -21899.997 -62287.855)"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="svg2"
+   height="700"
+   viewBox="0 0 800 700"
+   width="800"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     id="g1">
+    <path
+       id="path1"
+       d="m220.4707 623.86046c-.26463.0156-.47113.23492-.4707.5v4.01528c.00017.35718.36395.59902.69336.46094l4.98472-1.9862c.39771-.16741.41088-.72615.0215-.91211l-4.98472-2.02908c-.076-.0366-.15996-.0534-.24416-.0488z"
+       fill="#fff"
+       transform="matrix(100 0 0 100 -21899.997 -62287.855)" />
+  </g>
+</svg>

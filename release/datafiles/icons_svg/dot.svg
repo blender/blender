@@ -1,1 +1,20 @@
-<svg id="svg2" height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><path id="path1" d="m370 625c-1.09865 0-2 .90135-2 2s.90135 2 2 2 2-.90135 2-2-.90135-2-2-2z" fill="#fff" transform="matrix(100 0 0 100 -36699.988 -62400)"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="svg2"
+   height="600"
+   viewBox="0 0 600 600"
+   width="600"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     id="g1">
+    <path
+       id="path1"
+       d="m370 625c-1.09865 0-2 .90135-2 2s.90135 2 2 2 2-.90135 2-2-.90135-2-2-2z"
+       fill="#fff"
+       transform="matrix(100 0 0 100 -36699.988 -62400)" />
+  </g>
+</svg>
