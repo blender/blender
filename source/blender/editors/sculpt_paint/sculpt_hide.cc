@@ -25,7 +25,7 @@ Span<int> node_visible_verts(const bke::pbvh::MeshNode &node,
   if (BKE_pbvh_node_fully_hidden_get(node)) {
     return {};
   }
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   if (hide_vert.is_empty()) {
     return verts;
   }

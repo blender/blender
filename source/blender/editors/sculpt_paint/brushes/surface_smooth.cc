@@ -75,7 +75,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     LocalData &tls = all_tls.local();
-    const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+    const Span<int> verts = nodes[i].verts();
 
     const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
     fill_factor_from_hide_and_mask(mesh, verts, factors);
@@ -104,7 +104,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
   for ([[maybe_unused]] const int iteration : IndexRange(brush.surface_smooth_iterations)) {
     node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
       const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
@@ -133,7 +133,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
 
     node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
 
       const MutableSpan<float3> laplacian_disp = gather_data_mesh(
@@ -184,7 +184,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     LocalData &tls = all_tls.local();
-    const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+    const Span<int> grids = nodes[i].grids();
     const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
     const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
@@ -213,7 +213,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
   for ([[maybe_unused]] const int iteration : IndexRange(brush.surface_smooth_iterations)) {
     node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+      const Span<int> grids = nodes[i].grids();
       const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
@@ -238,7 +238,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
 
     node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
       LocalData &tls = all_tls.local();
-      const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+      const Span<int> grids = nodes[i].grids();
       const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
 

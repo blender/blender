@@ -182,7 +182,7 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     MeshLocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> face_indices = bke::pbvh::node_faces(nodes[i]);
+      const Span<int> face_indices = nodes[i].faces();
 
       calc_faces(depsgraph,
                  object,
@@ -235,7 +235,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
   tls.factors.resize(positions.size());

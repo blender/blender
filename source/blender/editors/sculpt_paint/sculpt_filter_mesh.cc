@@ -359,7 +359,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -411,7 +411,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -507,7 +507,7 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -540,7 +540,7 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -626,7 +626,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -659,7 +659,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -761,7 +761,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -793,7 +793,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -888,7 +888,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -922,7 +922,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -1017,7 +1017,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
 
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
@@ -1069,7 +1069,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
           tls.factors.resize(positions.size());
@@ -1181,7 +1181,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
 
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
@@ -1236,7 +1236,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
           tls.factors.resize(positions.size());
@@ -1353,7 +1353,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -1398,7 +1398,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
 
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
@@ -1442,7 +1442,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -1482,7 +1482,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
           tls.factors.resize(orig_data.positions.size());
@@ -1648,7 +1648,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int node_index) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[node_index]);
+          const Span<int> verts = nodes[node_index].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
           tls.factors.resize(verts.size());
@@ -1724,7 +1724,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int node_index) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[node_index]);
+          const Span<int> grids = nodes[node_index].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
           tls.factors.resize(positions.size());
@@ -1905,7 +1905,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
@@ -1937,7 +1937,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -2017,7 +2017,7 @@ static void calc_erase_displacement_filter(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+      const Span<int> grids = nodes[i].grids();
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       const OrigPositionData orig_data = orig_position_data_get_grids(object, nodes[i]);
 
@@ -2132,7 +2132,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           LocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
-            const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+            const Span<int> verts = nodes[i].verts();
 
             tls.vert_neighbors.resize(verts.size());
             const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
@@ -2158,7 +2158,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           LocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
-            const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+            const Span<int> grids = nodes[i].grids();
             const int grid_verts_num = grids.size() * key.grid_area;
 
             tls.smooth_directions.resize(grid_verts_num);

@@ -199,7 +199,7 @@ static void transform_node_mesh(const Depsgraph &depsgraph,
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   tls.factors.resize(verts.size());
@@ -227,7 +227,7 @@ static void transform_node_grids(const Sculpt &sd,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
@@ -371,7 +371,7 @@ static void elastic_transform_node_mesh(const Depsgraph &depsgraph,
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
@@ -401,7 +401,7 @@ static void elastic_transform_node_grids(const Sculpt &sd,
   SculptSession &ss = *object.sculpt;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
   /* TODO: Using the factors array is unnecessary when there are no hidden vertices and no mask. */
@@ -690,7 +690,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
             LocalData &tls = all_tls.local();
             threading::isolate_task([&]() {
               node_mask.slice(range).foreach_index([&](const int i) {
-                const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+                const Span<int> verts = nodes[i].verts();
 
                 tls.positions.resize(verts.size());
                 const MutableSpan<float3> positions = tls.positions;
@@ -719,7 +719,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+              const Span<int> grids = nodes[i].grids();
               const MutableSpan positions = gather_grids_positions(
                   subdiv_ccg, grids, tls.positions);
 
@@ -812,7 +812,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+              const Span<int> verts = nodes[i].verts();
               MutableSpan positions = gather_data_mesh(vert_positions, verts, tls.positions);
               MutableSpan masks = gather_data_mesh(mask_attr, verts, tls.masks);
 
@@ -840,7 +840,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
           [&](const IndexRange range, AveragePositionAccumulation sum) {
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
-              const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+              const Span<int> grids = nodes[i].grids();
               const MutableSpan positions = gather_grids_positions(
                   subdiv_ccg, grids, tls.positions);
 

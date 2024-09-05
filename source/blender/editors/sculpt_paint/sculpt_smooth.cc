@@ -785,7 +785,7 @@ void blur_geometry_data_array(const Object &object,
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           LocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int node_index) {
-            const Span<int> grids = bke::pbvh::node_grid_indices(nodes[node_index]);
+            const Span<int> grids = nodes[node_index].grids();
             const int grid_verts_num = key.grid_area * grids.size();
 
             tls.new_factors.resize(grid_verts_num);

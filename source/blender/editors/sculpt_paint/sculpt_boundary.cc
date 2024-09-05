@@ -1131,7 +1131,7 @@ static void calc_bend_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -1191,7 +1191,7 @@ static void calc_bend_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
@@ -1426,7 +1426,7 @@ static void calc_slide_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -1485,7 +1485,7 @@ static void calc_slide_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
@@ -1713,7 +1713,7 @@ static void calc_inflate_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -1767,7 +1767,7 @@ static void calc_inflate_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
@@ -1984,7 +1984,7 @@ static void calc_grab_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -2039,7 +2039,7 @@ static void calc_grab_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
@@ -2262,7 +2262,7 @@ static void calc_twist_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -2319,7 +2319,7 @@ static void calc_twist_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
@@ -2636,7 +2636,7 @@ static void calc_smooth_mesh(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
@@ -2702,7 +2702,7 @@ static void calc_smooth_grids(const Sculpt &sd,
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 

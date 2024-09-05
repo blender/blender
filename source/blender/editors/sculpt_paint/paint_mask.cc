@@ -372,7 +372,7 @@ static Span<int> get_hidden_verts(const bke::pbvh::MeshNode &node,
   if (hide_vert.is_empty()) {
     return {};
   }
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   if (BKE_pbvh_node_fully_hidden_get(node)) {
     return verts;
   }
@@ -430,7 +430,7 @@ static bool try_remove_mask_mesh(const Depsgraph &depsgraph,
 
   /* Store undo data for nodes with changed mask. */
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+    const Span<int> verts = nodes[i].verts();
     if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return mask[i] == 0.0f; })) {
       return;
     }
@@ -515,7 +515,7 @@ static void fill_mask_grids(Main &bmain,
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   bool any_changed = false;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    const Span<int> grid_indices = bke::pbvh::node_grid_indices(nodes[i]);
+    const Span<int> grid_indices = nodes[i].grids();
     if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
           CCGElem *elem = grids[grid];
           for (const int i : IndexRange(key.grid_area)) {
@@ -640,7 +640,7 @@ static void invert_mask_grids(Main &bmain,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    const Span<int> grid_indices = bke::pbvh::node_grid_indices(nodes[i]);
+    const Span<int> grid_indices = nodes[i].grids();
     if (grid_hidden.is_empty()) {
       for (const int grid : grid_indices) {
         CCGElem *elem = grids[grid];
@@ -835,7 +835,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         node_mask.slice(range).foreach_index([&](const int i) {
           bool any_changed = false;
-          for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+          for (const int grid : nodes[i].grids()) {
             CCGElem *elem = grids[grid];
             BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
               if (gesture::is_affected(gesture_data,

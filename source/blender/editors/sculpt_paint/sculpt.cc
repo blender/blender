@@ -863,7 +863,7 @@ std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
       NearestData(),
       [&](const IndexRange range, NearestData nearest) {
         nodes_in_sphere.slice(range).foreach_index([&](const int i) {
-          for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
+          for (const int vert : nodes[i].verts()) {
             if (!hide_vert.is_empty() && hide_vert[vert]) {
               continue;
             }
@@ -913,7 +913,7 @@ std::optional<SubdivCCGCoord> nearest_vert_calc_grids(const bke::pbvh::Tree &pbv
       NearestData(),
       [&](const IndexRange range, NearestData nearest) {
         nodes_in_sphere.slice(range).foreach_index([&](const int i) {
-          for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+          for (const int grid : nodes[i].grids()) {
             CCGElem *elem = elems[grid];
             BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
               const float distance_sq = math::distance_squared(CCG_elem_offset_co(key, elem, i),
@@ -1177,7 +1177,7 @@ static void restore_mask_from_undo_step(Object &object)
         if (const std::optional<Span<float>> orig_data = orig_mask_data_lookup_mesh(object,
                                                                                     nodes[i]))
         {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           array_utils::scatter(*orig_data, verts, mask.span);
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
@@ -1211,7 +1211,7 @@ static void restore_mask_from_undo_step(Object &object)
                                                                                      nodes[i]))
         {
           int index = 0;
-          for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+          for (const int grid : nodes[i].grids()) {
             CCGElem *elem = grids[grid];
             for (const int i : IndexRange(key.grid_area)) {
               if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
@@ -1245,7 +1245,7 @@ static void restore_color_from_undo_step(Object &object)
     if (const std::optional<Span<float4>> orig_data = orig_color_data_lookup_mesh(object,
                                                                                   nodes[i]))
     {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       for (const int i : verts.index_range()) {
         color::color_vert_set(faces,
                               corner_verts,
@@ -1274,7 +1274,7 @@ static void restore_face_set_from_undo_step(Object &object)
         if (const std::optional<Span<int>> orig_data = orig_face_set_data_lookup_mesh(object,
                                                                                       nodes[i]))
         {
-          scatter_data_mesh(*orig_data, bke::pbvh::node_faces(nodes[i]), attribute.span);
+          scatter_data_mesh(*orig_data, nodes[i].faces(), attribute.span);
           BKE_pbvh_node_mark_update_face_sets(nodes[i]);
         }
       });
@@ -1332,7 +1332,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
           if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(
                   object, nodes[i]))
           {
-            const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+            const Span<int> verts = nodes[i].verts();
             const Span<float3> undo_positions = orig_data->positions;
             if (need_translations) {
               tls.translations.resize(verts.size());
@@ -1398,7 +1398,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
                 object, nodes[i]))
         {
           int index = 0;
-          for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+          for (const int grid : nodes[i].grids()) {
             CCGElem *elem = grids[grid];
             for (const int i : IndexRange(key.grid_area)) {
               if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
@@ -1698,7 +1698,7 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
   const float normal_radius_sq = normal_radius * normal_radius;
   const float normal_radius_inv = math::rcp(normal_radius);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   if (ss.cache && !ss.cache->accum) {
     if (const std::optional<OrigPositionData> orig_data = orig_position_data_get_mesh(object,
@@ -1787,7 +1787,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
 
   if (ss.cache && !ss.cache->accum) {
     if (const std::optional<OrigPositionData> orig_data = orig_position_data_get_grids(object,
@@ -5922,7 +5922,7 @@ static void fake_neighbor_search_mesh(const SculptSession &ss,
                                       const bke::pbvh::MeshNode &node,
                                       NearestVertData &nvtd)
 {
-  for (const int vert : bke::pbvh::node_unique_verts(node)) {
+  for (const int vert : node.verts()) {
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
@@ -5950,7 +5950,7 @@ static void fake_neighbor_search_grids(const SculptSession &ss,
                                        const bke::pbvh::GridsNode &node,
                                        NearestVertData &nvtd)
 {
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
+  for (const int grid : node.grids()) {
     const int verts_start = grid * key.grid_area;
     CCGElem *elem = elems[grid];
     BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int offset) {
@@ -7463,9 +7463,8 @@ OffsetIndices<int> create_node_vert_offsets(const Span<bke::pbvh::MeshNode> node
                                             Array<int> &node_data)
 {
   node_data.reinitialize(node_mask.size() + 1);
-  node_mask.foreach_index([&](const int i, const int pos) {
-    node_data[pos] = bke::pbvh::node_unique_verts(nodes[i]).size();
-  });
+  node_mask.foreach_index(
+      [&](const int i, const int pos) { node_data[pos] = nodes[i].verts().size(); });
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }
 
@@ -7476,7 +7475,7 @@ OffsetIndices<int> create_node_vert_offsets(const CCGKey &key,
 {
   node_data.reinitialize(node_mask.size() + 1);
   node_mask.foreach_index([&](const int i, const int pos) {
-    node_data[pos] = bke::pbvh::node_grid_indices(nodes[i]).size() * key.grid_area;
+    node_data[pos] = nodes[i].grids().size() * key.grid_area;
   });
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }

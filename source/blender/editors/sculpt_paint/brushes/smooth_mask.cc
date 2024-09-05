@@ -81,7 +81,7 @@ static void apply_masks_faces(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -153,7 +153,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                               corner_verts,
                               ss.vert_to_face_map,
                               hide_poly,
-                              bke::pbvh::node_unique_verts(nodes[i]),
+                              nodes[i].verts(),
                               mask.span.as_span(),
                               tls,
                               new_masks.as_mutable_span().slice(node_vert_offsets[pos]));
@@ -187,7 +187,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
   tls.factors.resize(positions.size());

@@ -1093,7 +1093,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   blender::threading::parallel_for(node_mask.index_range(), 1LL, [&](IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1251,7 +1251,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   blender::threading::parallel_for(node_mask.index_range(), 1LL, [&](IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1412,7 +1412,7 @@ static void do_vpaint_brush_smear(const bContext *C,
   blender::threading::parallel_for(node_mask.index_range(), 1LL, [&](IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1598,7 +1598,7 @@ static void calculate_average_color(VPaintData &vpd,
         accum2.len = 0;
         memset(accum2.value, 0, sizeof(accum2.value));
 
-        const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+        const Span<int> verts = nodes[i].verts();
         tls.factors.resize(verts.size());
         const MutableSpan<float> factors = tls.factors;
         fill_factor_from_hide(mesh, verts, factors);
@@ -1729,7 +1729,7 @@ static void vpaint_do_draw(const bContext *C,
   blender::threading::parallel_for(node_mask.index_range(), 1LL, [&](IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);

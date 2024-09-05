@@ -274,7 +274,7 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -359,7 +359,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   const float bstrength = fabsf(ss.cache->bstrength);
   const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -499,7 +499,7 @@ static void do_sample_wet_paint_task(const Object &object,
   const SculptSession &ss = *object.sculpt;
   const float radius = ss.cache->radius * brush.wet_paint_radius_factor;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -689,7 +689,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
   const float strength = ss.cache->bstrength;
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -894,7 +894,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
   else {
     /* Smear mode. */
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
+      for (const int vert : nodes[i].verts()) {
         ss.cache->paint_brush.prev_colors[vert] = color_vert_get(faces,
                                                                  corner_verts,
                                                                  vert_to_face_map,

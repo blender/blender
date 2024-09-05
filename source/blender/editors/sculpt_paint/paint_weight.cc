@@ -1135,7 +1135,7 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1253,7 +1253,7 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1370,7 +1370,7 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
   parallel_nodes_loop_with_mirror_check(mesh, node_mask, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(mesh, verts, factors);
@@ -1457,7 +1457,7 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
       [&](const IndexRange range, WPaintAverageAccum accum) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide(mesh, verts, factors);

@@ -138,7 +138,7 @@ static void smooth_mask_mesh(const OffsetIndices<int> faces,
                              FilterLocalData &tls,
                              MutableSpan<float> new_mask)
 {
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.vert_neighbors.resize(verts.size());
   const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
@@ -156,7 +156,7 @@ static void sharpen_mask_mesh(const OffsetIndices<int> faces,
                               FilterLocalData &tls,
                               MutableSpan<float> new_mask)
 {
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.node_mask.resize(verts.size());
   const MutableSpan<float> node_mask = tls.node_mask;
@@ -180,7 +180,7 @@ static void grow_mask_mesh(const OffsetIndices<int> faces,
                            FilterLocalData &tls,
                            MutableSpan<float> new_mask)
 {
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.vert_neighbors.resize(verts.size());
   const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
@@ -203,7 +203,7 @@ static void shrink_mask_mesh(const OffsetIndices<int> faces,
                              FilterLocalData &tls,
                              MutableSpan<float> new_mask)
 {
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.vert_neighbors.resize(verts.size());
   const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
@@ -296,7 +296,7 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+    const Span<int> grids = nodes[i].grids();
     const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
     if (mask_equals_array_grids(subdiv_ccg.grids, key, grids, new_node_mask)) {
       return;
@@ -314,8 +314,8 @@ static void smooth_mask_grids(const SubdivCCG &subdiv_ccg,
                               const bke::pbvh::GridsNode &node,
                               MutableSpan<float> new_mask)
 {
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
-  average_neighbor_mask_grids(subdiv_ccg, bke::pbvh::node_grid_indices(node), new_mask);
+  const Span<int> grids = node.grids();
+  average_neighbor_mask_grids(subdiv_ccg, node.grids(), new_mask);
   copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
 }
 
@@ -326,7 +326,7 @@ static void sharpen_mask_grids(const SubdivCCG &subdiv_ccg,
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.node_mask.resize(grid_verts_num);
@@ -347,7 +347,7 @@ static void grow_mask_grids(const SubdivCCG &subdiv_ccg,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
 
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
@@ -382,7 +382,7 @@ static void shrink_mask_grids(const SubdivCCG &subdiv_ccg,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
 
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
@@ -419,7 +419,7 @@ static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.node_mask.resize(grid_verts_num);
@@ -450,7 +450,7 @@ static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.node_mask.resize(grid_verts_num);

@@ -112,7 +112,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(ob, node);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -325,7 +325,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
   const MutableSpan<float4> pre_smoothed_color = ss.filter_cache->pre_smoothed_color;
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
+    for (const int vert : nodes[i].verts()) {
       pre_smoothed_color[vert] = color_vert_get(
           faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, vert);
     }
@@ -340,7 +340,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, SculptSession &ss)
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       LocalData &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
-        const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+        const Span<int> verts = nodes[i].verts();
 
         tls.vert_neighbors.resize(verts.size());
         calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);

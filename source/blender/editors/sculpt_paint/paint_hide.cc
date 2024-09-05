@@ -134,7 +134,7 @@ void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &
     IndexMaskMemory memory;
     const IndexMask changed_nodes = IndexMask::from_predicate(
         node_mask, GrainSize(1), memory, [&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           return std::any_of(
               verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; });
         });
@@ -158,7 +158,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_
     IndexMaskMemory memory;
     const IndexMask changed_nodes = IndexMask::from_predicate(
         node_mask, GrainSize(1), memory, [&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           return std::any_of(grids.begin(), grids.end(), [&](const int i) {
             return bits::any_bit_set(grid_hidden[i]);
           });
@@ -228,7 +228,7 @@ static void flush_face_changes_node(Mesh &mesh,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     TLS &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> node_faces = bke::pbvh::node_faces(nodes[i]);
+      const Span<int> node_faces = nodes[i].faces();
 
       tls.new_hide.resize(node_faces.size());
       gather_data_mesh(hide_poly.span.as_span(), node_faces, tls.new_hide.as_mutable_span());
@@ -288,7 +288,7 @@ static void vert_hide_update(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     Vector<bool> &new_hide = all_new_hide.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
 
       new_hide.resize(verts.size());
       gather_data_mesh(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
@@ -327,7 +327,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
   bool any_changed = false;
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+      const Span<int> grids = nodes[i].grids();
       BitGroupVector<> new_hide(grids.size(), grid_hidden.group_size());
       for (const int i : grids.index_range()) {
         new_hide[i].copy_from(grid_hidden[grids[i]].as_span());
@@ -718,7 +718,7 @@ static void invert_visibility_mesh(const Depsgraph &depsgraph,
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::HideFace);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int face : bke::pbvh::node_faces(nodes[i])) {
+    for (const int face : nodes[i].faces()) {
       hide_poly.span[face] = !hide_poly.span[face];
     }
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -741,7 +741,7 @@ static void invert_visibility_grids(Depsgraph &depsgraph,
 
   BitGroupVector<> &grid_hidden = BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int i : bke::pbvh::node_grid_indices(nodes[i])) {
+    for (const int i : nodes[i].grids()) {
       bits::invert(grid_hidden[i]);
     }
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -900,7 +900,7 @@ static void update_undo_state(const Depsgraph &depsgraph,
   const Span<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
+    for (const int vert : nodes[i].verts()) {
       if (old_hide_vert[vert] != new_hide_vert[vert]) {
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideVert);
         break;
@@ -917,7 +917,7 @@ static void update_node_visibility_from_face_changes(MutableSpan<bke::pbvh::Mesh
 {
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     bool any_changed = false;
-    const Span<int> indices = bke::pbvh::node_faces(nodes[i]);
+    const Span<int> indices = nodes[i].faces();
     for (const int face_index : indices) {
       if (orig_hide_poly[face_index] != new_hide_poly[face_index]) {
         any_changed = true;
@@ -1018,7 +1018,7 @@ static void grow_shrink_visibility_grid(Depsgraph &depsgraph,
     BitGroupVector<> &write_buffer = buffers.write_buffer(i);
 
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+      for (const int grid : nodes[i].grids()) {
         for (const int y : IndexRange(key.grid_size)) {
           for (const int x : IndexRange(key.grid_size)) {
             const int grid_elem_idx = CCG_grid_xy_to_index(key.grid_size, x, y);

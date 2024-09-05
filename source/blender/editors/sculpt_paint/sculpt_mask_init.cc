@@ -96,7 +96,7 @@ static void init_mask_grids(Main &bmain,
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::Mask);
 
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int grid : bke::pbvh::node_grid_indices(nodes[i])) {
+    for (const int grid : nodes[i].grids()) {
       write_fn(grid_hidden, grid, grids[grid]);
     }
     BKE_pbvh_node_mark_update_mask(nodes[i]);

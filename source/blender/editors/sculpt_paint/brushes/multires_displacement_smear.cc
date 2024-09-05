@@ -46,7 +46,7 @@ static void calc_node(const Depsgraph &depsgraph,
   const Span<CCGElem *> elems = subdiv_ccg.grids;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
 
   tls.factors.resize(positions.size());
@@ -160,7 +160,7 @@ BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_p
                                                       const bke::pbvh::GridsNode &node,
                                                       const MutableSpan<float3> prev_displacement)
 {
-  for (const int grid : bke::pbvh::node_grid_indices(node)) {
+  for (const int grid : node.grids()) {
     const int start = grid * key.grid_area;
     CCGElem *elem = elems[grid];
     for (const int i : IndexRange(key.grid_area)) {

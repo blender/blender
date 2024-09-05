@@ -1007,7 +1007,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           restore_position_grids(grids, key, *unode, modified_grids);
         }
         node_mask.foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           if (indices_contain_true(modified_grids, grids)) {
             BKE_pbvh_node_mark_positions_update(nodes[i]);
           }
@@ -1022,7 +1022,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         Array<bool> modified_verts(ss.totvert, false);
         restore_position_mesh(object, step_data.nodes, modified_verts);
         node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_verts, bke::pbvh::node_verts(nodes[i]))) {
+          if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
             BKE_pbvh_node_mark_positions_update(nodes[i]);
           }
         });
@@ -1054,7 +1054,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           restore_vert_visibility_grids(subdiv_ccg, *unode, modified_grids);
         }
         node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(nodes[i]))) {
+          if (indices_contain_true(modified_grids, nodes[i].grids())) {
             BKE_pbvh_node_mark_update_visibility(nodes[i]);
           }
         });
@@ -1066,7 +1066,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           restore_vert_visibility_mesh(object, *unode, modified_verts);
         }
         node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_verts, bke::pbvh::node_verts(nodes[i]))) {
+          if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
             BKE_pbvh_node_mark_update_visibility(nodes[i]);
           }
         });
@@ -1109,7 +1109,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
         node_mask.foreach_index([&](const int i) {
-          const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
+          const Span<int> faces = nodes[i].faces();
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_visibility(nodes[i]);
           }
@@ -1136,7 +1136,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           restore_mask_grids(object, *unode, modified_grids);
         }
         node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_grids, bke::pbvh::node_grid_indices(nodes[i]))) {
+          if (indices_contain_true(modified_grids, nodes[i].grids())) {
             BKE_pbvh_node_mark_update_mask(nodes[i]);
           }
         });
@@ -1148,7 +1148,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
           restore_mask_mesh(object, *unode, modified_verts);
         }
         node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_verts, bke::pbvh::node_verts(nodes[i]))) {
+          if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
             BKE_pbvh_node_mark_update_mask(nodes[i]);
           }
         });
@@ -1186,7 +1186,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
         node_mask.foreach_index([&](const int i) {
-          const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
+          const Span<int> faces = nodes[i].faces();
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_face_sets(nodes[i]);
           }
@@ -1207,7 +1207,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       Array<bool> modified_verts(ss.totvert, false);
       restore_color(object, step_data, modified_verts);
       node_mask.foreach_index([&](const int i) {
-        if (indices_contain_true(modified_verts, bke::pbvh::node_verts(nodes[i]))) {
+        if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
           BKE_pbvh_node_mark_update_color(nodes[i]);
         }
       });
@@ -1280,7 +1280,7 @@ static void store_vert_visibility_grids(const SubdivCCG &subdiv_ccg,
     return;
   }
 
-  const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
+  const Span<int> grid_indices = node.grids();
   unode.grid_hidden = BitGroupVector<0>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode.grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
@@ -1343,7 +1343,7 @@ static void store_vert_visibility_mesh(const Mesh &mesh, const bke::pbvh::Node &
     return;
   }
 
-  const Span<int> verts = bke::pbvh::node_verts(static_cast<const bke::pbvh::MeshNode &>(node));
+  const Span<int> verts = static_cast<const bke::pbvh::MeshNode &>(node).all_verts();
   for (const int i : verts.index_range()) {
     unode.vert_hidden[i].set(hide_vert[verts[i]]);
   }
@@ -1403,13 +1403,13 @@ static void store_color(const Mesh &mesh, const bke::pbvh::MeshNode &node, Node 
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   unode.col.reinitialize(verts.size());
   color::gather_colors_vert(
       faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, verts, unode.col);
 
   if (color_attribute.domain == bke::AttrDomain::Corner) {
-    for (const int face : bke::pbvh::node_faces(node)) {
+    for (const int face : node.faces()) {
       for (const int corner : faces[face]) {
         unode.corner_indices.append(corner);
       }
@@ -1460,14 +1460,14 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  unode.vert_indices = bke::pbvh::node_verts(node);
-  unode.unique_verts_num = bke::pbvh::node_unique_verts(node).size();
+  unode.vert_indices = node.all_verts();
+  unode.unique_verts_num = node.verts().size();
 
   const int verts_num = unode.vert_indices.size();
 
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
   if (need_faces) {
-    unode.face_indices = bke::pbvh::node_faces(node);
+    unode.face_indices = node.faces();
   }
 
   switch (type) {
@@ -1530,7 +1530,7 @@ static void fill_node_data_grids(const Object &object,
   const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
-  unode.grids = bke::pbvh::node_grid_indices(node);
+  unode.grids = node.grids();
 
   const int grid_area = subdiv_ccg.grid_size * subdiv_ccg.grid_size;
   const int verts_num = unode.grids.size() * grid_area;

@@ -1462,7 +1462,7 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
   const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   node_mask.foreach_index([&](const int i) {
-    for (const int vert : bke::pbvh::node_unique_verts(nodes[i])) {
+    for (const int vert : nodes[i].verts()) {
       color::color_vert_set(faces,
                             corner_verts,
                             vert_to_face_map,
@@ -1612,7 +1612,7 @@ static void update_mask_grids(const SculptSession &ss,
   const Span<CCGElem *> elems = subdiv_ccg.grids;
 
   bool any_changed = false;
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
     const int start = grid * key.grid_area;
@@ -1755,7 +1755,7 @@ static void colors_update_task(const Depsgraph &depsgraph,
   const BitVector<> enabled_verts = enabled_state_to_bitmap(depsgraph, object, expand_cache);
 
   bool any_changed = false;
-  const Span<int> verts = bke::pbvh::node_unique_verts(*node);
+  const Span<int> verts = node->verts();
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     if (!hide_vert.is_empty() && hide_vert[vert]) {

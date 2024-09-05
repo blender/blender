@@ -553,7 +553,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
       uninitialized_nodes.foreach_index([&](const int i) {
         const Span<int> verts = calc_visible_vert_indices_grids(
-            key, grid_hidden, bke::pbvh::node_grid_indices(nodes[i]), vert_indices);
+            key, grid_hidden, nodes[i].grids(), vert_indices);
         vert_neighbors.resize(verts.size());
         calc_vert_neighbor_indices_grids(subdiv_ccg, verts, vert_neighbors);
         add_constraints_for_verts(object,
@@ -738,7 +738,7 @@ static void calc_forces_mesh(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(positions_eval, verts, tls.positions);
   const MutableSpan init_positions = gather_data_mesh(
       cloth_sim.init_pos.as_span(), verts, tls.init_positions);
@@ -846,7 +846,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const MutableSpan positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
   const MutableSpan init_positions = gather_data_grids(
       subdiv_ccg, cloth_sim.init_pos.as_span(), grids, tls.init_positions);
@@ -1242,7 +1242,7 @@ static void calc_constraint_factors(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
           fill_factor_from_hide_and_mask(mesh, verts, factors);
@@ -1264,7 +1264,7 @@ static void calc_constraint_factors(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const int grid_verts_num = grids.size() * key.grid_area;
           tls.factors.resize(grid_verts_num);
           const MutableSpan<float> factors = tls.factors;
@@ -1409,7 +1409,7 @@ void do_simulation_step(const Depsgraph &depsgraph,
       threading::parallel_for(active_nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         active_nodes.slice(range).foreach_index([&](const int i) {
-          const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+          const Span<int> verts = nodes[i].verts();
 
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
@@ -1446,7 +1446,7 @@ void do_simulation_step(const Depsgraph &depsgraph,
       threading::parallel_for(active_nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         active_nodes.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           const int grid_verts_num = grids.size() * key.grid_area;
 
           tls.factors.resize(grid_verts_num);
@@ -1694,7 +1694,7 @@ static void copy_positions_to_array(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 8, [&](const IndexRange range) {
         Vector<float3> node_positions;
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
           gather_grids_positions(subdiv_ccg, grids, node_positions);
           scatter_data_grids(subdiv_ccg, node_positions.as_span(), grids, positions);
         });
@@ -1726,7 +1726,7 @@ static void copy_normals_to_array(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 8, [&](const IndexRange range) {
         Vector<float3> node_normals;
         node_mask.slice(range).foreach_index([&](const int i) {
-          const Span<int> grids = bke::pbvh::node_grid_indices(nodes[i]);
+          const Span<int> grids = nodes[i].grids();
 
           const int grid_verts_num = grids.size() * key.grid_area;
           node_normals.resize(grid_verts_num);
@@ -2089,7 +2089,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
   SimulationData &cloth_sim = *ss.filter_cache->cloth_sim;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
@@ -2158,7 +2158,7 @@ static void apply_filter_forces_grids(const Depsgraph &depsgraph,
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   tls.factors.resize(grid_verts_num);

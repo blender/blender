@@ -303,7 +303,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
-        const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
+        const Span<int> faces = nodes[i].faces();
 
         tls.new_face_sets.resize(faces.size());
         MutableSpan<int> new_face_sets = tls.new_face_sets;
@@ -366,7 +366,7 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
+      const Span<int> faces = nodes[i].faces();
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
             return face_sets[face] != default_face_set;
           }))
@@ -889,7 +889,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
     threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
       TLS &tls = all_tls.local();
       node_mask.slice(range).foreach_index([&](const int i) {
-        const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
+        const Span<int> faces = nodes[i].faces();
 
         tls.new_hide.resize(faces.size());
         MutableSpan<bool> new_hide = tls.new_hide;
@@ -1364,7 +1364,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      const Span<int> verts = bke::pbvh::node_unique_verts(nodes[i]);
+      const Span<int> verts = nodes[i].verts();
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       for (const int i : verts.index_range()) {
@@ -1654,7 +1654,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
       undo::push_node(depsgraph, *gesture_data.vc.obact, &nodes[i], undo::Type::FaceSet);
       bool any_updated = false;
-      for (const int face : bke::pbvh::node_faces(nodes[i])) {
+      for (const int face : nodes[i].faces()) {
         if (!hide_poly.is_empty() && hide_poly[face]) {
           continue;
         }

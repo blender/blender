@@ -114,7 +114,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
   const StrokeCache &cache = *ss.cache;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, positions_eval, verts, factors);
@@ -194,7 +194,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
         ss.face_sets,
         hide_poly,
         relax_face_sets,
-        bke::pbvh::node_unique_verts(nodes[i]),
+        nodes[i].verts(),
         factors.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
@@ -204,7 +204,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
     apply_positions_faces(depsgraph,
                           sd,
                           positions_eval,
-                          bke::pbvh::node_unique_verts(nodes[i]),
+                          nodes[i].verts(),
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           positions_orig);
@@ -228,7 +228,7 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
@@ -314,7 +314,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
         ss.face_sets,
         ss.vert_to_face_map,
         ss.vertex_info.boundary,
-        bke::pbvh::node_grid_indices(nodes[i]),
+        nodes[i].grids(),
         relax_face_sets,
         factors.as_span().slice(node_vert_offsets[pos]),
         current_positions.as_span().slice(node_vert_offsets[pos]),
@@ -324,7 +324,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     apply_positions_grids(sd,
-                          bke::pbvh::node_grid_indices(nodes[i]),
+                          nodes[i].grids(),
                           object,
                           current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
                           translations.as_mutable_span().slice(node_vert_offsets[pos]));
@@ -439,7 +439,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_faces(const Depsgraph &deps
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
-  const Span<int> verts = bke::pbvh::node_unique_verts(node);
+  const Span<int> verts = node.verts();
 
   fill_factor_from_hide_and_mask(mesh, verts, factors);
   filter_region_clip_factors(ss, orig_data.positions, factors);
@@ -512,7 +512,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
         ss.face_sets,
         hide_poly,
         false,
-        bke::pbvh::node_unique_verts(nodes[i]),
+        nodes[i].verts(),
         factors.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
@@ -522,7 +522,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
     apply_positions_faces(depsgraph,
                           sd,
                           positions_eval,
-                          bke::pbvh::node_unique_verts(nodes[i]),
+                          nodes[i].verts(),
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           positions_orig);
@@ -543,7 +543,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &deps
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  const Span<int> grids = bke::pbvh::node_grid_indices(node);
+  const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
   gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
@@ -619,7 +619,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
         ss.face_sets,
         ss.vert_to_face_map,
         ss.vertex_info.boundary,
-        bke::pbvh::node_grid_indices(nodes[i]),
+        nodes[i].grids(),
         false,
         factors.as_span().slice(node_vert_offsets[pos]),
         current_positions.as_span().slice(node_vert_offsets[pos]),
@@ -629,7 +629,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     apply_positions_grids(sd,
-                          bke::pbvh::node_grid_indices(nodes[i]),
+                          nodes[i].grids(),
                           object,
                           current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
                           translations.as_mutable_span().slice(node_vert_offsets[pos]));
