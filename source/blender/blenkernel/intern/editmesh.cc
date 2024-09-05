@@ -187,6 +187,10 @@ Span<float3> BKE_editmesh_vert_coords_when_deformed(
            (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH))
   {
     /* If this is an edit-mesh type, leave nullptr as we can use the vertex coords. */
+
+    /* If this is not empty, it's value should be assigned to `vert_positions`
+     * however the `mesh_cage` check above should handle this case. */
+    BLI_assert(BKE_mesh_wrapper_vert_coords(mesh_cage).is_empty());
   }
   else {
     /* Constructive modifiers have been used, we need to allocate coordinates. */
