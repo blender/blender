@@ -858,6 +858,7 @@ static void editbmesh_calc_modifiers(Depsgraph &depsgraph,
       if (mesh_cage->runtime->edit_mesh) {
         mesh->runtime->edit_mesh = mesh_cage->runtime->edit_mesh;
         mesh->runtime->is_original_bmesh = true;
+        mesh->runtime->deformed_only = mesh_cage->runtime->deformed_only;
         if (mesh_cage->runtime->edit_data) {
           mesh->runtime->edit_data = std::make_unique<EditMeshData>(
               *mesh_cage->runtime->edit_data);
