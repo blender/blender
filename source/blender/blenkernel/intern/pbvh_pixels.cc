@@ -163,44 +163,46 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     tile_data.tile_number = image_tile.get_tile_number();
     float2 tile_offset = float2(image_tile.get_tile_offset());
 
-    for (const int geom_prim_index : node.prim_indices_) {
-      for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[geom_prim_index]) {
-        uv_islands::UVBorder uv_border = entry.uv_primitive->extract_border();
-        float2 uvs[3] = {
-            entry.uv_primitive->get_uv_vertex(mesh_data, 0)->uv - tile_offset,
-            entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
-            entry.uv_primitive->get_uv_vertex(mesh_data, 2)->uv - tile_offset,
-        };
-        const float minv = clamp_f(min_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
-        const int miny = floor(minv * image_buffer->y);
-        const float maxv = clamp_f(max_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
-        const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
-        const float minu = clamp_f(min_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
-        const int minx = floor(minu * image_buffer->x);
-        const float maxu = clamp_f(max_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
-        const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
+    for (const int face : node_faces(node)) {
+      for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
+        for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
+          uv_islands::UVBorder uv_border = entry.uv_primitive->extract_border();
+          float2 uvs[3] = {
+              entry.uv_primitive->get_uv_vertex(mesh_data, 0)->uv - tile_offset,
+              entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
+              entry.uv_primitive->get_uv_vertex(mesh_data, 2)->uv - tile_offset,
+          };
+          const float minv = clamp_f(min_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const int miny = floor(minv * image_buffer->y);
+          const float maxv = clamp_f(max_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
+          const float minu = clamp_f(min_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const int minx = floor(minu * image_buffer->x);
+          const float maxu = clamp_f(max_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
-        /* TODO: Perform bounds check */
-        int uv_prim_index = node_data->uv_primitives.size();
-        node_data->uv_primitives.append(geom_prim_index);
-        UVPrimitivePaintInput &paint_input = node_data->uv_primitives.last();
+          /* TODO: Perform bounds check */
+          int uv_prim_index = node_data->uv_primitives.size();
+          node_data->uv_primitives.append(tri);
+          UVPrimitivePaintInput &paint_input = node_data->uv_primitives.last();
 
-        /* Calculate barycentric delta */
-        paint_input.delta_barycentric_coord_u = calc_barycentric_delta_x(
-            image_buffer, uvs, minx, miny);
+          /* Calculate barycentric delta */
+          paint_input.delta_barycentric_coord_u = calc_barycentric_delta_x(
+              image_buffer, uvs, minx, miny);
 
-        /* Extract the pixels. */
-        extract_barycentric_pixels(tile_data,
-                                   image_buffer,
-                                   uv_masks,
-                                   entry.uv_island_index,
-                                   uv_prim_index,
-                                   uvs,
-                                   tile_offset,
-                                   minx,
-                                   miny,
-                                   maxx,
-                                   maxy);
+          /* Extract the pixels. */
+          extract_barycentric_pixels(tile_data,
+                                     image_buffer,
+                                     uv_masks,
+                                     entry.uv_island_index,
+                                     uv_prim_index,
+                                     uvs,
+                                     tile_offset,
+                                     minx,
+                                     miny,
+                                     maxx,
+                                     maxy);
+        }
       }
     }
     BKE_image_release_ibuf(&image, image_buffer, nullptr);
@@ -351,7 +353,8 @@ static bool update_pixels(const Depsgraph &depsgraph,
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, AttrDomain::Corner);
 
-  uv_islands::MeshData mesh_data(mesh.corner_tris(),
+  uv_islands::MeshData mesh_data(mesh.faces(),
+                                 mesh.corner_tris(),
                                  mesh.corner_verts(),
                                  uv_map,
                                  bke::pbvh::vert_positions_eval(depsgraph, object));

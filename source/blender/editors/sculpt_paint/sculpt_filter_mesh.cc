@@ -142,11 +142,6 @@ void cache_init(bContext *C,
   ss.filter_cache->start_filter_strength = start_strength;
   ss.filter_cache->random_seed = rand();
 
-  if (undo_type == undo::Type::Color) {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-    BKE_pbvh_ensure_node_face_corners(pbvh, mesh.corner_tris());
-  }
-
   ss.filter_cache->node_mask = bke::pbvh::search_nodes(
       pbvh, ss.filter_cache->node_mask_memory, [&](const bke::pbvh::Node &node) {
         return !node_fully_masked_or_hidden(node);

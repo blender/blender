@@ -28,6 +28,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
@@ -110,6 +111,7 @@ class TriangleToEdgeMap {
  */
 struct MeshData {
  public:
+  OffsetIndices<int> faces;
   Span<int3> corner_tris;
   Span<int> corner_verts;
   Span<float2> uv_map;
@@ -131,7 +133,8 @@ struct MeshData {
   int64_t uv_island_len;
 
  public:
-  explicit MeshData(Span<int3> corner_tris,
+  explicit MeshData(OffsetIndices<int> faces,
+                    Span<int3> corner_tris,
                     Span<int> corner_verts,
                     Span<float2> uv_map,
                     Span<float3> vert_positions);

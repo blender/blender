@@ -147,7 +147,10 @@ struct Node {
   Array<int, 0> vert_indices;
   int unique_verts_num;
 
-  Array<int, 0> corner_indices;
+  /**
+   * \todo Storing corners rather than faces is unnecessary.
+   */
+  Vector<int, 0> corner_indices;
 
   BitVector<0> vert_hidden;
   BitVector<0> face_hidden;
@@ -954,7 +957,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   if (step_data.object_name != object.id.name) {
     return;
   }
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
   SculptSession &ss = *object.sculpt;
 
   /* Restore pivot. */
@@ -1106,12 +1108,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
-        const Span<int> tri_faces = mesh.corner_tri_faces();
-        Vector<int> faces_vector;
         node_mask.foreach_index([&](const int i) {
-          faces_vector.clear();
-          const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
-              tri_faces, static_cast<bke::pbvh::MeshNode &>(nodes[i]), faces_vector);
+          const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_visibility(nodes[i]);
           }
@@ -1187,12 +1185,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = ss.pbvh->nodes<bke::pbvh::MeshNode>();
-        const Span<int> tri_faces = mesh.corner_tri_faces();
-        Vector<int> faces_vector;
         node_mask.foreach_index([&](const int i) {
-          faces_vector.clear();
-          const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
-              tri_faces, static_cast<bke::pbvh::MeshNode &>(nodes[i]), faces_vector);
+          const Span<int> faces = bke::pbvh::node_faces(nodes[i]);
           if (indices_contain_true(modified_faces, faces)) {
             BKE_pbvh_node_mark_update_face_sets(nodes[i]);
           }
@@ -1399,7 +1393,7 @@ static void store_mask_grids(const SubdivCCG &subdiv_ccg, Node &unode)
   }
 }
 
-static void store_color(const Mesh &mesh, const bke::pbvh::Node &node, Node &unode)
+static void store_color(const Mesh &mesh, const bke::pbvh::MeshNode &node, Node &unode)
 {
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1409,14 +1403,17 @@ static void store_color(const Mesh &mesh, const bke::pbvh::Node &node, Node &uno
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  const Span<int> verts = bke::pbvh::node_unique_verts(
-      static_cast<const bke::pbvh::MeshNode &>(node));
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
   unode.col.reinitialize(verts.size());
   color::gather_colors_vert(
       faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, verts, unode.col);
 
   if (color_attribute.domain == bke::AttrDomain::Corner) {
-    unode.corner_indices = bke::pbvh::node_corners(static_cast<const bke::pbvh::MeshNode &>(node));
+    for (const int face : bke::pbvh::node_faces(node)) {
+      for (const int corner : faces[face]) {
+        unode.corner_indices.append(corner);
+      }
+    }
     unode.loop_col.reinitialize(unode.corner_indices.size());
     color::gather_colors(colors, unode.corner_indices, unode.loop_col);
   }
@@ -1468,14 +1465,9 @@ static void fill_node_data_mesh(const Depsgraph &depsgraph,
 
   const int verts_num = unode.vert_indices.size();
 
-  const bool need_loops = type == Type::Color;
-  if (need_loops) {
-    unode.corner_indices = bke::pbvh::node_corners(node);
-  }
-
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
   if (need_faces) {
-    bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), node, unode.face_indices);
+    unode.face_indices = bke::pbvh::node_faces(node);
   }
 
   switch (type) {

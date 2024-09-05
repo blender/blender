@@ -198,11 +198,13 @@ static void mesh_data_init(MeshData &mesh_data)
   mesh_data.uv_island_len = mesh_data_init_primitive_uv_island_ids(mesh_data);
 }
 
-MeshData::MeshData(const Span<int3> corner_tris,
+MeshData::MeshData(const OffsetIndices<int> faces,
+                   const Span<int3> corner_tris,
                    const Span<int> corner_verts,
                    const Span<float2> uv_map,
                    const Span<float3> vert_positions)
-    : corner_tris(corner_tris),
+    : faces(faces),
+      corner_tris(corner_tris),
       corner_verts(corner_verts),
       uv_map(uv_map),
       vert_positions(vert_positions),
