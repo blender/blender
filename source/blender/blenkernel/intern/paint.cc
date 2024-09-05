@@ -2114,47 +2114,51 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
   using namespace blender;
   /* Update before mesh evaluation in the dependency graph. */
   SculptSession *ss = ob_eval->sculpt;
+  if (!ss) {
+    return;
+  }
+  if (ss->building_vp_handle) {
+    return;
+  }
 
-  if (ss && ss->building_vp_handle == false) {
-    if (!ss->cache && !ss->filter_cache && !ss->expand_cache) {
-      /* Avoid performing the following normal update for Multires, as it causes race conditions
-       * and other intermittent crashes with shared meshes.
-       * See !125268 and #125157 for more information. */
-      if (ss->pbvh && ss->pbvh->type() != blender::bke::pbvh::Type::Grids) {
-        /* pbvh::Tree nodes may contain dirty normal tags. To avoid losing that information when
-         * the pbvh::Tree is deleted, make sure all tagged geometry normals are up to date.
-         * See #122947 for more information. */
-        blender::bke::pbvh::update_normals_from_eval(*ob_eval, *ss->pbvh);
-      }
-      /* We free pbvh on changes, except in the middle of drawing a stroke
-       * since it can't deal with changing PVBH node organization, we hope
-       * topology does not change in the meantime .. weak. */
-      BKE_sculptsession_free_pbvh(ss);
-
-      BKE_sculptsession_free_deformMats(ob_eval->sculpt);
-
-      /* In vertex/weight paint, force maps to be rebuilt. */
-      BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
+  if (!ss->cache && !ss->filter_cache && !ss->expand_cache) {
+    /* Avoid performing the following normal update for Multires, as it causes race conditions
+     * and other intermittent crashes with shared meshes.
+     * See !125268 and #125157 for more information. */
+    if (ss->pbvh && ss->pbvh->type() != blender::bke::pbvh::Type::Grids) {
+      /* pbvh::Tree nodes may contain dirty normal tags. To avoid losing that information when
+       * the pbvh::Tree is deleted, make sure all tagged geometry normals are up to date.
+       * See #122947 for more information. */
+      blender::bke::pbvh::update_normals_from_eval(*ob_eval, *ss->pbvh);
     }
-    else if (ss->pbvh) {
-      IndexMaskMemory memory;
-      const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss->pbvh, memory);
-      switch (ss->pbvh->type()) {
-        case bke::pbvh::Type::Mesh: {
-          MutableSpan<bke::pbvh::MeshNode> nodes = ss->pbvh->nodes<bke::pbvh::MeshNode>();
-          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-          break;
-        }
-        case bke::pbvh::Type::Grids: {
-          MutableSpan<bke::pbvh::GridsNode> nodes = ss->pbvh->nodes<bke::pbvh::GridsNode>();
-          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-          break;
-        }
-        case bke::pbvh::Type::BMesh: {
-          MutableSpan<bke::pbvh::BMeshNode> nodes = ss->pbvh->nodes<bke::pbvh::BMeshNode>();
-          node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-          break;
-        }
+    /* We free pbvh on changes, except in the middle of drawing a stroke
+     * since it can't deal with changing PVBH node organization, we hope
+     * topology does not change in the meantime .. weak. */
+    BKE_sculptsession_free_pbvh(ss);
+
+    BKE_sculptsession_free_deformMats(ob_eval->sculpt);
+
+    /* In vertex/weight paint, force maps to be rebuilt. */
+    BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
+  }
+  else if (ss->pbvh) {
+    IndexMaskMemory memory;
+    const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*ss->pbvh, memory);
+    switch (ss->pbvh->type()) {
+      case bke::pbvh::Type::Mesh: {
+        MutableSpan<bke::pbvh::MeshNode> nodes = ss->pbvh->nodes<bke::pbvh::MeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        MutableSpan<bke::pbvh::GridsNode> nodes = ss->pbvh->nodes<bke::pbvh::GridsNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        MutableSpan<bke::pbvh::BMeshNode> nodes = ss->pbvh->nodes<bke::pbvh::BMeshNode>();
+        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+        break;
       }
     }
   }
