@@ -49,13 +49,14 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         self.excluded_dirs = ()
 
         if platform.system() == "Darwin":
-            self.excluded_dirs = (
-                *self.excluded_dirs,
-                # The assert in `BKE_libblock_alloc_in_lib` often fails:
-                # `BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT))`.
-                # This needs to be investigated.
-                "io_tests/blend_big_endian/",
-            )
+            if platform.machine() == "x86_64":
+                self.excluded_dirs = (
+                    *self.excluded_dirs,
+                    # The assert in `BKE_libblock_alloc_in_lib` often fails:
+                    # `BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT))`.
+                    # This needs to be investigated.
+                    "io_tests/blend_big_endian/",
+                )
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
         self.excluded_dirs = tuple(p.replace("/", os.sep) for p in self.excluded_dirs)
