@@ -209,11 +209,10 @@ int curve_merge_by_distance(const IndexRange points,
 }
 
 /* NOTE: The code here is an adapted version of #blender::geometry::point_merge_by_distance. */
-blender::bke::CurvesGeometry curves_merge_by_distance(
-    const bke::CurvesGeometry &src_curves,
-    const float merge_distance,
-    const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+blender::bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curves,
+                                                      const float merge_distance,
+                                                      const IndexMask &selection,
+                                                      const bke::AttributeFilter &attribute_filter)
 {
   const int src_point_size = src_curves.points_num();
   if (src_point_size == 0) {
@@ -304,7 +303,7 @@ blender::bke::CurvesGeometry curves_merge_by_distance(
   bke::AttributeAccessor src_attributes = src_curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   src_attributes.for_all([&](const StringRef id, const bke::AttributeMetaData &meta_data) {
-    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+    if (attribute_filter.allow_skip(id)) {
       return true;
     }
     if (meta_data.domain != bke::AttrDomain::Point) {
@@ -350,7 +349,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
     const float4x4 &layer_to_world,
     const float merge_distance,
     const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+    const bke::AttributeFilter &attribute_filter)
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const Span<float3> src_positions = src_curves.positions();
@@ -433,7 +432,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
   BLI_kdtree_2d_free(tree);
 
   return geometry::curves_merge_endpoints(
-      src_curves, connect_to_curve, flip_direction, propagation_info);
+      src_curves, connect_to_curve, flip_direction, attribute_filter);
 }
 
 /* Generate points in an counter-clockwise arc between two directions. */
@@ -807,14 +806,12 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
 
   bke::gather_attributes(src_attributes,
                          bke::AttrDomain::Point,
-                         {},
-                         {"position", "radius"},
+                         bke::attribute_filter_from_skip_ref({"position", "radius"}),
                          dst_point_map,
                          dst_attributes);
   bke::gather_attributes(src_attributes,
                          bke::AttrDomain::Curve,
-                         {},
-                         {"cyclic", "material_index"},
+                         bke::attribute_filter_from_skip_ref({"cyclic", "material_index"}),
                          dst_curve_map,
                          dst_attributes);
 

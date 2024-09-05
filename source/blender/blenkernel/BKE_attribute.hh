@@ -16,6 +16,7 @@
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.h"
+#include "BKE_attribute_filters.hh"
 
 struct Mesh;
 struct PointCloud;
@@ -47,18 +48,6 @@ enum class AttrDomain : int8_t {
   Layer = 6,
 };
 #define ATTR_DOMAIN_NUM 7
-
-/**
- * Checks if the attribute name has the `.a_` prefix which indicates that it is an anonymous
- * attribute. I.e. it is just internally used by Blender and the name should not be exposed to the
- * user.
- *
- * Use #hash_to_anonymous_attribute_name to generate names for anonymous attributes.
- */
-inline bool attribute_name_is_anonymous(const StringRef name)
-{
-  return name.startswith(".a_");
-}
 
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
@@ -813,8 +802,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes,
     AttrDomainMask domain_mask,
-    const AnonymousAttributePropagationInfo &propagation_info,
-    const Set<std::string> &skip = {});
+    const AttributeFilter &attribute_filter = {});
 
 bool allow_procedural_attribute_access(StringRef attribute_name);
 extern const char *no_procedural_access_message;
@@ -828,8 +816,7 @@ AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains);
 
 void gather_attributes(AttributeAccessor src_attributes,
                        AttrDomain domain,
-                       const AnonymousAttributePropagationInfo &propagation_info,
-                       const Set<std::string> &skip,
+                       const AttributeFilter &attribute_filter,
                        const IndexMask &selection,
                        MutableAttributeAccessor dst_attributes);
 
@@ -838,8 +825,7 @@ void gather_attributes(AttributeAccessor src_attributes,
  */
 void gather_attributes(AttributeAccessor src_attributes,
                        AttrDomain domain,
-                       const AnonymousAttributePropagationInfo &propagation_info,
-                       const Set<std::string> &skip,
+                       const AttributeFilter &attribute_filter,
                        Span<int> indices,
                        MutableAttributeAccessor dst_attributes);
 
@@ -850,8 +836,7 @@ void gather_attributes(AttributeAccessor src_attributes,
  */
 void gather_attributes_group_to_group(AttributeAccessor src_attributes,
                                       AttrDomain domain,
-                                      const AnonymousAttributePropagationInfo &propagation_info,
-                                      const Set<std::string> &skip,
+                                      const AttributeFilter &attribute_filter,
                                       OffsetIndices<int> src_offsets,
                                       OffsetIndices<int> dst_offsets,
                                       const IndexMask &selection,
@@ -859,22 +844,19 @@ void gather_attributes_group_to_group(AttributeAccessor src_attributes,
 
 void gather_attributes_to_groups(AttributeAccessor src_attributes,
                                  AttrDomain domain,
-                                 const AnonymousAttributePropagationInfo &propagation_info,
-                                 const Set<std::string> &skip,
+                                 const AttributeFilter &attribute_filter,
                                  OffsetIndices<int> dst_offsets,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes);
 
 void copy_attributes(const AttributeAccessor src_attributes,
                      const AttrDomain domain,
-                     const AnonymousAttributePropagationInfo &propagation_info,
-                     const Set<std::string> &skip,
+                     const AttributeFilter &attribute_filter,
                      MutableAttributeAccessor dst_attributes);
 
 void copy_attributes_group_to_group(AttributeAccessor src_attributes,
                                     AttrDomain domain,
-                                    const AnonymousAttributePropagationInfo &propagation_info,
-                                    const Set<std::string> &skip,
+                                    const AttributeFilter &attribute_filter,
                                     OffsetIndices<int> src_offsets,
                                     OffsetIndices<int> dst_offsets,
                                     const IndexMask &selection,
@@ -882,7 +864,7 @@ void copy_attributes_group_to_group(AttributeAccessor src_attributes,
 
 void fill_attribute_range_default(MutableAttributeAccessor dst_attributes,
                                   AttrDomain domain,
-                                  const Set<std::string> &skip,
+                                  const AttributeFilter &attribute_filter,
                                   IndexRange range);
 
 }  // namespace blender::bke

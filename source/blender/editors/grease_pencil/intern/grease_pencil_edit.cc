@@ -434,13 +434,15 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
   const bke::AttributeAccessor src_attributes = curves.attributes();
 
   /* Transfer curve attributes. */
-  gather_attributes(
-      src_attributes, bke::AttrDomain::Curve, {}, {"cyclic"}, dst_to_src_curve, dst_attributes);
+  gather_attributes(src_attributes,
+                    bke::AttrDomain::Curve,
+                    bke::attribute_filter_from_skip_ref({"cyclic"}),
+                    dst_to_src_curve,
+                    dst_attributes);
   array_utils::copy(dst_cyclic.as_span(), dst_curves.cyclic_for_write());
 
   /* Transfer point attributes. */
-  gather_attributes(
-      src_attributes, bke::AttrDomain::Point, {}, {}, dst_to_src_point, dst_attributes);
+  gather_attributes(src_attributes, bke::AttrDomain::Point, {}, dst_to_src_point, dst_attributes);
 
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
@@ -1511,7 +1513,7 @@ static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
       vcuts = VArray<int>::ForContainer(std::move(use_cuts));
     }
 
-    curves = geometry::subdivide_curves(curves, strokes, vcuts, {});
+    curves = geometry::subdivide_curves(curves, strokes, vcuts);
     info.drawing.tag_topology_changed();
     changed.store(true, std::memory_order_relaxed);
   });
@@ -1904,7 +1906,6 @@ static bke::greasepencil::Layer &find_or_create_layer_in_dst_by_name(
   /* Transfer Layer attributes. */
   bke::gather_attributes(grease_pencil_src.attributes(),
                          bke::AttrDomain::Layer,
-                         {},
                          {},
                          Span({layer_index}),
                          grease_pencil_dst.attributes_for_write());
@@ -2657,10 +2658,10 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
 
   bke::gather_attributes(
-      src_attributes, bke::AttrDomain::Curve, {}, {}, dst_to_src_curves, dst_attributes);
+      src_attributes, bke::AttrDomain::Curve, {}, dst_to_src_curves, dst_attributes);
 
   bke::gather_attributes(
-      src_attributes, bke::AttrDomain::Point, {}, {}, dst_to_src_points, dst_attributes);
+      src_attributes, bke::AttrDomain::Point, {}, dst_to_src_points, dst_attributes);
 
   /* Selection attribute. */
   const std::string &selection_attr_name = ".selection";

@@ -29,7 +29,6 @@ struct BlendDataReader;
 struct BlendWriter;
 struct MDeformVert;
 namespace blender::bke {
-class AnonymousAttributePropagationInfo;
 class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
@@ -395,10 +394,8 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void calculate_bezier_auto_handles();
 
-  void remove_points(const IndexMask &points_to_delete,
-                     const AnonymousAttributePropagationInfo &propagation_info);
-  void remove_curves(const IndexMask &curves_to_delete,
-                     const AnonymousAttributePropagationInfo &propagation_info);
+  void remove_points(const IndexMask &points_to_delete, const AttributeFilter &attribute_filter);
+  void remove_curves(const IndexMask &curves_to_delete, const AttributeFilter &attribute_filter);
 
   /**
    * Change the direction of selected curves (switch the start and end) without changing their
@@ -854,15 +851,13 @@ Curves *curves_new_nomain_single(int points_num, CurveType type);
  */
 void curves_copy_parameters(const Curves &src, Curves &dst);
 
-CurvesGeometry curves_copy_point_selection(
-    const CurvesGeometry &curves,
-    const IndexMask &points_to_copy,
-    const AnonymousAttributePropagationInfo &propagation_info);
+CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
+                                           const IndexMask &points_to_copy,
+                                           const AttributeFilter &attribute_filter);
 
-CurvesGeometry curves_copy_curve_selection(
-    const CurvesGeometry &curves,
-    const IndexMask &curves_to_copy,
-    const AnonymousAttributePropagationInfo &propagation_info);
+CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
+                                           const IndexMask &curves_to_copy,
+                                           const AttributeFilter &attribute_filter);
 
 std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types);
 

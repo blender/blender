@@ -54,42 +54,41 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
 
-  auto separate_geometry_maybe_recursively =
-      [&](GeometrySet &geometry_set,
-          const Field<bool> &selection,
-          const AnonymousAttributePropagationInfo &propagation_info) {
-        bool is_error;
-        if (domain == AttrDomain::Instance) {
-          /* Only delete top level instances. */
-          geometry::separate_geometry(geometry_set,
-                                      domain,
-                                      GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                                      selection,
-                                      propagation_info,
-                                      is_error);
-        }
-        else {
-          geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-            geometry::separate_geometry(geometry_set,
-                                        domain,
-                                        GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                                        selection,
-                                        propagation_info,
-                                        is_error);
-          });
-        }
-      };
+  auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set,
+                                                 const Field<bool> &selection,
+                                                 const AttributeFilter &attribute_filter) {
+    bool is_error;
+    if (domain == AttrDomain::Instance) {
+      /* Only delete top level instances. */
+      geometry::separate_geometry(geometry_set,
+                                  domain,
+                                  GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
+                                  selection,
+                                  attribute_filter,
+                                  is_error);
+    }
+    else {
+      geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+        geometry::separate_geometry(geometry_set,
+                                    domain,
+                                    GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
+                                    selection,
+                                    attribute_filter,
+                                    is_error);
+      });
+    }
+  };
 
   GeometrySet second_set(geometry_set);
   if (params.output_is_required("Selection")) {
     separate_geometry_maybe_recursively(
-        geometry_set, selection_field, params.get_output_propagation_info("Selection"));
+        geometry_set, selection_field, params.get_attribute_filter("Selection"));
     params.set_output("Selection", std::move(geometry_set));
   }
   if (params.output_is_required("Inverted")) {
     separate_geometry_maybe_recursively(second_set,
                                         fn::invert_boolean_field(selection_field),
-                                        params.get_output_propagation_info("Inverted"));
+                                        params.get_attribute_filter("Inverted"));
     params.set_output("Inverted", std::move(second_set));
   }
 }

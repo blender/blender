@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static Curves *subdivide_curves(const Curves &src_curves_id,
                                 Field<int> &cuts_field,
-                                const AnonymousAttributePropagationInfo &propagation_info)
+                                const bke::AttributeFilter &attribute_filter)
 {
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
@@ -39,17 +39,16 @@ static Curves *subdivide_curves(const Curves &src_curves_id,
   }
 
   bke::CurvesGeometry dst_curves = geometry::subdivide_curves(
-      src_curves, src_curves.curves_range(), cuts, propagation_info);
+      src_curves, src_curves.curves_range(), cuts, attribute_filter);
 
   Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
   return dst_curves_id;
 }
 
-static void subdivide_grease_pencil_curves(
-    GreasePencil &grease_pencil,
-    Field<int> &cuts_field,
-    const AnonymousAttributePropagationInfo &propagation_info)
+static void subdivide_grease_pencil_curves(GreasePencil &grease_pencil,
+                                           Field<int> &cuts_field,
+                                           const AttributeFilter &attribute_filter)
 {
   using namespace bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
@@ -73,7 +72,7 @@ static void subdivide_grease_pencil_curves(
     }
 
     bke::CurvesGeometry dst_curves = geometry::subdivide_curves(
-        src_curves, src_curves.curves_range(), cuts, propagation_info);
+        src_curves, src_curves.curves_range(), cuts, attribute_filter);
 
     drawing->strokes_for_write() = std::move(dst_curves);
     drawing->tag_topology_changed();
@@ -86,20 +85,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> cuts_field = params.extract_input<Field<int>>("Cuts");
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Curve");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
       const Curves &src_curves_id = *geometry_set.get_curves();
-      Curves *dst_curves_id = subdivide_curves(src_curves_id, cuts_field, propagation_info);
+      Curves *dst_curves_id = subdivide_curves(src_curves_id, cuts_field, attribute_filter);
       if (dst_curves_id) {
         geometry_set.replace_curves(dst_curves_id);
       }
     }
     if (geometry_set.has_grease_pencil()) {
       GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
-      subdivide_grease_pencil_curves(grease_pencil, cuts_field, propagation_info);
+      subdivide_grease_pencil_curves(grease_pencil, cuts_field, attribute_filter);
     }
   });
   params.set_output("Curve", geometry_set);

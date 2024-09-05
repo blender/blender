@@ -328,6 +328,8 @@ set(SRC
   BKE_animsys.h
   BKE_anonymous_attribute_id.hh
   BKE_anonymous_attribute_make.hh
+  BKE_attribute_filter.hh
+  BKE_attribute_filters.hh
   BKE_appdir.hh
   BKE_armature.hh
   BKE_asset.hh

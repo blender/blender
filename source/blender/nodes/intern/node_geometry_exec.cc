@@ -243,4 +243,18 @@ void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType 
   }
 }
 
+AttributeFilter::Result NodeAttributeFilter::filter(const StringRef attribute_name) const
+{
+  if (!bke::attribute_name_is_anonymous(attribute_name)) {
+    return AttributeFilter::Result::Process;
+  }
+  if (!set_.names) {
+    return AttributeFilter::Result::AllowSkip;
+  }
+  if (set_.names->contains(attribute_name)) {
+    return AttributeFilter::Result::Process;
+  }
+  return AttributeFilter::Result::AllowSkip;
+}
+
 }  // namespace blender::nodes

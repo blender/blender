@@ -21,10 +21,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 /* One improvement would be to move the attribute arrays directly to the mesh when possible. */
-static void geometry_set_points_to_vertices(
-    GeometrySet &geometry_set,
-    Field<bool> &selection_field,
-    const AnonymousAttributePropagationInfo &propagation_info)
+static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
+                                            Field<bool> &selection_field,
+                                            const AttributeFilter &attribute_filter)
 {
   const PointCloud *points = geometry_set.get_pointcloud();
   if (points == nullptr) {
@@ -46,7 +45,7 @@ static void geometry_set_points_to_vertices(
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::PointCloud},
                                                  GeometryComponent::Type::Mesh,
                                                  false,
-                                                 propagation_info,
+                                                 attribute_filter,
                                                  attributes);
 
   Mesh *mesh;
@@ -94,7 +93,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     geometry_set_points_to_vertices(
-        geometry_set, selection_field, params.get_output_propagation_info("Mesh"));
+        geometry_set, selection_field, params.get_attribute_filter("Mesh"));
   });
 
   params.set_output("Mesh", std::move(geometry_set));

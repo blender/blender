@@ -631,10 +631,10 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
 void GeometrySet::propagate_attributes_from_layer_to_instances(
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes,
-    const AnonymousAttributePropagationInfo &propagation_info)
+    const AttributeFilter &attribute_filter)
 {
   src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+    if (attribute_filter.allow_skip(id)) {
       return true;
     }
     const GAttributeReader src = src_attributes.lookup(id, AttrDomain::Layer);
@@ -659,7 +659,7 @@ void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponent::Type> component_types,
     const GeometryComponent::Type dst_component_type,
     bool include_instances,
-    const AnonymousAttributePropagationInfo &propagation_info,
+    const AttributeFilter &attribute_filter,
     Map<StringRef, AttributeKind> &r_attributes) const
 {
   /* Only needed right now to check if an attribute is built-in on this component type.
@@ -682,9 +682,7 @@ void GeometrySet::gather_attributes_for_propagation(
           /* Propagating string attributes is not supported yet. */
           return;
         }
-        if (bke::attribute_name_is_anonymous(attribute_id) &&
-            !propagation_info.propagate(attribute_id))
-        {
+        if (attribute_filter.allow_skip(attribute_id)) {
           return;
         }
 

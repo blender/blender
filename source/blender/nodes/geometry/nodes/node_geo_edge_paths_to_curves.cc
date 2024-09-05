@@ -20,11 +20,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Curves").propagate_all();
 }
 
-static Curves *edge_paths_to_curves_convert(
-    const Mesh &mesh,
-    const IndexMask &start_verts_mask,
-    const Span<int> next_indices,
-    const AnonymousAttributePropagationInfo &propagation_info)
+static Curves *edge_paths_to_curves_convert(const Mesh &mesh,
+                                            const IndexMask &start_verts_mask,
+                                            const Span<int> next_indices,
+                                            const AttributeFilter &attribute_filter)
 {
   Vector<int> vert_indices;
   Vector<int> curve_offsets;
@@ -63,7 +62,7 @@ static Curves *edge_paths_to_curves_convert(
     return nullptr;
   }
   Curves *curves_id = bke::curves_new_nomain(geometry::create_curve_from_vert_indices(
-      mesh.attributes(), vert_indices, curve_offsets, IndexRange(0), propagation_info));
+      mesh.attributes(), vert_indices, curve_offsets, IndexRange(0), attribute_filter));
   return curves_id;
 }
 
@@ -92,7 +91,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     geometry_set.replace_curves(edge_paths_to_curves_convert(
-        *mesh, start_verts, next_vert, params.get_output_propagation_info("Curves")));
+        *mesh, start_verts, next_vert, params.get_attribute_filter("Curves")));
     geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Instance});
   });
 

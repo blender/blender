@@ -505,14 +505,16 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
 
   /* Initialize the rest of the attributes with default values. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::fill_attribute_range_default(attributes,
-                                    bke::AttrDomain::Point,
-                                    skipped_attribute_ids(ptd, bke::AttrDomain::Point),
-                                    curve_points);
-  bke::fill_attribute_range_default(attributes,
-                                    bke::AttrDomain::Curve,
-                                    skipped_attribute_ids(ptd, bke::AttrDomain::Curve),
-                                    curves.curves_range().take_back(1));
+  bke::fill_attribute_range_default(
+      attributes,
+      bke::AttrDomain::Point,
+      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Point)),
+      curve_points);
+  bke::fill_attribute_range_default(
+      attributes,
+      bke::AttrDomain::Curve,
+      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Curve)),
+      curves.curves_range().take_back(1));
 
   ptd.drawing->tag_topology_changed();
   ptd.drawing->set_texture_matrices({ptd.texture_space},
@@ -567,14 +569,16 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   curves.update_curve_types();
 
   /* Initialize the rest of the attributes with default values. */
-  bke::fill_attribute_range_default(attributes,
-                                    bke::AttrDomain::Point,
-                                    skipped_attribute_ids(ptd, bke::AttrDomain::Point),
-                                    curves.points_range().take_back(1));
-  bke::fill_attribute_range_default(attributes,
-                                    bke::AttrDomain::Curve,
-                                    skipped_attribute_ids(ptd, bke::AttrDomain::Curve),
-                                    curves.curves_range().take_back(1));
+  bke::fill_attribute_range_default(
+      attributes,
+      bke::AttrDomain::Point,
+      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Point)),
+      curves.points_range().take_back(1));
+  bke::fill_attribute_range_default(
+      attributes,
+      bke::AttrDomain::Curve,
+      bke::attribute_filter_from_skip_ref(skipped_attribute_ids(ptd, bke::AttrDomain::Curve)),
+      curves.curves_range().take_back(1));
 
   grease_pencil_primitive_update_curves(ptd);
 }

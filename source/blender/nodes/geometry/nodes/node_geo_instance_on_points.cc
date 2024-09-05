@@ -184,8 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   GeometrySet instance = params.get_input<GeometrySet>("Instance");
   instance.ensure_owns_direct_data();
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Instances");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Instances");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     /* It's important not to invalidate the existing #InstancesComponent because it owns references
@@ -206,7 +205,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.gather_attributes_for_propagation(types,
                                                    GeometryComponent::Type::Instance,
                                                    false,
-                                                   propagation_info,
+                                                   attribute_filter,
                                                    attributes_to_propagate);
     attributes_to_propagate.remove("position");
     attributes_to_propagate.remove(".reference_index");
@@ -258,7 +257,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         GeometrySet::propagate_attributes_from_layer_to_instances(
             geometry_set.get_grease_pencil()->attributes(),
             geometry_set.get_instances_for_write()->attributes_for_write(),
-            propagation_info);
+            attribute_filter);
       }
       geometry_set.replace_grease_pencil(nullptr);
     }

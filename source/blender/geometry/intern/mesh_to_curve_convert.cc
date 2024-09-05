@@ -22,7 +22,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     const Span<int> vert_indices,
     const Span<int> curve_offsets,
     const IndexRange cyclic_curves,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+    const bke::AttributeFilter &attribute_filter)
 {
   bke::CurvesGeometry curves(vert_indices.size(), curve_offsets.size());
   curves.offsets_for_write().drop_back(1).copy_from(curve_offsets);
@@ -42,11 +42,12 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
       skip.add(id);
     }
   }
+  const auto attribute_filter_with_skip = bke::attribute_filter_with_skip_ref(attribute_filter,
+                                                                              skip);
 
   bke::gather_attributes(mesh_attributes,
                          bke::AttrDomain::Point,
-                         propagation_info,
-                         skip,
+                         attribute_filter_with_skip,
                          vert_indices,
                          curves_attributes);
 
@@ -57,10 +58,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
-    if (skip.contains(id)) {
-      return true;
-    }
-    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+    if (attribute_filter_with_skip.allow_skip(id)) {
       return true;
     }
 
@@ -204,30 +202,27 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
 }
 
 BLI_NOINLINE static bke::CurvesGeometry edges_to_curves_convert(
-    const Mesh &mesh,
-    const Span<int2> edges,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+    const Mesh &mesh, const Span<int2> edges, const bke::AttributeFilter &attribute_filter)
 {
   CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.verts_num, edges);
   return create_curve_from_vert_indices(mesh.attributes(),
                                         output.vert_indices,
                                         output.curve_offsets,
                                         output.cyclic_curves,
-                                        propagation_info);
+                                        attribute_filter);
 }
 
-bke::CurvesGeometry mesh_to_curve_convert(
-    const Mesh &mesh,
-    const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh,
+                                          const IndexMask &selection,
+                                          const bke::AttributeFilter &attribute_filter)
 {
   const Span<int2> edges = mesh.edges();
   if (selection.size() == edges.size()) {
-    return edges_to_curves_convert(mesh, edges, propagation_info);
+    return edges_to_curves_convert(mesh, edges, attribute_filter);
   }
   Array<int2> selected_edges(selection.size());
   array_utils::gather(edges, selection, selected_edges.as_mutable_span());
-  return edges_to_curves_convert(mesh, selected_edges, propagation_info);
+  return edges_to_curves_convert(mesh, selected_edges, attribute_filter);
 }
 
 }  // namespace blender::geometry

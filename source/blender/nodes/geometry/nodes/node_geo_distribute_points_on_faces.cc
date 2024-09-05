@@ -558,7 +558,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,
-                                                 params.get_output_propagation_info("Points"),
+                                                 params.get_attribute_filter("Points"),
                                                  attributes);
 
   /* Position is set separately. */

@@ -28,7 +28,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
     const Curves &curves_id,
     const Field<bool> &selection_field,
     const StringRefNull layer_name,
-    const AnonymousAttributePropagationInfo &propagation_info)
+    const AttributeFilter &attribute_filter)
 {
   bke::CurvesGeometry curves = curves_id.geometry.wrap();
 
@@ -39,7 +39,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
   const IndexMask curves_selection = evaluator.get_evaluated_selection_as_mask();
   IndexMaskMemory memory;
   const IndexMask curves_to_delete = curves_selection.complement(curves.curves_range(), memory);
-  curves.remove_curves(curves_to_delete, propagation_info);
+  curves.remove_curves(curves_to_delete, attribute_filter);
 
   GreasePencil *grease_pencil = BKE_grease_pencil_new_nomain();
   bke::greasepencil::Layer &layer = grease_pencil->add_layer(layer_name);
@@ -60,7 +60,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
 static GreasePencil *curve_instances_to_grease_pencil_layers(
     const bke::Instances &instances,
     const Field<bool> &selection_field,
-    const AnonymousAttributePropagationInfo &propagation_info)
+    const AttributeFilter &attribute_filter)
 {
   const Span<int> reference_handles = instances.reference_handles();
   const Span<bke::InstanceReference> references = instances.references();
@@ -139,9 +139,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     if (ELEM(attribute_id, "opacity")) {
       return true;
     }
-    if (bke::attribute_name_is_anonymous(attribute_id) &&
-        !propagation_info.propagate(attribute_id))
-    {
+    if (attribute_filter.allow_skip(attribute_id)) {
       return true;
     }
     const GAttributeReader src_attribute = instances_attributes.lookup(attribute_id);
@@ -190,8 +188,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet curves_geometry = params.extract_input<GeometrySet>("Curves");
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   const bool instances_as_layers = params.extract_input<bool>("Instances as Layers");
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Grease Pencil");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Grease Pencil");
 
   GreasePencil *grease_pencil = nullptr;
   if (instances_as_layers) {
@@ -204,7 +201,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     grease_pencil = curve_instances_to_grease_pencil_layers(
-        *instances, selection_field, propagation_info);
+        *instances, selection_field, attribute_filter);
   }
   else {
     if (curves_geometry.has_instances()) {
@@ -216,7 +213,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     grease_pencil = curves_to_grease_pencil_with_one_layer(
-        *curves_id, selection_field, curves_geometry.name, propagation_info);
+        *curves_id, selection_field, curves_geometry.name, attribute_filter);
   }
 
   GeometrySet grease_pencil_geometry = GeometrySet::from_grease_pencil(grease_pencil);

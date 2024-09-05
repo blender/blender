@@ -25,7 +25,7 @@ struct RealizeInstancesOptions {
    */
   bool realize_instance_attributes = true;
 
-  bke::AnonymousAttributePropagationInfo propagation_info;
+  bke::AttributeFilter attribute_filter = {};
 };
 
 /**

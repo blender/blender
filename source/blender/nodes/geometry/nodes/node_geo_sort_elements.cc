@@ -199,8 +199,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<float> weight_field = params.extract_input<Field<float>>("Sort Weight");
   const bke::AttrDomain domain = bke::AttrDomain(params.node().custom1);
 
-  const bke::AnonymousAttributePropagationInfo propagation_info =
-      params.get_output_propagation_info("Geometry");
+  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry");
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
@@ -216,7 +215,7 @@ static void node_geo_exec(GeoNodeExecParams params)
               weight_field))
       {
         bke::Instances *result = geometry::reorder_instaces(
-            *instances, *indices, propagation_info);
+            *instances, *indices, attribute_filter);
         geometry_set.replace_instances(result);
         has_reorder = true;
       }
@@ -244,7 +243,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         bke::GeometryComponentPtr dst_component = geometry::reordered_component(
-            *src_component, *indices, domain, propagation_info);
+            *src_component, *indices, domain, attribute_filter);
         geometry_set.remove(type);
         geometry_set.add(*dst_component.get());
       }

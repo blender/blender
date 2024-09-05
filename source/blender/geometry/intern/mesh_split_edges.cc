@@ -512,7 +512,7 @@ static Array<int> offsets_to_map(const IndexMask &mask, const OffsetIndices<int>
 
 void split_edges(Mesh &mesh,
                  const IndexMask &selected_edges,
-                 const bke::AnonymousAttributePropagationInfo & /*propagation_info*/)
+                 const bke::AttributeFilter & /*attribute_filter*/)
 {
   const int orig_verts_num = mesh.verts_num;
   const Span<int2> orig_edges = mesh.edges();

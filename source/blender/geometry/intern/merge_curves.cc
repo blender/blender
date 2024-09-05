@@ -167,7 +167,6 @@ static bke::CurvesGeometry reorder_and_flip_curves(const bke::CurvesGeometry &sr
   bke::gather_attributes(src_curves.attributes(),
                          bke::AttrDomain::Curve,
                          {},
-                         {},
                          old_by_new_map,
                          dst_curves.attributes_for_write());
 
@@ -254,8 +253,7 @@ static bke::CurvesGeometry join_curves_ranges(const bke::CurvesGeometry &src_cur
   const Span<int> old_by_new_map = old_curves_by_new.data().drop_back(1);
   bke::gather_attributes(src_curves.attributes(),
                          bke::AttrDomain::Curve,
-                         {},
-                         {"cyclic"},
+                         bke::attribute_filter_from_skip_ref({"cyclic"}),
                          old_by_new_map,
                          dst_curves.attributes_for_write());
 
@@ -272,17 +270,16 @@ static bke::CurvesGeometry join_curves_ranges(const bke::CurvesGeometry &src_cur
 
   /* Point attributes copied without changes. */
   bke::copy_attributes(
-      src_curves.attributes(), bke::AttrDomain::Point, {}, {}, dst_curves.attributes_for_write());
+      src_curves.attributes(), bke::AttrDomain::Point, {}, dst_curves.attributes_for_write());
 
   dst_curves.tag_topology_changed();
   return dst_curves;
 }
 
-bke::CurvesGeometry curves_merge_endpoints(
-    const bke::CurvesGeometry &src_curves,
-    Span<int> connect_to_curve,
-    Span<bool> flip_direction,
-    const bke::AnonymousAttributePropagationInfo & /*propagation_info*/)
+bke::CurvesGeometry curves_merge_endpoints(const bke::CurvesGeometry &src_curves,
+                                           Span<int> connect_to_curve,
+                                           Span<bool> flip_direction,
+                                           const bke::AttributeFilter & /*attribute_filter*/)
 {
   BLI_assert(connect_to_curve.size() == src_curves.curves_num());
   const VArraySpan<bool> src_cyclic = src_curves.cyclic();

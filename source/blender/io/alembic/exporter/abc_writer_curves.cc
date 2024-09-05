@@ -273,10 +273,9 @@ Mesh *ABCCurveMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree
     }
 
     case OB_CURVES:
-      const bke::AnonymousAttributePropagationInfo propagation_info;
       Curves *curves = static_cast<Curves *>(object_eval->data);
       r_needsfree = true;
-      return bke::curve_to_wire_mesh(curves->geometry.wrap(), propagation_info);
+      return bke::curve_to_wire_mesh(curves->geometry.wrap());
   }
 
   return nullptr;

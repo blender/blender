@@ -18,14 +18,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Geometry");
 
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Geometry");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
 
   for (GeometrySet &geometry : geometry_sets) {
     GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry);
   }
 
-  GeometrySet geometry_set_result = geometry::join_geometries(geometry_sets, propagation_info);
+  GeometrySet geometry_set_result = geometry::join_geometries(geometry_sets, attribute_filter);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }

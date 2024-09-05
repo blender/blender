@@ -11,6 +11,7 @@
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_attribute_filter.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
@@ -24,10 +25,10 @@
 
 namespace blender::nodes {
 
-using bke::AnonymousAttributePropagationInfo;
 using bke::AttrDomain;
 using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
+using bke::AttributeFilter;
 using bke::AttributeKind;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
@@ -55,6 +56,16 @@ using fn::FieldOperation;
 using fn::GField;
 using geo_eval_log::NamedAttributeUsage;
 using geo_eval_log::NodeWarningType;
+
+class NodeAttributeFilter : public AttributeFilter {
+ private:
+  const bke::AnonymousAttributeSet &set_;
+
+ public:
+  NodeAttributeFilter(const bke::AnonymousAttributeSet &set) : set_(set) {}
+
+  Result filter(StringRef attribute_name) const override;
+};
 
 class GeoNodeExecParams {
  private:
@@ -282,20 +293,16 @@ class GeoNodeExecParams {
   }
 
   /**
-   * Get information about which anonymous attributes should be propagated to the given output.
+   * Get information about which attributes should be propagated to the given output.
    */
-  AnonymousAttributePropagationInfo get_output_propagation_info(
-      const StringRef output_identifier) const
+  NodeAttributeFilter get_attribute_filter(const StringRef output_identifier) const
   {
     const int lf_index =
         lf_input_for_attribute_propagation_to_output_[node_.output_by_identifier(output_identifier)
                                                           .index_in_all_outputs()];
     const bke::AnonymousAttributeSet &set = params_.get_input<bke::AnonymousAttributeSet>(
         lf_index);
-    AnonymousAttributePropagationInfo info;
-    info.names = set.names;
-    info.propagate_all = false;
-    return info;
+    return NodeAttributeFilter(set);
   }
 
  private:

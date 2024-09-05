@@ -10,10 +10,11 @@ struct Mesh;
  * \ingroup bke
  */
 
+#include "BKE_attribute_filter.hh"
+
 namespace blender::bke {
 
 class CurvesGeometry;
-class AnonymousAttributePropagationInfo;
 
 /**
  * Extrude all splines in the profile curve along the path of every spline in the curve input.
@@ -28,12 +29,12 @@ class AnonymousAttributePropagationInfo;
 Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                           const CurvesGeometry &profile,
                           bool fill_caps,
-                          const AnonymousAttributePropagationInfo &propagation_info);
+                          const bke::AttributeFilter &attribute_filter = {});
 /**
  * Create a loose-edge mesh based on the evaluated path of the curve's splines.
  * Transfer curve attributes to the mesh.
  */
 Mesh *curve_to_wire_mesh(const CurvesGeometry &curve,
-                         const AnonymousAttributePropagationInfo &propagation_info);
+                         const bke::AttributeFilter &attribute_filter = {});
 
 }  // namespace blender::bke

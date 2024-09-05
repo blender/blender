@@ -140,7 +140,7 @@ static void join_volumes(const Span<const GeometryComponent *> /*src_components*
 
 static void join_component_type(const bke::GeometryComponent::Type component_type,
                                 const Span<GeometrySet> src_geometry_sets,
-                                const bke::AnonymousAttributePropagationInfo &propagation_info,
+                                const bke::AttributeFilter &attribute_filter,
                                 GeometrySet &result)
 {
   Vector<const GeometryComponent *> components;
@@ -183,14 +183,14 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
   RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = false;
-  options.propagation_info = propagation_info;
+  options.attribute_filter = attribute_filter;
   GeometrySet joined_components = realize_instances(
       GeometrySet::from_instances(instances.release()), options);
   result.add(joined_components.get_component_for_write(component_type));
 }
 
 GeometrySet join_geometries(const Span<GeometrySet> geometries,
-                            const bke::AnonymousAttributePropagationInfo &propagation_info)
+                            const bke::AttributeFilter &attribute_filter)
 {
   GeometrySet result;
   result.name = geometries.is_empty() ? "" : geometries[0].name;
@@ -203,7 +203,7 @@ GeometrySet join_geometries(const Span<GeometrySet> geometries,
        GeometryComponent::Type::GreasePencil,
        GeometryComponent::Type::Edit});
   for (const GeometryComponent::Type type : supported_types) {
-    join_component_type(type, geometries, propagation_info, result);
+    join_component_type(type, geometries, attribute_filter, result);
   }
 
   return result;

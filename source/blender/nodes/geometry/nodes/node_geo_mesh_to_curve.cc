@@ -39,7 +39,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(
-        *mesh, selection, params.get_output_propagation_info("Curve"));
+        *mesh, selection, params.get_attribute_filter("Curve"));
     geometry_set.replace_curves(bke::curves_new_nomain(std::move(curves)));
     geometry_set.keep_only_during_modify({GeometryComponent::Type::Curve});
   });

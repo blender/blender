@@ -10,6 +10,8 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "BKE_attribute_filter.hh"
+
 namespace blender::bke {
 
 /**
@@ -26,26 +28,26 @@ class AnonymousAttributeSet {
 };
 
 /**
- * Can be passed to algorithms which propagate attributes. It can tell the algorithm which
- * anonymous attributes should be propagated and can be skipped.
+ * Checks if the attribute name has the `.a_` prefix which indicates that it is an anonymous
+ * attribute. I.e. it is just internally used by Blender and the name should not be exposed to the
+ * user.
+ *
+ * Use #hash_to_anonymous_attribute_name to generate names for anonymous attributes.
  */
-class AnonymousAttributePropagationInfo {
+inline bool attribute_name_is_anonymous(const StringRef name)
+{
+  return name.startswith(".a_");
+}
+
+class ProcessAllAttributeExceptAnonymous : public AttributeFilter {
  public:
-  /**
-   * This uses `std::shared_ptr` because it's usually initialized from an #AnonymousAttributeSet
-   * and then the set doesn't have to be copied.
-   */
-  std::shared_ptr<Set<std::string>> names;
-
-  /**
-   * Propagate all anonymous attributes even if the set above is empty.
-   */
-  bool propagate_all = true;
-
-  /**
-   * Return true when the anonymous attribute should be propagated and false otherwise.
-   */
-  bool propagate(StringRef anonymous_id) const;
+  Result filter(const StringRef name) const override
+  {
+    if (attribute_name_is_anonymous(name)) {
+      return AttributeFilter::Result::AllowSkip;
+    }
+    return AttributeFilter::Result::Process;
+  }
 };
 
 }  // namespace blender::bke

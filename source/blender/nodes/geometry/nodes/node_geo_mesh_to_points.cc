@@ -53,7 +53,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         const Field<float> &radius_field,
                                         const Field<bool> &selection_field,
                                         const AttrDomain domain,
-                                        const AnonymousAttributePropagationInfo &propagation_info)
+                                        const AttributeFilter &attribute_filter)
 {
   const Mesh *mesh = geometry_set.get_mesh();
   if (mesh == nullptr) {
@@ -109,7 +109,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
                                                  GeometryComponent::Type::PointCloud,
                                                  false,
-                                                 propagation_info,
+                                                 attribute_filter,
                                                  attributes);
   attributes.remove("radius");
   attributes.remove("position");
@@ -158,8 +158,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;
 
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Points");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     switch (mode) {
@@ -169,7 +168,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     positive_radius,
                                     selection,
                                     AttrDomain::Point,
-                                    propagation_info);
+                                    attribute_filter);
         break;
       case GEO_NODE_MESH_TO_POINTS_EDGES:
         geometry_set_mesh_to_points(geometry_set,
@@ -177,7 +176,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     positive_radius,
                                     selection,
                                     AttrDomain::Edge,
-                                    propagation_info);
+                                    attribute_filter);
         break;
       case GEO_NODE_MESH_TO_POINTS_FACES:
         geometry_set_mesh_to_points(geometry_set,
@@ -185,7 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     positive_radius,
                                     selection,
                                     AttrDomain::Face,
-                                    propagation_info);
+                                    attribute_filter);
         break;
       case GEO_NODE_MESH_TO_POINTS_CORNERS:
         geometry_set_mesh_to_points(geometry_set,
@@ -193,7 +192,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                     positive_radius,
                                     selection,
                                     AttrDomain::Corner,
-                                    propagation_info);
+                                    attribute_filter);
         break;
     }
   });

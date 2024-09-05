@@ -32,16 +32,16 @@ static void node_declare(NodeDeclarationBuilder &b)
 static Mesh *curve_to_mesh(const bke::CurvesGeometry &curves,
                            const GeometrySet &profile_set,
                            const bool fill_caps,
-                           const AnonymousAttributePropagationInfo &propagation_info)
+                           const AttributeFilter &attribute_filter)
 {
   Mesh *mesh;
   if (profile_set.has_curves()) {
     const Curves *profile_curves = profile_set.get_curves();
     mesh = bke::curve_to_mesh_sweep(
-        curves, profile_curves->geometry.wrap(), fill_caps, propagation_info);
+        curves, profile_curves->geometry.wrap(), fill_caps, attribute_filter);
   }
   else {
-    mesh = bke::curve_to_wire_mesh(curves, propagation_info);
+    mesh = bke::curve_to_wire_mesh(curves, attribute_filter);
   }
   geometry::debug_randomize_mesh_order(mesh);
   return mesh;
@@ -50,7 +50,7 @@ static Mesh *curve_to_mesh(const bke::CurvesGeometry &curves,
 static void grease_pencil_to_mesh(GeometrySet &geometry_set,
                                   const GeometrySet &profile_set,
                                   const bool fill_caps,
-                                  const AnonymousAttributePropagationInfo &propagation_info)
+                                  const AttributeFilter &attribute_filter)
 {
   using namespace blender::bke::greasepencil;
 
@@ -63,7 +63,7 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
       continue;
     }
     const bke::CurvesGeometry &curves = drawing->strokes();
-    mesh_by_layer[layer_index] = curve_to_mesh(curves, profile_set, fill_caps, propagation_info);
+    mesh_by_layer[layer_index] = curve_to_mesh(curves, profile_set, fill_caps, attribute_filter);
   }
 
   if (mesh_by_layer.is_empty()) {
@@ -93,7 +93,7 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
   GeometrySet::propagate_attributes_from_layer_to_instances(
       geometry_set.get_grease_pencil()->attributes(),
       geometry_set.get_instances_for_write()->attributes_for_write(),
-      propagation_info);
+      attribute_filter);
   geometry_set.replace_grease_pencil(nullptr);
 }
 
@@ -104,17 +104,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
   bke::GeometryComponentEditData::remember_deformed_positions_if_necessary(curve_set);
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Mesh");
+  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
 
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
       const Curves &curves = *geometry_set.get_curves();
-      Mesh *mesh = curve_to_mesh(curves.geometry.wrap(), profile_set, fill_caps, propagation_info);
+      Mesh *mesh = curve_to_mesh(curves.geometry.wrap(), profile_set, fill_caps, attribute_filter);
       geometry_set.replace_mesh(mesh);
     }
     if (geometry_set.has_grease_pencil()) {
-      grease_pencil_to_mesh(geometry_set, profile_set, fill_caps, propagation_info);
+      grease_pencil_to_mesh(geometry_set, profile_set, fill_caps, attribute_filter);
     }
     geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
   });

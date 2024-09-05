@@ -20,29 +20,27 @@ components_supported_reordering();
 Mesh *reorder_mesh(const Mesh &src_mesh,
                    Span<int> old_by_new_map,
                    bke::AttrDomain domain,
-                   const bke::AnonymousAttributePropagationInfo &propagation_info);
+                   const bke::AttributeFilter &attribute_filter);
 
 PointCloud *reorder_points(const PointCloud &src_pointcloud,
                            Span<int> old_by_new_map,
-                           const bke::AnonymousAttributePropagationInfo &propagation_info);
+                           const bke::AttributeFilter &attribute_filter);
 
-bke::CurvesGeometry reorder_curves_geometry(
-    const bke::CurvesGeometry &src_curves,
-    Span<int> old_by_new_map,
-    const bke::AnonymousAttributePropagationInfo &propagation_info);
+bke::CurvesGeometry reorder_curves_geometry(const bke::CurvesGeometry &src_curves,
+                                            Span<int> old_by_new_map,
+                                            const bke::AttributeFilter &attribute_filter);
 
 Curves *reorder_curves(const Curves &src_curves,
                        Span<int> old_by_new_map,
-                       const bke::AnonymousAttributePropagationInfo &propagation_info);
+                       const bke::AttributeFilter &attribute_filter);
 
 bke::Instances *reorder_instaces(const bke::Instances &src_instances,
                                  Span<int> old_by_new_map,
-                                 const bke::AnonymousAttributePropagationInfo &propagation_info);
+                                 const bke::AttributeFilter &attribute_filter);
 
-bke::GeometryComponentPtr reordered_component(
-    const bke::GeometryComponent &src_component,
-    Span<int> old_by_new_map,
-    bke::AttrDomain domain,
-    const bke::AnonymousAttributePropagationInfo &propagation_info);
+bke::GeometryComponentPtr reordered_component(const bke::GeometryComponent &src_component,
+                                              Span<int> old_by_new_map,
+                                              bke::AttrDomain domain,
+                                              const bke::AttributeFilter &attribute_filter);
 
 };  // namespace blender::geometry

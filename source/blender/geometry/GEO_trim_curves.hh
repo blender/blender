@@ -22,6 +22,6 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 const VArray<float> &starts,
                                 const VArray<float> &ends,
                                 GeometryNodeCurveSampleMode mode,
-                                const bke::AnonymousAttributePropagationInfo &propagation_info);
+                                const bke::AttributeFilter &attribute_filter);
 
 }  // namespace blender::geometry

@@ -265,10 +265,9 @@ static int to_nurbs_size(const CurveType src_type, const int src_size)
   }
 }
 
-static bke::CurvesGeometry convert_curves_to_bezier(
-    const bke::CurvesGeometry &src_curves,
-    const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &src_curves,
+                                                    const IndexMask &selection,
+                                                    const bke::AttributeFilter &attribute_filter)
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const VArray<int8_t> src_knot_modes = src_curves.nurbs_knots_modes();
@@ -309,8 +308,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
-      propagation_info,
-      attributes_to_skip);
+      bke::attribute_filter_with_skip_ref(attribute_filter, attributes_to_skip));
 
   auto catmull_rom_to_bezier = [&](const IndexMask &selection) {
     bke::curves::fill_points<int8_t>(
@@ -440,8 +438,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
-                                      propagation_info,
-                                      {},
+                                      attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
                                       unselected,
@@ -450,10 +447,9 @@ static bke::CurvesGeometry convert_curves_to_bezier(
   return dst_curves;
 }
 
-static bke::CurvesGeometry convert_curves_to_nurbs(
-    const bke::CurvesGeometry &src_curves,
-    const IndexMask &selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &src_curves,
+                                                   const IndexMask &selection,
+                                                   const bke::AttributeFilter &attribute_filter)
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const VArray<int8_t> src_types = src_curves.curve_types();
@@ -481,13 +477,13 @@ static bke::CurvesGeometry convert_curves_to_nurbs(
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
-      propagation_info,
-      {"position",
-       "handle_type_left",
-       "handle_type_right",
-       "handle_right",
-       "handle_left",
-       "nurbs_weight"});
+      bke::attribute_filter_with_skip_ref(attribute_filter,
+                                          {"position",
+                                           "handle_type_left",
+                                           "handle_type_right",
+                                           "handle_right",
+                                           "handle_left",
+                                           "nurbs_weight"}));
 
   auto fill_weights_if_necessary = [&](const IndexMask &selection) {
     if (src_attributes.contains("nurbs_weight")) {
@@ -609,8 +605,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
-                                      propagation_info,
-                                      {},
+                                      attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
                                       unselected,
@@ -633,7 +628,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
     const bke::CurvesGeometry &src_curves,
     const IndexMask &selection,
     const CurveType dst_type,
-    const bke::AnonymousAttributePropagationInfo &propagation_info,
+    const bke::AttributeFilter &attribute_filter,
     const ConvertCurvesOptions &options)
 {
   const bool use_bezier_handles = (dst_type == CURVE_TYPE_CATMULL_ROM) ?
@@ -677,13 +672,13 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
-      propagation_info,
-      {"position",
-       "handle_type_left",
-       "handle_type_right",
-       "handle_right",
-       "handle_left",
-       "nurbs_weight"});
+      bke::attribute_filter_with_skip_ref(attribute_filter,
+                                          {"position",
+                                           "handle_type_left",
+                                           "handle_type_right",
+                                           "handle_right",
+                                           "handle_left",
+                                           "nurbs_weight"}));
 
   auto convert_from_catmull_rom_or_poly_or_nurbs = [&](const IndexMask &selection) {
     array_utils::copy_group_to_group(
@@ -741,8 +736,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
-                                      propagation_info,
-                                      {},
+                                      attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
                                       unselected,
@@ -779,24 +773,24 @@ static bke::CurvesGeometry convert_bezier_or_catmull_rom_to_poly_before_conversi
 bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
                                    const IndexMask &selection,
                                    const CurveType dst_type,
-                                   const bke::AnonymousAttributePropagationInfo &propagation_info,
+                                   const bke::AttributeFilter &attribute_filter,
                                    const ConvertCurvesOptions &options)
 {
   switch (dst_type) {
     case CURVE_TYPE_CATMULL_ROM:
     case CURVE_TYPE_POLY:
       return convert_curves_to_catmull_rom_or_poly(
-          src_curves, selection, dst_type, propagation_info, options);
+          src_curves, selection, dst_type, attribute_filter, options);
     case CURVE_TYPE_BEZIER:
-      return convert_curves_to_bezier(src_curves, selection, propagation_info);
+      return convert_curves_to_bezier(src_curves, selection, attribute_filter);
     case CURVE_TYPE_NURBS: {
       if (!options.keep_bezier_shape_as_nurbs || !options.keep_catmull_rom_shape_as_nurbs) {
         const bke::CurvesGeometry tmp_src_curves =
             convert_bezier_or_catmull_rom_to_poly_before_conversion_to_nurbs(
                 src_curves, selection, options);
-        return convert_curves_to_nurbs(tmp_src_curves, selection, propagation_info);
+        return convert_curves_to_nurbs(tmp_src_curves, selection, attribute_filter);
       }
-      return convert_curves_to_nurbs(src_curves, selection, propagation_info);
+      return convert_curves_to_nurbs(src_curves, selection, attribute_filter);
     }
   }
   BLI_assert_unreachable();

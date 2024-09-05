@@ -213,7 +213,7 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
                                     const GeometryNodeCurveResampleMode mode,
                                     geometry::ResampleCurvesOutputAttributeIDs resample_attributes,
                                     const std::optional<StringRef> &rotation_anonymous_id,
-                                    const AnonymousAttributePropagationInfo &propagation_info)
+                                    const AttributeFilter &attribute_filter)
 {
   Field<int> count;
   Field<float> length;
@@ -298,7 +298,7 @@ static void grease_pencil_to_points(GeometrySet &geometry_set,
         GeometrySet::propagate_attributes_from_layer_to_instances(
             geometry.get_grease_pencil()->attributes(),
             geometry.get_instances_for_write()->attributes_for_write(),
-            propagation_info);
+            attribute_filter);
       }
     }
   });
@@ -324,15 +324,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry::ResampleCurvesOutputAttributeIDs resample_attributes;
   resample_attributes.tangent_id = tangent_anonymous_id;
   resample_attributes.normal_id = normal_anonymous_id;
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Points");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points");
 
   if (geometry_set.has_curves()) {
     curve_to_points(geometry_set, params, mode, resample_attributes, rotation_anonymous_id);
   }
   if (geometry_set.has_grease_pencil()) {
     grease_pencil_to_points(
-        geometry_set, params, mode, resample_attributes, rotation_anonymous_id, propagation_info);
+        geometry_set, params, mode, resample_attributes, rotation_anonymous_id, attribute_filter);
   }
 
   params.set_output("Points", std::move(geometry_set));

@@ -6,15 +6,4 @@
 
 namespace blender::bke {
 
-bool AnonymousAttributePropagationInfo::propagate(const StringRef attribute) const
-{
-  if (this->propagate_all) {
-    return true;
-  }
-  if (!this->names) {
-    return false;
-  }
-  return this->names->contains_as(attribute);
-}
-
 }  // namespace blender::bke

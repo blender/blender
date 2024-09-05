@@ -133,7 +133,7 @@ static void transfer_attributes(
     const Span<int> new_to_old_edges_map,
     const Span<int> new_to_old_face_corners_map,
     const Span<std::pair<int, int>> boundary_vertex_to_relevant_face_map,
-    const AnonymousAttributePropagationInfo &propagation_info,
+    const AttributeFilter &attribute_filter,
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes)
 {
@@ -145,9 +145,7 @@ static void transfer_attributes(
   attribute_ids.remove(".corner_vert");
   attribute_ids.remove(".corner_edge");
   attribute_ids.remove("sharp_face");
-  attribute_ids.remove_if([&](const StringRef id) {
-    return bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id);
-  });
+  attribute_ids.remove_if([&](const StringRef id) { return attribute_filter.allow_skip(id); });
 
   for (const StringRef id : attribute_ids) {
     GAttributeReader src = src_attributes.lookup(id);
@@ -615,7 +613,7 @@ static void dissolve_redundant_verts(const Span<int2> edges,
  */
 static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                             const bool keep_boundaries,
-                            const AnonymousAttributePropagationInfo &propagation_info)
+                            const AttributeFilter &attribute_filter)
 {
   const Span<float3> src_positions = src_mesh.vert_positions();
   const Span<int2> src_edges = src_mesh.edges();
@@ -898,7 +896,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                       new_to_old_edges_map,
                       new_to_old_face_corners_map,
                       boundary_vertex_to_relevant_face_map,
-                      propagation_info,
+                      attribute_filter,
                       src_mesh.attributes(),
                       mesh_out->attributes_for_write());
 
@@ -923,7 +921,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       Mesh *new_mesh = calc_dual_mesh(
-          *mesh, keep_boundaries, params.get_output_propagation_info("Dual Mesh"));
+          *mesh, keep_boundaries, params.get_attribute_filter("Dual Mesh"));
       geometry::debug_randomize_mesh_order(new_mesh);
       geometry_set.replace_mesh(new_mesh);
     }

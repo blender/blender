@@ -64,19 +64,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttrDomain domain = AttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
-  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
-      "Geometry");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
 
   if (domain == AttrDomain::Instance) {
     bool is_error;
-    geometry::separate_geometry(geometry_set, domain, mode, selection, propagation_info, is_error);
+    geometry::separate_geometry(geometry_set, domain, mode, selection, attribute_filter, is_error);
   }
   else {
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       bool is_error;
       /* Invert here because we want to keep the things not in the selection. */
       geometry::separate_geometry(
-          geometry_set, domain, mode, selection, propagation_info, is_error);
+          geometry_set, domain, mode, selection, attribute_filter, is_error);
     });
   }
 

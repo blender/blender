@@ -1204,10 +1204,9 @@ void CurvesGeometry::count_memory(MemoryCounter &memory) const
   CustomData_count_memory(this->curve_data, this->curve_num, memory);
 }
 
-CurvesGeometry curves_copy_point_selection(
-    const CurvesGeometry &curves,
-    const IndexMask &points_to_copy,
-    const AnonymousAttributePropagationInfo &propagation_info)
+CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
+                                           const IndexMask &points_to_copy,
+                                           const AttributeFilter &attribute_filter)
 {
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
@@ -1238,14 +1237,12 @@ CurvesGeometry curves_copy_point_selection(
       [&]() {
         gather_attributes(curves.attributes(),
                           AttrDomain::Point,
-                          propagation_info,
-                          {},
+                          attribute_filter,
                           points_to_copy,
                           dst_curves.attributes_for_write());
         gather_attributes(curves.attributes(),
                           AttrDomain::Curve,
-                          propagation_info,
-                          {},
+                          attribute_filter,
                           curves_to_copy,
                           dst_curves.attributes_for_write());
       });
@@ -1261,7 +1258,7 @@ CurvesGeometry curves_copy_point_selection(
 }
 
 void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
-                                   const AnonymousAttributePropagationInfo &propagation_info)
+                                   const AttributeFilter &attribute_filter)
 {
   if (points_to_delete.is_empty()) {
     return;
@@ -1272,13 +1269,12 @@ void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
   }
   IndexMaskMemory memory;
   const IndexMask points_to_copy = points_to_delete.complement(this->points_range(), memory);
-  *this = curves_copy_point_selection(*this, points_to_copy, propagation_info);
+  *this = curves_copy_point_selection(*this, points_to_copy, attribute_filter);
 }
 
-CurvesGeometry curves_copy_curve_selection(
-    const CurvesGeometry &curves,
-    const IndexMask &curves_to_copy,
-    const AnonymousAttributePropagationInfo &propagation_info)
+CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
+                                           const IndexMask &curves_to_copy,
+                                           const AttributeFilter &attribute_filter)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   CurvesGeometry dst_curves(0, curves_to_copy.size());
@@ -1293,15 +1289,14 @@ CurvesGeometry curves_copy_curve_selection(
 
   gather_attributes_group_to_group(src_attributes,
                                    AttrDomain::Point,
-                                   propagation_info,
-                                   {},
+                                   attribute_filter,
                                    points_by_curve,
                                    dst_points_by_curve,
                                    curves_to_copy,
                                    dst_attributes);
 
   gather_attributes(
-      src_attributes, AttrDomain::Curve, propagation_info, {}, curves_to_copy, dst_attributes);
+      src_attributes, AttrDomain::Curve, attribute_filter, curves_to_copy, dst_attributes);
 
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
@@ -1310,7 +1305,7 @@ CurvesGeometry curves_copy_curve_selection(
 }
 
 void CurvesGeometry::remove_curves(const IndexMask &curves_to_delete,
-                                   const AnonymousAttributePropagationInfo &propagation_info)
+                                   const AttributeFilter &attribute_filter)
 {
   if (curves_to_delete.is_empty()) {
     return;
@@ -1321,7 +1316,7 @@ void CurvesGeometry::remove_curves(const IndexMask &curves_to_delete,
   }
   IndexMaskMemory memory;
   const IndexMask curves_to_copy = curves_to_delete.complement(this->curves_range(), memory);
-  *this = curves_copy_curve_selection(*this, curves_to_copy, propagation_info);
+  *this = curves_copy_curve_selection(*this, curves_to_copy, attribute_filter);
 }
 
 template<typename T>

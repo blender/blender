@@ -28,7 +28,6 @@ struct PointCloud;
 struct Volume;
 struct GreasePencil;
 namespace blender::bke {
-class AnonymousAttributePropagationInfo;
 struct AttributeKind;
 class AttributeAccessor;
 struct AttributeMetaData;
@@ -259,12 +258,12 @@ struct GeometrySet {
   static void propagate_attributes_from_layer_to_instances(
       const AttributeAccessor src_attributes,
       MutableAttributeAccessor dst_attributes,
-      const AnonymousAttributePropagationInfo &propagation_info);
+      const AttributeFilter &attribute_filter);
 
   void gather_attributes_for_propagation(Span<GeometryComponent::Type> component_types,
                                          GeometryComponent::Type dst_component_type,
                                          bool include_instances,
-                                         const AnonymousAttributePropagationInfo &propagation_info,
+                                         const AttributeFilter &attribute_filter,
                                          Map<StringRef, AttributeKind> &r_attributes) const;
 
   Vector<GeometryComponent::Type> gather_component_types(bool include_instances,

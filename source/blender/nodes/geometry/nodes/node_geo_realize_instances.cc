@@ -76,7 +76,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = false;
   options.realize_instance_attributes = true;
-  options.propagation_info = params.get_output_propagation_info("Geometry");
+  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry");
+  options.attribute_filter = attribute_filter;
   GeometrySet new_geometry_set = geometry::realize_instances(
       geometry_set, options, varied_depth_option);
   new_geometry_set.name = geometry_set.name;

@@ -28,6 +28,6 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
                                   float max_angle,
                                   bool invert_curvature,
                                   GeometryNodeCurveSampleMode sample_mode,
-                                  const bke::AnonymousAttributePropagationInfo &propagation_info);
+                                  const bke::AttributeFilter &attribute_filter);
 
 }  // namespace blender::geometry

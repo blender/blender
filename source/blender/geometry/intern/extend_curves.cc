@@ -210,7 +210,7 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
                                   const float max_angle,
                                   const bool invert_curvature,
                                   const GeometryNodeCurveSampleMode sample_mode,
-                                  const bke::AnonymousAttributePropagationInfo &propagation_info)
+                                  const bke::AttributeFilter &attribute_filter)
 {
   if (src_curves.points_num() < 2) {
     return src_curves;
@@ -302,8 +302,7 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
     /* Transfer point attributes. */
     gather_attributes(src_attributes,
                       bke::AttrDomain::Point,
-                      propagation_info,
-                      {},
+                      attribute_filter,
                       dst_to_src_point,
                       dst_attributes);
   }

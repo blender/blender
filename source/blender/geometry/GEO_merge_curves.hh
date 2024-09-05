@@ -15,10 +15,9 @@ namespace blender::geometry {
  *                          (set to -1 to leave a curve disconnected).
  * \param flip_direction: Flip direction of input curves.
  */
-bke::CurvesGeometry curves_merge_endpoints(
-    const bke::CurvesGeometry &src_curves,
-    Span<int> connect_to_curve,
-    Span<bool> flip_direction,
-    const bke::AnonymousAttributePropagationInfo &propagation_info);
+bke::CurvesGeometry curves_merge_endpoints(const bke::CurvesGeometry &src_curves,
+                                           Span<int> connect_to_curve,
+                                           Span<bool> flip_direction,
+                                           const bke::AttributeFilter &attribute_filter);
 
 };  // namespace blender::geometry

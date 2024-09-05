@@ -3705,9 +3705,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         new_mesh->attributes_for_write().remove_anonymous();
       }
       else if (const Curves *curves_eval = geometry.get_curves()) {
-        bke::AnonymousAttributePropagationInfo propagation_info;
-        propagation_info.propagate_all = false;
-        Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
+        Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(),
+                                             bke::ProcessAllAttributeExceptAnonymous{});
         if (!mesh) {
           mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
         }

@@ -268,11 +268,10 @@ static void subdivide_bezier_positions(const Span<float3> src_positions,
       cyclic, dst_types_l, dst_types_r, dst_positions, dst_handles_l, dst_handles_r);
 }
 
-bke::CurvesGeometry subdivide_curves(
-    const bke::CurvesGeometry &src_curves,
-    const IndexMask &selection,
-    const VArray<int> &cuts,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
+                                     const IndexMask &selection,
+                                     const VArray<int> &cuts,
+                                     const bke::AttributeFilter &attribute_filter)
 {
   if (src_curves.points_num() == 0) {
     return src_curves;
@@ -320,7 +319,7 @@ bke::CurvesGeometry subdivide_curves(
 
   auto subdivide_catmull_rom = [&](const IndexMask &selection) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter))
     {
       subdivide_attribute_catmull_rom(src_points_by_curve,
                                       dst_points_by_curve,
@@ -335,7 +334,7 @@ bke::CurvesGeometry subdivide_curves(
 
   auto subdivide_poly = [&](const IndexMask &selection) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter))
     {
       subdivide_attribute_linear(src_points_by_curve,
                                  dst_points_by_curve,
@@ -380,12 +379,16 @@ bke::CurvesGeometry subdivide_curves(
                                  dst_handles_r.slice(dst_points));
     });
 
-    for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes,
-             dst_attributes,
-             ATTR_DOMAIN_MASK_POINT,
-             propagation_info,
-             {"position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"}))
+    for (auto &attribute :
+         bke::retrieve_attributes_for_transfer(src_attributes,
+                                               dst_attributes,
+                                               ATTR_DOMAIN_MASK_POINT,
+                                               attribute_filter_with_skip_ref(attribute_filter,
+                                                                              {"position",
+                                                                               "handle_type_left",
+                                                                               "handle_type_right",
+                                                                               "handle_right",
+                                                                               "handle_left"})))
     {
       subdivide_attribute_linear(src_points_by_curve,
                                  dst_points_by_curve,
@@ -411,8 +414,7 @@ bke::CurvesGeometry subdivide_curves(
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
-                                      propagation_info,
-                                      {},
+                                      attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
                                       unselected,

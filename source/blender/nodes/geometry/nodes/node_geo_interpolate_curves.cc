@@ -444,7 +444,7 @@ static void interpolate_curve_shapes(bke::CurvesGeometry &child_curves,
 static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
                                          const bke::CurvesGeometry &guide_curves,
                                          const AttributeAccessor &point_attributes,
-                                         const AnonymousAttributePropagationInfo &propagation_info,
+                                         const AttributeFilter &attribute_filter,
                                          const int max_neighbors,
                                          const Span<int> all_neighbor_indices,
                                          const Span<float> all_neighbor_weights,
@@ -462,7 +462,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
   /* Interpolate attributes from guide curves to child curves. Attributes stay on the same domain
    * that they had on the guides. */
   guide_curve_attributes.for_all([&](const StringRef id, const AttributeMetaData &meta_data) {
-    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+    if (attribute_filter.allow_skip(id)) {
       return true;
     }
     const eCustomDataType type = meta_data.data_type;
@@ -601,7 +601,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     if (guide_curve_attributes.contains(id)) {
       return true;
     }
-    if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+    if (attribute_filter.allow_skip(id)) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -687,7 +687,7 @@ static GeometrySet generate_interpolated_curves(
     const VArray<int> &guide_group_ids,
     const VArray<int> &point_group_ids,
     const int max_neighbors,
-    const AnonymousAttributePropagationInfo &propagation_info,
+    const AttributeFilter &attribute_filter,
     const std::optional<StringRef> &index_attribute_id,
     const std::optional<StringRef> &weight_attribute_id)
 {
@@ -761,7 +761,7 @@ static GeometrySet generate_interpolated_curves(
   interpolate_curve_attributes(child_curves,
                                guide_curves,
                                point_attributes,
-                               propagation_info,
+                               attribute_filter,
                                max_neighbors,
                                all_neighbor_indices,
                                all_neighbor_weights,
@@ -843,8 +843,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const VArray<float3> points_up = points_evaluator.get_evaluated<float3>(0);
   const VArray<int> point_group_ids = points_evaluator.get_evaluated<int>(1);
 
-  const AnonymousAttributePropagationInfo propagation_info = params.get_output_propagation_info(
-      "Curves");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curves");
 
   std::optional<std::string> index_attribute_id =
       params.get_output_anonymous_attribute_id_if_needed("Closest Index");
@@ -858,7 +857,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                         guide_group_ids,
                                                         point_group_ids,
                                                         max_neighbors,
-                                                        propagation_info,
+                                                        attribute_filter,
                                                         index_attribute_id,
                                                         weight_attribute_id);
 

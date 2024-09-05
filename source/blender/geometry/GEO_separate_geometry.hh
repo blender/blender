@@ -22,7 +22,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
                        bke::AttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const fn::Field<bool> &selection_field,
-                       const bke::AnonymousAttributePropagationInfo &propagation_info,
+                       const bke::AttributeFilter &attribute_filter,
                        bool &r_is_error);
 
 }  // namespace blender::geometry

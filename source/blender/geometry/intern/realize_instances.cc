@@ -839,7 +839,7 @@ static void gather_attributes_for_propagation(
     const bke::GeometryComponent::Type dst_component_type,
     const VArray<int> &instance_depth,
     const IndexMask selection,
-    const bke::AnonymousAttributePropagationInfo &propagation_info,
+    const bke::AttributeFilter &attribute_filter,
     Map<StringRef, AttributeKind> &r_attributes)
 {
   /* Only needed right now to check if an attribute is built-in on this component type.
@@ -866,9 +866,7 @@ static void gather_attributes_for_propagation(
                         /* Propagating string attributes is not supported yet. */
                         return;
                       }
-                      if (bke::attribute_name_is_anonymous(attribute_id) &&
-                          !propagation_info.propagate(attribute_id))
-                      {
+                      if (attribute_filter.allow_skip(attribute_id)) {
                         return;
                       }
 
@@ -913,7 +911,7 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
                                     bke::GeometryComponent::Type::Instance,
                                     varied_depth_option.depths,
                                     varied_depth_option.selection,
-                                    options.propagation_info,
+                                    options.attribute_filter,
                                     attributes_to_propagate);
   attributes_to_propagate.pop_try("id");
   OrderedAttributes ordered_attributes;
@@ -1042,7 +1040,7 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
                                     bke::GeometryComponent::Type::PointCloud,
                                     varied_depth_option.depths,
                                     varied_depth_option.selection,
-                                    options.propagation_info,
+                                    options.attribute_filter,
                                     attributes_to_propagate);
 
   attributes_to_propagate.remove("position");
@@ -1251,7 +1249,7 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                     bke::GeometryComponent::Type::Mesh,
                                     varied_depth_option.depths,
                                     varied_depth_option.selection,
-                                    options.propagation_info,
+                                    options.attribute_filter,
                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove(".edge_verts");
@@ -1621,7 +1619,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
                                     bke::GeometryComponent::Type::Curve,
                                     varied_depth_option.depths,
                                     varied_depth_option.selection,
-                                    options.propagation_info,
+                                    options.attribute_filter,
                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
@@ -1963,7 +1961,7 @@ static OrderedAttributes gather_generic_grease_pencil_attributes_to_propagate(
                                     bke::GeometryComponent::Type::GreasePencil,
                                     varied_depth_options.depths,
                                     varied_depth_options.selection,
-                                    options.propagation_info,
+                                    options.attribute_filter,
                                     attributes_to_propagate);
 
   OrderedAttributes ordered_attributes;
@@ -2185,11 +2183,10 @@ static void remove_id_attribute_from_instances(bke::GeometrySet &geometry_set)
 /** Propagate instances from the old geometry set to the new geometry set if they are not
  * realized.
  */
-static void propagate_instances_to_keep(
-    const bke::GeometrySet &geometry_set,
-    const IndexMask &selection,
-    bke::GeometrySet &new_geometry_set,
-    const bke::AnonymousAttributePropagationInfo &propagation_info)
+static void propagate_instances_to_keep(const bke::GeometrySet &geometry_set,
+                                        const IndexMask &selection,
+                                        bke::GeometrySet &new_geometry_set,
+                                        const bke::AttributeFilter &attribute_filter)
 {
   const Instances &instances = *geometry_set.get_instances();
   IndexMaskMemory inverse_selection_indices;
@@ -2201,7 +2198,7 @@ static void propagate_instances_to_keep(
   }
 
   std::unique_ptr<Instances> new_instances = std::make_unique<Instances>(instances);
-  new_instances->remove(inverse_selection, propagation_info);
+  new_instances->remove(inverse_selection, attribute_filter);
 
   bke::InstancesComponent &new_instances_components =
       new_geometry_set.get_component_for_write<bke::InstancesComponent>();
@@ -2239,7 +2236,7 @@ bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
 
   bke::GeometrySet not_to_realize_set;
   propagate_instances_to_keep(
-      geometry_set, varied_depth_option.selection, not_to_realize_set, options.propagation_info);
+      geometry_set, varied_depth_option.selection, not_to_realize_set, options.attribute_filter);
 
   if (options.keep_original_ids) {
     remove_id_attribute_from_instances(geometry_set);

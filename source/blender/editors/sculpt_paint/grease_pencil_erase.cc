@@ -739,7 +739,6 @@ struct EraseOperationExecutor {
 
     /* Set opacity. */
     bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
-    const bke::AnonymousAttributePropagationInfo propagation_info{};
 
     bke::SpanAttributeWriter<float> dst_opacity =
         dst_attributes.lookup_or_add_for_write_span<float>(opacity_attr, bke::AttrDomain::Point);

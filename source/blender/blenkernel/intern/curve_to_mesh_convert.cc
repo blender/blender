@@ -365,7 +365,7 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
                                          const AttributeAccessor &mesh_attributes,
                                          const StringRef id,
                                          const AttributeMetaData &meta_data,
-                                         const AnonymousAttributePropagationInfo &propagation_info)
+                                         const AttributeFilter &attribute_filter)
 {
 
   /* The position attribute has special non-generic evaluation. */
@@ -376,7 +376,7 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
   if (curve_attributes.is_builtin(id) && !mesh_attributes.is_builtin(id)) {
     return false;
   }
-  if (bke::attribute_name_is_anonymous(id) && !propagation_info.propagate(id)) {
+  if (attribute_filter.allow_skip(id)) {
     return false;
   }
   if (meta_data.data_type == CD_PROP_STRING) {
@@ -815,7 +815,7 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
 Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                           const CurvesGeometry &profile,
                           const bool fill_caps,
-                          const AnonymousAttributePropagationInfo &propagation_info)
+                          const AttributeFilter &attribute_filter)
 {
   const CurvesInfo curves_info = get_curves_info(main, profile);
 
@@ -913,7 +913,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   const AttributeAccessor main_attributes = main.attributes();
   main_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
-            main_attributes, mesh_attributes, id, meta_data, propagation_info))
+            main_attributes, mesh_attributes, id, meta_data, attribute_filter))
     {
       return true;
     }
@@ -949,7 +949,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       return true;
     }
     if (!should_add_attribute_to_mesh(
-            profile_attributes, mesh_attributes, id, meta_data, propagation_info))
+            profile_attributes, mesh_attributes, id, meta_data, attribute_filter))
     {
       return true;
     }
@@ -993,11 +993,10 @@ static CurvesGeometry get_curve_single_vert()
   return curves;
 }
 
-Mesh *curve_to_wire_mesh(const CurvesGeometry &curve,
-                         const AnonymousAttributePropagationInfo &propagation_info)
+Mesh *curve_to_wire_mesh(const CurvesGeometry &curve, const AttributeFilter &attribute_filter)
 {
   static const CurvesGeometry vert_curve = get_curve_single_vert();
-  return curve_to_mesh_sweep(curve, vert_curve, false, propagation_info);
+  return curve_to_mesh_sweep(curve, vert_curve, false, attribute_filter);
 }
 
 }  // namespace blender::bke

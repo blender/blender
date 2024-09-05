@@ -485,12 +485,15 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   }
 
   /* Explicitly set all other attributes besides those processed above to default values. */
-  bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Point, {"position", "radius"}, outputs.new_points_range);
   bke::fill_attribute_range_default(attributes,
-                                    bke::AttrDomain::Curve,
-                                    {"curve_type", "surface_uv_coordinate", "resolution"},
-                                    outputs.new_curves_range);
+                                    bke::AttrDomain::Point,
+                                    bke::attribute_filter_from_skip_ref({"position", "radius"}),
+                                    outputs.new_points_range);
+  bke::fill_attribute_range_default(
+      attributes,
+      bke::AttrDomain::Curve,
+      bke::attribute_filter_from_skip_ref({"curve_type", "surface_uv_coordinate", "resolution"}),
+      outputs.new_curves_range);
 
   return outputs;
 }
