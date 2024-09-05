@@ -83,7 +83,7 @@ struct OrigMeshData {
 };
 
 /**
- * Stores the data necessary to draw the PBVH geometry. A separate "Impl" class is used to hide
+ * Stores the data necessary to draw the PBVH geometry. A separate `*Impl` class is used to hide
  * implementation details from the public header.
  */
 class DrawCacheImpl : public DrawCache {
@@ -530,7 +530,7 @@ static int count_visible_tris_bmesh(const Set<BMFace *, 0> &faces)
 /**
  * Find nodes which (might) have a different number of visible faces.
  *
- * \note Theoreticaly the #PBVH_RebuildDrawBuffers flag is redundant with checking for a different
+ * \note Theoretically the #PBVH_RebuildDrawBuffers flag is redundant with checking for a different
  * number of visible triangles in the PBVH node on every redraw. We could do that too, but it's
  * simpler overall to just tag the node whenever there is such a topology change, and for now there
  * is no real downside.

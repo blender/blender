@@ -34,7 +34,7 @@ class Armatures {
 
   PassSimple armature_ps_ = {"Armature"};
 
-  /* Force transparent drawing in Xray mode. */
+  /* Force transparent drawing in X-ray mode. */
   bool draw_transparent = false;
   /* Force disable drawing relation is relations are off in viewport. */
   bool show_relations = false;
@@ -497,7 +497,7 @@ class Armatures {
 
     DrawContext() = default;
 
-    /* Runtime switch between legacy and new overlay codebase.
+    /* Runtime switch between legacy and new overlay code-base.
      * Should be removed once the legacy code is removed. */
     bool is_overlay_next() const
     {
