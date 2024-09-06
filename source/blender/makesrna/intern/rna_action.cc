@@ -815,6 +815,18 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, &RNA_FCurve, fcurve);
 }
 
+#  ifdef WITH_ANIM_BAKLAVA
+/* Use the backward-compatible API only when the experimental feature is
+ * enabled OR if the Action is already a layered Action. */
+static bool use_backward_compatible_api(animrig::Action &action)
+{
+  /* action.is_action_layered() returns 'true' on empty Actions, and that case must be protected by
+   * the experimental flag, hence the expression below uses !action.is_action_legacy(). */
+  return (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
+         !action.is_action_legacy();
+}
+#  endif /* WITH_ANIM_BAKLAVA */
+
 static bActionGroup *rna_Action_groups_new(bAction *act, ReportList *reports, const char name[])
 {
   if (!act->wrap().is_action_legacy()) {
@@ -860,16 +872,6 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
-}
-
-/* Use the backward-compatible API only when the experimental feature is
- * enabled OR if the Action is already a layered Action. */
-static bool use_backward_compatible_api(animrig::Action &action)
-{
-  /* action.is_action_layered() returns 'true' on empty Actions, but that case must be protected by
-   * the experimental flag, hence the expression below uses !action.is_action_legacy(). */
-  return (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
-         !action.is_action_legacy();
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
@@ -1006,6 +1008,7 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
     return nullptr;
   }
 
+#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1014,6 +1017,7 @@ static FCurve *rna_Action_fcurve_find(bAction *act,
     }
     return channelbag->fcurve_find({data_path, index});
   }
+#  endif
 
   /* Returns nullptr if not found. */
   return BKE_fcurve_find(&act->curves, data_path, index);
@@ -1023,6 +1027,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 {
   FCurve *fcu = static_cast<FCurve *>(fcu_ptr->data);
 
+#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1041,6 +1046,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 
     return;
   }
+#  endif
 
   if (fcu->grp) {
     if (BLI_findindex(&act->groups, fcu->grp) == -1) {
@@ -1073,6 +1079,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
 
 static void rna_Action_fcurve_clear(bAction *act)
 {
+#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
@@ -1085,6 +1092,9 @@ static void rna_Action_fcurve_clear(bAction *act)
   else {
     BKE_action_fcurves_clear(act);
   }
+#  else
+  BKE_action_fcurves_clear(act);
+#  endif
 
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
