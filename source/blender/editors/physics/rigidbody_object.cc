@@ -93,9 +93,6 @@ bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, Re
 void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 {
   BKE_rigidbody_remove_object(bmain, scene, ob, false);
-
-  DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 }
 
 /* ********************************************** */

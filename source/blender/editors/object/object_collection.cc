@@ -132,7 +132,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
   Collection *single_collection = collection_object_active_find_index(
       bmain, scene, ob, single_collection_index);
   bool is_cycle = false;
-  bool updated = false;
+  bool changed_multi = false;
 
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
@@ -147,6 +147,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    bool changed = false;
     CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
       if (BKE_collection_has_object(collection, base->object)) {
         continue;
@@ -154,14 +155,18 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 
       if (!BKE_collection_object_cyclic_check(bmain, base->object, collection)) {
         BKE_collection_object_add(bmain, collection, base->object);
-        DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
-        updated = true;
+        changed = true;
       }
       else {
         is_cycle = true;
       }
     }
     CTX_DATA_END;
+
+    if (changed) {
+      DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+      changed_multi = true;
+    }
   }
   FOREACH_COLLECTION_END;
 
@@ -169,7 +174,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Skipped some collections because of cycle detected");
   }
 
-  if (!updated) {
+  if (!changed_multi) {
     return OPERATOR_CANCELLED;
   }
 
@@ -218,7 +223,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
   int single_collection_index = RNA_enum_get(op->ptr, "collection");
   Collection *single_collection = collection_object_active_find_index(
       bmain, scene, ob, single_collection_index);
-  bool ok = false;
+  bool changed_multi = false;
 
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
@@ -233,17 +238,22 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 
     if (BKE_collection_has_object(collection, ob)) {
       /* Remove collections from selected objects */
+      bool changed = false;
       CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
         BKE_collection_object_remove(bmain, collection, base->object, false);
-        DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
-        ok = true;
+        changed = true;
       }
       CTX_DATA_END;
+
+      if (changed) {
+        DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+        changed_multi = true;
+      }
     }
   }
   FOREACH_COLLECTION_END;
 
-  if (!ok) {
+  if (!changed_multi) {
     BKE_report(op->reports, RPT_ERROR, "Active object contains no collections");
   }
 
@@ -321,7 +331,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
   int single_collection_index = RNA_enum_get(op->ptr, "collection");
   Collection *single_collection = collection_object_active_find_index(
       bmain, scene, ob, single_collection_index);
-  bool updated = false;
+  bool changed_multi = false;
 
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
@@ -336,16 +346,21 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
     }
 
     /* now remove all selected objects from the collection */
+    bool changed = false;
     CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
       BKE_collection_object_remove(bmain, collection, base->object, false);
-      DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
-      updated = true;
+      changed = true;
     }
     CTX_DATA_END;
+
+    if (changed) {
+      DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+      changed_multi = true;
+    }
   }
   FOREACH_COLLECTION_END;
 
-  if (!updated) {
+  if (!changed_multi) {
     return OPERATOR_CANCELLED;
   }
 
@@ -388,6 +403,7 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   char name[MAX_ID_NAME - 2]; /* id name */
+  bool changed = false;
 
   RNA_string_get(op->ptr, "name", name);
 
@@ -396,9 +412,13 @@ static int collection_create_exec(bContext *C, wmOperator *op)
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
     BKE_collection_object_add(bmain, collection, base->object);
-    DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+    changed = true;
   }
   CTX_DATA_END;
+
+  if (changed) {
+    DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+  }
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_GROUP | NA_EDITED, nullptr);
