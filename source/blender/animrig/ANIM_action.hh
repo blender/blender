@@ -803,6 +803,9 @@ class ChannelBag : public ::ActionChannelBag {
    * The new group is added to the end of the channel group array of the
    * ChannelBag.
    *
+   * This function ensures the group has a unique name, and thus the name of the
+   * created group may differ from the `name` parameter.
+   *
    * \return A reference to the new channel group.
    */
   bActionGroup &channel_group_create(StringRefNull name);
