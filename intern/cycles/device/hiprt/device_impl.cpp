@@ -513,6 +513,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   else {
     size_t num_boxes = bvh->params.num_motion_curve_steps * 2 * num_segments;
     bvh->custom_prim_info.resize(num_boxes);
+    bvh->prims_time.resize(num_boxes);
     bvh->custom_primitive_bound.alloc(num_boxes);
     curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
@@ -525,7 +526,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
     const float *curve_radius = &hair->get_curve_radius()[0];
     int first_key = curve.first_key;
     for (int k = 0; k < curve.num_keys - 1; k++) {
-      if (curve_attr_mP == NULL || bvh->params.num_motion_curve_steps == 0) {
+      if (curve_attr_mP == NULL) {
         float3 current_keys[4];
         current_keys[0] = curve_keys[max(first_key + k - 1, first_key)];
         current_keys[1] = curve_keys[first_key + k];
@@ -550,58 +551,73 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         }
       }
       else {
-
-        const int num_bvh_steps = bvh->params.num_motion_curve_steps * 2 + 1;
-        const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
         const size_t num_steps = hair->get_motion_steps();
-        const float3 *curve_keys = &hair->get_curve_keys()[0];
         const float4 *key_steps = curve_attr_mP->data_float4();
         const size_t num_keys = hair->get_curve_keys().size();
 
-        float4 prev_keys[4];
-        curve.cardinal_motion_keys(curve_keys,
-                                   curve_radius,
-                                   key_steps,
-                                   num_keys,
-                                   num_steps,
-                                   0.0f,
-                                   k - 1,
-                                   k,
-                                   k + 1,
-                                   k + 2,
-                                   prev_keys);
-        BoundBox prev_bounds = BoundBox::empty;
-        curve.bounds_grow(prev_keys, prev_bounds);
+        if (bvh->params.num_motion_curve_steps == 0 || bvh->params.use_spatial_split) {
+          BoundBox bounds = BoundBox::empty;
+          curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
+          for (size_t step = 0; step < num_steps - 1; step++) {
+            curve.bounds_grow(k, key_steps + step * num_keys, bounds);
+          }
+          if (bounds.valid()) {
+            int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+            bvh->custom_prim_info[num_bounds].x = j;
+            bvh->custom_prim_info[num_bounds].y = type;
+            bvh->custom_primitive_bound[num_bounds] = bounds;
+            num_bounds++;
+          }
+        }
+        else {
+          const int num_bvh_steps = bvh->params.num_motion_curve_steps * 2 + 1;
+          const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
 
-        for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
-          const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-          float4 curr_keys[4];
+          float4 prev_keys[4];
           curve.cardinal_motion_keys(curve_keys,
                                      curve_radius,
                                      key_steps,
                                      num_keys,
                                      num_steps,
-                                     curr_time,
+                                     0.0f,
                                      k - 1,
                                      k,
                                      k + 1,
                                      k + 2,
-                                     curr_keys);
-          BoundBox curr_bounds = BoundBox::empty;
-          curve.bounds_grow(curr_keys, curr_bounds);
-          BoundBox bounds = prev_bounds;
-          bounds.grow(curr_bounds);
-          if (bounds.valid()) {
-            const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-            int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-            bvh->custom_prim_info[num_bounds].x = j;
-            bvh->custom_prim_info[num_bounds].y = packed_type;  // k
-            bvh->custom_primitive_bound[num_bounds] = bounds;
-            bvh->prims_time[num_bounds].x = curr_time;
-            bvh->prims_time[num_bounds].y = prev_time;
-            num_bounds++;
+                                     prev_keys);
+          BoundBox prev_bounds = BoundBox::empty;
+          curve.bounds_grow(prev_keys, prev_bounds);
+
+          for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
+            const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
+            float4 curr_keys[4];
+            curve.cardinal_motion_keys(curve_keys,
+                                       curve_radius,
+                                       key_steps,
+                                       num_keys,
+                                       num_steps,
+                                       curr_time,
+                                       k - 1,
+                                       k,
+                                       k + 1,
+                                       k + 2,
+                                       curr_keys);
+            BoundBox curr_bounds = BoundBox::empty;
+            curve.bounds_grow(curr_keys, curr_bounds);
+            BoundBox bounds = prev_bounds;
+            bounds.grow(curr_bounds);
+            if (bounds.valid()) {
+              const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+              int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+              bvh->custom_prim_info[num_bounds].x = j;
+              bvh->custom_prim_info[num_bounds].y = packed_type;  // k
+              bvh->custom_primitive_bound[num_bounds] = bounds;
+              bvh->prims_time[num_bounds].x = curr_time;
+              bvh->prims_time[num_bounds].y = prev_time;
+              num_bounds++;
+            }
+            prev_bounds = curr_bounds;
           }
-          prev_bounds = curr_bounds;
         }
       }
     }
@@ -651,7 +667,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       }
     }
   }
-  else if (bvh->params.num_motion_point_steps == 0) {
+  else if (bvh->params.num_motion_point_steps == 0 || bvh->params.use_spatial_split) {
     bvh->custom_prim_info.resize(num_points);
     bvh->custom_primitive_bound.alloc(num_points);
 
@@ -701,8 +717,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
           bvh->custom_primitive_bound[num_bounds] = bounds;
           bvh->custom_prim_info[num_bounds].x = j;
           bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
-          bvh->prims_time[num_bounds].x = curr_time;
-          bvh->prims_time[num_bounds].y = prev_time;
+          bvh->prims_time[num_bounds].x = prev_time;
+          bvh->prims_time[num_bounds].y = curr_time;
           num_bounds++;
         }
         prev_bounds = curr_bounds;
