@@ -151,7 +151,10 @@ bool VKBackend::is_supported()
     if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
       missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
     }
-    if (!extensions.contains(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME)) {
+    /* VK_EXT_dynamic_rendering_unused_attachments is not supported by renderdoc. */
+    if (!bool(G.debug & G_DEBUG_GPU) &&
+        !extensions.contains(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME))
+    {
       missing_capabilities.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
     }
 
