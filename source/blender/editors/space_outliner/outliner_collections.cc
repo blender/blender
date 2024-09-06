@@ -796,7 +796,7 @@ static int collection_instance_exec(bContext *C, wmOperator * /*op*/)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
-  data.is_liboverride_allowed = false; /* No instancing of non-root collections. */
+  data.is_liboverride_allowed = true;
   data.is_liboverride_hierarchy_root_allowed = true;
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
