@@ -182,7 +182,7 @@ void VKTexture::read_sub(
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
 
-  size_t sample_len = (region[5] - region[2]) * (region[3] - region[0]) * (region[4] - region[1]) *
+  size_t sample_len = (region[3] - region[0]) * (region[4] - region[1]) * (region[5] - region[2]) *
                       layers.size();
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
 
