@@ -4,7 +4,12 @@
 
 # Keep the information collected in this script synchronized with `startup.py`.
 
-def url_prefill_from_blender(*, addon_info=None):
+__all__ = (
+    "url_from_blender",
+)
+
+
+def url_from_blender(*, addon_info=None):
     import bpy
     import gpu
     import struct

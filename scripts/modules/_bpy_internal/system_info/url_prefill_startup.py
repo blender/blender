@@ -5,7 +5,15 @@
 
 # Keep the information collected in this script synchronized with `runtime.py`.
 
-def prefill_bug_report_info() -> int:
+# NOTE: this can run as a standalone script, called directly from Python
+# (even though it's located inside a package).
+
+__all__ = (
+    "url_from_blender",
+)
+
+
+def url_from_blender() -> str:
     from typing import (
         Dict,
         Optional,
@@ -15,7 +23,7 @@ def prefill_bug_report_info() -> int:
     import struct
     import platform
     import subprocess
-    import webbrowser
+    import sys
     import urllib.parse
     from pathlib import Path
 
@@ -54,7 +62,7 @@ def prefill_bug_report_info() -> int:
         )
     except Exception as ex:
         sys.stderr.write("{:s}\n".format(str(ex)))
-        return 1
+        return ""
 
     text = blender_output.stdout
 
@@ -78,7 +86,7 @@ def prefill_bug_report_info() -> int:
         # No valid Blender info could be found.
         print("Blender did not provide any build information. Blender may be corrupt or blocked from running.")
         print("Please try reinstalling Blender and double check your anti-virus isn't blocking it from running.")
-        return 1
+        return ""
 
     query_params["broken_version"] = (
         "{version:s}, branch: {branch:s}, commit date: {commit_date:s} {commit_time:s}, hash `{build_hash:s}`".format(
@@ -86,12 +94,19 @@ def prefill_bug_report_info() -> int:
         )
     )
 
-    query_str = urllib.parse.urlencode(query_params)
-    webbrowser.open("https://redirect.blender.org/?{:s}".format(query_str))
+    return "https://redirect.blender.org/?{:s}".format(urllib.parse.urlencode(query_params))
 
+
+def main() -> int:
+    import webbrowser
+
+    if not (url := url_from_blender()):
+        return 1
+
+    webbrowser.open(url)
     return 0
 
 
 if __name__ == "__main__":
     import sys
-    sys.exit(prefill_bug_report_info())
+    sys.exit(main())

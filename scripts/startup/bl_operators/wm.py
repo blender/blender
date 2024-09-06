@@ -1086,8 +1086,8 @@ class WM_OT_url_open_preset(Operator):
     )
 
     def _url_from_bug(self, _context):
-        from _bpy_internal.system_info.runtime import url_prefill_from_blender
-        return url_prefill_from_blender()
+        from _bpy_internal.system_info.url_prefill_runtime import url_from_blender
+        return url_from_blender()
 
     def _url_from_release_notes(self, _context):
         return "https://www.blender.org/download/releases/{:d}-{:d}/".format(*bpy.app.version[:2])
@@ -2197,8 +2197,18 @@ class WM_OT_sysinfo(Operator):
     )
 
     def execute(self, _context):
-        import sys_info
-        sys_info.write_sysinfo(self.filepath)
+        from _bpy_internal.system_info.text_generate_runtime import write
+        with open(self.filepath, "w", encoding="utf-8") as output:
+            try:
+                write(output)
+            except Exception as ex:
+                # Not expected to occur, simply forward the exception.
+                self.report({'ERROR'}, str(ex))
+
+                # Also write into the file (to avoid confusion).
+                output.write("ERROR: {:s}\n".format(str(ex)))
+                return {'CANCELLED'}
+
         return {'FINISHED'}
 
     def invoke(self, context, _event):

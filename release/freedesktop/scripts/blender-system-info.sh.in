@@ -4,7 +4,7 @@
 BASE_DIR=$(dirname "$0")
 
 PYTHON_BIN="$BASE_DIR/@BLENDER_VERSION@/python/bin/@PYTHON_EXECUTABLE_NAME_ONLY@"
-SYSTEM_INFO_STARTUP_PY="$BASE_DIR/@BLENDER_VERSION@/scripts/modules/_bpy_internal/system_info/startup.py"
+SYSTEM_INFO_STARTUP_PY="$BASE_DIR/@BLENDER_VERSION@/scripts/modules/_bpy_internal/system_info/url_prefill_startup.py"
 if test -f "$PYTHON_BIN"; then
   exec "$PYTHON_BIN" -I "$SYSTEM_INFO_STARTUP_PY"
 fi
