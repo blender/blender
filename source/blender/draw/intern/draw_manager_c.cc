@@ -3255,7 +3255,9 @@ void DRW_gpu_context_create()
   WM_system_gpu_context_activate(DST.system_gpu_context);
   /* Be sure to create blender_gpu_context too. */
   DST.blender_gpu_context = GPU_context_create(nullptr, DST.system_gpu_context);
-  /* So we activate the window's one afterwards. */
+  /* Setup compilation context. */
+  DRW_shader_init();
+  /* Activate the window's context afterwards. */
   wm_window_reset_drawable();
 }
 
@@ -3263,6 +3265,7 @@ void DRW_gpu_context_destroy()
 {
   BLI_assert(BLI_thread_is_main());
   if (DST.system_gpu_context != nullptr) {
+    DRW_shader_exit();
     WM_system_gpu_context_activate(DST.system_gpu_context);
     GPU_context_active_set(DST.blender_gpu_context);
     GPU_context_discard(DST.blender_gpu_context);

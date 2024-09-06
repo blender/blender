@@ -167,7 +167,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
                          blender_mat->nodetree :
                          default_surface_ntree_.nodetree_get(blender_mat);
 
-  bool use_deferred_compilation = inst_.is_viewport();
+  bool use_deferred_compilation = inst_.is_viewport() || GPU_use_parallel_compilation();
 
   MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(

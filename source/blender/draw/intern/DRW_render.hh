@@ -260,6 +260,8 @@ void DRW_texture_free(GPUTexture *tex);
   } while (0)
 
 /* Shaders */
+void DRW_shader_init();
+void DRW_shader_exit();
 
 GPUMaterial *DRW_shader_from_world(World *wo,
                                    bNodeTree *ntree,
