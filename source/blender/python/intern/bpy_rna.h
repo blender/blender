@@ -189,6 +189,7 @@ PyObject *BPY_rna_module(void);
 void BPY_update_rna_module(void);
 // PyObject *BPY_rna_doc(void);
 PyObject *BPY_rna_types(void);
+void BPY_rna_types_finalize_external_types(PyObject *submodule);
 
 PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);

@@ -101,6 +101,8 @@ static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 static PyObject *pyrna_register_class(PyObject *self, PyObject *py_class);
 static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
 
+static StructRNA *srna_from_ptr(PointerRNA *ptr);
+
 #define BPY_DOC_ID_PROP_TYPE_NOTE \
   "   .. note::\n" \
   "\n" \
@@ -8064,6 +8066,57 @@ PyObject *BPY_rna_types()
   }
 
   return submodule;
+}
+
+void BPY_rna_types_finalize_external_types(PyObject *submodule)
+{
+  /* NOTE: Blender is generally functional without running this logic
+   * however failure set the classes `bl_rna` (via `pyrna_subtype_set_rna`)
+   * means *partially* initialized classes exist.
+   * It's simpler to avoid this altogether as it's a corner case Python developers should
+   * not have to concern themselves with as it could cause errors with RNA introspection.
+   *
+   * If the classes are accessed via `bpy.types` they will be initialized correctly
+   * however classes can also be accessed via `bpy.types.ID.__subclasses__()`
+   * which doesn't ensure the `bl_rna` is set. See: #127127. */
+
+  BPy_TypesModule_State *state = static_cast<BPy_TypesModule_State *>(
+      PyModule_GetState(submodule));
+
+  PyObject *arg_key, *arg_value;
+  Py_ssize_t arg_pos = 0;
+  while (PyDict_Next(bpy_types_dict, &arg_pos, &arg_key, &arg_value)) {
+    const char *key_str = PyUnicode_AsUTF8(arg_key);
+    if (key_str[0] == '_') {
+      continue;
+    }
+
+    BLI_assert_msg(
+        PyObject_IsSubclass(arg_value, (PyObject *)&pyrna_struct_Type),
+        "Members of bpy_types.py which are not StructRNA sub-classes must use a \"_\" prefix!");
+
+    PointerRNA newptr;
+    if (RNA_property_collection_lookup_string(&state->ptr, state->prop, key_str, &newptr)) {
+      StructRNA *srna = srna_from_ptr(&newptr);
+      /* Within the Python logic of `./scripts/modules/bpy_types.py`
+       * it's possible this was already initialized. */
+      if (RNA_struct_py_type_get(srna) == nullptr) {
+        pyrna_subtype_set_rna(arg_value, srna);
+      }
+    }
+#ifndef NDEBUG
+    else {
+      /* Avoid noisy warnings based on build-options. */
+#  ifndef WITH_USD
+      if (STREQ(key_str, "USDHook")) {
+        continue;
+      }
+#  endif
+      CLOG_WARN(
+          BPY_LOG_RNA, "bpy_types.py defines \"%.200s\" which is not a known RNA type!", key_str);
+    }
+#endif
+  }
 }
 
 /** \} */

@@ -740,7 +740,8 @@ void BPy_init_modules(bContext *C)
   Py_DECREF(mod);
 
   /* needs to be first so bpy_types can run */
-  PyModule_AddObject(mod, "types", BPY_rna_types());
+  PyObject *bpy_types = BPY_rna_types();
+  PyModule_AddObject(mod, "types", bpy_types);
 
   /* needs to be first so bpy_types can run */
   BPY_library_load_type_ready();
@@ -752,6 +753,8 @@ void BPy_init_modules(bContext *C)
   bpy_import_test("bpy_types");
   PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */
   bpy_import_test("bpy_types");
+  BPY_rna_types_finalize_external_types(bpy_types);
+
   PyModule_AddObject(mod, "props", BPY_rna_props());
   /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
   PyModule_AddObject(mod, "ops", BPY_operator_module());
