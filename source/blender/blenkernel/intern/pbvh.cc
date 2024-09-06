@@ -549,6 +549,9 @@ static void build_nodes_recursive_grids(const Span<int> grid_to_face_map,
 
 std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
 {
+#ifdef DEBUG_BUILD_TIME
+  SCOPED_TIMER_AVERAGED(__func__);
+#endif
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
 
   /* Find maximum number of grids per face. */
@@ -600,18 +603,23 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 
   Vector<GridsNode> &nodes = std::get<Vector<GridsNode>>(pbvh->nodes_);
   nodes.resize(1);
-  build_nodes_recursive_grids(subdiv_ccg.grid_to_face_map,
-                              material_index,
-                              leaf_limit,
-                              0,
-                              bounds,
-                              prim_bounds,
-                              0,
-                              elems.size(),
-                              Array<int>(pbvh->prim_indices_.size()),
-                              0,
-                              pbvh->prim_indices_,
-                              nodes);
+  {
+#ifdef DEBUG_BUILD_TIME
+    SCOPED_TIMER_AVERAGED("build_nodes_recursive_grids");
+#endif
+    build_nodes_recursive_grids(subdiv_ccg.grid_to_face_map,
+                                material_index,
+                                leaf_limit,
+                                0,
+                                bounds,
+                                prim_bounds,
+                                0,
+                                elems.size(),
+                                Array<int>(pbvh->prim_indices_.size()),
+                                0,
+                                pbvh->prim_indices_,
+                                nodes);
+  }
 
   update_bounds_grids(key, elems, *pbvh);
   store_bounds_orig(*pbvh);
