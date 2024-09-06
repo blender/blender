@@ -390,7 +390,9 @@ static void action_blend_write_make_legacy_channel_groups_listbase(
     if (fcurves.is_empty()) {
       group->channels = {nullptr, nullptr};
     }
-    group->channels = {fcurves.first(), fcurves.last()};
+    else {
+      group->channels = {fcurves.first(), fcurves.last()};
+    }
   }
 
   /* Determine the prev/next pointers on the elements. */
