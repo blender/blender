@@ -1678,21 +1678,294 @@ static void join_groups_action_temp(bAction *act)
   }
 }
 
+/**
+ * Move selected, visible channel groups in the channel list according to
+ * `mode`.
+ *
+ * NOTE: the current implementation has quadratic performance with respect to
+ * the number of groups in a `ChannelBag`, due to both `Span::first_index_try()`
+ * and `ChannelBag::channel_group_move()` having linear performance. If this
+ * becomes a performance bottleneck in practice, we can create a dedicated
+ * method on `ChannelBag` for collectively moving a non-contiguous set of
+ * channel groups that works in linear time.
+ *
+ * TODO: there's a fair amount of apparent repetition in this code and the code
+ * in `rearrange_layered_action_fcurves()`. In the time available when writing
+ * this, I (Nathan) wasn't able to figure out a satisfactory way to DRY that
+ * which didn't make the code signifacantly harder to follow. I suspect there is
+ * a good way to DRY this, and therefore this is probably worth revisiting when
+ * we have more time.
+ */
+static void rearrange_layered_action_channel_groups(bAnimContext *ac,
+                                                    const eRearrangeAnimChan_Mode mode)
+{
+  ListBase anim_data_visible = {nullptr, nullptr};
+
+  /* We don't use `ANIMFILTER_SEL` here, and instead individually check on each
+   * element whether it's selected or not in the code further below. This is
+   * because it's what the legacy code does (see for example
+   * `rearrange_animchannel_add_to_islands()`), and we're avoiding diverging
+   * unnecessarily from that in case there was a reason for it. */
+  rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_GROUP);
+
+  switch (mode) {
+    case REARRANGE_ANIMCHAN_UP: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_GROUP);
+        bActionGroup *group = (bActionGroup *)ale->data;
+        if (!SEL_AGRP(group)) {
+          continue;
+        }
+        blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
+        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int to_index = group_index - 1;
+        BLI_assert(group_index >= 0);
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected groups rather than moving them all in the
+         * same direction. This happens when multiple selected groups are
+         * already packed together at the top. */
+        if (to_index < 0 || SEL_AGRP(bag.channel_group(to_index))) {
+          continue;
+        }
+
+        bag.channel_group_move(*group, to_index);
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_TOP: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_GROUP);
+        bActionGroup *group = (bActionGroup *)ale->data;
+        if (!SEL_AGRP(group)) {
+          continue;
+        }
+        blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
+        bag.channel_group_move(*group, 0);
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_DOWN: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_GROUP);
+        bActionGroup *group = (bActionGroup *)ale->data;
+        if (!SEL_AGRP(group)) {
+          continue;
+        }
+        blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
+        const int group_index = bag.channel_groups().as_span().first_index_try(group);
+        const int to_index = group_index + 1;
+        BLI_assert(group_index >= 0);
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected groups rather than moving them all in the
+         * same direction. This happens when multiple selected groups are
+         * already packed together at the bottom. */
+        if (to_index >= bag.channel_groups().size() || SEL_AGRP(bag.channel_group(to_index))) {
+          continue;
+        }
+
+        bag.channel_group_move(*group, to_index);
+      }
+      break;
+    }
+
+    case REARRANGE_ANIMCHAN_BOTTOM: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_GROUP);
+        bActionGroup *group = (bActionGroup *)ale->data;
+        if (!SEL_AGRP(group)) {
+          continue;
+        }
+        blender::animrig::ChannelBag &bag = group->channel_bag->wrap();
+        bag.channel_group_move(*group, bag.channel_groups().size() - 1);
+      }
+      break;
+    }
+  }
+
+  BLI_freelistN(&anim_data_visible);
+}
+
+/**
+ * Move selected, visible fcurves in the channel list according to `mode`.
+ *
+ * NOTE: the current implementation has quadratic performance with respect to
+ * the number of fcurves in a `ChannelBag`, due to both
+ * `Span::first_index_try()` and `ChannelBag::fcurve_move()` having linear
+ * performance. If this becomes a performance bottleneck in practice, we can
+ * create a dedicated method on `ChannelBag` for collectively moving a
+ * non-contiguous set of fcurves that works in linear time.
+ *
+ * TODO: there's a fair amount of apparent repetition in this code and the code
+ * in `rearrange_layered_action_channel_groups()`. In the time available when
+ * writing this, I (Nathan) wasn't able to figure out a satisfactory way to DRY
+ * that which didn't make the code signifacantly harder to follow. I suspect
+ * there is a good way to DRY this, and therefore this is probably worth
+ * revisiting when we have more time.
+ */
+static void rearrange_layered_action_fcurves(bAnimContext *ac,
+                                             blender::animrig::Action &action,
+                                             const eRearrangeAnimChan_Mode mode)
+{
+  ListBase anim_data_visible = {nullptr, nullptr};
+
+  /* We don't use `ANIMFILTER_SEL` here, and instead individually check on each
+   * element whether it's selected or not in the code further below. This is
+   * because it's what the legacy code does (see for example
+   * `rearrange_animchannel_add_to_islands()`), and we're avoiding diverging
+   * unnecessarily from that in case there was a reason for it. */
+  rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_FCURVE);
+
+  /* Lambda to either fetch an fcurve's group if it has one, or otherwise
+   * construct a fake one representing the ungrouped range at the end of the
+   * fcurve array. This lets the code further below be much less special-casey,
+   * in exchange for a little data copying.
+   *
+   * NOTE: this returns a *copy* of the group, rather a pointer or reference, to
+   * make it possible to return a fake group when needed. */
+  auto get_group_or_make_fake = [&action](bAnimListElem *fcurve_ale) -> bActionGroup {
+    FCurve *fcurve = (FCurve *)fcurve_ale->data;
+    if (fcurve->grp) {
+      return *fcurve->grp;
+    }
+
+    blender::animrig::ChannelBag *bag = channelbag_for_action_slot(action,
+                                                                   fcurve_ale->slot_handle);
+    BLI_assert(bag != nullptr);
+
+    bActionGroup group = {};
+    group.channel_bag = bag;
+    group.fcurve_range_start = 0;
+    if (!bag->channel_groups().is_empty()) {
+      bActionGroup *last_group = bag->channel_groups().last();
+      group.fcurve_range_start = last_group->fcurve_range_start + last_group->fcurve_range_length;
+    }
+    group.fcurve_range_length = bag->fcurves().size() - group.fcurve_range_start;
+
+    return group;
+  };
+
+  /* Lambda to determine whether an fcurve should be skipped, given both the
+   * fcurve and the group it belongs to. */
+  auto should_skip = [](FCurve &fcurve, bActionGroup &group) {
+    /* If the curve itself isn't selected, then it shouldn't be operated on.  If
+     * its group is selected then the group was moved so we don't move the
+     * fcurve individually. */
+    return !SEL_FCU(&fcurve) || SEL_AGRP(&group);
+  };
+
+  switch (mode) {
+    case REARRANGE_ANIMCHAN_UP: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_FCURVE);
+        FCurve *fcurve = (FCurve *)ale->data;
+        bActionGroup group = get_group_or_make_fake(ale);
+
+        if (should_skip(*fcurve, group)) {
+          continue;
+        }
+
+        blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
+        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int to_index = fcurve_index - 1;
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected fcurves rather than moving them all in the
+         * same direction. This happens when multiple selected fcurves are
+         * already packed together at the top. */
+        if (to_index < group.fcurve_range_start || SEL_FCU(bag.fcurve(to_index))) {
+          continue;
+        }
+
+        bag.fcurve_move(*fcurve, to_index);
+      }
+      return;
+    }
+
+    case REARRANGE_ANIMCHAN_TOP: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_FCURVE);
+        FCurve *fcurve = (FCurve *)ale->data;
+        bActionGroup group = get_group_or_make_fake(ale);
+
+        if (should_skip(*fcurve, group)) {
+          continue;
+        }
+
+        blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
+        bag.fcurve_move(*fcurve, group.fcurve_range_start);
+      }
+      return;
+    }
+
+    case REARRANGE_ANIMCHAN_DOWN: {
+      LISTBASE_FOREACH_BACKWARD (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_FCURVE);
+        FCurve *fcurve = (FCurve *)ale->data;
+        bActionGroup group = get_group_or_make_fake(ale);
+
+        if (should_skip(*fcurve, group)) {
+          continue;
+        }
+
+        blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
+        const int fcurve_index = bag.fcurves().as_span().first_index_try(fcurve);
+        const int to_index = fcurve_index + 1;
+
+        /* We skip moving when the destination is also selected because that
+         * would swap two selected fcurves rather than moving them all in the
+         * same direction. This happens when multiple selected fcurves are
+         * already packed together at the bottom. */
+        if (to_index >= group.fcurve_range_start + group.fcurve_range_length ||
+            SEL_FCU(bag.fcurve(to_index)))
+        {
+          continue;
+        }
+
+        bag.fcurve_move(*fcurve, to_index);
+      }
+      return;
+    }
+
+    case REARRANGE_ANIMCHAN_BOTTOM: {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data_visible) {
+        BLI_assert(ale->type == ANIMTYPE_FCURVE);
+        FCurve *fcurve = (FCurve *)ale->data;
+        bActionGroup group = get_group_or_make_fake(ale);
+
+        if (should_skip(*fcurve, group)) {
+          continue;
+        }
+
+        blender::animrig::ChannelBag &bag = group.channel_bag->wrap();
+        bag.fcurve_move(*fcurve, group.fcurve_range_start + group.fcurve_range_length - 1);
+      }
+      return;
+    }
+  }
+}
+
 /* Change the order of anim-channels within action
  * mode: REARRANGE_ANIMCHAN_*
  */
 static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrangeAnimChan_Mode mode)
 {
+  BLI_assert(act != nullptr);
+
+  /* Layered actions. */
+  if (!act->wrap().is_action_legacy()) {
+    rearrange_layered_action_channel_groups(ac, mode);
+    rearrange_layered_action_fcurves(ac, act->wrap(), mode);
+    return;
+  }
+
+  /* Legacy actions. */
   bActionGroup tgrp;
   ListBase anim_data_visible = {nullptr, nullptr};
   bool do_channels;
-
-  BLI_assert(act != nullptr);
-
-  /* TODO: layered actions not yet supported. */
-  if (!act->wrap().is_action_legacy()) {
-    return;
-  }
 
   /* get rearranging function */
   AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
@@ -2055,20 +2328,18 @@ static void animchannels_group_channels(bAnimContext *ac,
     return;
   }
 
-  /* TODO: layered actions not yet supported. */
-  if (!act->wrap().is_action_legacy()) {
+  /* Get list of selected F-Curves to re-group. */
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                   ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY;
+  ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
+
+  if (anim_data.first == nullptr) {
     return;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
-  int filter;
-
-  /* find selected F-Curves to re-group */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-            ANIMFILTER_FCURVESONLY);
-  ANIM_animdata_filter(ac, &anim_data, eAnimFilter_Flags(filter), adt_ref, ANIMCONT_CHANNEL);
-
-  if (anim_data.first) {
+  /* Legacy actions. */
+  if (act->wrap().is_action_legacy()) {
     bActionGroup *agrp;
 
     /* create new group, which should now be part of the action */
@@ -2090,9 +2361,43 @@ static void animchannels_group_channels(bAnimContext *ac,
       /* add F-Curve to group */
       action_groups_add_channel(act, agrp, fcu);
     }
+
+    /* cleanup */
+    ANIM_animdata_freelist(&anim_data);
+
+    return;
   }
 
-  /* cleanup */
+  /* Layered action.
+   *
+   * The animlist doesn't explictly group the channels by channel bag, so we
+   * have to get a little clever here. We take advantage of the fact that the
+   * fcurves are at least listed in order, and so all fcurves in the same
+   * channel bag will be next to each other. So we keep track of the channel bag
+   * from the last fcurve, and check it against the current fcurve to see if
+   * we've progressed into a new channel bag, and then we create the new group
+   * for that channel bag.
+   *
+   * It's a little messy, and also has quadratic performance due to handling
+   * each fcurve individually (each of which is an O(N) operation), but it's
+   * also the simplest thing we can do given the data we have. In the future we
+   * can do something smarter, particularly if it becomes a performance issue. */
+  blender::animrig::ChannelBag *last_channelbag = nullptr;
+  bActionGroup *group = nullptr;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->data;
+    blender::animrig::ChannelBag *channelbag = channelbag_for_action_slot(act->wrap(),
+                                                                          ale->slot_handle);
+
+    if (channelbag != last_channelbag) {
+      last_channelbag = channelbag;
+      group = &channelbag->channel_group_create(name);
+    }
+
+    channelbag->fcurve_assign_to_channel_group(*fcu, *group);
+  }
+
+  /* Cleanup. */
   ANIM_animdata_freelist(&anim_data);
 }
 
@@ -2185,21 +2490,22 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+
+    FCurve *fcu = (FCurve *)ale->data;
+
+    /* Already ungrouped, so skip. */
+    if (fcu->grp == nullptr) {
+      continue;
+    }
+
     /* find action for this F-Curve... */
     if (!ale->adt || !ale->adt->action) {
       continue;
     }
-
-    FCurve *fcu = (FCurve *)ale->data;
     bAction *act = ale->adt->action;
 
-    /* TODO: layered actions not yet supported. */
-    if (!act->wrap().is_action_legacy()) {
-      continue;
-    }
-
-    /* only proceed to remove if F-Curve is in a group... */
-    if (fcu->grp) {
+    /* Legacy actions. */
+    if (act->wrap().is_action_legacy()) {
       bActionGroup *agrp = fcu->grp;
 
       /* remove F-Curve from group and add at tail (ungrouped) */
@@ -2210,7 +2516,11 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
       if (BLI_listbase_is_empty(&agrp->channels)) {
         BLI_freelinkN(&act->groups, agrp);
       }
+      continue;
     }
+
+    /* Layered action. */
+    fcu->grp->channel_bag->wrap().fcurve_ungroup(*fcu);
   }
 
   /* cleanup */
