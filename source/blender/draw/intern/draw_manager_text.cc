@@ -10,6 +10,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memiter.h"
@@ -255,28 +256,25 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
   }
 }
 
-void DRW_text_edit_mesh_measure_stats(ARegion *region,
-                                      View3D *v3d,
-                                      Object *ob,
-                                      const UnitSettings *unit)
+void DRW_text_edit_mesh_measure_stats(const ARegion *region,
+                                      const View3D *v3d,
+                                      const Object *ob,
+                                      const UnitSettings *unit,
+                                      DRWTextStore *dt)
 {
   /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
    * etc.). See bug #36090.
    */
-  DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
-  BMEditMesh *em = mesh->runtime->edit_mesh.get();
-  float v1[3], v2[3], v3[3], vmid[3], fvec[3];
-  char numstr[32]; /* Stores the measurement display text here */
-  size_t numstr_len;
-  const char *conv_float;        /* Use a float conversion matching the grid size */
-  uchar col[4] = {0, 0, 0, 255}; /* color of the text to draw */
-  float area;                    /* area of the face */
-  float grid = unit->system ? unit->scale_length : v3d->grid;
+  const BMEditMesh *em = mesh->runtime->edit_mesh.get();
+  char numstr[32];                      /* Stores the measurement display text here */
+  const char *conv_float;               /* Use a float conversion matching the grid size */
+  blender::uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
+  const float grid = unit->system ? unit->scale_length : v3d->grid;
   const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
   const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
-  float clip_planes[4][4];
+  blender::float4x4 clip_planes;
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
   const Span<float3> vert_positions = BKE_mesh_wrapper_vert_coords(mesh);
@@ -319,7 +317,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     BoundBox bb;
     const rcti rect = {0, region->winx, 0, region->winy};
 
-    ED_view3d_clipping_calc(&bb, clip_planes, region, ob, &rect);
+    ED_view3d_clipping_calc(&bb, clip_planes.ptr(), region, ob, &rect);
   }
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
@@ -337,41 +335,39 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
           (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
                          BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
       {
-        float v1_clip[3], v2_clip[3];
+        float3 v1, v2;
+        float3 v1_clip, v2_clip;
 
         if (use_coords) {
-          copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
-          copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
+          v1 = vert_positions[BM_elem_index_get(eed->v1)];
+          v2 = vert_positions[BM_elem_index_get(eed->v2)];
         }
         else {
-          copy_v3_v3(v1, eed->v1->co);
-          copy_v3_v3(v2, eed->v2->co);
+          v1 = eed->v1->co;
+          v2 = eed->v2->co;
         }
 
-        if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
-
-          mid_v3_v3v3(vmid, v1_clip, v2_clip);
-          mul_m4_v3(ob->object_to_world().ptr(), vmid);
+        if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
+          const float3 co = blender::math::transform_point(ob->object_to_world(),
+                                                           0.5 * (v1_clip + v2_clip));
 
           if (do_global) {
-            mul_mat3_m4_v3(ob->object_to_world().ptr(), v1);
-            mul_mat3_m4_v3(ob->object_to_world().ptr(), v2);
+            v1 = ob->object_to_world().view<3, 3>() * v1;
+            v2 = ob->object_to_world().view<3, 3>() * v2;
           }
 
-          if (unit->system) {
-            numstr_len = BKE_unit_value_as_string(numstr,
-                                                  sizeof(numstr),
-                                                  len_v3v3(v1, v2) * unit->scale_length,
-                                                  3,
-                                                  B_UNIT_LENGTH,
-                                                  unit,
-                                                  false);
-          }
-          else {
-            numstr_len = SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
-          }
+          const size_t numstr_len = unit->system ?
+                                        BKE_unit_value_as_string(numstr,
+                                                                 sizeof(numstr),
+                                                                 len_v3v3(v1, v2) *
+                                                                     unit->scale_length,
+                                                                 3,
+                                                                 B_UNIT_LENGTH,
+                                                                 unit,
+                                                                 false) :
+                                        SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
 
-          DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
+          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
         }
       }
     }
@@ -405,48 +401,46 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                            BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
                            BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT))))
         {
-          float v1_clip[3], v2_clip[3];
+          float3 v1, v2;
+          float3 v1_clip, v2_clip;
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
-            copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
+            v1 = vert_positions[BM_elem_index_get(eed->v1)];
+            v2 = vert_positions[BM_elem_index_get(eed->v2)];
           }
           else {
-            copy_v3_v3(v1, eed->v1->co);
-            copy_v3_v3(v2, eed->v2->co);
+            v1 = eed->v1->co;
+            v2 = eed->v2->co;
           }
 
-          if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
-            float no_a[3], no_b[3];
-            float angle;
+          if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
+            float3 no_a, no_b;
 
-            mid_v3_v3v3(vmid, v1_clip, v2_clip);
-            mul_m4_v3(ob->object_to_world().ptr(), vmid);
+            const float3 co = blender::math::transform_point(ob->object_to_world(),
+                                                             0.5 * (v1_clip + v2_clip));
 
             if (use_coords) {
-              copy_v3_v3(no_a, face_normals[BM_elem_index_get(l_a->f)]);
-              copy_v3_v3(no_b, face_normals[BM_elem_index_get(l_b->f)]);
+              no_a = face_normals[BM_elem_index_get(l_a->f)];
+              no_b = face_normals[BM_elem_index_get(l_b->f)];
             }
             else {
-              copy_v3_v3(no_a, l_a->f->no);
-              copy_v3_v3(no_b, l_b->f->no);
+              no_a = l_a->f->no;
+              no_b = l_b->f->no;
             }
 
             if (do_global) {
-              mul_mat3_m4_v3(ob->world_to_object().ptr(), no_a);
-              mul_mat3_m4_v3(ob->world_to_object().ptr(), no_b);
-              normalize_v3(no_a);
-              normalize_v3(no_b);
+              no_a = blender::math::normalize(ob->world_to_object().view<3, 3>() * no_a);
+              no_b = blender::math::normalize(ob->world_to_object().view<3, 3>() * no_b);
             }
 
-            angle = angle_normalized_v3v3(no_a, no_b);
+            const float angle = angle_normalized_v3v3(no_a, no_b);
 
-            numstr_len = SNPRINTF_RLEN(numstr,
-                                       "%.3f%s",
-                                       (is_rad) ? angle : RAD2DEGF(angle),
-                                       (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
+            const size_t numstr_len = SNPRINTF_RLEN(numstr,
+                                                    "%.3f%s",
+                                                    (is_rad) ? angle : RAD2DEGF(angle),
+                                                    (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
 
-            DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
+            DRW_text_cache_add(dt, co, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
           }
         }
       }
@@ -459,7 +453,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 
-    int i, n;
+    int i;
     BMFace *f = nullptr;
     /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
      * without having to add an extra loop. */
@@ -467,53 +461,51 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
       const int f_corner_tris_len = f->len - 2;
       if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        n = 0;
-        area = 0;
-        zero_v3(vmid);
+        int n = 0;
+        float area = 0; /* area of the face */
+        float3 vmid(0.0f);
         const std::array<BMLoop *, 3> *ltri_array = &em->looptris[tri_index];
         for (int j = 0; j < f_corner_tris_len; j++) {
+          float3 v1, v2, v3;
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_positions[BM_elem_index_get(ltri_array[j][0]->v)]);
-            copy_v3_v3(v2, vert_positions[BM_elem_index_get(ltri_array[j][1]->v)]);
-            copy_v3_v3(v3, vert_positions[BM_elem_index_get(ltri_array[j][2]->v)]);
+            v1 = vert_positions[BM_elem_index_get(ltri_array[j][0]->v)];
+            v2 = vert_positions[BM_elem_index_get(ltri_array[j][1]->v)];
+            v3 = vert_positions[BM_elem_index_get(ltri_array[j][2]->v)];
           }
           else {
-            copy_v3_v3(v1, ltri_array[j][0]->v->co);
-            copy_v3_v3(v2, ltri_array[j][1]->v->co);
-            copy_v3_v3(v3, ltri_array[j][2]->v->co);
+            v1 = ltri_array[j][0]->v->co;
+            v2 = ltri_array[j][1]->v->co;
+            v3 = ltri_array[j][2]->v->co;
           }
 
-          add_v3_v3(vmid, v1);
-          add_v3_v3(vmid, v2);
-          add_v3_v3(vmid, v3);
+          vmid += v1;
+          vmid += v2;
+          vmid += v3;
           n += 3;
 
           if (do_global) {
-            mul_mat3_m4_v3(ob->object_to_world().ptr(), v1);
-            mul_mat3_m4_v3(ob->object_to_world().ptr(), v2);
-            mul_mat3_m4_v3(ob->object_to_world().ptr(), v3);
+            v1 = ob->object_to_world().view<3, 3>() * v1;
+            v2 = ob->object_to_world().view<3, 3>() * v2;
+            v3 = ob->object_to_world().view<3, 3>() * v3;
           }
 
           area += area_tri_v3(v1, v2, v3);
         }
 
-        mul_v3_fl(vmid, 1.0f / float(n));
-        mul_m4_v3(ob->object_to_world().ptr(), vmid);
+        vmid *= 1.0f / float(n);
+        vmid = blender::math::transform_point(ob->object_to_world(), vmid);
 
-        if (unit->system) {
-          numstr_len = BKE_unit_value_as_string(
-              numstr,
-              sizeof(numstr),
-              double(area * unit->scale_length * unit->scale_length),
-              3,
-              B_UNIT_AREA,
-              unit,
-              false);
-        }
-        else {
-          numstr_len = SNPRINTF_RLEN(numstr, conv_float, area);
-        }
+        const size_t numstr_len = unit->system ?
+                                      BKE_unit_value_as_string(
+                                          numstr,
+                                          sizeof(numstr),
+                                          double(area * unit->scale_length * unit->scale_length),
+                                          3,
+                                          B_UNIT_AREA,
+                                          unit,
+                                          false) :
+                                      SNPRINTF_RLEN(numstr, conv_float, area);
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }
@@ -544,7 +536,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                             BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
                                             BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
           {
-            float v2_local[3];
+            float3 v1, v2, v3;
+            float3 vmid;
 
             /* lazy init center calc */
             if (is_first) {
@@ -557,40 +550,41 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
               is_first = false;
             }
             if (use_coords) {
-              copy_v3_v3(v1, vert_positions[BM_elem_index_get(loop->prev->v)]);
-              copy_v3_v3(v2, vert_positions[BM_elem_index_get(loop->v)]);
-              copy_v3_v3(v3, vert_positions[BM_elem_index_get(loop->next->v)]);
+              v1 = vert_positions[BM_elem_index_get(loop->prev->v)];
+              v2 = vert_positions[BM_elem_index_get(loop->v)];
+              v3 = vert_positions[BM_elem_index_get(loop->next->v)];
             }
             else {
-              copy_v3_v3(v1, loop->prev->v->co);
-              copy_v3_v3(v2, loop->v->co);
-              copy_v3_v3(v3, loop->next->v->co);
+              v1 = loop->prev->v->co;
+              v2 = loop->v->co;
+              v3 = loop->next->v->co;
             }
 
-            copy_v3_v3(v2_local, v2);
+            const float3 v2_local = v2;
 
             if (do_global) {
-              mul_mat3_m4_v3(ob->object_to_world().ptr(), v1);
-              mul_mat3_m4_v3(ob->object_to_world().ptr(), v2);
-              mul_mat3_m4_v3(ob->object_to_world().ptr(), v3);
+              v1 = ob->object_to_world().view<3, 3>() * v1;
+              v2 = ob->object_to_world().view<3, 3>() * v2;
+              v3 = ob->object_to_world().view<3, 3>() * v3;
             }
 
-            float angle = angle_v3v3v3(v1, v2, v3);
+            const float angle = angle_v3v3v3(v1, v2, v3);
 
-            numstr_len = SNPRINTF_RLEN(numstr,
-                                       "%.3f%s",
-                                       (is_rad) ? angle : RAD2DEGF(angle),
-                                       (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
-            interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
-            mul_m4_v3(ob->object_to_world().ptr(), fvec);
-            DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);
+            const size_t numstr_len = SNPRINTF_RLEN(numstr,
+                                                    "%.3f%s",
+                                                    (is_rad) ? angle : RAD2DEGF(angle),
+                                                    (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
+            const float3 co = blender::math::transform_point(
+                ob->object_to_world(), blender::math::interpolate(vmid, v2_local, 0.8f));
+            DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
           }
         }
       }
     }
   }
 
-  /* This option is for mesh ops and addons debugging; only available in UI if Blender starts with
+  /* This option is for mesh ops and addons debugging; only available in UI if Blender starts
+   * with
    * --debug */
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
     int i;
@@ -606,17 +600,11 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
       }
       BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-          if (use_coords) {
-            copy_v3_v3(v1, vert_positions[BM_elem_index_get(v)]);
-          }
-          else {
-            copy_v3_v3(v1, v->co);
-          }
+          const float3 co = blender::math::transform_point(
+              ob->object_to_world(), use_coords ? vert_positions[BM_elem_index_get(v)] : v->co);
 
-          mul_m4_v3(ob->object_to_world().ptr(), v1);
-
-          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
+          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }
     }
@@ -629,25 +617,26 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
       BM_ITER_MESH_INDEX (eed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-          float v1_clip[3], v2_clip[3];
+          float3 v1, v2;
+          float3 v1_clip, v2_clip;
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
-            copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
+            v1 = vert_positions[BM_elem_index_get(eed->v1)];
+            v2 = vert_positions[BM_elem_index_get(eed->v2)];
           }
           else {
-            copy_v3_v3(v1, eed->v1->co);
-            copy_v3_v3(v2, eed->v2->co);
+            v1 = eed->v1->co;
+            v2 = eed->v2->co;
           }
 
-          if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
-            mid_v3_v3v3(vmid, v1_clip, v2_clip);
-            mul_m4_v3(ob->object_to_world().ptr(), vmid);
+          if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
+            const float3 co = blender::math::transform_point(ob->object_to_world(),
+                                                             0.5 * (v1_clip + v2_clip));
 
-            numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
+            const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
             DRW_text_cache_add(
                 dt,
-                vmid,
+                co,
                 numstr,
                 numstr_len,
                 0,
@@ -668,18 +657,19 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
       BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+          float3 co;
 
           if (use_coords) {
-            BM_face_calc_center_median_vcos(em->bm, f, v1, vert_positions);
+            BM_face_calc_center_median_vcos(em->bm, f, co, vert_positions);
           }
           else {
-            BM_face_calc_center_median(f, v1);
+            BM_face_calc_center_median(f, co);
           }
 
-          mul_m4_v3(ob->object_to_world().ptr(), v1);
+          co = blender::math::transform_point(ob->object_to_world(), co);
 
-          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
+          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }
     }

@@ -44,8 +44,10 @@ struct State {
   const ViewLayer *view_layer;
   const Scene *scene;
   const View3D *v3d;
+  const ARegion *region;
   const RegionView3D *rv3d;
   const Base *active_base;
+  DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
   enum eSpace_Type space_type;

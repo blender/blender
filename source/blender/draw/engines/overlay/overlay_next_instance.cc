@@ -29,6 +29,7 @@ void Instance::init()
   state.view_layer = ctx->view_layer;
   state.scene = ctx->scene;
   state.v3d = ctx->v3d;
+  state.region = ctx->region;
   state.rv3d = ctx->rv3d;
   state.active_base = BKE_view_layer_active_base_get(ctx->view_layer);
   state.object_mode = ctx->object_mode;
@@ -88,7 +89,7 @@ void Instance::begin_sync()
 {
   const DRWView *view_legacy = DRW_view_default_get();
   View view("OverlayView", view_legacy);
-
+  state.dt = DRW_text_cache_ensure();
   state.camera_position = view.viewinv().location();
   state.camera_forward = view.viewinv().z_axis();
 
@@ -144,7 +145,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (in_edit_mode && !state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_MESH:
-        layer.meshes.edit_object_sync(manager, ob_ref, resources);
+        layer.meshes.edit_object_sync(manager, ob_ref, state, resources);
         break;
       case OB_ARMATURE:
         layer.armatures.edit_object_sync(ob_ref, resources, shapes, state);

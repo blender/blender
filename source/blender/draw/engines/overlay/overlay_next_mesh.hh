@@ -24,6 +24,10 @@
 
 namespace blender::draw::overlay {
 
+constexpr int overlay_edit_text = V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_FACE_AREA |
+                                  V3D_OVERLAY_EDIT_FACE_ANG | V3D_OVERLAY_EDIT_EDGE_ANG |
+                                  V3D_OVERLAY_EDIT_INDICES;
+
 class Meshes {
  private:
   PassSimple edit_mesh_normals_ps_ = {"Normals"};
@@ -238,7 +242,10 @@ class Meshes {
     }
   }
 
-  void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources & /*res*/)
+  void edit_object_sync(Manager &manager,
+                        const ObjectRef &ob_ref,
+                        const State &state,
+                        Resources & /*res*/)
   {
     if (!enabled_) {
       return;
@@ -303,6 +310,9 @@ class Meshes {
     if (mesh_has_skin_roots(ob)) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_skin_roots(mesh);
       edit_mesh_skin_roots_ps_.draw_expand(geom, GPU_PRIM_LINES, 32, 1, res_handle);
+    }
+    if (DRW_state_show_text() && (state.overlay.edit_flag & overlay_edit_text)) {
+      DRW_text_edit_mesh_measure_stats(state.region, state.v3d, ob, &state.scene->unit, state.dt);
     }
   }
 

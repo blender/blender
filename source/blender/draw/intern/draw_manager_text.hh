@@ -19,6 +19,9 @@ struct View3D;
 DRWTextStore *DRW_text_cache_create();
 void DRW_text_cache_destroy(DRWTextStore *dt);
 
+/* `draw_manager.cc` */
+DRWTextStore *DRW_text_cache_ensure();
+
 void DRW_text_cache_add(DRWTextStore *dt,
                         const float co[3],
                         const char *str,
@@ -32,10 +35,11 @@ void DRW_text_cache_add(DRWTextStore *dt,
 
 void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d);
 
-void DRW_text_edit_mesh_measure_stats(ARegion *region,
-                                      View3D *v3d,
-                                      Object *ob,
-                                      const UnitSettings *unit);
+void DRW_text_edit_mesh_measure_stats(const ARegion *region,
+                                      const View3D *v3d,
+                                      const Object *ob,
+                                      const UnitSettings *unit,
+                                      DRWTextStore *dt = DRW_text_cache_ensure());
 
 enum {
   // DRW_UNUSED_1 = (1 << 0),  /* dirty */
@@ -44,7 +48,3 @@ enum {
   /* reference the string by pointer */
   DRW_TEXT_CACHE_STRING_PTR = (1 << 3),
 };
-
-/* `draw_manager.cc` */
-
-DRWTextStore *DRW_text_cache_ensure();
