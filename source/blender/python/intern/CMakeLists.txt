@@ -262,22 +262,19 @@ if(WITH_SDL)
     ${SDL_INCLUDE_DIR}
   )
   if(WITH_SDL_DYNLOAD)
+    list(APPEND INC
+      ../../../../extern/sdlew/include
+    )
     list(APPEND LIB
       extern_sdlew
     )
+    add_definitions(-DWITH_SDL_DYNLOAD)
   else()
     list(APPEND LIB
       ${SDL_LIBRARY}
     )
   endif()
   add_definitions(-DWITH_SDL)
-endif()
-
-if(WITH_SDL_DYNLOAD)
-  list(APPEND INC
-    ../../../../extern/sdlew/include
-  )
-  add_definitions(-DWITH_SDL_DYNLOAD)
 endif()
 
 if(WITH_JACK)

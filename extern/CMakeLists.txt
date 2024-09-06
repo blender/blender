@@ -85,8 +85,10 @@ if(WITH_GTESTS)
   add_subdirectory(gmock)
 endif()
 
-if(WITH_SDL AND WITH_SDL_DYNLOAD)
-  add_subdirectory(sdlew)
+if(WITH_SDL)
+  if(WITH_SDL_DYNLOAD)
+    add_subdirectory(sdlew)
+  endif()
 endif()
 
 if(WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE)
