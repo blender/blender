@@ -1149,6 +1149,8 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 
   /* Create copy of brush with cleared automasking settings. */
   Brush brush2 = dna::shallow_copy(*brush);
+  /* Set a brush type that doesn't change topology so automasking isn't "disabled". */
+  brush2.sculpt_brush_type = SCULPT_BRUSH_TYPE_SMOOTH;
   brush2.automasking_flags = 0;
   brush2.automasking_boundary_edges_propagation_steps = 1;
   brush2.automasking_cavity_curve = sd2.automasking_cavity_curve;
