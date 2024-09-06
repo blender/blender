@@ -880,7 +880,7 @@ blender::gpu::Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_
   }
 }
 
-blender::gpu::Batch *DRW_cache_object_face_wireframe_get(Object *ob)
+blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob)
 {
   using namespace blender::draw;
   switch (ob->type) {
@@ -892,6 +892,8 @@ blender::gpu::Batch *DRW_cache_object_face_wireframe_get(Object *ob)
       return DRW_cache_volume_face_wireframe_get(ob);
     case OB_GPENCIL_LEGACY:
       return DRW_cache_gpencil_face_wireframe_get(ob);
+    case OB_GREASE_PENCIL:
+      return DRW_cache_grease_pencil_face_wireframe_get(scene, ob);
     default:
       return nullptr;
   }

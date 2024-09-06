@@ -14,6 +14,7 @@
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 
+#include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 
 #include "DNA_grease_pencil_types.h"
@@ -41,6 +42,7 @@ struct GreasePencilBatchCache {
   gpu::IndexBuf *ibo;
   /** Batches */
   gpu::Batch *geom_batch;
+  gpu::Batch *lines_batch;
   gpu::Batch *edit_points;
   gpu::Batch *edit_lines;
 
@@ -153,6 +155,7 @@ static void grease_pencil_batch_cache_clear(GreasePencil &grease_pencil)
   GPU_VERTBUF_DISCARD_SAFE(cache->vbo_col);
   GPU_INDEXBUF_DISCARD_SAFE(cache->ibo);
 
+  GPU_BATCH_DISCARD_SAFE(cache->lines_batch);
   GPU_BATCH_DISCARD_SAFE(cache->edit_points);
   GPU_BATCH_DISCARD_SAFE(cache->edit_lines);
 
@@ -1293,6 +1296,84 @@ static void grease_pencil_geom_batch_ensure(Object &object,
   cache->is_dirty = false;
 }
 
+static void grease_pencil_wire_batch_ensure(Object &object,
+                                            const GreasePencil &grease_pencil,
+                                            const Scene &scene)
+{
+  using namespace blender::bke::greasepencil;
+
+  BLI_assert(grease_pencil.runtime != nullptr);
+  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
+      grease_pencil.runtime->batch_cache);
+
+  if (cache->lines_batch != nullptr) {
+    return;
+  }
+
+  grease_pencil_geom_batch_ensure(object, grease_pencil, scene);
+  uint32_t max_index = GPU_vertbuf_get_vertex_len(cache->vbo);
+
+  /* Get the visible drawings. */
+  const Vector<ed::greasepencil::DrawingInfo> drawings =
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
+
+  Vector<int> index_start_per_curve;
+  Vector<bool> cyclic_per_curve;
+
+  int index_len = 0;
+  for (const ed::greasepencil::DrawingInfo &info : drawings) {
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const VArray<bool> cyclic = curves.cyclic();
+    IndexMaskMemory memory;
+    const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
+        object, info.drawing, memory);
+
+    visible_strokes.foreach_index([&](const int curve_i) {
+      const IndexRange points = points_by_curve[curve_i];
+      const int point_len = points.size();
+      const int point_start = index_len;
+      const bool is_cyclic = cyclic[curve_i] && (point_len > 2);
+      /* Count the primitive restart. */
+      index_len += point_len + (is_cyclic ? 1 : 0) + 1;
+      index_start_per_curve.append(point_start);
+      cyclic_per_curve.append(is_cyclic);
+    });
+  }
+  index_start_per_curve.append(index_len);
+  const OffsetIndices<int> range_per_curve(index_start_per_curve, offset_indices::NoSortCheck{});
+
+  GPUIndexBufBuilder elb;
+  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, max_index);
+
+  blender::MutableSpan<uint32_t> indices = GPU_indexbuf_get_data(&elb);
+
+  threading::parallel_for(cyclic_per_curve.index_range(), 1024, [&](const IndexRange range) {
+    for (const int curve : range) {
+      /* Drop the trailing restart index. */
+      const IndexRange offset_range = range_per_curve[curve].drop_back(1);
+      /* Shift the range by `curve` to account for the second padding vertices.
+       * The first one is already accounted for during counting (as primitive restart). */
+      const IndexRange index_range = offset_range.shift(curve + 1);
+      for (const int i : offset_range.index_range()) {
+        indices[offset_range[i]] = index_range[i];
+      }
+      if (cyclic_per_curve[curve]) {
+        indices[offset_range.last()] = index_range.first();
+      }
+      indices[offset_range.one_after_last()] = gpu::RESTART_INDEX;
+    }
+  });
+
+  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(&elb, 0, max_index, true, ibo);
+
+  cache->lines_batch = GPU_batch_create_ex(
+      GPU_PRIM_LINE_STRIP, cache->vbo, ibo, GPU_BATCH_OWNS_INDEX);
+
+  cache->is_dirty = false;
+}
+
 /** \} */
 
 void DRW_grease_pencil_batch_cache_dirty_tag(GreasePencil *grease_pencil, int mode)
@@ -1389,6 +1470,15 @@ gpu::Batch *DRW_cache_grease_pencil_weight_lines_get(const Scene *scene, Object 
   grease_pencil_weight_batch_ensure(*ob, grease_pencil, *scene);
 
   return cache->edit_lines;
+}
+
+gpu::Batch *DRW_cache_grease_pencil_face_wireframe_get(const Scene *scene, Object *ob)
+{
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
+  grease_pencil_wire_batch_ensure(*ob, grease_pencil, *scene);
+
+  return cache->lines_batch;
 }
 
 }  // namespace blender::draw

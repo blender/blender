@@ -272,7 +272,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-      blender::gpu::Batch *geom = DRW_cache_object_face_wireframe_get(ob);
+      blender::gpu::Batch *geom = DRW_cache_object_face_wireframe_get(draw_ctx->scene, ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->object_to_world().ptr(), color);
       }
@@ -294,7 +294,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
                                                             false;
     const bool use_coloring = (use_wire && !is_edit_mode && !is_sculpt_mode &&
                                !has_edit_mesh_cage && !instance_parent_in_edit_mode);
-    geom = DRW_cache_object_face_wireframe_get(ob);
+    geom = DRW_cache_object_face_wireframe_get(draw_ctx->scene, ob);
 
     if (geom || use_sculpt_pbvh) {
       if (use_sculpt_pbvh) {
@@ -307,7 +307,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         shgrp = pd->wires_grp[is_xray][use_coloring];
       }
 
-      if (ob->type == OB_GPENCIL_LEGACY) {
+      if (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
         /* TODO(fclem): Make GPencil objects have correct bound-box. */
         DRW_shgroup_call_no_cull(shgrp, geom, ob);
       }
