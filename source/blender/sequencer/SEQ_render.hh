@@ -25,29 +25,29 @@ enum eSeqTaskId {
 };
 
 struct SeqRenderData {
-  Main *bmain;
-  Depsgraph *depsgraph;
-  Scene *scene;
-  int rectx;
-  int recty;
-  int preview_render_size;
-  bool use_proxies;
-  bool ignore_missing_media;
-  int for_render;
-  int motion_blur_samples;
-  float motion_blur_shutter;
-  bool skip_cache;
-  bool is_proxy_render;
-  bool is_prefetch_render;
-  bool is_playing;
-  bool is_scrubbing;
-  int view_id;
+  Main *bmain = nullptr;
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+  int rectx = 0;
+  int recty = 0;
+  int preview_render_size = 0;
+  bool use_proxies = false;
+  bool ignore_missing_media = false;
+  int for_render = 0;
+  int motion_blur_samples = 0;
+  float motion_blur_shutter = 0.0f;
+  bool skip_cache = false;
+  bool is_proxy_render = false;
+  bool is_prefetch_render = false;
+  bool is_playing = false;
+  bool is_scrubbing = false;
+  int view_id = 0;
   /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
-  eSeqTaskId task_id;
+  eSeqTaskId task_id = SEQ_TASK_MAIN_RENDER;
 
   /* special case for OpenGL render */
-  GPUOffScreen *gpu_offscreen;
-  GPUViewport *gpu_viewport;
+  GPUOffScreen *gpu_offscreen = nullptr;
+  GPUViewport *gpu_viewport = nullptr;
   // int gpu_samples;
   // bool gpu_full_samples;
 };
