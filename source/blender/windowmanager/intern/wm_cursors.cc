@@ -49,6 +49,8 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
     case WM_CURSOR_EDIT:
     case WM_CURSOR_CROSS:
       return GHOST_kStandardCursorCrosshair;
+    case WM_CURSOR_MOVE:
+      return GHOST_kStandardCursorMove;
     case WM_CURSOR_X_MOVE:
       return GHOST_kStandardCursorLeftRight;
     case WM_CURSOR_Y_MOVE:
@@ -56,7 +58,11 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
     case WM_CURSOR_COPY:
       return GHOST_kStandardCursorCopy;
     case WM_CURSOR_HAND:
-      return GHOST_kStandardCursorMove;
+      return GHOST_kStandardCursorHandOpen;
+    case WM_CURSOR_HAND_CLOSED:
+      return GHOST_kStandardCursorHandClosed;
+    case WM_CURSOR_HAND_POINT:
+      return GHOST_kStandardCursorHandPoint;
     case WM_CURSOR_H_SPLIT:
       return GHOST_kStandardCursorHorizontalSplit;
     case WM_CURSOR_V_SPLIT:

@@ -971,6 +971,12 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
         return [NSCursor operationNotAllowedCursor];
       case GHOST_kStandardCursorMove:
         return [NSCursor openHandCursor];
+      case GHOST_kStandardCursorHandOpen:
+        return [NSCursor openHandCursor];
+      case GHOST_kStandardCursorHandClosed:
+        return [NSCursor closedHandCursor];
+      case GHOST_kStandardCursorHandPoint:
+        return [NSCursor pointingHandCursor];
       case GHOST_kStandardCursorDefault:
         return [NSCursor arrowCursor];
       case GHOST_kStandardCursorKnife:

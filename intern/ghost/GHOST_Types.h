@@ -363,6 +363,9 @@ typedef enum {
   GHOST_kStandardCursorLeftHandle,
   GHOST_kStandardCursorRightHandle,
   GHOST_kStandardCursorBothHandles,
+  GHOST_kStandardCursorHandOpen,
+  GHOST_kStandardCursorHandClosed,
+  GHOST_kStandardCursorHandPoint,
   GHOST_kStandardCursorCustom,
 
 #define GHOST_kStandardCursorNumCursors (int(GHOST_kStandardCursorCustom) + 1)
