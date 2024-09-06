@@ -238,7 +238,7 @@ static void foreach_active_gizmo_in_open_node_editor(
   if (snode.nodetree == nullptr) {
     return;
   }
-  if (!snode.edittree->runtime->gizmo_propagation) {
+  if (snode.edittree == nullptr || !snode.edittree->runtime->gizmo_propagation) {
     return;
   }
   const std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
