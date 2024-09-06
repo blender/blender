@@ -224,6 +224,31 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         # After this, there is no need to test the rest of the functions, as the
         # Action will be in the same state as in test_fcurves_on_layered_action().
 
+    def test_groups(self) -> None:
+        # Create a group by using the legacy API to create an F-Curve with group name.
+        group_name = "Object Transfoibles"
+        self.action.fcurves.new("scale", index=1, action_group=group_name)
+
+        layer = self.action.layers[0]
+        strip = layer.strips[0]
+        channelbag = strip.channelbags[0]
+
+        self.assertEqual(1, len(channelbag.groups), "The new group should be available on the channelbag")
+        self.assertEqual(group_name, channelbag.groups[0].name)
+        self.assertEqual(1, len(self.action.groups), "The new group should be available with the legacy group API")
+        self.assertEqual(group_name, self.action.groups[0].name)
+
+        # Create a group via the legacy API.
+        group = self.action.groups.new(group_name)
+        self.assertEqual("{}.001".format(group_name), group.name, "The group should have a unique name")
+        self.assertEqual(group, self.action.groups[1], "The group should be accessible via the legacy API")
+        self.assertEqual(group, channelbag.groups[1], "The group should be accessible via the channelbag")
+
+        # Remove a group via the legacy API.
+        self.action.groups.remove(group)
+        self.assertNotIn(group, self.action.groups[:], "A group should be removable via the legacy API")
+        self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
+
 
 class TestLegacyLayered(unittest.TestCase):
     """Test boundaries between legacy & layered Actions.
@@ -252,20 +277,6 @@ class TestLegacyLayered(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             act.slots.new()
         self.assertSequenceEqual([], act.slots)
-
-    def test_layered_action(self) -> None:
-        """Test legacy operations on a layered Action"""
-
-        act = bpy.data.actions.new('LayeredAction')
-        act.layers.new("laagje")  # Add a layer to make this a non-empty legacy Action.
-        self.assertFalse(act.is_action_legacy)
-        self.assertTrue(act.is_action_layered)
-        self.assertFalse(act.is_empty)
-
-        # Adding an ActionGroup should be prevented, at least until grouping is supported.
-        with self.assertRaises(RuntimeError):
-            act.groups.new("groepie")
-        self.assertSequenceEqual([], act.groups)
 
 
 class ChannelBagsTest(unittest.TestCase):

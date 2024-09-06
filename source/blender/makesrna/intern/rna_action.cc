@@ -825,25 +825,122 @@ static bool use_backward_compatible_api(animrig::Action &action)
   return (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava) && action.is_empty()) ||
          !action.is_action_legacy();
 }
-#  endif /* WITH_ANIM_BAKLAVA */
 
-static bActionGroup *rna_Action_groups_new(bAction *act, ReportList *reports, const char name[])
+static void rna_iterator_Action_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  if (!act->wrap().is_action_legacy()) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Cannot add legacy Action Groups to a layered Action '%s'. Convert it to a legacy "
-                "Action first.",
-                act->id.name + 2);
-    return nullptr;
+  animrig::Action &action = rna_action(ptr);
+
+  if (use_backward_compatible_api(action)) {
+    animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
+    if (!channelbag) {
+      return;
+    }
+    rna_iterator_array_begin(iter, channelbag->channel_groups());
+  }
+  else {
+    rna_iterator_listbase_begin(iter, &action.groups, nullptr);
+  }
+}
+static void rna_iterator_Action_groups_next(CollectionPropertyIterator *iter)
+{
+  animrig::Action &action = rna_action(&iter->parent);
+  if (use_backward_compatible_api(action)) {
+    rna_iterator_array_next(iter);
+  }
+  else {
+    rna_iterator_listbase_next(iter);
+  }
+}
+static void rna_iterator_Action_groups_end(CollectionPropertyIterator *iter)
+{
+  animrig::Action &action = rna_action(&iter->parent);
+  if (use_backward_compatible_api(action)) {
+    rna_iterator_array_end(iter);
+  }
+  else {
+    rna_iterator_listbase_end(iter);
+  }
+}
+static PointerRNA rna_iterator_Action_groups_get(CollectionPropertyIterator *iter)
+{
+  animrig::Action &action = rna_action(&iter->parent);
+  bActionGroup *group;
+  if (use_backward_compatible_api(action)) {
+    group = static_cast<bActionGroup *>(rna_iterator_array_dereference_get(iter));
+  }
+  else {
+    group = static_cast<bActionGroup *>(rna_iterator_listbase_get(iter));
   }
 
-  return action_groups_add_new(act, name);
+  return RNA_pointer_create(&action.id, &RNA_ActionGroup, group);
+}
+static int rna_iterator_Action_groups_length(PointerRNA *ptr)
+{
+  animrig::Action &action = rna_action(ptr);
+  if (use_backward_compatible_api(action)) {
+    animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
+    if (!channelbag) {
+      return 0;
+    }
+    return channelbag->channel_groups().size();
+  }
+  return BLI_listbase_count(&action.groups);
+}
+
+#  endif /* WITH_ANIM_BAKLAVA */
+
+static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
+{
+  bActionGroup *group;
+
+#  ifdef WITH_ANIM_BAKLAVA
+  animrig::Action &action = act->wrap();
+  if (use_backward_compatible_api(action)) {
+    animrig::ChannelBag &channelbag = animrig::legacy::channelbag_ensure(action);
+    group = &channelbag.channel_group_create(name);
+  }
+  else {
+    group = action_groups_add_new(act, name);
+  }
+#  else
+  group = action_groups_add_new(act, name);
+#  endif
+
+  /* I (Sybren) expected that the commented-out notifier below was missing.
+   * However, the animation filtering code (`animfilter_act_group()`) hides
+   * empty groups. Because this group is newly created, it's not shown in the
+   * UI, and thus there is no need to send notifiers.
+   *
+   * WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN | NA_ADDED, nullptr); */
+
+  return group;
 }
 
 static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerRNA *agrp_ptr)
 {
   bActionGroup *agrp = static_cast<bActionGroup *>(agrp_ptr->data);
+  BLI_assert(agrp); /* Ensured by RNA flag PROP_NEVER_NULL. */
+
+#  ifdef WITH_ANIM_BAKLAVA
+  animrig::Action &action = act->wrap();
+  if (use_backward_compatible_api(action)) {
+    animrig::ChannelBag *channelbag = animrig::legacy::channelbag_get(action);
+    if (!channelbag || !channelbag->channel_group_remove(*agrp)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Action group '%s' not found in action '%s'",
+                  agrp->name,
+                  act->id.name + 2);
+    }
+
+    /* Removing a group also removes its F-Curves. */
+    DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
+    WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+    return;
+  }
+#  endif
+
   FCurve *fcu, *fcn;
 
   /* try to remove the F-Curve from the action */
@@ -2336,9 +2433,19 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "ActionGroups", nullptr);
   RNA_def_struct_sdna(srna, "bAction");
   RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
+#  ifdef WITH_ANIM_BAKLAVA
+  RNA_def_property_collection_funcs(cprop,
+                                    "rna_iterator_Action_groups_begin",
+                                    "rna_iterator_Action_groups_next",
+                                    "rna_iterator_Action_groups_end",
+                                    "rna_iterator_Action_groups_get",
+                                    "rna_iterator_Action_groups_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+#  endif
 
   func = RNA_def_function(srna, "new", "rna_Action_groups_new");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Create a new action group and add it to the action");
   parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the action group");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
