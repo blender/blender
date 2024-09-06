@@ -2062,6 +2062,59 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   message_shown = true;
 }
 
+static uiBlock *block_create_gpu_backend_fallback(bContext *C, ARegion *region, void * /*arg1*/)
+{
+  uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
+
+  /* Title and explanation text. */
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemL_ex(
+      col, RPT_("Failed to load using Vulkan, using OpenGL instead."), ICON_NONE, true, false);
+  uiItemL(col, RPT_(""), ICON_NONE);
+  uiItemL(col, RPT_("Updating GPU drivers may solve this issue."), ICON_NONE);
+  uiItemL(col,
+          RPT_("The graphics backend can be changed in the System section of the Preferences."),
+          ICON_NONE);
+
+  uiItemS(layout);
+
+  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
+
+  return block;
+}
+
+void wm_test_gpu_backend_fallback(bContext *C)
+{
+  if (!bool(G.f & G_FLAG_GPU_BACKEND_FALLBACK)) {
+    return;
+  }
+
+  /* Have we already shown a message during this Blender session. */
+  if (bool(G.f & G_FLAG_GPU_BACKEND_FALLBACK_QUIET)) {
+    return;
+  }
+  G.f |= G_FLAG_GPU_BACKEND_FALLBACK_QUIET;
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
+
+  if (win) {
+    /* We want this warning on the Main window, not a child window even if active. See #118765. */
+    if (win->parent) {
+      win = win->parent;
+    }
+
+    wmWindow *prevwin = CTX_wm_window(C);
+    CTX_wm_window_set(C, win);
+    UI_popup_block_invoke(C, block_create_gpu_backend_fallback, nullptr, nullptr);
+    CTX_wm_window_set(C, prevwin);
+  }
+}
+
 eWM_CapabilitiesFlag WM_capabilities_flag()
 {
   static eWM_CapabilitiesFlag flag = eWM_CapabilitiesFlag(0);

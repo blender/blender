@@ -767,6 +767,7 @@ void wm_event_do_notifiers(bContext *C)
   wm_test_autorun_warning(C);
   /* Deprecation warning. */
   wm_test_opengl_deprecation_warning(C);
+  wm_test_gpu_backend_fallback(C);
 
   GPU_render_end();
 }

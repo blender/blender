@@ -677,6 +677,32 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
             layout.label(text="Cycles is disabled in this build", icon='INFO')
 
 
+class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "Display Graphics"
+
+    @classmethod
+    def poll(cls, _context):
+        import platform
+        return platform.system() != 'Darwin'
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+
+        col = layout.column()
+        col.prop(system, "gpu_backend", text="Backend")
+
+        import gpu
+        if system.gpu_backend != gpu.platform.backend_type_get():
+            layout.label(text="A restart of Blender is required", icon="INFO")
+
+        if system.gpu_backend == 'VULKAN':
+            col = layout.column()
+            col.label(text="The Vulkan backend is experimental:", icon="INFO")
+            col.label(text="\u2022 OpenXR and GPU subdivision are not supported", icon="BLANK1")
+            col.label(text="\u2022 Expect reduced performance", icon="BLANK1")
+
+
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Operating System Settings"
 
@@ -2956,6 +2982,7 @@ classes = (
     USERPREF_PT_animation_fcurves,
 
     USERPREF_PT_system_cycles_devices,
+    USERPREF_PT_system_display_graphics,
     USERPREF_PT_system_os_settings,
     USERPREF_PT_system_network,
     USERPREF_PT_system_memory,
