@@ -70,7 +70,7 @@ class Particles {
 
   /* Particle data are stored in world space. If an object is instanced, the associated particle
    * systems need to be offset appropriately. */
-  float4x4 particle_dupli_matrix_get(const ObjectRef &ob_ref)
+  static float4x4 dupli_matrix_get(const ObjectRef &ob_ref)
   {
     float4x4 dupli_mat = float4x4::identity();
 
@@ -106,7 +106,7 @@ class Particles {
       }
 
       if (handle.raw == 0u) {
-        handle = manager.resource_handle_for_psys(ob_ref, particle_dupli_matrix_get(ob_ref));
+        handle = manager.resource_handle_for_psys(ob_ref, dupli_matrix_get(ob_ref));
       }
 
       const ParticleSettings *part = psys->part;

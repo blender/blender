@@ -785,6 +785,33 @@ GPU_SHADER_CREATE_INFO(overlay_depth_only_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_depth_only", "drw_clipped");
 
+GPU_SHADER_CREATE_INFO(overlay_depth_mesh)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_source("basic_depth_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
+    .additional_info("draw_globals", "draw_view", "draw_modelmat_new", "draw_resource_handle_new");
+
+GPU_SHADER_CREATE_INFO(overlay_depth_pointcloud)
+    .do_static_compilation(true)
+    .vertex_source("basic_depth_pointcloud_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
+    .additional_info("draw_pointcloud_new",
+                     "draw_globals",
+                     "draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new");
+
+GPU_SHADER_CREATE_INFO(overlay_depth_curves)
+    .do_static_compilation(true)
+    .vertex_source("basic_depth_curves_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
+    .additional_info("draw_hair_new",
+                     "draw_globals",
+                     "draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

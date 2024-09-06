@@ -5,9 +5,12 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 void main()
 {
+  select_id_set(drw_CustomID);
+
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);

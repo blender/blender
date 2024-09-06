@@ -52,6 +52,14 @@ ShaderModule::ShaderPtr ShaderModule::selectable_shader(const char *create_info_
 
   if (selection_type_ != SelectionType::DISABLED) {
     info.define("SELECT_ENABLE");
+    info.depth_write(gpu::shader::DepthWrite::UNCHANGED);
+    /* Replace additional info. */
+    for (StringRefNull &str : info.additional_infos_) {
+      if (str == "draw_modelmat_new") {
+        str = "draw_modelmat_new_with_custom_id";
+      }
+    }
+    info.additional_info("select_id_patch");
   }
 
   if (clipping_enabled_) {
@@ -328,12 +336,6 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.vertex_inputs_.pop_last();
         info.vertex_inputs_.pop_last();
       });
-
-  depth_mesh = selectable_shader("overlay_depth_only", [](gpu::shader::ShaderCreateInfo &info) {
-    info.additional_infos_.clear();
-    info.additional_info(
-        "draw_view", "draw_globals", "draw_modelmat_new", "draw_resource_handle_new");
-  });
 
   facing = shader("overlay_facing", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();

@@ -138,7 +138,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
 
   if (needs_prepass) {
-    layer.prepass.object_sync(manager, ob_ref, resources);
+    layer.prepass.object_sync(manager, ob_ref, resources, state);
   }
 
   if (in_edit_mode && !state.hide_overlays) {
