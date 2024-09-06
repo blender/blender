@@ -46,8 +46,6 @@ static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
 
 namespace blender::io::usd {
 
-const pxr::UsdTimeCode defaultTime = pxr::UsdTimeCode::Default();
-
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
 }
@@ -153,12 +151,8 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
 
-  const char *active_uvmap_name = nullptr;
-  const int active_uv_set_index = CustomData_get_render_layer_index(&mesh->corner_data,
-                                                                    CD_PROP_FLOAT2);
-  if (active_uv_set_index != -1) {
-    active_uvmap_name = mesh->corner_data.layers[active_uv_set_index].name;
-  }
+  const StringRef active_uvmap_name = CustomData_get_render_layer_name(&mesh->corner_data,
+                                                                       CD_PROP_FLOAT2);
 
   attributes.for_all([&](const StringRef attribute_id, const bke::AttributeMetaData &meta_data) {
     /* Skip "internal" Blender properties and attributes processed elsewhere.
@@ -273,7 +267,7 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
 void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
                                          const pxr::UsdGeomMesh &usd_mesh,
                                          const StringRef attribute_id,
-                                         const char *active_uvmap_name)
+                                         const StringRef active_uvmap_name)
 {
   const VArray<float2> buffer = *mesh->attributes().lookup<float2>(attribute_id,
                                                                    bke::AttrDomain::Corner);
@@ -283,11 +277,10 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
 
   /* Optionally rename active UV map to "st", to follow USD conventions
    * and better work with MaterialX shader nodes. */
-  const blender::StringRef name = usd_export_context_.export_params.rename_uvmaps &&
-                                          active_uvmap_name &&
-                                          (blender::StringRef(active_uvmap_name) == attribute_id) ?
-                                      "st" :
-                                      attribute_id;
+  const StringRef name = usd_export_context_.export_params.rename_uvmaps &&
+                                 active_uvmap_name == attribute_id ?
+                             "st" :
+                             attribute_id;
 
   const pxr::UsdTimeCode timecode = get_export_time_code();
   const pxr::TfToken pv_name(
@@ -410,9 +403,9 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
   if (!attr_points.HasValue()) {
     /* Provide the initial value as default. This makes USD write the value as constant if they
      * don't change over time. */
-    attr_points.Set(usd_mesh_data.points, defaultTime);
-    attr_face_vertex_counts.Set(usd_mesh_data.face_vertex_counts, defaultTime);
-    attr_face_vertex_indices.Set(usd_mesh_data.face_indices, defaultTime);
+    attr_points.Set(usd_mesh_data.points, pxr::UsdTimeCode::Default());
+    attr_face_vertex_counts.Set(usd_mesh_data.face_vertex_counts, pxr::UsdTimeCode::Default());
+    attr_face_vertex_indices.Set(usd_mesh_data.face_indices, pxr::UsdTimeCode::Default());
   }
 
   usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
@@ -428,9 +421,9 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
                                                                                    true);
 
     if (!attr_crease_lengths.HasValue()) {
-      attr_crease_lengths.Set(usd_mesh_data.crease_lengths, defaultTime);
-      attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, defaultTime);
-      attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, defaultTime);
+      attr_crease_lengths.Set(usd_mesh_data.crease_lengths, pxr::UsdTimeCode::Default());
+      attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, pxr::UsdTimeCode::Default());
+      attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, pxr::UsdTimeCode::Default());
     }
 
     usd_value_writer_.SetAttribute(
@@ -449,8 +442,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
         pxr::VtValue(), true);
 
     if (!attr_corner_indices.HasValue()) {
-      attr_corner_indices.Set(usd_mesh_data.corner_indices, defaultTime);
-      attr_corner_sharpnesses.Set(usd_mesh_data.corner_sharpnesses, defaultTime);
+      attr_corner_indices.Set(usd_mesh_data.corner_indices, pxr::UsdTimeCode::Default());
+      attr_corner_sharpnesses.Set(usd_mesh_data.corner_sharpnesses, pxr::UsdTimeCode::Default());
     }
 
     usd_value_writer_.SetAttribute(
