@@ -316,7 +316,7 @@ GPU_SHADER_CREATE_INFO(overlay_armature_dof)
     .fragment_source("overlay_armature_dof_solid_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
-GPU_SHADER_CREATE_INFO(overlay_armature_dof_lipped)
+GPU_SHADER_CREATE_INFO(overlay_armature_dof_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_armature_dof", "drw_clipped");
 
