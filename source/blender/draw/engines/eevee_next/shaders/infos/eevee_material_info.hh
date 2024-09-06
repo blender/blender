@@ -96,6 +96,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .vertex_source("eevee_geom_gpencil_vert.glsl")
     .vertex_out(eevee_surf_iface)
     .additional_info("draw_gpencil_new",
+                     "draw_modelmat_new",
                      "draw_object_infos_new",
                      "draw_resource_id_varying",
                      "draw_resource_id_new");

@@ -176,10 +176,7 @@ GPU_SHADER_CREATE_INFO(draw_gpencil_new)
     .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
     /* Per Layer */
     .push_constant(Type::FLOAT, "gpThicknessOffset")
-    .additional_info("draw_modelmat_new",
-                     "draw_resource_id_varying",
-                     "draw_view",
-                     "draw_object_infos_new");
+    .additional_info("draw_resource_id_varying", "draw_view", "draw_object_infos_new");
 
 /** \} */
 

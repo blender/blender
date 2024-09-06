@@ -15,6 +15,7 @@
 
 #include "draw_sculpt.hh"
 
+#include "overlay_next_grease_pencil.hh"
 #include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
@@ -28,12 +29,12 @@ class Prepass {
   PassMain::Sub *hair_ps_ = nullptr;
   PassMain::Sub *curves_ps_ = nullptr;
   PassMain::Sub *point_cloud_ps_ = nullptr;
+  PassMain::Sub *grease_pencil_ps_ = nullptr;
 
   bool enabled_ = false;
   bool use_material_slot_selection_ = false;
 
-  /* For working with material. Should be removed at some point with better interface. */
-  Vector<gpu::Batch *> geom_array_;
+  overlay::GreasePencil::ViewParameters grease_pencil_view;
 
  public:
   Prepass(const SelectionType selection_type) : selection_type_(selection_type){};
@@ -50,6 +51,14 @@ class Prepass {
       curves_ps_ = nullptr;
       point_cloud_ps_ = nullptr;
       return;
+    }
+
+    {
+      /* TODO(fclem): This is against design. We should not sync depending on view position.
+       * Eventually, we should do this in a compute shader prepass. */
+      float4x4 viewinv;
+      DRW_view_viewmat_get(nullptr, viewinv.ptr(), true);
+      grease_pencil_view = {DRW_view_is_persp_get(nullptr), viewinv};
     }
 
     use_material_slot_selection_ = DRW_state_is_material_select();
@@ -85,6 +94,12 @@ class Prepass {
       sub.shader_set(res.shaders.depth_point_cloud.get());
       sub.bind_ubo("globalsBlock", &res.globals_buf);
       point_cloud_ps_ = &sub;
+    }
+    {
+      auto &sub = ps_.sub("GreasePencil");
+      sub.shader_set(res.shaders.depth_grease_pencil.get());
+      sub.bind_ubo("globalsBlock", &res.globals_buf);
+      grease_pencil_ps_ = &sub;
     }
   }
 
@@ -201,6 +216,19 @@ class Prepass {
         geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
         pass = curves_ps_;
         break;
+      case OB_GREASE_PENCIL:
+        if (selection_type_ == SelectionType::DISABLED) {
+          /* Disable during display, only enable for selection.
+           * The grease pencil engine already renders it properly. */
+          return;
+        }
+        GreasePencil::draw_grease_pencil(*grease_pencil_ps_,
+                                         grease_pencil_view,
+                                         state.scene,
+                                         ob_ref.object,
+                                         manager.resource_handle(ob_ref),
+                                         res.select_id(ob_ref));
+        return;
       default:
         break;
     }

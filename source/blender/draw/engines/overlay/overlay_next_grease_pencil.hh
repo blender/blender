@@ -49,7 +49,8 @@ class GreasePencil {
                                  const ViewParameters &view,
                                  const Scene *scene,
                                  Object *ob,
-                                 ResourceHandle res_handle)
+                                 ResourceHandle res_handle,
+                                 select::ID select_id = select::SelectMap::select_invalid_id())
   {
     using namespace blender;
     using namespace blender::ed::greasepencil;
@@ -117,7 +118,7 @@ class GreasePencil {
         if (show_fill) {
           int v_first = t_offset * 3;
           int v_count = num_stroke_triangles * 3;
-          pass.draw(geom, 1, v_count, v_first, res_handle);
+          pass.draw(geom, 1, v_count, v_first, res_handle, select_id.get());
         }
 
         t_offset += num_stroke_triangles;
@@ -125,7 +126,7 @@ class GreasePencil {
         if (show_stroke) {
           int v_first = t_offset * 3;
           int v_count = num_stroke_vertices * 2 * 3;
-          pass.draw(geom, 1, v_count, v_first, res_handle);
+          pass.draw(geom, 1, v_count, v_first, res_handle, select_id.get());
         }
         t_offset += num_stroke_vertices * 2;
       });
