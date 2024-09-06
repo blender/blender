@@ -286,6 +286,36 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
   short offset = acf_generic_basic_offset(ac, ale);
 
   if (ale->id) {
+
+    /* Action Editor. */
+    if (ac->datatype == ANIMCONT_ACTION) {
+      /* For Action Editor mode, we have a limited set of channel types we need
+       * to account for, so we can handle them very simply here in one place. */
+      switch (ale->type) {
+        case ANIMTYPE_FCURVE:
+        case ANIMTYPE_GROUP: {
+          const bAction *action = reinterpret_cast<bAction *>(ale->fcurve_owner_id);
+          if (action->wrap().is_action_layered()) {
+            offset += short(0.35f * U.widget_unit);
+          }
+          break;
+        }
+
+        case ANIMTYPE_SUMMARY:
+        case ANIMTYPE_ACTION_SLOT:
+          break;
+
+        /* There should be no types except the above in Action Editor mode. */
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+
+      return offset;
+    }
+
+    /* Other editors. */
+
     /* texture animdata */
     if (GS(ale->id->name) == ID_TE) {
       offset += U.widget_unit;
@@ -296,7 +326,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
     }
     /* If not in Action Editor mode, action-groups (and their children)
      * must carry some offset too. */
-    else if (ac->datatype != ANIMCONT_ACTION) {
+    else {
       offset += short(0.7f * U.widget_unit);
     }
 
