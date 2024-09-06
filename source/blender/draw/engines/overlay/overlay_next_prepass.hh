@@ -32,6 +32,7 @@ class Prepass {
   PassMain::Sub *grease_pencil_ps_ = nullptr;
 
   bool enabled_ = false;
+  bool use_selection_ = false;
   bool use_material_slot_selection_ = false;
 
   overlay::GreasePencil::ViewParameters grease_pencil_view;
@@ -41,7 +42,8 @@ class Prepass {
 
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = !state.xray_enabled || (selection_type_ != SelectionType::DISABLED);
+    use_selection_ = (selection_type_ != SelectionType::DISABLED);
+    enabled_ = !state.xray_enabled || use_selection_;
     enabled_ &= state.space_type == SPACE_VIEW3D;
 
     if (!enabled_) {
@@ -73,7 +75,8 @@ class Prepass {
     res.select_bind(ps_);
     {
       auto &sub = ps_.sub("Mesh");
-      sub.shader_set(res.shaders.depth_mesh.get());
+      sub.shader_set(use_selection_ ? res.shaders.depth_mesh_conservative.get() :
+                                      res.shaders.depth_mesh.get());
       sub.bind_ubo("globalsBlock", &res.globals_buf);
       mesh_ps_ = &sub;
     }
@@ -244,7 +247,14 @@ class Prepass {
                                  res.select_id(ob_ref, (material_id + 1) << 16) :
                                  res.select_id(ob_ref);
 
-      pass->draw(geom_list[material_id], res_handle, select_id.get());
+      if (use_selection_ && (pass == mesh_ps_)) {
+        /* Conservative shader needs expanded draw-call. */
+        pass->draw_expand(
+            geom_list[material_id], GPU_PRIM_TRIS, 1, 1, res_handle, select_id.get());
+      }
+      else {
+        pass->draw(geom_list[material_id], res_handle, select_id.get());
+      }
     }
   }
 

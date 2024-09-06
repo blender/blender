@@ -792,6 +792,18 @@ GPU_SHADER_CREATE_INFO(overlay_depth_mesh)
     .fragment_source("overlay_depth_only_frag.glsl")
     .additional_info("draw_globals", "draw_view", "draw_modelmat_new", "draw_resource_handle_new");
 
+GPU_SHADER_CREATE_INFO(overlay_depth_mesh_conservative)
+    .do_static_compilation(true)
+    .storage_buf(0, Qualifier::READ, "float", "pos[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .vertex_source("overlay_depth_only_mesh_conservative_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
+    .additional_info("draw_globals",
+                     "draw_view",
+                     "draw_modelmat_new",
+                     "gpu_index_load",
+                     "draw_resource_handle_new");
+
 GPU_SHADER_INTERFACE_INFO(overlay_depth_only_gpencil_flat_iface, "gp_interp_flat")
     .flat(Type::VEC2, "aspect")
     .flat(Type::VEC4, "sspos");
