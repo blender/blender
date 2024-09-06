@@ -2313,30 +2313,57 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
           AnimData *adt = ale->adt;
           FCurve *fcu, *fcn;
 
-          /* skip this group if no AnimData available, as we can't safely remove the F-Curves */
-          if (adt == nullptr) {
+          /* Groups should always be part of an action. */
+          if (adt == nullptr || adt->action == nullptr) {
+            BLI_assert_unreachable();
             continue;
           }
 
-          /* delete all of the Group's F-Curves, but no others */
-          for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
-               fcu = fcn)
-          {
-            fcn = fcu->next;
+          blender::animrig::Action &action = adt->action->wrap();
 
-            /* remove from group and action, then free */
-            action_groups_remove_channel(adt->action, fcu);
-            BKE_fcurve_free(fcu);
-          }
+          /* Legacy actions */
+          if (!action.is_action_layered()) {
+            /* delete all of the Group's F-Curves, but no others */
+            for (fcu = static_cast<FCurve *>(agrp->channels.first); fcu && fcu->grp == agrp;
+                 fcu = fcn)
+            {
+              fcn = fcu->next;
 
-          /* free the group itself */
-          if (adt->action) {
+              /* remove from group and action, then free */
+              action_groups_remove_channel(adt->action, fcu);
+              BKE_fcurve_free(fcu);
+            }
+
+            /* free the group itself */
             BLI_freelinkN(&adt->action->groups, agrp);
             DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
+
+            break;
           }
-          else {
-            MEM_freeN(agrp);
+
+          /* Layered actions.
+           *
+           * Note that the behavior here is different from deleting groups via
+           * the Python API: in the Python API the fcurves that belonged to the
+           * group remain, and just get ungrouped, whereas here they are deleted
+           * along with the group. This difference in behavior is replicated
+           * from legacy actions. */
+
+          blender::animrig::ChannelBag &channel_bag = agrp->channel_bag->wrap();
+
+          /* Remove all the fcurves in the group, which also automatically
+           * deletes the group when the last fcurve is deleted. Since the group
+           * is automatically deleted, we store the fcurve range ahead of time
+           * so we don't have to worry about the memory disappearing out from
+           * under us. */
+          const int fcurve_range_start = agrp->fcurve_range_start;
+          const int fcurve_range_length = agrp->fcurve_range_length;
+          for (int i = 0; i < fcurve_range_length; i++) {
+            channel_bag.fcurve_remove(*channel_bag.fcurve(fcurve_range_start));
           }
+
+          DEG_id_tag_update_ex(CTX_data_main(C), &adt->action->id, ID_RECALC_ANIMATION);
+
           break;
         }
 

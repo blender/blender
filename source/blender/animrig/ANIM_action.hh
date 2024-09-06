@@ -759,6 +759,9 @@ class ChannelBag : public ::ActionChannelBag {
   /**
    * Remove an F-Curve from the ChannelBag.
    *
+   * Additionally, if the fcurve was the last fcurve in a channel group, that
+   * channel group is also deleted.
+   *
    * After this call, if the F-Curve was found, the reference will no longer be
    * valid, as the curve will have been freed.
    *
