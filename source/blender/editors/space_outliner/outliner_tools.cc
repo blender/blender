@@ -471,6 +471,7 @@ static void unlink_object_fn(bContext *C,
               if (BKE_collection_has_object(collection, ob)) {
                 BKE_collection_object_remove(bmain, collection, ob, true);
                 DEG_id_tag_update(&collection->id, ID_RECALC_HIERARCHY);
+                DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
               }
             }
             FOREACH_SCENE_COLLECTION_END;

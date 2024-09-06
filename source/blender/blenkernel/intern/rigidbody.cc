@@ -1640,7 +1640,10 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
        * when we remove them from RB simulation. */
       BKE_collection_object_add(bmain, scene->master_collection, ob);
     }
-    BKE_collection_object_remove(bmain, rbw->group, ob, free_us);
+    if (rbw->group) {
+      BKE_collection_object_remove(bmain, rbw->group, ob, free_us);
+      DEG_id_tag_update(&rbw->group->id, ID_RECALC_SYNC_TO_EVAL);
+    }
 
     /* flag cache as outdated */
     BKE_rigidbody_cache_reset(rbw);
