@@ -109,14 +109,12 @@ MutableSpan<T> gather_data_grids(const SubdivCCG &subdiv_ccg,
 }
 
 template<typename T>
-void gather_data_vert_bmesh(Span<T> src, const Set<BMVert *, 0> &verts, MutableSpan<T> node_data);
+void gather_data_bmesh(Span<T> src, const Set<BMVert *, 0> &verts, MutableSpan<T> node_data);
 template<typename T>
-MutableSpan<T> gather_data_vert_bmesh(const Span<T> src,
-                                      const Set<BMVert *, 0> &verts,
-                                      Vector<T> &dst)
+MutableSpan<T> gather_data_bmesh(const Span<T> src, const Set<BMVert *, 0> &verts, Vector<T> &dst)
 {
   dst.resize(verts.size());
-  gather_data_vert_bmesh(src, verts, dst.as_mutable_span());
+  gather_data_bmesh(src, verts, dst.as_mutable_span());
   return dst;
 }
 
@@ -128,7 +126,7 @@ void scatter_data_grids(const SubdivCCG &subdiv_ccg,
                         Span<int> grids,
                         MutableSpan<T> dst);
 template<typename T>
-void scatter_data_vert_bmesh(Span<T> node_data, const Set<BMVert *, 0> &verts, MutableSpan<T> dst);
+void scatter_data_bmesh(Span<T> node_data, const Set<BMVert *, 0> &verts, MutableSpan<T> dst);
 
 /**
  * Note on the various positions arrays:

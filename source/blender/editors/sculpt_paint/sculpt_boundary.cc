@@ -1263,11 +1263,11 @@ static void calc_bend_bmesh(const Depsgraph &depsgraph,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -1275,9 +1275,9 @@ static void calc_bend_bmesh(const Depsgraph &depsgraph,
 
   scale_factors(factors, strength);
 
-  const Span<float3> pivot_positions = gather_data_vert_bmesh(
+  const Span<float3> pivot_positions = gather_data_bmesh(
       vert_pivot_positions, verts, tls.pivot_positions);
-  const Span<float3> pivot_axes = gather_data_vert_bmesh(vert_pivot_axes, verts, tls.pivot_axes);
+  const Span<float3> pivot_axes = gather_data_bmesh(vert_pivot_axes, verts, tls.pivot_axes);
 
   tls.new_positions.resize(verts.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
@@ -1295,7 +1295,7 @@ static void calc_bend_bmesh(const Depsgraph &depsgraph,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
@@ -1556,11 +1556,11 @@ static void calc_slide_bmesh(const Depsgraph &depsgraph,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -1568,7 +1568,7 @@ static void calc_slide_bmesh(const Depsgraph &depsgraph,
 
   scale_factors(factors, strength);
 
-  const Span<float3> slide_directions = gather_data_vert_bmesh(
+  const Span<float3> slide_directions = gather_data_bmesh(
       vert_slide_directions, verts, tls.pivot_positions);
 
   tls.new_positions.resize(verts.size());
@@ -1587,7 +1587,7 @@ static void calc_slide_bmesh(const Depsgraph &depsgraph,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
@@ -1834,11 +1834,11 @@ static void calc_inflate_bmesh(const Depsgraph &depsgraph,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -1862,7 +1862,7 @@ static void calc_inflate_bmesh(const Depsgraph &depsgraph,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
@@ -2108,11 +2108,11 @@ static void calc_grab_bmesh(const Depsgraph &depsgraph,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -2136,7 +2136,7 @@ static void calc_grab_bmesh(const Depsgraph &depsgraph,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
@@ -2391,11 +2391,11 @@ static void calc_twist_bmesh(const Depsgraph &depsgraph,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -2419,7 +2419,7 @@ static void calc_twist_bmesh(const Depsgraph &depsgraph,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
@@ -2783,9 +2783,9 @@ static void calc_smooth_bmesh(const Sculpt &sd,
 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
 
-  const MutableSpan<float> factors = gather_data_vert_bmesh(vert_factors, verts, tls.factors);
+  const MutableSpan<float> factors = gather_data_bmesh(vert_factors, verts, tls.factors);
 
-  const Span<int> propagation_steps = gather_data_vert_bmesh(
+  const Span<int> propagation_steps = gather_data_bmesh(
       vert_propagation_steps, verts, tls.propagation_steps);
 
   filter_uninitialized_verts(propagation_steps, factors);
@@ -2818,7 +2818,7 @@ static void calc_smooth_bmesh(const Sculpt &sd,
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           new_positions.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }

@@ -6582,9 +6582,9 @@ void gather_data_grids(const SubdivCCG &subdiv_ccg,
 }
 
 template<typename T>
-void gather_data_vert_bmesh(const Span<T> src,
-                            const Set<BMVert *, 0> &verts,
-                            const MutableSpan<T> node_data)
+void gather_data_bmesh(const Span<T> src,
+                       const Set<BMVert *, 0> &verts,
+                       const MutableSpan<T> node_data)
 {
   BLI_assert(verts.size() == node_data.size());
 
@@ -6622,9 +6622,9 @@ void scatter_data_grids(const SubdivCCG &subdiv_ccg,
 }
 
 template<typename T>
-void scatter_data_vert_bmesh(const Span<T> node_data,
-                             const Set<BMVert *, 0> &verts,
-                             const MutableSpan<T> dst)
+void scatter_data_bmesh(const Span<T> node_data,
+                        const Set<BMVert *, 0> &verts,
+                        const MutableSpan<T> dst)
 {
   BLI_assert(verts.size() == node_data.size());
 
@@ -6649,13 +6649,11 @@ template void gather_data_grids<float3>(const SubdivCCG &,
                                         Span<float3>,
                                         Span<int>,
                                         MutableSpan<float3>);
-template void gather_data_vert_bmesh<int>(Span<int>, const Set<BMVert *, 0> &, MutableSpan<int>);
-template void gather_data_vert_bmesh<float>(Span<float>,
-                                            const Set<BMVert *, 0> &,
-                                            MutableSpan<float>);
-template void gather_data_vert_bmesh<float3>(Span<float3>,
-                                             const Set<BMVert *, 0> &,
-                                             MutableSpan<float3>);
+template void gather_data_bmesh<int>(Span<int>, const Set<BMVert *, 0> &, MutableSpan<int>);
+template void gather_data_bmesh<float>(Span<float>, const Set<BMVert *, 0> &, MutableSpan<float>);
+template void gather_data_bmesh<float3>(Span<float3>,
+                                        const Set<BMVert *, 0> &,
+                                        MutableSpan<float3>);
 
 template void scatter_data_mesh<bool>(Span<bool>, Span<int>, MutableSpan<bool>);
 template void scatter_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
@@ -6669,12 +6667,10 @@ template void scatter_data_grids<float3>(const SubdivCCG &,
                                          Span<float3>,
                                          Span<int>,
                                          MutableSpan<float3>);
-template void scatter_data_vert_bmesh<float>(Span<float>,
-                                             const Set<BMVert *, 0> &,
-                                             MutableSpan<float>);
-template void scatter_data_vert_bmesh<float3>(Span<float3>,
-                                              const Set<BMVert *, 0> &,
-                                              MutableSpan<float3>);
+template void scatter_data_bmesh<float>(Span<float>, const Set<BMVert *, 0> &, MutableSpan<float>);
+template void scatter_data_bmesh<float3>(Span<float3>,
+                                         const Set<BMVert *, 0> &,
+                                         MutableSpan<float3>);
 
 void fill_factor_from_hide(const Mesh &mesh,
                            const Span<int> verts,

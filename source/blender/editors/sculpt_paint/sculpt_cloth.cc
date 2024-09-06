@@ -1297,12 +1297,11 @@ static void calc_constraint_factors(const Depsgraph &depsgraph,
           fill_factor_from_hide_and_mask(bm, verts, factors);
           auto_mask::calc_vert_factors(depsgraph, object, automasking, nodes[i], verts, factors);
           if (ss.cache) {
-            const MutableSpan<float3> positions = gather_data_vert_bmesh(
-                init_positions, verts, tls.positions);
+            const MutableSpan positions = gather_data_bmesh(init_positions, verts, tls.positions);
             calc_brush_simulation_falloff(
                 *brush, ss.cache->radius, sim_location, positions, factors);
           }
-          scatter_data_vert_bmesh(factors.as_span(), verts, cloth_factors);
+          scatter_data_bmesh(factors.as_span(), verts, cloth_factors);
         });
       });
       break;

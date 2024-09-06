@@ -335,7 +335,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
           positions, orig_positions, average_positions, alpha, laplacian_disp, translations);
       scale_translations(translations, factors);
 
-      scatter_data_vert_bmesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
+      scatter_data_bmesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
 
       clip_and_lock_translations(sd, ss, positions, translations);
       apply_translations(translations, verts);
@@ -347,7 +347,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
       const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
       const Span<float> factors = all_factors.as_span().slice(node_offsets[pos]);
 
-      const MutableSpan<float3> laplacian_disp = gather_data_vert_bmesh(
+      const MutableSpan<float3> laplacian_disp = gather_data_bmesh(
           all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
       tls.average_positions.resize(positions.size());

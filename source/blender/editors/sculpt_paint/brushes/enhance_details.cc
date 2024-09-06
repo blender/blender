@@ -164,8 +164,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   scale_factors(factors, strength);
 
-  const MutableSpan<float3> translations = gather_data_vert_bmesh(
-      all_translations, verts, tls.translations);
+  const MutableSpan translations = gather_data_bmesh(all_translations, verts, tls.translations);
   scale_translations(translations, factors);
 
   clip_and_lock_translations(sd, ss, positions, translations);
@@ -229,7 +228,7 @@ static void calc_translations_bmesh(const bke::pbvh::BMeshNode &node,
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
   translations_from_new_positions(new_positions, positions, translations);
-  scatter_data_vert_bmesh(translations.as_span(), verts, all_translations);
+  scatter_data_bmesh(translations.as_span(), verts, all_translations);
 }
 
 }  // namespace enhance_details_cc

@@ -314,7 +314,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  const MutableSpan<float> displacement_factors = gather_data_vert_bmesh(
+  const MutableSpan<float> displacement_factors = gather_data_bmesh(
       layer_displacement_factor.as_span(), verts, tls.displacement_factors);
 
   offset_displacement_factors(displacement_factors, factors, cache.bstrength);
@@ -324,7 +324,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   mask::gather_mask_bmesh(*ss.bm, verts, masks);
   clamp_displacement_factors(displacement_factors, masks);
 
-  scatter_data_vert_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
+  scatter_data_bmesh(displacement_factors.as_span(), verts, layer_displacement_factor);
 
   Array<float3> orig_positions(verts.size());
   Array<float3> orig_normals(verts.size());

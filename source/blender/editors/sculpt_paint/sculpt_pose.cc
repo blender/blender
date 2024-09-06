@@ -292,7 +292,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
   for (const IKChainSegment &segment : cache.pose_ik_chain->segments) {
     calc_segment_translations(orig_positions, segment, segment_translations);
-    gather_data_vert_bmesh(segment.weights.as_span(), verts, segment_weights);
+    gather_data_bmesh(segment.weights.as_span(), verts, segment_weights);
     scale_translations(segment_translations, segment_weights);
     add_arrays(translations, segment_translations);
   }
@@ -306,7 +306,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
       break;
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
       add_arrays(translations, orig_positions);
-      scatter_data_vert_bmesh(
+      scatter_data_bmesh(
           translations.as_span(), verts, cache.cloth_sim->deformation_pos.as_mutable_span());
       break;
   }
