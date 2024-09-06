@@ -949,11 +949,17 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
     return nullptr;
   }
 
+  animrig::FCurveDescriptor fcurve_descriptor = {data_path, index};
+  if (group && group[0] != '\0') {
+    fcurve_descriptor.channel_group = group;
+  }
+
+#  ifdef WITH_ANIM_BAKLAVA
   animrig::Action &action = act->wrap();
   if (use_backward_compatible_api(action)) {
     /* Add the F-Curve to the channelbag for the first slot. */
     animrig::ChannelBag &channelbag = animrig::legacy::channelbag_ensure(action);
-    FCurve *fcurve = channelbag.fcurve_create_unique(bmain, {data_path, index});
+    FCurve *fcurve = channelbag.fcurve_create_unique(bmain, fcurve_descriptor);
     if (!fcurve) {
       /* The only reason fcurve_create_unique() returns nullptr is when the curve
        * already exists. */
@@ -968,16 +974,12 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
       return nullptr;
     }
 
-    /* TODO: handle the groups. */
     return fcurve;
   }
-
-  if (group && group[0] == '\0') {
-    group = nullptr;
-  }
+#  endif
 
   /* Annoying, check if this exists. */
-  if (blender::animrig::action_fcurve_find(act, {data_path, index})) {
+  if (blender::animrig::action_fcurve_find(act, fcurve_descriptor)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",
@@ -986,7 +988,12 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return nullptr;
   }
-  return blender::animrig::action_fcurve_ensure(bmain, act, group, nullptr, {data_path, index});
+  return blender::animrig::action_fcurve_ensure(
+      bmain,
+      act,
+      fcurve_descriptor.channel_group ? fcurve_descriptor.channel_group->c_str() : nullptr,
+      nullptr,
+      fcurve_descriptor);
 }
 
 static FCurve *rna_Action_fcurve_find(bAction *act,
