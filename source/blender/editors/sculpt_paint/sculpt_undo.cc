@@ -2295,15 +2295,25 @@ void push_multires_mesh_end(bContext *C, const char *str)
 
 namespace blender::ed::sculpt_paint {
 
-std::optional<OrigPositionData> orig_position_data_lookup_mesh(const Object & /*object*/,
-                                                               const bke::pbvh::MeshNode &node)
+std::optional<OrigPositionData> orig_position_data_lookup_mesh_all_verts(
+    const Object & /*object*/, const bke::pbvh::MeshNode &node)
 {
   const undo::Node *unode = undo::get_node(&node, undo::Type::Position);
   if (!unode) {
     return std::nullopt;
   }
-  return OrigPositionData{unode->position.as_span().take_front(unode->unique_verts_num),
-                          unode->normal.as_span().take_front(unode->unique_verts_num)};
+  return OrigPositionData{unode->position.as_span(), unode->normal.as_span()};
+}
+
+std::optional<OrigPositionData> orig_position_data_lookup_mesh(const Object &object,
+                                                               const bke::pbvh::MeshNode &node)
+{
+  std::optional<OrigPositionData> result = orig_position_data_lookup_mesh_all_verts(object, node);
+  if (!result) {
+    return std::nullopt;
+  }
+  return OrigPositionData{result->positions.take_front(node.verts().size()),
+                          result->normals.take_front(node.verts().size())};
 }
 
 std::optional<OrigPositionData> orig_position_data_lookup_grids(const Object & /*object*/,

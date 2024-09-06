@@ -4800,8 +4800,9 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
   if (srd.original && srd.ss->cache) {
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh:
-        if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(
-                *srd.object, static_cast<const bke::pbvh::MeshNode &>(node)))
+        if (const std::optional<OrigPositionData> orig_data =
+                orig_position_data_lookup_mesh_all_verts(
+                    *srd.object, static_cast<const bke::pbvh::MeshNode &>(node)))
         {
           use_origco = true;
           origco = orig_data->positions;
@@ -4859,8 +4860,9 @@ static void sculpt_find_nearest_to_ray_cb(blender::bke::pbvh::Node &node,
   if (srd.original && srd.ss->cache) {
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh:
-        if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(
-                *srd.object, static_cast<const bke::pbvh::MeshNode &>(node)))
+        if (const std::optional<OrigPositionData> orig_data =
+                orig_position_data_lookup_mesh_all_verts(
+                    *srd.object, static_cast<const bke::pbvh::MeshNode &>(node)))
         {
           use_origco = true;
           origco = orig_data->positions;
