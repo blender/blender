@@ -8,6 +8,8 @@ functionality via commands passed to (``-c`` / ``--command``).
 import sys
 import os
 
+import bpy
+
 
 def sysinfo_command(argv):
     import tempfile
