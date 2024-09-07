@@ -548,7 +548,6 @@ static void grow_mask_bmesh(const int mask_offset,
   Vector<BMVert *, 64> neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
-    neighbors.clear();
     new_mask[i] = BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
     for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
       new_mask[i] = std::max(BM_ELEM_CD_GET_FLOAT(neighbor, mask_offset), new_mask[i]);
@@ -568,7 +567,6 @@ static void shrink_mask_bmesh(const int mask_offset,
   Vector<BMVert *, 64> neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
-    neighbors.clear();
     new_mask[i] = BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
     for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
       new_mask[i] = std::min(BM_ELEM_CD_GET_FLOAT(neighbor, mask_offset), new_mask[i]);

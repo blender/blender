@@ -335,7 +335,6 @@ void FillDataBMesh::execute(Object & /*object*/,
     BMVert *from_v = this->queue.front();
     this->queue.pop();
 
-    neighbors.clear();
     for (BMVert *neighbor : vert_neighbors_get_bmesh(*from_v, neighbors)) {
       const int neighbor_idx = BM_elem_index_get(neighbor);
       if (this->visited_verts[neighbor_idx]) {

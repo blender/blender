@@ -1856,7 +1856,6 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
             const float3 position = vert->co;
 
             float3 disp_sharpen(0.0f);
-            neighbors.clear();
             for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
               float3 disp_n = float3(neighbor->co) - position;
               disp_n *= ss.filter_cache->sharpen_factor[BM_elem_index_get(neighbor)];

@@ -142,7 +142,6 @@ BLI_NOINLINE static void calc_neighbor_influence(const Span<float3> positions,
     const float3 &dir = translations[i];
 
     float3 final_translation(0);
-    neighbors.clear();
     for (BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
       add_neighbor_influence(position, dir, neighbor->co, final_translation);
     }

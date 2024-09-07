@@ -540,8 +540,8 @@ void SCULPT_vertex_neighbors_get(const Object &object,
 
 namespace blender::ed::sculpt_paint {
 
-Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &neighbors);
-Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &neighbors);
+Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
+Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
 
 Span<int> vert_neighbors_get_mesh(int vert,
                                   OffsetIndices<int> faces,

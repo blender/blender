@@ -155,7 +155,6 @@ static void calc_vert_neighbor_indices_bmesh(const BMesh &bm,
 
   for (const int i : verts.index_range()) {
     BMVert *vert = BM_vert_at_index(&const_cast<BMesh &>(bm), verts[i]);
-    neighbors.clear();
     neighbor_indices[i].clear();
     for (const BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
       neighbor_indices[i].append(BM_elem_index_get(neighbor));

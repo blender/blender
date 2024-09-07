@@ -249,7 +249,6 @@ void average_data_bmesh(const Span<T> src, const Set<BMVert *, 0> &verts, const 
   int i = 0;
   for (BMVert *vert : verts) {
     T sum{};
-    neighbor_data.clear();
     const Span<BMVert *> neighbors = vert_neighbors_get_bmesh(*vert, neighbor_data);
     for (const BMVert *neighbor : neighbors) {
       sum += src[BM_elem_index_get(neighbor)];
@@ -292,7 +291,6 @@ void neighbor_position_average_bmesh(const Set<BMVert *, 0> &verts,
 
   int i = 0;
   for (BMVert *vert : verts) {
-    neighbor_data.clear();
     const Span<BMVert *> neighbors = vert_neighbors_get_bmesh(*vert, neighbor_data);
     new_positions[i] = average_positions(neighbors);
     i++;
@@ -307,7 +305,6 @@ void neighbor_position_average_interior_bmesh(const Set<BMVert *, 0> &verts,
 
   int i = 0;
   for (BMVert *vert : verts) {
-    neighbor_data.clear();
     const Span<BMVert *> neighbors = vert_neighbors_get_interior_bmesh(*vert, neighbor_data);
     if (neighbors.is_empty()) {
       new_positions[i] = float3(vert->co);

@@ -453,7 +453,6 @@ static void grow_factors_bmesh(const ePaintSymmetryFlags symm,
     const int vert = BM_elem_index_get(bm_vert);
 
     float max = 0.0f;
-    neighbors.clear();
     for (const BMVert *neighbor : vert_neighbors_get_bmesh(*bm_vert, neighbors)) {
       max = std::max(max, prev_mask[BM_elem_index_get(neighbor)]);
     }
