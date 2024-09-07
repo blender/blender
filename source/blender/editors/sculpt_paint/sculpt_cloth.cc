@@ -1650,31 +1650,22 @@ static void cloth_sim_initialize_default_node_state(Object &object, SimulationDa
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  cloth_sim.node_state = Array<NodeSimState>(node_mask.size());
+  cloth_sim.node_state = Array<NodeSimState>(pbvh.nodes_num(), SCULPT_CLOTH_NODE_UNINITIALIZED);
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index([&](const int i) {
-        cloth_sim.node_state[i] = SCULPT_CLOTH_NODE_UNINITIALIZED;
-        cloth_sim.node_state_index.add(&nodes[i], i);
-      });
+      node_mask.foreach_index([&](const int i) { cloth_sim.node_state_index.add(&nodes[i], i); });
       break;
     }
     case bke::pbvh::Type::Grids: {
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      node_mask.foreach_index([&](const int i) {
-        cloth_sim.node_state[i] = SCULPT_CLOTH_NODE_UNINITIALIZED;
-        cloth_sim.node_state_index.add(&nodes[i], i);
-      });
+      node_mask.foreach_index([&](const int i) { cloth_sim.node_state_index.add(&nodes[i], i); });
       break;
     }
     case bke::pbvh::Type::BMesh: {
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      node_mask.foreach_index([&](const int i) {
-        cloth_sim.node_state[i] = SCULPT_CLOTH_NODE_UNINITIALIZED;
-        cloth_sim.node_state_index.add(&nodes[i], i);
-      });
+      node_mask.foreach_index([&](const int i) { cloth_sim.node_state_index.add(&nodes[i], i); });
       break;
     }
   }
