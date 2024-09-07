@@ -47,6 +47,12 @@ struct AttributeFilter {
   {
     return this->filter(name) == Result::AllowSkip;
   }
+
+  static const AttributeFilter &default_filter()
+  {
+    static AttributeFilter filter;
+    return filter;
+  }
 };
 
 }  // namespace blender::bke
