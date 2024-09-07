@@ -313,29 +313,37 @@ static float calc_cavity_factor(const Cache *automasking, float factor)
                                                                              factor;
 }
 
-static void calc_blurred_cavity(const Depsgraph &depsgraph,
-                                const Object &object,
-                                const Cache *automasking,
-                                const int steps,
-                                const PBVHVertRef vertex)
+struct AccumulatedVert {
+  float3 position = float3(0.0f);
+  float3 normal = float3(0.0f);
+  float distance = 0.0f;
+  int count = 0;
+};
+
+static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
+                                     const Object &object,
+                                     const Cache *automasking,
+                                     const int steps,
+                                     const int vert)
 {
   struct CavityBlurVert {
-    PBVHVertRef vertex;
+    int vertex;
     int depth;
-
-    CavityBlurVert(PBVHVertRef vertex_, int depth_) : vertex(vertex_), depth(depth_) {}
-
-    CavityBlurVert() = default;
   };
 
-  struct AccumulatedVert {
-    float3 position = float3(0.0f);
-    float3 normal = float3(0.0f);
-    float distance = 0.0f;
-    int count = 0;
-  };
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
   const SculptSession &ss = *object.sculpt;
+
+  Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  Span<float3> normals_eval = bke::pbvh::vert_normals_eval(depsgraph, object);
+
   AccumulatedVert all_verts;
   AccumulatedVert verts_in_range;
   /* Steps starts at 1, but API and user interface
@@ -344,22 +352,23 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
   const int num_steps = steps + 1;
 
   std::queue<CavityBlurVert> queue;
-  Set<int64_t, 64> visited_verts;
+  Set<int, 64> visited_verts;
 
-  const CavityBlurVert initial(vertex, 0);
-  visited_verts.add_new(vertex.i);
+  const CavityBlurVert initial{vert, 0};
+  visited_verts.add_new(vert);
   queue.push(initial);
 
-  const float3 starting_position = SCULPT_vertex_co_get(depsgraph, object, vertex);
+  const float3 starting_position = positions_eval[vert];
 
+  Vector<int> neighbors;
   while (!queue.empty()) {
     const CavityBlurVert blurvert = queue.front();
     queue.pop();
 
-    const PBVHVertRef v = blurvert.vertex;
+    const int current_vert = blurvert.vertex;
 
-    const float3 blur_vert_position = SCULPT_vertex_co_get(depsgraph, object, v);
-    const float3 blur_vert_normal = SCULPT_vertex_normal_get(depsgraph, object, v);
+    const float3 blur_vert_position = positions_eval[current_vert];
+    const float3 blur_vert_normal = normals_eval[current_vert];
 
     const float dist_to_start = math::distance(blur_vert_position, starting_position);
 
@@ -379,23 +388,22 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
       continue;
     }
 
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (object, v, ni) {
-      const PBVHVertRef v2 = ni.vertex;
-      if (visited_verts.contains(v2.i)) {
+    for (const int neighbor : vert_neighbors_get_mesh(
+             current_vert, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+    {
+      if (visited_verts.contains(neighbor)) {
         continue;
       }
 
-      visited_verts.add_new(v2.i);
-      queue.emplace(v2, blurvert.depth + 1);
+      visited_verts.add_new(neighbor);
+      queue.push({neighbor, blurvert.depth + 1});
     }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
   BLI_assert(all_verts.count != verts_in_range.count);
 
   if (all_verts.count == 0) {
-    all_verts.position = SCULPT_vertex_co_get(depsgraph, object, vertex);
+    all_verts.position = positions_eval[vert];
   }
   else {
     all_verts.position /= float(all_verts.count);
@@ -403,7 +411,7 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
   }
 
   if (verts_in_range.count == 0) {
-    verts_in_range.position = SCULPT_vertex_co_get(depsgraph, object, vertex);
+    verts_in_range.position = positions_eval[vert];
   }
   else {
     verts_in_range.position /= float(verts_in_range.count);
@@ -411,13 +419,235 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
 
   verts_in_range.normal = math::normalize(verts_in_range.normal);
   if (math::dot(verts_in_range.normal, verts_in_range.normal) == 0.0f) {
-    verts_in_range.normal = SCULPT_vertex_normal_get(depsgraph, object, vertex);
+    verts_in_range.normal = normals_eval[vert];
   }
 
   const float3 vec = all_verts.position - verts_in_range.position;
   float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
-  *(float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_cavity) = calc_cavity_factor(
+  *(float *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
       automasking, factor_sum);
+}
+
+static void calc_blurred_cavity_grids(const Object &object,
+                                      const Cache *automasking,
+                                      const int steps,
+                                      const SubdivCCGCoord vert)
+{
+  struct CavityBlurVert {
+    SubdivCCGCoord vertex;
+    int index;
+    int depth;
+  };
+
+  const SculptSession &ss = *object.sculpt;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
+  AccumulatedVert all_verts;
+  AccumulatedVert verts_in_range;
+  /* Steps starts at 1, but API and user interface
+   * are zero-based.
+   */
+  const int num_steps = steps + 1;
+
+  std::queue<CavityBlurVert> queue;
+  Set<int, 64> visited_verts;
+
+  const CavityBlurVert initial{vert, vert.to_index(key), 0};
+  visited_verts.add_new(initial.index);
+  queue.push(initial);
+
+  const float3 starting_position = CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y);
+
+  SubdivCCGNeighbors neighbors;
+  while (!queue.empty()) {
+    const CavityBlurVert blurvert = queue.front();
+    queue.pop();
+
+    const SubdivCCGCoord current_vert = blurvert.vertex;
+
+    const float3 blur_vert_position = CCG_grid_elem_co(
+        key, grids[current_vert.grid_index], current_vert.x, current_vert.y);
+    const float3 blur_vert_normal = CCG_grid_elem_no(
+        key, grids[current_vert.grid_index], current_vert.x, current_vert.y);
+
+    const float dist_to_start = math::distance(blur_vert_position, starting_position);
+
+    all_verts.position += blur_vert_position;
+    all_verts.distance += dist_to_start;
+    all_verts.count++;
+
+    if (blurvert.depth < num_steps) {
+      verts_in_range.position += blur_vert_position;
+      verts_in_range.normal += blur_vert_normal;
+      verts_in_range.count++;
+    }
+
+    /* Use the total number of steps used to get to this particular vert to determine if we should
+     * keep processing */
+    if (blurvert.depth >= num_steps) {
+      continue;
+    }
+
+    BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, current_vert, false, neighbors);
+    for (const SubdivCCGCoord neighbor : neighbors.coords) {
+      const int neighbor_idx = neighbor.to_index(key);
+      if (visited_verts.contains(neighbor_idx)) {
+        continue;
+      }
+
+      visited_verts.add_new(neighbor_idx);
+      queue.push({neighbor, neighbor_idx, blurvert.depth + 1});
+    }
+  }
+
+  BLI_assert(all_verts.count != verts_in_range.count);
+
+  if (all_verts.count == 0) {
+    all_verts.position = CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y);
+  }
+  else {
+    all_verts.position /= float(all_verts.count);
+    all_verts.distance /= all_verts.count;
+  }
+
+  if (verts_in_range.count == 0) {
+    verts_in_range.position = CCG_grid_elem_co(key, grids[vert.grid_index], vert.x, vert.y);
+  }
+  else {
+    verts_in_range.position /= float(verts_in_range.count);
+  }
+
+  verts_in_range.normal = math::normalize(verts_in_range.normal);
+  if (math::dot(verts_in_range.normal, verts_in_range.normal) == 0.0f) {
+    verts_in_range.normal = CCG_grid_elem_no(key, grids[vert.grid_index], vert.x, vert.y);
+  }
+
+  const float3 vec = all_verts.position - verts_in_range.position;
+  float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
+  *(float *)SCULPT_vertex_attr_get(key, vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
+      automasking, factor_sum);
+}
+
+static void calc_blurred_cavity_bmesh(const Object &object,
+                                      const Cache *automasking,
+                                      const int steps,
+                                      BMVert *vert)
+{
+  struct CavityBlurVert {
+    BMVert *vertex;
+    int index;
+    int depth;
+  };
+
+  const SculptSession &ss = *object.sculpt;
+
+  AccumulatedVert all_verts;
+  AccumulatedVert verts_in_range;
+  /* Steps starts at 1, but API and user interface
+   * are zero-based.
+   */
+  const int num_steps = steps + 1;
+
+  std::queue<CavityBlurVert> queue;
+  Set<int, 64> visited_verts;
+
+  const CavityBlurVert initial{vert, BM_elem_index_get(vert), 0};
+  visited_verts.add_new(initial.index);
+  queue.push(initial);
+
+  const float3 starting_position = vert->co;
+
+  Vector<BMVert *, 64> neighbors;
+  while (!queue.empty()) {
+    const CavityBlurVert blurvert = queue.front();
+    queue.pop();
+
+    BMVert *current_vert = blurvert.vertex;
+
+    const float3 blur_vert_position = current_vert->co;
+    const float3 blur_vert_normal = current_vert->no;
+
+    const float dist_to_start = math::distance(blur_vert_position, starting_position);
+
+    all_verts.position += blur_vert_position;
+    all_verts.distance += dist_to_start;
+    all_verts.count++;
+
+    if (blurvert.depth < num_steps) {
+      verts_in_range.position += blur_vert_position;
+      verts_in_range.normal += blur_vert_normal;
+      verts_in_range.count++;
+    }
+
+    /* Use the total number of steps used to get to this particular vert to determine if we should
+     * keep processing */
+    if (blurvert.depth >= num_steps) {
+      continue;
+    }
+
+    neighbors.clear();
+    for (BMVert *neighbor : vert_neighbors_get_bmesh(*current_vert, neighbors)) {
+      const int neighbor_idx = BM_elem_index_get(neighbor);
+      if (visited_verts.contains(neighbor_idx)) {
+        continue;
+      }
+
+      visited_verts.add_new(neighbor_idx);
+      queue.push({neighbor, neighbor_idx, blurvert.depth + 1});
+    }
+  }
+
+  BLI_assert(all_verts.count != verts_in_range.count);
+
+  if (all_verts.count == 0) {
+    all_verts.position = vert->co;
+  }
+  else {
+    all_verts.position /= float(all_verts.count);
+    all_verts.distance /= all_verts.count;
+  }
+
+  if (verts_in_range.count == 0) {
+    verts_in_range.position = vert->co;
+  }
+  else {
+    verts_in_range.position /= float(verts_in_range.count);
+  }
+
+  verts_in_range.normal = math::normalize(verts_in_range.normal);
+  if (math::dot(verts_in_range.normal, verts_in_range.normal) == 0.0f) {
+    verts_in_range.normal = vert->no;
+  }
+
+  const float3 vec = all_verts.position - verts_in_range.position;
+  float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
+  *(float *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
+      automasking, factor_sum);
+}
+
+static void calc_blurred_cavity(const Depsgraph &depsgraph,
+                                const Object &object,
+                                const Cache *automasking,
+                                const int steps,
+                                const PBVHVertRef vertex)
+{
+  const SculptSession &ss = *object.sculpt;
+  switch (ss.pbvh->type()) {
+    case bke::pbvh::Type::Mesh:
+      calc_blurred_cavity_mesh(depsgraph, object, automasking, steps, int(vertex.i));
+      break;
+    case bke::pbvh::Type::Grids: {
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+      calc_blurred_cavity_grids(
+          object, automasking, steps, SubdivCCGCoord::from_index(key, int(vertex.i)));
+      break;
+    }
+    case bke::pbvh::Type::BMesh:
+      calc_blurred_cavity_bmesh(object, automasking, steps, reinterpret_cast<BMVert *>(vertex.i));
+      break;
+  }
 }
 
 int settings_hash(const Object &ob, const Cache &automasking)
