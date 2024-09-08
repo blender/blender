@@ -31,6 +31,7 @@ void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
 
   mask.foreach_index([&](const int i) {
     BVHTreeNearest nearest;
+    nearest.index = -1;
     nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
     BLI_bvhtree_find_nearest(
@@ -89,6 +90,7 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
 
   mask.foreach_index([&](const int i) {
     BVHTreeNearest nearest;
+    nearest.index = -1;
     nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
     BLI_bvhtree_find_nearest(
