@@ -880,6 +880,7 @@ static int grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
       }
     }
 
+    info.drawing.tag_topology_changed();
     changed = true;
   });
 
