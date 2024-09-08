@@ -117,7 +117,7 @@ static int partition_prim_indices(MutableSpan<int> face_indices,
                                   int hi,
                                   int axis,
                                   float mid,
-                                  const Span<Bounds<float3>> face_bounds)
+                                  const Span<float3> face_centers)
 {
   for (int i = lo; i < hi; i++) {
     prim_scratch[i - lo] = face_indices[i];
@@ -128,8 +128,8 @@ static int partition_prim_indices(MutableSpan<int> face_indices,
 
   while (i1 < hi) {
     const int face_i = prim_scratch[i2];
-    const Bounds<float3> &bounds = face_bounds[prim_scratch[i2]];
-    const bool side = math::midpoint(bounds.min[axis], bounds.max[axis]) >= mid;
+    const float3 &face_center = face_centers[prim_scratch[i2]];
+    const bool side = face_center[axis] >= mid;
 
     while (i1 < hi && prim_scratch[i2] == face_i) {
       face_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
@@ -271,7 +271,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                        const int leaf_limit,
                                        const int node_index,
                                        const std::optional<Bounds<float3>> &bounds_precalc,
-                                       const Span<Bounds<float3>> prim_bounds,
+                                       const Span<float3> face_centers,
                                        const int prim_offset,
                                        const int prims_num,
                                        MutableSpan<int> prim_scratch,
@@ -312,7 +312,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
           [&](const IndexRange range, Bounds<float3> value) {
             for (const int i : range) {
               const int prim = prim_indices[i];
-              const float3 center = math::midpoint(prim_bounds[prim].min, prim_bounds[prim].max);
+              const float3 center = face_centers[prim];
               math::min_max(center, value.min, value.max);
             }
             return value;
@@ -328,7 +328,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                  prim_offset + prims_num,
                                  axis,
                                  math::midpoint(bounds.min[axis], bounds.max[axis]),
-                                 prim_bounds);
+                                 face_centers);
   }
   else {
     /* Partition primitives by material */
@@ -341,7 +341,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                              leaf_limit,
                              nodes[node_index].children_offset_,
                              std::nullopt,
-                             prim_bounds,
+                             face_centers,
                              prim_offset,
                              end - prim_offset,
                              prim_scratch,
@@ -352,7 +352,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                              leaf_limit,
                              nodes[node_index].children_offset_ + 1,
                              std::nullopt,
-                             prim_bounds,
+                             face_centers,
                              end,
                              prim_offset + prims_num - end,
                              prim_scratch,
@@ -386,8 +386,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 
   const int leaf_limit = LEAF_LIMIT;
 
-  /* For each face, store the AABB and the AABB centroid */
-  Array<Bounds<float3>> prim_bounds(faces.size());
+  Array<float3> face_centers(faces.size());
   const Bounds<float3> bounds = threading::parallel_reduce(
       faces.index_range(),
       1024,
@@ -395,8 +394,10 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
       [&](const IndexRange range, const Bounds<float3> &init) {
         Bounds<float3> current = init;
         for (const int i : range) {
-          prim_bounds[i] = calc_face_bounds(vert_positions, corner_verts.slice(faces[i]));
-          current = bounds::merge(current, prim_bounds[i]);
+          const Bounds<float3> bounds = calc_face_bounds(vert_positions,
+                                                         corner_verts.slice(faces[i]));
+          face_centers[i] = bounds.center();
+          current = bounds::merge(current, bounds);
         }
         return current;
       },
@@ -419,7 +420,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
                                leaf_limit,
                                0,
                                bounds,
-                               prim_bounds,
+                               face_centers,
                                0,
                                faces.size(),
                                Array<int>(pbvh->prim_indices_.size()),
