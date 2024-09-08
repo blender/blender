@@ -161,18 +161,15 @@ static void GREASE_PENCIL_OT_stroke_smooth(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers. */
   ot->name = "Smooth Stroke";
   ot->idname = "GREASE_PENCIL_OT_stroke_smooth";
   ot->description = "Smooth selected strokes";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_stroke_smooth_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Smooth parameters. */
   prop = RNA_def_int(ot->srna, "iterations", 10, 1, 100, "Iterations", "", 1, 30);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_float(ot->srna, "factor", 1.0f, 0.0f, 1.0f, "Factor", "", 0.0f, 1.0f);
@@ -334,18 +331,15 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers. */
   ot->name = "Simplify Stroke";
   ot->idname = "GREASE_PENCIL_OT_stroke_simplify";
   ot->description = "Simplify selected strokes";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_stroke_simplify_exec;
   ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Simplify parameters. */
   prop = RNA_def_float(ot->srna, "factor", 0.01f, 0.0f, 100.0f, "Factor", "", 0.0f, 100.0f);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
@@ -489,12 +483,10 @@ static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 
 static void GREASE_PENCIL_OT_delete(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Delete";
   ot->idname = "GREASE_PENCIL_OT_delete";
   ot->description = "Delete selected strokes or points";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_delete_exec;
   ot->poll = editable_grease_pencil_poll;
 
@@ -635,19 +627,16 @@ static void GREASE_PENCIL_OT_dissolve(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers. */
   ot->name = "Dissolve";
   ot->idname = "GREASE_PENCIL_OT_dissolve";
   ot->description = "Delete selected points without splitting strokes";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_dissolve_exec;
   ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Simplify parameters. */
   ot->prop = prop = RNA_def_enum(ot->srna,
                                  "type",
                                  prop_dissolve_types,
@@ -722,12 +711,10 @@ static void GREASE_PENCIL_OT_delete_frame(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers. */
   ot->name = "Delete Frame";
   ot->idname = "GREASE_PENCIL_OT_delete_frame";
   ot->description = "Delete Grease Pencil Frame(s)";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_delete_frame_exec;
   ot->poll = editable_grease_pencil_poll;
@@ -894,19 +881,16 @@ static int grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Cyclical State";
   ot->idname = "GREASE_PENCIL_OT_cyclical_set";
   ot->description = "Close or open the selected stroke adding a segment from last to first point";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_cyclical_set_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Simplify parameters. */
   ot->prop = RNA_def_enum(
       ot->srna, "type", prop_cyclical_types, int(CyclicalMode::TOGGLE), "Type", "");
 }
@@ -1001,19 +985,15 @@ static int grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Uniform Thickness";
   ot->idname = "GREASE_PENCIL_OT_set_uniform_thickness";
   ot->description = "Set all stroke points to same thickness";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_set_uniform_thickness_exec;
   ot->poll = editable_grease_pencil_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* props */
   ot->prop = RNA_def_float(
       ot->srna, "thickness", 0.1f, 0.0f, 1000.0f, "Thickness", "Thickness", 0.0f, 1000.0f);
 }
@@ -1058,19 +1038,15 @@ static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_uniform_opacity(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Uniform Opacity";
   ot->idname = "GREASE_PENCIL_OT_set_uniform_opacity";
   ot->description = "Set all stroke points to same opacity";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_set_uniform_opacity_exec;
   ot->poll = editable_grease_pencil_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* props */
   ot->prop = RNA_def_float(ot->srna, "opacity", 1.0f, 0.0f, 1.0f, "Opacity", "", 0.0f, 1.0f);
 }
 
@@ -1233,19 +1209,16 @@ static void GREASE_PENCIL_OT_caps_set(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /* Identifiers. */
   ot->name = "Set Curve Caps";
   ot->idname = "GREASE_PENCIL_OT_caps_set";
   ot->description = "Change curve caps mode (rounded or flat)";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_caps_set_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Simplify parameters. */
   ot->prop = RNA_def_enum(ot->srna, "type", prop_caps_types, int(CapsMode::ROUND), "Type", "");
 }
 
@@ -1307,16 +1280,13 @@ static int grease_pencil_set_material_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Set Active Material";
   ot->idname = "GREASE_PENCIL_OT_set_material";
   ot->description = "Set active material";
 
-  /* callbacks */
   ot->exec = grease_pencil_set_material_exec;
   ot->poll = active_grease_pencil_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Material to use (dynamic enum) */
@@ -1368,12 +1338,10 @@ static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
 
 static void GREASE_PENCIL_OT_duplicate(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Duplicate";
   ot->idname = "GREASE_PENCIL_OT_duplicate";
   ot->description = "Duplicate the selected points";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_duplicate_exec;
   ot->poll = editable_grease_pencil_poll;
 
@@ -1531,7 +1499,6 @@ static void GREASE_PENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* identifiers */
   ot->name = "Subdivide Stroke";
   ot->idname = "GREASE_PENCIL_OT_stroke_subdivide";
   ot->description =
@@ -1539,14 +1506,11 @@ static void GREASE_PENCIL_OT_stroke_subdivide(wmOperatorType *ot)
       "between "
       "them";
 
-  /* API callbacks. */
   ot->exec = gpencil_stroke_subdivide_exec;
   ot->poll = ed::greasepencil::editable_grease_pencil_poll;
 
-  /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Properties. */
   prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 32, "Number of Cuts", "", 1, 5);
   /* Avoid re-using last var because it can cause _very_ high value and annoy users. */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1697,18 +1661,15 @@ static void GREASE_PENCIL_OT_stroke_reorder(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /* Identifiers. */
   ot->name = "Reorder";
   ot->idname = "GREASE_PENCIL_OT_reorder";
   ot->description = "Change the display order of the selected strokes";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_stroke_reorder_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Simplify parameters. */
   ot->prop = RNA_def_enum(
       ot->srna, "direction", prop_reorder_direction, int(ReorderDirection::TOP), "Direction", "");
 }
@@ -1814,17 +1775,14 @@ static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* identifiers. */
   ot->name = "Move to Layer";
   ot->idname = "GREASE_PENCIL_OT_move_to_layer";
   ot->description = "Move selected strokes to another layer";
 
-  /* callbacks. */
   ot->invoke = grease_pencil_move_to_layer_invoke;
   ot->exec = grease_pencil_move_to_layer_exec;
   ot->poll = editable_grease_pencil_poll;
 
-  /* flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_string(
@@ -2189,20 +2147,16 @@ static int grease_pencil_separate_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_separate(wmOperatorType *ot)
 {
-  /* identifiers. */
   ot->name = "Separate";
   ot->idname = "GREASE_PENCIL_OT_separate";
   ot->description = "Separate the selected geometry into a new grease pencil object";
 
-  /* callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_separate_exec;
   ot->poll = editable_grease_pencil_poll;
 
-  /* flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* properties. */
   ot->prop = RNA_def_enum(
       ot->srna, "mode", prop_separate_modes, int(SeparateMode::SELECTED), "Mode", "");
 }
@@ -2385,13 +2339,11 @@ static bool grease_pencil_paste_strokes_poll(bContext *C)
 
 static void GREASE_PENCIL_OT_paste(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Paste Strokes";
   ot->idname = "GREASE_PENCIL_OT_paste";
   ot->description =
       "Paste Grease Pencil points or strokes from the internal clipboard to the active layer";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_paste_strokes_exec;
   ot->poll = grease_pencil_paste_strokes_poll;
 
@@ -2404,12 +2356,10 @@ static void GREASE_PENCIL_OT_paste(wmOperatorType *ot)
 
 static void GREASE_PENCIL_OT_copy(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Copy Strokes";
   ot->idname = "GREASE_PENCIL_OT_copy";
   ot->description = "Copy the selected Grease Pencil points or strokes to the internal clipboard";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_copy_strokes_exec;
   ot->poll = editable_grease_pencil_poll;
 
@@ -2553,18 +2503,15 @@ static void GREASE_PENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers. */
   ot->name = "Merge by Distance";
   ot->idname = "GREASE_PENCIL_OT_stroke_merge_by_distance";
   ot->description = "Merge points by distance";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_stroke_merge_by_distance_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Merge parameters. */
   prop = RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, 100.0f, "Threshold", "", 0.0f, 100.0f);
   /* Avoid re-using last var. */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2716,12 +2663,10 @@ static int grease_pencil_extrude_exec(bContext *C, wmOperator * /*op*/)
 
 static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Extrude Stroke Points";
   ot->idname = "GREASE_PENCIL_OT_extrude";
   ot->description = "Extrude the selected points";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_extrude_exec;
   ot->poll = editable_grease_pencil_poll;
 
@@ -2793,16 +2738,13 @@ static int grease_pencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
 
 static void GREASE_PENCIL_OT_snap_to_grid(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Snap Selection to Grid";
   ot->idname = "GREASE_PENCIL_OT_snap_to_grid";
   ot->description = "Snap selected points to the nearest grid points";
 
-  /* callbacks */
   ot->exec = grease_pencil_snap_to_grid_exec;
   ot->poll = grease_pencil_snap_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
@@ -3043,12 +2985,10 @@ static int grease_pencil_set_curve_type_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_curve_type(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Curve Type";
   ot->idname = "GREASE_PENCIL_OT_set_curve_type";
   ot->description = "Set type of selected curves";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_set_curve_type_exec;
   ot->poll = editable_grease_pencil_poll;
@@ -3124,12 +3064,10 @@ static int grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_handle_type(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Handle Type";
   ot->idname = "GREASE_PENCIL_OT_set_handle_type";
   ot->description = "Set the handle type for bezier curves";
 
-  /* Callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_set_handle_type_exec;
   ot->poll = editable_grease_pencil_poll;
@@ -3184,12 +3122,10 @@ static int grease_pencil_set_curve_resolution_exec(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_set_curve_resolution(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Curve Resolution";
   ot->idname = "GREASE_PENCIL_OT_set_curve_resolution";
   ot->description = "Set resolution of selected curves";
 
-  /* Callbacks. */
   ot->exec = grease_pencil_set_curve_resolution_exec;
   ot->poll = editable_grease_pencil_poll;
 
