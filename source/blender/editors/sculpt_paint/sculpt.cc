@@ -1717,8 +1717,8 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
   const Span<int> verts = node.verts();
 
   if (ss.cache && !ss.cache->accum) {
-    if (const std::optional<OrigPositionData> orig_data = orig_position_data_get_mesh(object,
-                                                                                      node))
+    if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(object,
+                                                                                         node))
     {
       const Span<float3> orig_positions = orig_data->positions;
       const Span<float3> orig_normals = orig_data->normals;
@@ -1806,8 +1806,8 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
   const Span<int> grids = node.grids();
 
   if (ss.cache && !ss.cache->accum) {
-    if (const std::optional<OrigPositionData> orig_data = orig_position_data_get_grids(object,
-                                                                                       node))
+    if (const std::optional<OrigPositionData> orig_data = orig_position_data_lookup_grids(object,
+                                                                                          node))
     {
       const Span<float3> orig_positions = orig_data->positions;
       const Span<float3> orig_normals = orig_data->normals;
