@@ -60,11 +60,17 @@ struct CurvesUniformBufPool {
 
   CurvesInfosBuf &alloc()
   {
+    CurvesInfosBuf *ptr;
     if (used >= ubos.size()) {
       ubos.append(std::make_unique<CurvesInfosBuf>());
-      return *ubos.last();
+      ptr = ubos.last().get();
     }
-    return *ubos[used++];
+    else {
+      ptr = ubos[used++].get();
+    }
+
+    memset(ptr->data(), 0, sizeof(CurvesInfos));
+    return *ptr;
   }
 };
 
@@ -264,7 +270,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", curves_cache->final.proc_buf);
   if (curves_cache->proc_length_buf) {
-    DRW_shgroup_buffer_texture(shgrp, "hairLen", curves_cache->proc_length_buf);
+    DRW_shgroup_buffer_texture(shgrp, "l", curves_cache->proc_length_buf);
   }
 
   int curve_data_render_uv = 0;
@@ -507,7 +513,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
 
   sub_ps.bind_texture("hairPointBuffer", curves_cache->final.proc_buf);
   if (curves_cache->proc_length_buf) {
-    sub_ps.bind_texture("hairLen", curves_cache->proc_length_buf);
+    sub_ps.bind_texture("l", curves_cache->proc_length_buf);
   }
 
   int curve_data_render_uv = 0;
