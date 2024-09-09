@@ -2006,11 +2006,14 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       early_out = StripEarlyOut::UseInput1;
     }
 
-    /* Early out for alpha over. It requires image to be rendered, so it can't use
-     * `seq_get_early_out_for_blend_mode`. */
+    /* "Alpha over" is default for all strips, and it can be optimized in some cases:
+     * - If the whole image has no transparency, there's no need to do actual blending.
+     * - Likewise, if we are at the bottom of the stack; the input can be used as-is.
+     * - If we are rendering a strip that is known to be opaque, we mark it as an occluder,
+     *   so that strips below can check if they are completely hidden. */
     if (out == nullptr && early_out == StripEarlyOut::DoEffect && is_opaque_alpha_over(seq)) {
       ImBuf *test = seq_render_strip(context, state, seq, timeline_frame);
-      if (ELEM(test->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB)) {
+      if (ELEM(test->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB) || i == 0) {
         early_out = StripEarlyOut::UseInput2;
       }
       else {
@@ -2038,12 +2041,19 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       case StripEarlyOut::UseInput1:
         if (i == 0) {
           out = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
+          seq_imbuf_assign_spaces(context->scene, out);
         }
         break;
       case StripEarlyOut::DoEffect:
         if (i == 0) {
-          ImBuf *ibuf1 = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
+          /* This is an effect at the bottom of the stack, so one of the inputs does not exist yet:
+           * create one that is transparent black. Extra optimization for an alpha over strip at
+           * the bottom, we can just return it instead of blending with black. */
           ImBuf *ibuf2 = seq_render_strip(context, state, seq, timeline_frame);
+          const bool use_float = ibuf2 && ibuf2->float_buffer.data;
+          ImBuf *ibuf1 = IMB_allocImBuf(
+              context->rectx, context->recty, 32, use_float ? IB_rectfloat : IB_rect);
+          seq_imbuf_assign_spaces(context->scene, ibuf1);
 
           out = seq_render_strip_stack_apply_effect(context, seq, timeline_frame, ibuf1, ibuf2);
           IMB_metadata_copy(out, ibuf2);
