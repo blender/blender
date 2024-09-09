@@ -10,6 +10,10 @@
 
 namespace blender::gpu {
 
+/* -------------------------------------------------------------------- */
+/** \name Std430 memory layout
+ * \{ */
+
 uint32_t Std430::component_mem_size(const shader::Type /*type*/)
 {
   return 4;
@@ -104,6 +108,17 @@ uint32_t Std430::array_components_len(const shader::Type type)
   return 0;
 }
 
+uint32_t Std430::inner_row_padding(const shader::Type type)
+{
+  return type == shader::Type::MAT3 ? 3 : 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Std140 memory layout
+ * \{ */
+
 uint32_t Std140::component_mem_size(const shader::Type /*type*/)
 {
   return 4;
@@ -195,5 +210,12 @@ uint32_t Std140::array_components_len(const shader::Type type)
   }
   return 0;
 }
+
+uint32_t Std140::inner_row_padding(const shader::Type /*type*/)
+{
+  return 0;
+}
+
+/** \} */
 
 }  // namespace blender::gpu

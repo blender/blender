@@ -24,6 +24,13 @@ struct Std140 {
   static uint32_t element_components_len(const shader::Type type);
   /** Get the number of components of the given type when used in an array. */
   static uint32_t array_components_len(const shader::Type type);
+  /**
+   * After how many input values do we expect row padding.
+   *
+   * Mat3 in Std430 needs to be padded so every row would contain 4 floats.
+   * inner_row_padding would contain `3` in this case, otherwise this is set to 0.
+   */
+  static uint32_t inner_row_padding(const shader::Type type);
 };
 
 /**
@@ -38,6 +45,13 @@ struct Std430 {
   static uint32_t element_components_len(const shader::Type type);
   /** Get the number of components of the given type when used in an array. */
   static uint32_t array_components_len(const shader::Type type);
+  /**
+   * After how many input values do we expect row padding.
+   *
+   * Mat3 in Std430 needs to be padded so every row would contain 4 floats.
+   * inner_row_padding would contain `3` in this case, otherwise this is set to 0.
+   */
+  static uint32_t inner_row_padding(const shader::Type type);
 };
 
 template<typename LayoutT> static uint32_t element_stride(const shader::Type type)

@@ -30,6 +30,7 @@ static VKPushConstants::Layout::PushConstant init_constant(
   layout.type = push_constant.type;
   layout.array_size = push_constant.array_size;
   layout.offset = *r_offset;
+  layout.inner_row_padding = LayoutT::inner_row_padding(push_constant.type);
 
   reserve<LayoutT>(push_constant.type, push_constant.array_size, r_offset);
   return layout;

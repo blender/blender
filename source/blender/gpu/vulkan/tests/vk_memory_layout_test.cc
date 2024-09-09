@@ -123,4 +123,15 @@ TEST(std430, overlay_grid)
   EXPECT_EQ(offset, 16);
 }
 
+TEST(std430, simple_lighting)
+{
+  uint32_t offset = 0;
+
+  def_attr<Std430>(shader::Type::MAT4, 0, 0, 64, &offset);
+  def_attr<Std430>(shader::Type::MAT3, 0, 64, 112, &offset);
+
+  align_end_of_struct<Std430>(&offset);
+  EXPECT_EQ(offset, 112);
+}
+
 }  // namespace blender::gpu

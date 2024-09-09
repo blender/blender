@@ -78,6 +78,7 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
       uint32_t offset;
       shader::Type type;
       int array_size;
+      uint inner_row_padding;
     };
 
    private:
@@ -217,9 +218,11 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
 
     uint8_t *bytes = static_cast<uint8_t *>(data_);
     T *dst = static_cast<T *>(static_cast<void *>(&bytes[push_constant_layout->offset]));
+    const int inner_row_padding = push_constant_layout->inner_row_padding;
     const bool is_tightly_std140_packed = (comp_len % 4) == 0;
-    if (layout_->storage_type_get() == StorageType::PUSH_CONSTANTS || array_size == 0 ||
-        push_constant_layout->array_size == 0 || is_tightly_std140_packed)
+    if (inner_row_padding == 0 &&
+        (layout_->storage_type_get() == StorageType::PUSH_CONSTANTS || array_size == 0 ||
+         push_constant_layout->array_size == 0 || is_tightly_std140_packed))
     {
       const size_t copy_size_in_bytes = comp_len * max_ii(array_size, 1) * sizeof(T);
       BLI_assert_msg(push_constant_layout->offset + copy_size_in_bytes <= layout_->size_in_bytes(),
@@ -233,12 +236,26 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
      * bytes. */
     BLI_assert(sizeof(T) == 4);
     const T *src = input_data;
-    for (const int i : IndexRange(array_size)) {
-      UNUSED_VARS(i);
-      memcpy(dst, src, comp_len * sizeof(T));
-      src += comp_len;
-      dst += 4;
+    if (inner_row_padding == 0) {
+      for (const int i : IndexRange(array_size)) {
+        UNUSED_VARS(i);
+        memcpy(dst, src, comp_len * sizeof(T));
+        src += comp_len;
+        dst += 4;
+      }
     }
+    else {
+      BLI_assert_msg(array_size == 1, "No support for MAT3 arrays, but can be added when needed");
+      for (const int component_index : IndexRange(comp_len)) {
+        *dst = *src;
+        dst += 1;
+        src += 1;
+        if ((component_index % inner_row_padding) == (inner_row_padding - 1)) {
+          dst += 1;
+        }
+      }
+    }
+
     is_dirty_ = true;
   }
 
