@@ -205,8 +205,8 @@ void GPU_render_begin()
   /* WORKAROUND: Currently a band-aid for the heist production. Has no side effect for GL backend
    * but should be fixed for Metal. */
   if (backend) {
-    printf_end(active_ctx);
     backend->render_begin();
+    printf_end(active_ctx);
     printf_begin(active_ctx);
   }
 }
@@ -216,8 +216,8 @@ void GPU_render_end()
   BLI_assert(backend);
   if (backend) {
     printf_end(active_ctx);
-    backend->render_end();
     printf_begin(active_ctx);
+    backend->render_end();
   }
 }
 void GPU_render_step()
