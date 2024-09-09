@@ -3813,7 +3813,7 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache &ca
                     cache.rake_rotation->y,
                     cache.rake_rotation->z);
     flip_qt_qt(new_quat, existing, symm);
-    cache.rake_rotation_symm = math::Quaternion(existing);
+    cache.rake_rotation_symm = math::Quaternion(new_quat);
   }
 }
 
