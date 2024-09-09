@@ -111,56 +111,24 @@ static int partition_prim_indices(MutableSpan<int> prim_indices,
   return lo2;
 }
 
-static int partition_prim_indices(MutableSpan<int> face_indices,
-                                  MutableSpan<int> prim_scratch,
-                                  int lo,
-                                  int hi,
-                                  int axis,
-                                  float mid,
-                                  const Span<float3> face_centers)
+static int partition_along_axis(const Span<float3> face_centers,
+                                MutableSpan<int> faces,
+                                const int axis,
+                                const float middle)
 {
-  for (int i = lo; i < hi; i++) {
-    prim_scratch[i - lo] = face_indices[i];
-  }
-
-  int lo2 = lo, hi2 = hi - 1;
-  int i1 = lo, i2 = 0;
-
-  while (i1 < hi) {
-    const int face_i = prim_scratch[i2];
-    const float3 &face_center = face_centers[prim_scratch[i2]];
-    const bool side = face_center[axis] >= mid;
-
-    while (i1 < hi && prim_scratch[i2] == face_i) {
-      face_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
-      i1++;
-      i2++;
-    }
-  }
-
-  return lo2;
+  const int *split = std::partition(faces.begin(), faces.end(), [&](const int face) {
+    const float3 &center = face_centers[face];
+    return center[axis] >= middle;
+  });
+  return split - faces.begin();
 }
 
-static int partition_indices_material_faces(MutableSpan<int> face_indices,
-                                            const Span<int> material_indices,
-                                            const int lo,
-                                            const int hi)
+static int partition_material_indices(const Span<int> material_indices, MutableSpan<int> faces)
 {
-  int i = lo, j = hi;
-  for (;;) {
-    const int first = face_indices[lo];
-    for (; face_materials_match(material_indices, first, face_indices[i]); i++) {
-      /* pass */
-    }
-    for (; !face_materials_match(material_indices, first, face_indices[j]); j--) {
-      /* pass */
-    }
-    if (!(i < j)) {
-      return i;
-    }
-    std::swap(face_indices[i], face_indices[j]);
-    i++;
-  }
+  const int first = material_indices[faces.first()];
+  const int *split = std::partition(
+      faces.begin(), faces.end(), [&](const int face) { return material_indices[face] == first; });
+  return split - faces.begin();
 }
 
 /* Returns the index of the first element on the right of the partition */
@@ -274,7 +242,6 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                        const Span<float3> face_centers,
                                        const int prim_offset,
                                        const int prims_num,
-                                       MutableSpan<int> prim_scratch,
                                        const int depth,
                                        MutableSpan<int> prim_indices,
                                        Vector<MeshNode> &nodes)
@@ -322,18 +289,15 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
     const int axis = math::dominant_axis(bounds.max - bounds.min);
 
     /* Partition primitives along that axis */
-    end = partition_prim_indices(prim_indices,
-                                 prim_scratch,
-                                 prim_offset,
-                                 prim_offset + prims_num,
-                                 axis,
-                                 math::midpoint(bounds.min[axis], bounds.max[axis]),
-                                 face_centers);
+    end = prim_offset + partition_along_axis(face_centers,
+                                             prim_indices.slice(prim_offset, prims_num),
+                                             axis,
+                                             math::midpoint(bounds.min[axis], bounds.max[axis]));
   }
   else {
     /* Partition primitives by material */
-    end = partition_indices_material_faces(
-        prim_indices, material_indices, prim_offset, prim_offset + prims_num - 1);
+    end = prim_offset +
+          partition_material_indices(material_indices, prim_indices.slice(prim_offset, prims_num));
   }
 
   /* Build children */
@@ -344,7 +308,6 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                              face_centers,
                              prim_offset,
                              end - prim_offset,
-                             prim_scratch,
                              depth + 1,
                              prim_indices,
                              nodes);
@@ -355,7 +318,6 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                              face_centers,
                              end,
                              prim_offset + prims_num - end,
-                             prim_scratch,
                              depth + 1,
                              prim_indices,
                              nodes);
@@ -423,7 +385,6 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
                                face_centers,
                                0,
                                faces.size(),
-                               Array<int>(pbvh->prim_indices_.size()),
                                0,
                                pbvh->prim_indices_,
                                nodes);
