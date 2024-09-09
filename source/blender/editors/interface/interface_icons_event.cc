@@ -22,6 +22,40 @@
 
 #include "interface_intern.hh"
 
+static int inverted_icon(int icon_id)
+{
+  switch (icon_id) {
+    case ICON_KEY_BACKSPACE:
+      return ICON_KEY_BACKSPACE_FILLED;
+    case ICON_KEY_COMMAND:
+      return ICON_KEY_COMMAND_FILLED;
+    case ICON_KEY_CONTROL:
+      return ICON_KEY_CONTROL_FILLED;
+    case ICON_KEY_EMPTY1:
+      return ICON_KEY_EMPTY1_FILLED;
+    case ICON_KEY_EMPTY2:
+      return ICON_KEY_EMPTY2_FILLED;
+    case ICON_KEY_EMPTY3:
+      return ICON_KEY_EMPTY3_FILLED;
+    case ICON_KEY_MENU:
+      return ICON_KEY_MENU_FILLED;
+    case ICON_KEY_OPTION:
+      return ICON_KEY_OPTION_FILLED;
+    case ICON_KEY_RETURN:
+      return ICON_KEY_RETURN_FILLED;
+    case ICON_KEY_RING:
+      return ICON_KEY_RING_FILLED;
+    case ICON_KEY_SHIFT:
+      return ICON_KEY_SHIFT_FILLED;
+    case ICON_KEY_TAB:
+      return ICON_KEY_TAB_FILLED;
+    case ICON_KEY_WINDOWS:
+      return ICON_KEY_WINDOWS_FILLED;
+    default:
+      return icon_id;
+  }
+}
+
 static void icon_draw_icon(const rctf *rect,
                            const int icon_id,
                            const float aspect,
@@ -34,7 +68,7 @@ static void icon_draw_icon(const rctf *rect,
     color[3] *= alpha;
   }
 
-  BLF_draw_svg_icon(uint(inverted ? icon_id + 1 : icon_id),
+  BLF_draw_svg_icon(uint(inverted ? inverted_icon(icon_id) : icon_id),
                     rect->xmin,
                     rect->ymin,
                     float(ICON_DEFAULT_HEIGHT) / aspect,
@@ -51,7 +85,7 @@ static void icon_draw_rect_input_text(const rctf *rect,
 {
   icon_draw_icon(rect, icon_bg, aspect, alpha, inverted);
 
-  const float available_width = BLI_rctf_size_x(rect) - (3.0f * UI_SCALE_FAC);
+  const float available_width = BLI_rctf_size_x(rect) - (2.0f * UI_SCALE_FAC);
   const int font_id = BLF_default();
   float color[4];
   UI_GetThemeColor4fv(inverted ? TH_BACK : TH_TEXT, color);
@@ -64,16 +98,20 @@ static void icon_draw_rect_input_text(const rctf *rect,
   float font_size = std::min(15.0f, fstyle->points) * UI_SCALE_FAC;
   BLF_size(font_id, font_size);
 
-  float width, height;
-  BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
-  if (width > available_width) {
-    font_size *= available_width / width;
+  rcti str_bounds;
+  BLF_boundbox(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &str_bounds);
+  float width = float(BLI_rcti_size_x(&str_bounds));
+  float height = float(BLI_rcti_size_y(&str_bounds));
+  if (width > (available_width - (2.0f * UI_SCALE_FAC))) {
+    font_size *= (available_width - (2.0f * UI_SCALE_FAC)) / width;
     BLF_size(font_id, font_size);
-    BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
+    BLF_boundbox(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &str_bounds);
+    width = float(BLI_rcti_size_x(&str_bounds));
+    height = float(BLI_rcti_size_y(&str_bounds));
   }
 
   const float x = rect->xmin + UI_SCALE_FAC + ((available_width - width) / 2.0f);
-  const float v_offset = std::max((BLI_rctf_size_y(rect) - height) * 0.5f, (font_size * 0.4f));
+  const float v_offset = (BLI_rctf_size_y(rect) - height) * 0.5f - str_bounds.ymin;
   BLF_position(font_id, x, rect->ymin + v_offset, 0.0f);
   BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
