@@ -4821,6 +4821,50 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
+/**
+ * Check if the animation channel is an item that either is or belongs to a
+ * disconnected action slot.
+ */
+static bool achannel_is_part_of_disconnected_slot(const bAnimListElem *ale)
+{
+  BLI_assert(ale->bmain != nullptr);
+  if (ale->bmain == nullptr) {
+    return false;
+  }
+
+  switch (ale->type) {
+    case ANIMTYPE_ACTION_SLOT: {
+      const animrig::Slot &slot = static_cast<const ActionSlot *>(ale->data)->wrap();
+
+      return slot.users(*ale->bmain).is_empty();
+    }
+
+    case ANIMTYPE_GROUP:
+    case ANIMTYPE_FCURVE: {
+      if (ale->fcurve_owner_id == nullptr || GS(ale->fcurve_owner_id->name) != ID_AC) {
+        return false;
+      }
+
+      const animrig::Action &action =
+          reinterpret_cast<const bAction *>(ale->fcurve_owner_id)->wrap();
+      if (action.is_action_legacy()) {
+        return false;
+      }
+
+      const animrig::Slot *slot = action.slot_for_handle(ale->slot_handle);
+      if (slot == nullptr) {
+        return false;
+      }
+
+      return slot->users(*ale->bmain).is_empty();
+    }
+
+    /* No other types are currently drawn as children of action slots. */
+    default:
+      return false;
+  }
+}
+
 /** Check if the animation channel name should be underlined in red due to errors. */
 static bool achannel_is_broken(const bAnimListElem *ale)
 {
@@ -5012,6 +5056,11 @@ void ANIM_channel_draw(
     }
     else {
       UI_GetThemeColor4ubv(TH_TEXT, col);
+    }
+
+    /* Gray out disconnected action slots and their children. */
+    if (!selected && achannel_is_part_of_disconnected_slot(ale)) {
+      col[3] = col[3] / 3 * 2;
     }
 
     /* get name */
