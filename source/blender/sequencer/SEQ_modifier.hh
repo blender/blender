@@ -51,10 +51,10 @@ void SEQ_modifier_clear(Sequence *seq);
 void SEQ_modifier_free(SequenceModifierData *smd);
 void SEQ_modifier_unique_name(Sequence *seq, SequenceModifierData *smd);
 SequenceModifierData *SEQ_modifier_find_by_name(Sequence *seq, const char *name);
-ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
-                                Sequence *seq,
-                                ImBuf *ibuf,
-                                int timeline_frame);
+void SEQ_modifier_apply_stack(const SeqRenderData *context,
+                              const Sequence *seq,
+                              ImBuf *ibuf,
+                              int timeline_frame);
 void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq);
 int SEQ_sequence_supports_modifiers(Sequence *seq);
 

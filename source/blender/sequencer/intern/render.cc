@@ -718,13 +718,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (seq->modifiers.first) {
-    ImBuf *ibuf_new = SEQ_modifier_apply_stack(context, seq, preprocessed_ibuf, timeline_frame);
-
-    if (ibuf_new != preprocessed_ibuf) {
-      IMB_metadata_copy(ibuf_new, preprocessed_ibuf);
-      IMB_freeImBuf(preprocessed_ibuf);
-      preprocessed_ibuf = ibuf_new;
-    }
+    SEQ_modifier_apply_stack(context, seq, preprocessed_ibuf, timeline_frame);
   }
 
   return preprocessed_ibuf;
