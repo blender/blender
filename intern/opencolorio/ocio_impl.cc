@@ -578,22 +578,36 @@ void OCIOImpl::cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_proc
     int channels = img->getNumChannels();
 
     if (channels == 4) {
+      /* Convert from premultiplied alpha to straight alpha. */
       assert(img->isFloat());
-      float *pixels = (float *)img->getData();
-
-      size_t width = img->getWidth();
-      size_t height = img->getHeight();
-
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          float *pixel = pixels + 4 * (y * width + x);
-
-          cpuProcessorApplyRGBA_predivide(cpu_processor, pixel);
+      float *pixel = (float *)img->getData();
+      size_t pixel_count = img->getWidth() * img->getHeight();
+      for (size_t i = 0; i < pixel_count; i++, pixel += 4) {
+        float alpha = pixel[3];
+        if (alpha != 0.0f && alpha != 1.0f) {
+          float inv_alpha = 1.0f / alpha;
+          pixel[0] *= inv_alpha;
+          pixel[1] *= inv_alpha;
+          pixel[2] *= inv_alpha;
         }
       }
     }
-    else {
-      (*(ConstCPUProcessorRcPtr *)cpu_processor)->apply(*img);
+
+    (*(ConstCPUProcessorRcPtr *)cpu_processor)->apply(*img);
+
+    if (channels == 4) {
+      /* Back to premultiplied alpha. */
+      assert(img->isFloat());
+      float *pixel = (float *)img->getData();
+      size_t pixel_count = img->getWidth() * img->getHeight();
+      for (size_t i = 0; i < pixel_count; i++, pixel += 4) {
+        float alpha = pixel[3];
+        if (alpha != 0.0f && alpha != 1.0f) {
+          pixel[0] *= alpha;
+          pixel[1] *= alpha;
+          pixel[2] *= alpha;
+        }
+      }
     }
   }
   catch (Exception &exception) {
