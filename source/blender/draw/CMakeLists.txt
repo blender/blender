@@ -311,6 +311,7 @@ set(SRC
   engines/overlay/overlay_next_prepass.hh
   engines/overlay/overlay_next_private.hh
   engines/overlay/overlay_next_relation.hh
+  engines/overlay/overlay_next_sculpt.hh
   engines/overlay/overlay_next_speaker.hh
   engines/overlay/overlay_next_wireframe.hh
   engines/overlay/overlay_next_xray_fade.hh

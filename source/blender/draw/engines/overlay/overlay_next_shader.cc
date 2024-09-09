@@ -236,6 +236,17 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_info("draw_gpencil_new", "draw_object_infos_new");
       });
 
+  sculpt_mesh = shader("overlay_sculpt_mask",
+                       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  sculpt_curves = shader("overlay_sculpt_curves_selection",
+                         [](gpu::shader::ShaderCreateInfo &info) {
+                           shader_patch_common(info);
+                           info.additional_info("draw_hair_new");
+                         });
+  sculpt_curves_cage = shader(
+      "overlay_sculpt_curves_cage",
+      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
   xray_fade = shader("overlay_xray_fade", [](gpu::shader::ShaderCreateInfo &info) {
     info.sampler(2, ImageType::DEPTH_2D, "xrayDepthTexInfront");
   });

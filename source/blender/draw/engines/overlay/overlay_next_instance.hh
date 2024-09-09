@@ -31,6 +31,7 @@
 #include "overlay_next_particle.hh"
 #include "overlay_next_prepass.hh"
 #include "overlay_next_relation.hh"
+#include "overlay_next_sculpt.hh"
 #include "overlay_next_speaker.hh"
 #include "overlay_next_wireframe.hh"
 #include "overlay_next_xray_fade.hh"
@@ -80,6 +81,7 @@ class Instance {
     Particles particles;
     Prepass prepass = {selection_type_};
     Relations relations = {selection_type_};
+    Sculpts sculpts = {selection_type_};
     Speakers speakers = {selection_type_};
     Wireframe wireframe;
   } regular{selection_type_}, infront{selection_type_};

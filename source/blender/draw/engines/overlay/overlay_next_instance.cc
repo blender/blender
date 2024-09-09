@@ -116,6 +116,7 @@ void Instance::begin_sync()
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync();
     layer.speakers.begin_sync();
+    layer.sculpts.begin_sync(resources, state);
     layer.wireframe.begin_sync(resources, state);
   };
   begin_sync_layer(regular);
@@ -140,6 +141,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
+  }
+
+  if (in_sculpt_mode) {
+    layer.sculpts.object_sync(manager, ob_ref, state);
   }
 
   if (in_edit_mode && !state.hide_overlays) {
@@ -264,6 +269,9 @@ void Instance::draw(Manager &manager)
   resources.color_overlay_tx.wrap(DRW_viewport_texture_list_get()->color_overlay);
   resources.color_render_tx.wrap(DRW_viewport_texture_list_get()->color);
 
+  resources.render_fb = DRW_viewport_framebuffer_list_get()->default_fb;
+  resources.render_in_front_fb = DRW_viewport_framebuffer_list_get()->in_front_fb;
+
   int2 render_size = int2(resources.depth_tx.size());
 
   const DRWView *view_legacy = DRW_view_default_get();
@@ -331,6 +339,9 @@ void Instance::draw(Manager &manager)
   resources.overlay_output_fb.ensure(GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
 
+  regular.sculpts.draw_on_render(resources.render_fb, manager, view);
+  infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
+
   GPU_framebuffer_bind(resources.overlay_line_fb);
   float4 clear_color(0.0f);
   if (state.xray_enabled) {
@@ -374,6 +385,7 @@ void Instance::draw(Manager &manager)
     layer.fluids.draw(framebuffer, manager, view);
     layer.particles.draw(framebuffer, manager, view);
     layer.armatures.draw(framebuffer, manager, view);
+    layer.sculpts.draw(framebuffer, manager, view);
     layer.meshes.draw(framebuffer, manager, view);
   };
 
@@ -435,7 +447,13 @@ bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
     bool is_geonode_preview = ob_ref.dupli_object && ob_ref.dupli_object->preview_base_geometry;
     bool is_active_dupli_parent = ob_ref.dupli_parent == active_object;
     return is_active_object || (is_active_dupli_parent && is_geonode_preview);
-  };
+  }
+
+  if (state.object_mode == OB_MODE_SCULPT) {
+    const Object *active_object = state.active_base->object;
+    const bool is_active_object = ob_ref.object == active_object;
+    return is_active_object;
+  }
 
   return false;
 }
