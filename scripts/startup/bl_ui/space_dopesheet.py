@@ -338,7 +338,7 @@ class DOPESHEET_HT_editor_buttons:
             case 'ACTION':
                 return context.object
             case 'SHAPEKEY':
-                return context.object.data and context.object.data.shape_keys
+                return context.object.data and getattr(context.object.data, 'shape_keys', None)
             case _:
                 print("Dope Sheet mode '{}' not expected to have an Action selector".format(st.mode))
                 return context.object
