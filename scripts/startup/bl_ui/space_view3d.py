@@ -5994,6 +5994,7 @@ class VIEW3D_MT_weight_grease_pencil(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("grease_pencil.weight_invert", text="Invert Weight")
+        layout.operator("grease_pencil.vertex_group_smooth", text="Smooth")
 
 
 class VIEW3D_MT_gpencil_animation(Menu):

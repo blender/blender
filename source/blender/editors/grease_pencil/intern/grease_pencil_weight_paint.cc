@@ -17,12 +17,16 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
 #include "ED_curves.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "ED_grease_pencil.hh"
+#include "GEO_smooth_curves.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -435,6 +439,79 @@ static void GREASE_PENCIL_OT_weight_invert(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
+static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
+{
+  /* Get the active vertex group in the Grease Pencil object. */
+  Object *object = CTX_data_active_object(C);
+  const int object_defgroup_nr = BKE_object_defgroup_active_index_get(object) - 1;
+  if (object_defgroup_nr == -1) {
+    return OPERATOR_CANCELLED;
+  }
+  const bDeformGroup *object_defgroup = static_cast<const bDeformGroup *>(
+      BLI_findlink(BKE_object_defgroup_list(object), object_defgroup_nr));
+  if (object_defgroup->flag & DG_LOCK_WEIGHT) {
+    BKE_report(op->reports, RPT_WARNING, "Active vertex group is locked");
+    return OPERATOR_CANCELLED;
+  }
+
+  const float smooth_factor = RNA_float_get(op->ptr, "factor");
+  const int repeat = RNA_int_get(op->ptr, "repeat");
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const Scene &scene = *CTX_data_scene(C);
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+
+  /* Smooth weights in all editable drawings. */
+  threading::parallel_for(drawings.index_range(), 1, [&](const IndexRange drawing_range) {
+    for (const int drawing : drawing_range) {
+      bke::CurvesGeometry &curves = drawings[drawing].drawing.strokes_for_write();
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+      /* Skip the drawing when it doesn't use the active vertex group. */
+      if (!attributes.contains(object_defgroup->name)) {
+        continue;
+      }
+
+      bke::SpanAttributeWriter<float> weights = attributes.lookup_for_write_span<float>(
+          object_defgroup->name);
+      geometry::smooth_curve_attribute(curves.curves_range(),
+                                       curves.points_by_curve(),
+                                       VArray<bool>::ForSingle(true, curves.points_num()),
+                                       curves.cyclic(),
+                                       repeat,
+                                       smooth_factor,
+                                       true,
+                                       false,
+                                       weights.span);
+      weights.finish();
+    }
+  });
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_vertex_group_smooth(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Smooth Vertex Group";
+  ot->idname = "GREASE_PENCIL_OT_vertex_group_smooth";
+  ot->description = "Smooth the weights of the active vertex group";
+
+  /* Callbacks. */
+  ot->poll = grease_pencil_vertex_group_weight_poll;
+  ot->exec = vertex_group_smooth_exec;
+
+  /* Flags. */
+  ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
+
+  /* Operator properties. */
+  RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 1.0, "Factor", "", 0.0f, 1.0f);
+  RNA_def_int(ot->srna, "repeat", 1, 1, 10000, "Iterations", "", 1, 200);
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_weight_paint()
@@ -443,4 +520,5 @@ void ED_operatortypes_grease_pencil_weight_paint()
   WM_operatortype_append(GREASE_PENCIL_OT_weight_toggle_direction);
   WM_operatortype_append(GREASE_PENCIL_OT_weight_sample);
   WM_operatortype_append(GREASE_PENCIL_OT_weight_invert);
+  WM_operatortype_append(GREASE_PENCIL_OT_vertex_group_smooth);
 }
