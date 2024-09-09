@@ -117,8 +117,7 @@ static int partition_along_axis(const Span<float3> face_centers,
                                 const float middle)
 {
   const int *split = std::partition(faces.begin(), faces.end(), [&](const int face) {
-    const float3 &center = face_centers[face];
-    return center[axis] >= middle;
+    return face_centers[face][axis] >= middle;
   });
   return split - faces.begin();
 }
@@ -221,17 +220,14 @@ static bool leaf_needs_material_split(const Span<int> prim_indices,
   return false;
 }
 
-static bool leaf_needs_material_split(const Span<int> face_indices,
-                                      const Span<int> material_indices,
-                                      const IndexRange prim_range)
+static bool leaf_needs_material_split(const Span<int> faces, const Span<int> material_indices)
 {
   if (material_indices.is_empty()) {
     return false;
   }
-  const int first = material_indices[face_indices[prim_range.first()]];
-  return std::any_of(prim_range.begin(), prim_range.end(), [&](const int i) {
-    return material_indices[face_indices[i]] != first;
-  });
+  const int first = material_indices[faces.first()];
+  return std::any_of(
+      faces.begin(), faces.end(), [&](const int face) { return material_indices[face] != first; });
   return false;
 }
 
@@ -240,23 +236,17 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                        const int node_index,
                                        const std::optional<Bounds<float3>> &bounds_precalc,
                                        const Span<float3> face_centers,
-                                       const int prim_offset,
-                                       const int prims_num,
-                                       const int depth,
-                                       MutableSpan<int> prim_indices,
+                                                                              const int depth,
+                                       MutableSpan<int> faces,
                                        Vector<MeshNode> &nodes)
 {
-  int end;
-
-  /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = prims_num <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
+    /* Decide whether this is a leaf or not */
+  const bool below_leaf_limit = faces.size() <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
-    if (!leaf_needs_material_split(
-            prim_indices, material_indices, IndexRange(prim_offset, prims_num)))
-    {
+    if (!leaf_needs_material_split(faces, material_indices)) {
       MeshNode &node = nodes[node_index];
       node.flag_ |= PBVH_Leaf;
-      node.face_indices_ = prim_indices.as_span().slice(prim_offset, prims_num);
+      node.face_indices_ = faces;
       return;
     }
   }
@@ -265,6 +255,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
   nodes[node_index].children_offset_ = nodes.size();
   nodes.resize(nodes.size() + 2);
 
+int split;
   if (!below_leaf_limit) {
     /* Find axis with widest range of primitive centroids */
     Bounds<float3> bounds;
@@ -273,14 +264,12 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
     }
     else {
       bounds = threading::parallel_reduce(
-          IndexRange(prim_offset, prims_num),
+          faces.index_range(),
           1024,
           negative_bounds(),
           [&](const IndexRange range, Bounds<float3> value) {
-            for (const int i : range) {
-              const int prim = prim_indices[i];
-              const float3 center = face_centers[prim];
-              math::min_max(center, value.min, value.max);
+            for (const int face : faces.slice(range)) {
+                            math::min_max(face_centers[face], value.min, value.max);
             }
             return value;
           },
@@ -289,15 +278,12 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
     const int axis = math::dominant_axis(bounds.max - bounds.min);
 
     /* Partition primitives along that axis */
-    end = prim_offset + partition_along_axis(face_centers,
-                                             prim_indices.slice(prim_offset, prims_num),
-                                             axis,
-                                             math::midpoint(bounds.min[axis], bounds.max[axis]));
+    split = partition_along_axis(
+face_centers, faces, axis, math::midpoint(bounds.min[axis], bounds.max[axis]));
   }
   else {
     /* Partition primitives by material */
-    end = prim_offset +
-          partition_material_indices(material_indices, prim_indices.slice(prim_offset, prims_num));
+    split = partition_material_indices(material_indices, faces);
   }
 
   /* Build children */
@@ -306,20 +292,16 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                              nodes[node_index].children_offset_,
                              std::nullopt,
                              face_centers,
-                             prim_offset,
-                             end - prim_offset,
-                             depth + 1,
-                             prim_indices,
+                                                          depth + 1,
+                             faces.take_front(split),
                              nodes);
   build_nodes_recursive_mesh(material_indices,
                              leaf_limit,
                              nodes[node_index].children_offset_ + 1,
                              std::nullopt,
                              face_centers,
-                             end,
-                             prim_offset + prims_num - end,
-                             depth + 1,
-                             prim_indices,
+                                                          depth + 1,
+                             faces.drop_front(split),
                              nodes);
 }
 
@@ -378,16 +360,8 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
 #ifdef DEBUG_BUILD_TIME
     SCOPED_TIMER_AVERAGED("build_nodes_recursive_mesh");
 #endif
-    build_nodes_recursive_mesh(material_index,
-                               leaf_limit,
-                               0,
-                               bounds,
-                               face_centers,
-                               0,
-                               faces.size(),
-                               0,
-                               pbvh->prim_indices_,
-                               nodes);
+    build_nodes_recursive_mesh(
+material_index, leaf_limit, 0, bounds, face_centers, 0, pbvh->prim_indices_, nodes);
   }
 
   build_mesh_leaf_nodes(mesh.verts_num, faces, corner_verts, nodes);
