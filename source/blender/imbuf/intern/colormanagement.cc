@@ -1714,21 +1714,13 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle,
   }
 }
 
-static void *do_display_buffer_apply_thread(void *handle_v)
+static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
 {
-  DisplayBufferThread *handle = (DisplayBufferThread *)handle_v;
-  ColormanageProcessor *cm_processor = handle->cm_processor;
-  float *display_buffer = handle->display_buffer;
-  uchar *display_buffer_byte = handle->display_buffer_byte;
-  int channels = handle->channels;
-  int width = handle->width;
-  int height = handle->tot_line;
-  float dither = handle->dither;
-  bool is_data = handle->is_data;
-
-  if (cm_processor == nullptr) {
-    if (display_buffer_byte && display_buffer_byte != handle->byte_buffer) {
-      IMB_buffer_byte_from_byte(display_buffer_byte,
+  const int width = handle->width;
+  const int height = handle->tot_line;
+  if (handle->display_buffer_byte && handle->display_buffer_byte != handle->byte_buffer) {
+    if (handle->byte_buffer) {
+      IMB_buffer_byte_from_byte(handle->display_buffer_byte,
                                 handle->byte_buffer,
                                 IB_PROFILE_SRGB,
                                 IB_PROFILE_SRGB,
@@ -1738,71 +1730,93 @@ static void *do_display_buffer_apply_thread(void *handle_v)
                                 width,
                                 width);
     }
-
-    if (display_buffer) {
-      IMB_buffer_float_from_byte(display_buffer,
-                                 handle->byte_buffer,
+    else if (handle->buffer) {
+      IMB_buffer_byte_from_float(handle->display_buffer_byte,
+                                 handle->buffer,
+                                 handle->channels,
+                                 handle->dither,
                                  IB_PROFILE_SRGB,
                                  IB_PROFILE_SRGB,
-                                 false,
+                                 handle->predivide,
                                  width,
                                  height,
                                  width,
                                  width);
     }
   }
-  else {
-    bool is_straight_alpha;
-    float *linear_buffer = static_cast<float *>(MEM_mallocN(
-        size_t(channels) * width * height * sizeof(float), "color conversion linear buffer"));
 
-    display_buffer_apply_get_linear_buffer(handle, height, linear_buffer, &is_straight_alpha);
+  if (handle->display_buffer) {
+    IMB_buffer_float_from_byte(handle->display_buffer,
+                               handle->byte_buffer,
+                               IB_PROFILE_SRGB,
+                               IB_PROFILE_SRGB,
+                               false,
+                               width,
+                               height,
+                               width,
+                               width);
+  }
+}
 
-    bool predivide = handle->predivide && (is_straight_alpha == false);
+static void *do_display_buffer_apply_thread(void *handle_v)
+{
+  DisplayBufferThread *handle = (DisplayBufferThread *)handle_v;
+  ColormanageProcessor *cm_processor = handle->cm_processor;
+  if (cm_processor == nullptr) {
+    do_display_buffer_apply_no_processor(handle);
+    return nullptr;
+  }
 
-    if (is_data) {
-      /* special case for data buffers - no color space conversions,
-       * only generate byte buffers
-       */
-    }
-    else {
-      /* apply processor */
-      IMB_colormanagement_processor_apply(
-          cm_processor, linear_buffer, width, height, channels, predivide);
-    }
+  float *display_buffer = handle->display_buffer;
+  uchar *display_buffer_byte = handle->display_buffer_byte;
+  int channels = handle->channels;
+  int width = handle->width;
+  int height = handle->tot_line;
+  float *linear_buffer = static_cast<float *>(MEM_mallocN(
+      size_t(channels) * width * height * sizeof(float), "color conversion linear buffer"));
 
-    /* copy result to output buffers */
-    if (display_buffer_byte) {
-      /* do conversion */
-      IMB_buffer_byte_from_float(display_buffer_byte,
-                                 linear_buffer,
-                                 channels,
-                                 dither,
-                                 IB_PROFILE_SRGB,
-                                 IB_PROFILE_SRGB,
-                                 predivide,
-                                 width,
-                                 height,
-                                 width,
-                                 width);
-    }
+  bool is_straight_alpha;
+  display_buffer_apply_get_linear_buffer(handle, height, linear_buffer, &is_straight_alpha);
 
-    if (display_buffer) {
-      memcpy(display_buffer, linear_buffer, size_t(width) * height * channels * sizeof(float));
+  bool predivide = handle->predivide && (is_straight_alpha == false);
 
-      if (is_straight_alpha && channels == 4) {
-        const size_t i_last = size_t(width) * height;
-        size_t i;
-        float *fp;
+  /* Apply processor (note: data buffers never get color space conversions). */
+  if (!handle->is_data) {
+    IMB_colormanagement_processor_apply(
+        cm_processor, linear_buffer, width, height, channels, predivide);
+  }
 
-        for (i = 0, fp = display_buffer; i != i_last; i++, fp += channels) {
-          straight_to_premul_v4(fp);
-        }
+  /* copy result to output buffers */
+  if (display_buffer_byte) {
+    /* do conversion */
+    IMB_buffer_byte_from_float(display_buffer_byte,
+                               linear_buffer,
+                               channels,
+                               handle->dither,
+                               IB_PROFILE_SRGB,
+                               IB_PROFILE_SRGB,
+                               predivide,
+                               width,
+                               height,
+                               width,
+                               width);
+  }
+
+  if (display_buffer) {
+    memcpy(display_buffer, linear_buffer, size_t(width) * height * channels * sizeof(float));
+
+    if (is_straight_alpha && channels == 4) {
+      const size_t i_last = size_t(width) * height;
+      size_t i;
+      float *fp;
+
+      for (i = 0, fp = display_buffer; i != i_last; i++, fp += channels) {
+        straight_to_premul_v4(fp);
       }
     }
-
-    MEM_freeN(linear_buffer);
   }
+
+  MEM_freeN(linear_buffer);
 
   return nullptr;
 }
@@ -1848,23 +1862,28 @@ static void display_buffer_apply_threaded(ImBuf *ibuf,
                                do_display_buffer_apply_thread);
 }
 
-static bool is_ibuf_rect_in_display_space(ImBuf *ibuf,
+/* Checks if given colorspace can be used for display as-is:
+ * - View settings do not have extra curves, exposure, gamma or look applied, and
+ * - Display colorspace is the same as given colorspace. */
+static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
                                           const ColorManagedViewSettings *view_settings,
                                           const ColorManagedDisplaySettings *display_settings)
 {
-  if ((view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) == 0 &&
-      view_settings->exposure == 0.0f && view_settings->gamma == 1.0f)
+  if ((view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) != 0 ||
+      view_settings->exposure != 0.0f || view_settings->gamma != 1.0f)
   {
-    const char *from_colorspace = ibuf->byte_buffer.colorspace->name;
-    const char *to_colorspace = get_display_colorspace_name(view_settings, display_settings);
-    ColorManagedLook *look_descr = colormanage_look_get_named(view_settings->look);
-    if (look_descr != nullptr && !STREQ(look_descr->process_space, "")) {
-      return false;
-    }
+    return false;
+  }
 
-    if (to_colorspace && STREQ(from_colorspace, to_colorspace)) {
-      return true;
-    }
+  ColorManagedLook *look_descr = colormanage_look_get_named(view_settings->look);
+  if (look_descr != nullptr && !STREQ(look_descr->process_space, "")) {
+    return false;
+  }
+
+  const char *from_colorspace = colorspace->name;
+  const char *to_colorspace = get_display_colorspace_name(view_settings, display_settings);
+  if (to_colorspace && STREQ(from_colorspace, to_colorspace)) {
+    return true;
   }
 
   return false;
@@ -1878,15 +1897,15 @@ static void colormanage_display_buffer_process_ex(
     const ColorManagedDisplaySettings *display_settings)
 {
   ColormanageProcessor *cm_processor = nullptr;
+  /* Check if we can skip colorspace transforms. */
   bool skip_transform = false;
-
-  /* if we're going to transform byte buffer, check whether transformation would
-   * happen to the same color space as byte buffer itself is
-   * this would save byte -> float -> byte conversions making display buffer
-   * computation noticeable faster
-   */
   if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace) {
-    skip_transform = is_ibuf_rect_in_display_space(ibuf, view_settings, display_settings);
+    skip_transform = is_colorspace_same_as_display(
+        ibuf->byte_buffer.colorspace, view_settings, display_settings);
+  }
+  if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.colorspace) {
+    skip_transform = is_colorspace_same_as_display(
+        ibuf->float_buffer.colorspace, view_settings, display_settings);
   }
 
   if (skip_transform == false) {
@@ -2818,11 +2837,11 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
     applied_view_settings = &default_view_settings;
   }
 
-  /* early out: no float buffer and byte buffer is already in display space,
-   * let's just use if
-   */
+  /* No float buffer and byte buffer is already in display space, let's just use it. */
   if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace && ibuf->channels == 4) {
-    if (is_ibuf_rect_in_display_space(ibuf, applied_view_settings, display_settings)) {
+    if (is_colorspace_same_as_display(
+            ibuf->byte_buffer.colorspace, applied_view_settings, display_settings))
+    {
       return ibuf->byte_buffer.data;
     }
   }
@@ -3835,15 +3854,18 @@ static void imb_partial_display_buffer_update_ex(
     ColormanageProcessor *cm_processor = nullptr;
     bool skip_transform = false;
 
-    /* Byte buffer is assumed to be in imbuf's rect space, so if byte buffer
-     * is known we could skip display->linear->display conversion in case
-     * display color space matches imbuf's rect space.
-     *
-     * But if there's a float buffer it's likely operation was performed on
-     * it first and byte buffer is likely to be out of date here.
-     */
+    /* If we only have a byte or a float buffer, and color space already
+     * matches display, there's no need to do color transforms.
+     * However if both float and byte buffers exist, it is likely that
+     * some operation was performed on float buffer first, and the byte
+     * buffer is out of date. */
     if (linear_buffer == nullptr && byte_buffer != nullptr) {
-      skip_transform = is_ibuf_rect_in_display_space(ibuf, view_settings, display_settings);
+      skip_transform = is_colorspace_same_as_display(
+          ibuf->byte_buffer.colorspace, view_settings, display_settings);
+    }
+    if (byte_buffer == nullptr && linear_buffer != nullptr) {
+      skip_transform = is_colorspace_same_as_display(
+          ibuf->float_buffer.colorspace, view_settings, display_settings);
     }
 
     if (!skip_transform) {
