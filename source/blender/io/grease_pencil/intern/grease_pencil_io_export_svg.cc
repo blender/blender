@@ -200,9 +200,9 @@ void SVGExporter::export_grease_pencil_objects(pugi::xml_node node, const int fr
 
       /* Layer node. */
       const std::string txt = "Layer: " + layer->name();
-      node.append_child(pugi::node_comment).set_value(txt.c_str());
+      ob_node.append_child(pugi::node_comment).set_value(txt.c_str());
 
-      pugi::xml_node layer_node = node.append_child("g");
+      pugi::xml_node layer_node = ob_node.append_child("g");
       layer_node.append_attribute("id").set_value(layer->name().c_str());
 
       export_grease_pencil_layer(layer_node, *ob_eval, *layer, *drawing);
