@@ -377,6 +377,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
                 const int face_set = face_set::vert_face_set_get(
                     vert_to_face_map, face_sets, vert);
                 enabled_verts[vert].set(expand_cache.snap_enabled_face_sets->contains(face_set));
+                continue;
               }
               enabled_verts[vert].set(
                   vert_falloff_is_enabled(ss, expand_cache, positions[vert], vert));
@@ -406,6 +407,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
           }
           if (expand_cache.snap) {
             enabled_verts[vert].set(expand_cache.snap_enabled_face_sets->contains(face_set));
+            return;
           }
           enabled_verts[vert].set(vert_falloff_is_enabled(
               ss, expand_cache, CCG_elem_offset_co(key, elem, offset), vert));
@@ -427,6 +429,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
           /* TODO: Support face sets for BMesh. */
           const int face_set = 0;
           enabled_verts[vert].set(expand_cache.snap_enabled_face_sets->contains(face_set));
+          continue;
         }
         enabled_verts[vert].set(vert_falloff_is_enabled(ss, expand_cache, bm_vert->co, vert));
       }
@@ -2011,30 +2014,63 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
    * inverted state by default. */
   expand_cache.invert = initial_invert_state;
 
+  double3 average(0);
   int total = 0;
-  float avg[3] = {0.0f};
-
-  const float *expand_init_co = SCULPT_vertex_co_get(
-      depsgraph, ob, expand_cache.initial_active_vertex);
-
-  boundary_verts.foreach_index([&](const int vert) {
-    if (!is_vert_in_active_component(ss, expand_cache, vert)) {
-      return;
+  switch (bke::object::pbvh_get(ob)->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
+      const float3 expand_init_co = positions[expand_cache.initial_active_vertex_i];
+      boundary_verts.foreach_index([&](const int vert) {
+        if (!is_vert_in_active_component(ss, expand_cache, vert)) {
+          return;
+        }
+        const float3 &position = positions[vert];
+        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+          return;
+        }
+        average += double3(position);
+        total++;
+      });
+      break;
     }
-
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, vert);
-    const float *vertex_co = SCULPT_vertex_co_get(depsgraph, ob, vertex);
-
-    if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
-      return;
+    case bke::pbvh::Type::Grids: {
+      const float3 expand_init_co = SCULPT_vertex_co_get(
+          depsgraph, ob, expand_cache.initial_active_vertex);
+      boundary_verts.foreach_index([&](const int vert) {
+        if (!is_vert_in_active_component(ss, expand_cache, vert)) {
+          return;
+        }
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, vert);
+        const float3 position = SCULPT_vertex_co_get(depsgraph, ob, vertex);
+        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+          return;
+        }
+        average += double3(position);
+        total++;
+      });
+      break;
     }
-
-    add_v3_v3(avg, vertex_co);
-    total++;
-  });
+    case bke::pbvh::Type::BMesh: {
+      const float3 expand_init_co = SCULPT_vertex_co_get(
+          depsgraph, ob, expand_cache.initial_active_vertex);
+      boundary_verts.foreach_index([&](const int vert) {
+        if (!is_vert_in_active_component(ss, expand_cache, vert)) {
+          return;
+        }
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, vert);
+        const float3 position = SCULPT_vertex_co_get(depsgraph, ob, vertex);
+        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+          return;
+        }
+        average += double3(position);
+        total++;
+      });
+      break;
+    }
+  }
 
   if (total > 0) {
-    mul_v3_v3fl(ss.pivot_pos, avg, 1.0f / total);
+    ss.pivot_pos = float3(average / total);
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob.data);
