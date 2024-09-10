@@ -491,10 +491,10 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
 
   /* Find maximum number of grids per face. */
-  int max_grids = 1;
+  int max_face_size = 1;
   const OffsetIndices faces = base_mesh.faces();
   for (const int i : faces.index_range()) {
-    max_grids = max_ii(max_grids, faces[i].size());
+    max_face_size = max_ii(max_face_size, faces[i].size());
   }
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -503,8 +503,8 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
     return pbvh;
   }
 
-  /* See #102209. NOTE: This `max_grids` limit may be unnecessary. */
-  const int leaf_limit = max_ii(LEAF_LIMIT / (key.grid_area), max_grids);
+  /* See #102209. NOTE: This `max_face_size` limit may be unnecessary. */
+  const int leaf_limit = max_ii(LEAF_LIMIT / (key.grid_area), max_face_size);
 
   /* For each grid, store the AABB and the AABB centroid */
   Array<Bounds<float3>> prim_bounds(elems.size());
