@@ -873,6 +873,16 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     return false;
   }
 
+  /* Apply any running smooth-view values before reading from the viewport. */
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->regiontype == RGN_TYPE_WINDOW) {
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+      if (rv3d->sms) {
+        ED_view3d_smooth_view_force_finish_no_camera_lock(depsgraph, wm, win, scene, v3d, region);
+      }
+    }
+  }
+
   v3d->localvd = static_cast<View3D *>(MEM_mallocN(sizeof(View3D), "localview"));
   *v3d->localvd = blender::dna::shallow_copy(*v3d);
   v3d->local_view_uid = local_view_bit;
@@ -952,6 +962,19 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->local_view_bits & v3d->local_view_uid) {
       base->local_view_bits &= ~v3d->local_view_uid;
+    }
+  }
+
+  /* Apply any running smooth-view values before reading from the viewport. */
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->regiontype == RGN_TYPE_WINDOW) {
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+      if (rv3d->localvd == nullptr) {
+        continue;
+      }
+      if (rv3d->sms) {
+        ED_view3d_smooth_view_force_finish_no_camera_lock(depsgraph, wm, win, scene, v3d, region);
+      }
     }
   }
 
