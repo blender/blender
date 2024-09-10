@@ -77,7 +77,7 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_node.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"

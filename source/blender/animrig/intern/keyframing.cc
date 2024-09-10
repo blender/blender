@@ -25,7 +25,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_report.hh"
 
 #include "DNA_scene_types.h"

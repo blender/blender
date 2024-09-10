@@ -4,7 +4,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_nla_types.h"

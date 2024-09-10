@@ -19,7 +19,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "ED_anim_api.hh"
 

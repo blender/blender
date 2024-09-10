@@ -24,7 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_fcurve.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"

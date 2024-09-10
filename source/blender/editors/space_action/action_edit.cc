@@ -34,7 +34,7 @@
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_report.hh"
 
 #include "UI_interface_icons.hh"

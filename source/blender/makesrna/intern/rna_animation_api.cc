@@ -22,7 +22,7 @@
 
 #  include "BKE_animsys.h"
 #  include "BKE_context.hh"
-#  include "BKE_nla.h"
+#  include "BKE_nla.hh"
 #  include "BKE_report.hh"
 
 #  include "ANIM_keyingsets.hh"

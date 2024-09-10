@@ -31,7 +31,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"

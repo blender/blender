@@ -26,7 +26,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_scene.hh"
 
 #include "ED_particle.hh"

@@ -65,7 +65,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"

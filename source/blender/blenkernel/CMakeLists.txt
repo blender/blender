@@ -463,7 +463,7 @@ set(SRC
   BKE_modifier.hh
   BKE_movieclip.h
   BKE_multires.hh
-  BKE_nla.h
+  BKE_nla.hh
   BKE_node.hh
   BKE_node_enum.hh
   BKE_node_runtime.hh

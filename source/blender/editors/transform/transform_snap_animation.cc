@@ -9,7 +9,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "ED_markers.hh"
 

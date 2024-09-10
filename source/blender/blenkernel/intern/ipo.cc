@@ -54,7 +54,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "CLG_log.h"
 

@@ -26,7 +26,7 @@
 #include "RNA_define.hh"
 
 #include "BKE_fcurve.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "UI_interface_c.hh"
 #include "UI_resources.hh"

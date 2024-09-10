@@ -23,7 +23,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"

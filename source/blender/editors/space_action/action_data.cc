@@ -28,7 +28,7 @@
 #include "BKE_context.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 

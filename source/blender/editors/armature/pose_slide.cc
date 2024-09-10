@@ -43,7 +43,7 @@
 #include "DNA_vec_types.h"
 
 #include "BKE_fcurve.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"

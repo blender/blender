@@ -42,7 +42,7 @@
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_nla.h"
+#include "BKE_nla.hh"
 #include "BKE_scene.hh"
 
 #include "BLO_read_write.hh"
