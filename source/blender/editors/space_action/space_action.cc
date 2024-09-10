@@ -874,7 +874,7 @@ static void action_space_subtype_item_extend(bContext * /*C*/,
 static blender::StringRefNull action_space_name_get(const ScrArea *area)
 {
   SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  const int index = RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode);
+  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
   const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
   return item.name;
 }
@@ -882,7 +882,7 @@ static blender::StringRefNull action_space_name_get(const ScrArea *area)
 static int action_space_icon_get(const ScrArea *area)
 {
   SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
-  const int index = RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode);
+  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
   const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
   return item.icon;
 }
