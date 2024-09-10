@@ -897,6 +897,8 @@ void axis_set_view(bContext *C,
 
   float quat[4];
   const short orig_persp = rv3d->persp;
+  const char orig_view = rv3d->view;
+  const char orig_view_axis_roll = rv3d->view_axis_roll;
 
   normalize_qt_qt(quat, quat_);
 
@@ -905,14 +907,21 @@ void axis_set_view(bContext *C,
     rv3d->view = view = RV3D_VIEW_USER;
     rv3d->view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   }
-
-  if (align_to_quat == nullptr) {
+  else {
     rv3d->view = view;
     rv3d->view_axis_roll = view_axis_roll;
   }
 
-  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) {
+  /* Redrawing when changes are detected is needed because the current view
+   * orientation may be a "User" view that matches the axis exactly.
+   * In this case smooth-view exits early as no view transition is needed.
+   * However, changing the view must redraw the region as it changes the
+   * viewport name & grid drawing. */
+  if ((rv3d->view != orig_view) || (rv3d->view_axis_roll != orig_view_axis_roll)) {
     ED_region_tag_redraw(region);
+  }
+
+  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) {
     return;
   }
 
@@ -921,6 +930,9 @@ void axis_set_view(bContext *C,
   }
   else if (rv3d->persp == RV3D_CAMOB) {
     rv3d->persp = perspo;
+  }
+  if ((rv3d->persp != orig_persp)) {
+    ED_region_tag_redraw(region);
   }
 
   if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
