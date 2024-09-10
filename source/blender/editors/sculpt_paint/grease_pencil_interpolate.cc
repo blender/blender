@@ -261,9 +261,14 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
   }();
 
   /* Compute curve length and flip mode for each pair. */
-  Vector<int> dst_curve_offsets;
-  Vector<bool> dst_curve_flip;
-  const OffsetIndices dst_points_by_curve = [&]() {
+  Array<int> dst_curve_offsets(curves_by_pair.size() + 1, 0);
+  Array<bool> dst_curve_flip(curves_by_pair.size(), false);
+  const OffsetIndices<int> dst_points_by_curve = [&]() {
+    /* Last entry for overall size. */
+    if (curves_by_pair.is_empty()) {
+      return OffsetIndices<int>{};
+    }
+
     for (const int pair_range_i : curves_by_pair.index_range()) {
       const IndexRange pair_range = curves_by_pair[pair_range_i];
       BLI_assert(!pair_range.is_empty());
@@ -288,28 +293,22 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
         const IndexRange from_points = from_points_by_curve[from_curve];
         const IndexRange to_points = to_points_by_curve[to_curve];
 
-        dst_curve_offsets.append(std::max(from_points.size(), to_points.size()));
+        dst_curve_offsets[pair_index] = std::max(from_points.size(), to_points.size());
         switch (flip_mode) {
           case InterpolateFlipMode::None:
-            dst_curve_flip.append(false);
+            dst_curve_flip[pair_index] = false;
             break;
           case InterpolateFlipMode::Flip:
-            dst_curve_flip.append(true);
+            dst_curve_flip[pair_index] = true;
             break;
           case InterpolateFlipMode::FlipAuto: {
-            dst_curve_flip.append(compute_auto_flip(from_positions.slice(from_points),
-                                                    to_positions.slice(to_points)));
+            dst_curve_flip[pair_index] = compute_auto_flip(from_positions.slice(from_points),
+                                                           to_positions.slice(to_points));
             break;
           }
         }
       }
     }
-    /* Last entry for overall size. */
-    if (dst_curve_offsets.is_empty()) {
-      return OffsetIndices<int>{};
-    }
-
-    dst_curve_offsets.append(0);
     return offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
   }();
   const int dst_point_num = dst_points_by_curve.total_size();
