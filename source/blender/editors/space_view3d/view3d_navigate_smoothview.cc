@@ -163,6 +163,7 @@ struct SmoothView3DStore {
   /* When smooth-view is enabled, store the 'rv3d->view' here,
    * assign back when the view motion is completed. */
   char org_view;
+  char org_view_axis_roll;
 
   double time_allowed;
 };
@@ -218,6 +219,7 @@ void ED_view3d_smooth_view_ex(
     sms.org = rv3d->sms->org;
   }
   sms.org_view = rv3d->view;
+  sms.org_view_axis_roll = rv3d->view_axis_roll;
 
   // sms.to_camera = false; /* Initialized to zero anyway. */
 
@@ -452,6 +454,7 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
     rv3d->view = sms->org_view;
+    rv3d->view_axis_roll = sms->org_view_axis_roll;
   }
 
   MEM_freeN(rv3d->sms);
