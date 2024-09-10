@@ -19,7 +19,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"

@@ -319,7 +319,6 @@ set(SRC
   intern/world.cc
   intern/writemovie.cc
 
-  BKE_action.h
   BKE_action.hh
   BKE_addon.h
   BKE_anim_data.hh

@@ -12,7 +12,7 @@
 #include "ExportSettings.h"
 #include "collada_utils.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_constraint.h"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"

@@ -24,7 +24,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_context.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"

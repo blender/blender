@@ -17,7 +17,7 @@
 
 #include "DNA_object_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 
 #include "intern/node/deg_node_factory.hh"
 #include "intern/node/deg_node_id.hh"

@@ -37,7 +37,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_brush.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"

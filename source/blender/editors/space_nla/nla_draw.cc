@@ -23,7 +23,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_nla.hh"
 

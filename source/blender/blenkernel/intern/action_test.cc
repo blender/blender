@@ -4,7 +4,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"

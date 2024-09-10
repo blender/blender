@@ -5,7 +5,7 @@
 #include "usd_writer_armature.hh"
 #include "usd_armature_utils.hh"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 
 #include "DNA_armature_types.h"
 

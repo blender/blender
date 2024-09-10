@@ -26,7 +26,7 @@
 #include "BLI_utildefines.h"
 
 #include "BIK_api.h"
-#include "BKE_action.h" /* pose functions */
+#include "BKE_action.hh" /* pose functions */
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.hh"

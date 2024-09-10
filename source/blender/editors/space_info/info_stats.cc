@@ -34,7 +34,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
 #include "BKE_curve.hh"

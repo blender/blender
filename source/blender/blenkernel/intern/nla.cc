@@ -30,7 +30,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"

@@ -18,7 +18,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_action.h"
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_idprop.hh"

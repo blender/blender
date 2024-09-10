@@ -14,7 +14,7 @@
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_report.hh"

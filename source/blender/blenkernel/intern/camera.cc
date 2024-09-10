@@ -29,7 +29,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_camera.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"

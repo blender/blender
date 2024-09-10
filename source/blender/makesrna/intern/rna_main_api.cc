@@ -25,7 +25,6 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_action.h"
 #  include "BKE_action.hh"
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"

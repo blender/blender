@@ -14,7 +14,7 @@
 #include "DNA_action_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_global.hh"
 #include "BKE_mesh.hh"

@@ -24,7 +24,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_main.hh"

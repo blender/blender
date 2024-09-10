@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #  include "BLI_string_utils.hh"
 
 #  include "BIK_api.h"
-#  include "BKE_action.h"
+#  include "BKE_action.hh"
 #  include "BKE_armature.hh"
 
 #  include "DNA_userdef_types.h"

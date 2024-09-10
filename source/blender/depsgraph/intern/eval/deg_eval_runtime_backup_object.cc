@@ -14,7 +14,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_action.h"
+#include "BKE_action.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
