@@ -179,13 +179,12 @@ void VKTexture::mip_range_set(int min, int max)
 void VKTexture::read_sub(
     int mip, eGPUDataFormat format, const int region[6], const IndexRange layers, void *r_data)
 {
+  const int3 extent = int3(region[3] - region[0], region[4] - region[1], region[5] - region[2]);
+  size_t sample_len = extent.x * extent.y * extent.z * layers.size();
+
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
-
-  size_t sample_len = (region[3] - region[0]) * (region[4] - region[1]) * (region[5] - region[2]) *
-                      layers.size();
   size_t device_memory_size = sample_len * to_bytesize(device_format_);
-
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
@@ -194,9 +193,9 @@ void VKTexture::read_sub(
   copy_image_to_buffer.region.imageOffset.x = region[0];
   copy_image_to_buffer.region.imageOffset.y = region[1];
   copy_image_to_buffer.region.imageOffset.z = region[2];
-  copy_image_to_buffer.region.imageExtent.width = region[3];
-  copy_image_to_buffer.region.imageExtent.height = region[4];
-  copy_image_to_buffer.region.imageExtent.depth = region[5];
+  copy_image_to_buffer.region.imageExtent.width = extent.x;
+  copy_image_to_buffer.region.imageExtent.height = extent.y;
+  copy_image_to_buffer.region.imageExtent.depth = extent.z;
   copy_image_to_buffer.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
       to_vk_image_aspect_flag_bits(device_format_), false);
   copy_image_to_buffer.region.imageSubresource.mipLevel = mip;
