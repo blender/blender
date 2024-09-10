@@ -500,8 +500,7 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
 
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
-  bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
-  BLI_assert(bke::object::pbvh_get(ob) == pbvh);
+  bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(*depsgraph, ob);
 
   /* Start undo. */
   switch (action) {
@@ -514,9 +513,9 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
   }
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-  switch (pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       partialvis_all_update_mesh(*depsgraph, ob, action, node_mask);
       break;
@@ -620,8 +619,7 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
 
   const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
 
-  bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, &ob);
-  BLI_assert(bke::object::pbvh_get(ob) == pbvh);
+  bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(*depsgraph, ob);
 
   /* Start undo. */
   switch (action) {
@@ -634,9 +632,9 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
   }
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
-  switch (pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       partialvis_masked_update_mesh(*depsgraph, ob, action, node_mask);
       break;
@@ -779,13 +777,12 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
-  bke::pbvh::Tree *pbvh = BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
-  BLI_assert(bke::object::pbvh_get(object) == pbvh);
+  bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(depsgraph, object);
 
   IndexMaskMemory memory;
-  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   undo::push_begin(object, op);
-  switch (pbvh->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       invert_visibility_mesh(depsgraph, object, node_mask);
       break;
@@ -1105,8 +1102,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
-  bke::pbvh::Tree &pbvh = *BKE_sculpt_object_pbvh_ensure(&depsgraph, &object);
-  BLI_assert(bke::object::pbvh_get(object) == &pbvh);
+  bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(depsgraph, object);
 
   const VisAction mode = VisAction(RNA_enum_get(op->ptr, "action"));
 
@@ -1277,7 +1273,7 @@ static void hide_show_begin(bContext &C, wmOperator &op, gesture::GestureData & 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
 
   undo::push_begin(*ob, &op);
-  BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+  bke::object::pbvh_ensure(*depsgraph, *ob);
 }
 
 static void hide_show_apply_for_symmetry_pass(bContext &C, gesture::GestureData &gesture_data)

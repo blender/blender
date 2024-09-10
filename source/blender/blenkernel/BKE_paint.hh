@@ -691,8 +691,6 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                    MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
-blender::bke::pbvh::Tree *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
-
 void BKE_sculpt_sync_face_visibility_to_grids(const Mesh &mesh, SubdivCCG &subdiv_ccg);
 
 /**
@@ -703,10 +701,12 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 
 namespace blender::bke::object {
 
+pbvh::Tree &pbvh_ensure(Depsgraph &depsgraph, Object &object);
+
 /**
  * Access the acceleration structure for raycasting, nearest queries, and spatially contiguous mesh
  * updates and drawing. The BVH tree is used by sculpt, vertex paint, and weight paint object
- * modes. This just accesses the BVH, to ensure it's built, use #BKE_sculpt_object_pbvh_ensure.
+ * modes. This just accesses the BVH, to ensure it's built, use #pbvh_ensure.
  */
 pbvh::Tree *pbvh_get(Object &object);
 const pbvh::Tree *pbvh_get(const Object &object);
