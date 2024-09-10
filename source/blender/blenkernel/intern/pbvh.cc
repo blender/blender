@@ -490,12 +490,18 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 #endif
   std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
 
-  /* Find maximum number of grids per face. */
-  int max_face_size = 1;
   const OffsetIndices faces = base_mesh.faces();
-  for (const int i : faces.index_range()) {
-    max_face_size = max_ii(max_face_size, faces[i].size());
-  }
+  const int max_face_size = threading::parallel_reduce(
+      faces.index_range(),
+      4096,
+      0,
+      [&](const IndexRange range, int value) {
+        for (const int i : range) {
+          value = std::max(int(faces[i].size()), value);
+        }
+        return value;
+      },
+      [](const int a, const int b) { return std::max(a, b); });
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> elems = subdiv_ccg.grids;
