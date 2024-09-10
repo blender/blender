@@ -367,6 +367,29 @@ static void rna_ActionSlot_name_update(Main *bmain, Scene *, PointerRNA *ptr)
   action.slot_name_propagate(*bmain, slot);
 }
 
+#    ifndef NDEBUG
+static void rna_ActionSlot_debug_log_users(const ID *action_id, ActionSlot *dna_slot, Main *bmain)
+{
+  using namespace blender::animrig;
+  const Action &action = reinterpret_cast<const bAction *>(action_id)->wrap();
+  Slot &slot = dna_slot->wrap();
+
+  printf("\033[38;5;214mAction Slot users of '%s' on Action '%s':\033[0m\n",
+         slot.name,
+         action.id.name + 2);
+  if (bmain->is_action_slot_to_id_map_dirty) {
+    printf("  User map is \033[93mdirty\033[0m, this will trigger a recompute.\n");
+  }
+  else {
+    printf("  User map is \033[92mclean\033[0m.\n");
+  }
+
+  for (const ID *user : slot.users(*bmain)) {
+    printf("  - %s\n", user->name);
+  }
+}
+#    endif /* NDEBUG */
+
 static std::optional<std::string> rna_ActionLayer_path(const PointerRNA *ptr)
 {
   animrig::Layer &layer = rna_data_layer(ptr);
@@ -1957,6 +1980,16 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
+
+#    ifndef NDEBUG
+  /* Slot.debug_log_users() */
+  {
+    FunctionRNA *func;
+
+    func = RNA_def_function(srna, "debug_log_users", "rna_ActionSlot_debug_log_users");
+    RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  }
+#    endif
 }
 
 static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
