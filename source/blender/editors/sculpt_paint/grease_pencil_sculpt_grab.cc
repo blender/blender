@@ -135,11 +135,14 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
   Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &ob_orig);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
 
+  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
+      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
+
   init_brush(brush);
 
   this->prev_mouse_position = start_sample.mouse_position;
 
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
   this->drawing_data.reinitialize(drawings.size());
   threading::parallel_for_each(drawings.index_range(), [&](const int i) {
     const MutableDrawingInfo &info = drawings[i];
@@ -158,23 +161,22 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
                                        info.frame_number,
                                        info.multi_frame_falloff,
                                        info.drawing};
-
     IndexMaskMemory selection_memory;
-    IndexMask selection = point_selection_mask(params, selection_memory);
+    IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
 
     Array<float2> view_positions = calculate_view_positions(params, selection);
 
     /* Cache points under brush influence. */
     Vector<float> weights;
-    IndexMask point_mask = brush_influence_mask(scene,
-                                                brush,
-                                                start_sample.mouse_position,
-                                                1.0f,
-                                                info.multi_frame_falloff,
-                                                selection,
-                                                view_positions,
-                                                weights,
-                                                data.memory);
+    IndexMask point_mask = brush_point_influence_mask(scene,
+                                                      brush,
+                                                      start_sample.mouse_position,
+                                                      1.0f,
+                                                      info.multi_frame_falloff,
+                                                      selection,
+                                                      view_positions,
+                                                      weights,
+                                                      data.memory);
 
     if (point_mask.is_empty()) {
       /* Set empty point mask to skip. */

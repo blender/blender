@@ -162,6 +162,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_WEIGHT_GREASE_PENCIL:
         km_id = "Grease Pencil Weight Mode";
         break;
+      case CTX_MODE_VERTEX_GREASE_PENCIL:
+        km_id = "Grease Pencil Vertex Mode";
+        break;
     }
   }
   else if (sl->spacetype == SPACE_IMAGE) {

@@ -147,6 +147,24 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
         return greasepencil::new_weight_paint_smear_operation();
     }
   }
+  else if (mode == PaintMode::VertexGPencil) {
+    switch (eBrushGPVertexType(brush.gpencil_vertex_brush_type)) {
+      case GPVERTEX_BRUSH_TYPE_DRAW:
+        return greasepencil::new_vertex_paint_operation(stroke_mode);
+      case GPVERTEX_BRUSH_TYPE_BLUR:
+        return greasepencil::new_vertex_blur_operation();
+      case GPVERTEX_BRUSH_TYPE_AVERAGE:
+        return greasepencil::new_vertex_average_operation();
+      case GPVERTEX_BRUSH_TYPE_SMEAR:
+        return greasepencil::new_vertex_smear_operation();
+      case GPVERTEX_BRUSH_TYPE_REPLACE:
+        return greasepencil::new_vertex_replace_operation();
+      case GPVERTEX_BRUSH_TYPE_TINT:
+        /* Unused. */
+        BLI_assert_unreachable();
+        return nullptr;
+    }
+  }
   return nullptr;
 }
 
@@ -327,7 +345,6 @@ static int grease_pencil_sculpt_paint_invoke(bContext *C, wmOperator *op, const 
   }
 
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-
   if (!active_layer.is_editable()) {
     BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
     return OPERATOR_CANCELLED;
@@ -380,7 +397,7 @@ static void GREASE_PENCIL_OT_sculpt_paint(wmOperatorType *ot)
 {
   ot->name = "Grease Pencil Draw";
   ot->idname = "GREASE_PENCIL_OT_sculpt_paint";
-  ot->description = "Draw a new stroke in the active Grease Pencil object";
+  ot->description = "Sculpt strokes in the active Grease Pencil object";
 
   ot->poll = grease_pencil_sculpt_paint_poll;
   ot->invoke = grease_pencil_sculpt_paint_invoke;
@@ -479,6 +496,111 @@ static void GREASE_PENCIL_OT_weight_brush_stroke(wmOperatorType *ot)
   ot->invoke = grease_pencil_weight_brush_stroke_invoke;
   ot->modal = grease_pencil_weight_brush_stroke_modal;
   ot->cancel = grease_pencil_weight_brush_stroke_cancel;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  paint_stroke_operator_properties(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Brush Stroke Operator
+ * \{ */
+
+static bool grease_pencil_vertex_brush_stroke_poll(bContext *C)
+{
+  if (!ed::greasepencil::grease_pencil_vertex_painting_poll(C)) {
+    return false;
+  }
+  if (!WM_toolsystem_active_tool_is_brush(C)) {
+    return false;
+  }
+  return true;
+}
+
+static int grease_pencil_vertex_brush_stroke_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
+{
+  const Object *object = CTX_data_active_object(C);
+  if (!object || object->type != OB_GREASE_PENCIL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  if (!grease_pencil.has_active_layer()) {
+    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
+    return OPERATOR_CANCELLED;
+  }
+
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+  if (!active_layer.is_editable()) {
+    BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
+    return OPERATOR_CANCELLED;
+  }
+
+  const Paint *paint = BKE_paint_get_active_from_context(C);
+  const Brush *brush = BKE_paint_brush_for_read(paint);
+  if (brush == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Ensure a drawing at the current keyframe. */
+  bool inserted_keyframe = false;
+  /* For the vertex paint tools, we don't want the auto-key to create an empty keyframe, so we
+   * duplicate the previous key. */
+  const bool use_duplicate_previous_key = true;
+  if (!ed::greasepencil::ensure_active_keyframe(
+          C, grease_pencil, use_duplicate_previous_key, inserted_keyframe))
+  {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
+    return OPERATOR_CANCELLED;
+  }
+  if (inserted_keyframe) {
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+  }
+
+  op->customdata = paint_stroke_new(C,
+                                    op,
+                                    stroke_get_location,
+                                    stroke_test_start,
+                                    stroke_update_step,
+                                    stroke_redraw,
+                                    stroke_done,
+                                    event->type);
+
+  const int return_value = op->type->modal(C, op, event);
+  if (return_value == OPERATOR_FINISHED) {
+    return OPERATOR_FINISHED;
+  }
+
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int grease_pencil_vertex_brush_stroke_modal(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, reinterpret_cast<PaintStroke **>(&op->customdata));
+}
+
+static void grease_pencil_vertex_brush_stroke_cancel(bContext *C, wmOperator *op)
+{
+  paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
+}
+
+static void GREASE_PENCIL_OT_vertex_brush_stroke(wmOperatorType *ot)
+{
+  ot->name = "Grease Pencil Paint Vertex";
+  ot->idname = "GREASE_PENCIL_OT_vertex_brush_stroke";
+  ot->description = "Draw on vertex colors in the active Grease Pencil object";
+
+  ot->poll = grease_pencil_vertex_brush_stroke_poll;
+  ot->invoke = grease_pencil_vertex_brush_stroke_invoke;
+  ot->modal = grease_pencil_vertex_brush_stroke_modal;
+  ot->cancel = grease_pencil_vertex_brush_stroke_cancel;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1602,6 +1724,7 @@ void ED_operatortypes_grease_pencil_draw()
   WM_operatortype_append(GREASE_PENCIL_OT_brush_stroke);
   WM_operatortype_append(GREASE_PENCIL_OT_sculpt_paint);
   WM_operatortype_append(GREASE_PENCIL_OT_weight_brush_stroke);
+  WM_operatortype_append(GREASE_PENCIL_OT_vertex_brush_stroke);
   WM_operatortype_append(GREASE_PENCIL_OT_fill);
 }
 

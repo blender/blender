@@ -875,6 +875,21 @@ static VectorSet<int> get_hidden_material_indices(Object &object)
   return hidden_material_indices;
 }
 
+static VectorSet<int> get_fill_material_indices(Object &object)
+{
+  BLI_assert(object.type == OB_GREASE_PENCIL);
+  VectorSet<int> fill_material_indices;
+  for (const int mat_i : IndexRange(object.totcol)) {
+    Material *material = BKE_object_material_get(&object, mat_i + 1);
+    if (material != nullptr && material->gp_style != nullptr &&
+        (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0)
+    {
+      fill_material_indices.add_new(mat_i);
+    }
+  }
+  return fill_material_indices;
+}
+
 IndexMask retrieve_editable_strokes(Object &object,
                                     const bke::greasepencil::Drawing &drawing,
                                     int layer_index,
@@ -913,6 +928,50 @@ IndexMask retrieve_editable_strokes(Object &object,
         /* The stroke is editable if the material is editable. If the material is not editable,
          * then the stroke is only editable if the layer disables the locked material option. */
         return editable_material_indices.contains(material_index) || layer.use_locked_material();
+      });
+}
+
+IndexMask retrieve_editable_fill_strokes(Object &object,
+                                         const bke::greasepencil::Drawing &drawing,
+                                         int layer_index,
+                                         IndexMaskMemory &memory)
+{
+  using namespace blender;
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+
+  if (object.totcol == 0) {
+    return IndexMask(curves_range);
+  }
+
+  /* Get all the editable material indices */
+  const VectorSet<int> editable_material_indices = get_editable_material_indices(object);
+  if (editable_material_indices.is_empty()) {
+    return {};
+  }
+
+  const bke::AttributeAccessor attributes = curves.attributes();
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
+  const VectorSet<int> fill_material_indices = get_fill_material_indices(object);
+
+  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  if (!materials) {
+    /* If the attribute does not exist then the default is the first material. */
+    if (editable_material_indices.contains(0)) {
+      return curves_range;
+    }
+    return {};
+  }
+  /* Get all the strokes that have their material unlocked. */
+  return IndexMask::from_predicate(
+      curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        const int material_index = materials[curve_i];
+        /* The stroke is editable if the material is editable. If the material is not editable,
+         * then the stroke is only editable if the layer disables the locked material option. */
+        return (editable_material_indices.contains(material_index) ||
+                layer.use_locked_material()) &&
+               fill_material_indices.contains(material_index);
       });
 }
 
@@ -1130,6 +1189,21 @@ IndexMask retrieve_editable_and_selected_strokes(Object &object,
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   const IndexMask editable_strokes = retrieve_editable_strokes(
+      object, drawing, layer_index, memory);
+  const IndexMask selected_strokes = ed::curves::retrieve_selected_curves(curves, memory);
+
+  return IndexMask::from_intersection(editable_strokes, selected_strokes, memory);
+}
+
+IndexMask retrieve_editable_and_selected_fill_strokes(Object &object,
+                                                      const bke::greasepencil::Drawing &drawing,
+                                                      int layer_index,
+                                                      IndexMaskMemory &memory)
+{
+  using namespace blender;
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  const IndexMask editable_strokes = retrieve_editable_fill_strokes(
       object, drawing, layer_index, memory);
   const IndexMask selected_strokes = ed::curves::retrieve_selected_curves(curves, memory);
 

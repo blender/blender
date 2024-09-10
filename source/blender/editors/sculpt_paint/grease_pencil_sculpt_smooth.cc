@@ -46,9 +46,12 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
   const Brush &brush = *BKE_paint_brush(&paint);
   const int sculpt_mode_flag = brush.gpencil_settings->sculpt_mode_flag;
 
+  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
+      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
+
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory selection_memory;
-    const IndexMask selection = point_selection_mask(params, selection_memory);
+    const IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
     if (selection.is_empty()) {
       return false;
     }
@@ -62,7 +65,7 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
 
     const VArray<float> influences = VArray<float>::ForFunc(
         view_positions.size(), [&](const int64_t point_) {
-          return brush_influence(
+          return brush_point_influence(
               scene, brush, view_positions[point_], extension_sample, params.multi_frame_falloff);
         });
     Array<bool> selection_array(curves.points_num());

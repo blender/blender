@@ -52,8 +52,8 @@ set(SRC
   grease_pencil_fill.cc
   grease_pencil_interpolate.cc
   grease_pencil_paint.cc
+  grease_pencil_paint_common.cc
   grease_pencil_sculpt_clone.cc
-  grease_pencil_sculpt_common.cc
   grease_pencil_sculpt_grab.cc
   grease_pencil_sculpt_pinch.cc
   grease_pencil_sculpt_push.cc
@@ -69,6 +69,11 @@ set(SRC
   grease_pencil_weight_blur.cc
   grease_pencil_weight_draw.cc
   grease_pencil_weight_smear.cc
+  grease_pencil_vertex_average.cc
+  grease_pencil_vertex_blur.cc
+  grease_pencil_vertex_paint.cc
+  grease_pencil_vertex_replace.cc
+  grease_pencil_vertex_smear.cc
   paint_canvas.cc
   paint_cursor.cc
   paint_curve.cc

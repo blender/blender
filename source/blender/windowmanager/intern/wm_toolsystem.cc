@@ -670,6 +670,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_WEIGHT_GPENCIL_LEGACY:
         case CTX_MODE_WEIGHT_GREASE_PENCIL:
         case CTX_MODE_VERTEX_GPENCIL_LEGACY:
+        case CTX_MODE_VERTEX_GREASE_PENCIL:
         case CTX_MODE_SCULPT_CURVES:
           return "builtin.brush";
         case CTX_MODE_PARTICLE:

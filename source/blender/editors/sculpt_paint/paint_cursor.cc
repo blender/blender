@@ -1451,7 +1451,7 @@ static void paint_update_mouse_cursor(PaintCursorContext *pcontext)
      * with the UI (dragging a number button for e.g.), see: #102792. */
     return;
   }
-  if (pcontext->mode == PaintMode::GPencil) {
+  if (ELEM(pcontext->mode, PaintMode::GPencil, PaintMode::VertexGPencil)) {
     WM_cursor_set(pcontext->win, WM_CURSOR_DOT);
   }
   else {
@@ -1528,8 +1528,10 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
     return;
   }
 
-  /* default radius and color */
-  pcontext->pixel_radius = brush->size;
+  /* Hide the cursor while drawing. */
+  if (grease_pencil->runtime->is_drawing_stroke) {
+    return;
+  }
 
   float3 color(1.0f);
   const int x = pcontext->x;
@@ -1544,10 +1546,10 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       /* If we use the eraser from the draw tool with a "scene" radius unit, we need to draw the
        * cursor with the appropriate size. */
       if (grease_pencil->runtime->temp_use_eraser && (brush->flag & BRUSH_LOCK_SIZE) != 0) {
-        pcontext->pixel_radius = grease_pencil->runtime->temp_eraser_size;
+        pcontext->pixel_radius = int(grease_pencil->runtime->temp_eraser_size);
       }
       else {
-        pcontext->pixel_radius = float(pcontext->brush->size);
+        pcontext->pixel_radius = brush->size;
       }
       grease_pencil_eraser_draw(pcontext);
       return;
@@ -1596,6 +1598,10 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       color = scale * float3(paint->paint_cursor_col);
     }
   }
+  else if (pcontext->mode == PaintMode::VertexGPencil) {
+    pcontext->pixel_radius = BKE_brush_size_get(pcontext->vc.scene, brush);
+    color = BKE_brush_color_get(pcontext->vc.scene, brush);
+  }
 
   GPU_line_width(1.0f);
   /* Inner Ring: Color from UI panel */
@@ -1611,13 +1617,12 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
 {
   switch (pcontext->mode) {
-    case PaintMode::GPencil: {
+    case PaintMode::GPencil:
+    case PaintMode::VertexGPencil:
       grease_pencil_brush_cursor_draw(pcontext);
       break;
-    }
-    default: {
+    default:
       paint_draw_2D_view_brush_cursor_default(pcontext);
-    }
   }
 }
 

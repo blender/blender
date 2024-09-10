@@ -93,7 +93,7 @@ class GreasePencilDisplayPanel:
             settings = tool_settings.gpencil_sculpt_paint
         elif context.mode == 'WEIGHT_GPENCIL' or context.mode == 'WEIGHT_GREASE_PENCIL':
             settings = tool_settings.gpencil_weight_paint
-        elif context.mode == 'VERTEX_GPENCIL':
+        elif context.mode == 'VERTEX_GPENCIL' or context.mode == 'VERTEX_GREASE_PENCIL':
             settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
         if brush:
@@ -111,7 +111,7 @@ class GreasePencilDisplayPanel:
             settings = tool_settings.gpencil_sculpt_paint
         elif context.mode == 'WEIGHT_GPENCIL' or context.mode == 'WEIGHT_GREASE_PENCIL':
             settings = tool_settings.gpencil_weight_paint
-        elif context.mode == 'VERTEX_GPENCIL':
+        elif context.mode == 'VERTEX_GPENCIL' or context.mode == 'VERTEX_GREASE_PENCIL':
             settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
         gp_settings = brush.gpencil_settings
@@ -146,7 +146,7 @@ class GreasePencilDisplayPanel:
 
             col.prop(brush, "cursor_color_add", text="Cursor Color")
 
-        elif ob.mode == 'VERTEX_GPENCIL':
+        elif ob.mode == 'VERTEX_GPENCIL' or ob.mode == 'VERTEX_GREASE_PENCIL':
             row = layout.row(align=True)
             row.prop(settings, "show_brush", text="Display Cursor")
 

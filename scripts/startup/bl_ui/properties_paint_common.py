@@ -162,6 +162,8 @@ class UnifiedPaintPanel:
             return tool_settings.gpencil_sculpt_paint
         elif mode == 'WEIGHT_GREASE_PENCIL':
             return tool_settings.gpencil_weight_paint
+        elif mode == 'VERTEX_GREASE_PENCIL':
+            return tool_settings.gpencil_vertex_paint
         return None
 
     @staticmethod
@@ -1747,6 +1749,37 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
             header=compact,
         )
         layout.prop(brush, "direction", expand=True, text="" if compact else "Direction")
+
+
+def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact=False):
+    UnifiedPaintPanel.prop_unified(
+        layout,
+        context,
+        brush,
+        "size",
+        pressure_name="use_pressure_size",
+        unified_name="use_unified_size",
+        text="Radius",
+        slider=True,
+        header=compact,
+    )
+
+    if brush.gpencil_vertex_tool in {'DRAW', 'BLUR', 'SMEAR'}:
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            pressure_name="use_pressure_strength",
+            unified_name="use_unified_strength",
+            text="Strength",
+            header=compact,
+        )
+
+    gp_settings = brush.gpencil_settings
+    if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+        row = layout.row(align=True)
+        row.prop(gp_settings, "vertex_mode", text="Mode")
 
 
 classes = (

@@ -41,9 +41,12 @@ void ThicknessOperation::on_stroke_extended(const bContext &C, const InputSample
   const Brush &brush = *BKE_paint_brush(&paint);
   const bool invert = this->is_inverted(brush);
 
+  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
+      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
+
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory selection_memory;
-    const IndexMask selection = point_selection_mask(params, selection_memory);
+    const IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
     if (selection.is_empty()) {
       return false;
     }
@@ -55,7 +58,7 @@ void ThicknessOperation::on_stroke_extended(const bContext &C, const InputSample
 
     selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
       float &radius = radii[point_i];
-      const float influence = brush_influence(
+      const float influence = brush_point_influence(
           scene, brush, view_positions[point_i], extension_sample, params.multi_frame_falloff);
       /* Factor 1/1000 is used to map arbitrary influence value to a sensible radius. */
       const float delta_radius = (invert ? -influence : influence) * 0.001f;

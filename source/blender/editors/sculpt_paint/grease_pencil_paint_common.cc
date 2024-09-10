@@ -30,7 +30,7 @@
 
 namespace blender::ed::sculpt_paint::greasepencil {
 
-Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_sculpt(const bContext &C)
+Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_painting(const bContext &C)
 {
   using namespace blender::bke::greasepencil;
 
@@ -62,6 +62,7 @@ void init_brush(Brush &brush)
     BKE_brush_init_gpencil_settings(&brush);
   }
   BLI_assert(brush.gpencil_settings != nullptr);
+  BKE_curvemapping_init(brush.curve);
   BKE_curvemapping_init(brush.gpencil_settings->curve_strength);
   BKE_curvemapping_init(brush.gpencil_settings->curve_sensitivity);
   BKE_curvemapping_init(brush.gpencil_settings->curve_jitter);
@@ -73,7 +74,7 @@ void init_brush(Brush &brush)
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_value);
 }
 
-static float brush_radius(const Scene &scene, const Brush &brush, const float pressure = 1.0f)
+float brush_radius(const Scene &scene, const Brush &brush, const float pressure = 1.0f)
 {
   float radius = BKE_brush_size_get(&scene, &brush);
   if (BKE_brush_use_size_pressure(&brush)) {
@@ -82,11 +83,11 @@ static float brush_radius(const Scene &scene, const Brush &brush, const float pr
   return radius;
 }
 
-float brush_influence(const Scene &scene,
-                      const Brush &brush,
-                      const float2 &co,
-                      const InputSample &sample,
-                      const float multi_frame_falloff)
+float brush_point_influence(const Scene &scene,
+                            const Brush &brush,
+                            const float2 &co,
+                            const InputSample &sample,
+                            const float multi_frame_falloff)
 {
   const float radius = brush_radius(scene, brush, sample.pressure);
   /* Basic strength factor from brush settings. */
@@ -103,15 +104,56 @@ float brush_influence(const Scene &scene,
   return influence_base * brush_falloff;
 }
 
-IndexMask brush_influence_mask(const Scene &scene,
-                               const Brush &brush,
-                               const float2 &mouse_position,
-                               const float pressure,
-                               const float multi_frame_falloff,
-                               const IndexMask &selection,
-                               const Span<float2> view_positions,
-                               Vector<float> &influences,
-                               IndexMaskMemory &memory)
+/* Compute the closest distance to the "surface". When the point is outside the polygon, compute
+ * the closest distance to the polygon points. When the point is inside the polygon return 0.*/
+float closest_distance_to_surface_2d(const float2 pt, const Span<float2> verts)
+{
+  int j = verts.size() - 1;
+  bool isect = false;
+  float distance = FLT_MAX;
+  for (int i = 0; i < verts.size(); i++) {
+    /* Based on implementation of #isect_point_poly_v2. */
+    if (((verts[i].y > pt.y) != (verts[j].y > pt.y)) &&
+        (pt.x <
+         (verts[j].x - verts[i].x) * (pt.y - verts[i].y) / (verts[j].y - verts[i].y) + verts[i].x))
+    {
+      isect = !isect;
+    }
+    distance = math::min(distance, math::distance(pt, verts[i]));
+    j = i;
+  }
+  return isect ? 0.0f : distance;
+}
+
+float brush_fill_influence(const Scene &scene,
+                           const Brush &brush,
+                           const Span<float2> fill_positions,
+                           const InputSample &sample,
+                           const float multi_frame_falloff)
+{
+  const float radius = brush_radius(scene, brush, sample.pressure);
+  /* Basic strength factor from brush settings. */
+  const float brush_pressure = BKE_brush_use_alpha_pressure(&brush) ? sample.pressure : 1.0f;
+  const float influence_base = BKE_brush_alpha_get(&scene, &brush) * brush_pressure *
+                               multi_frame_falloff;
+
+  /* Distance falloff. */
+  const float distance = closest_distance_to_surface_2d(sample.mouse_position, fill_positions);
+  /* Apply Brush curve. */
+  const float brush_falloff = BKE_brush_curve_strength(&brush, distance, radius);
+
+  return influence_base * brush_falloff;
+}
+
+IndexMask brush_point_influence_mask(const Scene &scene,
+                                     const Brush &brush,
+                                     const float2 &mouse_position,
+                                     const float pressure,
+                                     const float multi_frame_falloff,
+                                     const IndexMask &selection,
+                                     const Span<float2> view_positions,
+                                     Vector<float> &influences,
+                                     IndexMaskMemory &memory)
 {
   if (selection.is_empty()) {
     return {};
@@ -177,13 +219,33 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
           drawing};
 }
 
-IndexMask point_selection_mask(const GreasePencilStrokeParams &params, IndexMaskMemory &memory)
+IndexMask point_selection_mask(const GreasePencilStrokeParams &params,
+                               const bool use_masking,
+                               IndexMaskMemory &memory)
 {
-  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
-      eGP_Sculpt_SelectMaskFlag(params.toolsettings.gpencil_selectmode_sculpt));
-  return (is_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
-                           params.ob_eval, params.drawing, params.layer_index, memory) :
-                       params.drawing.strokes().points_range());
+
+  return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_points(
+                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                        params.drawing.strokes().points_range());
+}
+
+IndexMask stroke_selection_mask(const GreasePencilStrokeParams &params,
+                                const bool use_masking,
+                                IndexMaskMemory &memory)
+{
+
+  return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_strokes(
+                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                        params.drawing.strokes().curves_range());
+}
+
+IndexMask fill_selection_mask(const GreasePencilStrokeParams &params,
+                              const bool use_masking,
+                              IndexMaskMemory &memory)
+{
+  return (use_masking ? ed::greasepencil::retrieve_editable_and_selected_fill_strokes(
+                            params.ob_eval, params.drawing, params.layer_index, memory) :
+                        params.drawing.strokes().curves_range());
 }
 
 bke::crazyspace::GeometryDeformation get_drawing_deformation(
@@ -216,6 +278,39 @@ Array<float2> calculate_view_positions(const GreasePencilStrokeParams &params,
   return view_positions;
 }
 
+Array<float> calculate_view_radii(const GreasePencilStrokeParams &params,
+                                  const IndexMask &selection)
+{
+  const RegionView3D *rv3d = static_cast<RegionView3D *>(params.region.regiondata);
+  bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
+
+  const VArray<float> radii = params.drawing.radii();
+  Array<float> view_radii(radii.size());
+  /* Compute screen space radii. */
+  const float4x4 transform = params.layer.to_world_space(params.ob_eval);
+  selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+    const float pixel_size = ED_view3d_pixel_size(
+        rv3d, math::transform_point(transform, deformation.positions[point_i]));
+    view_radii[point_i] = radii[point_i] / pixel_size;
+  });
+
+  return view_radii;
+}
+
+bool do_vertex_color_points(const Brush &brush)
+{
+  return brush.gpencil_settings != nullptr &&
+         ((brush.gpencil_settings->vertex_mode == GPPAINT_MODE_STROKE) ||
+          (brush.gpencil_settings->vertex_mode == GPPAINT_MODE_BOTH));
+}
+
+bool do_vertex_color_fill(const Brush &brush)
+{
+  return brush.gpencil_settings != nullptr &&
+         ((brush.gpencil_settings->vertex_mode == GPPAINT_MODE_FILL) ||
+          (brush.gpencil_settings->vertex_mode == GPPAINT_MODE_BOTH));
+}
+
 bool GreasePencilStrokeOperationCommon::is_inverted(const Brush &brush) const
 {
   return is_brush_inverted(brush, this->stroke_mode);
@@ -238,8 +333,9 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
-  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
+  for (const int64_t i : drawings.index_range()) {
+    const MutableDrawingInfo &info = drawings[i];
     GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
         scene,
         depsgraph,
@@ -251,6 +347,45 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
         info.drawing);
     if (fn(params)) {
       changed = true;
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+}
+
+void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
+    const bContext &C,
+    const GrainSize grain_size,
+    FunctionRef<bool(const GreasePencilStrokeParams &params)> fn) const
+{
+  using namespace blender::bke::greasepencil;
+
+  const Scene &scene = *CTX_data_scene(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  Object &object = *CTX_data_active_object(&C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
+  threading::parallel_for(drawings.index_range(), grain_size.value, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      const MutableDrawingInfo &info = drawings[i];
+      GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
+          scene,
+          depsgraph,
+          region,
+          object,
+          info.layer_index,
+          info.frame_number,
+          info.multi_frame_falloff,
+          info.drawing);
+      if (fn(params)) {
+        changed = true;
+      }
     }
   });
 
@@ -276,7 +411,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
+  const Vector<MutableDrawingInfo> drawings = get_drawings_for_painting(C);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     const Layer &layer = *grease_pencil.layer(info.layer_index);
 

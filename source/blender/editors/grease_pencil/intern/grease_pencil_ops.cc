@@ -117,6 +117,22 @@ bool grease_pencil_weight_painting_poll(bContext *C)
   return true;
 }
 
+bool grease_pencil_vertex_painting_poll(bContext *C)
+{
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+  Object *object = CTX_data_active_object(C);
+  if ((object->mode & OB_MODE_VERTEX_GPENCIL_LEGACY) == 0) {
+    return false;
+  }
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  if (!ts || !ts->gp_vertexpaint) {
+    return false;
+  }
+  return true;
+}
+
 static void keymap_grease_pencil_edit_mode(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(
@@ -143,6 +159,13 @@ static void keymap_grease_pencil_weight_paint_mode(wmKeyConfig *keyconf)
   wmKeyMap *keymap = WM_keymap_ensure(
       keyconf, "Grease Pencil Weight Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = grease_pencil_weight_painting_poll;
+}
+
+static void keymap_grease_pencil_vertex_paint_mode(wmKeyConfig *keyconf)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Vertex Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap->poll = grease_pencil_vertex_painting_poll;
 }
 
 /* Enabled for all tools except the fill tool. */
@@ -246,6 +269,7 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
   keymap_grease_pencil_paint_mode(keyconf);
   keymap_grease_pencil_sculpt_mode(keyconf);
   keymap_grease_pencil_weight_paint_mode(keyconf);
+  keymap_grease_pencil_vertex_paint_mode(keyconf);
   keymap_grease_pencil_brush_stroke(keyconf);
   keymap_grease_pencil_fill_tool(keyconf);
   ED_primitivetool_modal_keymap(keyconf);

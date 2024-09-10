@@ -40,9 +40,12 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
   const Brush &brush = *BKE_paint_brush(&paint);
   const bool invert = this->is_inverted(brush);
 
+  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(
+      eGP_Sculpt_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_sculpt));
+
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory selection_memory;
-    const IndexMask selection = point_selection_mask(params, selection_memory);
+    const IndexMask selection = point_selection_mask(params, is_masking, selection_memory);
     if (selection.is_empty()) {
       return false;
     }
@@ -52,7 +55,7 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
 
     selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
       float &opacity = opacities[point_i];
-      const float influence = brush_influence(
+      const float influence = brush_point_influence(
           scene, brush, view_positions[point_i], extension_sample, params.multi_frame_falloff);
       /* Brush influence mapped to opacity by a factor of 0.125. */
       const float delta_opacity = (invert ? -influence : influence) * 0.125f;
