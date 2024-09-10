@@ -23,7 +23,7 @@
 #include "ED_screen.hh"
 
 #include "view3d_intern.hh"
-#include "view3d_navigate.hh" /* own include */
+#include "view3d_navigate.hh" /* Own include. */
 
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor);
@@ -138,9 +138,11 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
 /** \name Smooth View Operator & Utilities
  *
  * Use for view transitions to have smooth (animated) transitions.
+ *
+ *
+ * \note This operator is one of the "timer refresh" ones, similar to animation playback.
+ *
  * \{ */
-
-/* This operator is one of the 'timer refresh' ones like animation playback */
 
 struct SmoothView3DState {
   float dist;
@@ -150,19 +152,31 @@ struct SmoothView3DState {
 };
 
 struct SmoothView3DStore {
-  /* Source. */
-  SmoothView3DState src; /* source */
-  SmoothView3DState dst; /* destination */
-  SmoothView3DState org; /* original */
+
+  /** Source. */
+  SmoothView3DState src;
+  /** Destination. */
+  SmoothView3DState dst;
+  /**
+   * Original.
+   *
+   * \note it may seem like the "source" should be the same as the "original" value,
+   * this isn't the case because the "source" values are calculated for interpolation
+   * with the destination and may not match the viewport values used when smooth-view starts.
+   */
+  SmoothView3DState org;
 
   bool to_camera;
 
   bool use_dyn_ofs;
   float dyn_ofs[3];
 
-  /* When smooth-view is enabled, store the 'rv3d->view' here,
-   * assign back when the view motion is completed. */
+  /**
+   * When smooth-view is enabled, store the 'rv3d->view' here,
+   * assign back when the view motion is completed.
+   */
   char org_view;
+  /** Same behavior as `view`. */
   char org_view_axis_roll;
 
   double time_allowed;
@@ -188,9 +202,8 @@ static void view3d_smooth_view_state_restore(const SmoothView3DState *sms_state,
   v3d->lens = sms_state->lens;
 }
 
-/* will start timer if appropriate */
 void ED_view3d_smooth_view_ex(
-    /* avoid passing in the context */
+    /* Avoid passing in the context. */
     const Depsgraph *depsgraph,
     wmWindowManager *wm,
     wmWindow *win,
@@ -200,6 +213,8 @@ void ED_view3d_smooth_view_ex(
     const int smooth_viewtx,
     const V3D_SmoothParams *sview)
 {
+  /* Will start a timer if appropriate. */
+
   /* In this case use #ED_view3d_smooth_view_undo_begin & end functions
    * instead of passing in undo. */
   BLI_assert_msg(sview->undo_str == nullptr,
@@ -208,7 +223,7 @@ void ED_view3d_smooth_view_ex(
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   SmoothView3DStore sms = {{0}};
 
-  /* initialize sms */
+  /* Initialize `sms`. */
   view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
   view3d_smooth_view_state_backup(&sms.src, v3d, rv3d);
   /* If smooth-view runs multiple times. */
@@ -223,19 +238,18 @@ void ED_view3d_smooth_view_ex(
 
   // sms.to_camera = false; /* Initialized to zero anyway. */
 
-  /* note on camera locking, this is a little confusing but works ok.
-   * we may be changing the view 'as if' there is no active camera, but in fact
+  /* NOTE: Regarding camera locking: This is a little confusing but works OK.
+   * We may be changing the view 'as if' there is no active camera, but in fact
    * there is an active camera which is locked to the view.
    *
    * In the case where smooth view is moving _to_ a camera we don't want that
    * camera to be moved or changed, so only when the camera is not being set should
-   * we allow camera option locking to initialize the view settings from the camera.
-   */
+   * we allow camera option locking to initialize the view settings from the camera. */
   if (sview->camera == nullptr && sview->camera_old == nullptr) {
     ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
   }
 
-  /* store the options we want to end with */
+  /* Store the options we want to end with. */
   if (sview->ofs) {
     copy_v3_v3(sms.dst.ofs, sview->ofs);
   }
@@ -256,7 +270,7 @@ void ED_view3d_smooth_view_ex(
     copy_v3_v3(sms.dyn_ofs, sview->dyn_ofs);
     sms.use_dyn_ofs = true;
 
-    /* calculate the final destination offset */
+    /* Calculate the final destination offset. */
     view3d_orbit_apply_dyn_ofs(sms.dst.ofs, sms.src.ofs, sms.src.quat, sms.dst.quat, sms.dyn_ofs);
   }
 
@@ -267,7 +281,8 @@ void ED_view3d_smooth_view_ex(
           ob_camera_eval->object_to_world().ptr(), sview->ofs, VIEW3D_DIST_FALLBACK);
     }
     ED_view3d_from_object(ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
-    sms.to_camera = true; /* restore view3d values in end */
+    /* Restore view3d values in end. */
+    sms.to_camera = true;
   }
 
   if ((sview->camera_old == sview->camera) &&   /* Camera. */
@@ -284,7 +299,7 @@ void ED_view3d_smooth_view_ex(
   /* Skip smooth viewing for external render engine draw. */
   if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->view_render)) {
 
-    /* original values */
+    /* Original values. */
     if (sview->camera_old) {
       Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
       if (sview->ofs != nullptr) {
@@ -294,10 +309,10 @@ void ED_view3d_smooth_view_ex(
       ED_view3d_from_object(
           ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
     }
-    /* grid draw as floor */
+    /* Grid draw as floor. */
     if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
-      /* use existing if exists, means multiple calls to smooth view
-       * won't lose the original 'view' setting */
+      /* Use existing if exists, means multiple calls to smooth view
+       * won't lose the original 'view' setting. */
       rv3d->view = RV3D_VIEW_USER;
     }
 
@@ -306,15 +321,14 @@ void ED_view3d_smooth_view_ex(
     /* If this is view rotation only we can decrease the time allowed by the angle between
      * quaternions this means small rotations won't lag. */
     if (sview->quat && !sview->ofs && !sview->dist) {
-      /* scale the time allowed by the rotation */
-      /* 180deg == 1.0 */
+      /* Scale the time allowed by the rotation (180 degrees == 1.0). */
       sms.time_allowed *= double(fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat))) /
                           M_PI;
     }
 
-    /* ensure it shows correct */
+    /* Ensure it shows correct. */
     if (sms.to_camera) {
-      /* use ortho if we move from an ortho view to an ortho camera */
+      /* Use orthographic if we move from an orthographic view to an orthographic camera. */
       Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
       rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
                      (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
@@ -324,11 +338,11 @@ void ED_view3d_smooth_view_ex(
 
     rv3d->rflag |= RV3D_NAVIGATING;
 
-    /* not essential but in some cases the caller will tag the area for redraw, and in that
-     * case we can get a flicker of the 'org' user view but we want to see 'src' */
+    /* Not essential but in some cases the caller will tag the area for redraw, and in that
+     * case we can get a flicker of the 'org' user view but we want to see 'src'. */
     view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
 
-    /* keep track of running timer! */
+    /* Keep track of running timer! */
     if (rv3d->sms == nullptr) {
       rv3d->sms = static_cast<SmoothView3DStore *>(
           MEM_mallocN(sizeof(SmoothView3DStore), "smoothview v3d"));
@@ -436,7 +450,7 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
 {
   SmoothView3DStore *sms = rv3d->sms;
 
-  /* if we went to camera, store the original */
+  /* If we went to camera, store the original. */
   if (sms->to_camera) {
     rv3d->persp = RV3D_CAMOB;
     view3d_smooth_view_state_restore(&sms->org, v3d, rv3d);
@@ -467,11 +481,10 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
   /* Event handling won't know if a UI item has been moved under the pointer. */
   WM_event_add_mousemove(win);
 
-  /* NOTE: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
-   * when switching camera in quad-view the other ortho views would zoom & reset.
+  /* NOTE: this doesn't work right because the `v3d->lens` is used in orthographic mode,
+   * when switching camera in quad-view the other orthographic views would zoom & reset.
    *
-   * For now only redraw all regions when smooth-view finishes.
-   */
+   * For now only redraw all regions when smooth-view finishes. */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
 }
 
@@ -481,8 +494,6 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
   wmWindow *win = CTX_wm_window(C);
   view3d_smoothview_apply_and_finish_ex(wm, win, v3d, rv3d, C);
 }
-
-/* only meant for timer usage */
 
 static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion *region)
 {
@@ -520,7 +531,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEv
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  /* escape if not our timer */
+  /* Escape if not our timer. */
   if (rv3d->smooth_timer == nullptr || rv3d->smooth_timer != event->customdata) {
     return OPERATOR_PASS_THROUGH;
   }
@@ -593,17 +604,16 @@ void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgrap
 
 void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Smooth View";
   ot->idname = "VIEW3D_OT_smoothview";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_smoothview_invoke;
-
-  /* flags */
-  ot->flag = OPTYPE_INTERNAL;
-
   ot->poll = ED_operator_view3d_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 /** \} */
