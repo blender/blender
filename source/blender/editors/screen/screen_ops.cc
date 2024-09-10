@@ -3853,6 +3853,13 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
     return WM_CURSOR_STOP;
   }
 
+  if (jd->win2 && jd->win2->workspace_hook) {
+    bScreen *screen = BKE_workspace_active_screen_get(jd->win2->workspace_hook);
+    if (screen && screen->temp) {
+      return WM_CURSOR_STOP;
+    }
+  }
+
 #if defined(__APPLE__)
   const int move_cursor = WM_CURSOR_HAND_CLOSED;
 #else
@@ -3945,6 +3952,13 @@ static AreaDockTarget area_docking_target(sAreaJoinData *jd, const wmEvent *even
 
   if (jd->sa1 == jd->sa2) {
     return AreaDockTarget::None;
+  }
+
+  if (jd->win2 && jd->win2->workspace_hook) {
+    bScreen *screen = BKE_workspace_active_screen_get(jd->win2->workspace_hook);
+    if (screen && screen->temp) {
+      return AreaDockTarget::None;
+    }
   }
 
   /* Convert to local coordinates in sa2. */
