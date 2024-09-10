@@ -1003,6 +1003,7 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
         camera_new_rv3d = (rv3d->localvd->persp == RV3D_CAMOB) ? camera_new : nullptr;
 
         rv3d->view = rv3d->localvd->view;
+        rv3d->view_axis_roll = rv3d->localvd->view_axis_roll;
         rv3d->persp = rv3d->localvd->persp;
         rv3d->camzoom = rv3d->localvd->camzoom;
 

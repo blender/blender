@@ -4665,6 +4665,7 @@ static void view3d_localview_update_rv3d(RegionView3D *rv3d)
 {
   if (rv3d->localvd) {
     rv3d->localvd->view = rv3d->view;
+    rv3d->localvd->view_axis_roll = rv3d->view_axis_roll;
     rv3d->localvd->persp = rv3d->persp;
     copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat);
   }
