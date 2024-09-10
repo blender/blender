@@ -503,10 +503,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
     return pbvh;
   }
 
-  /* Ensure leaf limit is at least 4 so there's room
-   * to split at original face boundaries.
-   * Fixes #102209.
-   */
+  /* See #102209. NOTE: This `max_grids` limit may be unnecessary. */
   const int leaf_limit = max_ii(LEAF_LIMIT / (key.grid_area), max_grids);
 
   /* For each grid, store the AABB and the AABB centroid */
