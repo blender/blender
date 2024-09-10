@@ -1008,7 +1008,7 @@ static void fill_vbos_mesh(const Object &object,
     const StringRef name = attr.name;
     const bke::AttrDomain domain = attr.domain;
     const eCustomDataType data_type = attr.type;
-    const bke::AttributeAccessor attributes = mesh.attributes();
+    const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
     const GVArraySpan attribute = *attributes.lookup_or_default(name, domain, data_type);
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
       fill_vbo_attribute_mesh(faces, corner_verts, attribute, domain, nodes[i].faces(), *vbos[i]);
