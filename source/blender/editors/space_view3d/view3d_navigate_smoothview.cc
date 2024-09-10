@@ -426,12 +426,13 @@ static void view3d_smoothview_apply_with_interp(
 /**
  * Apply the view-port transformation & free smooth-view related data.
  */
-static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionView3D *rv3d)
+static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
+                                                  wmWindow *win,
+                                                  View3D *v3d,
+                                                  RegionView3D *rv3d,
+                                                  bContext *C_for_camera_lock)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   SmoothView3DStore *sms = rv3d->sms;
-
-  wmWindow *win = CTX_wm_window(C);
 
   /* if we went to camera, store the original */
   if (sms->to_camera) {
@@ -439,12 +440,13 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
     view3d_smooth_view_state_restore(&sms->org, v3d, rv3d);
   }
   else {
-    const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-
     view3d_smooth_view_state_restore(&sms->dst, v3d, rv3d);
 
-    if (ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d)) {
-      ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+    if (C_for_camera_lock) {
+      const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C_for_camera_lock);
+      if (ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d)) {
+        ED_view3d_camera_lock_autokey(v3d, rv3d, C_for_camera_lock, true, true);
+      }
     }
   }
 
@@ -467,7 +469,14 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
    *
    * For now only redraw all regions when smooth-view finishes.
    */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
+}
+
+static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionView3D *rv3d)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
+  view3d_smoothview_apply_and_finish_ex(wm, win, v3d, rv3d, C);
 }
 
 /* only meant for timer usage */
@@ -518,17 +527,64 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEv
   return OPERATOR_FINISHED;
 }
 
+static void view3d_smooth_view_force_finish_ex(const Depsgraph *depsgraph,
+                                               wmWindowManager *wm,
+                                               wmWindow *win,
+                                               const Scene *scene,
+                                               View3D *v3d,
+                                               ARegion *region,
+                                               bContext *C_for_camera_lock)
+{
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  BLI_assert(rv3d && rv3d->sms);
+
+  view3d_smoothview_apply_and_finish_ex(wm, win, v3d, rv3d, C_for_camera_lock);
+
+  if (depsgraph) {
+    /* Force update of view matrix so tools that run immediately after
+     * can use them without redrawing first. */
+    ED_view3d_update_viewmat(depsgraph, scene, v3d, region, nullptr, nullptr, nullptr, false);
+  }
+}
+
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   if (rv3d && rv3d->sms) {
-    view3d_smoothview_apply_and_finish(C, v3d, rv3d);
 
-    /* Force update of view matrix so tools that run immediately after
-     * can use them without redrawing first */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = CTX_data_scene(C);
-    ED_view3d_update_viewmat(depsgraph, scene, v3d, region, nullptr, nullptr, nullptr, false);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    wmWindow *win = CTX_wm_window(C);
+
+    view3d_smooth_view_force_finish_ex(depsgraph, wm, win, scene, v3d, region, C);
+  }
+}
+
+void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgraph,
+                                                       wmWindowManager *wm,
+                                                       wmWindow *win,
+                                                       const Scene *scene,
+                                                       View3D *v3d,
+                                                       ARegion *region)
+{
+
+  /* NOTE(@ideasman42): Ideally we would *always* apply the camera lock.
+   * Failing to do so results in incorrect behavior when a user performs
+   * a camera-locked view-port manipulation & immediately enters enters local-view
+   * before the operation is completed.
+   * In this case the camera isn't key-framed when it should be.
+   *
+   * A generic solution that supports forcing modal operators to finish their
+   * work may be best, but needs to be investigated.
+   *
+   * It's worth noting this *is* a corner case, while not ideal,
+   * rarely happens unless a motivated users is trying to cause it to fail.
+   * Even when it does occur, it simply misses completing & auto-keying the action. */
+
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  if (rv3d && rv3d->sms) {
+    view3d_smooth_view_force_finish_ex(depsgraph, wm, win, scene, v3d, region, nullptr);
   }
 }
 
