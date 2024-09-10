@@ -45,9 +45,13 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "ANIM_nla.hh"
+
 #include "nla_private.h"
 
 static CLG_LogRef LOG = {"bke.nla"};
+
+using namespace blender;
 
 /**
  * Find the active track and strip.
@@ -462,8 +466,10 @@ void BKE_nla_clip_length_ensure_nonzero(const float *actstart, float *r_actend)
   }
 }
 
-NlaStrip *BKE_nlastrip_new(bAction *act)
+NlaStrip *BKE_nlastrip_new(bAction *act, ID &animated_id)
 {
+  using namespace blender::animrig;
+
   NlaStrip *strip;
 
   /* sanity checks */
@@ -490,9 +496,9 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
     strip->flag |= NLASTRIP_FLAG_USR_TIME_CYCLIC;
   }
 
-  /* assign the action reference */
-  strip->act = act;
-  id_us_plus(&act->id);
+  /* Assign the Action, and automatically choose a suitable slot. The caller can change the slot to
+   * something more specific later, if necessary. */
+  nla::assign_action(*strip, act->wrap(), animated_id);
 
   /* determine initial range */
   BKE_action_frame_range_get(strip->act, &strip->actstart, &strip->actend);
@@ -508,10 +514,13 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
   return strip;
 }
 
-NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, const bool is_liboverride)
+NlaStrip *BKE_nlastack_add_strip(const OwnedAnimData owned_adt,
+                                 bAction *act,
+                                 const bool is_liboverride)
 {
   NlaStrip *strip;
   NlaTrack *nlt;
+  AnimData *adt = &owned_adt.adt;
 
   /* sanity checks */
   if (ELEM(nullptr, adt, act)) {
@@ -519,7 +528,7 @@ NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, const bool is_libo
   }
 
   /* create a new NLA strip */
-  strip = BKE_nlastrip_new(act);
+  strip = BKE_nlastrip_new(act, owned_adt.owner_id);
   if (strip == nullptr) {
     return nullptr;
   }
@@ -2066,11 +2075,12 @@ bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act)
   return false;
 }
 
-bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
+bool BKE_nla_action_stash(const OwnedAnimData owned_adt, const bool is_liboverride)
 {
   NlaTrack *prev_track = nullptr;
   NlaTrack *nlt;
   NlaStrip *strip;
+  AnimData *adt = &owned_adt.adt;
 
   /* sanity check */
   if (ELEM(nullptr, adt, adt->action)) {
@@ -2110,8 +2120,10 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
   /* add the action as a strip in this new track
    * NOTE: a new user is created here
    */
-  strip = BKE_nlastrip_new(adt->action);
+  strip = BKE_nlastrip_new(adt->action, owned_adt.owner_id);
   BLI_assert(strip != nullptr);
+
+  animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, owned_adt.owner_id);
 
   BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
   BKE_nlastrip_validate_name(adt, strip);
@@ -2137,9 +2149,10 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
 
 /* Core Tools ------------------------------------------- */
 
-void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
+void BKE_nla_action_pushdown(const OwnedAnimData owned_adt, const bool is_liboverride)
 {
   NlaStrip *strip;
+  AnimData *adt = &owned_adt.adt;
 
   /* sanity checks */
   /* TODO: need to report the error for this */
@@ -2151,20 +2164,20 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
    * as that will cause us grief down the track
    */
   /* TODO: what about modifiers? */
-  if (BKE_action_has_motion(adt->action) == 0) {
+  if (!BKE_action_has_motion(adt->action, adt->slot_handle)) {
     CLOG_ERROR(&LOG, "action has no data");
     return;
   }
 
-  /* add a new NLA strip to the track, which references the active action */
-  strip = BKE_nlastack_add_strip(adt, adt->action, is_liboverride);
+  /* Add a new NLA strip to the track, which references the active action + slot.*/
+  strip = BKE_nlastack_add_strip(owned_adt, adt->action, is_liboverride);
   if (strip == nullptr) {
     return;
   }
+  animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, owned_adt.owner_id);
 
-  /* clear reference to action now that we've pushed it onto the stack */
-  id_us_min(&adt->action->id);
-  adt->action = nullptr;
+  /* Clear reference to action now that we've pushed it onto the stack. */
+  animrig::unassign_action(owned_adt.owner_id);
 
   /* copy current "action blending" settings from adt to the strip,
    * as it was keyframed with these settings, so omitting them will
@@ -2594,3 +2607,44 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
     BKE_nla_tweakmode_exit(adt);
   }
 }
+
+static bool visit_strip(NlaStrip *strip, blender::FunctionRef<bool(NlaStrip *)> callback)
+{
+  if (!callback(strip)) {
+    return false;
+  }
+
+  /* Recurse into sub-strips. */
+  LISTBASE_FOREACH (NlaStrip *, sub_strip, &strip->strips) {
+    if (!visit_strip(strip, callback)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+namespace blender::bke::nla {
+
+bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
+    /* Having no NLA trivially means that we've looped through all the strips. */
+    return true;
+  }
+  return foreach_strip_adt(*adt, callback);
+}
+
+bool foreach_strip_adt(const AnimData &adt, blender::FunctionRef<bool(NlaStrip *)> callback)
+{
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt.nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
+      if (!visit_strip(strip, callback)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+}  // namespace blender::bke::nla

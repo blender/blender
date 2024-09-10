@@ -46,6 +46,8 @@
 
 #include "UI_view2d.hh"
 
+#include "ANIM_action.hh"
+
 #include "nla_intern.hh"
 #include "nla_private.h"
 
@@ -653,7 +655,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
     // printf("Add strip - actname = '%s'\n", actname);
     return OPERATOR_CANCELLED;
   }
-  if (act->idroot == 0) {
+  if (act->idroot == 0 && !act->wrap().is_action_layered()) {
     /* hopefully in this case (i.e. library of userless actions),
      * the user knows what they're doing... */
     BKE_reportf(op->reports,
@@ -695,7 +697,11 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
     }
 
     /* create a new strip, and offset it to start on the current frame */
-    strip = BKE_nlastrip_new(act);
+    BLI_assert(ale->id);
+    BLI_assert_msg(GS(ale->id->name) != ID_AC,
+                   "Expecting the owner of an ALE to be the animated ID, not the Action");
+    ID &animated_id = *ale->id;
+    strip = BKE_nlastrip_new(act, animated_id);
 
     strip->end += (cfra - strip->start);
     strip->start = cfra;

@@ -26,6 +26,24 @@ struct bAction;
 /* AnimData API */
 
 /**
+ * Container for the owning ID and its AnimData struct (`adt`).
+ *
+ * Fetching the `adt` pointer from an ID via BKE_animdata_from_id() involves finding the ID type,
+ * and checking whether that's animatable. This is why the `adt` is often obtained once, and then
+ * passed to other functions.
+ *
+ * However, Action Slot (un)assignment needs to keep track of which ID is being animated. Also
+ * Slots have to be checked whether they are suitable for the given ID, before they can be
+ * assigned. This means that not just the `adt` needs to be known, but also the animated ID itself.
+ *
+ * This struct is here to avoid passing two references all the time.
+ */
+struct OwnedAnimData {
+  ID &owner_id;
+  AnimData &adt;
+};
+
+/**
  * Check if the given ID-block can have AnimData.
  */
 bool id_type_can_have_animdata(short id_type);

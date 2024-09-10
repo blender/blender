@@ -2523,7 +2523,7 @@ void uiTemplateAction(uiLayout *layout,
  * A version of uiTemplateID that works for non-ID types.
  */
 void uiTemplateSearch(uiLayout *layout,
-                      bContext *C,
+                      const bContext *C,
                       PointerRNA *ptr,
                       const char *propname,
                       PointerRNA *searchptr,

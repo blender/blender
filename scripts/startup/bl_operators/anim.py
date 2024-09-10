@@ -731,6 +731,36 @@ class ANIM_OT_slot_unassign_from_id(Operator):
         return {'FINISHED'}
 
 
+class ANIM_OT_slot_unassign_from_nla_strip(Operator):
+    """Un-assign the assigned Action Slot from an NLA strip.
+
+    Note that _which_ NLA strip should get this slot unassigned must be set in
+    the "nla_strip" context pointer, using:
+
+    >>> layout.context_pointer_set("nla_strip", nla_strip)
+    """
+    bl_idname = "anim.slot_unassign_from_nla_strip"
+    bl_label = "Unassign Slot"
+    bl_description = "Un-assign the action slot from this NLA strip, effectively making it non-animated"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        nla_strip = getattr(context, "nla_strip", None)
+        if not nla_strip:
+            return False
+
+        if not nla_strip.action or not nla_strip.action_slot:
+            cls.poll_message_set("This NLA strip has no Action slot assigned")
+            return False
+        return True
+
+    def execute(self, context):
+        nla_strip = getattr(context, "nla_strip", None)
+        nla_strip.action_slot = None
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
@@ -742,4 +772,5 @@ classes = (
     ARMATURE_OT_collection_remove_unused,
     ANIM_OT_slot_new_for_id,
     ANIM_OT_slot_unassign_from_id,
+    ANIM_OT_slot_unassign_from_nla_strip,
 )

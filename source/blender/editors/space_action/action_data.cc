@@ -271,7 +271,7 @@ static int action_new_exec(bContext *C, wmOperator * /*op*/)
     if (adt && oldact) {
       BLI_assert(adt_id_owner != nullptr);
       /* stash the action */
-      if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
+      if (BKE_nla_action_stash({*adt_id_owner, *adt}, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
         /* The stash operation will remove the user already
          * (and unlink the action from the AnimData action slot).
          * Hence, we must unset the ref to the action in the
@@ -350,14 +350,6 @@ static bool action_pushdown_poll(bContext *C)
     return false;
   }
 
-#ifdef WITH_ANIM_BAKLAVA
-  blender::animrig::Action &action = saction->action->wrap();
-  if (!action.is_action_legacy()) {
-    CTX_wm_operator_poll_msg_set(C, "Layered Actions cannot be used as NLA strips");
-    return false;
-  }
-#endif
-
   /* NOTE: We check this for the AnimData block in question and not the global flag,
    *       as the global flag may be left dirty by some of the browsing ops here.
    */
@@ -374,14 +366,14 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
   if (adt) {
     /* Perform the push-down operation
      * - This will deal with all the AnimData-side user-counts. */
-    if (BKE_action_has_motion(adt->action) == 0) {
+    if (!BKE_action_has_motion(adt->action, adt->slot_handle)) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
 
     /* action can be safely added */
-    BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner));
+    BKE_nla_action_pushdown({*adt_id_owner, *adt}, ID_IS_OVERRIDE_LIBRARY(adt_id_owner));
 
     Main *bmain = CTX_data_main(C);
     DEG_id_tag_update_ex(bmain, adt_id_owner, ID_RECALC_ANIMATION);
@@ -431,14 +423,14 @@ static int action_stash_exec(bContext *C, wmOperator *op)
   /* Perform stashing operation */
   if (adt) {
     /* don't do anything if this action is empty... */
-    if (BKE_action_has_motion(adt->action) == 0) {
+    if (!BKE_action_has_motion(adt->action, adt->slot_handle)) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
 
     /* stash the action */
-    if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
+    if (BKE_nla_action_stash({*adt_id_owner, *adt}, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
       /* The stash operation will remove the user already,
        * so the flushing step later shouldn't double up
        * the user-count fixes. Hence, we must unset this ref
@@ -539,14 +531,14 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
   }
   else if (adt) {
     /* Perform stashing operation */
-    if (BKE_action_has_motion(adt->action) == 0) {
+    if (!BKE_action_has_motion(adt->action, adt->slot_handle)) {
       /* don't do anything if this action is empty... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
     }
 
     /* stash the action */
-    if (BKE_nla_action_stash(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
+    if (BKE_nla_action_stash({*adt_id_owner, *adt}, ID_IS_OVERRIDE_LIBRARY(adt_id_owner))) {
       bAction *new_action = nullptr;
 
       /* Create new action not based on the old one

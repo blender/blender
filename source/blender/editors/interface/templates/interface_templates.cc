@@ -2328,7 +2328,7 @@ static bool template_search_setup(TemplateSearch &template_search,
 }
 
 void uiTemplateSearch(uiLayout *layout,
-                      bContext *C,
+                      const bContext *C,
                       PointerRNA *ptr,
                       const char *propname,
                       PointerRNA *searchptr,

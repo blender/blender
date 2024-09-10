@@ -35,6 +35,7 @@
 #include "ED_sequencer.hh"
 
 #include "ANIM_keyframing.hh"
+#include "ANIM_nla.hh"
 
 #include "UI_view2d.hh"
 
@@ -1203,11 +1204,16 @@ void animrecord_check_state(TransInfo *t, ID *id)
         /* Only push down if action is more than 1-2 frames long. */
         BKE_action_frame_range_calc(adt->action, true, &astart, &aend);
         if (aend > astart + 2.0f) {
-          NlaStrip *strip = BKE_nlastack_add_strip(adt, adt->action, ID_IS_OVERRIDE_LIBRARY(id));
+          /* TODO: call BKE_nla_action_pushdown() instead?  */
+
+          /* Add a new NLA strip to the track, which references the active action + slot.*/
+          NlaStrip *strip = BKE_nlastack_add_strip(
+              {*id, *adt}, adt->action, ID_IS_OVERRIDE_LIBRARY(id));
+          BLI_assert(strip);
+          animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, *id);
 
           /* Clear reference to action now that we've pushed it onto the stack. */
-          id_us_min(&adt->action->id);
-          adt->action = nullptr;
+          animrig::unassign_action(*id);
 
           /* Adjust blending + extend so that they will behave correctly. */
           strip->extendmode = NLASTRIP_EXTEND_NOTHING;

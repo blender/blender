@@ -736,8 +736,34 @@ typedef struct NlaStrip {
 
   /** 'Child' strips (used for 'meta' strips). */
   ListBase strips;
-  /** Action that is referenced by this strip (strip is 'user' of the action). */
+  /**
+   * Action that is referenced by this strip (strip is 'user' of the action).
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
   bAction *act;
+
+  /**
+   * Slot Handle to determine which animation data to look at in `act`.
+   *
+   * An NLA strip is limited to using a single slot in the Action.
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
+  int32_t action_slot_handle;
+  /**
+   * Slot name, primarily used for mapping to the right slot when assigning
+   * another Action. Should be the same type as #ActionSlot::name.
+   *
+   * \see #ActionSlot::name
+   *
+   * \note Most code should not write to this field directly, but use functions from
+   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   */
+  char action_slot_name[66]; /* MAX_ID_NAME */
+  char _pad0[2];
 
   /** F-Curves for controlling this strip's influence and timing */ /* TODO: move out? */
   ListBase fcurves;
@@ -786,6 +812,12 @@ typedef struct NlaStrip {
 
   void *_pad3;
 } NlaStrip;
+
+#ifdef __cplusplus
+/* Some static assertions that things that should have the same type actually do. */
+static_assert(
+    std::is_same_v<decltype(ActionSlot::handle), decltype(NlaStrip::action_slot_handle)>);
+#endif
 
 /* NLA Strip Blending Mode */
 typedef enum eNlaStrip_Blend_Mode {

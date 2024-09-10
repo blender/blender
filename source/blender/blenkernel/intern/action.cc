@@ -1769,18 +1769,31 @@ void BKE_pose_remove_group_index(bPose *pose, const int index)
 
 /* ************** F-Curve Utilities for Actions ****************** */
 
-bool BKE_action_has_motion(const bAction *act)
+bool BKE_action_has_motion(const bAction *act, const int32_t action_slot_handle)
 {
-  /* return on the first F-Curve that has some keyframes/samples defined */
-  if (act) {
+  using namespace blender;
+
+  if (!act) {
+    return false;
+  }
+  const animrig::Action &action = act->wrap();
+
+  if (action.is_action_legacy()) {
     LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
       if (fcu->totvert) {
         return true;
       }
     }
+    return false;
   }
 
-  /* nothing found */
+#ifdef WITH_ANIM_BAKLAVA
+  for (const FCurve *fcu : animrig::fcurves_for_action_slot(action, action_slot_handle)) {
+    if (fcu->totvert) {
+      return true;
+    }
+  }
+#endif
   return false;
 }
 

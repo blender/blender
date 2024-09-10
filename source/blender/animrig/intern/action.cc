@@ -25,6 +25,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_nla.hh"
 #include "BKE_preview_image.hh"
 
 #include "RNA_access.hh"
@@ -42,6 +43,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
+#include "ANIM_nla.hh"
+
 #include "action_runtime.hh"
 
 #include "atomic_ops.h"
@@ -627,7 +630,11 @@ bool Action::assign_id(Slot *slot, ID &animated_id)
   /* Unassign any previously-assigned Slot. */
   Slot *slot_to_unassign = this->slot_for_handle(adt->slot_handle);
   if (slot_to_unassign) {
-    slot_to_unassign->users_remove(animated_id);
+    /* There could still be NLA strips on this ID, referring to the same slot, so we cannot just
+     * remove this ID from the slot users. */
+    if (!nla::is_nla_referencing_slot(*adt, *this, slot_to_unassign->handle)) {
+      slot_to_unassign->users_remove(animated_id);
+    }
 
     /* Before unassigning, make sure that the stored Slot name is up to date. The slot name
      * might have changed in a way that wasn't copied into the ADT yet (for example when the
