@@ -107,7 +107,7 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot);
 /**
  * \param rect: optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(Depsgraph *depsgraph,
+void view3d_winmatrix_set(const Depsgraph *depsgraph,
                           ARegion *region,
                           const View3D *v3d,
                           const rcti *rect);
@@ -123,7 +123,7 @@ void view3d_winmatrix_set(Depsgraph *depsgraph,
  *
  * \note don't set windows active in here, is used by renderwin too.
  */
-void view3d_viewmatrix_set(Depsgraph *depsgraph,
+void view3d_viewmatrix_set(const Depsgraph *depsgraph,
                            const Scene *scene,
                            const View3D *v3d,
                            RegionView3D *rv3d,
