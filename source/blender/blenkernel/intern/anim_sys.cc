@@ -19,6 +19,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
@@ -51,6 +52,7 @@
 #include "BKE_report.hh"
 #include "BKE_texture.h"
 
+#include "ANIM_action.hh"
 #include "ANIM_evaluation.hh"
 
 #include "DEG_depsgraph.hh"
@@ -69,6 +71,8 @@
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.anim_sys"};
+
+using namespace blender;
 
 /* *********************************** */
 /* KeyingSet API */
@@ -561,12 +565,12 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
  * separate code should be used.
  */
 static void animsys_evaluate_fcurves(PointerRNA *ptr,
-                                     ListBase *list,
+                                     Span<FCurve *> fcurves,
                                      const AnimationEvalContext *anim_eval_context,
                                      bool flush_to_original)
 {
   /* Calculate then execute each curve. */
-  LISTBASE_FOREACH (FCurve *, fcu, list) {
+  for (FCurve *fcu : fcurves) {
 
     if (!is_fcurve_evaluatable(fcu)) {
       continue;
@@ -587,16 +591,13 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
  * This function assumes that the quaternion keys are sequential. They do not
  * have to be in array_index order. If the quaternion is only partially keyed,
  * the result is normalized. If it is fully keyed, the result is returned as-is.
- *
- * \return the number of FCurves used to construct this quaternion. This is so
- * that the caller knows how many FCurves can be skipped while iterating over
- * them. */
-static int animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
-                                               FCurve *first_fcurve,
-                                               const AnimationEvalContext *anim_eval_context,
-                                               float r_quaternion[4])
+ */
+static void animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
+                                                Span<FCurve *> quat_fcurves,
+                                                const AnimationEvalContext *anim_eval_context,
+                                                float r_quaternion[4])
 {
-  FCurve *quat_curve_fcu = first_fcurve;
+  BLI_assert(quat_fcurves.size() <= 4);
 
   /* Initialize r_quaternion to the unit quaternion so that half-keyed quaternions at least have
    * *some* value in there. */
@@ -605,67 +606,54 @@ static int animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
   r_quaternion[2] = 0.0f;
   r_quaternion[3] = 0.0f;
 
-  int fcurve_offset = 0;
-  for (; fcurve_offset < 4 && quat_curve_fcu;
-       ++fcurve_offset, quat_curve_fcu = quat_curve_fcu->next)
-  {
-    if (!STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path)) {
-      /* This should never happen when the quaternion is fully keyed. Some
-       * people do use half-keyed quaternions, though, so better to check. */
-      break;
-    }
-
+  for (FCurve *quat_curve_fcu : quat_fcurves) {
     const int array_index = quat_curve_fcu->array_index;
     quat_rna.prop_index = array_index;
     r_quaternion[array_index] = calculate_fcurve(&quat_rna, quat_curve_fcu, anim_eval_context);
   }
 
-  if (fcurve_offset < 4) {
+  if (quat_fcurves.size() < 4) {
     /* This quaternion was incompletely keyed, so the result is a mixture of the unit quaternion
      * and values from FCurves. This means that it's almost certainly no longer of unit length. */
     normalize_qt(r_quaternion);
   }
-
-  return fcurve_offset;
 }
 
 /**
  * This function assumes that the quaternion keys are sequential. They do not
  * have to be in array_index order.
- *
- * \return the number of FCurves used to construct the quaternion, counting from
- * `first_fcurve`. This is so that the caller knows how many FCurves can be
- * skipped while iterating over them. */
-static int animsys_blend_fcurves_quaternion(PathResolvedRNA *anim_rna,
-                                            FCurve *first_fcurve,
-                                            const AnimationEvalContext *anim_eval_context,
-                                            const float blend_factor)
+ */
+static void animsys_blend_fcurves_quaternion(PathResolvedRNA *anim_rna,
+                                             Span<FCurve *> quaternion_fcurves,
+                                             const AnimationEvalContext *anim_eval_context,
+                                             const float blend_factor)
 {
+  BLI_assert(quaternion_fcurves.size() <= 4);
+
   float current_quat[4];
   RNA_property_float_get_array(&anim_rna->ptr, anim_rna->prop, current_quat);
 
   float target_quat[4];
-  const int num_fcurves_read = animsys_quaternion_evaluate_fcurves(
-      *anim_rna, first_fcurve, anim_eval_context, target_quat);
+  animsys_quaternion_evaluate_fcurves(
+      *anim_rna, quaternion_fcurves, anim_eval_context, target_quat);
 
   float blended_quat[4];
   interp_qt_qtqt(blended_quat, current_quat, target_quat, blend_factor);
 
   RNA_property_float_set_array(&anim_rna->ptr, anim_rna->prop, blended_quat);
-
-  return num_fcurves_read;
 }
 
 /* LERP between current value (blend_factor=0.0) and the value from the FCurve (blend_factor=1.0)
  */
 static void animsys_blend_in_fcurves(PointerRNA *ptr,
-                                     ListBase *fcurves,
+                                     Span<FCurve *> fcurves,
                                      const AnimationEvalContext *anim_eval_context,
                                      const float blend_factor)
 {
   char *channel_to_skip = nullptr;
   int num_channels_to_skip = 0;
-  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+  for (int fcurve_index : fcurves.index_range()) {
+    FCurve *fcu = fcurves[fcurve_index];
 
     if (num_channels_to_skip) {
       /* For skipping already-handled rotation channels. Rotation channels are handled per group,
@@ -688,13 +676,19 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
     }
 
     if (STREQ(RNA_property_identifier(anim_rna.prop), "rotation_quaternion")) {
-      const int num_fcurves_read = animsys_blend_fcurves_quaternion(
-          &anim_rna, fcu, anim_eval_context, blend_factor);
+      /* Construct a list of quaternion F-Curves so they can be treated as one unit. */
+      Vector<FCurve *> quat_fcurves = {fcu};
+      for (FCurve *quat_fcurve : fcurves.slice_safe(fcurve_index + 1, 3)) {
+        if (STREQ(quat_fcurve->rna_path, fcu->rna_path)) {
+          quat_fcurves.append(quat_fcurve);
+        }
+      }
+      animsys_blend_fcurves_quaternion(&anim_rna, quat_fcurves, anim_eval_context, blend_factor);
 
-      /* Skip the next three channels, because those have already been handled here. */
+      /* Skip the next up-to-three channels, because those have already been handled here. */
       MEM_SAFE_FREE(channel_to_skip);
       channel_to_skip = BLI_strdup(fcu->rna_path);
-      num_channels_to_skip = num_fcurves_read - 1;
+      num_channels_to_skip = quat_fcurves.size() - 1;
       continue;
     }
     /* TODO(Sybren): do something similar as above for Euler and Axis/Angle representations. */
@@ -856,10 +850,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
     return;
   }
 
-  /* calculate then execute each curve */
-  for (fcu = static_cast<FCurve *>(agrp->channels.first); (fcu) && (fcu->grp == agrp);
-       fcu = fcu->next)
-  {
+  const auto visit_fcurve = [&](FCurve *fcu) {
     /* check if this curve should be skipped */
     if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0 && !BKE_fcurve_is_empty(fcu)) {
       PathResolvedRNA anim_rna;
@@ -868,7 +859,26 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
         BKE_animsys_write_to_rna_path(&anim_rna, curval);
       }
     }
+  };
+
+#ifdef WITH_ANIM_BAKLAVA
+  blender::animrig::ChannelGroup channel_group = agrp->wrap();
+  if (channel_group.is_legacy()) {
+#endif
+    /* calculate then execute each curve */
+    for (fcu = static_cast<FCurve *>(agrp->channels.first); (fcu) && (fcu->grp == agrp);
+         fcu = fcu->next)
+    {
+      visit_fcurve(fcu);
+    }
+#ifdef WITH_ANIM_BAKLAVA
+    return;
   }
+
+  for (FCurve *fcurve : channel_group.fcurves()) {
+    visit_fcurve(fcurve);
+  }
+#endif
 }
 
 void animsys_evaluate_action(PointerRNA *ptr,
@@ -881,10 +891,25 @@ void animsys_evaluate_action(PointerRNA *ptr,
     return;
   }
 
-  action_idcode_patch_check(ptr->owner_id, act);
+  animrig::Action &action = act->wrap();
 
-  /* calculate then execute each curve */
-  animsys_evaluate_fcurves(ptr, &act->curves, anim_eval_context, flush_to_original);
+  if (action.is_action_legacy()) {
+    action_idcode_patch_check(ptr->owner_id, act);
+
+    Vector<FCurve *> fcurves = animrig::fcurves_all(action);
+    animsys_evaluate_fcurves(ptr, fcurves, anim_eval_context, flush_to_original);
+    return;
+  }
+
+  /* TODO: check the slot to see if its IDtype is suitable for the animated ID. */
+
+  /* Note that this is _only_ for evaluation of actions linked by NLA strips. As in, legacy code
+   * paths that I (Sybren) tried to keep as much intact as possible when adding support for slotted
+   * Actions. This code will go away when we implement layered Actions. */
+  /* TODO: add a parameter for the slot handle instead of hard-coding the first one. */
+  const animrig::slot_handle_t action_slot_handle = animrig::first_slot_handle(action);
+  Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, action_slot_handle);
+  animsys_evaluate_fcurves(ptr, fcurves, anim_eval_context, flush_to_original);
 }
 
 void animsys_blend_in_action(PointerRNA *ptr,
@@ -892,8 +917,20 @@ void animsys_blend_in_action(PointerRNA *ptr,
                              const AnimationEvalContext *anim_eval_context,
                              const float blend_factor)
 {
-  action_idcode_patch_check(ptr->owner_id, act);
-  animsys_blend_in_fcurves(ptr, &act->curves, anim_eval_context, blend_factor);
+  animrig::Action &action = act->wrap();
+
+  if (action.is_action_legacy()) {
+    action_idcode_patch_check(ptr->owner_id, act);
+
+    Vector<FCurve *> fcurves = animrig::fcurves_all(action);
+    animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
+    return;
+  }
+
+  /* TODO: add a parameter for the slot handle instead of hard-coding the first one. */
+  const animrig::slot_handle_t action_slot_handle = animrig::first_slot_handle(action);
+  Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, action_slot_handle);
+  animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
 }
 
 /* ***************************************** */
@@ -932,7 +969,8 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
     PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
 
     /* execute these settings as per normal */
-    animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, anim_eval_context, flush_to_original);
+    Vector<FCurve *> strip_fcurves = listbase_to_vector<FCurve>(strip->fcurves);
+    animsys_evaluate_fcurves(&strip_ptr, strip_fcurves, anim_eval_context, flush_to_original);
   }
 
   /* analytically generate values for influence and time (if applicable)

@@ -2131,6 +2131,15 @@ ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id)
   return users[0];
 }
 
+slot_handle_t first_slot_handle(const ::bAction &dna_action)
+{
+  const Action &action = dna_action.wrap();
+  if (action.slot_array_num == 0) {
+    return Slot::unassigned;
+  }
+  return action.slot_array[0]->handle;
+}
+
 void assert_baklava_phase_1_invariants(const Action &action)
 {
   if (action.is_action_legacy()) {
