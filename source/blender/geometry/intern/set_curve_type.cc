@@ -438,6 +438,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
+                                      bke::AttrDomain::Point,
                                       attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
@@ -605,6 +606,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
+                                      bke::AttrDomain::Point,
                                       attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,
@@ -735,6 +737,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   }
 
   bke::copy_attributes_group_to_group(src_attributes,
+                                      bke::AttrDomain::Point,
                                       bke::AttrDomain::Point,
                                       attribute_filter,
                                       src_points_by_curve,

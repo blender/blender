@@ -1237,10 +1237,12 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
       [&]() {
         gather_attributes(curves.attributes(),
                           AttrDomain::Point,
+                          AttrDomain::Point,
                           attribute_filter,
                           points_to_copy,
                           dst_curves.attributes_for_write());
         gather_attributes(curves.attributes(),
+                          AttrDomain::Curve,
                           AttrDomain::Curve,
                           attribute_filter,
                           curves_to_copy,
@@ -1289,14 +1291,19 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
 
   gather_attributes_group_to_group(src_attributes,
                                    AttrDomain::Point,
+                                   AttrDomain::Point,
                                    attribute_filter,
                                    points_by_curve,
                                    dst_points_by_curve,
                                    curves_to_copy,
                                    dst_attributes);
 
-  gather_attributes(
-      src_attributes, AttrDomain::Curve, attribute_filter, curves_to_copy, dst_attributes);
+  gather_attributes(src_attributes,
+                    AttrDomain::Curve,
+                    AttrDomain::Curve,
+                    attribute_filter,
+                    curves_to_copy,
+                    dst_attributes);
 
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();

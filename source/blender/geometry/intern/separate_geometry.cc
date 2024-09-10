@@ -71,6 +71,7 @@ static std::optional<PointCloud *> separate_point_cloud_selection(
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   bke::gather_attributes(src_pointcloud.attributes(),
                          AttrDomain::Point,
+                         AttrDomain::Point,
                          attribute_filter,
                          selection,
                          pointcloud->attributes_for_write());
@@ -149,6 +150,7 @@ static std::optional<GreasePencil *> separate_grease_pencil_layer_selection(
   dst_grease_pencil->remove_drawings_with_no_users();
 
   bke::gather_attributes(src_grease_pencil.attributes(),
+                         AttrDomain::Layer,
                          AttrDomain::Layer,
                          attribute_filter,
                          selection,

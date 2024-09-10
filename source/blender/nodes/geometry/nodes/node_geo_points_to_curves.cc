@@ -94,16 +94,23 @@ static Curves *curve_from_points(const AttributeAccessor attributes,
   Curves *curves_id = bke::curves_new_nomain_single(domain_size, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (weights_varray.is_single()) {
-    bke::copy_attributes(
-        attributes, AttrDomain::Point, attribute_filter, curves.attributes_for_write());
+    bke::copy_attributes(attributes,
+                         AttrDomain::Point,
+                         AttrDomain::Point,
+                         attribute_filter,
+                         curves.attributes_for_write());
     return curves_id;
   }
   Array<int> indices(domain_size);
   array_utils::fill_index_range<int>(indices);
   const VArraySpan<float> weights(weights_varray);
   grouped_sort(OffsetIndices<int>({0, domain_size}), weights, indices);
-  bke::gather_attributes(
-      attributes, AttrDomain::Point, attribute_filter, indices, curves.attributes_for_write());
+  bke::gather_attributes(attributes,
+                         AttrDomain::Point,
+                         AttrDomain::Point,
+                         attribute_filter,
+                         indices,
+                         curves.attributes_for_write());
   return curves_id;
 }
 
@@ -151,6 +158,7 @@ static Curves *curves_from_points(const PointCloud &points,
     grouped_sort(OffsetIndices<int>(offset), weights, indices);
   }
   bke::gather_attributes(points.attributes(),
+                         AttrDomain::Point,
                          AttrDomain::Point,
                          attribute_filter,
                          indices,

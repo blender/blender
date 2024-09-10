@@ -289,6 +289,7 @@ void Instances::remove(const IndexMask &mask, const AttributeFilter &attribute_f
 
   gather_attributes(this->attributes(),
                     AttrDomain::Instance,
+                    AttrDomain::Instance,
                     attribute_filter,
                     mask,
                     new_instances.attributes_for_write());

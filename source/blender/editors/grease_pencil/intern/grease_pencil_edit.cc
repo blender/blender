@@ -430,13 +430,19 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
   /* Transfer curve attributes. */
   gather_attributes(src_attributes,
                     bke::AttrDomain::Curve,
+                    bke::AttrDomain::Curve,
                     bke::attribute_filter_from_skip_ref({"cyclic"}),
                     dst_to_src_curve,
                     dst_attributes);
   array_utils::copy(dst_cyclic.as_span(), dst_curves.cyclic_for_write());
 
   /* Transfer point attributes. */
-  gather_attributes(src_attributes, bke::AttrDomain::Point, {}, dst_to_src_point, dst_attributes);
+  gather_attributes(src_attributes,
+                    bke::AttrDomain::Point,
+                    bke::AttrDomain::Point,
+                    {},
+                    dst_to_src_point,
+                    dst_attributes);
 
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
@@ -1865,6 +1871,7 @@ static bke::greasepencil::Layer &find_or_create_layer_in_dst_by_name(
   /* Transfer Layer attributes. */
   bke::gather_attributes(grease_pencil_src.attributes(),
                          bke::AttrDomain::Layer,
+                         bke::AttrDomain::Layer,
                          {},
                          Span({layer_index}),
                          grease_pencil_dst.attributes_for_write());
@@ -2605,11 +2612,19 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   const bke::AttributeAccessor src_attributes = src.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
 
-  bke::gather_attributes(
-      src_attributes, bke::AttrDomain::Curve, {}, dst_to_src_curves, dst_attributes);
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Curve,
+                         bke::AttrDomain::Curve,
+                         {},
+                         dst_to_src_curves,
+                         dst_attributes);
 
-  bke::gather_attributes(
-      src_attributes, bke::AttrDomain::Point, {}, dst_to_src_points, dst_attributes);
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Point,
+                         bke::AttrDomain::Point,
+                         {},
+                         dst_to_src_points,
+                         dst_attributes);
 
   /* Selection attribute. */
   const std::string &selection_attr_name = ".selection";

@@ -1061,6 +1061,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
     bke::copy_attributes_group_to_group(
         src_attributes,
         bke::AttrDomain::Point,
+        bke::AttrDomain::Point,
         bke::attribute_filter_with_skip_ref(attribute_filter, copy_point_skip),
         src_points_by_curve,
         dst_points_by_curve,

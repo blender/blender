@@ -414,6 +414,7 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
 
   bke::copy_attributes_group_to_group(src_attributes,
                                       bke::AttrDomain::Point,
+                                      bke::AttrDomain::Point,
                                       attribute_filter,
                                       src_points_by_curve,
                                       dst_points_by_curve,

@@ -815,7 +815,8 @@ eCustomDataType attribute_data_type_highest_complexity(Span<eCustomDataType> dat
 AttrDomain attribute_domain_highest_priority(Span<AttrDomain> domains);
 
 void gather_attributes(AttributeAccessor src_attributes,
-                       AttrDomain domain,
+                       AttrDomain src_domain,
+                       AttrDomain dst_domain,
                        const AttributeFilter &attribute_filter,
                        const IndexMask &selection,
                        MutableAttributeAccessor dst_attributes);
@@ -824,7 +825,8 @@ void gather_attributes(AttributeAccessor src_attributes,
  * Fill the destination attribute by gathering indexed values from src attributes.
  */
 void gather_attributes(AttributeAccessor src_attributes,
-                       AttrDomain domain,
+                       AttrDomain src_domain,
+                       AttrDomain dst_domain,
                        const AttributeFilter &attribute_filter,
                        Span<int> indices,
                        MutableAttributeAccessor dst_attributes);
@@ -835,7 +837,8 @@ void gather_attributes(AttributeAccessor src_attributes,
  * source and result group must be the same.
  */
 void gather_attributes_group_to_group(AttributeAccessor src_attributes,
-                                      AttrDomain domain,
+                                      AttrDomain src_domain,
+                                      AttrDomain dst_domain,
                                       const AttributeFilter &attribute_filter,
                                       OffsetIndices<int> src_offsets,
                                       OffsetIndices<int> dst_offsets,
@@ -843,19 +846,22 @@ void gather_attributes_group_to_group(AttributeAccessor src_attributes,
                                       MutableAttributeAccessor dst_attributes);
 
 void gather_attributes_to_groups(AttributeAccessor src_attributes,
-                                 AttrDomain domain,
+                                 AttrDomain src_domain,
+                                 AttrDomain dst_domain,
                                  const AttributeFilter &attribute_filter,
                                  OffsetIndices<int> dst_offsets,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes);
 
 void copy_attributes(const AttributeAccessor src_attributes,
-                     const AttrDomain domain,
+                     AttrDomain src_domain,
+                     AttrDomain dst_domain,
                      const AttributeFilter &attribute_filter,
                      MutableAttributeAccessor dst_attributes);
 
 void copy_attributes_group_to_group(AttributeAccessor src_attributes,
-                                    AttrDomain domain,
+                                    AttrDomain src_domain,
+                                    AttrDomain dst_domain,
                                     const AttributeFilter &attribute_filter,
                                     OffsetIndices<int> src_offsets,
                                     OffsetIndices<int> dst_offsets,

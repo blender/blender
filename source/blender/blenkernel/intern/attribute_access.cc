@@ -818,14 +818,15 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
 /** \} */
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const AttrDomain domain,
+                       const AttrDomain src_domain,
+                       const AttrDomain dst_domain,
                        const AttributeFilter &attribute_filter,
                        const IndexMask &selection,
                        MutableAttributeAccessor dst_attributes)
 {
-  const int src_size = src_attributes.domain_size(domain);
+  const int src_size = src_attributes.domain_size(src_domain);
   src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (meta_data.domain != domain) {
+    if (meta_data.domain != src_domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -834,15 +835,15 @@ void gather_attributes(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(id)) {
       return true;
     }
-    const GAttributeReader src = src_attributes.lookup(id, domain);
+    const GAttributeReader src = src_attributes.lookup(id, src_domain);
     if (selection.size() == src_size && src.sharing_info && src.varray.is_span()) {
       const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
-      if (dst_attributes.add(id, domain, meta_data.data_type, init)) {
+      if (dst_attributes.add(id, dst_domain, meta_data.data_type, init)) {
         return true;
       }
     }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        id, dst_domain, meta_data.data_type);
     if (!dst) {
       return true;
     }
@@ -853,17 +854,19 @@ void gather_attributes(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes(const AttributeAccessor src_attributes,
-                       const AttrDomain domain,
+                       const AttrDomain src_domain,
+                       const AttrDomain dst_domain,
                        const AttributeFilter &attribute_filter,
                        const Span<int> indices,
                        MutableAttributeAccessor dst_attributes)
 {
-  if (array_utils::indices_are_range(indices, IndexRange(src_attributes.domain_size(domain)))) {
-    copy_attributes(src_attributes, domain, attribute_filter, dst_attributes);
+  if (array_utils::indices_are_range(indices, IndexRange(src_attributes.domain_size(src_domain))))
+  {
+    copy_attributes(src_attributes, src_domain, dst_domain, attribute_filter, dst_attributes);
   }
   else {
     src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-      if (meta_data.domain != domain) {
+      if (meta_data.domain != src_domain) {
         return true;
       }
       if (meta_data.data_type == CD_PROP_STRING) {
@@ -872,9 +875,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (attribute_filter.allow_skip(id)) {
         return true;
       }
-      const GAttributeReader src = src_attributes.lookup(id, domain);
+      const GAttributeReader src = src_attributes.lookup(id, src_domain);
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          id, domain, meta_data.data_type);
+          id, dst_domain, meta_data.data_type);
       if (!dst) {
         return true;
       }
@@ -886,7 +889,8 @@ void gather_attributes(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                      const AttrDomain domain,
+                                      const AttrDomain src_domain,
+                                      const AttrDomain dst_domain,
                                       const AttributeFilter &attribute_filter,
                                       const OffsetIndices<int> src_offsets,
                                       const OffsetIndices<int> dst_offsets,
@@ -894,7 +898,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       MutableAttributeAccessor dst_attributes)
 {
   src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (meta_data.domain != domain) {
+    if (meta_data.domain != src_domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -903,9 +907,9 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(id)) {
       return true;
     }
-    const GVArraySpan src = *src_attributes.lookup(id, domain);
+    const GVArraySpan src = *src_attributes.lookup(id, src_domain);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        id, dst_domain, meta_data.data_type);
     if (!dst) {
       return true;
     }
@@ -916,14 +920,15 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
 }
 
 void gather_attributes_to_groups(const AttributeAccessor src_attributes,
-                                 const AttrDomain domain,
+                                 const AttrDomain src_domain,
+                                 const AttrDomain dst_domain,
                                  const AttributeFilter &attribute_filter,
                                  const OffsetIndices<int> dst_offsets,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes)
 {
   src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (meta_data.domain != domain) {
+    if (meta_data.domain != src_domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -932,9 +937,9 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(id)) {
       return true;
     }
-    const GVArraySpan src = *src_attributes.lookup(id, domain);
+    const GVArraySpan src = *src_attributes.lookup(id, src_domain);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        id, dst_domain, meta_data.data_type);
     if (!dst) {
       return true;
     }
@@ -945,20 +950,23 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
 }
 
 void copy_attributes(const AttributeAccessor src_attributes,
-                     const AttrDomain domain,
+                     const AttrDomain src_domain,
+                     const AttrDomain dst_domain,
                      const AttributeFilter &attribute_filter,
                      MutableAttributeAccessor dst_attributes)
 {
-  BLI_assert(src_attributes.domain_size(domain) == dst_attributes.domain_size(domain));
+  BLI_assert(src_attributes.domain_size(src_domain) == dst_attributes.domain_size(dst_domain));
   return gather_attributes(src_attributes,
-                           domain,
+                           src_domain,
+                           dst_domain,
                            attribute_filter,
-                           IndexMask(src_attributes.domain_size(domain)),
+                           IndexMask(src_attributes.domain_size(src_domain)),
                            dst_attributes);
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
-                                    const AttrDomain domain,
+                                    const AttrDomain src_domain,
+                                    const AttrDomain dst_domain,
                                     const AttributeFilter &attribute_filter,
                                     const OffsetIndices<int> src_offsets,
                                     const OffsetIndices<int> dst_offsets,
@@ -969,7 +977,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     return;
   }
   src_attributes.for_all([&](const StringRef id, const AttributeMetaData meta_data) {
-    if (meta_data.domain != domain) {
+    if (meta_data.domain != src_domain) {
       return true;
     }
     if (meta_data.data_type == CD_PROP_STRING) {
@@ -978,9 +986,9 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(id)) {
       return true;
     }
-    const GVArraySpan src = *src_attributes.lookup(id, domain);
+    const GVArraySpan src = *src_attributes.lookup(id, src_domain);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, domain, meta_data.data_type);
+        id, dst_domain, meta_data.data_type);
     if (!dst) {
       return true;
     }
