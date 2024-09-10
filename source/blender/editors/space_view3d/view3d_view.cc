@@ -818,10 +818,10 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
   float min[3], max[3], box[3];
   float size = 0.0f;
   uint local_view_bit;
-  bool ok = false;
+  bool changed = false;
 
   if (v3d->localvd) {
-    return ok;
+    return changed;
   }
 
   INIT_MINMAX(min, max);
@@ -832,7 +832,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     /* TODO(dfelinto): We can kick one of the other 3D views out of local view
      * specially if it is not being used. */
     BKE_report(reports, RPT_ERROR, "No more than 16 local views");
-    ok = false;
+    changed = false;
   }
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
@@ -846,7 +846,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, base_iter->object);
         BKE_object_minmax(ob_eval ? ob_eval : base_iter->object, min, max);
         base_iter->local_view_bits |= local_view_bit;
-        ok = true;
+        changed = true;
       }
       FOREACH_BASE_IN_EDIT_MODE_END;
     }
@@ -857,7 +857,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
           Object *ob_eval = DEG_get_evaluated_object(depsgraph, base->object);
           BKE_object_minmax(ob_eval ? ob_eval : base->object, min, max);
           base->local_view_bits |= local_view_bit;
-          ok = true;
+          changed = true;
         }
         else {
           base->local_view_bits &= ~local_view_bit;
@@ -869,7 +869,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     size = max_fff(box[0], box[1], box[2]);
   }
 
-  if (ok == false) {
+  if (changed == false) {
     return false;
   }
 
@@ -941,10 +941,10 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     }
   }
 
-  return ok;
+  return changed;
 }
 
-static void view3d_localview_exit(const Depsgraph *depsgraph,
+static bool view3d_localview_exit(const Depsgraph *depsgraph,
                                   wmWindowManager *wm,
                                   wmWindow *win,
                                   const Scene *scene,
@@ -954,9 +954,10 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
                                   const int smooth_viewtx)
 {
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  bool changed = false;
 
   if (v3d->localvd == nullptr) {
-    return;
+    return changed;
   }
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
@@ -1022,8 +1023,10 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
 
       MEM_freeN(rv3d->localvd);
       rv3d->localvd = nullptr;
+      changed = true;
     }
   }
+  return changed;
 }
 
 bool ED_localview_exit_if_empty(const Depsgraph *depsgraph,
@@ -1049,9 +1052,8 @@ bool ED_localview_exit_if_empty(const Depsgraph *depsgraph,
     }
   }
 
-  view3d_localview_exit(
+  return view3d_localview_exit(
       depsgraph, wm, win, scene, view_layer, area, frame_selected, smooth_viewtx);
-  return true;
 }
 
 static int localview_exec(bContext *C, wmOperator *op)
@@ -1069,9 +1071,8 @@ static int localview_exec(bContext *C, wmOperator *op)
   bool changed;
 
   if (v3d->localvd) {
-    view3d_localview_exit(
+    changed = view3d_localview_exit(
         depsgraph, wm, win, scene, view_layer, area, frame_selected, smooth_viewtx);
-    changed = true;
   }
   else {
     changed = view3d_localview_init(depsgraph,
