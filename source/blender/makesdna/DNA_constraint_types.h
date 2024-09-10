@@ -13,7 +13,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-struct Action;
 struct Ipo;
 struct Text;
 
