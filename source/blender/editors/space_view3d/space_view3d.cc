@@ -2014,7 +2014,7 @@ static void space_view3d_refresh(const bContext *C, ScrArea *area)
                                v3d,
                                CTX_wm_area(C),
                                true,
-                               300);
+                               U.smooth_viewtx);
   }
 }
 
