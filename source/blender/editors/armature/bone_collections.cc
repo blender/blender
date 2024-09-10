@@ -51,15 +51,16 @@ static bool bone_collection_add_poll(bContext *C)
   }
 
   if (!ID_IS_EDITABLE(&armature->id)) {
-    CTX_wm_operator_poll_msg_set(
-        C, "Cannot add bone collections to a linked Armature without an override");
+    CTX_wm_operator_poll_msg_set(C,
+                                 "Cannot add bone collections to a linked Armature without an "
+                                 "override on the Armature Data");
     return false;
   }
 
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot add bone collections to a linked Armature with a system "
-                                 "override; explicitly create an override on the Armature");
+                                 "override; explicitly create an override on the Armature Data");
     return false;
   }
 
@@ -77,7 +78,7 @@ static bool active_bone_collection_poll(bContext *C)
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot update a linked Armature with a system override; "
-                                 "explicitly create an override on the Armature");
+                                 "explicitly create an override on the Armature Data");
     return false;
   }
 
@@ -385,7 +386,7 @@ static bool bone_collection_assign_poll(bContext *C)
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot edit bone collections on a linked Armature with a system "
-                                 "override; explicitly create an override on the Armature");
+                                 "override; explicitly create an override on the Armature Data");
     return false;
   }
 
@@ -488,7 +489,7 @@ static bool bone_collection_create_and_assign_poll(bContext *C)
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot edit bone collections on a linked Armature with a system "
-                                 "override; explicitly create an override on the Armature");
+                                 "override; explicitly create an override on the Armature Data");
     return false;
   }
 
@@ -878,7 +879,7 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
   if (!ANIM_armature_bonecoll_is_editable(arm, target_bcoll)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
-                "Bone collection %s is not editable, maybe add an override on the armature?",
+                "Bone collection %s is not editable, maybe add an override on the armature Data?",
                 target_bcoll->name);
     return nullptr;
   }
@@ -972,7 +973,7 @@ static bool move_to_collection_poll(bContext *C)
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot update a linked Armature with a system override; "
-                                 "explicitly create an override on the Armature");
+                                 "explicitly create an override on the Armature Data");
     return false;
   }
 
