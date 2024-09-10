@@ -33,8 +33,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if INTEGRATOR_SHADOW_ISECT_SIZE < 256
-using numhit_t = uint8_t;
+#ifdef __KERNEL_ONEAPI__
+using numhit_t = uint16_t;
 #else
 using numhit_t = uint32_t;
 #endif
