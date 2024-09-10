@@ -163,7 +163,7 @@ bool ED_view3d_clip_range_get(const Depsgraph *depsgraph,
   return params.is_ortho;
 }
 
-bool ED_view3d_viewplane_get(Depsgraph *depsgraph,
+bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
                              const View3D *v3d,
                              const RegionView3D *rv3d,
                              int winx,

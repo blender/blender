@@ -745,7 +745,7 @@ bool ED_view3d_clip_range_get(const Depsgraph *depsgraph,
                               bool use_ortho_factor,
                               float *r_clip_start,
                               float *r_clip_end);
-bool ED_view3d_viewplane_get(Depsgraph *depsgraph,
+bool ED_view3d_viewplane_get(const Depsgraph *depsgraph,
                              const View3D *v3d,
                              const RegionView3D *rv3d,
                              int winx,
@@ -761,7 +761,7 @@ bool ED_view3d_viewplane_get(Depsgraph *depsgraph,
 void ED_view3d_polygon_offset(const RegionView3D *rv3d, float dist);
 
 void ED_view3d_calc_camera_border(const Scene *scene,
-                                  Depsgraph *depsgraph,
+                                  const Depsgraph *depsgraph,
                                   const ARegion *region,
                                   const View3D *v3d,
                                   const RegionView3D *rv3d,
@@ -1062,7 +1062,7 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip);
 /**
  * \note keep this synced with #ED_view3d_mats_rv3d_backup/#ED_view3d_mats_rv3d_restore
  */
-void ED_view3d_update_viewmat(Depsgraph *depsgraph,
+void ED_view3d_update_viewmat(const Depsgraph *depsgraph,
                               const Scene *scene,
                               View3D *v3d,
                               ARegion *region,
