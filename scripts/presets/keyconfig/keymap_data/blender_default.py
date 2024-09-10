@@ -4634,6 +4634,8 @@ def km_grease_pencil_brush_stroke(_params):
          {"properties": [("mode", 'ERASE')]}),
         ("grease_pencil.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SMOOTH')]}),
+        ("grease_pencil.brush_stroke", {"type": 'ERASER', "value": 'PRESS'},
+         {"properties": [("mode", 'ERASE')]}),
         # Brush size
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.size')]}),

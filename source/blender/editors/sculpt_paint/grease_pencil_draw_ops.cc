@@ -212,11 +212,16 @@ static bool grease_pencil_brush_stroke_poll(bContext *C)
 
 static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  if (event->tablet.active == EVT_TABLET_ERASER) {
+    RNA_enum_set(op->ptr, "mode", BRUSH_STROKE_ERASE);
+  }
+
   const bool use_duplicate_previous_key = [&]() -> bool {
     const Paint *paint = BKE_paint_get_active_from_context(C);
     const Brush &brush = *BKE_paint_brush_for_read(paint);
     const PaintMode mode = BKE_paintmode_get_active_from_context(C);
     const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+
     if (mode == PaintMode::GPencil) {
       /* For the eraser and tint tool, we don't want auto-key to create an empty keyframe, so we
        * duplicate the previous frame. */
