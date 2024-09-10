@@ -665,6 +665,12 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     LISTBASE_FOREACH (bActionGroup *, agrp, &action.groups) {
       BLO_read_struct(reader, FCurve, &agrp->channels.first);
       BLO_read_struct(reader, FCurve, &agrp->channels.last);
+#ifndef WITH_ANIM_BAKLAVA
+      /* Ensure that the group's 'channelbag' pointer is nullptr. This is used to distinguish
+       * groups from legacy vs layered Actions, and since this Blender is built without layered
+       * Actions support, the Action should be treated as legacy. */
+      agrp->channel_bag = nullptr;
+#endif
     }
   }
 
