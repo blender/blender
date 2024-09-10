@@ -859,6 +859,8 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
                                            const IndexMask &curves_to_copy,
                                            const AttributeFilter &attribute_filter);
 
+CurvesGeometry curves_new_no_attributes(int point_num, int curve_num);
+
 std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types);
 
 /* -------------------------------------------------------------------- */

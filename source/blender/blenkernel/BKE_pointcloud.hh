@@ -46,6 +46,8 @@ struct PointCloudRuntime {
   MEM_CXX_CLASS_ALLOC_FUNCS("PointCloudRuntime");
 };
 
+PointCloud *pointcloud_new_no_attributes(int totpoint);
+
 }  // namespace blender::bke
 
 void *BKE_pointcloud_add(Main *bmain, const char *name);

@@ -403,3 +403,15 @@ void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud)
     BKE_pointcloud_batch_cache_free_cb(pointcloud);
   }
 }
+
+namespace blender::bke {
+
+PointCloud *pointcloud_new_no_attributes(int totpoint)
+{
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
+  pointcloud->totpoint = totpoint;
+  CustomData_free_layer_named(&pointcloud->pdata, "position", 0);
+  return pointcloud;
+}
+
+}  // namespace blender::bke
