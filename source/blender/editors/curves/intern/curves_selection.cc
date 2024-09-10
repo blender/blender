@@ -630,16 +630,18 @@ void select_adjacent(bke::CurvesGeometry &curves,
     MutableSpan<bool> selection_typed = selection.span.typed<bool>();
     curves_mask.foreach_index([&](const int64_t curve_i) {
       const IndexRange points = points_by_curve[curve_i];
+      const int first_point = points.first();
+      const int last_point = points.last();
 
       /* Handle all cases in the forward direction. */
-      for (int point_i = points.first(); point_i < points.last(); point_i++) {
+      for (int point_i = first_point; point_i < last_point; point_i++) {
         if (!selection_typed[point_i] && selection_typed[point_i + 1]) {
           selection_typed[point_i] = true;
         }
       }
 
       /* Handle all cases in the backwards direction. */
-      for (int point_i = points.last(); point_i > points.first(); point_i--) {
+      for (int point_i = last_point; point_i > first_point; point_i--) {
         if (!selection_typed[point_i] && selection_typed[point_i - 1]) {
           selection_typed[point_i] = true;
         }
@@ -647,9 +649,9 @@ void select_adjacent(bke::CurvesGeometry &curves,
 
       /* Handle cyclic curve case. */
       if (cyclic[curve_i]) {
-        if (selection_typed[points.first()] != selection_typed[points.last()]) {
-          selection_typed[points.first()] = true;
-          selection_typed[points.last()] = true;
+        if (selection_typed[first_point] != selection_typed[last_point]) {
+          selection_typed[first_point] = true;
+          selection_typed[last_point] = true;
         }
       }
     });
@@ -658,16 +660,18 @@ void select_adjacent(bke::CurvesGeometry &curves,
     MutableSpan<float> selection_typed = selection.span.typed<float>();
     curves_mask.foreach_index([&](const int64_t curve_i) {
       const IndexRange points = points_by_curve[curve_i];
+      const int first_point = points.first();
+      const int last_point = points.last();
 
       /* Handle all cases in the forward direction. */
-      for (int point_i = points.first(); point_i < points.last(); point_i++) {
+      for (int point_i = first_point; point_i < last_point; point_i++) {
         if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i + 1] > 0.0f)) {
           selection_typed[point_i] = 1.0f;
         }
       }
 
       /* Handle all cases in the backwards direction. */
-      for (int point_i = points.last(); point_i > points.first(); point_i--) {
+      for (int point_i = last_point; point_i > first_point; point_i--) {
         if ((selection_typed[point_i] == 0.0f) && (selection_typed[point_i - 1] > 0.0f)) {
           selection_typed[point_i] = 1.0f;
         }
@@ -675,9 +679,9 @@ void select_adjacent(bke::CurvesGeometry &curves,
 
       /* Handle cyclic curve case. */
       if (cyclic[curve_i]) {
-        if (selection_typed[points.first()] != selection_typed[points.last()]) {
-          selection_typed[points.first()] = 1.0f;
-          selection_typed[points.last()] = 1.0f;
+        if (selection_typed[first_point] != selection_typed[last_point]) {
+          selection_typed[first_point] = 1.0f;
+          selection_typed[last_point] = 1.0f;
         }
       }
     });
