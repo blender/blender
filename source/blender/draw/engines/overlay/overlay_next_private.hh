@@ -51,7 +51,6 @@ struct State {
   DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
-  SpaceLink *space_data;
   enum eSpace_Type space_type;
   enum eContextObjectMode ctx_mode;
   enum eObjectMode object_mode;
