@@ -10626,7 +10626,7 @@ static int ui_handle_menu_event(bContext *C,
 
   wmWindow *win = CTX_wm_window(C);
 
-  if (!menu->is_grab && (!but || but->type == UI_BTYPE_IMAGE)) {
+  if (!menu->is_grab && is_floating && (!but || but->type == UI_BTYPE_IMAGE)) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS && inside_title) {
       /* Initial press before starting to drag. */
       WM_cursor_set(win, PopupTitleDragCursor);
