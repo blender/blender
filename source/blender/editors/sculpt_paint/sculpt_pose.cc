@@ -394,25 +394,24 @@ static void grow_factors_grids(const ePaintSymmetryFlags symm,
                                PoseGrowFactorData &gftd)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float3> positions = subdiv_ccg.positions;
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   const Span<int> grids = node.grids();
 
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
-    CCGElem *elem = elems[grid];
-    const int start = key.grid_area * grid;
+    const IndexRange grid_range = bke::ccg::grid_range(key, grid);
     for (const short y : IndexRange(key.grid_size)) {
       for (const short x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
         if (!grid_hidden.is_empty() && grid_hidden[grid][offset]) {
           continue;
         }
-        const int vert = start + offset;
+        const int vert = grid_range[offset];
 
         SubdivCCGNeighbors neighbors;
         BKE_subdiv_ccg_neighbor_coords_get(
-            subdiv_ccg, SubdivCCGCoord{grids[i], x, y}, false, neighbors);
+            subdiv_ccg, SubdivCCGCoord{grid, x, y}, false, neighbors);
 
         float max = 0.0f;
         for (const SubdivCCGCoord neighbor : neighbors.coords) {
@@ -425,7 +424,7 @@ static void grow_factors_grids(const ePaintSymmetryFlags symm,
         }
 
         if (max > prev_mask[vert]) {
-          const float3 &position = CCG_elem_offset_co(key, elem, offset);
+          const float3 &position = positions[vert];
           pose_factor[vert] = max;
           if (SCULPT_check_vertex_pivot_symmetry(position, pose_initial_position, symm)) {
             gftd.pos_avg += position;
@@ -821,11 +820,10 @@ static void calc_pose_origin_and_factor_grids(Object &object,
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  const Span<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const int num_grids = key.grid_area * grids.size();
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
-  flood_fill::FillDataGrids flood(num_grids);
+  flood_fill::FillDataGrids flood(positions.size());
   flood.add_initial_with_symmetry(
       object, pbvh, subdiv_ccg, std::get<SubdivCCGCoord>(ss.active_vert()), radius);
 
@@ -840,7 +838,7 @@ static void calc_pose_origin_and_factor_grids(Object &object,
 
         r_pose_factor[to_v_i] = 1.0f;
 
-        const float3 co = CCG_grid_elem_co(key, grids[to_v.grid_index], to_v.x, to_v.y);
+        const float3 &co = positions[to_v_i];
         if (math::distance_squared(initial_location, fallback_floodfill_origin) <
             math::distance_squared(initial_location, co))
         {

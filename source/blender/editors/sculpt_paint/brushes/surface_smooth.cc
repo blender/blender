@@ -222,7 +222,8 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
 
       tls.average_positions.resize(positions.size());
       const MutableSpan<float3> average_positions = tls.average_positions;
-      smooth::neighbor_position_average_grids(subdiv_ccg, grids, average_positions);
+      smooth::average_data_grids(
+          subdiv_ccg, subdiv_ccg.positions.as_span(), grids, average_positions);
 
       tls.laplacian_disp.resize(positions.size());
       const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;

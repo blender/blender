@@ -96,49 +96,15 @@ template void neighbor_data_average_mesh<float4>(Span<float4>,
                                                  MutableSpan<float4>);
 
 static float3 average_positions(const CCGKey &key,
-                                const Span<CCGElem *> elems,
+                                const Span<float3> positions,
                                 const Span<SubdivCCGCoord> coords)
 {
   const float factor = math::rcp(float(coords.size()));
   float3 result(0);
   for (const SubdivCCGCoord coord : coords) {
-    result += CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y) * factor;
+    result += positions[coord.to_index(key)] * factor;
   }
   return result;
-}
-
-void neighbor_position_average_grids(const SubdivCCG &subdiv_ccg,
-                                     const Span<int> grids,
-                                     const MutableSpan<float3> new_positions)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-
-  BLI_assert(grids.size() * key.grid_area == new_positions.size());
-
-  for (const int i : grids.index_range()) {
-    const int grid = grids[i];
-    const int node_verts_start = i * key.grid_area;
-
-    /* TODO: This loop could be optimized in the future by skipping unnecessary logic for
-     * non-boundary grid vertices. */
-    for (const int y : IndexRange(key.grid_size)) {
-      for (const int x : IndexRange(key.grid_size)) {
-        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_verts_start + offset;
-
-        SubdivCCGCoord coord{};
-        coord.grid_index = grid;
-        coord.x = x;
-        coord.y = y;
-
-        SubdivCCGNeighbors neighbors;
-        BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
-
-        new_positions[node_vert_index] = average_positions(key, elems, neighbors.coords);
-      }
-    }
-  }
 }
 
 void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
@@ -149,14 +115,14 @@ void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
                                               const MutableSpan<float3> new_positions)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float3> positions = subdiv_ccg.positions;
 
   BLI_assert(grids.size() * key.grid_area == new_positions.size());
 
   for (const int i : grids.index_range()) {
-    const int grid = grids[i];
-    CCGElem *elem = elems[grid];
     const int node_verts_start = i * key.grid_area;
+    const int grid = grids[i];
+    const IndexRange grid_range = bke::ccg::grid_range(key, grid);
 
     /* TODO: This loop could be optimized in the future by skipping unnecessary logic for
      * non-boundary grid vertices. */
@@ -164,6 +130,7 @@ void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
       for (const int x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
         const int node_vert_index = node_verts_start + offset;
+        const int vert = grid_range[offset];
 
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
@@ -190,10 +157,10 @@ void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
         }
 
         if (neighbors.coords.is_empty()) {
-          new_positions[node_vert_index] = CCG_elem_offset_co(key, elem, offset);
+          new_positions[node_vert_index] = positions[vert];
         }
         else {
-          new_positions[node_vert_index] = average_positions(key, elems, neighbors.coords);
+          new_positions[node_vert_index] = average_positions(key, positions, neighbors.coords);
         }
       }
     }
@@ -446,38 +413,16 @@ static float3 calc_boundary_normal_corner(const float3 &current_position,
 }
 
 static float3 calc_boundary_normal_corner(const CCGKey &key,
-                                          const Span<CCGElem *> elems,
+                                          const Span<float3> positions,
                                           const float3 &current_position,
                                           const Span<SubdivCCGCoord> neighbors)
 {
   float3 normal(0);
   for (const SubdivCCGCoord &coord : neighbors) {
-    const float3 to_neighbor = CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y) -
-                               current_position;
+    const float3 to_neighbor = positions[coord.to_index(key)] - current_position;
     normal += math::normalize(to_neighbor);
   }
   return math::normalize(normal);
-}
-
-static float3 average_positions(const CCGKey &key,
-                                const Span<CCGElem *> elems,
-                                const Span<float3> positions,
-                                const Span<SubdivCCGCoord> neighbors,
-                                const int current_grid,
-                                const int current_grid_start)
-{
-  const float factor = math::rcp(float(neighbors.size()));
-  float3 result(0);
-  for (const SubdivCCGCoord &coord : neighbors) {
-    if (current_grid == coord.grid_index) {
-      const int offset = CCG_grid_xy_to_index(key.grid_size, coord.x, coord.y);
-      result += positions[current_grid_start + offset] * factor;
-    }
-    else {
-      result += CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y) * factor;
-    }
-  }
-  return result;
 }
 
 static float3 calc_boundary_normal_corner(const float3 &current_position,
@@ -572,11 +517,11 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
                                      const Span<int> grids,
                                      const bool filter_boundary_face_sets,
                                      const Span<float> factors,
-                                     const Span<float3> positions,
                                      Vector<Vector<SubdivCCGCoord>> &neighbors,
                                      const MutableSpan<float3> translations)
 {
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float3> positions = subdiv_ccg.positions;
+  const Span<float3> normals = subdiv_ccg.normals;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const int grid_verts_num = grids.size() * key.grid_area;
@@ -587,12 +532,13 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
   calc_vert_neighbors_interior(faces, corner_verts, boundary_verts, subdiv_ccg, grids, neighbors);
 
   for (const int i : grids.index_range()) {
-    CCGElem *elem = elems[grids[i]];
+    const IndexRange grid_range = bke::ccg::grid_range(key, grids[i]);
     const int node_start = i * key.grid_area;
     for (const int y : IndexRange(key.grid_size)) {
       for (const int x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
         const int node_vert = node_start + offset;
+        const int vert = grid_range[offset];
         if (factors[node_vert] == 0.0f) {
           translations[node_vert] = float3(0);
           continue;
@@ -631,25 +577,24 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
           continue;
         }
 
-        const float3 smoothed_position = average_positions(
-            key, elems, positions, neighbors[node_vert], grids[i], node_start);
+        const float3 smoothed_position = average_positions(key, positions, neighbors[node_vert]);
 
         /* Normal Calculation */
         float3 normal;
         if (is_boundary && neighbors[i].size() == 2) {
           normal = calc_boundary_normal_corner(
-              key, elems, positions[node_vert], neighbors[node_vert]);
+              key, positions, positions[vert], neighbors[node_vert]);
           if (math::is_zero(normal)) {
             translations[node_vert] = float3(0);
             continue;
           }
         }
         else {
-          normal = CCG_elem_offset_no(key, elem, offset);
+          normal = normals[vert];
         }
 
         const float3 translation = translation_to_plane(
-            positions[node_vert], normal, smoothed_position);
+            positions[vert], normal, smoothed_position);
 
         translations[node_vert] = translation * factors[node_vert];
       }

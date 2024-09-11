@@ -275,13 +275,12 @@ BLI_NOINLINE static void copy_old_hidden_mask_grids(const SubdivCCG &subdiv_ccg,
     return;
   }
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float> masks = subdiv_ccg.masks;
   for (const int i : grids.index_range()) {
-    const int node_verts_start = i * key.grid_area;
-    CCGElem *elem = elems[grids[i]];
-    bits::foreach_1_index(grid_hidden[grids[i]], [&](const int offset) {
-      new_mask[node_verts_start + offset] = CCG_elem_offset_mask(key, elem, offset);
-    });
+    const Span grid_masks = masks.slice(bke::ccg::grid_range(key, grids[i]));
+    MutableSpan grid_dst = new_mask.slice(bke::ccg::grid_range(key, i));
+    bits::foreach_1_index(grid_hidden[grids[i]],
+                          [&](const int offset) { grid_dst[offset] = grid_masks[offset]; });
   }
 }
 
@@ -296,15 +295,16 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  MutableSpan<float> masks = subdiv_ccg.masks;
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     const Span<int> grids = nodes[i].grids();
     const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
-    if (mask_equals_array_grids(subdiv_ccg.grids, key, grids, new_node_mask)) {
+    if (mask_equals_array_grids(masks, key, grids, new_node_mask)) {
       return;
     }
     undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-    scatter_mask_grids(new_node_mask, subdiv_ccg, grids);
+    scatter_data_grids(subdiv_ccg, new_node_mask, grids, masks);
     BKE_pbvh_node_mark_update_mask(nodes[i]);
   });
 
@@ -317,7 +317,7 @@ static void smooth_mask_grids(const SubdivCCG &subdiv_ccg,
                               MutableSpan<float> new_mask)
 {
   const Span<int> grids = node.grids();
-  average_neighbor_mask_grids(subdiv_ccg, node.grids(), new_mask);
+  smooth::average_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, new_mask);
   copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
 }
 
@@ -333,9 +333,9 @@ static void sharpen_mask_grids(const SubdivCCG &subdiv_ccg,
 
   tls.node_mask.resize(grid_verts_num);
   const MutableSpan<float> node_mask = tls.node_mask;
-  gather_mask_grids(subdiv_ccg, grids, node_mask);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, node_mask);
 
-  average_neighbor_mask_grids(subdiv_ccg, grids, new_mask);
+  smooth::average_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, new_mask);
 
   sharpen_masks(node_mask, new_mask);
 
@@ -347,28 +347,26 @@ static void grow_mask_grids(const SubdivCCG &subdiv_ccg,
                             MutableSpan<float> new_mask)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float> masks = subdiv_ccg.masks;
 
   const Span<int> grids = node.grids();
 
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
-    CCGElem *elem = elems[grid];
-    const int node_verts_start = i * key.grid_area;
+    const Span grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+    MutableSpan grid_dst = new_mask.slice(bke::ccg::grid_range(key, i));
 
     for (const short y : IndexRange(key.grid_size)) {
       for (const short x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_verts_start + offset;
 
         SubdivCCGNeighbors neighbors;
         SubdivCCGCoord coord{grid, x, y};
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
 
-        new_mask[node_vert_index] = CCG_elem_offset_mask(key, elem, offset);
+        grid_dst[offset] = grid_masks[offset];
         for (const SubdivCCGCoord neighbor : neighbors.coords) {
-          new_mask[node_vert_index] = std::max(
-              CCG_grid_elem_mask(key, elem, neighbor.x, neighbor.y), new_mask[node_vert_index]);
+          grid_dst[offset] = std::max(masks[neighbor.to_index(key)], grid_dst[offset]);
         }
       }
     }
@@ -382,28 +380,26 @@ static void shrink_mask_grids(const SubdivCCG &subdiv_ccg,
                               MutableSpan<float> new_mask)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float> masks = subdiv_ccg.masks;
 
   const Span<int> grids = node.grids();
 
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
-    CCGElem *elem = elems[grid];
-    const int node_verts_start = i * key.grid_area;
+    const Span grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+    MutableSpan grid_dst = new_mask.slice(bke::ccg::grid_range(key, i));
 
     for (const short y : IndexRange(key.grid_size)) {
       for (const short x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_verts_start + offset;
 
         SubdivCCGNeighbors neighbors;
         SubdivCCGCoord coord{grid, x, y};
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
 
-        new_mask[node_vert_index] = CCG_elem_offset_mask(key, elem, offset);
+        grid_dst[offset] = grid_masks[offset];
         for (const SubdivCCGCoord neighbor : neighbors.coords) {
-          new_mask[node_vert_index] = std::min(
-              CCG_grid_elem_mask(key, elem, neighbor.x, neighbor.y), new_mask[node_vert_index]);
+          grid_dst[offset] = std::min(masks[neighbor.to_index(key)], grid_dst[offset]);
         }
       }
     }
@@ -426,7 +422,7 @@ static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
 
   tls.node_mask.resize(grid_verts_num);
   const MutableSpan<float> node_mask = tls.node_mask;
-  gather_mask_grids(subdiv_ccg, grids, node_mask);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, node_mask);
 
   tls.new_mask.resize(grid_verts_num);
   const MutableSpan<float> new_mask = tls.new_mask;
@@ -439,7 +435,7 @@ static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
-  scatter_mask_grids(new_mask.as_span(), subdiv_ccg, grids);
+  scatter_data_grids(subdiv_ccg, new_mask.as_span(), grids, subdiv_ccg.masks.as_mutable_span());
   BKE_pbvh_node_mark_update_mask(node);
 }
 
@@ -457,7 +453,7 @@ static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
 
   tls.node_mask.resize(grid_verts_num);
   const MutableSpan<float> node_mask = tls.node_mask;
-  gather_mask_grids(subdiv_ccg, grids, node_mask);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, node_mask);
 
   tls.new_mask.resize(grid_verts_num);
   const MutableSpan<float> new_mask = tls.new_mask;
@@ -470,7 +466,7 @@ static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
-  scatter_mask_grids(new_mask.as_span(), subdiv_ccg, grids);
+  scatter_data_grids(subdiv_ccg, new_mask.as_span(), grids, subdiv_ccg.masks.as_mutable_span());
   BKE_pbvh_node_mark_update_mask(node);
 }
 

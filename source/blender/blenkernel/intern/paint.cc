@@ -1814,8 +1814,7 @@ blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
   if (std::holds_alternative<SubdivCCGCoord>(active_vert_)) {
     const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
     const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(active_vert_);
-
-    return CCG_grid_elem_co(key, this->subdiv_ccg->grids[coord.grid_index], coord.x, coord.y);
+    return this->subdiv_ccg->positions[coord.to_index(key)];
   }
   if (std::holds_alternative<BMVert *>(active_vert_)) {
     BMVert *bm_vert = std::get<BMVert *>(active_vert_);
@@ -2519,7 +2518,7 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
     return ss->bm->totvert;
   }
   if (ss->subdiv_ccg) {
-    return ss->subdiv_ccg->grids.size() * BKE_subdiv_ccg_key_top_level(*ss->subdiv_ccg).grid_area;
+    return ss->subdiv_ccg->positions.size();
   }
   return ss->totvert;
 }

@@ -43,7 +43,7 @@ static void calc_node(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  MutableSpan<float3> ccg_positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = node.grids();
@@ -73,7 +73,6 @@ static void calc_node(const Depsgraph &depsgraph,
     const int node_start = i * key.grid_area;
     const int grid = grids[i];
     const int start = grid * key.grid_area;
-    CCGElem *elem = elems[grid];
     for (const int y : IndexRange(key.grid_size)) {
       for (const int x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
@@ -134,7 +133,7 @@ static void calc_node(const Depsgraph &depsgraph,
 
         float3 new_co = cache.displacement_smear.limit_surface_co[grid_vert_index] +
                         interp_limit_surface_disp;
-        CCG_elem_offset_co(key, elem, offset) = math::interpolate(
+        ccg_positions[grid_vert_index] = math::interpolate(
             positions[node_vert_index], new_co, factors[node_vert_index]);
       }
     }
@@ -145,26 +144,24 @@ BLI_NOINLINE static void eval_all_limit_positions(const SubdivCCG &subdiv_ccg,
                                                   const MutableSpan<float3> limit_positions)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  threading::parallel_for(subdiv_ccg.grids.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(IndexRange(subdiv_ccg.grids_num), 1024, [&](const IndexRange range) {
     for (const int grid : range) {
-      const MutableSpan grid_limit_positions = limit_positions.slice(grid * key.grid_area,
-                                                                     key.grid_area);
+      const MutableSpan grid_limit_positions = limit_positions.slice(
+          bke::ccg::grid_range(key.grid_area, grid));
       BKE_subdiv_ccg_eval_limit_positions(subdiv_ccg, key, grid, grid_limit_positions);
     }
   });
 }
 
 BLI_NOINLINE static void store_node_prev_displacement(const Span<float3> limit_positions,
-                                                      const Span<CCGElem *> elems,
+                                                      const Span<float3> positions,
                                                       const CCGKey &key,
                                                       const bke::pbvh::GridsNode &node,
                                                       const MutableSpan<float3> prev_displacement)
 {
   for (const int grid : node.grids()) {
-    const int start = grid * key.grid_area;
-    CCGElem *elem = elems[grid];
-    for (const int i : IndexRange(key.grid_area)) {
-      prev_displacement[start + i] = CCG_elem_offset_co(key, elem, i) - limit_positions[start + i];
+    for (const int i : bke::ccg::grid_range(key.grid_area, grid)) {
+      prev_displacement[i] = positions[i] - limit_positions[i];
     }
   }
 }
@@ -182,12 +179,12 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  MutableSpan<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   if (ss.cache->displacement_smear.limit_surface_co.is_empty()) {
-    ss.cache->displacement_smear.prev_displacement = Array<float3>(elems.size() * key.grid_area);
-    ss.cache->displacement_smear.limit_surface_co = Array<float3>(elems.size() * key.grid_area);
+    ss.cache->displacement_smear.prev_displacement = Array<float3>(positions.size());
+    ss.cache->displacement_smear.limit_surface_co = Array<float3>(positions.size());
 
     eval_all_limit_positions(subdiv_ccg, ss.cache->displacement_smear.limit_surface_co);
   }
@@ -195,7 +192,7 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     node_mask.slice(range).foreach_index([&](const int i) {
       store_node_prev_displacement(ss.cache->displacement_smear.limit_surface_co,
-                                   elems,
+                                   subdiv_ccg.positions,
                                    key,
                                    nodes[i],
                                    ss.cache->displacement_smear.prev_displacement);

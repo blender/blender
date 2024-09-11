@@ -574,8 +574,8 @@ static void partialvis_masked_update_grids(Depsgraph &depsgraph,
 
   const bool value = action_to_hide(action);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  if (!key.has_mask) {
+  const Span<float> masks = subdiv_ccg.masks;
+  if (masks.is_empty()) {
     grid_hide_update(depsgraph,
                      object,
                      node_mask,
@@ -583,14 +583,11 @@ static void partialvis_masked_update_grids(Depsgraph &depsgraph,
   }
   else {
     grid_hide_update(
-        depsgraph, object, node_mask, [&](const int grid_index, MutableBoundedBitSpan hide) {
-          CCGElem *grid = grids[grid_index];
-          for (const int y : IndexRange(key.grid_size)) {
-            for (const int x : IndexRange(key.grid_size)) {
-              CCGElem *elem = CCG_grid_elem(key, grid, x, y);
-              if (CCG_elem_mask(key, elem) > 0.5f) {
-                hide[y * key.grid_size + x].set(value);
-              }
+        depsgraph, object, node_mask, [&](const int grid, MutableBoundedBitSpan hide) {
+          const Span<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+          for (const int i : grid_masks.index_range()) {
+            if (grid_masks[i] > 0.5f) {
+              hide[i].set(value);
             }
           }
         });
@@ -1236,20 +1233,17 @@ static void partialvis_gesture_update_grids(Depsgraph &depsgraph,
 
   const bool value = action_to_hide(action);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
-  grid_hide_update(
-      depsgraph, *object, node_mask, [&](const int grid_index, MutableBoundedBitSpan hide) {
-        CCGElem *grid = grids[grid_index];
-        for (const int y : IndexRange(key.grid_size)) {
-          for (const int x : IndexRange(key.grid_size)) {
-            CCGElem *elem = CCG_grid_elem(key, grid, x, y);
-            if (gesture::is_affected(gesture_data, CCG_elem_co(key, elem), CCG_elem_no(key, elem)))
-            {
-              hide[y * key.grid_size + x].set(value);
-            }
-          }
-        }
-      });
+  const Span<float3> positions = subdiv_ccg.positions;
+  const Span<float3> normals = subdiv_ccg.normals;
+  grid_hide_update(depsgraph, *object, node_mask, [&](const int grid, MutableBoundedBitSpan hide) {
+    const Span<float3> grid_positions = positions.slice(bke::ccg::grid_range(key, grid));
+    const Span<float3> grid_normals = normals.slice(bke::ccg::grid_range(key, grid));
+    for (const int i : grid_positions.index_range()) {
+      if (gesture::is_affected(gesture_data, grid_positions[i], grid_normals[i])) {
+        hide[i].set(value);
+      }
+    }
+  });
 }
 
 static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)

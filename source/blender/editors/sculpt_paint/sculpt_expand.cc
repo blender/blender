@@ -394,11 +394,10 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> elems = subdiv_ccg.grids;
+      const Span<float3> positions = subdiv_ccg.positions;
       BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
-      for (const int grid : subdiv_ccg.grids.index_range()) {
+      for (const int grid : IndexRange(subdiv_ccg.grids_num)) {
         const int start = grid * key.grid_area;
-        CCGElem *elem = elems[grid];
         const int face_set = face_sets[grid_to_face_map[grid]];
         BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int offset) {
           const int vert = start + offset;
@@ -409,8 +408,8 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
             enabled_verts[vert].set(expand_cache.snap_enabled_face_sets->contains(face_set));
             return;
           }
-          enabled_verts[vert].set(vert_falloff_is_enabled(
-              ss, expand_cache, CCG_elem_offset_co(key, elem, offset), vert));
+          enabled_verts[vert].set(
+              vert_falloff_is_enabled(ss, expand_cache, positions[vert], vert));
         });
       }
       break;
@@ -593,10 +592,8 @@ static Vector<int> calc_symmetry_vert_indices(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> elems = subdiv_ccg.grids;
-      const SubdivCCGCoord original_coord = SubdivCCGCoord::from_index(key, original_vert);
-      const float3 location = CCG_grid_elem_co(
-          key, elems[original_coord.grid_index], original_coord.x, original_coord.y);
+      const Span<float3> positions = subdiv_ccg.positions;
+      const float3 location = positions[original_vert];
       for (char symm_it = 1; symm_it <= symm; symm_it++) {
         if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
           continue;
@@ -812,13 +809,11 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> elems = subdiv_ccg.grids;
-
-      const SubdivCCGCoord orig_coord = SubdivCCGCoord::from_index(key, v.i);
-      const float3 orig_normal = CCG_grid_elem_no(
-          key, elems[orig_coord.grid_index], orig_coord.x, orig_coord.y);
+      const Span<float3> normals = subdiv_ccg.normals;
+      const float3 orig_normal = normals[v.i];
       flood_fill::FillDataGrids flood(totvert);
-      flood.add_initial_with_symmetry(ob, pbvh, subdiv_ccg, orig_coord, FLT_MAX);
+      flood.add_initial_with_symmetry(
+          ob, pbvh, subdiv_ccg, SubdivCCGCoord::from_index(key, v.i), FLT_MAX);
       flood.execute(
           ob,
           subdiv_ccg,
@@ -830,9 +825,8 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
               dists[to_vert] = dists[from_vert];
             }
             else {
-              const float3 &from_normal = CCG_grid_elem_no(
-                  key, elems[from.grid_index], from.x, from.y);
-              const float3 &to_normal = CCG_grid_elem_no(key, elems[to.grid_index], to.x, to.y);
+              const float3 &from_normal = normals[from_vert];
+              const float3 &to_normal = normals[to_vert];
               const float from_edge_factor = edge_factors[from_vert];
               const float dist = math::dot(orig_normal, to_normal) *
                                  powf(from_edge_factor, edge_sensitivity);
@@ -908,28 +902,20 @@ static Array<float> spherical_falloff_create(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> elems = subdiv_ccg.grids;
+      const Span<float3> positions = subdiv_ccg.positions;
 
       Array<float3> locations(symm_verts.size());
       for (const int i : symm_verts.index_range()) {
-        const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, symm_verts[i]);
-        locations[i] = CCG_grid_elem_co(key, elems[coord.grid_index], coord.x, coord.y);
+        locations[i] = positions[symm_verts[i]];
       }
 
-      threading::parallel_for(elems.index_range(), 1024, [&](const IndexRange range) {
-        for (const int grid : range) {
-          const int start = grid * key.grid_area;
-          CCGElem *elem = elems[grid];
-          for (const int offset : IndexRange(key.grid_area)) {
-            const int vert = start + offset;
-            float dist = std::numeric_limits<float>::max();
-            for (const float3 &location : locations) {
-              dist = std::min(dist,
-                              math::distance(CCG_elem_offset_co(key, elem, offset), location));
-            }
-            dists[vert] = dist;
+      threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
+        for (const int vert : range) {
+          float dist = std::numeric_limits<float>::max();
+          for (const float3 &location : locations) {
+            dist = std::min(dist, math::distance(positions[vert], location));
           }
+          dists[vert] = dist;
         }
       });
       break;
@@ -1517,19 +1503,9 @@ static void write_mask_data(Object &object, const Span<float> mask)
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> grids = subdiv_ccg.grids;
-
-      int index = 0;
-      for (const int grid : grids.index_range()) {
-        CCGElem *elem = grids[grid];
-        for (const int i : IndexRange(key.grid_area)) {
-          CCG_elem_offset_mask(key, elem, i) = mask[index];
-          index++;
-        }
-      }
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      subdiv_ccg.masks.as_mutable_span().copy_from(mask);
+      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
     }
@@ -1620,17 +1596,13 @@ static void update_mask_grids(const SculptSession &ss,
 {
   const Cache &expand_cache = *ss.expand_cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
+  const Span<float3> positions = subdiv_ccg.positions;
+  MutableSpan<float> masks = subdiv_ccg.masks;
 
   bool any_changed = false;
-  const Span<int> grids = node.grids();
-  for (const int i : grids.index_range()) {
-    const int grid = grids[i];
-    const int start = grid * key.grid_area;
-    CCGElem *elem = elems[grid];
-    for (const int offset : IndexRange(key.grid_area)) {
-      const int vert = start + offset;
-      const float initial_mask = CCG_elem_offset_mask(key, elem, offset);
+  for (const int grid : node.grids()) {
+    for (const int vert : bke::ccg::grid_range(key, grid)) {
+      const float initial_mask = masks[vert];
 
       if (expand_cache.check_islands && !is_vert_in_active_component(ss, expand_cache, vert)) {
         continue;
@@ -1639,8 +1611,7 @@ static void update_mask_grids(const SculptSession &ss,
       float new_mask;
 
       if (enabled_verts[vert]) {
-        new_mask = gradient_value_get(
-            ss, expand_cache, CCG_elem_offset_co(key, elem, offset), vert);
+        new_mask = gradient_value_get(ss, expand_cache, positions[vert], vert);
       }
       else {
         new_mask = 0.0f;
@@ -1659,7 +1630,7 @@ static void update_mask_grids(const SculptSession &ss,
         continue;
       }
 
-      CCG_elem_offset_mask(key, elem, offset) = clamp_f(new_mask, 0.0f, 1.0f);
+      masks[vert] = clamp_f(new_mask, 0.0f, 1.0f);
       any_changed = true;
     }
   }
@@ -2578,18 +2549,12 @@ static bool any_nonzero_mask(const Object &object)
     }
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      if (!key.has_mask) {
+      const Span<float> mask = subdiv_ccg.masks;
+      if (mask.is_empty()) {
         return false;
       }
-      return std::any_of(subdiv_ccg.grids.begin(), subdiv_ccg.grids.end(), [&](CCGElem *elem) {
-        for (const int i : IndexRange(key.grid_area)) {
-          if (CCG_elem_offset_mask(key, elem, i) > 0.0f) {
-            return true;
-          }
-        }
-        return false;
-      });
+      return std::any_of(
+          mask.begin(), mask.end(), [&](const float value) { return value > 0.0f; });
     }
     case bke::pbvh::Type::BMesh: {
       BMesh &bm = *ss.bm;

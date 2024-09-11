@@ -37,7 +37,6 @@
 
 struct BMLog;
 struct BMesh;
-struct CCGElem;
 struct CCGKey;
 struct Depsgraph;
 struct IsectRayPrecalc;
@@ -449,7 +448,7 @@ namespace blender::bke::pbvh {
  */
 void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh);
 void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);
-void update_bounds_grids(const CCGKey &key, Span<CCGElem *> elems, Tree &pbvh);
+void update_bounds_grids(const CCGKey &key, Span<float3> positions, Tree &pbvh);
 void update_bounds_bmesh(const BMesh &bm, Tree &pbvh);
 
 /**
@@ -529,7 +528,7 @@ IndexMask node_draw_update_mask(const Tree &pbvh,
                                 IndexMaskMemory &memory);
 
 void node_update_mask_mesh(Span<float> mask, MeshNode &node);
-void node_update_mask_grids(const CCGKey &key, Span<CCGElem *> grids, GridsNode &node);
+void node_update_mask_grids(const CCGKey &key, Span<float> masks, GridsNode &node);
 void node_update_mask_bmesh(int mask_offset, BMeshNode &node);
 
 void node_update_visibility_mesh(Span<bool> hide_vert, MeshNode &node);
@@ -537,7 +536,7 @@ void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode
 void node_update_visibility_bmesh(BMeshNode &node);
 
 void update_node_bounds_mesh(Span<float3> positions, MeshNode &node);
-void update_node_bounds_grids(const CCGKey &key, Span<CCGElem *> grids, GridsNode &node);
+void update_node_bounds_grids(const CCGKey &key, Span<float3> positions, GridsNode &node);
 void update_node_bounds_bmesh(BMeshNode &node);
 
 inline Span<int> MeshNode::faces() const

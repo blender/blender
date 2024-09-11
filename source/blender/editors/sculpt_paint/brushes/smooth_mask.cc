@@ -221,7 +221,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.new_masks.resize(positions.size());
   const MutableSpan<float> new_masks = tls.new_masks;
-  mask::average_neighbor_mask_grids(subdiv_ccg, grids, new_masks);
+  smooth::average_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, new_masks);
 
   mask::mix_new_masks(new_masks, factors, masks);
   mask::clamp_mask(masks);

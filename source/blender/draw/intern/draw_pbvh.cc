@@ -692,65 +692,64 @@ static void fill_vbo_attribute_mesh(const OffsetIndices<int> faces,
 }
 
 static void fill_vbo_position_grids(const CCGKey &key,
-                                    const Span<CCGElem *> grids,
+                                    const Span<float3> positions,
                                     const bool use_flat_layout,
-                                    const Span<int> grid_indices,
+                                    const Span<int> grids,
                                     gpu::VertBuf &vert_buf)
 {
   float3 *data = vert_buf.data<float3>().data();
   if (use_flat_layout) {
     const int grid_size_1 = key.grid_size - 1;
-    for (const int i : grid_indices.index_range()) {
-      CCGElem *grid = grids[grid_indices[i]];
+    for (const int grid : grids) {
+      const Span<float3> grid_positions = positions.slice(bke::ccg::grid_range(key, grid));
       for (int y = 0; y < grid_size_1; y++) {
         for (int x = 0; x < grid_size_1; x++) {
-          *data = CCG_grid_elem_co(key, grid, x, y);
+          *data = grid_positions[CCG_grid_xy_to_index(key.grid_size, x, y)];
           data++;
-          *data = CCG_grid_elem_co(key, grid, x + 1, y);
+          *data = grid_positions[CCG_grid_xy_to_index(key.grid_size, x + 1, y)];
           data++;
-          *data = CCG_grid_elem_co(key, grid, x + 1, y + 1);
+          *data = grid_positions[CCG_grid_xy_to_index(key.grid_size, x + 1, y + 1)];
           data++;
-          *data = CCG_grid_elem_co(key, grid, x, y + 1);
+          *data = grid_positions[CCG_grid_xy_to_index(key.grid_size, x, y + 1)];
           data++;
         }
       }
     }
   }
   else {
-    for (const int i : grid_indices.index_range()) {
-      CCGElem *grid = grids[grid_indices[i]];
-      for (const int offset : IndexRange(key.grid_area)) {
-        *data = CCG_elem_offset_co(key, grid, offset);
-        data++;
-      }
+    for (const int grid : grids) {
+      const Span<float3> grid_positions = positions.slice(bke::ccg::grid_range(key, grid));
+      std::copy_n(grid_positions.data(), grid_positions.size(), data);
+      data += grid_positions.size();
     }
   }
 }
 
 static void fill_vbo_normal_grids(const CCGKey &key,
-                                  const Span<CCGElem *> grids,
+                                  const Span<float3> positions,
+                                  const Span<float3> normals,
                                   const Span<int> grid_to_face_map,
                                   const Span<bool> sharp_faces,
                                   const bool use_flat_layout,
-                                  const Span<int> grid_indices,
+                                  const Span<int> grids,
                                   gpu::VertBuf &vert_buf)
 {
   short4 *data = vert_buf.data<short4>().data();
 
   if (use_flat_layout) {
     const int grid_size_1 = key.grid_size - 1;
-    for (const int i : grid_indices.index_range()) {
-      const int grid_index = grid_indices[i];
-      CCGElem *grid = grids[grid_index];
-      if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid_index]]) {
+    for (const int grid : grids) {
+      const Span<float3> grid_positions = positions.slice(bke::ccg::grid_range(key, grid));
+      const Span<float3> grid_normals = normals.slice(bke::ccg::grid_range(key, grid));
+      if (!sharp_faces.is_empty() && sharp_faces[grid_to_face_map[grid]]) {
         for (int y = 0; y < grid_size_1; y++) {
           for (int x = 0; x < grid_size_1; x++) {
             float3 no;
             normal_quad_v3(no,
-                           CCG_grid_elem_co(key, grid, x, y + 1),
-                           CCG_grid_elem_co(key, grid, x + 1, y + 1),
-                           CCG_grid_elem_co(key, grid, x + 1, y),
-                           CCG_grid_elem_co(key, grid, x, y));
+                           grid_positions[CCG_grid_xy_to_index(key.grid_size, x, y + 1)],
+                           grid_positions[CCG_grid_xy_to_index(key.grid_size, x + 1, y + 1)],
+                           grid_positions[CCG_grid_xy_to_index(key.grid_size, x + 1, y)],
+                           grid_positions[CCG_grid_xy_to_index(key.grid_size, x, y)]);
             std::fill_n(data, 4, normal_float_to_short(no));
             data += 4;
           }
@@ -759,7 +758,10 @@ static void fill_vbo_normal_grids(const CCGKey &key,
       else {
         for (int y = 0; y < grid_size_1; y++) {
           for (int x = 0; x < grid_size_1; x++) {
-            std::fill_n(data, 4, normal_float_to_short(CCG_grid_elem_no(key, grid, x, y)));
+            std::fill_n(
+                data,
+                4,
+                normal_float_to_short(grid_normals[CCG_grid_xy_to_index(key.grid_size, x, y)]));
             data += 4;
           }
         }
@@ -768,10 +770,9 @@ static void fill_vbo_normal_grids(const CCGKey &key,
   }
   else {
     /* The non-flat VBO layout does not support sharp faces. */
-    for (const int i : grid_indices.index_range()) {
-      CCGElem *grid = grids[grid_indices[i]];
-      for (const int offset : IndexRange(key.grid_area)) {
-        *data = normal_float_to_short(CCG_elem_offset_no(key, grid, offset));
+    for (const int grid : grids) {
+      for (const float3 &normal : normals.slice(bke::ccg::grid_range(key, grid))) {
+        *data = normal_float_to_short(normal);
         data++;
       }
     }
@@ -779,43 +780,36 @@ static void fill_vbo_normal_grids(const CCGKey &key,
 }
 
 static void fill_vbo_mask_grids(const CCGKey &key,
-                                const Span<CCGElem *> grids,
+                                const Span<float> masks,
                                 const bool use_flat_layout,
-                                const Span<int> grid_indices,
+                                const Span<int> grids,
                                 gpu::VertBuf &vert_buf)
 {
-  if (key.has_mask) {
-    float *data = vert_buf.data<float>().data();
-    if (use_flat_layout) {
-      const int grid_size_1 = key.grid_size - 1;
-      for (const int i : grid_indices.index_range()) {
-        CCGElem *grid = grids[grid_indices[i]];
-        for (int y = 0; y < grid_size_1; y++) {
-          for (int x = 0; x < grid_size_1; x++) {
-            *data = CCG_grid_elem_mask(key, grid, x, y);
-            data++;
-            *data = CCG_grid_elem_mask(key, grid, x + 1, y);
-            data++;
-            *data = CCG_grid_elem_mask(key, grid, x + 1, y + 1);
-            data++;
-            *data = CCG_grid_elem_mask(key, grid, x, y + 1);
-            data++;
-          }
-        }
-      }
-    }
-    else {
-      for (const int i : grid_indices.index_range()) {
-        CCGElem *grid = grids[grid_indices[i]];
-        for (const int offset : IndexRange(key.grid_area)) {
-          *data = CCG_elem_offset_mask(key, grid, offset);
+  float *data = vert_buf.data<float>().data();
+  if (use_flat_layout) {
+    const int grid_size_1 = key.grid_size - 1;
+    for (const int grid : grids) {
+      const Span<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+      for (int y = 0; y < grid_size_1; y++) {
+        for (int x = 0; x < grid_size_1; x++) {
+          *data = grid_masks[CCG_grid_xy_to_index(key.grid_size, x, y)];
+          data++;
+          *data = grid_masks[CCG_grid_xy_to_index(key.grid_size, x + 1, y)];
+          data++;
+          *data = grid_masks[CCG_grid_xy_to_index(key.grid_size, x + 1, y + 1)];
+          data++;
+          *data = grid_masks[CCG_grid_xy_to_index(key.grid_size, x, y + 1)];
           data++;
         }
       }
     }
   }
   else {
-    vert_buf.data<float>().fill(0.0f);
+    for (const int grid : grids) {
+      const Span<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+      std::copy_n(grid_masks.data(), grid_masks.size(), data);
+      data += grid_masks.size();
+    }
   }
 }
 
@@ -855,13 +849,13 @@ static void fill_vbos_grids(const Object &object,
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
 
   if (const CustomRequest *request_type = std::get_if<CustomRequest>(&request)) {
     switch (*request_type) {
       case CustomRequest::Position: {
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          fill_vbo_position_grids(key, grids, use_flat_layout[i], nodes[i].grids(), *vbos[i]);
+          fill_vbo_position_grids(
+              key, subdiv_ccg.positions, use_flat_layout[i], nodes[i].grids(), *vbos[i]);
         });
         break;
       }
@@ -872,7 +866,8 @@ static void fill_vbos_grids(const Object &object,
                                                                 bke::AttrDomain::Face);
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
           fill_vbo_normal_grids(key,
-                                grids,
+                                subdiv_ccg.positions,
+                                subdiv_ccg.normals,
                                 grid_to_face_map,
                                 sharp_faces,
                                 use_flat_layout[i],
@@ -883,9 +878,16 @@ static void fill_vbos_grids(const Object &object,
         break;
       }
       case CustomRequest::Mask: {
-        node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          fill_vbo_mask_grids(key, grids, use_flat_layout[i], nodes[i].grids(), *vbos[i]);
-        });
+        const Span<float> masks = subdiv_ccg.masks;
+        if (!masks.is_empty()) {
+          node_mask.foreach_index(GrainSize(1), [&](const int i) {
+            fill_vbo_mask_grids(key, masks, use_flat_layout[i], nodes[i].grids(), *vbos[i]);
+          });
+        }
+        else {
+          node_mask.foreach_index(GrainSize(64),
+                                  [&](const int i) { vbos[i]->data<float>().fill(0.0f); });
+        }
         break;
       }
       case CustomRequest::FaceSet: {

@@ -69,19 +69,10 @@ Array<float> duplicate_mask(const Object &object)
     }
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const Span<CCGElem *> grids = subdiv_ccg.grids;
-
-      Array<float> result(grids.size() * key.grid_area);
-      int index = 0;
-      for (const int grid : grids.index_range()) {
-        CCGElem *elem = grids[grid];
-        for (const int i : IndexRange(key.grid_area)) {
-          result[index] = CCG_elem_offset_mask(key, elem, i);
-          index++;
-        }
+      if (subdiv_ccg.masks.is_empty()) {
+        return Array<float>(subdiv_ccg.positions.size(), 0.0f);
       }
-      return result;
+      return subdiv_ccg.masks;
     }
     case bke::pbvh::Type::BMesh: {
       BMesh &bm = *ss.bm;
@@ -141,18 +132,8 @@ void gather_mask_grids(const SubdivCCG &subdiv_ccg,
                        const Span<int> grids,
                        const MutableSpan<float> r_mask)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-  BLI_assert(grids.size() * key.grid_area == r_mask.size());
-
-  if (key.has_mask) {
-    for (const int i : grids.index_range()) {
-      CCGElem *elem = elems[grids[i]];
-      const int start = i * key.grid_area;
-      for (const int offset : IndexRange(key.grid_area)) {
-        r_mask[start + offset] = CCG_elem_offset_mask(key, elem, offset);
-      }
-    }
+  if (!subdiv_ccg.masks.is_empty()) {
+    gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, r_mask);
   }
   else {
     r_mask.fill(0.0f);
@@ -161,17 +142,7 @@ void gather_mask_grids(const SubdivCCG &subdiv_ccg,
 
 void scatter_mask_grids(const Span<float> mask, SubdivCCG &subdiv_ccg, const Span<int> grids)
 {
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-  BLI_assert(key.has_mask);
-  BLI_assert(mask.size() == grids.size() * key.grid_area);
-  for (const int i : grids.index_range()) {
-    CCGElem *elem = elems[grids[i]];
-    const int start = i * key.grid_area;
-    for (const int offset : IndexRange(key.grid_area)) {
-      CCG_elem_offset_mask(key, elem, offset) = mask[start + offset];
-    }
-  }
+  scatter_data_grids(subdiv_ccg, mask, grids, subdiv_ccg.masks.as_mutable_span());
 }
 
 void scatter_mask_bmesh(const Span<float> mask, const BMesh &bm, const Set<BMVert *, 0> &verts)
@@ -184,47 +155,6 @@ void scatter_mask_bmesh(const Span<float> mask, const BMesh &bm, const Set<BMVer
   for (BMVert *vert : verts) {
     BM_ELEM_CD_SET_FLOAT(vert, mask_offset, mask[i]);
     i++;
-  }
-}
-
-static float average_masks(const CCGKey &key,
-                           const Span<CCGElem *> elems,
-                           const Span<SubdivCCGCoord> coords)
-{
-  float sum = 0;
-  for (const SubdivCCGCoord coord : coords) {
-    sum += CCG_grid_elem_mask(key, elems[coord.grid_index], coord.x, coord.y);
-  }
-  return sum / float(coords.size());
-}
-
-void average_neighbor_mask_grids(const SubdivCCG &subdiv_ccg,
-                                 const Span<int> grids,
-                                 const MutableSpan<float> new_masks)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> elems = subdiv_ccg.grids;
-
-  for (const int i : grids.index_range()) {
-    const int grid = grids[i];
-    const int node_verts_start = i * key.grid_area;
-
-    for (const int y : IndexRange(key.grid_size)) {
-      for (const int x : IndexRange(key.grid_size)) {
-        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_verts_start + offset;
-
-        SubdivCCGCoord coord{};
-        coord.grid_index = grid;
-        coord.x = x;
-        coord.y = y;
-
-        SubdivCCGNeighbors neighbors;
-        BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
-
-        new_masks[node_vert_index] = average_masks(key, elems, neighbors.coords);
-      }
-    }
   }
 }
 
@@ -292,7 +222,7 @@ void update_mask_mesh(const Depsgraph &depsgraph,
   mask.finish();
 }
 
-bool mask_equals_array_grids(const Span<CCGElem *> elems,
+bool mask_equals_array_grids(const Span<float> masks,
                              const CCGKey &key,
                              const Span<int> grids,
                              const Span<float> values)
@@ -301,15 +231,8 @@ bool mask_equals_array_grids(const Span<CCGElem *> elems,
 
   const IndexRange range = grids.index_range();
   return std::all_of(range.begin(), range.end(), [&](const int i) {
-    const int grid = grids[i];
-    const int node_verts_start = i * key.grid_area;
-
-    CCGElem *elem = elems[grid];
-    for (const int offset : IndexRange(key.grid_area)) {
-      if (CCG_elem_offset_mask(key, elem, i) != values[node_verts_start + offset]) {
-        return false;
-      }
-    }
+    return masks.slice(bke::ccg::grid_range(key, grids[i])) ==
+           values.slice(bke::ccg::grid_range(key, i));
     return true;
   });
 }
@@ -502,8 +425,8 @@ static void fill_mask_grids(Main &bmain,
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  if (value == 0.0f && !key.has_mask) {
-    /* Unlike meshes, don't dynamically remove masks since it is interleaved with other data. */
+  if (value == 0.0f && subdiv_ccg.masks.is_empty()) {
+    /* NOTE: Deleting the mask array would be possible here. */
     return;
   }
 
@@ -512,18 +435,15 @@ static void fill_mask_grids(Main &bmain,
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  MutableSpan<float> masks = subdiv_ccg.masks;
   bool any_changed = false;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     const Span<int> grid_indices = nodes[i].grids();
     if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
-          CCGElem *elem = grids[grid];
-          for (const int i : IndexRange(key.grid_area)) {
-            if (CCG_elem_offset_mask(key, elem, i) != value) {
-              return false;
-            }
-          }
-          return true;
+          const Span<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+          return std::all_of(grid_masks.begin(), grid_masks.end(), [&](const float mask) {
+            return mask == value;
+          });
         }))
     {
       return;
@@ -532,17 +452,13 @@ static void fill_mask_grids(Main &bmain,
 
     if (grid_hidden.is_empty()) {
       for (const int grid : grid_indices) {
-        CCGElem *elem = grids[grid];
-        for (const int i : IndexRange(key.grid_area)) {
-          CCG_elem_offset_mask(key, elem, i) = value;
-        }
+        masks.slice(bke::ccg::grid_range(key, grid)).fill(value);
       }
     }
     else {
       for (const int grid : grid_indices) {
-        CCGElem *elem = grids[grid];
-        bits::foreach_0_index(grid_hidden[grid],
-                              [&](const int i) { CCG_elem_offset_mask(key, elem, i) = value; });
+        MutableSpan<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+        bits::foreach_0_index(grid_hidden[grid], [&](const int i) { grid_masks[i] = value; });
       }
     }
     BKE_pbvh_node_mark_redraw(nodes[i]);
@@ -640,27 +556,25 @@ static void invert_mask_grids(Main &bmain,
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<CCGElem *> grids = subdiv_ccg.grids;
+  MutableSpan<float> masks = subdiv_ccg.masks;
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     const Span<int> grid_indices = nodes[i].grids();
     if (grid_hidden.is_empty()) {
       for (const int grid : grid_indices) {
-        CCGElem *elem = grids[grid];
-        for (const int i : IndexRange(key.grid_area)) {
-          CCG_elem_offset_mask(key, elem, i) = 1.0f - CCG_elem_offset_mask(key, elem, i);
+        for (float &value : masks.slice(bke::ccg::grid_range(key, grid))) {
+          value = 1.0f - value;
         }
       }
     }
     else {
       for (const int grid : grid_indices) {
-        CCGElem *elem = grids[grid];
-        bits::foreach_0_index(grid_hidden[grid], [&](const int i) {
-          CCG_elem_offset_mask(key, elem, i) = 1.0f - CCG_elem_offset_mask(key, elem, i);
-        });
+        MutableSpan<float> grid_masks = masks.slice(bke::ccg::grid_range(key, grid));
+        bits::foreach_0_index(grid_hidden[grid],
+                              [&](const int i) { grid_masks[i] = 1.0f - grid_masks[i]; });
       }
     }
     BKE_pbvh_node_mark_update_mask(nodes[i]);
-    bke::pbvh::node_update_mask_grids(key, grids, nodes[i]);
+    bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
   });
 
   multires_mark_as_modified(&depsgraph, &object, MULTIRES_COORDS_MODIFIED);
@@ -832,20 +746,20 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       SubdivCCG &subdiv_ccg = *gesture_data.ss->subdiv_ccg;
-      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      const Span<float3> positions = subdiv_ccg.positions;
+      const Span<float3> normals = subdiv_ccg.normals;
+      MutableSpan<float> masks = subdiv_ccg.masks;
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         node_mask.slice(range).foreach_index([&](const int i) {
           bool any_changed = false;
           for (const int grid : nodes[i].grids()) {
-            CCGElem *elem = grids[grid];
+            const int vert_start = grid * key.grid_area;
             BKE_subdiv_ccg_foreach_visible_grid_vert(key, grid_hidden, grid, [&](const int i) {
-              if (gesture::is_affected(gesture_data,
-                                       CCG_elem_offset_co(key, elem, i),
-                                       CCG_elem_offset_no(key, elem, i)))
-              {
-                float &mask = CCG_elem_offset_mask(key, elem, i);
+              const int vert = vert_start + i;
+              if (gesture::is_affected(gesture_data, positions[vert], normals[vert])) {
+                float &mask = masks[vert];
                 if (!any_changed) {
                   any_changed = true;
                   undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);

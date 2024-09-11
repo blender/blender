@@ -137,17 +137,13 @@ void scatter_data_bmesh(Span<T> node_data, const Set<BMVert *, 0> &verts, Mutabl
  */
 
 /** Fill the output array with all positions in the geometry referenced by the indices. */
-void gather_grids_positions(const CCGKey &key,
-                            Span<CCGElem *> elems,
-                            Span<int> grids,
-                            MutableSpan<float3> positions);
 inline MutableSpan<float3> gather_grids_positions(const SubdivCCG &subdiv_ccg,
                                                   const Span<int> grids,
                                                   Vector<float3> &positions)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   positions.resize(key.grid_area * grids.size());
-  gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.positions.as_span(), grids, positions);
   return positions;
 }
 void gather_bmesh_positions(const Set<BMVert *, 0> &verts, MutableSpan<float3> positions);

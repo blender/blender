@@ -104,18 +104,3 @@ inline blender::float3 &CCG_elem_offset_co(const CCGKey &key, CCGElem *elem, int
 {
   return CCG_elem_co(key, CCG_elem_offset(key, elem, offset));
 }
-
-inline blender::float3 &CCG_elem_offset_no(const CCGKey &key, CCGElem *elem, int offset)
-{
-  return CCG_elem_no(key, CCG_elem_offset(key, elem, offset));
-}
-
-inline float &CCG_elem_offset_mask(const CCGKey &key, CCGElem *elem, int offset)
-{
-  return CCG_elem_mask(key, CCG_elem_offset(key, elem, offset));
-}
-
-inline CCGElem *CCG_elem_next(const CCGKey &key, CCGElem *elem)
-{
-  return CCG_elem_offset(key, elem, 1);
-}

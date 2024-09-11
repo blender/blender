@@ -226,13 +226,13 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.positions.as_span(), grids, positions);
 
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
@@ -319,7 +319,6 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
         nodes[i].grids(),
         relax_face_sets,
         factors.as_span().slice(node_vert_offsets[pos]),
-        current_positions.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
@@ -549,7 +548,7 @@ BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &deps
   const Span<int> grids = node.grids();
   const int grid_verts_num = grids.size() * key.grid_area;
 
-  gather_grids_positions(key, subdiv_ccg.grids, grids, positions);
+  gather_data_grids(subdiv_ccg, subdiv_ccg.positions.as_span(), grids, positions);
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
 
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
@@ -626,7 +625,6 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
         nodes[i].grids(),
         false,
         factors.as_span().slice(node_vert_offsets[pos]),
-        current_positions.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });

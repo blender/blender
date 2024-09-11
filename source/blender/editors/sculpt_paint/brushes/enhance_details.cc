@@ -205,7 +205,7 @@ static void calc_translations_grids(const SubdivCCG &subdiv_ccg,
 
   tls.new_positions.resize(positions.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-  smooth::neighbor_position_average_grids(subdiv_ccg, grids, new_positions);
+  smooth::average_data_grids(subdiv_ccg, subdiv_ccg.positions.as_span(), grids, new_positions);
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
