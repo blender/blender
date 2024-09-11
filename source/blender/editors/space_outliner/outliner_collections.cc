@@ -629,6 +629,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 
   Collection *collection = outliner_collection_from_tree_element(te);
   Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) : nullptr;
+  CollectionChild *child = BKE_collection_child_find(parent, collection);
 
   /* We are allowed to duplicated linked collections (they will become local IDs then),
    * but we should not allow its parent to be a linked ID, ever.
@@ -667,7 +668,8 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 
   const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
                                                         (linked ? 0 : U.dupflag));
-  BKE_collection_duplicate(bmain, parent, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
+  BKE_collection_duplicate(
+      bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
 
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));

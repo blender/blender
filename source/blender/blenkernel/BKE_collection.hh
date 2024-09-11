@@ -23,6 +23,7 @@ struct BlendDataReader;
 struct BlendWriter;
 struct Collection;
 struct ID;
+struct CollectionChild;
 struct CollectionExport;
 struct Main;
 struct Object;
@@ -96,6 +97,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy);
  */
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
+                                     CollectionChild *child_old,
                                      Collection *collection,
                                      uint duplicate_flags,
                                      uint duplicate_options);
@@ -120,6 +122,9 @@ Collection *BKE_collection_object_find(Main *bmain,
                                        Scene *scene,
                                        Collection *collection,
                                        Object *ob);
+
+CollectionChild *BKE_collection_child_find(Collection *parent, Collection *collection);
+
 bool BKE_collection_is_empty(const Collection *collection);
 
 /**

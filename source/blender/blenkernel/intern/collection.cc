@@ -68,7 +68,7 @@ static CLG_LogRef LOG = {"bke.collection"};
 static bool collection_child_add(Main *bmain,
                                  Collection *parent,
                                  Collection *collection,
-                                 CollectionLightLinking *light_linking,
+                                 const CollectionLightLinking *light_linking,
                                  const int id_create_flag,
                                  const bool add_us);
 /** \param id_create_flag: Creation/Copy ID management flags, e.g. #LIB_ID_CREATE_NO_MAIN. */
@@ -94,7 +94,6 @@ static void collection_object_remove_no_gobject_hash(Main *bmain,
 static bool collection_object_remove(
     Main *bmain, Collection *collection, Object *ob, const int id_create_flag, const bool free_us);
 
-static CollectionChild *collection_find_child(Collection *parent, Collection *collection);
 static CollectionParent *collection_find_parent(Collection *child, Collection *collection);
 
 static bool collection_find_child_recursive(const Collection *parent,
@@ -485,12 +484,12 @@ void BKE_collection_add_from_collection(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (ID_IS_EDITABLE(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-        collection_find_child(collection, collection_src))
+        BKE_collection_child_find(collection, collection_src))
     {
       collection_child_add(bmain, collection, collection_dst, nullptr, 0, true);
       is_instantiated = true;
     }
-    else if (!is_instantiated && collection_find_child(collection, collection_dst)) {
+    else if (!is_instantiated && BKE_collection_child_find(collection, collection_dst)) {
       /* If given collection_dst is already instantiated in scene, even if its 'model'
        * collection_src one is not, do not add it to master scene collection. */
       is_instantiated = true;
@@ -611,6 +610,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 static Collection *collection_duplicate_recursive(Main *bmain,
                                                   Collection *parent,
                                                   Collection *collection_old,
+                                                  CollectionChild *child_old,
                                                   const int id_create_flag,
                                                   const eDupli_ID_Flags duplicate_flags,
                                                   const eLibIDDuplicateFlags duplicate_options)
@@ -645,12 +645,18 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   /* Optionally add to parent (we always want to do that,
    * even if collection_old had already been duplicated). */
   if (parent != nullptr) {
-    CollectionChild *child = collection_find_child(parent, collection_old);
-    if (collection_child_add(
-            bmain, parent, collection_new, &child->light_linking, id_create_flag, true))
+    if (collection_child_add(bmain,
+                             parent,
+                             collection_new,
+                             child_old ? &child_old->light_linking : nullptr,
+                             id_create_flag,
+                             true))
     {
-      /* Put collection right after existing one. */
-      CollectionChild *child_new = collection_find_child(parent, collection_new);
+      /* Put collection right after existing one.
+       * NOTE: Lookup child in the actual parent, as the parent might be different
+       * one when duplicating collection in a linked parent. */
+      CollectionChild *child = BKE_collection_child_find(parent, collection_old);
+      CollectionChild *child_new = BKE_collection_child_find(parent, collection_new);
 
       if (child && child_new) {
         BLI_remlink(&parent->children, child_new);
@@ -700,12 +706,13 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 
   /* We can loop on collection_old's children,
    * that list is currently identical the collection_new' children, and won't be changed here. */
-  LISTBASE_FOREACH_MUTABLE (CollectionChild *, child, &collection_old->children) {
-    Collection *child_collection_old = child->collection;
+  LISTBASE_FOREACH_MUTABLE (CollectionChild *, child_iter, &collection_old->children) {
+    Collection *child_collection_old = child_iter->collection;
 
     Collection *child_collection_new = collection_duplicate_recursive(bmain,
                                                                       collection_new,
                                                                       child_collection_old,
+                                                                      child_iter,
                                                                       id_create_flag,
                                                                       duplicate_flags,
                                                                       duplicate_options);
@@ -719,6 +726,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
+                                     CollectionChild *child_old,
                                      Collection *collection,
                                      /*eDupli_ID_Flags*/ uint duplicate_flags,
                                      /*eLibIDDuplicateFlags*/ uint duplicate_options)
@@ -743,6 +751,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
       bmain,
       parent,
       collection,
+      child_old,
       id_create_flag,
       eDupli_ID_Flags(duplicate_flags),
       eLibIDDuplicateFlags(duplicate_options));
@@ -1615,7 +1624,8 @@ static void collection_null_children_remove(Collection *collection)
 static void collection_missing_parents_remove(Collection *collection)
 {
   LISTBASE_FOREACH_MUTABLE (CollectionParent *, parent, &collection->runtime.parents) {
-    if ((parent->collection == nullptr) || !collection_find_child(parent->collection, collection))
+    if ((parent->collection == nullptr) ||
+        !BKE_collection_child_find(parent->collection, collection))
     {
       BLI_freelinkN(&collection->runtime.parents, parent);
     }
@@ -1654,7 +1664,7 @@ void BKE_collections_child_remove_nulls(Main *bmain,
     LISTBASE_FOREACH_MUTABLE (CollectionParent *, parent, &child_collection->runtime.parents) {
       collection_null_children_remove(parent->collection);
 
-      if (!collection_find_child(parent->collection, child_collection)) {
+      if (!BKE_collection_child_find(parent->collection, child_collection)) {
         BLI_freelinkN(&child_collection->runtime.parents, parent);
       }
     }
@@ -1807,7 +1817,7 @@ bool BKE_collection_cycles_fix(Main *bmain, Collection *collection)
          collection_instance_fix_recursive(collection, collection);
 }
 
-static CollectionChild *collection_find_child(Collection *parent, Collection *collection)
+CollectionChild *BKE_collection_child_find(Collection *parent, Collection *collection)
 {
   return static_cast<CollectionChild *>(
       BLI_findptr(&parent->children, collection, offsetof(CollectionChild, collection)));
@@ -1842,11 +1852,11 @@ static CollectionParent *collection_find_parent(Collection *child, Collection *c
 static bool collection_child_add(Main *bmain,
                                  Collection *parent,
                                  Collection *collection,
-                                 CollectionLightLinking *light_linking,
+                                 const CollectionLightLinking *light_linking,
                                  const int id_create_flag,
                                  const bool add_us)
 {
-  CollectionChild *child = collection_find_child(parent, collection);
+  CollectionChild *child = BKE_collection_child_find(parent, collection);
   if (child) {
     return false;
   }
@@ -1883,7 +1893,7 @@ static bool collection_child_remove(Main *bmain,
                                     Collection *collection,
                                     const int id_create_flag)
 {
-  CollectionChild *child = collection_find_child(parent, collection);
+  CollectionChild *child = BKE_collection_child_find(parent, collection);
   if (child == nullptr) {
     return false;
   }
@@ -1928,7 +1938,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
 {
   LISTBASE_FOREACH_MUTABLE (CollectionChild *, child, &collection->children) {
     /* Check for duplicated children (can happen with remapping e.g.). */
-    CollectionChild *other_child = collection_find_child(collection, child->collection);
+    CollectionChild *other_child = BKE_collection_child_find(collection, child->collection);
     if (other_child != child) {
       BLI_freelinkN(&collection->children, child);
       continue;
@@ -2165,8 +2175,8 @@ bool BKE_collection_move(Main *bmain,
 
   /* Move to specified location under parent. */
   if (relative) {
-    CollectionChild *child = collection_find_child(to_parent, collection);
-    CollectionChild *relative_child = collection_find_child(to_parent, relative);
+    CollectionChild *child = BKE_collection_child_find(to_parent, collection);
+    CollectionChild *relative_child = BKE_collection_child_find(to_parent, relative);
 
     if (relative_child) {
       BLI_remlink(&to_parent->children, child);
