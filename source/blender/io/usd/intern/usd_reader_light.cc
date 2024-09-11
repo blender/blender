@@ -39,12 +39,8 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (!prim_) {
     return;
   }
-#if PXR_VERSION >= 2111
-  pxr::UsdLuxLightAPI light_api(prim_);
-#else
-  pxr::UsdLuxLight light_api(prim_);
-#endif
 
+  pxr::UsdLuxLightAPI light_api(prim_);
   if (!light_api) {
     return;
   }
