@@ -2315,7 +2315,9 @@ def km_file_browser(params):
          {"properties": [("data_path", 'space_data.show_region_tool_props')]}),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "alt": True}, None),
         ("file.previous", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True}, None),
+        ("file.previous", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("file.next", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True}, None),
+        ("file.next", {"type": 'BUTTON5MOUSE', "value": 'PRESS'}, None),
         # The two refresh operators have polls excluding each other (so only one is available depending on context).
         ("file.refresh", {"type": 'R', "value": 'PRESS'}, None),
         ("asset.library_refresh", {"type": 'R', "value": 'PRESS'}, None),
