@@ -22,7 +22,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
@@ -294,18 +293,7 @@ Vector<Sequence *> seq_get_shown_sequences(const Scene *scene,
   return result;
 }
 
-/* Strip corner coordinates in screen pixel space. Note that they might not be
- * axis aligned when rotation is present. */
-struct StripScreenQuad {
-  float2 v0, v1, v2, v3;
-
-  bool is_empty() const
-  {
-    return v0 == v1 && v2 == v3 && v0 == v2;
-  }
-};
-
-static StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Sequence *seq)
+StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Sequence *seq)
 {
   Scene *scene = context->scene;
   const int x = context->rectx;
@@ -509,13 +497,11 @@ static void sequencer_image_crop_init(const Sequence *seq,
   BLI_rctf_init(r_crop, left, in->x - right, bottom, in->y - top);
 }
 
-/* Check whether transform introduces transparent ares in the result (happens when the transformed
- * image does not fully cover the render frame).
- *
- * The check is done by checking whether all corners of viewport fit inside of the transformed
- * image. If they do not the image will have transparent areas. */
-static bool seq_image_transform_transparency_gained(const SeqRenderData *context, Sequence *seq)
+static bool is_strip_covering_screen(const SeqRenderData *context, const Sequence *seq)
 {
+  /* The check is done by checking whether all corners of viewport fit inside
+   * of the transformed strip. If they do not, the strip does not cover
+   * whole screen. */
   float x0 = 0.0f;
   float y0 = 0.0f;
   float x1 = float(context->rectx);
@@ -529,7 +515,7 @@ static bool seq_image_transform_transparency_gained(const SeqRenderData *context
   StripScreenQuad quad = get_strip_screen_quad(context, seq);
   StripScreenQuad screen{float2(x0, y0), float2(x1, y0), float2(x0, y1), float2(x1, y1)};
 
-  return !is_quad_a_inside_b(screen, quad);
+  return is_quad_a_inside_b(screen, quad);
 }
 
 /* Automatic filter:
@@ -602,10 +588,12 @@ static void sequencer_preprocess_transform_crop(
 
   IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
 
-  if (!seq_image_transform_transparency_gained(context, seq)) {
+  if (is_strip_covering_screen(context, seq)) {
     out->planes = in->planes;
   }
   else {
+    /* Strip is not covering full viewport, which means areas with transparency
+     * are introduced for sure. */
     out->planes = R_IMF_PLANES_RGBA;
   }
 }
