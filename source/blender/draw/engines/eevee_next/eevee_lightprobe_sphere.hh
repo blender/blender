@@ -14,14 +14,11 @@
 #include "BKE_cryptomatte.hh"
 
 extern "C" {
-struct Material;
 }
 
 namespace blender::eevee {
 
 class Instance;
-struct ObjectHandle;
-struct WorldHandle;
 class CaptureView;
 
 /* -------------------------------------------------------------------- */

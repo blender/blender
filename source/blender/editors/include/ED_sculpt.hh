@@ -8,13 +8,10 @@
 
 #pragma once
 
-struct ARegion;
 struct Object;
 struct ReportList;
 struct UndoType;
-struct ViewContext;
 struct bContext;
-struct rcti;
 struct wmOperator;
 struct wmKeyConfig;
 

@@ -53,15 +53,10 @@
 
 #include "DNA_customdata_types.h"
 
-struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
-struct Depsgraph;
 struct Mesh;
-struct ModifierData;
-struct Object;
-struct Scene;
 
 enum DerivedMeshType {
   DM_TYPE_CDDM,

@@ -45,7 +45,6 @@ struct BlendDataReader;
 struct BlendFileReadReport;
 struct BlendLibReader;
 struct BlendWriter;
-struct LibraryIDLinkCallbackData;
 struct Main;
 
 /* -------------------------------------------------------------------- */

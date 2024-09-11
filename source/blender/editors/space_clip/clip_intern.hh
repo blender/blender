@@ -18,7 +18,6 @@ struct MovieClip;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct Scene;
-struct ScrArea;
 struct SpaceClip;
 struct bContext;
 struct wmOperatorType;

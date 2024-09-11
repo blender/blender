@@ -25,10 +25,8 @@
 #include "RNA_types.hh"
 
 struct ID;
-struct ListBase;
 struct Main;
 struct Scene;
-struct ViewLayer;
 
 struct AnimationEvalContext;
 struct NlaKeyframingContext;

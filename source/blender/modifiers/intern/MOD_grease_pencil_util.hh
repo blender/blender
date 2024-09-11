@@ -13,13 +13,9 @@
 
 #include "BKE_modifier.hh"
 
-struct ARegionType;
 struct bContext;
 struct GreasePencil;
 struct GreasePencilModifierInfluenceData;
-struct GreasePencilModifierLayerFilter;
-struct GreasePencilModifierMaterialFilter;
-struct PanelType;
 struct PointerRNA;
 struct uiLayout;
 namespace blender::bke {

@@ -11,8 +11,6 @@
 #include "BLI_utildefines.h"
 
 struct BMesh;
-struct BMVert;
-struct BMFace;
 
 namespace blender::bke::pbvh {
 

@@ -13,7 +13,6 @@
 struct ListBase;
 struct Scene;
 struct Sequence;
-struct SeqCollection;
 
 void seq_update_sound_bounds_recursive(const Scene *scene, Sequence *metaseq);
 

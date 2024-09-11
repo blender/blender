@@ -30,6 +30,7 @@
 #include "draw_instance_data.hh"
 #include "draw_shader_shared.hh"
 
+struct DRWDebugModule;
 struct DRWTexturePool;
 struct DRWUniformChunk;
 struct DupliObject;

@@ -24,7 +24,6 @@ struct ToolSettings;
 struct TransformOrientation;
 struct TransformOrientationSlot;
 struct UnitSettings;
-struct View3DCursor;
 struct ViewLayer;
 
 enum eSceneCopyMethod {

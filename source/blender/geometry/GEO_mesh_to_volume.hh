@@ -16,7 +16,6 @@
 #include "BKE_volume_grid_fwd.hh"
 
 struct Depsgraph;
-struct Mesh;
 struct Volume;
 
 /** \file

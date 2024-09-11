@@ -20,7 +20,6 @@
 struct bContext;
 struct Curves;
 struct UndoType;
-struct SelectPick_Params;
 struct ViewContext;
 struct rcti;
 struct TransVertStore;

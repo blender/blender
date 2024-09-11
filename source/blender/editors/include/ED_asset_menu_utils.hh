@@ -14,7 +14,6 @@
 
 #include "RNA_types.hh"
 
-struct bScreen;
 struct uiLayout;
 
 namespace blender::asset_system {

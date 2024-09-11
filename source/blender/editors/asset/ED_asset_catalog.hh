@@ -23,8 +23,6 @@
 
 #include "BLI_string_ref.hh"
 
-struct bScreen;
-
 namespace blender::ed::asset {
 
 void catalogs_save_from_main_path(asset_system::AssetLibrary *library, const Main *bmain);

@@ -30,7 +30,6 @@ class Profiler;
 
 struct bNodeTree;
 struct Depsgraph;
-struct GSet;
 struct Main;
 struct Object;
 struct RenderEngine;

@@ -8,7 +8,6 @@
 #include "spreadsheet_cache.hh"
 
 struct ARegionType;
-struct bContext;
 
 namespace blender::ed::spreadsheet {
 

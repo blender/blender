@@ -8,15 +8,10 @@
  * \ingroup bke
  */
 
-struct bGPdata;
-struct bGPDframe;
 struct BlendfileLinkAppendContext;
 struct BlendFileReadReport;
 struct GreasePencil;
-struct GreasePencilDrawing;
-struct ListBase;
 struct Main;
-struct Object;
 struct LineartGpencilModifierData;
 struct GreasePencilLineartModifierData;
 

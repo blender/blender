@@ -19,7 +19,6 @@ struct PropertyRNA;
 struct bContext;
 namespace blender::bke {
 struct bNodeTreeType;
-struct bNodeType;
 struct bNodeSocketType;
 struct RuntimeNodeEnumItems;
 }  // namespace blender::bke

@@ -11,7 +11,6 @@
 #include "DNA_scene_types.h"
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
 struct Editing;

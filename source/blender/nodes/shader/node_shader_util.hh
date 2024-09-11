@@ -31,7 +31,6 @@
 
 struct bContext;
 struct bNodeExecContext;
-struct bNodeExecData;
 struct bNodeTreeExec;
 struct GPUNodeLink;
 struct GPUNodeStack;

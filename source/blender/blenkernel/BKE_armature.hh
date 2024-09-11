@@ -17,7 +17,6 @@
 
 #include "DNA_armature_types.h"
 
-struct AnimationEvalContext;
 struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
@@ -28,7 +27,6 @@ struct Mesh;
 struct Object;
 struct PoseTree;
 struct Scene;
-struct bAction;
 struct bArmature;
 struct bConstraint;
 struct bGPDstroke;

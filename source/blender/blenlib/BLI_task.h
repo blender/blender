@@ -8,8 +8,6 @@
 
 #include <string.h> /* for memset() */
 
-struct ListBase;
-
 /** \file
  * \ingroup bli
  */

@@ -24,7 +24,6 @@
 
 struct bContext;
 struct uiBlock;
-struct uiBut;
 struct uiLayout;
 
 namespace blender::ui {

@@ -16,8 +16,6 @@ namespace blender::io::usd {
  * to the bound skeleton. */
 extern pxr::TfToken TempBlendShapeWeightsPrimvarName;
 
-struct ImportSettings;
-
 /**
  * Return the shape key on the given mesh object.
  *

@@ -27,7 +27,6 @@ struct Main;
 struct ModifierData;
 struct Object;
 struct PointerRNA;
-struct PropertyRNA;
 struct ReportList;
 struct Scene;
 struct ShaderFxData;

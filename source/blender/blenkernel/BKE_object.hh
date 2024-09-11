@@ -25,7 +25,6 @@ struct Base;
 struct BoundBox;
 struct Curve;
 struct Depsgraph;
-struct GpencilModifierData;
 struct HookGpencilModifierData;
 struct HookModifierData;
 struct ID;

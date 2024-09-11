@@ -24,7 +24,6 @@
 
 #include <utility>
 
-struct AnimationEvalContext;
 struct FCurve;
 struct FCurve;
 struct ID;

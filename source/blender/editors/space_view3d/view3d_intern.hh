@@ -18,8 +18,6 @@ struct BoundBox;
 struct Depsgraph;
 struct Object;
 struct Scene;
-struct ViewContext;
-struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
 struct View3DCameraControl;

@@ -44,7 +44,6 @@ struct Sculpt;
 struct SculptSession;
 struct SubdivCCG;
 struct SubdivCCGCoord;
-struct SubdivCCGNeighbors;
 namespace blender {
 namespace bke::pbvh {
 class Node;

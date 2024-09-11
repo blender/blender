@@ -11,8 +11,6 @@
 #include "COM_CompositorContext.h"
 #include "COM_NodeOperation.h"
 
-struct StampData;
-
 namespace blender::realtime_compositor {
 class FileOutput;
 }

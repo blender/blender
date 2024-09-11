@@ -9,12 +9,8 @@
 #include "BLI_vector.hh"
 
 struct wmOperator;
-struct wmOperatorType;
-struct wmDrag;
-struct wmDropBox;
 
 namespace blender::bke {
-struct FileHanlderType;
 }  // namespace blender::bke
 
 namespace blender::ed::io {

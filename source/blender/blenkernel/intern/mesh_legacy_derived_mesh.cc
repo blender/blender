@@ -10,8 +10,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh_legacy_derived_mesh.hh"
 
-struct MeshElemMap;
-
 /* -------------------------------------------------------------------- */
 
 static float *dm_getVertArray(DerivedMesh *dm)

@@ -13,14 +13,11 @@
 #include "BKE_node.hh"
 
 struct bNodeTree;
-struct bNodeSocket;
 struct bNodeTreeInterfaceSocket;
-struct Depsgraph;
 namespace blender::bke {
 struct GeometrySet;
 }
 struct IDProperty;
-struct Object;
 namespace blender::nodes {
 struct GeoNodesCallData;
 namespace geo_eval_log {

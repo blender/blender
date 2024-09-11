@@ -31,7 +31,6 @@
 
 namespace blender::ed::sculpt_paint {
 namespace auto_mask {
-struct NodeData;
 struct Cache;
 }
 namespace boundary {
@@ -45,7 +44,6 @@ struct IKChain;
 }
 namespace undo {
 struct Node;
-struct StepData;
 enum class Type : int8_t;
 }
 }
@@ -56,14 +54,10 @@ struct Image;
 struct ImageUser;
 struct KeyBlock;
 struct Object;
-struct SculptProjectVector;
 struct bContext;
 struct PaintModeSettings;
-struct WeightPaintInfo;
-struct WPaintData;
 struct wmKeyConfig;
 struct wmKeyMap;
-struct wmOperator;
 struct wmOperatorType;
 
 /* -------------------------------------------------------------------- */

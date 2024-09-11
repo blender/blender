@@ -8,7 +8,6 @@
 
 #pragma once
 
-struct Base;
 struct KeyBlock;
 struct Lattice;
 struct Object;

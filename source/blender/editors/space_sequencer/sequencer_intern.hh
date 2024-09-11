@@ -29,10 +29,6 @@
 class SeqQuadsBatch;
 struct ARegion;
 struct ARegionType;
-struct Depsgraph;
-struct wmGizmoGroupType;
-struct wmGizmoType;
-struct Main;
 struct Scene;
 struct SeqRetimingKey;
 struct Sequence;

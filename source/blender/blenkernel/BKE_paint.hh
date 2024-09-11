@@ -30,6 +30,7 @@
 
 struct BMFace;
 struct BMLog;
+struct BMVert;
 struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
@@ -64,8 +65,6 @@ struct KeyBlock;
 struct Main;
 struct Mesh;
 struct MDeformVert;
-struct MLoopCol;
-struct MPropCol;
 struct MultiresModifierData;
 struct Object;
 struct Paint;

@@ -23,9 +23,10 @@ struct CCGSubSurf;
 struct CCGVert;
 struct DerivedMesh;
 struct Mesh;
-struct MeshElemMap;
 struct MultiresModifierData;
 struct Object;
+struct Scene;
+
 namespace blender::bke::pbvh {
 class Tree;
 }

@@ -50,10 +50,7 @@ typedef struct GreasePencilLayerGroupRuntimeHandle GreasePencilLayerGroupRuntime
 
 struct Main;
 struct GreasePencil;
-struct BlendDataReader;
-struct BlendWriter;
 struct Object;
-struct bDeformGroup;
 
 typedef enum GreasePencilStrokeCapType {
   GP_STROKE_CAP_TYPE_ROUND = 0,

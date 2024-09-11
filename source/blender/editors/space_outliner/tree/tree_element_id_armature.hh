@@ -10,8 +10,6 @@
 
 #include "tree_element_id.hh"
 
-struct Bone;
-struct EditBone;
 struct bArmature;
 
 namespace blender::ed::outliner {

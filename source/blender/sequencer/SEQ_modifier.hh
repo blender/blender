@@ -9,11 +9,9 @@
  */
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct ImBuf;
 struct ListBase;
-struct Scene;
 struct SeqRenderData;
 struct Sequence;
 struct SequenceModifierData;

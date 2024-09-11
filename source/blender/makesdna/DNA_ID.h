@@ -28,7 +28,6 @@ extern "C" {
 
 struct FileData;
 struct GHash;
-struct GPUTexture;
 struct ID;
 struct Library;
 struct PackedFile;

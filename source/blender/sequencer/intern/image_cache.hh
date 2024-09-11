@@ -11,7 +11,6 @@
 #include "SEQ_render.hh" /* Needed for #eSeqTaskId. */
 
 struct ImBuf;
-struct Main;
 struct Scene;
 struct SeqCache;
 struct SeqRenderData;

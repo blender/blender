@@ -18,6 +18,8 @@
 
 #include "tree_element_pose.hh"
 
+struct bConstraint;
+
 namespace blender::ed::outliner {
 
 TreeElementPoseBase::TreeElementPoseBase(TreeElement &legacy_te, Object &object)

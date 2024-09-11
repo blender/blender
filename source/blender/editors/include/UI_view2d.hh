@@ -104,7 +104,6 @@ enum eView2D_CommonViewTypes {
  * \{ */
 
 struct View2D;
-struct View2DScrollers;
 
 struct ARegion;
 struct Scene;

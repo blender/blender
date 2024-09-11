@@ -17,7 +17,6 @@ struct Main;
 struct Scene;
 struct Sequence;
 struct StripElem;
-struct rctf;
 
 enum eSeqTaskId {
   SEQ_TASK_MAIN_RENDER,

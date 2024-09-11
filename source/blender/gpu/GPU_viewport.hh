@@ -19,7 +19,6 @@
 #define GLA_PIXEL_OFS 0.375f
 
 struct DRWData;
-struct GHash;
 struct GPUViewport;
 struct GPUFrameBuffer;
 struct GPUOffScreen;

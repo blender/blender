@@ -8,9 +8,6 @@
 
 #pragma once
 
-struct ARegion;
-struct View3D;
-struct bContext;
 struct wmOperatorType;
 
 void WM_OT_grease_pencil_import_svg(wmOperatorType *ot);

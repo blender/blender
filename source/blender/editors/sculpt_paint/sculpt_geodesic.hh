@@ -11,10 +11,6 @@
 #include "BLI_array.hh"
 #include "BLI_set.hh"
 
-struct Depsgraph;
-struct Object;
-struct PBVHVertRef;
-
 namespace blender::ed::sculpt_paint::geodesic {
 
 /**

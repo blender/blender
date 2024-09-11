@@ -39,7 +39,6 @@ struct uiBlock;
 struct uiButViewItem;
 struct uiLayout;
 struct ViewLink;
-struct wmDrag;
 struct wmNotifier;
 
 namespace blender::ui {

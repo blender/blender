@@ -31,7 +31,6 @@
 #include "DNA_mask_types.h"
 #include "DNA_space_types.h"
 /* Forward declarations */
-struct ImBuf;
 
 struct OVERLAY_FramebufferList {
   GPUFrameBuffer *overlay_default_fb;

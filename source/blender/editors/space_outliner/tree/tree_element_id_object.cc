@@ -20,6 +20,8 @@
 
 #include "tree_element_id_object.hh"
 
+struct bConstraint;
+
 namespace blender::ed::outliner {
 
 TreeElementIDObject::TreeElementIDObject(TreeElement &legacy_te, Object &object)

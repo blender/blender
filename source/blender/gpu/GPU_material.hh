@@ -21,7 +21,6 @@
 
 struct GHash;
 struct GPUMaterial;
-struct GPUNode;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUPass;

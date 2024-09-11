@@ -17,9 +17,9 @@
 #include "BKE_pbvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
+struct BMVert;
 struct Depsgraph;
 struct Object;
-struct SculptSession;
 
 namespace blender::ed::sculpt_paint::flood_fill {
 

@@ -9,7 +9,6 @@
 
 #include "BLI_sys_types.h"
 
-struct ID;
 struct Main;
 struct ReportList;
 struct bContext;

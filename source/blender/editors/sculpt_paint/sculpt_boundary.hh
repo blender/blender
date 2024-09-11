@@ -22,7 +22,6 @@ struct BMVert;
 struct Depsgraph;
 struct Object;
 struct PBVHVertRef;
-struct Sculpt;
 struct SculptBoundaryPreview;
 struct SculptSession;
 struct SubdivCCG;

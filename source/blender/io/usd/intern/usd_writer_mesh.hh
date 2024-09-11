@@ -9,7 +9,6 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
-struct Key;
 struct SubsurfModifierData;
 
 namespace blender::bke {

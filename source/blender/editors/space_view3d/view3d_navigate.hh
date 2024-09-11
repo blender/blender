@@ -29,7 +29,6 @@ struct PointerRNA;
 struct rcti;
 struct wmEvent;
 struct wmKeyConfig;
-struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 struct wmTimer;

@@ -34,7 +34,6 @@ namespace blender::bke {
 class bNodeTreeRuntime;
 class bNodeRuntime;
 class bNodeSocketRuntime;
-struct bNodeTreeInterfaceCache;
 }  // namespace blender::bke
 namespace blender::bke {
 class bNodeTreeZones;

@@ -3382,7 +3382,6 @@ void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
 
 /* UI_butstore_ helpers */
 struct uiButStore;
-struct uiButStoreElem;
 
 /**
  * Create a new button store, the caller must manage and run #UI_butstore_free

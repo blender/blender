@@ -14,7 +14,6 @@
 
 #include "DNA_scene_types.h"
 
-struct Object;
 struct bContext;
 struct wmGizmo;
 struct SnapObjectContext;

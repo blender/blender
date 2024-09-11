@@ -16,7 +16,6 @@
 #endif
 
 struct AnimData;
-struct CurveMapping;
 struct Ipo;
 struct bNodeTree;
 

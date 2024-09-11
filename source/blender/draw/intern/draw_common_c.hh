@@ -14,7 +14,9 @@ struct DRWShadingGroup;
 struct DRWView;
 struct FluidModifierData;
 struct GPUMaterial;
+struct GPUTexture;
 struct GPUUniformBuf;
+
 namespace blender::gpu {
 class VertBuf;
 }

@@ -11,7 +11,6 @@ struct ARegion;
 struct Object;
 struct View3D;
 struct Depsgraph;
-struct RenderData;
 
 namespace blender::render::hydra {
 

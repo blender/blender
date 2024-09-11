@@ -12,7 +12,6 @@ class Profiler;
 }  // namespace blender::realtime_compositor
 
 struct bNodeTree;
-struct Depsgraph;
 struct Render;
 struct RenderData;
 struct Scene;

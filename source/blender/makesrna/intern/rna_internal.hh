@@ -22,7 +22,6 @@ enum class AttributeOwnerType;
 
 struct FreestyleSettings;
 struct ID;
-struct IDOverrideLibrary;
 struct IDProperty;
 struct FreestyleLineSet;
 struct FreestyleModuleConfig;

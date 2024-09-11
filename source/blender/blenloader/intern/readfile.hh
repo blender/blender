@@ -35,7 +35,6 @@ struct Main;
 struct MemFile;
 struct Object;
 struct OldNewMap;
-struct ReportList;
 struct UserDef;
 
 enum eFileDataFlag {

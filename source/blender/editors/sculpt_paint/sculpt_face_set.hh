@@ -19,7 +19,6 @@ struct BMVert;
 struct Mesh;
 struct Object;
 struct PBVHVertRef;
-struct SculptSession;
 struct SubdivCCG;
 struct SubdivCCGCoord;
 

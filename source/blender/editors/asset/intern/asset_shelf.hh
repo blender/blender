@@ -20,7 +20,6 @@ struct bContext;
 struct BlendDataReader;
 struct BlendWriter;
 struct RegionAssetShelf;
-struct SpaceType;
 struct uiLayout;
 
 namespace blender::asset_system {

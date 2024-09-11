@@ -22,7 +22,6 @@
 
 struct Scene;
 struct Object;
-struct GreasePencil;
 struct Material;
 struct RegionView3D;
 namespace blender::bke::greasepencil {

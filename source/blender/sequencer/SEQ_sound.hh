@@ -14,7 +14,6 @@ struct Scene;
 struct Sequence;
 struct bSound;
 struct SequenceModifierData;
-struct SequencerSoundEqualizer;
 struct SoundModifierWorkerInfo;
 struct BlendWriter;
 struct BlendDataReader;

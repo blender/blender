@@ -16,7 +16,6 @@
 namespace blender {
 class ImplicitSharingInfo;
 }
-struct GHash;
 struct Main;
 struct Scene;
 

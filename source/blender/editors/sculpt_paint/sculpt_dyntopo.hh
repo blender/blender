@@ -17,7 +17,6 @@ struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
-struct SculptSession;
 namespace blender::ed::sculpt_paint::undo {
 struct StepData;
 }

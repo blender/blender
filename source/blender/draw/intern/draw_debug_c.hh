@@ -11,8 +11,6 @@
 
 #pragma once
 
-struct DRWDebugModule;
-
 struct BoundBox;
 
 void DRW_debug_modelmat_reset();

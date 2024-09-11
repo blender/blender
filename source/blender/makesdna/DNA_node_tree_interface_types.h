@@ -31,7 +31,6 @@ typedef struct bNodeTreeInterfaceRuntimeHandle bNodeTreeInterfaceRuntimeHandle;
 typedef struct bNodeSocketTypeHandle bNodeSocketTypeHandle;
 #endif
 
-struct bContext;
 struct bNodeSocket;
 struct bNodeTreeInterfaceItem;
 struct bNodeTreeInterfacePanel;
@@ -39,11 +38,8 @@ struct bNodeTreeInterfaceSocket;
 struct ID;
 struct IDProperty;
 struct LibraryForeachIDData;
-struct PointerRNA;
-struct uiLayout;
 struct BlendWriter;
 struct BlendDataReader;
-struct BlendLibReader;
 
 /** Type of interface item. */
 typedef enum NodeTreeInterfaceItemType {

@@ -21,9 +21,7 @@
 #include "UI_resources.hh"
 
 struct bContext;
-struct PointerRNA;
 struct uiBlock;
-struct uiButViewItem;
 struct uiLayout;
 struct View2D;
 

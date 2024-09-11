@@ -13,22 +13,14 @@
 extern "C" {
 #endif
 
-struct ARegionType;
 struct BlendDataReader;
 struct BlendWriter;
-struct Depsgraph;
 struct GpencilModifierData;
 struct ID;
 struct ListBase;
-struct Main;
-struct ModifierUpdateDepsgraphContext;
 struct Object;
-struct Scene;
 /* NOTE: bake_modifier() called from UI:
  * needs to create new data-blocks, hence the need for this. */
-struct bGPDframe;
-struct bGPDlayer;
-struct bGPDstroke;
 
 typedef void (*GreasePencilIDWalkFunc)(void *user_data,
                                        struct Object *ob,

@@ -16,7 +16,6 @@ extern "C" {
 #include "BLI_sys_types.h"
 
 struct BlendWriter;
-struct BlendReader;
 struct UserDef;
 struct bUserExtensionRepo;
 struct bUserAssetLibrary;

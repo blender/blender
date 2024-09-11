@@ -23,7 +23,6 @@ struct ImagePool;
 struct Main;
 struct MTex;
 struct Scene;
-struct ToolSettings;
 struct UnifiedPaintSettings;
 
 // enum eCurveMappingPreset;

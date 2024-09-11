@@ -24,13 +24,7 @@ class Batch;
 class IndexBuf;
 class VertBuf;
 }  // namespace blender::gpu
-struct Mesh;
-struct CustomData;
 struct Object;
-struct SubdivCCG;
-struct BMesh;
-struct BMFace;
-struct RegionView3D;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 namespace pbvh {

@@ -17,7 +17,6 @@
 #include "node_util.hh"
 
 struct BVHTreeFromMesh;
-struct GeometrySet;
 namespace blender::nodes {
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;

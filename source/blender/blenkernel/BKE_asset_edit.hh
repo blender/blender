@@ -32,7 +32,6 @@
 #include "DNA_ID_enums.h"
 
 struct bUserAssetLibrary;
-struct AssetMetaData;
 struct AssetWeakReference;
 struct ID;
 struct Main;

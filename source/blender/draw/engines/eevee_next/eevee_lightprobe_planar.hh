@@ -13,14 +13,12 @@
 #include "BKE_cryptomatte.hh"
 
 extern "C" {
-struct Material;
 }
 
 namespace blender::eevee {
 
 class Instance;
 class HiZBuffer;
-struct ObjectHandle;
 
 /* -------------------------------------------------------------------- */
 /** \name Planar Probe Module

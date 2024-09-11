@@ -10,6 +10,8 @@
 
 #include "tree_element_id.hh"
 
+struct Mesh;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDMesh final : public TreeElementID {

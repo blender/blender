@@ -45,7 +45,6 @@ typedef struct GPUVertBufHandle GPUVertBufHandle;
 /* Forward declarations so the actual declarations can happen top-down. */
 struct ActionLayer;
 struct ActionSlot;
-struct ActionSlot_runtime;
 struct ActionStrip;
 struct ActionChannelBag;
 

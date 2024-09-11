@@ -20,8 +20,6 @@ struct bContextDataResult;
 struct BlendDataReader;
 struct BlendWriter;
 struct Main;
-struct SpaceType;
-struct uiBlock;
 struct RegionPollParams;
 struct wmRegionMessageSubscribeParams;
 struct wmWindowManager;

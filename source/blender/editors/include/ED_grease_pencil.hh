@@ -41,7 +41,6 @@ namespace bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
 namespace crazyspace {
-struct GeometryDeformation;
 }
 }  // namespace bke
 }  // namespace blender

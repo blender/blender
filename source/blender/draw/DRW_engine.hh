@@ -22,8 +22,6 @@ struct GHash;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUVertFormat;
-struct CustomDataLayer;
-struct CustomData;
 struct GPUViewport;
 struct ID;
 struct Main;
