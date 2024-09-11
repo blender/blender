@@ -243,16 +243,11 @@ void SEQ_query_strip_effect_chain(const Scene *scene,
     if (reference_strip->seq2) {
       SEQ_query_strip_effect_chain(scene, reference_strip->seq2, seqbase, strips);
     }
-    if (reference_strip->seq3) {
-      SEQ_query_strip_effect_chain(scene, reference_strip->seq3, seqbase, strips);
-    }
   }
 
   /* Find all strips connected to reference_strip. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
-    if (seq_test->seq1 == reference_strip || seq_test->seq2 == reference_strip ||
-        seq_test->seq3 == reference_strip)
-    {
+    if (seq_test->seq1 == reference_strip || seq_test->seq2 == reference_strip) {
       SEQ_query_strip_effect_chain(scene, seq_test, seqbase, strips);
     }
   }

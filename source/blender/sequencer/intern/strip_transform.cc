@@ -59,16 +59,13 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
     if (seq->flag & SELECT) {
       if ((seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
-          (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
-          (seq->seq3 && (seq->seq3->flag & SELECT) == 0))
+          (seq->seq2 && (seq->seq2->flag & SELECT) == 0))
       {
         return false;
       }
     }
     else {
-      if ((seq->seq1 && (seq->seq1->flag & SELECT)) || (seq->seq2 && (seq->seq2->flag & SELECT)) ||
-          (seq->seq3 && (seq->seq3->flag & SELECT)))
-      {
+      if ((seq->seq1 && (seq->seq1->flag & SELECT)) || (seq->seq2 && (seq->seq2->flag & SELECT))) {
         return false;
       }
     }

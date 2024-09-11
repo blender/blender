@@ -1436,10 +1436,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   load_data_init_from_operator(&load_data, C, op);
   load_data.effect.type = RNA_enum_get(op->ptr, "type");
 
-  Sequence *seq1, *seq2, *seq3;
-  if (!seq_effect_find_selected(
-          scene, nullptr, load_data.effect.type, &seq1, &seq2, &seq3, &error_msg))
-  {
+  Sequence *seq1, *seq2;
+  if (!seq_effect_find_selected(scene, nullptr, load_data.effect.type, &seq1, &seq2, &error_msg)) {
     BKE_report(op->reports, RPT_ERROR, error_msg);
     return OPERATOR_CANCELLED;
   }
@@ -1450,13 +1448,11 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
   load_data.effect.seq1 = seq1;
   load_data.effect.seq2 = seq2;
-  load_data.effect.seq3 = seq3;
 
   /* Set channel. If unset, use lowest free one above strips. */
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {
     if (seq1 != nullptr) {
-      int chan = max_iii(
-          seq1 ? seq1->machine : 0, seq2 ? seq2->machine : 0, seq3 ? seq3->machine : 0);
+      int chan = max_ii(seq1 ? seq1->machine : 0, seq2 ? seq2->machine : 0);
       if (chan < MAXSEQ) {
         load_data.channel = chan;
       }

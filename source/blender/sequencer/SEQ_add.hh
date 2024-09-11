@@ -48,7 +48,6 @@ struct SeqLoadData {
     int end_frame;
     Sequence *seq1;
     Sequence *seq2;
-    Sequence *seq3;
   } effect; /* Only for effect strips. */
   eSeqLoadFlags flags;
   eSeqImageFitMethod fit_method;

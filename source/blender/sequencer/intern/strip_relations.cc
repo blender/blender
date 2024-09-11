@@ -379,8 +379,7 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
   }
 
   if ((seq_main->seq1 && SEQ_relations_render_loop_check(seq_main->seq1, seq)) ||
-      (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, seq)) ||
-      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq)))
+      (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, seq)))
   {
     return true;
   }

@@ -2422,9 +2422,6 @@ static bool select_grouped_effect(blender::Span<Sequence *> strips,
       if (seq->seq2) {
         seq->seq2->flag |= SELECT;
       }
-      if (seq->seq3) {
-        seq->seq3->flag |= SELECT;
-      }
       changed = true;
     }
   }

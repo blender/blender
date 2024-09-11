@@ -194,16 +194,14 @@ typedef struct Sequence {
   float startstill, endstill;
   /** Machine: the strip channel */
   int machine;
-  int _pad;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
   int startdisp, enddisp;
   float sat;
   float mul;
-  float _pad1;
 
-  short anim_preseek; /* UNUSED. */
   /** Stream-index for movie or sound files with several streams. */
   short streamindex;
+  short _pad;
   /** For multi-camera source selection. */
   int multicam_source;
   /** MOVIECLIP render flags. */
@@ -231,7 +229,7 @@ typedef struct Sequence {
   float speed_fader;
 
   /* pointers for effects: */
-  struct Sequence *seq1, *seq2, *seq3;
+  struct Sequence *seq1, *seq2;
 
   /** List of strips for meta-strips. */
   ListBase seqbase;
@@ -291,7 +289,6 @@ typedef struct Sequence {
   float speed_factor;
 
   struct SeqRetimingKey *retiming_keys;
-  void *_pad5;
   int retiming_keys_num;
   char _pad6[4];
 

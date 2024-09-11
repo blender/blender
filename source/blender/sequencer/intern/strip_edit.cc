@@ -367,13 +367,6 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
           scene, seq->seq2, timeline_frame);
     }
   }
-  if (seq->seq3) {
-    input_does_intersect |= seq_edit_split_intersect_check(scene, seq->seq3, timeline_frame);
-    if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
-      input_does_intersect |= seq_edit_split_effect_inputs_intersect(
-          scene, seq->seq3, timeline_frame);
-    }
-  }
   return input_does_intersect;
 }
 

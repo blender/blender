@@ -2696,16 +2696,6 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
     RNA_def_property_pointer_funcs(prop, nullptr, "rna_Sequence_input_2_set", nullptr, nullptr);
     RNA_def_property_ui_text(prop, "Input 2", "Second input for the effect strip");
   }
-
-#  if 0
-  if (count == 3) {
-    /* Not used by any effects (perhaps one day plugins?). */
-    prop = RNA_def_property(srna, "input_3", PROP_POINTER, PROP_NONE);
-    RNA_def_property_pointer_sdna(prop, nullptr, "seq3");
-    RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
-    RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
-  }
-#  endif
 }
 
 static void rna_def_color_management(StructRNA *srna)

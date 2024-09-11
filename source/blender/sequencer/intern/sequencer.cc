@@ -316,9 +316,6 @@ static void seq_new_fix_links_recursive(Sequence *seq)
     if (seq->seq2 && seq->seq2->tmp) {
       seq->seq2 = static_cast<Sequence *>(seq->seq2->tmp);
     }
-    if (seq->seq3 && seq->seq3->tmp) {
-      seq->seq3 = static_cast<Sequence *>(seq->seq3->tmp);
-    }
   }
   else if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, seqn, &seq->seqbase) {
@@ -829,12 +826,6 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
 
   BLO_read_struct(reader, Sequence, &seq->seq1);
   BLO_read_struct(reader, Sequence, &seq->seq2);
-  BLO_read_struct(reader, Sequence, &seq->seq3);
-
-  /* a patch: after introduction of effects with 3 input strips */
-  if (seq->seq3 == nullptr) {
-    seq->seq3 = seq->seq2;
-  }
 
   if (seq->effectdata) {
     switch (seq->type) {

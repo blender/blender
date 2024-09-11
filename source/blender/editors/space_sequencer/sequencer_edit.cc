@@ -406,12 +406,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
               scene, seq, (snap_frame - SEQ_time_left_handle_frame_get(scene, seq)));
         }
       }
-      else if (seq->seq3 && (seq->seq3->flag & SELECT)) {
-        if (!either_handle_selected) {
-          SEQ_offset_animdata(
-              scene, seq, (snap_frame - SEQ_time_left_handle_frame_get(scene, seq)));
-        }
-      }
     }
   }
 
@@ -1206,11 +1200,10 @@ int seq_effect_find_selected(Scene *scene,
                              int type,
                              Sequence **r_selseq1,
                              Sequence **r_selseq2,
-                             Sequence **r_selseq3,
                              const char **r_error_str)
 {
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq1 = nullptr, *seq2 = nullptr, *seq3 = nullptr;
+  Sequence *seq1 = nullptr, *seq2 = nullptr;
 
   *r_error_str = nullptr;
 
@@ -1219,7 +1212,7 @@ int seq_effect_find_selected(Scene *scene,
   }
 
   if (SEQ_effect_get_num_inputs(type) == 0) {
-    *r_selseq1 = *r_selseq2 = *r_selseq3 = nullptr;
+    *r_selseq1 = *r_selseq2 = nullptr;
     return 1;
   }
 
@@ -1236,23 +1229,12 @@ int seq_effect_find_selected(Scene *scene,
         else if (seq1 == nullptr) {
           seq1 = seq;
         }
-        else if (seq3 == nullptr) {
-          seq3 = seq;
-        }
         else {
-          *r_error_str = N_("Cannot apply effect to more than 3 sequence strips");
+          *r_error_str = N_("Cannot apply effect to more than 2 sequence strips");
           return 0;
         }
       }
     }
-  }
-
-  /* Make sequence selection a little bit more intuitive
-   * for 3 strips: the last-strip should be seq3. */
-  if (seq3 != nullptr && seq2 != nullptr) {
-    Sequence *tmp = seq2;
-    seq2 = seq3;
-    seq3 = tmp;
   }
 
   switch (SEQ_effect_get_num_inputs(type)) {
@@ -1264,34 +1246,24 @@ int seq_effect_find_selected(Scene *scene,
       if (seq1 == nullptr) {
         seq1 = seq2;
       }
-      if (seq3 == nullptr) {
-        seq3 = seq2;
-      }
       ATTR_FALLTHROUGH;
     case 2:
       if (seq1 == nullptr || seq2 == nullptr) {
         *r_error_str = N_("2 selected sequence strips are needed");
         return 0;
       }
-      if (seq3 == nullptr) {
-        seq3 = seq2;
-      }
       break;
   }
 
-  if (seq1 == nullptr && seq2 == nullptr && seq3 == nullptr) {
+  if (seq1 == nullptr && seq2 == nullptr) {
     *r_error_str = N_("TODO: in what cases does this happen?");
     return 0;
   }
 
   *r_selseq1 = seq1;
   *r_selseq2 = seq2;
-  *r_selseq3 = seq3;
 
   /* TODO(Richard): This function needs some refactoring, this is just quick hack for #73828. */
-  if (SEQ_effect_get_num_inputs(type) < 3) {
-    *r_selseq3 = nullptr;
-  }
   if (SEQ_effect_get_num_inputs(type) < 2) {
     *r_selseq2 = nullptr;
   }
@@ -1302,7 +1274,7 @@ int seq_effect_find_selected(Scene *scene,
 static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq1, *seq2, *seq3, *last_seq = SEQ_select_active_get(scene);
+  Sequence *seq1, *seq2, *last_seq = SEQ_select_active_get(scene);
   const char *error_msg;
 
   if (SEQ_effect_get_num_inputs(last_seq->type) == 0) {
@@ -1310,8 +1282,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!seq_effect_find_selected(
-          scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg) ||
+  if (!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &error_msg) ||
       SEQ_effect_get_num_inputs(last_seq->type) == 0)
   {
     BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -1319,8 +1290,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   }
   /* Check if reassigning would create recursivity. */
   if (SEQ_relations_render_loop_check(seq1, last_seq) ||
-      SEQ_relations_render_loop_check(seq2, last_seq) ||
-      SEQ_relations_render_loop_check(seq3, last_seq))
+      SEQ_relations_render_loop_check(seq2, last_seq))
   {
     BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return OPERATOR_CANCELLED;
@@ -1328,7 +1298,6 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 
   last_seq->seq1 = seq1;
   last_seq->seq2 = seq2;
-  last_seq->seq3 = seq3;
 
   int old_start = last_seq->start;
 
@@ -1407,7 +1376,7 @@ void SEQUENCER_OT_swap_inputs(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Swap Inputs";
   ot->idname = "SEQUENCER_OT_swap_inputs";
-  ot->description = "Swap the first two inputs for the effect strip";
+  ot->description = "Swap the two inputs of the effect strip";
 
   /* Api callbacks. */
   ot->exec = sequencer_swap_inputs_exec;
@@ -2363,7 +2332,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 
 static bool seq_is_parent(const Sequence *par, const Sequence *seq)
 {
-  return ((par->seq1 == seq) || (par->seq2 == seq) || (par->seq3 == seq));
+  return ((par->seq1 == seq) || (par->seq2 == seq));
 }
 
 static int sequencer_swap_exec(bContext *C, wmOperator *op)
@@ -2384,13 +2353,11 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
   if (seq) {
 
     /* Disallow effect strips. */
-    if (SEQ_effect_get_num_inputs(seq->type) >= 1 &&
-        (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
-    {
+    if (SEQ_effect_get_num_inputs(seq->type) >= 1 && (seq->effectdata || seq->seq1 || seq->seq2)) {
       return OPERATOR_CANCELLED;
     }
     if ((SEQ_effect_get_num_inputs(active_seq->type) >= 1) &&
-        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2))
     {
       return OPERATOR_CANCELLED;
     }
@@ -2650,34 +2617,12 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 /** \name Change Effect Input Operator
  * \{ */
 
-static const EnumPropertyItem prop_change_effect_input_types[] = {
-    {0, "A_B", 0, "A " BLI_STR_UTF8_RIGHTWARDS_ARROW " B", ""},
-    {1, "B_C", 0, "B " BLI_STR_UTF8_RIGHTWARDS_ARROW " C", ""},
-    {2, "A_C", 0, "A " BLI_STR_UTF8_RIGHTWARDS_ARROW " C", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Sequence *seq = SEQ_select_active_get(scene);
 
-  Sequence **seq_1, **seq_2;
-
-  switch (RNA_enum_get(op->ptr, "swap")) {
-    case 0:
-      seq_1 = &seq->seq1;
-      seq_2 = &seq->seq2;
-      break;
-    case 1:
-      seq_1 = &seq->seq2;
-      seq_2 = &seq->seq3;
-      break;
-    default: /* 2 */
-      seq_1 = &seq->seq1;
-      seq_2 = &seq->seq3;
-      break;
-  }
+  Sequence **seq_1 = &seq->seq1, **seq_2 = &seq->seq2;
 
   if (*seq_1 == nullptr || *seq_2 == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");
@@ -2704,9 +2649,6 @@ void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  ot->prop = RNA_def_enum(
-      ot->srna, "swap", prop_change_effect_input_types, 0, "Swap", "The effect inputs to swap");
 }
 
 /** \} */
