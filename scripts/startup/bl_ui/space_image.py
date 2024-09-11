@@ -73,6 +73,7 @@ class IMAGE_MT_view(Menu):
 
         show_uvedit = sima.show_uvedit
         show_render = sima.show_render
+        show_maskedit = sima.show_maskedit
 
         layout.prop(sima, "show_region_toolbar")
         layout.prop(sima, "show_region_ui")
@@ -87,7 +88,7 @@ class IMAGE_MT_view(Menu):
 
         layout.separator()
 
-        if show_uvedit:
+        if show_uvedit or show_maskedit:
             layout.operator("image.view_selected", text="Frame Selected")
 
         layout.operator("image.view_all")
