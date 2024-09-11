@@ -15,7 +15,7 @@ void main()
   fillColor = (is_selected) ? colorVertexSelect : deselect_col;
   outlineColor = (is_pinned) ? pinned_col : vec4(fillColor.rgb, 0.0);
 
-  vec3 world_pos = point_object_to_world(vec3(au, 0.0));
+  vec3 world_pos = vec3(au, 0.0);
   /* Move selected vertices to the top
    * Vertices are between 0.0 and 0.2, Edges between 0.2 and 0.4
    * actual pixels are at 0.75, 1.0 is used for the background. */

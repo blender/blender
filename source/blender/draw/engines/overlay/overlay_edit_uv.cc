@@ -409,6 +409,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture(grp, "imgTexture", mask_texture);
     const float4 color = {1.0f, 1.0f, 1.0f, 1.0f};
     DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_float_copy(grp, "opacity", 1.0f); /* Broken. As it always was. */
     DRW_shgroup_call_obmat(grp, geom, nullptr);
   }
 

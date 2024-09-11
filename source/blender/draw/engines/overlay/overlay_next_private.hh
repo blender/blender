@@ -44,6 +44,7 @@ struct State {
   const ViewLayer *view_layer;
   const Scene *scene;
   const View3D *v3d;
+  const SpaceLink *space_data;
   const ARegion *region;
   const RegionView3D *rv3d;
   const Base *active_base;
@@ -72,6 +73,11 @@ struct State {
   float3 camera_position;
   float3 camera_forward;
   int clipping_plane_count;
+
+  /* Active Image properties. Only valid image space only. */
+  int2 image_size;
+  float2 image_uv_aspect;
+  float2 image_aspect;
 
   float view_dist_get(const float4x4 &winmat) const
   {
@@ -229,6 +235,16 @@ class ShaderModule {
   ShaderPtr sculpt_curves;
   ShaderPtr sculpt_curves_cage;
   ShaderPtr uniform_color;
+  ShaderPtr uv_analysis_stretch_angle;
+  ShaderPtr uv_analysis_stretch_area;
+  ShaderPtr uv_brush_stencil;
+  ShaderPtr uv_edit_edge = shader("overlay_edit_uv_edges_next");
+  ShaderPtr uv_edit_face;
+  ShaderPtr uv_edit_facedot;
+  ShaderPtr uv_edit_vert;
+  ShaderPtr uv_image_borders;
+  ShaderPtr uv_paint_mask;
+  ShaderPtr uv_wireframe = shader("overlay_wireframe_uv");
   ShaderPtr xray_fade;
 
   /** Selectable Shaders */

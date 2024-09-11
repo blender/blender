@@ -93,3 +93,24 @@ GPU_SHADER_CREATE_INFO(overlay_wireframe_select)
 GPU_SHADER_CREATE_INFO(overlay_wireframe_select_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_wireframe_select", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_wireframe_uv)
+    .do_static_compilation(true)
+    .define("WIREFRAME")
+    .storage_buf(0, Qualifier::READ, "float", "au[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .define("lineStyle", "4" /* OVERLAY_UV_LINE_STYLE_SHADOW */)
+    .define("dashLength", "1" /* Not used by this line style */)
+    .define("use_edge_select", "false")
+    .push_constant(Type::BOOL, "doSmoothWire")
+    .push_constant(Type::FLOAT, "alpha")
+    .vertex_out(overlay_edit_uv_next_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    /* Note: Reuse edit mode shader as it is mostly the same. */
+    .vertex_source("overlay_edit_uv_edges_next_vert.glsl")
+    .fragment_source("overlay_edit_uv_edges_next_frag.glsl")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "gpu_index_load",
+                     "draw_globals");

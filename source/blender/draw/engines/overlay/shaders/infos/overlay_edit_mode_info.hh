@@ -369,6 +369,33 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
     .define("USE_EDGE_SELECT")
     .additional_info("overlay_edit_uv_edges");
 
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_next_iface, "")
+    .smooth(Type::FLOAT, "selectionFac")
+    .flat(Type::VEC2, "stippleStart")
+    .no_perspective(Type::FLOAT, "edgeCoord")
+    .no_perspective(Type::VEC2, "stipplePos");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_next)
+    .do_static_compilation(true)
+    .storage_buf(0, Qualifier::READ, "float", "au[]", Frequency::GEOMETRY)
+    .storage_buf(1, Qualifier::READ, "uint", "data[]", Frequency::GEOMETRY)
+    .push_constant(Type::IVEC2, "gpu_attr_0")
+    .push_constant(Type::IVEC2, "gpu_attr_1")
+    .push_constant(Type::INT, "lineStyle")
+    .push_constant(Type::BOOL, "doSmoothWire")
+    .push_constant(Type::FLOAT, "alpha")
+    .push_constant(Type::FLOAT, "dashLength")
+    .specialization_constant(Type::BOOL, "use_edge_select", false)
+    .vertex_out(overlay_edit_uv_next_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_edit_uv_edges_next_vert.glsl")
+    .fragment_source("overlay_edit_uv_edges_next_frag.glsl")
+    .additional_info("draw_view",
+                     "draw_modelmat_new",
+                     "draw_resource_handle_new",
+                     "gpu_index_load",
+                     "draw_globals");
+
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_faces)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC2, "au")
@@ -439,6 +466,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
     .vertex_out(edit_uv_image_iface)
     .sampler(0, ImageType::FLOAT_2D, "imgTexture")
     .push_constant(Type::VEC4, "color")
+    .push_constant(Type::FLOAT, "opacity")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_uv_image_vert.glsl")
     .fragment_source("overlay_edit_uv_image_mask_frag.glsl")
@@ -458,20 +486,20 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_uv_stretching_vert.glsl")
     .fragment_source("overlay_varying_color.glsl")
-    .additional_info("draw_mesh", "draw_globals");
+    .push_constant(Type::FLOAT, "totalAreaRatio");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
     .do_static_compilation(true)
     .vertex_in(1, Type::FLOAT, "ratio")
     .push_constant(Type::FLOAT, "totalAreaRatio")
-    .additional_info("overlay_edit_uv_stretching");
+    .additional_info("overlay_edit_uv_stretching", "draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_angle)
     .do_static_compilation(true)
     .define("STRETCH_ANGLE")
     .vertex_in(1, Type::VEC2, "uv_angles")
     .vertex_in(2, Type::FLOAT, "angle")
-    .additional_info("overlay_edit_uv_stretching");
+    .additional_info("overlay_edit_uv_stretching", "draw_mesh", "draw_globals");
 
 /** \} */
 

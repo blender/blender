@@ -80,6 +80,7 @@ class Instance {
     LightProbes light_probes = {selection_type_};
     Metaballs metaballs = {selection_type_};
     Meshes meshes;
+    MeshUVs mesh_uvs;
     Particles particles;
     Prepass prepass = {selection_type_};
     Relations relations = {selection_type_};

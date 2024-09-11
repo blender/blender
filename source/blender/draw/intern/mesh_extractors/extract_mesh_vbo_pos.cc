@@ -195,7 +195,8 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
   gpu::VertBuf *flags_buffer = GPU_vertbuf_calloc();
   static GPUVertFormat flag_format = {0};
   if (flag_format.attr_len == 0) {
-    GPU_vertformat_attr_add(&flag_format, "flag", GPU_COMP_I32, 1, GPU_FETCH_INT);
+    GPU_vertformat_attr_add(&flag_format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
+    GPU_vertformat_alias_add(&flag_format, "flag");
   }
   GPU_vertbuf_init_with_format(*flags_buffer, flag_format);
   GPU_vertbuf_data_alloc(*flags_buffer, divide_ceil_u(mr.verts_num, 4));

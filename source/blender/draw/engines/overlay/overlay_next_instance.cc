@@ -27,13 +27,15 @@ void Instance::init()
 
   state.depsgraph = ctx->depsgraph;
   state.view_layer = ctx->view_layer;
+  state.space_data = ctx->space_data;
   state.scene = ctx->scene;
   state.v3d = ctx->v3d;
   state.region = ctx->region;
   state.rv3d = ctx->rv3d;
   state.active_base = BKE_view_layer_active_base_get(ctx->view_layer);
-  state.object_mode = ctx->object_mode;
   state.object_active = ctx->obact;
+  state.object_mode = ctx->object_mode;
+  state.cfra = DEG_get_ctime(state.depsgraph);
 
   /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
   state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
@@ -51,7 +53,6 @@ void Instance::init()
     state.xray_enabled = XRAY_ACTIVE(state.v3d);
     state.xray_enabled_and_not_wire = state.xray_enabled && (state.v3d->shading.type > OB_WIRE);
     state.xray_opacity = XRAY_ALPHA(state.v3d);
-    state.cfra = DEG_get_ctime(state.depsgraph);
 
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
@@ -74,8 +75,20 @@ void Instance::init()
                               ctx->object_pose != nullptr;
   }
   else if (state.space_type == SPACE_IMAGE) {
-    const SpaceImage *sima = (SpaceImage *)state.space_data;
-    state.hide_overlays = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
+    SpaceImage *space_image = (SpaceImage *)state.space_data;
+
+    state.clear_in_front = false;
+    state.use_in_front = false;
+    state.is_wireframe_mode = false;
+    state.hide_overlays = (space_image->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
+    state.xray_enabled = false;
+
+    /* During engine initialization phase the `space_image` isn't locked and we are able to
+     * retrieve the needed data. During cache_init the image engine locks the `space_image` and
+     * makes it impossible to retrieve the data. */
+    ED_space_image_get_uv_aspect(space_image, &state.image_uv_aspect.x, &state.image_uv_aspect.y);
+    ED_space_image_get_size(space_image, &state.image_size.x, &state.image_size.y);
+    ED_space_image_get_aspect(space_image, &state.image_aspect.x, &state.image_aspect.y);
   }
 
   /* TODO(fclem): Remove DRW global usage. */
@@ -119,6 +132,7 @@ void Instance::begin_sync()
     layer.light_probes.begin_sync(resources, state);
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);
+    layer.mesh_uvs.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
@@ -158,6 +172,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         layer.meshes.edit_object_sync(manager, ob_ref, state, resources);
+        /* TODO(fclem): Find a better place / condition. */
+        layer.mesh_uvs.edit_object_sync(manager, ob_ref, state);
         break;
       case OB_ARMATURE:
         layer.armatures.edit_object_sync(ob_ref, resources, shapes, state);
@@ -246,6 +262,7 @@ void Instance::end_sync()
     layer.force_fields.end_sync(resources, shapes, state);
     layer.lights.end_sync(resources, shapes, state);
     layer.light_probes.end_sync(resources, shapes, state);
+    layer.mesh_uvs.end_sync(resources, shapes, state);
     layer.metaballs.end_sync(resources, shapes, state);
     layer.relations.end_sync(resources, state);
     layer.fluids.end_sync(resources, shapes, state);
@@ -348,7 +365,9 @@ void Instance::draw(Manager &manager)
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
 
   regular.sculpts.draw_on_render(resources.render_fb, manager, view);
+  regular.mesh_uvs.draw_on_render(resources.render_fb, manager, view);
   infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
+  regular.mesh_uvs.draw_on_render(resources.render_in_front_fb, manager, view);
 
   GPU_framebuffer_bind(resources.overlay_line_fb);
   float4 clear_color(0.0f);
@@ -396,6 +415,7 @@ void Instance::draw(Manager &manager)
     layer.armatures.draw(framebuffer, manager, view);
     layer.sculpts.draw(framebuffer, manager, view);
     layer.meshes.draw(framebuffer, manager, view);
+    layer.mesh_uvs.draw(framebuffer, manager, view);
   };
 
   auto draw_layer_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
