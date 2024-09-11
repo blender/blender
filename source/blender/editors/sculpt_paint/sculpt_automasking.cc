@@ -287,17 +287,12 @@ static float calc_view_occlusion_factor(const Depsgraph &depsgraph,
 }
 
 /* Updates vertex stroke id. */
-static float automasking_factor_end(SculptSession &ss,
-                                    const Cache &automasking,
-                                    PBVHVertRef vertex,
-                                    float value)
+static void update_vert_stroke_id(SculptSession &ss, const Cache &automasking, PBVHVertRef vertex)
 {
   if (ss.attrs.automasking_stroke_id) {
     *(uchar *)SCULPT_vertex_attr_get(
         vertex, ss.attrs.automasking_stroke_id) = automasking.current_stroke_id;
   }
-
-  return value;
 }
 
 static float calc_cavity_factor(const Cache &automasking, float factor)
@@ -747,7 +742,8 @@ static float factor_get(const Depsgraph &depsgraph,
       factor *= calc_cavity_factor(depsgraph, automasking, object, vert);
     }
 
-    return automasking_factor_end(ss, automasking, vert, factor * mask);
+    update_vert_stroke_id(ss, automasking, vert);
+    return factor * mask;
   }
 
   uchar stroke_id = ss.attrs.automasking_stroke_id ?
@@ -759,7 +755,8 @@ static float factor_get(const Depsgraph &depsgraph,
                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
   if (do_occlusion && calc_view_occlusion_factor(depsgraph, automasking, object, vert, stroke_id))
   {
-    return automasking_factor_end(ss, automasking, vert, 0.0f);
+    update_vert_stroke_id(ss, automasking, vert);
+    return 0.0f;
   }
 
   if (!automasking.settings.topology_use_brush_limit &&
@@ -802,7 +799,8 @@ static float factor_get(const Depsgraph &depsgraph,
     mask *= calc_cavity_factor(depsgraph, automasking, object, vert);
   }
 
-  return automasking_factor_end(ss, automasking, vert, mask);
+  update_vert_stroke_id(ss, automasking, vert);
+  return mask;
 }
 
 void calc_vert_factors(const Depsgraph &depsgraph,
