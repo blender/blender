@@ -54,9 +54,6 @@ def signal_handler_sigint(_sig: int, _frame: Any) -> None:
     REQUEST_EXIT = True
 
 
-signal.signal(signal.SIGINT, signal_handler_sigint)
-
-
 # A primitive type that can be communicated via message passing.
 PrimType = Union[int, str]
 PrimTypeOrSeq = Union[PrimType, Sequence[PrimType]]
@@ -5023,6 +5020,10 @@ def main(
         args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
         prog: Optional[str] = None,
 ) -> int:
+    # NOTE: only manipulate Python's run-time such as encoding & SIGINT when running stand-alone.
+
+    # Run early to prevent a `KeyboardInterrupt` exception.
+    signal.signal(signal.SIGINT, signal_handler_sigint)
 
     # Needed on WIN32 which doesn't default to `utf-8`.
     for fh in (sys.stdout, sys.stderr):
