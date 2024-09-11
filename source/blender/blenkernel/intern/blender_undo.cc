@@ -104,7 +104,9 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
 {
   MemFileUndoData *mfu = MEM_cnew<MemFileUndoData>(__func__);
 
-  /* Include recovery information since undo-data is written out as #BLENDER_QUIT_FILE. */
+  /* This flag used to be set because the undo step was written as #BLENDER_QUIT_FILE. It's not
+   * clear whether there are still good reasons to keep it. Undo can also be thought of as a kind
+   * of recovery, so better keep it for now. */
   const int fileflags = G.fileflags | G_FILE_RECOVER_WRITE;
 
   /* disk save version */
