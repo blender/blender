@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_sys_types.h"
 
 #include "DNA_brush_enums.h"
@@ -40,6 +41,9 @@ struct Settings {
 
 struct Cache {
   Settings settings;
+
+  /* Cached factor for automasking modes that are implemented to process the entire mesh. */
+  Array<float> factor;
 
   bool can_reuse_mask;
   uchar current_stroke_id;

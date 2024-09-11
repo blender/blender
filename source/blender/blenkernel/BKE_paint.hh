@@ -388,7 +388,6 @@ struct SculptAttribute {
 struct SculptAttributePointers {
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #auto_mask::cache_init when needed. */
-  SculptAttribute *automasking_factor = nullptr;
   SculptAttribute *automasking_occlusion = nullptr; /* CD_PROP_INT8. */
   SculptAttribute *automasking_stroke_id = nullptr;
   SculptAttribute *automasking_cavity = nullptr;
