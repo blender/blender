@@ -278,7 +278,8 @@ static float calc_view_occlusion_factor(const Depsgraph &depsgraph,
 
   if (stroke_id != automasking.current_stroke_id) {
     f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion) =
-        SCULPT_vertex_is_occluded(object, SCULPT_vertex_co_get(depsgraph, object, vertex), true) ?
+        SCULPT_vertex_is_occluded(
+            depsgraph, object, SCULPT_vertex_co_get(depsgraph, object, vertex), true) ?
             2 :
             1;
   }

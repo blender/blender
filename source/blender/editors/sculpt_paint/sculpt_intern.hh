@@ -486,7 +486,8 @@ const blender::float3 SCULPT_vertex_normal_get(const Depsgraph &depsgraph,
                                                const Object &object,
                                                PBVHVertRef vertex);
 
-bool SCULPT_vertex_is_occluded(const Object &object,
+bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
+                               const Object &object,
                                const blender::float3 &position,
                                bool original);
 

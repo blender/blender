@@ -6244,7 +6244,10 @@ void SCULPT_fake_neighbors_free(Object &ob)
   pose_fake_neighbors_free(ss);
 }
 
-bool SCULPT_vertex_is_occluded(const Object &object, const float3 &position, bool original)
+bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
+                               const Object &object,
+                               const float3 &position,
+                               bool original)
 {
   using namespace blender;
   SculptSession &ss = *object.sculpt;
@@ -6276,6 +6279,7 @@ bool SCULPT_vertex_is_occluded(const Object &object, const float3 &position, boo
   srd.corner_verts = ss.corner_verts;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+    srd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
     srd.faces = mesh.faces();
     srd.corner_tris = mesh.corner_tris();
   }
