@@ -21,7 +21,7 @@
 @class CAMetalLayer;
 @class CocoaMetalView;
 @class CocoaOpenGLView;
-@class CocoaWindow;
+@class BlenderWindow;
 @class NSCursor;
 @class NSScreen;
 
@@ -229,8 +229,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
     return GHOST_kFailure;
   }
 
-  /** public function to get the window containing the OpenGL view */
-  CocoaWindow *getCocoaWindow() const
+  /** public function to get the window containing the view */
+  BlenderWindow *getViewWindow() const
   {
     return m_window;
   };
@@ -295,7 +295,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
                                             bool canInvertColor);
 
   /** The window containing the view */
-  CocoaWindow *m_window;
+  BlenderWindow *m_window;
 
   /** The view, either Metal or OpenGL */
   CocoaOpenGLView *m_openGLView;

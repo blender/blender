@@ -361,14 +361,11 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
  * ObjC object to capture applicationShouldTerminate, and send quit event
  */
 @interface CocoaAppDelegate : NSObject <NSApplicationDelegate>
-{
 
-  GHOST_SystemCocoa *systemCocoa;
-}
+@property(nonatomic, readonly, assign) GHOST_SystemCocoa *systemCocoa;
 
-- (id)init;
+- (instancetype)initWithSystemCocoa:(GHOST_SystemCocoa *)systemCocoa;
 - (void)dealloc;
-- (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
@@ -378,17 +375,26 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)windowWillClose:(NSNotification *)notification;
 
 - (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app;
+
 @end
 
 @implementation CocoaAppDelegate : NSObject
-- (id)init
+
+@synthesize systemCocoa = m_systemCocoa;
+
+- (instancetype)initWithSystemCocoa:(GHOST_SystemCocoa *)systemCocoa
 {
   self = [super init];
-  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-  [center addObserver:self
-             selector:@selector(windowWillClose:)
-                 name:NSWindowWillCloseNotification
-               object:nil];
+
+  if (self) {
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self
+               selector:@selector(windowWillClose:)
+                   name:NSWindowWillCloseNotification
+                 object:nil];
+    m_systemCocoa = systemCocoa;
+  }
+
   return self;
 }
 
@@ -401,14 +407,9 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
   }
 }
 
-- (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
-{
-  systemCocoa = sysCocoa;
-}
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-  if (systemCocoa->m_windowFocus) {
+  if (m_systemCocoa->m_windowFocus) {
     /* Raise application to front, convenient when starting from the terminal
      * and important for launching the animation player. we call this after the
      * application finishes launching, as doing it earlier can make us end up
@@ -421,7 +422,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
-  return systemCocoa->handleOpenDocumentRequest(filename);
+  return m_systemCocoa->handleOpenDocumentRequest(filename);
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
@@ -429,7 +430,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
   /* TODO: implement graceful termination through Cocoa mechanism
    * to avoid session log off to be canceled. */
   /* Note that Command-Q is already handled by key-handler. */
-  systemCocoa->handleQuitRequest();
+  m_systemCocoa->handleQuitRequest();
   return NSTerminateCancel;
 }
 
@@ -445,7 +446,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
 {
-  systemCocoa->handleApplicationBecomeActiveEvent();
+  m_systemCocoa->handleApplicationBecomeActiveEvent();
 }
 
 - (void)toggleFullScreen:(NSNotification *)notification
@@ -657,8 +658,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
       }
 
       if ([NSApp delegate] == nil) {
-        CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
-        [appDelegate setSystemCocoa:this];
+        CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] initWithSystemCocoa:this];
         [NSApp setDelegate:appDelegate];
       }
 
@@ -1103,7 +1103,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
     for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
       GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)iwindow;
       if (window->isDialog()) {
-        [window->getCocoaWindow() makeKeyAndOrderFront:nil];
+        [window->getViewWindow() makeKeyAndOrderFront:nil];
       }
     }
 
@@ -1841,7 +1841,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         int32_t x, y;
         window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 
-        CocoaWindow *view_window = (CocoaWindow *)window->getOSWindow();
+        BlenderWindow *view_window = (BlenderWindow *)window->getOSWindow();
 
         @autoreleasepool {
           const NSPoint delta = [[view_window contentView]
