@@ -675,6 +675,10 @@ void UI_popup_block_invoke_ex(
       C, nullptr, nullptr, func, nullptr, arg, arg_free, can_refresh);
   handle->popup = true;
 
+  /* Clear the status bar. */
+  WorkspaceStatus status(C);
+  status.item(" ", ICON_NONE);
+
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
   UI_block_active_only_flagged_buttons(
       C, handle->region, static_cast<uiBlock *>(handle->region->uiblocks.first));
@@ -705,6 +709,10 @@ void UI_popup_block_ex(bContext *C,
   handle->popup_func = popup_func;
   handle->cancel_func = cancel_func;
   // handle->opcontext = opcontext;
+
+  /* Clear the status bar. */
+  WorkspaceStatus status(C);
+  status.item(" ", ICON_NONE);
 
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
   UI_block_active_only_flagged_buttons(
@@ -887,6 +895,8 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
       }
     }
   }
+
+  ED_workspace_status_text(C, nullptr);
 }
 
 bool UI_popup_block_name_exists(const bScreen *screen, const blender::StringRef name)
