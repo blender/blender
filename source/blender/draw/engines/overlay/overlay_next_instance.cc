@@ -40,6 +40,7 @@ void Instance::init()
 
   state.pixelsize = U.pixelsize;
   state.ctx_mode = CTX_data_mode_enum_ex(ctx->object_edit, ctx->obact, ctx->object_mode);
+  state.space_data = ctx->space_data;
   state.space_type = state.v3d != nullptr ? SPACE_VIEW3D : eSpace_Type(ctx->space_data->spacetype);
   if (state.v3d != nullptr) {
     state.clear_in_front = (state.v3d->shading.type != OB_SOLID);
@@ -71,6 +72,10 @@ void Instance::init()
     state.do_pose_xray = (state.overlay.flag & V3D_OVERLAY_BONE_SELECT);
     state.do_pose_fade_geom = state.do_pose_xray && !(state.object_mode & OB_MODE_WEIGHT_PAINT) &&
                               ctx->object_pose != nullptr;
+  }
+  else if (state.space_type == SPACE_IMAGE) {
+    const SpaceImage *sima = (SpaceImage *)state.space_data;
+    state.hide_overlays = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
   }
 
   /* TODO(fclem): Remove DRW global usage. */
@@ -116,7 +121,7 @@ void Instance::begin_sync()
     layer.meshes.begin_sync(resources, state, view);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
-    layer.relations.begin_sync();
+    layer.relations.begin_sync(resources, state);
     layer.speakers.begin_sync();
     layer.sculpts.begin_sync(resources, state);
     layer.wireframe.begin_sync(resources, state);
@@ -124,7 +129,7 @@ void Instance::begin_sync()
   begin_sync_layer(regular);
   begin_sync_layer(infront);
 
-  grid.begin_sync(resources, state, view);
+  grid.begin_sync(resources, shapes, state, view);
 
   anti_aliasing.begin_sync(resources);
   xray_fade.begin_sync(resources, state);

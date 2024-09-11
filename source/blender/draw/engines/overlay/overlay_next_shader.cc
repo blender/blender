@@ -142,6 +142,22 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
       "overlay_edit_curves_handle",
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
+  grid_background = shader("overlay_grid_background",
+                           [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
+  grid_image = shader("overlay_grid_image", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info("draw_view", "draw_globals")
+        .typedef_source("draw_shader_shared.hh")
+        .storage_buf(0, Qualifier::READ, "ObjectMatrices", "tile_matrix_buf[]")
+        .define("DRAW_MODELMAT_CREATE_INFO")
+        .define("drw_ModelMatrixInverse", "tile_matrix_buf[gl_InstanceID].model_inverse")
+        .define("drw_ModelMatrix", "tile_matrix_buf[gl_InstanceID].model")
+        /* TODO For compatibility with old shaders. To be removed. */
+        .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
+        .define("ModelMatrix", "drw_ModelMatrix");
+  });
+
   legacy_curve_edit_wires = shader(
       "overlay_edit_curve_wire",
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });

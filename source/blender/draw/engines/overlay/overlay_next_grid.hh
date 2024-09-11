@@ -9,10 +9,14 @@
 #pragma once
 
 #include "DEG_depsgraph_query.hh"
+
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"
+
+#include "ED_image.hh"
 #include "ED_view3d.hh"
 
+#include "draw_shader_shared.hh"
 #include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
@@ -20,6 +24,7 @@ namespace blender::draw::overlay {
 class Grid {
  private:
   UniformBuffer<OVERLAY_GridData> data_;
+  StorageVectorBuffer<ObjectMatrices> tile_matrix_buf_;
 
   PassSimple grid_ps_ = {"grid_ps_"};
 
@@ -32,34 +37,77 @@ class Grid {
   bool enabled_ = false;
 
  public:
-  void begin_sync(Resources &res, const State &state, const View &view)
+  void begin_sync(Resources &res, ShapeCache &shapes, const State &state, const View &view)
   {
-    this->update_ubo(state, view);
-
+    enabled_ = init(state, view);
     if (!enabled_) {
+      grid_ps_.init();
       return;
     }
 
+    data_.push_update();
+
     grid_ps_.init();
     grid_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-    grid_ps_.shader_set(res.shaders.grid.get());
-    grid_ps_.bind_ubo("grid_buf", &data_);
-    grid_ps_.bind_ubo("globalsBlock", &res.globals_buf);
-    grid_ps_.bind_texture("depth_tx", &res.depth_tx);
-    if (zneg_flag_ & SHOW_AXIS_Z) {
-      grid_ps_.push_constant("grid_flag", zneg_flag_);
-      grid_ps_.push_constant("plane_axes", zplane_axes_);
-      grid_ps_.draw(DRW_cache_grid_get());
+    if (state.space_type == SPACE_IMAGE) {
+      /* Add quad background. */
+      auto &sub = grid_ps_.sub("grid_background");
+      sub.shader_set(res.shaders.grid_background.get());
+      float4 color_back;
+      interp_v4_v4v4(color_back, G_draw.block.color_background, G_draw.block.color_grid, 0.5);
+      sub.push_constant("ucolor", color_back);
+      sub.bind_texture("depthBuffer", &res.depth_tx);
+      float4x4 mat = math::from_scale<float4x4>(float4(1.0f));
+      mat[0][0] = data_.size[0];
+      mat[1][1] = data_.size[1];
+      mat[2][2] = data_.size[2];
+      draw::Manager &manager = *DRW_manager_get();
+      ResourceHandle handle = manager.resource_handle(mat);
+      sub.draw(shapes.quad_solid.get(), handle);
     }
-    if (grid_flag_) {
-      grid_ps_.push_constant("grid_flag", grid_flag_);
-      grid_ps_.push_constant("plane_axes", grid_axes_);
-      grid_ps_.draw(DRW_cache_grid_get());
+    {
+      auto &sub = grid_ps_.sub("grid");
+      sub.shader_set(res.shaders.grid.get());
+      sub.bind_ubo("grid_buf", &data_);
+      sub.bind_ubo("globalsBlock", &res.globals_buf);
+      sub.bind_texture("depth_tx", &res.depth_tx);
+      if (zneg_flag_ & SHOW_AXIS_Z) {
+        sub.push_constant("grid_flag", zneg_flag_);
+        sub.push_constant("plane_axes", zplane_axes_);
+        sub.draw(DRW_cache_grid_get());
+      }
+      if (grid_flag_) {
+        sub.push_constant("grid_flag", grid_flag_);
+        sub.push_constant("plane_axes", grid_axes_);
+        sub.draw(DRW_cache_grid_get());
+      }
+      if (zpos_flag_ & SHOW_AXIS_Z) {
+        sub.push_constant("grid_flag", zpos_flag_);
+        sub.push_constant("plane_axes", zplane_axes_);
+        sub.draw(DRW_cache_grid_get());
+      }
     }
-    if (zpos_flag_ & SHOW_AXIS_Z) {
-      grid_ps_.push_constant("grid_flag", zpos_flag_);
-      grid_ps_.push_constant("plane_axes", zplane_axes_);
-      grid_ps_.draw(DRW_cache_grid_get());
+    if (state.space_type == SPACE_IMAGE) {
+      float4 theme_color;
+      UI_GetThemeColorShade4fv(TH_BACK, 60, theme_color);
+      srgb_to_linearrgb_v4(theme_color, theme_color);
+
+      /* Add wire border. */
+      auto &sub = grid_ps_.sub("wire_border");
+      sub.shader_set(res.shaders.grid_image.get());
+      sub.push_constant("ucolor", theme_color);
+      ObjectMatrices obj_mat;
+      tile_matrix_buf_.clear();
+      for (const int x : IndexRange(data_.size[0])) {
+        for (const int y : IndexRange(data_.size[1])) {
+          float4x4 mat = math::from_location<float4x4>(float3(x, y, 0.0f));
+          obj_mat.sync(mat);
+          tile_matrix_buf_.append(obj_mat);
+        }
+      }
+      tile_matrix_buf_.push_update();
+      sub.bind_ssbo("tile_matrix_buf", &tile_matrix_buf_);
+      sub.draw(shapes.quad_wire.get(), tile_matrix_buf_.size());
     }
   }
 
@@ -74,21 +122,74 @@ class Grid {
   }
 
  private:
-  void update_ubo(const State &state, const View &view)
+  bool init(const State &state, const View &view)
   {
-    if (state.space_type == SPACE_IMAGE) {
-      /* TODO */
-      enabled_ = false;
-      return;
-    }
-
-    float grid_steps[SI_GRID_STEPS_LEN] = {
-        0.001f, 0.01f, 0.1f, 1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f};
-    float grid_steps_y[SI_GRID_STEPS_LEN] = {0.0f}; /* When zero, use value from grid_steps. */
     data_.line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
     /* Default, nothing is drawn. */
     grid_flag_ = zneg_flag_ = zpos_flag_ = OVERLAY_GridBits(0);
 
+    return (state.space_type == SPACE_IMAGE) ? init_2d(state) : init_3d(state, view);
+  }
+
+  void copy_steps_to_data(Span<float> grid_steps_x, Span<float> grid_steps_y)
+  {
+    /* Convert to UBO alignment. */
+    for (const int i : IndexRange(SI_GRID_STEPS_LEN)) {
+      data_.steps[i][0] = grid_steps_x[i];
+      data_.steps[i][1] = grid_steps_y[i];
+    }
+  }
+
+  bool init_2d(const State &state)
+  {
+    if (state.hide_overlays) {
+      return false;
+    }
+    SpaceImage *sima = (SpaceImage *)state.space_data;
+    const View2D *v2d = &state.region->v2d;
+    std::array<float, SI_GRID_STEPS_LEN> grid_steps_x = {
+        0.001f, 0.01f, 0.1f, 1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f};
+    std::array<float, SI_GRID_STEPS_LEN> grid_steps_y = {0.0f};
+
+    /* Only UV Edit mode has the various Overlay options for now. */
+    const bool is_uv_edit = sima->mode == SI_MODE_UV;
+
+    const bool background_enabled = is_uv_edit ? (!state.hide_overlays &&
+                                                  (sima->overlay.flag &
+                                                   SI_OVERLAY_SHOW_GRID_BACKGROUND) != 0) :
+                                                 true;
+    if (background_enabled) {
+      grid_flag_ = GRID_BACK | PLANE_IMAGE;
+      if (sima->flag & SI_GRID_OVER_IMAGE) {
+        grid_flag_ = PLANE_IMAGE;
+      }
+    }
+
+    const bool draw_grid = is_uv_edit || !ED_space_image_has_buffer(sima);
+    if (background_enabled && draw_grid) {
+      grid_flag_ |= SHOW_GRID;
+      if (is_uv_edit) {
+        if (sima->grid_shape_source != SI_GRID_SHAPE_DYNAMIC) {
+          grid_flag_ |= CUSTOM_GRID;
+        }
+      }
+    }
+
+    data_.distance = 1.0f;
+    data_.size = float4(1.0f);
+    if (is_uv_edit) {
+      data_.size[0] = float(sima->tile_grid_shape[0]);
+      data_.size[1] = float(sima->tile_grid_shape[1]);
+    }
+
+    data_.zoom_factor = ED_space_image_zoom_level(v2d, SI_GRID_STEPS_LEN);
+    ED_space_image_grid_steps(sima, grid_steps_x.data(), grid_steps_y.data(), SI_GRID_STEPS_LEN);
+    copy_steps_to_data(grid_steps_x, grid_steps_y);
+    return true;
+  }
+
+  bool init_3d(const State &state, const View &view)
+  {
     const View3D *v3d = state.v3d;
     const RegionView3D *rv3d = state.rv3d;
 
@@ -100,11 +201,12 @@ class Grid {
     const bool show_any = show_axis_x || show_axis_y || show_axis_z || show_floor ||
                           show_ortho_grid;
 
-    enabled_ = !state.hide_overlays && show_any;
-
-    if (!enabled_) {
-      return;
+    if (state.hide_overlays || !show_any) {
+      return false;
     }
+
+    std::array<float, SI_GRID_STEPS_LEN> grid_steps = {
+        0.001f, 0.01f, 0.1f, 1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f};
 
     /* If perspective view or non-axis aligned view. */
     if (view.is_persp() || rv3d->view == RV3D_VIEW_USER) {
@@ -191,7 +293,7 @@ class Grid {
 
     data_.distance = dist / 2.0f;
 
-    ED_view3d_grid_steps(state.scene, v3d, rv3d, grid_steps);
+    ED_view3d_grid_steps(state.scene, v3d, rv3d, grid_steps.data());
 
     if ((v3d->flag & (V3D_XR_SESSION_SURFACE | V3D_XR_SESSION_MIRROR)) != 0) {
       /* The calculations for the grid parameters assume that the view matrix has no scale
@@ -201,14 +303,8 @@ class Grid {
       float viewinvscale = len_v3(view.viewinv()[0]);
       data_.distance *= viewinvscale;
     }
-
-    /* Convert to UBO alignment. */
-    for (int i = 0; i < SI_GRID_STEPS_LEN; i++) {
-      data_.steps[i][0] = grid_steps[i];
-      data_.steps[i][1] = (grid_steps_y[i] != 0.0f) ? grid_steps_y[i] : grid_steps[i];
-    }
-
-    data_.push_update();
+    copy_steps_to_data(grid_steps, grid_steps);
+    return true;
   }
 };
 

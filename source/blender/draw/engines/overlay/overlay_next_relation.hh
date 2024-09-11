@@ -26,6 +26,8 @@ class Relations {
   LinePrimitiveBuf relations_buf_;
   PointPrimitiveBuf points_buf_;
 
+  bool enabled_ = false;
+
  public:
   Relations(SelectionType selection_type)
       : relations_buf_(selection_type, "relations_buf_"),
@@ -33,14 +35,20 @@ class Relations {
   {
   }
 
-  void begin_sync()
+  void begin_sync(Resources & /*res*/, const State &state)
   {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
     points_buf_.clear();
     relations_buf_.clear();
   }
 
   void object_sync(const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
     const float4 &relation_color = res.theme_settings.color_wire;
     const float4 &constraint_color = res.theme_settings.color_grid_axis_z; /* ? */
@@ -155,6 +163,10 @@ class Relations {
 
   void end_sync(Resources &res, const State &state)
   {
+    if (!enabled_) {
+      return;
+    }
+
     ps_.init();
     res.select_bind(ps_);
     {
@@ -179,6 +191,10 @@ class Relations {
 
   void draw(Framebuffer &framebuffer, Manager &manager, View &view)
   {
+    if (!enabled_) {
+      return;
+    }
+
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view);
   }

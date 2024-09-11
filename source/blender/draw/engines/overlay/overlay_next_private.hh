@@ -50,6 +50,7 @@ struct State {
   DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
+  SpaceLink *space_data;
   enum eSpace_Type space_type;
   enum eContextObjectMode ctx_mode;
   enum eObjectMode object_mode;
@@ -202,6 +203,8 @@ class ShaderModule {
   ShaderPtr curve_edit_handles;
   ShaderPtr facing;
   ShaderPtr grid = shader("overlay_grid");
+  ShaderPtr grid_background;
+  ShaderPtr grid_image;
   ShaderPtr legacy_curve_edit_wires;
   ShaderPtr legacy_curve_edit_normals = shader("overlay_edit_curve_normals");
   ShaderPtr legacy_curve_edit_handles = shader("overlay_edit_curve_handle_next");
