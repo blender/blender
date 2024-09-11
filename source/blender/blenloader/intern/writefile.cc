@@ -1136,6 +1136,9 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   /* Write information needed for recovery. */
   if (fileflags & G_FILE_RECOVER_WRITE) {
     STRNCPY(fg.filepath, mainvar->filepath);
+    /* Compression is often turned of when writing recovery files. However, when opening the file,
+     * it should be enabled again. */
+    fg.fileflags = G.fileflags & G_FILE_COMPRESS;
   }
   SNPRINTF(subvstr, "%4d", BLENDER_FILE_SUBVERSION);
   memcpy(fg.subvstr, subvstr, 4);
