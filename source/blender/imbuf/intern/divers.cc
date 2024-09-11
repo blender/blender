@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +8,7 @@
  */
 
 #include "BLI_rect.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "IMB_filter.hh"
@@ -862,28 +864,35 @@ void IMB_color_to_bw(ImBuf *ibuf)
 
 void IMB_saturation(ImBuf *ibuf, float sat)
 {
-  size_t i;
-  uchar *rct = ibuf->byte_buffer.data;
-  float *rct_fl = ibuf->float_buffer.data;
-  float hsv[3];
+  using namespace blender;
 
-  if (rct) {
-    float rgb[3];
-    for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct += 4) {
-      rgb_uchar_to_float(rgb, rct);
-      rgb_to_hsv_v(rgb, hsv);
-      hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb + 1, rgb + 2);
-      rgb_float_to_uchar(rct, rgb);
-    }
+  const size_t pixel_count = IMB_get_rect_len(ibuf);
+  if (ibuf->byte_buffer.data != nullptr) {
+    threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {
+      uchar *ptr = ibuf->byte_buffer.data + range.first() * 4;
+      float rgb[3];
+      float hsv[3];
+      for ([[maybe_unused]] const int64_t i : range) {
+        rgb_uchar_to_float(rgb, ptr);
+        rgb_to_hsv_v(rgb, hsv);
+        hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb + 0, rgb + 1, rgb + 2);
+        rgb_float_to_uchar(ptr, rgb);
+        ptr += 4;
+      }
+    });
   }
 
-  if (rct_fl) {
-    if (ibuf->channels >= 3) {
-      for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct_fl += ibuf->channels) {
-        rgb_to_hsv_v(rct_fl, hsv);
-        hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rct_fl, rct_fl + 1, rct_fl + 2);
+  if (ibuf->float_buffer.data != nullptr && ibuf->channels >= 3) {
+    threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {
+      const int channels = ibuf->channels;
+      float *ptr = ibuf->float_buffer.data + range.first() * channels;
+      float hsv[3];
+      for ([[maybe_unused]] const int64_t i : range) {
+        rgb_to_hsv_v(ptr, hsv);
+        hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], ptr + 0, ptr + 1, ptr + 2);
+        ptr += channels;
       }
-    }
+    });
   }
 }
 

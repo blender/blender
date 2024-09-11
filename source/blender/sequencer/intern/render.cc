@@ -25,6 +25,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
+#include "BLI_task.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -609,42 +610,38 @@ static void sequencer_preprocess_transform_crop(
   }
 }
 
-static void multibuf(ImBuf *ibuf, const float fmul, const bool multiply_alpha)
+static void multiply_ibuf(ImBuf *ibuf, const float fmul, const bool multiply_alpha)
 {
-  uchar *rt;
-  float *rt_float;
-
-  int a;
-
-  rt = ibuf->byte_buffer.data;
-  rt_float = ibuf->float_buffer.data;
-
-  if (rt) {
-    const int imul = int(256.0f * fmul);
-    a = ibuf->x * ibuf->y;
-    while (a--) {
-      rt[0] = min_ii((imul * rt[0]) >> 8, 255);
-      rt[1] = min_ii((imul * rt[1]) >> 8, 255);
-      rt[2] = min_ii((imul * rt[2]) >> 8, 255);
-      if (multiply_alpha) {
-        rt[3] = min_ii((imul * rt[3]) >> 8, 255);
+  const size_t pixel_count = IMB_get_rect_len(ibuf);
+  if (ibuf->byte_buffer.data != nullptr) {
+    threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {
+      uchar *ptr = ibuf->byte_buffer.data + range.first() * 4;
+      const int imul = int(256.0f * fmul);
+      for ([[maybe_unused]] const int64_t i : range) {
+        ptr[0] = min_ii((imul * ptr[0]) >> 8, 255);
+        ptr[1] = min_ii((imul * ptr[1]) >> 8, 255);
+        ptr[2] = min_ii((imul * ptr[2]) >> 8, 255);
+        if (multiply_alpha) {
+          ptr[3] = min_ii((imul * ptr[3]) >> 8, 255);
+        }
+        ptr += 4;
       }
-
-      rt += 4;
-    }
+    });
   }
-  if (rt_float) {
-    a = ibuf->x * ibuf->y;
-    while (a--) {
-      rt_float[0] *= fmul;
-      rt_float[1] *= fmul;
-      rt_float[2] *= fmul;
-      if (multiply_alpha) {
-        rt_float[3] *= fmul;
-      }
 
-      rt_float += 4;
-    }
+  if (ibuf->float_buffer.data != nullptr) {
+    threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {
+      float *ptr = ibuf->float_buffer.data + range.first() * 4;
+      for ([[maybe_unused]] const int64_t i : range) {
+        ptr[0] *= fmul;
+        ptr[1] *= fmul;
+        ptr[2] *= fmul;
+        if (multiply_alpha) {
+          ptr[3] *= fmul;
+        }
+        ptr += 4;
+      }
+    });
   }
 }
 
@@ -714,7 +711,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
 
   if (mul != 1.0f) {
     const bool multiply_alpha = (seq->flag & SEQ_MULTIPLY_ALPHA);
-    multibuf(preprocessed_ibuf, mul, multiply_alpha);
+    multiply_ibuf(preprocessed_ibuf, mul, multiply_alpha);
   }
 
   if (seq->modifiers.first) {
