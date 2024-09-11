@@ -364,6 +364,16 @@ void Instance::draw(Manager &manager)
   resources.overlay_output_fb.ensure(GPU_ATTACHMENT_NONE,
                                      GPU_ATTACHMENT_TEXTURE(resources.color_overlay_tx));
 
+  static gpu::DebugScope select_scope = {"Selection"};
+  static gpu::DebugScope draw_scope = {"Overlay"};
+
+  if (resources.selection_type != SelectionType::DISABLED) {
+    select_scope.begin_capture();
+  }
+  else {
+    draw_scope.begin_capture();
+  }
+
   regular.sculpts.draw_on_render(resources.render_fb, manager, view);
   regular.mesh_uvs.draw_on_render(resources.render_fb, manager, view);
   infront.sculpts.draw_on_render(resources.render_in_front_fb, manager, view);
@@ -451,6 +461,13 @@ void Instance::draw(Manager &manager)
   resources.color_render_alloc_tx.release();
 
   resources.read_result();
+
+  if (resources.selection_type != SelectionType::DISABLED) {
+    select_scope.end_capture();
+  }
+  else {
+    draw_scope.end_capture();
+  }
 }
 
 bool Instance::object_is_selected(const ObjectRef &ob_ref)
