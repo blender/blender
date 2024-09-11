@@ -334,7 +334,7 @@ struct OVERLAY_PrivateData {
   OVERLAY_ArmatureCallBuffers armature_call_buffers[2];
 
   View3DOverlay overlay;
-  enum eContextObjectMode ctx_mode;
+  eContextObjectMode ctx_mode;
   char space_type;
   bool clear_in_front;
   bool use_in_front;

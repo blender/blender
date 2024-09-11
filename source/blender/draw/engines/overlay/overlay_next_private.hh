@@ -51,9 +51,9 @@ struct State {
   DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
-  enum eSpace_Type space_type;
-  enum eContextObjectMode ctx_mode;
-  enum eObjectMode object_mode;
+  eSpace_Type space_type;
+  eContextObjectMode ctx_mode;
+  eObjectMode object_mode;
   const Object *object_active;
   bool clear_in_front;
   bool use_in_front;
