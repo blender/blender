@@ -1027,13 +1027,67 @@ static void init_face_sets_masking(const Sculpt &sd, Object &ob, MutableSpan<flo
     return;
   }
 
-  int tot_vert = SCULPT_vertex_count_get(ob);
-  int active_face_set = face_set::active_face_set_get(ob);
-  for (int i : IndexRange(tot_vert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
+  const int active_face_set = face_set::active_face_set_get(ob);
+  switch (bke::object::pbvh_get(ob)->type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
+      if (face_sets.is_empty()) {
+        return;
+      }
+      threading::parallel_for(IndexRange(mesh.verts_num), 1024, [&](const IndexRange range) {
+        for (const int vert : range) {
+          if (!face_set::vert_has_face_set(
+                  vert_to_face_map, face_sets.data(), vert, active_face_set))
+          {
+            factors[vert] == 0.0f;
+          }
+        }
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(ob.data);
+      const OffsetIndices<int> faces = base_mesh.faces();
+      const bke::AttributeAccessor attributes = base_mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
+      if (face_sets.is_empty()) {
+        return;
+      }
+      const SculptSession &ss = *ob.sculpt;
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const int grid_area = subdiv_ccg.grid_area;
+      threading::parallel_for(faces.index_range(), 128, [&](const IndexRange range) {
+        for (const int face : range) {
+          if (face_sets[face] != active_face_set) {
+            factors.slice(bke::ccg::face_range(faces, grid_area, face)).fill(0.0f);
+          }
+        }
+      });
 
-    if (!face_set::vert_has_face_set(ob, vertex, active_face_set)) {
-      factors[i] = 0.0f;
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      const SculptSession &ss = *ob.sculpt;
+      const BMesh &bm = *ss.bm;
+      const int face_set_offset = CustomData_get_offset_named(
+          &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
+      if (face_set_offset == -1) {
+        return;
+      }
+      threading::parallel_for(IndexRange(bm.totvert), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          const BMVert *vert = BM_vert_at_index(&const_cast<BMesh &>(bm), i);
+          if (!face_set::vert_has_face_set(face_set_offset, *vert, active_face_set)) {
+            factors[i] = 0.0f;
+          }
+        }
+      });
+      break;
     }
   }
 }
