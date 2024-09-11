@@ -2103,7 +2103,7 @@ static void find_active_connected_components_from_vert(const Depsgraph &depsgrap
  * Stores the active vertex, Face Set and mouse coordinates in the #Cache based on the
  * current cursor position.
  */
-static void set_initial_components_for_mouse(bContext *C,
+static bool set_initial_components_for_mouse(bContext *C,
                                              Object &ob,
                                              Cache &expand_cache,
                                              const float mval[2])
@@ -2116,7 +2116,10 @@ static void set_initial_components_for_mouse(bContext *C,
   if (initial_vertex.i == SCULPT_EXPAND_VERTEX_NONE) {
     /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
      * vertex in the sculpt session. */
-    initial_vertex = ss.active_vert_ref();
+    initial_vertex = ss.last_active_vert_ref();
+    if (initial_vertex.i == SCULPT_EXPAND_VERTEX_NONE) {
+      return false;
+    }
   }
 
   int initial_vertex_i = BKE_pbvh_vertex_to_index(*bke::object::pbvh_get(ob), initial_vertex);
@@ -2141,6 +2144,7 @@ static void set_initial_components_for_mouse(bContext *C,
   /* The new mouse position can be over a different connected component, so this needs to be
    * updated. */
   find_active_connected_components_from_vert(depsgraph, ob, expand_cache, initial_vertex);
+  return true;
 }
 
 /**
@@ -2633,13 +2637,20 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   ensure_sculptsession_data(ob);
 
+  /* Set the initial element for expand from the event position. */
+  const float mouse[2] = {float(event->mval[0]), float(event->mval[1])};
+
+  /* When getting the initial active vert, in cases where the cursor is not over the mesh and
+   * the mesh type has changed, we cannot proceed with the expand operator, as there is no
+   * sensible last active vertex when switching between backing implementations. */
+  if (!set_initial_components_for_mouse(C, ob, *ss.expand_cache, mouse)) {
+    expand_cache_free(ss);
+    return OPERATOR_CANCELLED;
+  }
+
   /* Initialize undo. */
   undo::push_begin(ob, op);
   undo_push(*depsgraph, ob, *ss.expand_cache);
-
-  /* Set the initial element for expand from the event position. */
-  const float mouse[2] = {float(event->mval[0]), float(event->mval[1])};
-  set_initial_components_for_mouse(C, ob, *ss.expand_cache, mouse);
 
   /* Cache bke::pbvh::Tree nodes. */
   ss.expand_cache->node_mask = bke::pbvh::all_leaf_nodes(pbvh, ss.expand_cache->node_mask_memory);

@@ -4971,7 +4971,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     zero_v3(out->location);
     zero_v3(out->normal);
     zero_v3(out->active_vertex_co);
-    ss.clear_active_vert();
+    ss.clear_active_vert(false);
     return false;
   }
 
@@ -5015,7 +5015,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     zero_v3(out->location);
     zero_v3(out->normal);
     zero_v3(out->active_vertex_co);
-    ss.clear_active_vert();
+    ss.clear_active_vert(true);
     return false;
   }
 

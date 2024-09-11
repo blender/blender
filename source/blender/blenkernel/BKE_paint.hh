@@ -589,12 +589,20 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
    */
   ActiveVert active_vert_ = {};
 
+  /* This value should always exist except when the cursor has never been over the mesh, or when
+   * the underlying mesh type has changed and the last `active_vert_` value no longer corresponds
+   * to a value that can be correctly interpreted */
+  ActiveVert last_active_vert_ = {};
+
  public:
   SculptSession();
   ~SculptSession();
 
   PBVHVertRef active_vert_ref() const;
   ActiveVert active_vert() const;
+
+  PBVHVertRef last_active_vert_ref() const;
+  ActiveVert last_active_vert() const;
 
   /**
    * Retrieves the corresponding index of the ActiveVert inside a mesh-sized array.
@@ -619,7 +627,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::float3 active_vert_position(const Depsgraph &depsgraph, const Object &object) const;
 
   void set_active_vert(ActiveVert vert);
-  void clear_active_vert();
+  void clear_active_vert(bool persist_last_active);
 };
 
 void BKE_sculptsession_free(Object *ob);

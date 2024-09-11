@@ -1697,7 +1697,7 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->vertex_info.boundary.clear_and_shrink();
   ss->fake_neighbors.fake_neighbor_index = {};
 
-  ss->clear_active_vert();
+  ss->clear_active_vert(false);
 }
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
@@ -1787,6 +1787,27 @@ ActiveVert SculptSession::active_vert() const
   return active_vert_;
 }
 
+PBVHVertRef SculptSession::last_active_vert_ref() const
+{
+  if (std::holds_alternative<int>(last_active_vert_)) {
+    return {std::get<int>(last_active_vert_)};
+  }
+  if (std::holds_alternative<SubdivCCGCoord>(last_active_vert_)) {
+    const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
+    const int index = std::get<SubdivCCGCoord>(last_active_vert_).to_index(key);
+    return {index};
+  }
+  if (std::holds_alternative<BMVert *>(last_active_vert_)) {
+    return {reinterpret_cast<intptr_t>(std::get<BMVert *>(last_active_vert_))};
+  }
+  return {PBVH_REF_NONE};
+}
+
+ActiveVert SculptSession::last_active_vert() const
+{
+  return active_vert_;
+}
+
 int SculptSession::active_vert_index() const
 {
   if (std::holds_alternative<int>(active_vert_)) {
@@ -1825,8 +1846,16 @@ blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
   return float3(std::numeric_limits<float>::infinity());
 }
 
-void SculptSession::clear_active_vert()
+void SculptSession::clear_active_vert(bool persist_last_active)
 {
+  if (persist_last_active) {
+    if (!std::holds_alternative<std::monostate>(active_vert_)) {
+      last_active_vert_ = active_vert_;
+    }
+  }
+  else {
+    last_active_vert_ = {};
+  }
   active_vert_ = {};
 }
 
