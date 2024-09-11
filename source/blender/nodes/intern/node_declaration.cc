@@ -286,8 +286,8 @@ bool NodeDeclaration::matches(const bNode &node) const
     }
   }
   /* If items are left over, some were removed from the declaration. */
-  if (current_input == nullptr || current_output == nullptr ||
-      !node.panel_states().contains_ptr(current_panel))
+  if (current_input != nullptr || current_output != nullptr ||
+      node.panel_states().contains_ptr(current_panel))
   {
     return false;
   }
