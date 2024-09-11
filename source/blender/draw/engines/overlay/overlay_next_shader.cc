@@ -481,6 +481,12 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
   particle_hair = selectable_shader("overlay_particle_hair_next",
                                     [](gpu::shader::ShaderCreateInfo & /*info*/) {});
 
+  uniform_color = shader("overlay_uniform_color", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.additional_info(
+        "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
+  });
+
   wireframe_mesh = selectable_shader("overlay_wireframe", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
     info.define("CUSTOM_DEPTH_BIAS_CONST");

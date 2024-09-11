@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include "BKE_pbvh_api.hh"
-
 #include "draw_sculpt.hh"
 
 #include "overlay_next_grease_pencil.hh"
@@ -147,12 +145,7 @@ class Prepass {
 
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
-    /* TODO(fclem): Deduplicate with other engine. */
-    const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(*ob_ref.object->sculpt->pbvh);
-    const float3 center = math::midpoint(bounds.min, bounds.max);
-    const float3 half_extent = bounds.max - center;
-    ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
-
+    ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
     select::ID select_id = res.select_id(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {

@@ -64,14 +64,17 @@ class Facing {
                                  !DRW_state_is_image_render();
 
     if (use_sculpt_pbvh) {
-      /* TODO: Add sculpt mode. */
-      // DRW_shgroup_call_sculpt(pd->facing_grp[is_xray], ob, false, false, false, false, false);
+      ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
+
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
+        ps_.draw(batch.batch, handle);
+      }
     }
     else {
       blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob_ref.object);
       if (geom) {
-        ResourceHandle res_handle = manager.resource_handle(ob_ref);
-        ps_.draw(geom, res_handle);
+        ResourceHandle handle = manager.resource_handle(ob_ref);
+        ps_.draw(geom, handle);
       }
     }
   }

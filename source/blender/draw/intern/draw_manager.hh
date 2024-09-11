@@ -14,12 +14,16 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
+
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 
 #include "GPU_material.hh"
 
 #include "draw_resource.hh"
+#include "draw_sculpt.hh"
 #include "draw_view.hh"
 
 #include <string>
@@ -147,6 +151,15 @@ class Manager {
    * associated object info will contain the info from its parent object.
    */
   ResourceHandle resource_handle_for_psys(const ObjectRef ref, const float4x4 &model_matrix);
+
+  ResourceHandle resource_handle_for_sculpt(const ObjectRef ref)
+  {
+    /* TODO(fclem): Deduplicate with other engine. */
+    const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(*ref.object->sculpt->pbvh);
+    const float3 center = math::midpoint(bounds.min, bounds.max);
+    const float3 half_extent = bounds.max - center;
+    return resource_handle(ref, nullptr, &center, &half_extent);
+  }
 
   /** Update the bounds of an already created handle. */
   void update_handle_bounds(ResourceHandle handle,
