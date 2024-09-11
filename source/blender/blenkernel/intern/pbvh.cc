@@ -1215,7 +1215,6 @@ static void update_mask_mesh(const Mesh &mesh,
 
 void node_update_mask_grids(const CCGKey &key, const Span<float> masks, GridsNode &node)
 {
-  BLI_assert(key.has_mask);
   bool fully_masked = true;
   bool fully_unmasked = true;
   for (const int grid : node.grids()) {
