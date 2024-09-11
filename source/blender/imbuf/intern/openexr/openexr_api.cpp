@@ -2154,7 +2154,8 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
           size_t xstride = sizeof(float[4]);
           size_t ystride = -xstride * width;
 
-          imb_addrectfloatImBuf(ibuf, 4);
+          /* No need to clear image memory, it will be fully written below. */
+          imb_addrectfloatImBuf(ibuf, 4, false);
 
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */
