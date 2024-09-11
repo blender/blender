@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
 
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_index_range.hh"
@@ -147,6 +148,9 @@ template<typename T> struct GroupedSpan {
  */
 OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets,
                                                 int start_offset = 0);
+
+std::optional<OffsetIndices<int>> accumulate_counts_to_offsets_with_overflow_check(
+    MutableSpan<int> counts_to_offsets, int start_offset = 0);
 
 /** Create offsets where every group has the same size. */
 void fill_constant_group_size(int size, int start_offset, MutableSpan<int> offsets);

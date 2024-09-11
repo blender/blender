@@ -401,7 +401,9 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
 
   /* Fill the counts for the curves that aren't selected and accumulate the counts into offsets. */
   offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_offsets);
-  offset_indices::accumulate_counts_to_offsets(dst_offsets);
+  if (!offset_indices::accumulate_counts_to_offsets_with_overflow_check(dst_offsets)) {
+    return {};
+  }
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   resample_to_uniform(src_curves, selection, output_ids, dst_curves);
