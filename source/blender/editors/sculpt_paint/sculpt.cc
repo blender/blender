@@ -2311,9 +2311,9 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
           AreaNormalCenterData{},
           [&](const IndexRange range, AreaNormalCenterData anctd) {
             SampleLocalData &tls = all_tls.local();
-            for (const int i : range) {
+            node_mask.slice(range).foreach_index([&](const int i) {
               calc_area_normal_and_center_node_grids(ob, brush, true, true, nodes[i], tls, anctd);
-            }
+            });
             return anctd;
           },
           calc_area_normal_and_center_reduce);
