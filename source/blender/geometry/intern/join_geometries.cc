@@ -189,8 +189,10 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
   result.add(joined_components.get_component_for_write(component_type));
 }
 
-GeometrySet join_geometries(const Span<GeometrySet> geometries,
-                            const bke::AttributeFilter &attribute_filter)
+GeometrySet join_geometries(
+    const Span<GeometrySet> geometries,
+    const bke::AttributeFilter &attribute_filter,
+    const std::optional<Span<GeometryComponent::Type>> &component_types_to_join)
 {
   GeometrySet result;
   result.name = geometries.is_empty() ? "" : geometries[0].name;
@@ -202,7 +204,13 @@ GeometrySet join_geometries(const Span<GeometrySet> geometries,
        GeometryComponent::Type::Curve,
        GeometryComponent::Type::GreasePencil,
        GeometryComponent::Type::Edit});
-  for (const GeometryComponent::Type type : supported_types) {
+
+  const Span<GeometryComponent::Type> types_to_join = component_types_to_join.has_value() ?
+                                                          *component_types_to_join :
+                                                          Span<GeometryComponent::Type>(
+                                                              supported_types);
+
+  for (const GeometryComponent::Type type : types_to_join) {
     join_component_type(type, geometries, attribute_filter, result);
   }
 
