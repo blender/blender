@@ -572,7 +572,7 @@ class TOPBAR_MT_edit(Menu):
 
         layout.operator("wm.search_menu", text="Menu Search...", icon='VIEWZOOM')
         if show_developer:
-            layout.operator("wm.search_operator", text="Operator Search...", icon='VIEWZOOM')
+            layout.operator("wm.search_operator", text="Operator Search...")
 
         layout.separator()
 
