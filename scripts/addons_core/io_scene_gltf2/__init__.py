@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 65),
+    "version": (4, 2, 66),
     'blender': (4, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1007,7 +1007,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
                         'glTF2ExportUserExtension') or hasattr(
                         sys.modules[addon_name],
                         'glTF2ExportUserExtensions'):
-                    exporter_extension_layout_draw[addon_name] = sys.modules[addon_name].draw
+                    exporter_extension_layout_draw[addon_name] = sys.modules[addon_name].draw if hasattr(
+                        sys.modules[addon_name], 'draw_export') else sys.modules[addon_name].draw
             except Exception:
                 pass
 
@@ -1850,7 +1851,8 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
                         'glTF2ImportUserExtension') or hasattr(
                         sys.modules[addon_name],
                         'glTF2ImportUserExtensions'):
-                    importer_extension_layout_draw[addon_name] = sys.modules[addon_name].draw
+                    importer_extension_layout_draw[addon_name] = sys.modules[addon_name].draw_import if hasattr(
+                        sys.modules[addon_name], 'draw_import') else sys.modules[addon_name].draw
             except Exception:
                 pass
 
