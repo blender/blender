@@ -222,8 +222,8 @@ class TOPBAR_MT_file_cleanup(Menu):
         layout = self.layout
         layout.separator()
 
-        layout.operator("outliner.orphans_purge", text="Purge Unused Data")
-        layout.operator("outliner.orphans_manage", text="Manage Unused Data")
+        layout.operator("outliner.orphans_purge", text="Purge Unused Data...")
+        layout.operator("outliner.orphans_manage", text="Manage Unused Data...")
 
 
 class TOPBAR_MT_file(Menu):
@@ -505,7 +505,7 @@ class TOPBAR_MT_file_external_data(Menu):
         layout.separator()
 
         layout.operator("file.report_missing_files")
-        layout.operator("file.find_missing_files")
+        layout.operator("file.find_missing_files", text="Find Missing Files...")
 
 
 class TOPBAR_MT_file_previews(Menu):
@@ -515,12 +515,12 @@ class TOPBAR_MT_file_previews(Menu):
         layout = self.layout
 
         layout.operator("wm.previews_ensure")
-        layout.operator("wm.previews_batch_generate")
+        layout.operator("wm.previews_batch_generate", text="Batch-Generate Previews...")
 
         layout.separator()
 
-        layout.operator("wm.previews_clear")
-        layout.operator("wm.previews_batch_clear")
+        layout.operator("wm.previews_clear", text="Clear Data-Block Previews...")
+        layout.operator("wm.previews_batch_clear", text="Batch-Clear Previews...")
 
 
 class TOPBAR_MT_render(Menu):
