@@ -1555,13 +1555,12 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
 
 void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node)
