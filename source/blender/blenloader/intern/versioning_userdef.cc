@@ -1021,6 +1021,21 @@ void blo_do_versions_userdef(UserDef *userdef)
     BKE_addon_remove_safe(&userdef->addons, "bone_selection_sets");
   }
 
+  if (userdef->versionfile > 402) {
+    /* Widget Label text style is removed in 4.3. Therefore loading 4.2
+     * with 4.3 preferences could cause this text to not show. #126706 */
+    LISTBASE_FOREACH (uiStyle *, style, &userdef->uistyles) {
+      if (style->widgetlabel.points == 0.0f) {
+        style->widgetlabel.points = 11.0f; /* UI_DEFAULT_TITLE_POINTS */
+        style->widgetlabel.character_weight = 400;
+        style->widget.shadow = 1;
+        style->widget.shady = -1;
+        style->widget.shadowalpha = 0.5f;
+        style->widget.shadowcolor = 0.0f;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
