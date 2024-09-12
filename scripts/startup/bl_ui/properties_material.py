@@ -130,8 +130,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             row.template_ID(ob, "active_material", new="material.new")
 
             if slot:
-                icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
-                row.prop(slot, "link", icon=icon_link, icon_only=True)
+                row.prop(slot, "link", icon_only=True)
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)
