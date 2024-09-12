@@ -2190,6 +2190,19 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
     StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
 
     if (selection.seq1 != nullptr) {
+      if (selection.handle != SEQ_HANDLE_NONE) {
+        SpaceSeq *sseq = CTX_wm_space_seq(C);
+        sseq->flag |= SPACE_SEQ_DESELECT_STRIP_HANDLE;
+        ED_sequencer_deselect_all(scene);
+
+        selection.seq1->flag |= (SELECT) | ((selection.handle == SEQ_HANDLE_RIGHT) ? SEQ_RIGHTSEL :
+                                                                                     SEQ_LEFTSEL);
+        if (selection.seq2 != nullptr) {
+          selection.seq2->flag |= (SELECT) |
+                                  ((selection.handle == SEQ_HANDLE_RIGHT) ? SEQ_LEFTSEL :
+                                                                            SEQ_RIGHTSEL);
+        }
+      }
       return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
     }
   }
