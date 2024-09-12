@@ -1675,7 +1675,6 @@ void BKE_sculptsession_free_pbvh(Object &object)
   }
 
   ss->pbvh.reset();
-  ss->vert_to_face_map = {};
   ss->edge_to_face_offsets = {};
   ss->edge_to_face_indices = {};
   ss->edge_to_face_map = {};
@@ -2017,10 +2016,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss.subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
   pbvh::Tree &pbvh = object::pbvh_ensure(*depsgraph, *ob);
-
-  if (ob->type == OB_MESH) {
-    ss.vert_to_face_map = mesh_orig->vert_to_face_map();
-  }
 
   if (ss.deform_modifiers_active) {
     /* Painting doesn't need crazyspace, use already evaluated mesh coordinates if possible. */

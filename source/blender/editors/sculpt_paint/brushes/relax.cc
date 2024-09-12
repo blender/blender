@@ -103,6 +103,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
                                             const Brush &brush,
                                             const Span<float3> positions_eval,
                                             const Span<float3> vert_normals,
+                                            const GroupedSpan<int> vert_to_face_map,
                                             const float strength,
                                             const bool relax_face_sets,
                                             const Object &object,
@@ -137,7 +138,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
   face_set::filter_verts_with_unique_face_sets_mesh(
-      ss.vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
+      vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
 }
 
 static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
@@ -154,6 +155,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -175,6 +177,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                        brush,
                        positions_eval,
                        vert_normals,
+                       vert_to_face_map,
                        strength,
                        relax_face_sets,
                        object,
@@ -190,7 +193,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
         vert_normals,
         faces,
         corner_verts,
-        ss.vert_to_face_map,
+        vert_to_face_map,
         ss.vertex_info.boundary,
         ss.face_sets,
         hide_poly,
@@ -214,8 +217,9 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
 
 BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
                                             const Brush &brush,
-                                            const Span<int> corner_verts,
                                             const OffsetIndices<int> faces,
+                                            const Span<int> corner_verts,
+                                            const GroupedSpan<int> vert_to_face_map,
                                             const bke::pbvh::GridsNode &node,
                                             const float strength,
                                             const bool relax_face_sets,
@@ -253,7 +257,7 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  face_set::filter_verts_with_unique_face_sets_grids(ss.vert_to_face_map,
+  face_set::filter_verts_with_unique_face_sets_grids(vert_to_face_map,
                                                      corner_verts,
                                                      faces,
                                                      subdiv_ccg,
@@ -280,6 +284,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -296,8 +301,9 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
     GridLocalData &tls = all_tls.local();
     calc_factors_grids(depsgraph,
                        brush,
-                       corner_verts,
                        faces,
+                       corner_verts,
+                       vert_to_face_map,
                        nodes[i],
                        strength,
                        relax_face_sets,
@@ -314,7 +320,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
         faces,
         corner_verts,
         ss.face_sets,
-        ss.vert_to_face_map,
+        vert_to_face_map,
         ss.vertex_info.boundary,
         nodes[i].grids(),
         relax_face_sets,
@@ -476,6 +482,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -509,7 +516,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
         vert_normals,
         faces,
         corner_verts,
-        ss.vert_to_face_map,
+        vert_to_face_map,
         ss.vertex_info.boundary,
         ss.face_sets,
         hide_poly,
@@ -588,6 +595,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -620,7 +628,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
         faces,
         corner_verts,
         ss.face_sets,
-        ss.vert_to_face_map,
+        vert_to_face_map,
         ss.vertex_info.boundary,
         nodes[i].grids(),
         false,

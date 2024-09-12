@@ -205,6 +205,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   const Span<float3> positions = bke::pbvh::vert_positions_eval(*depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -221,7 +222,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   float edge_length = 0.0f;
   Vector<int> neighbors;
   for (const int neighbor : vert_neighbors_get_mesh(
-           active_vert, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+           active_vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
   {
     edge_length += math::distance(active_vert_position, positions[neighbor]);
   }

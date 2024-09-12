@@ -316,11 +316,10 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-
-  const SculptSession &ss = *object.sculpt;
 
   Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
   Span<float3> normals_eval = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -370,7 +369,7 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
     }
 
     for (const int neighbor : vert_neighbors_get_mesh(
-             current_vert, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+             current_vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
     {
       if (visited_verts.contains(neighbor)) {
         continue;
@@ -905,6 +904,8 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
   const float radius = ss.cache ? ss.cache->radius : std::numeric_limits<float>::max();
   const int active_vert = std::get<int>(ss.active_vert());
@@ -917,7 +918,7 @@ static void fill_topology_automasking_factors_mesh(const Depsgraph &depsgraph,
 
   float3 location = vert_positions[active_vert];
 
-  flood.execute(ob, ss.vert_to_face_map, [&](int from_v, int to_v) {
+  flood.execute(ob, vert_to_face_map, [&](int from_v, int to_v) {
     factors[from_v] = 1.0f;
     factors[to_v] = 1.0f;
     return (use_radius || SCULPT_is_vertex_inside_brush_radius_symm(
@@ -1100,7 +1101,7 @@ static void init_boundary_masking_mesh(Object &object,
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -1110,13 +1111,12 @@ static void init_boundary_masking_mesh(Object &object,
   for (const int i : IndexRange(num_verts)) {
     switch (mode) {
       case BoundaryAutomaskMode::Edges:
-        if (boundary::vert_is_boundary(hide_poly, ss.vert_to_face_map, ss.vertex_info.boundary, i))
-        {
+        if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, ss.vertex_info.boundary, i)) {
           edge_distance[i] = 0;
         }
         break;
       case BoundaryAutomaskMode::FaceSets:
-        if (!face_set::vert_has_unique_face_set(ss.vert_to_face_map, ss.face_sets, i)) {
+        if (!face_set::vert_has_unique_face_set(vert_to_face_map, ss.face_sets, i)) {
           edge_distance[i] = 0;
         }
         break;
@@ -1130,8 +1130,8 @@ static void init_boundary_masking_mesh(Object &object,
         continue;
       }
 
-      for (const int neighbor : vert_neighbors_get_mesh(
-               i, faces, corner_verts, ss.vert_to_face_map, hide_poly, neighbors))
+      for (const int neighbor :
+           vert_neighbors_get_mesh(i, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
       {
         if (edge_distance[neighbor] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
@@ -1166,6 +1166,7 @@ static void init_boundary_masking_grids(Object &object,
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
   Array<int> edge_distance(positions.size(), EDGE_DISTANCE_INF);
   for (const int i : positions.index_range()) {
@@ -1180,7 +1181,7 @@ static void init_boundary_masking_grids(Object &object,
         break;
       case BoundaryAutomaskMode::FaceSets:
         if (!face_set::vert_has_unique_face_set(
-                ss.vert_to_face_map, corner_verts, faces, ss.face_sets, subdiv_ccg, coord))
+                vert_to_face_map, corner_verts, faces, ss.face_sets, subdiv_ccg, coord))
         {
           edge_distance[i] = 0;
         }

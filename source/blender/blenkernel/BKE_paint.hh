@@ -347,10 +347,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
   KeyBlock *shapekey_active = nullptr;
 
-  /* Mesh connectivity maps. */
-  /* Vertices to adjacent polys. */
-  blender::GroupedSpan<int> vert_to_face_map;
-
   /* Edges to adjacent faces. */
   blender::Array<int> edge_to_face_offsets;
   blender::Array<int> edge_to_face_indices;

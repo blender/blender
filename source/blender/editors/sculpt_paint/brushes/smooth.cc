@@ -115,6 +115,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -139,7 +140,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
       tls.vert_neighbors.resize(verts.size());
       calc_vert_neighbors_interior(faces,
                                    corner_verts,
-                                   ss.vert_to_face_map,
+                                   vert_to_face_map,
                                    ss.vertex_info.boundary,
                                    hide_poly,
                                    verts,

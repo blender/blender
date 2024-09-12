@@ -323,6 +323,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
       MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -335,7 +336,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
                      positions_eval,
                      faces,
                      corner_verts,
-                     ss.vert_to_face_map,
+                     vert_to_face_map,
                      hide_poly,
                      nodes[i],
                      object,

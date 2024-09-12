@@ -270,8 +270,10 @@ int vert_face_set_get(const Object &object, PBVHVertRef vertex)
       if (!ss.face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       int face_set = 0;
-      for (const int face_index : ss.vert_to_face_map[vertex.i]) {
+      for (const int face_index : vert_to_face_map[vertex.i]) {
         if (ss.face_sets[face_index] > face_set) {
           face_set = ss.face_sets[face_index];
         }
@@ -352,7 +354,9 @@ bool vert_has_face_set(const Object &object, PBVHVertRef vertex, int face_set)
       if (!ss.face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      for (const int face_index : ss.vert_to_face_map[vertex.i]) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      for (const int face_index : vert_to_face_map[vertex.i]) {
         if (ss.face_sets[face_index] == face_set) {
           return true;
         }
@@ -379,7 +383,9 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      return vert_has_unique_face_set(ss.vert_to_face_map, ss.face_sets, vertex.i);
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      return vert_has_unique_face_set(vert_to_face_map, ss.face_sets, vertex.i);
     }
     case bke::pbvh::Type::BMesh: {
       BMVert *v = (BMVert *)vertex.i;
@@ -389,11 +395,12 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
       const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
       const OffsetIndices<int> faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
 
       return vert_has_unique_face_set(
-          ss.vert_to_face_map, corner_verts, faces, ss.face_sets, *ss.subdiv_ccg, coord);
+          vert_to_face_map, corner_verts, faces, ss.face_sets, *ss.subdiv_ccg, coord);
     }
   }
   return false;
@@ -582,11 +589,12 @@ static void vertex_neighbors_get_faces(const Object &object,
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   iter->num_duplicates = 0;
   iter->neighbors.clear();
   iter->neighbor_indices.clear();
 
-  for (const int face_i : ss.vert_to_face_map[vertex.i]) {
+  for (const int face_i : vert_to_face_map[vertex.i]) {
     if (ss.hide_poly && ss.hide_poly[face_i]) {
       /* Skip connectivity from hidden faces. */
       continue;
@@ -701,9 +709,11 @@ bool vert_is_boundary(const Object &object, const PBVHVertRef vertex)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       if (!hide::vert_all_faces_visible_get(ss.hide_poly ? Span(ss.hide_poly, ss.faces_num) :
                                                            Span<bool>(),
-                                            ss.vert_to_face_map,
+                                            vert_to_face_map,
                                             vertex.i))
       {
         return true;
@@ -1246,7 +1256,6 @@ static void restore_mask_from_undo_step(Object &object)
 
 static void restore_color_from_undo_step(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   IndexMaskMemory memory;
@@ -1256,7 +1265,7 @@ static void restore_color_from_undo_step(Object &object)
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     if (const std::optional<Span<float4>> orig_data = orig_color_data_lookup_mesh(object,

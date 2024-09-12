@@ -765,7 +765,9 @@ static void calc_pose_origin_and_factor_mesh(const Depsgraph &depsgraph,
 {
   BLI_assert(!r_pose_factor.is_empty());
 
-  Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
@@ -778,7 +780,7 @@ static void calc_pose_origin_and_factor_mesh(const Depsgraph &depsgraph,
   int tot_co = 0;
   float3 pose_origin(0);
   float3 fallback_floodfill_origin = initial_location;
-  flood.execute(object, ss.vert_to_face_map, [&](int /*from_v*/, int to_v) {
+  flood.execute(object, vert_to_face_map, [&](int /*from_v*/, int to_v) {
     r_pose_factor[to_v] = 1.0f;
 
     const float3 co = positions_eval[to_v];

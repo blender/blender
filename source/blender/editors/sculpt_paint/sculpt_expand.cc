@@ -693,6 +693,8 @@ static void calc_topology_falloff_from_verts(Object &ob,
                                              MutableSpan<float> distances)
 {
   SculptSession &ss = *ob.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const int totvert = SCULPT_vertex_count_get(ob);
 
@@ -700,7 +702,7 @@ static void calc_topology_falloff_from_verts(Object &ob,
     case bke::pbvh::Type::Mesh: {
       flood_fill::FillDataMesh flood(totvert);
       initial_verts.foreach_index([&](const int vert) { flood.add_and_skip_initial(vert); });
-      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
+      flood.execute(ob, vert_to_face_map, [&](const int from_vert, const int to_vert) {
         distances[to_vert] = distances[from_vert] + 1.0f;
         return true;
       });
@@ -781,12 +783,14 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
 
       const float3 orig_normal = vert_normals[vert];
       flood_fill::FillDataMesh flood(totvert);
       flood.add_initial_with_symmetry(depsgraph, ob, pbvh, vert, FLT_MAX);
-      flood.execute(ob, ss.vert_to_face_map, [&](const int from_vert, const int to_vert) {
+      flood.execute(ob, vert_to_face_map, [&](const int from_vert, const int to_vert) {
         const float3 &from_normal = vert_normals[from_vert];
         const float3 &to_normal = vert_normals[to_vert];
         const float from_edge_factor = edge_factors[from_vert];
@@ -977,11 +981,11 @@ static Array<float> diagonals_falloff_create(const Depsgraph &depsgraph,
                                              Object &ob,
                                              const int vert)
 {
-  SculptSession &ss = *ob.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const int totvert = SCULPT_vertex_count_get(ob);
   Array<float> dists(totvert, 0.0f);
 
@@ -1012,7 +1016,7 @@ static Array<float> diagonals_falloff_create(const Depsgraph &depsgraph,
     const int next_vert = queue.front();
     queue.pop();
 
-    for (const int face : ss.vert_to_face_map[next_vert]) {
+    for (const int face : vert_to_face_map[next_vert]) {
       for (const int vert : corner_verts.slice(faces[face])) {
         if (visited_verts[vert]) {
           continue;
@@ -1439,7 +1443,6 @@ static void restore_face_set_data(Object &object, Cache &expand_cache)
 
 static void restore_color_data(Object &ob, Cache &expand_cache)
 {
-  SculptSession &ss = *ob.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
@@ -1448,7 +1451,7 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
   node_mask.foreach_index([&](const int i) {
     for (const int vert : nodes[i].verts()) {
@@ -1785,7 +1788,6 @@ static void colors_update_task(const Depsgraph &depsgraph,
 /* Store the original mesh data state in the expand cache. */
 static void original_state_store(Object &ob, Cache &expand_cache)
 {
-  SculptSession &ss = *ob.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
   const int totvert = SCULPT_vertex_count_get(ob);
 
@@ -1803,7 +1805,7 @@ static void original_state_store(Object &ob, Cache &expand_cache)
     const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
     const OffsetIndices<int> faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
-    const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+    const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
     const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
     const GVArraySpan colors = *color_attribute;
 
@@ -1909,7 +1911,7 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
-      const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
@@ -2393,7 +2395,7 @@ static void delete_face_set_id(
 {
   SculptSession &ss = *object.sculpt;
   const int totface = ss.totfaces;
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh->vert_to_face_map();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 

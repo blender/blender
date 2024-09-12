@@ -675,7 +675,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       Mesh &mesh = *static_cast<Mesh *>(ob.data);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
-      const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);

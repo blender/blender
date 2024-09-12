@@ -62,6 +62,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
@@ -112,7 +113,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
 
       tls.vert_neighbors.resize(verts.size());
       calc_vert_neighbors(
-          faces, corner_verts, ss.vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+          faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
 
       tls.average_positions.resize(verts.size());
       const MutableSpan<float3> average_positions = tls.average_positions;
@@ -142,7 +143,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
 
       tls.vert_neighbors.resize(verts.size());
       calc_vert_neighbors(
-          faces, corner_verts, ss.vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
+          faces, corner_verts, vert_to_face_map, hide_poly, verts, tls.vert_neighbors);
 
       tls.average_positions.resize(verts.size());
       const MutableSpan<float3> average_laplacian_disps = tls.average_positions;

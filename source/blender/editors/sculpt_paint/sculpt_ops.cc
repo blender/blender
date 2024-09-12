@@ -671,7 +671,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
 
   float4 active_vertex_color;
@@ -766,9 +766,9 @@ static void sculpt_mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
                                                  const bool invert,
                                                  const bool preserve_mask)
 {
-  SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
@@ -779,7 +779,7 @@ static void sculpt_mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
   flood_fill::FillDataMesh flood(mesh.verts_num);
   flood.add_initial(vert);
 
-  flood.execute(object, ss.vert_to_face_map, [&](int /*from_v*/, int to_v) {
+  flood.execute(object, vert_to_face_map, [&](int /*from_v*/, int to_v) {
     const float4 current_color = float4(colors[to_v]);
 
     float new_vertex_mask = sculpt_mask_by_color_delta_get(

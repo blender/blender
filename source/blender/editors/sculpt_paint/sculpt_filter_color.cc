@@ -317,7 +317,7 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   const IndexMask &node_mask = ss.filter_cache->node_mask;
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::GAttributeReader color_attribute = active_color_attribute(mesh);
   const GVArraySpan colors = *color_attribute;
 
@@ -385,7 +385,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = ss.vert_to_face_map;
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   bke::GSpanAttributeWriter color_attribute = active_color_attribute_for_write(mesh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
