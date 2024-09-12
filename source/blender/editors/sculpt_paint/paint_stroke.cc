@@ -1512,11 +1512,6 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       return OPERATOR_FINISHED;
     }
 
-    if (paint_supports_smooth_stroke(stroke, *br, mode)) {
-      stroke->stroke_cursor = WM_paint_cursor_activate(
-          SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_smooth_cursor, stroke);
-    }
-
     stroke->stroke_init = true;
     first_modal = true;
   }
@@ -1533,6 +1528,15 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
 
     if (stroke->stroke_started) {
+      /* StrokeTestStart often updates the currently active brush so we need to re-retrieve it
+       * here. */
+      br = BKE_paint_brush(paint);
+
+      if (paint_supports_smooth_stroke(stroke, *br, mode)) {
+        stroke->stroke_cursor = WM_paint_cursor_activate(
+            SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_smooth_cursor, stroke);
+      }
+
       if (br->flag & BRUSH_AIRBRUSH) {
         stroke->timer = WM_event_timer_add(
             CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
