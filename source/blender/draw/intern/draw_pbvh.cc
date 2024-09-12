@@ -494,18 +494,14 @@ template<> ColorGeometry4b fallback_value_for_fill()
   return fallback_value_for_fill<ColorGeometry4f>().encode();
 }
 
-static int count_visible_tris_mesh(const OffsetIndices<int> faces,
-                                   const Span<int> face_indices,
-                                   const Span<bool> hide_poly)
+BLI_NOINLINE static int count_face_corners(const OffsetIndices<int> faces,
+                                           const Span<int> face_indices)
 {
-  int tris_count = 0;
+  int corners_count = 0;
   for (const int face : face_indices) {
-    if (!hide_poly.is_empty() && hide_poly[face]) {
-      continue;
-    }
-    tris_count += bke::mesh::face_triangles_num(faces[face].size());
+    corners_count += faces[face].size();
   }
-  return tris_count;
+  return corners_count;
 }
 
 static int count_visible_tris_bmesh(const Set<BMFace *, 0> &faces)
@@ -1724,7 +1720,6 @@ BitSpan DrawCacheImpl::ensure_use_flat_layout(const Object &object,
 }
 
 BLI_NOINLINE static void ensure_vbos_allocated_mesh(const Object &object,
-                                                    const OrigMeshData &orig_mesh_data,
                                                     const GPUVertFormat &format,
                                                     const IndexMask &node_mask,
                                                     const MutableSpan<gpu::VertBuf *> vbos)
@@ -1733,14 +1728,11 @@ BLI_NOINLINE static void ensure_vbos_allocated_mesh(const Object &object,
   const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
-  const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
-  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   node_mask.foreach_index(GrainSize(64), [&](const int i) {
     if (!vbos[i]) {
       vbos[i] = GPU_vertbuf_create_with_format(format);
     }
-    const Span<int> face_indices = nodes[i].faces();
-    const int verts_num = count_visible_tris_mesh(faces, face_indices, hide_poly) * 3;
+    const int verts_num = count_face_corners(faces, nodes[i].faces());
     GPU_vertbuf_data_alloc(*vbos[i], verts_num);
   });
 }
@@ -1822,7 +1814,7 @@ Span<gpu::VertBuf *> DrawCacheImpl::ensure_attribute_data(const Object &object,
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      ensure_vbos_allocated_mesh(object, orig_mesh_data, format, mask, vbos);
+      ensure_vbos_allocated_mesh(object, format, mask, vbos);
       fill_vbos_mesh(object, orig_mesh_data, mask, attr, vbos);
       break;
     }
