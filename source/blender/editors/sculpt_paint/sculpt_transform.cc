@@ -506,11 +506,14 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
                                         tls,
                                         positions_orig);
             BKE_pbvh_node_mark_positions_update(nodes[i]);
+            bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
           });
         });
         break;
       }
       case bke::pbvh::Type::Grids: {
+        SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+        MutableSpan<float3> positions = subdiv_ccg.positions;
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           TransformLocalData &tls = all_tls.local();
@@ -518,6 +521,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
             elastic_transform_node_grids(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
             BKE_pbvh_node_mark_positions_update(nodes[i]);
+            bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
           });
         });
         break;
@@ -530,12 +534,14 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
             elastic_transform_node_bmesh(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
             BKE_pbvh_node_mark_positions_update(nodes[i]);
+            bke::pbvh::update_node_bounds_bmesh(nodes[i]);
           });
         });
         break;
       }
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 void update_modal_transform(bContext *C, Object &ob)

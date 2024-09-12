@@ -535,7 +535,10 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           positions_orig);
+    BKE_pbvh_node_mark_positions_update(nodes[i]);
+    bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
   });
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 BLI_NOINLINE static void calc_topology_relax_factors_grids(const Depsgraph &depsgraph,
@@ -589,7 +592,8 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  MutableSpan<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -643,7 +647,10 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
                           object,
                           current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
                           translations.as_mutable_span().slice(node_vert_offsets[pos]));
+    BKE_pbvh_node_mark_positions_update(nodes[i]);
+    bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 static void calc_topology_relax_factors_bmesh(const Depsgraph &depsgraph,
@@ -735,7 +742,10 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           current_positions.as_span().slice(node_vert_offsets[pos]));
+    BKE_pbvh_node_mark_positions_update(nodes[i]);
+    bke::pbvh::update_node_bounds_bmesh(nodes[i]);
   });
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 /** \} */
 

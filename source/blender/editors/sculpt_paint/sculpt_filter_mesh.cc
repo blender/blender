@@ -2297,6 +2297,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
 
   ss.filter_cache->iteration_count++;
 
+  bke::pbvh::update_bounds(depsgraph, ob, *bke::object::pbvh_get(ob));
   flush_update_step(C, UpdateType::Position);
 }
 

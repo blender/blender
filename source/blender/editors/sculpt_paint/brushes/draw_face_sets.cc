@@ -184,7 +184,6 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
     MeshLocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
       const Span<int> face_indices = nodes[i].faces();
-
       calc_faces(depsgraph,
                  object,
                  brush,
@@ -195,6 +194,7 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
                  face_indices,
                  tls,
                  face_sets.span);
+      BKE_pbvh_node_mark_update_face_sets(nodes[i]);
     });
   });
 

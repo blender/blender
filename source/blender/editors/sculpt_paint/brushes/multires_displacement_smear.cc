@@ -204,9 +204,13 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     LocalData &tls = all_tls.local();
-    node_mask.slice(range).foreach_index(
-        [&](const int i) { calc_node(depsgraph, ob, brush, strength, nodes[i], tls); });
+    node_mask.slice(range).foreach_index([&](const int i) {
+      calc_node(depsgraph, ob, brush, strength, nodes[i], tls);
+      BKE_pbvh_node_mark_positions_update(nodes[i]);
+      bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
+    });
   });
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

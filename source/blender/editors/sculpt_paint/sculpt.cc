@@ -3347,27 +3347,6 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   bool need_coords = ss.cache->supports_gravity;
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
-    switch (pbvh.type()) {
-      case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
-        break;
-      }
-    }
-
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss.cache->alt_smooth) {
       need_coords = true;
@@ -3378,43 +3357,9 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
   }
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Mask);
-    switch (pbvh.type()) {
-      case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
-        break;
-      }
-    }
   }
   else if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type)) {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Color);
-    switch (pbvh.type()) {
-      case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
-        break;
-      }
-    }
   }
   else {
     need_coords = true;
@@ -3422,26 +3367,6 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
 
   if (need_coords) {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
-    switch (pbvh.type()) {
-      case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index(
-            [&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
-        break;
-      }
-    }
   }
 }
 
@@ -5394,10 +5319,6 @@ void flush_update_step(bContext *C, UpdateType update_type)
     /* Fast path where we just update the BVH nodes that changed, and redraw
      * only the part of the 3D viewport where changes happened. */
     rcti r;
-
-    if (update_type == UpdateType::Position) {
-      bke::pbvh::update_bounds(depsgraph, ob, pbvh);
-    }
 
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && SCULPT_get_redraw_rect(region, *rv3d, ob, r)) {

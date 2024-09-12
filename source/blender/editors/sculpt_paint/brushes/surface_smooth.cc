@@ -376,9 +376,10 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
                              const IndexMask &node_mask)
 {
   SculptSession &ss = *object.sculpt;
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  switch (bke::object::pbvh_get(object)->type()) {
+  switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       do_surface_smooth_brush_mesh(
           depsgraph, sd, brush, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
@@ -395,6 +396,7 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
   }
+  bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

@@ -1431,6 +1431,8 @@ void do_simulation_step(const Depsgraph &depsgraph,
 
           cloth_sim.node_state[cloth_sim.node_state_index.lookup(&nodes[i])] =
               SCULPT_CLOTH_NODE_INACTIVE;
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
@@ -1468,6 +1470,8 @@ void do_simulation_step(const Depsgraph &depsgraph,
 
           cloth_sim.node_state[cloth_sim.node_state_index.lookup(&nodes[i])] =
               SCULPT_CLOTH_NODE_INACTIVE;
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -1501,11 +1505,14 @@ void do_simulation_step(const Depsgraph &depsgraph,
 
           cloth_sim.node_state[cloth_sim.node_state_index.lookup(&nodes[i])] =
               SCULPT_CLOTH_NODE_INACTIVE;
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 static void cloth_brush_apply_brush_foces(const Depsgraph &depsgraph,
@@ -2342,11 +2349,14 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
                                    object,
                                    tls);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         FilterLocalData &tls = all_tls.local();
@@ -2354,6 +2364,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
           apply_filter_forces_grids(
               *depsgraph, filter_type, filter_strength, gravity, nodes[i], object, tls);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -2366,11 +2377,13 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
           apply_filter_forces_bmesh(
               *depsgraph, filter_type, filter_strength, gravity, nodes[i], object, tls);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 
   /* Activate all nodes. */
   sim_activate_nodes(object, *ss.filter_cache->cloth_sim, node_mask);

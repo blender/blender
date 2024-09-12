@@ -127,9 +127,12 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
       node_mask.slice(range).foreach_index([&](const int i) {
         calc_bmesh(
             depsgraph, sd, object, brush, direction, factor * ss.cache->pressure, nodes[i], tls);
+        BKE_pbvh_node_mark_positions_update(nodes[i]);
+        bke::pbvh::update_node_bounds_bmesh(nodes[i]);
       });
     });
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

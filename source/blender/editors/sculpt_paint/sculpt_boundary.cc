@@ -1312,12 +1312,14 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                          deform_target,
                          positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1336,6 +1338,8 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -1358,11 +1362,14 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
@@ -1603,12 +1610,14 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                           deform_target,
                           positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1626,6 +1635,8 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -1647,11 +1658,14 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
@@ -1877,12 +1891,14 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                             deform_target,
                             positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1899,6 +1915,8 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              boundary.initial_vert_position,
                              strength,
                              deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -1919,11 +1937,14 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              boundary.initial_vert_position,
                              strength,
                              deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
@@ -2152,12 +2173,14 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                          deform_target,
                          positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -2175,6 +2198,8 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -2196,11 +2221,14 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
@@ -2436,12 +2464,14 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                           deform_target,
                           positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -2460,6 +2490,8 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -2482,11 +2514,14 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /** \} */
@@ -2841,12 +2876,14 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                            deform_target,
                            positions_orig);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -2862,6 +2899,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             boundary.initial_vert_position,
                             strength,
                             deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -2881,11 +2920,14 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             boundary.initial_vert_position,
                             strength,
                             deform_target);
+          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 /* -------------------------------------------------------------------- */

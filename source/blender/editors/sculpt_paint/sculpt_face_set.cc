@@ -1470,6 +1470,7 @@ static void edit_modify_coordinates(
       BLI_assert_unreachable();
   }
 
+  bke::pbvh::update_bounds(depsgraph, ob, pbvh);
   flush_update_step(C, UpdateType::Position);
   flush_update_done(C, ob, UpdateType::Position);
   undo::push_end(ob);

@@ -330,6 +330,7 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
   }
+  bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 
 }  // namespace blender::ed::sculpt_paint

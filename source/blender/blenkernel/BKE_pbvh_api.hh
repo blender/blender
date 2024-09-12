@@ -536,8 +536,15 @@ void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode
 void node_update_visibility_bmesh(BMeshNode &node);
 
 void update_node_bounds_mesh(Span<float3> positions, MeshNode &node);
-void update_node_bounds_grids(const CCGKey &key, Span<float3> positions, GridsNode &node);
+void update_node_bounds_grids(int grid_area, Span<float3> positions, GridsNode &node);
 void update_node_bounds_bmesh(BMeshNode &node);
+
+/**
+ * Run the last step of the BVH bounds recalculation process, propagating updated leaf node bounds
+ * to their parent/ancestor inner nodes. This is meant to be used after leaf node bounds have been
+ * computed separately.
+ */
+void flush_bounds_to_parents(Tree &pbvh);
 
 inline Span<int> MeshNode::faces() const
 {

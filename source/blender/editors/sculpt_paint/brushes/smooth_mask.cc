@@ -172,6 +172,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                         tls,
                         new_masks.as_span().slice(node_vert_offsets[pos]),
                         mask.span);
+      BKE_pbvh_node_mark_update_mask(nodes[i]);
     });
   }
   mask.finish();
@@ -304,8 +305,10 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
           LocalData &tls = all_tls.local();
-          node_mask.slice(range).foreach_index(
-              [&](const int i) { calc_grids(depsgraph, object, brush, strength, nodes[i], tls); });
+          node_mask.slice(range).foreach_index([&](const int i) {
+            calc_grids(depsgraph, object, brush, strength, nodes[i], tls);
+            BKE_pbvh_node_mark_update_mask(nodes[i]);
+          });
         });
       }
       break;
@@ -322,6 +325,7 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
           LocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
             calc_bmesh(depsgraph, object, mask_offset, brush, strength, nodes[i], tls);
+            BKE_pbvh_node_mark_update_mask(nodes[i]);
           });
         });
       }
