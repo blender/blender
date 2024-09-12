@@ -171,7 +171,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           });
           break;
         }
-        case bke::pbvh::Type::BMesh: {
+        case bke::pbvh::Type::Grids: {
           MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);
           threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -183,7 +183,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           });
           break;
         }
-        case bke::pbvh::Type::Grids: {
+        case bke::pbvh::Type::BMesh: {
           MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);
           threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
