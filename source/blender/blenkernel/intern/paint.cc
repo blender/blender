@@ -2119,6 +2119,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       BKE_texpaint_slots_refresh_object(scene, ob);
     }
   }
+
+  /* This solves a crash when running a sculpt brush in background mode, because there is no redraw
+   * after entering sculpt mode to make sure normals are allocated. Recalculating normals with
+   * every brush step is too expensive currently. */
+  bke::pbvh::update_normals(*depsgraph, *ob, pbvh);
 }
 
 void BKE_sculpt_update_object_before_eval(Object *ob_eval)
