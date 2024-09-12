@@ -518,6 +518,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   for (const int i : IndexRange(output_storage.items_num)) {
     const NodeSimulationItem &item = output_storage.items[i];
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    if (socket_type == SOCK_GEOMETRY && i > 0) {
+      b.add_separator();
+    }
     const StringRef name = item.name;
     const std::string identifier = SimulationItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier)
@@ -860,6 +863,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSimulationItem &item = storage.items[i];
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    if (socket_type == SOCK_GEOMETRY && i > 0) {
+      b.add_separator();
+    }
     const StringRef name = item.name;
     const std::string identifier = SimulationItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier)

@@ -410,6 +410,8 @@ using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;
 
 using PanelDrawButtonsFunction = void (*)(uiLayout *, bContext *, PointerRNA *);
 
+class SeparatorDeclaration : public ItemDeclaration {};
+
 /**
  * Describes a panel containing sockets or other panels.
  */
@@ -568,6 +570,8 @@ class NodeDeclarationBuilder {
   BaseSocketDeclarationBuilder &add_output(eCustomDataType data_type,
                                            StringRef name,
                                            StringRef identifier = "");
+
+  void add_separator();
 
   aal::RelationsInNode &get_anonymous_attribute_relations()
   {

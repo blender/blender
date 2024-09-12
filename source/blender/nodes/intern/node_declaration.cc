@@ -233,6 +233,9 @@ bool NodeDeclaration::is_valid() const
         panel_states.push({panel_decl->num_child_decls});
       }
     }
+    else if (dynamic_cast<const SeparatorDeclaration *>(item_decl.get())) {
+      /* Nothing to check. */
+    }
     else {
       BLI_assert_unreachable();
       return false;
@@ -279,6 +282,9 @@ bool NodeDeclaration::matches(const bNode &node) const
         return false;
       }
       ++current_panel;
+    }
+    else if (dynamic_cast<const SeparatorDeclaration *>(item_decl.get())) {
+      /* Separators are ignored here because they don't have corresponding data in DNA. */
     }
     else {
       /* Unknown item type. */
@@ -513,6 +519,11 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(const eCustomDa
                                                                  const StringRef identifier)
 {
   return this->add_output(*bke::custom_data_type_to_socket_type(data_type), name, identifier);
+}
+
+void NodeDeclarationBuilder::add_separator()
+{
+  declaration_.items.append(std::make_unique<SeparatorDeclaration>());
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::supports_field()

@@ -551,6 +551,10 @@ static bool node_update_basis_socket(const bContext &C,
 }
 
 struct NodeInterfaceItemData {
+ private:
+  NodeInterfaceItemData() = default;
+
+ public:
   /* Declaration of a socket (only for socket items). */
   const nodes::SocketDeclaration *socket_decl = nullptr;
   bNodeSocket *input = nullptr;
@@ -563,6 +567,8 @@ struct NodeInterfaceItemData {
   bNodePanelState *state = nullptr;
   /* Runtime panel state for draw locations. */
   bke::bNodePanelRuntime *runtime = nullptr;
+
+  bool is_separator = false;
 
   NodeInterfaceItemData(const nodes::SocketDeclaration *_socket_decl,
                         bNodeSocket *_input,
@@ -577,6 +583,13 @@ struct NodeInterfaceItemData {
   {
   }
 
+  static NodeInterfaceItemData separator()
+  {
+    NodeInterfaceItemData item;
+    item.is_separator = true;
+    return item;
+  }
+
   bool is_valid_socket() const
   {
     /* At least one socket pointer must be valid. */
@@ -587,6 +600,11 @@ struct NodeInterfaceItemData {
   {
     /* Panel can only be drawn when state data is available. */
     return this->panel_decl && this->state && this->runtime;
+  }
+
+  bool is_valid_separator() const
+  {
+    return this->is_separator;
   }
 };
 
@@ -666,6 +684,10 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
       ++panel_state;
       ++panel_runtime;
     }
+    else if (dynamic_cast<const nodes::SeparatorDeclaration *>(item_decl->get())) {
+      ++item_decl;
+      result.append(NodeInterfaceItemData::separator());
+    }
   }
   return result;
 }
@@ -729,6 +751,9 @@ static void node_update_panel_items_visibility_recursive(int num_items,
           parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
         }
       }
+    }
+    else if (item.is_valid_separator()) {
+      /* Nothing to do. */
     }
     else {
       /* Should not happen. */
@@ -867,6 +892,20 @@ static void add_panel_items_recursive(const bContext &C,
         state.is_first = false;
         state.need_spacer_after_item = true;
       }
+    }
+    else if (item.is_valid_separator()) {
+      uiLayout *layout = UI_block_layout(&block,
+                                         UI_LAYOUT_VERTICAL,
+                                         UI_LAYOUT_PANEL,
+                                         locx + NODE_DYS,
+                                         locy,
+                                         NODE_WIDTH(node) - NODE_DY,
+                                         NODE_DY,
+                                         0,
+                                         UI_style_get_dpi());
+      uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+      UI_block_layout_resolve(&block, nullptr, nullptr);
+      locy -= NODE_ITEM_SPACING_Y;
     }
     else {
       /* Should not happen. */
