@@ -144,8 +144,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   void update_children_from_old(const AbstractView &old_view) override;
   static void update_children_from_old_recursive(const TreeViewOrItem &new_items,
                                                  const TreeViewOrItem &old_items);
-  static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
-                                                   const TreeViewOrItem &items);
+  static AbstractTreeViewItem *find_matching_child(
+      const AbstractTreeViewItem &lookup_item, const Span<AbstractTreeViewItem *> possible_items);
 
   void draw_hierarchy_lines(const ARegion &region) const;
   void draw_hierarchy_lines_recursive(const ARegion &region,
