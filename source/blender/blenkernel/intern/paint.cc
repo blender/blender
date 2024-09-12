@@ -1975,8 +1975,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     return;
   }
 
-  ss.depsgraph = depsgraph;
-
   ss.deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
   ss.building_vp_handle = false;

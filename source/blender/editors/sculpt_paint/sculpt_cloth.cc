@@ -1050,11 +1050,11 @@ static void calc_forces_bmesh(const Depsgraph &depsgraph,
 }
 
 static Vector<ColliderCache> cloth_brush_collider_cache_create(Object &object,
-                                                               Depsgraph *depsgraph)
+                                                               const Depsgraph &depsgraph)
 {
   Vector<ColliderCache> cache;
   DEGObjectIterSettings deg_iter_settings = {nullptr};
-  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.depsgraph = &const_cast<Depsgraph &>(depsgraph);
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                             DEG_ITER_OBJECT_FLAG_DUPLI;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -1774,7 +1774,7 @@ std::unique_ptr<SimulationData> brush_simulation_create(const Depsgraph &depsgra
   cloth_sim->softbody_strength = cloth_softbody_strength;
 
   if (use_collisions) {
-    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, ss.depsgraph);
+    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, depsgraph);
   }
 
   cloth_sim_initialize_default_node_state(ob, *cloth_sim);
