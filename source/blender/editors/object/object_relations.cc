@@ -83,6 +83,7 @@
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -620,7 +621,9 @@ bool parent_set(ReportList *reports,
        */
       /* XXX currently this should only happen for meshes, curves, surfaces,        * and lattices
        * - this stuff isn't available for meta-balls yet. */
-      if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_LATTICE)) {
+      if (ELEM(
+              ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_LATTICE, OB_GREASE_PENCIL))
+      {
         ModifierData *md;
 
         switch (partype) {
@@ -647,9 +650,18 @@ bool parent_set(ReportList *reports,
             break;
           default: /* armature deform */
             if (BKE_modifiers_is_deformed_by_armature(ob) != par) {
-              md = modifier_add(reports, bmain, scene, ob, nullptr, eModifierType_Armature);
-              if (md) {
-                ((ArmatureModifierData *)md)->object = par;
+              if (ob->type == OB_GREASE_PENCIL) {
+                md = modifier_add(
+                    reports, bmain, scene, ob, nullptr, eModifierType_GreasePencilArmature);
+                if (md) {
+                  ((GreasePencilArmatureModifierData *)md)->object = par;
+                }
+              }
+              else {
+                md = modifier_add(reports, bmain, scene, ob, nullptr, eModifierType_Armature);
+                if (md) {
+                  ((ArmatureModifierData *)md)->object = par;
+                }
               }
             }
             break;
@@ -718,7 +730,7 @@ bool parent_set(ReportList *reports,
           reports, depsgraph, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
       WM_cursor_wait(false);
     }
-    /* get corrected inverse */
+    /* Get corrected inverse. */
     ob->partype = PAROBJECT;
 
     invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
@@ -734,6 +746,18 @@ bool parent_set(ReportList *reports,
       WM_cursor_wait(true);
       ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);
       WM_cursor_wait(false);
+    }
+    /* get corrected inverse */
+    ob->partype = PAROBJECT;
+
+    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+  }
+  else if (is_armature_parent && (ob->type == OB_GREASE_PENCIL) && (par->type == OB_ARMATURE)) {
+    if (partype == PAR_ARMATURE_NAME) {
+      ed::greasepencil::add_armature_vertex_groups(*ob, *par);
+    }
+    else if (ELEM(partype, PAR_ARMATURE_AUTO, PAR_ARMATURE_ENVELOPE)) {
+      /* TODO. */
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
@@ -948,7 +972,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     if (child->type == OB_MESH) {
       has_children_of_type.mesh = true;
     }
-    if (child->type == OB_GPENCIL_LEGACY) {
+    if (child->type == OB_GPENCIL_LEGACY || child->type == OB_GREASE_PENCIL) {
       has_children_of_type.gpencil = true;
     }
     if (child->type == OB_CURVES) {
@@ -1725,8 +1749,8 @@ static Collection *single_object_users_collection(Main *bmain,
                                                   const bool copy_collections,
                                                   const bool is_master_collection)
 {
-  /* Generate new copies for objects in given collection and all its children,    * and optionally
-   * also copy collections themselves. */
+  /* Generate new copies for objects in given collection and all its children,    * and
+   * optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
     Collection *collection_new = (Collection *)BKE_id_copy_ex(
         bmain, &collection->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
@@ -2365,8 +2389,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &collection->id;
     user_overrides_from_selected_objects = true;
   }
-  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true, or that it is already an existing
-   * liboverride. */
+  /* Else, poll func ensures us that ID_IS_LINKED(obact) is true, or that it is already an
+   * existing liboverride. */
   else {
     BLI_assert(ID_IS_LINKED(obact) || ID_IS_OVERRIDE_LIBRARY_REAL(obact));
     id_root = &obact->id;
@@ -2423,8 +2447,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
   /* For the time being, replace selected linked objects by their overrides in all collections.
-   * While this may not be the absolute best behavior in all cases, in most common one this should
-   * match the expected result. */
+   * While this may not be the absolute best behavior in all cases, in most common one this
+   * should match the expected result. */
   if (user_overrides_objects_uids != nullptr) {
     LISTBASE_FOREACH (Collection *, coll_iter, &bmain->collections) {
       if (ID_IS_LINKED(coll_iter)) {
@@ -2498,8 +2522,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
           break;
         }
         case ID_OB: {
-          /* TODO: Not sure how well we can handle this case, when we don't have the collections as
-           * reference containers... */
+          /* TODO: Not sure how well we can handle this case, when we don't have the collections
+           * as reference containers... */
           break;
         }
         default:
@@ -2578,13 +2602,13 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
           potential_root_collections.remove(collection_root_iter);
         }
         else {
-          /* Current potential root is not found in current collection's hierarchy, so the later is
-           * a potential candidate as root collection. */
+          /* Current potential root is not found in current collection's hierarchy, so the later
+           * is a potential candidate as root collection. */
           is_potential_root = true;
         }
       }
-      /* Only add the current collection as potential root if it is not a descendant of any already
-       * known potential root collections. */
+      /* Only add the current collection as potential root if it is not a descendant of any
+       * already known potential root collections. */
       if (is_potential_root && !has_parents_in_potential_roots) {
         potential_root_collections.add_new(collection);
       }

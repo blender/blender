@@ -12,6 +12,7 @@
 #include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
@@ -198,6 +199,46 @@ void normalize_vertex_weights(MDeformVert &dvert,
                                vertex_group_is_locked.size(),
                                vertex_group_is_bone_deformed,
                                active_vertex_group_is_unlocked);
+}
+
+static int armature_traversal(Object &ob,
+                              const Bone *bone,
+                              const FunctionRef<bool(Object &, const Bone *)> bone_callback)
+{
+  int count = 0;
+
+  if (bone != nullptr) {
+    /* Only call `bone_callback` if the bone is non null */
+    count += bone_callback(ob, bone) ? 1 : 0;
+    /* Try to execute `bone_callback` for the first child. */
+    count += armature_traversal(ob, static_cast<Bone *>(bone->childbase.first), bone_callback);
+    /* Try to execute `bone_callback` for the next bone at this depth of the recursion. */
+    count += armature_traversal(ob, bone->next, bone_callback);
+  }
+
+  return count;
+}
+
+bool add_armature_vertex_groups(Object &object, const Object &ob_armature)
+{
+  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+
+  const int defbase_add = armature_traversal(
+      object,
+      static_cast<const Bone *>(armature.bonebase.first),
+      [&](Object &object, const Bone *bone) {
+        if ((bone->flag & BONE_NO_DEFORM) == 0) {
+          /* Check if the name of the bone matches a vertex group name. */
+          if (!BKE_object_defgroup_find_name(&object, bone->name)) {
+            /* Add a new vertex group with the name of the bone. */
+            BKE_object_defgroup_add_name(&object, bone->name);
+            return true;
+          }
+        }
+        return false;
+      });
+
+  return defbase_add > 0;
 }
 
 struct ClosestGreasePencilDrawing {

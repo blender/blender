@@ -497,6 +497,9 @@ void normalize_vertex_weights(MDeformVert &dvert,
                               Span<bool> vertex_group_is_locked,
                               Span<bool> vertex_group_is_bone_deformed);
 
+/** Adds vertex groups for the bones in the armature (with matiching names). */
+bool add_armature_vertex_groups(Object &object, const Object &armature);
+
 void clipboard_free();
 const bke::CurvesGeometry &clipboard_curves();
 /**
