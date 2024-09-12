@@ -84,8 +84,6 @@ def __gather_base_color_factor(blender_material, export_settings):
     if base_color_socket.socket is None:
         base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "BaseColor")
     if base_color_socket.socket is None:
-        base_color_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "BaseColor")
-    if base_color_socket.socket is None:
         base_color_socket = get_socket_from_gltf_material_node(
             blender_material.node_tree, blender_material.use_nodes, "BaseColorFactor")
     if base_color_socket.socket is not None and isinstance(base_color_socket.socket, bpy.types.NodeSocket):
