@@ -134,6 +134,7 @@ static void modify_curves(ModifierData &md, const ModifierEvalContext &ctx, Draw
 
     BKE_armature_deform_coords_with_curves(*amd.object,
                                            *ctx.object,
+                                           &curves.vertex_group_names,
                                            positions.slice(points),
                                            std::nullopt,
                                            std::nullopt,
