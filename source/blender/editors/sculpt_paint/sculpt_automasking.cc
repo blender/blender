@@ -627,7 +627,7 @@ static void calc_blurred_cavity(const Depsgraph &depsgraph,
                                 const PBVHVertRef vertex)
 {
   const SculptSession &ss = *object.sculpt;
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       calc_blurred_cavity_mesh(depsgraph, object, automasking, steps, int(vertex.i));
       break;

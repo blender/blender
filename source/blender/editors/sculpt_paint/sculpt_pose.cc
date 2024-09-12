@@ -931,7 +931,7 @@ static void calc_pose_data(const Depsgraph &depsgraph,
   BLI_assert(!r_pose_factor.is_empty());
 
   float3 pose_origin;
-  switch (ss.pbvh->type()) {
+  switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       calc_pose_origin_and_factor_mesh(
           depsgraph, object, ss, initial_location, radius, pose_origin, r_pose_factor);
