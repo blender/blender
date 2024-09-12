@@ -75,8 +75,7 @@ struct Cache {
    * during the execution of Expand by moving the origin. */
   float2 initial_mouse_move;
   float2 initial_mouse;
-  PBVHVertRef initial_active_vertex;
-  int initial_active_vertex_i;
+  int initial_active_vert;
   int initial_active_face_set;
 
   /* Maximum number of vertices allowed in the SculptSession for previewing the falloff using

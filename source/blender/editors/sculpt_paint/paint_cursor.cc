@@ -1841,9 +1841,11 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     cursor_draw_point_screen_space(
         pcontext->pos,
         pcontext->region,
-        SCULPT_vertex_co_get(*pcontext->depsgraph,
-                             active_object,
-                             pcontext->ss->expand_cache->initial_active_vertex),
+        SCULPT_vertex_co_get(
+            *pcontext->depsgraph,
+            active_object,
+            BKE_pbvh_index_to_vertex(*pcontext->vc.obact,
+                                     pcontext->ss->expand_cache->initial_active_vert)),
         active_object.object_to_world().ptr(),
         2);
   }
