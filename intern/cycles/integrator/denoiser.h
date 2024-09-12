@@ -19,6 +19,15 @@ class Device;
 class RenderBuffers;
 class Progress;
 
+bool use_optix_denoiser(Device *denoiser_device, const DenoiseParams &params);
+
+bool use_gpu_oidn_denoiser(Device *denoiser_device, const DenoiseParams &params);
+
+DenoiseParams get_effective_denoise_params(Device *denoiser_device,
+                                           Device *cpu_fallback_device,
+                                           const DenoiseParams &params,
+                                           Device *&single_denoiser_device);
+
 /* Implementation of a specific denoising algorithm.
  *
  * This class takes care of breaking down denoising algorithm into a series of device calls or to
