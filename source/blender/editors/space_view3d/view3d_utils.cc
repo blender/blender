@@ -84,18 +84,30 @@ void ED_view3d_text_colors_get(const Scene *scene,
   r_text_color[3] = 1.0f;
   r_shadow_color[3] = 0.8f;
 
-  /* White text, black shadow. Unless view background
-   * is very light; in that case black text, white shadow. */
+  /* Default text color from TH_TEXT_HI. If it is too close
+   * to the background color, darken or lighten it. */
+  UI_GetThemeColor3fv(TH_TEXT_HI, r_text_color);
+  float text_lightness = rgb_to_grayscale(r_text_color);
   float bg_color[3];
   ED_view3d_background_color_get(scene, v3d, bg_color);
-  float lightness = rgb_to_grayscale(bg_color);
-  if (lightness > 0.6f) {
-    copy_v3_fl(r_text_color, 0.0f);
-    copy_v3_v3(r_shadow_color, bg_color);
+  const float distance = len_v3v3(r_text_color, bg_color);
+  if (distance < 0.5f) {
+    if (text_lightness > 0.5f) {
+      mul_v3_fl(r_text_color, 0.33f);
+    }
+    else {
+      mul_v3_fl(r_text_color, 3.0f);
+    }
+    clamp_v3(r_text_color, 0.0f, 1.0f);
+  }
+
+  /* Shadow color is black or white depending on final text lightness. */
+  text_lightness = rgb_to_grayscale(r_text_color);
+  if (text_lightness > 0.4f) {
+    copy_v3_fl(r_shadow_color, 0.0f);
   }
   else {
-    copy_v3_fl(r_text_color, 0.9f);
-    copy_v3_fl(r_shadow_color, 0.0f);
+    copy_v3_fl(r_shadow_color, 1.0f);
   }
 }
 
