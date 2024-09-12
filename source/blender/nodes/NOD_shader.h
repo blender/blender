@@ -31,10 +31,14 @@ void ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
  */
 struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
 
+bNodeTree *npr_tree_get(struct Material *material);
+
 /**
  * This one needs to work on a local tree.
  */
-void ntreeGPUMaterialNodes(struct bNodeTree *localtree, struct GPUMaterial *mat);
+void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
+                           struct GPUMaterial *mat,
+                           bool is_npr_shader);
 
 #ifdef __cplusplus
 }

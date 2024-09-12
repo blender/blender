@@ -112,6 +112,10 @@ void main()
     imageStoreFast(out_gbuf_normal_img, ivec3(out_texel, layer - 1), gbuf.N[layer].xyyy);
   }
 
+#ifdef NPR_INDEX
+  out_npr_index = npr_index;
+#endif
+
   /* ----- Radiance output ----- */
 
   /* Only output emission during the gbuffer pass. */

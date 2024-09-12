@@ -192,22 +192,31 @@
 /* Used anywhere. (Starts at index 2, since 0 and 1 are used by draw_gpencil) */
 #define RBUFS_UTILITY_TEX_SLOT 2
 #define HIZ_TEX_SLOT 3
-/* Only during surface shading (forward and deferred eval). */
+/* Only during surface shading (forward, deferred eval and NPR). */
 #define SHADOW_TILEMAPS_TEX_SLOT 4
-#define SHADOW_ATLAS_TEX_SLOT 5
 #define VOLUME_PROBE_TEX_SLOT 6
 #define SPHERE_PROBE_TEX_SLOT 7
+#define SHADOW_ATLAS_TEX_SLOT 5
+/* Only during surface shading (forward). */
 #define VOLUME_SCATTERING_TEX_SLOT 8
 #define VOLUME_TRANSMITTANCE_TEX_SLOT 9
 /* Currently only used by ray-tracing, but might become used by forward too. */
 #define PLANAR_PROBE_DEPTH_TEX_SLOT 10
 #define PLANAR_PROBE_RADIANCE_TEX_SLOT 11
+/* Only during NPR */
+#define INDEX_NPR_TX_SLOT 8
+#define GBUF_NORMAL_NPR_TX_SLOT 9
+#define GBUF_HEADER_NPR_TX_SLOT 10
+#define GBUF_CLOSURE_NPR_TX_SLOT 11
+#define DIRECT_RADIANCE_NPR_TX_SLOT_1 12
+#define INDIRECT_RADIANCE_NPR_TX_SLOT_1 15
 /* Reserved slots info */
 #define MATERIAL_TEXTURE_RESERVED_SLOT_FIRST RBUFS_UTILITY_TEX_SLOT
 #define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NO_EVAL HIZ_TEX_SLOT
 #define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_HYBRID SPHERE_PROBE_TEX_SLOT
 #define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_FORWARD VOLUME_TRANSMITTANCE_TEX_SLOT
 #define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_WORLD SPHERE_PROBE_TEX_SLOT
+#define MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NPR INDIRECT_RADIANCE_NPR_TX_SLOT_1 + 2
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0

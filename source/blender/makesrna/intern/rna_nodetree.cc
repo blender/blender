@@ -4078,6 +4078,27 @@ static PointerRNA rna_NodeMenuSwitch_enum_definition_get(PointerRNA *ptr)
   return *ptr;
 }
 
+static void rna_NodeShaderNPR_node_tree_set(PointerRNA *ptr,
+                                            const PointerRNA value,
+                                            ReportList * /*reports*/)
+{
+  /* TODO(NPR): See rna_NodeGroup_node_tree_set */
+}
+
+static bool rna_NodeShaderNPR_node_tree_poll(PointerRNA * /*ptr*/, PointerRNA value)
+{
+  bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
+  if (ntree->type != NTREE_SHADER) {
+    return false;
+  }
+  return true;
+}
+
+static void rna_NodeShaderNPR_node_tree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  /* TODO(NPR) */
+}
+
 #else
 
 static const EnumPropertyItem prop_image_layer_items[] = {
@@ -4709,6 +4730,19 @@ static void def_sh_output(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Target", "Which renderer and viewport shading types to use the shaders for");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "nprtree", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "id");
+  RNA_def_property_struct_type(prop, "NodeTree");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 nullptr,  // "rna_NodeShaderNPR_node_tree_set",
+                                 nullptr,
+                                 "rna_NodeShaderNPR_node_tree_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "NPRTree Tree", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeShaderNPR_node_tree_update");
 }
 
 static void def_sh_output_linestyle(StructRNA *srna)

@@ -72,6 +72,8 @@ set(SRC
   nodes/node_shader_mix_shader.cc
   nodes/node_shader_normal.cc
   nodes/node_shader_normal_map.cc
+  nodes/node_shader_npr_input.cc
+  nodes/node_shader_npr_output.cc
   nodes/node_shader_object_info.cc
   nodes/node_shader_output_aov.cc
   nodes/node_shader_output_light.cc

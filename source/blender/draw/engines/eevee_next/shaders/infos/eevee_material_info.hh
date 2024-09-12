@@ -180,6 +180,11 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred_base)
                      "eevee_sampling_data",
                      "eevee_hiz_data");
 
+GPU_SHADER_CREATE_INFO(eevee_surf_deferred_npr_output)
+    .define("NPR_INDEX")
+    .push_constant(Type::INT, "npr_index")
+    .fragment_out(5, Type::UINT, "out_npr_index");
+
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .fragment_source("eevee_surf_deferred_frag.glsl")
     .additional_info("eevee_surf_deferred_base");

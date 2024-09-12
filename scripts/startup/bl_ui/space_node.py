@@ -128,6 +128,9 @@ class NODE_HT_header(Header):
                     row.enabled = not snode.pin
                     row.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
 
+            if snode.shader_type == 'NPR':
+                NODE_MT_editor_menus.draw_collapsible(context, layout)
+
         elif snode.tree_type == 'TextureNodeTree':
             layout.prop(snode, "texture_type", text="")
 

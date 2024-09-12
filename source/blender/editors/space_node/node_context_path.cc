@@ -22,6 +22,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_shader.h"
+
 #include "node_intern.hh"
 
 struct Material;
@@ -78,13 +80,17 @@ static void get_context_path_node_shader(const bContext &C,
   }
   else {
     Object *object = CTX_data_active_object(&C);
-    if (snode.shaderfrom == SNODE_SHADER_OBJECT && object != nullptr) {
+    if (ELEM(snode.shaderfrom, SNODE_SHADER_OBJECT, SNODE_SHADER_NPR) && object != nullptr) {
       ui::context_path_add_generic(path, RNA_Object, object);
       if (!(object->matbits && object->matbits[object->actcol - 1])) {
         context_path_add_object_data(path, *object);
       }
       Material *material = BKE_object_material_get(object, object->actcol);
       ui::context_path_add_generic(path, RNA_Material, material);
+      if (snode.shaderfrom == SNODE_SHADER_NPR) {
+        bNodeTree *nprtree = npr_tree_get(material);
+        ui::context_path_add_generic(path, RNA_NodeTree, nprtree);
+      }
     }
     else if (snode.shaderfrom == SNODE_SHADER_WORLD) {
       Scene *scene = CTX_data_scene(&C);

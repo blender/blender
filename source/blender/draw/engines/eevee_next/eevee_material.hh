@@ -27,6 +27,7 @@ class Instance;
 
 enum eMaterialPipeline {
   MAT_PIPE_DEFERRED = 0,
+  MAT_PIPE_DEFERRED_NPR,
   MAT_PIPE_FORWARD,
   /* These all map to the depth shader. */
   MAT_PIPE_PREPASS_DEFERRED,
@@ -325,8 +326,10 @@ struct Material {
   bool has_transparent_shadows;
   bool has_surface;
   bool has_volume;
+  int npr_index;
   MaterialPass shadow;
   MaterialPass shading;
+  MaterialPass npr;
   MaterialPass prepass;
   MaterialPass overlap_masking;
   MaterialPass capture;
@@ -341,6 +344,7 @@ struct Material {
 struct MaterialArray {
   Vector<Material> materials;
   Vector<GPUMaterial *> gpu_materials;
+  Vector<GPUMaterial *> gpu_materials_npr;
 };
 
 class MaterialModule {
@@ -391,7 +395,8 @@ class MaterialModule {
                                  ::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,
                                  eMaterialGeometry geometry_type,
-                                 eMaterialProbe probe_capture = MAT_PROBE_NONE);
+                                 eMaterialProbe probe_capture = MAT_PROBE_NONE,
+                                 int npr_index = 0);
 };
 
 /** \} */

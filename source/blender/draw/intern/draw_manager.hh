@@ -342,6 +342,10 @@ inline void Manager::extract_object_attributes(ResourceHandle handle,
   Vector<uint32_t, 4> hash_cache;
 
   for (const GPUMaterial *mat : materials) {
+    if (mat == nullptr) {
+      continue;
+    }
+
     const GPUUniformAttrList *attr_list = GPU_material_uniform_attributes(mat);
     if (attr_list == nullptr) {
       continue;

@@ -54,6 +54,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_npr.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -930,6 +931,54 @@ void WORLD_OT_new(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = new_world_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New NPR Tree Operator
+ * \{ */
+
+static int new_npr_tree_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  /* hook into UI */
+  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+
+  const char *name = DATA_("NPR Tree");
+  bNodeTree *tree = BKE_npr_tree_add(bmain, name);
+
+  if (prop) {
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, tree->id, *ptr.owner_id);
+    }
+
+    PointerRNA idptr = RNA_id_pointer_create(&tree->id);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
+    RNA_property_update(C, &ptr, prop);
+  }
+
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, tree);
+
+  return OPERATOR_FINISHED;
+}
+
+void RENDER_OT_npr_new(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "New NPR Tree";
+  ot->idname = "RENDER_OT_npr_new";
+  ot->description = "Add a new NPR shader";
+
+  /* api callbacks */
+  ot->exec = new_npr_tree_exec;
+  // ot->poll = object_materials_supported_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

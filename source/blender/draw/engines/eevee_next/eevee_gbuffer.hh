@@ -179,6 +179,7 @@ struct GBuffer {
             {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal */
             {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure */
             {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure 2*/
+            {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* NPR Index */
         });
   }
 

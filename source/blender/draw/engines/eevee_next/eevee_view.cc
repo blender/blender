@@ -100,12 +100,18 @@ void ShadingView::render()
                inst_.pipelines.deferred.closure_layer_count(),
                inst_.pipelines.deferred.normal_layer_count());
 
+  GPUAttachment npr_index_attachment = GPU_ATTACHMENT_NONE;
+  if (rbufs.npr_index_tx.is_valid()) {
+    npr_index_attachment = GPU_ATTACHMENT_TEXTURE(rbufs.npr_index_tx);
+  }
+
   gbuffer_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                      GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx),
                      GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
                      GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.normal_tx.layer_view(0), 0),
                      GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
-                     GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));
+                     GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0),
+                     npr_index_attachment);
 
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
@@ -355,12 +361,18 @@ void CaptureView::render_probes()
       combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
                           GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
 
+      GPUAttachment npr_index_attachment = GPU_ATTACHMENT_NONE;
+      if (inst_.render_buffers.npr_index_tx.is_valid()) {
+        npr_index_attachment = GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.npr_index_tx);
+      }
+
       gbuffer_fb_.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
                          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face),
                          GPU_ATTACHMENT_TEXTURE(inst_.gbuffer.header_tx),
                          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.normal_tx.layer_view(0), 0),
                          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(0), 0),
-                         GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(1), 0));
+                         GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(1), 0),
+                         npr_index_attachment);
 
       GPU_framebuffer_bind(combined_fb_);
       GPU_framebuffer_clear_color_depth(combined_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);

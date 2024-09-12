@@ -277,6 +277,7 @@ GPUMaterial *DRW_shader_from_material(
     eGPUMaterialEngine engine,
     const uint64_t shader_id,
     const bool is_volume_shader,
+    const bool is_npr_shader,
     bool deferred,
     GPUCodegenCallbackFn callback,
     void *thunk,

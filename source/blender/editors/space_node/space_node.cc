@@ -649,6 +649,10 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         node_area_tag_tree_recalc(snode, area);
       }
       break;
+#if 0
+    case NC_NPR:
+    /* TODO(NPR): ? */
+#endif
     case NC_WM:
       if (wmn->data == ND_UNDO) {
         node_area_tag_tree_recalc(snode, area);

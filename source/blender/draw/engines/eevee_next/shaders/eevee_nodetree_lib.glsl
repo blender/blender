@@ -18,6 +18,16 @@ vec3 g_volume_scattering;
 float g_volume_anisotropy;
 vec3 g_volume_absorption;
 
+#ifdef NPR_SHADER
+vec4 g_combined_color;
+vec4 g_diffuse_color;
+vec4 g_diffuse_direct;
+vec4 g_diffuse_indirect;
+vec4 g_specular_color;
+vec4 g_specular_direct;
+vec4 g_specular_indirect;
+#endif
+
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
 #define CLOSURE_DEFAULT 0.0
@@ -410,6 +420,7 @@ Closure nodetree_volume();
 vec3 nodetree_displacement();
 float nodetree_thickness();
 vec4 closure_to_rgba(Closure cl);
+vec4 nodetree_npr();
 #endif
 
 /* Simplified form of F_eta(eta, 1.0). */
@@ -592,6 +603,7 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
 #  define attrib_load()
 #  define nodetree_displacement() vec3(0.0)
 #  define nodetree_surface(closure_rand) Closure(0)
+#  define nodetree_npr() vec4(0.0)
 #  define nodetree_volume() Closure(0)
 #  define nodetree_thickness() 0.1
 #  define thickness_mode 1.0

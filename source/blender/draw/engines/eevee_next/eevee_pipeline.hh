@@ -190,6 +190,10 @@ struct DeferredLayerBase {
   PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
   PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
 
+  PassMain npr_ps_ = {"NPR"};
+  PassMain::Sub *npr_single_sided_ps_ = nullptr;
+  PassMain::Sub *npr_double_sided_ps_ = nullptr;
+
   /* Closures bits from the materials in this pass. */
   eClosureBits closure_bits_ = CLOSURE_NONE;
   /* Maximum closure count considering all material in this pass. */
@@ -307,6 +311,7 @@ class DeferredLayer : DeferredLayerBase {
 
   PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
   PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat);
 
   bool is_empty() const
   {
@@ -347,6 +352,7 @@ class DeferredPipeline {
 
   PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat, bool has_motion);
   PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
+  PassMain::Sub *npr_add(::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &main_view,
               View &render_view,
@@ -762,6 +768,8 @@ class PipelineModule {
 
       case MAT_PIPE_DEFERRED:
         return deferred.material_add(blender_mat, gpumat);
+      case MAT_PIPE_DEFERRED_NPR:
+        return deferred.npr_add(blender_mat, gpumat);
       case MAT_PIPE_FORWARD:
         return forward.material_opaque_add(blender_mat, gpumat);
       case MAT_PIPE_SHADOW:

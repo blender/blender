@@ -32,6 +32,7 @@
 #include "eevee_lookdev.hh"
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
+#include "eevee_npr.hh"
 #include "eevee_pipeline.hh"
 #include "eevee_raytrace.hh"
 #include "eevee_renderbuffers.hh"
@@ -79,6 +80,8 @@ class Instance {
 
   bool shaders_are_ready_ = true;
 
+  bool npr_enabled_ = true;
+
   /** Info string displayed at the top of the render / viewport, or the console when baking. */
   std::string info_ = "";
 
@@ -113,6 +116,7 @@ class Instance {
   VolumeProbeModule volume_probes;
   LightProbeModule light_probes;
   VolumeModule volume;
+  NPRModule npr;
 
   /** Input data. */
   Depsgraph *depsgraph;
@@ -170,7 +174,8 @@ class Instance {
         planar_probes(*this),
         volume_probes(*this),
         light_probes(*this),
-        volume(*this, uniform_data.data.volumes){};
+        volume(*this, uniform_data.data.volumes),
+        npr(*this){};
   ~Instance(){};
 
   /* Render & Viewport. */
@@ -271,6 +276,11 @@ class Instance {
   bool overlays_enabled() const
   {
     return overlays_enabled_;
+  }
+
+  bool npr_enabled() const
+  {
+    return npr_enabled_;
   }
 
   /** True if the grease pencil engine might be running. */

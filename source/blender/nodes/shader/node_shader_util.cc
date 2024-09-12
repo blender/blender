@@ -100,6 +100,12 @@ bool object_eevee_shader_nodes_poll(const bContext *C)
          STREQ(engine_type->idname, "BLENDER_EEVEE_NEXT");
 }
 
+bool npr_shader_nodes_poll(const bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return snode->shaderfrom == SNODE_SHADER_NPR;
+}
+
 /* ****** */
 
 static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)

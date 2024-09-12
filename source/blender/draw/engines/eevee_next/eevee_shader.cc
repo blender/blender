@@ -426,6 +426,9 @@ class SamplerSlots {
     else if (pipeline_type == MAT_PIPE_FORWARD) {
       last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_FORWARD;
     }
+    else if (pipeline_type == MAT_PIPE_DEFERRED_NPR) {
+      last_reserved_ = MATERIAL_TEXTURE_RESERVED_SLOT_LAST_NPR;
+    }
   }
 
   int get()
@@ -505,6 +508,10 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if (pipeline_type == MAT_PIPE_DEFERRED) {
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
+    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_NPR)) {
+      /* TODO(NPR): Detect when npr_enabled is true? */
+      info.additional_info("eevee_surf_deferred_npr_output");
+    }
   }
 
   int32_t closure_data_slots = 0;
@@ -750,6 +757,11 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     frag_gen << (!codegen.surface.empty() ? codegen.surface : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
+    frag_gen << "vec4 nodetree_npr()\n";
+    frag_gen << "{\n";
+    frag_gen << (!codegen.npr.empty() ? codegen.npr : "return vec4(0.0);\n");
+    frag_gen << "}\n\n";
+
     /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
     info.define("thickness_mode", thickness_type == MAT_THICKNESS_SLAB ? "-1.0" : "1.0");
 
@@ -870,6 +882,9 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
             info.additional_info("eevee_surf_deferred");
           }
           break;
+        case MAT_PIPE_DEFERRED_NPR:
+          info.additional_info("eevee_surf_npr");
+          break;
         case MAT_PIPE_FORWARD:
           info.additional_info("eevee_surf_forward");
           break;
@@ -954,6 +969,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                                bool deferred_compilation)
 {
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
+  bool is_npr = pipeline_type == MAT_PIPE_DEFERRED_NPR;
 
   eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
   eMaterialThickness thickness_type = to_thickness_type(blender_mat->thickness_mode);
@@ -969,6 +985,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                               GPU_MAT_EEVEE,
                                               shader_uuid,
                                               is_volume,
+                                              is_npr,
                                               deferred_compilation,
                                               codegen_callback,
                                               this,
@@ -1007,6 +1024,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
   uint64_t shader_uuid = shader_uuid_from_material_type(pipeline_type, geometry_type);
 
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
+  bool is_npr = pipeline_type == MAT_PIPE_DEFERRED_NPR;
 
   GPUMaterial *gpumat = GPU_material_from_nodetree(nullptr,
                                                    nullptr,
@@ -1017,6 +1035,7 @@ GPUMaterial *ShaderModule::material_shader_get(const char *name,
                                                    shader_uuid,
                                                    is_volume,
                                                    false,
+                                                   is_npr,
                                                    codegen_callback,
                                                    this);
   GPU_material_status_set(gpumat, GPU_MAT_CREATED);

@@ -113,6 +113,7 @@ void Instance::init(const int2 &output_res,
   volume_probes.init();
   volume.init();
   lookdev.init(visible_rect);
+  npr.init();
 
   /* Pre-compile specialization constants in parallel (if supported). */
   shaders.precompile_specializations(
@@ -155,6 +156,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   volume_probes.init();
   volume.init();
   lookdev.init(&empty_rect);
+  npr.init();
 }
 
 void Instance::set_time(float time)
@@ -206,6 +208,7 @@ void Instance::begin_sync()
   cryptomatte.begin_sync();
   sphere_probes.begin_sync();
   light_probes.begin_sync();
+  npr.begin_sync();
 
   depth_of_field.sync();
   raytracing.sync();
@@ -340,6 +343,7 @@ void Instance::end_sync()
   light_probes.end_sync();
   sphere_probes.end_sync();
   planar_probes.end_sync();
+  npr.end_sync();
 
   uniform_data.push_update();
 

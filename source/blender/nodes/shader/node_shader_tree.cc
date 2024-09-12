@@ -19,6 +19,7 @@
 #include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -49,6 +50,7 @@
 #include "node_util.hh"
 
 using blender::Array;
+using blender::Map;
 using blender::Vector;
 
 static bool shader_tree_poll(const bContext *C, blender::bke::bNodeTreeType * /*treetype*/)
@@ -74,7 +76,7 @@ static void shader_get_from_context(const bContext *C,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
-  if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
+  if (ELEM(snode->shaderfrom, SNODE_SHADER_OBJECT, SNODE_SHADER_NPR)) {
     if (ob) {
       *r_from = &ob->id;
       if (ob->type == OB_LAMP) {
@@ -86,6 +88,11 @@ static void shader_get_from_context(const bContext *C,
         if (ma) {
           *r_id = &ma->id;
           *r_ntree = ma->nodetree;
+          if (snode->shaderfrom == SNODE_SHADER_NPR) {
+            bNodeTree *nprtree = npr_tree_get(ma);
+            *r_id = &nprtree->id;
+            *r_ntree = nprtree;
+          }
         }
       }
     }
@@ -100,12 +107,15 @@ static void shader_get_from_context(const bContext *C,
     }
   }
 #endif
-  else { /* SNODE_SHADER_WORLD */
+  else if (snode->shaderfrom == SNODE_SHADER_WORLD) {
     if (scene->world) {
       *r_from = nullptr;
       *r_id = &scene->world->id;
       *r_ntree = scene->world->nodetree;
     }
+  }
+  else {
+    BLI_assert_unreachable();
   }
 }
 
@@ -668,6 +678,44 @@ static void ntree_shader_copy_branch(bNodeTree *ntree,
   }
 }
 
+/* Copy all the nodes from src into the dst tree. */
+static void ntree_shader_embed_tree(bNodeTree *src, bNodeTree *dst)
+{
+  Vector<bNode *> new_nodes;
+
+  LISTBASE_FOREACH (bNode *, node, &src->nodes) {
+    /* Avoid creating unique names in the new tree, since it is very slow.
+     * The names on the new nodes will be invalid. */
+    bNode *copy = blender::bke::node_copy(
+        dst, *node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false);
+    /* But identifiers must be created for the `bNodeTree::all_nodes()` vector,
+     * so they won't match the original. */
+    blender::bke::node_unique_id(dst, copy);
+    /* Make sure to clear all sockets links as they are invalid. */
+    LISTBASE_FOREACH (bNodeSocket *, sock, &copy->inputs) {
+      sock->link = nullptr;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &copy->outputs) {
+      sock->link = nullptr;
+    }
+    copy->runtime->original = node->runtime->original;
+    node->runtime->tmp_flag = new_nodes.size();
+    new_nodes.append(copy);
+  }
+
+  /* Reconnect the node links. */
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &src->links) {
+    bNode *from_node = new_nodes[link->fromnode->runtime->tmp_flag];
+    bNode *to_node = new_nodes[link->tonode->runtime->tmp_flag];
+    blender::bke::node_add_link(
+        dst,
+        from_node,
+        ntree_shader_node_find_output(from_node, link->fromsock->identifier),
+        to_node,
+        ntree_shader_node_find_input(to_node, link->tosock->identifier));
+  }
+}
+
 /* Generate emission node to convert regular data to closure sockets.
  * Returns validity of the tree.
  */
@@ -1177,7 +1225,7 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_OUTPUT_AOV) {
+    if (ELEM(node->type, SH_NODE_OUTPUT_AOV, SH_NODE_NPR_OUTPUT)) {
       node->runtime->tmp_flag = 1;
       blender::bke::node_chain_iterator_backwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
     }
@@ -1195,15 +1243,79 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 }
 
-void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
+static bNodeTree *npr_tree_get(bNodeTree *ntree)
+{
+  if (!ntree) {
+    return nullptr;
+  }
+  if (bNode *output = ntreeShaderOutputNode(ntree, SHD_OUTPUT_EEVEE)) {
+    return reinterpret_cast<bNodeTree *>(output->id);
+  }
+  return nullptr;
+}
+
+bNodeTree *npr_tree_get(Material *material)
+{
+  if (!material) {
+    return nullptr;
+  }
+  return npr_tree_get(material->nodetree);
+}
+
+static bNode *ntreeShaderNPROutputNode(bNodeTree *localtree)
+{
+  bNode *output = nullptr;
+  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
+    if (node->type == SH_NODE_NPR_OUTPUT) {
+      output = node;
+      break;
+#if 0
+      /* TODO(NPR) */
+      if ((node->flag & NODE_DO_OUTPUT) && !(output->flag & NODE_DO_OUTPUT)) {
+        output = node;
+      }
+#endif
+    }
+  }
+
+  return output;
+}
+
+void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat, bool is_npr_shader)
 {
   bNodeTreeExec *exec;
+
+  if (is_npr_shader) {
+    /* Embed the NPR nodes into the main tree so NPR shaders can evaluate inputs from the main tree
+     * inline. */
+    bNodeTree *npr_tree = npr_tree_get(localtree);
+    bNodeTree *npr_localtree = blender::bke::node_tree_localize(npr_tree, nullptr);
+    ntree_shader_embed_tree(npr_localtree, localtree);
+    blender::bke::node_tree_free_local_tree(npr_localtree);
+    BLI_assert(!npr_localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
+    MEM_freeN(npr_localtree);
+  }
 
   ntree_shader_groups_remove_muted_links(localtree);
   ntree_shader_groups_expand_inputs(localtree);
   ntree_shader_groups_flatten(localtree);
 
   bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
+
+  if (output) {
+    if (is_npr_shader) {
+      /* Unlink Material-only inputs (except the Displacement).  */
+      for (bNodeSocket *input : output->input_sockets()) {
+        if (input->link && !STREQ(input->name, "Displacement")) {
+          blender::bke::node_remove_link(localtree, input->link);
+        }
+      }
+      /* TODO(NPR): Remove Material AOVs, leave NPR AOVs. */
+    }
+    else {
+      /* TODO(NPR): Unlink NPR-only inputs (unless used as textures). */
+    }
+  }
 
   /* Tree is valid if it contains no undefined implicit socket type cast. */
   bool valid_tree = ntree_shader_implicit_closure_cast(localtree);
@@ -1239,6 +1351,10 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
       }
     }
   }
+  if (bNode *npr_output = ntreeShaderNPROutputNode(localtree)) {
+    ntreeExecGPUNodes(exec, mat, npr_output);
+  }
+
   ntreeShaderEndExecTree(exec);
 }
 

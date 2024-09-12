@@ -468,9 +468,11 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(layout, ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_output_shader(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_output_shader(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
+
+  uiTemplateID(layout, C, ptr, "nprtree", "render.npr_new", nullptr, nullptr, 0, false, nullptr);
 }
 
 /* only once called */

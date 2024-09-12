@@ -243,6 +243,7 @@ set(SRC
   intern/node_tree_interface.cc
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
+  intern/npr.cc
   intern/object.cc
   intern/object_deform.cc
   intern/object_dupli.cc
@@ -472,6 +473,7 @@ set(SRC
   BKE_node_tree_interface.hh
   BKE_node_tree_update.hh
   BKE_node_tree_zones.hh
+  BKE_npr.hh
   BKE_object.hh
   BKE_object_deform.h
   BKE_object_types.hh

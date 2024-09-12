@@ -35,6 +35,7 @@ void ED_operatortypes_render()
   WM_operatortype_append(MATERIAL_OT_new);
   WM_operatortype_append(TEXTURE_OT_new);
   WM_operatortype_append(WORLD_OT_new);
+  WM_operatortype_append(RENDER_OT_npr_new);
 
   WM_operatortype_append(MATERIAL_OT_copy);
   WM_operatortype_append(MATERIAL_OT_paste);
