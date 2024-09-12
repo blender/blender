@@ -369,15 +369,6 @@ static void build_nodes_recursive_grids(const Span<int> material_indices,
                               nodes);
 }
 
-static int sum_group_sizes(const OffsetIndices<int> groups, const Span<int> indices)
-{
-  int count = 0;
-  for (const int i : indices) {
-    count += groups[i].size();
-  }
-  return count;
-}
-
 static Bounds<float3> calc_face_grid_bounds(const OffsetIndices<int> faces,
                                             const Span<float3> positions,
                                             const CCGKey &key,
@@ -458,7 +449,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   Array<int> node_grids_num(nodes.size() + 1);
   threading::parallel_for(nodes.index_range(), 16, [&](const IndexRange range) {
     for (const int i : range) {
-      node_grids_num[i] = sum_group_sizes(faces, nodes[i].prim_indices_);
+      node_grids_num[i] = offset_indices::sum_group_sizes(faces, nodes[i].prim_indices_);
     }
   });
   const OffsetIndices<int> node_grid_offsets = offset_indices::accumulate_counts_to_offsets(

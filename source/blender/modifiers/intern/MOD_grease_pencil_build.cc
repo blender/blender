@@ -295,9 +295,7 @@ static void points_info_sequential(const bke::CurvesGeometry &curves,
 
   const bool is_vanishing = transition == MOD_GREASE_PENCIL_BUILD_TRANSITION_VANISH;
 
-  int effective_points_num = 0;
-  selection.foreach_index(
-      [&](const int index) { effective_points_num += points_by_curve[index].size(); });
+  int effective_points_num = offset_indices::sum_group_sizes(points_by_curve, selection);
 
   const int untouched_points_num = points_by_curve.total_size() - effective_points_num;
   effective_points_num *= factor_to_keep;

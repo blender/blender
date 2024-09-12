@@ -494,16 +494,6 @@ template<> ColorGeometry4b fallback_value_for_fill()
   return fallback_value_for_fill<ColorGeometry4f>().encode();
 }
 
-BLI_NOINLINE static int count_face_corners(const OffsetIndices<int> faces,
-                                           const Span<int> face_indices)
-{
-  int corners_count = 0;
-  for (const int face : face_indices) {
-    corners_count += faces[face].size();
-  }
-  return corners_count;
-}
-
 static int count_visible_tris_bmesh(const Set<BMFace *, 0> &faces)
 {
   return std::count_if(faces.begin(), faces.end(), [&](const BMFace *face) {
@@ -1736,7 +1726,7 @@ BLI_NOINLINE static void ensure_vbos_allocated_mesh(const Object &object,
     if (!vbos[i]) {
       vbos[i] = GPU_vertbuf_create_with_format(format);
     }
-    const int verts_num = count_face_corners(faces, nodes[i].faces());
+    const int verts_num = offset_indices::sum_group_sizes(faces, nodes[i].faces());
     GPU_vertbuf_data_alloc(*vbos[i], verts_num);
   });
 }
