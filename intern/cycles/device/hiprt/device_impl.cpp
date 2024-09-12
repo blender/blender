@@ -1089,6 +1089,9 @@ void HIPRTDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   else {
 
     const vector<Object *> objects = bvh_rt->objects;
+    if (scene) {
+      hiprtDestroyScene(hiprt_context, scene);
+    }
     scene = build_tlas(bvh_rt, objects, options, refit);
   }
 }
