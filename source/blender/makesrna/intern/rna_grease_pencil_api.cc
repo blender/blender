@@ -117,6 +117,7 @@ static GreasePencilFrame *rna_Frames_frame_new(ID *id,
   }
 
   grease_pencil.insert_frame(layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, &grease_pencil);
 
   return layer.frame_at(frame_number);
