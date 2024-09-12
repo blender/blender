@@ -29,6 +29,7 @@
 #include "overlay_next_mesh.hh"
 #include "overlay_next_metaball.hh"
 #include "overlay_next_outline.hh"
+#include "overlay_next_paint.hh"
 #include "overlay_next_particle.hh"
 #include "overlay_next_prepass.hh"
 #include "overlay_next_relation.hh"
@@ -81,6 +82,7 @@ class Instance {
     Metaballs metaballs = {selection_type_};
     Meshes meshes;
     MeshUVs mesh_uvs;
+    Paints paints;
     Particles particles;
     Prepass prepass = {selection_type_};
     Relations relations = {selection_type_};
@@ -127,6 +129,11 @@ class Instance {
                                  bool in_paint_mode,
                                  bool in_sculpt_mode);
   bool object_is_in_front(const Object *object, const State &state);
+  bool object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode);
+
+  /* Returns true if the object is rendered transparent by the render engine.
+   * Overlays should not rely on the correct depth being available (and do a depth pre-pass). */
+  bool object_is_rendered_transparent(const Object *object, const State &state);
 };
 
 }  // namespace blender::draw::overlay

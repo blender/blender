@@ -133,6 +133,7 @@ void Instance::begin_sync()
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);
     layer.mesh_uvs.begin_sync(resources, state);
+    layer.paints.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
     layer.relations.begin_sync(resources, state);
@@ -156,7 +157,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool in_sculpt_mode = object_is_sculpt_mode(ob_ref);
   const bool in_edit_paint_mode = object_is_edit_paint_mode(
       ob_ref, in_edit_mode, in_paint_mode, in_sculpt_mode);
-  const bool needs_prepass = !state.xray_enabled; /* TODO */
+  const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode);
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
 
@@ -164,6 +165,9 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.prepass.object_sync(manager, ob_ref, resources, state);
   }
 
+  if (in_paint_mode) {
+    layer.paints.object_sync(manager, ob_ref, state);
+  }
   if (in_sculpt_mode) {
     layer.sculpts.object_sync(manager, ob_ref, state);
   }
@@ -406,6 +410,7 @@ void Instance::draw(Manager &manager)
   auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
+    layer.paints.draw(framebuffer, manager, view);
   };
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
@@ -575,6 +580,63 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
     case OB_VOLUME:
       return state.use_in_front && (object->dtx & OB_DRAW_IN_FRONT);
   }
+  return false;
+}
+
+bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
+{
+  if (in_paint_mode) {
+    /* Allow paint overlays to draw with depth equal test. */
+    return object_is_rendered_transparent(ob_ref.object, state);
+  }
+
+  if (!state.xray_enabled || (selection_type_ != SelectionType::DISABLED)) {
+    return ob_ref.object->dt >= OB_SOLID;
+  }
+
+  return false;
+}
+
+bool Instance::object_is_rendered_transparent(const Object *object, const State &state)
+{
+  if (state.v3d == nullptr) {
+    return false;
+  }
+
+  if (state.xray_enabled) {
+    return true;
+  }
+
+  if (ELEM(object->dt, OB_WIRE, OB_BOUNDBOX)) {
+    return true;
+  }
+
+  const View3DShading &shading = state.v3d->shading;
+
+  if (shading.type == OB_WIRE) {
+    return true;
+  }
+
+  if (shading.type > OB_SOLID) {
+    return false;
+  }
+
+  if (shading.color_type == V3D_SHADING_OBJECT_COLOR) {
+    return object->color[3] < 1.0f;
+  }
+
+  if (shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
+    if (object->type == OB_MESH) {
+      Mesh *mesh = static_cast<Mesh *>(object->data);
+      for (int i = 0; i < mesh->totcol; i++) {
+        Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object), i + 1);
+        if (mat && mat->a < 1.0f) {
+          return true;
+        }
+      }
+    }
+  }
+
   return false;
 }
 

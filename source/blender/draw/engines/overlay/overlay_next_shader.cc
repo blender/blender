@@ -255,6 +255,26 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_info("draw_gpencil_new", "draw_object_infos_new");
       });
 
+  paint_region_edge = shader("overlay_paint_wire", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_region_face = shader("overlay_paint_face", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_region_vert = shader("overlay_paint_point", [](gpu::shader::ShaderCreateInfo &info) {
+    shader_patch_common(info);
+  });
+  paint_texture = shader("overlay_paint_texture",
+                         [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  paint_weight = shader("overlay_paint_weight",
+                        [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  paint_weight_fake_shading = shader("overlay_paint_weight",
+                                     [](gpu::shader::ShaderCreateInfo &info) {
+                                       shader_patch_common(info);
+                                       info.define("FAKE_SHADING");
+                                       info.push_constant(gpu::shader::Type::VEC3, "light_dir");
+                                     });
+
   sculpt_mesh = shader("overlay_sculpt_mask",
                        [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
   sculpt_curves = shader("overlay_sculpt_curves_selection",

@@ -41,8 +41,7 @@ class Prepass {
   void begin_sync(Resources &res, const State &state)
   {
     use_selection_ = (selection_type_ != SelectionType::DISABLED);
-    enabled_ = !state.xray_enabled || use_selection_;
-    enabled_ &= state.space_type == SPACE_VIEW3D;
+    enabled_ = (state.space_type == SPACE_VIEW3D);
 
     if (!enabled_) {
       /* Not used. But release the data. */
@@ -156,10 +155,6 @@ class Prepass {
   void object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
   {
     if (!enabled_) {
-      return;
-    }
-
-    if (ob_ref.object->dt < OB_SOLID) {
       return;
     }
 
