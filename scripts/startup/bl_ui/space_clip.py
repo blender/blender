@@ -1368,7 +1368,7 @@ class CLIP_MT_clip(Menu):
         sc = context.space_data
         clip = sc.clip
 
-        layout.operator("clip.open")
+        layout.operator("clip.open", text="Open...", icon='FILE_FOLDER')
 
         if clip:
             layout.operator("clip.set_scene_frames")
