@@ -209,6 +209,10 @@ class Graph : NonCopyable, NonMovable {
    */
   LinearAllocator<> allocator_;
   /**
+   * Name of the graph for debugging purposes.
+   */
+  StringRefNull name_;
+  /**
    * Contains all nodes in the graph so that it is efficient to iterate over them.
    * The first two nodes are the interface input and output nodes.
    */
@@ -227,8 +231,10 @@ class Graph : NonCopyable, NonMovable {
   int socket_num_ = 0;
 
  public:
-  Graph();
+  Graph(StringRef name = "unkown");
   ~Graph();
+
+  StringRefNull name() const;
 
   /**
    * Get all nodes in the graph. The index in the span corresponds to #Node::index_in_graph.
@@ -488,6 +494,11 @@ inline const LazyFunction &FunctionNode::function() const
 /* -------------------------------------------------------------------- */
 /** \name #Graph Inline Methods
  * \{ */
+
+inline StringRefNull Graph::name() const
+{
+  return name_;
+}
 
 inline Span<const Node *> Graph::nodes() const
 {

@@ -1860,11 +1860,11 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
     for (const int i : inputs_.index_range()) {
       const lf::Input &input = inputs_[i];
-      lf_inputs.append(&lf_graph.add_input(*input.type, input.debug_name));
+      lf_inputs.append(&lf_graph.add_input(*input.type, this->input_name(i)));
     }
     for (const int i : outputs_.index_range()) {
       const lf::Output &output = outputs_[i];
-      lf_outputs.append(&lf_graph.add_output(*output.type, output.debug_name));
+      lf_outputs.append(&lf_graph.add_output(*output.type, this->output_name(i)));
     }
 
     /* Create body nodes. */
@@ -2474,7 +2474,7 @@ struct GeometryNodesLazyFunctionBuilder {
    */
   ZoneBodyFunction &build_zone_body_function(const bNodeTreeZone &zone)
   {
-    lf::Graph &lf_body_graph = scope_.construct<lf::Graph>();
+    lf::Graph &lf_body_graph = scope_.construct<lf::Graph>("Repeat Body");
 
     BuildGraphParams graph_params{lf_body_graph};
 

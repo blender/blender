@@ -1475,6 +1475,8 @@ GraphExecutor::GraphExecutor(const Graph &graph,
       side_effect_provider_(side_effect_provider),
       node_execute_wrapper_(node_execute_wrapper)
 {
+  debug_name_ = graph.name().c_str();
+
   /* The graph executor can handle partial execution when there are still missing inputs. */
   allow_missing_requested_inputs_ = true;
 
