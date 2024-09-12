@@ -178,11 +178,15 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
 static bool sculpt_no_multires_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob) {
-    const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
-    if (SCULPT_mode_poll(C) && ob->sculpt && pbvh) {
-      return pbvh->type() != bke::pbvh::Type::Grids;
-    }
+  if (!ob) {
+    return false;
+  }
+  if (ob->type != OB_MESH) {
+    return false;
+  }
+  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
+  if (SCULPT_mode_poll(C) && ob->sculpt && pbvh) {
+    return pbvh->type() != bke::pbvh::Type::Grids;
   }
   return false;
 }
