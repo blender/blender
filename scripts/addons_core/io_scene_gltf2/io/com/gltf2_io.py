@@ -12,6 +12,8 @@
 
 # NOTE: this file is modified for addonExtension use. See
 # https://github.com/KhronosGroup/glTF-Blender-IO/commit/62ff119d8ffeab48f66e9d2699741407d532fe0f
+# NOTE: this file is modified for mix/max accessor value check. See
+# https://github.com/KhronosGroup/glTF-Blender-IO/pull/2338/commits/5178b5f61ab942704b85ff51262a3d595e70d2b5
 
 import sys
 import traceback
@@ -77,7 +79,7 @@ def from_bool(x):
 
 
 def to_float(x):
-    assert isinstance(x, float)
+    assert isinstance(x, (int, float)) and not isinstance(x, bool)
     return x
 
 
