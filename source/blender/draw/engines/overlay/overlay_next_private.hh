@@ -209,6 +209,7 @@ class ShaderModule {
   ShaderPtr facing;
   ShaderPtr grid = shader("overlay_grid");
   ShaderPtr grid_background;
+  ShaderPtr grid_grease_pencil = shader("overlay_gpencil_canvas");
   ShaderPtr grid_image;
   ShaderPtr legacy_curve_edit_wires;
   ShaderPtr legacy_curve_edit_normals = shader("overlay_edit_curve_normals");

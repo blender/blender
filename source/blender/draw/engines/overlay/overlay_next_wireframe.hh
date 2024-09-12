@@ -21,7 +21,6 @@ class Wireframe {
   PassMain wireframe_ps_ = {"Wireframe"};
   struct ColoringPass {
     PassMain::Sub *curves_ps_ = nullptr;
-    PassMain::Sub *gpencil_ps_ = nullptr;
     PassMain::Sub *mesh_ps_ = nullptr;
     PassMain::Sub *pointcloud_ps_ = nullptr;
     /* Variant for meshes that force drawing all edges. */
@@ -86,6 +85,7 @@ class Wireframe {
 
   void object_sync(Manager &manager,
                    const ObjectRef &ob_ref,
+                   const State &state,
                    Resources &res,
                    const bool in_edit_paint_mode)
   {
@@ -117,7 +117,8 @@ class Wireframe {
         /* TODO(fclem): Not yet implemented. */
         break;
       case OB_GREASE_PENCIL:
-        /* TODO(fclem): Not yet implemented. */
+        geom = DRW_cache_grease_pencil_face_wireframe_get(state.scene, ob_ref.object);
+        coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
         break;
       case OB_MESH:
         geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);

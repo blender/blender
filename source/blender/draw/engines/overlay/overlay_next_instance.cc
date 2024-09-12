@@ -127,6 +127,7 @@ void Instance::begin_sync()
     layer.fade.begin_sync(resources, state);
     layer.force_fields.begin_sync();
     layer.fluids.begin_sync(resources, state);
+    layer.grease_pencil.begin_sync(resources, state, view);
     layer.lattices.begin_sync(resources, state);
     layer.lights.begin_sync();
     layer.light_probes.begin_sync(resources, state);
@@ -166,10 +167,31 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   }
 
   if (in_paint_mode) {
-    layer.paints.object_sync(manager, ob_ref, state);
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        /* TODO(fclem): Make it part of a #Meshes. */
+        layer.paints.object_sync(manager, ob_ref, state);
+        break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.paint_object_sync(manager, ob_ref, state, resources);
+        break;
+      default:
+        break;
+    }
   }
+
   if (in_sculpt_mode) {
-    layer.sculpts.object_sync(manager, ob_ref, state);
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        /* TODO(fclem): Make it part of a #Meshes. */
+        layer.sculpts.object_sync(manager, ob_ref, state);
+        break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.sculpt_object_sync(manager, ob_ref, state, resources);
+        break;
+      default:
+        break;
+    }
   }
 
   if (in_edit_mode && !state.hide_overlays) {
@@ -198,11 +220,14 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
       case OB_FONT:
         break;
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.edit_object_sync(manager, ob_ref, state, resources);
+        break;
     }
   }
 
   if (state.is_wireframe_mode || !state.hide_overlays) {
-    layer.wireframe.object_sync(manager, ob_ref, resources, in_edit_paint_mode);
+    layer.wireframe.object_sync(manager, ob_ref, state, resources, in_edit_paint_mode);
   }
 
   if (!state.hide_overlays) {
@@ -234,7 +259,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
           layer.metaballs.object_sync(ob_ref, resources, state);
         }
         break;
-      case OB_GPENCIL_LEGACY:
+      case OB_GREASE_PENCIL:
+        layer.grease_pencil.object_sync(ob_ref, resources, state);
         break;
       case OB_SPEAKER:
         layer.speakers.object_sync(ob_ref, resources, state);
@@ -429,6 +455,7 @@ void Instance::draw(Manager &manager)
     layer.particles.draw(framebuffer, manager, view);
     layer.armatures.draw(framebuffer, manager, view);
     layer.sculpts.draw(framebuffer, manager, view);
+    layer.grease_pencil.draw(framebuffer, manager, view);
     layer.meshes.draw(framebuffer, manager, view);
     layer.mesh_uvs.draw(framebuffer, manager, view);
   };
@@ -437,6 +464,7 @@ void Instance::draw(Manager &manager)
     layer.light_probes.draw_color_only(framebuffer, manager, view);
     layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
+    layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
 
   overlay_fb_draw(regular, resources.overlay_fb);
@@ -482,7 +510,7 @@ bool Instance::object_is_selected(const ObjectRef &ob_ref)
 
 bool Instance::object_is_paint_mode(const Object *object)
 {
-  if (object->type == OB_GREASE_PENCIL && (state.object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY)) {
+  if (object->type == OB_GREASE_PENCIL && (state.object_mode & OB_MODE_ALL_PAINT_GPENCIL)) {
     return true;
   }
   return state.active_base && (object == state.active_base->object) &&
@@ -555,6 +583,8 @@ bool Instance::object_is_edit_mode(const Object *object)
         return state.ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
         return state.ctx_mode == CTX_MODE_EDIT_POINT_CLOUD;
+      case OB_GREASE_PENCIL:
+        return state.ctx_mode == CTX_MODE_EDIT_GREASE_PENCIL;
       case OB_VOLUME:
         /* No edit mode yet. */
         return false;
@@ -571,6 +601,7 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
              (state.do_pose_xray && Armatures::is_pose_mode(object, state));
     case OB_MESH:
     case OB_CURVES_LEGACY:
+    case OB_GREASE_PENCIL:
     case OB_SURF:
     case OB_LATTICE:
     case OB_MBALL:

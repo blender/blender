@@ -22,7 +22,215 @@
 namespace blender::draw::overlay {
 
 class GreasePencil {
+ private:
+  PassSimple edit_grease_pencil_ps_ = {"GPencil Edit"};
+  PassSimple::Sub *edit_points_ = nullptr;
+  PassSimple::Sub *edit_lines_ = nullptr;
+
+  PassSimple grid_ps_ = {"GPencil Grid"};
+
+  bool show_points_ = false;
+  bool show_lines_ = false;
+  bool show_grid_ = false;
+  bool show_weight_ = false;
+
+  /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
+   * retopology offset. */
+  View view_edit_cage = {"view_edit_cage"};
+  float view_dist = 0.0f;
+
+  bool enabled_ = false;
+
  public:
+  void begin_sync(Resources &res, const State &state, const View &view)
+  {
+    enabled_ = state.space_type == SPACE_VIEW3D;
+
+    if (!enabled_) {
+      return;
+    }
+
+    view_dist = state.view_dist_get(view.winmat());
+
+    const View3D *v3d = state.v3d;
+    const ToolSettings *ts = state.scene->toolsettings;
+    const int sculpt_select_mode = ts->gpencil_selectmode_sculpt;
+
+    const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts);
+    const bool show_edit_point = selection_domain == bke::AttrDomain::Point;
+    const bool show_edit_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
+
+    show_points_ = show_lines_ = show_weight_ = false;
+
+    switch (state.object_mode) {
+      case OB_MODE_PAINT_GPENCIL_LEGACY:
+        /* Draw mode. */
+        break;
+      case OB_MODE_VERTEX_GPENCIL_LEGACY:
+        /* Vertex paint mode. */
+        break;
+      case OB_MODE_EDIT:
+        /* Edit mode. */
+        show_points_ = show_edit_point;
+        show_lines_ = show_edit_lines;
+        break;
+      case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+        /* Weight paint mode. */
+        show_points_ = true;
+        show_lines_ = show_edit_lines;
+        show_weight_ = true;
+        break;
+      case OB_MODE_SCULPT_GPENCIL_LEGACY:
+        /* Sculpt mode. */
+        show_points_ = sculpt_select_mode & GP_SCULPT_MASK_SELECTMODE_POINT;
+        show_lines_ = show_edit_lines && (sculpt_select_mode != 0);
+        break;
+      default:
+        /* Not a Grease Pencil mode. */
+        break;
+    }
+
+    edit_points_ = nullptr;
+    edit_lines_ = nullptr;
+
+    {
+      auto &pass = edit_grease_pencil_ps_;
+      pass.init();
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
+                         DRW_STATE_BLEND_ALPHA,
+                     state.clipping_plane_count);
+
+      if (show_points_) {
+        auto &sub = pass.sub("Points");
+        sub.shader_set(res.shaders.curve_edit_points.get());
+        sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.bind_texture("weightTex", &res.weight_ramp_tx);
+        sub.push_constant("useWeight", show_weight_);
+        sub.push_constant("useGreasePencil", true);
+        edit_points_ = &sub;
+      }
+
+      if (show_lines_) {
+        auto &sub = pass.sub("Lines");
+        sub.shader_set(res.shaders.curve_edit_line.get());
+        sub.bind_ubo("globalsBlock", &res.globals_buf);
+        sub.bind_texture("weightTex", &res.weight_ramp_tx);
+        sub.push_constant("useWeight", show_weight_);
+        sub.push_constant("useGreasePencil", true);
+        edit_lines_ = &sub;
+      }
+    }
+
+    const bool is_depth_projection_mode = ts->gpencil_v3d_align &
+                                          (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE);
+    show_grid_ = (v3d->gp_flag & V3D_GP_SHOW_GRID) && !is_depth_projection_mode;
+
+    {
+      const bool grid_xray = (v3d->gp_flag & V3D_GP_SHOW_GRID_XRAY);
+      DRWState depth_write_state = (grid_xray) ? DRW_STATE_DEPTH_ALWAYS :
+                                                 DRW_STATE_DEPTH_LESS_EQUAL;
+      auto &pass = grid_ps_;
+      pass.init();
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA | depth_write_state,
+                     state.clipping_plane_count);
+      if (show_grid_) {
+        const float4 col_grid(0.5f, 0.5f, 0.5f, state.overlay.gpencil_grid_opacity);
+        pass.shader_set(res.shaders.grid_grease_pencil.get());
+        pass.bind_ubo("globalsBlock", &res.globals_buf);
+        pass.push_constant("color", col_grid);
+      }
+    }
+  }
+
+  void edit_object_sync(Manager &manager,
+                        const ObjectRef &ob_ref,
+                        const State &state,
+                        Resources & /*res*/)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    Object *ob = ob_ref.object;
+    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+
+    if (show_points_) {
+      gpu::Batch *geom = show_weight_ ?
+                             DRW_cache_grease_pencil_weight_points_get(state.scene, ob) :
+                             DRW_cache_grease_pencil_edit_points_get(state.scene, ob);
+      edit_points_->draw(geom, res_handle);
+    }
+    if (show_lines_) {
+      gpu::Batch *geom = show_weight_ ? DRW_cache_grease_pencil_weight_lines_get(state.scene, ob) :
+                                        DRW_cache_grease_pencil_edit_lines_get(state.scene, ob);
+      edit_lines_->draw(geom, res_handle);
+    }
+  }
+
+  void paint_object_sync(Manager &manager,
+                         const ObjectRef &ob_ref,
+                         const State &state,
+                         Resources &res)
+  {
+    /* Reuse same logic as edit mode. */
+    edit_object_sync(manager, ob_ref, state, res);
+  }
+
+  void sculpt_object_sync(Manager &manager,
+                          const ObjectRef &ob_ref,
+                          const State &state,
+                          Resources &res)
+  {
+    /* Reuse same logic as edit mode. */
+    edit_object_sync(manager, ob_ref, state, res);
+  }
+
+  void object_sync(const ObjectRef &ob_ref, Resources & /*res*/, State &state)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    if (ob_ref.object != state.active_base->object) {
+      /* Only display for the active object. */
+      return;
+    }
+
+    if (show_grid_) {
+      const int grid_lines = 4;
+      const int line_count = grid_lines * 4 + 2;
+      const float4x4 grid_mat = grid_matrix_get(*ob_ref.object, state.scene);
+
+      grid_ps_.push_constant("xAxis", grid_mat.x_axis());
+      grid_ps_.push_constant("yAxis", grid_mat.y_axis());
+      grid_ps_.push_constant("origin", grid_mat.location());
+      grid_ps_.push_constant("halfLineCount", line_count / 2);
+      grid_ps_.draw_procedural(GPU_PRIM_LINES, 1, line_count * 2);
+    }
+  }
+
+  void draw(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(grid_ps_, view);
+  }
+
+  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view)
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    view_edit_cage.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(edit_grease_pencil_ps_, view_edit_cage);
+  }
+
   struct ViewParameters {
     bool is_perspective;
     union {
@@ -44,7 +252,6 @@ class GreasePencil {
     }
   };
 
- public:
   static void draw_grease_pencil(PassMain::Sub &pass,
                                  const ViewParameters &view,
                                  const Scene *scene,
@@ -168,6 +375,51 @@ class GreasePencil {
         transform_direction(bbox_to_world_normal, local_plane_direction));
 
     return float4(plane_direction, -dot(plane_direction, bbox_center));
+  }
+
+  float4x4 grid_matrix_get(const Object &object, const Scene *scene)
+  {
+    const ToolSettings *ts = scene->toolsettings;
+
+    const ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
+    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+
+    float4x4 mat = object.object_to_world();
+    if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
+      mat = layer.to_world_space(object);
+    }
+    const View3DCursor *cursor = &scene->cursor;
+
+    /* Set the grid in the selected axis */
+    switch (ts->gp_sculpt.lock_axis) {
+      case GP_LOCKAXIS_X:
+        std::swap(mat[0], mat[2]);
+        break;
+      case GP_LOCKAXIS_Y:
+        std::swap(mat[1], mat[2]);
+        break;
+      case GP_LOCKAXIS_Z:
+        /* Default. */
+        break;
+      case GP_LOCKAXIS_CURSOR: {
+        mat = float4x4(cursor->matrix<float3x3>());
+        break;
+      }
+      case GP_LOCKAXIS_VIEW:
+        /* view aligned */
+        DRW_view_viewmat_get(nullptr, mat.ptr(), true);
+        break;
+    }
+
+    mat *= 2.0f;
+
+    if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+      mat.location() = cursor->location;
+    }
+    else {
+      mat.location() = layer.to_world_space(object).location();
+    }
+    return mat;
   }
 };
 
