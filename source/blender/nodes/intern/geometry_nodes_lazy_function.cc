@@ -1908,6 +1908,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       }
     }
 
+    static bool static_true = true;
+
     /* Handle body nodes pair-wise. */
     for (const int iter_i : lf_body_nodes.index_range().drop_back(1)) {
       lf::FunctionNode &lf_node = *lf_body_nodes[iter_i];
@@ -1918,7 +1920,6 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         /* TODO: Add back-link after being able to check for cyclic dependencies. */
         // lf_graph.add_link(lf_next_node.output(body_fn_.indices.outputs.input_usages[i]),
         //                   lf_node.input(body_fn_.indices.inputs.output_usages[i]));
-        static bool static_true = true;
         lf_node.input(body_fn_.indices.inputs.output_usages[i]).set_default_value(&static_true);
       }
     }
@@ -1967,6 +1968,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
             &static_false);
       }
     }
+
+    lf_outputs[zone_info_.indices.outputs.input_usages[0]]->set_default_value(&static_true);
 
     /* The graph is ready, update the node indices which are required by the executor. */
     lf_graph.update_node_indices();
