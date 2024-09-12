@@ -90,6 +90,8 @@ def gather_sampled_object_channel(
                                animation_channel,
                                channel,
                                export_settings['vtree'].nodes[obj_uuid].blender_object,
+                               None,  # No bone
+                               action_name,
                                node_channel_is_animated
                                )
 
