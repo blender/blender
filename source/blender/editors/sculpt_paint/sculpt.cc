@@ -3504,7 +3504,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
       /* Initialize auto-masking cache. */
       if (auto_mask::is_enabled(sd, ob, &brush)) {
         ss.cache->automasking = auto_mask::cache_init(depsgraph, sd, &brush, ob);
-        ss.last_automasking_settings_hash = auto_mask::settings_hash(ob, *ss.cache->automasking);
       }
       /* Initialize surface smooth cache. */
       if ((brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMOOTH) &&
@@ -3716,13 +3715,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
 
   if (brush_uses_topology_rake(ss, brush)) {
     do_bmesh_topology_rake_brush(depsgraph, sd, ob, node_mask, brush.topology_rake_factor);
-  }
-
-  if (!auto_mask::brush_type_can_reuse_automask(brush.sculpt_brush_type) ||
-      (ss.cache->supports_gravity && sd.gravity_factor > 0.0f))
-  {
-    /* Clear cavity mask cache. */
-    ss.last_automasking_settings_hash = 0;
   }
 
   /* The cloth brush adds the gravity as a regular force and it is processed in the solver. */
@@ -5499,8 +5491,6 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
     bke::pbvh::update_mask(ob, pbvh);
   }
 
-  BKE_sculpt_attributes_destroy_temporary_stroke(&ob);
-
   if (update_type == UpdateType::Position) {
     if (pbvh.type() == bke::pbvh::Type::BMesh) {
       BKE_pbvh_bmesh_after_stroke(*ss.bm, pbvh);
@@ -5614,8 +5604,6 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 
     stroke_undo_begin(C, op);
 
-    SCULPT_stroke_id_next(ob);
-
     return true;
   }
   return false;
@@ -5721,7 +5709,6 @@ static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
       flush_update_done(C, ob, UpdateType::Image);
     }
     else {
-      BKE_sculpt_attributes_destroy_temporary_stroke(&ob);
       flush_update_done(C, ob, UpdateType::Color);
     }
   }
@@ -6297,30 +6284,6 @@ bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
       srd.original);
 
   return srd.hit;
-}
-
-void SCULPT_stroke_id_next(Object &ob)
-{
-  /* Manually wrap in int32 space to avoid tripping up undefined behavior
-   * sanitizers.
-   */
-  ob.sculpt->stroke_id = uchar((int(ob.sculpt->stroke_id) + 1) & 255);
-}
-
-void SCULPT_stroke_id_ensure(Object &ob)
-{
-  using namespace blender;
-  SculptSession &ss = *ob.sculpt;
-
-  if (!ss.attrs.automasking_stroke_id) {
-    SculptAttributeParams params = {0};
-    ss.attrs.automasking_stroke_id = BKE_sculpt_attribute_ensure(
-        &ob,
-        bke::AttrDomain::Point,
-        CD_PROP_INT8,
-        SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
-        &params);
-  }
 }
 
 namespace blender::ed::sculpt_paint::islands {

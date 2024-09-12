@@ -2524,9 +2524,6 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 
   float2 mval_fl{float(mval[0]), float(mval[1])};
   if (use_automasking) {
-    /* Increment stroke id for automasking system. */
-    SCULPT_stroke_id_next(ob);
-
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
     SculptCursorGeometryInfo sgi;

@@ -461,9 +461,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 
   const bool use_automasking = auto_mask::is_enabled(sd, ob, nullptr);
   if (use_automasking) {
-    /* Increment stroke id for auto-masking system. */
-    SCULPT_stroke_id_next(ob);
-
     if (v3d) {
       /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
        * Filter Tool. */

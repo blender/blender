@@ -2572,8 +2572,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_stroke_id_next(ob);
-
   /* Create and configure the Expand Cache. */
   ss.expand_cache = MEM_new<Cache>(__func__);
   cache_initial_config_set(C, op, *ss.expand_cache);

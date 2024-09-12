@@ -2405,8 +2405,6 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_stroke_id_next(ob);
-
   undo::push_begin(ob, op);
   filter::cache_init(C,
                      ob,

@@ -267,33 +267,18 @@ static float calc_view_normal_factor(const Depsgraph &depsgraph,
                      orig_normal);
 }
 
-static float calc_view_occlusion_factor(const Depsgraph &depsgraph,
-                                        const Cache &automasking,
-                                        const Object &object,
-                                        PBVHVertRef vertex,
-                                        uchar stroke_id)
+static bool calc_view_occlusion_factor(const Depsgraph &depsgraph,
+                                       Cache &automasking,
+                                       const Object &object,
+                                       const int vert,
+                                       const float3 &vert_position)
 {
-  SculptSession &ss = *object.sculpt;
-  char f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion);
-
-  if (stroke_id != automasking.current_stroke_id) {
-    f = *(char *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_occlusion) =
-        SCULPT_vertex_is_occluded(
-            depsgraph, object, SCULPT_vertex_co_get(depsgraph, object, vertex), true) ?
-            2 :
-            1;
+  if (automasking.occlusion[vert] == Cache::OcclusionValue::Unknown) {
+    const bool occluded = SCULPT_vertex_is_occluded(depsgraph, object, vert_position, true);
+    automasking.occlusion[vert] = occluded ? Cache::OcclusionValue::Occluded :
+                                             Cache::OcclusionValue::Visible;
   }
-
-  return f == 2;
-}
-
-/* Updates vertex stroke id. */
-static void update_vert_stroke_id(SculptSession &ss, const Cache &automasking, PBVHVertRef vertex)
-{
-  if (ss.attrs.automasking_stroke_id) {
-    *(uchar *)SCULPT_vertex_attr_get(
-        vertex, ss.attrs.automasking_stroke_id) = automasking.current_stroke_id;
-  }
+  return automasking.occlusion[vert] == Cache::OcclusionValue::Occluded;
 }
 
 static float calc_cavity_factor(const Cache &automasking, float factor)
@@ -319,7 +304,8 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
                                      const Object &object,
                                      const Cache &automasking,
                                      const int steps,
-                                     const int vert)
+                                     const int vert,
+                                     MutableSpan<float> cavity_factors)
 {
   struct CavityBlurVert {
     int vertex;
@@ -419,14 +405,14 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
 
   const float3 vec = all_verts.position - verts_in_range.position;
   float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
-  *(float *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
-      automasking, factor_sum);
+  cavity_factors[vert] = calc_cavity_factor(automasking, factor_sum);
 }
 
 static void calc_blurred_cavity_grids(const Object &object,
                                       const Cache &automasking,
                                       const int steps,
-                                      const SubdivCCGCoord vert)
+                                      const SubdivCCGCoord vert,
+                                      MutableSpan<float> cavity_factors)
 {
   struct CavityBlurVert {
     int vert;
@@ -520,22 +506,19 @@ static void calc_blurred_cavity_grids(const Object &object,
 
   const float3 vec = all_verts.position - verts_in_range.position;
   float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
-  *(float *)SCULPT_vertex_attr_get(key, vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
-      automasking, factor_sum);
+  cavity_factors[vert.to_index(key)] = calc_cavity_factor(automasking, factor_sum);
 }
 
-static void calc_blurred_cavity_bmesh(const Object &object,
-                                      const Cache &automasking,
+static void calc_blurred_cavity_bmesh(const Cache &automasking,
                                       const int steps,
-                                      BMVert *vert)
+                                      BMVert *vert,
+                                      MutableSpan<float> cavity_factors)
 {
   struct CavityBlurVert {
     BMVert *vertex;
     int index;
     int depth;
   };
-
-  const SculptSession &ss = *object.sculpt;
 
   AccumulatedVert all_verts;
   AccumulatedVert verts_in_range;
@@ -616,29 +599,34 @@ static void calc_blurred_cavity_bmesh(const Object &object,
 
   const float3 vec = all_verts.position - verts_in_range.position;
   float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
-  *(float *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_cavity) = calc_cavity_factor(
-      automasking, factor_sum);
+  cavity_factors[BM_elem_index_get(vert)] = calc_cavity_factor(automasking, factor_sum);
 }
 
 static void calc_blurred_cavity(const Depsgraph &depsgraph,
                                 const Object &object,
                                 const Cache &automasking,
                                 const int steps,
-                                const PBVHVertRef vertex)
+                                const PBVHVertRef vertex,
+                                MutableSpan<float> cavity_factors)
 {
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
-      calc_blurred_cavity_mesh(depsgraph, object, automasking, steps, int(vertex.i));
+      calc_blurred_cavity_mesh(
+          depsgraph, object, automasking, steps, int(vertex.i), cavity_factors);
       break;
     case bke::pbvh::Type::Grids: {
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      calc_blurred_cavity_grids(
-          object, automasking, steps, SubdivCCGCoord::from_index(key, int(vertex.i)));
+      calc_blurred_cavity_grids(object,
+                                automasking,
+                                steps,
+                                SubdivCCGCoord::from_index(key, int(vertex.i)),
+                                cavity_factors);
       break;
     }
     case bke::pbvh::Type::BMesh:
-      calc_blurred_cavity_bmesh(object, automasking, steps, reinterpret_cast<BMVert *>(vertex.i));
+      calc_blurred_cavity_bmesh(
+          automasking, steps, reinterpret_cast<BMVert *>(vertex.i), cavity_factors);
       break;
   }
 }
@@ -692,17 +680,19 @@ int settings_hash(const Object &ob, const Cache &automasking)
 static float calc_cavity_factor(const Depsgraph &depsgraph,
                                 const Cache &automasking,
                                 const Object &object,
-                                PBVHVertRef vertex)
+                                PBVHVertRef vertex,
+                                const int vert_i)
 {
-  SculptSession &ss = *object.sculpt;
-  uchar stroke_id = *(const uchar *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_stroke_id);
-
-  if (stroke_id != automasking.current_stroke_id) {
-    calc_blurred_cavity(
-        depsgraph, object, automasking, automasking.settings.cavity_blur_steps, vertex);
+  if (automasking.cavity_factor[vert_i] == -1.0f) {
+    calc_blurred_cavity(depsgraph,
+                        object,
+                        automasking,
+                        automasking.settings.cavity_blur_steps,
+                        vertex,
+                        const_cast<Cache &>(automasking).cavity_factor);
   }
 
-  float factor = *(const float *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_cavity);
+  float factor = automasking.cavity_factor[vert_i];
   bool inverted = automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_INVERTED;
 
   if ((automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) &&
@@ -741,24 +731,25 @@ static float factor_get(const Depsgraph &depsgraph,
     float factor = automasking.factor[vert_i];
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-      factor *= calc_cavity_factor(depsgraph, automasking, object, vert);
+      factor *= calc_cavity_factor(depsgraph, automasking, object, vert, vert_i);
     }
 
-    update_vert_stroke_id(ss, automasking, vert);
     return factor * mask;
   }
-
-  uchar stroke_id = ss.attrs.automasking_stroke_id ?
-                        *(uchar *)SCULPT_vertex_attr_get(vert, ss.attrs.automasking_stroke_id) :
-                        -1;
 
   bool do_occlusion = (automasking.settings.flags &
                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
-  if (do_occlusion && calc_view_occlusion_factor(depsgraph, automasking, object, vert, stroke_id))
-  {
-    update_vert_stroke_id(ss, automasking, vert);
-    return 0.0f;
+  if (do_occlusion) {
+    const bool occluded = calc_view_occlusion_factor(
+        depsgraph,
+        const_cast<Cache &>(automasking),
+        object,
+        vert_i,
+        SCULPT_vertex_co_get(depsgraph, object, vert));
+    if (occluded) {
+      return 0.0f;
+    }
   }
 
   if (!automasking.settings.topology_use_brush_limit &&
@@ -797,10 +788,9 @@ static float factor_get(const Depsgraph &depsgraph,
   }
 
   if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    mask *= calc_cavity_factor(depsgraph, automasking, object, vert);
+    mask *= calc_cavity_factor(depsgraph, automasking, object, vert, vert_i);
   }
 
-  update_vert_stroke_id(ss, automasking, vert);
   return mask;
 }
 
@@ -1349,7 +1339,6 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
                                               eAutomasking_flag mode,
                                               MutableSpan<float> factors)
 {
-  SculptSession &ss = *ob.sculpt;
   const int totvert = SCULPT_vertex_count_get(ob);
 
   /* No need to build original data since this is only called at the beginning of strokes. */
@@ -1360,14 +1349,11 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
 
     if (int(mode) & BRUSH_AUTOMASKING_VIEW_NORMAL) {
       if (int(mode) & BRUSH_AUTOMASKING_VIEW_OCCLUSION) {
-        f *= calc_view_occlusion_factor(depsgraph, automasking, ob, vertex, -1);
+        f *= calc_view_occlusion_factor(
+            depsgraph, automasking, ob, i, SCULPT_vertex_co_get(depsgraph, ob, vertex));
       }
 
       f *= calc_view_normal_factor(depsgraph, automasking, ob, vertex, {});
-    }
-
-    if (ss.attrs.automasking_stroke_id) {
-      *(uchar *)SCULPT_vertex_attr_get(vertex, ss.attrs.automasking_stroke_id) = ss.stroke_id;
     }
 
     factors[i] = f;
@@ -1403,8 +1389,6 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
   cache_settings_update(*automasking, ob, sd, brush);
   boundary::ensure_boundary_info(ob);
 
-  automasking->current_stroke_id = ss.stroke_id;
-
   int mode = calc_effective_bits(sd, brush);
 
   SCULPT_vertex_random_access_ensure(ob);
@@ -1413,24 +1397,14 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
     automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vert_index());
   }
 
-  bool use_stroke_id = false;
-  if ((mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) && (mode & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
-    use_stroke_id = true;
+  const int verts_num = SCULPT_vertex_count_get(ob);
 
-    if (!ss.attrs.automasking_occlusion) {
-      SculptAttributeParams params = {0};
-      ss.attrs.automasking_occlusion = BKE_sculpt_attribute_ensure(
-          &ob,
-          bke::AttrDomain::Point,
-          CD_PROP_INT8,
-          SCULPT_ATTRIBUTE_NAME(automasking_occlusion),
-          &params);
-    }
+  if ((mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) && (mode & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    automasking->occlusion = Array<Cache::OcclusionValue>(verts_num,
+                                                          Cache::OcclusionValue::Unknown);
   }
 
   if (mode & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    use_stroke_id = true;
-
     if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_CAVITY_USE_CURVE)) {
       if (brush) {
         BKE_curvemapping_init(brush->automasking_cavity_curve);
@@ -1438,38 +1412,7 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
       BKE_curvemapping_init(sd.automasking_cavity_curve);
     }
-
-    if (!ss.attrs.automasking_cavity) {
-      SculptAttributeParams params = {0};
-      ss.attrs.automasking_cavity = BKE_sculpt_attribute_ensure(
-          &ob,
-          bke::AttrDomain::Point,
-          CD_PROP_FLOAT,
-          SCULPT_ATTRIBUTE_NAME(automasking_cavity),
-          &params);
-    }
-  }
-
-  if (use_stroke_id) {
-    SCULPT_stroke_id_ensure(ob);
-
-    bool have_occlusion = (mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) &&
-                          (mode & BRUSH_AUTOMASKING_VIEW_NORMAL);
-
-    if (brush && auto_mask::brush_type_can_reuse_automask(brush->sculpt_brush_type) &&
-        !have_occlusion)
-    {
-      int hash = settings_hash(ob, *automasking);
-
-      if (hash == ss.last_automasking_settings_hash) {
-        automasking->current_stroke_id = ss.last_automask_stroke_id;
-        automasking->can_reuse_mask = true;
-      }
-    }
-
-    if (!automasking->can_reuse_mask) {
-      ss.last_automask_stroke_id = ss.stroke_id;
-    }
+    automasking->cavity_factor = Array<float>(verts_num, -1.0f);
   }
 
   /* Avoid precomputing data on the vertex level if the current auto-masking modes do not require
@@ -1481,7 +1424,7 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
   /* Topology builds up the mask from zero which other modes can subtract from.
    * If it isn't enabled, initialize to 1. */
   const float initial_value = !(mode & BRUSH_AUTOMASKING_TOPOLOGY) ? 1.0f : 0.0f;
-  automasking->factor = Array<float>(SCULPT_vertex_count_get(ob), initial_value);
+  automasking->factor = Array<float>(verts_num, initial_value);
   MutableSpan<float> factors = automasking->factor;
 
   /* Additive modes. */

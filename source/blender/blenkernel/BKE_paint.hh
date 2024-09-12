@@ -323,76 +323,6 @@ struct SculptFakeNeighbors {
   blender::Array<int> fake_neighbor_index;
 };
 
-/* Session data (mode-specific) */
-
-/* Custom Temporary Attributes */
-
-struct SculptAttributeParams {
-  /* Allocate a flat array outside the CustomData system.  Cannot be combined with permanent. */
-  int simple_array : 1;
-
-  /* Do not mark CustomData layer as temporary.  Cannot be combined with simple_array.  Doesn't
-   * work with bke::pbvh::Type::Grids.
-   */
-  int permanent : 1;   /* Cannot be combined with simple_array. */
-  int stroke_only : 1; /* Release layer at end of struct */
-};
-
-struct SculptAttribute {
-  /* Domain, data type and name */
-  blender::bke::AttrDomain domain;
-  eCustomDataType proptype = eCustomDataType(0);
-  char name[MAX_CUSTOMDATA_LAYER_NAME] = "";
-
-  /* Source layer on mesh/bmesh, if any. */
-  CustomDataLayer *layer = nullptr;
-
-  /* Data stored as flat array. */
-  void *data = nullptr;
-  int elem_size = 0;
-  int elem_num = 0;
-  bool data_for_bmesh = false; /* Temporary data store as array outside of bmesh. */
-
-  /* Data is a flat array outside the CustomData system.
-   * This will be true if simple_array is requested in
-   * SculptAttributeParams, or the tree type is bke::pbvh::Type::Grids or bke::pbvh::Type::BMesh.
-   */
-  bool simple_array = false;
-  /* Data stored per BMesh element. */
-  int bmesh_cd_offset = 0;
-
-  /* Sculpt usage */
-  SculptAttributeParams params = {};
-
-  /**
-   * Used to keep track of which pre-allocated SculptAttribute instances
-   * inside of SculptSession.temp_attribute are used.
-   */
-  bool used = false;
-};
-
-#define SCULPT_MAX_ATTRIBUTES 64
-
-/* Get a standard attribute name.  Key must match up with a member
- * of SculptAttributePointers.
- */
-
-#define SCULPT_ATTRIBUTE_NAME(key) \
-  (offsetof(SculptAttributePointers, key) >= 0 ? /* Spellcheck name. */ \
-       (".sculpt_" #key)                         /* Make name. */ \
-       : \
-       "You misspelled the layer name key")
-
-/* Convenience pointers for standard sculpt attributes. */
-
-struct SculptAttributePointers {
-  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #auto_mask::cache_init when needed. */
-  SculptAttribute *automasking_occlusion = nullptr; /* CD_PROP_INT8. */
-  SculptAttribute *automasking_stroke_id = nullptr;
-  SculptAttribute *automasking_cavity = nullptr;
-};
-
 struct SculptTopologyIslandCache {
   /**
    * An ID for the island containing each geometry vertex. Will be empty if there is only a single
@@ -554,14 +484,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
    */
   char needs_flush_to_id = false;
 
-  /* This is a fixed-size array so we can pass pointers to its elements
-   * to client code. This is important to keep bmesh offsets up to date.
-   */
-  SculptAttribute temp_attributes[SCULPT_MAX_ATTRIBUTES];
-
-  /* Convenience #SculptAttribute pointers. */
-  SculptAttributePointers attrs;
-
   /**
    * Some tools follows the shading chosen by the last used tool canvas.
    * When not set the viewport shading color would be used.
@@ -570,16 +492,12 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
    */
   bool sticky_shading_color = false;
 
-  uchar stroke_id = 0;
-
   /**
    * Last used painting canvas key.
    */
   char *last_paint_canvas_key = nullptr;
   blender::float3 last_normal;
 
-  int last_automasking_settings_hash = 0;
-  uchar last_automask_stroke_id = 0;
   std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
 
  private:
@@ -637,27 +555,6 @@ void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(Object *object);
 int BKE_sculptsession_vertex_count(const SculptSession *ss);
-
-/* Ensure an attribute layer exists. */
-SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
-                                             blender::bke::AttrDomain domain,
-                                             eCustomDataType proptype,
-                                             const char *name,
-                                             const SculptAttributeParams *params);
-
-/* Returns nullptr if attribute does not exist. */
-SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
-                                          blender::bke::AttrDomain domain,
-                                          eCustomDataType proptype,
-                                          const char *name);
-
-bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr);
-
-/* Destroy all attributes and pseudo-attributes created by sculpt mode. */
-void BKE_sculpt_attribute_destroy_temporary_all(Object *ob);
-
-/* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
-void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob);
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has

@@ -965,11 +965,6 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   ss.pivot_pos = step_data.pivot_pos;
   ss.pivot_rot = step_data.pivot_rot;
 
-  const bool clear_automask_cache = !ELEM(step_data.type, Type::Color, Type::Mask);
-  if (clear_automask_cache) {
-    ss.last_automasking_settings_hash = 0;
-  }
-
   if (bmesh_restore(C, *depsgraph, step_data, object, ss)) {
     return;
   }
