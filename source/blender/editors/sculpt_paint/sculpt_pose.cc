@@ -1009,7 +1009,7 @@ static int brush_num_effective_segments(const Brush &brush)
 }
 
 static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &depsgraph,
-                                                            Object &ob,
+                                                            Object &object,
                                                             SculptSession &ss,
                                                             const Brush &brush,
                                                             const float3 &initial_location,
@@ -1017,12 +1017,42 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &dep
 {
 
   const float chain_segment_len = radius * (1.0f + brush.pose_offset);
-  float3 next_chain_segment_target;
 
-  int totvert = SCULPT_vertex_count_get(ob);
-  PBVHVertRef nearest_vertex = nearest_vert_calc(depsgraph, ob, initial_location, FLT_MAX, true);
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  int nearest_vertex_index = BKE_pbvh_vertex_to_index(pbvh, nearest_vertex);
+  const int totvert = SCULPT_vertex_count_get(object);
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+
+  int nearest_vertex_index = -1;
+  /* TODO: How should this function handle not being able to find the nearest vert? */
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+      std::optional<int> nearest = nearest_vert_calc_mesh(pbvh,
+                                                          vert_positions,
+                                                          hide_vert,
+                                                          initial_location,
+                                                          std::numeric_limits<float>::max(),
+                                                          true);
+      nearest_vertex_index = *nearest;
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
+          pbvh, subdiv_ccg, initial_location, std::numeric_limits<float>::max(), true);
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      nearest_vertex_index = nearest->to_index(key);
+      break;
+    }
+    case bke::pbvh::Type::BMesh: {
+      const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
+          pbvh, initial_location, std::numeric_limits<float>::max(), false);
+      nearest_vertex_index = BM_elem_index_get(*nearest);
+      break;
+    }
+  }
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
    * added to the IK chain. */
@@ -1039,17 +1069,16 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &dep
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(tot_segments, totvert);
 
   /* Calculate the first segment in the chain using the brush radius and the pose origin offset. */
-  next_chain_segment_target = initial_location;
   calc_pose_data(depsgraph,
-                 ob,
+                 object,
                  ss,
-                 next_chain_segment_target,
+                 initial_location,
                  radius,
                  brush.pose_offset,
                  ik_chain->segments[0].orig,
                  pose_factor_grow);
 
-  next_chain_segment_target = ik_chain->segments[0].orig;
+  float3 next_chain_segment_target = ik_chain->segments[0].orig;
 
   /* Init the weights of this segment and store the status of the pose factors to start calculating
    * new segment origins. */
@@ -1063,7 +1092,7 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &dep
 
     /* Grow the factors to get the new segment origin. */
     grow_pose_factor(depsgraph,
-                     ob,
+                     object,
                      ss,
                      nullptr,
                      next_chain_segment_target,
