@@ -1043,7 +1043,7 @@ static void init_face_sets_masking(const Sculpt &sd, Object &ob, MutableSpan<flo
           if (!face_set::vert_has_face_set(
                   vert_to_face_map, face_sets.data(), vert, active_face_set))
           {
-            factors[vert] == 0.0f;
+            factors[vert] = 0.0f;
           }
         }
       });
