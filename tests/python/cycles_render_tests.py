@@ -156,6 +156,7 @@ class CyclesReport(render_report.Report):
     def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
         return arguments_cb(filepath, base_output_filepath, self.use_hwrt, self.osl)
 
+
 def get_arguments(filepath, output_filepath, use_hwrt=False, osl=False):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)
