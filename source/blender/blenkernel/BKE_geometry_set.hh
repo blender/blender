@@ -446,6 +446,12 @@ struct GeometrySet {
     return Span(a.components_) == Span(b.components_) && a.name == b.name;
   }
 
+  uint64_t hash() const
+  {
+    /* This should have the same data that's also taken into account in #operator==. */
+    return get_default_hash(Span(components_), this->name);
+  }
+
   void count_memory(MemoryCounter &memory) const;
 
  private:

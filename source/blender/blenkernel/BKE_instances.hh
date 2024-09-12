@@ -105,6 +105,8 @@ class InstanceReference {
   void count_memory(MemoryCounter &memory) const;
 
   friend bool operator==(const InstanceReference &a, const InstanceReference &b);
+
+  uint64_t hash() const;
 };
 
 class Instances {
