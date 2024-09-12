@@ -1170,7 +1170,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator * /*op*/)
 
   SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
   blender::seq::media_presence_free(scene);
-  blender::seq::thumbnail_cache_destroy(scene);
+  blender::seq::thumbnail_cache_clear(scene);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

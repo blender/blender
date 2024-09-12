@@ -107,7 +107,6 @@ struct ThumbnailCache {
   Map<std::string, FileEntry> map_;
   Set<Request> requests_;
   int64_t logical_time_ = 0;
-  wmWindowManager *window_manager_ = nullptr;
 
   ~ThumbnailCache()
   {
@@ -251,22 +250,18 @@ class ThumbGenerationJob {
 
 void ThumbGenerationJob::ensure_job(const bContext *C, ThumbnailCache *cache)
 {
-  cache->window_manager_ = CTX_wm_manager(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  wmJob *wm_job = WM_jobs_get(cache->window_manager_,
-                              win,
-                              scene,
-                              "Strip Thumbnails",
-                              eWM_JobFlag(0),
-                              WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
+  wmJob *wm_job = WM_jobs_get(
+      wm, win, scene, "Strip Thumbnails", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
   if (!WM_jobs_is_running(wm_job)) {
     ThumbGenerationJob *tj = MEM_new<ThumbGenerationJob>("ThumbGenerationJob", scene, cache);
     WM_jobs_customdata_set(wm_job, tj, free_fn);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
     WM_jobs_callbacks(wm_job, run_fn, nullptr, nullptr, end_fn);
 
-    WM_jobs_start(cache->window_manager_, wm_job);
+    WM_jobs_start(wm, wm_job);
   }
 }
 
@@ -608,25 +603,8 @@ void thumbnail_cache_clear(Scene *scene)
   }
 }
 
-static wmWindowManager *get_cache_wm(Scene *scene)
-{
-  std::scoped_lock lock(thumb_cache_mutex);
-  ThumbnailCache *cache = query_thumbnail_cache(scene);
-  if (cache != nullptr) {
-    return cache->window_manager_;
-  }
-  return nullptr;
-}
-
 void thumbnail_cache_destroy(Scene *scene)
 {
-  /* Completely stop any in-flight thumbnail job. Important: do actual
-   * job stop outside of cache mutex lock! */
-  wmWindowManager *wm = get_cache_wm(scene);
-  if (wm != nullptr) {
-    WM_jobs_kill_type(wm, nullptr, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL);
-  }
-
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
