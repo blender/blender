@@ -386,11 +386,14 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
       return vert_has_unique_face_set(v);
     }
     case bke::pbvh::Type::Grids: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices<int> faces = base_mesh.faces();
+      const Span<int> corner_verts = base_mesh.corner_verts();
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
 
       return vert_has_unique_face_set(
-          ss.vert_to_face_map, ss.corner_verts, ss.faces, ss.face_sets, *ss.subdiv_ccg, coord);
+          ss.vert_to_face_map, corner_verts, faces, ss.face_sets, *ss.subdiv_ccg, coord);
     }
   }
   return false;
@@ -571,10 +574,14 @@ Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 
   return r_neighbors;
 }
 
-static void vertex_neighbors_get_faces(const SculptSession &ss,
+static void vertex_neighbors_get_faces(const Object &object,
                                        PBVHVertRef vertex,
                                        SculptVertexNeighborIter *iter)
 {
+  const SculptSession &ss = *object.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
   iter->num_duplicates = 0;
   iter->neighbors.clear();
   iter->neighbor_indices.clear();
@@ -584,8 +591,8 @@ static void vertex_neighbors_get_faces(const SculptSession &ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const IndexRange face = ss.faces[face_i];
-    const int2 f_adj_v = bke::mesh::face_find_adjacent_verts(face, ss.corner_verts, vertex.i);
+    const IndexRange face = faces[face_i];
+    const int2 f_adj_v = bke::mesh::face_find_adjacent_verts(face, corner_verts, vertex.i);
     for (int j = 0; j < 2; j++) {
       if (f_adj_v[j] != vertex.i) {
         vert_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
@@ -669,7 +676,7 @@ void SCULPT_vertex_neighbors_get(const Object &object,
   const SculptSession &ss = *object.sculpt;
   switch (blender::bke::object::pbvh_get(object)->type()) {
     case blender::bke::pbvh::Type::Mesh:
-      vertex_neighbors_get_faces(ss, vertex, iter);
+      vertex_neighbors_get_faces(object, vertex, iter);
       return;
     case blender::bke::pbvh::Type::BMesh:
       vert_neighbors_get_bmesh(vertex, iter);
@@ -708,11 +715,14 @@ bool vert_is_boundary(const Object &object, const PBVHVertRef vertex)
       return BM_vert_is_boundary(v);
     }
     case bke::pbvh::Type::Grids: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const OffsetIndices<int> faces = base_mesh.faces();
+      const Span<int> corner_verts = base_mesh.corner_verts();
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          *ss.subdiv_ccg, coord, ss.corner_verts, ss.faces, v1, v2);
+          *ss.subdiv_ccg, coord, corner_verts, faces, v1, v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return check_boundary_vert_in_base_mesh(ss, v1);
@@ -6263,11 +6273,11 @@ bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   srd.face_normal = face_normal;
-  srd.corner_verts = ss.corner_verts;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *static_cast<const Mesh *>(object.data);
     srd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
     srd.faces = mesh.faces();
+    srd.corner_verts = mesh.corner_verts();
     srd.corner_tris = mesh.corner_tris();
   }
   else if (pbvh.type() == bke::pbvh::Type::Grids) {

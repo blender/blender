@@ -1741,7 +1741,6 @@ std::unique_ptr<SimulationData> brush_simulation_create(const Depsgraph &depsgra
                                                         const bool use_collisions,
                                                         const bool needs_deform_coords)
 {
-  SculptSession &ss = *ob.sculpt;
   const int totverts = SCULPT_vertex_count_get(ob);
   std::unique_ptr<SimulationData> cloth_sim = std::make_unique<SimulationData>();
 

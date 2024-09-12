@@ -1992,18 +1992,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss.totvert = mesh_eval->verts_num;
     ss.faces_num = mesh_eval->faces_num;
     ss.totfaces = mesh_orig->faces_num;
-
-    /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
-     * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss.faces = mesh_orig->faces();
-    ss.corner_verts = mesh_orig->corner_verts();
   }
   else {
     ss.totvert = mesh_orig->verts_num;
     ss.faces_num = mesh_orig->faces_num;
     ss.totfaces = mesh_orig->faces_num;
-    ss.faces = mesh_orig->faces();
-    ss.corner_verts = mesh_orig->corner_verts();
     ss.multires.active = false;
     ss.multires.modifier = nullptr;
     ss.multires.level = 0;

@@ -341,10 +341,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
     int level = 0;
   } multires = {};
 
-  /* These are always assigned to base mesh data when using Type::Mesh. */
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
-
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert = 0;
   int faces_num = 0;
