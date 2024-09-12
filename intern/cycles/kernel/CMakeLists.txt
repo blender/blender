@@ -735,6 +735,11 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
     -Wno-unused-value
     -ffast-math
     -o ${bitcode_file})
+
+  if(WITH_NANOVDB)
+    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_NANOVDB)
+  endif()
+
   if(WITH_CYCLES_DEBUG)
     set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
   endif()
