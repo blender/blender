@@ -153,7 +153,7 @@ ccl_device float volume_channel_get(Spectrum value, int channel)
 
 ccl_device int volume_sample_channel(Spectrum albedo,
                                      Spectrum throughput,
-                                     float rand,
+                                     ccl_private float *rand,
                                      ccl_private Spectrum *pdf)
 {
   /* Sample color channel proportional to throughput and single scattering
@@ -173,10 +173,13 @@ ccl_device int volume_sample_channel(Spectrum albedo,
 
   float pdf_sum = 0.0f;
   FOREACH_SPECTRUM_CHANNEL (i) {
-    pdf_sum += GET_SPECTRUM_CHANNEL(*pdf, i);
-    if (rand < pdf_sum) {
+    const float channel_pdf = GET_SPECTRUM_CHANNEL(*pdf, i);
+    if (*rand < pdf_sum + channel_pdf) {
+      /* Rescale to reuse. */
+      *rand = (*rand - pdf_sum) / channel_pdf;
       return i;
     }
+    pdf_sum += channel_pdf;
   }
   return SPECTRUM_CHANNELS - 1;
 }

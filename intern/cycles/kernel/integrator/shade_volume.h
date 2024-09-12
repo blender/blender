@@ -436,7 +436,7 @@ ccl_device_forceinline void volume_integrate_step_scattering(
   const Spectrum albedo = safe_divide_color(coeff.sigma_s, coeff.sigma_t);
   Spectrum channel_pdf;
   const int channel = volume_sample_channel(
-      albedo, result.indirect_throughput, vstate.rchannel, &channel_pdf);
+      albedo, result.indirect_throughput, &vstate.rchannel, &channel_pdf);
 
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {

@@ -269,7 +269,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* Sample color channel, use MIS with balance heuristic. */
     float rchannel = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_COLOR_CHANNEL);
     Spectrum channel_pdf;
-    int channel = volume_sample_channel(alpha, throughput, rchannel, &channel_pdf);
+    int channel = volume_sample_channel(alpha, throughput, &rchannel, &channel_pdf);
     float sample_sigma_t = volume_channel_get(sigma_t, channel);
     float randt = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_SCATTER_DISTANCE);
 
