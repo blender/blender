@@ -520,6 +520,10 @@ void BKE_animdata_merge_copy(
     dst->tmpact = src->tmpact;
     id_us_plus((ID *)dst->tmpact);
   }
+  dst->slot_handle = src->slot_handle;
+  dst->tmp_slot_handle = src->tmp_slot_handle;
+  STRNCPY(dst->slot_name, src->slot_name);
+  STRNCPY(dst->tmp_slot_name, src->tmp_slot_name);
 
   /* duplicate NLA data */
   if (src->nla_tracks.first) {

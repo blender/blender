@@ -652,7 +652,7 @@ void ED_animedit_unlink_action(
 
   /* If in Tweak Mode, don't unlink. Instead, this becomes a shortcut to exit Tweak Mode. */
   if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit({*id, *adt});
 
     Scene *scene = CTX_data_scene(C);
     if (scene != nullptr) {
@@ -793,13 +793,18 @@ static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 }
 
 /* Switch NLA Strips/Actions. */
-static void action_layer_switch_strip(
-    AnimData *adt, NlaTrack *old_track, NlaStrip *old_strip, NlaTrack *nlt, NlaStrip *strip)
+static void action_layer_switch_strip(const OwnedAnimData owned_adt,
+                                      NlaTrack *old_track,
+                                      NlaStrip *old_strip,
+                                      NlaTrack *nlt,
+                                      NlaStrip *strip)
 {
+  AnimData *adt = &owned_adt.adt;
+
   /* Exit tweak-mode on old strip
    * NOTE: We need to manually clear this stuff ourselves, as tweak-mode exit doesn't do it
    */
-  BKE_nla_tweakmode_exit(adt);
+  BKE_nla_tweakmode_exit(owned_adt);
 
   if (old_strip) {
     old_strip->flag &= ~(NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT);
@@ -834,7 +839,7 @@ static void action_layer_switch_strip(
   }
 
   /* Enter tweak-mode again - hopefully we're now "it" */
-  BKE_nla_tweakmode_enter(adt);
+  BKE_nla_tweakmode_enter(owned_adt);
   BLI_assert(adt->actstrip == strip);
 }
 
@@ -882,14 +887,15 @@ static bool action_layer_next_poll(bContext *C)
 
 static int action_layer_next_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
-  NlaTrack *act_track;
+  ID *animated_id = nullptr;
+  AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
+  const OwnedAnimData owned_adt{*animated_id, *adt};
 
   Scene *scene = CTX_data_scene(C);
   float ctime = BKE_scene_ctime_get(scene);
 
   /* Get active track */
-  act_track = BKE_nlatrack_find_tweaked(adt);
+  NlaTrack *act_track = BKE_nlatrack_find_tweaked(adt);
 
   if (act_track == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Could not find current NLA Track");
@@ -905,7 +911,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
       NlaStrip *strip = action_layer_get_nlastrip(&nlt->strips, ctime);
 
       if (strip) {
-        action_layer_switch_strip(adt, act_track, adt->actstrip, nlt, strip);
+        action_layer_switch_strip(owned_adt, act_track, adt->actstrip, nlt, strip);
         break;
       }
     }
@@ -914,7 +920,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
     /* No more actions (strips) - Go back to editing the original active action
      * NOTE: This will mean exiting tweak-mode...
      */
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit(owned_adt);
 
     /* Deal with solo flags...
      * Assume: Solo Track == NLA Muting
@@ -997,7 +1003,8 @@ static bool action_layer_prev_poll(bContext *C)
 
 static int action_layer_prev_exec(bContext *C, wmOperator *op)
 {
-  AnimData *adt = ED_actedit_animdata_from_context(C, nullptr);
+  ID *animated_id = nullptr;
+  AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
   NlaTrack *act_track;
   NlaTrack *nlt;
 
@@ -1029,7 +1036,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
     NlaStrip *strip = action_layer_get_nlastrip(&nlt->strips, ctime);
 
     if (strip) {
-      action_layer_switch_strip(adt, act_track, adt->actstrip, nlt, strip);
+      action_layer_switch_strip({*animated_id, *adt}, act_track, adt->actstrip, nlt, strip);
       break;
     }
   }

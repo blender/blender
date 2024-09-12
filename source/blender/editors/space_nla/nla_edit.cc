@@ -126,7 +126,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
     }
 
     /* Try entering tweak-mode if valid. */
-    ok |= BKE_nla_tweakmode_enter(adt);
+    ok |= BKE_nla_tweakmode_enter({*ale->id, *adt});
 
     /* mark the active track as being "solo"? */
     if (do_solo && adt->actstrip) {
@@ -227,7 +227,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
     }
 
     /* To be sure that we're doing everything right, just exit tweak-mode. */
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit({*ale->id, *adt});
 
     ale->update |= ANIM_UPDATE_DEPS;
   }
@@ -1282,7 +1282,7 @@ static int nlaedit_delete_exec(bContext *C, wmOperator * /*op*/)
         /* Fix for #109430. Defensively exit tweak mode before deleting
          * the active strip. */
         if (ale->adt && ale->adt->actstrip == strip) {
-          BKE_nla_tweakmode_exit(ale->adt);
+          BKE_nla_tweakmode_exit({*ale->id, *ale->adt});
         }
 
         /* if a strip either side of this was a transition, delete those too */

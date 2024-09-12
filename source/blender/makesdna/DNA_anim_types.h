@@ -1164,10 +1164,13 @@ typedef struct AnimData {
   uint8_t _pad0[2];
 
   /**
-   * Temp-storage for the 'real' active action (i.e. the one used before the tweaking-action
-   * took over to be edited in the Animation Editors)
+   * Temp-storage for the 'real' active action + slot (i.e. the ones used before
+   * NLA Tweak mode took over the Action to be edited in the Animation Editors).
    */
   bAction *tmpact;
+  int32_t tmp_slot_handle;
+  char tmp_slot_name[66]; /* MAX_ID_NAME */
+  uint8_t _pad1[2];
 
   /* nla-tracks */
   ListBase nla_tracks;
@@ -1206,7 +1209,7 @@ typedef struct AnimData {
   /** Influence for active action. */
   float act_influence;
 
-  uint8_t _pad1[4];
+  uint8_t _pad2[4];
 } AnimData;
 
 #ifdef __cplusplus

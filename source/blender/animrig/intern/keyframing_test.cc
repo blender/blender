@@ -109,7 +109,7 @@ class KeyframingTest : public testing::Test {
     strip->actend = 1000.0;
     strip->scale = 1.0;
     strip->blendmode = NLASTRIP_MODE_COMBINE;
-    BKE_nla_tweakmode_enter(adt);
+    BKE_nla_tweakmode_enter({object_with_nla->id, *adt});
   }
 
   void TearDown() override

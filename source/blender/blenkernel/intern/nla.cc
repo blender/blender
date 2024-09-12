@@ -2260,23 +2260,24 @@ static void nla_tweakmode_find_active(const ListBase /*NlaTrack*/ *nla_tracks,
   *r_active_strip = activeStrip;
 }
 
-bool BKE_nla_tweakmode_enter(AnimData *adt)
+bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
 {
   NlaTrack *nlt, *activeTrack = nullptr;
   NlaStrip *activeStrip = nullptr;
+  AnimData &adt = owned_adt.adt;
 
   /* verify that data is valid */
-  if (ELEM(nullptr, adt, adt->nla_tracks.first)) {
+  if (ELEM(nullptr, adt.nla_tracks.first)) {
     return false;
   }
 
   /* If block is already in tweak-mode, just leave, but we should report
    * that this block is in tweak-mode (as our return-code). */
-  if (adt->flag & ADT_NLA_EDIT_ON) {
+  if (adt.flag & ADT_NLA_EDIT_ON) {
     return true;
   }
 
-  nla_tweakmode_find_active(&adt->nla_tracks, &activeTrack, &activeStrip);
+  nla_tweakmode_find_active(&adt.nla_tracks, &activeTrack, &activeStrip);
 
   if (ELEM(nullptr, activeTrack, activeStrip, activeStrip->act)) {
     if (G.debug & G_DEBUG) {
@@ -2289,7 +2290,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   /* Go over all the tracks, tagging each strip that uses the same
    * action as the active strip, but leaving everything else alone.
    */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt.nla_tracks) {
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       if (strip->act == activeStrip->act) {
         strip->flag |= NLASTRIP_FLAG_TWEAKUSER;
@@ -2309,7 +2310,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
    * on.
    */
   activeTrack->flag |= NLATRACK_DISABLED;
-  if ((adt->flag & ADT_NLA_EVAL_UPPER_TRACKS) == 0) {
+  if ((adt.flag & ADT_NLA_EVAL_UPPER_TRACKS) == 0) {
     for (nlt = activeTrack->next; nlt; nlt = nlt->next) {
       nlt->flag |= NLATRACK_DISABLED;
     }
@@ -2323,12 +2324,30 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
    * - Take note of the active strip for mapping-correction of keyframes
    *   in the action being edited.
    */
-  adt->tmpact = adt->action;
-  adt->action = activeStrip->act;
-  adt->act_track = activeTrack;
-  adt->actstrip = activeStrip;
-  id_us_plus(&activeStrip->act->id);
-  adt->flag |= ADT_NLA_EDIT_ON;
+  adt.tmpact = adt.action;
+  adt.tmp_slot_handle = adt.slot_handle;
+  STRNCPY(adt.tmp_slot_name, adt.slot_name);
+
+  /* Don't go through the regular animrig::unassign_action() call, as the old Action is still being
+   * used by this ID. But do reset the action pointer, as Action::assign_id() doesn't like it when
+   * another Action is already assigned. */
+  adt.action = nullptr;
+
+  if (activeStrip->act) {
+    animrig::Action &strip_action = activeStrip->act->wrap();
+    if (strip_action.is_action_layered()) {
+      animrig::Slot *strip_slot = strip_action.slot_for_handle(activeStrip->action_slot_handle);
+      strip_action.assign_id(strip_slot, owned_adt.owner_id);
+    }
+    else {
+      adt.action = activeStrip->act;
+      id_us_plus(&adt.action->id);
+    }
+  }
+
+  adt.act_track = activeTrack;
+  adt.actstrip = activeStrip;
+  adt.flag |= ADT_NLA_EDIT_ON;
 
   /* done! */
   return true;
@@ -2373,7 +2392,12 @@ static void nla_tweakmode_exit_nofollowptr(AnimData *adt)
   BKE_nla_tweakmode_clear_flags(adt);
 
   adt->action = adt->tmpact;
+  adt->slot_handle = adt->tmp_slot_handle;
+
   adt->tmpact = nullptr;
+  adt->tmp_slot_handle = animrig::Slot::unassigned;
+  STRNCPY(adt->slot_name, adt->tmp_slot_name);
+
   adt->act_track = nullptr;
   adt->actstrip = nullptr;
 }
@@ -2387,19 +2411,32 @@ void BKE_nla_tweakmode_exit_nofollowptr(AnimData *adt)
   nla_tweakmode_exit_nofollowptr(adt);
 }
 
-void BKE_nla_tweakmode_exit(AnimData *adt)
+void BKE_nla_tweakmode_exit(const OwnedAnimData owned_adt)
 {
-  if (!is_nla_in_tweakmode(adt)) {
+  if (!is_nla_in_tweakmode(&owned_adt.adt)) {
     return;
   }
 
-  if (adt->action) {
-    /* The Action will be replaced with adt->tmpact, and thus needs a decrement in user count. */
-    id_us_min(&adt->action->id);
+  if (owned_adt.adt.action) {
+    /* The Action will be replaced with adt->tmpact, and thus needs to be unassigned first. */
+    animrig::unassign_action(owned_adt.owner_id);
   }
 
-  nla_tweakmode_exit_sync_strip_lengths(adt);
-  nla_tweakmode_exit_nofollowptr(adt);
+  nla_tweakmode_exit_sync_strip_lengths(&owned_adt.adt);
+  nla_tweakmode_exit_nofollowptr(&owned_adt.adt);
+
+  /* nla_tweakmode_exit_nofollowptr() does not follow any pointers, and thus cannot update the slot
+   * user map. So it has to be done here now. This is safe to do here, as slot->users_add()
+   * gracefully handles duplicates. */
+  if (owned_adt.adt.action && owned_adt.adt.slot_handle != animrig::Slot::unassigned) {
+    animrig::Action &action = owned_adt.adt.action->wrap();
+    BLI_assert_msg(action.is_action_layered(),
+                   "when a slot is assigned, the action should layered");
+    animrig::Slot *slot = action.slot_for_handle(owned_adt.adt.slot_handle);
+    if (slot) {
+      slot->users_add(owned_adt.owner_id);
+    }
+  }
 }
 
 void BKE_nla_tweakmode_clear_flags(AnimData *adt)
@@ -2572,7 +2609,7 @@ void BKE_nla_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *tr
 
 void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
 {
-  /* TODO(Sybren): Convert nla.h to C++ so that these can become references instead. */
+  /* TODO(Sybren): replace these two parameters with an OwnedAnimData struct. */
   BLI_assert(id);
   BLI_assert(adt);
 
@@ -2586,7 +2623,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
   if (!has_tracks) {
     if (is_tweak_mode) {
       /* No tracks, so it's impossible to actually be in tweak mode. */
-      BKE_nla_tweakmode_exit(adt);
+      BKE_nla_tweakmode_exit({*id, *adt});
     }
     return;
   }
@@ -2604,7 +2641,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
   nla_tweakmode_find_active(&adt->nla_tracks, &adt->act_track, &adt->actstrip);
   if (!adt->act_track || !adt->actstrip) {
     /* Could not find the active track/strip, so better to exit tweak mode. */
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit({*id, *adt});
   }
 }
 

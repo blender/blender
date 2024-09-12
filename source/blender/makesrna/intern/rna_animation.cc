@@ -192,6 +192,7 @@ static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportLis
 
 static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
 {
+  ID *animated_id = ptr->owner_id;
   AnimData *adt = (AnimData *)ptr->data;
 
   /* NOTE: technically we should also set/unset SCE_NLA_EDIT_ON flag on the
@@ -200,10 +201,10 @@ static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
    * dealt with at some point. */
 
   if (value) {
-    BKE_nla_tweakmode_enter(adt);
+    BKE_nla_tweakmode_enter({*animated_id, *adt});
   }
   else {
-    BKE_nla_tweakmode_exit(adt);
+    BKE_nla_tweakmode_exit({*animated_id, *adt});
   }
 }
 

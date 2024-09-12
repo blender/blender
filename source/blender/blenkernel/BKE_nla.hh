@@ -478,11 +478,11 @@ void BKE_nla_action_pushdown(OwnedAnimData owned_adt, bool is_liboverride);
  * Find the active strip + track combination, and set them up as the tweaking track,
  * and return if successful or not.
  */
-bool BKE_nla_tweakmode_enter(AnimData *adt);
+bool BKE_nla_tweakmode_enter(OwnedAnimData owned_adt);
 /**
  * Exit tweak-mode for this AnimData block.
  */
-void BKE_nla_tweakmode_exit(AnimData *adt);
+void BKE_nla_tweakmode_exit(OwnedAnimData owned_adt);
 
 /**
  * Clear all NLA Tweak Mode related flags on the ADT, tracks, and strips.
@@ -492,12 +492,12 @@ void BKE_nla_tweakmode_clear_flags(AnimData *adt);
 /**
  * Partially exit NLA tweak-mode for this AnimData block, without following any
  * pointers to other data-blocks. This means no strip length syncing (as that
- * needs to know info about the strip's Action), and no reference counting on
- * the Action.
+ * needs to know info about the strip's Action), no reference counting on the
+ * Action, and no user update on the Action Slot.
  *
  * This function just writes to the AnimData-owned data. It is intended to be
- * used in blend-file reading code, which performs a reference count later
- * anyway.
+ * used in blend-file reading code, which performs a reference count + rebuilds
+ * the slot user map later anyway.
  */
 void BKE_nla_tweakmode_exit_nofollowptr(AnimData *adt);
 
