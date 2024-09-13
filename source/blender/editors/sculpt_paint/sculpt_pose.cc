@@ -1198,155 +1198,118 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets(const Depsgraph &depsgra
   return ik_chain;
 }
 
-static bool face_sets_fk_find_masked_floodfill(const Object &object,
-                                               const int initial_face_set,
-                                               const PBVHVertRef from_v,
-                                               const PBVHVertRef to_v,
-                                               const bool is_duplicate,
-                                               Set<int> &visited_face_sets,
-                                               MutableSpan<int> floodfill_it,
-                                               int &masked_face_set_it,
-                                               int &masked_face_set,
-                                               int &target_face_set)
+std::optional<float3> calc_average_face_set_center(const Depsgraph &depsgraph,
+                                                   Object &object,
+                                                   const int totvert,
+                                                   const Span<int> floodfill_step,
+                                                   const int active_face_set,
+                                                   const int target_face_set)
 {
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  int from_v_i = BKE_pbvh_vertex_to_index(pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
+  int count = 0;
+  float3 sum(0.0f);
+  for (int i = 0; i < totvert; i++) {
+    const PBVHVertRef vertex = BKE_pbvh_index_to_vertex(object, i);
 
-  if (!is_duplicate) {
-    floodfill_it[to_v_i] = floodfill_it[from_v_i] + 1;
-  }
-  else {
-    floodfill_it[to_v_i] = floodfill_it[from_v_i];
-  }
-
-  const int to_face_set = face_set::vert_face_set_get(object, to_v);
-  if (!visited_face_sets.contains(to_face_set)) {
-    if (face_set::vert_has_unique_face_set(object, to_v) &&
-        !face_set::vert_has_unique_face_set(object, from_v) &&
-        face_set::vert_has_face_set(object, from_v, to_face_set))
+    if (floodfill_step[i] != 0 && face_set::vert_has_face_set(object, vertex, active_face_set) &&
+        face_set::vert_has_face_set(object, vertex, target_face_set))
     {
-
-      visited_face_sets.add(to_face_set);
-
-      if (floodfill_it[to_v_i] >= masked_face_set_it) {
-        masked_face_set = to_face_set;
-        masked_face_set_it = floodfill_it[to_v_i];
-      }
-
-      if (target_face_set == SCULPT_FACE_SET_NONE) {
-        target_face_set = to_face_set;
-      }
+      sum += SCULPT_vertex_co_get(depsgraph, object, vertex);
+      count++;
     }
   }
 
-  return face_set::vert_has_face_set(object, to_v, initial_face_set);
-}
+  if (count != 0) {
+    return sum / float(count);
+  }
 
-static bool pose_face_sets_fk_set_weights_floodfill(const Object &object,
-                                                    const PBVHVertRef to_v,
-                                                    const int masked_face_set,
-                                                    MutableSpan<float> fk_weights)
-{
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
-
-  fk_weights[to_v_i] = 1.0f;
-  return !face_set::vert_has_face_set(object, to_v, masked_face_set);
+  return std::nullopt;
 }
 
 static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk(const Depsgraph &depsgraph,
-                                                           Object &ob,
+                                                           Object &object,
                                                            SculptSession &ss,
                                                            const float radius,
                                                            const float3 &initial_location)
 {
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = SCULPT_vertex_count_get(object);
 
   std::unique_ptr<IKChain> ik_chain = ik_chain_new(1, totvert);
 
   const PBVHVertRef active_vertex = ss.active_vert_ref();
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  int active_vertex_index = BKE_pbvh_vertex_to_index(pbvh, active_vertex);
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  const int active_vertex_index = BKE_pbvh_vertex_to_index(pbvh, active_vertex);
 
-  const int active_face_set = face_set::active_face_set_get(ob);
+  const int active_face_set = face_set::active_face_set_get(object);
 
   Set<int> visited_face_sets;
-  Array<int> floodfill_it(totvert);
-  floodfill_it[active_vertex_index] = 1;
+  Array<int> floodfill_step(totvert);
+  floodfill_step[active_vertex_index] = 1;
 
   int masked_face_set = SCULPT_FACE_SET_NONE;
   int target_face_set = SCULPT_FACE_SET_NONE;
-  {
-    int masked_face_set_it = 0;
-    flood_fill::FillData flood = flood_fill::init_fill(ob);
-    flood_fill::add_initial(flood, active_vertex);
-    flood_fill::execute(ob, flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-      return face_sets_fk_find_masked_floodfill(ob,
-                                                active_face_set,
-                                                from_v,
-                                                to_v,
-                                                is_duplicate,
-                                                visited_face_sets,
-                                                floodfill_it,
-                                                masked_face_set_it,
-                                                masked_face_set,
-                                                target_face_set);
-    });
-  }
+  int masked_face_set_it = 0;
+  flood_fill::FillData step_floodfill = flood_fill::init_fill(object);
+  flood_fill::add_initial(step_floodfill, active_vertex);
+  flood_fill::execute(
+      object, step_floodfill, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+        const int from_v_i = BKE_pbvh_vertex_to_index(pbvh, from_v);
+        const int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
 
-  int origin_count = 0;
-  float3 origin_acc(0.0f);
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
+        if (!is_duplicate) {
+          floodfill_step[to_v_i] = floodfill_step[from_v_i] + 1;
+        }
+        else {
+          floodfill_step[to_v_i] = floodfill_step[from_v_i];
+        }
 
-    if (floodfill_it[i] != 0 && face_set::vert_has_face_set(ob, vertex, active_face_set) &&
-        face_set::vert_has_face_set(ob, vertex, masked_face_set))
-    {
-      origin_acc += SCULPT_vertex_co_get(depsgraph, ob, vertex);
-      origin_count++;
-    }
-  }
+        const int to_face_set = face_set::vert_face_set_get(object, to_v);
+        if (!visited_face_sets.contains(to_face_set)) {
+          if (face_set::vert_has_unique_face_set(object, to_v) &&
+              !face_set::vert_has_unique_face_set(object, from_v) &&
+              face_set::vert_has_face_set(object, from_v, to_face_set))
+          {
 
-  int target_count = 0;
-  float3 target_acc(0.0f);
+            visited_face_sets.add(to_face_set);
+
+            if (floodfill_step[to_v_i] >= masked_face_set_it) {
+              masked_face_set = to_face_set;
+              masked_face_set_it = floodfill_step[to_v_i];
+            }
+
+            if (target_face_set == SCULPT_FACE_SET_NONE) {
+              target_face_set = to_face_set;
+            }
+          }
+        }
+
+        return face_set::vert_has_face_set(object, to_v, active_face_set);
+      });
+
+  const std::optional<float3> origin = calc_average_face_set_center(
+      depsgraph, object, totvert, floodfill_step, active_face_set, masked_face_set);
+  ik_chain->segments[0].orig = origin.value_or(float3(0));
+
+  std::optional<float3> head = std::nullopt;
   if (target_face_set != masked_face_set) {
-    for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ob, i);
-
-      if (floodfill_it[i] != 0 && face_set::vert_has_face_set(ob, vertex, active_face_set) &&
-          face_set::vert_has_face_set(ob, vertex, target_face_set))
-      {
-        target_acc += SCULPT_vertex_co_get(depsgraph, ob, vertex);
-        target_count++;
-      }
-    }
+    head = calc_average_face_set_center(
+        depsgraph, object, totvert, floodfill_step, active_face_set, target_face_set);
   }
 
-  if (origin_count > 0) {
-    ik_chain->segments[0].orig = origin_acc / float(origin_count);
-  }
-  else {
-    ik_chain->segments[0].orig = float3(0);
-  }
+  ik_chain->segments[0].head = head.value_or(initial_location);
+  ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
 
-  if (target_count > 0) {
-    ik_chain->segments[0].head = target_acc / target_count;
-    ik_chain->grab_delta_offset = ik_chain->segments[0].head - initial_location;
-  }
-  else {
-    ik_chain->segments[0].head = initial_location;
-  }
+  flood_fill::FillData weight_floodfill = flood_fill::init_fill(object);
+  flood_fill::add_initial_with_symmetry(
+      depsgraph, object, weight_floodfill, ss.active_vert_ref(), radius);
+  MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
+  flood_fill::execute(object,
+                      weight_floodfill,
+                      [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool /*is_duplicate*/) {
+                        int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
 
-  {
-    flood_fill::FillData flood = flood_fill::init_fill(ob);
-    flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, ss.active_vert_ref(), radius);
-    MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
-    flood_fill::execute(
-        ob, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool /*is_duplicate*/) {
-          return pose_face_sets_fk_set_weights_floodfill(ob, to_v, masked_face_set, fk_weights);
-        });
-  }
+                        fk_weights[to_v_i] = 1.0f;
+                        return !face_set::vert_has_face_set(object, to_v, masked_face_set);
+                      });
 
   ik_chain_origin_heads_init(*ik_chain, ik_chain->segments[0].head);
   return ik_chain;
