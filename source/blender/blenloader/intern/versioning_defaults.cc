@@ -182,6 +182,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       SpaceText *stext = static_cast<SpaceText *>(area->spacedata.first);
       stext->showsyntax = true;
       stext->showlinenrs = true;
+      stext->flags |= ST_FIND_WRAP;
     }
     else if (area->spacetype == SPACE_VIEW3D) {
       View3D *v3d = static_cast<View3D *>(area->spacedata.first);
