@@ -1198,12 +1198,12 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets(const Depsgraph &depsgra
   return ik_chain;
 }
 
-std::optional<float3> calc_average_face_set_center(const Depsgraph &depsgraph,
-                                                   Object &object,
-                                                   const int totvert,
-                                                   const Span<int> floodfill_step,
-                                                   const int active_face_set,
-                                                   const int target_face_set)
+static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsgraph,
+                                                          Object &object,
+                                                          const int totvert,
+                                                          const Span<int> floodfill_step,
+                                                          const int active_face_set,
+                                                          const int target_face_set)
 {
   int count = 0;
   float3 sum(0.0f);
