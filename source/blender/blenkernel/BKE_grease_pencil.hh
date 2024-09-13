@@ -1045,12 +1045,12 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 
-typedef struct GreasePencilPointCoordinates {
+struct GreasePencilPointCoordinates {
   /* This is used when doing "move only origin" in object_data_transform.cc.
    * radius is needs to be stored here as it is tied to object scale. */
   float co[3];
   float radius;
-} GreasePencilPointCoordinates;
+};
 
 /**
  * \note Used for "move only origins" in object_data_transform.cc.
