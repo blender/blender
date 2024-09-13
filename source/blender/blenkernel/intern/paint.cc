@@ -1964,7 +1964,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
    * evaluated yet. */
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh_unchecked(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
-  const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
   BLI_assert(mesh_eval != nullptr);
 
@@ -1999,15 +1998,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss.multires.active = false;
     ss.multires.modifier = nullptr;
     ss.multires.level = 0;
-  }
-
-  /* Sculpt Face Sets. */
-  if (use_face_sets) {
-    ss.face_sets = static_cast<const int *>(
-        CustomData_get_layer_named(&mesh_orig->face_data, CD_PROP_INT32, ".sculpt_face_set"));
-  }
-  else {
-    ss.face_sets = nullptr;
   }
 
   ss.hide_poly = (bool *)CustomData_get_layer_named(

@@ -239,18 +239,25 @@ int active_face_set_get(const Object &object)
 {
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
-    case bke::pbvh::Type::Mesh:
-      if (!ss.face_sets) {
+    case bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
-      return ss.face_sets[ss.active_face_index];
+      return face_sets[ss.active_face_index];
+    }
     case bke::pbvh::Type::Grids: {
-      if (!ss.face_sets) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg,
                                                                ss.active_grid_index);
-      return ss.face_sets[face_index];
+      return face_sets[face_index];
     }
     case bke::pbvh::Type::BMesh:
       return SCULPT_FACE_SET_NONE;
@@ -267,15 +274,17 @@ int vert_face_set_get(const Object &object, PBVHVertRef vertex)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      if (!ss.face_sets) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       int face_set = 0;
       for (const int face_index : vert_to_face_map[vertex.i]) {
-        if (ss.face_sets[face_index] > face_set) {
-          face_set = ss.face_sets[face_index];
+        if (face_sets[face_index] > face_set) {
+          face_set = face_sets[face_index];
         }
       }
       return face_set;
@@ -283,13 +292,16 @@ int vert_face_set_get(const Object &object, PBVHVertRef vertex)
     case bke::pbvh::Type::BMesh:
       return 0;
     case bke::pbvh::Type::Grids: {
-      if (!ss.face_sets) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       const int grid_index = vertex.i / key.grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg, grid_index);
-      return ss.face_sets[face_index];
+      return face_sets[face_index];
     }
   }
   return 0;
@@ -307,11 +319,11 @@ int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
 }
 
 bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
-                       const int *face_sets,
+                       const Span<int> face_sets,
                        const int vert,
                        const int face_set)
 {
-  if (!face_sets) {
+  if (face_sets.is_empty()) {
     return face_set == SCULPT_FACE_SET_NONE;
   }
   const Span<int> faces = vert_to_face_map[vert];
@@ -320,11 +332,11 @@ bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
 }
 
 bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
-                       const int *face_sets,
+                       const Span<int> face_sets,
                        const int grid,
                        const int face_set)
 {
-  if (!face_sets) {
+  if (face_sets.is_empty()) {
     return face_set == SCULPT_FACE_SET_NONE;
   }
   const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid);
@@ -351,13 +363,15 @@ bool vert_has_face_set(const Object &object, PBVHVertRef vertex, int face_set)
   const SculptSession &ss = *object.sculpt;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      if (!ss.face_sets) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       for (const int face_index : vert_to_face_map[vertex.i]) {
-        if (ss.face_sets[face_index] == face_set) {
+        if (face_sets[face_index] == face_set) {
           return true;
         }
       }
@@ -366,13 +380,16 @@ bool vert_has_face_set(const Object &object, PBVHVertRef vertex, int face_set)
     case bke::pbvh::Type::BMesh:
       return true;
     case bke::pbvh::Type::Grids: {
-      if (!ss.face_sets) {
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+      if (!face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       const int grid_index = vertex.i / key.grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg, grid_index);
-      return ss.face_sets[face_index] == face_set;
+      return face_sets[face_index] == face_set;
     }
   }
   return true;
@@ -385,7 +402,10 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      return vert_has_unique_face_set(vert_to_face_map, ss.face_sets, vertex.i);
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
+      return vert_has_unique_face_set(vert_to_face_map, face_sets, vertex.i);
     }
     case bke::pbvh::Type::BMesh: {
       BMVert *v = (BMVert *)vertex.i;
@@ -396,23 +416,24 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
       const OffsetIndices<int> faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = base_mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
-
       return vert_has_unique_face_set(
-          vert_to_face_map, corner_verts, faces, ss.face_sets, *ss.subdiv_ccg, coord);
+          vert_to_face_map, corner_verts, faces, face_sets, *ss.subdiv_ccg, coord);
     }
   }
   return false;
 }
 
 bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
-                              const int *face_sets,
+                              const Span<int> face_sets,
                               int vert)
 {
-  /* TODO: Move this check higher out of this function & make this function take empty span instead
-   * of a raw pointer. */
-  if (!face_sets) {
+  /* TODO: Move this check higher out of this function. */
+  if (face_sets.is_empty()) {
     return true;
   }
   int face_set = -1;
@@ -435,7 +456,7 @@ bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
  */
 static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(
     const GroupedSpan<int> vert_to_face_map,
-    const int *face_sets,
+    const Span<int> face_sets,
     const Span<int> corner_verts,
     const OffsetIndices<int> faces,
     int v1,
@@ -469,13 +490,12 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(
 bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
                               const Span<int> corner_verts,
                               const OffsetIndices<int> faces,
-                              const int *face_sets,
+                              const Span<int> face_sets,
                               const SubdivCCG &subdiv_ccg,
                               SubdivCCGCoord coord)
 {
-  /* TODO: Move this check higher out of this function & make this function take empty span instead
-   * of a raw pointer. */
-  if (!face_sets) {
+  /* TODO: Move this check higher out of this function. */
+  if (face_sets.is_empty()) {
     return true;
   }
   int v1, v2;
@@ -1296,7 +1316,8 @@ static void restore_face_set_from_undo_step(Object &object)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
+      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(
+          *static_cast<Mesh *>(object.data));
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         if (const std::optional<Span<int>> orig_data = orig_face_set_data_lookup_mesh(object,
                                                                                       nodes[i]))
@@ -1311,7 +1332,8 @@ static void restore_face_set_from_undo_step(Object &object)
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
+      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(
+          *static_cast<Mesh *>(object.data));
       threading::EnumerableThreadSpecific<Vector<int>> all_tls;
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         Vector<int> &tls = all_tls.local();

@@ -161,9 +161,8 @@ bool create_face_sets_mesh(Object &object)
   return true;
 }
 
-bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object)
+bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Mesh &mesh)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (!attributes.contains(".sculpt_face_set")) {
     attributes.add<int>(".sculpt_face_set",
@@ -171,8 +170,6 @@ bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object)
                         bke::AttributeInitVArray(VArray<int>::ForSingle(1, mesh.faces_num)));
     mesh.face_sets_color_default = 1;
   }
-  object.sculpt->face_sets = static_cast<const int *>(
-      CustomData_get_layer_named(&mesh.face_data, CD_PROP_INT32, ".sculpt_face_set"));
   return attributes.lookup_or_add_for_write_span<int>(".sculpt_face_set", bke::AttrDomain::Face);
 }
 
@@ -209,7 +206,7 @@ Array<int> duplicate_face_sets(const Mesh &mesh)
 }
 
 void filter_verts_with_unique_face_sets_mesh(const GroupedSpan<int> vert_to_face_map,
-                                             const int *face_sets,
+                                             const Span<int> face_sets,
                                              const bool unique,
                                              const Span<int> verts,
                                              const MutableSpan<float> factors)
@@ -227,7 +224,7 @@ void filter_verts_with_unique_face_sets_grids(const GroupedSpan<int> vert_to_fac
                                               const Span<int> corner_verts,
                                               const OffsetIndices<int> faces,
                                               const SubdivCCG &subdiv_ccg,
-                                              const int *face_sets,
+                                              const Span<int> face_sets,
                                               const bool unique,
                                               const Span<int> grids,
                                               const MutableSpan<float> factors)
@@ -289,7 +286,8 @@ static void face_sets_update(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(
+      *static_cast<Mesh *>(object.data));
 
   struct TLS {
     Vector<int> face_indices;
@@ -578,7 +576,7 @@ static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
 
   BitVector<> visited_faces(mesh->faces_num, false);
 
-  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(ob);
+  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(*mesh);
 
   const Span<int2> edges = mesh->edges();
   const OffsetIndices faces = mesh->faces();
@@ -704,7 +702,7 @@ static int init_op_exec(bContext *C, wmOperator *op)
       break;
     }
     case InitMode::Materials: {
-      bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(ob);
+      bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(*mesh);
       const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Face, 0);
       const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
@@ -1333,16 +1331,17 @@ static void edit_fairing(const Depsgraph &depsgraph,
   const BitSpan boundary_verts = ss.vertex_info.boundary;
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
   Array<bool> fair_verts(positions.size(), false);
   for (const int vert : positions.index_range()) {
     if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary_verts, vert)) {
       continue;
     }
-    if (!vert_has_face_set(vert_to_face_map, ss.face_sets, vert, active_face_set_id)) {
+    if (!vert_has_face_set(vert_to_face_map, face_sets, vert, active_face_set_id)) {
       continue;
     }
-    if (!vert_has_unique_face_set(vert_to_face_map, ss.face_sets, vert)) {
+    if (!vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
       continue;
     }
     fair_verts[vert] = true;
@@ -1641,7 +1640,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
 
   struct TLS {
     Vector<int> face_indices;

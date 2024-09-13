@@ -1417,7 +1417,8 @@ static void expand_cache_free(SculptSession &ss)
 static void restore_face_set_data(Object &object, Cache &expand_cache)
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
+      *static_cast<Mesh *>(object.data));
   face_sets.span.copy_from(expand_cache.original_face_sets);
   face_sets.finish();
 
@@ -1686,8 +1687,8 @@ static void update_mask_bmesh(SculptSession &ss,
  */
 static void face_sets_update(Object &object, Cache &expand_cache)
 {
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
   Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1823,10 +1824,10 @@ static void original_state_store(Object &ob, Cache &expand_cache)
 static void face_sets_restore(Object &object, Cache &expand_cache)
 {
   SculptSession &ss = *object.sculpt;
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
   const int totfaces = ss.totfaces;
   for (int i = 0; i < totfaces; i++) {
     if (expand_cache.original_face_sets[i] <= 0) {

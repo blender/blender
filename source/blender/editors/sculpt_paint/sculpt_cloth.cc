@@ -2078,6 +2078,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
                                      const Span<float3> positions_eval,
                                      const Span<float3> vert_normals,
                                      const GroupedSpan<int> vert_to_face_map,
+                                     const Span<int> face_sets,
                                      const bke::pbvh::MeshNode &node,
                                      Object &object,
                                      FilterLocalData &tls)
@@ -2098,7 +2099,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
     for (const int i : verts.index_range()) {
       const int vert = verts[i];
       if (!face_set::vert_has_face_set(
-              vert_to_face_map, ss.face_sets, vert, ss.filter_cache->active_face_set))
+              vert_to_face_map, face_sets, vert, ss.filter_cache->active_face_set))
       {
         factors[i] = 0.0f;
       }
@@ -2143,6 +2144,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
 }
 
 static void apply_filter_forces_grids(const Depsgraph &depsgraph,
+                                      const Span<int> face_sets,
                                       const ClothFilterType filter_type,
                                       const float filter_strength,
                                       const float3 &gravity,
@@ -2167,7 +2169,7 @@ static void apply_filter_forces_grids(const Depsgraph &depsgraph,
   if (ss.filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
     for (const int i : grids.index_range()) {
       if (!face_set::vert_has_face_set(
-              subdiv_ccg, ss.face_sets, grids[i], ss.filter_cache->active_face_set))
+              subdiv_ccg, face_sets, grids[i], ss.filter_cache->active_face_set))
       {
         factors.slice(i * key.grid_area, key.grid_area).fill(0.0f);
       }
@@ -2334,6 +2336,9 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(*depsgraph, object);
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         FilterLocalData &tls = all_tls.local();
@@ -2345,6 +2350,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
                                    positions_eval,
                                    vert_normals,
                                    vert_to_face_map,
+                                   face_sets,
                                    nodes[i],
                                    object,
                                    tls);
@@ -2355,6 +2361,10 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
       break;
     }
     case bke::pbvh::Type::Grids: {
+      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const bke::AttributeAccessor attributes = base_mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -2362,7 +2372,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
         FilterLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           apply_filter_forces_grids(
-              *depsgraph, filter_type, filter_strength, gravity, nodes[i], object, tls);
+              *depsgraph, face_sets, filter_type, filter_strength, gravity, nodes[i], object, tls);
           BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });

@@ -361,11 +361,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Total number of faces of the base mesh. */
   int totfaces = 0;
 
-  /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
-   * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
-   * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
-   * to 0. */
-  const int *face_sets = nullptr;
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
    * May be null.

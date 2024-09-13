@@ -176,7 +176,8 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
 
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
+      *static_cast<Mesh *>(object.data));
 
   threading::EnumerableThreadSpecific<MeshLocalData> all_tls;
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -276,7 +277,8 @@ static void do_draw_face_sets_brush_grids(const Depsgraph &depsgraph,
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
 
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
+      *static_cast<Mesh *>(object.data));
 
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();

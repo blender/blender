@@ -705,7 +705,8 @@ static bool restore_face_sets(Object &object,
 {
   const Span<int> face_indices = unode.face_indices;
 
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
+  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
+      *static_cast<Mesh *>(object.data));
   bool modified = false;
   for (const int i : face_indices.index_range()) {
     const int face = face_indices[i];

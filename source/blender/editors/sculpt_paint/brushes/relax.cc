@@ -104,6 +104,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
                                             const Span<float3> positions_eval,
                                             const Span<float3> vert_normals,
                                             const GroupedSpan<int> vert_to_face_map,
+                                            const Span<int> face_sets,
                                             const float strength,
                                             const bool relax_face_sets,
                                             const Object &object,
@@ -138,7 +139,7 @@ BLI_NOINLINE static void calc_factors_faces(const Depsgraph &depsgraph,
   calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
 
   face_set::filter_verts_with_unique_face_sets_mesh(
-      vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
+      vert_to_face_map, face_sets, relax_face_sets, verts, factors);
 }
 
 static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
@@ -158,6 +159,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
   const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -178,6 +180,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
                        positions_eval,
                        vert_normals,
                        vert_to_face_map,
+                       face_sets,
                        strength,
                        relax_face_sets,
                        object,
@@ -195,7 +198,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
         corner_verts,
         vert_to_face_map,
         ss.vertex_info.boundary,
-        ss.face_sets,
+        face_sets,
         hide_poly,
         relax_face_sets,
         nodes[i].verts(),
@@ -220,6 +223,7 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
                                             const OffsetIndices<int> faces,
                                             const Span<int> corner_verts,
                                             const GroupedSpan<int> vert_to_face_map,
+                                            const Span<int> face_sets,
                                             const bke::pbvh::GridsNode &node,
                                             const float strength,
                                             const bool relax_face_sets,
@@ -261,7 +265,7 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
                                                      corner_verts,
                                                      faces,
                                                      subdiv_ccg,
-                                                     ss.face_sets,
+                                                     face_sets,
                                                      relax_face_sets,
                                                      grids,
                                                      factors);
@@ -287,6 +291,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
@@ -304,6 +309,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
                        faces,
                        corner_verts,
                        vert_to_face_map,
+                       face_sets,
                        nodes[i],
                        strength,
                        relax_face_sets,
@@ -319,7 +325,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
         subdiv_ccg,
         faces,
         corner_verts,
-        ss.face_sets,
+        face_sets,
         vert_to_face_map,
         ss.vertex_info.boundary,
         nodes[i].grids(),
@@ -485,6 +491,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
   const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -518,7 +525,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
         corner_verts,
         vert_to_face_map,
         ss.vertex_info.boundary,
-        ss.face_sets,
+        face_sets,
         hide_poly,
         false,
         nodes[i].verts(),
@@ -602,6 +609,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
@@ -631,7 +639,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
         subdiv_ccg,
         faces,
         corner_verts,
-        ss.face_sets,
+        face_sets,
         vert_to_face_map,
         ss.vertex_info.boundary,
         nodes[i].grids(),

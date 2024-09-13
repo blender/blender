@@ -1019,6 +1019,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1042,7 +1044,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                   corner_verts,
                                                   vert_to_face_map,
                                                   ss.vertex_info.boundary,
-                                                  ss.face_sets,
+                                                  face_sets,
                                                   hide_poly,
                                                   false,
                                                   verts,
@@ -1070,6 +1072,9 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = base_mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1092,7 +1097,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
           smooth::calc_relaxed_translations_grids(subdiv_ccg,
                                                   faces,
                                                   corner_verts,
-                                                  ss.face_sets,
+                                                  face_sets,
                                                   vert_to_face_map,
                                                   ss.vertex_info.boundary,
                                                   grids,
@@ -1183,6 +1188,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1199,7 +1206,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
           clamp_factors(factors, 0.0f, 1.0f);
 
           face_set::filter_verts_with_unique_face_sets_mesh(
-              vert_to_face_map, ss.face_sets, relax_face_sets, verts, factors);
+              vert_to_face_map, face_sets, relax_face_sets, verts, factors);
 
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
@@ -1209,7 +1216,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                   corner_verts,
                                                   vert_to_face_map,
                                                   ss.vertex_info.boundary,
-                                                  ss.face_sets,
+                                                  face_sets,
                                                   hide_poly,
                                                   relax_face_sets,
                                                   verts,
@@ -1237,6 +1244,10 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
+      const bke::AttributeAccessor attributes = base_mesh.attributes();
+      const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                           bke::AttrDomain::Face);
+
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1258,7 +1269,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                              corner_verts,
                                                              faces,
                                                              subdiv_ccg,
-                                                             ss.face_sets,
+                                                             face_sets,
                                                              relax_face_sets,
                                                              grids,
                                                              factors);
@@ -1268,7 +1279,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
           smooth::calc_relaxed_translations_grids(subdiv_ccg,
                                                   faces,
                                                   corner_verts,
-                                                  ss.face_sets,
+                                                  face_sets,
                                                   vert_to_face_map,
                                                   ss.vertex_info.boundary,
                                                   grids,
