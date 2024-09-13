@@ -26,9 +26,6 @@
 #  ifdef _MSC_VER
 #    pragma warning(pop)
 #  endif
-#  ifdef WITH_SDL_DYNLOAD
-#    include "sdlew.h"
-#  endif
 #endif
 
 static PyTypeObject BlenderAppSDLType;
@@ -37,10 +34,6 @@ static PyStructSequence_Field app_sdl_info_fields[] = {
     {"supported", ("Boolean, True when Blender is built with SDL support")},
     {"version", ("The SDL version as a tuple of 3 numbers")},
     {"version_string", ("The SDL version formatted as a string")},
-    {"available",
-     ("Boolean, True when SDL is available. This is False when "
-      "either *supported* is False, or *dynload* is True and "
-      "Blender cannot find the correct library.")},
     {nullptr},
 };
 
@@ -56,7 +49,6 @@ static PyObject *make_sdl_info()
   PyObject *sdl_info;
   int pos = 0;
 #ifdef WITH_SDL
-  bool sdl_available = false;
   SDL_version version = {0, 0, 0};
 #endif
 
@@ -71,35 +63,19 @@ static PyObject *make_sdl_info()
 
 #ifdef WITH_SDL
   SetObjItem(PyBool_FromLong(1));
-
-#  ifdef WITH_SDL_DYNLOAD
-  if (sdlewInit() == SDLEW_SUCCESS) {
-    SDL_GetVersion(&version);
-    sdl_available = true;
-  }
-#  else /* WITH_SDL_DYNLOAD=OFF */
-  sdl_available = true;
-#    if SDL_MAJOR_VERSION >= 2
+#  if SDL_MAJOR_VERSION >= 2
   SDL_GetVersion(&version);
-#    else
+#  else
   SDL_VERSION(&version);
-#    endif
 #  endif
 
   SetObjItem(PyC_Tuple_Pack_I32({version.major, version.minor, version.patch}));
-  if (sdl_available) {
-    SetObjItem(PyUnicode_FromFormat("%d.%d.%d", version.major, version.minor, version.patch));
-  }
-  else {
-    SetStrItem("Unknown");
-  }
-  SetObjItem(PyBool_FromLong(sdl_available));
+  SetObjItem(PyUnicode_FromFormat("%d.%d.%d", version.major, version.minor, version.patch));
 
 #else /* WITH_SDL=OFF */
   SetObjItem(PyBool_FromLong(0));
   SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));
   SetStrItem("Unknown");
-  SetObjItem(PyBool_FromLong(0));
 #endif
 
   if (UNLIKELY(PyErr_Occurred())) {

@@ -28,13 +28,6 @@ if(NOT WITH_SYSTEM_AUDASPACE)
   list(APPEND LIB
     audaspace
   )
-  if(WITH_SDL)
-    if(WITH_SDL_DYNLOAD)
-      list(APPEND LIB
-        extern_sdlew
-      )
-    endif()
-  endif()
 else()
   list(APPEND LIB
     ${AUDASPACE_C_LIBRARIES}

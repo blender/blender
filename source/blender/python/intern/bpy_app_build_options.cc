@@ -36,7 +36,6 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"openal", nullptr},
     {"opensubdiv", nullptr},
     {"sdl", nullptr},
-    {"sdl_dynload", nullptr},
     {"coreaudio", nullptr},
     {"jack", nullptr},
     {"pulseaudio", nullptr},
@@ -186,12 +185,6 @@ static PyObject *make_builtopts_info()
 #endif
 
 #ifdef WITH_SDL
-  SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
-
-#ifdef WITH_SDL_DYNLOAD
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

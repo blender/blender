@@ -123,13 +123,6 @@ def write(output):
     if bpy.app.build_options.sdl:
         output.write(title("SDL"))
         output.write("Version: {:s}\n".format(bpy.app.sdl.version_string))
-        output.write("Loading method: ")
-        if bpy.app.build_options.sdl_dynload:
-            output.write("dynamically loaded by Blender (WITH_SDL_DYNLOAD=ON)\n")
-        else:
-            output.write("linked (WITH_SDL_DYNLOAD=OFF)\n")
-        if not bpy.app.sdl.available:
-            output.write("WARNING: Blender could not load SDL library\n")
 
     output.write(title("Other Libraries"))
     ocio = bpy.app.ocio

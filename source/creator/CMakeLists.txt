@@ -113,10 +113,6 @@ if(WITH_HEADLESS)
 endif()
 
 if(WITH_SDL)
-  if(WITH_SDL_DYNLOAD)
-    list(APPEND INC ../../extern/sdlew/include)
-    add_definitions(-DWITH_SDL_DYNLOAD)
-  endif()
   add_definitions(-DWITH_SDL)
 endif()
 

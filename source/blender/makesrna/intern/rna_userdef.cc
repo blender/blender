@@ -223,10 +223,6 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 
 #  include "UI_interface.hh"
 
-#  ifdef WITH_SDL_DYNLOAD
-#    include "sdlew.h"
-#  endif
-
 static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 {
   UserDef *userdef = (UserDef *)ptr->data;
