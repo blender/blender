@@ -757,6 +757,28 @@ void BKE_main_library_weak_reference_remove_item(
   MEM_SAFE_FREE(old_id->library_weak_reference);
 }
 
+BlendThumbnail *BKE_main_thumbnail_from_buffer(Main *bmain, const uint8_t *rect, const int size[2])
+{
+  BlendThumbnail *data = nullptr;
+
+  if (bmain) {
+    MEM_SAFE_FREE(bmain->blen_thumb);
+  }
+
+  if (rect) {
+    const size_t data_size = BLEN_THUMB_MEMSIZE(size[0], size[1]);
+    data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+    data->width = size[0];
+    data->height = size[1];
+    memcpy(data->rect, rect, data_size - sizeof(*data));
+  }
+
+  if (bmain) {
+    bmain->blen_thumb = data;
+  }
+  return data;
+}
+
 BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
 {
   BlendThumbnail *data = nullptr;

@@ -151,6 +151,17 @@ static void wm_test_autorun_revert_action_exec(bContext *C);
 
 static CLG_LogRef LOG = {"wm.files"};
 
+/**
+ * Fast-path for down-scaling byte buffers.
+ *
+ * NOTE(@ideasman42) Support alternate logic for scaling byte buffers for
+ * thumbnails which doesn't use the higher quality box-filtered floating point math.
+ * This may be removed if similar performance can be achieved from other scale methods,
+ * especially in debug mode - which could cause file saving to be unreasonably slow
+ * (taking seconds just down-scaling the thumbnail).
+ */
+#define USE_THUMBNAIL_FAST_DOWNSCALE
+
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
  * \{ */
@@ -1742,6 +1753,99 @@ static void wm_history_file_update()
  *
  * \{ */
 
+#ifdef USE_THUMBNAIL_FAST_DOWNSCALE
+static uint8_t *blend_file_thumb_fast_downscale(const uint8_t *src_rect,
+                                                const int src_size[2],
+                                                const int dst_size[2])
+{
+  /* NOTE: this is a faster alternative to #IMBScaleFilter::Box which is
+   * especially slow in debug builds, normally debug performance isn't a
+   * consideration however it's slow enough to get in the way of development.
+   * In release builds this gives ~1.4x speedup. */
+
+  /* Scaling using a box-filter where each box uses an integer-rounded region.
+   * Accept a slightly lower quality scale as this is only for thumbnails.
+   * In practice the result is visually indistinguishable.
+   *
+   * Technically the color accumulation *could* overflow (creating some invalid pixels),
+   * however this would require the source image to be larger than
+   * 65,535 pixels squared (when scaling down to 256x256).
+   * As the source input is a screenshot or a small camera render created for the thumbnail,
+   * this isn't a concern. */
+
+  BLI_assert(dst_size[0] <= src_size[0] && dst_size[1] <= src_size[1]);
+  uint8_t *dst_rect = static_cast<uint8_t *>(
+      MEM_mallocN(sizeof(uint8_t[4]) * dst_size[0] * dst_size[1], __func__));
+
+  /* A row, the width of the destination to accumulate pixel values into
+   * before writing into the image. */
+  uint32_t *accum_row = static_cast<uint32_t *>(
+      MEM_callocN(sizeof(uint32_t) * dst_size[0] * 4, __func__));
+
+#  ifndef NDEBUG
+  /* Assert that samples are calculated correctly. */
+  uint64_t sample_count_all = 0;
+#  endif
+
+  const uint32_t src_size_x = src_size[0];
+  const uint32_t src_size_y = src_size[1];
+
+  const uint32_t dst_size_x = dst_size[0];
+  const uint32_t dst_size_y = dst_size[1];
+  const uint8_t *src_px = src_rect;
+
+  uint32_t src_y = 0;
+  for (uint32_t dst_y = 0; dst_y < dst_size_y; dst_y++) {
+    const uint32_t src_y_beg = src_y;
+    const uint32_t src_y_end = ((dst_y + 1) * src_size_y) / dst_size_y;
+    for (; src_y < src_y_end; src_y++) {
+      uint32_t *accum = accum_row;
+      uint32_t src_x = 0;
+      for (uint32_t dst_x = 0; dst_x < dst_size_x; dst_x++, accum += 4) {
+        const uint32_t src_x_end = ((dst_x + 1) * src_size_x) / dst_size_x;
+        for (; src_x < src_x_end; src_x++) {
+          accum[0] += uint32_t(src_px[0]);
+          accum[1] += uint32_t(src_px[1]);
+          accum[2] += uint32_t(src_px[2]);
+          accum[3] += uint32_t(src_px[3]);
+          src_px += 4;
+        }
+        BLI_assert(src_x == src_x_end);
+      }
+      BLI_assert(accum == accum_row + (4 * dst_size[0]));
+    }
+
+    uint32_t *accum = accum_row;
+    uint8_t *dst_px = dst_rect + ((dst_y * dst_size_x) * 4);
+    uint32_t src_x_beg = 0;
+    const uint32_t span_y = src_y_end - src_y_beg;
+    for (uint32_t dst_x = 0; dst_x < dst_size_x; dst_x++) {
+      const uint32_t src_x_end = ((dst_x + 1) * src_size_x) / dst_size_x;
+      const uint32_t span_x = src_x_end - src_x_beg;
+
+      const uint32_t sample_count = span_x * span_y;
+      dst_px[0] = uint8_t(accum[0] / sample_count);
+      dst_px[1] = uint8_t(accum[1] / sample_count);
+      dst_px[2] = uint8_t(accum[2] / sample_count);
+      dst_px[3] = uint8_t(accum[3] / sample_count);
+      accum[0] = accum[1] = accum[2] = accum[3] = 0;
+      accum += 4;
+      dst_px += 4;
+
+      src_x_beg = src_x_end;
+#  ifndef NDEBUG
+      sample_count_all += sample_count;
+#  endif
+    }
+  }
+  BLI_assert(src_px == src_rect + (sizeof(uint8_t[4]) * src_size[0] * src_size[1]));
+  BLI_assert(sample_count_all == size_t(src_size[0]) * size_t(src_size[1]));
+
+  MEM_freeN(accum_row);
+  return dst_rect;
+}
+#endif /* USE_THUMBNAIL_FAST_DOWNSCALE */
+
 static blender::int2 blend_file_thumb_clamp_size(const int size[2], const int limit)
 {
   blender::int2 result;
@@ -1783,19 +1887,35 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     const blender::int2 thumb_size_2x = blend_file_thumb_clamp_size(win_size, BLEN_THUMB_SIZE * 2);
     const blender::int2 thumb_size = blend_file_thumb_clamp_size(win_size, BLEN_THUMB_SIZE);
 
-    ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
-    BLI_assert(ibuf != nullptr); /* Never expected to fail. */
+#ifdef USE_THUMBNAIL_FAST_DOWNSCALE
+    if ((thumb_size_2x[0] <= win_size[0]) && (thumb_size_2x[1] <= win_size[1])) {
+      uint8_t *rect_2x = blend_file_thumb_fast_downscale(buffer, win_size, thumb_size_2x);
+      uint8_t *rect = blend_file_thumb_fast_downscale(rect_2x, thumb_size_2x, thumb_size);
 
-    /* File-system thumbnail image can be 256x256. */
-    IMB_scale(ibuf, thumb_size_2x.x, thumb_size_2x.y, IMBScaleFilter::Box, false);
+      MEM_freeN(buffer);
+      ibuf = IMB_allocFromBufferOwn(rect_2x, nullptr, thumb_size_2x.x, thumb_size_2x.y, 24);
 
-    /* Thumbnail inside blend should be 128x128. */
-    ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
-    IMB_scale(thumb_ibuf, thumb_size.x, thumb_size.y, IMBScaleFilter::Box, false);
+      BlendThumbnail *thumb = BKE_main_thumbnail_from_buffer(nullptr, rect, thumb_size);
+      MEM_freeN(rect);
+      *r_thumb = thumb;
+    }
+    else
+#endif /* USE_THUMBNAIL_FAST_DOWNSCALE */
+    {
+      ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
+      BLI_assert(ibuf != nullptr); /* Never expected to fail. */
 
-    BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(nullptr, thumb_ibuf);
-    IMB_freeImBuf(thumb_ibuf);
-    *r_thumb = thumb;
+      /* File-system thumbnail image can be 256x256. */
+      IMB_scale(ibuf, thumb_size_2x.x, thumb_size_2x.y, IMBScaleFilter::Box, false);
+
+      /* Thumbnail inside blend should be 128x128. */
+      ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
+      IMB_scale(thumb_ibuf, thumb_size.x, thumb_size.y, IMBScaleFilter::Box, false);
+
+      BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(nullptr, thumb_ibuf);
+      IMB_freeImBuf(thumb_ibuf);
+      *r_thumb = thumb;
+    }
   }
 
   if (ibuf) {
