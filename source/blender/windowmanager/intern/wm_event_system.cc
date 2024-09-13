@@ -1127,7 +1127,10 @@ static void wm_operator_reports(bContext *C,
     CLOG_STR_INFO(WM_LOG_OPERATORS, 1, pystring.c_str());
 
     if (caller_owns_reports == false) {
-      BKE_reports_print(op->reports, RPT_DEBUG); /* Print out reports to console. */
+      /* Print out reports to console.
+       * When quiet, only show warnings, suppressing info and other non-essential warnings. */
+      const eReportType level = G.quiet ? RPT_WARNING : RPT_DEBUG;
+      BKE_reports_print(op->reports, level);
     }
 
     if (op->type->flag & OPTYPE_REGISTER) {
