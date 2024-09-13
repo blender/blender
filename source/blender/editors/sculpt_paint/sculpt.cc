@@ -1225,6 +1225,7 @@ static void restore_mask_from_undo_step(Object &object)
         {
           const Span<int> verts = nodes[i].verts();
           array_utils::scatter(*orig_data, verts, mask.span);
+          bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
@@ -1239,6 +1240,7 @@ static void restore_mask_from_undo_step(Object &object)
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
             if (const float *orig_mask = BM_log_find_original_vert_mask(ss.bm_log, vert)) {
               BM_ELEM_CD_SET_FLOAT(vert, offset, *orig_mask);
+              bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
               BKE_pbvh_node_mark_update_mask(nodes[i]);
             }
           }
@@ -1266,6 +1268,7 @@ static void restore_mask_from_undo_step(Object &object)
               index++;
             }
           }
+          bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         }
       });
@@ -5448,10 +5451,6 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
     SCULPT_fake_neighbors_free(ob);
-  }
-
-  if (update_type == UpdateType::Mask) {
-    bke::pbvh::update_mask(ob, pbvh);
   }
 
   if (update_type == UpdateType::Position) {

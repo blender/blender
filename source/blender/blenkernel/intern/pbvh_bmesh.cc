@@ -2289,6 +2289,8 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
     }
   });
 
+  update_mask_bmesh(*bm, nodes.index_range(), *pbvh);
+
   BLI_memarena_free(arena);
   return pbvh;
 }
@@ -2499,6 +2501,7 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
   IndexMaskMemory memory;
   const IndexMask node_mask = IndexMask::from_bools(node_changed, memory);
   pbvh.tag_positions_changed(node_mask);
+  update_mask_bmesh(bm, node_mask, pbvh);
 }
 
 void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node)

@@ -103,10 +103,10 @@ static void init_mask_grids(
     for (const int grid : nodes[i].grids()) {
       write_fn(grid_hidden, grid, masks.slice(bke::ccg::grid_range(key, grid)));
     }
+    bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
     BKE_pbvh_node_mark_update_mask(nodes[i]);
   });
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
-  bke::pbvh::update_mask(object, pbvh);
 }
 
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
@@ -255,9 +255,9 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
               break;
           }
         }
+        bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
         BKE_pbvh_node_mark_update_mask(nodes[i]);
       });
-      bke::pbvh::update_mask(ob, pbvh);
       break;
     }
   }

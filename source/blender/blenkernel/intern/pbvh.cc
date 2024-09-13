@@ -295,6 +295,8 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
     });
   }
 
+  update_mask_mesh(mesh, nodes.index_range(), *pbvh);
+
   return pbvh;
 }
 
@@ -482,6 +484,8 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
       }
     });
   }
+
+  update_mask_grids(subdiv_ccg, nodes.index_range(), *pbvh);
 
   return pbvh;
 }
@@ -1211,26 +1215,23 @@ void node_update_mask_mesh(const Span<float> mask, MeshNode &node)
       verts.begin(), verts.end(), [&](const int vert) { return mask[vert] <= 0.0f; });
   SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
   SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
-  node.flag_ &= ~PBVH_UpdateMask;
 }
 
-static void update_mask_mesh(const Mesh &mesh,
-                             const MutableSpan<MeshNode> nodes,
-                             const IndexMask &nodes_to_update)
+void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh)
 {
+  const MutableSpan<MeshNode> nodes = pbvh.nodes<MeshNode>();
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", AttrDomain::Point);
   if (mask.is_empty()) {
-    nodes_to_update.foreach_index([&](const int i) {
+    node_mask.foreach_index([&](const int i) {
       nodes[i].flag_ &= ~PBVH_FullyMasked;
       nodes[i].flag_ |= PBVH_FullyUnmasked;
-      nodes[i].flag_ &= ~PBVH_UpdateMask;
     });
     return;
   }
 
-  nodes_to_update.foreach_index(GrainSize(1),
-                                [&](const int i) { node_update_mask_mesh(mask, nodes[i]); });
+  node_mask.foreach_index(GrainSize(1),
+                          [&](const int i) { node_update_mask_mesh(mask, nodes[i]); });
 }
 
 void node_update_mask_grids(const CCGKey &key, const Span<float> masks, GridsNode &node)
@@ -1245,24 +1246,21 @@ void node_update_mask_grids(const CCGKey &key, const Span<float> masks, GridsNod
   }
   SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
   SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
-  node.flag_ &= ~PBVH_UpdateMask;
 }
 
-static void update_mask_grids(const SubdivCCG &subdiv_ccg,
-                              const MutableSpan<GridsNode> nodes,
-                              const IndexMask &nodes_to_update)
+void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, Tree &pbvh)
 {
+  const MutableSpan<GridsNode> nodes = pbvh.nodes<GridsNode>();
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   if (subdiv_ccg.masks.is_empty()) {
-    nodes_to_update.foreach_index([&](const int i) {
+    node_mask.foreach_index([&](const int i) {
       nodes[i].flag_ &= ~PBVH_FullyMasked;
       nodes[i].flag_ |= PBVH_FullyUnmasked;
-      nodes[i].flag_ &= ~PBVH_UpdateMask;
     });
     return;
   }
 
-  nodes_to_update.foreach_index(
+  node_mask.foreach_index(
       GrainSize(1), [&](const int i) { node_update_mask_grids(key, subdiv_ccg.masks, nodes[i]); });
 }
 
@@ -1281,52 +1279,22 @@ void node_update_mask_bmesh(const int mask_offset, BMeshNode &node)
   }
   SET_FLAG_FROM_TEST(node.flag_, fully_masked, PBVH_FullyMasked);
   SET_FLAG_FROM_TEST(node.flag_, fully_unmasked, PBVH_FullyUnmasked);
-  node.flag_ &= ~PBVH_UpdateMask;
 }
 
-static void update_mask_bmesh(const BMesh &bm,
-                              const MutableSpan<BMeshNode> nodes,
-                              const IndexMask &nodes_to_update)
+void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh)
 {
+  const MutableSpan<BMeshNode> nodes = pbvh.nodes<BMeshNode>();
   const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
   if (offset == -1) {
-    nodes_to_update.foreach_index([&](const int i) {
+    node_mask.foreach_index([&](const int i) {
       nodes[i].flag_ &= ~PBVH_FullyMasked;
       nodes[i].flag_ |= PBVH_FullyUnmasked;
-      nodes[i].flag_ &= ~PBVH_UpdateMask;
     });
     return;
   }
 
-  nodes_to_update.foreach_index(GrainSize(1),
-                                [&](const int i) { node_update_mask_bmesh(offset, nodes[i]); });
-}
-
-void update_mask(const Object &object, Tree &pbvh)
-{
-  IndexMaskMemory memory;
-  const IndexMask nodes_to_update = search_nodes(
-      pbvh, memory, [&](const Node &node) { return update_search(node, PBVH_UpdateMask); });
-
-  switch (pbvh.type()) {
-    case Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      update_mask_mesh(mesh, pbvh.nodes<MeshNode>(), nodes_to_update);
-      break;
-    }
-    case Type::Grids: {
-      const SculptSession &ss = *object.sculpt;
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      update_mask_grids(subdiv_ccg, pbvh.nodes<GridsNode>(), nodes_to_update);
-      break;
-    }
-    case Type::BMesh: {
-      const SculptSession &ss = *object.sculpt;
-      const BMesh &bm = *ss.bm;
-      update_mask_bmesh(bm, pbvh.nodes<BMeshNode>(), nodes_to_update);
-      break;
-    }
-  }
+  node_mask.foreach_index(GrainSize(1),
+                          [&](const int i) { node_update_mask_bmesh(offset, nodes[i]); });
 }
 
 void node_update_visibility_mesh(const Span<bool> hide_vert, MeshNode &node)
@@ -1546,7 +1514,7 @@ void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 
 void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_UpdateMask | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)

@@ -1466,6 +1466,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
       attributes.add<float>(".sculpt_mask",
                             bke::AttrDomain::Point,
                             bke::AttributeInitVArray(VArray<float>::ForSpan(mask)));
+      bke::pbvh::update_mask_mesh(mesh, node_mask, pbvh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
@@ -1478,6 +1479,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
       for (const int i : mask.index_range()) {
         BM_ELEM_CD_SET_FLOAT(BM_vert_at_index(&bm, i), offset, mask[i]);
       }
+      bke::pbvh::update_mask_bmesh(bm, node_mask, pbvh);
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
@@ -1485,6 +1487,7 @@ static void write_mask_data(Object &object, const Span<float> mask)
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       subdiv_ccg.masks.as_mutable_span().copy_from(mask);
+      bke::pbvh::update_mask_grids(subdiv_ccg, node_mask, pbvh);
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
@@ -1616,6 +1619,7 @@ static void update_mask_grids(const SculptSession &ss,
   }
   if (any_changed) {
     BKE_pbvh_node_mark_update_mask(node);
+    bke::pbvh::node_update_mask_grids(key, masks, node);
   }
 }
 
@@ -1662,6 +1666,7 @@ static void update_mask_bmesh(SculptSession &ss,
   }
   if (any_changed) {
     BKE_pbvh_node_mark_update_mask(*node);
+    bke::pbvh::node_update_mask_bmesh(mask_offset, *node);
   }
 }
 

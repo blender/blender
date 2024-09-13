@@ -489,7 +489,11 @@ void update_bounds_bmesh(const BMesh &bm, Tree &pbvh);
  */
 void store_bounds_orig(Tree &pbvh);
 
-void update_mask(const Object &object, Tree &pbvh);
+/** Update node "fully masked" and "fully unmasked" values after mask values have been changed. */
+void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh);
+void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, Tree &pbvh);
+void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh);
+
 void update_visibility(const Object &object, Tree &pbvh);
 void update_normals(const Depsgraph &depsgraph, Object &object_orig, Tree &pbvh);
 /** Update geometry normals (potentially on the original object geometry). */

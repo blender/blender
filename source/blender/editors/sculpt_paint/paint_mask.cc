@@ -214,7 +214,7 @@ void update_mask_mesh(const Depsgraph &depsgraph,
       }
       undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
       scatter_data_mesh(tls.mask.as_span(), verts, mask.span);
-      bke::pbvh::node_update_mask_mesh(mask.span, static_cast<bke::pbvh::MeshNode &>(nodes[i]));
+      bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
       BKE_pbvh_node_mark_redraw(nodes[i]);
     });
   });
@@ -361,7 +361,6 @@ static bool try_remove_mask_mesh(const Depsgraph &depsgraph,
   });
 
   attributes.remove(".sculpt_mask");
-  /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
   node_mask.foreach_index([&](const int i) {
     BKE_pbvh_node_fully_masked_set(nodes[i], false);
     BKE_pbvh_node_fully_unmasked_set(nodes[i], true);
@@ -404,7 +403,6 @@ static void fill_mask_mesh(const Depsgraph &depsgraph,
   });
 
   mask.finish();
-  /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
   node_mask.foreach_index([&](const int i) {
     BKE_pbvh_node_fully_masked_set(nodes[i], value == 1.0f);
     BKE_pbvh_node_fully_unmasked_set(nodes[i], value == 0.0f);
@@ -468,7 +466,6 @@ static void fill_mask_grids(Main &bmain,
   if (any_changed) {
     multires_mark_as_modified(&depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
-  /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
   node_mask.foreach_index([&](const int i) {
     BKE_pbvh_node_fully_masked_set(nodes[i], value == 1.0f);
     BKE_pbvh_node_fully_unmasked_set(nodes[i], value == 0.0f);
@@ -510,7 +507,6 @@ static void fill_mask_bmesh(const Depsgraph &depsgraph,
       BKE_pbvh_node_mark_redraw(nodes[i]);
     }
   });
-  /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
   node_mask.foreach_index([&](const int i) {
     BKE_pbvh_node_fully_masked_set(nodes[i], value == 1.0f);
     BKE_pbvh_node_fully_unmasked_set(nodes[i], value == 0.0f);
@@ -767,6 +763,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
                 mask = mask_gesture_get_new_value(mask, op.mode, op.value);
               }
             });
+            bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
             BKE_pbvh_node_mark_update_mask(nodes[i]);
           }
         });
@@ -792,6 +789,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
               BM_ELEM_CD_SET_FLOAT(vert, offset, new_mask);
             }
           }
+          bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
           BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
@@ -807,7 +805,6 @@ static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
   if (bke::object::pbvh_get(object)->type() == bke::pbvh::Type::Grids) {
     multires_mark_as_modified(depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
-  bke::pbvh::update_mask(object, *bke::object::pbvh_get(object));
   undo::push_end(object);
 }
 

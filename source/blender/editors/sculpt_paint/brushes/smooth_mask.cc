@@ -175,6 +175,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
       BKE_pbvh_node_mark_update_mask(nodes[i]);
     });
   }
+  bke::pbvh::update_mask_mesh(mesh, node_mask, pbvh);
   mask.finish();
 }
 
@@ -311,6 +312,7 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
           });
         });
       }
+      bke::pbvh::update_mask_grids(*ss.subdiv_ccg, node_mask, pbvh);
       break;
     }
     case bke::pbvh::Type::BMesh: {
@@ -329,6 +331,7 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
           });
         });
       }
+      bke::pbvh::update_mask_bmesh(*ss.bm, node_mask, pbvh);
       break;
     }
   }
