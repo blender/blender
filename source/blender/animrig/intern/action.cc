@@ -766,21 +766,51 @@ bool Action::is_cyclic() const
   return (this->flag & ACT_FRAME_RANGE) && (this->flag & ACT_CYCLIC);
 }
 
+/** Return the frame range of the span of keys. */
+static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves, bool include_modifiers);
+
 float2 Action::get_frame_range() const
 {
   if (this->flag & ACT_FRAME_RANGE) {
     return {this->frame_start, this->frame_end};
   }
 
-  return this->get_frame_range_of_keys(false);
+  Vector<const FCurve *> all_fcurves = fcurves_all(*this);
+  return get_frame_range_of_fcurves(all_fcurves, false);
+}
+
+float2 Action::get_frame_range_of_slot(const slot_handle_t slot_handle) const
+{
+  if (this->flag & ACT_FRAME_RANGE) {
+    return {this->frame_start, this->frame_end};
+  }
+
+  Vector<const FCurve *> legacy_fcurves;
+  Span<const FCurve *> fcurves_to_consider;
+
+  if (this->is_action_layered()) {
+    fcurves_to_consider = fcurves_for_action_slot(*this, slot_handle);
+  }
+  else {
+    legacy_fcurves = fcurves_all(*this);
+    fcurves_to_consider = legacy_fcurves;
+  }
+
+  return get_frame_range_of_fcurves(fcurves_to_consider, false);
 }
 
 float2 Action::get_frame_range_of_keys(const bool include_modifiers) const
 {
+  return get_frame_range_of_fcurves(fcurves_all(*this), include_modifiers);
+}
+
+static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
+                                         const bool include_modifiers)
+{
   float min = 999999999.0f, max = -999999999.0f;
   bool foundvert = false, foundmod = false;
 
-  for (const FCurve *fcu : fcurves_all(*this)) {
+  for (const FCurve *fcu : fcurves) {
     /* if curve has keyframes, consider them first */
     if (fcu->totvert) {
       float nmin, nmax;

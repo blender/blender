@@ -312,8 +312,20 @@ class Action : public ::bAction {
    * or the result of a scan of all F-Curves for their first & last frames.
    *
    * \see get_frame_range_of_keys()
+   * \see get_frame_range_of_slot()
    */
   float2 get_frame_range() const ATTR_WARN_UNUSED_RESULT;
+
+  /**
+   * Retrieve the intended playback frame range of a slot.
+   *
+   * \return a tuple (start frame, end frame). This is either the manually set range (if enabled)
+   * of the Action, or the result of a scan of all F-Curves of the slot for their first & last
+   * frames.
+   *
+   * \see get_frame_range()
+   */
+  float2 get_frame_range_of_slot(slot_handle_t slot_handle) const ATTR_WARN_UNUSED_RESULT;
 
   /**
    * Calculate the extents of this Action.

@@ -1642,7 +1642,7 @@ void BKE_nlastrip_recalculate_bounds_sync_action(NlaStrip *strip)
 
   prev_actstart = strip->actstart;
 
-  const float2 frame_range = strip->act->wrap().get_frame_range();
+  const float2 frame_range = strip->act->wrap().get_frame_range_of_slot(strip->action_slot_handle);
   strip->actstart = frame_range[0];
   strip->actend = frame_range[1];
 
