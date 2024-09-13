@@ -3650,11 +3650,14 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
   BLI_freelistN(&lower_estrips);
 }
 
-/* NLA Evaluation function (mostly for use through do_animdata)
+/**
+ * NLA Evaluation function (mostly for use through do_animdata)
  * - All channels that will be affected are not cleared anymore. Instead, we just evaluate into
  *   some temp channels, where values can be accumulated in one go.
+ *
+ * \return whether any NLA tracks were evaluated at all.
  */
-static void animsys_calculate_nla(PointerRNA *ptr,
+static bool animsys_calculate_nla(PointerRNA *ptr,
                                   AnimData *adt,
                                   const AnimationEvalContext *anim_eval_context,
                                   const bool flush_to_original)
@@ -3664,26 +3667,20 @@ static void animsys_calculate_nla(PointerRNA *ptr,
   nlaeval_init(&echannels);
 
   /* evaluate the NLA stack, obtaining a set of values to flush */
-  if (animsys_evaluate_nla_for_flush(&echannels, ptr, adt, anim_eval_context, flush_to_original)) {
+  const bool did_evaluate_something = animsys_evaluate_nla_for_flush(
+      &echannels, ptr, adt, anim_eval_context, flush_to_original);
+  if (did_evaluate_something) {
     /* reset any channels touched by currently inactive actions to default value */
     animsys_evaluate_nla_domain(ptr, &echannels, adt);
 
     /* flush effects of accumulating channels in NLA to the actual data they affect */
     nladata_flush_channels(ptr, &echannels, &echannels.eval_snapshot, flush_to_original);
   }
-  else {
-    /* special case - evaluate as if there isn't any NLA data */
-    /* TODO: this is really just a stop-gap measure... */
-    if (G.debug & G_DEBUG) {
-      CLOG_WARN(&LOG, "NLA Eval: Stopgap for active action on NLA Stack - no strips case");
-    }
-
-    animsys_evaluate_action(
-        ptr, adt->action, adt->slot_handle, anim_eval_context, flush_to_original);
-  }
 
   /* free temp data */
   nlaeval_free(&echannels);
+
+  return did_evaluate_something;
 }
 
 /* ---------------------- */
@@ -4042,14 +4039,16 @@ void BKE_animsys_evaluate_animdata(ID *id,
   /* TODO: need to double check that this all works correctly */
   if (recalc & ADT_RECALC_ANIM) {
     /* evaluate NLA data */
+    bool did_nla_evaluate_anything = false;
     if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF)) {
       /* evaluate NLA-stack
        * - active action is evaluated as part of the NLA stack as the last item
        */
-      animsys_calculate_nla(&id_ptr, adt, anim_eval_context, flush_to_original);
+      did_nla_evaluate_anything = animsys_calculate_nla(
+          &id_ptr, adt, anim_eval_context, flush_to_original);
     }
-    /* evaluate Active Action only */
-    else if (adt->action) {
+
+    if (!did_nla_evaluate_anything && adt->action) {
       blender::animrig::Action &action = adt->action->wrap();
       if (action.is_action_layered()) {
         blender::animrig::evaluate_and_apply_action(
