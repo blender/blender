@@ -139,6 +139,7 @@ class DrawCacheImpl : public DrawCache {
   virtual ~DrawCacheImpl() override;
 
   void tag_all_attributes_dirty(const IndexMask &node_mask) override;
+  void tag_positions_changed(const IndexMask &node_mask) override;
 
   Span<gpu::Batch *> ensure_tris_batches(const Object &object,
                                          const ViewportRequest &request,
@@ -189,6 +190,16 @@ void DrawCacheImpl::tag_all_attributes_dirty(const IndexMask &node_mask)
 {
   for (DrawCacheImpl::AttributeData &data : attribute_vbos_.values()) {
     data.tag_dirty(node_mask);
+  }
+}
+
+void DrawCacheImpl::tag_positions_changed(const IndexMask &node_mask)
+{
+  if (DrawCacheImpl::AttributeData *data = attribute_vbos_.lookup_ptr(CustomRequest::Position)) {
+    data->tag_dirty(node_mask);
+  }
+  if (DrawCacheImpl::AttributeData *data = attribute_vbos_.lookup_ptr(CustomRequest::Normal)) {
+    data->tag_dirty(node_mask);
   }
 }
 
@@ -1823,6 +1834,7 @@ Span<gpu::VertBuf *> DrawCacheImpl::ensure_attribute_data(const Object &object,
     }
   }
 
+  /* TODO: May be wrong to clear all dirty values when they might not have been in `node_mask`. */
   data.dirty_nodes.clear_and_shrink();
 
   flush_vbo_data(vbos, mask);

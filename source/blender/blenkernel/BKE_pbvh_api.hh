@@ -176,6 +176,7 @@ struct BMeshNode : public Node {
 class DrawCache {
  public:
   virtual ~DrawCache() = default;
+  virtual void tag_positions_changed(const IndexMask &node_mask) = 0;
 };
 
 /**

@@ -555,12 +555,9 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
   /* TODO: Use `to_bools` with first clear disabled. */
   node_mask.foreach_index_optimized<int>([&](const int i) { this->bounds_dirty_[i].set(); });
   node_mask.foreach_index_optimized<int>([&](const int i) { this->normals_dirty_[i].set(); });
-  return std::visit(
-      [&](auto &nodes) {
-        node_mask.foreach_index(
-            [&](const int i) { nodes[i].flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw; });
-      },
-      this->nodes_);
+  if (this->draw_data) {
+    this->draw_data->tag_positions_changed(node_mask);
+  }
 }
 
 static bool tree_is_empty(const Tree &pbvh)
