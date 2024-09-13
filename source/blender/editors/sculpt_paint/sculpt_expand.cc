@@ -1447,8 +1447,8 @@ static void restore_color_data(Object &ob, Cache &expand_cache)
                             expand_cache.original_colors[vert],
                             color_attribute.span);
     }
-    BKE_pbvh_node_mark_redraw(nodes[i]);
   });
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
 }
 
@@ -1699,7 +1699,7 @@ static void face_sets_update(Object &object, Cache &expand_cache)
 /**
  * Callback to update vertex colors per bke::pbvh::Tree node.
  */
-static void colors_update_task(const Depsgraph &depsgraph,
+static bool colors_update_task(const Depsgraph &depsgraph,
                                Object &object,
                                const Span<float3> vert_positions,
                                const OffsetIndices<int> faces,
@@ -1762,9 +1762,7 @@ static void colors_update_task(const Depsgraph &depsgraph,
 
     any_changed = true;
   }
-  if (any_changed) {
-    BKE_pbvh_node_mark_update_color(*node);
-  }
+  return any_changed;
 }
 
 /* Store the original mesh data state in the expand cache. */
@@ -1897,19 +1895,26 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
       const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
       bke::GSpanAttributeWriter color_attribute = color::active_color_attribute_for_write(mesh);
 
+      Array<bool> node_changed(node_mask.min_array_size(), false);
+
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        colors_update_task(depsgraph,
-                           ob,
-                           vert_positions,
-                           faces,
-                           corner_verts,
-                           vert_to_face_map,
-                           hide_vert,
-                           mask,
-                           &nodes[i],
-                           color_attribute);
+        node_changed[i] = colors_update_task(depsgraph,
+                                             ob,
+                                             vert_positions,
+                                             faces,
+                                             corner_verts,
+                                             vert_to_face_map,
+                                             hide_vert,
+                                             mask,
+                                             &nodes[i],
+                                             color_attribute);
       });
+
+      IndexMaskMemory memory;
+      pbvh.tag_attribute_changed(IndexMask::from_bools(node_changed, memory),
+                                 mesh.active_color_attribute);
+
       color_attribute.finish();
       flush_update_step(C, UpdateType::Color);
       break;

@@ -1202,15 +1202,16 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         return;
       }
 
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       Array<bool> modified_verts(mesh.verts_num, false);
       restore_color(object, step_data, modified_verts);
-      node_mask.foreach_index([&](const int i) {
-        if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
-          BKE_pbvh_node_mark_update_color(nodes[i]);
-        }
-      });
+      const IndexMask changed_nodes = IndexMask::from_predicate(
+          node_mask, GrainSize(1), memory, [&](const int i) {
+            return indices_contain_true(modified_verts, nodes[i].all_verts());
+          });
+      pbvh.tag_attribute_changed(changed_nodes, mesh.active_color_attribute);
       break;
     }
     case Type::Geometry: {

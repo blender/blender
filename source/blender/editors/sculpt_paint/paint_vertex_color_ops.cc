@@ -322,10 +322,10 @@ static void transform_active_color(bContext *C,
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
   undo::push_nodes(depsgraph, obact, node_mask, undo::Type::Color);
 
-  transform_active_color_data(*BKE_mesh_from_object(&obact), transform_fn);
+  Mesh &mesh = *static_cast<Mesh *>(obact.data);
+  transform_active_color_data(mesh, transform_fn);
 
-  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_color(nodes[i]); });
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
 
   undo::push_end(obact);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &obact);

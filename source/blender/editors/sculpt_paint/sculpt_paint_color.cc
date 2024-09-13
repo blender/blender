@@ -592,9 +592,9 @@ void do_paint_brush(const Scene &scene,
                              nodes[i],
                              tls,
                              color_attribute);
-        BKE_pbvh_node_mark_update_color(nodes[i]);
       });
     });
+    pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
     color_attribute.finish();
     return;
   }
@@ -670,9 +670,9 @@ void do_paint_brush(const Scene &scene,
                           tls,
                           ss.cache->paint_brush.mix_colors,
                           color_attribute);
-      BKE_pbvh_node_mark_update_color(nodes[i]);
     });
   });
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
 }
 
@@ -894,7 +894,6 @@ void do_smear_brush(const Depsgraph &depsgraph,
                              nodes[i],
                              tls,
                              color_attribute);
-        BKE_pbvh_node_mark_update_color(nodes[i]);
       });
     });
   }
@@ -926,10 +925,10 @@ void do_smear_brush(const Depsgraph &depsgraph,
                             nodes[i],
                             tls,
                             color_attribute);
-        BKE_pbvh_node_mark_update_color(nodes[i]);
       });
     });
   }
+  pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
 }
 
