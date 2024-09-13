@@ -667,7 +667,6 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), &ob, false);
 
-  /* No color attribute? Set color to white. */
   const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -675,16 +674,18 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
 
   float4 active_vertex_color;
-  if (!color_attribute) {
+  if (!color_attribute || std::holds_alternative<std::monostate>(ss.active_vert())) {
     active_vertex_color = float4(1.0f);
   }
-  const GVArraySpan colors = *color_attribute;
-  active_vertex_color = color::color_vert_get(faces,
-                                              corner_verts,
-                                              vert_to_face_map,
-                                              colors,
-                                              color_attribute.domain,
-                                              std::get<int>(ss.active_vert()));
+  else {
+    const GVArraySpan colors = *color_attribute;
+    active_vertex_color = color::color_vert_get(faces,
+                                                corner_verts,
+                                                vert_to_face_map,
+                                                colors,
+                                                color_attribute.domain,
+                                                std::get<int>(ss.active_vert()));
+  }
 
   float color_srgb[3];
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
