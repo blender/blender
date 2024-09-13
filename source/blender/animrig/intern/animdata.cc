@@ -5,14 +5,17 @@
 /** \file
  * \ingroup animrig
  */
-
 #include "ANIM_action.hh"
 #include "ANIM_animdata.hh"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
+#include "BKE_material.h"
+#include "BKE_node.hh"
 
 #include "BLT_translation.hh"
 
@@ -23,6 +26,10 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "DNA_anim_types.h"
+#include "DNA_key_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_particle_types.h"
 
 #include "ED_anim_api.hh"
 
@@ -34,6 +41,148 @@ namespace blender::animrig {
 /* -------------------------------------------------------------------- */
 /** \name Public F-Curves API
  * \{ */
+
+/* Find the users of the given ID within the objects of `bmain` and add non-duplicates to the end
+ * of `related_ids`. */
+static void add_object_data_users(const Main &bmain, const ID &id, Vector<ID *> &related_ids)
+{
+  if (ID_REAL_USERS(&id) != 1) {
+    /* Only find objects if this ID is only used once. */
+    return;
+  }
+
+  Object *ob;
+  ID *object_id;
+  FOREACH_MAIN_LISTBASE_ID_BEGIN (&bmain.objects, object_id) {
+    ob = (Object *)object_id;
+    if (ob->data != &id) {
+      continue;
+    }
+    related_ids.append_non_duplicates(&ob->id);
+  }
+  FOREACH_MAIN_LISTBASE_ID_END;
+}
+
+/* Find an action on an ID that is related to the given ID. Related things are e.g. Object<->Data,
+ * Mesh<->Material and so on. The exact relationships are defined per ID type. Only relationships
+ * of 1:1 are traced. The case of multiple users for 1 ID is treated as not related. */
+static bAction *find_related_action(Main &bmain, ID &id)
+{
+  Vector<ID *> related_ids({&id});
+
+  /* `related_ids` can grow during an iteration if the ID of the current iteration has associated
+   * code that defines relationships. */
+  for (int i = 0; i < related_ids.size(); i++) {
+    ID *related_id = related_ids[i];
+
+    Action *action = get_action(*related_id);
+    if (action && action->is_action_layered()) {
+      /* Returning the first action found means highest priority has the action closest in the
+       * relationship graph. */
+      return action;
+    }
+
+    if (related_id->flag & ID_FLAG_EMBEDDED_DATA) {
+      /* No matter the type of embedded ID, their owner can always be added to the related IDs. */
+      BLI_assert(ID_REAL_USERS(related_id) == 0);
+      ID *owner_id = BKE_id_owner_get(related_id);
+      /* Embedded IDs should always have an owner. */
+      BLI_assert(owner_id != nullptr);
+      related_ids.append_non_duplicates(owner_id);
+    }
+
+    /* No action found on current ID, add related IDs to the ID Vector. */
+    switch (GS(related_id->name)) {
+      case ID_OB: {
+        Object *ob = (Object *)related_id;
+        if (!ob->data) {
+          break;
+        }
+        ID *data = (ID *)ob->data;
+        if (ID_REAL_USERS(data) == 1) {
+          related_ids.append_non_duplicates(data);
+        }
+        LISTBASE_FOREACH (ParticleSystem *, particle_system, &ob->particlesystem) {
+          if (!particle_system) {
+            continue;
+          }
+          if (ID_REAL_USERS(&particle_system->part->id) != 1) {
+            continue;
+          }
+          related_ids.append_non_duplicates(&particle_system->part->id);
+        }
+        break;
+      }
+
+      case ID_KE: {
+        /* Shapekeys.  */
+        Key *key = (Key *)related_id;
+        /* Shapekeys are not embedded but there is currently no way to reuse them. */
+        BLI_assert(ID_REAL_USERS(related_id) == 1);
+        related_ids.append_non_duplicates(key->from);
+        break;
+      }
+
+      case ID_MA: {
+        /* Explicitly not relating materials and material users. */
+        Material *mat = (Material *)related_id;
+        if (mat->nodetree && ID_REAL_USERS(&mat->nodetree->id) == 1) {
+          related_ids.append_non_duplicates(&mat->nodetree->id);
+        }
+        break;
+      }
+
+      case ID_PA: {
+        if (ID_REAL_USERS(related_id) != 1) {
+          continue;
+        }
+        Object *ob;
+        ID *object_id;
+        /* Find users of this particle setting. */
+        FOREACH_MAIN_LISTBASE_ID_BEGIN (&bmain.objects, object_id) {
+          ob = (Object *)object_id;
+          bool object_uses_particle_settings = false;
+          LISTBASE_FOREACH (ParticleSystem *, particle_system, &ob->particlesystem) {
+            if (!particle_system) {
+              continue;
+            }
+            if (&particle_system->part->id != related_id) {
+              continue;
+            }
+            object_uses_particle_settings = true;
+            break;
+          }
+          if (object_uses_particle_settings) {
+            related_ids.append_non_duplicates(&ob->id);
+            break;
+          }
+        }
+        FOREACH_MAIN_LISTBASE_ID_END;
+
+        break;
+      }
+
+      default: {
+        /* Just check if the ID is used as object data somewhere. */
+        add_object_data_users(bmain, *related_id, related_ids);
+        bNodeTree *node_tree = bke::node_tree_from_id(related_id);
+        if (node_tree && ID_REAL_USERS(&node_tree->id) == 1) {
+          related_ids.append_non_duplicates(&node_tree->id);
+        }
+
+        Key *key = BKE_key_from_id(related_id);
+        if (key) {
+          /* No check for multi user because the Shapekey cannot be shared. */
+          BLI_assert(ID_REAL_USERS(&key->id) == 1);
+          related_ids.append_non_duplicates(&key->id);
+        }
+        break;
+      }
+    }
+  }
+
+  return nullptr;
+}
 
 bAction *id_action_ensure(Main *bmain, ID *id)
 {
@@ -53,18 +202,37 @@ bAction *id_action_ensure(Main *bmain, ID *id)
   /* init action if none available yet */
   /* TODO: need some wizardry to handle NLA stuff correct */
   if (adt->action == nullptr) {
-    /* init action name from name of ID block */
-    char actname[sizeof(id->name) - 2];
-    SNPRINTF(actname, DATA_("%sAction"), id->name + 2);
+    bAction *action = nullptr;
+    if (USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+      action = find_related_action(*bmain, *id);
+    }
+    if (action == nullptr) {
+      /* init action name from name of ID block */
+      char actname[sizeof(id->name) - 2];
+      if (id->flag & ID_FLAG_EMBEDDED_DATA && USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+        /* When the ID is embedded, use the name of the owner ID for clarity. */
+        ID *owner_id = BKE_id_owner_get(id);
+        /* If the ID is embedded it should have an owner. */
+        BLI_assert(owner_id != nullptr);
+        SNPRINTF(actname, DATA_("%sAction"), owner_id->name + 2);
+      }
+      else if (GS(id->name) == ID_KE && USER_EXPERIMENTAL_TEST(&U, use_animation_baklava)) {
+        Key *key = (Key *)id;
+        SNPRINTF(actname, DATA_("%sAction"), key->from->name + 2);
+      }
+      else {
+        SNPRINTF(actname, DATA_("%sAction"), id->name + 2);
+      }
 
-    /* create action */
-    adt->action = BKE_action_add(bmain, actname);
-
-    /* set ID-type from ID-block that this is going to be assigned to
-     * so that users can't accidentally break actions by assigning them
-     * to the wrong places
-     */
-    BKE_animdata_action_ensure_idroot(id, adt->action);
+      /* create action */
+      action = BKE_action_add(bmain, actname);
+      /* set ID-type from ID-block that this is going to be assigned to
+       * so that users can't accidentally break actions by assigning them
+       * to the wrong places
+       */
+      BKE_animdata_action_ensure_idroot(id, adt->action);
+    }
+    adt->action = action;
 
     /* Tag depsgraph to be rebuilt to include time dependency. */
     DEG_relations_tag_update(bmain);
