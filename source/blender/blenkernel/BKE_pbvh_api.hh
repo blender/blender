@@ -15,6 +15,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
@@ -196,7 +197,7 @@ class Tree {
    * \note Values are only meaningful for leaf nodes.
    * \note The vector's size may not match the size of the nodes array.
    */
-  Vector<bool> bounds_dirty_;
+  BitVector<> bounds_dirty_;
 
   float planes_[6][4];
   int num_planes_;
@@ -221,6 +222,7 @@ class Tree {
   /**
    * Mark data based on positions for specific BVH nodes dirty. In particular: bounds, normals,
    * and GPU data buffers. That data is recomputed later on in functions like #update_bounds.
+   * \warning Must not be called from multiple threads in parallel.
    */
   void tag_positions_changed(const IndexMask &node_mask);
 };

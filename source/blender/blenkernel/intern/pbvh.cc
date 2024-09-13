@@ -551,8 +551,7 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
   this->bounds_dirty_.resize(std::max(this->bounds_dirty_.size(), node_mask.min_array_size()),
                              false);
   /* TODO: Use `to_bools` with first clear disabled. */
-  node_mask.foreach_index_optimized<int>(GrainSize(2048),
-                                         [&](const int i) { this->bounds_dirty_[i] = true; });
+  node_mask.foreach_index_optimized<int>([&](const int i) { this->bounds_dirty_[i].set(); });
   return std::visit(
       [&](auto &nodes) {
         node_mask.foreach_index([&](const int i) {
@@ -1088,7 +1087,7 @@ struct BoundsMergeInfo {
 
 template<typename NodeT>
 static BoundsMergeInfo merge_child_bounds(MutableSpan<NodeT> nodes,
-                                          const Span<bool> dirty,
+                                          const BitSpan dirty,
                                           const int node_index)
 {
   NodeT &node = nodes[node_index];
@@ -1120,7 +1119,7 @@ void flush_bounds_to_parents(Tree &pbvh)
 void update_bounds_mesh(const Span<float3> vert_positions, Tree &pbvh)
 {
   IndexMaskMemory memory;
-  const IndexMask nodes_to_update = IndexMask::from_bools(pbvh.bounds_dirty_, memory);
+  const IndexMask nodes_to_update = IndexMask::from_bits(pbvh.bounds_dirty_, memory);
   if (nodes_to_update.is_empty()) {
     return;
   }
@@ -1133,7 +1132,7 @@ void update_bounds_mesh(const Span<float3> vert_positions, Tree &pbvh)
 void update_bounds_grids(const CCGKey &key, const Span<float3> positions, Tree &pbvh)
 {
   IndexMaskMemory memory;
-  const IndexMask nodes_to_update = IndexMask::from_bools(pbvh.bounds_dirty_, memory);
+  const IndexMask nodes_to_update = IndexMask::from_bits(pbvh.bounds_dirty_, memory);
   if (nodes_to_update.is_empty()) {
     return;
   }
@@ -1147,7 +1146,7 @@ void update_bounds_grids(const CCGKey &key, const Span<float3> positions, Tree &
 void update_bounds_bmesh(const BMesh & /*bm*/, Tree &pbvh)
 {
   IndexMaskMemory memory;
-  const IndexMask nodes_to_update = IndexMask::from_bools(pbvh.bounds_dirty_, memory);
+  const IndexMask nodes_to_update = IndexMask::from_bits(pbvh.bounds_dirty_, memory);
   if (nodes_to_update.is_empty()) {
     return;
   }
