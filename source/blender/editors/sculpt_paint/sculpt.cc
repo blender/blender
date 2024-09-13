@@ -5702,7 +5702,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
 
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Brush &brush = *BKE_paint_brush(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
 
   if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type) &&
       !SCULPT_handles_colors_report(ob, op->reports))
