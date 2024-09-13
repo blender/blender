@@ -79,8 +79,7 @@ class Node {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag_ = PBVH_UpdateBB | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                        PBVH_UpdateRedraw;
+  PBVHNodeFlags flag_ = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin_ = 0.0f;
@@ -192,6 +191,13 @@ class Tree {
   /* Memory backing for Node.prim_indices. */
   Array<int> prim_indices_;
 
+  /**
+   * If true, the bounds for the corresponding node index is out of dat.
+   * \note Values are only meaningful for leaf nodes.
+   * \note The vector's size may not match the size of the nodes array.
+   */
+  Vector<bool> bounds_dirty_;
+
   float planes_[6][4];
   int num_planes_;
 
@@ -211,6 +217,12 @@ class Tree {
   {
     return this->type_;
   }
+
+  /**
+   * Mark data based on positions for specific BVH nodes dirty. In particular: bounds, normals,
+   * and GPU data buffers. That data is recomputed later on in functions like #update_bounds.
+   */
+  void tag_positions_changed(const IndexMask &node_mask);
 };
 
 }  // namespace blender::bke::pbvh
@@ -379,7 +391,6 @@ void BKE_pbvh_node_mark_update_face_sets(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node);
-void BKE_pbvh_node_mark_positions_update(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden);
 bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node &node);
@@ -444,7 +455,7 @@ namespace blender::bke::pbvh {
 
 /**
  * Recalculate node bounding boxes based on the current coordinates. Calculation is only done for
- * affected nodes with the #PBVH_UpdateBB flag set.
+ * affected nodes that have been tagged by #PBVH::tag_positions_changed().
  */
 void update_bounds(const Depsgraph &depsgraph, const Object &object, Tree &pbvh);
 void update_bounds_mesh(Span<float3> vert_positions, Tree &pbvh);

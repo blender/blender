@@ -307,18 +307,20 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
         node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_mesh(
               depsgraph, sd, transform_mats, positions_eval, nodes[i], ob, tls, positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
       break;
     }
     case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+      MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_grids(sd, transform_mats, nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
       break;
@@ -329,12 +331,14 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
         TransformLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           transform_node_bmesh(sd, transform_mats, nodes[i], ob, tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
+          bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
+  bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
 BLI_NOINLINE static void calc_transform_translations(const float4x4 &elastic_transform_mat,
@@ -505,7 +509,6 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
                                         ob,
                                         tls,
                                         positions_orig);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
             bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
           });
         });
@@ -520,7 +523,6 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
           node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_grids(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
             bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
           });
         });
@@ -533,7 +535,6 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
           node_mask.slice(range).foreach_index([&](const int i) {
             elastic_transform_node_bmesh(
                 sd, params, elastic_transform_mat, elastic_transform_pivot, nodes[i], ob, tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
             bke::pbvh::update_node_bounds_bmesh(nodes[i]);
           });
         });
@@ -541,6 +542,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
       }
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 

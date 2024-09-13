@@ -1415,8 +1415,6 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
               update_shape_keys(
                   object, mesh, *active_key, verts, tls.translations, positions_orig);
             }
-
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
           }
         });
       });
@@ -1433,7 +1431,6 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
             copy_v3_v3(vert->co, orig_co);
           }
         }
-        BKE_pbvh_node_mark_positions_update(nodes[i]);
       });
       break;
     }
@@ -1457,12 +1454,12 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
               index++;
             }
           }
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
         }
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
 
   /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
    * the brush restoring to the initial state doesn't use the normals, but we have no easy way to
@@ -3322,6 +3319,7 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   else {
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
   }
+  pbvh.tag_positions_changed(node_mask);
   node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
   node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
   node_mask.foreach_index(GrainSize(1), [&](const int i) {

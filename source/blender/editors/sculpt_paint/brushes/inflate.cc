@@ -208,7 +208,6 @@ void do_inflate_brush(const Depsgraph &depsgraph,
                      object,
                      tls,
                      positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -222,7 +221,6 @@ void do_inflate_brush(const Depsgraph &depsgraph,
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           calc_grids(depsgraph, sd, object, brush, scale, nodes[i], tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -234,13 +232,13 @@ void do_inflate_brush(const Depsgraph &depsgraph,
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           calc_bmesh(depsgraph, sd, object, brush, scale, nodes[i], tls);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 

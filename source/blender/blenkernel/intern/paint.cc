@@ -2129,6 +2129,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
   else if (pbvh) {
     IndexMaskMemory memory;
     const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
+    pbvh->tag_positions_changed(node_mask);
     switch (pbvh->type()) {
       case bke::pbvh::Type::Mesh: {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh->nodes<bke::pbvh::MeshNode>();

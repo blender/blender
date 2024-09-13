@@ -166,7 +166,6 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
                                     object,
                                     tls,
                                     positions_orig);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
               bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
             });
           });
@@ -181,7 +180,6 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               apply_projection_grids(sd, gesture_data, nodes[i], object, tls);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
               bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
             });
           });
@@ -194,7 +192,6 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
             LocalData &tls = all_tls.local();
             node_mask.slice(range).foreach_index([&](const int i) {
               apply_projection_bmesh(sd, gesture_data, nodes[i], object, tls);
-              BKE_pbvh_node_mark_positions_update(nodes[i]);
               bke::pbvh::update_node_bounds_bmesh(nodes[i]);
             });
           });
@@ -208,6 +205,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
       BLI_assert_unreachable();
       break;
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 

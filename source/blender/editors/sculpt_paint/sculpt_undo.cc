@@ -1002,12 +1002,11 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_position_grids(subdiv_ccg.positions, key, *unode, modified_grids);
         }
-        node_mask.foreach_index([&](const int i) {
-          const Span<int> grids = nodes[i].grids();
-          if (indices_contain_true(modified_grids, grids)) {
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
-          }
-        });
+        const IndexMask changed_nodes = IndexMask::from_predicate(
+            node_mask, GrainSize(1), memory, [&](const int i) {
+              return indices_contain_true(modified_grids, nodes[i].grids());
+            });
+        pbvh.tag_positions_changed(changed_nodes);
         multires_mark_as_modified(depsgraph, &object, MULTIRES_COORDS_MODIFIED);
       }
       else {
@@ -1018,11 +1017,12 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         const Mesh &mesh = *static_cast<const Mesh *>(object.data);
         Array<bool> modified_verts(mesh.verts_num, false);
         restore_position_mesh(object, step_data.nodes, modified_verts);
-        node_mask.foreach_index([&](const int i) {
-          if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
-          }
-        });
+
+        const IndexMask changed_nodes = IndexMask::from_predicate(
+            node_mask, GrainSize(1), memory, [&](const int i) {
+              return indices_contain_true(modified_verts, nodes[i].all_verts());
+            });
+        pbvh.tag_positions_changed(changed_nodes);
       }
 
       if (tag_update) {

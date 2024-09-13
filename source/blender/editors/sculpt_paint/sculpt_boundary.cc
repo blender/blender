@@ -1310,7 +1310,6 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                          strength,
                          deform_target,
                          positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -1337,7 +1336,6 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -1361,13 +1359,13 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -1607,7 +1605,6 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                           strength,
                           deform_target,
                           positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -1633,7 +1630,6 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -1656,13 +1652,13 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -1887,7 +1883,6 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                             strength,
                             deform_target,
                             positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -1912,7 +1907,6 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              boundary.initial_vert_position,
                              strength,
                              deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -1934,13 +1928,13 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              boundary.initial_vert_position,
                              strength,
                              deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -2169,7 +2163,6 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                          strength,
                          deform_target,
                          positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -2195,7 +2188,6 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -2218,13 +2210,13 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -2459,7 +2451,6 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                           strength,
                           deform_target,
                           positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -2486,7 +2477,6 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -2510,13 +2500,13 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -2870,7 +2860,6 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                            strength,
                            deform_target,
                            positions_orig);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
         });
       });
@@ -2894,7 +2883,6 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             boundary.initial_vert_position,
                             strength,
                             deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
         });
       });
@@ -2915,13 +2903,13 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             boundary.initial_vert_position,
                             strength,
                             deform_target);
-          BKE_pbvh_node_mark_positions_update(nodes[i]);
           bke::pbvh::update_node_bounds_bmesh(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 

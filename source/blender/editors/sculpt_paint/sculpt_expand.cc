@@ -2481,7 +2481,6 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
   expand_cache.brush = BKE_paint_brush_for_read(&sd.paint);
   BKE_curvemapping_init(expand_cache.brush->curve);
   copy_v4_fl(expand_cache.fill_color, 1.0f);

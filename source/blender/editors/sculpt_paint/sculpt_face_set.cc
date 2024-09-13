@@ -1448,14 +1448,7 @@ static void edit_modify_coordinates(
   undo::push_begin(ob, op);
   undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
 
-  if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
-  }
-  else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_positions_update(nodes[i]); });
-  }
+  pbvh.tag_positions_changed(node_mask);
 
   switch (mode) {
     case EditMode::FairPositions:

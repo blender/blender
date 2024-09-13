@@ -427,6 +427,7 @@ BLI_INLINE BMeshNode *pbvh_bmesh_node_from_face(MutableSpan<BMeshNode> nodes,
 
 static BMVert *pbvh_bmesh_vert_create(BMesh &bm,
                                       MutableSpan<BMeshNode> nodes,
+                                      MutableSpan<bool> node_changed,
                                       BMLog &bm_log,
                                       const BMVert *v1,
                                       const BMVert *v2,
@@ -451,7 +452,8 @@ static BMVert *pbvh_bmesh_vert_create(BMesh &bm,
   node->bm_unique_verts_.add(v);
   BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
 
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_TopologyUpdated;
+  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  node_changed[node_index] = true;
 
   /* Log the new vertex. */
   BM_log_vert_added(&bm_log, v, cd_vert_mask_offset);
@@ -519,16 +521,15 @@ static int pbvh_bmesh_node_vert_use_count_at_most(MutableSpan<BMeshNode> nodes,
 }
 
 /** Return a node that uses vertex `v` other than its current owner. */
-static BMeshNode *pbvh_bmesh_vert_other_node_find(MutableSpan<BMeshNode> nodes,
-                                                  const int cd_vert_node_offset,
-                                                  const int cd_face_node_offset,
-                                                  BMVert *v)
+static std::optional<int> pbvh_bmesh_vert_other_node_find(const int cd_vert_node_offset,
+                                                          const int cd_face_node_offset,
+                                                          BMVert *v)
 {
-  BMeshNode *current_node = pbvh_bmesh_node_from_vert(nodes, cd_vert_node_offset, v);
+  const int current_node = pbvh_bmesh_node_index_from_vert(cd_vert_node_offset, v);
   BMFace *f;
 
   BM_FACES_OF_VERT_ITER_BEGIN (f, v) {
-    BMeshNode *f_node = pbvh_bmesh_node_from_face(nodes, cd_face_node_offset, f);
+    const int f_node = pbvh_bmesh_node_index_from_face(cd_face_node_offset, f);
 
     if (f_node != current_node) {
       return f_node;
@@ -536,17 +537,21 @@ static BMeshNode *pbvh_bmesh_vert_other_node_find(MutableSpan<BMeshNode> nodes,
   }
   BM_FACES_OF_VERT_ITER_END;
 
-  return nullptr;
+  return std::nullopt;
 }
 
 static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
+                                               MutableSpan<bool> node_changed,
                                                const int cd_vert_node_offset,
-                                               BMeshNode *new_owner,
+                                               const int new_owner_index,
                                                BMVert *v)
 {
-  BMeshNode *current_owner = pbvh_bmesh_node_from_vert(nodes, cd_vert_node_offset, v);
-  current_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateBB |
-                          PBVH_TopologyUpdated;
+  const int current_owner_index = pbvh_bmesh_node_index_from_vert(cd_vert_node_offset, v);
+  BMeshNode *current_owner = &nodes[current_owner_index];
+  current_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  node_changed[new_owner_index] = true;
+
+  BMeshNode *new_owner = &nodes[new_owner_index];
 
   BLI_assert(current_owner != new_owner);
 
@@ -554,16 +559,17 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
   current_owner->bm_unique_verts_.remove(v);
 
   /* Set new ownership */
-  BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, new_owner - nodes.data());
+  BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, new_owner_index);
   new_owner->bm_unique_verts_.add(v);
   new_owner->bm_other_verts_.remove(v);
   BLI_assert(!new_owner->bm_other_verts_.contains(v));
 
-  new_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateBB |
-                      PBVH_TopologyUpdated;
+  new_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  node_changed[new_owner_index] = true;
 }
 
 static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
+                                   MutableSpan<bool> node_changed,
                                    const int cd_vert_node_offset,
                                    const int cd_face_node_offset,
                                    BMVert *v)
@@ -585,8 +591,8 @@ static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
       f_node_index_prev = f_node_index;
 
       BMeshNode *f_node = &nodes[f_node_index];
-      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateBB |
-                       PBVH_TopologyUpdated;
+      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+      node_changed[f_node_index] = true;
 
       /* Remove current ownership. */
       f_node->bm_other_verts_.remove(v);
@@ -599,6 +605,7 @@ static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
 }
 
 static void pbvh_bmesh_face_remove(MutableSpan<BMeshNode> nodes,
+                                   MutableSpan<bool> node_changed,
                                    const int cd_vert_node_offset,
                                    const int cd_face_node_offset,
                                    BMLog &bm_log,
@@ -614,14 +621,14 @@ static void pbvh_bmesh_face_remove(MutableSpan<BMeshNode> nodes,
     if (pbvh_bmesh_node_vert_use_count_is_equal(nodes, cd_face_node_offset, f_node, v, 1)) {
       if (f_node->bm_unique_verts_.contains(v)) {
         /* Find a different node that uses 'v'. */
-        BMeshNode *new_node;
 
-        new_node = pbvh_bmesh_vert_other_node_find(
-            nodes, cd_vert_node_offset, cd_face_node_offset, v);
+        const std::optional<int> new_node = pbvh_bmesh_vert_other_node_find(
+            cd_vert_node_offset, cd_face_node_offset, v);
         BLI_assert(new_node || BM_vert_face_count_is_equal(v, 1));
 
         if (new_node) {
-          pbvh_bmesh_vert_ownership_transfer(nodes, cd_vert_node_offset, new_node, v);
+          pbvh_bmesh_vert_ownership_transfer(
+              nodes, node_changed, cd_vert_node_offset, *new_node, v);
         }
       }
       else {
@@ -1152,6 +1159,7 @@ static void merge_edge_data(BMesh &bm, BMEdge &dst, const BMEdge &src)
 static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
                                   BMesh &bm,
                                   MutableSpan<BMeshNode> nodes,
+                                  MutableSpan<bool> node_changed,
                                   const int cd_vert_node_offset,
                                   const int cd_face_node_offset,
                                   BMLog &bm_log,
@@ -1170,6 +1178,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   int node_index = BM_ELEM_CD_GET_INT(e->v1, eq_ctx->cd_vert_node_offset);
   BMVert *v_new = pbvh_bmesh_vert_create(bm,
                                          nodes,
+                                         node_changed,
                                          bm_log,
                                          e->v1,
                                          e->v2,
@@ -1196,7 +1205,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     BMVert *v2 = l_adj->next->v;
 
     if (ni != node_index && i == 0) {
-      pbvh_bmesh_vert_ownership_transfer(nodes, cd_vert_node_offset, &nodes[ni], v_new);
+      pbvh_bmesh_vert_ownership_transfer(nodes, node_changed, cd_vert_node_offset, ni, v_new);
     }
 
     /* The 2 new faces created and assigned to `f_new` have their
@@ -1247,7 +1256,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     long_edge_queue_face_add(eq_ctx, f_new_second);
 
     /* Delete original */
-    pbvh_bmesh_face_remove(nodes, cd_vert_node_offset, cd_face_node_offset, bm_log, f_adj);
+    pbvh_bmesh_face_remove(
+        nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log, f_adj);
     BM_face_kill(&bm, f_adj);
 
     /* Ensure new vertex is in the node */
@@ -1270,6 +1280,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
                                             BMesh &bm,
                                             MutableSpan<BMeshNode> nodes,
+                                            MutableSpan<bool> node_changed,
                                             const int cd_vert_node_offset,
                                             const int cd_face_node_offset,
                                             BMLog &bm_log)
@@ -1309,7 +1320,8 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
 
     any_subdivided = true;
 
-    pbvh_bmesh_split_edge(eq_ctx, bm, nodes, cd_vert_node_offset, cd_face_node_offset, bm_log, e);
+    pbvh_bmesh_split_edge(
+        eq_ctx, bm, nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log, e);
   }
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
@@ -1568,6 +1580,7 @@ static void merge_face_edge_data(BMesh &bm,
 
 static void pbvh_bmesh_collapse_edge(BMesh &bm,
                                      MutableSpan<BMeshNode> nodes,
+                                     MutableSpan<bool> node_changed,
                                      const int cd_vert_node_offset,
                                      const int cd_face_node_offset,
                                      BMLog &bm_log,
@@ -1610,7 +1623,7 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
   }
 
   /* Remove the merge vertex from the Tree. */
-  pbvh_bmesh_vert_remove(nodes, cd_vert_node_offset, cd_face_node_offset, v_del);
+  pbvh_bmesh_vert_remove(nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, v_del);
 
   /* For all remaining faces of v_del, create a new face that is the
    * same except it uses v_conn instead of v_del */
@@ -1649,7 +1662,8 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
   while ((l_adj = e->l)) {
     BMFace *f_adj = l_adj->f;
 
-    pbvh_bmesh_face_remove(nodes, cd_vert_node_offset, cd_face_node_offset, bm_log, f_adj);
+    pbvh_bmesh_face_remove(
+        nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log, f_adj);
     BM_face_kill(&bm, f_adj);
   }
 
@@ -1698,7 +1712,8 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
     try_merge_flap_edge_data_before_dissolve(bm, *f_del);
 
     /* Remove the face */
-    pbvh_bmesh_face_remove(nodes, cd_vert_node_offset, cd_face_node_offset, bm_log, f_del);
+    pbvh_bmesh_face_remove(
+        nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log, f_del);
     BM_face_kill(&bm, f_del);
 
     /* Check if any of the face's edges are now unused by any
@@ -1713,7 +1728,8 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
      * remove them from the Tree */
     for (const int j : IndexRange(3)) {
       if ((v_tri[j] != v_del) && (v_tri[j]->e == nullptr)) {
-        pbvh_bmesh_vert_remove(nodes, cd_vert_node_offset, cd_face_node_offset, v_tri[j]);
+        pbvh_bmesh_vert_remove(
+            nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, v_tri[j]);
 
         BM_log_vert_removed(&bm_log, v_tri[j], eq_ctx->cd_vert_mask_offset);
 
@@ -1742,8 +1758,9 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
     /* Update bounding boxes attached to the connected vertex.
      * Note that we can often get-away without this but causes #48779. */
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-      Node *f_node = pbvh_bmesh_node_from_face(nodes, cd_face_node_offset, l->f);
-      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+      const int f_node = pbvh_bmesh_node_index_from_face(cd_face_node_offset, l->f);
+      nodes[f_node].flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals;
+      node_changed[f_node] = true;
     }
     BM_LOOPS_OF_VERT_ITER_END;
   }
@@ -1760,6 +1777,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
                                             const float min_edge_len,
                                             BMesh &bm,
                                             MutableSpan<BMeshNode> nodes,
+                                            MutableSpan<bool> node_changed,
                                             const int cd_vert_node_offset,
                                             const int cd_face_node_offset,
                                             BMLog &bm_log)
@@ -1811,6 +1829,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
     pbvh_bmesh_collapse_edge(bm,
                              nodes,
+                             node_changed,
                              cd_vert_node_offset,
                              cd_face_node_offset,
                              bm_log,
@@ -2250,6 +2269,7 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
   pbvh_bmesh_create_nodes_fast_recursive(
       nodes, cd_vert_node_offset, cd_face_node_offset, nodeinfo, face_bounds, &rootnode, 0);
 
+  pbvh->tag_positions_changed(nodes.index_range());
   update_bounds_bmesh(*bm, *pbvh);
   store_bounds_orig(*pbvh);
 
@@ -2295,6 +2315,7 @@ bool bmesh_update_topology(BMesh &bm,
   }
 
   MutableSpan<BMeshNode> nodes = pbvh.nodes<BMeshNode>();
+  Array<bool> node_changed(nodes.size(), false);
 
   if (mode & PBVH_Collapse) {
     EdgeQueue q;
@@ -2310,8 +2331,14 @@ bool bmesh_update_topology(BMesh &bm,
 
     short_edge_queue_create(
         &eq_ctx, min_edge_len, nodes, center, view_normal, radius, use_frontface, use_projected);
-    modified |= pbvh_bmesh_collapse_short_edges(
-        &eq_ctx, min_edge_len, bm, nodes, cd_vert_node_offset, cd_face_node_offset, bm_log);
+    modified |= pbvh_bmesh_collapse_short_edges(&eq_ctx,
+                                                min_edge_len,
+                                                bm,
+                                                nodes,
+                                                node_changed,
+                                                cd_vert_node_offset,
+                                                cd_face_node_offset,
+                                                bm_log);
     BLI_heapsimple_free(q.heap, nullptr);
     BLI_mempool_destroy(queue_pool);
   }
@@ -2331,10 +2358,14 @@ bool bmesh_update_topology(BMesh &bm,
     long_edge_queue_create(
         &eq_ctx, max_edge_len, nodes, center, view_normal, radius, use_frontface, use_projected);
     modified |= pbvh_bmesh_subdivide_long_edges(
-        &eq_ctx, bm, nodes, cd_vert_node_offset, cd_face_node_offset, bm_log);
+        &eq_ctx, bm, nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log);
     BLI_heapsimple_free(q.heap, nullptr);
     BLI_mempool_destroy(queue_pool);
   }
+
+  IndexMaskMemory memory;
+  const IndexMask changed_nodes = IndexMask::from_bools(node_changed, memory);
+  pbvh.tag_positions_changed(changed_nodes);
 
   /* Unmark nodes. */
   for (Node &node : nodes) {

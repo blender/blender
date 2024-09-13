@@ -542,9 +542,9 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           positions_orig);
-    BKE_pbvh_node_mark_positions_update(nodes[i]);
     bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -655,9 +655,9 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
                           object,
                           current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
                           translations.as_mutable_span().slice(node_vert_offsets[pos]));
-    BKE_pbvh_node_mark_positions_update(nodes[i]);
     bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
@@ -750,9 +750,9 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
                           current_positions.as_span().slice(node_vert_offsets[pos]));
-    BKE_pbvh_node_mark_positions_update(nodes[i]);
     bke::pbvh::update_node_bounds_bmesh(nodes[i]);
   });
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 /** \} */

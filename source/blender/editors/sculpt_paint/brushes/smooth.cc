@@ -165,7 +165,6 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
                             tls,
                             new_positions.as_span().slice(node_vert_offsets[pos]),
                             positions_orig);
-      BKE_pbvh_node_mark_positions_update(nodes[i]);
     });
   }
 }
@@ -310,7 +309,6 @@ void do_smooth_brush(const Depsgraph &depsgraph,
                        strength,
                        nodes[i],
                        tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
           });
         });
       }
@@ -326,13 +324,13 @@ void do_smooth_brush(const Depsgraph &depsgraph,
           LocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
             calc_bmesh(depsgraph, sd, object, brush, strength, nodes[i], tls);
-            BKE_pbvh_node_mark_positions_update(nodes[i]);
           });
         });
       }
       break;
     }
   }
+  pbvh.tag_positions_changed(node_mask);
   bke::pbvh::update_bounds(depsgraph, object, pbvh);
 }
 
