@@ -329,8 +329,10 @@ static float color_balance_sop(
   return x;
 }
 
-/* Use a larger lookup table than 256 possible byte values: due to alpha
- * premultiplication, dark values with low alphas might need more precision. */
+/**
+ * Use a larger lookup table than 256 possible byte values: due to alpha
+ * pre-multiplication, dark values with low alphas might need more precision.
+ */
 static constexpr int CB_TABLE_SIZE = 1024;
 
 static void make_cb_table_lgg(

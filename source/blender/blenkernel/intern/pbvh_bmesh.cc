@@ -2451,7 +2451,7 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
   for (const int i : orig_range) {
     bke::pbvh::BMeshNode *n = &nodes[i];
     if (n->flag_ & PBVH_Leaf) {
-      /* Free orco/ortri data. */
+      /* Free `orco` / `ortri` data. */
       pbvh_bmesh_node_drop_orig(n);
 
       /* Recursively split nodes that have gotten too many elements. */

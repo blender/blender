@@ -444,7 +444,7 @@ class MeshUVs {
   bool show_uv_edit = false;
 
   /** Wireframe Overlay */
-  /* Draw final evaluated UVs (modifier stack applied) as greyed out wire-frame. */
+  /* Draw final evaluated UVs (modifier stack applied) as grayed out wire-frame. */
   /* TODO(fclem): Maybe should be its own Overlay?. */
   bool show_wireframe = false;
 
@@ -684,7 +684,7 @@ class MeshUVs {
     }
 
     /* When editing objects that share the same mesh we should only draw the
-     * first object to avoid overlapping UVs. Moreove, only the first evalutated object has the
+     * first object to avoid overlapping UVs. Moreover, only the first evaluated object has the
      * correct batches with the correct selection state.
      * To this end, we skip duplicates and use the evaluated object returned by the depsgraph.
      * See #83187. */

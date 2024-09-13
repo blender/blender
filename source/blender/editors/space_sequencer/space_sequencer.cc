@@ -882,9 +882,9 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     int xoffset = rect->xmin + U.widget_unit;
     int yoffset = rect->ymax;
 
-    /* ED_scene_draw_fps does not set text/shadow colors, except when
-     * framerate is too low, then it sets text color to red. Make sure
-     * the "normal case" also has legible colors. */
+    /* #ED_scene_draw_fps does not set text/shadow colors, except when
+     * frame-rate is too low, then it sets text color to red.
+     * Make sure the "normal case" also has legible colors. */
     const int font_id = BLF_default();
     float text_color[4] = {1, 1, 1, 1}, shadow_color[4] = {0, 0, 0, 0.8f};
     BLF_color4fv(font_id, text_color);

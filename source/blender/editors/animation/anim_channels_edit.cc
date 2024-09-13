@@ -1692,7 +1692,7 @@ static void join_groups_action_temp(bAction *act)
  * TODO: there's a fair amount of apparent repetition in this code and the code
  * in `rearrange_layered_action_fcurves()`. In the time available when writing
  * this, I (Nathan) wasn't able to figure out a satisfactory way to DRY that
- * which didn't make the code signifacantly harder to follow. I suspect there is
+ * which didn't make the code significantly harder to follow. I suspect there is
  * a good way to DRY this, and therefore this is probably worth revisiting when
  * we have more time.
  */
@@ -1802,7 +1802,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
  * TODO: there's a fair amount of apparent repetition in this code and the code
  * in `rearrange_layered_action_channel_groups()`. In the time available when
  * writing this, I (Nathan) wasn't able to figure out a satisfactory way to DRY
- * that which didn't make the code signifacantly harder to follow. I suspect
+ * that which didn't make the code significantly harder to follow. I suspect
  * there is a good way to DRY this, and therefore this is probably worth
  * revisiting when we have more time.
  */
@@ -1821,7 +1821,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
 
   /* Lambda to either fetch an fcurve's group if it has one, or otherwise
    * construct a fake one representing the ungrouped range at the end of the
-   * fcurve array. This lets the code further below be much less special-casey,
+   * fcurve array. This lets the code further below be much less of a special-case,
    * in exchange for a little data copying.
    *
    * NOTE: this returns a *copy* of the group, rather a pointer or reference, to
@@ -2370,7 +2370,7 @@ static void animchannels_group_channels(bAnimContext *ac,
 
   /* Layered action.
    *
-   * The animlist doesn't explictly group the channels by channel bag, so we
+   * The anim-list doesn't explicitly group the channels by channel bag, so we
    * have to get a little clever here. We take advantage of the fact that the
    * fcurves are at least listed in order, and so all fcurves in the same
    * channel bag will be next to each other. So we keep track of the channel bag

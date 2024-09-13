@@ -596,9 +596,10 @@ namespace blender::bke::object {
 pbvh::Tree &pbvh_ensure(Depsgraph &depsgraph, Object &object);
 
 /**
- * Access the acceleration structure for raycasting, nearest queries, and spatially contiguous mesh
- * updates and drawing. The BVH tree is used by sculpt, vertex paint, and weight paint object
- * modes. This just accesses the BVH, to ensure it's built, use #pbvh_ensure.
+ * Access the acceleration structure for ray-casting,
+ * nearest queries, and spatially contiguous mesh updates and drawing.
+ * The BVH tree is used by sculpt, vertex paint, and weight paint object modes.
+ * This just accesses the BVH, to ensure it's built, use #pbvh_ensure.
  */
 pbvh::Tree *pbvh_get(Object &object);
 const pbvh::Tree *pbvh_get(const Object &object);

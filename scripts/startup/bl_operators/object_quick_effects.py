@@ -486,7 +486,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # setup smoke domain
         bpy.ops.object.modifier_add(type='FLUID')
         obj.modifiers[-1].fluid_type = 'DOMAIN'
-        # The default value leads to instable simulations (see #126924).
+        # The default value leads to unstable simulations (see #126924).
         obj.modifiers[-1].domain_settings.cfl_condition = 4.0
         if self.style == {'FIRE', 'BOTH'}:
             obj.modifiers[-1].domain_settings.use_noise = True

@@ -328,7 +328,7 @@ struct Resources : public select::SelectMap {
   /* Output Color. */
   Framebuffer overlay_output_fb = {"overlay_output_fb"};
 
-  /* Render Framebuffers. Only used for multiplicative blending on top of the render. */
+  /* Render Frame-buffers. Only used for multiplicative blending on top of the render. */
   /* TODO(fclem): Remove the usage of these somehow. This is against design. */
   GPUFrameBuffer *render_fb = nullptr;
   GPUFrameBuffer *render_in_front_fb = nullptr;

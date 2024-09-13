@@ -122,7 +122,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void action_groups_remove_channel(bAction *act, FCurve *fcu);
 
 /**
- * Recongroup channel pointers.
+ * Reconstruct channel pointers.
  * Assumes that the groups referred to by the FCurves are already in act->groups.
  * Reorders the main channel list to match group order.
  */
