@@ -560,6 +560,13 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
   }
 }
 
+void Tree::tag_face_sets_changed(const IndexMask &node_mask)
+{
+  if (this->draw_data) {
+    this->draw_data->tag_face_sets_changed(node_mask);
+  }
+}
+
 static bool tree_is_empty(const Tree &pbvh)
 {
   return std::visit([](const auto &nodes) { return nodes.is_empty(); }, pbvh.nodes_);
@@ -1538,11 +1545,6 @@ void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node)
 void BKE_pbvh_node_mark_update_color(blender::bke::pbvh::Node &node)
 {
   node.flag_ |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
-}
-
-void BKE_pbvh_node_mark_update_face_sets(blender::bke::pbvh::Node &node)
-{
-  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)

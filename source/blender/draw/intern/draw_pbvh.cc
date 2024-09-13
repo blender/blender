@@ -140,6 +140,7 @@ class DrawCacheImpl : public DrawCache {
 
   void tag_all_attributes_dirty(const IndexMask &node_mask) override;
   void tag_positions_changed(const IndexMask &node_mask) override;
+  void tag_face_sets_changed(const IndexMask &node_mask) override;
 
   Span<gpu::Batch *> ensure_tris_batches(const Object &object,
                                          const ViewportRequest &request,
@@ -199,6 +200,13 @@ void DrawCacheImpl::tag_positions_changed(const IndexMask &node_mask)
     data->tag_dirty(node_mask);
   }
   if (DrawCacheImpl::AttributeData *data = attribute_vbos_.lookup_ptr(CustomRequest::Normal)) {
+    data->tag_dirty(node_mask);
+  }
+}
+
+void DrawCacheImpl::tag_face_sets_changed(const IndexMask &node_mask)
+{
+  if (DrawCacheImpl::AttributeData *data = attribute_vbos_.lookup_ptr(CustomRequest::FaceSet)) {
     data->tag_dirty(node_mask);
   }
 }

@@ -1422,22 +1422,7 @@ static void restore_face_set_data(Object &object, Cache &expand_cache)
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  switch (pbvh.type()) {
-    case bke::pbvh::Type::Mesh: {
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
-      break;
-    }
-    case bke::pbvh::Type::Grids: {
-      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
-      break;
-    }
-    case bke::pbvh::Type::BMesh: {
-      BLI_assert_unreachable();
-      break;
-    }
-  }
+  pbvh.tag_face_sets_changed(node_mask);
 }
 
 static void restore_color_data(Object &ob, Cache &expand_cache)
@@ -1708,9 +1693,7 @@ static void face_sets_update(Object &object, Cache &expand_cache)
   face_sets.finish();
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  expand_cache.node_mask.foreach_index(
-      [&](const int i) { BKE_pbvh_node_mark_update_face_sets(nodes[i]); });
+  pbvh.tag_face_sets_changed(expand_cache.node_mask);
 }
 
 /**

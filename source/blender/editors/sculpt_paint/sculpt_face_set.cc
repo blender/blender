@@ -294,6 +294,8 @@ static void face_sets_update(const Depsgraph &depsgraph,
     Vector<int> new_face_sets;
   };
 
+  Array<bool> node_changed(pbvh.nodes_num(), false);
+
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -312,7 +314,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
 
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
         array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
-        BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+        node_changed[i] = true;
       });
     });
   }
@@ -334,11 +336,13 @@ static void face_sets_update(const Depsgraph &depsgraph,
 
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
         array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
-        BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+        node_changed[i] = true;
       });
     });
   }
 
+  IndexMaskMemory memory;
+  pbvh.tag_face_sets_changed(IndexMask::from_bools(node_changed, memory));
   face_sets.finish();
 }
 
@@ -358,6 +362,9 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
   }
   SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+
+  Array<bool> node_changed(pbvh.nodes_num(), false);
+
   const int default_face_set = mesh.face_sets_color_default;
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
@@ -369,7 +376,7 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
           }))
       {
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
-        BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+        node_changed[i] = true;
       }
     });
   }
@@ -386,11 +393,13 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
             }))
         {
           undo::push_node(depsgraph, object, &nodes[i], undo::Type::FaceSet);
-          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+          node_changed[i] = true;
         }
       });
     });
   }
+  IndexMaskMemory memory;
+  pbvh.tag_face_sets_changed(IndexMask::from_bools(node_changed, memory));
   attributes.remove(".sculpt_face_set");
 }
 
@@ -774,14 +783,7 @@ static int init_op_exec(bContext *C, wmOperator *op)
 
   undo::push_end(ob);
 
-  if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
-  }
-  else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
-  }
+  pbvh.tag_face_sets_changed(node_mask);
 
   SCULPT_tag_update_overlays(C);
 
@@ -1136,14 +1138,7 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  if (pbvh.type() == bke::pbvh::Type::Mesh) {
-    MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
-  }
-  else if (pbvh.type() == bke::pbvh::Type::Grids) {
-    MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
-  }
+  pbvh.tag_face_sets_changed(node_mask);
 
   SCULPT_tag_update_overlays(C);
 
@@ -1638,6 +1633,8 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
     Vector<int> face_indices;
   };
 
+  Array<bool> node_changed(pbvh.nodes_num(), false);
+
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1658,7 +1655,7 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
         any_updated = true;
       }
       if (any_updated) {
-        BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+        node_changed[i] = true;
       }
     });
   }
@@ -1686,12 +1683,14 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
           any_updated = true;
         }
         if (any_updated) {
-          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+          node_changed[i] = true;
         }
       });
     });
   }
 
+  IndexMaskMemory memory;
+  pbvh.tag_face_sets_changed(IndexMask::from_bools(node_changed, memory));
   face_sets.finish();
 }
 

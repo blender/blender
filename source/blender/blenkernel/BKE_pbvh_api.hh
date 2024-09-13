@@ -177,6 +177,7 @@ class DrawCache {
  public:
   virtual ~DrawCache() = default;
   virtual void tag_positions_changed(const IndexMask &node_mask) = 0;
+  virtual void tag_face_sets_changed(const IndexMask &node_mask) = 0;
 };
 
 /**
@@ -233,6 +234,9 @@ class Tree {
    * \warning Must not be called from multiple threads in parallel.
    */
   void tag_positions_changed(const IndexMask &node_mask);
+
+  /** Tag nodes where face sets have changed, causing refresh of derived data. */
+  void tag_face_sets_changed(const IndexMask &node_mask);
 };
 
 }  // namespace blender::bke::pbvh
@@ -397,7 +401,6 @@ bool bmesh_update_topology(BMesh &bm,
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_color(blender::bke::pbvh::Node &node);
-void BKE_pbvh_node_mark_update_face_sets(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node);

@@ -1313,6 +1313,8 @@ static void restore_face_set_from_undo_step(Object &object)
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1323,7 +1325,7 @@ static void restore_face_set_from_undo_step(Object &object)
                                                                                       nodes[i]))
         {
           scatter_data_mesh(*orig_data, nodes[i].faces(), attribute.span);
-          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+          node_changed[i] = true;
         }
       });
       attribute.finish();
@@ -1343,7 +1345,7 @@ static void restore_face_set_from_undo_step(Object &object)
           const Span<int> faces = bke::pbvh::node_face_indices_calc_grids(
               subdiv_ccg, nodes[i], tls);
           scatter_data_mesh(*orig_data, faces, attribute.span);
-          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+          node_changed[i] = true;
         }
       });
       attribute.finish();
@@ -1352,6 +1354,8 @@ static void restore_face_set_from_undo_step(Object &object)
     case bke::pbvh::Type::BMesh:
       break;
   }
+
+  pbvh.tag_face_sets_changed(IndexMask::from_bools(node_changed, memory));
 }
 
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
