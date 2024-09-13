@@ -985,7 +985,7 @@ static bool outliner_element_visible_get(const Scene *scene,
 
 static bool outliner_filter_has_name(TreeElement *te, const char *name, int flags)
 {
-  int fn_flag = 0;
+  int fn_flag = FNM_NOESCAPE;
 
   if ((flags & SO_FIND_CASE_SENSITIVE) == 0) {
     fn_flag |= FNM_CASEFOLD;

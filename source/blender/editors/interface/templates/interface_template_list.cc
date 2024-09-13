@@ -184,7 +184,7 @@ eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /*itemptr*/,
   }
 
   /* Case-insensitive! */
-  if (fnmatch(filter_, name.c_str(), FNM_CASEFOLD) == 0) {
+  if (fnmatch(filter_, name.c_str(), FNM_CASEFOLD | FNM_NOESCAPE) == 0) {
     return UI_LIST_ITEM_FILTER_MATCHES;
   }
   return UI_LIST_ITEM_FILTER_MISMATCHES;
