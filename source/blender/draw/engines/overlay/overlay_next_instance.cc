@@ -156,6 +156,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool in_edit_mode = object_is_edit_mode(ob_ref.object);
   const bool in_paint_mode = object_is_paint_mode(ob_ref.object);
   const bool in_sculpt_mode = object_is_sculpt_mode(ob_ref);
+  const bool in_particle_edit_mode = object_is_particle_edit_mode(ob_ref);
   const bool in_edit_paint_mode = object_is_edit_paint_mode(
       ob_ref, in_edit_mode, in_paint_mode, in_sculpt_mode);
   const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode);
@@ -164,6 +165,10 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
+  }
+
+  if (in_particle_edit_mode) {
+    layer.particles.edit_object_sync(manager, ob_ref, resources, state);
   }
 
   if (in_paint_mode) {
@@ -437,6 +442,7 @@ void Instance::draw(Manager &manager)
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
     layer.paints.draw(framebuffer, manager, view);
+    layer.particles.draw_no_line(framebuffer, manager, view);
   };
 
   auto draw_layer = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
@@ -535,6 +541,11 @@ bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
   }
 
   return false;
+}
+
+bool Instance::object_is_particle_edit_mode(const ObjectRef &ob_ref)
+{
+  return (ob_ref.object->mode == OB_MODE_PARTICLE_EDIT) && (state.ctx_mode == CTX_MODE_PARTICLE);
 }
 
 bool Instance::object_is_sculpt_mode(const Object *object)

@@ -119,6 +119,7 @@ class Instance {
   bool object_is_selected(const ObjectRef &ob_ref);
   bool object_is_edit_mode(const Object *object);
   bool object_is_paint_mode(const Object *object);
+  bool object_is_particle_edit_mode(const ObjectRef &ob_ref);
   /* Checks for both curve sculpt and regular sculpt mode. */
   bool object_is_sculpt_mode(const ObjectRef &ob_ref);
   /* Checks only for sculpt mode. */

@@ -255,6 +255,13 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         info.additional_info("draw_gpencil_new", "draw_object_infos_new");
       });
 
+  particle_edit_vert = shader(
+      "overlay_edit_particle_point",
+      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+  particle_edit_edge = shader(
+      "overlay_edit_particle_strand",
+      [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
+
   paint_region_edge = shader("overlay_paint_wire", [](gpu::shader::ShaderCreateInfo &info) {
     shader_patch_common(info);
   });

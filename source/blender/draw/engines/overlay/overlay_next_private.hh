@@ -231,6 +231,8 @@ class ShaderModule {
   ShaderPtr outline_prepass_pointcloud;
   ShaderPtr outline_prepass_gpencil;
   ShaderPtr outline_detect = shader("overlay_outline_detect");
+  ShaderPtr particle_edit_vert;
+  ShaderPtr particle_edit_edge;
   ShaderPtr paint_region_edge;
   ShaderPtr paint_region_face;
   ShaderPtr paint_region_vert;
