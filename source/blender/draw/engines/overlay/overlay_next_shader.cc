@@ -142,6 +142,17 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
       "overlay_edit_curves_handle",
       [](gpu::shader::ShaderCreateInfo &info) { shader_patch_common(info); });
 
+  extra_point = shader("overlay_extra_point", [](gpu::shader::ShaderCreateInfo &info) {
+    info.additional_infos_.clear();
+    info.vertex_inputs_.pop_last();
+    info.push_constants_.pop_last();
+    info.additional_info("draw_view", "draw_modelmat_new", "draw_globals")
+        .typedef_source("overlay_shader_shared.h")
+        .storage_buf(0, Qualifier::READ, "VertexData", "data_buf[]")
+        .define("pos", "data_buf[gl_VertexID].pos_.xyz")
+        .define("ucolor", "data_buf[gl_VertexID].color_");
+  });
+
   grid_background = shader("overlay_grid_background", [](gpu::shader::ShaderCreateInfo &info) {
     shader_patch_common(info);
     info.define("tile_pos", "vec3(0.0)");
