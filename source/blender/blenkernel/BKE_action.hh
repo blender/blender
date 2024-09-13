@@ -338,6 +338,7 @@ void what_does_obaction(Object *ob,
                         Object *workob,
                         bPose *pose,
                         bAction *act,
+                        int32_t action_slot_handle,
                         char groupname[],
                         const AnimationEvalContext *anim_eval_context) ATTR_NONNULL(1, 2);
 

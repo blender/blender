@@ -2057,10 +2057,25 @@ void what_does_obaction(Object *ob,
                         Object *workob,
                         bPose *pose,
                         bAction *act,
+                        const int32_t action_slot_handle,
                         char groupname[],
                         const AnimationEvalContext *anim_eval_context)
 {
-  bActionGroup *agrp = BKE_action_group_find_name(act, groupname);
+  using namespace blender::animrig;
+  BLI_assert(act);
+
+  bActionGroup *agrp = nullptr;
+  if (groupname[0]) {
+    /* Find the named channel group. */
+    Action &action = act->wrap();
+    if (action.is_action_layered()) {
+      ChannelBag *cbag = channelbag_for_action_slot(action, action_slot_handle);
+      agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
+    }
+    else {
+      agrp = BKE_action_group_find_name(act, groupname);
+    }
+  }
 
   /* clear workob */
   blender::bke::ObjectRuntime workob_runtime;
@@ -2124,6 +2139,7 @@ void what_does_obaction(Object *ob,
     workob->adt = &adt;
 
     adt.action = act;
+    adt.slot_handle = action_slot_handle;
     BKE_animdata_action_ensure_idroot(&workob->id, act);
 
     /* execute effects of Action on to workob (or its PoseChannels) */

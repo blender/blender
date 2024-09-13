@@ -883,6 +883,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
 
 void animsys_evaluate_action(PointerRNA *ptr,
                              bAction *act,
+                             const int32_t action_slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              const bool flush_to_original)
 {
@@ -906,14 +907,13 @@ void animsys_evaluate_action(PointerRNA *ptr,
   /* Note that this is _only_ for evaluation of actions linked by NLA strips. As in, legacy code
    * paths that I (Sybren) tried to keep as much intact as possible when adding support for slotted
    * Actions. This code will go away when we implement layered Actions. */
-  /* TODO: add a parameter for the slot handle instead of hard-coding the first one. */
-  const animrig::slot_handle_t action_slot_handle = animrig::first_slot_handle(action);
   Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, action_slot_handle);
   animsys_evaluate_fcurves(ptr, fcurves, anim_eval_context, flush_to_original);
 }
 
 void animsys_blend_in_action(PointerRNA *ptr,
                              bAction *act,
+                             const int32_t action_slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              const float blend_factor)
 {
@@ -927,8 +927,6 @@ void animsys_blend_in_action(PointerRNA *ptr,
     return;
   }
 
-  /* TODO: add a parameter for the slot handle instead of hard-coding the first one. */
-  const animrig::slot_handle_t action_slot_handle = animrig::first_slot_handle(action);
   Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, action_slot_handle);
   animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
 }
@@ -2651,6 +2649,7 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
                                     NlaEvalData *channels,
                                     ListBase *modifiers,
                                     bAction *action,
+                                    const animrig::slot_handle_t slot_handle,
                                     const float evaltime,
                                     NlaEvalSnapshot *r_snapshot)
 {
@@ -2665,7 +2664,29 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
   const float modified_evaltime = evaluate_time_fmodifiers(
       &storage, modifiers, nullptr, 0.0f, evaltime);
 
+#ifdef WITH_ANIM_BAKLAVA
+  /* NOTE: This whole block of ugly code will disappear when the slotted Actions feature goes out
+   * of Experimental.
+   *
+   * This code only exists because at the moment Blender needs to be able to handle a mixture of
+   * legacy & slotted Actions. Legacy Actions will get automatically versioned at some point,
+   * and then this all goes away and collapses into just the fcurves_for_action_slot() call. */
+  Span<FCurve *> fcurves;
+  Vector<FCurve *> legacy_fcurves;
+
+  animrig::Action &action_wrapper = action->wrap();
+  if (action_wrapper.is_action_legacy()) {
+    legacy_fcurves = animrig::fcurves_all(action_wrapper);
+    fcurves = legacy_fcurves;
+  }
+  else {
+    fcurves = animrig::fcurves_for_action_slot(action_wrapper, slot_handle);
+  }
+
+  for (const FCurve *fcu : fcurves) {
+#else
   LISTBASE_FOREACH (const FCurve *, fcu, &action->curves) {
+#endif
     if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
@@ -2728,8 +2749,13 @@ static void nlastrip_evaluate_actionclip(const int evaluation_mode,
       NlaEvalSnapshot strip_snapshot;
       nlaeval_snapshot_init(&strip_snapshot, channels, nullptr);
 
-      nlasnapshot_from_action(
-          ptr, channels, &tmp_modifiers, strip->act, strip->strip_time, &strip_snapshot);
+      nlasnapshot_from_action(ptr,
+                              channels,
+                              &tmp_modifiers,
+                              strip->act,
+                              strip->action_slot_handle,
+                              strip->strip_time,
+                              &strip_snapshot);
       nlasnapshot_blend(
           channels, snapshot, &strip_snapshot, strip->blendmode, strip->influence, snapshot);
 
@@ -2742,8 +2768,13 @@ static void nlastrip_evaluate_actionclip(const int evaluation_mode,
       NlaEvalSnapshot strip_snapshot;
       nlaeval_snapshot_init(&strip_snapshot, channels, nullptr);
 
-      nlasnapshot_from_action(
-          ptr, channels, &tmp_modifiers, strip->act, strip->strip_time, &strip_snapshot);
+      nlasnapshot_from_action(ptr,
+                              channels,
+                              &tmp_modifiers,
+                              strip->act,
+                              strip->action_slot_handle,
+                              strip->strip_time,
+                              &strip_snapshot);
       nlasnapshot_blend_get_inverted_lower_snapshot(
           channels, snapshot, &strip_snapshot, strip->blendmode, strip->influence, snapshot);
 
@@ -2752,8 +2783,13 @@ static void nlastrip_evaluate_actionclip(const int evaluation_mode,
       break;
     }
     case STRIP_EVAL_NOBLEND: {
-      nlasnapshot_from_action(
-          ptr, channels, &tmp_modifiers, strip->act, strip->strip_time, snapshot);
+      nlasnapshot_from_action(ptr,
+                              channels,
+                              &tmp_modifiers,
+                              strip->act,
+                              strip->action_slot_handle,
+                              strip->strip_time,
+                              snapshot);
       break;
     }
   }
@@ -3131,13 +3167,36 @@ void nladata_flush_channels(PointerRNA *ptr,
 static void nla_eval_domain_action(PointerRNA *ptr,
                                    NlaEvalData *channels,
                                    bAction *act,
+                                   const animrig::slot_handle_t slot_handle,
                                    GSet *touched_actions)
 {
   if (!BLI_gset_add(touched_actions, act)) {
     return;
   }
 
+#ifdef WITH_ANIM_BAKLAVA
+  /* NOTE: This whole block of ugly code will disappear when the slotted Actions feature goes out
+   * of Experimental.
+   *
+   * This code only exists because at the moment Blender needs to be able to handle a mixture of
+   * legacy & slotted Actions. Legacy Actions will get automatically versioned at some point,
+   * and then this all goes away and collapses into just the fcurves_for_action_slot() call. */
+  Span<FCurve *> fcurves;
+  Vector<FCurve *> legacy_fcurves;
+
+  animrig::Action &action = act->wrap();
+  if (action.is_action_legacy()) {
+    legacy_fcurves = animrig::fcurves_all(action);
+    fcurves = legacy_fcurves;
+  }
+  else {
+    fcurves = animrig::fcurves_for_action_slot(action, slot_handle);
+  }
+
+  for (const FCurve *fcu : fcurves) {
+#else
   LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
+#endif
     /* check if this curve should be skipped */
     if (!is_fcurve_evaluatable(fcu)) {
       continue;
@@ -3169,7 +3228,8 @@ static void nla_eval_domain_strips(PointerRNA *ptr,
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* Check strip's action. */
     if (strip->act) {
-      nla_eval_domain_action(ptr, channels, strip->act, touched_actions);
+      nla_eval_domain_action(
+          ptr, channels, strip->act, strip->action_slot_handle, touched_actions);
     }
 
     /* Check sub-strips (if meta-strips). */
@@ -3188,11 +3248,11 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
   /* Include domain of Action Track. */
   if ((adt->flag & ADT_NLA_EDIT_ON) == 0) {
     if (adt->action) {
-      nla_eval_domain_action(ptr, channels, adt->action, touched_actions);
+      nla_eval_domain_action(ptr, channels, adt->action, adt->slot_handle, touched_actions);
     }
   }
   else if (adt->tmpact && (adt->flag & ADT_NLA_EVAL_UPPER_TRACKS)) {
-    nla_eval_domain_action(ptr, channels, adt->tmpact, touched_actions);
+    nla_eval_domain_action(ptr, channels, adt->tmpact, adt->tmp_slot_handle, touched_actions);
   }
 
   /* NLA Data - Animation Data for Strips */
@@ -3263,17 +3323,22 @@ static void animsys_create_action_track_strip(const AnimData *adt,
                                               const bool keyframing_to_strip,
                                               NlaStrip *r_action_strip)
 {
+  using namespace blender::animrig;
+
   memset(r_action_strip, 0, sizeof(NlaStrip));
 
-  bAction *action = adt->action;
+  { /* Set settings of dummy NLA strip from AnimData settings. */
+    bAction *action = adt->action;
+    slot_handle_t slot_handle = adt->slot_handle;
 
-  if (adt->flag & ADT_NLA_EDIT_ON) {
-    action = adt->tmpact;
+    if (adt->flag & ADT_NLA_EDIT_ON) {
+      action = adt->tmpact;
+      slot_handle = adt->tmp_slot_handle;
+    }
+
+    r_action_strip->act = action;
+    r_action_strip->action_slot_handle = slot_handle;
   }
-
-  /* Set settings of dummy NLA strip from AnimData settings. */
-  r_action_strip->act = action;
-
   /* Action range is calculated taking F-Modifiers into account
    * (which making new strips doesn't do due to the troublesome nature of that). */
   BKE_action_frame_range_calc(
@@ -3613,7 +3678,8 @@ static void animsys_calculate_nla(PointerRNA *ptr,
       CLOG_WARN(&LOG, "NLA Eval: Stopgap for active action on NLA Stack - no strips case");
     }
 
-    animsys_evaluate_action(ptr, adt->action, anim_eval_context, flush_to_original);
+    animsys_evaluate_action(
+        ptr, adt->action, adt->slot_handle, anim_eval_context, flush_to_original);
   }
 
   /* free temp data */
@@ -3990,7 +4056,8 @@ void BKE_animsys_evaluate_animdata(ID *id,
             id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
       }
       else {
-        animsys_evaluate_action(&id_ptr, adt->action, anim_eval_context, flush_to_original);
+        animsys_evaluate_action(
+            &id_ptr, adt->action, animrig::Slot::unassigned, anim_eval_context, flush_to_original);
       }
     }
   }

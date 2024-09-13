@@ -22,6 +22,8 @@
 
 #include "rna_internal.hh" /* own include */
 
+using namespace blender;
+
 #ifdef RNA_RUNTIME
 
 #  include "BKE_animsys.h"
@@ -34,6 +36,7 @@
 
 #  include "BLI_ghash.h"
 
+#  include "ANIM_action.hh"
 #  include "ANIM_pose.hh"
 
 static float rna_PoseBone_do_envelope(bPoseChannel *chan, const float vec[3])
@@ -126,8 +129,11 @@ static void rna_Pose_apply_pose_from_action(ID *pose_owner,
   BLI_assert(GS(pose_owner->name) == ID_OB);
   Object *pose_owner_ob = (Object *)pose_owner;
 
+  const animrig::slot_handle_t slot_handle = animrig::first_slot_handle(*action);
+
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  blender::animrig::pose_apply_action_selected_bones(pose_owner_ob, action, &anim_eval_context);
+  animrig::pose_apply_action_selected_bones(
+      pose_owner_ob, action, slot_handle, &anim_eval_context);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
@@ -143,9 +149,11 @@ static void rna_Pose_blend_pose_from_action(ID *pose_owner,
   BLI_assert(GS(pose_owner->name) == ID_OB);
   Object *pose_owner_ob = (Object *)pose_owner;
 
+  animrig::slot_handle_t slot_handle = animrig::first_slot_handle(*action);
+
   AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
-  blender::animrig::pose_apply_action_blend(
-      pose_owner_ob, action, &anim_eval_context, blend_factor);
+  animrig::pose_apply_action_blend(
+      pose_owner_ob, action, slot_handle, &anim_eval_context, blend_factor);
 
   /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
   DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);

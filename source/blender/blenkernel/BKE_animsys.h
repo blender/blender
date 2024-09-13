@@ -330,15 +330,21 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
  *      Particles/Sequencer performing funky time manipulation is not ok.
  */
 
-/* Evaluate Action (F-Curve Bag) */
+/**
+ * Evaluate Action (F-Curve Bag).
+ *
+ * Note that this is only used for either legacy Actions or for evaluation of the NLA.
+ */
 void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,
+                             int32_t action_slot_handle,
                              const struct AnimationEvalContext *anim_eval_context,
                              bool flush_to_original);
 
 /* Evaluate action, and blend the result into the current values (instead of overwriting fully). */
 void animsys_blend_in_action(struct PointerRNA *ptr,
                              struct bAction *act,
+                             int32_t action_slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              float blend_factor);
 
