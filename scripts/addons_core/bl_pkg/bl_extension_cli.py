@@ -131,7 +131,8 @@ class subcmd_utils:
             # Show any exceptions created while accessing the JSON,
             repo = repos_all[repo_index]
             if pkg_manifest is None:
-                errors.append("Repository \"{:s}\" has no data, sync may be needed!".format(repo.module))
+                if use_local and not repo.remote_url:
+                    errors.append("Repository \"{:s}\" has no data, sync may be needed!".format(repo.module))
                 repo_packages = set()
             else:
                 repo_packages = set(pkg_manifest.keys())
