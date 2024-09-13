@@ -985,6 +985,11 @@ static bool outliner_element_visible_get(const Scene *scene,
 
 static bool outliner_filter_has_name(TreeElement *te, const char *name, int flags)
 {
+  /* Use `fnmatch` for shell-style globing.
+   * - Case-insensitive (optionally).
+   * - Don't handle escape characters as "special" characters are not expected in names.
+   *   Unlike shell input - `\` should be treated like any other character.
+   */
   int fn_flag = FNM_NOESCAPE;
 
   if ((flags & SO_FIND_CASE_SENSITIVE) == 0) {

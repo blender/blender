@@ -183,8 +183,13 @@ eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /*itemptr*/,
     return UI_LIST_ITEM_FILTER_MATCHES;
   }
 
-  /* Case-insensitive! */
-  if (fnmatch(filter_, name.c_str(), FNM_CASEFOLD | FNM_NOESCAPE) == 0) {
+  /* Use `fnmatch` for shell-style globing.
+   * - Case-insensitive.
+   * - Don't handle escape characters as "special" characters are not expected in names.
+   *   Unlike shell input - `\` should be treated like any other character.
+   */
+  const int fn_flag = FNM_CASEFOLD | FNM_NOESCAPE;
+  if (fnmatch(filter_, name.c_str(), fn_flag) == 0) {
     return UI_LIST_ITEM_FILTER_MATCHES;
   }
   return UI_LIST_ITEM_FILTER_MISMATCHES;
