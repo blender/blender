@@ -312,7 +312,11 @@ class DOPESHEET_HT_editor_buttons:
         if not animated_id:
             return
 
-        layout.template_action(animated_id, new="action.new", unlink="action.unlink")
+        row = layout.row()
+        if animated_id.animation_data and animated_id.animation_data.use_tweak_mode:
+            row.enabled = False
+
+        row.template_action(animated_id, new="action.new", unlink="action.unlink")
 
         if not context.preferences.experimental.use_animation_baklava:
             return
@@ -323,8 +327,8 @@ class DOPESHEET_HT_editor_buttons:
 
         # Store the animated ID in the context, so that the new/unlink operators
         # have access to it.
-        layout.context_pointer_set("animated_id", animated_id)
-        layout.template_search(
+        row.context_pointer_set("animated_id", animated_id)
+        row.template_search(
             adt, "action_slot",
             adt, "action_slots",
             new="anim.slot_new_for_id",
