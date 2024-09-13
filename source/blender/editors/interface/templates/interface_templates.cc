@@ -7452,37 +7452,37 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/, uiTooltipData &
   }
 
   /* Blender version. */
-  char version_st[128] = {0};
+  char version_str[128] = {0};
   /* Load the thumbnail from cache if existing, but don't create if not. */
   ImBuf *thumb = IMB_thumb_read(path, THB_LARGE);
   if (thumb) {
     /* Look for version in existing thumbnail if available. */
     IMB_metadata_get_field(
-        thumb->metadata, "Thumb::Blender::Version", version_st, sizeof(version_st));
+        thumb->metadata, "Thumb::Blender::Version", version_str, sizeof(version_str));
   }
 
   eFileAttributes attributes = BLI_file_attributes(path);
-  if (!version_st[0] && !(attributes & FILE_ATTR_OFFLINE)) {
+  if (!version_str[0] && !(attributes & FILE_ATTR_OFFLINE)) {
     /* Load Blender version directly from the file. */
     short version = BLO_version_from_file(path);
     if (version != 0) {
-      SNPRINTF(version_st, "%d.%01d", version / 100, version % 100);
+      SNPRINTF(version_str, "%d.%01d", version / 100, version % 100);
     }
   }
 
-  if (version_st[0]) {
+  if (version_str[0]) {
     UI_tooltip_text_field_add(
-        tip, fmt::format("Blender {}", version_st), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        tip, fmt::format("Blender {}", version_str), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
     UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
   }
 
   BLI_stat_t status;
   if (BLI_stat(path, &status) != -1) {
-    char date_st[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
+    char date_str[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
     bool is_today, is_yesterday;
     std::string day_string;
     BLI_filelist_entry_datetime_to_string(
-        nullptr, int64_t(status.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
+        nullptr, int64_t(status.st_mtime), false, time_st, date_str, &is_today, &is_yesterday);
     if (is_today || is_yesterday) {
       day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
     }
@@ -7490,7 +7490,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/, uiTooltipData &
                               fmt::format("{}: {}{}{}",
                                           N_("Modified"),
                                           day_string,
-                                          (is_today || is_yesterday) ? "" : date_st,
+                                          (is_today || is_yesterday) ? "" : date_str,
                                           (is_today || is_yesterday) ? time_st : ""),
                               {},
                               UI_TIP_STYLE_NORMAL,

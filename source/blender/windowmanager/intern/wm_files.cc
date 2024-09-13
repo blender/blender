@@ -1781,10 +1781,10 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     IMB_scale(ibuf, ex * 2, ey * 2, IMBScaleFilter::Box, false);
 
     /* Save metadata for quick access. */
-    char version_st[10] = {0};
-    SNPRINTF(version_st, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
+    char version_str[10] = {0};
+    SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_ensure(&ibuf->metadata);
-    IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_st);
+    IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_str);
 
     /* Thumbnail inside blend should be 128x128. */
     ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
@@ -1897,10 +1897,10 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     thumb_ibuf = IMB_dupImBuf(ibuf);
 
     /* Save metadata for quick access. */
-    char version_st[10] = {0};
-    SNPRINTF(version_st, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
+    char version_str[10] = {0};
+    SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_ensure(&ibuf->metadata);
-    IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_st);
+    IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_str);
 
     /* BLEN_THUMB_SIZE is size of thumbnail inside blend file: 128x128. */
     IMB_scale(thumb_ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE, IMBScaleFilter::Box, false);
@@ -3103,13 +3103,13 @@ static std::string wm_open_mainfile_get_description(bContext * /*C*/,
   }
 
   /* Date. */
-  char date_st[FILELIST_DIRENTRY_DATE_LEN];
-  char time_st[FILELIST_DIRENTRY_TIME_LEN];
+  char date_str[FILELIST_DIRENTRY_DATE_LEN];
+  char time_str[FILELIST_DIRENTRY_TIME_LEN];
   bool is_today, is_yesterday;
   BLI_filelist_entry_datetime_to_string(
-      nullptr, int64_t(stats.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
+      nullptr, int64_t(stats.st_mtime), false, time_str, date_str, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
-    STRNCPY(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"));
+    STRNCPY(date_str, is_today ? TIP_("Today") : TIP_("Yesterday"));
   }
 
   /* Size. */
@@ -3119,8 +3119,8 @@ static std::string wm_open_mainfile_get_description(bContext * /*C*/,
   return fmt::format("{}\n\n{}: {} {}\n{}: {}",
                      filepath,
                      TIP_("Modified"),
-                     date_st,
-                     time_st,
+                     date_str,
+                     time_str,
                      TIP_("Size"),
                      size_str);
 }
