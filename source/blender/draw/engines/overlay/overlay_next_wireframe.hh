@@ -27,16 +27,21 @@ class Wireframe {
     PassMain::Sub *mesh_all_edges_ps_ = nullptr;
   } colored, non_colored;
 
+  /* Force display of wireframe on surface objects, regardless of the object display settings. */
+  bool show_wire_ = false;
+
   bool enabled_ = false;
 
  public:
   void begin_sync(Resources &res, const State &state)
   {
-    enabled_ = state.is_wireframe_mode || (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
-    enabled_ &= state.space_type == SPACE_VIEW3D;
+    enabled_ = (state.space_type == SPACE_VIEW3D) &&
+               (state.is_wireframe_mode || !state.hide_overlays);
     if (!enabled_) {
       return;
     }
+
+    show_wire_ = (state.overlay.flag & V3D_OVERLAY_WIREFRAMES);
 
     const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
     const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;
@@ -93,41 +98,55 @@ class Wireframe {
       return;
     }
 
+    if (ob_ref.object->dt < OB_WIRE) {
+      return;
+    }
+
     const bool all_edges = (ob_ref.object->dtx & OB_DRAW_ALL_EDGES) != 0;
+    const bool show_surface_wire = show_wire_ || (ob_ref.object->dtx & OB_DRAWWIRE);
 
     /* TODO(fclem): Non-mandatory handle creation and reuse with other overlays. */
     ResourceHandle res_handle = manager.resource_handle(ob_ref);
 
     ColoringPass &coloring = in_edit_paint_mode ? non_colored : colored;
-    gpu::Batch *geom;
     switch (ob_ref.object->type) {
-      case OB_CURVES_LEGACY:
-        geom = DRW_cache_curve_edge_wire_get(ob_ref.object);
+      case OB_CURVES_LEGACY: {
+        gpu::Batch *geom = DRW_cache_curve_edge_wire_get(ob_ref.object);
         coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
         break;
-      case OB_FONT:
-        geom = DRW_cache_text_edge_wire_get(ob_ref.object);
+      }
+      case OB_FONT: {
+        gpu::Batch *geom = DRW_cache_text_edge_wire_get(ob_ref.object);
         coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
         break;
-      case OB_SURF:
-        geom = DRW_cache_surf_edge_wire_get(ob_ref.object);
+      }
+      case OB_SURF: {
+        gpu::Batch *geom = DRW_cache_surf_edge_wire_get(ob_ref.object);
         coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
         break;
+      }
       case OB_CURVES:
         /* TODO(fclem): Not yet implemented. */
         break;
-      case OB_GREASE_PENCIL:
-        geom = DRW_cache_grease_pencil_face_wireframe_get(state.scene, ob_ref.object);
-        coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
+      case OB_GREASE_PENCIL: {
+        if (show_surface_wire) {
+          gpu::Batch *geom = DRW_cache_grease_pencil_face_wireframe_get(state.scene,
+                                                                        ob_ref.object);
+          coloring.curves_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
+        }
         break;
+      }
       case OB_MESH:
-        geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
-        (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
-            ->draw(geom, res_handle, res.select_id(ob_ref).get());
+        if (show_surface_wire) {
+          gpu::Batch *geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
+          (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
+              ->draw(geom, res_handle, res.select_id(ob_ref).get());
+        }
 
         /* Draw loose geometry. */
         if (!in_edit_paint_mode || Meshes::mesh_has_edit_cage(ob_ref.object)) {
           const Mesh *mesh = static_cast<const Mesh *>(ob_ref.object->data);
+          gpu::Batch *geom;
           if ((mesh->edges_num == 0) && (mesh->verts_num > 0)) {
             geom = DRW_cache_mesh_all_verts_get(ob_ref.object);
             coloring.pointcloud_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
@@ -137,12 +156,15 @@ class Wireframe {
           }
         }
         break;
-      case OB_POINTCLOUD:
-        geom = DRW_pointcloud_batch_cache_get_dots(ob_ref.object);
-        coloring.pointcloud_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
+      case OB_POINTCLOUD: {
+        if (show_surface_wire) {
+          gpu::Batch *geom = DRW_pointcloud_batch_cache_get_dots(ob_ref.object);
+          coloring.pointcloud_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
+        }
         break;
-      case OB_VOLUME:
-        geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
+      }
+      case OB_VOLUME: {
+        gpu::Batch *geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
         if (static_cast<Volume *>(ob_ref.object->data)->display.wireframe_type ==
             VOLUME_WIREFRAME_POINTS)
         {
@@ -152,6 +174,7 @@ class Wireframe {
           coloring.mesh_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
         }
         break;
+      }
       default:
         /* Would be good to have. */
         // BLI_assert_unreachable();
