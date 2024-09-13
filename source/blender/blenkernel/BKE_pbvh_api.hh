@@ -193,11 +193,18 @@ class Tree {
   Array<int> prim_indices_;
 
   /**
-   * If true, the bounds for the corresponding node index is out of dat.
+   * If true, the bounds for the corresponding node index is out of date.
    * \note Values are only meaningful for leaf nodes.
    * \note The vector's size may not match the size of the nodes array.
    */
   BitVector<> bounds_dirty_;
+
+  /**
+   * If true, the normals for the corresponding node index are out of date.
+   * \note Values are only meaningful for leaf nodes.
+   * \note The vector's size may not match the size of the nodes array.
+   */
+  BitVector<> normals_dirty_;
 
   float planes_[6][4];
   int num_planes_;

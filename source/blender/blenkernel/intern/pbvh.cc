@@ -550,13 +550,15 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
 {
   this->bounds_dirty_.resize(std::max(this->bounds_dirty_.size(), node_mask.min_array_size()),
                              false);
+  this->normals_dirty_.resize(std::max(this->normals_dirty_.size(), node_mask.min_array_size()),
+                              false);
   /* TODO: Use `to_bools` with first clear disabled. */
   node_mask.foreach_index_optimized<int>([&](const int i) { this->bounds_dirty_[i].set(); });
+  node_mask.foreach_index_optimized<int>([&](const int i) { this->normals_dirty_[i].set(); });
   return std::visit(
       [&](auto &nodes) {
-        node_mask.foreach_index([&](const int i) {
-          nodes[i].flag_ |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
-        });
+        node_mask.foreach_index(
+            [&](const int i) { nodes[i].flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw; });
       },
       this->nodes_);
 }
@@ -1003,14 +1005,11 @@ static void update_normals_mesh(Object &object_orig,
 static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
 {
   IndexMaskMemory memory;
-  const IndexMask nodes_to_update = search_nodes(
-      pbvh, memory, [&](const Node &node) { return update_search(node, PBVH_UpdateNormals); });
+  const IndexMask nodes_to_update = IndexMask::from_bits(pbvh.normals_dirty_, memory);
 
   switch (pbvh.type()) {
     case Type::Mesh: {
       update_normals_mesh(object_orig, object_eval, pbvh.nodes<MeshNode>(), nodes_to_update);
-      MutableSpan<MeshNode> nodes = pbvh.nodes<MeshNode>();
-      nodes_to_update.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_UpdateNormals; });
       break;
     }
     case Type::Grids: {
@@ -1021,7 +1020,6 @@ static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
       const IndexMask faces_to_update = nodes_to_face_selection_grids(
           subdiv_ccg, nodes, nodes_to_update, memory);
       BKE_subdiv_ccg_update_normals(subdiv_ccg, faces_to_update);
-      nodes_to_update.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_UpdateNormals; });
       break;
     }
     case Type::BMesh: {
@@ -1029,6 +1027,7 @@ static void update_normals(Object &object_orig, Object &object_eval, Tree &pbvh)
       break;
     }
   }
+  pbvh.normals_dirty_.clear_and_shrink();
 }
 
 void update_normals(const Depsgraph &depsgraph, Object &object_orig, Tree &pbvh)
@@ -1531,8 +1530,7 @@ int BKE_pbvh_get_grid_num_faces(const Object &object)
 
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
-                PBVH_RebuildPixels;
+  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_RebuildPixels;
 }
 
 void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node)
