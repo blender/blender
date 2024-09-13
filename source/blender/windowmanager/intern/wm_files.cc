@@ -1781,7 +1781,7 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     IMB_scale(ibuf, ex * 2, ey * 2, IMBScaleFilter::Box, false);
 
     /* Save metadata for quick access. */
-    char version_str[10] = {0};
+    char version_str[10];
     SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_ensure(&ibuf->metadata);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_str);
@@ -1897,7 +1897,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     thumb_ibuf = IMB_dupImBuf(ibuf);
 
     /* Save metadata for quick access. */
-    char version_str[10] = {0};
+    char version_str[10];
     SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_ensure(&ibuf->metadata);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_str);
