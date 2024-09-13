@@ -3342,8 +3342,6 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
                             const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-
   bool need_coords = ss.cache->supports_gravity;
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {

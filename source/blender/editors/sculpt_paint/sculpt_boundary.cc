@@ -1284,7 +1284,6 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                           const float strength,
                           const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1583,7 +1582,6 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                            const float strength,
                            const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1865,7 +1863,6 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                              const float strength,
                              const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -2436,7 +2433,6 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                            const float strength,
                            const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -2841,7 +2837,6 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                             const float strength,
                             const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
