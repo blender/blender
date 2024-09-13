@@ -395,7 +395,7 @@ static void grease_pencil_sculpt_paint_cancel(bContext *C, wmOperator *op)
 
 static void GREASE_PENCIL_OT_sculpt_paint(wmOperatorType *ot)
 {
-  ot->name = "Grease Pencil Draw";
+  ot->name = "Grease Pencil Sculpt";
   ot->idname = "GREASE_PENCIL_OT_sculpt_paint";
   ot->description = "Sculpt strokes in the active Grease Pencil object";
 
