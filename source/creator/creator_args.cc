@@ -646,7 +646,6 @@ static void print_help(bArgs *ba, bool all)
 
   PRINT("Render Options:\n");
   BLI_args_print_arg_doc(ba, "--background");
-  BLI_args_print_arg_doc(ba, "--quiet");
   BLI_args_print_arg_doc(ba, "--render-anim");
   BLI_args_print_arg_doc(ba, "--scene");
   BLI_args_print_arg_doc(ba, "--render-frame");
@@ -776,6 +775,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--disable-abort-handler");
 
   BLI_args_print_arg_doc(ba, "--verbose");
+  BLI_args_print_arg_doc(ba, "--quiet");
 
   PRINT("\n");
   PRINT("GPU Options:\n");
