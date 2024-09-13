@@ -65,6 +65,36 @@ int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names)
   return def_nr;
 }
 
+void assign_to_vertex_group_from_mask(bke::CurvesGeometry &curves,
+                                      const IndexMask &mask,
+                                      const StringRef name,
+                                      const float weight)
+{
+  if (mask.is_empty()) {
+    return;
+  }
+
+  ListBase &vertex_group_names = curves.vertex_group_names;
+  /* Look for existing group, otherwise lazy-initialize if any vertex is selected. */
+  int def_nr = BLI_findstringindex(&vertex_group_names, name.data(), offsetof(bDeformGroup, name));
+
+  /* Lazily add the vertex group if any vertex is selected. */
+  if (def_nr < 0) {
+    bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
+    STRNCPY(defgroup->name, name.data());
+    BLI_addtail(&vertex_group_names, defgroup);
+    def_nr = BLI_listbase_count(&vertex_group_names) - 1;
+    BLI_assert(def_nr >= 0);
+  }
+
+  const MutableSpan<MDeformVert> dverts = curves.deform_verts_for_write();
+  mask.foreach_index([&](const int point_i) {
+    if (MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[point_i], def_nr)) {
+      dw->weight = weight;
+    }
+  });
+}
+
 void assign_to_vertex_group(GreasePencil &grease_pencil, const StringRef name, const float weight)
 {
   for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {

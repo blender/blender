@@ -22,6 +22,11 @@ int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names);
 /** Assign selected vertices to the vertex group. */
 void assign_to_vertex_group(GreasePencil &grease_pencil, StringRef name, float weight);
 
+void assign_to_vertex_group_from_mask(CurvesGeometry &curves,
+                                      const IndexMask &mask,
+                                      StringRef name,
+                                      float weight);
+
 /**
  * Remove selected vertices from the vertex group.
  * \return True if at least one vertex was removed from the group.
