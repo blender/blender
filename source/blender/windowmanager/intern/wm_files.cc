@@ -1742,6 +1742,20 @@ static void wm_history_file_update()
  *
  * \{ */
 
+static blender::int2 blend_file_thumb_clamp_size(const int size[2], const int limit)
+{
+  blender::int2 result;
+  if (size[0] > size[1]) {
+    result.x = limit;
+    result.y = max_ii(1, int((float(size[1]) / float(size[0])) * limit));
+  }
+  else {
+    result.x = max_ii(1, int((float(size[0]) / float(size[1])) * limit));
+    result.y = limit;
+  }
+  return result;
+}
+
 /**
  * Screen-shot the active window.
  */
@@ -1763,36 +1777,33 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
   int win_size[2];
   /* NOTE: always read from front-buffer as drawing a window can cause problems while saving,
    * even if this means the thumbnail from the screen-shot fails to be created, see: #98462. */
-  uint8_t *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
-  ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
+  ImBuf *ibuf = nullptr;
 
-  if (ibuf) {
-    int ex, ey;
-    if (ibuf->x > ibuf->y) {
-      ex = BLEN_THUMB_SIZE;
-      ey = max_ii(1, int((float(ibuf->y) / float(ibuf->x)) * BLEN_THUMB_SIZE));
-    }
-    else {
-      ex = max_ii(1, int((float(ibuf->x) / float(ibuf->y)) * BLEN_THUMB_SIZE));
-      ey = BLEN_THUMB_SIZE;
-    }
+  if (uint8_t *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size)) {
+    const blender::int2 thumb_size_2x = blend_file_thumb_clamp_size(win_size, BLEN_THUMB_SIZE * 2);
+    const blender::int2 thumb_size = blend_file_thumb_clamp_size(win_size, BLEN_THUMB_SIZE);
+
+    ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
+    BLI_assert(ibuf != nullptr); /* Never expected to fail. */
 
     /* File-system thumbnail image can be 256x256. */
-    IMB_scale(ibuf, ex * 2, ey * 2, IMBScaleFilter::Box, false);
+    IMB_scale(ibuf, thumb_size_2x.x, thumb_size_2x.y, IMBScaleFilter::Box, false);
 
+    /* Thumbnail inside blend should be 128x128. */
+    ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
+    IMB_scale(thumb_ibuf, thumb_size.x, thumb_size.y, IMBScaleFilter::Box, false);
+
+    BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(nullptr, thumb_ibuf);
+    IMB_freeImBuf(thumb_ibuf);
+    *r_thumb = thumb;
+  }
+
+  if (ibuf) {
     /* Save metadata for quick access. */
     char version_str[10];
     SNPRINTF(version_str, "%d.%01d", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
     IMB_metadata_ensure(&ibuf->metadata);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Blender::Version", version_str);
-
-    /* Thumbnail inside blend should be 128x128. */
-    ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
-    IMB_scale(thumb_ibuf, ex, ey, IMBScaleFilter::Box, false);
-
-    BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(nullptr, thumb_ibuf);
-    IMB_freeImBuf(thumb_ibuf);
-    *r_thumb = thumb;
   }
 
   /* Must be freed by caller. */
