@@ -638,120 +638,6 @@ static bool vert_inside_brush_radius(const float3 &vertex,
 }
 
 /**
- * \param fallback_origin: If we can't find any face set to continue, use the position of all
- * vertices that have the current face set.
- */
-static bool face_sets_floodfill(const Depsgraph &depsgraph,
-                                const Object &object,
-                                const float3 &pose_initial_co,
-                                const float radius,
-                                const int symm,
-                                const bool is_first_iteration,
-                                const PBVHVertRef to_v,
-                                const bool is_duplicate,
-                                MutableSpan<float> pose_factor,
-                                Set<int> &visited_face_sets,
-                                MutableBoundedBitSpan is_weighted,
-                                float3 &fallback_origin,
-                                int &fallback_count,
-                                int &current_face_set,
-                                bool &next_face_set_found,
-                                int &next_face_set,
-                                PBVHVertRef &next_vertex,
-                                float3 &pose_origin,
-                                int &tot_co)
-{
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  const int index = BKE_pbvh_vertex_to_index(pbvh, to_v);
-  const PBVHVertRef vertex = to_v;
-  bool visit_next = false;
-
-  const float *co = SCULPT_vertex_co_get(depsgraph, object, vertex);
-  const bool symmetry_check = SCULPT_check_vertex_pivot_symmetry(co, pose_initial_co, symm) &&
-                              !is_duplicate;
-
-  /* First iteration. Continue expanding using topology until a vertex is outside the brush radius
-   * to determine the first face set. */
-  if (current_face_set == SCULPT_FACE_SET_NONE) {
-
-    pose_factor[index] = 1.0f;
-    is_weighted[index].set();
-
-    if (vert_inside_brush_radius(co, pose_initial_co, radius, symm)) {
-      const int visited_face_set = face_set::vert_face_set_get(object, vertex);
-      visited_face_sets.add(visited_face_set);
-    }
-    else if (symmetry_check) {
-      current_face_set = face_set::vert_face_set_get(object, vertex);
-      visited_face_sets.add(current_face_set);
-    }
-    return true;
-  }
-
-  /* We already have a current face set, so we can start checking the face sets of the vertices. */
-  /* In the first iteration we need to check all face sets we already visited as the flood fill may
-   * still not be finished in some of them. */
-  bool is_vertex_valid = false;
-  if (is_first_iteration) {
-    for (const int visited_face_set : visited_face_sets) {
-      is_vertex_valid |= face_set::vert_has_face_set(object, vertex, visited_face_set);
-    }
-  }
-  else {
-    is_vertex_valid = face_set::vert_has_face_set(object, vertex, current_face_set);
-  }
-
-  if (!is_vertex_valid) {
-    return visit_next;
-  }
-
-  if (!is_weighted[index]) {
-    pose_factor[index] = 1.0f;
-    is_weighted[index].set();
-    visit_next = true;
-  }
-
-  /* Fallback origin accumulation. */
-  if (symmetry_check) {
-    add_v3_v3(fallback_origin, SCULPT_vertex_co_get(depsgraph, object, vertex));
-    fallback_count++;
-  }
-
-  if (!symmetry_check || face_set::vert_has_unique_face_set(object, vertex)) {
-    return visit_next;
-  }
-
-  /* We only add coordinates for calculating the origin when it is possible to go from this
-   * vertex to another vertex in a valid face set for the next iteration. */
-  bool count_as_boundary = false;
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (object, vertex, ni) {
-    int next_face_set_candidate = face_set::vert_face_set_get(object, ni.vertex);
-
-    /* Check if we can get a valid face set for the next iteration from this neighbor. */
-    if (face_set::vert_has_unique_face_set(object, ni.vertex) &&
-        !visited_face_sets.contains(next_face_set_candidate))
-    {
-      if (!next_face_set_found) {
-        next_face_set = next_face_set_candidate;
-        next_vertex = ni.vertex;
-        next_face_set_found = true;
-      }
-      count_as_boundary = true;
-    }
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  /* Origin accumulation. */
-  if (count_as_boundary) {
-    add_v3_v3(pose_origin, SCULPT_vertex_co_get(depsgraph, object, vertex));
-    tot_co++;
-  }
-  return visit_next;
-}
-
-/**
  * fallback_floodfill_origin: In topology mode this stores the furthest point from the
  * stroke origin for cases when a pose origin based on the brush radius can't be set.
  */
@@ -1116,84 +1002,152 @@ static std::unique_ptr<IKChain> pose_ik_chain_init_topology(const Depsgraph &dep
 }
 
 static std::unique_ptr<IKChain> ik_chain_init_face_sets(const Depsgraph &depsgraph,
-                                                        Object &ob,
+                                                        Object &object,
                                                         SculptSession &ss,
                                                         const Brush &brush,
                                                         const float radius)
 {
+  struct SegmentData {
+    PBVHVertRef vert;
+    int face_set;
+  };
 
-  int totvert = SCULPT_vertex_count_get(ob);
-
-  const int tot_segments = brush_num_effective_segments(brush);
-  const int symm = SCULPT_mesh_symmetry_xyz_get(ob);
-
-  std::unique_ptr<IKChain> ik_chain = ik_chain_new(tot_segments, totvert);
-
-  Set<int> visited_face_sets;
+  const int totvert = SCULPT_vertex_count_get(object);
+  std::unique_ptr<IKChain> ik_chain = ik_chain_new(brush_num_effective_segments(brush), totvert);
 
   /* Each vertex can only be assigned to one face set. */
   BitVector<> is_weighted(totvert);
+  Set<int> visited_face_sets;
 
-  int current_face_set = SCULPT_FACE_SET_NONE;
+  SegmentData current_data = {ss.active_vert_ref(), SCULPT_FACE_SET_NONE};
 
-  PBVHVertRef current_vertex = ss.active_vert_ref();
-
+  const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   for (const int i : ik_chain->segments.index_range()) {
     const bool is_first_iteration = i == 0;
 
-    flood_fill::FillData flood = flood_fill::init_fill(ob);
-    flood_fill::add_initial_with_symmetry(depsgraph, ob, flood, current_vertex, FLT_MAX);
+    flood_fill::FillData flood = flood_fill::init_fill(object);
+    flood_fill::add_initial_with_symmetry(
+        depsgraph, object, flood, current_data.vert, std::numeric_limits<float>::max());
 
-    visited_face_sets.add(current_face_set);
+    visited_face_sets.add(current_data.face_set);
 
     MutableSpan<float> pose_factor = ik_chain->segments[i].weights;
-    int tot_co = 0;
-    bool next_face_set_found = false;
-    int next_face_set = SCULPT_FACE_SET_NONE;
-    PBVHVertRef next_vertex{};
-    float3 pose_origin(0);
-    float3 fallback_origin(0);
+    std::optional<SegmentData> next_segment_data;
+
+    float3 face_set_boundary_accum(0);
+    int face_set_boundary_count = 0;
+
+    float3 fallback_accum(0);
     int fallback_count = 0;
 
-    const float3 pose_initial_co = SCULPT_vertex_co_get(depsgraph, ob, current_vertex);
+    const float3 pose_initial_co = SCULPT_vertex_co_get(depsgraph, object, current_data.vert);
     flood_fill::execute(
-        ob, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
-          return face_sets_floodfill(depsgraph,
-                                     ob,
-                                     pose_initial_co,
-                                     radius,
-                                     symm,
-                                     is_first_iteration,
-                                     to_v,
-                                     is_duplicate,
-                                     pose_factor,
-                                     visited_face_sets,
-                                     is_weighted,
-                                     fallback_origin,
-                                     fallback_count,
-                                     current_face_set,
-                                     next_face_set_found,
-                                     next_face_set,
-                                     next_vertex,
-                                     pose_origin,
-                                     tot_co);
+        object, flood, [&](PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate) {
+          const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+          const int index = BKE_pbvh_vertex_to_index(pbvh, to_v);
+          const PBVHVertRef vertex = to_v;
+
+          const float3 co = SCULPT_vertex_co_get(depsgraph, object, vertex);
+          const bool symmetry_check = SCULPT_check_vertex_pivot_symmetry(
+                                          co, pose_initial_co, symm) &&
+                                      !is_duplicate;
+
+          /* First iteration. Continue expanding using topology until a vertex is outside the brush
+           * radius to determine the first face set. */
+          if (current_data.face_set == SCULPT_FACE_SET_NONE) {
+
+            pose_factor[index] = 1.0f;
+            is_weighted[index].set();
+
+            if (vert_inside_brush_radius(co, pose_initial_co, radius, symm)) {
+              const int visited_face_set = face_set::vert_face_set_get(object, vertex);
+              visited_face_sets.add(visited_face_set);
+            }
+            else if (symmetry_check) {
+              current_data.face_set = face_set::vert_face_set_get(object, vertex);
+              visited_face_sets.add(current_data.face_set);
+            }
+            return true;
+          }
+
+          /* We already have a current face set, so we can start checking the face sets of the
+           * vertices. */
+          /* In the first iteration we need to check all face sets we already visited as the flood
+           * fill may still not be finished in some of them. */
+          bool is_vertex_valid = false;
+          if (is_first_iteration) {
+            for (const int visited_face_set : visited_face_sets) {
+              is_vertex_valid |= face_set::vert_has_face_set(object, vertex, visited_face_set);
+            }
+          }
+          else {
+            is_vertex_valid = face_set::vert_has_face_set(object, vertex, current_data.face_set);
+          }
+
+          if (!is_vertex_valid) {
+            return false;
+          }
+
+          bool visit_next = false;
+          if (!is_weighted[index]) {
+            pose_factor[index] = 1.0f;
+            is_weighted[index].set();
+            visit_next = true;
+          }
+
+          /* Fallback origin accumulation. */
+          if (symmetry_check) {
+            fallback_accum += SCULPT_vertex_co_get(depsgraph, object, vertex);
+            fallback_count++;
+          }
+
+          if (!symmetry_check || face_set::vert_has_unique_face_set(object, vertex)) {
+            return visit_next;
+          }
+
+          /* We only add coordinates for calculating the origin when it is possible to go from this
+           * vertex to another vertex in a valid face set for the next iteration. */
+          bool count_as_boundary = false;
+
+          SculptVertexNeighborIter ni;
+          SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (object, vertex, ni) {
+            const int next_face_set_candidate = face_set::vert_face_set_get(object, ni.vertex);
+
+            /* Check if we can get a valid face set for the next iteration from this neighbor. */
+            if (face_set::vert_has_unique_face_set(object, ni.vertex) &&
+                !visited_face_sets.contains(next_face_set_candidate))
+            {
+              if (!next_segment_data) {
+                next_segment_data = {ni.vertex, next_face_set_candidate};
+              }
+              count_as_boundary = true;
+            }
+          }
+          SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+          /* Origin accumulation. */
+          if (count_as_boundary) {
+            face_set_boundary_accum += SCULPT_vertex_co_get(depsgraph, object, vertex);
+            face_set_boundary_count++;
+          }
+          return visit_next;
         });
 
-    if (tot_co > 0) {
-      ik_chain->segments[i].orig = pose_origin / float(tot_co);
+    if (face_set_boundary_count > 0) {
+      ik_chain->segments[i].orig = face_set_boundary_accum / float(face_set_boundary_count);
     }
     else if (fallback_count > 0) {
-      ik_chain->segments[i].orig = fallback_origin / float(fallback_count);
+      ik_chain->segments[i].orig = fallback_accum / float(fallback_count);
     }
     else {
       ik_chain->segments[i].orig = float3(0);
     }
 
-    current_face_set = next_face_set;
-    current_vertex = next_vertex;
+    current_data = *next_segment_data;
   }
 
-  ik_chain_origin_heads_init(*ik_chain, SCULPT_vertex_co_get(depsgraph, ob, ss.active_vert_ref()));
+  ik_chain_origin_heads_init(*ik_chain,
+                             SCULPT_vertex_co_get(depsgraph, object, ss.active_vert_ref()));
 
   return ik_chain;
 }
