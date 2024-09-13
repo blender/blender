@@ -70,17 +70,16 @@ static void calc_node(const Depsgraph &depsgraph,
   scale_factors(factors, strength);
 
   for (const int i : grids.index_range()) {
-    const int node_start = i * key.grid_area;
+    const IndexRange node_grid_range = bke::ccg::grid_range(key.grid_area, i);
+    const IndexRange grid_range = bke::ccg::grid_range(key.grid_area, grids[i]);
     const int grid = grids[i];
-    const int start = grid * key.grid_area;
     for (const int y : IndexRange(key.grid_size)) {
       for (const int x : IndexRange(key.grid_size)) {
         const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_start + offset;
-        const int grid_vert_index = start + offset;
+        const int node_vert = node_grid_range[offset];
+        const int vert = grid_range[offset];
 
-        float3 interp_limit_surface_disp =
-            cache.displacement_smear.prev_displacement[grid_vert_index];
+        float3 interp_limit_surface_disp = cache.displacement_smear.prev_displacement[vert];
 
         float3 current_disp;
         switch (brush.smear_deform_type) {
@@ -88,10 +87,10 @@ static void calc_node(const Depsgraph &depsgraph,
             current_disp = cache.location_symm - cache.last_location_symm;
             break;
           case BRUSH_SMEAR_DEFORM_PINCH:
-            current_disp = cache.location_symm - positions[node_vert_index];
+            current_disp = cache.location_symm - ccg_positions[vert];
             break;
           case BRUSH_SMEAR_DEFORM_EXPAND:
-            current_disp = positions[node_vert_index] - cache.location_symm;
+            current_disp = ccg_positions[vert] - cache.location_symm;
             break;
         }
 
@@ -109,14 +108,11 @@ static void calc_node(const Depsgraph &depsgraph,
         BKE_subdiv_ccg_neighbor_coords_get(*ss.subdiv_ccg, coord, false, neighbors);
 
         for (const SubdivCCGCoord neighbor : neighbors.coords) {
-          const int neighbor_grid_vert_index = neighbor.grid_index * key.grid_area +
-                                               CCG_grid_xy_to_index(
-                                                   key.grid_size, neighbor.x, neighbor.y);
-          const float3 vert_disp =
-              cache.displacement_smear.limit_surface_co[neighbor_grid_vert_index] -
-              cache.displacement_smear.limit_surface_co[grid_vert_index];
+          const int neighbor_index = neighbor.to_index(key);
+          const float3 vert_disp = cache.displacement_smear.limit_surface_co[neighbor_index] -
+                                   cache.displacement_smear.limit_surface_co[vert];
           const float3 &neighbor_limit_surface_disp =
-              cache.displacement_smear.prev_displacement[neighbor_grid_vert_index];
+              cache.displacement_smear.prev_displacement[neighbor_index];
           const float3 vert_disp_norm = math::normalize(vert_disp);
 
           if (math::dot(current_disp_norm, vert_disp_norm) >= 0.0f) {
@@ -131,10 +127,9 @@ static void calc_node(const Depsgraph &depsgraph,
 
         interp_limit_surface_disp *= math::rcp(weights_accum);
 
-        float3 new_co = cache.displacement_smear.limit_surface_co[grid_vert_index] +
+        float3 new_co = cache.displacement_smear.limit_surface_co[vert] +
                         interp_limit_surface_disp;
-        ccg_positions[grid_vert_index] = math::interpolate(
-            positions[node_vert_index], new_co, factors[node_vert_index]);
+        ccg_positions[vert] = math::interpolate(ccg_positions[vert], new_co, factors[node_vert]);
       }
     }
   }
