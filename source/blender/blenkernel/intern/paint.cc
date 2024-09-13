@@ -1977,8 +1977,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss.building_vp_handle = false;
 
-  ss.scene = scene;
-
   ss.shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,

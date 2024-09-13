@@ -403,7 +403,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
   RegionView3D *rv3d = nullptr;
   View3D *v3d = nullptr;
-  Scene *scene = nullptr;
 
   /* Dynamic mesh preview */
   blender::Array<int> preview_verts;

@@ -337,7 +337,8 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
   }
 }
 
-static void do_paint_brush_task(const Depsgraph &depsgraph,
+static void do_paint_brush_task(const Scene &scene,
+                                const Depsgraph &depsgraph,
                                 Object &object,
                                 const Span<float3> vert_positions,
                                 const Span<float3> vert_normals,
@@ -357,7 +358,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const float bstrength = fabsf(ss.cache->bstrength);
-  const float alpha = BKE_brush_alpha_get(ss.scene, &brush);
+  const float alpha = BKE_brush_alpha_get(&scene, &brush);
 
   const Span<int> verts = node.verts();
 
@@ -407,9 +408,8 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
     }
   }
 
-  const float3 brush_color_rgb = ss.cache->invert ?
-                                     BKE_brush_secondary_color_get(ss.scene, &brush) :
-                                     BKE_brush_color_get(ss.scene, &brush);
+  const float3 brush_color_rgb = ss.cache->invert ? BKE_brush_secondary_color_get(&scene, &brush) :
+                                                    BKE_brush_color_get(&scene, &brush);
   float4 brush_color(brush_color_rgb, 1.0f);
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
@@ -520,7 +520,8 @@ static void do_sample_wet_paint_task(const Object &object,
   }
 }
 
-void do_paint_brush(const Depsgraph &depsgraph,
+void do_paint_brush(const Scene &scene,
+                    const Depsgraph &depsgraph,
                     PaintModeSettings &paint_mode_settings,
                     const Sculpt &sd,
                     Object &ob,
@@ -528,7 +529,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
                     const IndexMask &texnode_mask)
 {
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
-    SCULPT_do_paint_brush_image(depsgraph, paint_mode_settings, sd, ob, texnode_mask);
+    SCULPT_do_paint_brush_image(scene, depsgraph, paint_mode_settings, sd, ob, texnode_mask);
     return;
   }
 
@@ -654,7 +655,8 @@ void do_paint_brush(const Depsgraph &depsgraph,
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     ColorPaintLocalData &tls = all_tls.local();
     node_mask.slice(range).foreach_index([&](const int i) {
-      do_paint_brush_task(depsgraph,
+      do_paint_brush_task(scene,
+                          depsgraph,
                           ob,
                           vert_positions,
                           vert_normals,

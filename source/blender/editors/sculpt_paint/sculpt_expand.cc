@@ -2478,13 +2478,14 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   expand_cache.brush_gradient = false;
 
   /* Texture and color data from the active Brush. */
+  Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
   expand_cache.brush = BKE_paint_brush_for_read(&sd.paint);
   BKE_curvemapping_init(expand_cache.brush->curve);
   copy_v4_fl(expand_cache.fill_color, 1.0f);
-  copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(ss.scene, expand_cache.brush));
+  copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(&scene, expand_cache.brush));
   IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache.fill_color, expand_cache.fill_color);
 
   expand_cache.scene = CTX_data_scene(C);
@@ -2584,7 +2585,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   if (ss.expand_cache->target == TargetType::Mask) {
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss.scene, &ob);
+    Scene &scene = *CTX_data_scene(C);
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
     BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
 
     if (RNA_boolean_get(op->ptr, "use_auto_mask")) {

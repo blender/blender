@@ -3658,7 +3658,8 @@ static void do_brush_action(const Depsgraph &depsgraph,
       do_displacement_smear_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_PAINT:
-      color::do_paint_brush(depsgraph, paint_mode_settings, sd, ob, node_mask, texnode_mask);
+      color::do_paint_brush(
+          scene, depsgraph, paint_mode_settings, sd, ob, node_mask, texnode_mask);
       break;
     case SCULPT_BRUSH_TYPE_SMEAR:
       color::do_smear_brush(depsgraph, sd, ob, node_mask);
@@ -5686,7 +5687,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   int ignore_background_click;
   int retval;
   Object &ob = *CTX_data_active_object(C);
-
+  Scene &scene = *CTX_data_scene(C);
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
   /* Test that ob is visible; otherwise we won't be able to get evaluated data
@@ -5709,7 +5710,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
   if (SCULPT_brush_type_is_mask(brush.sculpt_brush_type)) {
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss.scene, &ob);
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
   }
   if (!SCULPT_brush_type_is_attribute_only(brush.sculpt_brush_type) &&
