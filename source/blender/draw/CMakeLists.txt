@@ -293,6 +293,7 @@ set(SRC
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh
   engines/overlay/overlay_next_curve.hh
+  engines/overlay/overlay_next_edit_text.hh
   engines/overlay/overlay_next_empty.hh
   engines/overlay/overlay_next_facing.hh
   engines/overlay/overlay_next_fade.hh
