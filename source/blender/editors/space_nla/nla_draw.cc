@@ -44,6 +44,8 @@
 #include "nla_intern.hh" /* own include */
 #include "nla_private.h"
 
+using namespace blender;
+
 /* *********************************************** */
 /* Strips */
 
@@ -881,12 +883,12 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               break;
             }
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
-              float r_start;
-              float r_end;
-              BKE_action_frame_range_get(static_cast<bAction *>(ale->data), &r_start, &r_end);
-              BKE_nla_clip_length_ensure_nonzero(&r_start, &r_end);
+              const animrig::Action &action = static_cast<bAction *>(ale->data)->wrap();
+              float2 frame_range = action.get_frame_range();
+              BKE_nla_clip_length_ensure_nonzero(&frame_range[0], &frame_range[1]);
 
-              immRectf(pos, r_end, ymin + NLATRACK_SKIP, v2d->cur.xmax, ymax - NLATRACK_SKIP);
+              immRectf(
+                  pos, frame_range[1], ymin + NLATRACK_SKIP, v2d->cur.xmax, ymax - NLATRACK_SKIP);
               break;
             }
             case NLASTRIP_EXTEND_NOTHING:

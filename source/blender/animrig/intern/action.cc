@@ -11,6 +11,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_array_utils.hh"
 #include "DNA_defaults.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
@@ -702,6 +703,158 @@ void Action::unassign_id(ID &animated_id)
   adt->action = nullptr;
 }
 
+bool Action::has_keyframes(const slot_handle_t action_slot_handle) const
+{
+  if (this->is_action_legacy()) {
+    /* Old BKE_action_has_motion(const bAction *act) implementation. */
+    LISTBASE_FOREACH (const FCurve *, fcu, &this->curves) {
+      if (fcu->totvert) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  for (const FCurve *fcu : fcurves_for_action_slot(*this, action_slot_handle)) {
+    if (fcu->totvert) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Action::has_single_frame() const
+{
+  bool found_key = false;
+  float found_key_frame = 0.0f;
+
+  for (const FCurve *fcu : fcurves_all(*this)) {
+    switch (fcu->totvert) {
+      case 0:
+        /* No keys, so impossible to come to a conclusion on this curve alone. */
+        continue;
+      case 1:
+        /* Single key, which is the complex case, so handle below. */
+        break;
+      default:
+        /* Multiple keys, so there is animation. */
+        return false;
+    }
+
+    const float this_key_frame = fcu->bezt != nullptr ? fcu->bezt[0].vec[1][0] :
+                                                        fcu->fpt[0].vec[0];
+    if (!found_key) {
+      found_key = true;
+      found_key_frame = this_key_frame;
+      continue;
+    }
+
+    /* The graph editor rounds to 1/1000th of a frame, so it's not necessary to be really precise
+     * with these comparisons. */
+    if (!compare_ff(found_key_frame, this_key_frame, 0.001f)) {
+      /* This key differs from the already-found key, so this Action represents animation. */
+      return false;
+    }
+  }
+
+  /* There is only a single frame if we found at least one key. */
+  return found_key;
+}
+
+bool Action::is_cyclic() const
+{
+  return (this->flag & ACT_FRAME_RANGE) && (this->flag & ACT_CYCLIC);
+}
+
+float2 Action::get_frame_range() const
+{
+  if (this->flag & ACT_FRAME_RANGE) {
+    return {this->frame_start, this->frame_end};
+  }
+
+  return this->get_frame_range_of_keys(false);
+}
+
+float2 Action::get_frame_range_of_keys(const bool include_modifiers) const
+{
+  float min = 999999999.0f, max = -999999999.0f;
+  bool foundvert = false, foundmod = false;
+
+  for (const FCurve *fcu : fcurves_all(*this)) {
+    /* if curve has keyframes, consider them first */
+    if (fcu->totvert) {
+      float nmin, nmax;
+
+      /* get extents for this curve
+       * - no "selected only", since this is often used in the backend
+       * - no "minimum length" (we will apply this later), otherwise
+       *   single-keyframe curves will increase the overall length by
+       *   a phantom frame (#50354)
+       */
+      BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
+
+      /* compare to the running tally */
+      min = min_ff(min, nmin);
+      max = max_ff(max, nmax);
+
+      foundvert = true;
+    }
+
+    /* if include_modifiers is enabled, need to consider modifiers too
+     * - only really care about the last modifier
+     */
+    if ((include_modifiers) && (fcu->modifiers.last)) {
+      FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.last);
+
+      /* only use the maximum sensible limits of the modifiers if they are more extreme */
+      switch (fcm->type) {
+        case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
+        {
+          FMod_Limits *fmd = (FMod_Limits *)fcm->data;
+
+          if (fmd->flag & FCM_LIMIT_XMIN) {
+            min = min_ff(min, fmd->rect.xmin);
+          }
+          if (fmd->flag & FCM_LIMIT_XMAX) {
+            max = max_ff(max, fmd->rect.xmax);
+          }
+          break;
+        }
+        case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
+        {
+          FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
+
+          if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
+            min = MINAFRAMEF;
+          }
+          if (fmd->after_mode != FCM_EXTRAPOLATE_NONE) {
+            max = MAXFRAMEF;
+          }
+          break;
+        }
+          /* TODO: function modifier may need some special limits */
+
+        default: /* all other standard modifiers are on the infinite range... */
+          min = MINAFRAMEF;
+          max = MAXFRAMEF;
+          break;
+      }
+
+      foundmod = true;
+    }
+
+    /* This block is here just so that editors/IDEs do not get confused about the two opening
+     * curly braces in the `#ifdef WITH_ANIM_BAKLAVA` block above, but one closing curly brace
+     * here. */
+  }
+
+  if (foundvert || foundmod) {
+    return float2{max_ff(min, MINAFRAMEF), min_ff(max, MAXFRAMEF)};
+  }
+
+  return float2{0.0f, 0.0f};
+}
+
 /* ----- ActionLayer implementation ----------- */
 
 Layer::Layer(const Layer &other)
@@ -1359,6 +1512,15 @@ FCurve &ChannelBag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descripto
   }
 
   return *new_fcurve;
+}
+
+void ChannelBag::fcurve_append(FCurve &fcurve)
+{
+  /* Appended F-Curves don't belong to any group yet, so better make sure their
+   * group pointer reflects that. */
+  fcurve.grp = nullptr;
+
+  grow_array_and_append(&this->fcurve_array, &this->fcurve_array_num, &fcurve);
 }
 
 static void fcurve_ptr_destructor(FCurve **fcurve_ptr)

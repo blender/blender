@@ -22,6 +22,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -3327,22 +3328,25 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 
   memset(r_action_strip, 0, sizeof(NlaStrip));
 
-  { /* Set settings of dummy NLA strip from AnimData settings. */
-    bAction *action = adt->action;
-    slot_handle_t slot_handle = adt->slot_handle;
+  /* Set settings of dummy NLA strip from AnimData settings. */
+  bAction *action = adt->action;
+  slot_handle_t slot_handle = adt->slot_handle;
 
-    if (adt->flag & ADT_NLA_EDIT_ON) {
-      action = adt->tmpact;
-      slot_handle = adt->tmp_slot_handle;
-    }
-
-    r_action_strip->act = action;
-    r_action_strip->action_slot_handle = slot_handle;
+  if (adt->flag & ADT_NLA_EDIT_ON) {
+    action = adt->tmpact;
+    slot_handle = adt->tmp_slot_handle;
   }
+
+  r_action_strip->act = action;
+  r_action_strip->action_slot_handle = slot_handle;
+
   /* Action range is calculated taking F-Modifiers into account
    * (which making new strips doesn't do due to the troublesome nature of that). */
-  BKE_action_frame_range_calc(
-      r_action_strip->act, true, &r_action_strip->actstart, &r_action_strip->actend);
+  const float2 frame_range = action ? action->wrap().get_frame_range_of_keys(true) :
+                                      float2{0.0f, 0.0f};
+  r_action_strip->actstart = frame_range[0];
+  r_action_strip->actend = frame_range[1];
+
   BKE_nla_clip_length_ensure_nonzero(&r_action_strip->actstart, &r_action_strip->actend);
   r_action_strip->start = r_action_strip->actstart;
   r_action_strip->end = r_action_strip->actend;
