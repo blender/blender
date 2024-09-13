@@ -646,6 +646,7 @@ static void print_help(bArgs *ba, bool all)
 
   PRINT("Render Options:\n");
   BLI_args_print_arg_doc(ba, "--background");
+  BLI_args_print_arg_doc(ba, "--quiet");
   BLI_args_print_arg_doc(ba, "--render-anim");
   BLI_args_print_arg_doc(ba, "--scene");
   BLI_args_print_arg_doc(ba, "--render-frame");
@@ -1017,6 +1018,15 @@ static int arg_handle_debug_exit_on_error(int /*argc*/, const char ** /*argv*/, 
   return 0;
 }
 
+static const char arg_handle_quiet_set_doc[] =
+    "\n\t"
+    "Suppress status printing (warnings & errors are still printed).";
+static int arg_handle_quiet_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  G.quiet = true;
+  return 0;
+}
+
 /** Shared by `--background` & `--command`. */
 static void background_mode_set()
 {
@@ -1048,7 +1058,9 @@ static const char arg_handle_background_mode_set_doc[] =
     "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
 static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-  print_version_short();
+  if (!G.quiet) {
+    print_version_short();
+  }
   background_mode_set();
   return 0;
 }
@@ -2651,6 +2663,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   BLI_args_add(
       ba, nullptr, "--disable-abort-handler", CB(arg_handle_abort_handler_disable), nullptr);
 
+  BLI_args_add(ba, "-q", "--quiet", CB(arg_handle_quiet_set), nullptr);
   BLI_args_add(ba, "-b", "--background", CB(arg_handle_background_mode_set), nullptr);
   /* Command implies background mode (defers execution). */
   BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), C);
