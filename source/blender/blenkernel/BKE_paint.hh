@@ -23,6 +23,7 @@
 
 #include "DNA_brush_enums.h"
 #include "DNA_customdata_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_enums.h"
 
 #include "BKE_pbvh.hh"
@@ -341,10 +342,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
     int level = 0;
   } multires = {};
 
-  /* These contain the vertex and poly counts of the final mesh. */
-  int totvert = 0;
-  int faces_num = 0;
-
   KeyBlock *shapekey_active = nullptr;
 
   /* Edges to adjacent faces. */
@@ -356,10 +353,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::Array<int> vert_to_edge_offsets;
   blender::Array<int> vert_to_edge_indices;
   blender::GroupedSpan<int> vert_to_edge_map;
-
-  /* Mesh Face Sets */
-  /* Total number of faces of the base mesh. */
-  int totfaces = 0;
 
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
@@ -450,7 +443,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
 
       /* Needed to continuously re-apply over the same weights (BRUSH_ACCUMULATE disabled).
        * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
-      MDeformVert *dvert_prev;
+      blender::Array<MDeformVert> dvert_prev;
     } wpaint;
 
     /* TODO: identify sculpt-only fields */
@@ -538,7 +531,6 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss);
 void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(Object *object);
-int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has

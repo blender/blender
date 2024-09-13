@@ -1106,7 +1106,6 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
 static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1129,8 +1128,9 @@ static int randomize_colors_exec(bContext *C, wmOperator * /*op*/)
   }
 
   const VArray<int> face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-  const int random_index = clamp_i(
-      ss.totfaces * BLI_hash_int_01(mesh->face_sets_color_seed), 0, max_ii(0, ss.totfaces - 1));
+  const int random_index = clamp_i(mesh->faces_num * BLI_hash_int_01(mesh->face_sets_color_seed),
+                                   0,
+                                   max_ii(0, mesh->faces_num - 1));
   mesh->face_sets_color_default = face_sets[random_index];
 
   mesh->face_sets_color_seed += 1;

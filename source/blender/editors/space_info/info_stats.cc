@@ -369,10 +369,12 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
   }
 
   switch (pbvh->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      stats->totvertsculpt = ss->totvert;
-      stats->totfacesculpt = ss->totfaces;
+    case blender::bke::pbvh::Type::Mesh: {
+      const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+      stats->totvertsculpt = mesh.verts_num;
+      stats->totfacesculpt = mesh.faces_num;
       break;
+    }
     case blender::bke::pbvh::Type::BMesh:
       stats->totvertsculpt = ob->sculpt->bm->totvert;
       stats->tottri = ob->sculpt->bm->totface;

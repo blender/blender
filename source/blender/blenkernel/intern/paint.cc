@@ -1629,10 +1629,10 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
 {
   if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
     MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
-    if (ss->mode.wpaint.dvert_prev) {
-      BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev, ss->totvert);
-      MEM_freeN(ss->mode.wpaint.dvert_prev);
-      ss->mode.wpaint.dvert_prev = nullptr;
+    if (!ss->mode.wpaint.dvert_prev.is_empty()) {
+      BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev.data(),
+                                   ss->mode.wpaint.dvert_prev.size());
+      ss->mode.wpaint.dvert_prev = {};
     }
   }
 }
@@ -1987,14 +1987,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss.multires.active = true;
     ss.multires.modifier = mmd;
     ss.multires.level = mmd->sculptlvl;
-    ss.totvert = mesh_eval->verts_num;
-    ss.faces_num = mesh_eval->faces_num;
-    ss.totfaces = mesh_orig->faces_num;
   }
   else {
-    ss.totvert = mesh_orig->verts_num;
-    ss.faces_num = mesh_orig->faces_num;
-    ss.totfaces = mesh_orig->faces_num;
     ss.multires.active = false;
     ss.multires.modifier = nullptr;
     ss.multires.level = 0;
@@ -2498,15 +2492,4 @@ void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uc
              &rgba[1],
              &rgba[2]);
   rgba_float_to_uchar(r_color, rgba);
-}
-
-int BKE_sculptsession_vertex_count(const SculptSession *ss)
-{
-  if (ss->bm) {
-    return ss->bm->totvert;
-  }
-  if (ss->subdiv_ccg) {
-    return ss->subdiv_ccg->positions.size();
-  }
-  return ss->totvert;
 }

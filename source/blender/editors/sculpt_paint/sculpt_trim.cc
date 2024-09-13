@@ -760,7 +760,6 @@ static void report_invalid_mode(const blender::bke::pbvh::Type pbvh_type, Report
 static bool can_exec(const bContext &C, ReportList &reports)
 {
   const Object &object = *CTX_data_active_object(&C);
-  const SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (pbvh.type() != bke::pbvh::Type::Mesh) {
     /* Not supported in Multires and Dyntopo. */
@@ -768,7 +767,7 @@ static bool can_exec(const bContext &C, ReportList &reports)
     return false;
   }
 
-  if (ss.totvert == 0) {
+  if (static_cast<const Mesh *>(object.data)->faces_num == 0) {
     /* No geometry to trim or to detect a valid position for the trimming shape. */
     return false;
   }

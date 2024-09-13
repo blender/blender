@@ -1016,7 +1016,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         if (!restore_active_shape_key(*C, *depsgraph, step_data, object)) {
           return;
         }
-        Array<bool> modified_verts(ss.totvert, false);
+        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        Array<bool> modified_verts(mesh.verts_num, false);
         restore_position_mesh(object, step_data.nodes, modified_verts);
         node_mask.foreach_index([&](const int i) {
           if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
@@ -1058,7 +1059,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        Array<bool> modified_verts(ss.totvert, false);
+        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        Array<bool> modified_verts(mesh.verts_num, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_vert_visibility_mesh(object, *unode, modified_verts);
         }
@@ -1085,7 +1087,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         return;
       }
 
-      Array<bool> modified_faces(ss.totfaces, false);
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      Array<bool> modified_faces(mesh.faces_num, false);
       for (std::unique_ptr<Node> &unode : step_data.nodes) {
         restore_hidden_face(object, *unode, modified_faces);
       }
@@ -1140,7 +1143,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        Array<bool> modified_verts(ss.totvert, false);
+        const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+        Array<bool> modified_verts(mesh.verts_num, false);
         for (std::unique_ptr<Node> &unode : step_data.nodes) {
           restore_mask_mesh(object, *unode, modified_verts);
         }
@@ -1163,7 +1167,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
         return;
       }
 
-      Array<bool> modified_faces(ss.totfaces, false);
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      Array<bool> modified_faces(mesh.faces_num, false);
       for (std::unique_ptr<Node> &unode : step_data.nodes) {
         restore_face_sets(object, *unode, modified_faces);
       }
@@ -1201,7 +1206,8 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
       }
 
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Array<bool> modified_verts(ss.totvert, false);
+      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      Array<bool> modified_verts(mesh.verts_num, false);
       restore_color(object, step_data, modified_verts);
       node_mask.foreach_index([&](const int i) {
         if (indices_contain_true(modified_verts, nodes[i].all_verts())) {
@@ -1832,7 +1838,7 @@ void push_begin_ex(Object &ob, const char *name)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-      us->data.mesh_verts_num = ss.totvert;
+      us->data.mesh_verts_num = mesh.verts_num;
       us->data.mesh_corners_num = mesh.corners_num;
       break;
     }

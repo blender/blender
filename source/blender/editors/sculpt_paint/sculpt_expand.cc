@@ -1363,7 +1363,6 @@ static void calc_falloff_from_vert_and_symmetry(const Depsgraph &depsgraph,
  */
 static void snap_init_from_enabled(const Depsgraph &depsgraph,
                                    const Object &object,
-                                   SculptSession &ss,
                                    Cache &expand_cache)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -1382,8 +1381,7 @@ static void snap_init_from_enabled(const Depsgraph &depsgraph,
 
   const BitVector<> enabled_verts = enabled_state_to_bitmap(depsgraph, object, expand_cache);
 
-  const int totface = ss.totfaces;
-  for (int i = 0; i < totface; i++) {
+  for (const int i : faces.index_range()) {
     const int face_set = expand_cache.original_face_sets[i];
     expand_cache.snap_enabled_face_sets->add(face_set);
   }
@@ -1823,13 +1821,11 @@ static void original_state_store(Object &ob, Cache &expand_cache)
  */
 static void face_sets_restore(Object &object, Cache &expand_cache)
 {
-  SculptSession &ss = *object.sculpt;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(mesh);
-  const int totfaces = ss.totfaces;
-  for (int i = 0; i < totfaces; i++) {
+  for (const int i : faces.index_range()) {
     if (expand_cache.original_face_sets[i] <= 0) {
       /* Do not modify hidden Face Sets, even when restoring the IDs state. */
       continue;
@@ -2253,7 +2249,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         else {
           expand_cache.snap = true;
           expand_cache.snap_enabled_face_sets = std::make_unique<Set<int>>();
-          snap_init_from_enabled(*depsgraph, ob, ss, expand_cache);
+          snap_init_from_enabled(*depsgraph, ob, expand_cache);
         }
         break;
       }
@@ -2394,8 +2390,6 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 static void delete_face_set_id(
     int *r_face_sets, Object &object, Cache &expand_cache, Mesh *mesh, const int delete_id)
 {
-  SculptSession &ss = *object.sculpt;
-  const int totface = ss.totfaces;
   const GroupedSpan<int> vert_to_face_map = mesh->vert_to_face_map();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -2403,7 +2397,7 @@ static void delete_face_set_id(
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
   bool all_same_id = true;
-  for (int i = 0; i < totface; i++) {
+  for (const int i : faces.index_range()) {
     if (!is_face_in_active_component(object, faces, corner_verts, expand_cache, i)) {
       continue;
     }
@@ -2422,7 +2416,7 @@ static void delete_face_set_id(
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
-  for (int i = 0; i < totface; i++) {
+  for (const int i : faces.index_range()) {
     if (r_face_sets[i] == delete_id) {
       BLI_LINKSTACK_PUSH(queue, POINTER_FROM_INT(i));
     }
