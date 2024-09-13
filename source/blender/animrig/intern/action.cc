@@ -800,10 +800,7 @@ Slot::Slot()
 
 Slot::Slot(const Slot &other)
 {
-  memset(this, 0, sizeof(*this));
-  STRNCPY(this->name, other.name);
-  this->idtype = other.idtype;
-  this->handle = other.handle;
+  memcpy(this, &other, sizeof(*this));
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }
 
@@ -1492,6 +1489,10 @@ ChannelBag::ChannelBag(const ChannelBag &other)
     this->group_array[i] = static_cast<bActionGroup *>(MEM_dupallocN(group_src));
     this->group_array[i]->channel_bag = this;
   }
+
+  /* BKE_fcurve_copy() resets the FCurve's group pointer. Which is good, because the groups are
+   * duplicated too. This sets the group pointers to the correct values. */
+  this->restore_channel_group_invariants();
 }
 
 ChannelBag::~ChannelBag()
