@@ -221,16 +221,21 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
                                megs_peak_memory,
                                info_time_str,
                                rs->infostr);
-  fprintf(stdout, "%s\n", message);
 
-  /* Flush stdout to be sure python callbacks are printing stuff after blender. */
-  fflush(stdout);
+  if (!G.quiet) {
+    fprintf(stdout, "%s\n", message);
+
+    /* Flush stdout to be sure python callbacks are printing stuff after blender. */
+    fflush(stdout);
+  }
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, message);
 
-  fflush(stdout);
+  if (!G.quiet) {
+    fflush(stdout);
+  }
 
   MEM_freeN(message);
 
@@ -2279,16 +2284,21 @@ static bool do_write_image_or_movie(Render *re,
         filepath, sizeof(filepath), re->i.lastframetime - render_time);
     message = fmt::format("{} (Saving: {})", message, filepath);
   }
-  printf("%s\n", message.c_str());
-  /* Flush stdout to be sure python callbacks are printing stuff after blender. */
-  fflush(stdout);
+
+  if (!G.quiet) {
+    printf("%s\n", message.c_str());
+    /* Flush stdout to be sure python callbacks are printing stuff after blender. */
+    fflush(stdout);
+  }
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
-  fputc('\n', stdout);
-  fflush(stdout);
+  if (!G.quiet) {
+    fputc('\n', stdout);
+    fflush(stdout);
+  }
 
   return ok;
 }
