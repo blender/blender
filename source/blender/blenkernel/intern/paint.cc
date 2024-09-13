@@ -1994,9 +1994,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss.multires.level = 0;
   }
 
-  ss.hide_poly = (bool *)CustomData_get_layer_named(
-      &mesh_orig->face_data, CD_PROP_BOOL, ".hide_poly");
-
   ss.subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
   pbvh::Tree &pbvh = object::pbvh_ensure(*depsgraph, *ob);
@@ -2194,13 +2191,6 @@ void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bo
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
 
   sculpt_update_object(depsgraph, ob_orig, ob_eval, is_paint_tool);
-}
-
-void BKE_sculpt_hide_poly_pointer_update(Object &object)
-{
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-  object.sculpt->hide_poly = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh.face_data, CD_PROP_BOOL, ".hide_poly"));
 }
 
 void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,

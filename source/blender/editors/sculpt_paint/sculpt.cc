@@ -610,12 +610,14 @@ static void vertex_neighbors_get_faces(const Object &object,
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   iter->num_duplicates = 0;
   iter->neighbors.clear();
   iter->neighbor_indices.clear();
 
   for (const int face_i : vert_to_face_map[vertex.i]) {
-    if (ss.hide_poly && ss.hide_poly[face_i]) {
+    if (!hide_poly.is_empty() && hide_poly[face_i]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -731,11 +733,9 @@ bool vert_is_boundary(const Object &object, const PBVHVertRef vertex)
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      if (!hide::vert_all_faces_visible_get(ss.hide_poly ? Span(ss.hide_poly, ss.faces_num) :
-                                                           Span<bool>(),
-                                            vert_to_face_map,
-                                            vertex.i))
-      {
+      const bke::AttributeAccessor attributes = mesh.attributes();
+      const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      if (!hide::vert_all_faces_visible_get(hide_poly, vert_to_face_map, vertex.i)) {
         return true;
       }
       return check_boundary_vert_in_base_mesh(ss, vertex.i);

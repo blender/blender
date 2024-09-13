@@ -1042,7 +1042,6 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
   undo::push_end(object);
 
   bke::pbvh::update_visibility(object, pbvh);
-  BKE_sculpt_hide_poly_pointer_update(object);
 
   islands::invalidate(*object.sculpt);
   hide::tag_update_visibility(*C);

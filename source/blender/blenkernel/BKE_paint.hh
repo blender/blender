@@ -354,12 +354,6 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::Array<int> vert_to_edge_indices;
   blender::GroupedSpan<int> vert_to_edge_map;
 
-  /**
-   * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
-   * May be null.
-   */
-  const bool *hide_poly = nullptr;
-
   /* BMesh for dynamic topology sculpting */
   BMesh *bm = nullptr;
   /* Undo/redo log for dynamic topology sculpting */
@@ -550,11 +544,6 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
  * it's the last modifier on the stack and it is not on the first level.
  */
 MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
-/**
- * Update the pointer to the ".hide_poly" attribute. This is necessary because it is dynamically
- * created, removed, and made mutable.
- */
-void BKE_sculpt_hide_poly_pointer_update(Object &object);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,
