@@ -4,6 +4,8 @@
 
 """
 Tests the evaluation of NLA strips based on their properties and placement on NLA tracks.
+
+blender -b --factory-startup --python tests/python/bl_animation_nla_strip.py
 """
 
 import bpy
@@ -23,24 +25,19 @@ class AbstractNlaStripTest(unittest.TestCase):
     action: bpy.types.Action = None
     """ Action with X Location keyed on frames 1 to 4 with the same value as the frame, with constant interpolation. """
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         bpy.ops.wm.read_factory_settings(use_empty=True)
 
-        cls.test_object = bpy.data.objects.new(name="Object", object_data=bpy.data.meshes.new("Mesh"))
-        bpy.context.collection.objects.link(cls.test_object)
-        cls.test_object.animation_data_create()
+        self.test_object = bpy.data.objects.new(name="Object", object_data=bpy.data.meshes.new("Mesh"))
+        bpy.context.collection.objects.link(self.test_object)
+        self.test_object.animation_data_create()
 
-        cls.nla_tracks = cls.test_object.animation_data.nla_tracks
+        self.nla_tracks = self.test_object.animation_data.nla_tracks
 
-        cls.action = bpy.data.actions.new(name="ObjectAction")
-        x_location_fcurve = cls.action.fcurves.new(data_path="location", index=0, action_group="Object Transforms")
+        self.action = bpy.data.actions.new(name="ObjectAction")
+        x_location_fcurve = self.action.fcurves.new(data_path="location", index=0, action_group="Object Transforms")
         for frame in range(1, 5):
             x_location_fcurve.keyframe_points.insert(frame, value=frame).interpolation = "CONSTANT"
-
-    def tearDown(self):
-        while len(self.nla_tracks):
-            self.nla_tracks.remove(self.nla_tracks[0])
 
     def add_strip_no_extrapolation(self, nla_track: bpy.types.NlaTrack, start: int) -> bpy.types.NlaStrip:
         """ Places a new strip with the test action on the given track, setting extrapolation to nothing. """
