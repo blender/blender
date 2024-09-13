@@ -28,6 +28,7 @@
 #include "overlay_next_lightprobe.hh"
 #include "overlay_next_mesh.hh"
 #include "overlay_next_metaball.hh"
+#include "overlay_next_mode_transfer.hh"
 #include "overlay_next_outline.hh"
 #include "overlay_next_paint.hh"
 #include "overlay_next_particle.hh"
@@ -79,9 +80,10 @@ class Instance {
     Lattices lattices;
     Lights lights = {selection_type_};
     LightProbes light_probes = {selection_type_};
-    Metaballs metaballs = {selection_type_};
     Meshes meshes;
     MeshUVs mesh_uvs;
+    Metaballs metaballs = {selection_type_};
+    ModeTransfer mode_transfer;
     Paints paints;
     Particles particles;
     Prepass prepass = {selection_type_};

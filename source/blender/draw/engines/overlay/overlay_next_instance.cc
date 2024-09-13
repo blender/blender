@@ -134,6 +134,7 @@ void Instance::begin_sync()
     layer.metaballs.begin_sync();
     layer.meshes.begin_sync(resources, state, view);
     layer.mesh_uvs.begin_sync(resources, state);
+    layer.mode_transfer.begin_sync(resources, state);
     layer.paints.begin_sync(resources, state);
     layer.particles.begin_sync(resources, state);
     layer.prepass.begin_sync(resources, state);
@@ -162,6 +163,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   const bool needs_prepass = object_needs_prepass(ob_ref, in_paint_mode);
 
   OverlayLayer &layer = object_is_in_front(ob_ref.object, state) ? infront : regular;
+
+  layer.mode_transfer.object_sync(manager, ob_ref, state);
 
   if (needs_prepass) {
     layer.prepass.object_sync(manager, ob_ref, resources, state);
@@ -441,6 +444,7 @@ void Instance::draw(Manager &manager)
   auto overlay_fb_draw = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.facing.draw(framebuffer, manager, view);
     layer.fade.draw(framebuffer, manager, view);
+    layer.mode_transfer.draw(framebuffer, manager, view);
     layer.paints.draw(framebuffer, manager, view);
     layer.particles.draw_no_line(framebuffer, manager, view);
   };
