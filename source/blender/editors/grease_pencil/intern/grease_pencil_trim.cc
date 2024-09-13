@@ -35,17 +35,17 @@ namespace blender::ed::greasepencil {
 static constexpr int BBOX_PADDING = 2;
 
 /**
- * Apply the stroke cutter to a drawing.
+ * Apply the stroke trim to a drawing.
  */
-static bool execute_cutter_on_drawing(const int layer_index,
-                                      const int frame_number,
-                                      const Object &ob_eval,
-                                      const Object &obact,
-                                      const ARegion &region,
-                                      const float4x4 &projection,
-                                      const Span<int2> mcoords,
-                                      const bool keep_caps,
-                                      bke::greasepencil::Drawing &drawing)
+static bool execute_trim_on_drawing(const int layer_index,
+                                    const int frame_number,
+                                    const Object &ob_eval,
+                                    const Object &obact,
+                                    const ARegion &region,
+                                    const float4x4 &projection,
+                                    const Span<int2> mcoords,
+                                    const bool keep_caps,
+                                    bke::greasepencil::Drawing &drawing)
 {
   const bke::CurvesGeometry &src = drawing.strokes();
   const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
@@ -122,8 +122,8 @@ static bool execute_cutter_on_drawing(const int layer_index,
     return false;
   }
 
-  /* Apply cutter. */
-  bke::CurvesGeometry cut_strokes = ed::greasepencil::cutter::trim_curve_segments(
+  /* Apply trim. */
+  bke::CurvesGeometry cut_strokes = ed::greasepencil::trim::trim_curve_segments(
       src,
       screen_space_positions,
       screen_space_bbox,
@@ -139,9 +139,9 @@ static bool execute_cutter_on_drawing(const int layer_index,
 }
 
 /**
- * Apply the stroke cutter to all layers.
+ * Apply the stroke trim to all layers.
  */
-static int stroke_cutter_execute(const bContext *C, const Span<int2> mcoords)
+static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
 {
   const Scene *scene = CTX_data_scene(C);
   const ARegion *region = CTX_wm_region(C);
@@ -162,7 +162,7 @@ static int stroke_cutter_execute(const bContext *C, const Span<int2> mcoords)
   std::atomic<bool> changed = false;
 
   if (active_layer_only) {
-    /* Apply cutter on drawings of active layer. */
+    /* Apply trim on drawings of active layer. */
     if (!grease_pencil.has_active_layer()) {
       return OPERATOR_CANCELLED;
     }
@@ -172,37 +172,37 @@ static int stroke_cutter_execute(const bContext *C, const Span<int2> mcoords)
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
         ed::greasepencil::retrieve_editable_drawings_from_layer(*scene, grease_pencil, layer);
     threading::parallel_for_each(drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
-      if (execute_cutter_on_drawing(info.layer_index,
-                                    info.frame_number,
-                                    *ob_eval,
-                                    *obact,
-                                    *region,
-                                    projection,
-                                    mcoords,
-                                    keep_caps,
-                                    info.drawing))
+      if (execute_trim_on_drawing(info.layer_index,
+                                  info.frame_number,
+                                  *ob_eval,
+                                  *obact,
+                                  *region,
+                                  projection,
+                                  mcoords,
+                                  keep_caps,
+                                  info.drawing))
       {
         changed = true;
       }
     });
   }
   else {
-    /* Apply cutter on every editable drawing. */
+    /* Apply trim on every editable drawing. */
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
         ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
     threading::parallel_for_each(drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
       const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
       const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(rv3d, layer_to_world);
-      if (execute_cutter_on_drawing(info.layer_index,
-                                    info.frame_number,
-                                    *ob_eval,
-                                    *obact,
-                                    *region,
-                                    projection,
-                                    mcoords,
-                                    keep_caps,
-                                    info.drawing))
+      if (execute_trim_on_drawing(info.layer_index,
+                                  info.frame_number,
+                                  *ob_eval,
+                                  *obact,
+                                  *region,
+                                  projection,
+                                  mcoords,
+                                  keep_caps,
+                                  info.drawing))
       {
         changed = true;
       }
@@ -217,7 +217,7 @@ static int stroke_cutter_execute(const bContext *C, const Span<int2> mcoords)
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_stroke_cutter(bContext *C, wmOperator *op)
+static int grease_pencil_stroke_trim(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
@@ -225,22 +225,22 @@ static int grease_pencil_stroke_cutter(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  return stroke_cutter_execute(C, mcoords);
+  return stroke_trim_execute(C, mcoords);
 }
 
 }  // namespace blender::ed::greasepencil
 
-void GREASE_PENCIL_OT_stroke_cutter(wmOperatorType *ot)
+void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot)
 {
   using namespace blender::ed::greasepencil;
 
-  ot->name = "Grease Pencil Cutter";
-  ot->idname = "GREASE_PENCIL_OT_stroke_cutter";
+  ot->name = "Grease Pencil Trim";
+  ot->idname = "GREASE_PENCIL_OT_stroke_trim";
   ot->description = "Delete stroke points in between intersecting strokes";
 
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
-  ot->exec = grease_pencil_stroke_cutter;
+  ot->exec = grease_pencil_stroke_trim;
   ot->poll = grease_pencil_painting_poll;
   ot->cancel = WM_gesture_lasso_cancel;
 

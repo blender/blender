@@ -1183,7 +1183,7 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
   /* Use the first and last point. */
   const Vector<Vector<int>> point_selection = {{0, int(points.index_range().last())}};
   /* Trim the stroke ends by finding self intersections using the screen space positions. */
-  bke::CurvesGeometry stroke_trimmed = ed::greasepencil::cutter::trim_curve_segments(
+  bke::CurvesGeometry stroke_trimmed = ed::greasepencil::trim::trim_curve_segments(
       stroke,
       screen_space_positions,
       {screen_space_bounds},

@@ -73,7 +73,7 @@ void ED_primitivetool_modal_keymap(wmKeyConfig *keyconf);
 void ED_filltool_modal_keymap(wmKeyConfig *keyconf);
 void ED_interpolatetool_modal_keymap(wmKeyConfig *keyconf);
 
-void GREASE_PENCIL_OT_stroke_cutter(wmOperatorType *ot);
+void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot);
 
 void ED_undosys_type_grease_pencil(UndoType *undo_type);
 
@@ -821,14 +821,14 @@ bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
                                      GrainSize grain_size,
                                      eSelectOp sel_op);
 
-namespace cutter {
+namespace trim {
 bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         Span<float2> screen_space_positions,
                                         Span<rcti> screen_space_curve_bounds,
                                         const IndexMask &curve_selection,
                                         const Vector<Vector<int>> &selected_points_in_curves,
                                         bool keep_caps);
-};  // namespace cutter
+};  // namespace trim
 
 /* Lineart */
 

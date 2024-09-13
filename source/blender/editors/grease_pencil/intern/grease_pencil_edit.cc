@@ -3186,7 +3186,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_copy);
   WM_operatortype_append(GREASE_PENCIL_OT_paste);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_merge_by_distance);
-  WM_operatortype_append(GREASE_PENCIL_OT_stroke_cutter);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_trim);
   WM_operatortype_append(GREASE_PENCIL_OT_extrude);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_grid);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_cursor);

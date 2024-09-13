@@ -2052,7 +2052,7 @@ class _defs_grease_pencil_paint:
         ]
 
     @ToolDef.from_fn
-    def cutter():
+    def trim():
         def draw_settings(context, layout, _tool):
             brush = context.tool_settings.gpencil_paint.brush
             gp_settings = brush.gpencil_settings
@@ -2062,9 +2062,9 @@ class _defs_grease_pencil_paint:
             row.prop(gp_settings, "use_active_layer_only")
 
         return dict(
-            idname="builtin.cutter",
-            label="Cutter",
-            icon="ops.gpencil.stroke_cutter",
+            idname="builtin.trim",
+            label="Trim",
+            icon="ops.gpencil.stroke_trim",
             cursor='KNIFE',
             keymap=(),
             draw_settings=draw_settings,
@@ -3846,7 +3846,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_view3d_generic.cursor,
             None,
             _defs_grease_pencil_paint.generate_from_brushes,
-            _defs_grease_pencil_paint.cutter,
+            _defs_grease_pencil_paint.trim,
             None,
             _defs_grease_pencil_paint.eyedropper,
             None,
