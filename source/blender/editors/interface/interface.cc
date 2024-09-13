@@ -346,7 +346,7 @@ void ui_region_winrct_get_no_margin(const ARegion *region, rcti *r_rect)
 
 /* ******************* block calc ************************* */
 
-void UI_block_translate(uiBlock *block, int x, int y)
+void UI_block_translate(uiBlock *block, float x, float y)
 {
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     BLI_rctf_translate(&but->rect, x, y);
