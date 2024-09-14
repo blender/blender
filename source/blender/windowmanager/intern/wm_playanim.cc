@@ -89,8 +89,8 @@ static struct {
 static CLG_LogRef LOG = {"wm.playanim"};
 
 struct PlayState;
-static void playanim_window_zoom(PlayState *ps, const float zoom_offset);
-static bool playanim_window_font_scale_from_dpi(PlayState *ps);
+static void playanim_window_zoom(PlayState &ps, const float zoom_offset);
+static bool playanim_window_font_scale_from_dpi(PlayState &ps);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -192,7 +192,7 @@ struct PlayDisplayContext {
   /** Scale calculated from the DPI. */
   float ui_scale;
   /** Window & viewport size in pixels. */
-  int size[2];
+  blender::int2 size;
 };
 
 /**
@@ -250,7 +250,7 @@ struct PlayState {
   struct PlayAnimPict *picture;
 
   /** Image size in pixels, set once at the start. */
-  int ibuf_size[2];
+  blender::int2 ibuf_size;
   /** Mono-space font ID. */
   int font_id;
   int font_size;
@@ -269,30 +269,32 @@ struct PlayState {
 
 /* For debugging. */
 #if 0
-static void print_ps(PlayState *ps)
+static void print_ps(const PlayState &ps)
 {
   printf("ps:\n");
-  printf("    direction=%d,\n", int(ps->direction));
-  printf("    once=%d,\n", ps->once);
-  printf("    pingpong=%d,\n", ps->pingpong);
-  printf("    no_frame_skip=%d,\n", ps->no_frame_skip);
-  printf("    single_step=%d,\n", ps->single_step);
-  printf("    wait=%d,\n", ps->wait);
-  printf("    stopped=%d,\n", ps->stopped);
-  printf("    go=%d,\n\n", ps->go);
+  printf("    direction=%d,\n", int(ps.direction));
+  printf("    once=%d,\n", ps.once);
+  printf("    pingpong=%d,\n", ps.pingpong);
+  printf("    no_frame_skip=%d,\n", ps.no_frame_skip);
+  printf("    single_step=%d,\n", ps.single_step);
+  printf("    wait=%d,\n", ps.wait);
+  printf("    stopped=%d,\n", ps.stopped);
+  printf("    go=%d,\n\n", ps.go);
   fflush(stdout);
 }
 #endif
 
-static void playanim_window_get_size(GHOST_WindowHandle ghost_window, int *r_width, int *r_height)
+static blender::int2 playanim_window_size_get(GHOST_WindowHandle ghost_window)
 {
+  ;
   GHOST_RectangleHandle bounds = GHOST_GetClientBounds(ghost_window);
-  float native_pixel_size = GHOST_GetNativePixelSize(ghost_window);
-
-  *r_width = GHOST_GetWidthRectangle(bounds) * native_pixel_size;
-  *r_height = GHOST_GetHeightRectangle(bounds) * native_pixel_size;
-
+  const float native_pixel_size = GHOST_GetNativePixelSize(ghost_window);
+  const blender::int2 window_size = {
+      int(GHOST_GetWidthRectangle(bounds) * native_pixel_size),
+      int(GHOST_GetHeightRectangle(bounds) * native_pixel_size),
+  };
   GHOST_DisposeRectangle(bounds);
+  return window_size;
 }
 
 static void playanim_gpu_matrix()
@@ -303,30 +305,30 @@ static void playanim_gpu_matrix()
 }
 
 /* Implementation. */
-static void playanim_event_qual_update(GhostData *ghost_data)
+static void playanim_event_qual_update(GhostData &ghost_data)
 {
   bool val;
 
   /* Shift. */
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftShift, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LSHIFT);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyLeftShift, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_LSHIFT);
 
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightShift, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RSHIFT);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyRightShift, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_RSHIFT);
 
   /* Control. */
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftControl, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LCTRL);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyLeftControl, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_LCTRL);
 
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightControl, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RCTRL);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyRightControl, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_RCTRL);
 
   /* Alt. */
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftAlt, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LALT);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyLeftAlt, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_LALT);
 
-  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightAlt, &val);
-  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RALT);
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyRightAlt, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_RALT);
 }
 
 struct PlayAnimPict {
@@ -495,7 +497,7 @@ static int pupdate_time()
   return (g_playanim.total_time < 0.0);
 }
 
-static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
+static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
                                  ImBuf *ibuf,
                                  bool *r_glsl_used,
                                  eGPUTextureFormat *r_format,
@@ -530,8 +532,8 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
     }
 
     if (ibuf->float_buffer.colorspace) {
-      *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&display_ctx->view_settings,
-                                                                    &display_ctx->display_settings,
+      *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&display_ctx.view_settings,
+                                                                    &display_ctx.display_settings,
                                                                     ibuf->float_buffer.colorspace,
                                                                     ibuf->dither,
                                                                     false,
@@ -539,13 +541,13 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
     }
     else {
       *r_glsl_used = IMB_colormanagement_setup_glsl_draw(
-          &display_ctx->view_settings, &display_ctx->display_settings, ibuf->dither, false);
+          &display_ctx.view_settings, &display_ctx.display_settings, ibuf->dither, false);
     }
   }
   else if (ibuf->byte_buffer.data) {
     display_buffer = ibuf->byte_buffer.data;
-    *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&display_ctx->view_settings,
-                                                                  &display_ctx->display_settings,
+    *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&display_ctx.view_settings,
+                                                                  &display_ctx.display_settings,
                                                                   ibuf->byte_buffer.colorspace,
                                                                   ibuf->dither,
                                                                   false,
@@ -559,7 +561,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
    * properly, in this case we fallback to CPU-based display transform. */
   if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire(
-        ibuf, &display_ctx->view_settings, &display_ctx->display_settings, r_buffer_cache_handle);
+        ibuf, &display_ctx.view_settings, &display_ctx.display_settings, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;
     *r_data = GPU_DATA_UBYTE;
   }
@@ -567,7 +569,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
   return display_buffer;
 }
 
-static void draw_display_buffer(const PlayDisplayContext *display_ctx,
+static void draw_display_buffer(const PlayDisplayContext &display_ctx,
                                 ImBuf *ibuf,
                                 const rctf *canvas,
                                 const bool draw_flip[2])
@@ -652,8 +654,8 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
  * \param draw_flip: X/Y flipping (ignored when null).
  * \param frame_indicator_factor: Display a vertical frame-indicator (ignored when -1).
  */
-static void playanim_toscreen_ex(GhostData *ghost_data,
-                                 const PlayDisplayContext *display_ctx,
+static void playanim_toscreen_ex(GhostData &ghost_data,
+                                 const PlayDisplayContext &display_ctx,
                                  const PlayAnimPict *picture,
                                  ImBuf *ibuf,
                                  /* Run-time drawing arguments (not used on-load). */
@@ -663,11 +665,11 @@ static void playanim_toscreen_ex(GhostData *ghost_data,
                                  const bool draw_flip[2],
                                  const float frame_indicator_factor)
 {
-  GHOST_ActivateWindowDrawingContext(ghost_data->window);
+  GHOST_ActivateWindowDrawingContext(ghost_data.window);
   GPU_render_begin();
 
   GPUContext *restore_context = GPU_context_active_get();
-  GPU_context_active_set(ghost_data->gpu_context);
+  GPU_context_active_set(ghost_data.gpu_context);
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -675,8 +677,8 @@ static void playanim_toscreen_ex(GhostData *ghost_data,
    * if it does, this function displays a warning along with the file-path that failed. */
   if (ibuf) {
     /* Size within window. */
-    float span_x = (draw_zoom * ibuf->x) / float(display_ctx->size[0]);
-    float span_y = (draw_zoom * ibuf->y) / float(display_ctx->size[1]);
+    float span_x = (draw_zoom * ibuf->x) / float(display_ctx.size[0]);
+    float span_y = (draw_zoom * ibuf->y) / float(display_ctx.size[1]);
 
     /* Offset within window. */
     float offs_x = 0.5f * (1.0f - span_x);
@@ -708,8 +710,7 @@ static void playanim_toscreen_ex(GhostData *ghost_data,
   pupdate_time();
 
   if ((font_id != -1) && picture) {
-    const int font_margin = int(10 * display_ctx->ui_scale);
-    int sizex, sizey;
+    const int font_margin = int(10 * display_ctx.ui_scale);
     float fsizex_inv, fsizey_inv;
     char label[32 + FILE_MAX];
     if (ibuf) {
@@ -722,9 +723,9 @@ static void playanim_toscreen_ex(GhostData *ghost_data,
                picture->error_message ? picture->error_message : "<unknown error>");
     }
 
-    playanim_window_get_size(ghost_data->window, &sizex, &sizey);
-    fsizex_inv = 1.0f / sizex;
-    fsizey_inv = 1.0f / sizey;
+    const blender::int2 window_size = playanim_window_size_get(ghost_data.window);
+    fsizex_inv = 1.0f / window_size[0];
+    fsizey_inv = 1.0f / window_size[1];
 
     BLF_color4f(font_id, 1.0, 1.0, 1.0, 1.0);
 
@@ -775,13 +776,13 @@ static void playanim_toscreen_ex(GhostData *ghost_data,
     GPU_flush();
   }
 
-  GHOST_SwapWindowBuffers(ghost_data->window);
+  GHOST_SwapWindowBuffers(ghost_data.window);
   GPU_context_active_set(restore_context);
   GPU_render_end();
 }
 
-static void playanim_toscreen_on_load(GhostData *ghost_data,
-                                      const PlayDisplayContext *display_ctx,
+static void playanim_toscreen_on_load(GhostData &ghost_data,
+                                      const PlayDisplayContext &display_ctx,
                                       const PlayAnimPict *picture,
                                       ImBuf *ibuf)
 {
@@ -802,44 +803,44 @@ static void playanim_toscreen_on_load(GhostData *ghost_data,
                        frame_indicator_factor);
 }
 
-static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf *ibuf)
+static void playanim_toscreen(PlayState &ps, const PlayAnimPict *picture, ImBuf *ibuf)
 {
   float frame_indicator_factor = -1.0f;
-  if (ps->show_frame_indicator) {
-    const int frame_range = static_cast<const PlayAnimPict *>(ps->picsbase.last)->frame -
-                            static_cast<const PlayAnimPict *>(ps->picsbase.first)->frame;
+  if (ps.show_frame_indicator) {
+    const int frame_range = static_cast<const PlayAnimPict *>(ps.picsbase.last)->frame -
+                            static_cast<const PlayAnimPict *>(ps.picsbase.first)->frame;
     if (frame_range > 0) {
       frame_indicator_factor = float(double(picture->frame) / double(frame_range));
     }
     else {
-      BLI_assert_msg(BLI_listbase_is_single(&ps->picsbase),
+      BLI_assert_msg(BLI_listbase_is_single(&ps.picsbase),
                      "Multiple frames without a valid range!");
     }
   }
 
   int font_id = -1;
-  if ((ps->ghost_data.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) ||
+  if ((ps.ghost_data.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) ||
       /* Always inform the user of an error, this should be an exceptional case. */
       (ibuf == nullptr))
   {
-    font_id = ps->font_id;
+    font_id = ps.font_id;
   }
 
-  BLI_assert(ps->loading == false);
-  playanim_toscreen_ex(&ps->ghost_data,
-                       &ps->display_ctx,
+  BLI_assert(ps.loading == false);
+  playanim_toscreen_ex(ps.ghost_data,
+                       ps.display_ctx,
                        picture,
                        ibuf,
                        font_id,
-                       ps->frame_step,
-                       ps->zoom,
-                       ps->draw_flip,
+                       ps.frame_step,
+                       ps.zoom,
+                       ps.draw_flip,
                        frame_indicator_factor);
 }
 
-static void build_pict_list_from_anim(ListBase *picsbase,
-                                      GhostData *ghost_data,
-                                      const PlayDisplayContext *display_ctx,
+static void build_pict_list_from_anim(ListBase &picsbase,
+                                      GhostData &ghost_data,
+                                      const PlayDisplayContext &display_ctx,
                                       const char *filepath_first,
                                       const int frame_offset)
 {
@@ -862,19 +863,19 @@ static void build_pict_list_from_anim(ListBase *picsbase,
     picture->frame = pic + frame_offset;
     picture->IB_flags = IB_rect;
     picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
-    BLI_addtail(picsbase, picture);
+    BLI_addtail(&picsbase, picture);
   }
 
-  const PlayAnimPict *picture = static_cast<const PlayAnimPict *>(picsbase->last);
+  const PlayAnimPict *picture = static_cast<const PlayAnimPict *>(picsbase.last);
   if (!(picture && picture->anim == anim)) {
     IMB_close_anim(anim);
     CLOG_WARN(&LOG, "no frames added for: '%s'", filepath_first);
   }
 }
 
-static void build_pict_list_from_image_sequence(ListBase *picsbase,
-                                                GhostData *ghost_data,
-                                                const PlayDisplayContext *display_ctx,
+static void build_pict_list_from_image_sequence(ListBase &picsbase,
+                                                GhostData &ghost_data,
+                                                const PlayDisplayContext &display_ctx,
                                                 const char *filepath_first,
                                                 const int frame_offset,
                                                 const int totframes,
@@ -933,7 +934,7 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
     picture->filepath = BLI_strdup(filepath);
     picture->error_message = error_message;
     picture->frame = pic + frame_offset;
-    BLI_addtail(picsbase, picture);
+    BLI_addtail(&picsbase, picture);
 
     pupdate_time();
 
@@ -981,8 +982,8 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
                              fp_decoded.digits,
                              fp_framenr);
 
-    while (GHOST_ProcessEvents(ghost_data->system, false)) {
-      GHOST_DispatchEvents(ghost_data->system);
+    while (GHOST_ProcessEvents(ghost_data.system, false)) {
+      GHOST_DispatchEvents(ghost_data.system);
       if (*loading_p == false) {
         break;
       }
@@ -990,9 +991,9 @@ static void build_pict_list_from_image_sequence(ListBase *picsbase,
   }
 }
 
-static void build_pict_list(ListBase *picsbase,
-                            GhostData *ghost_data,
-                            const PlayDisplayContext *display_ctx,
+static void build_pict_list(ListBase &picsbase,
+                            GhostData &ghost_data,
+                            const PlayDisplayContext &display_ctx,
                             const char *filepath_first,
                             const int totframes,
                             const int frame_step,
@@ -1004,14 +1005,14 @@ static void build_pict_list(ListBase *picsbase,
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */
-  const PlayAnimPict *picture_last = static_cast<PlayAnimPict *>(picsbase->last);
+  const PlayAnimPict *picture_last = static_cast<PlayAnimPict *>(picsbase.last);
   const int frame_offset = picture_last ? (picture_last->frame + 1) : 0;
 
   bool do_image_load = false;
   if (IMB_isanim(filepath_first)) {
     build_pict_list_from_anim(picsbase, ghost_data, display_ctx, filepath_first, frame_offset);
 
-    if (picsbase->last == picture_last) {
+    if (picsbase.last == picture_last) {
       /* FFMPEG detected JPEG2000 as a video which would load with zero duration.
        * Resolve this by using images as a fallback when a video file has no frames to display. */
       do_image_load = true;
@@ -1047,27 +1048,27 @@ static void update_sound_fps()
 #endif
 }
 
-static void playanim_change_frame_tag(PlayState *ps, int cx)
+static void playanim_change_frame_tag(PlayState &ps, int cx)
 {
-  ps->need_frame_update = true;
-  ps->frame_cursor_x = cx;
+  ps.need_frame_update = true;
+  ps.frame_cursor_x = cx;
 }
 
-static void playanim_change_frame(PlayState *ps)
+static void playanim_change_frame(PlayState &ps)
 {
-  if (!ps->need_frame_update) {
+  if (!ps.need_frame_update) {
     return;
   }
-  if (BLI_listbase_is_empty(&ps->picsbase)) {
+  if (BLI_listbase_is_empty(&ps.picsbase)) {
     return;
   }
 
-  int sizex, sizey;
-  playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
-  const int i_last = static_cast<PlayAnimPict *>(ps->picsbase.last)->frame;
+  const blender::int2 window_size = playanim_window_size_get(ps.ghost_data.window);
+  const int i_last = static_cast<PlayAnimPict *>(ps.picsbase.last)->frame;
   /* Without this the frame-indicator location isn't closest to the cursor. */
-  const int correct_rounding = (sizex / (i_last + 1)) / 2;
-  const int i = clamp_i((i_last * (ps->frame_cursor_x + correct_rounding)) / sizex, 0, i_last);
+  const int correct_rounding = (window_size[0] / (i_last + 1)) / 2;
+  const int i = clamp_i(
+      (i_last * (ps.frame_cursor_x + correct_rounding)) / window_size[0], 0, i_last);
 
 #ifdef WITH_AUDASPACE
   if (g_audaspace.scrub_handle) {
@@ -1105,21 +1106,21 @@ static void playanim_change_frame(PlayState *ps)
   }
 #endif
 
-  ps->picture = static_cast<PlayAnimPict *>(BLI_findlink(&ps->picsbase, i));
-  BLI_assert(ps->picture != nullptr);
+  ps.picture = static_cast<PlayAnimPict *>(BLI_findlink(&ps.picsbase, i));
+  BLI_assert(ps.picture != nullptr);
 
-  ps->single_step = true;
-  ps->wait = false;
-  ps->next_frame = 0;
+  ps.single_step = true;
+  ps.wait = false;
+  ps.next_frame = 0;
 
-  ps->need_frame_update = false;
+  ps.need_frame_update = false;
 }
 
-static void playanim_audio_resume(PlayState *ps)
+static void playanim_audio_resume(PlayState &ps)
 {
 #ifdef WITH_AUDASPACE
   /* TODO: store in ps direct? */
-  const int i = BLI_findindex(&ps->picsbase, ps->picture);
+  const int i = BLI_findindex(&ps.picsbase, ps.picture);
   if (g_audaspace.playback_handle) {
     AUD_Handle_stop(g_audaspace.playback_handle);
   }
@@ -1133,7 +1134,7 @@ static void playanim_audio_resume(PlayState *ps)
 #endif
 }
 
-static void playanim_audio_stop(PlayState * /*ps*/)
+static void playanim_audio_stop(PlayState & /*ps*/)
 {
 #ifdef WITH_AUDASPACE
   if (g_audaspace.playback_handle) {
@@ -1145,27 +1146,27 @@ static void playanim_audio_stop(PlayState * /*ps*/)
 
 static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr ps_void_ptr)
 {
-  PlayState *ps = static_cast<PlayState *>(ps_void_ptr);
+  PlayState &ps = *static_cast<PlayState *>(ps_void_ptr);
   const GHOST_TEventType type = GHOST_GetEventType(ghost_event);
   GHOST_TEventDataPtr data = GHOST_GetEventData(ghost_event);
   /* Convert ghost event into value keyboard or mouse. */
   const int val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
-  GHOST_SystemHandle ghost_system = ps->ghost_data.system;
-  GHOST_WindowHandle ghost_window = ps->ghost_data.window;
+  GHOST_SystemHandle ghost_system = ps.ghost_data.system;
+  GHOST_WindowHandle ghost_window = ps.ghost_data.window;
 
   // print_ps(ps);
 
-  playanim_event_qual_update(&ps->ghost_data);
+  playanim_event_qual_update(ps.ghost_data);
 
   /* First check if we're busy loading files. */
-  if (ps->loading) {
+  if (ps.loading) {
     switch (type) {
       case GHOST_kEventKeyDown:
       case GHOST_kEventKeyUp: {
         const GHOST_TEventKeyData *key_data = static_cast<const GHOST_TEventKeyData *>(data);
         switch (key_data->key) {
           case GHOST_kKeyEsc:
-            ps->loading = false;
+            ps.loading = false;
             break;
           default:
             break;
@@ -1178,11 +1179,11 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
     return true;
   }
 
-  if (ps->wait && ps->stopped == false) {
-    ps->stopped = true;
+  if (ps.wait && ps.stopped == false) {
+    ps.stopped = true;
   }
 
-  if (ps->wait) {
+  if (ps.wait) {
     pupdate_time();
     g_playanim.total_time = 0.0;
   }
@@ -1194,149 +1195,149 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
       switch (key_data->key) {
         case GHOST_kKeyA:
           if (val) {
-            ps->no_frame_skip = !ps->no_frame_skip;
+            ps.no_frame_skip = !ps.no_frame_skip;
           }
           break;
         case GHOST_kKeyI:
           if (val) {
-            ps->show_frame_indicator = !ps->show_frame_indicator;
+            ps.show_frame_indicator = !ps.show_frame_indicator;
           }
           break;
         case GHOST_kKeyP:
           if (val) {
-            ps->pingpong = !ps->pingpong;
+            ps.pingpong = !ps.pingpong;
           }
           break;
         case GHOST_kKeyF: {
           if (val) {
-            int axis = (ps->ghost_data.qual & WS_QUAL_SHIFT) ? 1 : 0;
-            ps->draw_flip[axis] = !ps->draw_flip[axis];
+            int axis = (ps.ghost_data.qual & WS_QUAL_SHIFT) ? 1 : 0;
+            ps.draw_flip[axis] = !ps.draw_flip[axis];
           }
           break;
         }
         case GHOST_kKey1:
         case GHOST_kKeyNumpad1:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 60.0;
+            g_playanim.swap_time = ps.frame_step / 60.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey2:
         case GHOST_kKeyNumpad2:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 50.0;
+            g_playanim.swap_time = ps.frame_step / 50.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey3:
         case GHOST_kKeyNumpad3:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 30.0;
+            g_playanim.swap_time = ps.frame_step / 30.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey4:
         case GHOST_kKeyNumpad4:
-          if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-            g_playanim.swap_time = ps->frame_step / 24.0;
+          if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+            g_playanim.swap_time = ps.frame_step / 24.0;
             update_sound_fps();
           }
           else {
-            g_playanim.swap_time = ps->frame_step / 25.0;
+            g_playanim.swap_time = ps.frame_step / 25.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey5:
         case GHOST_kKeyNumpad5:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 20.0;
+            g_playanim.swap_time = ps.frame_step / 20.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey6:
         case GHOST_kKeyNumpad6:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 15.0;
+            g_playanim.swap_time = ps.frame_step / 15.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey7:
         case GHOST_kKeyNumpad7:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 12.0;
+            g_playanim.swap_time = ps.frame_step / 12.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey8:
         case GHOST_kKeyNumpad8:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 10.0;
+            g_playanim.swap_time = ps.frame_step / 10.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKey9:
         case GHOST_kKeyNumpad9:
           if (val) {
-            g_playanim.swap_time = ps->frame_step / 6.0;
+            g_playanim.swap_time = ps.frame_step / 6.0;
             update_sound_fps();
           }
           break;
         case GHOST_kKeyLeftArrow:
           if (val) {
-            ps->single_step = true;
-            ps->wait = false;
+            ps.single_step = true;
+            ps.wait = false;
             playanim_audio_stop(ps);
 
-            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->picture = static_cast<PlayAnimPict *>(ps->picsbase.first);
-              ps->next_frame = 0;
+            if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+              ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.first);
+              ps.next_frame = 0;
             }
             else {
-              ps->next_frame = -1;
+              ps.next_frame = -1;
             }
           }
           break;
         case GHOST_kKeyDownArrow:
           if (val) {
-            ps->wait = false;
+            ps.wait = false;
             playanim_audio_stop(ps);
 
-            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->next_frame = ps->direction = -1;
+            if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+              ps.next_frame = ps.direction = -1;
             }
             else {
-              ps->next_frame = -10;
-              ps->single_step = true;
+              ps.next_frame = -10;
+              ps.single_step = true;
             }
           }
           break;
         case GHOST_kKeyRightArrow:
           if (val) {
-            ps->single_step = true;
-            ps->wait = false;
+            ps.single_step = true;
+            ps.wait = false;
             playanim_audio_stop(ps);
 
-            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->picture = static_cast<PlayAnimPict *>(ps->picsbase.last);
-              ps->next_frame = 0;
+            if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+              ps.picture = static_cast<PlayAnimPict *>(ps.picsbase.last);
+              ps.next_frame = 0;
             }
             else {
-              ps->next_frame = 1;
+              ps.next_frame = 1;
             }
           }
           break;
         case GHOST_kKeyUpArrow:
           if (val) {
-            ps->wait = false;
-            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              ps->next_frame = ps->direction = 1;
-              if (ps->single_step == false) {
+            ps.wait = false;
+            if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+              ps.next_frame = ps.direction = 1;
+              if (ps.single_step == false) {
                 playanim_audio_resume(ps);
               }
             }
             else {
-              ps->next_frame = 10;
-              ps->single_step = true;
+              ps.next_frame = 10;
+              ps.single_step = true;
               playanim_audio_stop(ps);
             }
           }
@@ -1345,15 +1346,15 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
         case GHOST_kKeySlash:
         case GHOST_kKeyNumpadSlash:
           if (val) {
-            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
-              if (ps->picture && ps->picture->ibuf) {
+            if (ps.ghost_data.qual & WS_QUAL_SHIFT) {
+              if (ps.picture && ps.picture->ibuf) {
                 printf(" Name: %s | Speed: %.2f frames/s\n",
-                       ps->picture->ibuf->filepath,
-                       ps->frame_step / g_playanim.swap_time);
+                       ps.picture->ibuf->filepath,
+                       ps.frame_step / g_playanim.swap_time);
               }
             }
             else {
-              g_playanim.swap_time = ps->frame_step / 5.0;
+              g_playanim.swap_time = ps.frame_step / 5.0;
               update_sound_fps();
             }
           }
@@ -1361,26 +1362,26 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
         case GHOST_kKey0:
         case GHOST_kKeyNumpad0:
           if (val) {
-            if (ps->once) {
-              ps->once = ps->wait = false;
+            if (ps.once) {
+              ps.once = ps.wait = false;
             }
             else {
-              ps->picture = nullptr;
-              ps->once = true;
-              ps->wait = false;
+              ps.picture = nullptr;
+              ps.once = true;
+              ps.wait = false;
             }
           }
           break;
 
         case GHOST_kKeySpace:
           if (val) {
-            if (ps->wait || ps->single_step) {
-              ps->wait = ps->single_step = false;
+            if (ps.wait || ps.single_step) {
+              ps.wait = ps.single_step = false;
               playanim_audio_resume(ps);
             }
             else {
-              ps->single_step = true;
-              ps->wait = true;
+              ps.single_step = true;
+              ps.wait = true;
               playanim_audio_stop(ps);
             }
           }
@@ -1388,19 +1389,19 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
         case GHOST_kKeyEnter:
         case GHOST_kKeyNumpadEnter:
           if (val) {
-            ps->wait = ps->single_step = false;
+            ps.wait = ps.single_step = false;
             playanim_audio_resume(ps);
           }
           break;
         case GHOST_kKeyPeriod:
         case GHOST_kKeyNumpadPeriod:
           if (val) {
-            if (ps->single_step) {
-              ps->wait = false;
+            if (ps.single_step) {
+              ps.wait = false;
             }
             else {
-              ps->single_step = true;
-              ps->wait = !ps->wait;
+              ps.single_step = true;
+              ps.wait = !ps.wait;
               playanim_audio_stop(ps);
             }
           }
@@ -1411,11 +1412,11 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
           if (val == 0) {
             break;
           }
-          if (ps->ghost_data.qual & WS_QUAL_CTRL) {
+          if (ps.ghost_data.qual & WS_QUAL_CTRL) {
             playanim_window_zoom(ps, 0.1f);
           }
           else {
-            if (g_playanim.swap_time > ps->frame_step / 60.0) {
+            if (g_playanim.swap_time > ps.frame_step / 60.0) {
               g_playanim.swap_time /= 1.1;
               update_sound_fps();
             }
@@ -1427,11 +1428,11 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
           if (val == 0) {
             break;
           }
-          if (ps->ghost_data.qual & WS_QUAL_CTRL) {
+          if (ps.ghost_data.qual & WS_QUAL_CTRL) {
             playanim_window_zoom(ps, -0.1f);
           }
           else {
-            if (g_playanim.swap_time < ps->frame_step / 5.0) {
+            if (g_playanim.swap_time < ps.frame_step / 5.0) {
               g_playanim.swap_time *= 1.1;
               update_sound_fps();
             }
@@ -1439,7 +1440,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
           break;
         }
         case GHOST_kKeyEsc:
-          ps->go = false;
+          ps.go = false;
           break;
         default:
           break;
@@ -1449,48 +1450,49 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
       const GHOST_TEventButtonData *bd = static_cast<const GHOST_TEventButtonData *>(data);
-      int cx, cy, sizex, sizey;
-      playanim_window_get_size(ghost_window, &sizex, &sizey);
+      int cx, cy;
+      const blender::int2 window_size = playanim_window_size_get(ghost_window);
 
       const bool inside_window = (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) ==
                                   GHOST_kSuccess) &&
-                                 (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
+                                 (cx >= 0 && cx < window_size[0] && cy >= 0 &&
+                                  cy <= window_size[1]);
 
       if (bd->button == GHOST_kButtonMaskLeft) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            ps->ghost_data.qual |= WS_QUAL_LMOUSE;
+            ps.ghost_data.qual |= WS_QUAL_LMOUSE;
             playanim_change_frame_tag(ps, cx);
           }
         }
         else {
-          ps->ghost_data.qual &= ~WS_QUAL_LMOUSE;
+          ps.ghost_data.qual &= ~WS_QUAL_LMOUSE;
         }
       }
       else if (bd->button == GHOST_kButtonMaskMiddle) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            ps->ghost_data.qual |= WS_QUAL_MMOUSE;
+            ps.ghost_data.qual |= WS_QUAL_MMOUSE;
           }
         }
         else {
-          ps->ghost_data.qual &= ~WS_QUAL_MMOUSE;
+          ps.ghost_data.qual &= ~WS_QUAL_MMOUSE;
         }
       }
       else if (bd->button == GHOST_kButtonMaskRight) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            ps->ghost_data.qual |= WS_QUAL_RMOUSE;
+            ps.ghost_data.qual |= WS_QUAL_RMOUSE;
           }
         }
         else {
-          ps->ghost_data.qual &= ~WS_QUAL_RMOUSE;
+          ps.ghost_data.qual &= ~WS_QUAL_RMOUSE;
         }
       }
       break;
     }
     case GHOST_kEventCursorMove: {
-      if (ps->ghost_data.qual & WS_QUAL_LMOUSE) {
+      if (ps.ghost_data.qual & WS_QUAL_LMOUSE) {
         const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(data);
         int cx, cy;
 
@@ -1515,36 +1517,36 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
     }
     case GHOST_kEventWindowActivate:
     case GHOST_kEventWindowDeactivate: {
-      ps->ghost_data.qual &= ~WS_QUAL_MOUSE;
+      ps.ghost_data.qual &= ~WS_QUAL_MOUSE;
       break;
     }
     case GHOST_kEventWindowSize:
     case GHOST_kEventWindowMove: {
       float zoomx, zoomy;
 
-      playanim_window_get_size(ghost_window, &ps->display_ctx.size[0], &ps->display_ctx.size[1]);
+      ps.display_ctx.size = playanim_window_size_get(ghost_window);
       GHOST_ActivateWindowDrawingContext(ghost_window);
 
-      zoomx = float(ps->display_ctx.size[0]) / ps->ibuf_size[0];
-      zoomy = float(ps->display_ctx.size[1]) / ps->ibuf_size[1];
+      zoomx = float(ps.display_ctx.size[0]) / ps.ibuf_size[0];
+      zoomy = float(ps.display_ctx.size[1]) / ps.ibuf_size[1];
 
       /* Zoom always show entire image. */
-      ps->zoom = std::min(zoomx, zoomy);
+      ps.zoom = std::min(zoomx, zoomy);
 
-      GPU_viewport(0, 0, ps->display_ctx.size[0], ps->display_ctx.size[1]);
-      GPU_scissor(0, 0, ps->display_ctx.size[0], ps->display_ctx.size[1]);
+      GPU_viewport(0, 0, ps.display_ctx.size[0], ps.display_ctx.size[1]);
+      GPU_scissor(0, 0, ps.display_ctx.size[0], ps.display_ctx.size[1]);
 
       playanim_gpu_matrix();
 
       g_playanim.total_time = 0.0;
 
-      playanim_toscreen(ps, ps->picture, ps->picture ? ps->picture->ibuf : nullptr);
+      playanim_toscreen(ps, ps.picture, ps.picture ? ps.picture->ibuf : nullptr);
 
       break;
     }
     case GHOST_kEventQuitRequest:
     case GHOST_kEventWindowClose: {
-      ps->go = false;
+      ps.go = false;
       break;
     }
     case GHOST_kEventWindowDPIHintChanged: {
@@ -1557,14 +1559,13 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
 
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
         const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
-        ps->argc_next = stra->count;
-        ps->argv_next = static_cast<char **>(
-            MEM_mallocN(sizeof(char **) * ps->argc_next, __func__));
+        ps.argc_next = stra->count;
+        ps.argv_next = static_cast<char **>(MEM_mallocN(sizeof(char **) * ps.argc_next, __func__));
         for (int i = 0; i < stra->count; i++) {
-          ps->argv_next[i] = BLI_strdup(reinterpret_cast<const char *>(stra->strings[i]));
+          ps.argv_next[i] = BLI_strdup(reinterpret_cast<const char *>(stra->strings[i]));
         }
-        ps->go = false;
-        printf("dropped %s, %d file(s)\n", ps->argv_next[0], ps->argc_next);
+        ps.go = false;
+        printf("dropped %s, %d file(s)\n", ps.argv_next[0], ps.argc_next);
       }
       break;
     }
@@ -1639,40 +1640,40 @@ static GHOST_WindowHandle playanim_window_open(
                             gpusettings);
 }
 
-static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
+static void playanim_window_zoom(PlayState &ps, const float zoom_offset)
 {
-  int size[2];
-  // int ofs[2]; /* UNUSED. */
+  blender::int2 size;
+  // blender::int2 ofs; /* UNUSED. */
 
-  if (ps->zoom + zoom_offset > 0.0f) {
-    ps->zoom += zoom_offset;
+  if (ps.zoom + zoom_offset > 0.0f) {
+    ps.zoom += zoom_offset;
   }
 
   // playanim_window_get_position(&ofs[0], &ofs[1]);
-  // playanim_window_get_size(ps->ghost_data.window, &size[0], &size[1]);
+  // size = playanim_window_size_get(ps.ghost_data.window);
   // ofs[0] += size[0] / 2; /* UNUSED. */
   // ofs[1] += size[1] / 2; /* UNUSED. */
-  size[0] = ps->zoom * ps->ibuf_size[0];
-  size[1] = ps->zoom * ps->ibuf_size[1];
+  size[0] = ps.zoom * ps.ibuf_size[0];
+  size[1] = ps.zoom * ps.ibuf_size[1];
   // ofs[0] -= size[0] / 2; /* UNUSED. */
   // ofs[1] -= size[1] / 2; /* UNUSED. */
-  // window_set_position(ps->ghost_data.window, size[0], size[1]);
-  GHOST_SetClientSize(ps->ghost_data.window, size[0], size[1]);
+  // window_set_position(ps.ghost_data.window, size[0], size[1]);
+  GHOST_SetClientSize(ps.ghost_data.window, size[0], size[1]);
 }
 
-static bool playanim_window_font_scale_from_dpi(PlayState *ps)
+static bool playanim_window_font_scale_from_dpi(PlayState &ps)
 {
-  const float scale = (GHOST_GetDPIHint(ps->ghost_data.window) / 96.0f);
+  const float scale = (GHOST_GetDPIHint(ps.ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
   const int font_size = int(font_size_base * scale) + 0.5f;
   bool changed = false;
-  if (ps->font_size != font_size) {
-    BLF_size(ps->font_id, font_size);
-    ps->font_size = font_size;
+  if (ps.font_size != font_size) {
+    BLF_size(ps.font_id, font_size);
+    ps.font_size = font_size;
     changed = true;
   }
-  if (ps->display_ctx.ui_scale != scale) {
-    ps->display_ctx.ui_scale = scale;
+  if (ps.display_ctx.ui_scale != scale) {
+    ps.display_ctx.ui_scale = scale;
   }
   return changed;
 }
@@ -1684,7 +1685,7 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps)
 static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_next)
 {
   ImBuf *ibuf = nullptr;
-  int window_pos[2] = {0, 0};
+  blender::int2 window_pos = {0, 0};
   int frame_start = -1;
   int frame_end = -1;
 
@@ -1871,21 +1872,19 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   ps.font_id = BLF_load_mono_default(false);
 
   ps.font_size = -1; /* Force update. */
-  playanim_window_font_scale_from_dpi(&ps);
+  playanim_window_font_scale_from_dpi(ps);
 
   ps.ibuf_size[0] = ibuf->x;
   ps.ibuf_size[1] = ibuf->y;
 
-  ps.display_ctx.size[0] = ps.ibuf_size[0];
-  ps.display_ctx.size[1] = ps.ibuf_size[1];
+  ps.display_ctx.size = ps.ibuf_size;
 
   GPU_render_begin();
   GPU_render_step();
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
   {
-    int window_size[2];
-    playanim_window_get_size(ps.ghost_data.window, &window_size[0], &window_size[1]);
+    const blender::int2 window_size = playanim_window_size_get(ps.ghost_data.window);
     GPU_viewport(0, 0, window_size[0], window_size[1]);
     GPU_scissor(0, 0, window_size[0], window_size[1]);
     playanim_gpu_matrix();
@@ -1909,9 +1908,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     }
   }
 
-  build_pict_list(&ps.picsbase,
-                  &ps.ghost_data,
-                  &ps.display_ctx,
+  build_pict_list(ps.picsbase,
+                  ps.ghost_data,
+                  ps.display_ctx,
                   filepath,
                   (frame_end - frame_start) + 1,
                   ps.frame_step,
@@ -1936,9 +1935,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   for (int i = 1; i < argc; i++) {
     filepath = argv[i];
-    build_pict_list(&ps.picsbase,
-                    &ps.ghost_data,
-                    &ps.display_ctx,
+    build_pict_list(ps.picsbase,
+                    ps.ghost_data,
+                    ps.display_ctx,
                     filepath,
                     (frame_end - frame_start) + 1,
                     ps.frame_step,
@@ -2027,7 +2026,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
           BLI_time_sleep_ms(1);
         }
         g_playanim.total_time -= g_playanim.swap_time;
-        playanim_toscreen(&ps, ps.picture, ibuf);
+        playanim_toscreen(ps, ps.picture, ibuf);
       }
 
       if (ps.once) {
@@ -2053,7 +2052,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       if (ps.go == false) {
         break;
       }
-      playanim_change_frame(&ps);
+      playanim_change_frame(ps);
       if (!has_event) {
         BLI_time_sleep_ms(1);
       }
