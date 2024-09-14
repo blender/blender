@@ -103,7 +103,7 @@ static void md5_process_block(const void *buffer, size_t len, md5_ctx *ctx)
  * RFC 1321. The first function is a little bit optimized
  * (as found in Colin Plumbs public domain implementation).
  */
-/* #define FF(b, c, d) ((b & c) | (~b & d)) */
+// #define FF(b, c, d) ((b & c) | (~b & d))
 #define FF(b, c, d) (d ^ (b & (c ^ d)))
 #define FG(b, c, d) FF(d, b, c)
 #define FH(b, c, d) (b ^ c ^ d)

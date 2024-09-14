@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 
-/* #define VERBOSE */
+// #define VERBOSE
 
 #define STRPREFIX(a, b) (strncmp((a), (b), strlen(b)) == 0)
 
