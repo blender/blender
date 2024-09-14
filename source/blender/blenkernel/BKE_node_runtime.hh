@@ -82,6 +82,16 @@ struct NodeLinkError {
   std::string tooltip;
 };
 
+struct LoggedZoneGraphs {
+  std::mutex mutex;
+  /**
+   * Technically there can be more than one graph per zone because the zone can be invoked in
+   * different contexts. However, for the purpose of logging here, we only need one at a time
+   * anyway.
+   */
+  Map<int, std::string> graph_by_zone_id;
+};
+
 /**
  * Runtime data for #bNodeTree from the perspective of execution instructions (rather than runtime
  * data from evaluation of the node tree). Evaluation data is not the responsibility of the node
@@ -113,6 +123,9 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * Store a state variable in the #NestedTreePreviews structure to compare if they differ.
    */
   uint32_t previews_refresh_state = 0;
+
+  /** Allows logging zone graphs purely for debugging purposes. */
+  std::unique_ptr<LoggedZoneGraphs> logged_zone_graphs;
 
   /**
    * Storage of nodes based on their identifier. Also used as a contiguous array of nodes to
