@@ -547,9 +547,8 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
                              false);
   this->normals_dirty_.resize(std::max(this->normals_dirty_.size(), node_mask.min_array_size()),
                               false);
-  /* TODO: Use `to_bools` with first clear disabled. */
-  node_mask.foreach_index_optimized<int>([&](const int i) { this->bounds_dirty_[i].set(); });
-  node_mask.foreach_index_optimized<int>([&](const int i) { this->normals_dirty_[i].set(); });
+  node_mask.set_bits(this->bounds_dirty_);
+  node_mask.set_bits(this->normals_dirty_);
   if (this->draw_data) {
     this->draw_data->tag_positions_changed(node_mask);
   }

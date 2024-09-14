@@ -193,8 +193,7 @@ class DrawCacheImpl : public DrawCache {
 void DrawCacheImpl::AttributeData::tag_dirty(const IndexMask &node_mask)
 {
   this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), false);
-  /* TODO: Somehow use `IndexMask::to_bits` with the `reset_all` at the beginning disabled. */
-  node_mask.foreach_index_optimized<int>([&](const int i) { this->dirty_nodes[i].set(); });
+  node_mask.set_bits(this->dirty_nodes);
 }
 
 void DrawCacheImpl::tag_positions_changed(const IndexMask &node_mask)

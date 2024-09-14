@@ -474,6 +474,39 @@ TEST(index_mask, ToRange)
   }
 }
 
+TEST(index_mask, ToBits)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({4, 5, 6, 7}, memory);
+    BitVector<> bits(mask.min_array_size());
+    mask.to_bits(bits);
+    EXPECT_EQ(bits[0].test(), false);
+    EXPECT_EQ(bits[1].test(), false);
+    EXPECT_EQ(bits[2].test(), false);
+    EXPECT_EQ(bits[3].test(), false);
+    EXPECT_EQ(bits[4].test(), true);
+    EXPECT_EQ(bits[5].test(), true);
+    EXPECT_EQ(bits[6].test(), true);
+    EXPECT_EQ(bits[7].test(), true);
+  }
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({4, 5, 6, 7}, memory);
+    BitVector<> bits(mask.min_array_size());
+    bits[0].set();
+    bits[2].set();
+    mask.set_bits(bits);
+    EXPECT_EQ(bits[0].test(), true);
+    EXPECT_EQ(bits[1].test(), false);
+    EXPECT_EQ(bits[2].test(), true);
+    EXPECT_EQ(bits[3].test(), false);
+    EXPECT_EQ(bits[4].test(), true);
+    EXPECT_EQ(bits[5].test(), true);
+    EXPECT_EQ(bits[6].test(), true);
+    EXPECT_EQ(bits[7].test(), true);
+  }
+}
+
 TEST(index_mask, FromRange)
 {
   const auto test_range = [](const IndexRange range) {

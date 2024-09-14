@@ -453,6 +453,10 @@ class IndexMask : private IndexMaskData {
    */
   template<typename T> void to_indices(MutableSpan<T> r_indices) const;
   /**
+   * Set the bits at indices in the mask to 1.
+   */
+  void set_bits(MutableBitSpan r_bits, int64_t offset = 0) const;
+  /**
    * Set the bits at indices in the mask to 1 and all other bits to 0.
    */
   void to_bits(MutableBitSpan r_bits, int64_t offset = 0) const;
