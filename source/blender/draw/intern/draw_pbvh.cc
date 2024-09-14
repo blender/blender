@@ -1466,7 +1466,7 @@ static void create_lines_index_grids_flat_layout(const Span<int> grid_indices,
   }
 }
 
-static Array<int> calc_material_indices(const Object &object)
+static Array<int> calc_material_indices(const Object &object, const OrigMeshData &orig_mesh_data)
 {
   const SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -1494,8 +1494,8 @@ static Array<int> calc_material_indices(const Object &object)
     }
     case bke::pbvh::Type::Grids: {
       const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const bke::AttributeAccessor attributes = mesh.attributes();
+      /* Use original mesh data because evaluated mesh is empty. */
+      const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
       const VArray material_indices = *attributes.lookup<int>("material_index",
                                                               bke::AttrDomain::Face);
       if (!material_indices) {
@@ -1997,7 +1997,9 @@ Span<int> DrawCacheImpl::ensure_material_indices(const Object &object)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (material_indices_.size() != pbvh.nodes_num()) {
-    material_indices_ = calc_material_indices(object);
+    const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object));
+    const OrigMeshData orig_mesh_data(*static_cast<const Mesh *>(object_orig.data));
+    material_indices_ = calc_material_indices(object, orig_mesh_data);
   }
   return material_indices_;
 }
