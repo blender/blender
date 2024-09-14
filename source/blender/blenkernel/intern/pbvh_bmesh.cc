@@ -247,9 +247,6 @@ static void pbvh_bmesh_node_finalize(BMeshNode *n,
 
   n->bounds_orig_ = n->bounds_;
 
-  /* Build GPU buffers for new node and update vertex normals. */
-  BKE_pbvh_node_mark_rebuild_draw(*n);
-
   BKE_pbvh_node_fully_hidden_set(*n, !has_visible);
 }
 
@@ -490,7 +487,7 @@ static BMFace *pbvh_bmesh_face_create(BMesh &bm,
   node->bm_faces_.add(f);
   BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
 
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
   node_changed[node_index] = true;
   node->flag_ &= ~PBVH_FullyHidden;
 
@@ -554,7 +551,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
 {
   const int current_owner_index = pbvh_bmesh_node_index_from_vert(cd_vert_node_offset, v);
   BMeshNode *current_owner = &nodes[current_owner_index];
-  current_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  current_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
   node_changed[new_owner_index] = true;
 
   BMeshNode *new_owner = &nodes[new_owner_index];
@@ -570,7 +567,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
   new_owner->bm_other_verts_.remove(v);
   BLI_assert(!new_owner->bm_other_verts_.contains(v));
 
-  new_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  new_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
   node_changed[new_owner_index] = true;
 }
 
@@ -597,7 +594,7 @@ static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
       f_node_index_prev = f_node_index;
 
       BMeshNode *f_node = &nodes[f_node_index];
-      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
       node_changed[f_node_index] = true;
 
       /* Remove current ownership. */
@@ -653,7 +650,7 @@ static void pbvh_bmesh_face_remove(MutableSpan<BMeshNode> nodes,
   BM_log_face_removed(&bm_log, f);
 
   /* Mark node for update. */
-  f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_TopologyUpdated;
+  f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
   node_changed[node_index] = true;
 }
 
@@ -2372,6 +2369,7 @@ bool bmesh_update_topology(BMesh &bm,
   IndexMaskMemory memory;
   const IndexMask node_mask = IndexMask::from_bools(node_changed, memory);
   pbvh.tag_positions_changed(node_mask);
+  pbvh.tag_topology_changed(node_mask);
 
   /* Unmark nodes. */
   for (Node &node : nodes) {
@@ -2501,6 +2499,7 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
   IndexMaskMemory memory;
   const IndexMask node_mask = IndexMask::from_bools(node_changed, memory);
   pbvh.tag_positions_changed(node_mask);
+  pbvh.tag_topology_changed(node_mask);
   update_mask_bmesh(bm, node_mask, pbvh);
 }
 

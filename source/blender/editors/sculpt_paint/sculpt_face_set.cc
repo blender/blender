@@ -880,7 +880,8 @@ static void face_hide_update(const Depsgraph &depsgraph,
     Vector<bool> new_hide;
   };
 
-  bool any_changed = false;
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   threading::EnumerableThreadSpecific<TLS> all_tls;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -897,10 +898,9 @@ static void face_hide_update(const Depsgraph &depsgraph,
           return;
         }
 
-        any_changed = true;
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideFace);
         array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
-        BKE_pbvh_node_mark_update_visibility(nodes[i]);
+        node_changed[i] = true;
       });
     });
   }
@@ -920,18 +920,22 @@ static void face_hide_update(const Depsgraph &depsgraph,
           return;
         }
 
-        any_changed = true;
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::HideFace);
         array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
-        BKE_pbvh_node_mark_update_visibility(nodes[i]);
+        node_changed[i] = true;
       });
     });
   }
 
   hide_poly.finish();
-  if (any_changed) {
-    hide::sync_all_from_faces(object);
+
+  IndexMaskMemory memory;
+  const IndexMask changed_nodes = IndexMask::from_bools(node_changed, memory);
+  if (changed_nodes.is_empty()) {
+    return;
   }
+  hide::sync_all_from_faces(object);
+  pbvh.tag_visibility_changed(node_mask);
 }
 
 static void show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
@@ -1705,6 +1709,8 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexM
   BMesh *bm = ss.bm;
   const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
     node_mask.slice(range).foreach_index([&](const int i) {
       undo::push_node(depsgraph, *gesture_data.vc.obact, &nodes[i], undo::Type::FaceSet);
@@ -1724,10 +1730,17 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexM
       }
 
       if (any_updated) {
-        BKE_pbvh_node_mark_update_visibility(nodes[i]);
+        node_changed[i] = true;
       }
     });
   });
+
+  IndexMaskMemory memory;
+  const IndexMask changed_nodes = IndexMask::from_bools(node_changed, memory);
+  if (changed_nodes.is_empty()) {
+    return;
+  }
+  pbvh.tag_face_sets_changed(node_mask);
 }
 
 static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
@@ -1739,6 +1752,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
       break;
     case bke::pbvh::Type::BMesh:
       gesture_apply_bmesh(gesture_data, gesture_data.node_mask);
+      break;
   }
 }
 

@@ -564,6 +564,24 @@ void Tree::tag_positions_changed(const IndexMask &node_mask)
   }
 }
 
+void Tree::tag_visibility_changed(const IndexMask &node_mask)
+{
+  this->visibility_dirty_.resize(std::max(this->bounds_dirty_.size(), node_mask.min_array_size()),
+                                 false);
+  /* TODO: Use `to_bools` with first clear disabled. */
+  node_mask.foreach_index_optimized<int>([&](const int i) { this->visibility_dirty_[i].set(); });
+  if (this->draw_data) {
+    this->draw_data->tag_visibility_changed(node_mask);
+  }
+}
+
+void Tree::tag_topology_changed(const IndexMask &node_mask)
+{
+  if (this->draw_data) {
+    this->draw_data->tag_topology_changed(node_mask);
+  }
+}
+
 void Tree::tag_face_sets_changed(const IndexMask &node_mask)
 {
   if (this->draw_data) {
@@ -794,15 +812,6 @@ static void search_callback_occluded(Tree &pbvh,
     traverse_tree(tree, hit_fn, &tmin);
     free_tree(tree);
   }
-}
-
-static bool update_search(const Node &node, const int flag)
-{
-  if (node.flag_ & PBVH_Leaf) {
-    return (node.flag_ & flag) != 0;
-  }
-
-  return true;
 }
 
 /**
@@ -1311,25 +1320,21 @@ void node_update_visibility_mesh(const Span<bool> hide_vert, MeshNode &node)
   const bool fully_hidden = std::all_of(
       verts.begin(), verts.end(), [&](const int vert) { return hide_vert[vert]; });
   SET_FLAG_FROM_TEST(node.flag_, fully_hidden, PBVH_FullyHidden);
-  node.flag_ &= ~PBVH_UpdateVisibility;
 }
 
 static void update_visibility_faces(const Mesh &mesh,
                                     const MutableSpan<MeshNode> nodes,
-                                    const IndexMask &nodes_to_update)
+                                    const IndexMask &node_mask)
 {
   const AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   if (hide_vert.is_empty()) {
-    nodes_to_update.foreach_index([&](const int i) {
-      nodes[i].flag_ &= ~PBVH_FullyHidden;
-      nodes[i].flag_ &= ~PBVH_UpdateVisibility;
-    });
+    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_FullyHidden; });
     return;
   }
 
-  nodes_to_update.foreach_index(
-      GrainSize(1), [&](const int i) { node_update_visibility_mesh(hide_vert, nodes[i]); });
+  node_mask.foreach_index(GrainSize(1),
+                          [&](const int i) { node_update_visibility_mesh(hide_vert, nodes[i]); });
 }
 
 void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode &node)
@@ -1340,23 +1345,19 @@ void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode
         return bits::any_bit_unset(grid_hidden[grid]);
       });
   SET_FLAG_FROM_TEST(node.flag_, fully_hidden, PBVH_FullyHidden);
-  node.flag_ &= ~PBVH_UpdateVisibility;
 }
 
 static void update_visibility_grids(const SubdivCCG &subdiv_ccg,
                                     const MutableSpan<GridsNode> nodes,
-                                    const IndexMask &nodes_to_update)
+                                    const IndexMask &node_mask)
 {
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   if (grid_hidden.is_empty()) {
-    nodes_to_update.foreach_index([&](const int i) {
-      nodes[i].flag_ &= ~PBVH_FullyHidden;
-      nodes[i].flag_ &= ~PBVH_UpdateVisibility;
-    });
+    node_mask.foreach_index([&](const int i) { nodes[i].flag_ &= ~PBVH_FullyHidden; });
     return;
   }
 
-  nodes_to_update.foreach_index(
+  node_mask.foreach_index(
       GrainSize(1), [&](const int i) { node_update_visibility_grids(grid_hidden, nodes[i]); });
 }
 
@@ -1371,35 +1372,35 @@ void node_update_visibility_bmesh(BMeshNode &node)
         return BM_elem_flag_test(vert, BM_ELEM_HIDDEN);
       });
   SET_FLAG_FROM_TEST(node.flag_, unique_hidden && other_hidden, PBVH_FullyHidden);
-  node.flag_ &= ~PBVH_UpdateVisibility;
 }
 
-static void update_visibility_bmesh(const MutableSpan<BMeshNode> nodes,
-                                    const IndexMask &nodes_to_update)
+static void update_visibility_bmesh(const MutableSpan<BMeshNode> nodes, const IndexMask &node_mask)
 {
-  nodes_to_update.foreach_index(GrainSize(1),
-                                [&](const int i) { node_update_visibility_bmesh(nodes[i]); });
+  node_mask.foreach_index(GrainSize(1),
+                          [&](const int i) { node_update_visibility_bmesh(nodes[i]); });
 }
 
 void update_visibility(const Object &object, Tree &pbvh)
 {
   IndexMaskMemory memory;
-  const IndexMask nodes_to_update = search_nodes(
-      pbvh, memory, [&](const Node &node) { return update_search(node, PBVH_UpdateVisibility); });
-
+  const IndexMask node_mask = IndexMask::from_bits(pbvh.visibility_dirty_, memory);
+  if (node_mask.is_empty()) {
+    return;
+  }
+  pbvh.visibility_dirty_.clear_and_shrink();
   switch (pbvh.type()) {
     case Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      update_visibility_faces(mesh, pbvh.nodes<MeshNode>(), nodes_to_update);
+      update_visibility_faces(mesh, pbvh.nodes<MeshNode>(), node_mask);
       break;
     }
     case Type::Grids: {
       const SculptSession &ss = *object.sculpt;
-      update_visibility_grids(*ss.subdiv_ccg, pbvh.nodes<GridsNode>(), nodes_to_update);
+      update_visibility_grids(*ss.subdiv_ccg, pbvh.nodes<GridsNode>(), node_mask);
       break;
     }
     case Type::BMesh: {
-      update_visibility_bmesh(pbvh.nodes<BMeshNode>(), nodes_to_update);
+      update_visibility_bmesh(pbvh.nodes<BMeshNode>(), node_mask);
       break;
     }
   }
@@ -1530,16 +1531,6 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
         }
       },
       pbvh.nodes_);
-}
-
-void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node)
-{
-  node.flag_ |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateRedraw;
-}
-
-void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node)
-{
-  node.flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden)

@@ -3332,7 +3332,7 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
     undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
   }
   pbvh.tag_positions_changed(node_mask);
-  node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
+  pbvh.tag_topology_changed(node_mask);
   node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
     BKE_pbvh_bmesh_node_save_orig(ss.bm, ss.bm_log, &nodes[i], false);
