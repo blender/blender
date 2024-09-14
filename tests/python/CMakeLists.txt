@@ -628,7 +628,9 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(WARNING "Disabling render tests because OIIO oiiotool does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
-    message(WARNING "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
+    message(
+      WARNING "Disabling render tests because tests directory doesn't exist at ${TEST_SRC_DIR}"
+    )
   elseif(NOT WITH_COMPOSITOR_CPU)
     message(WARNING "Disabling render tests because WITH_COMPOSITOR_CPU is disabled")
   elseif(NOT WITH_OPENCOLORIO)
@@ -762,7 +764,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
           )
         endforeach()
       endif()
-      
+
       if(WITH_METAL_BACKEND)
         foreach(render_test ${gpu_render_tests})
           add_render_test(
@@ -988,9 +990,11 @@ if(WITH_GPU_DRAW_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(STATUS "Disabling OpenGL draw tests because OIIO oiiotool does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/opengl")
-    message(STATUS "Disabling OpenGL draw tests because tests folder does not exist at ${TEST_SRC_DIR}")
+    message(
+      STATUS "Disabling OpenGL draw tests because tests directory doesn't exist at ${TEST_SRC_DIR}"
+    )
   else()
-    # Use all subdirectories of opengl folder.
+    # Use all subdirectories of the `opengl` directory.
     file(GLOB children RELATIVE ${TEST_SRC_DIR}/opengl ${TEST_SRC_DIR}/opengl/*)
     foreach(child ${children})
       # Resolve symlinks, useful to test production files with linked libraries.
