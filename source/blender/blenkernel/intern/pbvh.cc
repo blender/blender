@@ -1542,11 +1542,6 @@ void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node)
   node.flag_ |= PBVH_RebuildDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node)
-{
-  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
-}
-
 void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden)
 {
   BLI_assert(node.flag_ & PBVH_Leaf);

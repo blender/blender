@@ -412,7 +412,6 @@ bool bmesh_update_topology(BMesh &bm,
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node);
-void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden);
 bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node &node);
