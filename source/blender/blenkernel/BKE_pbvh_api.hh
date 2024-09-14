@@ -179,6 +179,7 @@ class DrawCache {
   virtual ~DrawCache() = default;
   virtual void tag_positions_changed(const IndexMask &node_mask) = 0;
   virtual void tag_face_sets_changed(const IndexMask &node_mask) = 0;
+  virtual void tag_masks_changed(const IndexMask &node_mask) = 0;
   virtual void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name) = 0;
 };
 
@@ -239,6 +240,9 @@ class Tree {
 
   /** Tag nodes where face sets have changed, causing refresh of derived data. */
   void tag_face_sets_changed(const IndexMask &node_mask);
+
+  /** Tag nodes where mask values have changed, causing refresh of derived data. */
+  void tag_masks_changed(const IndexMask &node_mask);
 
   /**
    * Tag nodes where generic attribute data has changed (not positions, masks, or face sets).
@@ -406,7 +410,6 @@ bool bmesh_update_topology(BMesh &bm,
 /* Node Access */
 
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node);
-void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_update_visibility(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_rebuild_draw(blender::bke::pbvh::Node &node);
 void BKE_pbvh_node_mark_redraw(blender::bke::pbvh::Node &node);

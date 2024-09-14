@@ -245,7 +245,6 @@ void do_mask_brush(const Depsgraph &depsgraph,
                      tls,
                      mask.span);
           bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
       mask.finish();
@@ -261,7 +260,6 @@ void do_mask_brush(const Depsgraph &depsgraph,
         node_mask.slice(range).foreach_index([&](const int i) {
           calc_grids(depsgraph, object, brush, bstrength, nodes[i], tls);
           bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
       break;
@@ -275,11 +273,12 @@ void do_mask_brush(const Depsgraph &depsgraph,
         node_mask.slice(range).foreach_index([&](const int i) {
           calc_bmesh(depsgraph, object, brush, bstrength, nodes[i], tls);
           bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
       break;
     }
   }
+  pbvh.tag_masks_changed(node_mask);
 }
+
 }  // namespace blender::ed::sculpt_paint

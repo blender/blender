@@ -571,6 +571,13 @@ void Tree::tag_face_sets_changed(const IndexMask &node_mask)
   }
 }
 
+void Tree::tag_masks_changed(const IndexMask &node_mask)
+{
+  if (this->draw_data) {
+    this->draw_data->tag_masks_changed(node_mask);
+  }
+}
+
 void Tree::tag_attribute_changed(const IndexMask &node_mask, const StringRef attribute_name)
 {
   if (this->draw_data) {
@@ -1510,11 +1517,6 @@ int BKE_pbvh_get_grid_num_faces(const Object &object)
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 {
   node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_RebuildPixels;
-}
-
-void BKE_pbvh_node_mark_update_mask(blender::bke::pbvh::Node &node)
-{
-  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)

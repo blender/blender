@@ -735,8 +735,7 @@ static void bmesh_restore_generic(StepData &step_data, Object &object, SculptSes
     bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
     IndexMaskMemory memory;
     const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-    MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-    node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_redraw(nodes[i]); });
+    pbvh.tag_masks_changed(node_mask);
   }
   else {
     BKE_sculptsession_free_pbvh(object);
@@ -1139,6 +1138,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
               return indices_contain_true(modified_grids, nodes[i].grids());
             });
         bke::pbvh::update_mask_grids(*ss.subdiv_ccg, changed_nodes, pbvh);
+        pbvh.tag_masks_changed(changed_nodes);
       }
       else {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1152,6 +1152,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
               return indices_contain_true(modified_verts, nodes[i].all_verts());
             });
         bke::pbvh::update_mask_mesh(mesh, changed_nodes, pbvh);
+        pbvh.tag_masks_changed(changed_nodes);
       }
       break;
     }

@@ -1179,7 +1179,6 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           bake_mask_mesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls, mask.span);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
           bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
         });
       });
@@ -1195,7 +1194,6 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         node_mask.slice(range).foreach_index([&](const int i) {
           bake_mask_grids(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
           bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
       break;
@@ -1209,7 +1207,6 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
         node_mask.slice(range).foreach_index([&](const int i) {
           bake_mask_bmesh(*depsgraph, ob, *automasking, mode, factor, nodes[i], tls);
           bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
         });
       });
       break;
@@ -1218,6 +1215,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 
   undo::push_end(ob);
 
+  pbvh.tag_masks_changed(node_mask);
   flush_update_done(C, ob, UpdateType::Mask);
   SCULPT_tag_update_overlays(C);
 

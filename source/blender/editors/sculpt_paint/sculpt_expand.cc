@@ -1467,32 +1467,26 @@ static void write_mask_data(Object &object, const Span<float> mask)
                             bke::AttrDomain::Point,
                             bke::AttributeInitVArray(VArray<float>::ForSpan(mask)));
       bke::pbvh::update_mask_mesh(mesh, node_mask, pbvh);
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
     }
     case bke::pbvh::Type::BMesh: {
       BMesh &bm = *ss.bm;
       const int offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
-
       BM_mesh_elem_table_ensure(&bm, BM_VERT);
       for (const int i : mask.index_range()) {
         BM_ELEM_CD_SET_FLOAT(BM_vert_at_index(&bm, i), offset, mask[i]);
       }
       bke::pbvh::update_mask_bmesh(bm, node_mask, pbvh);
-      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
     }
     case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       subdiv_ccg.masks.as_mutable_span().copy_from(mask);
       bke::pbvh::update_mask_grids(subdiv_ccg, node_mask, pbvh);
-      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update_mask(nodes[i]); });
       break;
     }
   }
+  pbvh.tag_masks_changed(node_mask);
 }
 
 /* Main function to restore the original state of the data to how it was before starting the expand
@@ -1572,7 +1566,7 @@ static void calc_new_mask_mesh(const SculptSession &ss,
   mask::clamp_mask(mask);
 }
 
-static void update_mask_grids(const SculptSession &ss,
+static bool update_mask_grids(const SculptSession &ss,
                               const BitSpan enabled_verts,
                               bke::pbvh::GridsNode &node,
                               SubdivCCG &subdiv_ccg)
@@ -1618,12 +1612,12 @@ static void update_mask_grids(const SculptSession &ss,
     }
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(node);
     bke::pbvh::node_update_mask_grids(key, masks, node);
   }
+  return any_changed;
 }
 
-static void update_mask_bmesh(SculptSession &ss,
+static bool update_mask_bmesh(SculptSession &ss,
                               const BitSpan enabled_verts,
                               const int mask_offset,
                               bke::pbvh::BMeshNode *node)
@@ -1665,9 +1659,9 @@ static void update_mask_bmesh(SculptSession &ss,
     any_changed = true;
   }
   if (any_changed) {
-    BKE_pbvh_node_mark_update_mask(*node);
     bke::pbvh::node_update_mask_bmesh(mask_offset, *node);
   }
+  return any_changed;
 }
 
 /**
@@ -1866,19 +1860,29 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
           break;
         }
         case bke::pbvh::Type::Grids: {
+          Array<bool> node_changed(node_mask.min_array_size(), false);
+
           MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
           node_mask.foreach_index(GrainSize(1), [&](const int i) {
-            update_mask_grids(ss, enabled_verts, nodes[i], *ss.subdiv_ccg);
+            node_changed[i] = update_mask_grids(ss, enabled_verts, nodes[i], *ss.subdiv_ccg);
           });
+
+          IndexMaskMemory memory;
+          pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
           break;
         }
         case bke::pbvh::Type::BMesh: {
           const int mask_offset = CustomData_get_offset_named(
               &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
           MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
+
+          Array<bool> node_changed(node_mask.min_array_size(), false);
           node_mask.foreach_index(GrainSize(1), [&](const int i) {
-            update_mask_bmesh(ss, enabled_verts, mask_offset, &nodes[i]);
+            node_changed[i] = update_mask_bmesh(ss, enabled_verts, mask_offset, &nodes[i]);
           });
+
+          IndexMaskMemory memory;
+          pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
           break;
         }
       }

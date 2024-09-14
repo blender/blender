@@ -117,6 +117,9 @@ static void apply_new_mask_mesh(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   threading::EnumerableThreadSpecific<Vector<int>> all_tls;
+
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     Vector<int> &tls = all_tls.local();
     const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, tls);
@@ -127,8 +130,11 @@ static void apply_new_mask_mesh(const Depsgraph &depsgraph,
     undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
     scatter_data_mesh(new_node_mask, verts, mask);
     bke::pbvh::node_update_mask_mesh(mask, nodes[i]);
-    BKE_pbvh_node_mark_update_mask(nodes[i]);
+    node_changed[i] = true;
   });
+
+  IndexMaskMemory memory;
+  pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
 }
 
 static void smooth_mask_mesh(const OffsetIndices<int> faces,
@@ -219,7 +225,7 @@ static void shrink_mask_mesh(const OffsetIndices<int> faces,
   }
 }
 
-static void increase_contrast_mask_mesh(const Depsgraph &depsgraph,
+static bool increase_contrast_mask_mesh(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const Span<bool> hide_vert,
                                         bke::pbvh::MeshNode &node,
@@ -235,16 +241,16 @@ static void increase_contrast_mask_mesh(const Depsgraph &depsgraph,
   mask_increase_contrast(node_mask, new_mask);
 
   if (node_mask == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_mesh(new_mask.as_span(), verts, mask);
   bke::pbvh::node_update_mask_mesh(mask, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
-static void decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
+static bool decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
                                         const Object &object,
                                         const Span<bool> hide_vert,
                                         bke::pbvh::MeshNode &node,
@@ -260,13 +266,13 @@ static void decrease_contrast_mask_mesh(const Depsgraph &depsgraph,
   mask_decrease_contrast(node_mask, new_mask);
 
   if (node_mask == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_mesh(new_mask.as_span(), verts, mask);
   bke::pbvh::node_update_mask_mesh(mask, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
 BLI_NOINLINE static void copy_old_hidden_mask_grids(const SubdivCCG &subdiv_ccg,
@@ -300,6 +306,8 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   MutableSpan<float> masks = subdiv_ccg.masks;
 
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     const Span<int> grids = nodes[i].grids();
     const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
@@ -309,8 +317,11 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
     undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
     scatter_data_grids(subdiv_ccg, new_node_mask, grids, masks);
     bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-    BKE_pbvh_node_mark_update_mask(nodes[i]);
+    node_changed[i] = true;
   });
+
+  IndexMaskMemory memory;
+  pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
 
   /* New mask values need propagation across grid boundaries. */
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
@@ -412,7 +423,7 @@ static void shrink_mask_grids(const SubdivCCG &subdiv_ccg,
   copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
 }
 
-static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
+static bool increase_contrast_mask_grids(const Depsgraph &depsgraph,
                                          const Object &object,
                                          bke::pbvh::GridsNode &node,
                                          FilterLocalData &tls)
@@ -435,16 +446,16 @@ static void increase_contrast_mask_grids(const Depsgraph &depsgraph,
   copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
 
   if (node_mask.as_span() == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_grids(subdiv_ccg, new_mask.as_span(), grids, subdiv_ccg.masks.as_mutable_span());
   bke::pbvh::node_update_mask_grids(key, subdiv_ccg.masks, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
-static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
+static bool decrease_contrast_mask_grids(const Depsgraph &depsgraph,
                                          const Object &object,
                                          bke::pbvh::GridsNode &node,
                                          FilterLocalData &tls)
@@ -467,13 +478,13 @@ static void decrease_contrast_mask_grids(const Depsgraph &depsgraph,
   copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
 
   if (node_mask.as_span() == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_data_grids(subdiv_ccg, new_mask.as_span(), grids, subdiv_ccg.masks.as_mutable_span());
   bke::pbvh::node_update_mask_grids(key, subdiv_ccg.masks, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
 BLI_NOINLINE static void copy_old_hidden_mask_bmesh(const int mask_offset,
@@ -501,6 +512,8 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
   MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   BMesh &bm = *ss.bm;
 
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
     const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
@@ -510,8 +523,11 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
     undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
     scatter_mask_bmesh(new_node_mask, bm, verts);
     bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-    BKE_pbvh_node_mark_update_mask(nodes[i]);
+    node_changed[i] = true;
   });
+
+  IndexMaskMemory memory;
+  pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
 }
 
 static void smooth_mask_bmesh(const int mask_offset,
@@ -580,7 +596,7 @@ static void shrink_mask_bmesh(const int mask_offset,
   copy_old_hidden_mask_bmesh(mask_offset, verts, new_mask);
 }
 
-static void increase_contrast_mask_bmesh(const Depsgraph &depsgraph,
+static bool increase_contrast_mask_bmesh(const Depsgraph &depsgraph,
                                          Object &object,
                                          const int mask_offset,
                                          bke::pbvh::BMeshNode &node,
@@ -602,16 +618,16 @@ static void increase_contrast_mask_bmesh(const Depsgraph &depsgraph,
   copy_old_hidden_mask_bmesh(mask_offset, verts, new_mask);
 
   if (node_mask.as_span() == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_bmesh(new_mask.as_span(), bm, verts);
   bke::pbvh::node_update_mask_bmesh(mask_offset, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
-static void decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
+static bool decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
                                          Object &object,
                                          const int mask_offset,
                                          bke::pbvh::BMeshNode &node,
@@ -633,13 +649,13 @@ static void decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
   copy_old_hidden_mask_bmesh(mask_offset, verts, new_mask);
 
   if (node_mask.as_span() == new_mask.as_span()) {
-    return;
+    return false;
   }
 
   undo::push_node(depsgraph, object, &node, undo::Type::Mask);
   scatter_mask_bmesh(new_mask.as_span(), bm, verts);
   bke::pbvh::node_update_mask_bmesh(mask_offset, node);
-  BKE_pbvh_node_mark_update_mask(node);
+  return true;
 }
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
@@ -762,21 +778,29 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
             break;
           }
           case FilterType::ContrastIncrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                increase_contrast_mask_mesh(*depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                node_changed[i] = increase_contrast_mask_mesh(
+                    *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                decrease_contrast_mask_mesh(*depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                node_changed[i] = decrease_contrast_mask_mesh(
+                    *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
         }
@@ -829,21 +853,27 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
             break;
           }
           case FilterType::ContrastIncrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                increase_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
+                node_changed[i] = increase_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                decrease_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
+                node_changed[i] = decrease_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
         }
@@ -901,21 +931,29 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
             break;
           }
           case FilterType::ContrastIncrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                increase_contrast_mask_bmesh(*depsgraph, ob, mask_offset, nodes[i], tls);
+                node_changed[i] = increase_contrast_mask_bmesh(
+                    *depsgraph, ob, mask_offset, nodes[i], tls);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
+            Array<bool> node_changed(node_mask.min_array_size(), false);
             threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
               FilterLocalData &tls = all_tls.local();
               node_mask.slice(range).foreach_index([&](const int i) {
-                decrease_contrast_mask_bmesh(*depsgraph, ob, mask_offset, nodes[i], tls);
+                node_changed[i] = decrease_contrast_mask_bmesh(
+                    *depsgraph, ob, mask_offset, nodes[i], tls);
               });
             });
+            IndexMaskMemory memory;
+            pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
         }

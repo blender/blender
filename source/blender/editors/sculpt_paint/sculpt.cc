@@ -1212,6 +1212,8 @@ static void restore_mask_from_undo_step(Object &object)
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
 
+  Array<bool> node_changed(node_mask.min_array_size(), false);
+
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1226,7 +1228,7 @@ static void restore_mask_from_undo_step(Object &object)
           const Span<int> verts = nodes[i].verts();
           array_utils::scatter(*orig_data, verts, mask.span);
           bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          node_changed[i] = true;
         }
       });
       mask.finish();
@@ -1241,7 +1243,7 @@ static void restore_mask_from_undo_step(Object &object)
             if (const float *orig_mask = BM_log_find_original_vert_mask(ss.bm_log, vert)) {
               BM_ELEM_CD_SET_FLOAT(vert, offset, *orig_mask);
               bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
-              BKE_pbvh_node_mark_update_mask(nodes[i]);
+              node_changed[i] = true;
             }
           }
         });
@@ -1269,12 +1271,13 @@ static void restore_mask_from_undo_step(Object &object)
             }
           }
           bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          node_changed[i] = true;
         }
       });
       break;
     }
   }
+  pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
 }
 
 static void restore_color_from_undo_step(Object &object)
@@ -1303,6 +1306,7 @@ static void restore_color_from_undo_step(Object &object)
                               verts[i],
                               (*orig_data)[i],
                               color_attribute.span);
+        // TODO
       }
     }
   });
@@ -1466,6 +1470,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
       break;
     }
   }
+  // TODO
   pbvh.tag_positions_changed(node_mask);
 
   /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
