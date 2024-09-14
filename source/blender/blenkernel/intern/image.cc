@@ -2689,12 +2689,15 @@ ImBufAnim *openanim(const char *filepath,
 
   ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
   if (ibuf == nullptr) {
-    if (BLI_exists(filepath)) {
-      printf("not an anim: %s\n", filepath);
+    const char *reason;
+    if (!BLI_exists(filepath)) {
+      reason = "file doesn't exist";
     }
     else {
-      printf("anim file doesn't exist: %s\n", filepath);
+      reason = "not an anim";
     }
+    CLOG_INFO(&LOG, 1, "unable to load anim, %s: %s", reason, filepath);
+
     IMB_free_anim(anim);
     return nullptr;
   }
