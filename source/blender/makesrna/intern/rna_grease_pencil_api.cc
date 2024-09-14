@@ -427,7 +427,7 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
   func = RNA_def_function(srna, "resize_strokes", "rna_GreasePencilDrawing_resize_curves");
   RNA_def_function_ui_description(
       func,
-      "Resize all existing strkoes. If indices are provided, resize only the strokes with the "
+      "Resize all existing strokes. If indices are provided, resize only the strokes with the "
       "given indices. If the new size for a stroke is smaller, the stroke is trimmed. If "
       "the new size for a stroke is larger, the new end values are default initialized.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
