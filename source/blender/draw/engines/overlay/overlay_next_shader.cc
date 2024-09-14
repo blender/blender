@@ -155,21 +155,16 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
 
   grid_background = shader("overlay_grid_background", [](gpu::shader::ShaderCreateInfo &info) {
     shader_patch_common(info);
+    info.push_constant(gpu::shader::Type::VEC3, "tile_scale");
     info.define("tile_pos", "vec3(0.0)");
   });
 
   grid_image = shader("overlay_grid_image", [](gpu::shader::ShaderCreateInfo &info) {
-    info.define("tile_pos", "vec3(0.0)");
-    info.additional_infos_.clear();
-    info.additional_info("draw_view", "draw_globals")
-        .typedef_source("draw_shader_shared.hh")
-        .storage_buf(0, Qualifier::READ, "ObjectMatrices", "tile_matrix_buf[]")
-        .define("DRAW_MODELMAT_CREATE_INFO")
-        .define("drw_ModelMatrixInverse", "tile_matrix_buf[gl_InstanceID].model_inverse")
-        .define("drw_ModelMatrix", "tile_matrix_buf[gl_InstanceID].model")
-        /* TODO For compatibility with old shaders. To be removed. */
-        .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
-        .define("ModelMatrix", "drw_ModelMatrix");
+    shader_patch_common(info);
+    info.storage_buf(0, Qualifier::READ, "vec3", "tile_pos_buf[]")
+        .define("tile_pos", "tile_pos_buf[gl_InstanceID]")
+        .define("tile_scale", "vec3(1.0)");
+    ;
   });
 
   legacy_curve_edit_wires = shader(
@@ -324,6 +319,7 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
                             [](gpu::shader::ShaderCreateInfo &info) {
                               info.additional_infos_.clear();
                               info.push_constant(gpu::shader::Type::VEC3, "tile_pos");
+                              info.define("tile_scale", "vec3(1.0)");
                               info.additional_info("draw_view");
                             });
   uv_brush_stencil = shader("overlay_edit_uv_stencil_image",
