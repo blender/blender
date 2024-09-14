@@ -181,9 +181,8 @@ void DrawCacheImpl::AttributeData::tag_dirty(const IndexMask &node_mask)
   if (this->dirty_nodes.size() < mask_size) {
     this->dirty_nodes.resize(mask_size);
   }
-  /* TODO: Somehow use IndexMask::from_bits with the `reset_all` at the beginning disabled. */
-  node_mask.foreach_index_optimized<int>(GrainSize(4096),
-                                         [&](const int i) { this->dirty_nodes[i].set(); });
+  /* TODO: Somehow use `IndexMask::to_bits` with the `reset_all` at the beginning disabled. */
+  node_mask.foreach_index_optimized<int>([&](const int i) { this->dirty_nodes[i].set(); });
 }
 
 void DrawCacheImpl::tag_all_attributes_dirty(const IndexMask &node_mask)
