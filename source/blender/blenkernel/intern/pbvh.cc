@@ -287,10 +287,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
   if (!hide_vert.is_empty()) {
     threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
       for (const int i : range) {
-        const Span<int> verts = nodes[i].all_verts();
-        if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
-          nodes[i].flag_ |= PBVH_FullyHidden;
-        }
+        node_update_visibility_mesh(hide_vert, nodes[i]);
       }
     });
   }
@@ -474,13 +471,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   if (!grid_hidden.is_empty()) {
     threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
       for (const int i : range) {
-        const Span<int> grids = nodes[i].grids();
-        if (std::all_of(grids.begin(), grids.end(), [&](const int i) {
-              return !bits::any_bit_unset(grid_hidden[i]);
-            }))
-        {
-          nodes[i].flag_ |= PBVH_FullyHidden;
-        }
+        node_update_visibility_grids(grid_hidden, nodes[i]);
       }
     });
   }
