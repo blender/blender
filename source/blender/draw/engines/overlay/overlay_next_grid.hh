@@ -69,17 +69,17 @@ class Grid {
       if (zneg_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", zneg_flag_);
         sub.push_constant("plane_axes", zplane_axes_);
-        sub.draw(DRW_cache_grid_get());
+        sub.draw(shapes.grid.get());
       }
       if (grid_flag_) {
         sub.push_constant("grid_flag", grid_flag_);
         sub.push_constant("plane_axes", grid_axes_);
-        sub.draw(DRW_cache_grid_get());
+        sub.draw(shapes.grid.get());
       }
       if (zpos_flag_ & SHOW_AXIS_Z) {
         sub.push_constant("grid_flag", zpos_flag_);
         sub.push_constant("plane_axes", zplane_axes_);
-        sub.draw(DRW_cache_grid_get());
+        sub.draw(shapes.grid.get());
       }
     }
     if (state.space_type == SPACE_IMAGE) {

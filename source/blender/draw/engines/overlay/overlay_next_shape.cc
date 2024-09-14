@@ -1367,6 +1367,30 @@ ShapeCache::ShapeCache()
     lightprobe_grid = BatchPtr(
         GPU_batch_create_ex(GPU_PRIM_LINES, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
   }
+  /* grid */
+  {
+    constexpr int resolution = 8;
+    std::array<float, resolution + 1> steps;
+    /* [-1, 1] divided into "resolution" steps. */
+    for (const int i : IndexRange(resolution + 1)) {
+      steps[i] = -1.0f + float(i * 2) / resolution;
+    }
+
+    Vector<Vertex> verts(resolution * resolution * 6);
+    for (const int x : IndexRange(resolution)) {
+      for (const int y : IndexRange(resolution)) {
+        verts.append(Vertex{{steps[x], steps[y], 0.0f}});
+        verts.append(Vertex{{steps[x + 1], steps[y], 0.0f}});
+        verts.append(Vertex{{steps[x], steps[y + 1], 0.0f}});
+
+        verts.append(Vertex{{steps[x], steps[y + 1], 0.0f}});
+        verts.append(Vertex{{steps[x + 1], steps[y], 0.0f}});
+        verts.append(Vertex{{steps[x + 1], steps[y + 1], 0.0f}});
+      }
+    }
+    grid = BatchPtr(
+        GPU_batch_create_ex(GPU_PRIM_TRIS, vbo_from_vector(verts), nullptr, GPU_BATCH_OWNS_VBO));
+  }
 }
 
 }  // namespace blender::draw::overlay

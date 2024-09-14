@@ -123,6 +123,8 @@ class ShapeCache {
   BatchPtr bone_degrees_of_freedom;
   BatchPtr bone_degrees_of_freedom_wire;
 
+  BatchPtr grid;
+
   BatchPtr quad_wire;
   BatchPtr quad_solid;
   BatchPtr plain_axes;
