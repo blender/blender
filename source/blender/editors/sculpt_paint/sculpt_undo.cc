@@ -36,7 +36,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_array_utils.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -1288,19 +1287,19 @@ static void store_vert_visibility_grids(const SubdivCCG &subdiv_ccg,
 static void store_positions_mesh(const Depsgraph &depsgraph, const Object &object, Node &unode)
 {
   SculptSession &ss = *object.sculpt;
-  array_utils::gather(bke::pbvh::vert_positions_eval(depsgraph, object),
-                      unode.vert_indices.as_span(),
-                      unode.position.as_mutable_span());
-  array_utils::gather(bke::pbvh::vert_normals_eval(depsgraph, object),
-                      unode.vert_indices.as_span(),
-                      unode.normal.as_mutable_span());
+  gather_data_mesh(bke::pbvh::vert_positions_eval(depsgraph, object),
+                   unode.vert_indices.as_span(),
+                   unode.position.as_mutable_span());
+  gather_data_mesh(bke::pbvh::vert_normals_eval(depsgraph, object),
+                   unode.vert_indices.as_span(),
+                   unode.normal.as_mutable_span());
   if (ss.deform_modifiers_active) {
     const Mesh &mesh = *static_cast<const Mesh *>(object.data);
     const Span<float3> orig_positions = ss.shapekey_active ? Span(static_cast<const float3 *>(
                                                                       ss.shapekey_active->data),
                                                                   mesh.verts_num) :
                                                              mesh.vert_positions();
-    array_utils::gather(
+    gather_data_mesh(
         orig_positions, unode.vert_indices.as_span(), unode.orig_position.as_mutable_span());
   }
 }
@@ -1345,11 +1344,12 @@ static void store_face_visibility(const Mesh &mesh, Node &unode)
 static void store_mask_mesh(const Mesh &mesh, Node &unode)
 {
   const bke::AttributeAccessor attributes = mesh.attributes();
-  if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
-    array_utils::gather(mask, unode.vert_indices.as_span(), unode.mask.as_mutable_span());
+  const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
+  if (mask.is_empty()) {
+    unode.mask.fill(0.0f);
   }
   else {
-    unode.mask.fill(0.0f);
+    gather_data_mesh(mask, unode.vert_indices.as_span(), unode.mask.as_mutable_span());
   }
 }
 
@@ -1416,10 +1416,14 @@ static void geometry_push(const Object &object)
 
 static void store_face_sets(const Mesh &mesh, Node &unode)
 {
-  array_utils::gather(
-      *mesh.attributes().lookup_or_default<int>(".sculpt_face_set", bke::AttrDomain::Face, 1),
-      unode.face_indices.as_span(),
-      unode.face_sets.as_mutable_span());
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+  if (face_sets.is_empty()) {
+    unode.face_sets.fill(1);
+  }
+  else {
+    gather_data_mesh(face_sets, unode.face_indices.as_span(), unode.face_sets.as_mutable_span());
+  }
 }
 
 static void fill_node_data_mesh(const Depsgraph &depsgraph,
