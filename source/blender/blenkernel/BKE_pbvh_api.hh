@@ -83,14 +83,20 @@ class Node {
    * marking various updates that need to be applied. */
   PBVHNodeFlags flag_ = PBVH_UpdateRedraw;
 
-  /* Used for ray-casting: how close the bounding-box is to the ray point. */
+  /**
+   * Used for ray-casting: how close the bounding-box is to the ray point.
+   * \todo Remove and store elsewhere.
+   */
   float tmin_ = 0.0f;
 
-  /* Used to flash colors of updated node bounding boxes in
+  /**
+   * Used to flash colors of updated node bounding boxes in
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
+   * \todo Remove and store elsewhere.
    */
   int debug_draw_gen_ = 0;
 
+  /** \todo Move storage of image painting data to #Tree or elsewhere. */
   pixels::NodeData *pixels_ = nullptr;
 };
 
@@ -220,6 +226,7 @@ class Tree {
    */
   BitVector<> visibility_dirty_;
 
+  /** \todo Remove and store elsewhere. */
   float planes_[6][4];
   int num_planes_;
 
