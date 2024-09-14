@@ -279,7 +279,7 @@ class Meshes {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob->data);
@@ -721,12 +721,11 @@ class MeshUVs {
     Object *object_eval = DEG_get_evaluated_object(state.depsgraph, object_orig);
 
     if (drawn_object_set_.contains(object_orig)) {
-      printf("Skip\n");
       return;
     }
     drawn_object_set_.add(object_orig);
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object &ob = *object_eval;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);

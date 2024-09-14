@@ -217,7 +217,7 @@ class Prepass {
                                          grease_pencil_view,
                                          state.scene,
                                          ob_ref.object,
-                                         manager.resource_handle(ob_ref),
+                                         manager.unique_handle(ob_ref),
                                          res.select_id(ob_ref));
         return;
       default:
@@ -228,7 +228,7 @@ class Prepass {
       return;
     }
 
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
       select::ID select_id = use_material_slot_selection_ ?

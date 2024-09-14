@@ -127,7 +127,7 @@ class Sculpts {
         /* Evaluate curves and their attributes if necessary. */
         gpu::Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
         if (*select_attr_buf) {
-          ResourceHandle handle = manager.resource_handle(ob_ref);
+          ResourceHandle handle = manager.unique_handle(ob_ref);
 
           curves_ps_->push_constant("is_point_domain", is_point_domain);
           curves_ps_->bind_texture("selection_tx", *select_attr_buf);
@@ -137,7 +137,7 @@ class Sculpts {
     }
 
     if (show_curves_cage_) {
-      ResourceHandle handle = manager.resource_handle(ob_ref);
+      ResourceHandle handle = manager.unique_handle(ob_ref);
 
       blender::gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(curves);
       sculpt_curve_cage_.draw(geometry, handle);
@@ -205,11 +205,7 @@ class Sculpts {
 
     const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d);
     if (use_pbvh) {
-      /* TODO(fclem): Deduplicate with other engine. */
-      const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(*ob_ref.object->sculpt->pbvh);
-      const float3 center = math::midpoint(bounds.min, bounds.max);
-      const float3 half_extent = bounds.max - center;
-      ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
+      ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
 
       SculptBatchFeature sculpt_batch_features_ = (show_face_set_ ? SCULPT_BATCH_FACE_SET :
                                                                     SCULPT_BATCH_DEFAULT) |
@@ -221,7 +217,7 @@ class Sculpts {
       }
     }
     else {
-      ResourceHandle handle = manager.resource_handle(ob_ref);
+      ResourceHandle handle = manager.unique_handle(ob_ref);
 
       Mesh &mesh = *static_cast<Mesh *>(ob_ref.object->data);
       gpu::Batch *sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(mesh);

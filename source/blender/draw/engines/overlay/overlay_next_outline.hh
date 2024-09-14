@@ -136,9 +136,6 @@ class Outline {
       return;
     }
 
-    /* TODO(fclem): Non-mandatory handle creation and reuse with other overlays. */
-    ResourceHandle res_handle = manager.resource_handle(ob_ref);
-
     gpu::Batch *geom;
     switch (ob_ref.object->type) {
       case OB_GPENCIL_LEGACY:
@@ -146,15 +143,18 @@ class Outline {
         break;
       case OB_CURVES:
         geom = curves_sub_pass_setup(*prepass_curves_ps_, state.scene, ob_ref.object);
-        prepass_curves_ps_->draw(geom, res_handle);
+        prepass_curves_ps_->draw(geom, manager.unique_handle(ob_ref));
         break;
       case OB_GREASE_PENCIL:
-        GreasePencil::draw_grease_pencil(
-            *prepass_gpencil_ps_, grease_pencil_view, state.scene, ob_ref.object, res_handle);
+        GreasePencil::draw_grease_pencil(*prepass_gpencil_ps_,
+                                         grease_pencil_view,
+                                         state.scene,
+                                         ob_ref.object,
+                                         manager.unique_handle(ob_ref));
         break;
       case OB_MESH:
         geom = DRW_cache_mesh_surface_get(ob_ref.object);
-        prepass_mesh_ps_->draw(geom, res_handle);
+        prepass_mesh_ps_->draw(geom, manager.unique_handle(ob_ref));
         {
           /* TODO(fclem): This is against design. We should not sync depending on view position.
            * Eventually, add a bounding box display pass with some special culling phase. */
@@ -168,7 +168,7 @@ class Outline {
                                                                                      flat_axis));
           if (is_flat_object_viewed_from_side) {
             geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
-            prepass_wire_ps_->draw(geom, res_handle);
+            prepass_wire_ps_->draw(geom, manager.unique_handle(ob_ref));
           }
         }
         break;
@@ -177,12 +177,12 @@ class Outline {
          * the future. */
         if (!state.is_wireframe_mode) {
           geom = point_cloud_sub_pass_setup(*prepass_pointcloud_ps_, ob_ref.object);
-          prepass_pointcloud_ps_->draw(geom, res_handle);
+          prepass_pointcloud_ps_->draw(geom, manager.unique_handle(ob_ref));
         }
         break;
       case OB_VOLUME:
         geom = DRW_cache_volume_selection_surface_get(ob_ref.object);
-        prepass_volume_ps_->draw(geom, res_handle);
+        prepass_volume_ps_->draw(geom, manager.unique_handle(ob_ref));
         break;
       default:
         break;

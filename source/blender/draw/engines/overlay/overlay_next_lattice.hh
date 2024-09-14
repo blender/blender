@@ -52,19 +52,14 @@ class Lattices {
 
   void edit_object_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
     {
       gpu::Batch *geom = DRW_cache_lattice_wire_get(ob_ref.object, true);
-      if (geom) {
-        ResourceHandle res_handle = manager.resource_handle(ob_ref);
-        edit_lattice_wire_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
-      }
+      edit_lattice_wire_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
     }
     {
       gpu::Batch *geom = DRW_cache_lattice_vert_overlay_get(ob_ref.object);
-      if (geom) {
-        ResourceHandle res_handle = manager.resource_handle(ob_ref);
-        edit_lattice_point_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
-      }
+      edit_lattice_point_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
     }
   }
 

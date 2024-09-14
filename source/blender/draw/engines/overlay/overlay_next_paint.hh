@@ -174,12 +174,10 @@ class Paints {
         return;
     }
 
-    ResourceHandle handle = manager.resource_handle(ob_ref);
-
     switch (state.ctx_mode) {
       case CTX_MODE_PAINT_WEIGHT: {
         gpu::Batch *geom = DRW_cache_mesh_surface_weights_get(ob_ref.object);
-        weight_ps_.draw(geom, handle);
+        weight_ps_.draw(geom, manager.unique_handle(ob_ref));
         break;
       }
       case CTX_MODE_PAINT_VERTEX: {
@@ -189,7 +187,7 @@ class Paints {
       case CTX_MODE_PAINT_TEXTURE: {
         if (show_paint_mask_) {
           gpu::Batch *geom = DRW_cache_mesh_surface_texpaint_single_get(ob_ref.object);
-          paint_mask_ps_.draw(geom, handle);
+          paint_mask_ps_.draw(geom, manager.unique_handle(ob_ref));
         }
         break;
       }
@@ -211,15 +209,15 @@ class Paints {
       if ((use_face_selection || show_wires_) && !in_texture_paint_mode) {
         gpu::Batch *geom = DRW_cache_mesh_surface_edges_get(ob_ref.object);
         paint_region_edge_ps_->push_constant("useSelect", use_face_selection);
-        paint_region_edge_ps_->draw(geom, handle);
+        paint_region_edge_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
       if (use_face_selection) {
         gpu::Batch *geom = DRW_cache_mesh_surface_get(ob_ref.object);
-        paint_region_face_ps_->draw(geom, handle);
+        paint_region_face_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
       if (use_vert_selection && !in_texture_paint_mode) {
         gpu::Batch *geom = DRW_cache_mesh_all_verts_get(ob_ref.object);
-        paint_region_vert_ps_->draw(geom, handle);
+        paint_region_vert_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
     }
   }
