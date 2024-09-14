@@ -1508,7 +1508,7 @@ int BKE_pbvh_get_grid_num_faces(const Object &object)
 
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
 {
-  node.flag_ |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_RebuildPixels;
+  node.flag_ |= PBVH_RebuildPixels;
 }
 
 void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
@@ -1576,33 +1576,6 @@ bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node)
 }
 
 namespace blender::bke::pbvh {
-
-void remove_node_draw_tags(bke::pbvh::Tree &pbvh, const IndexMask &node_mask)
-{
-  switch (pbvh.type()) {
-    case bke::pbvh::Type::Mesh: {
-      MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index([&](const int i) {
-        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
-      });
-      break;
-    }
-    case bke::pbvh::Type::Grids: {
-      MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      node_mask.foreach_index([&](const int i) {
-        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
-      });
-      break;
-    }
-    case bke::pbvh::Type::BMesh: {
-      MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      node_mask.foreach_index([&](const int i) {
-        nodes[i].flag_ &= ~(PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers);
-      });
-      break;
-    }
-  }
-}
 
 Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
                                        const GridsNode &node,
@@ -2754,19 +2727,6 @@ IndexMask search_nodes(const Tree &pbvh,
       pbvh.nodes_);
   std::sort(indices.begin(), indices.end());
   return IndexMask::from_indices(indices.as_span(), memory);
-}
-
-IndexMask node_draw_update_mask(const Tree &pbvh,
-                                const IndexMask &node_mask,
-                                IndexMaskMemory &memory)
-{
-  return std::visit(
-      [&](const auto &nodes) {
-        return IndexMask::from_predicate(node_mask, GrainSize(1024), memory, [&](const int i) {
-          return nodes[i].flag_ & PBVH_UpdateDrawBuffers;
-        });
-      },
-      pbvh.nodes_);
 }
 
 }  // namespace blender::bke::pbvh

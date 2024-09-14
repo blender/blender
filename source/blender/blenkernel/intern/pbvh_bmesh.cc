@@ -454,7 +454,7 @@ static BMVert *pbvh_bmesh_vert_create(BMesh &bm,
   node->bm_unique_verts_.add(v);
   BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
 
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  node->flag_ |= PBVH_TopologyUpdated;
   node_changed[node_index] = true;
 
   /* Log the new vertex. */
@@ -487,7 +487,7 @@ static BMFace *pbvh_bmesh_face_create(BMesh &bm,
   node->bm_faces_.add(f);
   BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
 
-  node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  node->flag_ |= PBVH_TopologyUpdated;
   node_changed[node_index] = true;
   node->flag_ &= ~PBVH_FullyHidden;
 
@@ -551,7 +551,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
 {
   const int current_owner_index = pbvh_bmesh_node_index_from_vert(cd_vert_node_offset, v);
   BMeshNode *current_owner = &nodes[current_owner_index];
-  current_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  current_owner->flag_ |= PBVH_TopologyUpdated;
   node_changed[new_owner_index] = true;
 
   BMeshNode *new_owner = &nodes[new_owner_index];
@@ -567,7 +567,7 @@ static void pbvh_bmesh_vert_ownership_transfer(MutableSpan<BMeshNode> nodes,
   new_owner->bm_other_verts_.remove(v);
   BLI_assert(!new_owner->bm_other_verts_.contains(v));
 
-  new_owner->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  new_owner->flag_ |= PBVH_TopologyUpdated;
   node_changed[new_owner_index] = true;
 }
 
@@ -594,7 +594,7 @@ static void pbvh_bmesh_vert_remove(MutableSpan<BMeshNode> nodes,
       f_node_index_prev = f_node_index;
 
       BMeshNode *f_node = &nodes[f_node_index];
-      f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+      f_node->flag_ |= PBVH_TopologyUpdated;
       node_changed[f_node_index] = true;
 
       /* Remove current ownership. */
@@ -650,7 +650,7 @@ static void pbvh_bmesh_face_remove(MutableSpan<BMeshNode> nodes,
   BM_log_face_removed(&bm_log, f);
 
   /* Mark node for update. */
-  f_node->flag_ |= PBVH_UpdateDrawBuffers | PBVH_TopologyUpdated;
+  f_node->flag_ |= PBVH_TopologyUpdated;
   node_changed[node_index] = true;
 }
 
@@ -1763,7 +1763,6 @@ static void pbvh_bmesh_collapse_edge(BMesh &bm,
      * Note that we can often get-away without this but causes #48779. */
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
       const int f_node = pbvh_bmesh_node_index_from_face(cd_face_node_offset, l->f);
-      nodes[f_node].flag_ |= PBVH_UpdateDrawBuffers;
       node_changed[f_node] = true;
     }
     BM_LOOPS_OF_VERT_ITER_END;

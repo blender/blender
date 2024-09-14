@@ -81,7 +81,7 @@ class Node {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag_ = PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  PBVHNodeFlags flag_ = PBVH_UpdateRedraw;
 
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin_ = 0.0f;

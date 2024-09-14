@@ -29,16 +29,13 @@ enum class Type {
 enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 
-  PBVH_UpdateDrawBuffers = 1 << 4,
   PBVH_UpdateRedraw = 1 << 5,
 
-  PBVH_RebuildDrawBuffers = 1 << 9,
   PBVH_FullyHidden = 1 << 10,
   PBVH_FullyMasked = 1 << 11,
   PBVH_FullyUnmasked = 1 << 12,
 
   PBVH_UpdateTopology = 1 << 13,
-  PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
   PBVH_TexLeaf = 1 << 16,
   /** Used internally by `pbvh_bmesh.cc`. */
