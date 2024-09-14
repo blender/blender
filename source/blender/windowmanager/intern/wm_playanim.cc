@@ -2017,11 +2017,6 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
           STRNCPY(ibuf->filepath, ps.picture->filepath);
         }
 
-/* NOTE(@ideasman42): why only windows? (from 2.4x). */
-#ifdef _WIN32
-        GHOST_SetTitle(ps.ghost_data.window, ps.picture->filepath);
-#endif
-
         while (pupdate_time()) {
           BLI_time_sleep_ms(1);
         }
