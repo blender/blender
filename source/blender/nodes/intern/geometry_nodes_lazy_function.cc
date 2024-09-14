@@ -2456,6 +2456,7 @@ struct GeometryNodesLazyFunctionBuilder {
                                                                                 lf_graph_fn);
     zone_info.lazy_function = &zone_function;
 
+    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node->identifier, &lf_graph);
     // std::cout << "\n\n" << lf_graph.to_dot() << "\n\n";
   }
 
@@ -2580,6 +2581,8 @@ struct GeometryNodesLazyFunctionBuilder {
                                                             &logger,
                                                             &side_effect_provider,
                                                             nullptr);
+
+    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node->identifier, &lf_body_graph);
 
     // std::cout << "\n\n" << lf_body_graph.to_dot() << "\n\n";
 

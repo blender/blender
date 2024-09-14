@@ -62,6 +62,7 @@
 
 #include "NOD_composite.hh"
 #include "NOD_geometry.hh"
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_socket.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1375,6 +1376,55 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, Main *bmain, ReportList *r
 static bool rna_NodeTree_contains_tree(bNodeTree *tree, bNodeTree *sub_tree)
 {
   return blender::bke::node_tree_contains_tree(tree, sub_tree);
+}
+
+static void output_optional_string(std::optional<std::string> str, const char **r_str, int *r_len)
+{
+  if (str.has_value()) {
+    *r_len = str->size();
+    *r_str = BLI_strdup_null(str->c_str());
+  }
+  else {
+    *r_len = 0;
+    *r_str = nullptr;
+  }
+}
+
+static void rna_NodeTree_debug_lazy_function_graph(bNodeTree *tree, const char **r_str, int *r_len)
+{
+  output_optional_string(
+      [&]() -> std::optional<std::string> {
+        std::lock_guard lock{tree->runtime->geometry_nodes_lazy_function_graph_info_mutex};
+        if (!tree->runtime->geometry_nodes_lazy_function_graph_info) {
+          return std::nullopt;
+        }
+        return tree->runtime->geometry_nodes_lazy_function_graph_info->graph.to_dot();
+      }(),
+      r_str,
+      r_len);
+}
+
+static void rna_NodeTree_debug_zone_body_lazy_function_graph(ID *tree_id,
+                                                             bNode *node,
+                                                             const char **r_str,
+                                                             int *r_len)
+{
+  bNodeTree *tree = reinterpret_cast<bNodeTree *>(tree_id);
+  output_optional_string(
+      [&]() -> std::optional<std::string> {
+        std::lock_guard lock{tree->runtime->geometry_nodes_lazy_function_graph_info_mutex};
+        if (!tree->runtime->geometry_nodes_lazy_function_graph_info) {
+          return std::nullopt;
+        }
+        const auto *graph = tree->runtime->geometry_nodes_lazy_function_graph_info
+                                ->debug_zone_body_graphs.lookup_default(node->identifier, nullptr);
+        if (!graph) {
+          return std::nullopt;
+        }
+        return graph->to_dot();
+      }(),
+      r_str,
+      r_len);
 }
 
 static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
@@ -10623,6 +10673,15 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_parameter_flags(
       parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
+
+  func = RNA_def_function(srna,
+                          "debug_zone_body_lazy_function_graph",
+                          "rna_NodeTree_debug_zone_body_lazy_function_graph");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  parm = RNA_def_string(func, "dot_graph", nullptr, INT32_MAX, "Dot Graph", "Graph in dot format");
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+  RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
+  RNA_def_function_output(func, parm);
 }
 
 static void rna_def_node_link(BlenderRNA *brna)
@@ -10971,6 +11030,13 @@ static void rna_def_nodetree(BlenderRNA *brna)
       func, "idname", "NodeSocket", MAX_NAME, "Socket Type", "Identifier of the socket type");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL | PROP_THICK_WRAP, PARM_REQUIRED);
   RNA_def_function_return(func, RNA_def_boolean(func, "valid", false, "", ""));
+
+  func = RNA_def_function(
+      srna, "debug_lazy_function_graph", "rna_NodeTree_debug_lazy_function_graph");
+  parm = RNA_def_string(func, "dot_graph", nullptr, INT32_MAX, "Dot Graph", "Graph in dot format");
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+  RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
+  RNA_def_function_output(func, parm);
 }
 
 static void rna_def_composite_nodetree(BlenderRNA *brna)

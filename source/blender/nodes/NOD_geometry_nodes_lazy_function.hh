@@ -414,6 +414,7 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * The actual lazy-function graph.
    */
   lf::Graph graph;
+  Map<int, const lf::Graph *> debug_zone_body_graphs;
   /**
    * Mappings between the lazy-function graph and the #bNodeTree.
    */

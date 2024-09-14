@@ -12,6 +12,8 @@
 
 #include <cstdio>
 
+#include "BLI_string_ref.hh"
+
 struct Depsgraph;
 struct Main;
 struct Scene;
@@ -43,7 +45,7 @@ void DEG_stats_simple(const Depsgraph *graph,
 /* ************************************************ */
 /* Diagram-Based Graph Debugging */
 
-void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *fp, const char *label);
+std::string DEG_debug_graph_to_dot(const Depsgraph &graph, blender::StringRef label);
 
 void DEG_debug_stats_gnuplot(const Depsgraph *graph,
                              FILE *fp,
