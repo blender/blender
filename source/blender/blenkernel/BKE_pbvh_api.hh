@@ -439,8 +439,6 @@ void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh);
 
 namespace blender::bke::pbvh {
 
-void remove_node_draw_tags(bke::pbvh::Tree &pbvh, const IndexMask &node_mask);
-
 /**
  * Gather the indices of all base mesh faces in the node.
  * For convenience, pass a reference to the data in the result.
@@ -573,10 +571,6 @@ IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory);
 IndexMask search_nodes(const Tree &pbvh,
                        IndexMaskMemory &memory,
                        FunctionRef<bool(const Node &)> filter_fn);
-
-IndexMask node_draw_update_mask(const Tree &pbvh,
-                                const IndexMask &node_mask,
-                                IndexMaskMemory &memory);
 
 void node_update_mask_mesh(Span<float> mask, MeshNode &node);
 void node_update_mask_grids(const CCGKey &key, Span<float> masks, GridsNode &node);

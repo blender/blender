@@ -109,9 +109,6 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   const IndexMask nodes_to_update = update_only_visible ? visible_nodes :
                                                           bke::pbvh::all_leaf_nodes(*pbvh, memory);
 
-  draw_data.tag_all_attributes_dirty(
-      bke::pbvh::node_draw_update_mask(*pbvh, nodes_to_update, memory));
-
   Span<gpu::Batch *> batches;
   if (use_wire) {
     batches = draw_data.ensure_lines_batches(*ob, {{}, fast_mode}, nodes_to_update);
@@ -121,8 +118,6 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   }
 
   const Span<int> material_indices = draw_data.ensure_material_indices(*ob);
-
-  bke::pbvh::remove_node_draw_tags(const_cast<bke::pbvh::Tree &>(*pbvh), nodes_to_update);
 
   Vector<SculptBatch> result_batches(visible_nodes.size());
   visible_nodes.foreach_index([&](const int i, const int pos) {

@@ -148,7 +148,6 @@ class DrawCacheImpl : public DrawCache {
  public:
   virtual ~DrawCacheImpl() override;
 
-  void tag_all_attributes_dirty(const IndexMask &node_mask) override;
   void tag_positions_changed(const IndexMask &node_mask) override;
   void tag_visibility_changed(const IndexMask &node_mask) override;
   void tag_topology_changed(const IndexMask &node_mask) override;
@@ -196,13 +195,6 @@ void DrawCacheImpl::AttributeData::tag_dirty(const IndexMask &node_mask)
   this->dirty_nodes.resize(std::max(this->dirty_nodes.size(), node_mask.min_array_size()), false);
   /* TODO: Somehow use `IndexMask::to_bits` with the `reset_all` at the beginning disabled. */
   node_mask.foreach_index_optimized<int>([&](const int i) { this->dirty_nodes[i].set(); });
-}
-
-void DrawCacheImpl::tag_all_attributes_dirty(const IndexMask &node_mask)
-{
-  for (DrawCacheImpl::AttributeData &data : attribute_vbos_.values()) {
-    data.tag_dirty(node_mask);
-  }
 }
 
 void DrawCacheImpl::tag_positions_changed(const IndexMask &node_mask)
