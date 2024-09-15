@@ -180,23 +180,25 @@ static void try_enforce_limit()
   /* Count used memory starting at the most recently touched element. Stop at the element when the
    * amount became larger than the capacity. */
   cache.memory.reset();
-  MemoryCounter memory_counter{cache.memory};
   std::optional<int> first_bad_index;
-  for (const int i : keys_with_time.index_range()) {
-    const GenericKey &key = *keys_with_time[i].second;
-    CacheMap::ConstAccessor accessor;
-    if (!cache.map.lookup(accessor, key)) {
-      continue;
+  {
+    MemoryCounter memory_counter{cache.memory};
+    for (const int i : keys_with_time.index_range()) {
+      const GenericKey &key = *keys_with_time[i].second;
+      CacheMap::ConstAccessor accessor;
+      if (!cache.map.lookup(accessor, key)) {
+        continue;
+      }
+      accessor->second.value->count_memory(memory_counter);
+      /* Undershoot a little bit. This typically results in more things being freed that have not
+       * been used in a while. The benefit is that we have to do the decision what to free less
+       * often than if we were always just freeing the minimum amount necessary. */
+      if (cache.memory.total_bytes <= approximate_limit * 0.75) {
+        continue;
+      }
+      first_bad_index = i;
+      break;
     }
-    accessor->second.value->count_memory(memory_counter);
-    /* Undershoot a little bit. This typically results in more things being freed that have not
-     * been used in a while. The benefit is that we have to do the decision what to free less
-     * often than if we were always just freeing the minimum amount necessary. */
-    if (cache.memory.total_bytes <= approximate_limit * 0.75) {
-      continue;
-    }
-    first_bad_index = i;
-    break;
   }
   if (!first_bad_index) {
     return;

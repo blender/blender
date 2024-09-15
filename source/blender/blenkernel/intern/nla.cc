@@ -2269,7 +2269,7 @@ static void nla_tweakmode_find_active(const ListBase /*NlaTrack*/ *nla_tracks,
 
 bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
 {
-  NlaTrack *nlt, *activeTrack = nullptr;
+  NlaTrack *activeTrack = nullptr;
   NlaStrip *activeStrip = nullptr;
   AnimData &adt = owned_adt.adt;
 
@@ -2318,7 +2318,7 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
    */
   activeTrack->flag |= NLATRACK_DISABLED;
   if ((adt.flag & ADT_NLA_EVAL_UPPER_TRACKS) == 0) {
-    for (nlt = activeTrack->next; nlt; nlt = nlt->next) {
+    for (NlaTrack *nlt = activeTrack->next; nlt; nlt = nlt->next) {
       nlt->flag |= NLATRACK_DISABLED;
     }
   }
