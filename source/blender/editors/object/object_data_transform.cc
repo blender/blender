@@ -304,8 +304,8 @@ struct XFormObjectData_GPencil {
 };
 
 struct XFormObjectData_GreasePencil {
-  struct XFormObjectData base;
-  struct GreasePencilPointCoordinates elem_array[0];
+  XFormObjectData base;
+  GreasePencilPointCoordinates elem_array[0];
 };
 
 XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)

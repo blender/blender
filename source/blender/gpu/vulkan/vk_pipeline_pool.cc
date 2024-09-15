@@ -680,7 +680,7 @@ struct VKPipelineCachePrefixHeader {
     memcpy(&pipeline_cache_uuid, &properties.pipelineCacheUUID, VK_UUID_SIZE);
 
     memset(commit_hash, 0, sizeof(commit_hash));
-    BLI_strncpy(commit_hash, build_hash, sizeof(commit_hash));
+    STRNCPY(commit_hash, build_hash);
   }
 };
 

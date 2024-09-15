@@ -615,7 +615,7 @@ static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
         },
         [](const float a, const float b) { return math::max(a, b); });
 
-    if (max_weight_in_frame == 0.0f || max_weight_in_frame == 1.0f) {
+    if (ELEM(max_weight_in_frame, 0.0f, 1.0f)) {
       continue;
     }
 

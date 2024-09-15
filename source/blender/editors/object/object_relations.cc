@@ -972,7 +972,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     if (child->type == OB_MESH) {
       has_children_of_type.mesh = true;
     }
-    if (child->type == OB_GPENCIL_LEGACY || child->type == OB_GREASE_PENCIL) {
+    if (ELEM(child->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
       has_children_of_type.gpencil = true;
     }
     if (child->type == OB_CURVES) {
