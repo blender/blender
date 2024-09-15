@@ -1882,6 +1882,8 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (mti->modify_geometry_set != nullptr) {
       mti->modify_geometry_set(tmd, &mectx, &geometry_set);
     }
@@ -1896,6 +1898,8 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
     {
       continue;
     }
+
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (mti->modify_geometry_set != nullptr) {
       mti->modify_geometry_set(md, &mectx, &geometry_set);
