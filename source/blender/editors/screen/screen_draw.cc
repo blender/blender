@@ -223,7 +223,7 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-static void screen_draw_area_drag_tip(int x, int y, ScrArea *source, std::string hint)
+static void screen_draw_area_drag_tip(int x, int y, ScrArea *source, const std::string &hint)
 {
   if (!U.experimental.use_docking) {
     return;
