@@ -72,12 +72,12 @@ static bool gpencil_stroke_paintmode_poll_with_tool(bContext *C, const char gpen
     return false;
   }
 
-  ToolSettings *ts = CTX_data_tool_settings(C);
+  const ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_paint) {
     return false;
   }
 
-  Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
+  const Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   return ((gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
           (brush->gpencil_brush_type == gpencil_brush_type));
@@ -86,17 +86,17 @@ static bool gpencil_stroke_paintmode_poll_with_tool(bContext *C, const char gpen
 static bool gpencil_stroke_vertexmode_poll_with_tool(bContext *C,
                                                      const char gpencil_vertex_brush_type)
 {
-  bGPdata *gpd = CTX_data_gpencil_data(C);
+  const bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
     return false;
   }
 
-  ToolSettings *ts = CTX_data_tool_settings(C);
+  const ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_vertexpaint) {
     return false;
   }
 
-  Brush *brush = BKE_paint_brush(&ts->gp_vertexpaint->paint);
+  const Brush *brush = BKE_paint_brush(&ts->gp_vertexpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_VERTEXMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
           (brush->gpencil_vertex_brush_type == gpencil_vertex_brush_type));
@@ -105,17 +105,17 @@ static bool gpencil_stroke_vertexmode_poll_with_tool(bContext *C,
 static bool gpencil_stroke_sculptmode_poll_with_tool(bContext *C,
                                                      const char gpencil_sculpt_brush_type)
 {
-  bGPdata *gpd = CTX_data_gpencil_data(C);
+  const bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
     return false;
   }
 
-  ToolSettings *ts = CTX_data_tool_settings(C);
+  const ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_sculptpaint) {
     return false;
   }
 
-  Brush *brush = BKE_paint_brush(&ts->gp_sculptpaint->paint);
+  const Brush *brush = BKE_paint_brush(&ts->gp_sculptpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_SCULPTMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
           (brush->gpencil_sculpt_brush_type == gpencil_sculpt_brush_type));
@@ -124,17 +124,17 @@ static bool gpencil_stroke_sculptmode_poll_with_tool(bContext *C,
 static bool gpencil_stroke_weightmode_poll_with_tool(bContext *C,
                                                      const char gpencil_weight_brush_type)
 {
-  bGPdata *gpd = CTX_data_gpencil_data(C);
+  const bGPdata *gpd = CTX_data_gpencil_data(C);
   if (!gpd) {
     return false;
   }
 
-  ToolSettings *ts = CTX_data_tool_settings(C);
+  const ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_weightpaint) {
     return false;
   }
 
-  Brush *brush = BKE_paint_brush(&ts->gp_weightpaint->paint);
+  const Brush *brush = BKE_paint_brush(&ts->gp_weightpaint->paint);
   return ((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) && (brush && brush->gpencil_settings) &&
           WM_toolsystem_active_tool_is_brush(C) &&
           (brush->gpencil_weight_brush_type == gpencil_weight_brush_type));

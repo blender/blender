@@ -621,7 +621,7 @@ static void loose_data_instantiate_obdata_preprocess(
       continue;
     }
     if (idcode == ID_GD_LEGACY) {
-      bGPdata *legacy_gpd = reinterpret_cast<bGPdata *>(id);
+      const bGPdata *legacy_gpd = reinterpret_cast<bGPdata *>(id);
       if ((legacy_gpd->flag & GP_DATA_ANNOTATIONS) != 0) {
         continue;
       }

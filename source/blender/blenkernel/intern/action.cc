@@ -296,7 +296,7 @@ static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelba
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
   BLO_write_pointer_array(writer, groups.size(), groups.data());
-  for (bActionGroup *group : groups) {
+  for (const bActionGroup *group : groups) {
     BLO_write_struct(writer, bActionGroup, group);
   }
 

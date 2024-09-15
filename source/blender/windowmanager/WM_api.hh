@@ -1538,7 +1538,7 @@ std::string WM_drag_get_string_firstline(const wmDrag *drag);
 /* Set OpenGL viewport and scissor. */
 void wmViewport(const rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
-void wmWindowViewport(wmWindow *win);
+void wmWindowViewport(const wmWindow *win);
 
 /* OpenGL utilities with safety check. */
 void wmOrtho2(float x1, float x2, float y1, float y2);

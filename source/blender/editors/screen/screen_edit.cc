@@ -683,7 +683,7 @@ static bool region_poll(const bContext *C,
 /**
  * \return true if any region polling state changed, and a screen refresh is needed.
  */
-static bool screen_regions_poll(bContext *C, wmWindow *win, bScreen *screen)
+static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *screen)
 {
   wmWindow *prev_win = CTX_wm_window(C);
   ScrArea *prev_area = CTX_wm_area(C);

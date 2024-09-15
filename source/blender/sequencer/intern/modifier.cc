@@ -360,7 +360,7 @@ static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
                                int height)
 {
   uchar *ptr = rect;
-  uchar *ptr_end = ptr + int64_t(width) * height * 4;
+  const uchar *ptr_end = ptr + int64_t(width) * height * 4;
   const uchar *mask_ptr = mask_rect;
 
   if (mask_ptr != nullptr) {
@@ -975,7 +975,7 @@ static void brightcontrast_apply(const StripScreenQuad & /*quad*/,
                                  ImBuf *ibuf,
                                  ImBuf *mask)
 {
-  BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
+  const BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
   BrightContrastThreadData data;
 
   data.bright = bcmd->bright;

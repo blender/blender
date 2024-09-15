@@ -142,7 +142,9 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
   for (const auto message_items_iter : messages.items()) {
     items.append(Item(message_items_iter));
   }
-  std::sort(items.begin(), items.end(), [](Item &a, Item &b) -> bool { return a.key < b.key; });
+  std::sort(items.begin(), items.end(), [](const Item &a, const Item &b) -> bool {
+    return a.key < b.key;
+  });
 
   Offset *offsets = MEM_cnew_array<Offset>(num_keys, __func__);
   uint32_t tot_keys_len = 0;

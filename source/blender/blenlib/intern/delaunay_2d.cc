@@ -1495,7 +1495,7 @@ template<typename T> static void re_delaunay_triangulate(CDTArrangement<T> *cdt,
   }
   /* `se` is a diagonal just added, and it is base of area to re-triangulate (face on its left). */
   int count = 1;
-  for (SymEdge<T> *ss = se->next; ss != se; ss = ss->next) {
+  for (const SymEdge<T> *ss = se->next; ss != se; ss = ss->next) {
     count++;
   }
   if (count <= 3) {

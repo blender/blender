@@ -57,7 +57,7 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
  * (coords compatible w/ #wmEvent.xy). Use when not nullptr.
  */
 static void view_zoom_to_window_xy_camera(Scene *scene,
-                                          Depsgraph *depsgraph,
+                                          const Depsgraph *depsgraph,
                                           View3D *v3d,
                                           ARegion *region,
                                           float dfac,

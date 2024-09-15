@@ -1433,7 +1433,7 @@ static int convertABGR_RGBA(const float *src,
 
 static int convertCbYCr_RGBA(const float *src,
                              float *dst,
-                             LogImageFile *logImage,
+                             const LogImageFile *logImage,
                              const LogImageElement &logElement)
 {
   uint i;
@@ -1465,7 +1465,7 @@ static int convertCbYCr_RGBA(const float *src,
 
 static int convertCbYCrA_RGBA(const float *src,
                               float *dst,
-                              LogImageFile *logImage,
+                              const LogImageFile *logImage,
                               const LogImageElement &logElement)
 {
   uint i;
@@ -1498,7 +1498,7 @@ static int convertCbYCrA_RGBA(const float *src,
 
 static int convertCbYCrY_RGBA(const float *src,
                               float *dst,
-                              LogImageFile *logImage,
+                              const LogImageFile *logImage,
                               const LogImageElement &logElement)
 {
   uint i;
@@ -1550,7 +1550,7 @@ static int convertCbYCrY_RGBA(const float *src,
 
 static int convertCbYACrYA_RGBA(const float *src,
                                 float *dst,
-                                LogImageFile *logImage,
+                                const LogImageFile *logImage,
                                 const LogImageElement &logElement)
 {
   uint i;
@@ -1604,7 +1604,7 @@ static int convertCbYACrYA_RGBA(const float *src,
 
 static int convertLuminance_RGBA(const float *src,
                                  float *dst,
-                                 LogImageFile *logImage,
+                                 const LogImageFile *logImage,
                                  const LogImageElement &logElement)
 {
   uint i;
@@ -1630,7 +1630,7 @@ static int convertLuminance_RGBA(const float *src,
 
 static int convertYA_RGBA(const float *src,
                           float *dst,
-                          LogImageFile *logImage,
+                          const LogImageFile *logImage,
                           const LogImageElement &logElement)
 {
   uint i;

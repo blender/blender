@@ -2671,7 +2671,7 @@ namespace blender::bke::nla {
 
 bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback)
 {
-  AnimData *adt = BKE_animdata_from_id(id);
+  const AnimData *adt = BKE_animdata_from_id(id);
   if (!adt) {
     /* Having no NLA trivially means that we've looped through all the strips. */
     return true;

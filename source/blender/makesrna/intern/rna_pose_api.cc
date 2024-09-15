@@ -226,24 +226,24 @@ void RNA_api_pose(StructRNA *srna)
                                   "pose of selected bones, or all bones if none are selected.");
   parm = RNA_def_pointer(func, "action", "Action", "Action", "The Action containing the pose");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_float(func,
-                       "blend_factor",
-                       1.0f,
-                       0.0f,
-                       1.0f,
-                       "Blend Factor",
-                       "How much the given Action affects the final pose",
-                       0.0f,
-                       1.0f);
-  parm = RNA_def_float(func,
-                       "evaluation_time",
-                       0.0f,
-                       -FLT_MAX,
-                       FLT_MAX,
-                       "Evaluation Time",
-                       "Time at which the given action is evaluated to obtain the pose",
-                       -FLT_MAX,
-                       FLT_MAX);
+  RNA_def_float(func,
+                "blend_factor",
+                1.0f,
+                0.0f,
+                1.0f,
+                "Blend Factor",
+                "How much the given Action affects the final pose",
+                0.0f,
+                1.0f);
+  RNA_def_float(func,
+                "evaluation_time",
+                0.0f,
+                -FLT_MAX,
+                FLT_MAX,
+                "Evaluation Time",
+                "Time at which the given action is evaluated to obtain the pose",
+                -FLT_MAX,
+                FLT_MAX);
 
   func = RNA_def_function(srna, "backup_create", "rna_Pose_backup_create");
   RNA_def_function_ui_description(

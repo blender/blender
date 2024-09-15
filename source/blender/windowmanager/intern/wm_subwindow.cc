@@ -71,7 +71,7 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
   GPU_matrix_identity_set();
 }
 
-void wmWindowViewport(wmWindow *win)
+void wmWindowViewport(const wmWindow *win)
 {
   int width = WM_window_native_pixel_x(win);
   int height = WM_window_native_pixel_y(win);

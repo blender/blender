@@ -90,7 +90,7 @@
 
 BPy_StructRNA *bpy_context_module = nullptr; /* for fast access */
 
-static PyObject *pyrna_struct_CreatePyObject_from_type(PointerRNA *ptr,
+static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
                                                        PyTypeObject *tp,
                                                        void **instance);
 
@@ -7624,7 +7624,7 @@ static PyObject *pyrna_struct_Subtype(PointerRNA *ptr)
  * A lower level version of #pyrna_struct_CreatePyObject,
  * use this when type (`tp`) needs to be set to a non-standard value.
  */
-static PyObject *pyrna_struct_CreatePyObject_from_type(PointerRNA *ptr,
+static PyObject *pyrna_struct_CreatePyObject_from_type(const PointerRNA *ptr,
                                                        PyTypeObject *tp,
                                                        void **instance)
 {

@@ -2230,7 +2230,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
                               ImBuf *ibuf1,
                               ImBuf *ibuf2)
 {
-  SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+  const SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
   SeqEffectHandle cross_effect = get_sequence_effect_impl(SEQ_TYPE_CROSS);
   ImBuf *out;
 

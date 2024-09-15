@@ -204,7 +204,7 @@ static void image_size_to_thumb_size(int &r_width, int &r_height)
   }
 }
 
-static ImBuf *make_thumb_for_image(Scene *scene, const ThumbnailCache::Request &request)
+static ImBuf *make_thumb_for_image(const Scene *scene, const ThumbnailCache::Request &request)
 {
   ImBuf *ibuf = IMB_thumb_load_image(
       request.file_path.c_str(), SEQ_THUMB_SIZE, nullptr, IMBThumbLoadFlags::LoadLargeFiles);

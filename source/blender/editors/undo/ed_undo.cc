@@ -872,7 +872,7 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
     ((ID *)obedit->data)->tag &= ~ID_TAG_DOIT;
   }
   for (Base *base : bases) {
-    ID *id = static_cast<ID *>(base->object->data);
+    const ID *id = static_cast<ID *>(base->object->data);
     if (id->tag & ID_TAG_DOIT) {
       object::editmode_exit_ex(bmain, scene, base->object, object::EM_FREEDATA);
       /* Ideally we would know the selection state it was before entering edit-mode,

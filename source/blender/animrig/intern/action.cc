@@ -1765,7 +1765,7 @@ bActionGroup *ChannelBag::channel_group_find(const StringRef name)
 int ChannelBag::channel_group_containing_index(const int fcurve_array_index)
 {
   int i = 0;
-  for (bActionGroup *group : this->channel_groups()) {
+  for (const bActionGroup *group : this->channel_groups()) {
     if (fcurve_array_index >= group->fcurve_range_start &&
         fcurve_array_index < (group->fcurve_range_start + group->fcurve_range_length))
     {
@@ -1787,7 +1787,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
   int fcurve_index = 0;
   const int length = this->channel_groups().size();
   if (length > 0) {
-    bActionGroup *last = this->channel_group(length - 1);
+    const bActionGroup *last = this->channel_group(length - 1);
     fcurve_index = last->fcurve_range_start + last->fcurve_range_length;
   }
   new_group->fcurve_range_start = fcurve_index;
@@ -1805,7 +1805,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
    * match that system's behavior, even when it's goofy.*/
   std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
-        for (bActionGroup *group : this->channel_groups()) {
+        for (const bActionGroup *group : this->channel_groups()) {
           if (STREQ(group->name, name.data())) {
             return true;
           }
@@ -1841,7 +1841,7 @@ bool ChannelBag::channel_group_remove(bActionGroup &group)
 
   /* Move the group's fcurves to just past the end of where the grouped
    * fcurves will be after this group is removed. */
-  bActionGroup *last_group = this->channel_groups().last();
+  const bActionGroup *last_group = this->channel_groups().last();
   BLI_assert(last_group != nullptr);
   const int to_index = last_group->fcurve_range_start + last_group->fcurve_range_length -
                        group.fcurve_range_length;

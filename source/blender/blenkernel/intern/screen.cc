@@ -879,11 +879,11 @@ std::optional<std::string> BKE_screen_path_from_screen_to_space(const PointerRNA
     return std::nullopt;
   }
 
-  bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
-  SpaceLink *link = static_cast<SpaceLink *>(ptr->data);
+  const bScreen *screen = reinterpret_cast<const bScreen *>(ptr->owner_id);
+  const SpaceLink *link = static_cast<const SpaceLink *>(ptr->data);
 
   int area_index;
-  LISTBASE_FOREACH_INDEX (ScrArea *, area, &screen->areabase, area_index) {
+  LISTBASE_FOREACH_INDEX (const ScrArea *, area, &screen->areabase, area_index) {
     const int space_index = BLI_findindex(&area->spacedata, link);
     if (space_index != -1) {
       return fmt::format("areas[{}].spaces[{}]", area_index, space_index);
