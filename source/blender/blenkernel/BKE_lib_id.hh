@@ -220,7 +220,7 @@ enum {
                          LIB_ID_COPY_NO_LIB_OVERRIDE,
 };
 
-void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int orig_flag);
+void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **new_id_p, int orig_flag);
 /**
  * Same as #BKE_libblock_copy_ex, but allows copying data into a library, and not as local data
  * only.
@@ -235,7 +235,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
                               const ID *new_owner_id,
-                              ID **r_newid,
+                              ID **new_id_p,
                               int orig_flag);
 
 /**
@@ -512,13 +512,13 @@ bool BKE_id_copy_is_allowed(const ID *id);
  *
  * \param bmain: Main database, may be NULL only if LIB_ID_CREATE_NO_MAIN is specified.
  * \param id: Source data-block.
- * \param r_newid: Pointer to new (copied) ID pointer, may be NULL.
+ * \param new_id_p: Pointer to new (copied) ID pointer, may be NULL.
  * Used to allow copying into already allocated memory.
  * \param flag: Set of copy options, see `DNA_ID.h` enum for details
  * (leave to zero for default, full copy).
  * \return NULL when copying that ID type is not supported, the new copy otherwise.
  */
-ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag);
+ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **new_id_p, int flag);
 /**
  * Enable coying non-local data into libraries.
  *
@@ -534,7 +534,7 @@ struct ID *BKE_id_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
                               const ID *new_owner_id,
-                              ID **r_newid,
+                              ID **new_id_p,
                               int flag);
 /**
  * Invoke the appropriate copy method for the block and return the new id as result.

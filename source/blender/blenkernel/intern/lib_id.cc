@@ -650,10 +650,10 @@ ID *BKE_id_copy_in_lib(Main *bmain,
                        std::optional<Library *> owner_library,
                        const ID *id,
                        const ID *new_owner_id,
-                       ID **r_newid,
+                       ID **new_id_p,
                        const int flag)
 {
-  ID *newid = (r_newid != nullptr) ? *r_newid : nullptr;
+  ID *newid = (new_id_p != nullptr) ? *new_id_p : nullptr;
   BLI_assert_msg(newid || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0,
                  "Copying with 'no allocate' behavior should always get a non-null new ID buffer");
 
@@ -743,16 +743,16 @@ ID *BKE_id_copy_in_lib(Main *bmain,
     newid->lib = owner_library ? *owner_library : id->lib;
   }
 
-  if (r_newid != nullptr) {
-    *r_newid = newid;
+  if (new_id_p != nullptr) {
+    *new_id_p = newid;
   }
 
   return newid;
 }
 
-ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
+ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **new_id_p, const int flag)
 {
-  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, r_newid, flag);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, new_id_p, flag);
 }
 
 ID *BKE_id_copy(Main *bmain, const ID *id)
@@ -1489,10 +1489,10 @@ void BKE_libblock_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
                               const ID *new_owner_id,
-                              ID **r_newid,
+                              ID **new_id_p,
                               const int orig_flag)
 {
-  ID *new_id = *r_newid;
+  ID *new_id = *new_id_p;
   int flag = orig_flag;
 
   const bool is_embedded_id = (id->flag & ID_FLAG_EMBEDDED_DATA) != 0;
@@ -1521,7 +1521,7 @@ void BKE_libblock_copy_in_lib(Main *bmain,
       ((owner_library && *owner_library) ? (ID_TAG_EXTERN | ID_TAG_INDIRECT) : 0);
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
-    /* r_newid already contains pointer to allocated memory. */
+    /* `new_id_p` already contains pointer to allocated memory. */
     /* TODO: do we want to memset(0) whole mem before filling it? */
     STRNCPY(new_id->name, id->name);
     new_id->us = 0;
@@ -1620,17 +1620,17 @@ void BKE_libblock_copy_in_lib(Main *bmain,
     DEG_id_type_tag(bmain, GS(new_id->name));
   }
 
-  *r_newid = new_id;
+  *new_id_p = new_id;
 }
 
-void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int orig_flag)
+void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **new_id_p, const int orig_flag)
 {
-  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, r_newid, orig_flag);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, new_id_p, orig_flag);
 }
 
 void *BKE_libblock_copy(Main *bmain, const ID *id)
 {
-  ID *idn;
+  ID *idn = nullptr;
 
   BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, &idn, 0);
 
