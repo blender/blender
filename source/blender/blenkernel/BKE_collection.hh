@@ -158,12 +158,9 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
  */
 void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, Object *ob_dst);
 /**
- * Remove object from collection.
+ * Remove ob from collection.
  */
-bool BKE_collection_object_remove(Main *bmain,
-                                  Collection *collection,
-                                  Object *object,
-                                  bool free_us);
+bool BKE_collection_object_remove(Main *bmain, Collection *collection, Object *ob, bool free_us);
 /**
  * Replace one object with another in a collection (managing user counts).
  */

@@ -931,7 +931,7 @@ class ChannelBag : public ::ActionChannelBag {
    *
    * \return True on success, false on failure.
    */
-  bool fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &group);
+  bool fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group);
 
   /**
    * Removes the the given FCurve from the channel group it's in, if any.
@@ -979,7 +979,7 @@ class ChannelBag : public ::ActionChannelBag {
    *
    * \see `restore_channel_group_invariants()`
    */
-  void channel_group_remove_raw(int channel_group_index);
+  void channel_group_remove_raw(int group_index);
 
   /**
    * Restore invariants related to channel groups.

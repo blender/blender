@@ -335,7 +335,7 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   /**
    * Set a custom callback to check if this item should be active.
    */
-  void set_is_active_fn(IsActiveFn fn);
+  void set_is_active_fn(IsActiveFn is_active_fn);
 
  protected:
   /**

@@ -459,7 +459,7 @@ void screen_draw_dock_preview(
                                                                     IFACE_("Split Area"));
 }
 
-void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float fac)
+void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float factor)
 {
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
@@ -470,14 +470,14 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   rctf rect;
   BLI_rctf_rcti_copy(&rect, &area->totrct);
 
-  if (fac < 0.0001 || fac > 0.9999) {
+  if (factor < 0.0001 || factor > 0.9999) {
     /* Highlight the entire area. */
     UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
     return;
   }
 
-  float x = (1 - fac) * rect.xmin + fac * rect.xmax;
-  float y = (1 - fac) * rect.ymin + fac * rect.ymax;
+  float x = (1 - factor) * rect.xmin + factor * rect.xmax;
+  float y = (1 - factor) * rect.ymin + factor * rect.ymax;
   x = std::clamp(x, rect.xmin, rect.xmax);
   y = std::clamp(y, rect.ymin, rect.ymax);
   float half_line_width = 2.0f * U.pixelsize;

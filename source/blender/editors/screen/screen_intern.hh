@@ -90,8 +90,8 @@ void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
  */
 void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2, eScreenDir dir);
 void screen_draw_dock_preview(
-    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float fac, int x, int y);
-void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float fac);
+    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y);
+void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float factor);
 
 /* `screen_edit.cc` */
 

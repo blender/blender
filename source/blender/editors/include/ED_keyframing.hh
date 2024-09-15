@@ -168,7 +168,7 @@ KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[]);
 /**
  * Check if the ID appears in the paths specified by the #KeyingSet.
  */
-bool ANIM_keyingset_find_id(KeyingSet *ks, ID *id);
+bool ANIM_keyingset_find_id(KeyingSet *keyingset, ID *id);
 
 /**
  * Add the given KeyingSetInfo to the list of type infos,

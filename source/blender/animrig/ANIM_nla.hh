@@ -40,9 +40,11 @@ void unassign_action(NlaStrip &strip, ID &animated_id);
  * The strip should already have an Action assigned to it, and the given Slot should belong to that
  * Action.
  *
- * \param slot the slot to assign, or nullptr to un-assign the current slot.
+ * \param slot_to_assign: the slot to assign, or nullptr to un-assign the current slot.
  */
-ActionSlotAssignmentResult assign_action_slot(NlaStrip &strip, Slot *slot, ID &animated_id);
+ActionSlotAssignmentResult assign_action_slot(NlaStrip &strip,
+                                              Slot *slot_to_assign,
+                                              ID &animated_id);
 
 ActionSlotAssignmentResult assign_action_slot_handle(NlaStrip &strip,
                                                      slot_handle_t slot_handle,

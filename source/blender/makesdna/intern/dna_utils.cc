@@ -84,10 +84,10 @@ uint DNA_member_id_offset_start(const char *member_full)
   return elem_full_offset;
 }
 
-uint DNA_member_id_offset_end(const char *member_full)
+uint DNA_member_id_offset_end(const char *member_full_trimmed)
 {
   uint elem_full_offset = 0;
-  while (is_identifier(member_full[elem_full_offset])) {
+  while (is_identifier(member_full_trimmed[elem_full_offset])) {
     elem_full_offset++;
   }
   return elem_full_offset;
