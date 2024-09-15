@@ -356,7 +356,7 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
 static SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Sequence *seq, int key_x)
 {
   int sound_offset = SEQ_time_get_rounded_sound_offset(scene, seq);
-  SeqRetimingKey fake_key;
+  SeqRetimingKey fake_key = {0};
   fake_key.strip_frame_index = (key_x - SEQ_time_start_frame_get(seq) - sound_offset) *
                                SEQ_time_media_playback_rate_factor_get(scene, seq);
   fake_key.flag = 0;
