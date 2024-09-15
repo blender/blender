@@ -1187,15 +1187,15 @@ int blf_str_offset_to_cursor(
 
   if ((prev.xmax == prev.xmin) && next.xmax) {
     /* Nothing (or a space) to the left, so align to right character. */
-    return next.xmin - int(cursor_width);
+    return int(float(next.xmin) - (cursor_width / 2.0f));
   }
   if ((prev.xmax != prev.xmin) && !next.xmax) {
     /* End of string, so align to last character. */
-    return prev.xmax;
+    return int(float(prev.xmax) - (cursor_width / 2.0f));
   }
   if (prev.xmax && next.xmax) {
     /* Between two characters, so use the center. */
-    if (next.xmin >= prev.xmax) {
+    if (next.xmin >= prev.xmax || next.xmin == next.xmax) {
       return int((float(prev.xmax + next.xmin) - cursor_width) / 2.0f);
     }
     /* A nicer center if reversed order - RTL. */
