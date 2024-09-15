@@ -286,11 +286,6 @@ static void eyedropper_set_brush_color(bContext *C, const float3 &col_conv)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   Paint *paint = &ts->gp_paint->paint;
-
-  if (paint == nullptr) {
-    return;
-  }
-
   Brush *brush = BKE_paint_brush(paint);
   if (brush == nullptr) {
     return;

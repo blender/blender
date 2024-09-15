@@ -844,9 +844,7 @@ ID *ui_template_id_liboverride_hierarchy_make(
             BKE_collection_has_object_recursive(collection_active, object_active))
         {
           template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
-          if (object_active != nullptr) {
-            object_active->id.tag |= ID_TAG_DOIT;
-          }
+          object_active->id.tag |= ID_TAG_DOIT;
           BKE_lib_override_library_create(bmain,
                                           scene,
                                           view_layer,

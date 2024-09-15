@@ -77,10 +77,6 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
   }
 
   SpaceAction *saction = (SpaceAction *)space_data;
-  if (!saction) {
-    return nullptr;
-  }
-
   Object *ob = CTX_data_active_object(C);
   AnimData *adt = nullptr;
 
