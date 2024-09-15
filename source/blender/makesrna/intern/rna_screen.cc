@@ -178,6 +178,10 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
       break;
     }
   }
+
+  /* The set of visible geometry nodes gizmos depends on the visible node editors. So if a node
+   * editor becomes visible/invisble, the gizmos have to be updated. */
+  WM_main_add_notifier(NC_NODE | ND_NODE_GIZMO, nullptr);
 }
 
 static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
