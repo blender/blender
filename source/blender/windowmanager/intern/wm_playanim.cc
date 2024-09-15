@@ -1665,7 +1665,7 @@ static bool playanim_window_font_scale_from_dpi(PlayState &ps)
 {
   const float scale = (GHOST_GetDPIHint(ps.ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
-  const int font_size = int(font_size_base * scale) + 0.5f;
+  const int font_size = int((font_size_base * scale) + 0.5f);
   bool changed = false;
   if (ps.font_size != font_size) {
     BLF_size(ps.font_id, font_size);
