@@ -256,15 +256,16 @@ void filter_verts_with_unique_face_sets_grids(const GroupedSpan<int> vert_to_fac
   }
 }
 
-void filter_verts_with_unique_face_sets_bmesh(const bool unique,
-                                              const Set<BMVert *, 0> verts,
+void filter_verts_with_unique_face_sets_bmesh(int face_set_offset,
+                                              const bool unique,
+                                              const Set<BMVert *, 0> &verts,
                                               const MutableSpan<float> factors)
 {
   BLI_assert(verts.size() == factors.size());
 
   int i = 0;
   for (const BMVert *vert : verts) {
-    if (unique == face_set::vert_has_unique_face_set(vert)) {
+    if (unique == face_set::vert_has_unique_face_set(face_set_offset, *vert)) {
       factors[i] = 0.0f;
     }
     i++;

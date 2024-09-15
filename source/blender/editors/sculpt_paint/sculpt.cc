@@ -408,8 +408,10 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
       return vert_has_unique_face_set(vert_to_face_map, face_sets, vertex.i);
     }
     case bke::pbvh::Type::BMesh: {
-      BMVert *v = (BMVert *)vertex.i;
-      return vert_has_unique_face_set(v);
+      const int face_set_offset = CustomData_get_offset_named(
+          &object.sculpt->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+      BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+      return vert_has_unique_face_set(face_set_offset, *v);
     }
     case bke::pbvh::Type::Grids: {
       const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
@@ -514,7 +516,7 @@ bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
   return true;
 }
 
-bool vert_has_unique_face_set(const BMVert * /*vert*/)
+bool vert_has_unique_face_set(const int /*face_set_offset*/, const BMVert & /*vert*/)
 {
   /* TODO: Obviously not fully implemented yet. Needs to be implemented for Relax Face Sets brush
    * to work. */

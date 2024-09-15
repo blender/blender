@@ -1227,13 +1227,15 @@ static void init_boundary_masking_bmesh(Object &object,
                                         MutableSpan<float> factors)
 {
   SculptSession &ss = *object.sculpt;
-  BMesh *bm = ss.bm;
-  const int num_verts = BM_mesh_elem_count(bm, BM_VERT);
+  BMesh &bm = *ss.bm;
+  const int face_set_offset = CustomData_get_offset_named(
+      &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
+  const int num_verts = BM_mesh_elem_count(&bm, BM_VERT);
 
   Array<int> edge_distance(num_verts, EDGE_DISTANCE_INF);
 
   for (const int i : IndexRange(num_verts)) {
-    BMVert *vert = BM_vert_at_index(bm, i);
+    BMVert *vert = BM_vert_at_index(&bm, i);
     switch (mode) {
       case BoundaryAutomaskMode::Edges:
         if (boundary::vert_is_boundary(vert)) {
@@ -1241,7 +1243,7 @@ static void init_boundary_masking_bmesh(Object &object,
         }
         break;
       case BoundaryAutomaskMode::FaceSets:
-        if (!face_set::vert_has_unique_face_set(vert)) {
+        if (!face_set::vert_has_unique_face_set(face_set_offset, *vert)) {
           edge_distance[i] = 0;
         }
     }
@@ -1254,7 +1256,7 @@ static void init_boundary_masking_bmesh(Object &object,
         continue;
       }
 
-      BMVert *vert = BM_vert_at_index(bm, i);
+      BMVert *vert = BM_vert_at_index(&bm, i);
       for (BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
         const int neighbor_idx = BM_elem_index_get(neighbor);
 

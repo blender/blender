@@ -43,7 +43,7 @@ bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map,
                               Span<int> face_sets,
                               const SubdivCCG &subdiv_ccg,
                               SubdivCCGCoord coord);
-bool vert_has_unique_face_set(const BMVert *vert);
+bool vert_has_unique_face_set(int face_set_offset, const BMVert &vert);
 
 /**
  * Creates the sculpt face set attribute on the mesh if it doesn't exist.
@@ -75,8 +75,9 @@ void filter_verts_with_unique_face_sets_grids(GroupedSpan<int> vert_to_face_map,
                                               bool unique,
                                               Span<int> grids,
                                               MutableSpan<float> factors);
-void filter_verts_with_unique_face_sets_bmesh(bool unique,
-                                              const Set<BMVert *, 0> verts,
+void filter_verts_with_unique_face_sets_bmesh(int face_set_offset,
+                                              bool unique,
+                                              const Set<BMVert *, 0> &verts,
                                               MutableSpan<float> factors);
 
 }  // namespace blender::ed::sculpt_paint::face_set

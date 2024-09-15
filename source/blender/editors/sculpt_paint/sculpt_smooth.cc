@@ -604,6 +604,7 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
 
 void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
                                      const Span<float3> positions,
+                                     const int face_set_offset,
                                      const bool filter_boundary_face_sets,
                                      const Span<float> factors,
                                      Vector<Vector<BMVert *>> &neighbors,
@@ -636,8 +637,9 @@ void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
     }
 
     if (filter_boundary_face_sets) {
-      neighbors[i].remove_if(
-          [&](const BMVert *vert) { return face_set::vert_has_unique_face_set(vert); });
+      neighbors[i].remove_if([&](const BMVert *vert) {
+        return face_set::vert_has_unique_face_set(face_set_offset, *vert);
+      });
     }
 
     if (neighbors[i].is_empty()) {

@@ -347,6 +347,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
 static void calc_factors_bmesh(const Depsgraph &depsgraph,
                                Object &object,
                                const Brush &brush,
+                               const int face_set_offset,
                                bke::pbvh::BMeshNode &node,
                                const float strength,
                                const bool relax_face_sets,
@@ -379,7 +380,8 @@ static void calc_factors_bmesh(const Depsgraph &depsgraph,
   scale_factors(factors, strength);
 
   calc_brush_texture_factors(ss, brush, positions, factors);
-  face_set::filter_verts_with_unique_face_sets_bmesh(relax_face_sets, verts, factors);
+  face_set::filter_verts_with_unique_face_sets_bmesh(
+      face_set_offset, relax_face_sets, verts, factors);
 }
 
 static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
@@ -396,6 +398,9 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
       nodes, node_mask, node_offset_data);
 
+  const int face_set_offset = CustomData_get_offset_named(
+      &object.sculpt->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+
   Array<float3> current_positions(node_vert_offsets.total_size());
   Array<float3> translations(node_vert_offsets.total_size());
   Array<float> factors(node_vert_offsets.total_size());
@@ -406,6 +411,7 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
     calc_factors_bmesh(depsgraph,
                        object,
                        brush,
+                       face_set_offset,
                        nodes[i],
                        strength,
                        relax_face_sets,
@@ -419,6 +425,7 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
     smooth::calc_relaxed_translations_bmesh(
         BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
         current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
+        face_set_offset,
         relax_face_sets,
         factors.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,
@@ -710,6 +717,8 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
+  const int face_set_offset = CustomData_get_offset_named(
+      &object.sculpt->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets_bmesh(
@@ -738,6 +747,7 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
     smooth::calc_relaxed_translations_bmesh(
         BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
         current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
+        face_set_offset,
         false,
         factors.as_span().slice(node_vert_offsets[pos]),
         tls.vert_neighbors,

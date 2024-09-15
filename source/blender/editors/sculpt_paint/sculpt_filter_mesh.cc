@@ -1089,6 +1089,9 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
         Vector<float3> translations;
       };
       BMesh &bm = *ss.bm;
+      const int face_set_offset = CustomData_get_offset_named(
+          &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
+
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1108,7 +1111,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
           smooth::calc_relaxed_translations_bmesh(
-              verts, positions, false, factors, tls.vert_neighbors, translations);
+              verts, positions, face_set_offset, false, factors, tls.vert_neighbors, translations);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, positions, translations);
@@ -1265,6 +1268,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
         Vector<float3> translations;
       };
       BMesh &bm = *ss.bm;
+      const int face_set_offset = CustomData_get_offset_named(
+          &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1281,12 +1286,18 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
-          face_set::filter_verts_with_unique_face_sets_bmesh(relax_face_sets, verts, factors);
+          face_set::filter_verts_with_unique_face_sets_bmesh(
+              face_set_offset, relax_face_sets, verts, factors);
 
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_bmesh(
-              verts, positions, relax_face_sets, factors, tls.vert_neighbors, translations);
+          smooth::calc_relaxed_translations_bmesh(verts,
+                                                  positions,
+                                                  face_set_offset,
+                                                  relax_face_sets,
+                                                  factors,
+                                                  tls.vert_neighbors,
+                                                  translations);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
           clip_and_lock_translations(sd, ss, positions, translations);
