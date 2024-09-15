@@ -1276,7 +1276,8 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
     }
 
     temp_used_names.add(target_name);
-    const std::string &original_path = temp_material_child.GetPath().GetString();
+    const pxr::SdfPath &temp_material_child_path = temp_material_child.GetPath();
+    const std::string &original_path = temp_material_child_path.GetString();
     const std::string new_path =
         temp_material_child.GetPath().ReplaceName(pxr::TfToken(target_name)).GetString();
 
