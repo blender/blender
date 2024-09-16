@@ -737,7 +737,6 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "flat in vec4 gpu_pos[3];\n";
       ss << "smooth in vec3 gpu_BaryCoord;\n";
       ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
-      ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
     else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
@@ -756,11 +755,6 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "  return bary.xyz;\n";
       ss << "}\n";
       ss << "\n";
-      ss << "vec4 gpu_position_at_vertex(int v) {\n";
-      ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { v = (v + 2) % 3; }\n";
-      ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { v = (v + 1) % 3; }\n";
-      ss << "  return interpolateAtVertexAMD(gpu_pos, v);\n";
-      ss << "}\n";
 
       pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
       pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";

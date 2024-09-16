@@ -12,35 +12,10 @@
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
 vec3 barycentric_distances_get()
 {
-#  if defined(GPU_METAL)
-  /* Calculate Barycentric distances from available parameters in Metal. */
-  float wp_delta = length(dfdx(interp.P)) + length(dfdy(interp.P));
-  float bc_delta = length(dfdx(gpu_BaryCoord)) + length(dfdy(gpu_BaryCoord));
+  float wp_delta = length(dFdx(interp.P)) + length(dFdy(interp.P));
+  float bc_delta = length(dFdx(gpu_BaryCoord)) + length(dFdy(gpu_BaryCoord));
   float rate_of_change = wp_delta / bc_delta;
-  vec3 dists;
-  dists.x = rate_of_change * (1.0 - gpu_BaryCoord.x);
-  dists.y = rate_of_change * (1.0 - gpu_BaryCoord.y);
-  dists.z = rate_of_change * (1.0 - gpu_BaryCoord.z);
-#  else
-  /* NOTE: No need to undo perspective divide since it has not been applied. */
-  vec3 pos0 = (ProjectionMatrixInverse * gpu_position_at_vertex(0)).xyz;
-  vec3 pos1 = (ProjectionMatrixInverse * gpu_position_at_vertex(1)).xyz;
-  vec3 pos2 = (ProjectionMatrixInverse * gpu_position_at_vertex(2)).xyz;
-  vec3 edge21 = pos2 - pos1;
-  vec3 edge10 = pos1 - pos0;
-  vec3 edge02 = pos0 - pos2;
-  vec3 d21 = safe_normalize(edge21);
-  vec3 d10 = safe_normalize(edge10);
-  vec3 d02 = safe_normalize(edge02);
-  vec3 dists;
-  float d = dot(d21, edge02);
-  dists.x = sqrt(dot(edge02, edge02) - d * d);
-  d = dot(d02, edge10);
-  dists.y = sqrt(dot(edge10, edge10) - d * d);
-  d = dot(d10, edge21);
-  dists.z = sqrt(dot(edge21, edge21) - d * d);
-#  endif
-  return dists;
+  return rate_of_change * (1.0 - gpu_BaryCoord);
 }
 #endif
 

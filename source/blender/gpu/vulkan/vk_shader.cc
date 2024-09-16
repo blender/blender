@@ -980,7 +980,6 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     location += 3;
     ss << "layout(location=" << (location++) << ") smooth in vec3 gpu_BaryCoord;\n";
     ss << "layout(location=" << (location++) << ") noperspective in vec3 gpu_BaryCoordNoPersp;\n";
-    ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
 
 #if 0
     std::cout << "native" << std::endl;
@@ -1000,11 +999,6 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "  return bary.xyz;\n";
     ss << "}\n";
     ss << "\n";
-    ss << "vec4 gpu_position_at_vertex(int v) {\n";
-    ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { v = (v + 2) % 3; }\n";
-    ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { v = (v + 1) % 3; }\n";
-    ss << "  return interpolateAtVertexAMD(gpu_pos, v);\n";
-    ss << "}\n";
 
     pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
     pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
