@@ -3253,7 +3253,9 @@ void SCULPT_vertcos_to_key(Object &ob, KeyBlock *kb, const Span<float3> vertCos)
   const int kb_act_idx = ob.shapenr - 1;
 
   /* For relative keys editing of base should update other keys. */
-  if (bool *dependent = BKE_keyblock_get_dependent_keys(mesh->key, kb_act_idx)) {
+  if (std::optional<blender::Array<bool>> dependent = BKE_keyblock_get_dependent_keys(mesh->key,
+                                                                                      kb_act_idx))
+  {
     ofs = BKE_keyblock_convert_to_vertcos(&ob, kb);
 
     /* Calculate key coord offsets (from previous location). */
@@ -3263,13 +3265,12 @@ void SCULPT_vertcos_to_key(Object &ob, KeyBlock *kb, const Span<float3> vertCos)
 
     /* Apply offsets on other keys. */
     LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &mesh->key->block, currkey_i) {
-      if ((currkey != kb) && dependent[currkey_i]) {
+      if ((currkey != kb) && (*dependent)[currkey_i]) {
         BKE_keyblock_update_from_offset(&ob, currkey, ofs);
       }
     }
 
     MEM_freeN(ofs);
-    MEM_freeN(dependent);
   }
 
   /* Modifying of basis key should update mesh. */
@@ -7260,15 +7261,16 @@ void update_shape_keys(Object &object,
     apply_translations(translations, verts, active_key_data);
   }
 
-  if (bool *dependent = BKE_keyblock_get_dependent_keys(mesh.key, object.shapenr - 1)) {
+  if (std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(mesh.key,
+                                                                             object.shapenr - 1))
+  {
     int i;
     LISTBASE_FOREACH_INDEX (KeyBlock *, other_key, &mesh.key->block, i) {
-      if ((other_key != &active_key) && dependent[i]) {
+      if ((other_key != &active_key) && (*dependent)[i]) {
         MutableSpan<float3> data(static_cast<float3 *>(other_key->data), other_key->totelem);
         apply_translations(translations, verts, data);
       }
     }
-    MEM_freeN(dependent);
   }
 }
 

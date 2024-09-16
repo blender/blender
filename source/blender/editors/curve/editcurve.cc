@@ -657,7 +657,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
 
   float(*ofs)[3] = nullptr;
-  bool *dependent = nullptr;
+  std::optional<blender::Array<bool>> dependent;
   float *oldkey, *newkey, *ofp;
 
   /* editing the base key should update others */
@@ -723,7 +723,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   }
 
   LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &cu->key->block, currkey_i) {
-    const bool apply_offset = (ofs && (currkey != actkey) && dependent[currkey_i]);
+    const bool apply_offset = (ofs && (currkey != actkey) && (*dependent)[currkey_i]);
 
     float *fp = newkey = static_cast<float *>(
         MEM_callocN(cu->key->elemsize * totvert, "currkey->data"));
@@ -887,7 +887,6 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   }
 
   MEM_SAFE_FREE(ofs);
-  MEM_SAFE_FREE(dependent);
 }
 
 /** \} */

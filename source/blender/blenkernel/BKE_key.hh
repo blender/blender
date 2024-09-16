@@ -6,6 +6,8 @@
 #include <optional>
 #include <string>
 
+#include "BLI_array.hh"
+
 /** \file
  * \ingroup bke
  */
@@ -170,7 +172,7 @@ bool BKE_keyblock_is_basis(const Key *key, int index);
  * Returns a newly allocated array containing true for every key that has this one as basis.
  * If none are found, returns null.
  */
-bool *BKE_keyblock_get_dependent_keys(const Key *key, int index);
+std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, int index);
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Block Data Access
