@@ -784,6 +784,12 @@ bool WM_toolsystem_active_tool_is_brush(const bContext *C)
   return tref_rt && (tref_rt->flag & TOOLREF_FLAG_USE_BRUSHES);
 }
 
+bool WM_toolsystem_active_tool_has_custom_cursor(const bContext *C)
+{
+  bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+  return tref_rt && (tref_rt->cursor != WM_CURSOR_DEFAULT);
+}
+
 void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,
                                              wmMsgSubscribeKey * /*msg_key*/,
                                              wmMsgSubscribeValue *msg_val)

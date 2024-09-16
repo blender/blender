@@ -132,7 +132,10 @@ void paint_stroke_jitter_pos(Scene &scene,
                              const float mval[2],
                              float r_mouse_out[2]);
 
+/** Returns true if the active tool uses brushes. */
 bool paint_brush_tool_poll(bContext *C);
+/** Returns true if the brush cursor should be activated. */
+bool paint_brush_cursor_poll(bContext *C);
 bool paint_brush_update(bContext *C,
                         const Brush &brush,
                         PaintMode mode,

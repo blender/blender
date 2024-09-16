@@ -1722,7 +1722,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 
 bool ED_gpencil_brush_cursor_poll(bContext *C)
 {
-  if (WM_toolsystem_active_tool_is_brush(C)) {
+  if (WM_toolsystem_active_tool_is_brush(C) && !WM_toolsystem_active_tool_has_custom_cursor(C)) {
     return true;
   }
   return false;

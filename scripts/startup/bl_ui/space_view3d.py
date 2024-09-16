@@ -719,6 +719,17 @@ class _draw_tool_settings_context_mode:
         if (tool is None) or (not tool.use_brushes):
             return False
 
+        # These draw their own properties.
+        if tool.idname in {
+                "builtin.arc",
+                "builtin.curve",
+                "builtin.line",
+                "builtin.box",
+                "builtin.circle",
+                "builtin.polyline",
+        }:
+            return False
+
         tool_settings = context.tool_settings
         paint = tool_settings.gpencil_paint
 

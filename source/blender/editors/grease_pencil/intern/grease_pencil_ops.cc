@@ -168,7 +168,7 @@ static void keymap_grease_pencil_vertex_paint_mode(wmKeyConfig *keyconf)
   keymap->poll = grease_pencil_vertex_painting_poll;
 }
 
-/* Enabled for all tools except the fill tool. */
+/* Enabled for all tools except the fill tool and primitive tools. */
 static bool keymap_grease_pencil_brush_stroke_poll(bContext *C)
 {
   if (!grease_pencil_painting_poll(C)) {
@@ -177,6 +177,24 @@ static bool keymap_grease_pencil_brush_stroke_poll(bContext *C)
   if (!WM_toolsystem_active_tool_is_brush(C)) {
     return false;
   }
+
+  /* Don't use the normal brush stroke keymap while the primitive tools are active. Otherwise
+   * simple mouse presses start freehand drawing instead of invoking the primitive operators. Could
+   * be a flag on the tool itself, for now making it a hardcoded exception. */
+  if (const bToolRef *tref = WM_toolsystem_ref_from_context(C)) {
+    const Set<StringRef> primitive_tools = {
+        "builtin.line",
+        "builtin.polyline",
+        "builtin.arc",
+        "builtin.curve",
+        "builtin.box",
+        "builtin.circle",
+    };
+    if (primitive_tools.contains(tref->idname)) {
+      return false;
+    }
+  }
+
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
   return brush && brush->gpencil_settings && brush->gpencil_brush_type != GPAINT_BRUSH_TYPE_FILL;
