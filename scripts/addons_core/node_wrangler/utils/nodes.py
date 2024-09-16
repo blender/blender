@@ -221,7 +221,7 @@ def nw_check_selected(cls, context, min=1, max=inf):
         cls.poll_message_set(poll_message)
         return False
     if num_selected > max:
-        poll_message = tip_("{:s} nodes are selected, but this operator can only work on {:d}.").format(
+        poll_message = tip_("{:d} nodes are selected, but this operator can only work on {:d}.").format(
             num_selected, max)
         cls.poll_message_set(poll_message)
         return False
