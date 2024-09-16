@@ -30,6 +30,7 @@
 #include "overlay_next_mesh.hh"
 #include "overlay_next_metaball.hh"
 #include "overlay_next_mode_transfer.hh"
+#include "overlay_next_motion_path.hh"
 #include "overlay_next_origin.hh"
 #include "overlay_next_outline.hh"
 #include "overlay_next_paint.hh"
@@ -66,6 +67,7 @@ class Instance {
   Background background;
   Origins origins;
   Outline outline;
+  MotionPath motion_paths;
 
   struct OverlayLayer {
     const SelectionType selection_type_;

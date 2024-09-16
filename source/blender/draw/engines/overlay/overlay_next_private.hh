@@ -218,6 +218,8 @@ class ShaderModule {
   ShaderPtr legacy_curve_edit_normals = shader("overlay_edit_curve_normals");
   ShaderPtr legacy_curve_edit_handles = shader("overlay_edit_curve_handle_next");
   ShaderPtr legacy_curve_edit_points;
+  ShaderPtr motion_path_line = shader("overlay_motion_path_line_next");
+  ShaderPtr motion_path_vert = shader("overlay_motion_path_point");
   ShaderPtr mesh_analysis;
   ShaderPtr mesh_edit_depth;
   ShaderPtr mesh_edit_edge = shader("overlay_edit_mesh_edge_next");

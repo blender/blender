@@ -115,6 +115,7 @@ void Instance::begin_sync()
   resources.begin_sync();
 
   background.begin_sync(resources, state);
+  motion_paths.begin_sync(resources, state);
   origins.begin_sync(state);
   outline.begin_sync(resources, state);
 
@@ -285,6 +286,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.particles.object_sync(manager, ob_ref, resources, state);
     layer.relations.object_sync(ob_ref, resources, state);
 
+    motion_paths.object_sync(ob_ref, resources, state);
     origins.object_sync(ob_ref, resources, state);
 
     if (object_is_selected(ob_ref) && !in_edit_paint_mode) {
@@ -491,6 +493,7 @@ void Instance::draw(Manager &manager)
   overlay_fb_draw(infront, resources.overlay_in_front_fb);
   draw_layer(infront, resources.overlay_line_in_front_fb);
 
+  motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
   xray_fade.draw(resources.overlay_color_only_fb, manager, view);
   grid.draw(resources.overlay_color_only_fb, manager, view);
 
