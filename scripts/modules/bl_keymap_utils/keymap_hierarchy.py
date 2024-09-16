@@ -195,34 +195,43 @@ _km_hierarchy = [
     ]),
 
     ('Grease Pencil', 'EMPTY', 'WINDOW', [  # grease pencil stuff (per region)
-        ('Grease Pencil Stroke Curve Edit Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Edit Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Paint (Draw brush)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Paint (Fill)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Paint (Erase)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Paint (Tint)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Paint Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Smooth)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Thickness)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Strength)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Grab)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Push)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Twist)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Pinch)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Randomize)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Sculpt (Clone)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Weight Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Weight (Draw)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Weight (Blur)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Weight (Average)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Weight (Smear)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex Mode', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex (Draw)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex (Blur)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex (Average)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex (Smear)', 'EMPTY', 'WINDOW', []),
-        ('Grease Pencil Stroke Vertex (Replace)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Curve Edit Mode', 'EMPTY', 'WINDOW', []),  # Legacy
+        #('Grease Pencil Stroke Edit Mode', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Paint (Draw brush)', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Paint (Fill)', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Paint (Erase)', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Paint (Tint)', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Paint Mode', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Sculpt Mode', 'EMPTY', 'WINDOW', []), # Legacy
+        #('Grease Pencil Stroke Sculpt (Smooth)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Thickness)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Strength)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Grab)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Push)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Twist)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Pinch)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Randomize)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Sculpt (Clone)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Weight Mode', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Weight (Draw)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Weight (Blur)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Weight (Average)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Weight (Smear)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex Mode', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex (Draw)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex (Blur)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex (Average)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex (Smear)', 'EMPTY', 'WINDOW', []),
+        #('Grease Pencil Stroke Vertex (Replace)', 'EMPTY', 'WINDOW', []),
+        # Grease Pencil v3
+        ('Grease Pencil Paint Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Brush Stroke', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Edit Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Sculpt Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Weight Paint', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Vertex Paint', 'EMPTY', 'WINDOW', []),
+        # Grease Pencil v3 Fill Tool
+        ('Grease Pencil Fill Tool', 'EMPTY', 'WINDOW', []),
     ]),
     ('Mask Editing', 'EMPTY', 'WINDOW', []),
     ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
@@ -240,4 +249,7 @@ _km_hierarchy = [
     ('Eyedropper Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper ColorRamp PointSampling Map', 'EMPTY', 'WINDOW', []),
     ('Mesh Filter Modal Map', 'EMPTY', 'WINDOW', []),
+
+    # Grease Pencil v3 Fill Tool
+    ('Fill Tool Modal Map', 'EMPTY', 'WINDOW', []),
 ]
