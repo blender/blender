@@ -1229,6 +1229,30 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
   return ActionSlotAssignmentResult::OK;
 }
 
+ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_handle_to_assign,
+                                                             ID &animated_id,
+                                                             bAction *&action_ptr_ref,
+                                                             slot_handle_t &slot_handle_ref,
+                                                             char *slot_name)
+{
+  if (slot_handle_to_assign == Slot::unassigned && !action_ptr_ref) {
+    /* No Action assigned, so no slot was used anyway. Just blindly assign the
+     * 'unassigned' handle. */
+    slot_handle_ref = Slot::unassigned;
+    return ActionSlotAssignmentResult::OK;
+  }
+
+  if (!action_ptr_ref) {
+    /* No Action to verify the slot handle is valid. As the slot handle will be
+     * completely ignored when re-assigning an Action, better to refuse setting
+     * it altogether. This will make bugs more obvious. */
+    return ActionSlotAssignmentResult::MissingAction;
+  }
+
+  Slot *slot = action_ptr_ref->wrap().slot_for_handle(slot_handle_to_assign);
+  return generic_assign_action_slot(slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+}
+
 bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
 {
   if (!dna_action) {

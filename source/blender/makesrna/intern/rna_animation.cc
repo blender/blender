@@ -231,54 +231,45 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
+void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_handle_to_assign,
+                                        ID &animated_id,
+                                        bAction *&action_ptr_ref,
+                                        blender::animrig::slot_handle_t &slot_handle_ref,
+                                        char *slot_name)
+{
+  using namespace blender::animrig;
+
+  const ActionSlotAssignmentResult result = generic_assign_action_slot_handle(
+      slot_handle_to_assign, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+
+  /* Unfortunately setters for PROP_INT do not receive a `reports` parameter, so
+   * report to the Window Manager report list instead. */
+  switch (result) {
+    case ActionSlotAssignmentResult::OK:
+      break;
+    case ActionSlotAssignmentResult::SlotNotFromAction:
+      BLI_assert_unreachable();
+      break;
+    case ActionSlotAssignmentResult::SlotNotSuitable:
+      WM_reportf(RPT_ERROR,
+                 "This slot is not suitable for this data-block type (%c%c)",
+                 animated_id.name[0],
+                 animated_id.name[1]);
+      break;
+    case ActionSlotAssignmentResult::MissingAction:
+      WM_report(RPT_ERROR, "Cannot set slot without an assigned Action.");
+      break;
+  }
+}
+
 static void rna_AnimData_action_slot_handle_set(
     PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
 {
-  BLI_assert(ptr->owner_id);
   ID &animated_id = *ptr->owner_id;
-
-  /* 'adt' is guaranteed to exist, or otherwise this function could not be called. */
   AnimData *adt = BKE_animdata_from_id(&animated_id);
-  BLI_assert_msg(adt, "ID.animation_data is unexpectedly empty");
-  if (!adt) {
-    WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have any animation data, use animation_data_create()",
-               animated_id.name + 2);
-    return;
-  }
 
-  blender::animrig::Action *action = blender::animrig::get_action(animated_id);
-  if (!action) {
-    /* No Action to verify the slot handle is valid. As the slot handle will be
-     * completely ignored when re-assigning an Action, better to refuse setting
-     * it altogether. This will make bugs in Python code more obvious. */
-    WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have an Action, cannot set slot handle",
-               animated_id.name + 2);
-    return;
-  }
-
-  blender::animrig::Slot *slot = action->slot_for_handle(new_slot_handle);
-  /* TODO: switch over the possible assignment results, and improve the error message. */
-  if (assign_action_slot(slot, animated_id) != animrig::ActionSlotAssignmentResult::OK) {
-    if (slot) {
-      WM_reportf(RPT_ERROR,
-                 "Action '%s' slot '%s' (%d) could not be assigned to %s",
-                 action->id.name + 2,
-                 slot->name,
-                 slot->handle,
-                 animated_id.name + 2);
-    }
-    else {
-      /* This is highly unexpected, as unassigning a Slot should always be allowed. */
-      BLI_assert_unreachable();
-      WM_reportf(RPT_ERROR,
-                 "Action '%s' slot could not be unassigned from %s",
-                 action->id.name + 2,
-                 animated_id.name + 2);
-    }
-    return;
-  }
+  rna_generic_action_slot_handle_set(
+      new_slot_handle, animated_id, adt->action, adt->slot_handle, adt->slot_name);
 }
 
 static AnimData &rna_animdata(const PointerRNA *ptr)
@@ -286,36 +277,45 @@ static AnimData &rna_animdata(const PointerRNA *ptr)
   return *reinterpret_cast<AnimData *>(ptr->data);
 }
 
-static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
+PointerRNA rna_generic_action_slot_get(bAction *dna_action,
+                                       const animrig::slot_handle_t slot_handle)
 {
-  using animrig::Action;
-  using animrig::Slot;
+  using namespace blender::animrig;
 
-  AnimData &adt = rna_animdata(ptr);
-
-  if (!adt.action || adt.slot_handle == Slot::unassigned) {
+  if (!dna_action || slot_handle == Slot::unassigned) {
     return PointerRNA_NULL;
   }
 
-  Action &action = adt.action->wrap();
-  Slot *slot = action.slot_for_handle(adt.slot_handle);
+  Action &action = dna_action->wrap();
+  Slot *slot = action.slot_for_handle(slot_handle);
   if (!slot) {
     return PointerRNA_NULL;
   }
   return RNA_pointer_create(&action.id, &RNA_ActionSlot, slot);
 }
 
-static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
+{
+  AnimData &adt = rna_animdata(ptr);
+  return rna_generic_action_slot_get(adt.action, adt.slot_handle);
+}
+
+void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
+                                 ID &animated_id,
+                                 bAction *&action_ptr_ref,
+                                 blender::animrig::slot_handle_t &slot_handle_ref,
+                                 char *slot_name,
+                                 ReportList *reports)
 {
   using namespace blender::animrig;
 
-  ID *animated_id = ptr->owner_id;
-  BLI_assert(animated_id); /* Otherwise there is nothing to own this AnimData. */
-
-  ActionSlot *dna_slot = static_cast<ActionSlot *>(value.data);
+  ActionSlot *dna_slot = static_cast<ActionSlot *>(rna_slot_to_assign.data);
   Slot *slot = dna_slot ? &dna_slot->wrap() : nullptr;
 
-  switch (assign_action_slot(slot, *animated_id)) {
+  const ActionSlotAssignmentResult result = generic_assign_action_slot(
+      slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+
+  switch (result) {
     case ActionSlotAssignmentResult::OK:
       break;
     case ActionSlotAssignmentResult::SlotNotFromAction:
@@ -327,8 +327,8 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
                   RPT_ERROR,
                   "This slot (%s) is not suitable for this data-block type (%c%c)",
                   slot->name,
-                  animated_id->name[0],
-                  animated_id->name[1]);
+                  animated_id.name[0],
+                  animated_id.name[1]);
       break;
     case ActionSlotAssignmentResult::MissingAction:
       BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
@@ -336,14 +336,34 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
   }
 }
 
+static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
+{
+  ID *animated_id = ptr->owner_id;
+  AnimData *adt = BKE_animdata_from_id(animated_id);
+  if (!adt) {
+    BKE_report(reports, RPT_ERROR, "Cannot set slot without an assigned Action.");
+    return;
+  }
+
+  rna_generic_action_slot_set(
+      value, *animated_id, adt->action, adt->slot_handle, adt->slot_name, reports);
+}
+
 static void rna_AnimData_action_slot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+  /* TODO: see if this is still necessary. */
   blender::animrig::Slot::users_invalidate(*bmain);
   rna_AnimData_dependency_update(bmain, scene, ptr);
 }
 
-/* Skip any slot that is not suitable for the ID owning the AnimData. */
-static bool rna_iterator_animdata_action_slots_skip(CollectionPropertyIterator *iter, void *data)
+/**
+ * Skip any slot that is not suitable for the ID owning the 'slots' pointer.
+ *
+ * This function belongs to the 'generic action slot' family of functions. It's not (yet) necessary
+ * to refer to this from any other file, though, which is why it's not declared in
+ * rna_action_tools.hh.
+ */
+bool rna_iterator_generic_action_slots_skip(CollectionPropertyIterator *iter, void *data)
 {
   using animrig::Slot;
 
@@ -361,27 +381,29 @@ static bool rna_iterator_animdata_action_slots_skip(CollectionPropertyIterator *
   return !slot.is_suitable_for(*animated_id);
 }
 
-static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator *iter,
-                                                     PointerRNA *ptr)
+void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
+                                             bAction *assigned_action)
 {
-  using animrig::Action;
-  using animrig::Slot;
-
-  AnimData &adt = rna_animdata(ptr);
-  if (!adt.action) {
+  if (!assigned_action) {
     /* No action means no slots. */
     rna_iterator_array_begin(iter, nullptr, 0, 0, 0, nullptr);
     return;
   }
 
-  Action &action = adt.action->wrap();
-  Span<Slot *> slots = action.slots();
+  animrig::Action &action = assigned_action->wrap();
+  Span<animrig::Slot *> slots = action.slots();
   rna_iterator_array_begin(iter,
                            (void *)slots.data(),
-                           sizeof(Slot *),
+                           sizeof(animrig::Slot *),
                            slots.size(),
                            0,
-                           rna_iterator_animdata_action_slots_skip);
+                           rna_iterator_generic_action_slots_skip);
+}
+
+static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator *iter,
+                                                     PointerRNA *ptr)
+{
+  rna_iterator_generic_action_slots_begin(iter, rna_animdata(ptr).action);
 }
 
 #  endif /* WITH_ANIM_BAKLAVA */

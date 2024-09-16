@@ -1125,6 +1125,19 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
                                                       char *slot_name) ATTR_WARN_UNUSED_RESULT;
 
 /**
+ * Generic function to build Slot Handle-assignment logic.
+ *
+ * This is a low-level function, intended as a building block for higher-level slot handle
+ * assignment functions.
+ */
+ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_handle_to_assign,
+                                                             ID &animated_id,
+                                                             bAction *&action_ptr_ref,
+                                                             slot_handle_t &slot_handle_ref,
+                                                             char *slot_name)
+    ATTR_WARN_UNUSED_RESULT;
+
+/**
  * Return whether the given Action can be assigned to the ID.
  *
  * This always returns `true` for layered Actions. For legacy Actions it

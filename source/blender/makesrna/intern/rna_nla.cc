@@ -25,6 +25,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "rna_action_tools.hh"
 #include "rna_internal.hh"
 
 #include "WM_api.hh"
@@ -460,162 +461,40 @@ static int rna_NlaStrip_action_editable(const PointerRNA *ptr, const char ** /*r
 }
 
 #  ifdef WITH_ANIM_BAKLAVA
-
-static void nlastrip_assign_action_slot(NlaStrip &strip,
-                                        blender::animrig::Slot *slot,
-                                        blender::animrig::Action &action,
-                                        ID &animated_id)
-{
-  using namespace blender::animrig;
-
-  const ActionSlotAssignmentResult result = nla::assign_action_slot(strip, slot, animated_id);
-
-  switch (result) {
-    case ActionSlotAssignmentResult::OK:
-      break;
-    case ActionSlotAssignmentResult::SlotNotFromAction:
-      WM_reportf(RPT_ERROR,
-                 "Slot '%s' cannot be assigned to Strip '%s' as it does not belong to the "
-                 "already-assigned Action '%s'",
-                 slot->name,
-                 strip.name,
-                 action.id.name + 2);
-      break;
-    case ActionSlotAssignmentResult::SlotNotSuitable:
-      WM_reportf(RPT_ERROR,
-                 "Action '%s' slot '%s' is not suitable to animate a strip of %s",
-                 action.id.name + 2,
-                 slot->name,
-                 animated_id.name + 2);
-      break;
-    case ActionSlotAssignmentResult::MissingAction:
-      WM_reportf(
-          RPT_ERROR, "Strip '%s' has no Action assigned, cannot assign Action slot", strip.name);
-      break;
-  }
-}
-
 static void rna_NlaStrip_action_slot_handle_set(
     PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
 {
-  using namespace blender::animrig;
-
-  BLI_assert(ptr->owner_id);
-  ID &animated_id = *ptr->owner_id;
   NlaStrip *strip = (NlaStrip *)ptr->data;
-
-  if (new_slot_handle == Slot::unassigned && !strip->act) {
-    /* No Action assigned, so no slot was used anyway. Just blindly assign the
-     * 'unassigned' handle. */
-    strip->action_slot_handle = Slot::unassigned;
-    return;
-  }
-
-  if (!strip->act) {
-    /* No Action to verify the slot handle is valid. As the slot handle will be
-     * completely ignored when re-assigning an Action, better to refuse setting
-     * it altogether. This will make bugs in Python code more obvious. */
-    WM_reportf(
-        RPT_ERROR, "Strip '%s' does not have an Action, cannot set slot handle", strip->name);
-    return;
-  }
-
-  Action &action = strip->act->wrap();
-  Slot *slot = action.slot_for_handle(new_slot_handle);
-
-  nlastrip_assign_action_slot(*strip, slot, action, animated_id);
+  rna_generic_action_slot_handle_set(new_slot_handle,
+                                     *ptr->owner_id,
+                                     strip->act,
+                                     strip->action_slot_handle,
+                                     strip->action_slot_name);
 }
 
 static PointerRNA rna_NlaStrip_action_slot_get(PointerRNA *ptr)
 {
-  using namespace blender;
-
-  BLI_assert(ptr->owner_id);
   NlaStrip *strip = (NlaStrip *)ptr->data;
-
-  if (!strip->act || strip->action_slot_handle == animrig::Slot::unassigned) {
-    return PointerRNA_NULL;
-  }
-
-  animrig::Action &action = strip->act->wrap();
-  animrig::Slot *slot = action.slot_for_handle(strip->action_slot_handle);
-  if (!slot) {
-    return PointerRNA_NULL;
-  }
-  return RNA_pointer_create(&action.id, &RNA_ActionSlot, slot);
+  return rna_generic_action_slot_get(strip->act, strip->action_slot_handle);
 }
 
 static void rna_NlaStrip_action_slot_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-  using namespace blender::animrig;
-
   NlaStrip *strip = (NlaStrip *)ptr->data;
-  ActionSlot *dna_slot = static_cast<ActionSlot *>(value.data);
-
-  if (!dna_slot && !strip->act) {
-    /* No Action assigned, so no slot was used anyway. Just blindly assign the
-     * 'unassigned' handle. */
-    strip->action_slot_handle = Slot::unassigned;
-    return;
-  }
-
-  if (!strip->act) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Cannot set slot without an assigned Action on strip %s.",
-                strip->name);
-    return;
-  }
-
-  Action &action = strip->act->wrap();
-  Slot *slot = dna_slot ? &dna_slot->wrap() : nullptr;
-  ID &animated_id = *ptr->owner_id;
-
-  nlastrip_assign_action_slot(*strip, slot, action, animated_id);
-}
-
-/* Skip any slot that is not suitable for the ID owning the NLA strip.
- * TODO: merge this and rna_iterator_animdata_action_slots_skip() as they are identical. */
-static bool rna_iterator_nlastrip_action_slots_skip(CollectionPropertyIterator *iter, void *data)
-{
-  using blender::animrig::Slot;
-
-  /* Get the current Slot being iterated over. */
-  const Slot **slot_ptr_ptr = static_cast<const Slot **>(data);
-  BLI_assert(slot_ptr_ptr);
-  BLI_assert(*slot_ptr_ptr);
-  const Slot &slot = **slot_ptr_ptr;
-
-  /* Get the animated ID. */
-  const ID *animated_id = iter->parent.owner_id;
-  BLI_assert(animated_id);
-
-  /* Skip this Slot if it's not suitable for the animated ID. */
-  return !slot.is_suitable_for(*animated_id);
+  rna_generic_action_slot_set(value,
+                              *ptr->owner_id,
+                              strip->act,
+                              strip->action_slot_handle,
+                              strip->action_slot_name,
+                              reports);
 }
 
 static void rna_iterator_nlastrip_action_slots_begin(CollectionPropertyIterator *iter,
                                                      PointerRNA *ptr)
 {
-  using namespace blender;
   NlaStrip *strip = (NlaStrip *)ptr->data;
-
-  if (!strip->act) {
-    /* No action means no slots. */
-    rna_iterator_array_begin(iter, nullptr, 0, 0, 0, nullptr);
-    return;
-  }
-
-  animrig::Action &action = strip->act->wrap();
-  Span<animrig::Slot *> slots = action.slots();
-  rna_iterator_array_begin(iter,
-                           (void *)slots.data(),
-                           sizeof(animrig::Slot *),
-                           slots.size(),
-                           0,
-                           rna_iterator_nlastrip_action_slots_skip);
+  rna_iterator_generic_action_slots_begin(iter, strip->act);
 }
-
 #  endif /* WITH_ANIM_BAKLAVA */
 
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
