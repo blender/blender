@@ -1013,7 +1013,10 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
                             param_input_usages,
                             param_output_usages,
                             param_set_outputs};
-  lazy_function.execute(lf_params, lf_context);
+  {
+    ScopedComputeContextTimer timer{lf_context};
+    lazy_function.execute(lf_params, lf_context);
+  }
   lazy_function.destruct_storage(lf_context.storage);
 
   for (GMutablePointer &ptr : inputs_to_destruct) {

@@ -198,6 +198,8 @@ class GeoTreeLogger {
   std::optional<ComputeContextHash> parent_hash;
   std::optional<int32_t> parent_node_id;
   Vector<ComputeContextHash> children_hashes;
+  /** The time spend in the compute context that this logger corresponds to. */
+  std::chrono::nanoseconds execution_time{};
 
   LinearAllocator<> *allocator = nullptr;
 
@@ -261,11 +263,8 @@ class GeoNodeLog {
  public:
   /** Warnings generated for that node. */
   VectorSet<NodeWarning> warnings;
-  /**
-   * Time spent in this node. For node groups this is the sum of the run times of the nodes
-   * inside.
-   */
-  std::chrono::nanoseconds run_time{0};
+  /** Time spent in this node. */
+  std::chrono::nanoseconds execution_time{0};
   /** Maps from socket indices to their values. */
   Map<int, ValueLog *> input_values_;
   Map<int, ValueLog *> output_values_;
@@ -293,7 +292,7 @@ class GeoTreeLog {
   Vector<GeoTreeLogger *> tree_loggers_;
   VectorSet<ComputeContextHash> children_hashes_;
   bool reduced_node_warnings_ = false;
-  bool reduced_node_run_times_ = false;
+  bool reduced_execution_times_ = false;
   bool reduced_socket_values_ = false;
   bool reduced_viewer_node_logs_ = false;
   bool reduced_existing_attributes_ = false;
@@ -305,7 +304,7 @@ class GeoTreeLog {
   Map<int32_t, GeoNodeLog> nodes;
   Map<int32_t, ViewerNodeLog *, 0> viewer_node_logs;
   VectorSet<NodeWarning> all_warnings;
-  std::chrono::nanoseconds run_time_sum{0};
+  std::chrono::nanoseconds execution_time{0};
   Vector<const GeometryAttributeInfo *> existing_attributes;
   Map<StringRefNull, NamedAttributeUsage> used_named_attributes;
   Set<int> evaluated_gizmo_nodes;
@@ -314,7 +313,7 @@ class GeoTreeLog {
   ~GeoTreeLog();
 
   void ensure_node_warnings(const bNodeTree *tree);
-  void ensure_node_run_time();
+  void ensure_execution_times();
   void ensure_socket_values();
   void ensure_viewer_node_logs();
   void ensure_existing_attributes();

@@ -2774,7 +2774,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     return std::nullopt;
   }
   if (node.type == NODE_GROUP_OUTPUT) {
-    return tree_log->run_time_sum;
+    return tree_log->execution_time;
   }
   if (node.is_frame()) {
     /* Could be cached in the future if this recursive code turns out to be slow. */
@@ -2794,7 +2794,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
         if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(tnode->identifier))
         {
           found_node = true;
-          run_time += node_log->run_time;
+          run_time += node_log->execution_time;
         }
       }
     }
@@ -2804,7 +2804,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     return std::nullopt;
   }
   if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier)) {
-    return node_log->run_time;
+    return node_log->execution_time;
   }
   return std::nullopt;
 }
@@ -4816,7 +4816,7 @@ static void draw_nodetree(const bContext &C,
         *snode);
     for (geo_log::GeoTreeLog *log : tree_draw_ctx.geo_log_by_zone.values()) {
       log->ensure_node_warnings(&ntree);
-      log->ensure_node_run_time();
+      log->ensure_execution_times();
     }
     const WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(

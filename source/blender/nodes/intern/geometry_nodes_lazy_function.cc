@@ -1149,6 +1149,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     GeoNodesLFLocalUserData group_local_user_data{group_user_data};
     lf::Context group_context{storage->group_storage, &group_user_data, &group_local_user_data};
+
+    ScopedComputeContextTimer timer(group_context);
     group_lazy_function_.execute(params, group_context);
   }
 
@@ -1479,6 +1481,8 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
     GeoNodesLFLocalUserData zone_local_user_data{zone_user_data};
     lf::Context zone_context{context.storage, &zone_user_data, &zone_local_user_data};
+
+    ScopedComputeContextTimer timer(zone_context);
     fn_.execute(params, zone_context);
   }
 
@@ -1697,6 +1701,8 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
 
     GeoNodesLFLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};
+
+    ScopedComputeContextTimer timer(body_context);
     fn.execute(params, body_context);
   }
 };
