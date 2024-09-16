@@ -103,8 +103,7 @@ class UnifiedPaintPanel:
             # If there is no active tool, then there can't be an active brush.
             return None
 
-        if not tool.has_datablock:
-            # tool.has_datablock is always true for tools that use brushes.
+        if not tool.use_brushes:
             return None
 
         space_data = context.space_data

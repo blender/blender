@@ -30,6 +30,7 @@ enum {
    * Typically gizmos handle this but some tools (such as the knife tool) don't use a gizmo.
    */
   TOOLREF_FLAG_FALLBACK_KEYMAP = (1 << 0),
+  TOOLREF_FLAG_USE_BRUSHES = (1 << 1),
 };
 
 #

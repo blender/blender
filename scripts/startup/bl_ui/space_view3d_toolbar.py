@@ -319,8 +319,7 @@ class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
             # If there is no active tool, then there can't be an active brush.
             tool = None
 
-        if not tool_context.has_datablock:
-            # tool.has_datablock is always true for tools that use brushes.
+        if not tool_context.use_brushes:
             tool = None
 
         if tool is not None:
@@ -1577,7 +1576,7 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
 def tool_use_brush(context):
     from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
     tool = ToolSelectPanelHelper.tool_active_from_context(context)
-    if tool and tool.has_datablock is False:
+    if tool and tool.use_brushes is False:
         return False
 
     return True

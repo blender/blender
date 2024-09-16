@@ -124,6 +124,11 @@ void RNA_api_workspace_tool(StructRNA *srna)
 
   static const EnumPropertyItem options_items[] = {
       {TOOLREF_FLAG_FALLBACK_KEYMAP, "KEYMAP_FALLBACK", 0, "Fallback", ""},
+      {TOOLREF_FLAG_USE_BRUSHES,
+       "USE_BRUSHES",
+       0,
+       "Uses Brushes",
+       "Allow this tool to use brushes via the asset system"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

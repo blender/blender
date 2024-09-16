@@ -96,7 +96,7 @@ ToolDef = namedtuple(
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
         # Optional data-block associated with this tool.
-        # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
+        # Currently only used as an identifier for particle brushes.
         "data_block",
         # Optional primary operator (for introspection only).
         "operator",
