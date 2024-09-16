@@ -231,7 +231,7 @@ class ShaderModule {
   ShaderPtr mesh_loop_normal, mesh_loop_normal_subdiv;
   ShaderPtr mesh_vert_normal;
   ShaderPtr outline_prepass_mesh;
-  ShaderPtr outline_prepass_wire;
+  ShaderPtr outline_prepass_wire = shader("overlay_outline_prepass_wire_next");
   ShaderPtr outline_prepass_curves;
   ShaderPtr outline_prepass_pointcloud;
   ShaderPtr outline_prepass_gpencil;

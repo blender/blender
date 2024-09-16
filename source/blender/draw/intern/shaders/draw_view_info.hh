@@ -107,6 +107,8 @@ GPU_SHADER_CREATE_INFO(draw_globals)
 
 GPU_SHADER_CREATE_INFO(draw_mesh).additional_info("draw_modelmat", "draw_resource_id");
 
+GPU_SHADER_CREATE_INFO(draw_mesh_new).additional_info("draw_modelmat_new", "draw_resource_id");
+
 GPU_SHADER_CREATE_INFO(draw_hair)
     .define("HAIR_SHADER")
     .define("DRW_HAIR_INFO")

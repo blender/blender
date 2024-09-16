@@ -117,6 +117,7 @@ class Outline {
       pass.push_constant("alphaOcclu", state.xray_enabled ? 1.0f : 0.35f);
       pass.push_constant("doThickOutlines", do_expand);
       pass.push_constant("doAntiAliasing", do_smooth_lines);
+      pass.push_constant("isXrayWires", state.xray_enabled_and_not_wire);
       pass.bind_texture("outlineId", &object_id_tx_);
       pass.bind_texture("sceneDepth", &res.depth_tx);
       pass.bind_texture("outlineDepth", &tmp_depth_tx_);
@@ -153,8 +154,10 @@ class Outline {
                                          manager.unique_handle(ob_ref));
         break;
       case OB_MESH:
-        geom = DRW_cache_mesh_surface_get(ob_ref.object);
-        prepass_mesh_ps_->draw(geom, manager.unique_handle(ob_ref));
+        if (!state.xray_enabled_and_not_wire) {
+          geom = DRW_cache_mesh_surface_get(ob_ref.object);
+          prepass_mesh_ps_->draw(geom, manager.unique_handle(ob_ref));
+        }
         {
           /* TODO(fclem): This is against design. We should not sync depending on view position.
            * Eventually, add a bounding box display pass with some special culling phase. */
@@ -166,9 +169,10 @@ class Outline {
                                                   DRW_object_is_flat(ob_ref.object, &flat_axis) &&
                                                   DRW_object_axis_orthogonal_to_view(ob_ref.object,
                                                                                      flat_axis));
-          if (is_flat_object_viewed_from_side) {
+          if (state.xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
             geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
-            prepass_wire_ps_->draw(geom, manager.unique_handle(ob_ref));
+            prepass_wire_ps_->draw_expand(
+                geom, GPU_PRIM_LINES, 1, 1, manager.unique_handle(ob_ref));
           }
         }
         break;
