@@ -727,6 +727,14 @@ Material **BKE_object_material_get_p(Object *ob, short act)
 Material *BKE_object_material_get(Object *ob, short act)
 {
   Material **ma_p = BKE_object_material_get_p(ob, act);
+  /* Grease Pencil objects currently make the assumption that the returned material has Grease
+   * Pencil settings. Ensure that this is the case otherwise return `nullptr`. */
+  if (ob->type == OB_GREASE_PENCIL && ma_p != nullptr) {
+    Material *ma = *ma_p;
+    if (ma != nullptr) {
+      return ma->gp_style != nullptr ? ma : nullptr;
+    }
+  }
   return ma_p ? *ma_p : nullptr;
 }
 
