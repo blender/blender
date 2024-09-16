@@ -1166,8 +1166,11 @@ void blf_str_offset_to_glyph_bounds(FontBLF *font,
   *glyph_bounds = data.bounds;
 }
 
-int blf_str_offset_to_cursor(
-    FontBLF *font, const char *str, size_t str_len, size_t str_offset, float cursor_width)
+int blf_str_offset_to_cursor(FontBLF *font,
+                             const char *str,
+                             const size_t str_len,
+                             const size_t str_offset,
+                             const int cursor_width)
 {
   if (!str || !str[0]) {
     return 0;
@@ -1187,23 +1190,23 @@ int blf_str_offset_to_cursor(
 
   if ((prev.xmax == prev.xmin) && next.xmax) {
     /* Nothing (or a space) to the left, so align to right character. */
-    return int(float(next.xmin) - (cursor_width / 2.0f));
+    return next.xmin - (cursor_width / 2);
   }
   if ((prev.xmax != prev.xmin) && !next.xmax) {
     /* End of string, so align to last character. */
-    return int(float(prev.xmax) - (cursor_width / 2.0f));
+    return prev.xmax - (cursor_width / 2);
   }
   if (prev.xmax && next.xmax) {
     /* Between two characters, so use the center. */
     if (next.xmin >= prev.xmax || next.xmin == next.xmax) {
-      return int((float(prev.xmax + next.xmin) - cursor_width) / 2.0f);
+      return ((prev.xmax + next.xmin) - cursor_width) / 2;
     }
     /* A nicer center if reversed order - RTL. */
-    return int((float(next.xmax + prev.xmin) - cursor_width) / 2.0f);
+    return ((next.xmax + prev.xmin) - cursor_width) / 2;
   }
   if (!str_offset) {
     /* Start of string. */
-    return 0 - int(cursor_width);
+    return 0 - cursor_width;
   }
   return int(blf_font_width(font, str, str_len, nullptr));
 }
@@ -1212,8 +1215,8 @@ blender::Vector<blender::Bounds<int>> blf_str_selection_boxes(
     FontBLF *font, const char *str, size_t str_len, size_t sel_start, size_t sel_length)
 {
   blender::Vector<blender::Bounds<int>> boxes;
-  const int start = blf_str_offset_to_cursor(font, str, str_len, sel_start, 0.0f);
-  const int end = blf_str_offset_to_cursor(font, str, str_len, sel_start + sel_length, 0.0f);
+  const int start = blf_str_offset_to_cursor(font, str, str_len, sel_start, 0);
+  const int end = blf_str_offset_to_cursor(font, str, str_len, sel_start + sel_length, 0);
   boxes.append(blender::Bounds(start, end));
   return boxes;
 }

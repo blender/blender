@@ -176,7 +176,7 @@ blender::Vector<blender::Bounds<int>> blf_str_selection_boxes(
     FontBLF *font, const char *str, size_t str_len, size_t sel_start, size_t sel_length);
 
 int blf_str_offset_to_cursor(
-    FontBLF *font, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+    FontBLF *font, const char *str, size_t str_len, size_t str_offset, int cursor_width);
 
 void blf_font_free(FontBLF *font);
 

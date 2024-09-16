@@ -203,7 +203,7 @@ bool BLF_str_offset_to_glyph_bounds(int fontid,
  * Return left edge of text cursor (caret), given a character offset and cursor width.
  */
 int BLF_str_offset_to_cursor(
-    int fontid, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+    int fontid, const char *str, size_t str_len, size_t str_offset, int cursor_width);
 
 /**
  * Return bounds of selection boxes. There is just one normally but there could

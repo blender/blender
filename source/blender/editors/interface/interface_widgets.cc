@@ -1988,7 +1988,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                                        drawstr + but->ofs,
                                        UI_MAX_DRAW_STR,
                                        but_pos_ofs - but->ofs,
-                                       U.pixelsize + U.pixelsize);
+                                       max_ii(1, int(U.pixelsize * 2)));
 
       /* We are drawing on top of widget bases. Flush cache. */
       GPU_blend(GPU_BLEND_ALPHA);
