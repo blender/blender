@@ -1186,7 +1186,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
   const int totfiles = seq_num_files(context->scene, seq->views_format, true);
   bool is_multiview_render = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                              (context->scene->r.scemode & R_MULTIVIEW) != 0 &&
-                             BLI_listbase_count_at_most(&seq->anims, totfiles + 1) == totfiles;
+                             BLI_listbase_count_is_equal_to(&seq->anims, totfiles);
 
   if (is_multiview_render) {
     ImBuf **ibuf_arr;

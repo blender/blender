@@ -2524,7 +2524,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
   ListBase *lbarray[INDEX_ID_MAX];
 
   BLI_assert(old_bmain->curlib == nullptr);
-  BLI_assert(BLI_listbase_count_at_most(fd->mainlist, 2) == 1);
+  BLI_assert(BLI_listbase_is_single(fd->mainlist));
 
   int i = set_listbasepointers(old_bmain, lbarray);
   while (i--) {

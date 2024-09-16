@@ -3217,7 +3217,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         const int tot_viewfiles = image_num_viewfiles(ima);
         const int tot_files = tot_viewfiles * BLI_listbase_count(&ima->tiles);
 
-        if (tot_files != BLI_listbase_count_at_most(&ima->packedfiles, tot_files + 1)) {
+        if (!BLI_listbase_count_is_equal_to(&ima->packedfiles, tot_files)) {
           /* in case there are new available files to be loaded */
           image_free_packedfiles(ima);
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
@@ -4141,7 +4141,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
   const bool is_multiview = BKE_image_is_multiview(ima);
   const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (tot_viewfiles != BLI_listbase_count_at_most(&ima->anims, tot_viewfiles + 1)) {
+  if (!BLI_listbase_count_is_equal_to(&ima->anims, tot_viewfiles)) {
     image_free_anims(ima);
 
     for (int i = 0; i < tot_viewfiles; i++) {
@@ -4300,7 +4300,7 @@ static ImBuf *image_load_image_file(
   /* this should never happen, but just playing safe */
   if (!is_sequence && has_packed) {
     const int totfiles = tot_viewfiles * BLI_listbase_count(&ima->tiles);
-    if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
+    if (!BLI_listbase_count_is_equal_to(&ima->packedfiles, totfiles)) {
       image_free_packedfiles(ima);
       has_packed = false;
     }

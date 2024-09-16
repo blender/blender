@@ -223,6 +223,17 @@ void BLI_freelist(struct ListBase *listbase) ATTR_NONNULL(1);
 int BLI_listbase_count_at_most(const struct ListBase *listbase,
                                int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
+ * Returns true when the number of items in `listbase` matches `count_cmp`.
+ *
+ * \note Use to avoid redundant looping.
+ */
+BLI_INLINE bool BLI_listbase_count_is_equal_to(const struct ListBase *listbase,
+                                               const int count_cmp)
+{
+  return BLI_listbase_count_at_most(listbase, count_cmp + 1) == count_cmp;
+}
+
+/**
  * Returns the number of elements in \a listbase.
  */
 int BLI_listbase_count(const struct ListBase *listbase) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
