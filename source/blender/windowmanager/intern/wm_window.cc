@@ -120,8 +120,8 @@ static struct WMInitStruct {
    *   instead of the size stored in the factory startup.
    *   Otherwise the window geometry saved in the blend-file is used and these values are ignored.
    */
-  int size_x, size_y;
-  int start_x, start_y;
+  blender::int2 size;
+  blender::int2 start;
 
   GHOST_TWindowState windowstate = GHOST_WINDOW_STATE_DEFAULT;
   eWinOverrideFlag override_flag;
@@ -168,38 +168,38 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 static bool wm_window_timers_process(const bContext *C, int *sleep_us_p);
 static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
-bool wm_get_screensize(int *r_width, int *r_height)
+bool wm_get_screensize(int r_size[2])
 {
   uint32_t uiwidth, uiheight;
   if (GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
     return false;
   }
-  *r_width = uiwidth;
-  *r_height = uiheight;
+  r_size[0] = uiwidth;
+  r_size[1] = uiheight;
   return true;
 }
 
-bool wm_get_desktopsize(int *r_width, int *r_height)
+bool wm_get_desktopsize(int r_size[2])
 {
   uint32_t uiwidth, uiheight;
   if (GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
     return false;
   }
-  *r_width = uiwidth;
-  *r_height = uiheight;
+  r_size[0] = uiwidth;
+  r_size[1] = uiheight;
   return true;
 }
 
 /** Keeps size within monitor bounds. */
 static void wm_window_check_size(rcti *rect)
 {
-  int width, height;
-  if (wm_get_screensize(&width, &height)) {
-    if (BLI_rcti_size_x(rect) > width) {
-      BLI_rcti_resize_x(rect, width);
+  blender::int2 scr_size;
+  if (wm_get_screensize(scr_size)) {
+    if (BLI_rcti_size_x(rect) > scr_size[0]) {
+      BLI_rcti_resize_x(rect, scr_size[0]);
     }
-    if (BLI_rcti_size_y(rect) > height) {
-      BLI_rcti_resize_y(rect, height);
+    if (BLI_rcti_size_y(rect) > scr_size[1]) {
+      BLI_rcti_resize_y(rect, scr_size[1]);
     }
   }
 }
@@ -739,10 +739,10 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   int posy = 0;
 
   if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
-    int scr_w, scr_h;
-    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+    blender::int2 scr_size;
+    if (wm_get_desktopsize(scr_size)) {
       posx = win->posx;
-      posy = (scr_h - win->posy - win->sizey);
+      posy = (scr_size[1] - win->posy - win->sizey);
     }
   }
 
@@ -819,10 +819,10 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
 {
   if (win->ghostwin == nullptr) {
     if ((win->sizex == 0) || (wm_init_state.override_flag & WIN_OVERRIDE_GEOM)) {
-      win->posx = wm_init_state.start_x;
-      win->posy = wm_init_state.start_y;
-      win->sizex = wm_init_state.size_x;
-      win->sizey = wm_init_state.size_y;
+      win->posx = wm_init_state.start[0];
+      win->posy = wm_init_state.start[1];
+      win->sizex = wm_init_state.size[0];
+      win->sizey = wm_init_state.size[1];
 
       if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
         win->windowstate = GHOST_kWindowStateNormal;
@@ -885,18 +885,16 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
    * Note that these values will be used only
    * when there is no startup.blend yet.
    */
-  if (wm_init_state.size_x == 0) {
-    if (UNLIKELY(!wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y))) {
+  if (wm_init_state.size[0] == 0) {
+    if (UNLIKELY(!wm_get_screensize(wm_init_state.size))) {
       /* Use fallback values. */
-      wm_init_state.size_x = 0;
-      wm_init_state.size_y = 0;
+      wm_init_state.size = blender::int2(0);
     }
 
     /* NOTE: this isn't quite correct, active screen maybe offset 1000s if PX,
      * we'd need a #wm_get_screensize like function that gives offset,
      * in practice the window manager will likely move to the correct monitor. */
-    wm_init_state.start_x = 0;
-    wm_init_state.start_y = 0;
+    wm_init_state.start = blender::int2(0);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -932,10 +930,10 @@ static bool wm_window_update_size_position(wmWindow *win)
   int posy = 0;
 
   if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
-    int scr_w, scr_h;
-    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+    blender::int2 scr_size;
+    if (wm_get_desktopsize(scr_size)) {
       posx = l;
-      posy = scr_h - t - win->sizey;
+      posy = scr_size[1] - t - win->sizey;
     }
   }
 
@@ -2634,10 +2632,8 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const ScrArea *area)
 
 void WM_init_state_size_set(int stax, int stay, int sizx, int sizy)
 {
-  wm_init_state.start_x = stax; /* Left hand position. */
-  wm_init_state.start_y = stay; /* Bottom position. */
-  wm_init_state.size_x = sizx < 640 ? 640 : sizx;
-  wm_init_state.size_y = sizy < 480 ? 480 : sizy;
+  wm_init_state.start = blender::int2(stax, stay); /* Left hand bottom position. */
+  wm_init_state.size = blender::int2(std::max(sizx, 640), std::max(sizy, 480));
   wm_init_state.override_flag |= WIN_OVERRIDE_GEOM;
 }
 
