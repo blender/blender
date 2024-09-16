@@ -2686,6 +2686,7 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
 
   for (const FCurve *fcu : fcurves) {
 #else
+  UNUSED_VARS(slot_handle);
   LISTBASE_FOREACH (const FCurve *, fcu, &action->curves) {
 #endif
     if (!is_fcurve_evaluatable(fcu)) {
@@ -3196,6 +3197,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
 
   for (const FCurve *fcu : fcurves) {
 #else
+  UNUSED_VARS(slot_handle);
   LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
 #endif
     /* check if this curve should be skipped */
