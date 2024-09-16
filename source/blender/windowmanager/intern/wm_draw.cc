@@ -1197,10 +1197,9 @@ static void wm_draw_window(bContext *C, wmWindow *win)
     /* For side-by-side and top-bottom, we need to render each view to an
      * an off-screen texture and then draw it. This used to happen for all
      * stereo methods, but it's less efficient than drawing directly. */
-    const int width = WM_window_native_pixel_x(win);
-    const int height = WM_window_native_pixel_y(win);
+    const blender::int2 win_size = WM_window_native_pixel_size(win);
     GPUOffScreen *offscreen = GPU_offscreen_create(
-        width, height, false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+        win_size[0], win_size[1], false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
     if (offscreen) {
       GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
@@ -1285,12 +1284,11 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
     GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
   }
 
-  r_size[0] = WM_window_native_pixel_x(win);
-  r_size[1] = WM_window_native_pixel_y(win);
-  const uint rect_len = r_size[0] * r_size[1];
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const uint rect_len = win_size[0] * win_size[1];
   uint8_t *rect = static_cast<uint8_t *>(MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__));
 
-  GPU_frontbuffer_read_color(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
+  GPU_frontbuffer_read_color(0, 0, win_size[0], win_size[1], 4, GPU_DATA_UBYTE, rect);
 
   if (setup_context) {
     if (wm->windrawable) {
@@ -1306,6 +1304,9 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
     *cp = 0xff;
   }
+
+  r_size[0] = win_size[0];
+  r_size[1] = win_size[1];
   return rect;
 }
 
@@ -1348,25 +1349,27 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
   /* Draw into an off-screen buffer and read its contents. */
-  r_size[0] = WM_window_native_pixel_x(win);
-  r_size[1] = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
 
   /* Determine desired offscreen format depending on HDR availability. */
   eGPUTextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
 
   GPUOffScreen *offscreen = GPU_offscreen_create(
-      r_size[0], r_size[1], false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+      win_size[0], win_size[1], false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
   if (UNLIKELY(!offscreen)) {
     return nullptr;
   }
 
-  const uint rect_len = r_size[0] * r_size[1];
+  const uint rect_len = win_size[0] * win_size[1];
   uint8_t *rect = static_cast<uint8_t *>(MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__));
   GPU_offscreen_bind(offscreen, false);
   wm_draw_window_onscreen(C, win, -1);
   GPU_offscreen_unbind(offscreen, false);
   GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, rect);
   GPU_offscreen_free(offscreen);
+
+  r_size[0] = win_size[0];
+  r_size[1] = win_size[1];
   return rect;
 }
 
@@ -1376,17 +1379,17 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
                                                  float r_col[3])
 {
   /* A version of #WM_window_pixels_read_from_offscreen that reads a single sample. */
-  const int size[2] = {WM_window_native_pixel_x(win), WM_window_native_pixel_y(win)};
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
   zero_v3(r_col);
 
   /* While this shouldn't happen, return in the case it does. */
-  BLI_assert(uint(pos[0]) < uint(size[0]) && uint(pos[1]) < uint(size[1]));
-  if (!(uint(pos[0]) < uint(size[0]) && uint(pos[1]) < uint(size[1]))) {
+  BLI_assert(uint(pos[0]) < uint(win_size[0]) && uint(pos[1]) < uint(win_size[1]));
+  if (!(uint(pos[0]) < uint(win_size[0]) && uint(pos[1]) < uint(win_size[1]))) {
     return false;
   }
 
   GPUOffScreen *offscreen = GPU_offscreen_create(
-      size[0], size[1], false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+      win_size[0], win_size[1], false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
   if (UNLIKELY(!offscreen)) {
     return false;
   }

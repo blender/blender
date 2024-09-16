@@ -2724,10 +2724,8 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
       wmWindow *win = CTX_wm_window(C);
-      const int window_center[2] = {
-          WM_window_native_pixel_x(win) / 2,
-          WM_window_native_pixel_y(win) / 2,
-      };
+      const blender::int2 window_size = WM_window_native_pixel_size(win);
+      const blender::int2 window_center = window_size / 2;
 
       const rcti window_rect = {
           /*xmin*/ window_center[0],
@@ -5450,9 +5448,10 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   /* In order to use window size and mouse position (pixels), we have to use a WM function. */
 
   /* Check if outside, include top window bar. */
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
   int event_xy[2] = {UNPACK2(event->xy)};
-  if (event_xy[0] < 0 || event_xy[1] < 0 || event_xy[0] > WM_window_native_pixel_x(win) ||
-      event_xy[1] > WM_window_native_pixel_y(win) + 30)
+  if (event_xy[0] < 0 || event_xy[1] < 0 || event_xy[0] > win_size[0] ||
+      event_xy[1] > win_size[1] + 30)
   {
     /* Let's skip windows having modal handlers now. */
     /* Potential XXX ugly... I wouldn't have added a `modalhandlers` list

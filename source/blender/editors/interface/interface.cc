@@ -323,12 +323,11 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
   else {
     /* No sub-window created yet, for menus for example, so we use the main
      * window instead, since buttons are created there anyway. */
-    const int width = WM_window_native_pixel_x(window);
-    const int height = WM_window_native_pixel_y(window);
-    const rcti winrct = {0, width - 1, 0, height - 1};
+    const blender::int2 win_size = WM_window_native_pixel_size(window);
+    const rcti winrct = {0, win_size[0] - 1, 0, win_size[1] - 1};
 
     wmGetProjectionMatrix(block->winmat, &winrct);
-    block->aspect = 2.0f / fabsf(width * block->winmat[0][0]);
+    block->aspect = 2.0f / fabsf(win_size[0] * block->winmat[0][0]);
   }
 }
 
@@ -475,16 +474,16 @@ static void ui_block_bounds_calc_centered(wmWindow *window, uiBlock *block)
   /* NOTE: this is used for the splash where window bounds event has not been
    * updated by ghost, get the window bounds from ghost directly */
 
-  const int xmax = WM_window_native_pixel_x(window);
-  const int ymax = WM_window_native_pixel_y(window);
+  /* Clamp to the window size. */
+  const blender::int2 win_size = WM_window_native_pixel_size(window);
 
   ui_block_bounds_calc(block);
 
   const int width = BLI_rctf_size_x(&block->rect);
   const int height = BLI_rctf_size_y(&block->rect);
 
-  const int startx = (xmax * 0.5f) - (width * 0.5f);
-  const int starty = (ymax * 0.5f) - (height * 0.5f);
+  const int startx = (win_size[0] * 0.5f) - (width * 0.5f);
+  const int starty = (win_size[1] * 0.5f) - (height * 0.5f);
 
   UI_block_translate(block, startx - block->rect.xmin, starty - block->rect.ymin);
 
@@ -513,8 +512,8 @@ static void ui_block_bounds_calc_popup(
   /* compute mouse position with user defined offset */
   ui_block_bounds_calc(block);
 
-  const int xmax = WM_window_native_pixel_x(window);
-  const int ymax = WM_window_native_pixel_y(window);
+  /* Clamp to the window size. */
+  const blender::int2 win_size = WM_window_native_pixel_size(window);
 
   int oldwidth = BLI_rctf_size_x(&block->rect);
   int oldheight = BLI_rctf_size_y(&block->rect);
@@ -553,8 +552,8 @@ static void ui_block_bounds_calc_popup(
   const int margin = UI_SCREEN_MARGIN;
   rect_bounds.xmin = margin;
   rect_bounds.ymin = margin;
-  rect_bounds.xmax = xmax - margin;
-  rect_bounds.ymax = ymax - UI_POPUP_MENU_TOP;
+  rect_bounds.xmax = win_size[0] - margin;
+  rect_bounds.ymax = win_size[1] - UI_POPUP_MENU_TOP;
 
   int ofs_dummy[2];
   BLI_rcti_clamp(&rect, &rect_bounds, ofs_dummy);

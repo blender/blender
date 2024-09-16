@@ -145,12 +145,13 @@ static void ui_popup_block_position(wmWindow *window,
   const int center_x = (block->direction & UI_DIR_CENTER_X) ? size_x / 2 : 0;
   const int center_y = (block->direction & UI_DIR_CENTER_Y) ? size_y / 2 : 0;
 
-  const int win_x = WM_window_native_pixel_x(window);
-  const int win_y = WM_window_native_pixel_y(window);
+  const blender::int2 win_size = WM_window_native_pixel_size(window);
 
   /* Take into account maximum size so we don't have to flip on refresh. */
-  const float max_size_x = max_ff(size_x, handle->max_size_x);
-  const float max_size_y = max_ff(size_y, handle->max_size_y);
+  const blender::float2 max_size = {
+      max_ff(size_x, handle->max_size_x),
+      max_ff(size_y, handle->max_size_y),
+  };
 
   short dir1 = 0, dir2 = 0;
 
@@ -158,21 +159,21 @@ static void ui_popup_block_position(wmWindow *window,
     bool left = false, right = false, top = false, down = false;
 
     /* check if there's space at all */
-    if (butrct.xmin - max_size_x + center_x > 0.0f) {
+    if (butrct.xmin - max_size[0] + center_x > 0.0f) {
       left = true;
     }
-    if (butrct.xmax + max_size_x - center_x < win_x) {
+    if (butrct.xmax + max_size[0] - center_x < win_size[0]) {
       right = true;
     }
-    if (butrct.ymin - max_size_y + center_y > 0.0f) {
+    if (butrct.ymin - max_size[1] + center_y > 0.0f) {
       down = true;
     }
-    if (butrct.ymax + max_size_y - center_y < win_y) {
+    if (butrct.ymax + max_size[1] - center_y < win_size[1]) {
       top = true;
     }
 
     if (top == 0 && down == 0) {
-      if (butrct.ymin - max_size_y < win_y - butrct.ymax - max_size_y) {
+      if (butrct.ymin - max_size[1] < win_size[1] - butrct.ymax - max_size[1]) {
         top = true;
       }
       else {
@@ -267,9 +268,11 @@ static void ui_popup_block_position(wmWindow *window,
   else if (dir1 == UI_DIR_UP) {
     offset_y = (butrct.ymax - block->rect.ymin) - offset_overlap;
 
-    if (but->type == UI_BTYPE_COLOR && block->rect.ymax + offset_y > win_y - UI_POPUP_MENU_TOP) {
+    if (but->type == UI_BTYPE_COLOR &&
+        block->rect.ymax + offset_y > win_size[1] - UI_POPUP_MENU_TOP)
+    {
       /* Shift this down, aligning the top edge close to the window top. */
-      offset_y = win_y - block->rect.ymax - UI_POPUP_MENU_TOP;
+      offset_y = win_size[1] - block->rect.ymax - UI_POPUP_MENU_TOP;
       /* All four corners should be rounded since this no longer button-aligned. */
       block->direction = UI_DIR_CENTER_Y;
       dir1 = UI_DIR_CENTER_Y;
@@ -371,7 +374,7 @@ static void ui_popup_block_position(wmWindow *window,
     const bool fully_aligned_with_button = BLI_rctf_size_x(&block->rect) <=
                                            BLI_rctf_size_x(&butrct) + 1;
     const bool off_screen_left = (block->rect.xmin < 0);
-    const bool off_screen_right = (block->rect.xmax > win_x);
+    const bool off_screen_right = (block->rect.xmax > win_size[0]);
 
     if (fully_aligned_with_button) {
       /* Popup is neither left or right from the button. */
@@ -479,12 +482,11 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
     return;
   }
 
-  const int winx = WM_window_native_pixel_x(window);
-  const int winy = WM_window_native_pixel_y(window);
+  const blender::int2 win_size = WM_window_native_pixel_size(window);
 
   /* shift to left if outside of view */
-  if (block->rect.xmax > winx - margin) {
-    const float xofs = winx - margin - block->rect.xmax;
+  if (block->rect.xmax > win_size[0] - margin) {
+    const float xofs = win_size[0] - margin - block->rect.xmax;
     block->rect.xmin += xofs;
     block->rect.xmax += xofs;
   }
@@ -498,8 +500,8 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
   if (block->rect.ymin < margin) {
     block->rect.ymin = margin;
   }
-  if (block->rect.ymax > winy - UI_POPUP_MENU_TOP) {
-    block->rect.ymax = winy - UI_POPUP_MENU_TOP;
+  if (block->rect.ymax > win_size[1] - UI_POPUP_MENU_TOP) {
+    block->rect.ymax = win_size[1] - UI_POPUP_MENU_TOP;
   }
 
   /* ensure menu items draw inside left/right boundary */
@@ -724,29 +726,28 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   if (block->flag & UI_BLOCK_PIE_MENU) {
     const int win_width = UI_SCREEN_MARGIN;
 
-    const int winx = WM_window_native_pixel_x(window);
-    const int winy = WM_window_native_pixel_y(window);
+    const blender::int2 win_size = WM_window_native_pixel_size(window);
 
     copy_v2_v2(block->pie_data.pie_center_init, block->pie_data.pie_center_spawned);
 
     /* only try translation if area is large enough */
     int x_offset = 0;
-    if (BLI_rctf_size_x(&block->rect) < winx - (2.0f * win_width)) {
+    if (BLI_rctf_size_x(&block->rect) < win_size[0] - (2.0f * win_width)) {
       if (block->rect.xmin < win_width) {
         x_offset += win_width - block->rect.xmin;
       }
-      if (block->rect.xmax > winx - win_width) {
-        x_offset += winx - win_width - block->rect.xmax;
+      if (block->rect.xmax > win_size[0] - win_width) {
+        x_offset += win_size[0] - win_width - block->rect.xmax;
       }
     }
 
     int y_offset = 0;
-    if (BLI_rctf_size_y(&block->rect) < winy - (2.0f * win_width)) {
+    if (BLI_rctf_size_y(&block->rect) < win_size[1] - (2.0f * win_width)) {
       if (block->rect.ymin < win_width) {
         y_offset += win_width - block->rect.ymin;
       }
-      if (block->rect.ymax > winy - win_width) {
-        y_offset += winy - win_width - block->rect.ymax;
+      if (block->rect.ymax > win_size[1] - win_width) {
+        y_offset += win_size[1] - win_width - block->rect.ymax;
       }
     }
     /* if we are offsetting set up initial data for timeout functionality */
@@ -763,9 +764,9 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     }
 
     region->winrct.xmin = 0;
-    region->winrct.xmax = winx;
+    region->winrct.xmax = win_size[0];
     region->winrct.ymin = 0;
-    region->winrct.ymax = winy;
+    region->winrct.ymax = win_size[1];
 
     ui_block_calc_pie_segment(block, block->pie_data.pie_center_init);
 

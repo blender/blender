@@ -170,8 +170,7 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
-  const int winsize_x = WM_window_native_pixel_x(win);
-  const int winsize_y = WM_window_native_pixel_y(win);
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
 
@@ -213,7 +212,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_4fv(batch, "color", col);
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    drawscredge_area(area, winsize_x, winsize_y, edge_thickness);
+    drawscredge_area(area, win_size[0], win_size[1], edge_thickness);
   }
 
   GPU_blend(GPU_BLEND_NONE);

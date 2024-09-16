@@ -2736,6 +2736,13 @@ int WM_window_native_pixel_y(const wmWindow *win)
   return int(fac * float(win->sizey));
 }
 
+blender::int2 WM_window_native_pixel_size(const wmWindow *win)
+{
+  const float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
+
+  return blender::int2(int(fac * float(win->sizex)), int(fac * float(win->sizey)));
+}
+
 void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y)
 {
   const float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
@@ -2746,7 +2753,8 @@ void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y)
 
 void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
 {
-  BLI_rcti_init(r_rect, 0, WM_window_native_pixel_x(win), 0, WM_window_native_pixel_y(win));
+  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  BLI_rcti_init(r_rect, 0, win_size[0], 0, win_size[1]);
 }
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 {
