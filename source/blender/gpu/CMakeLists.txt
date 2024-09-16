@@ -900,6 +900,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
 
   if(WITH_BUILD_INFO)
     target_link_libraries(shader_builder PRIVATE buildinfoobj)
+    add_definitions(-DWITH_BUILD_INFO)
   endif()
   target_link_libraries(shader_builder PRIVATE
     bf_gpu
