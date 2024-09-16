@@ -17,8 +17,6 @@
 #include "vk_common.hh"
 #include "vk_device.hh"
 
-#include "shaderc/shaderc.hpp"
-
 namespace blender::gpu {
 
 class VKContext;
@@ -27,7 +25,6 @@ class VKDescriptorSetTracker;
 
 class VKBackend : public GPUBackend {
  private:
-  shaderc::Compiler shaderc_compiler_;
 #ifdef WITH_RENDERDOC
   renderdoc::api::Renderdoc renderdoc_api_;
 #endif
@@ -86,8 +83,6 @@ class VKBackend : public GPUBackend {
 
   bool debug_capture_begin(const char *title);
   void debug_capture_end();
-
-  shaderc::Compiler &get_shaderc_compiler();
 
   static VKBackend &get()
   {

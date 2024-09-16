@@ -8,13 +8,15 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include "gpu_shader_private.hh"
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_push_constants.hh"
 
-#include "BLI_string_ref.hh"
+#include "shaderc/shaderc.hpp"
 
 namespace blender::gpu {
 class VKShaderInterface;
