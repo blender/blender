@@ -427,7 +427,7 @@ class _draw_tool_settings_context_mode:
         row = layout.row(align=True)
         settings = tool_settings.gpencil_paint
 
-        BrushAssetShelf.draw_popup_selector(layout, context, brush)
+        BrushAssetShelf.draw_popup_selector(row, context, brush)
 
         if ob and brush.gpencil_tool in {'FILL', 'DRAW'}:
             from bl_ui.properties_paint_common import (
@@ -570,7 +570,7 @@ class _draw_tool_settings_context_mode:
 
         row = layout.row(align=True)
 
-        BrushAssetShelf.draw_popup_selector(layout, context, brush)
+        BrushAssetShelf.draw_popup_selector(row, context, brush)
 
         if brush.gpencil_vertex_tool not in {'BLUR', 'AVERAGE', 'SMEAR'}:
             row.separator(factor=0.4)
@@ -756,7 +756,7 @@ class _draw_tool_settings_context_mode:
 
         row = layout.row(align=True)
 
-        BrushAssetShelf.draw_popup_selector(layout, context, brush)
+        BrushAssetShelf.draw_popup_selector(row, context, brush)
 
         grease_pencil_tool = brush.gpencil_tool
 
