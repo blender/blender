@@ -318,6 +318,11 @@ int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
   return face_set;
 }
 
+int vert_face_set_get(const int /*face_set_offset*/, const BMVert & /*vert*/)
+{
+  return SCULPT_FACE_SET_NONE;
+}
+
 bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
                        const Span<int> face_sets,
                        const int vert,
