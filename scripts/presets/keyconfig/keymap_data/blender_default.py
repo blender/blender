@@ -4863,6 +4863,8 @@ def km_grease_pencil_vertex_paint(params):
          {"properties": [("scalar", 1.0 / 0.9)]}),
         # Radial controls
         *_template_paint_radial_control("gpencil_vertex_paint"),
+        # Context menu
+        *_template_items_context_panel("VIEW3D_PT_greasepencil_vertex_paint_context_menu", params.context_menu_event),
     ])
 
     return keymap

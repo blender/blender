@@ -8889,6 +8889,51 @@ class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
             row.operator("grease_pencil.layer_remove", text="", icon='X')
 
 
+class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_label = "Vertex Paint"
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_vertex_paint
+        brush = settings.brush
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column()
+
+        if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+            split = layout.split(factor=0.1)
+            split.prop(brush, "color", text="")
+            split.template_color_picker(brush, "color", value_slider=True)
+
+            col = layout.column()
+            col.separator()
+            col.prop(gp_settings, "vertex_mode", text="")
+            col.separator()
+
+        row = col.row(align=True)
+        row.prop(tool_settings.unified_paint_settings, "size", text="Radius")
+        row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
+
+        if brush.gpencil_vertex_tool in {'DRAW', 'BLUR', 'SMEAR'}:
+            row = layout.row(align=True)
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
+
+        layer = context.object.data.layers.active
+
+        if layer:
+            layout.label(text="Active Layer")
+            row = layout.row(align=True)
+            row.operator_context = 'EXEC_REGION_WIN'
+            row.menu("GREASE_PENCIL_MT_Layers", text="", icon='GREASEPENCIL')
+            row.prop(layer, "name", text="")
+            row.operator("grease_pencil.layer_remove", text="", icon='X')
+
+
 def draw_gpencil_layer_active(context, layout):
     gpl = context.active_gpencil_layer
     if gpl:
@@ -9799,6 +9844,7 @@ classes = (
     GREASE_PENCIL_MT_Layers,
     VIEW3D_PT_greasepencil_draw_context_menu,
     VIEW3D_PT_greasepencil_sculpt_context_menu,
+    VIEW3D_PT_greasepencil_vertex_paint_context_menu,
 )
 
 
