@@ -68,7 +68,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
   /* `wmOrtho` for the screen has this same offset. */
   const float halfx = GLA_PIXEL_OFS / sizex;
-  const float halfy = GLA_PIXEL_OFS / sizex;
+  const float halfy = GLA_PIXEL_OFS / sizey;
 
   /* Texture is already bound to GL_TEXTURE0 unit. */
 
@@ -112,7 +112,7 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 
   /* `wmOrtho` for the screen has this same offset. */
   const float halfx = GLA_PIXEL_OFS / sizex;
-  const float halfy = GLA_PIXEL_OFS / sizex;
+  const float halfy = GLA_PIXEL_OFS / sizey;
 
   /* Texture is already bound to GL_TEXTURE0 unit. */
 
