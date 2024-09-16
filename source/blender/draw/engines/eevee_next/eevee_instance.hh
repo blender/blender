@@ -253,7 +253,8 @@ class Instance {
   /** True if the grease pencil engine might be running. */
   bool gpencil_engine_enabled() const
   {
-    return DEG_id_type_any_exists(depsgraph, ID_GP);
+    return DEG_id_type_any_exists(depsgraph, ID_GP) ||
+           DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY);
   }
 
   bool is_playback() const
