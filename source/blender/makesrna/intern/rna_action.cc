@@ -97,12 +97,12 @@ const EnumPropertyItem rna_enum_strip_type_items[] = {
 
 #  include <fmt/format.h>
 
-#  ifdef WITH_ANIM_BAKLAVA
-
 static animrig::Action &rna_action(const PointerRNA *ptr)
 {
   return reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
 }
+
+#  ifdef WITH_ANIM_BAKLAVA
 
 static animrig::Slot &rna_data_slot(const PointerRNA *ptr)
 {
