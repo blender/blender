@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -1902,11 +1902,6 @@ msgid "Refraction"
 msgstr "Errefrakzioa"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Berria"
-
-
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Gorde honela..."
@@ -2064,6 +2059,11 @@ msgstr "Berria"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Berria"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Berria"
 

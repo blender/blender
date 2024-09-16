@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1911,6 +1911,18 @@ msgid "Names"
 msgstr "ชื่อ"
 
 
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -1959,24 +1971,12 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
 msgid "Track"
 msgstr "แทร็ค"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -4110,11 +4110,6 @@ msgid "Zoom Region..."
 msgstr "ขอบเขตการซูม..."
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "ใหม่"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "บันทึกภาพทั้งหมด"
@@ -4919,6 +4914,11 @@ msgstr "ใหม่"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "ใหม่"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "ใหม่"
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -2672,12 +2672,28 @@ msgid "Flip"
 msgstr "पलटें"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Names"
-msgstr "नाम"
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Bone Roll"
@@ -2696,10 +2712,6 @@ msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Track"
 msgstr "ट्रैक"
 
@@ -2714,18 +2726,6 @@ msgstr "एकल प्रयोक्ता बनाएँ"
 
 msgid "Hooks"
 msgstr "खूँटी"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -5582,11 +5582,6 @@ msgid "Back"
 msgstr "पार्श्व"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "नई"
-
-
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "के रूप में सहेजें..."
@@ -6234,6 +6229,11 @@ msgstr "नई"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "नई"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "नई"
 

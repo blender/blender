@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1323,12 +1323,12 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "Apply"
 msgstr "Колдонуу"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -3176,11 +3176,6 @@ msgid "Back"
 msgstr "Артынан"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Жаңы"
-
-
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Ат коюп сактоо..."
@@ -3464,6 +3459,11 @@ msgstr "Жаңы"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Жаңы"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Жаңы"
 

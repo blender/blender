@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3604,10 +3604,6 @@ msgid "Clone Image"
 msgstr "Klona bild"
 
 
-msgid "Image for clone tool"
-msgstr "Bild för klonverktyg"
-
-
 msgid "Clone Offset"
 msgstr "Klon förskjutning"
 
@@ -5325,16 +5321,20 @@ msgid "Texture"
 msgstr "Textur"
 
 
+msgid "Names"
+msgstr "Namn"
+
+
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
+msgid "Apply"
+msgstr "Applicera"
+
+
 msgid "Clean Up"
 msgstr "Städa upp"
-
-
-msgid "Names"
-msgstr "Namn"
 
 
 msgid "Pivot Point"
@@ -5375,10 +5375,6 @@ msgstr "Relationer"
 
 msgid "Rigid Body"
 msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
 
 
 msgid "Quick Effects"
@@ -12550,10 +12546,6 @@ msgid "Use Metal backend"
 msgstr "Använd Metal-backend"
 
 
-msgid "Vulkan"
-msgstr "Vulkan"
-
-
 msgid "Use Vulkan backend"
 msgstr "Använd Vulkan-backend"
 
@@ -14706,11 +14698,6 @@ msgid "Shortest Path"
 msgstr "Kortaste vägen"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Ny"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Spara alla bilder"
@@ -16236,6 +16223,11 @@ msgstr "Idag"
 
 msgid "Yesterday"
 msgstr "Igår"
+
+
+msgctxt "Image"
+msgid "New"
+msgstr "Ny"
 
 
 msgctxt "PaintCurve"

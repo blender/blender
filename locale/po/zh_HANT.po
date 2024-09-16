@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -12391,10 +12391,6 @@ msgid "Clone Image"
 msgstr "拓製影像"
 
 
-msgid "Image for clone tool"
-msgstr "供拓製工具使用的影像"
-
-
 msgid "Clone Offset"
 msgstr "拓製偏移"
 
@@ -20945,20 +20941,48 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Names"
+msgstr "名稱"
+
+
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
 
 
 msgid "Clean Up"
 msgstr "清理"
 
 
+msgid "Merge"
+msgstr "合併"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
-
-
-msgid "Names"
-msgstr "名稱"
 
 
 msgid "Bone Roll"
@@ -21033,10 +21057,6 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
-msgid "Apply"
-msgstr "套用"
-
-
 msgid "Track"
 msgstr "追蹤"
 
@@ -21071,30 +21091,6 @@ msgstr "內部之間"
 
 msgid "Propagate"
 msgstr "增生"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Merge"
-msgstr "合併"
 
 
 msgid "Basic"
@@ -22121,6 +22117,10 @@ msgstr "限定寬度以避免重疊"
 
 msgid "Vertex group name"
 msgstr "頂點群組名稱"
+
+
+msgid "Vertex Weight"
+msgstr "頂點權重"
 
 
 msgid "Boolean Modifier"
@@ -28104,10 +28104,6 @@ msgstr "在與著色樣本之間的半徑內查詢點"
 
 msgid "Vertex color layer"
 msgstr "頂點色彩分層"
-
-
-msgid "Vertex Weight"
-msgstr "頂點權重"
 
 
 msgid "Vertex group weight"
@@ -34314,6 +34310,11 @@ msgid "Select Mode"
 msgstr "選取模式"
 
 
+msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "歸一化全部頂點群組"
+
+
 msgid "Emission Strength"
 msgstr "發光強度"
 
@@ -38849,11 +38850,6 @@ msgstr "作用中頂點群組的歸一化權重，這樣一來最高的值現在
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "歸一化全部頂點群組"
-
-
-msgctxt "Operator"
 msgid "Remove Vertex Group"
 msgstr "移除頂點群組"
 
@@ -41417,10 +41413,6 @@ msgid "Change Effect Input"
 msgstr "更改效果輸入"
 
 
-msgid "The effect inputs to swap"
-msgstr "要交換的效果輸入"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "更改效果類型"
@@ -41993,10 +41985,6 @@ msgstr "交換 2 個序編輯器片段"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "交換輸入"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "交換效果片段的前兩個輸入"
 
 
 msgid "View all the strips in the sequencer"
@@ -45504,11 +45492,6 @@ msgstr "漸層"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "裁剪"
-
-
-msgctxt "Operator"
 msgid "Line"
 msgstr "直線"
 
@@ -45531,6 +45514,11 @@ msgstr "方框"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "圓"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "裁剪"
 
 
 msgid "Post-Processing"
@@ -47339,10 +47327,6 @@ msgstr "OpenGL"
 
 msgid "Metal"
 msgstr "Metal"
-
-
-msgid "Vulkan"
-msgstr "Vulkan"
 
 
 msgid "Method used for displaying images on the screen"
@@ -54974,11 +54958,6 @@ msgstr "剪輯律表編輯器"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "蠟筆筆觸編輯模式"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "遮罩編輯"
 
@@ -56226,11 +56205,6 @@ msgstr "已連結"
 msgctxt "Operator"
 msgid "Shortest Path"
 msgstr "最短路徑"
-
-
-msgctxt "Image"
-msgid "New"
-msgstr "新增"
 
 
 msgctxt "Operator"
@@ -58814,6 +58788,11 @@ msgid "New"
 msgstr "新增"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "新增"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "新增"
@@ -60316,10 +60295,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "無法將效果套用至音訊序段片段"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "無法將效果套用至 3 個以上的序段片段"
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "至少需要一個選取的序段片段"
 
@@ -61405,10 +61380,6 @@ msgstr "Sequences.new_effect：未設定結束幀"
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop：索引超出範圍"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect：此效果期待 3 個以上的輸入 (%d，應該永遠不會發生！)"
 
 
 msgid "Sequence '%s' not in scene '%s'"

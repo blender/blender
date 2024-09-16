@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -11782,10 +11782,6 @@ msgid "Clone Image"
 msgstr "Bild klonen"
 
 
-msgid "Image for clone tool"
-msgstr "Bild für Klonwerkzeug"
-
-
 msgid "Clone Offset"
 msgstr "Versatz klonen"
 
@@ -19079,12 +19075,44 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
 
 
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
 msgid "Clean Up"
 msgstr "Aufräumen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
 msgid "Special Characters"
@@ -19093,10 +19121,6 @@ msgstr "Sonderzeichen"
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgid "Generate Weights"
@@ -19187,10 +19211,6 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Track"
 msgstr "Spur"
 
@@ -19225,30 +19245,6 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
 
 
 msgid "Assets"
@@ -20244,6 +20240,10 @@ msgstr "Profiltyp"
 
 msgid "Vertex group name"
 msgstr "Punktgruppenname"
+
+
+msgid "Vertex Weight"
+msgstr "Punkteinfluss"
 
 
 msgid "Bevel amount"
@@ -25560,10 +25560,6 @@ msgstr "Eckpunkt Eigenschaft zur Farbbenutzung"
 
 msgid "Vertex color layer"
 msgstr "Eckpunkt Farbebene"
-
-
-msgid "Vertex Weight"
-msgstr "Punkteinfluss"
 
 
 msgid "Vertex group weight"
@@ -31765,6 +31761,11 @@ msgstr "Alle Strichpunkte selektieren"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Alle Knotengruppen normalisieren"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Renderslot hinzufügen"
 
@@ -35674,11 +35675,6 @@ msgstr "Knotengruppe verschieben"
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Alle Knotengruppen normalisieren"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "Quantisieren von Eckpunktgewichtungen"
 
@@ -38204,10 +38200,6 @@ msgstr "Sequenzer"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "Eingänge vertauschen"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "Die ersten zwei Eingänge für den Effektstreifen vertauschen"
 
 
 msgctxt "Operator"
@@ -41884,8 +41876,8 @@ msgstr "Beispiel Eckpunktgruppe"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Messer"
+msgid "Trim"
+msgstr "Trimmen"
 
 
 msgctxt "Operator"
@@ -41911,6 +41903,11 @@ msgstr "Rechteck"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Kreis"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "Messer"
 
 
 msgid "Expand or contract the radius of the selected points"
@@ -50965,131 +50962,6 @@ msgstr "Clip DopeSheet-Editor"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Curve Edit Mode"
-msgstr "Wachsstift Strich Kurven Bearbeitungsmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Wachsstift Strich Bearbeitungsmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "Wachsstift Strich malen (Pinsel zeichnen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "Wachsstift Strich malen (füllen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Wachsstift Strich malen (radieren)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Wachsstift Strich malen (tönen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint Mode"
-msgstr "Wachsstift Strich Malmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "Wachsstift Strich Formmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Smooth)"
-msgstr "Wachsstift Strich formen (eben)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Thickness)"
-msgstr "Wachsstift Strich formen (dicke)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Strength)"
-msgstr "Wachsstift Strich formen (stärke)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Grab)"
-msgstr "Wachsstift Strich formen (greifen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Push)"
-msgstr "Wachsstift Strich formen (drücken)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Twist)"
-msgstr "Wachsstift Strich formen (drehen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Pinch)"
-msgstr "Wachsstift Strich formen (kneifen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Randomize)"
-msgstr "Wachsstift Strich formen (zufällig)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt (Clone)"
-msgstr "Wachsstift Strich formen (klonen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight Mode"
-msgstr "Wachsstift Strich Beschwerungsmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight (Draw)"
-msgstr "Wachsstift Strich beschweren (malen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex Mode"
-msgstr "Wachsstift Strich Eckpunktmodus"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Draw)"
-msgstr "Wachsstift Strich Eckpunkt (zeichnen)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Blur)"
-msgstr "Wachsstift Strich Eckpunkt (Unschärfe)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Average)"
-msgstr "Wachsstift Strich Eckpunkt (Durchschnitt)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Wachsstift Strich Eckpunkt (Schlieren)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Vertex (Replace)"
-msgstr "Wachsstift Strich Eckpunkt (ersetzen)"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "Maskenbearbeitung"
 
@@ -53739,11 +53611,6 @@ msgid "Shortest Path"
 msgstr "Kürzester Pfad"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Neu"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "Alle Bilder speichern"
@@ -55725,11 +55592,6 @@ msgstr "Fixiert"
 msgctxt "Operator"
 msgid "Adaptive"
 msgstr "Adaptiv"
-
-
-msgctxt "Operator"
-msgid "Trim"
-msgstr "Trimmen"
 
 
 msgctxt "Operator"
@@ -57729,6 +57591,11 @@ msgid "New"
 msgstr "Neu"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "Neu"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "Neu"
@@ -59430,10 +59297,6 @@ msgstr "Keine Streifen zum einfügen"
 
 msgid "Cannot apply effects to audio sequence strips"
 msgstr "Effekt kann nicht auf Audio-Sequenzstreifen angewandt werden"
-
-
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "Effekt kann nicht auf mehr als 3 Sequenzstreifen angewandt werden"
 
 
 msgid "Please select two strips"

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -448,11 +448,6 @@ msgid "Rotation"
 msgstr "Агьежьра"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Аҿыц"
-
-
 msgctxt "Operator"
 msgid "Text"
 msgstr "Аҳәоу"
@@ -544,6 +539,11 @@ msgstr "Аҿыц"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Аҿыц"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Аҿыц"
 

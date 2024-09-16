@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -551,6 +551,14 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
 msgid "Snap"
 msgstr "Προσκόλληση"
 
@@ -567,20 +575,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
 msgid "Track"
 msgstr "Ανίχνευση"
 
 
 msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Merge"
-msgstr "Συγχώνευση"
 
 
 msgid "Import"

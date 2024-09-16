@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6717,8 +6717,16 @@ msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
+msgid "Apply"
+msgstr "Elfogadás"
+
+
 msgid "Clean Up"
 msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgid "Mirror"
@@ -6745,16 +6753,8 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -10766,6 +10766,11 @@ msgid "Select Mode"
 msgstr "Kijelölés módja"
 
 
+msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "Minden csúcspont-csoport normalizálása"
+
+
 msgid "Relative Paths"
 msgstr "Relatív fájlútvonalak"
 
@@ -11604,11 +11609,6 @@ msgstr "Csúcspont-csoportmozgatása le/fel a listában"
 
 msgid "Normalize weights of the active vertex group, so that the highest ones are now 1.0"
 msgstr "Súlyok normalizálása az aktív csúcspont-csoportban, az legmagasabb érték inenntől 1.0"
-
-
-msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "Minden csúcspont-csoport normalizálása"
 
 
 msgctxt "Operator"
@@ -16056,11 +16056,6 @@ msgid "Linked"
 msgstr "Linkelt"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "Új"
-
-
 msgctxt "Operator"
 msgid "Invert Image Colors"
 msgstr "A kép színeinek invertálása"
@@ -17011,6 +17006,11 @@ msgstr "Új"
 
 
 msgctxt "GPencil"
+msgid "New"
+msgstr "Új"
+
+
+msgctxt "Image"
 msgid "New"
 msgstr "Új"
 

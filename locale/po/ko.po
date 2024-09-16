@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Alpha (b'b5ea3beaf93b')\n"
+"Project-Id-Version: Blender 4.3.0 Alpha (b'd52d70324d18')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:03+0000\n"
+"POT-Creation-Date: 2024-09-16 11:03+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -13247,10 +13247,6 @@ msgid "Clone Image"
 msgstr "클론 이미지"
 
 
-msgid "Image for clone tool"
-msgstr "클론 도구에 대한 이미지"
-
-
 msgid "Clone Offset"
 msgstr "클론 오프셋"
 
@@ -13493,10 +13489,6 @@ msgstr "브러시 아이콘에 파일 경로"
 
 msgid "Invert to Scrape or Fill"
 msgstr "스크랩 또는 채우기로 반전"
-
-
-msgid "Use Scrape or Fill tool when inverting this brush instead of inverting its displacement direction"
-msgstr "이 브러시를 뒤집을 때 변위 방향을 바꾸지 않고 스크랩 또는 칠 도구를 사용"
 
 
 msgid "Jitter the position of the brush while painting"
@@ -24161,12 +24153,52 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Names"
+msgstr "이름"
+
+
 msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
 msgid "Clean Up"
 msgstr "정리"
+
+
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Special Characters"
@@ -24175,10 +24207,6 @@ msgstr "특수 문자"
 
 msgid "Kerning"
 msgstr "자간"
-
-
-msgid "Names"
-msgstr "이름"
 
 
 msgid "Bone Roll"
@@ -24273,10 +24301,6 @@ msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
-msgid "Apply"
-msgstr "적용"
-
-
 msgid "Track"
 msgstr "트랙"
 
@@ -24311,38 +24335,6 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Merge"
-msgstr "병합"
 
 
 msgid "Basic"
@@ -25874,6 +25866,10 @@ msgstr "겹치지 않도록 폭을 클램프"
 
 msgid "Vertex group name"
 msgstr "버텍스 그룹 이름"
+
+
+msgid "Vertex Weight"
+msgstr "버텍스 웨이트"
 
 
 msgid "Vertex Mesh Method"
@@ -33190,10 +33186,6 @@ msgstr "컬러에 대해 사용하는 버텍스 속성"
 
 msgid "Vertex color layer"
 msgstr "버텍스 컬러 레이어"
-
-
-msgid "Vertex Weight"
-msgstr "버텍스 웨이트"
 
 
 msgid "Vertex group weight"
@@ -41978,6 +41970,11 @@ msgstr "각 스트로크 사이의 모든 스트로크 포인트 선택"
 
 
 msgctxt "Operator"
+msgid "Normalize All Vertex Groups"
+msgstr "모든 버텍스 그룹을 노멀라이즈"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "렌더 슬롯을 추가"
 
@@ -48215,11 +48212,6 @@ msgstr "활성 버택스 그룹의 웨이트를 노멀라이즈하여 최고점�
 
 
 msgctxt "Operator"
-msgid "Normalize All Vertex Groups"
-msgstr "모든 버텍스 그룹을 노멀라이즈"
-
-
-msgctxt "Operator"
 msgid "Quantize Vertex Weights"
 msgstr "정량화 버텍스 웨이트"
 
@@ -51542,10 +51534,6 @@ msgid "Change Effect Input"
 msgstr "이팩트 입력을 변경"
 
 
-msgid "The effect inputs to swap"
-msgstr "교환하는 이펙트 입력"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "이팩트 유형을 변경"
@@ -52243,10 +52231,6 @@ msgstr "2 시퀀서 스트립을 교환"
 msgctxt "Operator"
 msgid "Swap Inputs"
 msgstr "입력을 교환"
-
-
-msgid "Swap the first two inputs for the effect strip"
-msgstr "이펙트 스트립에 대한 처음 두 입력을 교환"
 
 
 msgctxt "Operator"
@@ -57758,8 +57742,8 @@ msgstr "샘플 버텍스 그룹"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "커터"
+msgid "Trim"
+msgstr "다듬기"
 
 
 msgctxt "Operator"
@@ -57790,6 +57774,11 @@ msgstr "박스"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "원형"
+
+
+msgctxt "Operator"
+msgid "Cutter"
+msgstr "커터"
 
 
 msgid "Expand or contract the radius of the selected points"
@@ -71153,41 +71142,6 @@ msgstr "클립 도프시트 에디터"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Edit Mode"
-msgstr "그리스 펜슬 스트로크 에디트 모드"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "그리스 펜슬 스트로크 페인트 (브러쉬 그리기)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "그리스 펜슬 스트로크 페인트 (채우기)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "그리스 펜슬 스트로크 페인트 (지우게)"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Paint Mode"
-msgstr "그리이스 펜슬 스트로크 페인트 모드"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "그리이스 펜슬 스트로크 스컬프트 모드"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil Stroke Weight Mode"
-msgstr "그리이스 펜슬 스트로크 웨이트 모드"
-
-
-msgctxt "WindowManager"
 msgid "Mask Editing"
 msgstr "마스크 편집"
 
@@ -73597,11 +73551,6 @@ msgid "Shortest Path"
 msgstr "최단 경로"
 
 
-msgctxt "Image"
-msgid "New"
-msgstr "새로운"
-
-
 msgctxt "Operator"
 msgid "Save All Images"
 msgstr "모든 이미지를 저장"
@@ -75339,11 +75288,6 @@ msgstr "고정됨"
 msgctxt "Operator"
 msgid "Adaptive"
 msgstr "적응형"
-
-
-msgctxt "Operator"
-msgid "Trim"
-msgstr "다듬기"
 
 
 msgctxt "Operator"
@@ -77919,6 +77863,11 @@ msgid "New"
 msgstr "새로운"
 
 
+msgctxt "Image"
+msgid "New"
+msgstr "새로운"
+
+
 msgctxt "Lattice"
 msgid "New"
 msgstr "새로운"
@@ -80316,10 +80265,6 @@ msgid "Cannot apply effects to audio sequence strips"
 msgstr "오디오 시퀀스 스트립에 이펙트를 적용 할 수 없습니다"
 
 
-msgid "Cannot apply effect to more than 3 sequence strips"
-msgstr "3개 이상의 시퀀스 스트립에 효과를 적용할 수 없습니다"
-
-
 msgid "At least one selected sequence strip is needed"
 msgstr "적어도 하나의 선택된 시퀀스 스트립이 필요"
 
@@ -81727,20 +81672,12 @@ msgid "Sequences.new_effect: effect takes 2 input sequences"
 msgstr "Sequences.new_effect: 이펙트는 2개의 입력 시퀀스를 취합니다"
 
 
-msgid "Sequences.new_effect: effect takes 3 input sequences"
-msgstr "Sequences.new_effect: 이펙트는 3개의 입력 시퀀스를 취합니다"
-
-
 msgid "SequenceElements.pop: cannot pop the last element"
 msgstr "SequenceElements.pop: 마지막 요소를 팝할 수 없습니다"
 
 
 msgid "SequenceElements.pop: index out of range"
 msgstr "SequenceElements.pop: 인덱스가 범위를 벗어났습니다"
-
-
-msgid "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)"
-msgstr "Sequences.new_effect: 이펙트는 3개 이상의 입력을 필요로 합니다 (%d, 결코 일어나지 않아야 합니다!)."
 
 
 msgid "Sequence '%s' not in scene '%s'"
