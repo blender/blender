@@ -609,8 +609,13 @@ static void alloc_final_points_vbo(CurvesEvalCache &cache)
       format, GPU_USAGE_DEVICE_ONLY | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
   /* Create a destination buffer for the transform feedback. Sized appropriately */
+
   /* Those are points! not line segments. */
-  GPU_vertbuf_data_alloc(*cache.final.proc_buf, cache.final.resolution * cache.curves_num);
+  uint point_len = cache.final.resolution * cache.curves_num;
+  /* Avoid creating null sized VBO which can lead to crashes on certain platforms. */
+  point_len = max_ii(1, point_len);
+
+  GPU_vertbuf_data_alloc(*cache.final.proc_buf, point_len);
 }
 
 static void calc_final_indices(const bke::CurvesGeometry &curves,
