@@ -10,6 +10,4 @@
 
 void GPU_compilation_subprocess_run(const char *subprocess_name);
 
-void GPU_shader_cache_dir_clear_old();
-
 #endif

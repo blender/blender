@@ -352,6 +352,11 @@ void GPU_shader_compile_static()
   gpu_shader_create_info_compile("");
 }
 
+void GPU_shader_cache_dir_clear_old()
+{
+  GPUBackend::get()->shader_cache_dir_clear_old();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

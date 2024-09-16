@@ -55,6 +55,7 @@ class GPUBackend {
   virtual UniformBuf *uniformbuf_alloc(size_t size, const char *name) = 0;
   virtual StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;
+  virtual void shader_cache_dir_clear_old() = 0;
 
   /* Render Frame Coordination --
    * Used for performing per-frame actions globally */

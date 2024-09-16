@@ -388,6 +388,8 @@ int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
  */
 void GPU_shader_compile_static();
 
+void GPU_shader_cache_dir_clear_old();
+
 /** DEPRECATED: Use hard-coded buffer location instead. */
 enum GPUUniformBlockBuiltin {
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
