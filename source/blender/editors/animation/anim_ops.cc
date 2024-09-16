@@ -737,17 +737,18 @@ static bool slot_new_for_object_poll(bContext *C)
 
 static int slot_new_for_object_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
+  using namespace blender::animrig;
 
   Object *object = CTX_data_active_object(C);
-  animrig::Action *action = animrig::get_action(object->id);
+  Action *action = get_action(object->id);
   BLI_assert_msg(action, "The poll function should have ensured the Action is not NULL");
 
-  animrig::Slot &slot = action->slot_add_for_id(object->id);
+  Slot &slot = action->slot_add_for_id(object->id);
   { /* Assign the newly created slot. */
-    const bool ok = action->assign_id(&slot, object->id);
-    BLI_assert_msg(ok, "Assigning a slot that was made for this ID should always work");
-    UNUSED_VARS_NDEBUG(ok);
+    const ActionSlotAssignmentResult result = assign_action_slot(&slot, object->id);
+    BLI_assert_msg(result == ActionSlotAssignmentResult::OK,
+                   "Assigning a slot that was made for this ID should always work");
+    UNUSED_VARS_NDEBUG(result);
   }
 
   DEG_relations_tag_update(CTX_data_main(C));
@@ -785,12 +786,15 @@ static int convert_action_exec(bContext *C, wmOperator * /*op*/)
   animrig::Action *layered_action = animrig::convert_to_layered_action(*bmain, legacy_action);
   /* We did already check if the action can be converted. */
   BLI_assert(layered_action != nullptr);
+  animrig::assign_action(layered_action, object->id);
 
-  animrig::unassign_action(object->id);
-  BLI_assert(layered_action->slot_array_num == 1);
+  BLI_assert(layered_action->slots().size() == 1);
   animrig::Slot *slot = layered_action->slot(0);
   layered_action->slot_name_set(*bmain, *slot, object->id.name);
-  layered_action->assign_id(slot, object->id);
+
+  const animrig::ActionSlotAssignmentResult result = animrig::assign_action_slot(slot, object->id);
+  BLI_assert(result == animrig::ActionSlotAssignmentResult::OK);
+  UNUSED_VARS_NDEBUG(result);
 
   ANIM_id_update(bmain, &object->id);
   DEG_relations_tag_update(bmain);

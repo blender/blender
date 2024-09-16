@@ -1370,22 +1370,29 @@ static void rna_Action_deselect_keys(bAction *act)
 bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
 {
   ID *srcId = ptr->owner_id;
-  bAction *act = (bAction *)value.owner_id;
+  bAction *dna_action = (bAction *)value.owner_id;
 
-  if (act) {
+  if (!dna_action) {
+    return false;
+  }
+
+  animrig::Action &action = dna_action->wrap();
+  if (action.is_action_legacy()) {
     /* there can still be actions that will have undefined id-root
      * (i.e. floating "action-library" members) which we will not
      * be able to resolve an idroot for automatically, so let these through
      */
-    if (act->idroot == 0) {
+    if (action.idroot == 0) {
       return 1;
     }
     else if (srcId) {
-      return GS(srcId->name) == act->idroot;
+      return GS(srcId->name) == action.idroot;
     }
   }
 
-  return 0;
+  /* Layered Actions can always be assigned. */
+  BLI_assert(action.idroot == 0);
+  return true;
 }
 
 /* Used to check if an action (value pointer)

@@ -2344,7 +2344,12 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
     animrig::Action &strip_action = activeStrip->act->wrap();
     if (strip_action.is_action_layered()) {
       animrig::Slot *strip_slot = strip_action.slot_for_handle(activeStrip->action_slot_handle);
-      strip_action.assign_id(strip_slot, owned_adt.owner_id);
+      if (animrig::assign_action_and_slot(&strip_action, strip_slot, owned_adt.owner_id) !=
+          animrig::ActionSlotAssignmentResult::OK)
+      {
+        printf("NLA tweak-mode enter - could not assign slot %s\n",
+               strip_slot ? strip_slot->name : "-unassigned-");
+      }
     }
     else {
       adt.action = activeStrip->act;

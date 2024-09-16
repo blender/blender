@@ -1148,10 +1148,14 @@ typedef struct AnimData {
   bAction *action;
 
   /**
-   * Identifier for which ActionSlot of the above Animation is actually animating this
+   * Identifier for which ActionSlot of the above Action is actually animating this
    * data-block.
    *
    * Do not set this directly, use one of the assignment functions in ANIM_action.hh instead.
+   *
+   * This can be set to `blender::animrig::Slot::unassigned` when no slot is assigned. Note that
+   * this field being set to any other value does NOT guarantee that there is a slot with that
+   * handle, as it might have been deleted from the Action.
    */
   int32_t slot_handle;
   /**

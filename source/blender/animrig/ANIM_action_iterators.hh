@@ -38,4 +38,23 @@ void action_foreach_fcurve(Action &action,
                            slot_handle_t handle,
                            FunctionRef<void(FCurve &fcurve)> callback);
 
+/**
+ * Call the given callback for each Action + Slot that this ID uses.
+ *
+ * The following cases are visited:
+ *   - Direct Action+Slot assignment.
+ *   - NLA strips.
+ *   - Action Constraints, both on Object and Pose Bone level.
+ *
+ * \param callback The function to call for each Action+Slot used. Even when there is no slot
+ * assigned, this function will be called (but then with slot_handle = Slot::unassigned). The
+ * callback should return `true` to continue the foreach loop, or return `false` to stop it.
+ *
+ * \returns Whether the foreach loop came to a natural end. So returns `false` when the callback
+ * returned `false`, and `true` otherwise.
+ */
+bool foreach_action_slot_use(
+    const ID &animated_id,
+    FunctionRef<bool(const Action &action, slot_handle_t slot_handle)> callback);
+
 }  // namespace blender::animrig

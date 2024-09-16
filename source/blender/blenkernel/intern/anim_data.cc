@@ -209,7 +209,7 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return true;
   }
   animrig::Action &action = act->wrap();
-  return animrig::assign_action(action, *id);
+  return animrig::assign_action(&action, *id);
 #else
   return animdata_set_action(reports, id, &adt->action, act);
 #endif  // WITH_ANIM_BAKLAVA

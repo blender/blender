@@ -62,17 +62,6 @@ class NLASlottedActionTest : public testing::Test {
   }
 };
 
-TEST_F(NLASlottedActionTest, assign_slot_to_id)
-{
-  Slot &slot = action->slot_add_for_id(cube->id);
-
-  ASSERT_TRUE(action->assign_id(&slot, cube->id));
-  EXPECT_TRUE(slot.runtime_users().contains(&cube->id));
-
-  ASSERT_TRUE(action->assign_id(nullptr, cube->id));
-  EXPECT_FALSE(slot.runtime_users().contains(&cube->id));
-}
-
 TEST_F(NLASlottedActionTest, assign_slot_to_nla_strip)
 {
   ASSERT_EQ(action->id.us, 0);
@@ -117,8 +106,7 @@ TEST_F(NLASlottedActionTest, assign_slot_to_nla_strip)
   EXPECT_TRUE(slot.runtime_users().contains(&cube->id));
 
   /* Unassign the slot, but keep the Action assigned. */
-  EXPECT_EQ(nla::assign_action_slot(*strip, nullptr, cube->id),
-            nla::ActionSlotAssignmentResult::OK);
+  EXPECT_EQ(nla::assign_action_slot(*strip, nullptr, cube->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(strip->action_slot_handle, Slot::unassigned);
   EXPECT_STREQ(strip->action_slot_name, slot.name);
   EXPECT_EQ(action->id.us, 1);
@@ -159,14 +147,12 @@ TEST_F(NLASlottedActionTest, assign_slot_to_multiple_strips)
   EXPECT_EQ(strip1->action_slot_handle, Slot::unassigned);
 
   /* Assign the slot 'manually'. */
-  EXPECT_EQ(nla::assign_action_slot(*strip1, &slot, cube->id),
-            nla::ActionSlotAssignmentResult::OK);
+  EXPECT_EQ(nla::assign_action_slot(*strip1, &slot, cube->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(strip1->action_slot_handle, slot.handle);
 
   /* Assign the Action + slot to the second strip.*/
   EXPECT_FALSE(nla::assign_action(*strip2, *action, cube->id));
-  EXPECT_EQ(nla::assign_action_slot(*strip2, &slot, cube->id),
-            nla::ActionSlotAssignmentResult::OK);
+  EXPECT_EQ(nla::assign_action_slot(*strip2, &slot, cube->id), ActionSlotAssignmentResult::OK);
 
   /* The cube should be registered as user of the slot. */
   EXPECT_TRUE(slot.runtime_users().contains(&cube->id));

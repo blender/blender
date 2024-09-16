@@ -468,14 +468,12 @@ static void nlastrip_assign_action_slot(NlaStrip &strip,
 {
   using namespace blender::animrig;
 
-  const nla::ActionSlotAssignmentResult result = nla::assign_action_slot(strip, slot, animated_id);
+  const ActionSlotAssignmentResult result = nla::assign_action_slot(strip, slot, animated_id);
 
   switch (result) {
-    case nla::ActionSlotAssignmentResult::OK:
+    case ActionSlotAssignmentResult::OK:
       break;
-    case nla::ActionSlotAssignmentResult::SlotNotFromAction:
-      BLI_assert_msg(slot,
-                     "'not a slot from this Action' error can only occur when there is a slot");
+    case ActionSlotAssignmentResult::SlotNotFromAction:
       WM_reportf(RPT_ERROR,
                  "Slot '%s' cannot be assigned to Strip '%s' as it does not belong to the "
                  "already-assigned Action '%s'",
@@ -483,13 +481,16 @@ static void nlastrip_assign_action_slot(NlaStrip &strip,
                  strip.name,
                  action.id.name + 2);
       break;
-    case nla::ActionSlotAssignmentResult::SlotNotSuitable:
-      BLI_assert_msg(slot, "'slot not suitable' error can only occur when there is a slot");
+    case ActionSlotAssignmentResult::SlotNotSuitable:
       WM_reportf(RPT_ERROR,
                  "Action '%s' slot '%s' is not suitable to animate a strip of %s",
                  action.id.name + 2,
                  slot->name,
                  animated_id.name + 2);
+      break;
+    case ActionSlotAssignmentResult::MissingAction:
+      WM_reportf(
+          RPT_ERROR, "Strip '%s' has no Action assigned, cannot assign Action slot", strip.name);
       break;
   }
 }
@@ -1060,7 +1061,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
   RNA_def_property_ui_text(
-      prop, "Action Slots", "The list action slots suitable for this NLA strip");
+      prop, "Action Slots", "The list of action slots suitable for this NLA strip");
 #  endif /* WITH_ANIM_BAKLAVA */
 
   /* Action extents */

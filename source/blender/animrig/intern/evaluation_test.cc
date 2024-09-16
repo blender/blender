@@ -65,7 +65,8 @@ class AnimationEvaluationTest : public testing::Test {
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
     slot = &action->slot_add();
-    action->assign_id(slot, cube->id);
+    ASSERT_EQ(assign_action_and_slot(action, slot, cube->id), ActionSlotAssignmentResult::OK);
+
     layer = &action->layer_add("Kübus layer");
 
     /* Make it easier to predict test values. */

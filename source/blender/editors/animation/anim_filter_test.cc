@@ -68,8 +68,10 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
 {
   Slot &slot_cube = action->slot_add();
   Slot &slot_suzanne = action->slot_add();
-  ASSERT_TRUE(action->assign_id(&slot_cube, cube->id));
-  ASSERT_TRUE(action->assign_id(&slot_suzanne, suzanne->id));
+  assign_action(action, cube->id);
+  assign_action(action, suzanne->id);
+  ASSERT_EQ(assign_action_slot(&slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+  ASSERT_EQ(assign_action_slot(&slot_suzanne, suzanne->id), ActionSlotAssignmentResult::OK);
 
   Layer &layer = action->layer_add("Kübus layer");
   KeyframeStrip &key_strip = layer.strip_add(Strip::Type::Keyframe).as<KeyframeStrip>();
@@ -226,7 +228,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   Slot &slot_cube = action->slot_add();
   /* The Action+Slot has to be assigned to what the bAnimContext thinks is the active Object.
    * See the BLI_assert_msg() call in the ANIMCONT_ACTION case of ANIM_animdata_filter(). */
-  ASSERT_TRUE(action->assign_id(&slot_cube, cube->id));
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
 
   Layer &layer = action->layer_add("Kübus layer");
   KeyframeStrip &key_strip = layer.strip_add(Strip::Type::Keyframe).as<KeyframeStrip>();

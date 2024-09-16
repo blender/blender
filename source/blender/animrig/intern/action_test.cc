@@ -236,8 +236,10 @@ TEST_F(ActionLayersTest, add_slot_multiple)
 {
   Slot &slot_cube = action->slot_add();
   Slot &slot_suzanne = action->slot_add();
-  EXPECT_TRUE(action->assign_id(&slot_cube, cube->id));
-  EXPECT_TRUE(action->assign_id(&slot_suzanne, suzanne->id));
+  assign_action(action, cube->id);
+  EXPECT_EQ(assign_action_slot(&slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+  assign_action(action, suzanne->id);
+  EXPECT_EQ(assign_action_slot(&slot_suzanne, suzanne->id), ActionSlotAssignmentResult::OK);
 
   EXPECT_EQ(2, action->last_slot_handle);
   EXPECT_EQ(1, slot_cube.handle);
@@ -318,14 +320,17 @@ TEST_F(ActionLayersTest, slot_remove)
     EXPECT_NE(strip.channelbag_for_slot(slot3.handle), nullptr);
   }
 
-  { /* Removing an in-use slot should un-assign it from its users. */
+  { /* Removing an in-use slot doesn't un-assign it from its users.
+     * This is not that important, but it covers the current behaviour. */
     Slot &slot = action->slot_add_for_id(cube->id);
-    action->assign_id(&slot, cube->id);
+    ASSERT_EQ(assign_action_and_slot(action, &slot, cube->id), ActionSlotAssignmentResult::OK);
+
     ASSERT_TRUE(slot.runtime_users().contains(&cube->id));
     ASSERT_EQ(cube->adt->slot_handle, slot.handle);
 
+    const slot_handle_t removed_slot_handle = slot.handle;
     ASSERT_TRUE(action->slot_remove(slot));
-    EXPECT_EQ(cube->adt->slot_handle, Slot::unassigned);
+    EXPECT_EQ(cube->adt->slot_handle, removed_slot_handle);
   }
 
   { /* Creating a slot after removing one should not reuse its handle. */
@@ -347,7 +352,8 @@ TEST_F(ActionLayersTest, action_assign_id)
   Slot &slot_cube = action->slot_add();
   ASSERT_NE(nullptr, slot_cube.runtime);
   ASSERT_STREQ(slot_cube.name, "XXSlot");
-  ASSERT_TRUE(action->assign_id(&slot_cube, cube->id));
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
   EXPECT_STREQ(slot_cube.name, "OBSlot");
   EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
@@ -357,7 +363,8 @@ TEST_F(ActionLayersTest, action_assign_id)
       << "Expecting Cube to be registered as animated by its slot.";
 
   /* Assign another ID to the same Slot. */
-  ASSERT_TRUE(action->assign_id(&slot_cube, suzanne->id));
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, suzanne->id),
+            ActionSlotAssignmentResult::OK);
   EXPECT_STREQ(slot_cube.name, "OBSlot");
   EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
       << "The slot name should be copied to the adt";
@@ -368,16 +375,21 @@ TEST_F(ActionLayersTest, action_assign_id)
   { /* Assign Cube to another action+slot without unassigning first. */
     Action *another_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
     Slot &another_slot = another_anim->slot_add();
-    ASSERT_FALSE(another_anim->assign_id(&another_slot, cube->id))
-        << "Assigning Action (with this function) when already assigned should fail.";
-    EXPECT_TRUE(slot_cube.users(*bmain).contains(&cube->id))
-        << "Expecting Cube to still be registered as animated by its slot.";
+    ASSERT_EQ(assign_action_and_slot(another_anim, &another_slot, cube->id),
+              ActionSlotAssignmentResult::OK);
+    EXPECT_FALSE(slot_cube.users(*bmain).contains(&cube->id))
+        << "Expecting Cube to no longer be registered as user of its old slot.";
+    EXPECT_TRUE(another_slot.users(*bmain).contains(&cube->id))
+        << "Expecting Cube to be registered as user of its new slot.";
   }
 
   { /* Assign Cube to another slot of the same Action, this should work. */
+    ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id),
+              ActionSlotAssignmentResult::OK);
     const int user_count_pre = action->id.us;
     Slot &slot_cube_2 = action->slot_add();
-    ASSERT_TRUE(action->assign_id(&slot_cube_2, cube->id));
+    ASSERT_EQ(assign_action_and_slot(action, &slot_cube_2, cube->id),
+              ActionSlotAssignmentResult::OK);
     ASSERT_EQ(action->id.us, user_count_pre)
         << "Assigning to a different slot of the same Action should _not_ change the user "
            "count of that Action";
@@ -389,7 +401,7 @@ TEST_F(ActionLayersTest, action_assign_id)
 
   { /* Unassign the Action. */
     const int user_count_pre = action->id.us;
-    action->unassign_id(cube->id);
+    unassign_action(cube->id);
     ASSERT_EQ(action->id.us, user_count_pre - 1)
         << "Unassigning an Action should lower its user count";
 
@@ -403,7 +415,8 @@ TEST_F(ActionLayersTest, action_assign_id)
   /* Assign Cube to another 'virgin' slot. This should not cause a name
    * collision between the Slots. */
   Slot &another_slot_cube = action->slot_add();
-  ASSERT_TRUE(action->assign_id(&another_slot_cube, cube->id));
+  ASSERT_EQ(assign_action_and_slot(action, &another_slot_cube, cube->id),
+            ActionSlotAssignmentResult::OK);
   EXPECT_EQ(another_slot_cube.handle, cube->adt->slot_handle);
   EXPECT_STREQ("OBSlot.002", another_slot_cube.name) << "The slot should be uniquely named";
   EXPECT_STREQ("OBSlot.002", cube->adt->slot_name) << "The slot name should be copied to the adt";
@@ -412,7 +425,8 @@ TEST_F(ActionLayersTest, action_assign_id)
 
   /* Create an ID of another type. This should not be assignable to this slot. */
   ID *mesh = static_cast<ID *>(BKE_id_new_nomain(ID_ME, "Mesh"));
-  EXPECT_FALSE(action->assign_id(&slot_cube, *mesh))
+  ASSERT_TRUE(assign_action(action, *mesh));
+  EXPECT_EQ(assign_action_slot(&slot_cube, *mesh), ActionSlotAssignmentResult::SlotNotSuitable)
       << "Mesh should not be animatable by an Object slot";
   EXPECT_FALSE(another_slot_cube.users(*bmain).contains(mesh))
       << "Expecting Mesh to not be registered as animated by the 'slot_cube' slot.";
@@ -422,7 +436,7 @@ TEST_F(ActionLayersTest, action_assign_id)
 TEST_F(ActionLayersTest, rename_slot)
 {
   Slot &slot_cube = action->slot_add();
-  ASSERT_TRUE(action->assign_id(&slot_cube, cube->id));
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
   EXPECT_STREQ("OBSlot", slot_cube.name);
   EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
@@ -442,7 +456,7 @@ TEST_F(ActionLayersTest, rename_slot)
    * unassign. This should still result in the correct slot name being stored
    * on the ADT. */
   action->slot_name_define(slot_cube, "Even Newer Name");
-  action->unassign_id(cube->id);
+  unassign_action(cube->id);
   EXPECT_STREQ("Even Newer Name", cube->adt->slot_name);
 }
 
@@ -647,7 +661,7 @@ TEST_F(ActionLayersTest, strip)
 TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
 {
   Slot &slot = action->slot_add();
-  EXPECT_TRUE(action->assign_id(&slot, cube->id));
+  ASSERT_EQ(assign_action_and_slot(action, &slot, cube->id), ActionSlotAssignmentResult::OK);
   Layer &layer = action->layer_add("Kübus layer");
 
   Strip &strip = layer.strip_add(Strip::Type::Keyframe);
@@ -730,7 +744,7 @@ TEST_F(ActionLayersTest, is_action_assignable_to)
 
 TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
 {
-  action->assign_id(nullptr, cube->id);
+  assign_action(action, cube->id);
 
   /* Double-check that the action is considered empty for the test. */
   EXPECT_TRUE(action->is_empty());
@@ -747,7 +761,7 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__legacy_action)
   FCurve *fcurve = action_fcurve_ensure(bmain, action, nullptr, nullptr, {"location", 0});
   EXPECT_FALSE(fcurve == nullptr);
 
-  action->assign_id(nullptr, cube->id);
+  assign_action(action, cube->id);
 
   /* Double-check that the action is considered legacy for the test. */
   EXPECT_TRUE(action->is_action_legacy());
@@ -771,14 +785,14 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__layered_action)
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, slot.handle, &cube->id));
 
   /* A slot with precisely one user should always return that user. */
-  action->assign_id(&slot, cube->id);
+  ASSERT_EQ(assign_action_and_slot(action, &slot, cube->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, slot.handle, nullptr));
   EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, slot.handle, &cube->id));
   EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, slot.handle, &suzanne->id));
 
   /* A slot with more than one user should return the passed `primary_id` if it
    * is among its users, and nullptr otherwise. */
-  action->assign_id(&slot, suzanne->id);
+  ASSERT_EQ(assign_action_and_slot(action, &slot, suzanne->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, slot.handle, &cube->id));
   EXPECT_EQ(&suzanne->id,
             action_slot_get_id_for_keying(*bmain, *action, slot.handle, &suzanne->id));

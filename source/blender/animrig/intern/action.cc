@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -42,6 +43,7 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_nla.hh"
@@ -516,22 +518,8 @@ bool Action::slot_remove(Slot &slot_to_remove)
     layer->slot_data_remove(slot_to_remove.handle);
   }
 
-  /* Un-assign this slot from its users. Only do this if the list of users is valid, */
-  for (ID *user : slot_to_remove.runtime_users()) {
-    /* Sanity check: make sure the slot is still assigned, before un-assigning anything. */
-    std::optional<std::pair<Action *, Slot *>> action_and_slot = get_action_slot_pair(*user);
-    BLI_assert_msg(action_and_slot, "Slot user has no Action assigned");
-    BLI_assert_msg(action_and_slot->first == this, "Slot user has other Action assigned");
-    BLI_assert_msg(action_and_slot->second == &slot_to_remove,
-                   "Slot user has other Slot assigned");
-    if (!action_and_slot || action_and_slot->first != this ||
-        action_and_slot->second != &slot_to_remove)
-    {
-      continue;
-    }
-
-    this->assign_id(nullptr, *user);
-  }
+  /* Don't bother un-assigning this slot from its users. The slot handle will
+   * not be reused by a new slot anyway. */
 
   /* Remove the actual slot. */
   dna::array::remove_index(
@@ -607,71 +595,6 @@ Layer *Action::get_layer_for_keyframing()
   return this->layer(0);
 }
 
-bool Action::assign_id(Slot *slot, ID &animated_id)
-{
-  BLI_assert_msg(!slot || this->slots().as_span().contains(slot),
-                 "Slot should be owned by this Action");
-
-  AnimData *adt = BKE_animdata_ensure_id(&animated_id);
-  if (!adt) {
-    return false;
-  }
-
-  if (adt->action && adt->action != this) {
-    /* The caller should unassign the ID from its existing animation first, or
-     * use the top-level function `assign_action(anim, ID)`. */
-    return false;
-  }
-
-  /* Check that the new Slot is suitable, before changing `adt`. */
-  if (slot && !slot->is_suitable_for(animated_id)) {
-    return false;
-  }
-
-  /* Unassign any previously-assigned Slot. */
-  Slot *slot_to_unassign = this->slot_for_handle(adt->slot_handle);
-  if (slot_to_unassign) {
-    /* There could still be NLA strips on this ID, referring to the same slot, so we cannot just
-     * remove this ID from the slot users. */
-    if (!nla::is_nla_referencing_slot(*adt, *this, slot_to_unassign->handle)) {
-      slot_to_unassign->users_remove(animated_id);
-    }
-
-    /* Before unassigning, make sure that the stored Slot name is up to date. The slot name
-     * might have changed in a way that wasn't copied into the ADT yet (for example when the
-     * Action is linked from another file), so better copy the name to be sure that it can be
-     * transparently reassigned later.
-     *
-     * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure
-     * this name is always correct. */
-    STRNCPY_UTF8(adt->slot_name, slot_to_unassign->name);
-  }
-
-  /* Assign the Action itself. */
-  if (!adt->action) {
-    /* Due to the precondition check above, we know that adt->action is either 'this' (in which
-     * case the user count is already correct) or `nullptr` (in which case this is a new
-     * reference, and the user count should be increased). */
-    id_us_plus(&this->id);
-    adt->action = this;
-  }
-
-  /* Assign the Slot. */
-  if (slot) {
-    this->slot_setup_for_id(*slot, animated_id);
-    adt->slot_handle = slot->handle;
-    slot->users_add(animated_id);
-
-    /* Always make sure the ID's slot name matches the assigned slot. */
-    STRNCPY_UTF8(adt->slot_name, slot->name);
-  }
-  else {
-    adt->slot_handle = Slot::unassigned;
-  }
-
-  return true;
-}
-
 void Action::slot_name_ensure_prefix(Slot &slot)
 {
   slot.name_ensure_prefix();
@@ -687,20 +610,6 @@ void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
 
   slot.idtype = GS(animated_id.name);
   this->slot_name_ensure_prefix(slot);
-}
-
-void Action::unassign_id(ID &animated_id)
-{
-  AnimData *adt = BKE_animdata_from_id(&animated_id);
-  BLI_assert_msg(adt, "ID is not animated at all");
-  BLI_assert_msg(adt->action == this, "ID is not assigned to this Animation");
-
-  /* Unassign the Slot first. */
-  this->assign_id(nullptr, animated_id);
-
-  /* Unassign the Action itself. */
-  id_us_min(&this->id);
-  adt->action = nullptr;
 }
 
 bool Action::has_keyframes(const slot_handle_t action_slot_handle) const
@@ -1152,12 +1061,20 @@ void Strip::slot_data_remove(const slot_handle_t slot_handle)
 
 /* ----- Functions  ----------- */
 
-bool assign_action(Action &action, ID &animated_id)
+bool assign_action(Action *action, ID &animated_id)
 {
-  unassign_action(animated_id);
+  AnimData *adt = BKE_animdata_ensure_id(&animated_id);
+  if (!adt) {
+    return false;
+  }
 
-  Slot *slot = action.find_suitable_slot_for(animated_id);
-  return action.assign_id(slot, animated_id);
+  generic_assign_action(animated_id, action, adt->action, adt->slot_handle, adt->slot_name);
+  return true;
+}
+
+void unassign_action(ID &animated_id)
+{
+  assign_action(nullptr, animated_id);
 }
 
 Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
@@ -1193,11 +1110,123 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
     slot = &action.slot_add_for_id(animated_id);
   }
 
-  if (!action.assign_id(slot, animated_id)) {
+  assign_action(&action, animated_id);
+  if (assign_action_slot(slot, animated_id) != ActionSlotAssignmentResult::OK) {
     return nullptr;
   }
 
   return slot;
+}
+
+static bool is_id_using_action_slot(const ID &animated_id,
+                                    const Action &action,
+                                    const slot_handle_t slot_handle)
+{
+  auto visit_action_use = [&](const Action &used_action, slot_handle_t used_slot_handle) -> bool {
+    const bool is_used = (&used_action == &action && used_slot_handle == slot_handle);
+    return !is_used; /* Stop searching when we found a use of this Action+Slot. */
+  };
+
+  const bool looped_until_end = foreach_action_slot_use(animated_id, visit_action_use);
+  return !looped_until_end;
+}
+
+void generic_assign_action(ID &animated_id,
+                           Action *action_to_assign,
+                           bAction *&action_ptr_ref,
+                           slot_handle_t &slot_handle_ref,
+                           char *slot_name)
+{
+  BLI_assert(slot_name);
+
+  /* Un-assign any previously-assigned Action first. */
+  if (action_ptr_ref) {
+    /* Un-assign the slot. This will always succeed, so no need to check the result. */
+    if (slot_handle_ref != Slot::unassigned) {
+      const ActionSlotAssignmentResult result = generic_assign_action_slot(
+          nullptr, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+      BLI_assert(result == ActionSlotAssignmentResult::OK);
+      UNUSED_VARS_NDEBUG(result);
+    }
+
+    /* Un-assign the Action itself. */
+    id_us_min(&action_ptr_ref->id);
+    action_ptr_ref = nullptr;
+  }
+
+  if (!action_to_assign) {
+    /* Un-assigning was the point, so the work is done. */
+    return;
+  }
+
+  /* Assign the new Action. */
+  action_ptr_ref = action_to_assign;
+  id_us_plus(&action_ptr_ref->id);
+
+  /* Assign the slot. Since the slot is guaranteed to be usable (or nullptr) and from the assigned
+   * Action, this call is guaranteed to succeed. */
+  Slot *slot = action_to_assign->find_suitable_slot_for(animated_id);
+  const ActionSlotAssignmentResult result = generic_assign_action_slot(
+      slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+  BLI_assert(result == ActionSlotAssignmentResult::OK);
+  UNUSED_VARS_NDEBUG(result);
+}
+
+ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
+                                                      ID &animated_id,
+                                                      bAction *&action_ptr_ref,
+                                                      slot_handle_t &slot_handle_ref,
+                                                      char *slot_name)
+{
+  BLI_assert(slot_name);
+  if (!action_ptr_ref) {
+    /* No action assigned yet, so no way to assign a slot. */
+    return ActionSlotAssignmentResult::MissingAction;
+  }
+
+  Action &action = action_ptr_ref->wrap();
+
+  /* Check that the slot can actually be assigned. */
+  if (slot_to_assign) {
+    if (!action.slots().as_span().contains(slot_to_assign)) {
+      return ActionSlotAssignmentResult::SlotNotFromAction;
+    }
+
+    if (!slot_to_assign->is_suitable_for(animated_id)) {
+      return ActionSlotAssignmentResult::SlotNotSuitable;
+    }
+  }
+
+  Slot *slot_to_unassign = action.slot_for_handle(slot_handle_ref);
+
+  /* If there was a previously-assigned slot, unassign it first. */
+  slot_handle_ref = Slot::unassigned;
+  if (slot_to_unassign) {
+    /* Make sure that the stored Slot name is up to date. The slot name might have
+     * changed in a way that wasn't copied into the ADT yet (for example when the
+     * Action is linked from another file), so better copy the name to be sure
+     * that it can be transparently reassigned later.
+     *
+     * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure
+     * this name is always correct. */
+    BLI_strncpy_utf8(slot_name, slot_to_unassign->name, Slot::name_length_max);
+
+    /* If this was the last use of this slot, remove this ID from its users. */
+    if (!is_id_using_action_slot(animated_id, action, slot_to_unassign->handle)) {
+      slot_to_unassign->users_remove(animated_id);
+    }
+  }
+
+  if (!slot_to_assign) {
+    return ActionSlotAssignmentResult::OK;
+  }
+
+  action.slot_setup_for_id(*slot_to_assign, animated_id);
+  slot_handle_ref = slot_to_assign->handle;
+  BLI_strncpy_utf8(slot_name, slot_to_assign->name, Slot::name_length_max);
+  slot_to_assign->users_add(animated_id);
+
+  return ActionSlotAssignmentResult::OK;
 }
 
 bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
@@ -1224,33 +1253,25 @@ bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
   return true;
 }
 
-void unassign_action(ID &animated_id)
-{
-  Action *action = get_action(animated_id);
-  if (!action) {
-    return;
-  }
-  action->unassign_id(animated_id);
-}
-
-void unassign_slot(ID &animated_id)
+ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
-  BLI_assert_msg(adt, "Cannot unassign an Action Slot from a non-animated ID.");
   if (!adt) {
-    return;
+    return ActionSlotAssignmentResult::MissingAction;
   }
 
-  if (!adt->action) {
-    /* Nothing assigned. */
-    BLI_assert_msg(adt->slot_handle == Slot::unassigned,
-                   "Slot handle should be 'unassigned' when no Action is assigned");
-    return;
-  }
+  return generic_assign_action_slot(
+      slot_to_assign, animated_id, adt->action, adt->slot_handle, adt->slot_name);
+}
 
-  /* Assign the 'nullptr' slot, effectively unassigning it. */
-  Action &action = adt->action->wrap();
-  action.assign_id(nullptr, animated_id);
+ActionSlotAssignmentResult assign_action_and_slot(Action *action,
+                                                  Slot *slot_to_assign,
+                                                  ID &animated_id)
+{
+  if (!assign_action(action, animated_id)) {
+    return ActionSlotAssignmentResult::MissingAction;
+  }
+  return assign_action_slot(slot_to_assign, animated_id);
 }
 
 /* TODO: rename to get_action(). */
