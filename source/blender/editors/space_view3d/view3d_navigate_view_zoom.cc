@@ -382,7 +382,7 @@ static int viewzoom_modal_impl(bContext *C,
 }
 
 static void view_zoom_apply_step(bContext *C,
-                                 Depsgraph *depsgraph,
+                                 const Depsgraph *depsgraph,
                                  Scene *scene,
                                  ScrArea *area,
                                  ARegion *region,

@@ -2148,7 +2148,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
 
 static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
 {
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  const SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   if (v->frameMap != nullptr) {
     return;
   }

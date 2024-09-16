@@ -909,8 +909,8 @@ static void brightcontrast_apply_threaded(int width,
   float i;
   int c;
   float a, b, v;
-  float brightness = data->bright / 100.0f;
-  float contrast = data->contrast;
+  const float brightness = data->bright / 100.0f;
+  const float contrast = data->contrast;
   float delta = contrast / 200.0f;
   /*
    * The algorithm is by Werner D. Streidt
@@ -940,8 +940,8 @@ static void brightcontrast_apply_threaded(int width,
           v = a * i + b;
 
           if (mask_rect) {
-            uchar *m = mask_rect + pixel_index;
-            float t = float(m[c]) / 255.0f;
+            const uchar *m = mask_rect + pixel_index;
+            const float t = float(m[c]) / 255.0f;
 
             v = float(pixel[c]) / 255.0f * (1.0f - t) + v * t;
           }
@@ -1020,12 +1020,12 @@ static void maskmodifier_apply_threaded(int width,
 
   for (y = 0; y < height; y++) {
     for (x = 0; x < width; x++) {
-      int pixel_index = (y * width + x) * 4;
+      const int pixel_index = (y * width + x) * 4;
 
       if (rect) {
+        const uchar *mask_pixel = mask_rect + pixel_index;
+        const uchar mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
         uchar *pixel = rect + pixel_index;
-        uchar *mask_pixel = mask_rect + pixel_index;
-        uchar mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
 
         /* byte buffer is straight, so only affect on alpha itself,
          * this is the only way to alpha-over byte strip after
@@ -1034,15 +1034,14 @@ static void maskmodifier_apply_threaded(int width,
         pixel[3] = float(pixel[3] * mask) / 255.0f;
       }
       else if (rect_float) {
-        int c;
-        float *pixel = rect_float + pixel_index;
         const float *mask_pixel = mask_rect_float + pixel_index;
-        float mask = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        const float mask = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        float *pixel = rect_float + pixel_index;
 
         /* float buffers are premultiplied, so need to premul color
          * as well to make it easy to alpha-over masted strip.
          */
-        for (c = 0; c < 4; c++) {
+        for (int c = 0; c < 4; c++) {
           pixel[c] = pixel[c] * mask;
         }
       }

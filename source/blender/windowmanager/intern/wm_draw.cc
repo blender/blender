@@ -377,9 +377,9 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
 /** \name Post Draw Region on display handlers
  * \{ */
 
-static void wm_region_draw_overlay(bContext *C, ScrArea *area, ARegion *region)
+static void wm_region_draw_overlay(bContext *C, const ScrArea *area, ARegion *region)
 {
-  wmWindow *win = CTX_wm_window(C);
+  const wmWindow *win = CTX_wm_window(C);
 
   wmViewport(&region->winrct);
   UI_SetTheme(area->spacetype, region->regiontype);
