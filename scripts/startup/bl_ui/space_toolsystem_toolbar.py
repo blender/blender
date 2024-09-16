@@ -2020,7 +2020,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 
@@ -2039,7 +2039,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 
@@ -2058,7 +2058,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 
@@ -2077,7 +2077,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 
@@ -2096,7 +2096,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 
@@ -2115,7 +2115,7 @@ class _defs_grease_pencil_paint:
             keymap=(),
             draw_settings=draw_settings,
             # Only allow draw brushes, no eraser, fill or tint.
-            data_block='DRAW',
+            brush_type='DRAW',
             options={'USE_BRUSHES'},
         )
 

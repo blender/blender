@@ -95,6 +95,9 @@ ToolDef = namedtuple(
         # so internally we can swap the key-map function for the key-map itself.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
+        # Optional brush type this tool is limited to. Ignored if 'USE_BRUSH' isn't set in the
+        # options.
+        "brush_type",
         # Optional data-block associated with this tool.
         # Currently only used as an identifier for particle brushes.
         "data_block",
@@ -125,6 +128,7 @@ def from_dict(kw_args):
         "widget": None,
         "widget_properties": None,
         "keymap": None,
+        "brush_type": None,
         "data_block": None,
         "operator": None,
         "draw_settings": None,
@@ -1032,6 +1036,7 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         cursor=item.cursor or 'DEFAULT',
         options=item.options or set(),
         gizmo_group=gizmo_group,
+        brush_type=item.brush_type or "",
         data_block=item.data_block or "",
         operator=item.operator or "",
         index=index,

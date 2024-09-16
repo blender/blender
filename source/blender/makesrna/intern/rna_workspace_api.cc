@@ -37,6 +37,7 @@ static void rna_WorkSpaceTool_setup(ID *id,
                                     int cursor,
                                     const char *keymap,
                                     const char *gizmo_group,
+                                    const char *brush_type,
                                     const char *data_block,
                                     const char *op_idname,
                                     int index,
@@ -49,6 +50,7 @@ static void rna_WorkSpaceTool_setup(ID *id,
   tref_rt.cursor = cursor;
   STRNCPY(tref_rt.keymap, keymap);
   STRNCPY(tref_rt.gizmo_group, gizmo_group);
+  STRNCPY(tref_rt.brush_type, brush_type);
   STRNCPY(tref_rt.data_block, data_block);
   STRNCPY(tref_rt.op, op_idname);
   tref_rt.index = index;
@@ -144,6 +146,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
   RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
   RNA_def_string(func, "keymap", nullptr, KMAP_MAX_NAME, "Key Map", "");
   RNA_def_string(func, "gizmo_group", nullptr, MAX_NAME, "Gizmo Group", "");
+  RNA_def_string(func, "brush_type", nullptr, MAX_NAME, "Brush Type", "");
   RNA_def_string(func, "data_block", nullptr, MAX_NAME, "Data Block", "");
   RNA_def_string(func, "operator", nullptr, MAX_NAME, "Operator", "");
   RNA_def_int(func, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
