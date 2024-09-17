@@ -705,115 +705,115 @@ static float calc_cavity_factor(const Depsgraph &depsgraph,
   return factor;
 }
 
-static float factor_get(const Depsgraph &depsgraph,
-                        const Cache &automasking,
-                        const Object &object,
-                        PBVHVertRef vert,
-                        const std::optional<float3> &orig_normal)
-{
-  const int vert_i = BKE_pbvh_vertex_to_index(*bke::object::pbvh_get(object), vert);
-  SculptSession &ss = *object.sculpt;
-  float mask = 1.0f;
-
-  /* Since brush normal mode depends on the current mirror symmetry pass
-   * it is not folded into the factor cache (when it exists). */
-  if ((ss.cache || ss.filter_cache) &&
-      (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
-  {
-    mask *= calc_brush_normal_factor(depsgraph, automasking, object, vert, orig_normal);
-  }
-
-  /* If the cache is initialized with valid info, use the cache. This is used when the
-   * automasking information can't be computed in real time per vertex and needs to be
-   * initialized for the whole mesh when the stroke starts. */
-  if (!automasking.factor.is_empty()) {
-    float factor = automasking.factor[vert_i];
-
-    if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-      factor *= calc_cavity_factor(depsgraph, automasking, object, vert, vert_i);
-    }
-
-    return factor * mask;
-  }
-
-  bool do_occlusion = (automasking.settings.flags &
-                       (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
-                      (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
-  if (do_occlusion) {
-    const bool occluded = calc_view_occlusion_factor(
-        depsgraph,
-        const_cast<Cache &>(automasking),
-        object,
-        vert_i,
-        SCULPT_vertex_co_get(depsgraph, object, vert));
-    if (occluded) {
-      return 0.0f;
-    }
-  }
-
-  if (!automasking.settings.topology_use_brush_limit &&
-      automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-      islands::vert_id_get(ss, vert_i) != automasking.settings.initial_island_nr)
-  {
-    return 0.0f;
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-    if (!face_set::vert_has_face_set(object, vert, automasking.settings.initial_face_set)) {
-      return 0.0f;
-    }
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    if (boundary::vert_is_boundary(object, vert)) {
-      return 0.0f;
-    }
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
-    bool ignore = ss.cache && ss.cache->brush &&
-                  ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                  face_set::vert_face_set_get(object, vert) == ss.cache->paint_face_set;
-
-    if (!ignore && !face_set::vert_has_unique_face_set(object, vert)) {
-      return 0.0f;
-    }
-  }
-
-  if ((ss.cache || ss.filter_cache) &&
-      (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
-  {
-    mask *= calc_view_normal_factor(depsgraph, automasking, object, vert, orig_normal);
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    mask *= calc_cavity_factor(depsgraph, automasking, object, vert, vert_i);
-  }
-
-  return mask;
-}
-
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
-                       const Cache &cache,
+                       const Cache &automasking,
                        const bke::pbvh::MeshNode &node,
                        const Span<int> verts,
                        const MutableSpan<float> factors)
 {
+  const SculptSession &ss = *object.sculpt;
   Span<float3> orig_normals;
-  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+  if (automasking.settings.flags &
+      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
     if (std::optional<OrigPositionData> orig_data = orig_position_data_lookup_mesh(object, node)) {
       orig_normals = orig_data->normals;
     }
   }
 
   for (const int i : verts.index_range()) {
-    factors[i] *= factor_get(depsgraph,
-                             cache,
-                             object,
-                             BKE_pbvh_make_vref(verts[i]),
-                             orig_normals.is_empty() ? std::nullopt :
-                                                       std::make_optional(orig_normals[i]));
+    const int vert = verts[i];
+    const std::optional<float3> orig_normal = orig_normals.is_empty() ?
+                                                  std::nullopt :
+                                                  std::make_optional(orig_normals[i]);
+
+    /* Since brush normal mode depends on the current mirror symmetry pass
+     * it is not folded into the factor cache (when it exists). */
+    if ((ss.cache || ss.filter_cache) &&
+        (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
+    {
+      factors[i] *= calc_brush_normal_factor(
+          depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+    }
+
+    /* If the cache is initialized with valid info, use the cache. This is used when the
+     * automasking information can't be computed in real time per vertex and needs to be
+     * initialized for the whole mesh when the stroke starts. */
+    if (!automasking.factor.is_empty()) {
+      float cached_factor = automasking.factor[vert];
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+        cached_factor *= calc_cavity_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+      }
+
+      factors[i] *= cached_factor;
+      continue;
+    }
+
+    bool do_occlusion = (automasking.settings.flags &
+                         (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
+                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
+    if (do_occlusion) {
+      const bool occluded = calc_view_occlusion_factor(
+          depsgraph,
+          const_cast<Cache &>(automasking),
+          object,
+          vert,
+          SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+      if (occluded) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (!automasking.settings.topology_use_brush_limit &&
+        automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+        islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+    {
+      factors[i] = 0.0f;
+      continue;
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
+      if (!face_set::vert_has_face_set(
+              object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
+      {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+      if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+      bool ignore = ss.cache && ss.cache->brush &&
+                    ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
+                    face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
+                        ss.cache->paint_face_set;
+
+      if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if ((ss.cache || ss.filter_cache) &&
+        (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
+    {
+      factors[i] *= calc_view_normal_factor(
+          depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+      factors[i] *= calc_cavity_factor(depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+    }
   }
 }
 
@@ -821,16 +821,106 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        const Object &object,
                        const OffsetIndices<int> faces,
                        const Span<int> corner_verts,
-                       const Cache &cache,
+                       const Cache &automasking,
                        const bke::pbvh::MeshNode & /*node*/,
                        const Span<int> face_indices,
                        const MutableSpan<float> factors)
 {
+  const SculptSession &ss = *object.sculpt;
   for (const int i : face_indices.index_range()) {
     const Span<int> face_verts = corner_verts.slice(faces[face_indices[i]]);
     float sum = 0.0f;
     for (const int vert : face_verts) {
-      sum += factor_get(depsgraph, cache, object, BKE_pbvh_make_vref(vert), std::nullopt);
+      float factor = 1.0f;
+      BLI_SCOPED_DEFER([&]() { sum += factor; });
+      const std::optional<float3> orig_normal = std::nullopt;
+
+      /* Since brush normal mode depends on the current mirror symmetry pass
+       * it is not folded into the factor cache (when it exists). */
+      if ((ss.cache || ss.filter_cache) &&
+          (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
+      {
+        factor *= calc_brush_normal_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+      }
+
+      /* If the cache is initialized with valid info, use the cache. This is used when the
+       * automasking information can't be computed in real time per vertex and needs to be
+       * initialized for the whole mesh when the stroke starts. */
+      if (!automasking.factor.is_empty()) {
+        float cached_factor = automasking.factor[vert];
+
+        if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+          cached_factor *= calc_cavity_factor(
+              depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+        }
+
+        factor *= cached_factor;
+        continue;
+      }
+
+      bool do_occlusion = (automasking.settings.flags &
+                           (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
+                          (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
+      if (do_occlusion) {
+        const bool occluded = calc_view_occlusion_factor(
+            depsgraph,
+            const_cast<Cache &>(automasking),
+            object,
+            vert,
+            SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+        if (occluded) {
+          factor = 0.0f;
+          continue;
+        }
+      }
+
+      if (!automasking.settings.topology_use_brush_limit &&
+          automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+          islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+      {
+        factor = 0.0f;
+        continue;
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
+        if (!face_set::vert_has_face_set(
+                object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
+        {
+          factor = 0.0f;
+          continue;
+        }
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+        if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+          factor = 0.0f;
+          continue;
+        }
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+        bool ignore = ss.cache && ss.cache->brush &&
+                      ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
+                      face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
+                          ss.cache->paint_face_set;
+
+        if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+          factor = 0.0f;
+          continue;
+        }
+      }
+
+      if ((ss.cache || ss.filter_cache) &&
+          (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
+      {
+        factor *= calc_view_normal_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+        factor *= calc_cavity_factor(depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+      }
     }
     factors[i] *= sum * math::rcp(float(face_verts.size()));
   }
@@ -838,7 +928,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
 
 void calc_grids_factors(const Depsgraph &depsgraph,
                         const Object &object,
-                        const Cache &cache,
+                        const Cache &automasking,
                         const bke::pbvh::GridsNode &node,
                         const Span<int> grids,
                         const MutableSpan<float> factors)
@@ -848,7 +938,9 @@ void calc_grids_factors(const Depsgraph &depsgraph,
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   Span<float3> orig_normals;
-  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+  if (automasking.settings.flags &
+      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
     if (std::optional<OrigPositionData> orig_data = orig_position_data_lookup_grids(object, node))
     {
       orig_normals = orig_data->normals;
@@ -859,20 +951,106 @@ void calc_grids_factors(const Depsgraph &depsgraph,
     const int node_start = i * key.grid_area;
     const int grids_start = grids[i] * key.grid_area;
     for (const int offset : IndexRange(key.grid_area)) {
-      factors[node_start + offset] *= factor_get(
-          depsgraph,
-          cache,
-          object,
-          BKE_pbvh_make_vref(grids_start + offset),
-          orig_normals.is_empty() ? std::nullopt :
-                                    std::make_optional(orig_normals[node_start + offset]));
+      const int node_vert = node_start + offset;
+      const int vert = grids_start + offset;
+      const std::optional<float3> orig_normal = orig_normals.is_empty() ?
+                                                    std::nullopt :
+                                                    std::make_optional(orig_normals[node_vert]);
+
+      /* Since brush normal mode depends on the current mirror symmetry pass
+       * it is not folded into the factor cache (when it exists). */
+      if ((ss.cache || ss.filter_cache) &&
+          (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
+      {
+        factors[node_vert] *= calc_brush_normal_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+      }
+
+      /* If the cache is initialized with valid info, use the cache. This is used when the
+       * automasking information can't be computed in real time per vertex and needs to be
+       * initialized for the whole mesh when the stroke starts. */
+      if (!automasking.factor.is_empty()) {
+        float cached_factor = automasking.factor[vert];
+
+        if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+          cached_factor *= calc_cavity_factor(
+              depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+        }
+
+        factors[node_vert] *= cached_factor;
+        continue;
+      }
+
+      bool do_occlusion = (automasking.settings.flags &
+                           (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
+                          (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
+      if (do_occlusion) {
+        const bool occluded = calc_view_occlusion_factor(
+            depsgraph,
+            const_cast<Cache &>(automasking),
+            object,
+            vert,
+            SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+        if (occluded) {
+          factors[node_vert] = 0.0f;
+          continue;
+        }
+      }
+
+      if (!automasking.settings.topology_use_brush_limit &&
+          automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+          islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+      {
+        factors[node_vert] = 0.0f;
+        continue;
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
+        if (!face_set::vert_has_face_set(
+                object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
+        {
+          factors[node_vert] = 0.0f;
+          continue;
+        }
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+        if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+          factors[node_vert] = 0.0f;
+          continue;
+        }
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+        bool ignore = ss.cache && ss.cache->brush &&
+                      ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
+                      face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
+                          ss.cache->paint_face_set;
+
+        if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+          factors[node_vert] = 0.0f;
+          continue;
+        }
+      }
+
+      if ((ss.cache || ss.filter_cache) &&
+          (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
+      {
+        factors[node_vert] *= calc_view_normal_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, orig_normal);
+      }
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+        factors[node_vert] *= calc_cavity_factor(
+            depsgraph, automasking, object, PBVHVertRef{vert}, vert);
+      }
     }
   }
 }
 
 void calc_vert_factors(const Depsgraph &depsgraph,
                        const Object &object,
-                       const Cache &cache,
+                       const Cache &automasking,
                        const bke::pbvh::BMeshNode & /*node*/,
                        const Set<BMVert *, 0> &verts,
                        const MutableSpan<float> factors)
@@ -880,19 +1058,102 @@ void calc_vert_factors(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
 
   Array<float3> orig_normals;
-  if (cache.settings.flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+  if (automasking.settings.flags &
+      (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
+  {
     orig_position_data_gather_bmesh(*ss.bm_log, verts, {}, orig_normals);
   }
 
   int i = 0;
   for (BMVert *vert : verts) {
-    factors[i] *= factor_get(depsgraph,
-                             cache,
-                             object,
-                             BKE_pbvh_make_vref(intptr_t(vert)),
-                             orig_normals.is_empty() ? std::nullopt :
-                                                       std::make_optional(orig_normals[i]));
-    i++;
+    BLI_SCOPED_DEFER([&]() { i++; });
+    const int vert_i = BM_elem_index_get(vert);
+    const PBVHVertRef vert_ref{intptr_t(vert)};
+    const std::optional<float3> orig_normal = orig_normals.is_empty() ?
+                                                  std::nullopt :
+                                                  std::make_optional(orig_normals[i]);
+
+    /* Since brush normal mode depends on the current mirror symmetry pass
+     * it is not folded into the factor cache (when it exists). */
+    if ((ss.cache || ss.filter_cache) &&
+        (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL))
+    {
+      factors[i] *= calc_brush_normal_factor(
+          depsgraph, automasking, object, vert_ref, orig_normal);
+    }
+
+    /* If the cache is initialized with valid info, use the cache. This is used when the
+     * automasking information can't be computed in real time per vertex and needs to be
+     * initialized for the whole mesh when the stroke starts. */
+    if (!automasking.factor.is_empty()) {
+      float cached_factor = automasking.factor[vert_i];
+
+      if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+        cached_factor *= calc_cavity_factor(depsgraph, automasking, object, vert_ref, vert_i);
+      }
+
+      factors[i] *= cached_factor;
+      continue;
+    }
+
+    bool do_occlusion = (automasking.settings.flags &
+                         (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL)) ==
+                        (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
+    if (do_occlusion) {
+      const bool occluded = calc_view_occlusion_factor(
+          depsgraph,
+          const_cast<Cache &>(automasking),
+          object,
+          vert_i,
+          SCULPT_vertex_co_get(depsgraph, object, vert_ref));
+      if (occluded) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (!automasking.settings.topology_use_brush_limit &&
+        automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+        islands::vert_id_get(ss, vert_i) != automasking.settings.initial_island_nr)
+    {
+      factors[i] = 0.0f;
+      continue;
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
+      if (!face_set::vert_has_face_set(object, vert_ref, automasking.settings.initial_face_set)) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+      if (boundary::vert_is_boundary(object, vert_ref)) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+      bool ignore = ss.cache && ss.cache->brush &&
+                    ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
+                    face_set::vert_face_set_get(object, vert_ref) == ss.cache->paint_face_set;
+
+      if (!ignore && !face_set::vert_has_unique_face_set(object, vert_ref)) {
+        factors[i] = 0.0f;
+        continue;
+      }
+    }
+
+    if ((ss.cache || ss.filter_cache) &&
+        (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL))
+    {
+      factors[i] *= calc_view_normal_factor(depsgraph, automasking, object, vert_ref, orig_normal);
+    }
+
+    if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+      factors[i] *= calc_cavity_factor(depsgraph, automasking, object, vert_ref, vert_i);
+    }
   }
 }
 
