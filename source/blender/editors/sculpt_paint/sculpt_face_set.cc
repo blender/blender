@@ -1324,8 +1324,8 @@ static void edit_fairing(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   boundary::ensure_boundary_info(ob);
 
-  const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
-  MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+  const PositionDeformData position_data(depsgraph, ob);
+  const Span<float3> positions = position_data.eval;
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const BitSpan boundary_verts = ss.vertex_info.boundary;
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1368,7 +1368,8 @@ static void edit_fairing(const Depsgraph &depsgraph,
         translations[i] = new_positions[verts[i]] - positions[verts[i]];
       }
       scale_translations(translations, strength);
-      write_translations(depsgraph, sd, ob, positions, verts, translations, positions_orig);
+      clip_and_lock_translations(sd, ss, positions, verts, translations);
+      position_data.deform(translations, verts);
     });
   });
 }

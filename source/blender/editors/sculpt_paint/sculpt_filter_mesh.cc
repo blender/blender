@@ -351,8 +351,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -362,7 +361,8 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -385,7 +385,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
           tls.new_positions.resize(verts.size());
           const MutableSpan<float3> new_positions = tls.new_positions;
           smooth::neighbor_data_average_mesh_check_loose(
-              positions_eval, verts, neighbors, new_positions);
+              position_data.eval, verts, neighbors, new_positions);
 
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
@@ -394,8 +394,8 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -497,15 +497,15 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -522,8 +522,8 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -611,15 +611,15 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -636,8 +636,8 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -741,15 +741,15 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -765,8 +765,8 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -863,15 +863,15 @@ static void calc_random_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -889,8 +889,8 @@ static void calc_random_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -981,9 +981,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
     };
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1008,7 +1007,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
 
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_faces(positions_eval,
+          smooth::calc_relaxed_translations_faces(position_data.eval,
                                                   vert_normals,
                                                   faces,
                                                   corner_verts,
@@ -1023,8 +1022,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                   translations);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -1147,9 +1146,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
         Vector<float3> translations;
       };
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1177,7 +1175,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
 
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
-          smooth::calc_relaxed_translations_faces(positions_eval,
+          smooth::calc_relaxed_translations_faces(position_data.eval,
                                                   vert_normals,
                                                   faces,
                                                   corner_verts,
@@ -1192,8 +1190,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                   translations);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -1331,8 +1329,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1342,7 +1339,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -1360,7 +1358,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
           tls.average_positions.reinitialize(verts.size());
           const MutableSpan<float3> average_positions = tls.average_positions;
           smooth::neighbor_data_average_mesh(
-              positions_eval, tls.vert_neighbors, average_positions);
+              position_data.eval, tls.vert_neighbors, average_positions);
 
           tls.laplacian_disp.reinitialize(verts.size());
           const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
@@ -1377,8 +1375,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
           scatter_data_mesh(laplacian_disp.as_span(), verts, all_laplacian_disp);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
@@ -1413,8 +1411,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
           scale_translations(translations, factors);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -1616,8 +1614,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -1628,7 +1625,8 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int node_index) {
           const Span<int> verts = nodes[node_index].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
 
           tls.factors.resize(verts.size());
           const MutableSpan<float> factors = tls.factors;
@@ -1651,7 +1649,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
 
           tls.smooth_positions.resize(verts.size());
           const MutableSpan<float3> smooth_positions = tls.smooth_positions;
-          smooth::neighbor_data_average_mesh(positions_eval, neighbors, smooth_positions);
+          smooth::neighbor_data_average_mesh(position_data.eval, neighbors, smooth_positions);
 
           const Span<float> sharpen_factors = gather_data_mesh(
               ss.filter_cache->sharpen_factor.as_span(), verts, tls.sharpen_factors);
@@ -1660,11 +1658,11 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
           const MutableSpan<float3> translations = tls.translations;
           for (const int i : verts.index_range()) {
             const int vert = verts[i];
-            const float3 &position = positions_eval[vert];
+            const float3 &position = position_data.eval[vert];
 
             float3 disp_sharpen(0.0f);
             for (const int neighbor : neighbors[i]) {
-              float3 disp_n = positions_eval[neighbor] - position;
+              float3 disp_n = position_data.eval[neighbor] - position;
               disp_n *= ss.filter_cache->sharpen_factor[neighbor];
               disp_sharpen += disp_n;
             }
@@ -1685,8 +1683,8 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
           scale_translations(translations, factors);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;
@@ -1870,15 +1868,15 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
           const Span<int> verts = nodes[i].verts();
-          const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+          const Span<float3> positions = gather_data_mesh(
+              position_data.eval, verts, tls.positions);
           const OrigPositionData orig_data = orig_position_data_get_mesh(object, nodes[i]);
 
           tls.factors.resize(verts.size());
@@ -1894,8 +1892,8 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
           reset_translations_to_original(translations, positions, orig_data.positions);
 
           zero_disabled_axis_components(*ss.filter_cache, translations);
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
         });
       });
       break;

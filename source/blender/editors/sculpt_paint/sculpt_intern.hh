@@ -52,6 +52,7 @@ struct Dial;
 struct DistRayAABB_Precalc;
 struct Image;
 struct ImageUser;
+struct Key;
 struct KeyBlock;
 struct Object;
 struct bContext;
@@ -65,6 +66,48 @@ struct wmOperatorType;
  * \{ */
 
 namespace blender::ed::sculpt_paint {
+
+/**
+ * This class represents an API to deform original positions based on translations created from
+ * evaluated positions. It should be constructed once outside of a parallel context.
+ */
+class PositionDeformData {
+ public:
+  /**
+   * Positions from after procedural deformation from modifiers, used to build the
+   * pbvh::Tree. Translations are built for these values, then applied to the original positions.
+   * When there are no deforming modifiers, this will reference the same array as #orig.
+   */
+  Span<float3> eval;
+
+ private:
+  /**
+   * In some cases deformations must also apply to the evaluated positions (#eval) in case the
+   * changed values are needed elsewhere before the object is reevaluated (which would update the
+   * evaluated positions).
+   */
+  std::optional<MutableSpan<float3>> eval_mut_;
+
+  /**
+   * Transforms from deforming modifiers, used to convert translations of evaluated positions to
+   * "original" translations.
+   */
+  std::optional<Span<float3x3>> deform_imats_;
+
+  /**
+   * Positions from the original mesh. Not the same as #eval if there are deform modifiers.
+   */
+  MutableSpan<float3> orig_;
+
+  Key *keys_;
+  KeyBlock *active_key_;
+  bool basis_active_;
+  std::optional<Array<bool>> dependent_keys_;
+
+ public:
+  PositionDeformData(const Depsgraph &depsgraph, Object &object_orig);
+  void deform(MutableSpan<float3> translations, Span<int> verts) const;
+};
 
 enum class UpdateType {
   Position,

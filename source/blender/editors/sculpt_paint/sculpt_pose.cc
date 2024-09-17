@@ -157,18 +157,17 @@ BLI_NOINLINE static void add_arrays(const MutableSpan<float3> a, const Span<floa
 static void calc_mesh(const Depsgraph &depsgraph,
                       const Sculpt &sd,
                       const Brush &brush,
-                      const Span<float3> positions_eval,
                       const bke::pbvh::MeshNode &node,
                       Object &object,
                       BrushLocalData &tls,
-                      const MutableSpan<float3> positions_orig)
+                      const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
   const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const Span<int> verts = node.verts();
-  const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+  const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
 
   tls.factors.resize(verts.size());
@@ -196,8 +195,8 @@ static void calc_mesh(const Depsgraph &depsgraph,
   switch (eBrushDeformTarget(brush.deform_target)) {
     case BRUSH_DEFORM_TARGET_GEOMETRY:
       reset_translations_to_original(translations, positions, orig_data.positions);
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
       add_arrays(translations, orig_data.positions);
@@ -1783,14 +1782,12 @@ void do_pose_brush(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, ob);
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         BrushLocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          calc_mesh(depsgraph, sd, brush, positions_eval, nodes[i], ob, tls, positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+          calc_mesh(depsgraph, sd, brush, nodes[i], ob, tls, position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

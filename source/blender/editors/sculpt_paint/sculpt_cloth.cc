@@ -1406,8 +1406,7 @@ void do_simulation_step(const Depsgraph &depsgraph,
             return cloth_sim.node_state[node_index] == SCULPT_CLOTH_NODE_ACTIVE;
           });
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       threading::parallel_for(active_nodes.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         active_nodes.slice(range).foreach_index([&](const int i) {
@@ -1424,14 +1423,15 @@ void do_simulation_step(const Depsgraph &depsgraph,
           tls.translations.resize(verts.size());
           const MutableSpan<float3> translations = tls.translations;
           for (const int i : verts.index_range()) {
-            translations[i] = cloth_sim.pos[verts[i]] - positions_eval[verts[i]];
+            translations[i] = cloth_sim.pos[verts[i]] - position_data.eval[verts[i]];
           }
-          write_translations(
-              depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+
+          clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+          position_data.deform(translations, verts);
 
           cloth_sim.node_state[cloth_sim.node_state_index.lookup(&nodes[i])] =
               SCULPT_CLOTH_NODE_INACTIVE;
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

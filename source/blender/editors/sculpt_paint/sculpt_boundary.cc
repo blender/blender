@@ -1091,7 +1091,6 @@ BLI_NOINLINE static void calc_bend_position(const Span<float3> positions,
 static void calc_bend_mesh(const Depsgraph &depsgraph,
                            const Sculpt &sd,
                            Object &object,
-                           const Span<float3> positions_eval,
                            const Span<int> vert_propagation_steps,
                            const Span<float> vert_factors,
                            const Span<float3> vert_pivot_positions,
@@ -1101,7 +1100,7 @@ static void calc_bend_mesh(const Depsgraph &depsgraph,
                            const float3 symmetry_pivot,
                            const float strength,
                            const eBrushDeformTarget deform_target,
-                           const MutableSpan<float3> positions_orig)
+                           const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -1135,10 +1134,9 @@ static void calc_bend_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -1287,9 +1285,7 @@ static void do_bend_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1299,7 +1295,6 @@ static void do_bend_brush(const Depsgraph &depsgraph,
           calc_bend_mesh(depsgraph,
                          sd,
                          object,
-                         positions_eval,
                          boundary.edit_info.propagation_steps_num,
                          boundary.edit_info.strength_factor,
                          boundary.bend.pivot_positions,
@@ -1309,8 +1304,8 @@ static void do_bend_brush(const Depsgraph &depsgraph,
                          boundary.initial_vert_position,
                          strength,
                          deform_target,
-                         positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                         position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
@@ -1392,7 +1387,6 @@ BLI_NOINLINE static void calc_slide_position(const Span<float3> positions,
 static void calc_slide_mesh(const Depsgraph &depsgraph,
                             const Sculpt &sd,
                             Object &object,
-                            const Span<float3> positions_eval,
                             const Span<int> vert_propagation_steps,
                             const Span<float> vert_factors,
                             const Span<float3> vert_slide_directions,
@@ -1401,7 +1395,7 @@ static void calc_slide_mesh(const Depsgraph &depsgraph,
                             const float3 symmetry_pivot,
                             const float strength,
                             const eBrushDeformTarget deform_target,
-                            const MutableSpan<float3> positions_orig)
+                            const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -1435,10 +1429,9 @@ static void calc_slide_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -1583,9 +1576,7 @@ static void do_slide_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1595,7 +1586,6 @@ static void do_slide_brush(const Depsgraph &depsgraph,
           calc_slide_mesh(depsgraph,
                           sd,
                           object,
-                          positions_eval,
                           boundary.edit_info.propagation_steps_num,
                           boundary.edit_info.strength_factor,
                           boundary.slide.directions,
@@ -1604,8 +1594,8 @@ static void do_slide_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target,
-                          positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                          position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
@@ -1685,7 +1675,6 @@ BLI_NOINLINE static void calc_inflate_position(const Span<float3> positions,
 static void calc_inflate_mesh(const Depsgraph &depsgraph,
                               const Sculpt &sd,
                               Object &object,
-                              const Span<float3> positions_eval,
                               const Span<int> vert_propagation_steps,
                               const Span<float> vert_factors,
                               const bke::pbvh::MeshNode &node,
@@ -1693,7 +1682,7 @@ static void calc_inflate_mesh(const Depsgraph &depsgraph,
                               const float3 symmetry_pivot,
                               const float strength,
                               const eBrushDeformTarget deform_target,
-                              const MutableSpan<float3> positions_orig)
+                              const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -1723,10 +1712,9 @@ static void calc_inflate_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -1862,9 +1850,7 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -1874,7 +1860,6 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
           calc_inflate_mesh(depsgraph,
                             sd,
                             object,
-                            positions_eval,
                             boundary.edit_info.propagation_steps_num,
                             boundary.edit_info.strength_factor,
                             nodes[i],
@@ -1882,8 +1867,8 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
                             boundary.initial_vert_position,
                             strength,
                             deform_target,
-                            positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                            position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
@@ -1960,7 +1945,6 @@ BLI_NOINLINE static void calc_grab_position(const Span<float3> positions,
 static void calc_grab_mesh(const Depsgraph &depsgraph,
                            const Sculpt &sd,
                            Object &object,
-                           const Span<float3> positions_eval,
                            const Span<int> vert_propagation_steps,
                            const Span<float> vert_factors,
                            const bke::pbvh::MeshNode &node,
@@ -1969,7 +1953,7 @@ static void calc_grab_mesh(const Depsgraph &depsgraph,
                            const float3 symmetry_pivot,
                            const float strength,
                            const eBrushDeformTarget deform_target,
-                           const MutableSpan<float3> positions_orig)
+                           const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -1999,10 +1983,9 @@ static void calc_grab_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -2141,9 +2124,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -2153,7 +2134,6 @@ static void do_grab_brush(const Depsgraph &depsgraph,
           calc_grab_mesh(depsgraph,
                          sd,
                          object,
-                         positions_eval,
                          boundary.edit_info.propagation_steps_num,
                          boundary.edit_info.strength_factor,
                          nodes[i],
@@ -2162,8 +2142,8 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                          boundary.initial_vert_position,
                          strength,
                          deform_target,
-                         positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                         position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
@@ -2243,7 +2223,6 @@ BLI_NOINLINE static void calc_twist_position(const Span<float3> positions,
 static void calc_twist_mesh(const Depsgraph &depsgraph,
                             const Sculpt &sd,
                             Object &object,
-                            const Span<float3> positions_eval,
                             const Span<int> vert_propagation_steps,
                             const Span<float> vert_factors,
                             const bke::pbvh::MeshNode &node,
@@ -2253,7 +2232,7 @@ static void calc_twist_mesh(const Depsgraph &depsgraph,
                             const float3 symmetry_pivot,
                             const float strength,
                             const eBrushDeformTarget deform_target,
-                            const MutableSpan<float3> positions_orig)
+                            const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -2284,10 +2263,9 @@ static void calc_twist_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -2428,9 +2406,7 @@ static void do_twist_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
 
       threading::EnumerableThreadSpecific<LocalDataMesh> all_tls;
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -2440,7 +2416,6 @@ static void do_twist_brush(const Depsgraph &depsgraph,
           calc_twist_mesh(depsgraph,
                           sd,
                           object,
-                          positions_eval,
                           boundary.edit_info.propagation_steps_num,
                           boundary.edit_info.strength_factor,
                           nodes[i],
@@ -2450,8 +2425,8 @@ static void do_twist_brush(const Depsgraph &depsgraph,
                           boundary.initial_vert_position,
                           strength,
                           deform_target,
-                          positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                          position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;
@@ -2616,10 +2591,8 @@ BLI_NOINLINE static void calc_average_position(const Span<int> vert_propagation_
   }
 }
 
-static void calc_smooth_mesh(const Depsgraph &depsgraph,
-                             const Sculpt &sd,
+static void calc_smooth_mesh(const Sculpt &sd,
                              Object &object,
-                             const Span<float3> positions_eval,
                              const OffsetIndices<int> faces,
                              const Span<int> corner_verts,
                              const GroupedSpan<int> vert_to_face,
@@ -2631,7 +2604,7 @@ static void calc_smooth_mesh(const Depsgraph &depsgraph,
                              const float3 symmetry_pivot,
                              const float strength,
                              const eBrushDeformTarget deform_target,
-                             const MutableSpan<float3> positions_orig)
+                             const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -2657,9 +2630,9 @@ static void calc_smooth_mesh(const Depsgraph &depsgraph,
   calc_vert_neighbors(faces, corner_verts, vert_to_face, hide_poly, verts, neighbors);
   tls.average_positions.resize(verts.size());
 
-  const Span<float3> positions = gather_data_mesh(positions_eval, verts, tls.positions);
+  const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
   const MutableSpan<float3> average_positions = tls.average_positions;
-  calc_average_position(positions_eval,
+  calc_average_position(position_data.eval,
                         vert_propagation_steps,
                         neighbors,
                         propagation_steps,
@@ -2674,10 +2647,9 @@ static void calc_smooth_mesh(const Depsgraph &depsgraph,
     case BRUSH_DEFORM_TARGET_GEOMETRY: {
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
-      translations_from_new_positions(new_positions, verts, positions_eval, translations);
-
-      write_translations(
-          depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+      translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+      position_data.deform(translations, verts);
       break;
     }
     case BRUSH_DEFORM_TARGET_CLOTH_SIM:
@@ -2831,8 +2803,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -2844,10 +2815,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalDataMesh &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          calc_smooth_mesh(depsgraph,
-                           sd,
+          calc_smooth_mesh(sd,
                            object,
-                           positions_eval,
                            faces,
                            corner_verts,
                            vert_to_face_map,
@@ -2859,8 +2828,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
                            boundary.initial_vert_position,
                            strength,
                            deform_target,
-                           positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                           position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

@@ -53,11 +53,10 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Sculpt &sd,
                        const Brush &brush,
                        const float3 &offset,
-                       const Span<float3> positions_eval,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
-                       const MutableSpan<float3> positions_orig)
+                       const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -94,7 +93,8 @@ static void calc_faces(const Depsgraph &depsgraph,
   const MutableSpan<float3> translations = tls.translations;
   translations_from_offset_and_factors(offset, factors, translations);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void calc_grids(const Depsgraph &depsgraph,
@@ -216,23 +216,13 @@ void do_grab_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
+      const PositionDeformData position_data(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
-          calc_faces(depsgraph,
-                     sd,
-                     brush,
-                     grab_delta,
-                     positions_eval,
-                     nodes[i],
-                     object,
-                     tls,
-                     positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+          calc_faces(depsgraph, sd, brush, grab_delta, nodes[i], object, tls, position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

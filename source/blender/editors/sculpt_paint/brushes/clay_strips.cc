@@ -45,12 +45,11 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const float4 &plane,
                        const float strength,
                        const bool flip,
-                       const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
-                       const MutableSpan<float3> positions_orig)
+                       const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -61,38 +60,39 @@ static void calc_faces(const Depsgraph &depsgraph,
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  filter_region_clip_factors(ss, positions_eval, verts, factors);
+  filter_region_clip_factors(ss, position_data.eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
-  calc_brush_cube_distances(brush, mat, positions_eval, verts, distances, factors);
+  calc_brush_cube_distances(brush, mat, position_data.eval, verts, distances, factors);
   scale_factors(distances, cache.radius);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
+  calc_brush_texture_factors(ss, brush, position_data.eval, verts, factors);
 
   scale_factors(factors, strength);
 
   if (flip) {
-    filter_below_plane_factors(positions_eval, verts, plane, factors);
+    filter_below_plane_factors(position_data.eval, verts, plane, factors);
   }
   else {
-    filter_above_plane_factors(positions_eval, verts, plane, factors);
+    filter_above_plane_factors(position_data.eval, verts, plane, factors);
   }
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations_to_plane(positions_eval, verts, plane, translations);
+  calc_translations_to_plane(position_data.eval, verts, plane, translations);
   filter_plane_trim_limit_factors(brush, cache, translations, factors);
   scale_translations(translations, factors);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void calc_grids(const Depsgraph &depsgraph,
@@ -278,10 +278,8 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
         node_mask.slice(range).foreach_index([&](const int i) {
@@ -292,13 +290,12 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
                      plane,
                      strength,
                      flip,
-                     positions_eval,
                      vert_normals,
                      nodes[i],
                      object,
                      tls,
-                     positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                     position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

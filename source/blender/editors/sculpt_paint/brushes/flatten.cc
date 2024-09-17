@@ -41,12 +41,11 @@ static void calc_faces(const Depsgraph &depsgraph,
                        const Brush &brush,
                        const float4 &plane,
                        const float strength,
-                       const Span<float3> positions_eval,
                        const Span<float3> vert_normals,
                        const bke::pbvh::MeshNode &node,
                        Object &object,
                        LocalData &tls,
-                       const MutableSpan<float3> positions_orig)
+                       const PositionDeformData &position_data)
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
@@ -57,7 +56,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
   fill_factor_from_hide_and_mask(mesh, verts, factors);
-  filter_region_clip_factors(ss, positions_eval, verts, factors);
+  filter_region_clip_factors(ss, position_data.eval, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
@@ -65,24 +64,25 @@ static void calc_faces(const Depsgraph &depsgraph,
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   calc_brush_distances(
-      ss, positions_eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+      ss, position_data.eval, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
-  calc_brush_texture_factors(ss, brush, positions_eval, verts, factors);
+  calc_brush_texture_factors(ss, brush, position_data.eval, verts, factors);
 
   scale_factors(factors, strength);
 
   tls.translations.resize(verts.size());
   const MutableSpan<float3> translations = tls.translations;
-  calc_translations_to_plane(positions_eval, verts, plane, translations);
+  calc_translations_to_plane(position_data.eval, verts, plane, translations);
   filter_plane_trim_limit_factors(brush, cache, translations, factors);
   scale_translations(translations, factors);
 
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void calc_grids(const Depsgraph &depsgraph,
@@ -204,10 +204,8 @@ void do_flatten_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-      MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
@@ -217,13 +215,12 @@ void do_flatten_brush(const Depsgraph &depsgraph,
                      brush,
                      plane,
                      ss.cache->bstrength,
-                     positions_eval,
                      vert_normals,
                      nodes[i],
                      object,
                      tls,
-                     positions_orig);
-          bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                     position_data);
+          bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
         });
       });
       break;

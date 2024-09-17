@@ -45,15 +45,15 @@ struct BMeshLocalData {
   Vector<Vector<BMVert *>> vert_neighbors;
 };
 
-static void apply_positions_faces(const Depsgraph &depsgraph,
-                                  const Sculpt &sd,
-                                  const Span<float3> positions_eval,
+static void apply_positions_faces(const Sculpt &sd,
                                   const Span<int> verts,
                                   Object &object,
                                   const MutableSpan<float3> translations,
-                                  const MutableSpan<float3> positions_orig)
+                                  const PositionDeformData &position_data)
 {
-  write_translations(depsgraph, sd, object, positions_eval, verts, translations, positions_orig);
+  SculptSession &ss = *object.sculpt;
+  clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
+  position_data.deform(translations, verts);
 }
 
 static void apply_positions_grids(const Sculpt &sd,
@@ -161,9 +161,8 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
-  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-  MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
@@ -177,7 +176,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
     MeshLocalData &tls = all_tls.local();
     calc_factors_faces(depsgraph,
                        brush,
-                       positions_eval,
+                       position_data.eval,
                        vert_normals,
                        vert_to_face_map,
                        face_sets,
@@ -192,7 +191,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     MeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_faces(
-        positions_eval,
+        position_data.eval,
         vert_normals,
         faces,
         corner_verts,
@@ -208,13 +207,11 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    apply_positions_faces(depsgraph,
-                          sd,
-                          positions_eval,
+    apply_positions_faces(sd,
                           nodes[i].verts(),
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
-                          positions_orig);
+                          position_data);
   });
 }
 
@@ -500,9 +497,8 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
 
-  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const PositionDeformData position_data(depsgraph, object);
   const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-  MutableSpan<float3> positions_orig = mesh.vert_positions_for_write();
 
   Array<int> node_offset_data;
   const OffsetIndices<int> node_vert_offsets = create_node_vert_offsets(
@@ -526,7 +522,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
     MeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_faces(
-        positions_eval,
+        position_data.eval,
         vert_normals,
         faces,
         corner_verts,
@@ -542,14 +538,12 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    apply_positions_faces(depsgraph,
-                          sd,
-                          positions_eval,
+    apply_positions_faces(sd,
                           nodes[i].verts(),
                           object,
                           translations.as_mutable_span().slice(node_vert_offsets[pos]),
-                          positions_orig);
-    bke::pbvh::update_node_bounds_mesh(positions_eval, nodes[i]);
+                          position_data);
+    bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
   });
   pbvh.tag_positions_changed(node_mask);
   bke::pbvh::flush_bounds_to_parents(pbvh);
