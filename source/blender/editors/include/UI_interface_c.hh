@@ -2455,9 +2455,9 @@ void uiTemplateID(uiLayout *layout,
                   const char *newop,
                   const char *openop,
                   const char *unlinkop,
-                  int filter,
-                  bool live_icon,
-                  const char *text);
+                  int filter = UI_TEMPLATE_ID_FILTER_ALL,
+                  bool live_icon = false,
+                  const char *text = nullptr);
 void uiTemplateIDBrowse(uiLayout *layout,
                         bContext *C,
                         PointerRNA *ptr,
@@ -2465,8 +2465,8 @@ void uiTemplateIDBrowse(uiLayout *layout,
                         const char *newop,
                         const char *openop,
                         const char *unlinkop,
-                        int filter,
-                        const char *text);
+                        int filter = UI_TEMPLATE_ID_FILTER_ALL,
+                        const char *text = nullptr);
 void uiTemplateIDPreview(uiLayout *layout,
                          bContext *C,
                          PointerRNA *ptr,
@@ -2476,8 +2476,8 @@ void uiTemplateIDPreview(uiLayout *layout,
                          const char *unlinkop,
                          int rows,
                          int cols,
-                         int filter,
-                         bool hide_buttons);
+                         int filter = UI_TEMPLATE_ID_FILTER_ALL,
+                         bool hide_buttons = false);
 /**
  * Version of #uiTemplateID using tabs.
  */
@@ -2487,7 +2487,7 @@ void uiTemplateIDTabs(uiLayout *layout,
                       const char *propname,
                       const char *newop,
                       const char *menu,
-                      int filter);
+                      int filter = UI_TEMPLATE_ID_FILTER_ALL);
 /**
  * This is for selecting the type of ID-block to use,
  * and then from the relevant type choosing the block to use.

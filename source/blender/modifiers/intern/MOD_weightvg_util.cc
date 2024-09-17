@@ -333,7 +333,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
                  "texture.new",
                  nullptr,
                  nullptr,
-                 0,
+                 UI_TEMPLATE_ID_FILTER_ALL,
                  false,
                  IFACE_("Mask Texture"));
 
