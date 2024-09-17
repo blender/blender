@@ -1811,7 +1811,7 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
       continue;
     }
 
-    // printf("loading deferred %d×%d preview for %s\n", request->sizex, request->sizey, filepath);
+    // printf("loading deferred %dx%d preview for %s\n", request->sizex, request->sizey, filepath);
 
     IMB_thumb_path_lock(filepath);
     ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, ThumbSource(*source));

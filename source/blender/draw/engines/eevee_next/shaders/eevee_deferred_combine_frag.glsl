@@ -117,7 +117,7 @@ void main()
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   out_direct = colorspace_brightness_clamp_max(out_direct, clamp_direct);
   out_indirect = colorspace_brightness_clamp_max(out_indirect, clamp_indirect);
-  /* TODO(fcleù): Shouldn't we clamp these relative the main clamp? */
+  /* TODO(@fclem): Shouldn't we clamp these relative the main clamp? */
   diffuse_direct = colorspace_brightness_clamp_max(diffuse_direct, clamp_direct);
   diffuse_indirect = colorspace_brightness_clamp_max(diffuse_indirect, clamp_indirect);
   specular_direct = colorspace_brightness_clamp_max(specular_direct, clamp_direct);

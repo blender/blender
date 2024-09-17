@@ -5348,7 +5348,7 @@ static void def_sh_tex_brick(StructRNA *srna)
   RNA_def_property_int_default(prop, 2);
   RNA_def_property_range(prop, 1, 99);
   RNA_def_property_ui_text(
-      prop, "Squash Frequency", "How often rows consist of “squished” bricks");
+      prop, "Squash Frequency", "How often rows consist of \"squished\" bricks");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
@@ -5366,7 +5366,7 @@ static void def_sh_tex_brick(StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Squash Amount",
-      "Factor to adjust the brick’s width for particular rows determined by the Offset Frequency");
+      "Factor to adjust the brick's width for particular rows determined by the Offset Frequency");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -9216,7 +9216,7 @@ static void def_tex_bricks(StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Squash Amount",
-      "Factor to adjust the brick’s width for particular rows determined by the Offset Frequency");
+      "Factor to adjust the brick's width for particular rows determined by the Offset Frequency");
 
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
