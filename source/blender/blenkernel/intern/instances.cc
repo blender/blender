@@ -133,7 +133,8 @@ bool operator==(const InstanceReference &a, const InstanceReference &b)
 
 uint64_t InstanceReference::hash() const
 {
-  return get_default_hash(geometry_set_, type_, data_);
+  const uint64_t geometry_hash = geometry_set_ ? geometry_set_->hash() : 0;
+  return get_default_hash(geometry_hash, type_, data_);
 }
 
 Instances::Instances()
