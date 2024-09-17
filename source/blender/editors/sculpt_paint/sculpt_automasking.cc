@@ -290,7 +290,7 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
     int depth;
   };
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -299,8 +299,8 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-  Span<float3> normals_eval = bke::pbvh::vert_normals_eval(depsgraph, object);
+  const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const Span<float3> normals_eval = bke::pbvh::vert_normals_eval(depsgraph, object);
 
   AccumulatedVert all_verts;
   AccumulatedVert verts_in_range;
@@ -325,8 +325,8 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
 
     const int current_vert = blurvert.vertex;
 
-    const float3 blur_vert_position = positions_eval[current_vert];
-    const float3 blur_vert_normal = normals_eval[current_vert];
+    const float3 &blur_vert_position = positions_eval[current_vert];
+    const float3 &blur_vert_normal = normals_eval[current_vert];
 
     const float dist_to_start = math::distance(blur_vert_position, starting_position);
 
@@ -425,8 +425,8 @@ static void calc_blurred_cavity_grids(const Object &object,
 
     const int current_vert = blurvert.vert;
 
-    const float3 blur_vert_position = positions[current_vert];
-    const float3 blur_vert_normal = normals[current_vert];
+    const float3 &blur_vert_position = positions[current_vert];
+    const float3 &blur_vert_normal = normals[current_vert];
 
     const float dist_to_start = math::distance(blur_vert_position, starting_position);
 
