@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <LLVMInstallDir>${OPENPGL_LLVM_INSTALL_PATH}</LLVMInstallDir>
+    <LLVMToolsVersion>${LLVM_VERSION}</LLVMToolsVersion>
+    <VCToolsVersion>${OPENPGL_VCTOOLS_VERSION}</VCToolsVersion>
+  </PropertyGroup>
+</Project>

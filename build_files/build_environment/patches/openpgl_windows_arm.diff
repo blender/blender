@@ -1,0 +1,124 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ec486ee..cc77876 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -35,7 +35,7 @@ SET(OPENPGL_ARM OFF)
+ IF (APPLE AND CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES MATCHES "arm64"))
+   MESSAGE(STATUS "Building for Apple silicon")
+   SET(OPENPGL_ARM ON)
+-ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
++ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+   MESSAGE(STATUS "Building for AArch64")
+   SET(OPENPGL_ARM ON)
+ ENDIF()
+diff --git a/openpgl/CMakeLists.txt b/openpgl/CMakeLists.txt
+index 4bcccbe..1199f22 100644
+--- a/openpgl/CMakeLists.txt
++++ b/openpgl/CMakeLists.txt
+@@ -60,7 +60,8 @@ message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
+ message(STATUS "Arch: ${CMAKE_SYSTEM_PROCESSOR}")
+ 
+ if(WIN32)
+-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
++  # Here we chack for MSVC, or Clang pretending to be MSVC via Clang-CL
++  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
+     set(OPENPGL_RELEASE_OPTIONS /Ox /Oi)  
+     set(OPENPGL_COMMON_OPTIONS /fp:precise)
+     #set(OPENPGL_RELEASE_OPTIONS ${OPENPGL_RELEASE_OPTIONS} -ftree-vectorize -mfpmath=sse -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fno-math-errno -fomit-frame-pointer )
+@@ -77,6 +78,14 @@ if(WIN32)
+     if(OPENPGL_ISA_AVX512)
+       set_source_files_properties(api/deviceCPU16.cpp PROPERTIES COMPILE_FLAGS "/D__SSE__ /D__SSE2__ /D__SSE3__ /D__SSE4_1__ /D__SSE4_2__ /arch:AVX /arch:AVX2 /arch:AVX512")
+     endif()
++    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
++      if(OPENPGL_ISA_NEON)
++       set_source_files_properties(api/deviceCPU4.cpp PROPERTIES COMPILE_FLAGS "/D__SSE4_2__  /D__SSE4_1__")
++      endif()
++      if(OPENPGL_ISA_NEON2X)
++        set_source_files_properties(api/deviceCPU8.cpp PROPERTIES COMPILE_FLAGS "/D__AVX2__ /D__AVX__ /D__SSE4_2__  /D__SSE4_1__  /D__BMI__ /D__BMI2__ /D__LZCNT__")
++      endif()
++    endif()
+   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_CXX_COMPILER_ID STREQUAL "dpcpp")
+     set(OPENPGL_RELEASE_OPTIONS -O3)
+     set(OPENPGL_COMMON_OPTIONS -Wall) 
+diff --git a/third-party/embreeSrc/common/simd/arm/sse2neon.h b/third-party/embreeSrc/common/simd/arm/sse2neon.h
+index 99831e3..a2cefbc 100644
+--- a/third-party/embreeSrc/common/simd/arm/sse2neon.h
++++ b/third-party/embreeSrc/common/simd/arm/sse2neon.h
+@@ -336,6 +336,14 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
+  * argument "a" of mm_shuffle_ps that will be places in fp1 of result.
+  * fp0 is the same for fp0 of result.
+  */
++#if defined(__aarch64__)
++#define _MN_SHUFFLE(fp3,fp2,fp1,fp0) ( (uint8x16_t){ (((fp3)*4)+0), (((fp3)*4)+1), (((fp3)*4)+2), (((fp3)*4)+3),  (((fp2)*4)+0), (((fp2)*4)+1), (((fp2)*4)+\
++2), (((fp2)*4)+3),  (((fp1)*4)+0), (((fp1)*4)+1), (((fp1)*4)+2), (((fp1)*4)+3),  (((fp0)*4)+0), (((fp0)*4)+1), (((fp0)*4)+2), (((fp0)*4)+3) } )
++#define _MF_SHUFFLE(fp3,fp2,fp1,fp0) ( (uint8x16_t){ (((fp3)*4)+0), (((fp3)*4)+1), (((fp3)*4)+2), (((fp3)*4)+3),  (((fp2)*4)+0), (((fp2)*4)+1), (((fp2)*4)+\
++2), (((fp2)*4)+3),  (((fp1)*4)+16+0), (((fp1)*4)+16+1), (((fp1)*4)+16+2), (((fp1)*4)+16+3),  (((fp0)*4)+16+0), (((fp0)*4)+16+1), (((fp0)*4)+16+2), (((fp0)*\
++4)+16+3) } )
++#endif
++
+ #define _MM_SHUFFLE(fp3, fp2, fp1, fp0) \
+     (((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))
+ 
+@@ -2822,7 +2830,7 @@ FORCE_INLINE void _mm_stream_pi(__m64 *p, __m64 a)
+ FORCE_INLINE void _mm_stream_ps(float *p, __m128 a)
+ {
+ #if __has_builtin(__builtin_nontemporal_store)
+-    __builtin_nontemporal_store(a, (float32x4_t *) p);
++    __builtin_nontemporal_store(reinterpret_cast<float32x4_t>(a), (float32x4_t *) p);
+ #else
+     vst1q_f32(p, vreinterpretq_f32_m128(a));
+ #endif
+@@ -5660,7 +5668,7 @@ FORCE_INLINE void _mm_storeu_si32(void *p, __m128i a)
+ FORCE_INLINE void _mm_stream_pd(double *p, __m128d a)
+ {
+ #if __has_builtin(__builtin_nontemporal_store)
+-    __builtin_nontemporal_store(a, (__m128d *) p);
++    __builtin_nontemporal_store(reinterpret_cast<float32x4_t>(a), (float32x4_t *) p);
+ #elif defined(__aarch64__) || defined(_M_ARM64)
+     vst1q_f64(p, vreinterpretq_f64_m128d(a));
+ #else
+@@ -6809,14 +6817,14 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
+     _sse2neon_define2(                                                  \
+         __m128i, a, b,                                                  \
+         const uint16_t _mask[8] =                                       \
+-            _sse2neon_init(((imm) & (1 << 0)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 1)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 2)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 3)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 4)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 5)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 6)) ? (uint16_t) -1 : 0x0,    \
+-                           ((imm) & (1 << 7)) ? (uint16_t) -1 : 0x0);   \
++            _sse2neon_init(((imm) & (1 << 0)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 1)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 2)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 3)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 4)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 5)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 6)) ? (uint16_t)0xffff : (uint16_t)0x0000,    \
++                           ((imm) & (1 << 7)) ? (uint16_t)0xffff : (uint16_t)0x0000);   \
+         uint16x8_t _mask_vec = vld1q_u16(_mask);                        \
+         uint16x8_t __a = vreinterpretq_u16_m128i(_a);                   \
+         uint16x8_t __b = vreinterpretq_u16_m128i(_b); _sse2neon_return( \
+diff --git a/third-party/embreeSrc/common/sys/intrinsics.h b/third-party/embreeSrc/common/sys/intrinsics.h
+index f5074bb..b0511b5 100644
+--- a/third-party/embreeSrc/common/sys/intrinsics.h
++++ b/third-party/embreeSrc/common/sys/intrinsics.h
+@@ -91,7 +91,7 @@ namespace embree
+   
+ #if defined(__X86_64__) || defined (__aarch64__)
+   __forceinline size_t bsf(size_t v) {
+-#if defined(__AVX2__) 
++#if defined(__AVX2__) && !defined(__aarch64__)
+     return _tzcnt_u64(v);
+ #else
+     unsigned long r = 0; _BitScanForward64(&r,v); return r;
+@@ -140,7 +140,7 @@ namespace embree
+   
+ #if defined(__X86_64__) || defined (__aarch64__)
+   __forceinline size_t bsr(size_t v) {
+-#if defined(__AVX2__) 
++#if defined(__AVX2__) && !defined(__aarch64__)
+     return 63 -_lzcnt_u64(v);
+ #else
+     unsigned long r = 0; _BitScanReverse64(&r, v); return r;
