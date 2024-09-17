@@ -6,6 +6,7 @@
  * \ingroup edgreasepencil
  */
 
+#include "BKE_armature.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
@@ -15,6 +16,9 @@
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
+
+#include "BLI_math_matrix.h"
+#include "BLI_string.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -201,9 +205,8 @@ void normalize_vertex_weights(MDeformVert &dvert,
                                active_vertex_group_is_unlocked);
 }
 
-static int armature_traversal(Object &ob,
-                              const Bone *bone,
-                              const FunctionRef<bool(Object &, const Bone *)> bone_callback)
+static int foreach_bone_in_armature_ex(
+    Object &ob, const Bone *bone, const FunctionRef<bool(Object &, const Bone *)> bone_callback)
 {
   int count = 0;
 
@@ -211,22 +214,29 @@ static int armature_traversal(Object &ob,
     /* Only call `bone_callback` if the bone is non null */
     count += bone_callback(ob, bone) ? 1 : 0;
     /* Try to execute `bone_callback` for the first child. */
-    count += armature_traversal(ob, static_cast<Bone *>(bone->childbase.first), bone_callback);
+    count += foreach_bone_in_armature_ex(
+        ob, static_cast<Bone *>(bone->childbase.first), bone_callback);
     /* Try to execute `bone_callback` for the next bone at this depth of the recursion. */
-    count += armature_traversal(ob, bone->next, bone_callback);
+    count += foreach_bone_in_armature_ex(ob, bone->next, bone_callback);
   }
 
   return count;
+}
+
+static int foreach_bone_in_armature(Object &ob,
+                                    const bArmature &armature,
+                                    const FunctionRef<bool(Object &, const Bone *)> bone_callback)
+{
+  return foreach_bone_in_armature_ex(
+      ob, static_cast<const Bone *>(armature.bonebase.first), bone_callback);
 }
 
 bool add_armature_vertex_groups(Object &object, const Object &ob_armature)
 {
   const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
 
-  const int defbase_add = armature_traversal(
-      object,
-      static_cast<const Bone *>(armature.bonebase.first),
-      [&](Object &object, const Bone *bone) {
+  const int added_vertex_groups = foreach_bone_in_armature(
+      object, armature, [&](Object &object, const Bone *bone) {
         if ((bone->flag & BONE_NO_DEFORM) == 0) {
           /* Check if the name of the bone matches a vertex group name. */
           if (!BKE_object_defgroup_find_name(&object, bone->name)) {
@@ -238,7 +248,99 @@ bool add_armature_vertex_groups(Object &object, const Object &ob_armature)
         return false;
       });
 
-  return defbase_add > 0;
+  return added_vertex_groups > 0;
+}
+
+void add_armature_envelope_weights(Scene &scene, Object &object, const Object &ob_armature)
+{
+  using namespace bke;
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  const float4x4 armature_to_world = ob_armature.object_to_world();
+  const float scale = mat4_to_scale(armature_to_world.ptr());
+
+  Vector<const Bone *> skinnable_bones;
+  Vector<std::string> deform_group_names;
+  const int added_vertex_groups = foreach_bone_in_armature(
+      object, armature, [&](Object &object, const Bone *bone) {
+        if ((bone->flag & BONE_NO_DEFORM) == 0) {
+          /* Check if the name of the bone matches a vertex group name. */
+          bDeformGroup *dg = BKE_object_defgroup_find_name(&object, bone->name);
+          if (dg == nullptr) {
+            /* Add a new vertex group with the name of the bone. */
+            dg = BKE_object_defgroup_add_name(&object, bone->name);
+          }
+          deform_group_names.append(dg->name);
+          skinnable_bones.append(bone);
+          return true;
+        }
+        return false;
+      });
+
+  if (added_vertex_groups <= 0) {
+    return;
+  }
+
+  /* Get the roots and tips of the bones in world space. */
+  Array<float3> roots(skinnable_bones.size());
+  Array<float3> tips(skinnable_bones.size());
+  threading::parallel_for(skinnable_bones.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const Bone *bone = skinnable_bones[i];
+      roots[i] = math::transform_point(armature_to_world, float3(bone->arm_head));
+      tips[i] = math::transform_point(armature_to_world, float3(bone->arm_tail));
+    }
+  });
+
+  Span<const bke::greasepencil::Layer *> layers = grease_pencil.layers();
+  Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](MutableDrawingInfo info) {
+    const bke::greasepencil::Layer &layer = *layers[info.layer_index];
+    const float4x4 layer_to_world = layer.to_world_space(object);
+
+    CurvesGeometry &curves = info.drawing.strokes_for_write();
+    const Span<float3> src_positions = curves.positions();
+    /* Get all the positions in world space. */
+    Array<float3> positions(curves.points_num());
+    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        positions[i] = math::transform_point(layer_to_world, src_positions[i]);
+      }
+    });
+
+    for (const int bone_i : skinnable_bones.index_range()) {
+      const Bone *bone = skinnable_bones[bone_i];
+      const char *deform_group_name = deform_group_names[bone_i].c_str();
+      const float3 bone_root = roots[bone_i];
+      const float3 bone_tip = tips[bone_i];
+
+      int def_nr = BLI_findstringindex(
+          &curves.vertex_group_names, deform_group_name, offsetof(bDeformGroup, name));
+
+      /* Lazily add the vertex group. */
+      if (def_nr == -1) {
+        bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
+        STRNCPY(defgroup->name, deform_group_name);
+        BLI_addtail(&curves.vertex_group_names, defgroup);
+        def_nr = BLI_listbase_count(&curves.vertex_group_names) - 1;
+        BLI_assert(def_nr >= 0);
+      }
+
+      MutableSpan<MDeformVert> dverts = curves.deform_verts_for_write();
+      VMutableArray<float> weights = bke::varray_for_mutable_deform_verts(dverts, def_nr);
+      for (const int point_i : curves.points_range()) {
+        const float weight = distfactor_to_bone(positions[point_i],
+                                                bone_root,
+                                                bone_tip,
+                                                bone->rad_head * scale,
+                                                bone->rad_tail * scale,
+                                                bone->dist * scale);
+        if (weight != 0.0f) {
+          weights.set(point_i, weight);
+        }
+      }
+    }
+  });
 }
 
 struct ClosestGreasePencilDrawing {
