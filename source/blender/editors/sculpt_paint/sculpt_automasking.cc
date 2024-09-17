@@ -712,6 +712,13 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                        const MutableSpan<float> factors)
 {
   const SculptSession &ss = *object.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const BitSpan boundary = ss.vertex_info.boundary;
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   Span<float3> orig_normals;
   if (automasking.settings.flags &
       (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL))
@@ -755,11 +762,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                         (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
     if (do_occlusion) {
       const bool occluded = calc_view_occlusion_factor(
-          depsgraph,
-          const_cast<Cache &>(automasking),
-          object,
-          vert,
-          SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+          depsgraph, const_cast<Cache &>(automasking), object, vert, vert_positions[vert]);
       if (occluded) {
         factors[i] = 0.0f;
         continue;
@@ -776,7 +779,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
       if (!face_set::vert_has_face_set(
-              object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
+              vert_to_face_map, face_sets, vert, automasking.settings.initial_face_set))
       {
         factors[i] = 0.0f;
         continue;
@@ -784,7 +787,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-      if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+      if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary, vert)) {
         factors[i] = 0.0f;
         continue;
       }
@@ -793,10 +796,10 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                    face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
+                    face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
                         ss.cache->paint_face_set;
 
-      if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+      if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
         factors[i] = 0.0f;
         continue;
       }
@@ -825,6 +828,13 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        const MutableSpan<float> factors)
 {
   const SculptSession &ss = *object.sculpt;
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const BitSpan boundary = ss.vertex_info.boundary;
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
+  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   for (const int i : face_indices.index_range()) {
     const Span<int> face_verts = corner_verts.slice(faces[face_indices[i]]);
     float sum = 0.0f;
@@ -861,11 +871,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
                           (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
       if (do_occlusion) {
         const bool occluded = calc_view_occlusion_factor(
-            depsgraph,
-            const_cast<Cache &>(automasking),
-            object,
-            vert,
-            SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+            depsgraph, const_cast<Cache &>(automasking), object, vert, vert_positions[vert]);
         if (occluded) {
           factor = 0.0f;
           continue;
@@ -882,7 +888,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
         if (!face_set::vert_has_face_set(
-                object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
+                vert_to_face_map, face_sets, vert, automasking.settings.initial_face_set))
         {
           factor = 0.0f;
           continue;
@@ -890,7 +896,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-        if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+        if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary, vert)) {
           factor = 0.0f;
           continue;
         }
@@ -899,10 +905,10 @@ void calc_face_factors(const Depsgraph &depsgraph,
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                      face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
+                      face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
                           ss.cache->paint_face_set;
 
-        if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+        if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
           factor = 0.0f;
           continue;
         }
@@ -930,7 +936,14 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                         const Span<int> grids,
                         const MutableSpan<float> factors)
 {
-  SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.sculpt;
+  const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+  const OffsetIndices<int> faces = base_mesh.faces();
+  const Span<int> corner_verts = base_mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
+  const BitSpan boundary = ss.vertex_info.boundary;
+  const bke::AttributeAccessor attributes = base_mesh.attributes();
+  const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -945,6 +958,9 @@ void calc_grids_factors(const Depsgraph &depsgraph,
   }
 
   for (const int i : grids.index_range()) {
+    const int grid_face_set = face_sets.is_empty() ?
+                                  1 :
+                                  face_sets[subdiv_ccg.grid_to_face_map[grids[i]]];
     const int node_start = i * key.grid_area;
     const int grids_start = grids[i] * key.grid_area;
     for (const int offset : IndexRange(key.grid_area)) {
@@ -982,11 +998,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                           (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
       if (do_occlusion) {
         const bool occluded = calc_view_occlusion_factor(
-            depsgraph,
-            const_cast<Cache &>(automasking),
-            object,
-            vert,
-            SCULPT_vertex_co_get(depsgraph, object, PBVHVertRef{vert}));
+            depsgraph, const_cast<Cache &>(automasking), object, vert, subdiv_ccg.positions[vert]);
         if (occluded) {
           factors[node_vert] = 0.0f;
           continue;
@@ -1002,16 +1014,16 @@ void calc_grids_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-        if (!face_set::vert_has_face_set(
-                object, PBVHVertRef{vert}, automasking.settings.initial_face_set))
-        {
+        if (grid_face_set != automasking.settings.initial_face_set) {
           factors[node_vert] = 0.0f;
           continue;
         }
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-        if (boundary::vert_is_boundary(object, PBVHVertRef{vert})) {
+        if (boundary::vert_is_boundary(
+                subdiv_ccg, corner_verts, faces, boundary, SubdivCCGCoord::from_index(key, vert)))
+        {
           factors[node_vert] = 0.0f;
           continue;
         }
@@ -1020,10 +1032,15 @@ void calc_grids_factors(const Depsgraph &depsgraph,
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                      face_set::vert_face_set_get(object, PBVHVertRef{vert}) ==
-                          ss.cache->paint_face_set;
+                      grid_face_set == ss.cache->paint_face_set;
 
-        if (!ignore && !face_set::vert_has_unique_face_set(object, PBVHVertRef{vert})) {
+        if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map,
+                                                           corner_verts,
+                                                           faces,
+                                                           face_sets,
+                                                           subdiv_ccg,
+                                                           SubdivCCGCoord::from_index(key, vert)))
+        {
           factors[node_vert] = 0.0f;
           continue;
         }
@@ -1051,6 +1068,9 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                        const MutableSpan<float> factors)
 {
   SculptSession &ss = *object.sculpt;
+  BMesh &bm = *ss.bm;
+  const int face_set_offset = CustomData_get_offset_named(
+      &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   Array<float3> orig_normals;
   if (automasking.settings.flags &
@@ -1096,11 +1116,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                         (BRUSH_AUTOMASKING_VIEW_OCCLUSION | BRUSH_AUTOMASKING_VIEW_NORMAL);
     if (do_occlusion) {
       const bool occluded = calc_view_occlusion_factor(
-          depsgraph,
-          const_cast<Cache &>(automasking),
-          object,
-          vert_i,
-          SCULPT_vertex_co_get(depsgraph, object, vert_ref));
+          depsgraph, const_cast<Cache &>(automasking), object, vert_i, vert->co);
       if (occluded) {
         factors[i] = 0.0f;
         continue;
@@ -1116,14 +1132,16 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-      if (!face_set::vert_has_face_set(object, vert_ref, automasking.settings.initial_face_set)) {
+      if (!face_set::vert_has_face_set(
+              face_set_offset, *vert, automasking.settings.initial_face_set))
+      {
         factors[i] = 0.0f;
         continue;
       }
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-      if (boundary::vert_is_boundary(object, vert_ref)) {
+      if (boundary::vert_is_boundary(vert)) {
         factors[i] = 0.0f;
         continue;
       }
@@ -1132,9 +1150,10 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                    face_set::vert_face_set_get(object, vert_ref) == ss.cache->paint_face_set;
+                    face_set::vert_face_set_get(face_set_offset, *vert) ==
+                        ss.cache->paint_face_set;
 
-      if (!ignore && !face_set::vert_has_unique_face_set(object, vert_ref)) {
+      if (!ignore && !face_set::vert_has_unique_face_set(face_set_offset, *vert)) {
         factors[i] = 0.0f;
         continue;
       }
