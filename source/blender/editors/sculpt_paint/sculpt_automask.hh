@@ -93,7 +93,6 @@ bool mode_enabled(const Sculpt &sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt &sd, const Object &object, const Brush *br);
 
 bool needs_normal(const SculptSession &ss, const Sculpt &sd, const Brush *brush);
-int settings_hash(const Object &ob, const Cache &automasking);
 
 bool brush_type_can_reuse_automask(int sculpt_brush_type);
 

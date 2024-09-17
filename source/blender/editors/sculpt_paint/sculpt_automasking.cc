@@ -579,52 +579,6 @@ static void calc_blurred_cavity_bmesh(const Cache &automasking,
   cavity_factors[BM_elem_index_get(vert)] = calc_cavity_factor(automasking, factor_sum);
 }
 
-int settings_hash(const Object &ob, const Cache &automasking)
-{
-  int hash;
-  int totvert = SCULPT_vertex_count_get(ob);
-
-  hash = BLI_hash_int(automasking.settings.flags);
-  hash = BLI_hash_int_2d(hash, totvert);
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
-    hash = BLI_hash_int_2d(hash, automasking.settings.cavity_blur_steps);
-    hash = BLI_hash_int_2d(hash,
-                           *reinterpret_cast<const uint *>(&automasking.settings.cavity_factor));
-
-    if (automasking.settings.cavity_curve) {
-      CurveMap *cm = automasking.settings.cavity_curve->cm;
-
-      for (int i = 0; i < cm->totpoint; i++) {
-        hash = BLI_hash_int_2d(hash, *reinterpret_cast<const uint *>(&cm->curve[i].x));
-        hash = BLI_hash_int_2d(hash, *reinterpret_cast<const uint *>(&cm->curve[i].y));
-        hash = BLI_hash_int_2d(hash, uint(cm->curve[i].flag));
-        hash = BLI_hash_int_2d(hash, uint(cm->curve[i].shorty));
-      }
-    }
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-    hash = BLI_hash_int_2d(hash, automasking.settings.initial_face_set);
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL) {
-    hash = BLI_hash_int_2d(
-        hash, *reinterpret_cast<const uint *>(&automasking.settings.view_normal_falloff));
-    hash = BLI_hash_int_2d(
-        hash, *reinterpret_cast<const uint *>(&automasking.settings.view_normal_limit));
-  }
-
-  if (automasking.settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL) {
-    hash = BLI_hash_int_2d(
-        hash, *reinterpret_cast<const uint *>(&automasking.settings.start_normal_falloff));
-    hash = BLI_hash_int_2d(
-        hash, *reinterpret_cast<const uint *>(&automasking.settings.start_normal_limit));
-  }
-
-  return hash;
-}
-
 static float process_cavity_factor(const Cache &automasking, float factor)
 {
   bool inverted = automasking.settings.flags & BRUSH_AUTOMASKING_CAVITY_INVERTED;
