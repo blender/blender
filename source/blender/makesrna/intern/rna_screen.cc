@@ -180,7 +180,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
   }
 
   /* The set of visible geometry nodes gizmos depends on the visible node editors. So if a node
-   * editor becomes visible/invisble, the gizmos have to be updated. */
+   * editor becomes visible/invisible, the gizmos have to be updated. */
   WM_main_add_notifier(NC_NODE | ND_NODE_GIZMO, nullptr);
 }
 

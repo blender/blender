@@ -115,9 +115,9 @@ static bAction *find_related_action(Main &bmain, ID &id)
       }
 
       case ID_KE: {
-        /* Shapekeys.  */
+        /* Shape-keys. */
         Key *key = (Key *)related_id;
-        /* Shapekeys are not embedded but there is currently no way to reuse them. */
+        /* Shape-keys are not embedded but there is currently no way to reuse them. */
         BLI_assert(ID_REAL_USERS(related_id) == 1);
         related_ids.append_non_duplicates(key->from);
         break;
@@ -172,7 +172,7 @@ static bAction *find_related_action(Main &bmain, ID &id)
 
         Key *key = BKE_key_from_id(related_id);
         if (key) {
-          /* No check for multi user because the Shapekey cannot be shared. */
+          /* No check for multi user because the shape-key cannot be shared. */
           BLI_assert(ID_REAL_USERS(&key->id) == 1);
           related_ids.append_non_duplicates(&key->id);
         }

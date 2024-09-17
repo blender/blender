@@ -154,7 +154,7 @@ enum {
   /** Create data-block outside of any main database -
    * similar to 'localize' functions of materials etc. */
   LIB_ID_CREATE_NO_MAIN = 1 << 0,
-  /** Do not affect user refcount of data-blocks used by new one
+  /** Do not affect user reference-count of data-blocks used by new one
    * (which also gets zero user-count then).
    * Implies LIB_ID_CREATE_NO_MAIN. */
   LIB_ID_CREATE_NO_USER_REFCOUNT = 1 << 1,
@@ -226,7 +226,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **new_id_p, int orig_fla
  * only.
  *
  * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
- * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
+ * not use any library (i.e. become a local ID). Use #std::nullopt for default behavior (i.e.
  * behavior of the #BKE_libblock_copy_ex function).
  * \param new_owner_id: When copying an embedded ID, the owner ID of the new copy. Should be
  * `nullptr` for regular ID copying, or in case the owner ID is not (yet) known.
@@ -299,7 +299,7 @@ enum {
   /** Do not try to remove freed ID from given Main (passed Main may be NULL). */
   LIB_ID_FREE_NO_MAIN = 1 << 0,
   /**
-   * Do not affect user refcount of data-blocks used by freed one.
+   * Do not affect user reference-count of data-blocks used by freed one.
    * Implies LIB_ID_FREE_NO_MAIN.
    */
   LIB_ID_FREE_NO_USER_REFCOUNT = 1 << 1,
@@ -520,12 +520,12 @@ bool BKE_id_copy_is_allowed(const ID *id);
  */
 ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **new_id_p, int flag);
 /**
- * Enable coying non-local data into libraries.
+ * Enable copying non-local data into libraries.
  *
  * See #BKE_id_copy_ex for details.
  *
  * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
- * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
+ * not use any library (i.e. become a local ID). Use #std::nullopt for default behavior (i.e.
  * behavior of the #BKE_id_copy_ex function).
  * \param new_owner_id: When copying an embedded ID, the owner ID of the new copy. Should be
  * `nullptr` for regular ID copying, or in case the owner ID is not (yet) known.

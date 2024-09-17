@@ -321,7 +321,7 @@ TEST_F(ActionLayersTest, slot_remove)
   }
 
   { /* Removing an in-use slot doesn't un-assign it from its users.
-     * This is not that important, but it covers the current behaviour. */
+     * This is not that important, but it covers the current behavior. */
     Slot &slot = action->slot_add_for_id(cube->id);
     ASSERT_EQ(assign_action_and_slot(action, &slot, cube->id), ActionSlotAssignmentResult::OK);
 
