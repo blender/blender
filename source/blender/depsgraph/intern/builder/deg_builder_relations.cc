@@ -1715,8 +1715,8 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
     for (animrig::Strip *strip : layer->strips()) {
       switch (strip->type()) {
         case animrig::Strip::Type::Keyframe: {
-          animrig::KeyframeStrip &keyframe_strip = strip->as<animrig::KeyframeStrip>();
-          animrig::ChannelBag *channels = keyframe_strip.channelbag_for_slot(*slot);
+          animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
+          animrig::ChannelBag *channels = strip_data.channelbag_for_slot(*slot);
           if (channels == nullptr) {
             /* Go to next strip. */
             break;

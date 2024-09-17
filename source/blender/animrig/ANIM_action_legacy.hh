@@ -14,7 +14,6 @@
 
 namespace blender::animrig {
 class Action;
-class KeyframeStrip;
 }  // namespace blender::animrig
 
 namespace blender::animrig::legacy {
@@ -22,7 +21,7 @@ namespace blender::animrig::legacy {
 /**
  * Return the ChannelBag for compatibility with the legacy Python API.
  *
- * \return the ChannelBag for the first slot, of the first KeyframeStrip on the
+ * \return the ChannelBag for the first slot, of the first keyframe Strip on the
  * bottom layer, or nullptr if that doesn't exist.
  */
 ChannelBag *channelbag_get(Action &action);

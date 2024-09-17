@@ -29,6 +29,7 @@
 
 #define _DNA_DEFAULT_ActionStrip \
   { \
+    .data_index = -1, \
     .frame_start = -INFINITY, \
     .frame_end = INFINITY, \
   }

@@ -159,10 +159,19 @@ static void action_copy_data(Main * /*bmain*/,
   action_dst.slot_array_num = action_src.slot_array_num;
   action_dst.last_slot_handle = action_src.last_slot_handle;
 
-  /* Layers. */
+  /* Layers, and (recursively) Strips. */
   action_dst.layer_array = MEM_cnew_array<ActionLayer *>(action_src.layer_array_num, __func__);
   for (int i : action_src.layers().index_range()) {
-    action_dst.layer_array[i] = MEM_new<animrig::Layer>(__func__, *action_src.layer(i));
+    action_dst.layer_array[i] = &action_src.layer(i)->duplicate_with_shallow_strip_copies(
+        __func__);
+  }
+
+  /* Strip data. */
+  action_dst.strip_keyframe_data_array = MEM_cnew_array<ActionStripKeyframeData *>(
+      action_src.strip_keyframe_data_array_num, __func__);
+  for (int i : action_src.strip_keyframe_data().index_range()) {
+    action_dst.strip_keyframe_data_array[i] = MEM_new<animrig::StripKeyframeData>(
+        __func__, *action_src.strip_keyframe_data()[i]);
   }
 
   /* Slots. */
@@ -183,6 +192,13 @@ static void action_copy_data(Main * /*bmain*/,
 static void action_free_data(ID *id)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
+
+  /* Free keyframe data. */
+  for (animrig::StripKeyframeData *keyframe_data : action.strip_keyframe_data()) {
+    MEM_delete(keyframe_data);
+  }
+  MEM_SAFE_FREE(action.strip_keyframe_data_array);
+  action.strip_keyframe_data_array_num = 0;
 
   /* Free layers. */
   for (animrig::Layer *layer : action.layers()) {
@@ -308,15 +324,27 @@ static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelba
   }
 }
 
-static void write_keyframe_strip(BlendWriter *writer, animrig::KeyframeStrip &key_strip)
+static void write_strip_keyframe_data(BlendWriter *writer,
+                                      animrig::StripKeyframeData &strip_keyframe_data)
 {
-  BLO_write_struct(writer, KeyframeActionStrip, &key_strip);
+  BLO_write_struct(writer, ActionStripKeyframeData, &strip_keyframe_data);
 
-  auto channelbags = key_strip.channelbags();
+  auto channelbags = strip_keyframe_data.channelbags();
   BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
 
   for (animrig::ChannelBag *channelbag : channelbags) {
     write_channelbag(writer, *channelbag);
+  }
+}
+
+static void write_strip_keyframe_data_array(
+    BlendWriter *writer, Span<animrig::StripKeyframeData *> strip_keyframe_data_array)
+{
+  BLO_write_pointer_array(
+      writer, strip_keyframe_data_array.size(), strip_keyframe_data_array.data());
+
+  for (animrig::StripKeyframeData *keyframe_data : strip_keyframe_data_array) {
+    write_strip_keyframe_data(writer, *keyframe_data);
   }
 }
 
@@ -325,12 +353,7 @@ static void write_strips(BlendWriter *writer, Span<animrig::Strip *> strips)
   BLO_write_pointer_array(writer, strips.size(), strips.data());
 
   for (animrig::Strip *strip : strips) {
-    switch (strip->type()) {
-      case animrig::Strip::Type::Keyframe: {
-        auto &key_strip = strip->as<animrig::KeyframeStrip>();
-        write_keyframe_strip(writer, key_strip);
-      }
-    }
+    BLO_write_struct(writer, ActionStrip, strip);
   }
 }
 
@@ -512,6 +535,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 #ifdef WITH_ANIM_BAKLAVA
   /* Write layered Action data. */
+  write_strip_keyframe_data_array(writer, action.strip_keyframe_data());
   write_layers(writer, action.layers());
   write_slots(writer, action.slots());
 
@@ -577,15 +601,30 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
   }
 }
 
-static void read_keyframe_strip(BlendDataReader *reader, animrig::KeyframeStrip &strip)
+static void read_strip_keyframe_data(BlendDataReader *reader,
+                                     animrig::StripKeyframeData &strip_keyframe_data)
 {
-  BLO_read_pointer_array(
-      reader, strip.channelbag_array_num, reinterpret_cast<void **>(&strip.channelbag_array));
+  BLO_read_pointer_array(reader,
+                         strip_keyframe_data.channelbag_array_num,
+                         reinterpret_cast<void **>(&strip_keyframe_data.channelbag_array));
 
-  for (int i = 0; i < strip.channelbag_array_num; i++) {
-    BLO_read_struct(reader, ActionChannelBag, &strip.channelbag_array[i]);
-    ActionChannelBag *channelbag = strip.channelbag_array[i];
+  for (int i = 0; i < strip_keyframe_data.channelbag_array_num; i++) {
+    BLO_read_struct(reader, ActionChannelBag, &strip_keyframe_data.channelbag_array[i]);
+    ActionChannelBag *channelbag = strip_keyframe_data.channelbag_array[i];
     read_channelbag(reader, channelbag->wrap());
+  }
+}
+
+static void read_strip_keyframe_data_array(BlendDataReader *reader, animrig::Action &action)
+{
+  BLO_read_pointer_array(reader,
+                         action.strip_keyframe_data_array_num,
+                         reinterpret_cast<void **>(&action.strip_keyframe_data_array));
+
+  for (int i = 0; i < action.strip_keyframe_data_array_num; i++) {
+    BLO_read_struct(reader, ActionStripKeyframeData, &action.strip_keyframe_data_array[i]);
+    ActionStripKeyframeData *keyframe_data = action.strip_keyframe_data_array[i];
+    read_strip_keyframe_data(reader, keyframe_data->wrap());
   }
 }
 
@@ -602,13 +641,17 @@ static void read_layers(BlendDataReader *reader, animrig::Action &action)
         reader, layer->strip_array_num, reinterpret_cast<void **>(&layer->strip_array));
     for (int strip_idx = 0; strip_idx < layer->strip_array_num; strip_idx++) {
       BLO_read_struct(reader, ActionStrip, &layer->strip_array[strip_idx]);
-      ActionStrip *dna_strip = layer->strip_array[strip_idx];
-      animrig::Strip &strip = dna_strip->wrap();
 
-      switch (strip.type()) {
-        case animrig::Strip::Type::Keyframe: {
-          read_keyframe_strip(reader, strip.as<animrig::KeyframeStrip>());
-        }
+      /* This if statement and the code in it is only for a transitional period
+       * while we land #126559 and for a while after, to prevent crashes for
+       * people that were already playing with slotted actions and have some
+       * blend files written with them. This code can be removed after a while.
+       * At the very least, if you're reading this and slotted actions are
+       * already in an official release of Blender then this code is no longer
+       * relevant and can be deleted. */
+      if (layer->strip_array[strip_idx] == nullptr) {
+        layer->strip_array[strip_idx] = &animrig::Strip::create(action,
+                                                                animrig::Strip::Type::Keyframe);
       }
     }
   }
@@ -631,6 +674,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
 #ifdef WITH_ANIM_BAKLAVA
+  read_strip_keyframe_data_array(reader, action);
   read_layers(reader, action);
   read_slots(reader, action);
 #else
@@ -641,6 +685,8 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   action.layer_array_num = 0;
   action.slot_array = nullptr;
   action.slot_array_num = 0;
+  action.strip_keyframe_data_array = nullptr;
+  action.strip_keyframe_data_array_num = nullptr;
 #endif /* WITH_ANIM_BAKLAVA */
 
   if (action.is_action_layered()) {

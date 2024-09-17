@@ -61,18 +61,18 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   ASSERT_TRUE(no_fcurves.is_empty());
 
   Layer &layer = action->layer_add("Layer One");
-  Strip &strip = layer.strip_add(Strip::Type::Keyframe);
-  KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
+  Strip &strip = layer.strip_add(*action, Strip::Type::Keyframe);
+  StripKeyframeData &strip_data = strip.data<StripKeyframeData>(*action);
   const KeyframeSettings settings = get_keyframe_settings(false);
 
   /* Insert 3 FCurves for each slot. */
   for (int i = 0; i < 3; i++) {
-    SingleKeyingResult result_cube = key_strip.keyframe_insert(
+    SingleKeyingResult result_cube = strip_data.keyframe_insert(
         bmain, cube_slot, {"location", i}, {1.0f, 0.0f}, settings);
     ASSERT_EQ(SingleKeyingResult::SUCCESS, result_cube)
         << "Expected keyframe insertion to be successful";
 
-    SingleKeyingResult result_monkey = key_strip.keyframe_insert(
+    SingleKeyingResult result_monkey = strip_data.keyframe_insert(
         bmain, monkey_slot, {"rotation", i}, {1.0f, 0.0f}, settings);
     ASSERT_EQ(SingleKeyingResult::SUCCESS, result_monkey)
         << "Expected keyframe insertion to be successful";
