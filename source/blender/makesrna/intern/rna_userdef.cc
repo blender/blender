@@ -5691,7 +5691,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "Unselected F-Curve Opacity",
                            "The opacity of unselected F-Curves against the "
                            "background of the Graph Editor");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, "rna_userdef_update");
 
   /* FCurve keyframe visibility. */
   prop = RNA_def_property(srna, "show_only_selected_curve_keyframes", PROP_BOOLEAN, PROP_NONE);
@@ -5700,7 +5700,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Only Show Selected F-Curve Keyframes",
                            "Only keyframes of selected F-Curves are visible and editable");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, "rna_userdef_update");
 
   /* Graph Editor line drawing quality. */
   prop = RNA_def_property(srna, "use_fcurve_high_quality_drawing", PROP_BOOLEAN, PROP_NONE);
@@ -5708,7 +5708,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "F-Curve High Quality Drawing",
                            "Draw F-Curves using Anti-Aliasing (disable for better performance)");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, "rna_userdef_update");
 
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil_manhattan_distance", PROP_INT, PROP_PIXEL);
