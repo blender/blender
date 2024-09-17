@@ -1135,8 +1135,10 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
   /* Calculate the final levels for the new grids over base mesh. */
   context->num_total_levels = context->num_new_levels + context->num_original_levels;
 
-  /* Store the new base-mesh as a mesh in context, free bmesh. */
-  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
+  /* Store the new base-mesh as a mesh in context, free bmesh.
+   * NOTE(@ideasman42): passing the original mesh in the template is important so mesh settings &
+   * vertex groups are kept, see: #93911. */
+  context->base_mesh = BKE_mesh_new_nomain_from_template(original_mesh, 0, 0, 0, 0);
 
   /* De-select all.
    * The user-selection has been overwritten and this selection has not been flushed. */
