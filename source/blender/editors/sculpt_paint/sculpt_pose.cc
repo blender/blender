@@ -1356,15 +1356,15 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
 
         const int to_face_set = face_sets[grid_to_face_map[to_v.grid_index]];
         if (!visited_face_sets.contains(to_face_set)) {
-          if (face_set::vert_has_unique_face_set(mesh.vert_to_face_map(),
+          if (face_set::vert_has_unique_face_set(mesh.faces(),
                                                  mesh.corner_verts(),
-                                                 mesh.faces(),
+                                                 mesh.vert_to_face_map(),
                                                  face_sets,
                                                  subdiv_ccg,
                                                  to_v) &&
-              !face_set::vert_has_unique_face_set(mesh.vert_to_face_map(),
+              !face_set::vert_has_unique_face_set(mesh.faces(),
                                                   mesh.corner_verts(),
-                                                  mesh.faces(),
+                                                  mesh.vert_to_face_map(),
                                                   face_sets,
                                                   subdiv_ccg,
                                                   from_v) &&

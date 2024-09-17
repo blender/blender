@@ -104,14 +104,14 @@ void ensure_boundary_info(Object &object);
  * Requires #ensure_boundary_info to have been called.
  */
 bool vert_is_boundary(const Object &object, PBVHVertRef vertex);
-bool vert_is_boundary(Span<bool> hide_poly,
-                      GroupedSpan<int> vert_to_face_map,
+bool vert_is_boundary(GroupedSpan<int> vert_to_face_map,
+                      Span<bool> hide_poly,
                       BitSpan boundary,
                       int vert);
-bool vert_is_boundary(const SubdivCCG &subdiv_ccg,
+bool vert_is_boundary(OffsetIndices<int> faces,
                       Span<int> corner_verts,
-                      OffsetIndices<int> faces,
                       BitSpan boundary,
+                      const SubdivCCG &subdiv_ccg,
                       SubdivCCGCoord vert);
 bool vert_is_boundary(BMVert *vert);
 

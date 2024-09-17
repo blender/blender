@@ -222,7 +222,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   float edge_length = 0.0f;
   Vector<int> neighbors;
   for (const int neighbor : vert_neighbors_get_mesh(
-           active_vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+           faces, corner_verts, vert_to_face_map, hide_poly, active_vert, neighbors))
   {
     edge_length += math::distance(active_vert_position, positions[neighbor]);
   }

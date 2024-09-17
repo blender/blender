@@ -75,11 +75,11 @@ static bool is_vert_in_editable_boundary_mesh(const OffsetIndices<int> faces,
 
   Vector<int> neighbors;
   for (const int neighbor : vert_neighbors_get_mesh(
-           initial_vert, faces, corner_verts, vert_to_face, hide_poly, neighbors))
+           faces, corner_verts, vert_to_face, hide_poly, initial_vert, neighbors))
   {
     if (hide_vert.is_empty() || !hide_vert[neighbor]) {
       neighbor_count++;
-      if (boundary::vert_is_boundary(hide_poly, vert_to_face, boundary, neighbor)) {
+      if (boundary::vert_is_boundary(vert_to_face, hide_poly, boundary, neighbor)) {
         boundary_vertex_count++;
       }
     }
@@ -109,7 +109,7 @@ static bool is_vert_in_editable_boundary_grids(const OffsetIndices<int> faces,
   for (const SubdivCCGCoord neighbor : neighbors.coords) {
     if (grid_hidden.is_empty() || !grid_hidden[neighbor.grid_index][neighbor.to_index(key)]) {
       neighbor_count++;
-      if (boundary::vert_is_boundary(subdiv_ccg, corner_verts, faces, boundary, neighbor)) {
+      if (boundary::vert_is_boundary(faces, corner_verts, boundary, subdiv_ccg, neighbor)) {
         boundary_vertex_count++;
       }
     }
@@ -156,7 +156,7 @@ static std::optional<int> get_closest_boundary_vert_mesh(Object &object,
                                                          const int initial_vert,
                                                          const float radius)
 {
-  if (boundary::vert_is_boundary(hide_poly, vert_to_face, boundary, initial_vert)) {
+  if (boundary::vert_is_boundary(vert_to_face, hide_poly, boundary, initial_vert)) {
     return initial_vert;
   }
 
@@ -177,7 +177,7 @@ static std::optional<int> get_closest_boundary_vert_mesh(Object &object,
 
     floodfill_steps[to_v] = floodfill_steps[from_v] + 1;
 
-    if (boundary::vert_is_boundary(hide_poly, vert_to_face, boundary, to_v)) {
+    if (boundary::vert_is_boundary(vert_to_face, hide_poly, boundary, to_v)) {
       if (floodfill_steps[to_v] < boundary_initial_vert_steps) {
         boundary_initial_vert_steps = floodfill_steps[to_v];
         boundary_initial_vert = to_v;
@@ -200,7 +200,7 @@ static std::optional<SubdivCCGCoord> get_closest_boundary_vert_grids(
     const SubdivCCGCoord initial_vert,
     const float radius)
 {
-  if (boundary::vert_is_boundary(subdiv_ccg, corner_verts, faces, boundary, initial_vert)) {
+  if (boundary::vert_is_boundary(faces, corner_verts, boundary, subdiv_ccg, initial_vert)) {
     return initial_vert;
   }
 
@@ -233,7 +233,7 @@ static std::optional<SubdivCCGCoord> get_closest_boundary_vert_grids(
           floodfill_steps[to_v_index] = floodfill_steps[from_v_index] + 1;
         }
 
-        if (boundary::vert_is_boundary(subdiv_ccg, corner_verts, faces, boundary, to_v)) {
+        if (boundary::vert_is_boundary(faces, corner_verts, boundary, subdiv_ccg, to_v)) {
           if (floodfill_steps[to_v_index] < boundary_initial_vert_steps) {
             boundary_initial_vert_steps = floodfill_steps[to_v_index];
             boundary_initial_vert = to_v;
@@ -338,7 +338,7 @@ static void indices_init_mesh(Object &object,
     const float3 from_v_co = vert_positions[from_v];
     const float3 to_v_co = vert_positions[to_v];
 
-    if (!boundary::vert_is_boundary(hide_poly, vert_to_face, boundary_verts, to_v)) {
+    if (!boundary::vert_is_boundary(vert_to_face, hide_poly, boundary_verts, to_v)) {
       return false;
     }
     const float edge_len = len_v3v3(from_v_co, to_v_co);
@@ -378,7 +378,7 @@ static void indices_init_grids(Object &object,
         const float3 &from_v_co = positions[from_v_i];
         const float3 &to_v_co = positions[to_v_i];
 
-        if (!boundary::vert_is_boundary(subdiv_ccg, corner_verts, faces, boundary_verts, to_v)) {
+        if (!boundary::vert_is_boundary(faces, corner_verts, boundary_verts, subdiv_ccg, to_v)) {
           return false;
         }
         const float edge_len = len_v3v3(from_v_co, to_v_co);
@@ -486,7 +486,7 @@ static void edit_data_init_mesh(OffsetIndices<int> faces,
 
       Vector<int> neighbors;
       for (const int neighbor : vert_neighbors_get_mesh(
-               from_v, faces, corner_verts, vert_to_face, hide_poly, neighbors))
+               faces, corner_verts, vert_to_face, hide_poly, from_v, neighbors))
       {
         if ((!hide_vert.is_empty() && hide_vert[from_v]) ||
             boundary.edit_info.propagation_steps_num[neighbor] != BOUNDARY_STEPS_NONE)

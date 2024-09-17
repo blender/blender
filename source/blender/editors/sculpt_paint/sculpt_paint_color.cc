@@ -766,11 +766,11 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
      */
 
     for (const int neigbor : vert_neighbors_get_mesh(
-             vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+             faces, corner_verts, vert_to_face_map, hide_poly, vert, neighbors))
     {
       const float3 &nco = vert_positions[neigbor];
       for (const int neighbor_neighbor : vert_neighbors_get_mesh(
-               vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbor_neighbors))
+               faces, corner_verts, vert_to_face_map, hide_poly, vert, neighbor_neighbors))
       {
         if (neighbor_neighbor == vert) {
           continue;

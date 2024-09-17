@@ -406,7 +406,7 @@ bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex)
       const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
       SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
       return vert_has_unique_face_set(
-          vert_to_face_map, corner_verts, faces, face_sets, *ss.subdiv_ccg, coord);
+          faces, corner_verts, vert_to_face_map, face_sets, *ss.subdiv_ccg, coord);
     }
   }
   return false;
@@ -471,9 +471,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(
   return true;
 }
 
-bool vert_has_unique_face_set(const GroupedSpan<int> vert_to_face_map,
+bool vert_has_unique_face_set(const OffsetIndices<int> faces,
                               const Span<int> corner_verts,
-                              const OffsetIndices<int> faces,
+                              const GroupedSpan<int> vert_to_face_map,
                               const Span<int> face_sets,
                               const SubdivCCG &subdiv_ccg,
                               SubdivCCGCoord coord)
@@ -624,11 +624,11 @@ static void vertex_neighbors_get_faces(const Object &object,
   }
 }
 
-Span<int> vert_neighbors_get_mesh(const int vert,
-                                  const OffsetIndices<int> faces,
+Span<int> vert_neighbors_get_mesh(const OffsetIndices<int> faces,
                                   const Span<int> corner_verts,
                                   const GroupedSpan<int> vert_to_face,
                                   const Span<bool> hide_poly,
+                                  const int vert,
                                   Vector<int> &r_neighbors)
 {
   r_neighbors.clear();
@@ -752,8 +752,8 @@ bool vert_is_boundary(const Object &object, const PBVHVertRef vertex)
   return false;
 }
 
-bool vert_is_boundary(const Span<bool> hide_poly,
-                      const GroupedSpan<int> vert_to_face_map,
+bool vert_is_boundary(const GroupedSpan<int> vert_to_face_map,
+                      const Span<bool> hide_poly,
                       const BitSpan boundary,
                       const int vert)
 {
@@ -763,10 +763,10 @@ bool vert_is_boundary(const Span<bool> hide_poly,
   return boundary[vert].test();
 }
 
-bool vert_is_boundary(const SubdivCCG &subdiv_ccg,
+bool vert_is_boundary(const OffsetIndices<int> faces,
                       const Span<int> corner_verts,
-                      const OffsetIndices<int> faces,
                       const BitSpan boundary,
+                      const SubdivCCG &subdiv_ccg,
                       const SubdivCCGCoord vert)
 {
   /* TODO: Unlike the base mesh implementation this method does NOT take into account face
@@ -7423,7 +7423,7 @@ void calc_vert_neighbors(const OffsetIndices<int> faces,
   BLI_assert(result.size() == verts.size());
   BLI_assert(corner_verts.size() == faces.total_size());
   for (const int i : verts.index_range()) {
-    vert_neighbors_get_mesh(verts[i], faces, corner_verts, vert_to_face, hide_poly, result[i]);
+    vert_neighbors_get_mesh(faces, corner_verts, vert_to_face, hide_poly, verts[i], result[i]);
   }
 }
 
@@ -7482,7 +7482,7 @@ void calc_vert_neighbors_interior(const OffsetIndices<int> faces,
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
     Vector<int> &neighbors = result[i];
-    vert_neighbors_get_mesh(verts[i], faces, corner_verts, vert_to_face, hide_poly, neighbors);
+    vert_neighbors_get_mesh(faces, corner_verts, vert_to_face, hide_poly, verts[i], neighbors);
 
     if (boundary_verts[vert]) {
       if (neighbors.size() == 2) {

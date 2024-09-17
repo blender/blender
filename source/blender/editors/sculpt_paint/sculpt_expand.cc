@@ -468,7 +468,7 @@ static IndexMask boundary_from_enabled(Object &object,
       return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
         Vector<int> neighbors;
         for (const int neighbor : vert_neighbors_get_mesh(
-                 vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+                 faces, corner_verts, vert_to_face_map, hide_poly, vert, neighbors))
         {
           if (!enabled_verts[neighbor]) {
             return true;
@@ -476,7 +476,7 @@ static IndexMask boundary_from_enabled(Object &object,
         }
 
         if (use_mesh_boundary &&
-            boundary::vert_is_boundary(hide_poly, vert_to_face_map, ss.vertex_info.boundary, vert))
+            boundary::vert_is_boundary(vert_to_face_map, hide_poly, ss.vertex_info.boundary, vert))
         {
           return true;
         }
@@ -503,7 +503,7 @@ static IndexMask boundary_from_enabled(Object &object,
 
         if (use_mesh_boundary &&
             boundary::vert_is_boundary(
-                subdiv_ccg, corner_verts, faces, ss.vertex_info.boundary, coord))
+                faces, corner_verts, ss.vertex_info.boundary, subdiv_ccg, coord))
         {
           return true;
         }

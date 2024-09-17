@@ -533,11 +533,11 @@ namespace blender::ed::sculpt_paint {
 Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
 Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
 
-Span<int> vert_neighbors_get_mesh(int vert,
-                                  OffsetIndices<int> faces,
+Span<int> vert_neighbors_get_mesh(OffsetIndices<int> faces,
                                   Span<int> corner_verts,
                                   GroupedSpan<int> vert_to_face,
                                   Span<bool> hide_poly,
+                                  int vert,
                                   Vector<int> &r_neighbors);
 }
 

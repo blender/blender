@@ -220,11 +220,11 @@ void filter_verts_with_unique_face_sets_mesh(const GroupedSpan<int> vert_to_face
   }
 }
 
-void filter_verts_with_unique_face_sets_grids(const GroupedSpan<int> vert_to_face_map,
+void filter_verts_with_unique_face_sets_grids(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
-                                              const OffsetIndices<int> faces,
-                                              const SubdivCCG &subdiv_ccg,
+                                              const GroupedSpan<int> vert_to_face_map,
                                               const Span<int> face_sets,
+                                              const SubdivCCG &subdiv_ccg,
                                               const bool unique,
                                               const Span<int> grids,
                                               const MutableSpan<float> factors)
@@ -247,7 +247,7 @@ void filter_verts_with_unique_face_sets_grids(const GroupedSpan<int> vert_to_fac
         coord.x = x;
         coord.y = y;
         if (unique == face_set::vert_has_unique_face_set(
-                          vert_to_face_map, corner_verts, faces, face_sets, subdiv_ccg, coord))
+                          faces, corner_verts, vert_to_face_map, face_sets, subdiv_ccg, coord))
         {
           factors[node_vert] = 0.0f;
         }
@@ -1334,7 +1334,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
 
   Array<bool> fair_verts(positions.size(), false);
   for (const int vert : positions.index_range()) {
-    if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary_verts, vert)) {
+    if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, boundary_verts, vert)) {
       continue;
     }
     if (!vert_has_face_set(vert_to_face_map, face_sets, vert, active_face_set_id)) {

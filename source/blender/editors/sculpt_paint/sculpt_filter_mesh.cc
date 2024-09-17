@@ -1230,11 +1230,11 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
           scale_factors(factors, strength);
           clamp_factors(factors, 0.0f, 1.0f);
 
-          face_set::filter_verts_with_unique_face_sets_grids(vert_to_face_map,
+          face_set::filter_verts_with_unique_face_sets_grids(faces,
                                                              corner_verts,
-                                                             faces,
-                                                             subdiv_ccg,
+                                                             vert_to_face_map,
                                                              face_sets,
+                                                             subdiv_ccg,
                                                              relax_face_sets,
                                                              grids,
                                                              factors);

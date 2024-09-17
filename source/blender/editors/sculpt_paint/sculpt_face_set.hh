@@ -38,9 +38,9 @@ bool vert_has_face_set(const SubdivCCG &subdiv_ccg, Span<int> face_sets, int gri
 bool vert_has_face_set(int face_set_offset, const BMVert &vert, int face_set);
 bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex);
 bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, int vert);
-bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map,
+bool vert_has_unique_face_set(OffsetIndices<int> faces,
                               Span<int> corner_verts,
-                              OffsetIndices<int> faces,
+                              GroupedSpan<int> vert_to_face_map,
                               Span<int> face_sets,
                               const SubdivCCG &subdiv_ccg,
                               SubdivCCGCoord coord);
@@ -68,11 +68,11 @@ void filter_verts_with_unique_face_sets_mesh(GroupedSpan<int> vert_to_face_map,
                                              bool unique,
                                              Span<int> verts,
                                              MutableSpan<float> factors);
-void filter_verts_with_unique_face_sets_grids(GroupedSpan<int> vert_to_face_map,
+void filter_verts_with_unique_face_sets_grids(OffsetIndices<int> faces,
                                               Span<int> corner_verts,
-                                              OffsetIndices<int> faces,
-                                              const SubdivCCG &subdiv_ccg,
+                                              GroupedSpan<int> vert_to_face_map,
                                               Span<int> face_sets,
+                                              const SubdivCCG &subdiv_ccg,
                                               bool unique,
                                               Span<int> grids,
                                               MutableSpan<float> factors);

@@ -261,11 +261,11 @@ BLI_NOINLINE static void calc_factors_grids(const Depsgraph &depsgraph,
 
   calc_brush_texture_factors(ss, brush, positions, factors);
 
-  face_set::filter_verts_with_unique_face_sets_grids(vert_to_face_map,
+  face_set::filter_verts_with_unique_face_sets_grids(faces,
                                                      corner_verts,
-                                                     faces,
-                                                     subdiv_ccg,
+                                                     vert_to_face_map,
                                                      face_sets,
+                                                     subdiv_ccg,
                                                      relax_face_sets,
                                                      grids,
                                                      factors);

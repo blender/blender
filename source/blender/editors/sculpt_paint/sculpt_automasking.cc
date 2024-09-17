@@ -347,7 +347,7 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
     }
 
     for (const int neighbor : vert_neighbors_get_mesh(
-             current_vert, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+             faces, corner_verts, vert_to_face_map, hide_poly, current_vert, neighbors))
     {
       if (visited_verts.contains(neighbor)) {
         continue;
@@ -763,7 +763,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-      if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary, vert)) {
+      if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, boundary, vert)) {
         factors[i] = 0.0f;
         continue;
       }
@@ -870,7 +870,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-        if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, boundary, vert)) {
+        if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, boundary, vert)) {
           factor = 0.0f;
           continue;
         }
@@ -992,7 +992,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
         if (boundary::vert_is_boundary(
-                subdiv_ccg, corner_verts, faces, boundary, SubdivCCGCoord::from_index(key, vert)))
+                faces, corner_verts, boundary, subdiv_ccg, SubdivCCGCoord::from_index(key, vert)))
         {
           factors[node_vert] = 0.0f;
           continue;
@@ -1004,9 +1004,9 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                       grid_face_set == ss.cache->paint_face_set;
 
-        if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map,
+        if (!ignore && !face_set::vert_has_unique_face_set(faces,
                                                            corner_verts,
-                                                           faces,
+                                                           vert_to_face_map,
                                                            face_sets,
                                                            subdiv_ccg,
                                                            SubdivCCGCoord::from_index(key, vert)))
@@ -1350,7 +1350,7 @@ static void init_boundary_masking_mesh(Object &object,
   for (const int i : IndexRange(num_verts)) {
     switch (mode) {
       case BoundaryAutomaskMode::Edges:
-        if (boundary::vert_is_boundary(hide_poly, vert_to_face_map, ss.vertex_info.boundary, i)) {
+        if (boundary::vert_is_boundary(vert_to_face_map, hide_poly, ss.vertex_info.boundary, i)) {
           edge_distance[i] = 0;
         }
         break;
@@ -1370,7 +1370,7 @@ static void init_boundary_masking_mesh(Object &object,
       }
 
       for (const int neighbor :
-           vert_neighbors_get_mesh(i, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+           vert_neighbors_get_mesh(faces, corner_verts, vert_to_face_map, hide_poly, i, neighbors))
       {
         if (edge_distance[neighbor] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
@@ -1415,14 +1415,14 @@ static void init_boundary_masking_grids(Object &object,
     switch (mode) {
       case BoundaryAutomaskMode::Edges:
         if (boundary::vert_is_boundary(
-                subdiv_ccg, corner_verts, faces, ss.vertex_info.boundary, coord))
+                faces, corner_verts, ss.vertex_info.boundary, subdiv_ccg, coord))
         {
           edge_distance[i] = 0;
         }
         break;
       case BoundaryAutomaskMode::FaceSets:
         if (!face_set::vert_has_unique_face_set(
-                vert_to_face_map, corner_verts, faces, face_sets, subdiv_ccg, coord))
+                faces, corner_verts, vert_to_face_map, face_sets, subdiv_ccg, coord))
         {
           edge_distance[i] = 0;
         }

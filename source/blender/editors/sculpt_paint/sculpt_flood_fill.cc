@@ -269,7 +269,7 @@ void FillDataMesh::execute(Object &object,
     this->queue.pop();
 
     for (const int neighbor : vert_neighbors_get_mesh(
-             from_v, faces, corner_verts, vert_to_face_map, hide_poly, neighbors))
+             faces, corner_verts, vert_to_face_map, hide_poly, from_v, neighbors))
     {
       if (this->visited_verts[neighbor]) {
         continue;
