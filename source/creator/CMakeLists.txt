@@ -148,30 +148,6 @@ set(SRC
   creator_intern.h
 )
 
-# When a source is defined, the map file is generated and may need to be re-generated.
-if(DEFINED PLATFORM_SYMBOLS_MAP)
-  list(APPEND SRC "${PLATFORM_SYMBOLS_MAP}")
-
-  if(DEFINED PLATFORM_SYMBOLS_MAP_SOURCE)
-    add_custom_command(
-      COMMAND
-        "${CMAKE_COMMAND}"
-        -D "PLATFORM_SYMBOLS_MAP_SOURCE=${PLATFORM_SYMBOLS_MAP_SOURCE}"
-        -D "PLATFORM_SYMBOLS_MAP=${PLATFORM_SYMBOLS_MAP}"
-        -D "WITH_LINKER_MOLD=${WITH_LINKER_MOLD}"
-        -D "WITH_LINKER_GOLD=${WITH_LINKER_GOLD}"
-        -D "WITH_LINKER_LLD=${WITH_LINKER_LLD}"
-        -P "${PLATFORM_SYMBOLS_MAP_SOURCE}.cmake"
-      DEPENDS
-        "${PLATFORM_SYMBOLS_MAP_SOURCE}"
-        "${PLATFORM_SYMBOLS_MAP_SOURCE}.cmake"
-      OUTPUT
-        "${PLATFORM_SYMBOLS_MAP}"
-    )
-    set_source_files_properties("${PLATFORM_SYMBOLS_MAP}" PROPERTIES GENERATED TRUE)
-  endif()
-endif()
-
 if(CMAKE_GENERATOR MATCHES "^Visual Studio.+")
   # This helps visual studio find the debugger visualizers
   list(APPEND SRC ${CMAKE_SOURCE_DIR}/tools/utils_ide/natvis/Blender.natvis)
