@@ -424,7 +424,10 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
 
 namespace blender::ed::sculpt_paint {
 
-void geometry_preview_lines_update(bContext *C, SculptSession &ss, float radius);
+void geometry_preview_lines_update(Depsgraph &depsgraph,
+                                   Object &object,
+                                   SculptSession &ss,
+                                   float radius);
 
 }
 

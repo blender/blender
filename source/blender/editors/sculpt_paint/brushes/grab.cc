@@ -266,4 +266,70 @@ void do_grab_brush(const Depsgraph &depsgraph,
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
+void geometry_preview_lines_update(Depsgraph &depsgraph,
+                                   Object &object,
+                                   SculptSession &ss,
+                                   float radius)
+{
+  ss.preview_verts = {};
+
+  /* This function is called from the cursor drawing code, so the tree may not be built yet. */
+  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object);
+  if (!pbvh) {
+    return;
+  }
+
+  if (!ss.deform_modifiers_active) {
+    return;
+  }
+
+  if (pbvh->type() != bke::pbvh::Type::Mesh) {
+    return;
+  }
+
+  BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
+
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  /* Always grab active shape key if the sculpt happens on shapekey. */
+  const Span<float3> positions = ss.shapekey_active ?
+                                     bke::pbvh::vert_positions_eval(depsgraph, object) :
+                                     mesh.vert_positions();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+
+  const int active_vert = std::get<int>(ss.active_vert());
+  const float3 brush_co = positions[active_vert];
+  const float radius_sq = radius * radius;
+
+  Vector<int> preview_verts;
+  Vector<int> neighbors;
+  BitVector<> visited_verts(positions.size());
+  std::queue<int> queue;
+  queue.push(active_vert);
+  while (!queue.empty()) {
+    const int from_vert = queue.front();
+    queue.pop();
+
+    neighbors.clear();
+    for (const int neighbor : vert_neighbors_get_mesh(
+             faces, corner_verts, vert_to_face_map, hide_poly, from_vert, neighbors))
+    {
+      preview_verts.append(from_vert);
+      preview_verts.append(neighbor);
+      if (visited_verts[neighbor]) {
+        continue;
+      }
+      visited_verts[neighbor].set();
+      if (math::distance_squared(brush_co, positions[neighbor]) < radius_sq) {
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  ss.preview_verts = preview_verts.as_span();
+}
+
 }  // namespace blender::ed::sculpt_paint

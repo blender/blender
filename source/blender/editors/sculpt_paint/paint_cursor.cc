@@ -1874,7 +1874,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB &&
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
-    geometry_preview_lines_update(pcontext->C, *pcontext->ss, pcontext->radius);
+    geometry_preview_lines_update(
+        *pcontext->depsgraph, *pcontext->vc.obact, *pcontext->ss, pcontext->radius);
     sculpt_geometry_preview_lines_draw(
         *pcontext->depsgraph, pcontext->pos, *pcontext->brush, active_object);
   }
