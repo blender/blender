@@ -481,11 +481,6 @@ const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
                                   const Object &object,
                                   PBVHVertRef vertex);
 
-/** Get the normal for a given sculpt vertex; do not modify the result */
-const blender::float3 SCULPT_vertex_normal_get(const Depsgraph &depsgraph,
-                                               const Object &object,
-                                               PBVHVertRef vertex);
-
 bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
                                const Object &object,
                                const blender::float3 &position,

@@ -183,29 +183,6 @@ const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
   return nullptr;
 }
 
-const blender::float3 SCULPT_vertex_normal_get(const Depsgraph &depsgraph,
-                                               const Object &object,
-                                               PBVHVertRef vertex)
-{
-  const SculptSession &ss = *object.sculpt;
-  switch (blender::bke::object::pbvh_get(object)->type()) {
-    case blender::bke::pbvh::Type::Mesh: {
-      const Span<float3> vert_normals = blender::bke::pbvh::vert_normals_eval(depsgraph, object);
-      return vert_normals[vertex.i];
-    }
-    case blender::bke::pbvh::Type::BMesh: {
-      BMVert *v = (BMVert *)vertex.i;
-      return v->no;
-    }
-    case blender::bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      return subdiv_ccg.normals[vertex.i];
-    }
-  }
-  BLI_assert_unreachable();
-  return {};
-}
-
 namespace blender::ed::sculpt_paint {
 
 Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object)
