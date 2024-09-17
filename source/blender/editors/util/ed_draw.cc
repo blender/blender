@@ -426,7 +426,7 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
 
 tSlider *ED_slider_create(bContext *C)
 {
-  tSlider *slider = static_cast<tSlider *>(MEM_callocN(sizeof(tSlider), "tSlider"));
+  tSlider *slider = MEM_new<tSlider>(__func__);
   slider->scene = CTX_data_scene(C);
   slider->area = CTX_wm_area(C);
   slider->region_header = CTX_wm_region(C);
@@ -558,7 +558,7 @@ void ED_slider_destroy(bContext *C, tSlider *slider)
   }
   ED_area_status_text(slider->area, nullptr);
   ED_workspace_status_text(C, nullptr);
-  MEM_freeN(slider);
+  MEM_delete(slider);
 }
 
 /* Setters & Getters */
