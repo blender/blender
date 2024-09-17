@@ -808,10 +808,10 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
 
 /* ----- ActionLayer implementation ----------- */
 
-Layer &Layer::duplicate_with_shallow_strip_copies(const StringRefNull allocation_name) const
+Layer *Layer::duplicate_with_shallow_strip_copies(const StringRefNull allocation_name) const
 {
-  Layer *copy = MEM_new<Layer>(allocation_name.c_str());
-  memcpy(copy, this, sizeof(*this));
+  ActionLayer *copy = MEM_cnew<ActionLayer>(allocation_name.c_str());
+  *copy = *reinterpret_cast<const ActionLayer *>(this);
 
   /* Make a shallow copy of the Strips, without copying their data. */
   copy->strip_array = MEM_cnew_array<ActionStrip *>(this->strip_array_num,
@@ -821,7 +821,7 @@ Layer &Layer::duplicate_with_shallow_strip_copies(const StringRefNull allocation
     copy->strip_array[i] = strip_copy;
   }
 
-  return *copy;
+  return &copy->wrap();
 }
 
 Layer::~Layer()

@@ -500,7 +500,7 @@ class Layer : public ::ActionLayer {
    * for efficiency. This method's applications are narrow and you probably
    * shouldn't use it unless you really know what you're doing.
    */
-  Layer &duplicate_with_shallow_strip_copies(StringRefNull allocation_name) const;
+  Layer *duplicate_with_shallow_strip_copies(StringRefNull allocation_name) const;
 
   enum class Flags : uint8_t {
     /* Set by default, cleared to mute. */

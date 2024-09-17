@@ -162,8 +162,7 @@ static void action_copy_data(Main * /*bmain*/,
   /* Layers, and (recursively) Strips. */
   action_dst.layer_array = MEM_cnew_array<ActionLayer *>(action_src.layer_array_num, __func__);
   for (int i : action_src.layers().index_range()) {
-    action_dst.layer_array[i] = &action_src.layer(i)->duplicate_with_shallow_strip_copies(
-        __func__);
+    action_dst.layer_array[i] = action_src.layer(i)->duplicate_with_shallow_strip_copies(__func__);
   }
 
   /* Strip data. */
