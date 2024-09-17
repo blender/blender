@@ -97,7 +97,6 @@ void wm_window_reset_drawable();
 void wm_window_raise(wmWindow *win);
 void wm_window_lower(wmWindow *win);
 void wm_window_set_size(wmWindow *win, int width, int height);
-void wm_window_get_position(wmWindow *win, int *r_pos_x, int *r_pos_y);
 /**
  * \brief Push rendered buffer to the screen.
  */

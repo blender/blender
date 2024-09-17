@@ -2533,12 +2533,6 @@ void WM_progress_clear(wmWindow *win)
 /** \name Window Position/Size (internal)
  * \{ */
 
-void wm_window_get_position(wmWindow *win, int *r_pos_x, int *r_pos_y)
-{
-  *r_pos_x = win->posx;
-  *r_pos_y = win->posy;
-}
-
 void wm_window_set_size(wmWindow *win, int width, int height)
 {
   GHOST_SetClientSize(static_cast<GHOST_WindowHandle>(win->ghostwin), width, height);
