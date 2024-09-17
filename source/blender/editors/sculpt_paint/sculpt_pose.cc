@@ -1163,17 +1163,17 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
 
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup_or_default<int>(
           ".sculpt_face_set", bke::AttrDomain::Face, 0);
 
       for (const int vert : vert_positions.index_range()) {
         if (floodfill_step[vert] != 0 &&
-            face_set::vert_has_face_set(
-                mesh.vert_to_face_map(), face_sets, vert, active_face_set) &&
-            face_set::vert_has_face_set(mesh.vert_to_face_map(), face_sets, vert, target_face_set))
+            face_set::vert_has_face_set(vert_to_face_map, face_sets, vert, active_face_set) &&
+            face_set::vert_has_face_set(vert_to_face_map, face_sets, vert, target_face_set))
         {
           sum += vert_positions[vert];
           count++;
@@ -1182,10 +1182,10 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
-      MutableSpan<float3> positions = subdiv_ccg.positions;
+      const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const Span<float3> positions = subdiv_ccg.positions;
 
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *static_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup_or_default<int>(
           ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -1237,7 +1237,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
                                                                 const float radius,
                                                                 const float3 &initial_location)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan face_sets = *attributes.lookup_or_default<int>(
       ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -1258,14 +1259,14 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   int masked_face_set_it = 0;
   flood_fill::FillDataMesh step_floodfill(mesh.verts_num);
   step_floodfill.add_initial(active_vert);
-  step_floodfill.execute(object, mesh.vert_to_face_map(), [&](int from_v, int to_v) {
+  step_floodfill.execute(object, vert_to_face_map, [&](int from_v, int to_v) {
     floodfill_step[to_v] = floodfill_step[from_v] + 1;
 
-    const int to_face_set = face_set::vert_face_set_get(mesh.vert_to_face_map(), face_sets, to_v);
+    const int to_face_set = face_set::vert_face_set_get(vert_to_face_map, face_sets, to_v);
     if (!visited_face_sets.contains(to_face_set)) {
-      if (face_set::vert_has_unique_face_set(mesh.vert_to_face_map(), face_sets, to_v) &&
-          !face_set::vert_has_unique_face_set(mesh.vert_to_face_map(), face_sets, from_v) &&
-          face_set::vert_has_face_set(mesh.vert_to_face_map(), face_sets, from_v, to_face_set))
+      if (face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, to_v) &&
+          !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, from_v) &&
+          face_set::vert_has_face_set(vert_to_face_map, face_sets, from_v, to_face_set))
       {
 
         visited_face_sets.add(to_face_set);
@@ -1281,7 +1282,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
       }
     }
 
-    return face_set::vert_has_face_set(mesh.vert_to_face_map(), face_sets, to_v, active_face_set);
+    return face_set::vert_has_face_set(vert_to_face_map, face_sets, to_v, active_face_set);
   });
 
   const std::optional<float3> origin = calc_average_face_set_center(
@@ -1300,9 +1301,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   flood_fill::FillDataMesh weight_floodfill(mesh.verts_num);
   weight_floodfill.add_initial_with_symmetry(depsgraph, object, pbvh, active_vert, radius);
   MutableSpan<float> fk_weights = ik_chain->segments[0].weights;
-  weight_floodfill.execute(object, mesh.vert_to_face_map(), [&](int /*from_v*/, int to_v) {
+  weight_floodfill.execute(object, vert_to_face_map, [&](int /*from_v*/, int to_v) {
     fk_weights[to_v] = 1.0f;
-    return !face_set::vert_has_face_set(mesh.vert_to_face_map(), face_sets, to_v, masked_face_set);
+    return !face_set::vert_has_face_set(vert_to_face_map, face_sets, to_v, masked_face_set);
   });
 
   ik_chain_origin_heads_init(*ik_chain, ik_chain->segments[0].head);
@@ -1316,6 +1317,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
                                                                  const float3 &initial_location)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan face_sets = *attributes.lookup_or_default<int>(
       ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -1356,18 +1360,10 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
 
         const int to_face_set = face_sets[grid_to_face_map[to_v.grid_index]];
         if (!visited_face_sets.contains(to_face_set)) {
-          if (face_set::vert_has_unique_face_set(mesh.faces(),
-                                                 mesh.corner_verts(),
-                                                 mesh.vert_to_face_map(),
-                                                 face_sets,
-                                                 subdiv_ccg,
-                                                 to_v) &&
-              !face_set::vert_has_unique_face_set(mesh.faces(),
-                                                  mesh.corner_verts(),
-                                                  mesh.vert_to_face_map(),
-                                                  face_sets,
-                                                  subdiv_ccg,
-                                                  from_v) &&
+          if (face_set::vert_has_unique_face_set(
+                  faces, corner_verts, vert_to_face_map, face_sets, subdiv_ccg, to_v) &&
+              !face_set::vert_has_unique_face_set(
+                  faces, corner_verts, vert_to_face_map, face_sets, subdiv_ccg, from_v) &&
               face_set::vert_has_face_set(subdiv_ccg, face_sets, from_v.grid_index, to_face_set))
           {
 
