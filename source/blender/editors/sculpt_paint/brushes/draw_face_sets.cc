@@ -4,6 +4,7 @@
 
 #include "editors/sculpt_paint/brushes/types.hh"
 #include "editors/sculpt_paint/mesh_brush_common.hh"
+#include "editors/sculpt_paint/sculpt_automask.hh"
 
 #include "DNA_brush_types.h"
 

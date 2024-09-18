@@ -29,6 +29,7 @@
 #include "bmesh.hh"
 
 #include "mesh_brush_common.hh"
+#include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::paint::image {

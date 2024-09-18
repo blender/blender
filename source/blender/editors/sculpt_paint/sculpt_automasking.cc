@@ -30,6 +30,7 @@
 
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_automask.hh"
 #include "sculpt_boundary.hh"
 #include "sculpt_dyntopo.hh"
 #include "sculpt_face_set.hh"

@@ -100,6 +100,7 @@
 
 #include "editors/sculpt_paint/brushes/types.hh"
 #include "mesh_brush_common.hh"
+#include "sculpt_automask.hh"
 
 using blender::float3;
 using blender::MutableSpan;

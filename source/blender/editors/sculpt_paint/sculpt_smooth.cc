@@ -22,6 +22,7 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "mesh_brush_common.hh"
+#include "sculpt_automask.hh"
 #include "sculpt_color.hh"
 #include "sculpt_face_set.hh"
 #include "sculpt_hide.hh"

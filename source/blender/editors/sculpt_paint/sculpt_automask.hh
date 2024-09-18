@@ -11,16 +11,24 @@
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_offset_indices.hh"
+#include "BLI_set.hh"
 #include "BLI_sys_types.h"
 
 #include "DNA_brush_enums.h"
 
+struct BMVert;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct Object;
 struct Sculpt;
 struct SculptSession;
+namespace blender::bke::pbvh {
+struct MeshNode;
+struct GridsNode;
+struct BMeshNode;
+}  // namespace blender::bke::pbvh
 
 namespace blender::ed::sculpt_paint::auto_mask {
 
@@ -95,5 +103,72 @@ bool is_enabled(const Sculpt &sd, const Object &object, const Brush *br);
 bool needs_normal(const SculptSession &ss, const Sculpt &sd, const Brush *brush);
 
 bool brush_type_can_reuse_automask(int sculpt_brush_type);
+
+/**
+ * Calculate all auto-masking influence on each vertex.
+ */
+void calc_vert_factors(const Depsgraph &depsgraph,
+                       const Object &object,
+                       const Cache &cache,
+                       const bke::pbvh::MeshNode &node,
+                       Span<int> verts,
+                       MutableSpan<float> factors);
+inline void calc_vert_factors(const Depsgraph &depsgraph,
+                              const Object &object,
+                              const Cache *cache,
+                              const bke::pbvh::MeshNode &node,
+                              Span<int> verts,
+                              MutableSpan<float> factors)
+{
+  if (cache) {
+    calc_vert_factors(depsgraph, object, *cache, node, verts, factors);
+  }
+}
+void calc_grids_factors(const Depsgraph &depsgraph,
+                        const Object &object,
+                        const Cache &cache,
+                        const bke::pbvh::GridsNode &node,
+                        Span<int> grids,
+                        MutableSpan<float> factors);
+inline void calc_grids_factors(const Depsgraph &depsgraph,
+                               const Object &object,
+                               const Cache *cache,
+                               const bke::pbvh::GridsNode &node,
+                               Span<int> grids,
+                               MutableSpan<float> factors)
+{
+  if (cache) {
+    calc_grids_factors(depsgraph, object, *cache, node, grids, factors);
+  }
+}
+void calc_vert_factors(const Depsgraph &depsgraph,
+                       const Object &object,
+                       const Cache &cache,
+                       const bke::pbvh::BMeshNode &node,
+                       const Set<BMVert *, 0> &verts,
+                       MutableSpan<float> factors);
+inline void calc_vert_factors(const Depsgraph &depsgraph,
+                              const Object &object,
+                              const Cache *cache,
+                              const bke::pbvh::BMeshNode &node,
+                              const Set<BMVert *, 0> &verts,
+                              MutableSpan<float> factors)
+{
+  if (cache) {
+    calc_vert_factors(depsgraph, object, *cache, node, verts, factors);
+  }
+}
+
+/**
+ * Calculate all auto-masking influence on each face.
+ */
+void calc_face_factors(const Depsgraph &depsgraph,
+                       const Object &object,
+                       OffsetIndices<int> faces,
+                       Span<int> corner_verts,
+                       const Cache &cache,
+                       const bke::pbvh::MeshNode &node,
+                       Span<int> face_indices,
+                       MutableSpan<float> factors);
 
 }  // namespace blender::ed::sculpt_paint::auto_mask

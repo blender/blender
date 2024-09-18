@@ -26,6 +26,7 @@
 #include "brushes/types.hh"
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh"
+#include "sculpt_automask.hh"
 #include "sculpt_cloth.hh"
 #include "sculpt_flood_fill.hh"
 #include "sculpt_intern.hh"
