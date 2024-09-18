@@ -2374,7 +2374,7 @@ static bool id_order_compare(ID *a, ID *b)
     }
   }
 
-  return strcmp(a->name, b->name) <= 0;
+  return strcmp(a->name, b->name) < 0;
 }
 
 Vector<ID *> BKE_id_ordered_list(const ListBase *lb)
