@@ -716,6 +716,8 @@ static void wm_window_ensure_eventstate(wmWindow *win)
   wm_window_update_eventstate(win);
 }
 
+static bool wm_window_update_size_position(wmWindow *win);
+
 /* Belongs to below. */
 static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       const char *title,
@@ -779,17 +781,12 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     wm_window_ensure_eventstate(win);
 
     /* Store actual window size in blender window. */
-    GHOST_RectangleHandle bounds = GHOST_GetClientBounds(
-        static_cast<GHOST_WindowHandle>(win->ghostwin));
-
     /* WIN32: gives undefined window size when minimized. */
     if (GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) !=
         GHOST_kWindowStateMinimized)
     {
-      win->sizex = GHOST_GetWidthRectangle(bounds);
-      win->sizey = GHOST_GetHeightRectangle(bounds);
+      wm_window_update_size_position(win);
     }
-    GHOST_DisposeRectangle(bounds);
 
 #ifndef __APPLE__
     /* Set the state here, so minimized state comes up correct on windows. */
