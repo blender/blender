@@ -2442,6 +2442,9 @@ static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
     if (ob == obact) {
       continue;
     }
+    if (!ID_IS_EDITABLE(ob)) {
+      continue;
+    }
     if (modifier_copy_to_object(bmain, scene, obact, md, ob, op->reports)) {
       WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, ob);
       num_copied++;
