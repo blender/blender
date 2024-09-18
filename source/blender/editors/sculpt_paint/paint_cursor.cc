@@ -1838,16 +1838,28 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   /* Expand operation origin. */
   if (pcontext->ss->expand_cache) {
+    const int vert = pcontext->ss->expand_cache->initial_active_vert;
+
+    float3 position;
+    switch (bke::object::pbvh_get(active_object)->type()) {
+      case bke::pbvh::Type::Mesh: {
+        const Span positions = bke::pbvh::vert_positions_eval(*pcontext->depsgraph, active_object);
+        position = positions[vert];
+        break;
+      }
+      case bke::pbvh::Type::Grids: {
+        const SubdivCCG &subdiv_ccg = *pcontext->ss->subdiv_ccg;
+        position = subdiv_ccg.positions[vert];
+        break;
+      }
+      case bke::pbvh::Type::BMesh: {
+        BMesh &bm = *pcontext->ss->bm;
+        position = BM_vert_at_index(&bm, vert)->co;
+        break;
+      }
+    }
     cursor_draw_point_screen_space(
-        pcontext->pos,
-        pcontext->region,
-        SCULPT_vertex_co_get(
-            *pcontext->depsgraph,
-            active_object,
-            BKE_pbvh_index_to_vertex(*pcontext->vc.obact,
-                                     pcontext->ss->expand_cache->initial_active_vert)),
-        active_object.object_to_world().ptr(),
-        2);
+        pcontext->pos, pcontext->region, position, active_object.object_to_world().ptr(), 2);
   }
 
   if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
