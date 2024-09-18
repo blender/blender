@@ -165,24 +165,6 @@ int SCULPT_vertex_count_get(const Object &object)
   return 0;
 }
 
-const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
-                                  const Object &object,
-                                  PBVHVertRef vertex)
-{
-  const SculptSession &ss = *object.sculpt;
-  switch (blender::bke::object::pbvh_get(object)->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      return blender::bke::pbvh::vert_positions_eval(depsgraph, object)[vertex.i];
-    case blender::bke::pbvh::Type::BMesh:
-      return ((BMVert *)vertex.i)->co;
-    case blender::bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      return subdiv_ccg.positions[vertex.i];
-    }
-  }
-  return nullptr;
-}
-
 namespace blender::ed::sculpt_paint {
 
 Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object)
@@ -245,44 +227,6 @@ int active_face_set_get(const Object &object)
 }  // namespace face_set
 
 namespace face_set {
-
-int vert_face_set_get(const Object &object, PBVHVertRef vertex)
-{
-  const SculptSession &ss = *object.sculpt;
-  switch (bke::object::pbvh_get(object)->type()) {
-    case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-      if (!face_sets) {
-        return SCULPT_FACE_SET_NONE;
-      }
-      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      int face_set = 0;
-      for (const int face_index : vert_to_face_map[vertex.i]) {
-        if (face_sets[face_index] > face_set) {
-          face_set = face_sets[face_index];
-        }
-      }
-      return face_set;
-    }
-    case bke::pbvh::Type::BMesh:
-      return 0;
-    case bke::pbvh::Type::Grids: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
-      if (!face_sets) {
-        return SCULPT_FACE_SET_NONE;
-      }
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-      const int grid_index = vertex.i / key.grid_area;
-      const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg, grid_index);
-      return face_sets[face_index];
-    }
-  }
-  return 0;
-}
 
 int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
                       const Span<int> face_sets,

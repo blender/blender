@@ -23,11 +23,6 @@ struct Object;
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-struct FillData {
-  std::queue<PBVHVertRef> queue;
-  BitVector<> visited_verts;
-};
-
 struct FillDataMesh {
   std::queue<int> queue;
   BitVector<> visited_verts;
@@ -79,9 +74,5 @@ struct FillDataBMesh {
                                  float radius);
   void execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
 };
-
-void execute(Object &object,
-             FillData &flood,
-             FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func);
 
 }  // namespace blender::ed::sculpt_paint::flood_fill

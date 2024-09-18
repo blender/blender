@@ -506,9 +506,6 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 void SCULPT_vertex_random_access_ensure(Object &object);
 
 int SCULPT_vertex_count_get(const Object &object);
-const float *SCULPT_vertex_co_get(const Depsgraph &depsgraph,
-                                  const Object &object,
-                                  PBVHVertRef vertex);
 
 bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
                                const Object &object,
