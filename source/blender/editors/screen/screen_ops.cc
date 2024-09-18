@@ -4155,6 +4155,11 @@ static void area_join_cancel(bContext *C, wmOperator *op)
 /* modal callback while selecting area (space) that will be removed */
 static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  if (event->type == WINDEACTIVATE) {
+    /* This operator can close windows, which can cause it to be re-run. */
+    return OPERATOR_FINISHED;
+  }
+
   if (op->customdata == nullptr) {
     if (!area_join_init(C, op, nullptr, nullptr)) {
       return OPERATOR_CANCELLED;
