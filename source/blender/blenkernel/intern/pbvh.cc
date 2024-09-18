@@ -2729,18 +2729,3 @@ IndexMask search_nodes(const Tree &pbvh,
 }
 
 }  // namespace blender::bke::pbvh
-
-PBVHVertRef BKE_pbvh_index_to_vertex(const Object &object, int index)
-{
-  const SculptSession &ss = *object.sculpt;
-  const blender::bke::pbvh::Tree &pbvh = *blender::bke::object::pbvh_get(object);
-  switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Mesh:
-    case blender::bke::pbvh::Type::Grids:
-      return BKE_pbvh_make_vref(index);
-    case blender::bke::pbvh::Type::BMesh:
-      return BKE_pbvh_make_vref(intptr_t(BM_vert_at_index(ss.bm, index)));
-  }
-
-  return BKE_pbvh_make_vref(PBVH_REF_NONE);
-}

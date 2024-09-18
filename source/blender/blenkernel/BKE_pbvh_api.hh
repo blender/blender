@@ -281,20 +281,12 @@ struct PBVHFrustumPlanes {
   int num_planes;
 };
 
-BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
-{
-  PBVHVertRef ret = {i};
-  return ret;
-}
-
 BLI_INLINE int BKE_pbvh_vertex_to_index(const blender::bke::pbvh::Tree &pbvh, PBVHVertRef v)
 {
   return (pbvh.type() == blender::bke::pbvh::Type::BMesh && v.i != PBVH_REF_NONE ?
               BM_elem_index_get((BMVert *)(v.i)) :
               (v.i));
 }
-
-PBVHVertRef BKE_pbvh_index_to_vertex(const Object &object, int index);
 
 /* Callbacks */
 

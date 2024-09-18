@@ -21,7 +21,6 @@ struct Brush;
 struct BMVert;
 struct Depsgraph;
 struct Object;
-struct PBVHVertRef;
 struct SculptBoundaryPreview;
 struct SculptSession;
 struct SubdivCCG;
@@ -103,7 +102,6 @@ void ensure_boundary_info(Object &object);
  *
  * Requires #ensure_boundary_info to have been called.
  */
-bool vert_is_boundary(const Object &object, PBVHVertRef vertex);
 bool vert_is_boundary(GroupedSpan<int> vert_to_face_map,
                       Span<bool> hide_poly,
                       BitSpan boundary,

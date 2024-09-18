@@ -18,7 +18,6 @@
 struct BMVert;
 struct Mesh;
 struct Object;
-struct PBVHVertRef;
 struct SubdivCCG;
 struct SubdivCCGCoord;
 
@@ -29,14 +28,12 @@ int vert_face_set_get(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, in
 int vert_face_set_get(const SubdivCCG &subdiv_ccg, Span<int> face_sets, int grid);
 int vert_face_set_get(int face_set_offset, const BMVert &vert);
 
-bool vert_has_face_set(const Object &object, PBVHVertRef vertex, int face_set);
 bool vert_has_face_set(GroupedSpan<int> vert_to_face_map,
                        Span<int> face_sets,
                        int vert,
                        int face_set);
 bool vert_has_face_set(const SubdivCCG &subdiv_ccg, Span<int> face_sets, int grid, int face_set);
 bool vert_has_face_set(int face_set_offset, const BMVert &vert, int face_set);
-bool vert_has_unique_face_set(const Object &object, PBVHVertRef vertex);
 bool vert_has_unique_face_set(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, int vert);
 bool vert_has_unique_face_set(OffsetIndices<int> faces,
                               Span<int> corner_verts,

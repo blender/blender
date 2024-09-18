@@ -43,21 +43,8 @@ enum PBVHNodeFlags {
 };
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
-/* A few C++ methods to play nice with sets and maps. */
-#define PBVH_REF_CXX_METHODS(Class) \
-  bool operator==(const Class b) const \
-  { \
-    return i == b.i; \
-  } \
-  uint64_t hash() const \
-  { \
-    return i; \
-  }
-
 struct PBVHVertRef {
   intptr_t i;
-
-  PBVH_REF_CXX_METHODS(PBVHVertRef)
 };
 
 #define PBVH_REF_NONE -1LL
