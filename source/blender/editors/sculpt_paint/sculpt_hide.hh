@@ -14,7 +14,6 @@
 
 struct BMVert;
 struct Object;
-struct PBVHVertRef;
 struct SubdivCCG;
 struct SubdivCCGCoord;
 namespace blender::bke::pbvh {

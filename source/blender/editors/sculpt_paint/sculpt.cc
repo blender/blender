@@ -831,41 +831,6 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
   return nearest.vert;
 }
 
-PBVHVertRef nearest_vert_calc(const Depsgraph &depsgraph,
-                              const Object &object,
-                              const float3 &location,
-                              const float max_distance,
-                              const bool use_original)
-{
-  const SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  switch (pbvh.type()) {
-    case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-      const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-      const std::optional<int> nearest = nearest_vert_calc_mesh(
-          pbvh, vert_positions, hide_vert, location, max_distance, use_original);
-      return nearest ? PBVHVertRef{*nearest} : PBVHVertRef{PBVH_REF_NONE};
-    }
-    case bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
-          pbvh, subdiv_ccg, location, max_distance, use_original);
-      return nearest ? PBVHVertRef{nearest->to_index(key)} : PBVHVertRef{PBVH_REF_NONE};
-    }
-    case bke::pbvh::Type::BMesh: {
-      const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
-          pbvh, location, max_distance, use_original);
-      return nearest ? PBVHVertRef{intptr_t(*nearest)} : PBVHVertRef{PBVH_REF_NONE};
-    }
-  }
-  BLI_assert_unreachable();
-  return BKE_pbvh_make_vref(PBVH_REF_NONE);
-}
-
 }  // namespace blender::ed::sculpt_paint
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
