@@ -12,6 +12,7 @@
 #include "gpu_vertex_format_private.hh"
 
 #include "BLI_color.hh"
+#include "BLI_math_half.hh"
 
 namespace blender::gpu {
 
@@ -802,12 +803,12 @@ void convert(DestinationType &dst, const SourceType &src)
 
 static void convert(F16 &dst, const F32 &src)
 {
-  dst.value = convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(src.value));
+  dst.value = math::float_to_half(src.value);
 }
 
 static void convert(F32 &dst, const F16 &src)
 {
-  dst.value = uint32_t_to_float(convert_float_formats<FormatF32, FormatF16>(src.value));
+  dst.value = math::half_to_float(src.value);
 }
 
 static void convert(SRGBA8 &dst, const FLOAT4 &src)
@@ -822,17 +823,17 @@ static void convert(FLOAT4 &dst, const SRGBA8 &src)
 
 static void convert(FLOAT3 &dst, const HALF4 &src)
 {
-  dst.value.x = uint32_t_to_float(convert_float_formats<FormatF32, FormatF16>(src.get_r()));
-  dst.value.y = uint32_t_to_float(convert_float_formats<FormatF32, FormatF16>(src.get_g()));
-  dst.value.z = uint32_t_to_float(convert_float_formats<FormatF32, FormatF16>(src.get_b()));
+  dst.value.x = math::half_to_float(src.get_r());
+  dst.value.y = math::half_to_float(src.get_g());
+  dst.value.z = math::half_to_float(src.get_b());
 }
 
 static void convert(HALF4 &dst, const FLOAT3 &src)
 {
-  dst.set_r(convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(src.value.x)));
-  dst.set_g(convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(src.value.y)));
-  dst.set_b(convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(src.value.z)));
-  dst.set_a(convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(1.0f)));
+  dst.set_r(math::float_to_half(src.value.x));
+  dst.set_g(math::float_to_half(src.value.y));
+  dst.set_b(math::float_to_half(src.value.z));
+  dst.set_a(0x3c00); /* FP16 1.0 */
 }
 
 static void convert(FLOAT3 &dst, const FLOAT4 &src)
