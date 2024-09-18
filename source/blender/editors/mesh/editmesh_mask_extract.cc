@@ -194,7 +194,7 @@ static int geometry_extract_apply(bContext *C,
   new_mesh->attributes_for_write().remove(".sculpt_mask");
 
   BKE_editmesh_free_data(em);
-  MEM_freeN(em);
+  MEM_delete(em);
 
   if (new_mesh->verts_num == 0) {
     BKE_id_free(bmain, new_mesh);
