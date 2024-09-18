@@ -27,6 +27,7 @@ namespace blender::ed::sculpt_paint::face_set {
 int active_face_set_get(const Object &object);
 int vert_face_set_get(const Object &object, PBVHVertRef vertex);
 int vert_face_set_get(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, int vert);
+int vert_face_set_get(const SubdivCCG &subdiv_ccg, Span<int> face_sets, int grid);
 int vert_face_set_get(int face_set_offset, const BMVert &vert);
 
 bool vert_has_face_set(const Object &object, PBVHVertRef vertex, int face_set);

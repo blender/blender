@@ -19,19 +19,6 @@
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-FillData init_fill(Object &object)
-{
-  SCULPT_vertex_random_access_ensure(object);
-  FillData data;
-  data.visited_verts.resize(SCULPT_vertex_count_get(object));
-  return data;
-}
-
-void add_initial(FillData &flood, PBVHVertRef vertex)
-{
-  flood.queue.push(vertex);
-}
-
 void FillDataMesh::add_initial(const int vertex)
 {
   this->queue.push(vertex);
@@ -45,12 +32,6 @@ void FillDataGrids::add_initial(const SubdivCCGCoord vertex)
 void FillDataBMesh::add_initial(BMVert *vertex)
 {
   this->queue.push(vertex);
-}
-
-void add_and_skip_initial(FillData &flood, PBVHVertRef vertex)
-{
-  flood.queue.push(vertex);
-  flood.visited_verts[vertex.i].set(vertex.i);
 }
 
 void FillDataMesh::add_and_skip_initial(const int vertex)
@@ -69,44 +50,6 @@ void FillDataBMesh::add_and_skip_initial(BMVert *vertex, const int index)
 {
   this->queue.push(vertex);
   this->visited_verts[index].set();
-}
-
-void add_initial_with_symmetry(const Depsgraph &depsgraph,
-                               const Object &ob,
-                               FillData &flood,
-                               PBVHVertRef vertex,
-                               const float radius)
-{
-  if (radius <= 0.0f) {
-    if (vertex.i != PBVH_REF_NONE) {
-      add_initial(flood, vertex);
-    }
-    return;
-  }
-
-  /* Add active vertex and symmetric vertices to the queue. */
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  for (char i = 0; i <= symm; ++i) {
-    if (!SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      continue;
-    }
-    PBVHVertRef v = {PBVH_REF_NONE};
-
-    if (i == 0) {
-      v = vertex;
-    }
-    else {
-      BLI_assert(radius > 0.0f);
-      const float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
-      float3 location = symmetry_flip(SCULPT_vertex_co_get(depsgraph, ob, vertex),
-                                      ePaintSymmetryFlags(i));
-      v = nearest_vert_calc(depsgraph, ob, location, radius_squared, false);
-    }
-
-    if (v.i != PBVH_REF_NONE) {
-      add_initial(flood, v);
-    }
-  }
 }
 
 void FillDataMesh::add_initial_with_symmetry(const Depsgraph &depsgraph,
@@ -216,38 +159,6 @@ void FillDataBMesh::add_initial_with_symmetry(const Object &object,
     if (vert_to_add) {
       this->add_initial(*vert_to_add);
     }
-  }
-}
-
-void execute(Object &object,
-             FillData &flood,
-             FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func)
-{
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  while (!flood.queue.empty()) {
-    PBVHVertRef from_v = flood.queue.front();
-    flood.queue.pop();
-
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (object, from_v, ni) {
-      const PBVHVertRef to_v = ni.vertex;
-      int to_v_i = BKE_pbvh_vertex_to_index(pbvh, to_v);
-
-      if (flood.visited_verts[to_v_i]) {
-        continue;
-      }
-
-      if (!hide::vert_visible_get(object, to_v)) {
-        continue;
-      }
-
-      flood.visited_verts[BKE_pbvh_vertex_to_index(pbvh, to_v)].set();
-
-      if (func(from_v, to_v, ni.is_duplicate)) {
-        flood.queue.push(to_v);
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 }
 

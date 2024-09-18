@@ -295,6 +295,12 @@ int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
   return face_set;
 }
 
+int vert_face_set_get(const SubdivCCG &subdiv_ccg, const Span<int> face_sets, const int grid)
+{
+  const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid);
+  return face_sets[face];
+}
+
 int vert_face_set_get(const int /*face_set_offset*/, const BMVert & /*vert*/)
 {
   return SCULPT_FACE_SET_NONE;
@@ -507,42 +513,6 @@ bool vert_has_unique_face_set(const int /*face_set_offset*/, const BMVert & /*ve
 
 }  // namespace face_set
 
-/* Sculpt Neighbor Iterators */
-
-#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
-
-static void vert_neighbor_add(SculptVertexNeighborIter *iter,
-                              PBVHVertRef neighbor,
-                              int neighbor_index)
-{
-  if (iter->neighbors.contains(neighbor)) {
-    return;
-  }
-
-  iter->neighbors.append(neighbor);
-  iter->neighbor_indices.append(neighbor_index);
-}
-
-static void vert_neighbors_get_bmesh(PBVHVertRef vertex, SculptVertexNeighborIter *iter)
-{
-  BMVert *v = (BMVert *)vertex.i;
-  BMIter liter;
-  BMLoop *l;
-  iter->num_duplicates = 0;
-  iter->neighbors.clear();
-  iter->neighbor_indices.clear();
-
-  BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-    const BMVert *adj_v[2] = {l->prev->v, l->next->v};
-    for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
-      const BMVert *v_other = adj_v[i];
-      if (v_other != v) {
-        vert_neighbor_add(iter, BKE_pbvh_make_vref(intptr_t(v_other)), BM_elem_index_get(v_other));
-      }
-    }
-  }
-}
-
 Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors)
 {
   r_neighbors.clear();
@@ -585,45 +555,6 @@ Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 
   return r_neighbors;
 }
 
-static void vertex_neighbors_get_faces(const Object &object,
-                                       PBVHVertRef vertex,
-                                       SculptVertexNeighborIter *iter)
-{
-  const SculptSession &ss = *object.sculpt;
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
-  const OffsetIndices<int> faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const bke::AttributeAccessor attributes = mesh.attributes();
-  const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-  iter->num_duplicates = 0;
-  iter->neighbors.clear();
-  iter->neighbor_indices.clear();
-
-  for (const int face_i : vert_to_face_map[vertex.i]) {
-    if (!hide_poly.is_empty() && hide_poly[face_i]) {
-      /* Skip connectivity from hidden faces. */
-      continue;
-    }
-    const IndexRange face = faces[face_i];
-    const int2 f_adj_v = bke::mesh::face_find_adjacent_verts(face, corner_verts, vertex.i);
-    for (int j = 0; j < 2; j++) {
-      if (f_adj_v[j] != vertex.i) {
-        vert_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
-      }
-    }
-  }
-
-  if (ss.fake_neighbors.use_fake_neighbors) {
-    BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
-    if (ss.fake_neighbors.fake_neighbor_index[vertex.i] != FAKE_NEIGHBOR_NONE) {
-      vert_neighbor_add(iter,
-                        BKE_pbvh_make_vref(ss.fake_neighbors.fake_neighbor_index[vertex.i]),
-                        ss.fake_neighbors.fake_neighbor_index[vertex.i]);
-    }
-  }
-}
-
 Span<int> vert_neighbors_get_mesh(const OffsetIndices<int> faces,
                                   const Span<int> corner_verts,
                                   const GroupedSpan<int> vert_to_face,
@@ -645,61 +576,7 @@ Span<int> vert_neighbors_get_mesh(const OffsetIndices<int> faces,
   return r_neighbors.as_span();
 }
 
-static void vertex_neighbors_get_grids(const SculptSession &ss,
-                                       const PBVHVertRef vertex,
-                                       const bool include_duplicates,
-                                       SculptVertexNeighborIter *iter)
-{
-  /* TODO: optimize this. We could fill #SculptVertexNeighborIter directly,
-   * maybe provide coordinate and mask pointers directly rather than converting
-   * back and forth between #CCGElem and global index. */
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-  SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vertex.i);
-
-  SubdivCCGNeighbors neighbors;
-  BKE_subdiv_ccg_neighbor_coords_get(*ss.subdiv_ccg, coord, include_duplicates, neighbors);
-
-  iter->num_duplicates = neighbors.num_duplicates;
-  iter->neighbors.clear();
-  iter->neighbor_indices.clear();
-
-  for (const int i : neighbors.coords.index_range()) {
-    int v = neighbors.coords[i].grid_index * key.grid_area +
-            neighbors.coords[i].y * key.grid_size + neighbors.coords[i].x;
-
-    vert_neighbor_add(iter, BKE_pbvh_make_vref(v), v);
-  }
-
-  if (ss.fake_neighbors.use_fake_neighbors) {
-    BLI_assert(!ss.fake_neighbors.fake_neighbor_index.is_empty());
-    if (ss.fake_neighbors.fake_neighbor_index[vertex.i] != FAKE_NEIGHBOR_NONE) {
-      int v = ss.fake_neighbors.fake_neighbor_index[vertex.i];
-      vert_neighbor_add(iter, BKE_pbvh_make_vref(v), v);
-    }
-  }
-}
-
 }  // namespace blender::ed::sculpt_paint
-
-void SCULPT_vertex_neighbors_get(const Object &object,
-                                 const PBVHVertRef vertex,
-                                 const bool include_duplicates,
-                                 SculptVertexNeighborIter *iter)
-{
-  using namespace blender::ed::sculpt_paint;
-  const SculptSession &ss = *object.sculpt;
-  switch (blender::bke::object::pbvh_get(object)->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      vertex_neighbors_get_faces(object, vertex, iter);
-      return;
-    case blender::bke::pbvh::Type::BMesh:
-      vert_neighbors_get_bmesh(vertex, iter);
-      return;
-    case blender::bke::pbvh::Type::Grids:
-      vertex_neighbors_get_grids(ss, vertex, include_duplicates, iter);
-      return;
-  }
-}
 
 static bool check_boundary_vert_in_base_mesh(const SculptSession &ss, const int index)
 {
