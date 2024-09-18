@@ -1142,6 +1142,7 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
           bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
         });
       });
+      mask.finish();
       break;
     }
     case bke::pbvh::Type::Grids: {
