@@ -853,9 +853,7 @@ PBVHVertRef nearest_vert_calc(const Depsgraph &depsgraph,
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
           pbvh, subdiv_ccg, location, max_distance, use_original);
-      return nearest ? PBVHVertRef{key.grid_area * nearest->grid_index +
-                                   CCG_grid_xy_to_index(key.grid_size, nearest->x, nearest->y)} :
-                       PBVHVertRef{PBVH_REF_NONE};
+      return nearest ? PBVHVertRef{nearest->to_index(key)} : PBVHVertRef{PBVH_REF_NONE};
     }
     case bke::pbvh::Type::BMesh: {
       const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
