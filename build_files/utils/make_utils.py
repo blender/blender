@@ -10,6 +10,7 @@ Utility functions for make update and make tests.
 import re
 import os
 import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -269,3 +270,19 @@ def parse_blender_version() -> BlenderVersion:
         int(version_info["BLENDER_VERSION_PATCH"]),
         version_info["BLENDER_VERSION_CYCLE"],
     )
+
+
+def remove_directory(directory: Path) -> None:
+    """
+    Recursively remove the given directory
+
+    Takes care of clearing read-only attributes which might prevent deletion on
+    Windows.
+    """
+
+    def remove_readonly(func, path, _):
+        "Clear the readonly bit and reattempt the removal"
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    shutil.rmtree(directory, onerror=remove_readonly)
