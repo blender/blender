@@ -184,7 +184,7 @@ class SocketDeclaration : public ItemDeclaration {
   bool compact = false;
   bool is_multi_input = false;
   bool no_mute_links = false;
-  bool is_unavailable = false;
+  bool is_available = true;
   bool is_attribute_name = false;
   bool is_default_link_socket = false;
   /** Puts this socket on the same line as the previous one in the UI. */
@@ -283,10 +283,10 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &no_muted_links(bool value = true);
 
   /**
-   * Used for sockets that are always unavailable and should not be seen by the user.
-   * Ideally, no new calls to this method should be added over time.
+   * Can be used to make a socket unavailable. It's still stored in DNA, but it's not shown in the
+   * UI and also can't be unhidden.
    */
-  BaseSocketDeclarationBuilder &unavailable(bool value = true);
+  BaseSocketDeclarationBuilder &available(bool value = true);
 
   BaseSocketDeclarationBuilder &is_attribute_name(bool value = true);
 
