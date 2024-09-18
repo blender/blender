@@ -645,9 +645,9 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
-      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(node_mask.index_range(), 1, [&](const IndexRange range) {
         LocalData &tls = all_tls.local();
-        for (const int i : range) {
+        node_mask.slice(range).foreach_index([&](const int i) {
           calc_faces(depsgraph,
                      sd,
                      brush,
@@ -661,7 +661,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
                      tls,
                      position_data);
           bke::pbvh::update_node_bounds_mesh(position_data.eval, nodes[i]);
-        }
+        });
       });
       break;
     }
