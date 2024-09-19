@@ -1252,13 +1252,9 @@ struct PaintCursorContext {
   SculptSession *ss;
 
   /**
-   * Previous active vertex, used to determine if the preview is updated for the pose brush.
-   *
-   * For now, this cannot be switched to using a straight index via #prev_active_vert_index() as
-   * the underlying SculptSession variable is not invalidated upon changing modes. Once we no
-   * longer persist PBVHVertRef inside SculptSession, this can be updated as well.
+   * Previous active vertex index , used to determine if the preview is updated for the pose brush.
    */
-  PBVHVertRef prev_active_vert_ref;
+  int prev_active_vert_index;
 
   bool is_stroke_active;
   bool is_cursor_over_mesh;
@@ -1419,7 +1415,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
-  pcontext->prev_active_vert_ref = ss.active_vert_ref();
+  pcontext->prev_active_vert_index = ss.active_vert_index();
   if (!ups.stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
         C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
@@ -1817,8 +1813,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
      * cursor won't be tagged to update, so always initialize the preview chain if it is
      * nullptr before drawing it. */
     SculptSession &ss = *pcontext->ss;
-    const bool update_previews = pcontext->prev_active_vert_ref.i !=
-                                 pcontext->ss->active_vert_ref().i;
+    const bool update_previews = pcontext->prev_active_vert_index !=
+                                 pcontext->ss->active_vert_index();
     if (update_previews || !ss.pose_ik_chain_preview) {
       BKE_sculpt_update_object_for_edit(pcontext->depsgraph, &active_object, false);
 
