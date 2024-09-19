@@ -322,9 +322,13 @@ typedef struct bActionConstraint {
   short type;
   /** Was used in versions prior to the Constraints recode. */
   short local;
+  /** 'Start' frame in the Action. */
   int start;
+  /** 'End' frame in the Action. */
   int end;
+  /** 'Start' value of the target property. Note that this may be larger than `max`. */
   float min;
+  /** 'End' value of the target property. Note that this may be smaller than `min`. */
   float max;
   int flag;
   char mix_mode;

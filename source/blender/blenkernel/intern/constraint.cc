@@ -2956,19 +2956,12 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
        * to apply. This compares to the min/max boundary values first, before doing the
        * normalization by the (max-min) range, to get predictable, valid values when that range is
        * zero. */
-      const float value_of_target = vec[axis];
       const float range = data->max - data->min;
-      if (value_of_target <= data->min) {
-        s = 0.0f;
-      }
-      else if (value_of_target >= data->max) {
-        s = 1.0f;
-      }
-      else if (range == 0.0f) {
+      if (range == 0.0f) {
         s = 0.0f;
       }
       else {
-        s = (value_of_target - data->min) / range;
+        s = (vec[axis] - data->min) / range;
       }
     }
 
