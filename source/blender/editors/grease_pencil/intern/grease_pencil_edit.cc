@@ -3347,6 +3347,104 @@ static void GREASE_PENCIL_OT_set_curve_resolution(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Set Curve Resolution Operator
+ * \{ */
+
+static int grease_pencil_reset_uvs_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  bool changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    IndexMaskMemory memory;
+    const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, info.layer_index, memory);
+    if (editable_strokes.is_empty()) {
+      return;
+    }
+
+    if (attributes.contains("uv_rotation")) {
+      if (editable_strokes.size() == curves.curves_num()) {
+        attributes.remove("uv_rotation");
+      }
+      else {
+        bke::SpanAttributeWriter<float> uv_rotations = attributes.lookup_for_write_span<float>(
+            "uv_rotation");
+        index_mask::masked_fill(uv_rotations.span, 0.0f, editable_strokes);
+        uv_rotations.finish();
+      }
+    }
+
+    if (attributes.contains("uv_translation")) {
+      if (editable_strokes.size() == curves.curves_num()) {
+        attributes.remove("uv_translation");
+      }
+      else {
+        bke::SpanAttributeWriter<float2> uv_translations =
+            attributes.lookup_for_write_span<float2>("uv_translation");
+        index_mask::masked_fill(uv_translations.span, float2(0.0f, 0.0f), editable_strokes);
+        uv_translations.finish();
+      }
+    }
+
+    if (attributes.contains("uv_scale")) {
+      if (editable_strokes.size() == curves.curves_num()) {
+        attributes.remove("uv_scale");
+      }
+      else {
+        bke::SpanAttributeWriter<float2> uv_scales = attributes.lookup_for_write_span<float2>(
+            "uv_scale");
+        index_mask::masked_fill(uv_scales.span, float2(1.0f, 1.0f), editable_strokes);
+        uv_scales.finish();
+      }
+    }
+
+    if (attributes.contains("uv_shear")) {
+      if (editable_strokes.size() == curves.curves_num()) {
+        attributes.remove("uv_shear");
+      }
+      else {
+        bke::SpanAttributeWriter<float> uv_shears = attributes.lookup_for_write_span<float>(
+            "uv_shear");
+        index_mask::masked_fill(uv_shears.span, 0.0f, editable_strokes);
+        uv_shears.finish();
+      }
+    }
+
+    info.drawing.tag_positions_changed();
+    changed = true;
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_reset_uvs(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Reset UVs";
+  ot->idname = "GREASE_PENCIL_OT_reset_uvs";
+  ot->description = "Reset UV transformation to default values";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_reset_uvs_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -3383,4 +3481,5 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_curve_type);
   WM_operatortype_append(GREASE_PENCIL_OT_set_curve_resolution);
   WM_operatortype_append(GREASE_PENCIL_OT_set_handle_type);
+  WM_operatortype_append(GREASE_PENCIL_OT_reset_uvs);
 }
