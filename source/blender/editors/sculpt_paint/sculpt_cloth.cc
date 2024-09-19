@@ -701,8 +701,8 @@ BLI_NOINLINE static void calc_perpendicular_pinch_forces(const Span<float3> posi
   const float3 z_object_space = math::normalize(imat.z_axis());
   for (const int i : positions.index_range()) {
     const float3 disp_center = math::normalize(location - positions[i]);
-    const float3 x_disp = x_object_space - math::dot(disp_center, x_object_space);
-    const float3 z_disp = z_object_space - math::dot(disp_center, z_object_space);
+    const float3 x_disp = x_object_space * math::dot(disp_center, x_object_space);
+    const float3 z_disp = z_object_space * math::dot(disp_center, z_object_space);
     forces[i] = x_disp + z_disp;
   }
 }
