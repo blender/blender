@@ -56,6 +56,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_grease_pencil.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_object_vgroup.hh"
@@ -1005,7 +1006,7 @@ void vgroup_select_by_name(Object *ob, const char *name)
  * \{ */
 
 /* only in editmode */
-static void vgroup_select_verts(Object *ob, int select)
+static void vgroup_select_verts(const ToolSettings &tool_settings, Object *ob, int select)
 {
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
@@ -1094,8 +1095,10 @@ static void vgroup_select_verts(Object *ob, int select)
     }
   }
   else if (ob->type == OB_GREASE_PENCIL) {
+    const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(&tool_settings);
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
-    bke::greasepencil::select_from_group(*grease_pencil, def_group->name, bool(select));
+    bke::greasepencil::select_from_group(
+        *grease_pencil, selection_domain, def_group->name, bool(select));
     DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   }
 }
@@ -2691,13 +2694,14 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 
 static int vertex_group_select_exec(bContext *C, wmOperator * /*op*/)
 {
+  const ToolSettings &tool_settings = *CTX_data_scene(C)->toolsettings;
   Object *ob = context_object(C);
 
   if (!ob || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob)) {
     return OPERATOR_CANCELLED;
   }
 
-  vgroup_select_verts(ob, 1);
+  vgroup_select_verts(tool_settings, ob, 1);
   DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
@@ -2727,9 +2731,10 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 
 static int vertex_group_deselect_exec(bContext *C, wmOperator * /*op*/)
 {
+  const ToolSettings &tool_settings = *CTX_data_scene(C)->toolsettings;
   Object *ob = context_object(C);
 
-  vgroup_select_verts(ob, 0);
+  vgroup_select_verts(tool_settings, ob, 0);
   DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
