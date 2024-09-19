@@ -34,6 +34,7 @@
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
@@ -2812,6 +2813,19 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_eval_drawing(
   return this->get_drawing_at(layer, this->runtime->eval_frame);
 }
 
+static void transform_positions(const Span<blender::float3> src,
+                                const blender::float4x4 &transform,
+                                blender::MutableSpan<blender::float3> dst)
+{
+  BLI_assert(src.size() == dst.size());
+
+  blender::threading::parallel_for(src.index_range(), 4096, [&](const blender::IndexRange range) {
+    for (const int i : range) {
+      dst[i] = blender::math::transform_point(transform, src[i]);
+    }
+  });
+}
+
 std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(const int frame) const
 {
   using namespace blender;
@@ -2819,12 +2833,16 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(con
   const Span<const bke::greasepencil::Layer *> layers = this->layers();
   for (const int layer_i : layers.index_range()) {
     const bke::greasepencil::Layer &layer = *layers[layer_i];
+    const float4x4 layer_to_object = layer.local_transform();
     if (!layer.is_visible()) {
       continue;
     }
     if (const bke::greasepencil::Drawing *drawing = this->get_drawing_at(layer, frame)) {
       const bke::CurvesGeometry &curves = drawing->strokes();
-      bounds = bounds::merge(bounds, curves.bounds_min_max());
+
+      Array<float3> world_pos(curves.evaluated_positions().size());
+      transform_positions(curves.evaluated_positions(), layer_to_object, world_pos);
+      bounds = bounds::merge(bounds, bounds::min_max(world_pos.as_span()));
     }
   }
   return bounds;
