@@ -1498,24 +1498,24 @@ void BKE_ocean_bake(Ocean *o,
 
     /* write the images */
     cache_filepath(filepath, och->bakepath, och->relbase, f, CACHE_TYPE_DISPLACE);
-    if (0 == BKE_imbuf_write(ibuf_disp, filepath, &imf)) {
+    if (false == BKE_imbuf_write(ibuf_disp, filepath, &imf)) {
       printf("Cannot save Displacement File Output to %s\n", filepath);
     }
 
     if (o->_do_jacobian) {
       cache_filepath(filepath, och->bakepath, och->relbase, f, CACHE_TYPE_FOAM);
-      if (0 == BKE_imbuf_write(ibuf_foam, filepath, &imf)) {
+      if (false == BKE_imbuf_write(ibuf_foam, filepath, &imf)) {
         printf("Cannot save Foam File Output to %s\n", filepath);
       }
 
       if (o->_do_spray) {
         cache_filepath(filepath, och->bakepath, och->relbase, f, CACHE_TYPE_SPRAY);
-        if (0 == BKE_imbuf_write(ibuf_spray, filepath, &imf)) {
+        if (false == BKE_imbuf_write(ibuf_spray, filepath, &imf)) {
           printf("Cannot save Spray File Output to %s\n", filepath);
         }
 
         cache_filepath(filepath, och->bakepath, och->relbase, f, CACHE_TYPE_SPRAY_INVERSE);
-        if (0 == BKE_imbuf_write(ibuf_spray_inverse, filepath, &imf)) {
+        if (false == BKE_imbuf_write(ibuf_spray_inverse, filepath, &imf)) {
           printf("Cannot save Spray Inverse File Output to %s\n", filepath);
         }
       }
@@ -1523,7 +1523,7 @@ void BKE_ocean_bake(Ocean *o,
 
     if (o->_do_normals) {
       cache_filepath(filepath, och->bakepath, och->relbase, f, CACHE_TYPE_NORMAL);
-      if (0 == BKE_imbuf_write(ibuf_normal, filepath, &imf)) {
+      if (false == BKE_imbuf_write(ibuf_normal, filepath, &imf)) {
         printf("Cannot save Normal File Output to %s\n", filepath);
       }
     }

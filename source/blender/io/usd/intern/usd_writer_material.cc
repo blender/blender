@@ -698,7 +698,7 @@ static void export_in_memory_texture(Image *ima,
 
   CLOG_INFO(&LOG, 2, "Exporting in-memory texture to '%s'", export_path);
 
-  if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
+  if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == false) {
     BKE_reportf(
         reports, RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
   }

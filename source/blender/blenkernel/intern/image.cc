@@ -2613,7 +2613,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   return false;
 }
 
-int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *imf)
+bool BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *imf)
 {
   BKE_image_format_to_imbuf(ibuf, imf);
 
@@ -2627,13 +2627,13 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *im
   return ok;
 }
 
-int BKE_imbuf_write_as(ImBuf *ibuf,
-                       const char *filepath,
-                       const ImageFormatData *imf,
-                       const bool save_copy)
+bool BKE_imbuf_write_as(ImBuf *ibuf,
+                        const char *filepath,
+                        const ImageFormatData *imf,
+                        const bool save_copy)
 {
   ImBuf ibuf_back = *ibuf;
-  int ok;
+  bool ok;
 
   /* All data is RGBA anyway, this just controls how to save for some formats. */
   ibuf->planes = imf->planes;
@@ -2650,11 +2650,11 @@ int BKE_imbuf_write_as(ImBuf *ibuf,
   return ok;
 }
 
-int BKE_imbuf_write_stamp(const Scene *scene,
-                          const RenderResult *rr,
-                          ImBuf *ibuf,
-                          const char *filepath,
-                          const ImageFormatData *imf)
+bool BKE_imbuf_write_stamp(const Scene *scene,
+                           const RenderResult *rr,
+                           ImBuf *ibuf,
+                           const char *filepath,
+                           const ImageFormatData *imf)
 {
   if (scene && scene->r.stamp & R_STAMP_ALL) {
     BKE_imbuf_stamp_info(rr, ibuf);

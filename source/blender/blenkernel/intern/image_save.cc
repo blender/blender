@@ -1038,15 +1038,15 @@ static void image_render_print_save_message(ReportList *reports,
   }
 }
 
-static int image_render_write_stamp_test(ReportList *reports,
-                                         const Scene *scene,
-                                         const RenderResult *rr,
-                                         ImBuf *ibuf,
-                                         const char *filepath,
-                                         const ImageFormatData *imf,
-                                         const bool stamp)
+static bool image_render_write_stamp_test(ReportList *reports,
+                                          const Scene *scene,
+                                          const RenderResult *rr,
+                                          ImBuf *ibuf,
+                                          const char *filepath,
+                                          const ImageFormatData *imf,
+                                          const bool stamp)
 {
-  int ok;
+  bool ok;
 
   if (stamp) {
     /* writes the name of the individual cameras */
