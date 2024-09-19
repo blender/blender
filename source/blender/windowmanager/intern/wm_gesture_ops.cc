@@ -750,11 +750,15 @@ int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 /* Calculates the number of valid points in a polyline gesture where
  * a duplicated end point is invalid for submission */
-static int gesture_polyline_valid_points(const wmGesture &wmGesture)
+static int gesture_polyline_valid_points(const wmGesture &wmGesture, const bool is_click_submitted)
 {
   BLI_assert(wmGesture.points > 2);
 
   const int num_points = wmGesture.points;
+  if (is_click_submitted) {
+    return num_points;
+  }
+
   short(*points)[2] = static_cast<short int(*)[2]>(wmGesture.customdata);
 
   const short prev_x = points[num_points - 1][0];
@@ -764,14 +768,19 @@ static int gesture_polyline_valid_points(const wmGesture &wmGesture)
 }
 
 /* Evaluates whether the polyline has at least three points and represents
- * a shape and can be submitted for other gesture operators to act on. */
-static bool gesture_polyline_can_apply(const wmGesture &wmGesture)
+ * a shape and can be submitted for other gesture operators to act on.
+ *
+ * We handle clicking within the original point radius differently than double clicking or
+ * submitting through the confirm keybinds, as the user expects to NOT add a new point when
+ * interacting with this targeted area.
+ */
+static bool gesture_polyline_can_apply(const wmGesture &wmGesture, const bool is_click_submitted)
 {
   if (wmGesture.points < 2) {
     return false;
   }
 
-  const int valid_points = gesture_polyline_valid_points(wmGesture);
+  const int valid_points = gesture_polyline_valid_points(wmGesture, is_click_submitted);
   if (valid_points <= 2) {
     return false;
   }
@@ -779,12 +788,12 @@ static bool gesture_polyline_can_apply(const wmGesture &wmGesture)
   return true;
 }
 
-static int gesture_polyline_apply(bContext *C, wmOperator *op)
+static int gesture_polyline_apply(bContext *C, wmOperator *op, const bool is_click_submitted)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  BLI_assert(gesture_polyline_can_apply(*gesture));
+  BLI_assert(gesture_polyline_can_apply(*gesture, is_click_submitted));
 
-  const int valid_points = gesture_polyline_valid_points(*gesture);
+  const int valid_points = gesture_polyline_valid_points(*gesture, is_click_submitted);
   const short *border = static_cast<const short int *>(gesture->customdata);
 
   PointerRNA itemptr;
@@ -839,9 +848,9 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
         const float dist = len_v2v2(cur, orig);
 
         if (dist < blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC &&
-            gesture_polyline_can_apply(*gesture))
+            gesture_polyline_can_apply(*gesture, true))
         {
-          return gesture_polyline_apply(C, op);
+          return gesture_polyline_apply(C, op, true);
         }
 
         gesture->points++;
@@ -850,8 +859,8 @@ int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       }
       case GESTURE_MODAL_CONFIRM:
-        if (gesture_polyline_can_apply(*gesture)) {
-          return gesture_polyline_apply(C, op);
+        if (gesture_polyline_can_apply(*gesture, false)) {
+          return gesture_polyline_apply(C, op, false);
         }
         break;
       case GESTURE_MODAL_CANCEL:
