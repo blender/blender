@@ -1581,10 +1581,21 @@ void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_corner_normals)[3]
   blender::bke::mesh::mesh_set_custom_normals(mesh, r_custom_corner_normals, false);
 }
 
+void BKE_mesh_set_custom_normals_normalized(Mesh *mesh, float (*r_custom_corner_normals)[3])
+{
+  blender::bke::mesh::mesh_set_custom_normals(mesh, r_custom_corner_normals, false);
+}
+
 void BKE_mesh_set_custom_normals_from_verts(Mesh *mesh, float (*r_custom_vert_normals)[3])
 {
   normalize_vecs({reinterpret_cast<blender::float3 *>(r_custom_vert_normals), mesh->verts_num});
 
+  blender::bke::mesh::mesh_set_custom_normals(mesh, r_custom_vert_normals, true);
+}
+
+void BKE_mesh_set_custom_normals_from_verts_normalized(Mesh *mesh,
+                                                       float (*r_custom_vert_normals)[3])
+{
   blender::bke::mesh::mesh_set_custom_normals(mesh, r_custom_vert_normals, true);
 }
 
