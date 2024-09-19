@@ -11,8 +11,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vector.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
@@ -1077,12 +1079,11 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
  * \{ */
 
 struct AvgLogLum {
-  SequencerTonemapModifierData *tmmd;
-  ColorSpace *colorspace;
+  const SequencerTonemapModifierData *tmmd;
   float al;
   float auto_key;
   float lav;
-  float cav[4];
+  float3 cav;
   float igm;
 };
 
@@ -1100,125 +1101,140 @@ static void tonemapmodifier_init_data(SequenceModifierData *smd)
   tmmd->correction = 0.0f;
 }
 
-static void tonemapmodifier_apply_threaded_simple(int width,
-                                                  int height,
-                                                  uchar *rect,
-                                                  float *rect_float,
-                                                  uchar *mask_rect,
-                                                  const float *mask_rect_float,
-                                                  void *data_v)
+/* Convert chunk of float image pixels to scene linear space, in-place. */
+static void pixels_to_scene_linear_float(ColorSpace *colorspace, float4 *pixels, int64_t count)
 {
-  AvgLogLum *avg = (AvgLogLum *)data_v;
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int pixel_index = (y * width + x) * 4;
-      float input[4], output[4], mask[3] = {1.0f, 1.0f, 1.0f};
-      /* Get input value. */
-      if (rect_float) {
-        copy_v4_v4(input, &rect_float[pixel_index]);
-      }
-      else {
-        straight_uchar_to_premul_float(input, &rect[pixel_index]);
-      }
-      IMB_colormanagement_colorspace_to_scene_linear_v3(input, avg->colorspace);
-      copy_v4_v4(output, input);
-      /* Get mask value. */
-      if (mask_rect_float) {
-        copy_v3_v3(mask, mask_rect_float + pixel_index);
-      }
-      else if (mask_rect) {
-        rgb_uchar_to_float(mask, mask_rect + pixel_index);
-      }
-      /* Apply correction. */
-      mul_v3_fl(output, avg->al);
-      float dr = output[0] + avg->tmmd->offset;
-      float dg = output[1] + avg->tmmd->offset;
-      float db = output[2] + avg->tmmd->offset;
-      output[0] /= ((dr == 0.0f) ? 1.0f : dr);
-      output[1] /= ((dg == 0.0f) ? 1.0f : dg);
-      output[2] /= ((db == 0.0f) ? 1.0f : db);
-      const float igm = avg->igm;
-      if (igm != 0.0f) {
-        output[0] = powf(max_ff(output[0], 0.0f), igm);
-        output[1] = powf(max_ff(output[1], 0.0f), igm);
-        output[2] = powf(max_ff(output[2], 0.0f), igm);
-      }
-      /* Apply mask. */
-      output[0] = input[0] * (1.0f - mask[0]) + output[0] * mask[0];
-      output[1] = input[1] * (1.0f - mask[1]) + output[1] * mask[1];
-      output[2] = input[2] * (1.0f - mask[2]) + output[2] * mask[2];
-      /* Copy result back. */
-      IMB_colormanagement_scene_linear_to_colorspace_v3(output, avg->colorspace);
-      if (rect_float) {
-        copy_v4_v4(&rect_float[pixel_index], output);
-      }
-      else {
-        premul_float_to_straight_uchar(&rect[pixel_index], output);
-      }
-    }
+  IMB_colormanagement_colorspace_to_scene_linear(
+      (float *)(pixels), int(count), 1, 4, colorspace, false);
+}
+
+/* Convert chunk of byte image pixels to scene linear space, into a destination array. */
+static void pixels_to_scene_linear_byte(ColorSpace *colorspace,
+                                        const uchar *pixels,
+                                        float4 *dst,
+                                        int64_t count)
+{
+  const uchar *bptr = pixels;
+  float4 *dst_ptr = dst;
+  for (int64_t i = 0; i < count; i++) {
+    straight_uchar_to_premul_float(*dst_ptr, bptr);
+    bptr += 4;
+    dst_ptr++;
+  }
+  IMB_colormanagement_colorspace_to_scene_linear(
+      (float *)dst, int(count), 1, 4, colorspace, false);
+}
+
+static void scene_linear_to_image_chunk_float(ImBuf *ibuf, IndexRange range)
+{
+  ColorSpace *colorspace = ibuf->float_buffer.colorspace;
+  float4 *fptr = reinterpret_cast<float4 *>(ibuf->float_buffer.data);
+  IMB_colormanagement_scene_linear_to_colorspace(
+      (float *)(fptr + range.first()), int(range.size()), 1, 4, colorspace);
+}
+
+static void scene_linear_to_image_chunk_byte(float4 *src, ImBuf *ibuf, IndexRange range)
+{
+  ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
+  IMB_colormanagement_scene_linear_to_colorspace(
+      (float *)src, int(range.size()), 1, 4, colorspace);
+  const float4 *src_ptr = src;
+  uchar *bptr = ibuf->byte_buffer.data;
+  for (const int64_t idx : range) {
+    premul_float_to_straight_uchar(bptr + idx * 4, *src_ptr);
+    src_ptr++;
   }
 }
 
-static void tonemapmodifier_apply_threaded_photoreceptor(int width,
-                                                         int height,
-                                                         uchar *rect,
-                                                         float *rect_float,
-                                                         uchar *mask_rect,
-                                                         const float *mask_rect_float,
-                                                         void *data_v)
+static void tonemap_simple(float4 *scene_linear,
+                           ImBuf *mask,
+                           IndexRange range,
+                           const AvgLogLum &avg)
 {
-  AvgLogLum *avg = (AvgLogLum *)data_v;
-  const float f = expf(-avg->tmmd->intensity);
-  const float m = (avg->tmmd->contrast > 0.0f) ? avg->tmmd->contrast :
-                                                 (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
-  const float ic = 1.0f - avg->tmmd->correction, ia = 1.0f - avg->tmmd->adaptation;
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int pixel_index = (y * width + x) * 4;
-      float input[4], output[4], mask[3] = {1.0f, 1.0f, 1.0f};
-      /* Get input value. */
-      if (rect_float) {
-        copy_v4_v4(input, &rect_float[pixel_index]);
-      }
-      else {
-        straight_uchar_to_premul_float(input, &rect[pixel_index]);
-      }
-      IMB_colormanagement_colorspace_to_scene_linear_v3(input, avg->colorspace);
-      copy_v4_v4(output, input);
-      /* Get mask value. */
-      if (mask_rect_float) {
-        copy_v3_v3(mask, mask_rect_float + pixel_index);
-      }
-      else if (mask_rect) {
-        rgb_uchar_to_float(mask, mask_rect + pixel_index);
-      }
-      /* Apply correction. */
-      const float L = IMB_colormanagement_get_luminance(output);
-      float I_l = output[0] + ic * (L - output[0]);
-      float I_g = avg->cav[0] + ic * (avg->lav - avg->cav[0]);
-      float I_a = I_l + ia * (I_g - I_l);
-      output[0] /= std::max(output[0] + powf(f * I_a, m), 1.0e-30f);
-      I_l = output[1] + ic * (L - output[1]);
-      I_g = avg->cav[1] + ic * (avg->lav - avg->cav[1]);
-      I_a = I_l + ia * (I_g - I_l);
-      output[1] /= std::max(output[1] + powf(f * I_a, m), 1.0e-30f);
-      I_l = output[2] + ic * (L - output[2]);
-      I_g = avg->cav[2] + ic * (avg->lav - avg->cav[2]);
-      I_a = I_l + ia * (I_g - I_l);
-      output[2] /= std::max(output[2] + powf(f * I_a, m), 1.0e-30f);
-      /* Apply mask. */
-      output[0] = input[0] * (1.0f - mask[0]) + output[0] * mask[0];
-      output[1] = input[1] * (1.0f - mask[1]) + output[1] * mask[1];
-      output[2] = input[2] * (1.0f - mask[2]) + output[2] * mask[2];
-      /* Copy result back. */
-      IMB_colormanagement_scene_linear_to_colorspace_v3(output, avg->colorspace);
-      if (rect_float) {
-        copy_v4_v4(&rect_float[pixel_index], output);
-      }
-      else {
-        premul_float_to_straight_uchar(&rect[pixel_index], output);
-      }
+  const float4 *mask_float = mask != nullptr ? (const float4 *)mask->float_buffer.data : nullptr;
+  const uchar4 *mask_byte = mask != nullptr ? (const uchar4 *)mask->byte_buffer.data : nullptr;
+
+  int64_t index = 0;
+  for (const int64_t pixel_index : range) {
+    float4 input = scene_linear[index];
+
+    /* Apply correction. */
+    float3 pixel = input.xyz() * avg.al;
+    float3 d = pixel + avg.tmmd->offset;
+    pixel.x /= (d.x == 0.0f) ? 1.0f : d.x;
+    pixel.y /= (d.y == 0.0f) ? 1.0f : d.y;
+    pixel.z /= (d.z == 0.0f) ? 1.0f : d.z;
+    const float igm = avg.igm;
+    if (igm != 0.0f) {
+      pixel.x = powf(math::max(pixel.x, 0.0f), igm);
+      pixel.y = powf(math::max(pixel.y, 0.0f), igm);
+      pixel.z = powf(math::max(pixel.z, 0.0f), igm);
     }
+
+    /* Apply mask. */
+    if (mask != nullptr) {
+      float3 msk(1.0f);
+      if (mask_float != nullptr) {
+        msk = mask_float[pixel_index].xyz();
+      }
+      else if (mask_byte != nullptr) {
+        rgb_uchar_to_float(msk, mask_byte[pixel_index]);
+      }
+      pixel = math::interpolate(input.xyz(), pixel, msk);
+    }
+
+    scene_linear[index] = float4(pixel.x, pixel.y, pixel.z, input.w);
+    index++;
+  }
+}
+
+static void tonemap_rd_photoreceptor(float4 *scene_linear,
+                                     ImBuf *mask,
+                                     IndexRange range,
+                                     const AvgLogLum &avg)
+{
+  const float4 *mask_float = mask != nullptr ? (const float4 *)mask->float_buffer.data : nullptr;
+  const uchar4 *mask_byte = mask != nullptr ? (const uchar4 *)mask->byte_buffer.data : nullptr;
+
+  const float f = expf(-avg.tmmd->intensity);
+  const float m = (avg.tmmd->contrast > 0.0f) ? avg.tmmd->contrast :
+                                                (0.3f + 0.7f * powf(avg.auto_key, 1.4f));
+  const float ic = 1.0f - avg.tmmd->correction, ia = 1.0f - avg.tmmd->adaptation;
+
+  int64_t index = 0;
+  for (const int64_t pixel_index : range) {
+    float4 input = scene_linear[index];
+
+    /* Apply correction. */
+    float3 pixel = input.xyz();
+    const float L = IMB_colormanagement_get_luminance(pixel);
+    float I_l = pixel.x + ic * (L - pixel.x);
+    float I_g = avg.cav.x + ic * (avg.lav - avg.cav.x);
+    float I_a = I_l + ia * (I_g - I_l);
+    pixel.x /= std::max(pixel.x + powf(f * I_a, m), 1.0e-30f);
+    I_l = pixel.y + ic * (L - pixel.y);
+    I_g = avg.cav.y + ic * (avg.lav - avg.cav.y);
+    I_a = I_l + ia * (I_g - I_l);
+    pixel.y /= std::max(pixel.y + powf(f * I_a, m), 1.0e-30f);
+    I_l = pixel.z + ic * (L - pixel.z);
+    I_g = avg.cav.z + ic * (avg.lav - avg.cav.z);
+    I_a = I_l + ia * (I_g - I_l);
+    pixel.z /= std::max(pixel.z + powf(f * I_a, m), 1.0e-30f);
+
+    /* Apply mask. */
+    if (mask != nullptr) {
+      float3 msk(1.0f);
+      if (mask_float != nullptr) {
+        msk = mask_float[pixel_index].xyz();
+      }
+      else if (mask_byte != nullptr) {
+        rgb_uchar_to_float(msk, mask_byte[pixel_index]);
+      }
+      pixel = math::interpolate(input.xyz(), pixel, msk);
+    }
+
+    scene_linear[index] = float4(pixel.x, pixel.y, pixel.z, input.w);
+    index++;
   }
 }
 
@@ -1228,77 +1244,149 @@ static bool is_point_inside_quad(const StripScreenQuad &quad, int x, int y)
   return isect_point_quad_v2(pt, quad.v0, quad.v1, quad.v2, quad.v3);
 }
 
-static void tonemapmodifier_apply(const StripScreenQuad &quad,
-                                  SequenceModifierData *smd,
-                                  ImBuf *ibuf,
-                                  ImBuf *mask)
-{
-  SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
-  AvgLogLum data;
-  data.tmmd = tmmd;
-  data.colorspace = (ibuf->float_buffer.data != nullptr) ? ibuf->float_buffer.colorspace :
-                                                           ibuf->byte_buffer.colorspace;
-  float lsum = 0.0f;
-  float *fp = ibuf->float_buffer.data;
-  uchar *cp = ibuf->byte_buffer.data;
-  float avl, maxl = -FLT_MAX, minl = FLT_MAX;
-  int pixel_count = 0;
-  float Lav = 0.0f;
-  float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+struct AreaLuminance {
+  int64_t pixel_count = 0;
+  double sum = 0.0f;
+  float3 color_sum = {0, 0, 0};
+  double log_sum = 0.0;
+  float min = FLT_MAX;
+  float max = -FLT_MAX;
+};
 
+static void tonemap_calc_chunk_luminance(const StripScreenQuad &quad,
+                                         const bool all_pixels_inside_quad,
+                                         const int width,
+                                         const IndexRange y_range,
+                                         const float4 *scene_linear,
+                                         AreaLuminance &r_lum)
+{
+  for (const int y : y_range) {
+    for (int x = 0; x < width; x++) {
+      if (all_pixels_inside_quad || is_point_inside_quad(quad, x, y)) {
+        float4 pixel = *scene_linear;
+        r_lum.pixel_count++;
+        float L = IMB_colormanagement_get_luminance(pixel);
+        r_lum.sum += L;
+        r_lum.color_sum.x += pixel.x;
+        r_lum.color_sum.y += pixel.y;
+        r_lum.color_sum.z += pixel.z;
+        r_lum.log_sum += logf(math::max(L, 0.0f) + 1e-5f);
+        r_lum.max = math::max(r_lum.max, L);
+        r_lum.min = math::min(r_lum.min, L);
+      }
+      scene_linear++;
+    }
+  }
+}
+
+static AreaLuminance tonemap_calc_input_luminance(const StripScreenQuad &quad, const ImBuf *ibuf)
+{
   /* Pixels outside the pre-transform strip area are ignored for luminance calculations.
    * If strip area covers whole image, we can trivially accept all pixels. */
   const bool all_pixels_inside_quad = is_point_inside_quad(quad, 0, 0) &&
                                       is_point_inside_quad(quad, ibuf->x - 1, 0) &&
                                       is_point_inside_quad(quad, 0, ibuf->y - 1) &&
                                       is_point_inside_quad(quad, ibuf->x - 1, ibuf->y - 1);
-  for (int y = 0; y < ibuf->y; y++) {
-    for (int x = 0; x < ibuf->x; x++) {
-      if (all_pixels_inside_quad || is_point_inside_quad(quad, x, y)) {
-        pixel_count++;
-        float pixel[4];
-        if (fp != nullptr) {
-          copy_v4_v4(pixel, fp);
+
+  AreaLuminance lum;
+  lum = threading::parallel_reduce(
+      IndexRange(ibuf->y),
+      32,
+      lum,
+      /* Calculate luminance for a chunk. */
+      [&](const IndexRange y_range, const AreaLuminance &init) {
+        AreaLuminance lum = init;
+        const int64_t chunk_size = y_range.size() * ibuf->x;
+        /* For float images, convert to scene-linear inplace. The rest
+         * of tonemapper can then continue with scene-linear values. */
+        if (ibuf->float_buffer.data != nullptr) {
+          float4 *fptr = reinterpret_cast<float4 *>(ibuf->float_buffer.data);
+          fptr += y_range.first() * ibuf->x;
+          pixels_to_scene_linear_float(ibuf->float_buffer.colorspace, fptr, chunk_size);
+          tonemap_calc_chunk_luminance(quad, all_pixels_inside_quad, ibuf->x, y_range, fptr, lum);
         }
         else {
-          straight_uchar_to_premul_float(pixel, cp);
+          const uchar *bptr = ibuf->byte_buffer.data + y_range.first() * ibuf->x * 4;
+          Array<float4> scene_linear(chunk_size);
+          pixels_to_scene_linear_byte(
+              ibuf->byte_buffer.colorspace, bptr, scene_linear.data(), chunk_size);
+          tonemap_calc_chunk_luminance(
+              quad, all_pixels_inside_quad, ibuf->x, y_range, scene_linear.data(), lum);
         }
-        IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, data.colorspace);
-        float L = IMB_colormanagement_get_luminance(pixel);
-        Lav += L;
-        add_v3_v3(cav, pixel);
-        lsum += logf(max_ff(L, 0.0f) + 1e-5f);
-        maxl = (L > maxl) ? L : maxl;
-        minl = (L < minl) ? L : minl;
-      }
-      if (fp != nullptr) {
-        fp += 4;
-      }
-      else {
-        cp += 4;
-      }
-    }
-  }
-  if (pixel_count == 0) {
+        return lum;
+      },
+      /* Reduce luminance results. */
+      [&](const AreaLuminance &a, const AreaLuminance &b) {
+        AreaLuminance res;
+        res.pixel_count = a.pixel_count + b.pixel_count;
+        res.sum = a.sum + b.sum;
+        res.color_sum = a.color_sum + b.color_sum;
+        res.log_sum = a.log_sum + b.log_sum;
+        res.min = math::min(a.min, b.min);
+        res.max = math::max(a.max, b.max);
+        return res;
+      });
+  return lum;
+}
+
+static void tonemapmodifier_apply(const StripScreenQuad &quad,
+                                  SequenceModifierData *smd,
+                                  ImBuf *ibuf,
+                                  ImBuf *mask)
+{
+  const SequencerTonemapModifierData *tmmd = (const SequencerTonemapModifierData *)smd;
+
+  AreaLuminance lum = tonemap_calc_input_luminance(quad, ibuf);
+  if (lum.pixel_count == 0) {
     return; /* Strip is zero size or off-screen. */
   }
-  const float sc = 1.0f / pixel_count;
-  data.lav = Lav * sc;
-  mul_v3_v3fl(data.cav, cav, sc);
-  maxl = logf(maxl + 1e-5f);
-  minl = logf(minl + 1e-5f);
-  avl = lsum * sc;
+
+  AvgLogLum data;
+  data.tmmd = tmmd;
+  data.lav = lum.sum / lum.pixel_count;
+  data.cav.x = lum.color_sum.x / lum.pixel_count;
+  data.cav.y = lum.color_sum.y / lum.pixel_count;
+  data.cav.z = lum.color_sum.z / lum.pixel_count;
+  float maxl = log(double(lum.max) + 1e-5f);
+  float minl = log(double(lum.min) + 1e-5f);
+  float avl = lum.log_sum / lum.pixel_count;
   data.auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.0f;
-  float al = expf(avl);
+  float al = exp(double(avl));
   data.al = (al == 0.0f) ? 0.0f : (tmmd->key / al);
   data.igm = (tmmd->gamma == 0.0f) ? 1.0f : (1.0f / tmmd->gamma);
 
-  if (tmmd->type == SEQ_TONEMAP_RD_PHOTORECEPTOR) {
-    modifier_apply_threaded(ibuf, mask, tonemapmodifier_apply_threaded_photoreceptor, &data);
-  }
-  else /* if (tmmd->type == SEQ_TONEMAP_RD_SIMPLE) */ {
-    modifier_apply_threaded(ibuf, mask, tonemapmodifier_apply_threaded_simple, &data);
-  }
+  threading::parallel_for(
+      IndexRange(int64_t(ibuf->x) * ibuf->y), 64 * 1024, [&](IndexRange range) {
+        if (ibuf->float_buffer.data != nullptr) {
+          /* Float pixels: no need for temporary storage. Luminance calculation already converted
+           * data to scene linear. */
+          float4 *pixels = (float4 *)(ibuf->float_buffer.data) + range.first();
+          if (tmmd->type == SEQ_TONEMAP_RD_PHOTORECEPTOR) {
+            tonemap_rd_photoreceptor(pixels, mask, range, data);
+          }
+          else {
+            BLI_assert(tmmd->type == SEQ_TONEMAP_RH_SIMPLE);
+            tonemap_simple(pixels, mask, range, data);
+          }
+          scene_linear_to_image_chunk_float(ibuf, range);
+        }
+        else {
+          /* Byte pixels: temporary storage for scene linear pixel values. */
+          Array<float4> scene_linear(range.size());
+          pixels_to_scene_linear_byte(ibuf->byte_buffer.colorspace,
+                                      ibuf->byte_buffer.data + range.first() * 4,
+                                      scene_linear.data(),
+                                      range.size());
+          if (tmmd->type == SEQ_TONEMAP_RD_PHOTORECEPTOR) {
+            tonemap_rd_photoreceptor(scene_linear.data(), mask, range, data);
+          }
+          else {
+            BLI_assert(tmmd->type == SEQ_TONEMAP_RH_SIMPLE);
+            tonemap_simple(scene_linear.data(), mask, range, data);
+          }
+          scene_linear_to_image_chunk_byte(scene_linear.data(), ibuf, range);
+        }
+      });
 }
 
 static SequenceModifierTypeInfo seqModifier_Tonemap = {

@@ -2341,6 +2341,29 @@ void IMB_colormanagement_colorspace_to_scene_linear(
   }
 }
 
+void IMB_colormanagement_scene_linear_to_colorspace(
+    float *buffer, int width, int height, int channels, ColorSpace *colorspace)
+{
+  if (!colorspace) {
+    /* should never happen */
+    printf("%s: perform conversion from unknown color space\n", __func__);
+    return;
+  }
+  OCIO_ConstCPUProcessorRcPtr *processor = colorspace_from_scene_linear_cpu_processor(colorspace);
+  if (processor != nullptr) {
+    OCIO_PackedImageDesc *img = OCIO_createOCIO_PackedImageDesc(buffer,
+                                                                width,
+                                                                height,
+                                                                channels,
+                                                                sizeof(float),
+                                                                size_t(channels) * sizeof(float),
+                                                                size_t(channels) * sizeof(float) *
+                                                                    width);
+    OCIO_cpuProcessorApply(processor, img);
+    OCIO_PackedImageDescRelease(img);
+  }
+}
+
 void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
                                                const int offset_x,
                                                const int offset_y,
