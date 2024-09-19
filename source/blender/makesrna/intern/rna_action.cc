@@ -406,6 +406,17 @@ static int rna_iterator_ActionLayer_strips_length(PointerRNA *ptr)
   return layer.strips().size();
 }
 
+static StructRNA *rna_ActionStrip_refine(PointerRNA *ptr)
+{
+  animrig::Strip &strip = static_cast<ActionStrip *>(ptr->data)->wrap();
+
+  switch (strip.type()) {
+    case animrig::Strip::Type::Keyframe:
+      return &RNA_ActionKeyframeStrip;
+  }
+  return &RNA_UnknownType;
+}
+
 ActionStrip *rna_ActionStrips_new(
     ID *dna_action_id, ActionLayer *dna_layer, bContext *C, ReportList *reports, const int type)
 {
@@ -1962,7 +1973,7 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Slot Handle",
                            "Number specific to this Slot, unique within the Action"
-                           "This is used, for example, on a KeyframeActionStrip to look up the "
+                           "This is used, for example, on a ActionKeyframeStrip to look up the "
                            "ActionChannelBag for this Slot");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
@@ -2123,11 +2134,17 @@ static void rna_def_keyframestrip_channelbags(BlenderRNA *brna, PropertyRNA *cpr
 }
 
 /**
- * Define the methods and properties specific to keyframe strips.
+ * Define the ActionKeyframeStrip subtype of ActionStrip.
  */
-static void rna_def_action_keyframe_strip(BlenderRNA *brna, StructRNA *srna)
+static void rna_def_action_keyframe_strip(BlenderRNA *brna)
 {
+  StructRNA *srna;
   PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ActionKeyframeStrip", "ActionStrip");
+  RNA_def_struct_ui_text(
+      srna, "Keyframe Animation Strip", "Strip with a set of F-Curves for each action slot");
+  RNA_def_struct_sdna_from(srna, "ActionStrip", nullptr);
 
   prop = RNA_def_property(srna, "channelbags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionChannelBag");
@@ -2226,6 +2243,7 @@ static void rna_def_action_strip(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "ActionStrip", nullptr);
   RNA_def_struct_ui_text(srna, "Action Strip", "");
   RNA_def_struct_path_func(srna, "rna_ActionStrip_path");
+  RNA_def_struct_refine_func(srna, "rna_ActionStrip_refine");
 
   static const EnumPropertyItem prop_type_items[] = {
       {int(animrig::Strip::Type::Keyframe),
@@ -2241,8 +2259,8 @@ static void rna_def_action_strip(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, prop_type_items);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  /* Define methods and properties specific to different strip types. */
-  rna_def_action_keyframe_strip(brna, srna);
+  /* Define Strip subtypes. */
+  rna_def_action_keyframe_strip(brna);
 }
 
 static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
