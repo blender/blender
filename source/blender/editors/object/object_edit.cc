@@ -1681,7 +1681,8 @@ static bool shade_poll(bContext *C)
   if (obact != nullptr) {
     /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
     if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == nullptr ||
-        ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
+        !ID_IS_EDITABLE(obact) || !ID_IS_EDITABLE(obact->data) || ID_IS_OVERRIDE_LIBRARY(obact) ||
+        ID_IS_OVERRIDE_LIBRARY(obact->data))
     {
       return false;
     }
