@@ -48,7 +48,9 @@
 
 #include <mach/mach_time.h>
 
-#pragma mark KeyMap, mouse converters
+/* --------------------------------------------------------------------
+ * Keymaps, mouse converters.
+ */
 
 static GHOST_TButton convertButton(int button)
 {
@@ -267,17 +269,16 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
       if ((recvChar >= 'A') && (recvChar <= 'Z')) {
         return (GHOST_TKey)(recvChar - 'A' + GHOST_kKeyA);
       }
-      else if ((recvChar >= 'a') && (recvChar <= 'z')) {
+
+      if ((recvChar >= 'a') && (recvChar <= 'z')) {
         return (GHOST_TKey)(recvChar - 'a' + GHOST_kKeyA);
       }
       else {
         /* Leopard and Snow Leopard 64bit compatible API. */
-        CFDataRef uchrHandle; /* The keyboard layout. */
-        TISInputSourceRef kbdTISHandle;
-
-        kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
-        uchrHandle = (CFDataRef)TISGetInputSourceProperty(kbdTISHandle,
-                                                          kTISPropertyUnicodeKeyLayoutData);
+        const TISInputSourceRef kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
+        /* The keyboard layout. */
+        const CFDataRef uchrHandle = static_cast<CFDataRef>(
+            TISGetInputSourceProperty(kbdTISHandle, kTISPropertyUnicodeKeyLayoutData));
         CFRelease(kbdTISHandle);
 
         /* Get actual character value of the "remappable" keys in international keyboards,
@@ -334,7 +335,9 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
   return GHOST_kKeyUnknown;
 }
 
-#pragma mark Utility functions
+/* --------------------------------------------------------------------
+ * Utility functions.
+ */
 
 #define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
@@ -349,12 +352,12 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
     buf[FIRSTFILEBUFLG - 1] = '\0';
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
-#pragma mark Cocoa objects
+/* --------------------------------------------------------------------
+ * Cocoa objects.
+ */
 
 /**
  * CocoaAppDelegate
@@ -486,7 +489,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
       return;
     }
 
-    NSInteger index = [[NSApp orderedWindows] indexOfObject:closing_window];
+    const NSInteger index = [[NSApp orderedWindows] indexOfObject:closing_window];
     if (index != NSNotFound) {
       return;
     }
@@ -529,7 +532,9 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 @end
 
-#pragma mark initialization/finalization
+/* --------------------------------------------------------------------
+ * Initialization / Finalization.
+ */
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
@@ -673,7 +678,9 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
   return success;
 }
 
-#pragma mark window management
+/* --------------------------------------------------------------------
+ * Window management.
+ */
 
 uint64_t GHOST_SystemCocoa::getMilliSeconds() const
 {
@@ -694,10 +701,10 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(uint32_t &width, uint32_t &heig
 {
   @autoreleasepool {
     /* Get visible frame, that is frame excluding dock and top menu bar. */
-    NSRect frame = [[NSScreen mainScreen] visibleFrame];
+    const NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
     /* Returns max window contents (excluding title bar...). */
-    NSRect contentRect = [NSWindow
+    const NSRect contentRect = [NSWindow
         contentRectForFrameRect:frame
                       styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                                  NSWindowStyleMaskMiniaturizable)];
@@ -726,10 +733,9 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
 {
   GHOST_IWindow *window = nullptr;
   @autoreleasepool {
-
     /* Get the available rect for including window contents. */
-    NSRect frame = [[NSScreen mainScreen] visibleFrame];
-    NSRect contentRect = [NSWindow
+    const NSRect frame = [[NSScreen mainScreen] visibleFrame];
+    const NSRect contentRect = [NSWindow
         contentRectForFrameRect:frame
                       styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                                  NSWindowStyleMaskMiniaturizable)];
@@ -826,10 +832,11 @@ GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
 
 GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
 {
-  NSPoint scr_co = NSMakePoint(x, y);
+  const NSPoint scr_co = NSMakePoint(x, y);
 
   @autoreleasepool {
-    int windowNumberAtPoint = [NSWindow windowNumberAtPoint:scr_co belowWindowWithWindowNumber:0];
+    const int windowNumberAtPoint = [NSWindow windowNumberAtPoint:scr_co
+                                      belowWindowWithWindowNumber:0];
     NSWindow *nswindow = [NSApp windowWithWindowNumber:windowNumberAtPoint];
 
     if (nswindow == nil) {
@@ -845,11 +852,11 @@ GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
  */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  NSPoint mouseLoc = [NSEvent mouseLocation];
+  const NSPoint mouseLoc = [NSEvent mouseLocation];
 
   /* Returns the mouse location in screen coordinates. */
-  x = (int32_t)mouseLoc.x;
-  y = (int32_t)mouseLoc.y;
+  x = int32_t(mouseLoc.x);
+  y = int32_t(mouseLoc.y);
   return GHOST_kSuccess;
 }
 
@@ -937,7 +944,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
 
 GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 {
-  float xf = (float)x, yf = (float)y;
+  float xf = float(x), yf = float(y);
   GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)m_windowManager->getActiveWindow();
   if (!window) {
     return GHOST_kFailure;
@@ -945,7 +952,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 
   @autoreleasepool {
     NSScreen *windowScreen = window->getScreen();
-    NSRect screenRect = windowScreen.frame;
+    const NSRect screenRect = windowScreen.frame;
 
     /* Set position relative to current screen. */
     xf -= screenRect.origin.x;
@@ -982,7 +989,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys &keys) cons
 
 GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
 {
-  UInt32 button_state = GetCurrentEventButtonState();
+  const UInt32 button_state = GetCurrentEventButtonState();
 
   buttons.clear();
   buttons.set(GHOST_kButtonMaskLeft, button_state & (1 << 0));
@@ -1004,7 +1011,9 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
           GHOST_kCapabilityClipboardImages));
 }
 
-#pragma mark Event handlers
+/* --------------------------------------------------------------------
+ * Event handlers.
+ */
 
 /**
  * The event queue polling function
@@ -1305,7 +1314,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               strArray->strings[i] = temp_buff;
             }
 
-            eventData = (GHOST_TDragnDropDataPtr)strArray;
+            eventData = static_cast<GHOST_TDragnDropDataPtr>(strArray);
             break;
           }
           case GHOST_kDragnDropTypeString: {
@@ -1322,14 +1331,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
                 temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
             temp_buff[pastedTextSize] = '\0';
 
-            eventData = (GHOST_TDragnDropDataPtr)temp_buff;
+            eventData = static_cast<GHOST_TDragnDropDataPtr>(temp_buff);
             break;
           }
           case GHOST_kDragnDropTypeBitmap: {
             NSImage *droppedImg = (NSImage *)data;
             NSSize imgSize = droppedImg.size;
 
-            const ImBuf *ibuf = IMB_allocImBuf(imgSize.width, imgSize.height, 32, IB_rect);
+            ImBuf *ibuf = IMB_allocImBuf(imgSize.width, imgSize.height, 32, IB_rect);
             if (!ibuf) {
               [droppedImg release];
               return GHOST_kFailure;
@@ -1448,7 +1457,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               [droppedImg release];
             }
 
-            eventData = (GHOST_TDragnDropDataPtr)ibuf;
+            eventData = static_cast<GHOST_TDragnDropDataPtr>(ibuf);
 
             break;
           }
@@ -1487,12 +1496,14 @@ void GHOST_SystemCocoa::handleQuitRequest()
 
 bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 {
+  NSString *filepath = (NSString *)filepathStr;
+
   /* Check for blender opened windows and make the front-most key.
    * In case blender is minimized, opened on another desktop space,
    * or in full-screen mode. */
   @autoreleasepool {
     NSArray *windowsList = [NSApp orderedWindows];
-    if (windowsList.count) {
+    if ([windowsList count]) {
       [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
     }
 
@@ -1510,7 +1521,6 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
       return NO;
     }
 
-    NSString *filepath = (NSString *)filepathStr;
     const size_t filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
     char *temp_buff = (char *)malloc(filenameTextSize + 1);
 
@@ -1521,8 +1531,10 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     memcpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
     temp_buff[filenameTextSize] = '\0';
 
-    pushEvent(new GHOST_EventString(
-        getMilliSeconds(), GHOST_kEventOpenMainFile, window, (GHOST_TEventDataPtr)temp_buff));
+    pushEvent(new GHOST_EventString(getMilliSeconds(),
+                                    GHOST_kEventOpenMainFile,
+                                    window,
+                                    static_cast<GHOST_TEventDataPtr>(temp_buff)));
   }
   return YES;
 }
@@ -2040,7 +2052,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
   return GHOST_kSuccess;
 }
 
-#pragma mark Clipboard get/set
+/* --------------------------------------------------------------------
+ * Clipboard get/set.
+ */
 
 char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
 {
@@ -2053,6 +2067,7 @@ char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
     }
 
     const size_t pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
     char *temp_buff = (char *)malloc(pastedTextSize + 1);
 
     if (temp_buff == nullptr) {
@@ -2118,7 +2133,7 @@ GHOST_TSuccess GHOST_SystemCocoa::showMessageBox(const char *title,
       [alert addButtonWithTitle:helpString];
     }
 
-    NSModalResponse response = [alert runModal];
+    const NSModalResponse response = [alert runModal];
     if (response == NSAlertSecondButtonReturn) {
       NSString *linkString = [NSString stringWithCString:link];
       [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:linkString]];

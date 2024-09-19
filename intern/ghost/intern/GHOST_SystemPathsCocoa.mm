@@ -8,13 +8,9 @@
 #include "GHOST_Debug.hh"
 #include "GHOST_SystemPathsCocoa.hh"
 
-#pragma mark initialization/finalization
-
-GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa() {}
-
-GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa() {}
-
-#pragma mark Base directories retrieval
+/* --------------------------------------------------------------------
+ * Base directories retrieval.
+ */
 
 static const char *GetApplicationSupportDir(const char *versionstr,
                                             const NSSearchPathDomainMask mask,
@@ -38,13 +34,13 @@ static const char *GetApplicationSupportDir(const char *versionstr,
   return tempPath;
 }
 
-const char *GHOST_SystemPathsCocoa::getSystemDir(int, const char *versionstr) const
+const char *GHOST_SystemPathsCocoa::getSystemDir(int /* version */, const char *versionstr) const
 {
   static char tempPath[512] = "";
   return GetApplicationSupportDir(versionstr, NSLocalDomainMask, tempPath, sizeof(tempPath));
 }
 
-const char *GHOST_SystemPathsCocoa::getUserDir(int, const char *versionstr) const
+const char *GHOST_SystemPathsCocoa::getUserDir(int /* version */, const char *versionstr) const
 {
   static char tempPath[512] = "";
   return GetApplicationSupportDir(versionstr, NSUserDomainMask, tempPath, sizeof(tempPath));

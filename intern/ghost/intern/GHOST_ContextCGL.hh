@@ -49,7 +49,7 @@ class GHOST_ContextCGL : public GHOST_Context {
   /**
    * Destructor.
    */
-  ~GHOST_ContextCGL();
+  ~GHOST_ContextCGL() override;
 
   /**
    * Swaps front and back buffers of a window.
@@ -96,7 +96,7 @@ class GHOST_ContextCGL : public GHOST_Context {
    * \param intervalOut: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int &) override;
+  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
 
   /**
    * Updates the drawing context of this window.

@@ -16,9 +16,9 @@
 
 #include "GHOST_ContextCGL.hh"
 
-#include <Cocoa/Cocoa.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <cassert>
 #include <vector>
@@ -332,10 +332,10 @@ void GHOST_ContextCGL::metalInitFramebuffer()
 void GHOST_ContextCGL::metalUpdateFramebuffer()
 {
   @autoreleasepool {
-    NSRect bounds = [m_metalView bounds];
-    NSSize backingSize = [m_metalView convertSizeToBacking:bounds.size];
-    size_t width = (size_t)backingSize.width;
-    size_t height = (size_t)backingSize.height;
+    const NSRect bounds = [m_metalView bounds];
+    const NSSize backingSize = [m_metalView convertSizeToBacking:bounds.size];
+    const size_t width = size_t(backingSize.width);
+    const size_t height = size_t(backingSize.height);
 
     if (m_defaultFramebufferMetalTexture[current_swapchain_index].texture &&
         m_defaultFramebufferMetalTexture[current_swapchain_index].texture.width == width &&
@@ -385,7 +385,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
     }
     [cmdBuffer commit];
 
-    m_metalLayer.drawableSize = CGSizeMake((CGFloat)width, (CGFloat)height);
+    m_metalLayer.drawableSize = CGSizeMake(CGFloat(width), CGFloat(height));
   }
 }
 

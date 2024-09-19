@@ -12,7 +12,7 @@
 
 #include <cstdlib>
 
-static char *user_locale = NULL;
+static char *user_locale = nullptr;
 
 /* Get current locale. */
 const char *osx_user_locale()

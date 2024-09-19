@@ -54,42 +54,42 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     const bool stereoVisual = false,
                     bool is_debug = false,
                     bool dialog = false,
-                    GHOST_WindowCocoa *parentWindow = 0);
+                    GHOST_WindowCocoa *parentWindow = nullptr);
 
   /**
    * Destructor.
    * Closes the window and disposes resources allocated.
    */
-  ~GHOST_WindowCocoa();
+  ~GHOST_WindowCocoa() override;
 
   /**
    * Returns indication as to whether the window is valid.
    * \return The validity of the window.
    */
-  bool getValid() const;
+  bool getValid() const override;
 
   /**
    * Returns the associated NSWindow object
    * \return The associated NSWindow object
    */
-  void *getOSWindow() const;
+  void *getOSWindow() const override;
 
   /**
    * Sets the title displayed in the title bar.
    * \param title: The title to display in the title bar.
    */
-  void setTitle(const char *title);
+  void setTitle(const char *title) override;
   /**
    * Returns the title displayed in the title bar.
    * \param title: The title displayed in the title bar.
    */
-  std::string getTitle() const;
+  std::string getTitle() const override;
 
   /**
    * Sets the file name represented by this window.
    * \param filepath: The file directory.
    */
-  GHOST_TSuccess setPath(const char *filepath);
+  GHOST_TSuccess setPath(const char *filepath) override;
 
   /**
    * Returns the window rectangle dimensions.
@@ -97,46 +97,46 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * relative to the upper-left corner of the screen.
    * \param bounds: The bounding rectangle of the window.
    */
-  void getWindowBounds(GHOST_Rect &bounds) const;
+  void getWindowBounds(GHOST_Rect &bounds) const override;
 
   /**
    * Returns the client rectangle dimensions.
    * The left and top members of the rectangle are always zero.
    * \param bounds: The bounding rectangle of the client area of the window.
    */
-  void getClientBounds(GHOST_Rect &bounds) const;
+  void getClientBounds(GHOST_Rect &bounds) const override;
 
   /**
    * Resizes client rectangle width.
    * \param width: The new width of the client area of the window.
    */
-  GHOST_TSuccess setClientWidth(uint32_t width);
+  GHOST_TSuccess setClientWidth(uint32_t width) override;
 
   /**
    * Resizes client rectangle height.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientHeight(uint32_t height);
+  GHOST_TSuccess setClientHeight(uint32_t height) override;
 
   /**
    * Resizes client rectangle.
    * \param width: The new width of the client area of the window.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height);
+  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height) override;
 
   /**
    * Returns the state of the window (normal, minimized, maximized).
    * \return The state of the window.
    */
-  GHOST_TWindowState getState() const;
+  GHOST_TWindowState getState() const override;
 
   /**
    * Sets the window "modified" status, indicating unsaved changes
    * \param isUnsavedChanges: Unsaved changes or not.
    * \return Indication of success.
    */
-  GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
+  GHOST_TSuccess setModifiedState(bool isUnsavedChanges) override;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -145,7 +145,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate in the client rectangle.
    * \param outY: The y-coordinate in the client rectangle.
    */
-  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
   /**
    * Converts a point in client rectangle coordinates to screen coordinates.
@@ -154,7 +154,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
   /**
    * Converts a point in client rectangle coordinates to screen coordinates.
@@ -187,19 +187,19 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param state: The state of the window.
    * \return Indication of success.
    */
-  GHOST_TSuccess setState(GHOST_TWindowState state);
+  GHOST_TSuccess setState(GHOST_TWindowState state) override;
 
   /**
    * Sets the order of the window (bottom, top).
    * \param order: The order of the window.
    * \return Indication of success.
    */
-  GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
+  GHOST_TSuccess setOrder(GHOST_TWindowOrder order) override;
 
   NSCursor *getStandardCursor(GHOST_TStandardCursor cursor) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
 
-  bool isDialog() const;
+  bool isDialog() const override;
 
   GHOST_TabletData &GetCocoaTabletData()
   {
@@ -210,21 +210,21 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * Sets the progress bar value displayed in the window/application icon
    * \param progress: The progress percentage (0.0 to 1.0).
    */
-  GHOST_TSuccess setProgressBar(float progress);
+  GHOST_TSuccess setProgressBar(float progress) override;
 
   /**
    * Hides the progress bar icon
    */
-  GHOST_TSuccess endProgressBar();
+  GHOST_TSuccess endProgressBar() override;
 
   void setNativePixelSize();
 
-  GHOST_TSuccess beginFullScreen() const
+  GHOST_TSuccess beginFullScreen() const override
   {
     return GHOST_kFailure;
   }
 
-  GHOST_TSuccess endFullScreen() const
+  GHOST_TSuccess endFullScreen() const override
   {
     return GHOST_kFailure;
   }
@@ -246,8 +246,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
   }
 
 #ifdef WITH_INPUT_IME
-  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
-  void endIME();
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override;
+  void endIME() override;
 #endif /* WITH_INPUT_IME */
 
  protected:
@@ -255,32 +255,32 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param type: The type of rendering context create.
    * \return Indication of success.
    */
-  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
+  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;
 
   /**
    * Invalidates the contents of this window.
    * \return Indication of success.
    */
-  GHOST_TSuccess invalidate();
+  GHOST_TSuccess invalidate() override;
 
   /**
    * Sets the cursor visibility on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorVisibility(bool visible);
+  GHOST_TSuccess setWindowCursorVisibility(bool visible) override;
 
   /**
    * Sets the cursor grab on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
+  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
   /**
    * Sets the cursor shape on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
-  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape) override;
 
   /**
    * Sets the cursor shape on the window using
@@ -292,7 +292,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            bool canInvertColor);
+                                            bool canInvertColor) override;
 
   /** The window containing the view */
   BlenderWindow *m_window;
