@@ -1768,22 +1768,6 @@ ActiveVert SculptSession::active_vert() const
   return active_vert_;
 }
 
-PBVHVertRef SculptSession::last_active_vert_ref() const
-{
-  if (std::holds_alternative<int>(last_active_vert_)) {
-    return {std::get<int>(last_active_vert_)};
-  }
-  if (std::holds_alternative<SubdivCCGCoord>(last_active_vert_)) {
-    const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
-    const int index = std::get<SubdivCCGCoord>(last_active_vert_).to_index(key);
-    return {index};
-  }
-  if (std::holds_alternative<BMVert *>(last_active_vert_)) {
-    return {reinterpret_cast<intptr_t>(std::get<BMVert *>(last_active_vert_))};
-  }
-  return {PBVH_REF_NONE};
-}
-
 ActiveVert SculptSession::last_active_vert() const
 {
   return active_vert_;
@@ -1800,6 +1784,23 @@ int SculptSession::active_vert_index() const
   }
   if (std::holds_alternative<BMVert *>(active_vert_)) {
     BMVert *bm_vert = std::get<BMVert *>(active_vert_);
+    return BM_elem_index_get(bm_vert);
+  }
+
+  return -1;
+}
+
+int SculptSession::last_active_vert_index() const
+{
+  if (std::holds_alternative<int>(last_active_vert_)) {
+    return std::get<int>(last_active_vert_);
+  }
+  if (std::holds_alternative<SubdivCCGCoord>(last_active_vert_)) {
+    const SubdivCCGCoord coord = std::get<SubdivCCGCoord>(last_active_vert_);
+    return coord.to_index(BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg));
+  }
+  if (std::holds_alternative<BMVert *>(last_active_vert_)) {
+    BMVert *bm_vert = std::get<BMVert *>(last_active_vert_);
     return BM_elem_index_get(bm_vert);
   }
 

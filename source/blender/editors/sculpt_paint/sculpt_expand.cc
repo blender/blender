@@ -2151,11 +2151,16 @@ static bool set_initial_components_for_mouse(bContext *C,
   if (!initial_vert) {
     /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
      * vertex in the sculpt session. */
-    const PBVHVertRef last_active_vert = ss.last_active_vert_ref();
-    if (last_active_vert.i == PBVH_REF_NONE) {
+    const int last_active_vert_index = ss.last_active_vert_index();
+    /* It still may be the case that there is no last active vert in rare circumstances for
+     * everyday usage.
+     * (i.e. if the cursor has never been over the mesh at all. A solutoin to both this problem
+     * and needing to store this data is to figure out which is the nearest vertex to the current
+     * cursor position */
+    if (last_active_vert_index == -1) {
       return false;
     }
-    initial_vert = BKE_pbvh_vertex_to_index(*bke::object::pbvh_get(ob), ss.last_active_vert_ref());
+    initial_vert = last_active_vert_index;
   }
 
   copy_v2_v2(ss.expand_cache->initial_mouse, mval);
