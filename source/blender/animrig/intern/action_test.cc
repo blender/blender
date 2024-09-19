@@ -918,11 +918,15 @@ static void add_keyframe(FCurve &fcu, float x, float y)
 
 static void add_fcurve_to_action(Action &action, FCurve &fcu)
 {
+#ifdef WITH_ANIM_BAKLAVA
   Slot &slot = action.slot_array_num > 0 ? *action.slot(0) : action.slot_add();
   action.layer_keystrip_ensure();
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
   ChannelBag &cbag = strip_data.channelbag_for_slot_ensure(slot);
   cbag.fcurve_append(fcu);
+#else
+  BLI_addhead(&action.curves, &fcu);
+#endif /* WITH_ANIM_BAKLAVA */
 }
 
 class ActionQueryTest : public testing::Test {
