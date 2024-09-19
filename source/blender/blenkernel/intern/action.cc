@@ -1920,7 +1920,7 @@ void what_does_obaction(Object *ob,
   BLI_assert(act);
 
   bActionGroup *agrp = nullptr;
-  if (groupname[0]) {
+  if (groupname && groupname[0]) {
     /* Find the named channel group. */
     Action &action = act->wrap();
     if (action.is_action_layered()) {
