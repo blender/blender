@@ -348,9 +348,12 @@ class Action : public ::bAction {
   int64_t find_slot_index(const Slot &slot) const;
 
   /**
-   * Creates a new `StripKeyframeData` and appends it to the array.
+   * Append the given `StripKeyframeData` item to the action's keyframe data
+   * array.
    *
-   * \return The index of the new item in the array.
+   * Note: this takes ownership of `strip_data`.
+   *
+   * \return The index of the appended item in the array.
    */
   int strip_keyframe_data_append(StripKeyframeData *strip_data);
 
