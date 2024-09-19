@@ -366,7 +366,8 @@ void BKE_mesh_set_custom_normals_normalized(Mesh *mesh, float (*r_custom_loop_no
  * with automatically computed vectors.
  */
 void BKE_mesh_set_custom_normals_from_verts(Mesh *mesh, float (*r_custom_vert_normals)[3]);
-void BKE_mesh_set_custom_normals_from_verts_normalized(Mesh *mesh, float (*r_custom_vert_normals)[3]);
+void BKE_mesh_set_custom_normals_from_verts_normalized(Mesh *mesh,
+                                                       float (*r_custom_vert_normals)[3]);
 
 /* *** mesh_evaluate.cc *** */
 
