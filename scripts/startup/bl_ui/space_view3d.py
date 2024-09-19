@@ -6183,6 +6183,8 @@ class VIEW3D_MT_edit_greasepencil_cleanup(Menu):
         if ob.mode != 'PAINT_GREASE_PENCIL':
             layout.operator("grease_pencil.stroke_merge_by_distance", text="Merge by Distance")
 
+        layout.operator("grease_pencil.reproject")
+
 
 class VIEW3D_MT_edit_greasepencil(Menu):
     bl_label = "Grease Pencil"

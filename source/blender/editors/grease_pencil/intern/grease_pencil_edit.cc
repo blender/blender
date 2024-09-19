@@ -35,6 +35,7 @@
 #include "BKE_material.h"
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -43,10 +44,12 @@
 #include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_object.hh"
+#include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
 #include "GEO_join_geometries.hh"
@@ -54,6 +57,7 @@
 #include "GEO_set_curve_type.hh"
 #include "GEO_smooth_curves.hh"
 #include "GEO_subdivide_curves.hh"
+#include "UI_interface_c.hh"
 
 #include "UI_resources.hh"
 #include <limits>
@@ -2691,6 +2695,190 @@ static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Reproject Strokes Operator
+ * \{ */
+
+static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
+{
+  Scene &scene = *CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  View3D *v3d = CTX_wm_view3d(C);
+  ARegion *region = CTX_wm_region(C);
+
+  const ReprojectMode mode = ReprojectMode(RNA_enum_get(op->ptr, "type"));
+  const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
+
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const float offset = RNA_float_get(op->ptr, "offset");
+
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      scene.toolsettings);
+
+  const int oldframe = int(DEG_get_ctime(depsgraph));
+  /* TODO: This can probably be optimized further for the non-Surface projection usecase by
+   * considering all drawings for the parallel loop instead of having to partition by frame number
+   */
+  if (keep_original) {
+    const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+    threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+      IndexMaskMemory memory;
+      const IndexMask elements = retrieve_editable_and_selected_elements(
+          *object, info.drawing, info.layer_index, selection_domain, memory);
+      if (elements.is_empty()) {
+        return;
+      }
+
+      bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+      if (selection_domain == bke::AttrDomain::Curve) {
+        curves::duplicate_curves(curves, elements);
+      }
+      else if (selection_domain == bke::AttrDomain::Point) {
+        curves::duplicate_points(curves, elements);
+      }
+    });
+  }
+
+  std::atomic<bool> changed = false;
+  Array<Vector<MutableDrawingInfo>> drawings_per_frame =
+      retrieve_editable_drawings_grouped_per_frame(scene, grease_pencil);
+  for (const Span<MutableDrawingInfo> drawings : drawings_per_frame) {
+    if (drawings.is_empty()) {
+      continue;
+    }
+    const int current_frame_number = drawings.first().frame_number;
+
+    if (mode == ReprojectMode::Surface) {
+      scene.r.cfra = current_frame_number;
+      BKE_scene_graph_update_for_newframe(depsgraph);
+    }
+
+    threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+      IndexMaskMemory memory;
+      const IndexMask points_to_reproject = retrieve_editable_and_selected_points(
+          *object, info.drawing, info.layer_index, memory);
+      if (points_to_reproject.is_empty()) {
+        return;
+      }
+
+      const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
+      bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+      const DrawingPlacement drawing_placement(
+          scene, *region, *v3d, *object, &layer, mode, offset);
+      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+      MutableSpan<float3> positions = curves.positions_for_write();
+      for (const int curve_index : curves.curves_range()) {
+        const IndexRange curve_points = points_by_curve[curve_index];
+        const IndexMask curve_points_to_reproject = points_to_reproject.slice_content(
+            curve_points);
+        curve_points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+          positions[point_i] = drawing_placement.reproject(positions[point_i]);
+        });
+      }
+
+      changed.store(true, std::memory_order_relaxed);
+    });
+  }
+
+  if (mode == ReprojectMode::Surface) {
+    scene.r.cfra = oldframe;
+    BKE_scene_graph_update_for_newframe(depsgraph);
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayout *row;
+
+  const ReprojectMode type = ReprojectMode(RNA_enum_get(op->ptr, "type"));
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  if (type == ReprojectMode::Surface) {
+    row = uiLayoutRow(layout, true);
+    uiItemR(row, op->ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, op->ptr, "keep_original", UI_ITEM_NONE, nullptr, ICON_NONE);
+}
+
+static void GREASE_PENCIL_OT_reproject(wmOperatorType *ot)
+{
+  static const EnumPropertyItem reproject_type[] = {
+      {int(ReprojectMode::Front),
+       "FRONT",
+       0,
+       "Front",
+       "Reproject the strokes using the X-Z plane"},
+      {int(ReprojectMode::Side), "SIDE", 0, "Side", "Reproject the strokes using the Y-Z plane"},
+      {int(ReprojectMode::Top), "TOP", 0, "Top", "Reproject the strokes using the X-Y plane"},
+      {int(ReprojectMode::View),
+       "VIEW",
+       0,
+       "View",
+       "Reproject the strokes to end up on the same plane, as if drawn from the current "
+       "viewpoint "
+       "using 'Cursor' Stroke Placement"},
+      {int(ReprojectMode::Surface),
+       "SURFACE",
+       0,
+       "Surface",
+       "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"},
+      {int(ReprojectMode::Cursor),
+       "CURSOR",
+       0,
+       "Cursor",
+       "Reproject the strokes using the orientation of 3D cursor"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* identifiers */
+  ot->name = "Reproject Strokes";
+  ot->idname = "GREASE_PENCIL_OT_reproject";
+  ot->description =
+      "Reproject the selected strokes from the current viewpoint as if they had been newly "
+      "drawn "
+      "(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
+      "or for matching deforming geometry)";
+
+  /* callbacks */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_reproject_exec;
+  ot->poll = editable_grease_pencil_poll;
+  ot->ui = grease_pencil_reproject_ui;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", reproject_type, int(ReprojectMode::View), "Projection Type", "");
+
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna,
+      "keep_original",
+      false,
+      "Keep Original",
+      "Keep original strokes and create a copy before reprojecting");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
+
+  RNA_def_float(ot->srna, "offset", 0.0f, 0.0f, 10.0f, "Surface Offset", "", 0.0f, 10.0f);
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
 /** \name Snapping Selection to Grid Operator
  * \{ */
 
@@ -3188,6 +3376,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_merge_by_distance);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_trim);
   WM_operatortype_append(GREASE_PENCIL_OT_extrude);
+  WM_operatortype_append(GREASE_PENCIL_OT_reproject);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_grid);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_to_cursor);
   WM_operatortype_append(GREASE_PENCIL_OT_snap_cursor_to_selected);
