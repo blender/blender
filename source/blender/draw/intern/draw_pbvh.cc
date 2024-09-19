@@ -209,7 +209,7 @@ void DrawCacheImpl::tag_positions_changed(const IndexMask &node_mask)
 void DrawCacheImpl::tag_visibility_changed(const IndexMask &node_mask)
 {
   dirty_topology_.resize(std::max(dirty_topology_.size(), node_mask.min_array_size()), false);
-  node_mask.foreach_index_optimized<int>([&](const int i) { dirty_topology_[i].set(); });
+  node_mask.set_bits(dirty_topology_);
 }
 
 void DrawCacheImpl::tag_topology_changed(const IndexMask &node_mask)

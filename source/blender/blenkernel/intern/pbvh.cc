@@ -557,8 +557,7 @@ void Tree::tag_visibility_changed(const IndexMask &node_mask)
 {
   this->visibility_dirty_.resize(std::max(this->bounds_dirty_.size(), node_mask.min_array_size()),
                                  false);
-  /* TODO: Use `to_bools` with first clear disabled. */
-  node_mask.foreach_index_optimized<int>([&](const int i) { this->visibility_dirty_[i].set(); });
+  node_mask.set_bits(this->visibility_dirty_);
   if (this->draw_data) {
     this->draw_data->tag_visibility_changed(node_mask);
   }
