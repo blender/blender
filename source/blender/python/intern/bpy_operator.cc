@@ -43,6 +43,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_report.hh"
 
 /* so operators called can spawn threads which acquire the GIL */
@@ -258,7 +259,11 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
 
       /* operator output is nice to have in the terminal/console too */
       if (!BLI_listbase_is_empty(&reports->list)) {
+        /* Restore the print level as this is owned by the operator now. */
+        eReportType level = eReportType(reports->printlevel);
+        BKE_report_print_level_set(reports, G.quiet ? RPT_WARNING : RPT_DEBUG);
         BPy_reports_write_stdout(reports, nullptr);
+        BKE_report_print_level_set(reports, level);
       }
 
       BKE_reports_clear(reports);
