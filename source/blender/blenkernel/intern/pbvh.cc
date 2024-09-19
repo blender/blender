@@ -227,12 +227,12 @@ inline Bounds<float3> calc_face_bounds(const Span<float3> vert_positions,
   return bounds;
 }
 
-std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
+Tree Tree::from_mesh(const Mesh &mesh)
 {
 #ifdef DEBUG_BUILD_TIME
   SCOPED_TIMER_AVERAGED(__func__);
 #endif
-  std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Mesh);
+  Tree pbvh(Type::Mesh);
   const Span<float3> vert_positions = mesh.vert_positions();
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -264,25 +264,25 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
   const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", AttrDomain::Point);
   const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
 
-  pbvh->prim_indices_.reinitialize(faces.size());
-  array_utils::fill_index_range<int>(pbvh->prim_indices_);
+  pbvh.prim_indices_.reinitialize(faces.size());
+  array_utils::fill_index_range<int>(pbvh.prim_indices_);
 
-  Vector<MeshNode> &nodes = std::get<Vector<MeshNode>>(pbvh->nodes_);
+  Vector<MeshNode> &nodes = std::get<Vector<MeshNode>>(pbvh.nodes_);
   nodes.resize(1);
   {
 #ifdef DEBUG_BUILD_TIME
     SCOPED_TIMER_AVERAGED("build_nodes_recursive_mesh");
 #endif
     build_nodes_recursive_mesh(
-        material_index, leaf_limit, 0, bounds, face_centers, 0, pbvh->prim_indices_, nodes);
+        material_index, leaf_limit, 0, bounds, face_centers, 0, pbvh.prim_indices_, nodes);
   }
 
   build_mesh_leaf_nodes(mesh.verts_num, faces, corner_verts, nodes);
 
-  pbvh->tag_positions_changed(nodes.index_range());
+  pbvh.tag_positions_changed(nodes.index_range());
 
-  update_bounds_mesh(vert_positions, *pbvh);
-  store_bounds_orig(*pbvh);
+  update_bounds_mesh(vert_positions, pbvh);
+  store_bounds_orig(pbvh);
 
   if (!hide_vert.is_empty()) {
     threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
@@ -292,7 +292,7 @@ std::unique_ptr<Tree> build_mesh(const Mesh &mesh)
     });
   }
 
-  update_mask_mesh(mesh, nodes.index_range(), *pbvh);
+  update_mask_mesh(mesh, nodes.index_range(), pbvh);
 
   return pbvh;
 }
@@ -382,13 +382,12 @@ static Bounds<float3> calc_face_grid_bounds(const OffsetIndices<int> faces,
   return bounds;
 }
 
-std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
+Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
 {
 #ifdef DEBUG_BUILD_TIME
   SCOPED_TIMER_AVERAGED(__func__);
 #endif
-  std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::Grids);
-
+  Tree pbvh(Type::Grids);
   const OffsetIndices faces = base_mesh.faces();
   if (faces.is_empty()) {
     return pbvh;
@@ -424,7 +423,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   Array<int> face_indices(faces.size());
   array_utils::fill_index_range<int>(face_indices);
 
-  Vector<GridsNode> &nodes = std::get<Vector<GridsNode>>(pbvh->nodes_);
+  Vector<GridsNode> &nodes = std::get<Vector<GridsNode>>(pbvh.nodes_);
   nodes.resize(1);
   {
 #ifdef DEBUG_BUILD_TIME
@@ -435,12 +434,12 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
   }
 
   /* Convert face indices into grid indices. */
-  pbvh->prim_indices_.reinitialize(faces.total_size());
+  pbvh.prim_indices_.reinitialize(faces.total_size());
   {
     int offset = 0;
     for (const int face : face_indices) {
       for (const int corner : faces[face]) {
-        pbvh->prim_indices_[offset] = corner;
+        pbvh.prim_indices_[offset] = corner;
         offset++;
       }
     }
@@ -458,14 +457,14 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
 
   threading::parallel_for(nodes.index_range(), 512, [&](const IndexRange range) {
     for (const int i : range) {
-      nodes[i].prim_indices_ = pbvh->prim_indices_.as_span().slice(node_grid_offsets[i]);
+      nodes[i].prim_indices_ = pbvh.prim_indices_.as_span().slice(node_grid_offsets[i]);
     }
   });
 
-  pbvh->tag_positions_changed(nodes.index_range());
+  pbvh.tag_positions_changed(nodes.index_range());
 
-  update_bounds_grids(key, positions, *pbvh);
-  store_bounds_orig(*pbvh);
+  update_bounds_grids(key, positions, pbvh);
+  store_bounds_orig(pbvh);
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
   if (!grid_hidden.is_empty()) {
@@ -476,7 +475,7 @@ std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv
     });
   }
 
-  update_mask_grids(subdiv_ccg, nodes.index_range(), *pbvh);
+  update_mask_grids(subdiv_ccg, nodes.index_range(), pbvh);
 
   return pbvh;
 }

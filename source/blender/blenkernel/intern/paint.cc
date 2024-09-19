@@ -2348,14 +2348,14 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_for_dynamic_topology(Object *ob)
   BM_data_layer_ensure_named(&bm, &bm.vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
   BM_data_layer_ensure_named(&bm, &bm.pdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_face");
 
-  return pbvh::build_bmesh(&bm);
+  return std::make_unique<pbvh::Tree>(pbvh::Tree::from_bmesh(bm));
 }
 
 static std::unique_ptr<pbvh::Tree> build_pbvh_from_regular_mesh(Object *ob,
                                                                 const Mesh *me_eval_deform)
 {
   const Mesh &mesh = *BKE_object_get_original_mesh(ob);
-  std::unique_ptr<pbvh::Tree> pbvh = pbvh::build_mesh(mesh);
+  std::unique_ptr<pbvh::Tree> pbvh = std::make_unique<pbvh::Tree>(pbvh::Tree::from_mesh(mesh));
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
@@ -2370,7 +2370,7 @@ static std::unique_ptr<pbvh::Tree> build_pbvh_from_ccg(Object *ob, SubdivCCG &su
   const Mesh &base_mesh = *BKE_mesh_from_object(ob);
   BKE_sculpt_sync_face_visibility_to_grids(base_mesh, subdiv_ccg);
 
-  return pbvh::build_grids(base_mesh, subdiv_ccg);
+  return std::make_unique<pbvh::Tree>(pbvh::Tree::from_grids(base_mesh, subdiv_ccg));
 }
 
 }  // namespace blender::bke

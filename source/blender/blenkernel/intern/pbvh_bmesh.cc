@@ -2209,28 +2209,27 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Vector<BMeshNode> &nodes,
 
 /***************************** Public API *****************************/
 
-std::unique_ptr<Tree> build_bmesh(BMesh *bm)
+Tree Tree::from_bmesh(BMesh &bm)
 {
-  std::unique_ptr<Tree> pbvh = std::make_unique<Tree>(Type::BMesh);
-
-  const int cd_vert_node_offset = CustomData_get_offset_named(
-      &bm->vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
-  const int cd_face_node_offset = CustomData_get_offset_named(
-      &bm->pdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_face");
-
-  if (bm->totface == 0) {
+  Tree pbvh(Type::BMesh);
+  if (bm.totface == 0) {
     return pbvh;
   }
 
+  const int cd_vert_node_offset = CustomData_get_offset_named(
+      &bm.vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
+  const int cd_face_node_offset = CustomData_get_offset_named(
+      &bm.pdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_face");
+
   /* bounding box array of all faces, no need to recalculate every time. */
-  Array<Bounds<float3>> face_bounds(bm->totface);
-  Array<BMFace *> nodeinfo(bm->totface);
+  Array<Bounds<float3>> face_bounds(bm.totface);
+  Array<BMFace *> nodeinfo(bm.totface);
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast Tree node storage");
 
   BMIter iter;
   BMFace *f;
   int i;
-  BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+  BM_ITER_MESH_INDEX (f, &iter, &bm, BM_FACES_OF_MESH, i) {
     face_bounds[i] = negative_bounds();
 
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -2245,16 +2244,16 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
   }
   /* Likely this is already dirty. */
-  bm->elem_index_dirty |= BM_FACE;
+  bm.elem_index_dirty |= BM_FACE;
 
   BMVert *v;
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, &bm, BM_VERTS_OF_MESH) {
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
 
   /* Set up root node. */
   FastNodeBuildInfo rootnode = {0};
-  rootnode.totface = bm->totface;
+  rootnode.totface = bm.totface;
 
   /* Start recursion, assign faces to nodes accordingly. */
   pbvh_bmesh_node_limit_ensure_fast(nodeinfo, face_bounds, &rootnode, arena);
@@ -2264,14 +2263,14 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
 
   /* Start with all faces in the root node. */
   /* Take root node and visit and populate children recursively. */
-  Vector<BMeshNode> &nodes = std::get<Vector<BMeshNode>>(pbvh->nodes_);
+  Vector<BMeshNode> &nodes = std::get<Vector<BMeshNode>>(pbvh.nodes_);
   nodes.resize(1);
   pbvh_bmesh_create_nodes_fast_recursive(
       nodes, cd_vert_node_offset, cd_face_node_offset, nodeinfo, face_bounds, &rootnode, 0);
 
-  pbvh->tag_positions_changed(nodes.index_range());
-  update_bounds_bmesh(*bm, *pbvh);
-  store_bounds_orig(*pbvh);
+  pbvh.tag_positions_changed(nodes.index_range());
+  update_bounds_bmesh(bm, pbvh);
+  store_bounds_orig(pbvh);
 
   threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
@@ -2285,7 +2284,7 @@ std::unique_ptr<Tree> build_bmesh(BMesh *bm)
     }
   });
 
-  update_mask_bmesh(*bm, nodes.index_range(), *pbvh);
+  update_mask_bmesh(bm, nodes.index_range(), pbvh);
 
   BLI_memarena_free(arena);
   return pbvh;

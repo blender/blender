@@ -199,11 +199,11 @@ class Tree {
   friend Node;
   Type type_;
 
- public:
-  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
-
   /* Memory backing for Node.prim_indices. */
   Array<int> prim_indices_;
+
+ public:
+  std::variant<Vector<MeshNode>, Vector<GridsNode>, Vector<BMeshNode>> nodes_;
 
   /**
    * If true, the bounds for the corresponding node index is out of date.
@@ -235,8 +235,18 @@ class Tree {
   std::unique_ptr<DrawCache> draw_data;
 
  public:
-  explicit Tree(Type type);
+  Tree(const Tree &other) = default;
+  Tree(Tree &&other) = default;
+  Tree &operator=(const Tree &other) = default;
+  Tree &operator=(Tree &&other) = default;
   ~Tree();
+
+  /** Build a BVH tree from base mesh triangles. */
+  static Tree from_mesh(const Mesh &mesh);
+  /** Build a BVH tree from grids geometry. */
+  static Tree from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg);
+  /** Build a BVH tree from a triangle BMesh. */
+  static Tree from_bmesh(BMesh &bm);
 
   int nodes_num() const;
   template<typename NodeT> Span<NodeT> nodes() const;
@@ -272,6 +282,9 @@ class Tree {
    * Tag nodes where generic attribute data has changed (not positions, masks, or face sets).
    */
   void tag_attribute_changed(const IndexMask &node_mask, StringRef attribute_name);
+
+ private:
+  explicit Tree(Type type);
 };
 
 }  // namespace blender::bke::pbvh
@@ -284,13 +297,6 @@ struct PBVHFrustumPlanes {
 /* Callbacks */
 
 namespace blender::bke::pbvh {
-
-/** Build a BVH tree from base mesh triangles. */
-std::unique_ptr<Tree> build_mesh(const Mesh &mesh);
-/** Build a BVH tree from grids geometry. */
-std::unique_ptr<Tree> build_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg);
-/** Build a BVH tree from a triangle BMesh. */
-std::unique_ptr<Tree> build_bmesh(BMesh *bm);
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user);
 
