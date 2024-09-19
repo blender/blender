@@ -977,7 +977,7 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 #if defined(__APPLE__)
       const int cursor = U.experimental.use_docking ? WM_CURSOR_HAND : WM_CURSOR_EDIT;
 #else
-      const int cursor = U.experimental.use_docking ? WM_CURSOR_MOVE : WM_CURSOR_EDIT;
+      const int cursor = WM_CURSOR_EDIT;
 #endif
       WM_cursor_set(win, cursor);
     }
