@@ -9356,7 +9356,7 @@ static void rna_def_modifier_grease_pencil_noise(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "factor");
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
-  RNA_def_property_ui_text(prop, "Offset Factor", "Amount of noise to apply");
+  RNA_def_property_ui_text(prop, "Position Factor", "Amount of noise to apply");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "factor_strength", PROP_FLOAT, PROP_FACTOR);
