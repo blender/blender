@@ -388,7 +388,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     FOREACH_OBJECT_IN_MODE_BEGIN (
         scene_eval, view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter)
     {
-      ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
+      ok |= ED_view3d_minmax_verts(scene_eval, ob_eval_iter, min, max);
     }
     FOREACH_OBJECT_IN_MODE_END;
   }
@@ -415,7 +415,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     FOREACH_OBJECT_IN_MODE_BEGIN (
         scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
     {
-      ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
+      ok |= ED_view3d_minmax_verts(scene_eval, ob_eval_iter, min, max);
     }
     FOREACH_OBJECT_IN_MODE_END;
   }
