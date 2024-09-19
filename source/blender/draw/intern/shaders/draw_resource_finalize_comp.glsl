@@ -6,7 +6,8 @@
  * Finish computation of a few draw resource after sync.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 
 void main()
 {
@@ -31,7 +32,7 @@ void main()
     p03.z = max(p03.z, 1e-4);
     vec3 diagonal = p01 + p02 + p03;
     vec3 center = p0 + diagonal * 0.5;
-    float min_axis = min_v3(abs(diagonal));
+    float min_axis = reduce_min(abs(diagonal));
     bounds.bounding_sphere.xyz = transform_point(model_mat, center);
     /* We have to apply scaling to the diagonal. */
     bounds.bounding_sphere.w = length(transform_direction(model_mat, diagonal)) * 0.5;
@@ -48,6 +49,16 @@ void main()
 
     /* TODO: Bypass test for very large objects (see #67319). */
     if (bounds.bounding_sphere.w > 1e12) {
+      bounds.bounding_sphere.w = -2.0;
+    }
+
+    /* Bypass culling test for objects that are flattenned on one or more axes (see #127774).
+     * Fixing them is too much computation but might be worth doing if a use case for it.
+     * Do not compute the real length to save some instructions. */
+    vec3 object_scale = vec3(reduce_add(abs(model_mat[0].xyz)),
+                             reduce_add(abs(model_mat[1].xyz)),
+                             reduce_add(abs(model_mat[2].xyz)));
+    if (any(lessThan(abs(object_scale), vec3(1e-10)))) {
       bounds.bounding_sphere.w = -2.0;
     }
 
