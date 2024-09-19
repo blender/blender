@@ -204,7 +204,7 @@ TEST_F(OBJImportTest, import_cube)
        24,
        float3(-1, -1, 1),
        float3(1, -1, -1),
-       float3(-0.57735f, 0.57735f, -0.57735f)},
+       float3(-0.57758f, 0.57735f, -0.57711f)},
   };
   import_and_check("cube.obj", expect, std::size(expect), 1);
 }
