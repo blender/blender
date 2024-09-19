@@ -2186,7 +2186,9 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       /* imbuf knows which rects are not part of ibuf */
       IMB_freeImBuf(ibuf);
     }
-    printf("Append frame %d\n", scene->r.cfra);
+    if (!G.quiet) {
+      printf("Append frame %d\n", scene->r.cfra);
+    }
   }
   else { /* R_IMF_VIEWS_STEREO_3D */
     const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
@@ -2480,7 +2482,9 @@ void RE_RenderAnim(Render *re,
       if (rd.mode & R_NO_OVERWRITE) {
         if (!is_multiview_name) {
           if (BLI_exists(filepath)) {
-            printf("skipping existing frame \"%s\"\n", filepath);
+            if (!G.quiet) {
+              printf("skipping existing frame \"%s\"\n", filepath);
+            }
             totskipped++;
             continue;
           }
@@ -2497,7 +2501,10 @@ void RE_RenderAnim(Render *re,
             BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
             if (BLI_exists(filepath_view)) {
               is_skip = true;
-              printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
+              if (!G.quiet) {
+                printf(
+                    "skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
+              }
             }
           }
 
