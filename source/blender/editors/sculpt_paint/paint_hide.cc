@@ -515,6 +515,7 @@ static void partialvis_all_update_bmesh(const Depsgraph &depsgraph,
 
 static int hide_show_all_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -525,10 +526,10 @@ static int hide_show_all_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case VisAction::Hide:
-      undo::push_begin_ex(ob, "Hide area");
+      undo::push_begin_ex(scene, ob, "Hide area");
       break;
     case VisAction::Show:
-      undo::push_begin_ex(ob, "Show area");
+      undo::push_begin_ex(scene, ob, "Show area");
       break;
   }
 
@@ -631,6 +632,7 @@ static void partialvis_masked_update_bmesh(const Depsgraph &depsgraph,
 
 static int hide_show_masked_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -641,10 +643,10 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case VisAction::Hide:
-      undo::push_begin_ex(ob, "Hide area");
+      undo::push_begin_ex(scene, ob, "Hide area");
       break;
     case VisAction::Show:
-      undo::push_begin_ex(ob, "Show area");
+      undo::push_begin_ex(scene, ob, "Show area");
       break;
   }
 
@@ -791,6 +793,7 @@ static void invert_visibility_bmesh(const Depsgraph &depsgraph,
 
 static int visibility_invert_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -798,7 +801,7 @@ static int visibility_invert_exec(bContext *C, wmOperator *op)
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  undo::push_begin(object, op);
+  undo::push_begin(scene, object, op);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       invert_visibility_mesh(depsgraph, object, node_mask);
@@ -1118,6 +1121,7 @@ static void grow_shrink_visibility_bmesh(const Depsgraph &depsgraph,
 
 static int visibility_filter_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -1138,7 +1142,7 @@ static int visibility_filter_exec(bContext *C, wmOperator *op)
     iterations = int(num_verts / VERTEX_ITERATION_THRESHOLD) + 1;
   }
 
-  undo::push_begin(object, op);
+  undo::push_begin(scene, object, op);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       grow_shrink_visibility_mesh(depsgraph, object, node_mask, mode, iterations);
@@ -1285,10 +1289,11 @@ static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
 
 static void hide_show_begin(bContext &C, wmOperator &op, gesture::GestureData & /*gesture_data*/)
 {
+  const Scene &scene = *CTX_data_scene(&C);
   Object *ob = CTX_data_active_object(&C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
 
-  undo::push_begin(*ob, &op);
+  undo::push_begin(scene, *ob, &op);
   bke::object::pbvh_ensure(*depsgraph, *ob);
 }
 

@@ -116,6 +116,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
@@ -129,7 +130,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
 
   const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
   const int seed = BLI_time_now_seconds();

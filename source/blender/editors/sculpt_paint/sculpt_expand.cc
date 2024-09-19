@@ -2610,6 +2610,7 @@ static bool any_nonzero_mask(const Object &object)
 
 static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -2677,7 +2678,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   /* Initialize undo. */
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   undo_push(*depsgraph, ob, *ss.expand_cache);
 
   /* Cache bke::pbvh::Tree nodes. */

@@ -508,6 +508,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
 
 static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
+  const Scene &scene = *CTX_data_scene(&C);
   Object *object = gesture_data.vc.obact;
   SculptSession &ss = *object->sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*object);
@@ -524,7 +525,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
   generate_geometry(gesture_data);
   islands::invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
-  undo::geometry_begin(*gesture_data.vc.obact, &op);
+  undo::geometry_begin(scene, *gesture_data.vc.obact, &op);
 }
 
 static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)

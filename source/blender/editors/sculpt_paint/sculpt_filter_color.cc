@@ -445,6 +445,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
 static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
@@ -474,7 +475,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of

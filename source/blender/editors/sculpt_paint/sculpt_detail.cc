@@ -97,6 +97,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object &ob = *CTX_data_active_object(C);
@@ -131,7 +132,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                              (sd->constant_detail * mat4_to_scale(ob.object_to_world().ptr()));
   const float min_edge_len = max_edge_len * detail_size::EDGE_LENGTH_MIN_FACTOR;
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   undo::push_node(depsgraph, ob, nullptr, undo::Type::Position);
 
   const double start_time = BLI_time_now_seconds();

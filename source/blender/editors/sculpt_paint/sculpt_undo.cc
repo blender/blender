@@ -1795,12 +1795,12 @@ static void save_active_attribute(Object &object, SculptAttrRef *attr)
   attr->type = meta_data->data_type;
 }
 
-void push_begin(Object &ob, const wmOperator *op)
+void push_begin(const Scene &scene, Object &ob, const wmOperator *op)
 {
-  push_begin_ex(ob, op->type->name);
+  push_begin_ex(scene, ob, op->type->name);
 }
 
-void push_begin_ex(Object &ob, const char *name)
+void push_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -2139,15 +2139,15 @@ static void step_free(UndoStep *us_p)
   free_step_data(us->data);
 }
 
-void geometry_begin(Object &ob, const wmOperator *op)
+void geometry_begin(const Scene &scene, Object &ob, const wmOperator *op)
 {
-  push_begin(ob, op);
+  push_begin(scene, ob, op);
   geometry_push(ob);
 }
 
-void geometry_begin_ex(Object &ob, const char *name)
+void geometry_begin_ex(const Scene &scene, Object &ob, const char *name)
 {
-  push_begin_ex(ob, name);
+  push_begin_ex(scene, ob, name);
   geometry_push(ob);
 }
 
@@ -2233,10 +2233,11 @@ void push_multires_mesh_begin(bContext *C, const char *str)
     return;
   }
 
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object *object = CTX_data_active_object(C);
 
-  push_begin_ex(*object, str);
+  push_begin_ex(scene, *object, str);
 
   geometry_push(*object);
   get_step_data()->geometry_clear_pbvh = false;

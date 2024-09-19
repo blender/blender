@@ -458,6 +458,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   using namespace blender::ed;
+  const Scene &scene = *CTX_data_scene(C);
   Main &bmain = *CTX_data_main(C);
   Object &ob = *CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -473,7 +474,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   /* Undo crashes when new object is created in the middle of a sculpt, see #87243. */
   if (ob.mode == OB_MODE_SCULPT && !create_new_object) {
-    sculpt_paint::undo::geometry_begin(ob, op);
+    sculpt_paint::undo::geometry_begin(scene, ob, op);
   }
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);

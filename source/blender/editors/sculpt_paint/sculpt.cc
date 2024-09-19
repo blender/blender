@@ -5134,6 +5134,7 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
 static void stroke_undo_begin(const bContext *C, wmOperator *op)
 {
   using namespace blender::ed::sculpt_paint;
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -5147,7 +5148,7 @@ static void stroke_undo_begin(const bContext *C, wmOperator *op)
     ED_image_undo_push_begin(op->type->name, PaintMode::Sculpt);
   }
   else {
-    undo::push_begin_ex(ob, sculpt_brush_type_name(sd));
+    undo::push_begin_ex(scene, ob, sculpt_brush_type_name(sd));
   }
 }
 

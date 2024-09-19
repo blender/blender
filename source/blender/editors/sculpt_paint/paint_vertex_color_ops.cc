@@ -308,13 +308,14 @@ static void transform_active_color(bContext *C,
 {
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &obact = *CTX_data_active_object(C);
 
   /* Ensure valid sculpt state. */
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
-  undo::push_begin(obact, op);
+  undo::push_begin(scene, obact, op);
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(obact);
 

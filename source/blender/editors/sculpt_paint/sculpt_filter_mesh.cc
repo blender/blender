@@ -2449,6 +2449,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
 /* Returns OPERATOR_PASS_THROUGH on success. */
 static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -2495,7 +2496,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
     boundary::ensure_boundary_info(ob);
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
 
   cache_init(C,
              ob,

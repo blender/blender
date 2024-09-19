@@ -407,6 +407,7 @@ static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const In
 
 static int create_op_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
@@ -429,7 +430,7 @@ static int create_op_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
 
-  undo::push_begin(object, op);
+  undo::push_begin(scene, object, op);
 
   const int next_face_set = find_next_available_id(object);
 
@@ -670,6 +671,7 @@ Set<int> gather_hidden_face_sets(const Span<bool> hide_poly, const Span<int> fac
 
 static int init_op_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
@@ -695,7 +697,7 @@ static int init_op_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::FaceSet);
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -957,6 +959,7 @@ static void show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node
 
 static int change_visibility_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   SculptSession &ss = *object.sculpt;
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
@@ -974,7 +977,7 @@ static int change_visibility_exec(bContext *C, wmOperator *op)
   const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
   const int active_face_set = active_face_set_get(object);
 
-  undo::push_begin(object, op);
+  undo::push_begin(scene, object, op);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1172,6 +1175,7 @@ enum class EditMode {
 };
 
 static void edit_grow_shrink(const Depsgraph &depsgraph,
+                             const Scene &scene,
                              Object &object,
                              const EditMode mode,
                              const int active_face_set_id,
@@ -1190,7 +1194,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   Array<int> prev_face_sets = duplicate_face_sets(mesh);
 
-  undo::push_begin(object, op);
+  undo::push_begin(scene, object, op);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1427,8 +1431,9 @@ static bool edit_is_operation_valid(const Object &object,
 static void edit_modify_geometry(
     bContext *C, Object &ob, const int active_face_set, const bool modify_hidden, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Mesh *mesh = static_cast<Mesh *>(ob.data);
-  undo::geometry_begin(ob, op);
+  undo::geometry_begin(scene, ob, op);
   delete_geometry(ob, active_face_set, modify_hidden);
   undo::geometry_end(ob);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -1439,6 +1444,7 @@ static void edit_modify_geometry(
 static void edit_modify_coordinates(
     bContext *C, Object &ob, const int active_face_set, const EditMode mode, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -1447,7 +1453,7 @@ static void edit_modify_coordinates(
 
   const float strength = RNA_float_get(op->ptr, "strength");
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Position);
 
   pbvh.tag_positions_changed(node_mask);
@@ -1491,6 +1497,7 @@ static int edit_op_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
 
@@ -1504,7 +1511,7 @@ static int edit_op_exec(bContext *C, wmOperator *op)
       break;
     case EditMode::Grow:
     case EditMode::Shrink:
-      edit_grow_shrink(depsgraph, ob, mode, active_face_set, modify_hidden, op);
+      edit_grow_shrink(depsgraph, scene, ob, mode, active_face_set, modify_hidden, op);
       break;
     case EditMode::FairPositions:
     case EditMode::FairTangency:
@@ -1614,9 +1621,10 @@ struct FaceSetOperation {
 
 static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &gesture_data)
 {
+  const Scene &scene = *CTX_data_scene(&C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
-  undo::push_begin(*gesture_data.vc.obact, &op);
+  undo::push_begin(scene, *gesture_data.vc.obact, &op);
 }
 
 static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMask &node_mask)

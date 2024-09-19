@@ -57,8 +57,8 @@ void register_type(UndoType *ut);
  * redo panels to work; operators that do not support that may use
  * #geometry_begin_ex instead if so desired.
  */
-void geometry_begin(Object &ob, const wmOperator *op);
-void geometry_begin_ex(Object &ob, const char *name);
+void geometry_begin(const Scene &scene, Object &ob, const wmOperator *op);
+void geometry_begin_ex(const Scene &scene, Object &ob, const char *name);
 void geometry_end(Object &ob);
 
 /**

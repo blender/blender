@@ -206,6 +206,7 @@ static bool no_multires_poll(bContext *C)
 static int symmetrize_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -231,7 +232,7 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
        * as deleted, then after symmetrize operation all BMesh elements
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
-      undo::push_begin(ob, op);
+      undo::push_begin(scene, ob, op);
       undo::push_node(depsgraph, ob, nullptr, undo::Type::DyntopoSymmetrize);
       BM_log_before_all_removed(ss.bm, ss.bm_log);
 
@@ -259,7 +260,7 @@ static int symmetrize_exec(bContext *C, wmOperator *op)
     }
     case bke::pbvh::Type::Mesh: {
       /* Mesh Symmetrize. */
-      undo::geometry_begin(ob, op);
+      undo::geometry_begin(scene, ob, op);
       Mesh *mesh = static_cast<Mesh *>(ob.data);
 
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd.symmetrize_direction, dist);
@@ -446,7 +447,7 @@ void object_sculpt_mode_enter(Main &bmain,
       const bool has_undo = wm->undo_stack != nullptr;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
-        undo::push_begin_ex(ob, "Dynamic topology enable");
+        undo::push_begin_ex(scene, ob, "Dynamic topology enable");
       }
       dyntopo::enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
@@ -569,7 +570,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
          * while it works it causes lag when undoing the first undo step, see #71564. */
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
-          undo::push_begin(ob, op);
+          undo::push_begin(scene, ob, op);
           undo::push_end(ob);
         }
       }
@@ -796,6 +797,7 @@ static void mask_by_color_full_mesh(const Depsgraph &depsgraph,
 
 static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -825,7 +827,7 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -1034,6 +1036,7 @@ static void apply_mask_bmesh(const Depsgraph &depsgraph,
 
 static int mask_from_cavity_exec(bContext *C, wmOperator *op)
 {
+  const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -1051,7 +1054,7 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
   SCULPT_vertex_random_access_ensure(ob);
 
-  undo::push_begin(ob, op);
+  undo::push_begin(scene, ob, op);
 
   const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
   const float factor = RNA_float_get(op->ptr, "mix_factor");
