@@ -464,6 +464,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
       func_end = BKE_scene_objects_iterator_end; \
       data_in = (scene); \
     } \
+    BKE_view_layer_synced_ensure(scene, _view_layer); \
     ITER_BEGIN (func_begin, func_next, func_end, data_in, Object *, _instance)
 
 #define FOREACH_OBJECT_FLAG_END \
