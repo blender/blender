@@ -2634,7 +2634,7 @@ struct SculptRaycastData {
   const SubdivCCG *subdiv_ccg;
 
   PBVHVertRef active_vertex;
-  float *face_normal;
+  float3 face_normal;
 
   int active_face_grid_index;
 
@@ -4447,7 +4447,7 @@ static void sculpt_raycast_cb(blender::bke::pbvh::Node &node, SculptRaycastData 
                               &srd.isect_precalc,
                               &srd.depth,
                               &srd.active_vertex,
-                              &srd.active_face_grid_index,
+                              srd.active_face_grid_index,
                               srd.face_normal))
   {
     srd.hit = true;

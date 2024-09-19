@@ -15,18 +15,18 @@
 namespace blender::bke::pbvh {
 
 bool ray_face_intersection_quad(const float3 &ray_start,
-                                IsectRayPrecalc *isect_precalc,
+                                const IsectRayPrecalc *isect_precalc,
                                 const float3 &t0,
                                 const float3 &t1,
                                 const float3 &t2,
                                 const float3 &t3,
-                                float *depth);
+                                float *r_depth);
 bool ray_face_intersection_tri(const float3 &ray_start,
-                               IsectRayPrecalc *isect_precalc,
+                               const IsectRayPrecalc *isect_precalc,
                                const float3 &t0,
                                const float3 &t1,
                                const float3 &t2,
-                               float *depth);
+                               float *r_depth);
 
 bool ray_face_nearest_quad(const float3 &ray_start,
                            const float3 &ray_normal,
@@ -50,7 +50,7 @@ bool bmesh_node_raycast(blender::bke::pbvh::BMeshNode &node,
                         const float3 &ray_start,
                         const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
-                        float *dist,
+                        float *r_depth,
                         bool use_original,
                         PBVHVertRef *r_active_vertex,
                         float *r_face_normal);

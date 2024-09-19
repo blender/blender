@@ -1856,25 +1856,25 @@ bool bmesh_node_raycast(BMeshNode &node,
                         const float3 &ray_start,
                         const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
-                        float *depth,
+                        float *r_depth,
                         bool use_original,
                         PBVHVertRef *r_active_vertex,
                         float *r_face_normal)
 {
   bool hit = false;
-  float nearest_vertex_co[3] = {0.0f};
+  float3 nearest_vertex_co(0.0f);
 
   use_original = use_original && !node.orig_tris_.is_empty();
 
   if (use_original) {
-    for (const int i : node.orig_tris_.index_range()) {
+    for (const int tri_idx : node.orig_tris_.index_range()) {
       float *cos[3];
 
-      cos[0] = node.orig_positions_[node.orig_tris_[i][0]];
-      cos[1] = node.orig_positions_[node.orig_tris_[i][1]];
-      cos[2] = node.orig_positions_[node.orig_tris_[i][2]];
+      cos[0] = node.orig_positions_[node.orig_tris_[tri_idx][0]];
+      cos[1] = node.orig_positions_[node.orig_tris_[tri_idx][1]];
+      cos[2] = node.orig_positions_[node.orig_tris_[tri_idx][2]];
 
-      if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth)) {
+      if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], r_depth)) {
         hit = true;
 
         if (r_face_normal) {
@@ -1882,14 +1882,14 @@ bool bmesh_node_raycast(BMeshNode &node,
         }
 
         if (r_active_vertex) {
-          float location[3] = {0.0f};
-          madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
-          for (const int j : IndexRange(3)) {
-            if (j == 0 ||
-                len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co))
+          float3 location(0.0f);
+          madd_v3_v3v3fl(location, ray_start, ray_normal, *r_depth);
+          for (const int i : IndexRange(3)) {
+            if (i == 0 ||
+                len_squared_v3v3(location, cos[i]) < len_squared_v3v3(location, nearest_vertex_co))
             {
-              copy_v3_v3(nearest_vertex_co, cos[j]);
-              r_active_vertex->i = intptr_t(node.orig_verts_[node.orig_tris_[i][j]]);
+              copy_v3_v3(nearest_vertex_co, cos[i]);
+              r_active_vertex->i = intptr_t(node.orig_verts_[node.orig_tris_[tri_idx][i]]);
             }
           }
         }
@@ -1905,7 +1905,7 @@ bool bmesh_node_raycast(BMeshNode &node,
 
         BM_face_as_array_vert_tri(f, v_tri);
         if (ray_face_intersection_tri(
-                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth))
+                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, r_depth))
         {
           hit = true;
 
@@ -1914,14 +1914,14 @@ bool bmesh_node_raycast(BMeshNode &node,
           }
 
           if (r_active_vertex) {
-            float location[3] = {0.0f};
-            madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
-            for (const int j : IndexRange(3)) {
-              if (j == 0 || len_squared_v3v3(location, v_tri[j]->co) <
+            float3 location(0.0f);
+            madd_v3_v3v3fl(location, ray_start, ray_normal, *r_depth);
+            for (const int i : IndexRange(3)) {
+              if (i == 0 || len_squared_v3v3(location, v_tri[i]->co) <
                                 len_squared_v3v3(location, nearest_vertex_co))
               {
-                copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
-                r_active_vertex->i = intptr_t(v_tri[j]);
+                copy_v3_v3(nearest_vertex_co, v_tri[i]->co);
+                r_active_vertex->i = intptr_t(v_tri[i]);
               }
             }
           }
