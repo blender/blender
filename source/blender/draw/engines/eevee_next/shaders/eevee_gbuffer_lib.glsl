@@ -854,6 +854,8 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
   }
 
   if (gbuf.normal_len == 0) {
+    /* Reset bin count as no bin was written. */
+    gbuf.bins_len = 0;
     gbuffer_closure_unlit_pack(gbuf, data_in.surface_N);
   }
 
