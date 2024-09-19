@@ -2904,6 +2904,11 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
 {
   bActionConstraint *data = static_cast<bActionConstraint *>(con->data);
 
+  if (!data->act) {
+    /* Without an Action, this constraint cannot do anything. */
+    return;
+  }
+
   if (VALID_CONS_TARGET(ct) || data->flag & ACTCON_USE_EVAL_TIME) {
     float tempmat[4][4], vec[3];
     float s, t;
@@ -2978,7 +2983,6 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
     }
 
     /* TODO: add an action slot selector to the constraint settings. */
-    BLI_assert(data->act);
     const blender::animrig::slot_handle_t slot_handle = blender::animrig::first_slot_handle(
         *data->act);
 
