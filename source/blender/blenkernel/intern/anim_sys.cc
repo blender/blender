@@ -54,6 +54,7 @@
 #include "BKE_texture.h"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_legacy.hh"
 #include "ANIM_evaluation.hh"
 
 #include "DEG_depsgraph.hh"
@@ -898,7 +899,7 @@ void animsys_evaluate_action(PointerRNA *ptr,
   if (action.is_action_legacy()) {
     action_idcode_patch_check(ptr->owner_id, act);
 
-    Vector<FCurve *> fcurves = animrig::fcurves_all(action);
+    Vector<FCurve *> fcurves = animrig::legacy::fcurves_all(act);
     animsys_evaluate_fcurves(ptr, fcurves, anim_eval_context, flush_to_original);
     return;
   }
@@ -922,13 +923,9 @@ void animsys_blend_in_action(PointerRNA *ptr,
 
   if (action.is_action_legacy()) {
     action_idcode_patch_check(ptr->owner_id, act);
-
-    Vector<FCurve *> fcurves = animrig::fcurves_all(action);
-    animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
-    return;
   }
 
-  Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, action_slot_handle);
+  Vector<FCurve *> fcurves = animrig::legacy::fcurves_for_action_slot(act, action_slot_handle);
   animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
 }
 
@@ -2665,30 +2662,7 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
   const float modified_evaltime = evaluate_time_fmodifiers(
       &storage, modifiers, nullptr, 0.0f, evaltime);
 
-#ifdef WITH_ANIM_BAKLAVA
-  /* NOTE: This whole block of ugly code will disappear when the slotted Actions feature goes out
-   * of Experimental.
-   *
-   * This code only exists because at the moment Blender needs to be able to handle a mixture of
-   * legacy & slotted Actions. Legacy Actions will get automatically versioned at some point,
-   * and then this all goes away and collapses into just the fcurves_for_action_slot() call. */
-  Span<FCurve *> fcurves;
-  Vector<FCurve *> legacy_fcurves;
-
-  animrig::Action &action_wrapper = action->wrap();
-  if (action_wrapper.is_action_legacy()) {
-    legacy_fcurves = animrig::fcurves_all(action_wrapper);
-    fcurves = legacy_fcurves;
-  }
-  else {
-    fcurves = animrig::fcurves_for_action_slot(action_wrapper, slot_handle);
-  }
-
-  for (const FCurve *fcu : fcurves) {
-#else
-  UNUSED_VARS(slot_handle);
-  LISTBASE_FOREACH (const FCurve *, fcu, &action->curves) {
-#endif
+  for (const FCurve *fcu : animrig::legacy::fcurves_for_action_slot(action, slot_handle)) {
     if (!is_fcurve_evaluatable(fcu)) {
       continue;
     }
@@ -3176,30 +3150,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
     return;
   }
 
-#ifdef WITH_ANIM_BAKLAVA
-  /* NOTE: This whole block of ugly code will disappear when the slotted Actions feature goes out
-   * of Experimental.
-   *
-   * This code only exists because at the moment Blender needs to be able to handle a mixture of
-   * legacy & slotted Actions. Legacy Actions will get automatically versioned at some point,
-   * and then this all goes away and collapses into just the fcurves_for_action_slot() call. */
-  Span<FCurve *> fcurves;
-  Vector<FCurve *> legacy_fcurves;
-
-  animrig::Action &action = act->wrap();
-  if (action.is_action_legacy()) {
-    legacy_fcurves = animrig::fcurves_all(action);
-    fcurves = legacy_fcurves;
-  }
-  else {
-    fcurves = animrig::fcurves_for_action_slot(action, slot_handle);
-  }
-
-  for (const FCurve *fcu : fcurves) {
-#else
-  UNUSED_VARS(slot_handle);
-  LISTBASE_FOREACH (const FCurve *, fcu, &act->curves) {
-#endif
+  for (const FCurve *fcu : animrig::legacy::fcurves_for_action_slot(act, slot_handle)) {
     /* check if this curve should be skipped */
     if (!is_fcurve_evaluatable(fcu)) {
       continue;

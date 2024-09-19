@@ -82,6 +82,7 @@ if(WITH_GTESTS)
   )
   set(TEST_SRC
     intern/action_iterators_test.cc
+    intern/action_legacy_test.cc
     intern/action_test.cc
     intern/bone_collections_test.cc
     intern/evaluation_test.cc

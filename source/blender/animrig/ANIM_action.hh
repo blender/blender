@@ -1219,23 +1219,14 @@ animrig::ChannelBag *channelbag_for_action_slot(Action &action, slot_handle_t sl
  *
  * The use of this function is also an indicator for code that will have to be altered when
  * multi-layered Actions are getting implemented.
+ *
+ * \note This function requires a layered Action. To transparently handle legacy Actions, see the
+ * `animrig::legacy` namespace.
+ *
+ * \see blender::animrig::legacy::fcurves_for_action_slot
  */
 Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle);
 Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t slot_handle);
-
-/**
- * Return all F-Curves in the Action.
- *
- * This works for both legacy and layered Actions.
- *
- * This is a utility function whose purpose is unclear after multi-layer Actions are introduced.
- * It might still be useful, it might not be.
- *
- * The use of this function is an indicator for code that might have to be altered when
- * multi-layered Actions are getting implemented.
- */
-Vector<const FCurve *> fcurves_all(const Action &action);
-Vector<FCurve *> fcurves_all(Action &action);
 
 /**
  * Find or create an F-Curve on the given action that matches the given fcurve
