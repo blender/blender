@@ -1747,22 +1747,6 @@ SculptSession::~SculptSession()
   MEM_SAFE_FREE(this->last_paint_canvas_key);
 }
 
-PBVHVertRef SculptSession::active_vert_ref() const
-{
-  if (std::holds_alternative<int>(active_vert_)) {
-    return {std::get<int>(active_vert_)};
-  }
-  if (std::holds_alternative<SubdivCCGCoord>(active_vert_)) {
-    const CCGKey key = BKE_subdiv_ccg_key_top_level(*this->subdiv_ccg);
-    const int index = std::get<SubdivCCGCoord>(active_vert_).to_index(key);
-    return {index};
-  }
-  if (std::holds_alternative<BMVert *>(active_vert_)) {
-    return {reinterpret_cast<intptr_t>(std::get<BMVert *>(active_vert_))};
-  }
-  return {PBVH_REF_NONE};
-}
-
 ActiveVert SculptSession::active_vert() const
 {
   return active_vert_;
