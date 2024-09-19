@@ -40,6 +40,8 @@
 #include "ED_datafiles.h"
 #include "ED_screen.hh"
 
+#include "RNA_access.hh"
+
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
@@ -198,6 +200,29 @@ static void wm_block_splash_close_on_fileselect(bContext *C, void *arg1, void * 
   }
 }
 
+#if defined(__APPLE__)
+/* Check if Blender is running under Rosetta for the purpose of displaying a splash screen warning.
+ * From Apple's WWDC 2020 Session - Explore the new system architecture of Apple Silicon Macs.
+ * Timecode: 14:31 - https://developer.apple.com/videos/play/wwdc2020/10686/ */
+
+#  include <sys/sysctl.h>
+
+static int is_using_macos_rosetta()
+{
+  int ret = 0;
+  size_t size = sizeof(ret);
+
+  if (sysctlbyname("sysctl.proc_translated", &ret, &size, nullptr, 0) != -1) {
+    return ret;
+  }
+  /* If "sysctl.proc_translated" is not present then must be native. */
+  if (errno == ENOENT) {
+    return 0;
+  }
+  return -1;
+}
+#endif /* __APPLE__ */
+
 static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
@@ -269,6 +294,34 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   if (mt) {
     UI_menutype_draw(C, mt, layout);
   }
+
+#if defined(__APPLE__)
+  if (is_using_macos_rosetta() > 0) {
+    uiItemS_ex(layout, 2.0f, LayoutSeparatorType::Line);
+
+    uiLayout *split = uiLayoutSplit(layout, 0.725, true);
+    uiLayout *row1 = uiLayoutRow(split, true);
+    uiLayout *row2 = uiLayoutRow(split, true);
+
+    uiItemL(row1, RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
+
+    PointerRNA op_ptr;
+    uiItemFullO(row2,
+                "WM_OT_url_open",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Learn More"),
+                ICON_URL,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    RNA_string_set(
+        &op_ptr,
+        "url",
+        "https://docs.blender.org/manual/en/latest/getting_started/installing/macos.html");
+
+    uiItemS(layout);
+  }
+#endif
 
   UI_block_bounds_set_centered(block, 0);
 
