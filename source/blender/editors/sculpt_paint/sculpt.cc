@@ -4567,7 +4567,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   const Brush &brush = *BKE_paint_brush_for_read(BKE_paint_get_active_from_context(C));
-  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], mat[3][3];
+  float ray_start[3], ray_end[3], ray_normal[3], depth, mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   bool original = false;
 
@@ -4614,7 +4614,6 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
   srd.depth = depth;
-  srd.face_normal = face_normal;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(
@@ -4747,7 +4746,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3];
+  float ray_start[3], ray_end[3], ray_normal[3], depth;
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
@@ -4792,7 +4791,6 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     SCULPT_vertex_random_access_ensure(ob);
     srd.depth = depth;
     srd.original = original;
-    srd.face_normal = face_normal;
     isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
     bke::pbvh::raycast(
@@ -5852,7 +5850,7 @@ bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
 {
   using namespace blender;
   SculptSession &ss = *object.sculpt;
-  float ray_start[3], ray_end[3], ray_normal[3], face_normal[3];
+  float ray_start[3], ray_end[3], ray_normal[3];
 
   ViewContext *vc = ss.cache ? ss.cache->vc : &ss.filter_cache->vc;
 
@@ -5876,7 +5874,6 @@ bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
   srd.depth = depth;
-  srd.face_normal = face_normal;
   if (pbvh.type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *static_cast<const Mesh *>(object.data);
     srd.vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
