@@ -37,6 +37,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "DNA_ID.h"
 #include "DNA_userdef_enums.h"
 
 struct BlendWriter;
@@ -704,6 +705,18 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
                                     bool add_lib_hint,
                                     char separator_char,
                                     int *r_prefix_len);
+
+/**
+ * Get the name (without type prefix) of the ID.
+ */
+inline const char *BKE_id_name(const ID &id)
+{
+  return id.name + 2;
+}
+inline char *BKE_id_name(ID &id)
+{
+  return id.name + 2;
+}
 
 /**
  * Generate a concatenation of ID name (including two-chars type code) and its lib name, if any.
