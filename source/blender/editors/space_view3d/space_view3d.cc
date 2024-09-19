@@ -784,38 +784,26 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
    * can use the context setup here to place the objects. */
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
-  Main *bmain = CTX_data_main(C);
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
 
-  Object *object = reinterpret_cast<Object *>(
-      WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT));
-
-  LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-  Collection *collection = BKE_collection_parent_editable_find_recursive(view_layer,
-                                                                         lc->collection);
-  object->visibility_flag &= ~(OB_HIDE_VIEWPORT | OB_HIDE_SELECT);
-
-  BKE_collection_object_add(bmain, collection, object);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = BKE_view_layer_base_find(view_layer, object);
-  base->local_view_bits |= v3d->local_view_uid;
-  base->flag |= BASE_SELECTED;
-  BKE_scene_object_base_flag_sync_from_base(base);
+  ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
 
   /* TODO(sergey): Only update relations for the current scene. */
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uid", object->id.session_uid);
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  BKE_view_layer_base_select_and_set_active(view_layer, base);
-  WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
+  Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
+  if (base != nullptr) {
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+    WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
+  }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_object_tag(C);
 
@@ -828,7 +816,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   if (snap_state) {
     float obmat_final[4][4];
 
-    view3d_ob_drop_matrix_from_snap(snap_state, object, obmat_final);
+    view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
 
     RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
   }
@@ -846,7 +834,6 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 {
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
-  Main *bmain = CTX_data_main(C);
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -855,11 +842,6 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
   Collection *collection = (Collection *)id;
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Collection *old_active_collection = BKE_view_layer_active_collection_get(view_layer)->collection;
-  BKE_collection_child_add(bmain, old_active_collection, collection);
-  DEG_id_tag_update(&old_active_collection->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* TODO(sergey): Only update relations for the current scene. */
   DEG_relations_tag_update(CTX_data_main(C));
