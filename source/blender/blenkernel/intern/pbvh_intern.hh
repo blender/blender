@@ -20,13 +20,13 @@ bool ray_face_intersection_quad(const float3 &ray_start,
                                 const float3 &t1,
                                 const float3 &t2,
                                 const float3 &t3,
-                                float *r_depth);
+                                float *depth);
 bool ray_face_intersection_tri(const float3 &ray_start,
                                const IsectRayPrecalc *isect_precalc,
                                const float3 &t0,
                                const float3 &t1,
                                const float3 &t2,
-                               float *r_depth);
+                               float *depth);
 
 bool ray_face_nearest_quad(const float3 &ray_start,
                            const float3 &ray_normal,
@@ -50,14 +50,14 @@ bool bmesh_node_raycast(blender::bke::pbvh::BMeshNode &node,
                         const float3 &ray_start,
                         const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
-                        float *r_depth,
+                        float *depth,
                         bool use_original,
                         PBVHVertRef *r_active_vertex,
                         float *r_face_normal);
 bool bmesh_node_nearest_to_ray(blender::bke::pbvh::BMeshNode &node,
                                const float3 &ray_start,
                                const float3 &ray_normal,
-                               float *depth,
+                               float *r_depth,
                                float *dist_sq,
                                bool use_original);
 

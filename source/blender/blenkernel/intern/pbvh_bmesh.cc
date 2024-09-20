@@ -1856,7 +1856,7 @@ bool bmesh_node_raycast(BMeshNode &node,
                         const float3 &ray_start,
                         const float3 &ray_normal,
                         IsectRayPrecalc *isect_precalc,
-                        float *r_depth,
+                        float *depth,
                         bool use_original,
                         PBVHVertRef *r_active_vertex,
                         float *r_face_normal)
@@ -1874,7 +1874,7 @@ bool bmesh_node_raycast(BMeshNode &node,
       cos[1] = node.orig_positions_[node.orig_tris_[tri_idx][1]];
       cos[2] = node.orig_positions_[node.orig_tris_[tri_idx][2]];
 
-      if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], r_depth)) {
+      if (ray_face_intersection_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth)) {
         hit = true;
 
         if (r_face_normal) {
@@ -1883,7 +1883,7 @@ bool bmesh_node_raycast(BMeshNode &node,
 
         if (r_active_vertex) {
           float3 location(0.0f);
-          madd_v3_v3v3fl(location, ray_start, ray_normal, *r_depth);
+          madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
           for (const int i : IndexRange(3)) {
             if (i == 0 ||
                 len_squared_v3v3(location, cos[i]) < len_squared_v3v3(location, nearest_vertex_co))
@@ -1905,7 +1905,7 @@ bool bmesh_node_raycast(BMeshNode &node,
 
         BM_face_as_array_vert_tri(f, v_tri);
         if (ray_face_intersection_tri(
-                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, r_depth))
+                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth))
         {
           hit = true;
 
@@ -1915,7 +1915,7 @@ bool bmesh_node_raycast(BMeshNode &node,
 
           if (r_active_vertex) {
             float3 location(0.0f);
-            madd_v3_v3v3fl(location, ray_start, ray_normal, *r_depth);
+            madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
             for (const int i : IndexRange(3)) {
               if (i == 0 || len_squared_v3v3(location, v_tri[i]->co) <
                                 len_squared_v3v3(location, nearest_vertex_co))
@@ -1979,7 +1979,7 @@ bool bmesh_node_raycast_detail(BMeshNode &node,
 bool bmesh_node_nearest_to_ray(BMeshNode &node,
                                const float3 &ray_start,
                                const float3 &ray_normal,
-                               float *depth,
+                               float *r_depth,
                                float *dist_sq,
                                bool use_original)
 {
@@ -1993,7 +1993,7 @@ bool bmesh_node_nearest_to_ray(BMeshNode &node,
                                   node.orig_positions_[t[0]],
                                   node.orig_positions_[t[1]],
                                   node.orig_positions_[t[2]],
-                                  depth,
+                                  r_depth,
                                   dist_sq);
     }
   }
@@ -2005,7 +2005,7 @@ bool bmesh_node_nearest_to_ray(BMeshNode &node,
 
         BM_face_as_array_vert_tri(f, v_tri);
         hit |= ray_face_nearest_tri(
-            ray_start, ray_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth, dist_sq);
+            ray_start, ray_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, r_depth, dist_sq);
       }
     }
   }

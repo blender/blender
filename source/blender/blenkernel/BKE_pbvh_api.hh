@@ -332,7 +332,7 @@ bool raycast_node(Tree &pbvh,
                   const float3 &ray_start,
                   const float3 &ray_normal,
                   IsectRayPrecalc *isect_precalc,
-                  float *r_depth,
+                  float *depth,
                   PBVHVertRef *r_active_vertex,
                   int &r_active_face_grid_index,
                   float3 &r_face_normal);
