@@ -2529,7 +2529,8 @@ void uiTemplateSearch(uiLayout *layout,
                       PointerRNA *searchptr,
                       const char *searchpropname,
                       const char *newop,
-                      const char *unlinkop);
+                      const char *unlinkop,
+                      const char *text = nullptr);
 void uiTemplateSearchPreview(uiLayout *layout,
                              bContext *C,
                              PointerRNA *ptr,
@@ -2539,7 +2540,8 @@ void uiTemplateSearchPreview(uiLayout *layout,
                              const char *newop,
                              const char *unlinkop,
                              int rows,
-                             int cols);
+                             int cols,
+                             const char *text = nullptr);
 /**
  * This is creating/editing RNA-Paths
  *

@@ -2229,7 +2229,8 @@ static void template_search_buttons(const bContext *C,
                                     uiLayout *layout,
                                     TemplateSearch &template_search,
                                     const char *newop,
-                                    const char *unlinkop)
+                                    const char *unlinkop,
+                                    const char *text)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   uiRNACollectionSearch *search_data = &template_search.search_data;
@@ -2244,16 +2245,26 @@ static void template_search_buttons(const bContext *C,
     type = active_ptr.type;
   }
 
-  uiLayoutRow(layout, true);
+  uiLayout *row = uiLayoutRow(layout, true);
   UI_block_align_begin(block);
 
-  template_search_add_button_searchmenu(C, layout, block, template_search, editable, false);
+  uiLayout *decorator_layout = nullptr;
+  if (text && text[0]) {
+    /* Add label respecting the separated layout property split state. */
+    decorator_layout = uiItemL_respect_property_split(row, text, ICON_NONE);
+  }
+
+  template_search_add_button_searchmenu(C, row, block, template_search, editable, false);
   template_search_add_button_name(block, &active_ptr, type);
   template_search_add_button_operator(
       block, newop, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE, editable);
   template_search_add_button_operator(block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
 
   UI_block_align_end(block);
+
+  if (decorator_layout) {
+    uiItemDecoratorR(decorator_layout, nullptr, nullptr, RNA_NO_INDEX);
+  }
 }
 
 static PropertyRNA *template_search_get_searchprop(PointerRNA *targetptr,
@@ -2333,11 +2344,12 @@ void uiTemplateSearch(uiLayout *layout,
                       PointerRNA *searchptr,
                       const char *searchpropname,
                       const char *newop,
-                      const char *unlinkop)
+                      const char *unlinkop,
+                      const char *text)
 {
   TemplateSearch template_search;
   if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
-    template_search_buttons(C, layout, template_search, newop, unlinkop);
+    template_search_buttons(C, layout, template_search, newop, unlinkop, text);
   }
 }
 
@@ -2350,7 +2362,8 @@ void uiTemplateSearchPreview(uiLayout *layout,
                              const char *newop,
                              const char *unlinkop,
                              const int rows,
-                             const int cols)
+                             const int cols,
+                             const char *text)
 {
   TemplateSearch template_search;
   if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
@@ -2358,7 +2371,7 @@ void uiTemplateSearchPreview(uiLayout *layout,
     template_search.preview_rows = rows;
     template_search.preview_cols = cols;
 
-    template_search_buttons(C, layout, template_search, newop, unlinkop);
+    template_search_buttons(C, layout, template_search, newop, unlinkop, text);
   }
 }
 
