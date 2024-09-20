@@ -16,6 +16,7 @@
 
 #include "vk_common.hh"
 #include "vk_device.hh"
+#include "vk_shader_compiler.hh"
 
 namespace blender::gpu {
 
@@ -30,6 +31,7 @@ class VKBackend : public GPUBackend {
 #endif
 
  public:
+  VKShaderCompiler shader_compiler;
   /* Global instance to device handles. */
   VKDevice device;
 

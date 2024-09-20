@@ -15,6 +15,7 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_push_constants.hh"
+#include "vk_shader_module.hh"
 
 #include "shaderc/shaderc.hpp"
 
@@ -24,11 +25,6 @@ class VKShaderInterface;
 class VKShader : public Shader {
  private:
   VKContext *context_ = nullptr;
-  VkShaderModule vertex_module_ = VK_NULL_HANDLE;
-  VkShaderModule geometry_module_ = VK_NULL_HANDLE;
-  VkShaderModule fragment_module_ = VK_NULL_HANDLE;
-  VkShaderModule compute_module_ = VK_NULL_HANDLE;
-  bool compilation_failed_ = false;
 
   /**
    * Not owning handle to the descriptor layout.
@@ -44,8 +40,16 @@ class VKShader : public Shader {
   VkPipeline vk_pipeline_base_ = VK_NULL_HANDLE;
 
   bool is_static_shader_ = false;
+  bool use_batch_compilation_ = false;
 
  public:
+  VKShaderModule vertex_module;
+  VKShaderModule geometry_module;
+  VKShaderModule fragment_module;
+  VKShaderModule compute_module;
+  bool compilation_finished = false;
+  bool compilation_failed = false;
+
   VkPipelineLayout vk_pipeline_layout = VK_NULL_HANDLE;
   VKPushConstants push_constants;
 
@@ -59,6 +63,16 @@ class VKShader : public Shader {
   void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
   void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
+  bool finalize_post();
+
+  /**
+   * Check if needed compilation steps have been finished.
+   *
+   * Returns `true` when all modules that needed compilation have finished their compilation steps.
+   *     Compilations with errors are still considered finished.
+   * Returns `false` when compilation is still needed for one of the shader modules.
+   */
+  bool is_ready() const;
   void warm_cache(int limit) override;
 
   void transform_feedback_names_set(Span<const char *> name_list,
@@ -107,7 +121,7 @@ class VKShader : public Shader {
 
   bool is_compute_shader() const
   {
-    return compute_module_ != VK_NULL_HANDLE;
+    return compute_module.vk_shader_module;
   }
 
   /**
@@ -127,10 +141,11 @@ class VKShader : public Shader {
 
  private:
   Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
-  void build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module);
+  void build_shader_module(Span<uint32_t> spirv_module, VKShaderModule &r_shader_module);
   void build_shader_module(MutableSpan<const char *> sources,
                            shaderc_shader_kind stage,
-                           VkShaderModule *r_shader_module);
+                           VKShaderModule &r_shader_module);
+  bool finalize_shader_module(VKShaderModule &shader_module, const char *stage_name);
   bool finalize_descriptor_set_layouts(VKDevice &vk_device,
                                        const VKShaderInterface &shader_interface);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);

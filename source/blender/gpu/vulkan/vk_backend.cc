@@ -10,6 +10,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_threads.h"
+
 #include "CLG_log.h"
 
 #include "gpu_capabilities_private.hh"
@@ -458,6 +460,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
   GCaps.max_storage_buffer_size = size_t(limits.maxStorageBufferRange);
 
+  GCaps.max_parallel_compilations = BLI_system_thread_count();
   GCaps.mem_stats_support = true;
 
   detect_workarounds(device);
