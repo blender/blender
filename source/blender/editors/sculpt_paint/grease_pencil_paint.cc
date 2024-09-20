@@ -1191,6 +1191,11 @@ static void trim_stroke_ends(bke::greasepencil::Drawing &drawing,
       point_selection,
       true);
 
+  /* No intersection found. */
+  if (stroke_trimmed.points_num() == 0) {
+    return;
+  }
+
   /* Remove the original stroke. */
   drawing.strokes_for_write().remove_curves(IndexRange::from_single(active_curve), {});
 
