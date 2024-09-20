@@ -194,16 +194,9 @@ static bAction *find_related_action(Main &bmain, ID &id)
 
 bAction *id_action_ensure(Main *bmain, ID *id)
 {
-  AnimData *adt;
-
-  /* init animdata if none available yet */
-  adt = BKE_animdata_from_id(id);
+  AnimData *adt = BKE_animdata_ensure_id(id);
   if (adt == nullptr) {
-    adt = BKE_animdata_ensure_id(id);
-  }
-  if (adt == nullptr) {
-    /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
-    printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
+    printf("ERROR: data-block type is not animatable (ID = %s)\n", (id) ? (id->name) : "<None>");
     return nullptr;
   }
 
