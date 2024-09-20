@@ -124,8 +124,8 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
                                    ViewDepths *view_depths)
     : region_(&region),
       view3d_(&view3d),
-      surface_offset_(surface_offset),
-      depth_cache_(view_depths)
+      depth_cache_(view_depths),
+      surface_offset_(surface_offset)
 {
   layer_space_to_world_space_ = (layer != nullptr) ? layer->to_world_space(eval_object) :
                                                      eval_object.object_to_world();
