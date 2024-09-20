@@ -2713,13 +2713,15 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const float offset = RNA_float_get(op->ptr, "offset");
 
+  ViewDepths *view_depths = nullptr;
+  if (mode == ReprojectMode::Surface) {
+    ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, &view_depths);
+  }
+
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       scene.toolsettings);
 
   const int oldframe = int(DEG_get_ctime(depsgraph));
-  /* TODO: This can probably be optimized further for the non-Surface projection use case by
-   * considering all drawings for the parallel loop instead of having to partition by frame number.
-   */
   if (keep_original) {
     const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -2737,9 +2739,13 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
       else if (selection_domain == bke::AttrDomain::Point) {
         curves::duplicate_points(curves, elements);
       }
+      info.drawing.tag_topology_changed();
     });
   }
 
+  /* TODO: This can probably be optimized further for the non-Surface projection use case by
+   * considering all drawings for the parallel loop instead of having to partition by frame number.
+   */
   std::atomic<bool> changed = false;
   Array<Vector<MutableDrawingInfo>> drawings_per_frame =
       retrieve_editable_drawings_grouped_per_frame(scene, grease_pencil);
@@ -2765,17 +2771,13 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
       const bke::greasepencil::Layer &layer = *grease_pencil.layer(info.layer_index);
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
       const DrawingPlacement drawing_placement(
-          scene, *region, *v3d, *object, &layer, mode, offset);
-      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+          scene, *region, *v3d, *object, &layer, mode, offset, view_depths);
+
       MutableSpan<float3> positions = curves.positions_for_write();
-      for (const int curve_index : curves.curves_range()) {
-        const IndexRange curve_points = points_by_curve[curve_index];
-        const IndexMask curve_points_to_reproject = points_to_reproject.slice_content(
-            curve_points);
-        curve_points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
-          positions[point_i] = drawing_placement.reproject(positions[point_i]);
-        });
-      }
+      points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
+        positions[point_i] = drawing_placement.reproject(positions[point_i]);
+      });
+      info.drawing.tag_positions_changed();
 
       changed.store(true, std::memory_order_relaxed);
     });

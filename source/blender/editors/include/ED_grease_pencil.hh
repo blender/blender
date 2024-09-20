@@ -131,7 +131,8 @@ class DrawingPlacement {
                    const Object &eval_object,
                    const bke::greasepencil::Layer *layer,
                    ReprojectMode reproject_mode,
-                   float surface_offset = 0.0f);
+                   float surface_offset = 0.0f,
+                   ViewDepths *view_depths = nullptr);
   DrawingPlacement(const DrawingPlacement &other);
   DrawingPlacement(DrawingPlacement &&other);
   DrawingPlacement &operator=(const DrawingPlacement &other);
